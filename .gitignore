@@ -1,0 +1,25 @@
+# Platform/teknoloji seçimi henüz yapılmamıştır (bkz. README.md).
+# Aşağıdaki asgari küme, hangi framework seçilirse seçilsin ortak olan
+# dosyaları kapsar; framework seçimiyle birlikte güncellenir.
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editör
+.vscode/
+.idea/
+*.swp
+
+# Ortam / secret — depoya girmez
+.env
+.env.*
+!.env.example
+
+# Bağımlılık ve build çıktıları (framework seçimiyle güncellenir)
+node_modules/
+build/
+dist/
+
+# Loglar
+*.log
