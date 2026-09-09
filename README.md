@@ -119,8 +119,8 @@ kardeş olarak alınmalıdır; aksi halde bağlantılar çözülmez.
 
 | Depo | Commit |
 |---|---|
-| `NIZAM.IO` yönetim deposu | `433f1f2` |
-| `nizam.io--backend` | `08ef2ac` |
+| `NIZAM.IO` yönetim deposu | WP-340 kapanışı (bkz. `project-control/product/faz4-oncesi-kapanis-raporu-2026-09-09.md`) |
+| `nizam.io--backend` | `af50d8e` (WP-340 kapanış sürümü; CI yeşil) |
 | `nizam.io--frontend` (bu depo) | ilk commit: `git log -1` (WP-340, 2026-09-09) |
 
 Güncel değerler `git -C <depo> log -1 --format=%h` ile alınır; bu tablo yalnız yazım
