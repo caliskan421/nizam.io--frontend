@@ -1,16 +1,12 @@
 # AGENTS.md — nizam.io--frontend
 
-Her ajan önce `CLAUDE.md`'yi, sonra yönetim deposundaki `../project-control/START-HERE.md`'yi okur.
+Her ajan önce bu depodaki `CLAUDE.md`'yi okur; okuma sırası ve kurallar oradadır.
 
-Bu depoya özgü:
-
-1. Bugün itibarıyla bu depoda uygulama kodu yoktur; yalnız bu dört yönetişim dosyası
-   vardır. Aktif bir Faz 4 iş paketi kartı olmadan hiçbir kod, iskelet veya bağımlılık
-   dosyası eklenmez.
-2. Teknoloji/framework seçimi henüz yapılmamıştır — bu depoda bir framework varsayılıp
-   ona göre dosya, dizin veya komut üretilmez.
-3. Sözleşme kaynağı `../project-control/contracts/`'tır; bu depoda sözleşmenin yerel
-   kopyası tutulmaz veya tek taraflı değiştirilmez.
-4. Eski Teknofest frontend kodu (`SRC-TF-FE`) yalnız davranış kanıtıdır; kopyalanmaz,
-   hedef mimari sayılmaz.
-5. Teslim V2 §15.3 biçimini karşılar; "bitti"/"çalışıyor" tek başına teslim değildir.
+Özet:
+1. Aktif iş `../program/DURUM.md` ve aktif faz dosyasından okunur.
+2. API sözleşmesi yalnız backend `docs/api/` (etiketli sürüm); yerel kopya düzenlenmez.
+3. Kapsam başlıkları açık, belirteç yalnız bellekte, yazmalarda `X-Requested-With`.
+4. Her değişiklik PR + CI; PR şablonu doldurulur.
+5. Paylaşılan makinede yalnız bu depoya ve adıyla belirtilen NIZAM.IO kaynaklarına
+   (Compose projeleri, `nizamio_*` test veritabanları) dokunulur; toplu `docker` /
+   `pkill` müdahalesi yasaktır.
