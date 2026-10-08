@@ -3,10 +3,14 @@
 // http/oturum katmanının gerçek uygulama yığınından geçtiğini e2e ile kanıtlamak içindir.
 import { onMounted, ref, watch } from 'vue'
 
+import { useI18n } from 'vue-i18n'
+
 import { toApiError, type ApiError } from '@/shared/errors/api-error'
+import { errorText } from '@/shared/i18n'
 import { useSessionStore } from '@/shared/session/store'
 
 const session = useSessionStore()
+const { t } = useI18n()
 const email = ref('')
 const password = ref('')
 const error = ref<ApiError | null>(null)
@@ -51,9 +55,9 @@ onMounted(() => {
 <template>
   <section data-testid="session-page">
     <h1>NIZAM.IO</h1>
-    <p data-testid="session-status">{{ session.status }}</p>
-
-    <p v-if="session.status === 'ended'" data-testid="session-ended">oturum sonlandı</p>
+    <p data-testid="session-status" :data-status="session.status">
+      {{ t(`terms.session.${session.status}`) }}
+    </p>
 
     <form
       v-if="session.status === 'anonymous' || session.status === 'ended'"
@@ -79,7 +83,8 @@ onMounted(() => {
     </div>
 
     <p v-if="error" data-testid="error" role="alert">
-      {{ error.messageKey }} <small>{{ error.requestId }}</small>
+      <span :data-code="error.code">{{ errorText(error) }}</span>
+      <small v-if="error.requestId"> ({{ error.requestId }})</small>
     </p>
   </section>
 </template>

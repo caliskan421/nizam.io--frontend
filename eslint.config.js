@@ -50,6 +50,7 @@ export default defineConfigWithVueTs(
       'test-results/**',
       'src/shared/api/schema.d.ts',
       'src/shared/api/*.gen.ts',
+      'src/shared/tokens/*.gen.ts',
     ],
   },
   pluginVue.configs['flat/recommended'],

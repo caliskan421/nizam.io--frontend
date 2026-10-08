@@ -1,0 +1,18 @@
+/* Katman sırası: Tailwind teması → temel → PrimeVue → Tailwind yardımcıları. */
+@layer theme, base, primevue, components, utilities;
+
+@import 'tailwindcss';
+@import 'tailwindcss-primeui';
+@import '../../shared/tokens/tokens.gen.css';
+@import '../../shared/tokens/tailwind.gen.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@layer base {
+  html {
+    font-family: var(--nz-font-sans);
+    background: var(--nz-color-background);
+    color: var(--nz-color-text);
+    line-height: var(--nz-leading-normal);
+  }
+}

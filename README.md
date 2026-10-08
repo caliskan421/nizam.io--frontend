@@ -25,7 +25,8 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 | `pnpm format` / `pnpm format:check` | Prettier. |
 | `pnpm test` | vitest (birim + lint kurallarının negatif testleri). |
 | `pnpm gen:api` | Backend etiketinden (`api-pin.json`) üretim: `src/shared/api/schema.d.ts`, `error-codes.gen.ts`, `operations.gen.ts`. Backend dizini `NIZAMIO_BACKEND_DIR` (varsayılan `../nizam.io--backend`). |
-| `pnpm gen:check` | Yeniden üretir ve `git diff --exit-code` uygular (CI kapısı). |
+| `pnpm gen:tokens` | `tokens/tokens.json` → `src/shared/tokens/tokens.gen.{css,ts}` + `tailwind.gen.css`. |
+| `pnpm gen:check` | İki üreticiyi koşar ve `git diff --exit-code` uygular (CI kapısı). |
 
 ## Backend ile ilişki
 
@@ -55,6 +56,13 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
   koordinasyonu ([docs/refresh-coordination.md](docs/refresh-coordination.md)), Pinia
   oturum deposu (sessiz refresh, giriş, `/v1/me`, çıkış).
 - `scope/` — kapsam deposu (program + departman) ve TanStack Query anahtar fabrikası.
+- `i18n/` — vue-i18n (v1 yalnız TR). `tr/errors.ts`: katalogdaki her zarf ve alan kodu +
+  `client.*` kodları için elle yazılmış metin (anahtar `errors.<kod>`); eksik/fazla testle
+  denetlenir. Bilinmeyen kod genel metne düşer.
+- `tokens/` — kökteki `tokens/tokens.json` (renk, tipografi, boşluk, radius; açık/koyu;
+  platformdan bağımsız, mobil de okur) → üretilmiş CSS değişkenleri (`--nz-*`,
+  `[data-theme='dark']`), Tailwind v4 `@theme` eşlemesi, PrimeVue 4 preset'i (Aura +
+  `definePreset`, `preset.ts`). Tailwind ↔ PrimeVue: `tailwindcss-primeui`, CSS katmanları.
 - `instance/` — `GET /v1/instance/profile`; `api_version` desteklenmiyorsa
   `update_required` durumu (sessiz düşüş yok).
 
@@ -68,6 +76,9 @@ src/shared/api/             ÜRETİLMİŞ sözleşme çıktıları (elle düzenl
 scripts/gen-api.ts          tip/katalog/kapsam haritası üreticisi
 src/modules/<modul>/        api/ pages/ components/ store/ routes.ts public.ts
 tests/lint/                 mimari lint kurallarının negatif testleri
+tests/support/              MSW sahte backend, sahte sekme koordinasyonu
+tokens/tokens.json          tasarım token'larının tek kaynağı (web + mobil)
+scripts/gen-tokens.ts       token üreticisi
 ```
 
 Sınır kuralı (`eslint.config.js`, `boundaries/dependencies`):
