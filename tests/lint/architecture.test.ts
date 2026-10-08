@@ -84,20 +84,52 @@ describe('depolama yasağı', () => {
 })
 
 describe('elle DTO yasağı (src/modules/**/api)', () => {
-  it('interface yakalanır', async () => {
-    const ids = await ruleIds(
-      'src/modules/identity/api/__lint_fixture__.ts',
-      'export interface MeDto { account_id: string }\n',
-    )
+  const API = 'src/modules/identity/api/__lint_fixture__.ts'
+
+  it.each([
+    ['interface', 'export interface MeDto { account_id: string }\n'],
+    ['type alias — nesne', 'export type MeDto = { account_id: string }\n'],
+    ['type alias — Record', 'export type MeDto = Record<string, string>\n'],
+    ['type alias — tuple', 'export type Pair = [string, number]\n'],
+    ['type alias — mapped', "export type M = { [K in 'a' | 'b']: string }\n"],
+    ['type alias — literal birleşimi', "export type Role = 'uye' | 'koordinator'\n"],
+    ['type alias — primitive birleşimi', 'export type Id = string | number\n'],
+    [
+      'type alias — schema takma adı bile',
+      "import type { components } from '@/shared/api/schema'\nexport type Me = components['schemas']['MeResponse']\n",
+    ],
+    ['class', "export class MeDto { account_id = '' }\n"],
+    ['class ifadesi', "export const MeDto = class { account_id = '' }\n"],
+    ['enum', "export enum Role { Uye = 'uye' }\n"],
+    ['namespace', 'export namespace Dto { export const x = 1 }\n'],
+    [
+      'satır içi tip literali (parametre)',
+      'export function f(x: { a: string }): string { return x.a }\n',
+    ],
+    ['satır içi tip literali (as)', "export const x = JSON.parse('{}') as { a: string }\n"],
+    [
+      'satır içi Record',
+      'export function f(x: Record<string, string>): number { return Object.keys(x).length }\n',
+    ],
+    [
+      'satır içi Pick',
+      "import type { MeResponse } from '@/shared/api/types'\nexport function f(x: Pick<MeResponse, 'email'>): string { return x.email }\n",
+    ],
+    ['satır içi tuple', 'export function f(x: [string, string]): string { return x[0] }\n'],
+    ['satır içi literal tip', "export function f(x: 'a'): string { return x }\n"],
+    ['şablon literal tip', 'export function f(x: `a${string}`): string { return x }\n'],
+  ])('%s yakalanır', async (_name, code) => {
+    const ids = await ruleIds(API, code)
     expect(ids).toContain('no-restricted-syntax')
   })
 
-  it('tip literali yakalanır', async () => {
+  it('izin verilen yol: @/shared/api tiplerini içe aktarıp kullanmak', async () => {
     const ids = await ruleIds(
-      'src/modules/identity/api/__lint_fixture__.ts',
-      'export type MeDto = { account_id: string }\n',
+      API,
+      "import type { MeResponse } from '@/shared/api/types'\nexport type { MeResponse }\n" +
+        'export function email(me: MeResponse): string { return me.email }\n',
     )
-    expect(ids).toContain('no-restricted-syntax')
+    expect(ids).not.toContain('no-restricted-syntax')
   })
 
   it('api/ dışında aynı kural uygulanmaz', async () => {

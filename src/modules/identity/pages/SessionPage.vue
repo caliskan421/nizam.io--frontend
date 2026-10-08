@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// YER TUTUCU oturum görünümü (tasarımsız). Giriş ekranı tasarımı F09'dadır; bu sayfa yalnız
+// YER TUTUCU oturum görünümü (tasarımsız). Giriş ekranı tasarımı program sonrası istemci geliştirmesindedir; bu sayfa yalnız
 // http/oturum katmanının gerçek uygulama yığınından geçtiğini e2e ile kanıtlamak içindir.
 import { onMounted, ref, watch } from 'vue'
 
@@ -17,6 +17,7 @@ const error = ref<ApiError | null>(null)
 const busy = ref(false)
 
 async function loadMe(): Promise<void> {
+  error.value = null
   try {
     await session.loadMe()
   } catch (e) {
@@ -59,6 +60,15 @@ onMounted(() => {
       {{ t(`terms.session.${session.status}`) }}
     </p>
 
+    <button
+      v-if="session.status === 'unavailable'"
+      type="button"
+      data-testid="retry-bootstrap"
+      @click="session.bootstrap()"
+    >
+      {{ t('terms.action.retry') }}
+    </button>
+
     <form
       v-if="session.status === 'anonymous' || session.status === 'ended'"
       data-testid="login-form"
@@ -79,6 +89,9 @@ onMounted(() => {
       <p v-if="session.forcePasswordChange" data-testid="force-password-change">
         parola değişimi gerekli
       </p>
+      <button type="button" data-testid="reload-me" @click="loadMe">
+        {{ t('terms.action.refreshMe') }}
+      </button>
       <button type="button" data-testid="logout" @click="logout">çıkış</button>
     </div>
 

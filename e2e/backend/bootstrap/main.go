@@ -1,5 +1,11 @@
 // nizamio-e2e-bootstrap — YALNIZ web e2e ortamı için ilk yönetici kurulumu.
 //
+// GEÇİCİDİR: backend'e test amaçlı aktivasyon yolu (ör. sahte merkez için operatör
+// CLI/HTTP ucu) gelince bu araç kaldırılır ve e2e ilk yöneticiyi backend `cmd/setup`
+// (`/usr/local/bin/setup`, digest doğrulaması dahil) ile kurar. Faz sapması koordinatörce
+// kabul edilmiştir (F06; backend README "Bugünkü sınır", etiket v0.1.0-api). Araç hiçbir
+// üretim imajına/derlemesine girmez; CI bunu e2e/backend/check-isolation.sh ile denetler.
+//
 // NEDEN VAR: backend `cmd/setup` aktivasyon kodu ister; sahte merkez adaptöründe kod
 // yalnız süreç içinde (Go test harness'ı) üretilebilir (backend README "Bugünkü sınır").
 // Bu araç backend entegrasyon düzeneğinin (internal/composition/compositiontest) yaptığını

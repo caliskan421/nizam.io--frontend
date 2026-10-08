@@ -24,13 +24,17 @@ export const useSessionStore = defineStore('session', () => {
   const isAuthenticated = computed(() => state.value.status === 'authenticated')
   const me = shallowRef<MeResponse | null>(null)
 
-  /** Açılışta sessiz refresh: HttpOnly çerez geçerliyse oturum döner, değilse anonim. */
+  /**
+   * Açılışta sessiz refresh: HttpOnly çerez geçerliyse oturum döner; 401 → `anonymous`.
+   * Ağ/5xx hatasında oturum hakkında hüküm yoktur → `unavailable` (yeniden denenebilir;
+   * `ended` DEĞİL). `unavailable` iken yeniden çağrılabilir.
+   */
   async function bootstrap(): Promise<void> {
-    if (state.value.status !== 'unknown') return
+    const current = state.value.status
+    if (current !== 'unknown' && current !== 'unavailable') return
     const outcome = await authSession.refresh(null)
-    if (outcome === 'failed' && authSession.snapshot.status === 'unknown') {
-      // Ağ/sunucu hatası: oturum hakkında hüküm yok; anonim gösterilir, sonraki 401 yeniden dener.
-      authSession.expire()
+    if (outcome === 'failed' && authSession.snapshot.status !== 'authenticated') {
+      authSession.markUnavailable()
     }
   }
 

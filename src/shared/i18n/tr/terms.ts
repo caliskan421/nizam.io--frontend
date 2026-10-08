@@ -12,6 +12,11 @@ export const trTerms = {
       anonymous: 'Oturum açılmadı',
       authenticated: 'Oturum açık',
       ended: 'Oturum sonlandı',
+      unavailable: 'Sunucuya ulaşılamadı; yeniden deneyin',
+    },
+    action: {
+      retry: 'Yeniden dene',
+      refreshMe: 'Bilgileri yenile',
     },
     instance: {
       update_required: 'Güncelleme gerekli',

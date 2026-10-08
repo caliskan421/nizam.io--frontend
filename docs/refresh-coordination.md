@@ -1,7 +1,10 @@
 # Oturum yenileme koordinasyonu (web)
 
-Kaynak: `src/shared/session/auth-session.ts`, `src/shared/session/coordination.ts`,
-`src/shared/http/client.ts`. Testler: `src/shared/http/client.test.ts`.
+Kaynak: `src/shared/session/auth-session.ts`, `src/shared/session/messages.ts`,
+`src/shared/session/coordination.ts`, `src/shared/http/client.ts`.
+Testler: `src/shared/http/client.test.ts` (sahte backend rotasyon + 10 sn pay + toplu iptal
+modeli, `tests/support/fake-backend.ts`), `src/shared/session/messages.test.ts` (kanal
+doğrulaması), `e2e/two-tabs.spec.ts` (iki gerçek sayfa, gerçek backend).
 
 ## Backend davranışı (etiket `v0.1.0-api`)
 
@@ -24,10 +27,33 @@ Kaynak: `src/shared/session/auth-session.ts`, `src/shared/session/coordination.t
    belirteci `{token, accountId, expiresAt, forcePasswordChange, issuedAt}` iletisiyle
    **kilidi bırakmadan önce** yayınlar. Diğer sekmeler daha yeni `issuedAt` taşıyan iletiyi
    belleğe alır. Sıradaki sekme kilidi aldığında elindeki belirteç 401 alan isteğindekinden
-   farklıysa refresh **atmaz**, yayınlanan belirteçle isteği bir kez tekrarlar.
+   farklıysa refresh **atmaz**, yayınlanan belirteçle isteği bir kez tekrarlar. Belirteç
+   değişmemişse önce `sync-request` yayınlar ve kısa süre (150 ms) kardeşlerin güncel
+   belirtecini bekler; yanıt, aynı göndericinin önceki yayınından sonra teslim edilir
+   (kanal sıra korur), böylece "yayın kilitten sonra ulaştı" yarışı da tek refresh'le biter.
    Kalıcı depolama (localStorage/sessionStorage/IndexedDB/çerez) kullanılmaz; ileti yalnız
    aynı origin'in açık sekmelerine bellekten bellek gider.
-4. **Çıkış:** `logout` iletisi diğer sekmelerin belleğini de temizler.
+4. **Çıkış:** `logout` iletisi (hesap kimliğiyle) aynı hesaptaki diğer sekmelerin
+   belleğini de temizler; başka hesabın `logout`'u yok sayılır.
+
+## Güvenlik varsayımı ve kanal doğrulaması
+
+**Aynı origin tek güven alanıdır.** Aynı origin'de çalışan her betik bu SPA'nın belleğine
+(dolayısıyla erişim belirtecine) zaten erişebilir; kanal bu varsayımın ötesinde yeni bir
+yetki vermez. Varsayımı koruyan şey origin'de **yalnız bu SPA'nın** sunulmasıdır (statik
+içerik + `/v1`, `/.well-known` backend); güvenilmeyen içerik bu origin'de barındırılmaz,
+sıkı CSP (inline betik yok) F15 Caddy yapılandırmasıyla uygulanır.
+
+Buna rağmen kanal savunmacı okunur (`messages.ts`, `parseSessionMessage`):
+
+- Sürüm alanı (`v: 1`), bilinen tür (`token` / `logout` / `sync-request`), **tam alan
+  kümesi** (eksik veya fazla alan → ret), alan türleri ve uzunlukları (belirteç 16–4096
+  karakter, izinli karakter kümesi; hesap kimliği ≤ 128).
+- `expiresAt` tamsayı, gelecekte ve en çok 7 gün ileride; `issuedAt` alıcının saatine en çok
+  5 dk uzak (aynı makine). Eski belirteç `sync-request` yanıtında da paylaşılmaz.
+- Hesap tutarlılığı: oturumda hesap doluysa farklı hesabın `token` iletisi reddedilir;
+  `logout` yalnız aynı hesap için uygulanır. Aynı hesapta yalnız daha yeni `issuedAt` kazanır.
+- Geçersiz ileti **sessizce yok sayılır** (hata fırlatılmaz, durum değişmez).
 
 ### Neden bu yöntem
 
@@ -38,12 +64,11 @@ tek refresh), yayın da ikinci sekmenin gereksiz rotasyonunu önler.
 
 ### Bilinen yarış ve sonucu
 
-BroadcastChannel teslimi ile kilit devri arasında tarayıcı sıra garantisi yoktur. İleti
-kilitten sonra ulaşırsa ikinci sekme refresh'i yine kilit içinde, yani **güncel çerezle**
-gönderir: istek başarılı olur (ikinci bir rotasyon), 401 veya toplu iptal oluşmaz, eski
-oturum belirteçleri geçerli kaldığı için hiçbir sekme düşmez ve en yeni `issuedAt` bütün
-sekmelerde kazanır. Maliyet yalnız bir fazladan refresh'tir (test: "yayın kilit devrinden
-SONRA ulaşırsa").
+BroadcastChannel teslimi ile kilit devri arasında tarayıcı sıra garantisi yoktur. Kilidi
+alan sekme `sync-request` ile kardeşlerden güncel belirteci ister (test: "yayın kilit
+devrinden SONRA ulaşsa da sync-request ile tek refresh"). Hiçbir kardeş 150 ms içinde
+yanıt vermezse (ör. donmuş sekme) refresh yine kilit içinde, **güncel çerezle** gider:
+başarılı ikinci rotasyon olur, 401 veya toplu iptal oluşmaz; maliyet bir fazladan refresh.
 
 ### Web Locks yoksa
 
@@ -51,7 +76,10 @@ SONRA ulaşırsa").
 sekme içi tekilleştirme kalır; iki sekme aynı eski çerezle refresh atabilir. Kaybeden sekme
 backend'in 10 sn payı sayesinde toplu iptal yerine 401 alır; istemci bu durumda oturumu
 hemen bitirmez, kazanan sekmenin yayınını kısa süre (1 sn) bekler ve gelirse onunla devam
-eder. Üretim kurulumları https'tir (Caddy, F15).
+eder. Bu yol sahte backend modelinde sınanır: iki sekme aynı eski çerezle refresh atar,
+biri döndürür, diğeri pay içinde 401 alır, toplu iptal olmaz, iki oturum da sürer; pay
+**dışında** eski çerez tekrar gelirse bütün oturumlar düşer ve istemci `ended`'e geçer.
+Üretim kurulumları https'tir (Caddy, F15).
 
 ### Döngü koruması
 
@@ -60,4 +88,5 @@ eder. Üretim kurulumları https'tir (Caddy, F15).
 - Orijinal istek refresh sonrası yalnız **bir kez** tekrarlanır; ikinci 401 olduğu gibi döner.
 - Refresh 401 → oturum temizlenir, durum `ended` ("oturum sonlandı"); açılıştaki sessiz
   refresh 401 ise durum `anonymous`. Refresh 429/5xx/ağ hatası oturum hakkında hüküm
-  sayılmaz: belirteç kalır, orijinal hata çağırana döner.
+  sayılmaz: belirteç kalır, orijinal hata çağırana döner. Açılıştaki sessiz refresh
+  ağ/5xx ile biterse durum `unavailable`'dır (yeniden denenebilir; `ended` değil).

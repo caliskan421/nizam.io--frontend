@@ -8,11 +8,11 @@
 #
 # Kip (NIZAMIO_E2E_MODE):
 #   local (varsayılan) — Postgres `nizamio_web_e2e` Compose projesinde (127.0.0.1:15432),
-#                        server 127.0.0.1:18080'e yayımlanır.
+#                        server'lar 127.0.0.1:18080 ve :18081 (kısa oturum ömrü).
 #   ci                 — Postgres GitHub Actions servis konteyneri (127.0.0.1:5432),
 #                        konteynerler --network host.
 # Dokunulan kaynaklar adıyla: Compose projesi nizamio_web_e2e, konteyner
-# nizamio_web_e2e-server, imajlar nizamio-web-e2e/*. Toplu docker müdahalesi YOKTUR.
+# nizamio_web_e2e-server ve nizamio_web_e2e-server-shortttl, imajlar nizamio-web-e2e/*. Toplu docker müdahalesi YOKTUR.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -23,6 +23,8 @@ case "$backend_dir" in /*) ;; *) backend_dir="$root/$backend_dir" ;; esac
 state="$root/e2e/.state"
 server_port="${NIZAMIO_E2E_SERVER_PORT:-18080}"
 server_name="nizamio_web_e2e-server"
+short_server_name="nizamio_web_e2e-server-shortttl"
+short_server_port="${NIZAMIO_E2E_SHORT_SERVER_PORT:-18081}"
 project="nizamio_web_e2e"
 db_name="nizamio_e2e"
 admin_email="${NIZAMIO_E2E_ADMIN_EMAIL:-yonetici@e2e.nizamio.test}"
@@ -44,22 +46,21 @@ image="nizamio-web-e2e/backend:$tag"
 bootstrap_image="nizamio-web-e2e/bootstrap:$tag"
 echo "== imaj: $image (etiketin build/Dockerfile'ı, Go $go_version)"
 docker build -q --build-arg "GO_VERSION=$go_version" -f "$state/src/build/Dockerfile" -t "$image" "$state/src"
-docker build -q --build-arg "GO_VERSION=$go_version" -f "$here/bootstrap.Dockerfile" -t "$bootstrap_image" "$state/src"
+docker build -q -f "$here/bootstrap.Dockerfile" -t "$bootstrap_image" "$state/src"
 
 if [[ "$mode" == "ci" ]]; then
   net=(--network host)
   db_host="127.0.0.1"
-  publish=()
   listen="127.0.0.1:$server_port"
 else
   docker compose -p "$project" -f "$here/compose.yaml" up -d --wait
   net=(--network "${project}_default")
   db_host="db"
-  publish=(-p "127.0.0.1:$server_port:8080")
   listen="0.0.0.0:8080"
 fi
+pg_image="postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d"
 admin_url="postgres://postgres:postgres@$db_host:5432/$db_name?sslmode=disable"
-psql_run() { docker run --rm -i "${net[@]}" postgres:16 psql "$admin_url" -X -q -v ON_ERROR_STOP=1 "$@"; }
+psql_run() { docker run --rm -i "${net[@]}" "$pg_image" psql "$admin_url" -X -q -v ON_ERROR_STOP=1 "$@"; }
 
 migrator_role="${db_name}_migrator"
 app_role="${db_name}_app"
@@ -108,21 +109,37 @@ printf '%s\n' "$admin_password" | docker run --rm -i "${net[@]}" --env-file "$en
   -e "NIZAMIO_DATABASE_URL=$app_url" "$bootstrap_image" \
   --admin-email "$admin_email" --company-name "NIZAM.IO Web E2E"
 
-echo "== server: $server_name → 127.0.0.1:$server_port"
-docker rm -f "$server_name" >/dev/null 2>&1 || true
-docker run -d --name "$server_name" "${net[@]}" "${publish[@]}" --env-file "$env_file" \
-  -e "NIZAMIO_DATABASE_URL=$app_url" "$image" >/dev/null
+# İki server aynı veritabanı ve yapılandırmayla koşar; ikincisi YALNIZ oturum ömrü kısa
+# (NIZAMIO_SESSION_TTL=1m, şema alt sınırı) — iki sekme eşzamanlı 401 senaryosu içindir
+# (e2e/two-tabs.spec.ts). Kısa ömür diğer akışları etkilemesin diye ayrı süreç/porttadır.
+start_server() { # ad host-portu [ek -e argümanları...]
+  local name="$1" port="$2"
+  shift 2
+  local pub=() addr="$listen"
+  if [[ "$mode" == "ci" ]]; then addr="127.0.0.1:$port"; else pub=(-p "127.0.0.1:$port:8080"); fi
+  echo "== server: $name → 127.0.0.1:$port"
+  docker rm -f "$name" >/dev/null 2>&1 || true
+  docker run -d --name "$name" "${net[@]}" "${pub[@]}" --env-file "$env_file" \
+    -e "NIZAMIO_DATABASE_URL=$app_url" -e "NIZAMIO_HTTP_LISTEN_ADDR=$addr" "$@" "$image" >/dev/null
+}
+wait_ready() { # ad host-portu
+  local name="$1" port="$2"
+  for _ in $(seq 1 60); do
+    if [[ "$(docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null)" != "true" ]]; then
+      break
+    fi
+    if curl -fsS "http://127.0.0.1:$port/healthz/ready" >/dev/null 2>&1; then
+      echo "== backend hazır: $name http://127.0.0.1:$port"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "HATA: $name hazır olmadı" >&2
+  docker logs "$name" >&2 || true
+  return 1
+}
 
-for _ in $(seq 1 60); do
-  if [[ "$(docker inspect -f '{{.State.Running}}' "$server_name" 2>/dev/null)" != "true" ]]; then
-    break
-  fi
-  if curl -fsS "http://127.0.0.1:$server_port/healthz/ready" >/dev/null 2>&1; then
-    echo "== backend hazır: http://127.0.0.1:$server_port"
-    exit 0
-  fi
-  sleep 1
-done
-echo "HATA: backend hazır olmadı" >&2
-docker logs "$server_name" >&2 || true
-exit 1
+start_server "$server_name" "$server_port"
+start_server "$short_server_name" "$short_server_port" -e NIZAMIO_SESSION_TTL=1m
+wait_ready "$server_name" "$server_port"
+wait_ready "$short_server_name" "$short_server_port"

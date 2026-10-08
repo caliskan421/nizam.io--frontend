@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Kabuk tasarımı F09'dadır; bu yalnız yer tutucu düzendir.
+// Kabuk tasarımı program sonrası istemci geliştirmesindedir; bu yalnız yer tutucu düzendir.
 </script>
 
 <template>

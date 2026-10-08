@@ -76,13 +76,30 @@ export default defineConfigWithVueTs(
   },
   {
     name: 'nizamio/elle-dto-yasagi',
-    files: ['src/modules/**/api/**/*.ts'],
+    files: ['src/modules/**/api/**/*.{ts,tsx,mts,cts}'],
     rules: {
       'no-restricted-syntax': [
         'error',
         ...storageBan['no-restricted-syntax'].slice(1),
+        // Yerel tip BİLDİRİMİ yok: interface, type alias (her biçim), class, enum, namespace.
         { selector: 'TSInterfaceDeclaration', message: dtoMessage },
+        { selector: 'TSTypeAliasDeclaration', message: dtoMessage },
+        { selector: 'ClassDeclaration', message: dtoMessage },
+        { selector: 'ClassExpression', message: dtoMessage },
+        { selector: 'TSEnumDeclaration', message: dtoMessage },
+        { selector: 'TSModuleDeclaration', message: dtoMessage },
+        // Satır içi tip İNŞASI yok: nesne/tuple/eşlenmiş tip, literal tip, yardımcı tiplerle
+        // şekil üretme. Tipler @/shared/api (schema.d.ts) kökenli ADLARLA kullanılır.
         { selector: 'TSTypeLiteral', message: dtoMessage },
+        { selector: 'TSTupleType', message: dtoMessage },
+        { selector: 'TSMappedType', message: dtoMessage },
+        { selector: 'TSLiteralType', message: dtoMessage },
+        { selector: 'TSTemplateLiteralType', message: dtoMessage },
+        {
+          selector:
+            'TSTypeReference[typeName.name=/^(Record|Partial|Required|Pick|Omit|Readonly|Exclude|Extract|NonNullable)$/]',
+          message: dtoMessage,
+        },
       ],
     },
   },

@@ -1,12 +1,17 @@
 import type { components } from '@/shared/api/schema'
 
 import type { RefreshCoordination } from './coordination'
+import { MESSAGE_LIMITS, parseSessionMessage, SESSION_MESSAGE_VERSION } from './messages'
 
 type LoginResponse = components['schemas']['LoginResponse']
 type RefreshResponse = components['schemas']['RefreshResponse']
 
-/** Oturum durumu (UI'ın gözlediği yüz). Belirteç bu nesnede YOKTUR. */
-export type SessionStatus = 'unknown' | 'anonymous' | 'authenticated' | 'ended'
+/**
+ * Oturum durumu (UI'ın gözlediği yüz). Belirteç bu nesnede YOKTUR.
+ * `unavailable`: açılıştaki sessiz refresh ağ/5xx nedeniyle sonuçlanmadı — oturum hakkında
+ * hüküm yok, yeniden denenebilir (401 değil).
+ */
+export type SessionStatus = 'unknown' | 'anonymous' | 'authenticated' | 'ended' | 'unavailable'
 
 export interface SessionSnapshot {
   status: SessionStatus
@@ -16,26 +21,15 @@ export interface SessionSnapshot {
   forcePasswordChange: boolean
 }
 
-/** Sekmeler arası kanalda taşınan iletiler. Kalıcı depolamaya hiçbir şey yazılmaz. */
-export type SessionMessage =
-  | {
-      type: 'token'
-      token: string
-      accountId: string
-      expiresAt: number
-      forcePasswordChange: boolean
-      /** Gönderen sekmenin belirteci aldığı an (ms). Daha yenisi kazanır. */
-      issuedAt: number
-    }
-  | { type: 'logout' }
-
 export interface AuthSessionDeps {
   /** Ham fetch (ara katmansız). Refresh çağrısı API istemcisinin dışından yapılır: döngü olmaz. */
   fetch: (input: Request) => Promise<Response>
   baseUrl: string
   coordination: RefreshCoordination
-  /** Refresh 401'inde kardeş sekmenin yeni belirtecini bekleme süresi (ms). */
+  /** Refresh 401'inde kardeş sekmenin yeni belirtecini bekleme süresi (ms; kilitsiz yol). */
   peerWaitMs?: number
+  /** Kilit alındığında kardeş sekmelerden güncel belirteç isteme (sync-request) süresi (ms). */
+  syncWaitMs?: number
   now?: () => number
 }
 
@@ -54,7 +48,9 @@ export const REFRESH_LOCK_NAME = 'nizamio:auth-refresh'
  *  - Sekmeler arası: refresh yalnız `navigator.locks` özel kilidi içinde yapılır. Kilidi
  *    kazanan sekme yeni belirteci BroadcastChannel ile yayınlar (kilit bırakılmadan önce);
  *    sıradaki sekme kilidi aldığında belirteci başarısız isteğindekinden farklıysa refresh
- *    ATMAZ, yayınlanan belirteci kullanır. Gerekçe: docs/refresh-coordination.md.
+ *    ATMAZ, yayınlanan belirteci kullanır; değilse önce kardeşlerden güncel belirteci ister
+ *    (sync-request). Kanal iletileri sıkı doğrulanır (messages.ts).
+ *    Gerekçe ve güvenlik varsayımı: docs/refresh-coordination.md.
  */
 export class AuthSession {
   #token: string | null = null
@@ -73,7 +69,7 @@ export class AuthSession {
   }
 
   constructor(deps: AuthSessionDeps) {
-    this.#deps = { peerWaitMs: 1000, now: () => Date.now(), ...deps }
+    this.#deps = { peerWaitMs: 1000, syncWaitMs: 150, now: () => Date.now(), ...deps }
     deps.coordination.subscribe((message) => this.#onMessage(message))
   }
 
@@ -106,13 +102,20 @@ export class AuthSession {
         : this.#snapshot.forcePasswordChange)
     const issuedAt = Math.max(this.#deps.now(), this.#issuedAt + 1)
     this.#apply(token, response.account_id, response.expires_at, force, issuedAt)
+    this.#publishToken()
+  }
+
+  #publishToken(): void {
+    const { accountId, expiresAt, forcePasswordChange } = this.#snapshot
+    if (!this.#token || !accountId || expiresAt === null) return
     this.#deps.coordination.publish({
+      v: SESSION_MESSAGE_VERSION,
       type: 'token',
-      token,
-      accountId: response.account_id,
-      expiresAt: response.expires_at,
-      forcePasswordChange: force,
-      issuedAt,
+      token: this.#token,
+      accountId,
+      expiresAt,
+      forcePasswordChange,
+      issuedAt: this.#issuedAt,
     })
   }
 
@@ -124,8 +127,22 @@ export class AuthSession {
 
   /** Çıkış: bellek temizlenir, diğer sekmelere bildirilir. API çağrısı depo katmanındadır. */
   clear(): void {
+    const accountId = this.#snapshot.accountId
     this.#end('anonymous')
-    this.#deps.coordination.publish({ type: 'logout' })
+    if (accountId) {
+      this.#deps.coordination.publish({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId })
+    }
+  }
+
+  /** Açılıştaki sessiz refresh geçici hatayla sonuçlandı (ağ/5xx): yeniden denenebilir. */
+  markUnavailable(): void {
+    this.#token = null
+    this.#setSnapshot({
+      status: 'unavailable',
+      accountId: null,
+      expiresAt: null,
+      forcePasswordChange: false,
+    })
   }
 
   /** Oturum sona erdi (refresh reddi): bellek temizlenir, "oturum sonlandı" durumu. */
@@ -151,6 +168,10 @@ export class AuthSession {
   async #refreshLocked(failedToken: string | null): Promise<RefreshOutcome> {
     // Kilidi beklerken başka sekme yenilediyse onun belirteci zaten bize ulaşmıştır.
     if (this.#hasNewerToken(failedToken)) return 'ok'
+    // Yayın kilit devrinden sonra ulaşabilir (tarayıcı sıra garantisi yok). Kardeşlerden güncel
+    // belirteç istenir; yanıt aynı göndericinin önceki yayınından sonra gelir (kanal FIFO).
+    this.#deps.coordination.publish({ v: SESSION_MESSAGE_VERSION, type: 'sync-request' })
+    if (await this.#waitForNewerToken(failedToken, this.#deps.syncWaitMs)) return 'ok'
 
     let response: Response
     try {
@@ -184,7 +205,8 @@ export class AuthSession {
       // her biri güncel çerezle gider; beklemeye gerek yoktur.
       const waitMs = this.#deps.coordination.crossTabLock ? 0 : this.#deps.peerWaitMs
       if (await this.#waitForNewerToken(failedToken, waitMs)) return 'ok'
-      if (this.#snapshot.status === 'unknown' || this.#snapshot.status === 'anonymous') {
+      const st = this.#snapshot.status
+      if (st === 'unknown' || st === 'anonymous' || st === 'unavailable') {
         this.#end('anonymous')
       } else {
         this.#end('ended')
@@ -217,19 +239,36 @@ export class AuthSession {
     })
   }
 
-  #onMessage(message: SessionMessage): void {
-    if (message.type === 'logout') {
-      this.#end('anonymous')
-      return
+  #onMessage(raw: unknown): void {
+    const now = this.#deps.now()
+    const message = parseSessionMessage(raw, now)
+    if (!message) return // bozuk/bilinmeyen/eski sürüm/fazla alan: sessizce yok sayılır
+    const current = this.#snapshot.accountId
+
+    switch (message.type) {
+      case 'logout':
+        // Yalnız aynı hesabın çıkışı uygulanır.
+        if (current !== null && message.accountId === current) this.#end('anonymous')
+        return
+      case 'sync-request': {
+        // Belirteç yalnız taze ise paylaşılır (alıcı eski issuedAt'i zaten reddeder).
+        if (this.#snapshot.status !== 'authenticated') return
+        if (Math.abs(now - this.#issuedAt) > MESSAGE_LIMITS.issuedSkewMs) return
+        this.#publishToken()
+        return
+      }
+      case 'token':
+        // Hesap tutarlılığı: oturumdaki hesap doluysa başka hesabın belirteci reddedilir.
+        if (current !== null && message.accountId !== current) return
+        if (message.issuedAt <= this.#issuedAt) return
+        this.#apply(
+          message.token,
+          message.accountId,
+          message.expiresAt,
+          message.forcePasswordChange,
+          message.issuedAt,
+        )
     }
-    if (message.issuedAt <= this.#issuedAt) return
-    this.#apply(
-      message.token,
-      message.accountId,
-      message.expiresAt,
-      message.forcePasswordChange,
-      message.issuedAt,
-    )
   }
 
   #apply(
