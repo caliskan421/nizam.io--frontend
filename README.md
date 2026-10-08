@@ -97,9 +97,15 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   ve ikinci önizleme (`4174`) koşar; normal akışlar `4173 → 18080` (15 dk) üzerindedir.
 - **Tedarik zinciri:** CI eylemleri commit SHA'sına, Postgres ve e2e araç imajının tabanları
   digest'e sabitlidir. Backend imajı etiketin kendi `build/Dockerfile`'ıyla derlenir;
-  tabanları `up.sh` digest'li çekip Dockerfile'ın beklediği etiketle yerel etiketler,
-  `--pull=false` + `BUILDKIT_SYNTAX` (digest'li) ile derler ve `check-base-pins.sh` ile
-  denetler. Kalıcı çözüm backend `build/Dockerfile`'ında digest pinidir (F23'e devir).
+  `up.sh` yalnız etiketten çıkarılan GEÇİCİ kopyadaki FROM satırlarını digest'li
+  referanslara yeniden yazar, `BUILDKIT_SYNTAX` (digest'li) ile derler ve
+  `check-base-pins.sh` ile denetler (FROM digest'li, BuildKit pinli referansı çözdü, çalışma
+  imajı pinli distroless katmanlarıyla başlıyor). Kalıcı çözüm backend `build/Dockerfile`'ında
+  digest pinidir (F23'e devir).
+- **Paylaşılan Docker daemon:** e2e betikleri `docker tag`/`docker rmi` kullanmaz; yerelde de
+  hiçbir genel (NIZAM.IO adı taşımayan) etiket oluşturulmaz veya değiştirilmez. Yalnız
+  `nizamio-web-e2e/*` imajları, `nizamio_web_e2e*` konteynerleri ve `nizamio_web_e2e` Compose
+  projesi kullanılır. CI bunu grep ile denetler.
 - **Yerel:** `NIZAMIO_E2E_MODE=local` (varsayılan) Postgres'i `nizamio_web_e2e` Compose
   projesinde açar (`127.0.0.1:15432`); kapatma `pnpm e2e:backend:down`. Paylaşılan
   makinede başka projelerin kaynaklarına dokunulmaz. **CI:** Postgres servis konteyneri,

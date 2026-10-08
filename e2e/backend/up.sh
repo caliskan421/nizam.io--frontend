@@ -43,53 +43,60 @@ cp "$here/bootstrap/main.go" "$state/src/cmd/nizamio-e2e-bootstrap/main.go"
 # GO_VERSION backend Makefile ile aynı kaynaktan: etiketteki go.mod'un `go` satırı (tam değer).
 go_version="$(awk '/^go /{print $2}' "$state/src/go.mod")"
 
-# TABAN İMAJ PİNLERİ (CX-Ö-04). Etiketin build/Dockerfile'ı tabanları yalnız etiketle anar
-# (`golang:${GO_VERSION}-bookworm`, `gcr.io/distroless/static-debian12:nonroot`) ve backend
-# deposuna yazılmaz. Etkin pin: digest'li imaj çekilir, Dockerfile'ın beklediği etiketle
-# YEREL olarak etiketlenir, derleme `--pull=false` ile yerel imajdan yapılır; Dockerfile
-# frontend'i BUILDKIT_SYNTAX ile digest'e sabitlenir. Sonra denetlenir (aşağıda).
-# Digest'ler registry Docker-Content-Digest başlığından çözülmüştür. Kalıcı çözüm backend
-# Dockerfile'ında digest pinidir (F23).
+# TABAN İMAJ PİNLERİ (CX-Ö-04, CX-r2-Ö-01). Etiketin build/Dockerfile'ı tabanları yalnız
+# etiketle anar (`golang:${GO_VERSION}-bookworm`, `gcr.io/distroless/static-debian12:nonroot`).
+# Backend deposuna yazılmaz; yalnız `$state/src` altındaki GEÇİCİ kopyanın FROM satırları
+# digest'li referanslara yeniden yazılır. Dockerfile frontend'i BUILDKIT_SYNTAX ile digest'e
+# sabittir. Digest'ler registry Docker-Content-Digest başlığından çözülmüştür. Kalıcı çözüm
+# backend Dockerfile'ında digest pinidir (F23).
+# PAYLAŞILAN DAEMON KURALI: bu betik `docker tag`/`docker rmi` KULLANMAZ; hiçbir genel
+# (NIZAM.IO adı taşımayan) etiket oluşturulmaz veya değiştirilmez. Yalnız nizamio-web-e2e/*
+# imajları `docker build -t` ile üretilir. CI bunu grep ile denetler.
 golang_pin() { # go sürümü → golang:<sürüm>-bookworm digest'i
   case "$1" in
     1.26.0) echo "sha256:2a0ba12e116687098780d3ce700f9ce3cb340783779646aafbabed748fa6677c" ;;
     *) echo "" ;;
   esac
 }
-distroless_tag="gcr.io/distroless/static-debian12:nonroot"
-distroless_digest="sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab"
+distroless_ref="gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab"
 syntax_ref="docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e"
-golang_tag="golang:${go_version}-bookworm"
 golang_digest="$(golang_pin "$go_version")"
 if [[ -z "$golang_digest" ]]; then
   echo "HATA: go.mod Go $go_version için taban imaj pini yok; e2e/backend/up.sh golang_pin güncellenmeli" >&2
   exit 1
 fi
+golang_ref="golang:${go_version}-bookworm@${golang_digest}"
 
-pin_local() { # etiket digest
-  local tag="$1" digest="$2" repo="${1%:*}"
-  docker pull -q "$repo@$digest" >/dev/null
-  docker tag "$repo@$digest" "$tag"
-  echo "== taban: $tag → $repo@$digest (yerel etiket, id $(docker image inspect -f '{{.Id}}' "$tag"))"
+dockerfile="$state/src/build/Dockerfile"
+pin_from() { # beklenen-satır yeni-satır
+  local expected="$1" replacement="$2" count
+  count="$(grep -cxF "$expected" "$dockerfile" || true)"
+  if [[ "$count" != "1" ]]; then
+    echo "HATA: geçici Dockerfile'da beklenen satır $count kez bulundu (1 beklenir): $expected" >&2
+    exit 1
+  fi
+  awk -v e="$expected" -v r="$replacement" '$0 == e { print r; next } { print }' "$dockerfile" \
+    >"$dockerfile.pinned"
+  mv "$dockerfile.pinned" "$dockerfile"
+  echo "== taban: $replacement"
 }
-pin_local "$golang_tag" "$golang_digest"
-pin_local "$distroless_tag" "$distroless_digest"
+pin_from 'FROM golang:${GO_VERSION}-bookworm AS build' "FROM $golang_ref AS build"
+pin_from 'FROM gcr.io/distroless/static-debian12:nonroot AS runtime' "FROM $distroless_ref AS runtime"
 
 image="nizamio-web-e2e/backend:$tag"
 bootstrap_image="nizamio-web-e2e/bootstrap:$tag"
 build_log="$state/backend-build.log"
-echo "== imaj: $image (etiketin build/Dockerfile'ı, Go $go_version, --pull=false)"
-docker build --pull=false --progress=plain \
+echo "== imaj: $image (etiketin build/Dockerfile'ı, geçici kopyada digest'li FROM, Go $go_version)"
+docker build --progress=plain \
   --build-arg "BUILDKIT_SYNTAX=$syntax_ref" --build-arg "GO_VERSION=$go_version" \
-  -f "$state/src/build/Dockerfile" -t "$image" "$state/src" >"$build_log" 2>&1 ||
+  -f "$dockerfile" -t "$image" "$state/src" >"$build_log" 2>&1 ||
   { cat "$build_log" >&2; exit 1; }
-docker build -q --pull=false -f "$here/bootstrap.Dockerfile" -t "$bootstrap_image" "$state/src"
+docker build -q -f "$here/bootstrap.Dockerfile" -t "$bootstrap_image" "$state/src"
 
-# DENETİM — derleme gerçekten pinli yerel tabanları kullandı mı?
-#  1) Çalışma aşaması: imajın katmanları pinli distroless'in katmanlarıyla BAŞLAR.
-#  2) Derleme aşaması: BuildKit günlüğündeki golang FROM satırı pinli digest'i gösterir.
-"$here/check-base-pins.sh" "$image" "$distroless_tag" "$build_log" "$golang_tag" "$golang_digest"
-"$here/check-base-pins.sh" "$bootstrap_image" "$distroless_tag"
+# DENETİM — geçici Dockerfile digest'li mi, BuildKit pinli referansları mı çözdü, çalışma
+# imajı pinli distroless katmanlarıyla mı başlıyor?
+"$here/check-base-pins.sh" "$image" "$distroless_ref" "$dockerfile" "$build_log" "$golang_ref"
+"$here/check-base-pins.sh" "$bootstrap_image" "$distroless_ref" "$here/bootstrap.Dockerfile"
 
 if [[ "$mode" == "ci" ]]; then
   net=(--network host)

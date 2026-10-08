@@ -85,6 +85,16 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: 'Paylaşılan daemon: e2e betiklerinde docker tag/rmi yok (genel etiket değişmez)'
+        run: |
+          # İmaj etiketleme/silme komutu hiç yok (yorum satırları hariç); konteyner `docker rm -f`
+          # yalnız adı belirtilmiş nizamio_web_e2e* kaynaklarındadır.
+          if grep -nE '^[^#]*docker[[:space:]]+((image[[:space:]]+)?tag|rmi|image[[:space:]]+(rm|prune)|system[[:space:]]+prune)([[:space:]]|$)' e2e/backend/*.sh; then
+            echo "::error::e2e betiklerinde imaj etiketleme/silme komutu var"
+            exit 1
+          fi
+          echo "e2e betiklerinde docker tag/rmi yok"
+
       - name: 'Ayrım: e2e ilk yönetici aracı yayın paketinde yok (dist/)'
         run: e2e/backend/check-isolation.sh dist
 
