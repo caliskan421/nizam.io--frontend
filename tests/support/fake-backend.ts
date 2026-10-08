@@ -65,6 +65,8 @@ export function createFakeBackend() {
     refreshCount: 0,
     refreshEvents: [] as RefreshEvent[],
     refreshMode: 'ok' as 'ok' | 'unauthorized' | 'server_error',
+    /** Erişim belirteci ömrü (saniye) — backend NIZAMIO_SESSION_TTL karşılığı; üst sınırı yok. */
+    accessTtlSec: 900,
     /**
      * > 0 ise refresh yanıtları bu kadar refresh isteği gelene dek bekletilir (eşzamanlılık
      * bariyeri): istekler çerezi GÖNDERİLDİKLERİ anda taşıdığı için hepsi aynı eski çerezle gelir.
@@ -122,6 +124,7 @@ export function createFakeBackend() {
     state.refreshCount = 0
     state.refreshEvents.length = 0
     state.refreshMode = 'ok'
+    state.accessTtlSec = 900
     state.refreshBarrier = 0
     barrierWaiters.length = 0
     state.requests.length = 0
@@ -204,8 +207,8 @@ export function createFakeBackend() {
         HttpResponse.json({
           token,
           account_id: 'acc-1',
-          expires_at: nowSec() + 900,
-          refresh_expires_at: nowSec() + 86_400,
+          expires_at: nowSec() + state.accessTtlSec,
+          refresh_expires_at: nowSec() + state.accessTtlSec + 86_400,
         }),
         next,
       )
@@ -221,7 +224,7 @@ export function createFakeBackend() {
         HttpResponse.json({
           token: issueAccess(),
           account_id: 'acc-1',
-          expires_at: nowSec() + 900,
+          expires_at: nowSec() + state.accessTtlSec,
           force_password_change: false,
         }),
         rt,

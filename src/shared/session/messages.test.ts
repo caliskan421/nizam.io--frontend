@@ -17,6 +17,14 @@ const valid = {
 }
 
 describe('parseSessionMessage — sıkı şema', () => {
+  it.each([
+    ['30 gün', 30 * 24 * 3600],
+    ['365 gün', 365 * 24 * 3600],
+  ])('uzun ömürlü belirteç (%s) kabul edilir — backend TTL üst sınırı yok', (_name, ttl) => {
+    const msg = { ...valid, expiresAt: NOW_SEC + ttl }
+    expect(parseSessionMessage(msg, NOW)).toEqual(msg)
+  })
+
   it('geçerli token, logout ve sync-request iletileri kabul edilir', () => {
     expect(parseSessionMessage(valid, NOW)).toEqual(valid)
     expect(parseSessionMessage({ v: 1, type: 'logout', accountId: 'acc-1' }, NOW)).toEqual({
@@ -43,7 +51,7 @@ describe('parseSessionMessage — sıkı şema', () => {
     ['hesap boş', { ...valid, accountId: '' }],
     ['hesap biçim dışı', { ...valid, accountId: 'acc/../1' }],
     ['süresi geçmiş', { ...valid, expiresAt: NOW_SEC - 1 }],
-    ['bitiş çok ileride', { ...valid, expiresAt: NOW_SEC + MESSAGE_LIMITS.expiresMaxAheadSec + 1 }],
+    ['bitiş güvenli tamsayı değil', { ...valid, expiresAt: 2 ** 53 }],
     ['bitiş tamsayı değil', { ...valid, expiresAt: NOW_SEC + 0.5 }],
     ['issuedAt eski', { ...valid, issuedAt: NOW - MESSAGE_LIMITS.issuedSkewMs - 1 }],
     ['issuedAt gelecekte', { ...valid, issuedAt: NOW + MESSAGE_LIMITS.issuedSkewMs + 1 }],
