@@ -84,3 +84,85 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  e2e:
+    name: 'Playwright duman (gerçek backend, etiket imajı)'
+    runs-on: ubuntu-latest
+    needs: verify
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # CI'ya özel, tek kullanımlık servis konteyneri kimliği; sır değildir.
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nizamio_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d nizamio_e2e"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      NIZAMIO_E2E_MODE: ci
+      NIZAMIO_BACKEND_DIR: .backend
+      NIZAMIO_DEV_BACKEND: http://127.0.0.1:18080
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+
+      - name: pnpm kur (packageManager alanından)
+        uses: pnpm/action-setup@v6
+
+      - name: Node kur (.nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Bağımlılıklar (--frozen-lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Backend API pinini oku (api-pin.json)
+        id: pin
+        run: echo "tag=$(jq -r .backendTag api-pin.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Backend etiketini getir (salt okunur deploy key)
+        uses: actions/checkout@v7
+        with:
+          repository: caliskan421/nizam.io--backend
+          ref: refs/tags/${{ steps.pin.outputs.tag }}
+          ssh-key: ${{ secrets.BACKEND_DEPLOY_KEY }}
+          path: .backend
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: 'Backend: etiketten docker build → roller → migrate → ilk yönetici → server'
+        run: e2e/backend/up.sh
+
+      - name: Playwright chromium kur
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: 'Duman: global setup (API ile fixture) + giriş → /v1/me → çıkış'
+        run: pnpm e2e
+
+      - name: Backend günlüğü (hata durumunda)
+        if: failure()
+        run: docker logs nizamio_web_e2e-server || true
+
+      - name: Playwright raporu ve ekran görüntüsü
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Backend'i kapat
+        if: always()
+        run: e2e/backend/down.sh
