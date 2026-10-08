@@ -1,7 +1,9 @@
 # NIZAM.IO — Web istemcisi
 
 NIZAM.IO'nun tarayıcı istemcisi. Durum: **iskelet (WEB-1a)** — proje, kalite kapıları,
-sınır kuralı kuruldu (`../program/fazlar/F06-web-1a-iskelet.md`). Ekranlar F09'dan itibaren.
+sınır kuralı, tip üretimi, HTTP/oturum/kapsam katmanı, i18n, tasarım token'ları ve gerçek
+backend'e karşı e2e duman kuruldu (`../program/fazlar/F06-web-1a-iskelet.md`). Giriş ekranı,
+kabuk ve kapsam seçici tasarımı F09'dadır; bugünkü oturum sayfası yer tutucudur.
 
 ## Yığın
 
@@ -25,6 +27,9 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 | `pnpm format` / `pnpm format:check` | Prettier. |
 | `pnpm test` | vitest (birim + lint kurallarının negatif testleri). |
 | `pnpm gen:api` | Backend etiketinden (`api-pin.json`) üretim: `src/shared/api/schema.d.ts`, `error-codes.gen.ts`, `operations.gen.ts`. Backend dizini `NIZAMIO_BACKEND_DIR` (varsayılan `../nizam.io--backend`). |
+| `pnpm e2e:backend:up` | Gerçek backend'i etiketten kurar (bkz. "e2e"). |
+| `pnpm e2e` | Playwright duman (global setup API ile fixture kurar; `vite preview` + chromium). |
+| `pnpm e2e:backend:down` | e2e backend kaynaklarını adıyla kapatır. |
 | `pnpm gen:tokens` | `tokens/tokens.json` → `src/shared/tokens/tokens.gen.{css,ts}` + `tailwind.gen.css`. |
 | `pnpm gen:check` | İki üreticiyi koşar ve `git diff --exit-code` uygular (CI kapısı). |
 
@@ -66,6 +71,27 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 - `instance/` — `GET /v1/instance/profile`; `api_version` desteklenmiyorsa
   `update_required` durumu (sessiz düşüş yok).
 
+## e2e (Playwright, gerçek backend)
+
+`e2e/backend/up.sh` backend'i **yalnız `api-pin.json` etiketinden** kurar: `git archive`
+ile geçici kaynak ağacı (`e2e/.state/`, backend deposuna yazılmaz) → etiketin
+`build/Dockerfile`'ı ile imaj → `migrations/roles.sql` → migrator kimliğiyle `migrate up` →
+roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:18080`).
+
+- **İlk yönetici:** backend `cmd/setup` aktivasyon kodu ister ve sahte merkezde kod yalnız
+  süreç içinde üretilebilir (backend README "Bugünkü sınır"). Bu yüzden
+  `e2e/backend/bootstrap/main.go` backend entegrasyon düzeneğinin yaptığını dışa açık
+  composition API'siyle yapar: sahte merkezle gerçek aktivasyon akışı + `Root.Bootstrap`.
+  Yalnız e2e içindir; üretim kurulumu değildir.
+- **Fixture:** `e2e/global-setup.ts` yalnız API çağrılarıyla (yönetici girişi → program →
+  departman → programa bağlama → üye) kurar; backend seed yüzü yoktur (D-0162).
+- **Duman:** `e2e/smoke.spec.ts` — giriş → `/v1/me` → sayfa yenileme sonrası sessiz refresh
+  → çıkış; tarayıcı depolarının boş ve yenileme çerezinin HttpOnly olduğu denetlenir.
+- **Yerel:** `NIZAMIO_E2E_MODE=local` (varsayılan) Postgres'i `nizamio_web_e2e` Compose
+  projesinde açar (`127.0.0.1:15432`); kapatma `pnpm e2e:backend:down`. Paylaşılan
+  makinede başka projelerin kaynaklarına dokunulmaz. **CI:** Postgres servis konteyneri,
+  `NIZAMIO_E2E_MODE=ci`.
+
 ## Dizin düzeni
 
 ```text
@@ -78,6 +104,8 @@ src/modules/<modul>/        api/ pages/ components/ store/ routes.ts public.ts
 tests/lint/                 mimari lint kurallarının negatif testleri
 tests/support/              MSW sahte backend, sahte sekme koordinasyonu
 tokens/tokens.json          tasarım token'larının tek kaynağı (web + mobil)
+e2e/                        Playwright duman, global setup, backend kurulum betikleri
+docs/                       tasarım notları (refresh koordinasyonu); Codex hükmü docs/reviews/
 scripts/gen-tokens.ts       token üreticisi
 ```
 

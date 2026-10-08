@@ -44,6 +44,7 @@ export default defineConfigWithVueTs(
     name: 'nizamio/ignores',
     ignores: [
       '.backend/**',
+      'e2e/.state/**',
       'dist/**',
       'coverage/**',
       'playwright-report/**',
