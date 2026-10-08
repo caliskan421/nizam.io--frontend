@@ -48,7 +48,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
       headers: auth,
       data: {
         name: `E2E Departman ${run}`,
-        kind: 'birim',
+        kind: 'calisma_grubu',
       } satisfies Schemas['CreateDepartmentRequest'],
     }),
     'departman oluşturma',
