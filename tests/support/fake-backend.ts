@@ -65,10 +65,26 @@ export function createFakeBackend() {
     refreshCount: 0,
     refreshEvents: [] as RefreshEvent[],
     refreshMode: 'ok' as 'ok' | 'unauthorized' | 'server_error',
+    /**
+     * > 0 ise refresh yanıtları bu kadar refresh isteği gelene dek bekletilir (eşzamanlılık
+     * bariyeri): istekler çerezi GÖNDERİLDİKLERİ anda taşıdığı için hepsi aynı eski çerezle gelir.
+     */
+    refreshBarrier: 0,
     requests: [] as RecordedRequest[],
   }
 
   const now = () => Date.now() + state.clockOffsetMs
+  const barrierWaiters: Array<() => void> = []
+  const passBarrier = (): Promise<void> => {
+    if (state.refreshBarrier <= 0) return Promise.resolve()
+    return new Promise((resolve) => {
+      barrierWaiters.push(resolve)
+      if (barrierWaiters.length >= state.refreshBarrier) {
+        state.refreshBarrier = 0
+        barrierWaiters.splice(0).forEach((r) => r())
+      }
+    })
+  }
   const nowSec = () => Math.floor(now() / 1000)
 
   function issueAccess(): string {
@@ -106,6 +122,8 @@ export function createFakeBackend() {
     state.refreshCount = 0
     state.refreshEvents.length = 0
     state.refreshMode = 'ok'
+    state.refreshBarrier = 0
+    barrierWaiters.length = 0
     state.requests.length = 0
   }
 
@@ -157,6 +175,7 @@ export function createFakeBackend() {
   const handlers = [
     http.post(`${BASE}/v1/auth/refresh`, async ({ request }) => {
       await record(request)
+      await passBarrier()
       // Buradan sonrası eşzamanlı isteklerde atomiktir (await yok): CAS modeli.
       state.refreshCount += 1
       if (state.refreshMode === 'unauthorized') return envelope('identity.session_invalid', 401)

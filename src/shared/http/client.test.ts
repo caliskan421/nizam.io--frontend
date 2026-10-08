@@ -39,8 +39,8 @@ function createTab(
     baseUrl: BASE,
     fetch,
     coordination,
-    peerWaitMs: 300,
-    syncWaitMs: 100,
+    peerWaitMs: 500,
+    syncWaitMs: 300,
   })
   const scopeRef = { current: scope }
   const client = createApiClient({ baseUrl: BASE, session, scope: () => scopeRef.current, fetch })
@@ -158,6 +158,7 @@ describe('401 → refresh → tekrar', () => {
     const tabA = await loggedInTab(browser.tab(), undefined, jar)
     await sleep(20)
     backend.expireAccess()
+    backend.state.refreshBarrier = 2
 
     // İki sekme refresh'i aynı anda, aynı (henüz döndürülmemiş) çerezle gönderir.
     const [a, b] = await Promise.all([
