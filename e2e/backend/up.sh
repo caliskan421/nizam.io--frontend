@@ -90,9 +90,9 @@ NIZAMIO_CONTROL_PLANE_ADAPTER=fake
 NIZAMIO_OUTBOX_MAX_ATTEMPTS=3
 NIZAMIO_OUTBOX_RETRY_BACKOFF=1s
 NIZAMIO_LOGIN_MAX_FAILURES=10
-NIZAMIO_LOGIN_FAILURE_WINDOW=1m
+NIZAMIO_LOGIN_FAILURE_WINDOW=1h
 NIZAMIO_LOGIN_LOCK_DURATION=1m
-NIZAMIO_LOGIN_ATTEMPT_RETENTION=1h
+NIZAMIO_LOGIN_ATTEMPT_RETENTION=2h
 NIZAMIO_LOGIN_ATTEMPT_CLEANUP_INTERVAL=1m
 NIZAMIO_DISCOVERY_RATE_LIMIT_PER_MINUTE=60
 ENV
@@ -114,6 +114,9 @@ docker run -d --name "$server_name" "${net[@]}" "${publish[@]}" --env-file "$env
   -e "NIZAMIO_DATABASE_URL=$app_url" "$image" >/dev/null
 
 for _ in $(seq 1 60); do
+  if [[ "$(docker inspect -f '{{.State.Running}}' "$server_name" 2>/dev/null)" != "true" ]]; then
+    break
+  fi
   if curl -fsS "http://127.0.0.1:$server_port/healthz/ready" >/dev/null 2>&1; then
     echo "== backend hazır: http://127.0.0.1:$server_port"
     exit 0
