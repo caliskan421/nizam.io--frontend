@@ -53,17 +53,19 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: 'Üretim kapısı: gen:api yeniden üret, diff = 0'
+      - name: 'Üretim kapısı: gen:api + gen:tokens yeniden üret, diff = 0'
         env:
           NIZAMIO_BACKEND_DIR: .backend
         run: |
           pnpm gen:api
-          if ! git diff --exit-code -- src/shared/api; then
-            echo "::error::Üretilmiş dosyalar etiketle uyuşmuyor; 'pnpm gen:api' koşup commit'leyin."
+          pnpm gen:tokens
+          paths="src/shared/api src/shared/tokens"
+          if ! git diff --exit-code -- $paths; then
+            echo "::error::Üretilmiş dosyalar kaynakla (backend etiketi / tokens.json) uyuşmuyor; 'pnpm gen:api && pnpm gen:tokens' koşup commit'leyin."
             exit 1
           fi
-          if [ -n "$(git status --porcelain -- src/shared/api)" ]; then
-            git status --porcelain -- src/shared/api
+          if [ -n "$(git status --porcelain -- $paths)" ]; then
+            git status --porcelain -- $paths
             echo "::error::Commit'lenmemiş üretilmiş dosya var."
             exit 1
           fi
