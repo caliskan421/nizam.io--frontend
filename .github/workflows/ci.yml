@@ -1,0 +1,52 @@
+name: ci
+
+# NIZAM.IO web istemcisi — kalite kapısı (F06 WEB-1a kapsam 11).
+# Sıra: kurulum (kilit dosyası donuk) → tip denetimi → lint (sınır kuralı dahil) →
+# biçim → birim testleri → build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: 'tsc · lint · vitest · build'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v4
+
+      - name: pnpm kur (packageManager alanından)
+        uses: pnpm/action-setup@v4
+
+      - name: Node kur (.nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Bağımlılıklar (--frozen-lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Tip denetimi (vue-tsc, strict)
+        run: pnpm typecheck
+
+      - name: ESLint (sınır kuralı, depolama yasağı, elle DTO yasağı)
+        run: pnpm lint
+
+      - name: Biçim denetimi (prettier)
+        run: pnpm format:check
+
+      - name: Birim testleri (vitest)
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

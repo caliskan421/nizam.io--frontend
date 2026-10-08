@@ -1,0 +1,13 @@
+pnpm-lock.yaml
+dist/
+coverage/
+playwright-report/
+test-results/
+src/shared/api/*.gen.ts
+src/shared/api/schema.d.ts
+# Yönetim dosyaları elle biçimlenir
+CLAUDE.md
+AGENTS.md
+README.md
+.github/pull_request_template.md
+docs/**/*.md
