@@ -24,12 +24,18 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 | `pnpm lint` | ESLint: sınır kuralı, `localStorage`/`sessionStorage` yasağı, `modules/**/api` içinde elle DTO yasağı. |
 | `pnpm format` / `pnpm format:check` | Prettier. |
 | `pnpm test` | vitest (birim + lint kurallarının negatif testleri). |
+| `pnpm gen:api` | Backend etiketinden (`api-pin.json`) üretim: `src/shared/api/schema.d.ts`, `error-codes.gen.ts`, `operations.gen.ts`. Backend dizini `NIZAMIO_BACKEND_DIR` (varsayılan `../nizam.io--backend`). |
+| `pnpm gen:check` | Yeniden üretir ve `git diff --exit-code` uygular (CI kapısı). |
 
 ## Backend ile ilişki
 
 - Sözleşme: `../nizam.io--backend/docs/api/openapi.yaml` + `error-codes.json`, backend
-  etiketinden (ilk: `v0.1.0-api`). Üretilen tipler commit'lenir; CI "yeniden üret,
-  diff = 0" kapısını uygular.
+  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.1.0-api`).
+  `pnpm gen:api` spec'i `git show <etiket>:docs/api/...` ile okur; çalışma ağacı veya
+  etiketsiz `main` okunmaz. Üretilen dosyalar commit'lenir; CI backend etiketini salt
+  okunur deploy key ile getirir, yeniden üretir ve diff = 0 ister.
+- Pin yükseltme: backend yeni etiket → `api-pin.json` → `pnpm gen:api` → PR
+  ("spec değişti mi" alanı doldurulur).
 - Teslim modeli: ayrı statik imaj + Caddy, aynı origin (`/` statik, `/v1` ve
   `/.well-known` backend). CORS yoktur. Geliştirmede Vite proxy.
 - Kurulum bilgisi (ad, marka rengi, saat dilimi, `api_version`) oturumdan önce
@@ -42,6 +48,8 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 src/main.ts                 giriş noktası
 src/app/                    router, sağlayıcılar, layout
 src/shared/                 http, oturum, kapsam, hata, i18n, token'lar
+src/shared/api/             ÜRETİLMİŞ sözleşme çıktıları (elle düzenlenmez)
+scripts/gen-api.ts          tip/katalog/kapsam haritası üreticisi
 src/modules/<modul>/        api/ pages/ components/ store/ routes.ts public.ts
 tests/lint/                 mimari lint kurallarının negatif testleri
 ```
