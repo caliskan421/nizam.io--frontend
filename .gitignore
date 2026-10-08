@@ -29,3 +29,6 @@ e2e/.state/
 
 # Loglar
 *.log
+
+# CI'da getirilen backend etiketi (frontend ağacına ait değil)
+.backend/

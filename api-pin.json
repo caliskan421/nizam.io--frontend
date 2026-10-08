@@ -1,0 +1,6 @@
+{
+  "$comment": "Backend API sözleşmesinin TEK pini. gen:api spec'i yalnız bu etiketten okur (git show <tag>:docs/api/...). Etiketsiz main'den üretim yoktur. Değiştirmek = yeni etiket + pnpm gen:api + PR.",
+  "backendTag": "v0.1.0-api",
+  "specPath": "docs/api/openapi.yaml",
+  "errorCatalogPath": "docs/api/error-codes.json"
+}

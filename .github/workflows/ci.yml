@@ -1,8 +1,11 @@
 name: ci
 
 # NIZAM.IO web istemcisi — kalite kapısı (F06 WEB-1a kapsam 11).
-# Sıra: kurulum (kilit dosyası donuk) → tip denetimi → lint (sınır kuralı dahil) →
-# biçim → birim testleri → build.
+# Sıra: kurulum (kilit dosyası donuk) → üretim kapısı (spec etiketinden yeniden üret,
+# diff = 0) → tip denetimi → lint (sınır kuralı dahil) → biçim → birim testleri → build.
+#
+# Backend deposu özeldir: salt okunur deploy key (BACKEND_DEPLOY_KEY) ile yalnız
+# api-pin.json'daki ETİKET getirilir; frontend ağacının dışında tutulur (.backend/).
 
 on:
   push:
@@ -22,19 +25,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Kaynak kodu al
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: pnpm kur (packageManager alanından)
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Node kur (.nvmrc)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - name: Bağımlılıklar (--frozen-lockfile)
         run: pnpm install --frozen-lockfile
+
+      - name: Backend API pinini oku (api-pin.json)
+        id: pin
+        run: echo "tag=$(jq -r .backendTag api-pin.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Backend sözleşmesini etiketten getir (salt okunur deploy key)
+        uses: actions/checkout@v7
+        with:
+          repository: caliskan421/nizam.io--backend
+          ref: refs/tags/${{ steps.pin.outputs.tag }}
+          ssh-key: ${{ secrets.BACKEND_DEPLOY_KEY }}
+          path: .backend
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: 'Üretim kapısı: gen:api yeniden üret, diff = 0'
+        env:
+          NIZAMIO_BACKEND_DIR: .backend
+        run: |
+          pnpm gen:api
+          if ! git diff --exit-code -- src/shared/api; then
+            echo "::error::Üretilmiş dosyalar etiketle uyuşmuyor; 'pnpm gen:api' koşup commit'leyin."
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain -- src/shared/api)" ]; then
+            git status --porcelain -- src/shared/api
+            echo "::error::Commit'lenmemiş üretilmiş dosya var."
+            exit 1
+          fi
 
       - name: Tip denetimi (vue-tsc, strict)
         run: pnpm typecheck
