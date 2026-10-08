@@ -42,6 +42,22 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
   `GET /v1/instance/profile` ucundan okunur.
 - Statik içerik CSP'si Caddy'de, API CSP/HSTS backend'dedir.
 
+## HTTP ve oturum katmanı (`src/shared/`)
+
+- `http/client.ts` — `openapi-fetch` + ara katmanlar: spec dışı uç reddi
+  (`client.unknown_operation`), yazmalarda `X-Requested-With`, S2/S3'te kapsam başlıkları
+  (kapsam yoksa istek gönderilmez: `client.scope_missing`), `Authorization: Bearer`,
+  401 → tek uçuş refresh → bir kez tekrar, 403 `identity.force_password_change_required`
+  bayrağı. `http/unwrap.ts` sonucu veriye çevirir, hatayı normalize eder.
+- `errors/api-error.ts` — hata zarfı → `{code, messageKey, requestId, fields[], status,
+  retryAfter}`; sunucu `message` alanı taşınmaz. İstemci kodları `errors/client-codes.ts`.
+- `session/` — `AuthSession` (belirteç yalnız bellekte), Web Locks + BroadcastChannel
+  koordinasyonu ([docs/refresh-coordination.md](docs/refresh-coordination.md)), Pinia
+  oturum deposu (sessiz refresh, giriş, `/v1/me`, çıkış).
+- `scope/` — kapsam deposu (program + departman) ve TanStack Query anahtar fabrikası.
+- `instance/` — `GET /v1/instance/profile`; `api_version` desteklenmiyorsa
+  `update_required` durumu (sessiz düşüş yok).
+
 ## Dizin düzeni
 
 ```text

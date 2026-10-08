@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
     preview: { proxy, strictPort: true },
     test: {
       environment: 'jsdom',
+      environmentOptions: { jsdom: { url: 'http://localhost/' } },
       include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
       restoreMocks: true,
     },
