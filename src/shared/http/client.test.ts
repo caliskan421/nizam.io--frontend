@@ -108,27 +108,35 @@ describe('401 → refresh → tekrar', () => {
     expect(backend.state.refreshCount).toBe(1)
   })
 
-  it('İKİ SEKME eşzamanlı 401 → tek refresh (paylaşılan kilit + kanal + çerez kavanozu)', async () => {
-    const browser = createFakeBrowser()
-    const jar = createJar()
-    const tabB = createTab(browser.tab(), undefined, jar)
-    const tabA = await loggedInTab(browser.tab(), undefined, jar)
-    await sleep(0) // giriş yayını B'ye ulaşsın
-    expect(tabB.session.token).toBe(T(1))
-    backend.expireAccess()
+  it.each([
+    ['15 dk', 900],
+    ['30 gün', 30 * 24 * 3600],
+    ['365 gün', 365 * 24 * 3600],
+  ])(
+    'İKİ SEKME eşzamanlı 401 → tek refresh (paylaşılan kilit + kanal + çerez kavanozu; oturum ömrü %s)',
+    async (_name, ttl) => {
+      backend.state.accessTtlSec = ttl
+      const browser = createFakeBrowser()
+      const jar = createJar()
+      const tabB = createTab(browser.tab(), undefined, jar)
+      const tabA = await loggedInTab(browser.tab(), undefined, jar)
+      await sleep(0) // giriş yayını B'ye ulaşsın
+      expect(tabB.session.token).toBe(T(1))
+      backend.expireAccess()
 
-    const [a, b] = await Promise.all([
-      unwrap(tabA.client.GET('/v1/me')),
-      unwrap(tabB.client.GET('/v1/me')),
-    ])
+      const [a, b] = await Promise.all([
+        unwrap(tabA.client.GET('/v1/me')),
+        unwrap(tabB.client.GET('/v1/me')),
+      ])
 
-    expect(a.account_id).toBe('acc-1')
-    expect(b.account_id).toBe('acc-1')
-    expect(backend.state.refreshCount).toBe(1)
-    expect(backend.state.refreshEvents).toEqual(['rotated'])
-    expect(tabA.session.token).toBe(T(2))
-    expect(tabB.session.token).toBe(T(2))
-  })
+      expect(a.account_id).toBe('acc-1')
+      expect(b.account_id).toBe('acc-1')
+      expect(backend.state.refreshCount).toBe(1)
+      expect(backend.state.refreshEvents).toEqual(['rotated'])
+      expect(tabA.session.token).toBe(T(2))
+      expect(tabB.session.token).toBe(T(2))
+    },
+  )
 
   it('iki sekme, yayın kilit devrinden SONRA ulaşsa da sync-request ile tek refresh', async () => {
     const browser = createFakeBrowser({ deliveryDelayMs: 20 })

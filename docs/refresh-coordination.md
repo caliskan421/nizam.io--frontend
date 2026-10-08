@@ -49,8 +49,14 @@ Buna rağmen kanal savunmacı okunur (`messages.ts`, `parseSessionMessage`):
 - Sürüm alanı (`v: 1`), bilinen tür (`token` / `logout` / `sync-request`), **tam alan
   kümesi** (eksik veya fazla alan → ret), alan türleri ve uzunlukları (belirteç 16–4096
   karakter, izinli karakter kümesi; hesap kimliği ≤ 128).
-- `expiresAt` tamsayı, gelecekte ve en çok 7 gün ileride; `issuedAt` alıcının saatine en çok
-  5 dk uzak (aynı makine). Eski belirteç `sync-request` yanıtında da paylaşılmaz.
+- `expiresAt` güvenli tamsayı ve gelecekte. **Üst sınır yoktur:** oturum ömrü backend
+  yapılandırmasıdır (`NIZAMIO_SESSION_TTL` yalnız 1 dk alt sınır taşır, üst sınırı yok);
+  istemcinin keyfi bir sınırı geçerli bir belirteci reddeder ve ikinci sekmeyi gereksiz
+  refresh'e iterdi (Codex CX-r1-Ö-01; regresyon testi 30 ve 365 gün). Zehirlemeye karşı
+  koruma üst sınırdan değil, aynı-origin varsayımı + sıkı şema + hesap tutarlılığı +
+  `issuedAt` tazeliğinden gelir.
+- `issuedAt` alıcının saatine en çok 5 dk uzak (aynı makine). Eski belirteç
+  `sync-request` yanıtında da paylaşılmaz.
 - Hesap tutarlılığı: oturumda hesap doluysa farklı hesabın `token` iletisi reddedilir;
   `logout` yalnız aynı hesap için uygulanır. Aynı hesapta yalnız daha yeni `issuedAt` kazanır.
 - Geçersiz ileti **sessizce yok sayılır** (hata fırlatılmaz, durum değişmez).

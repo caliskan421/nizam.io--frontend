@@ -39,8 +39,6 @@ export const MESSAGE_LIMITS = {
   tokenMin: 16,
   tokenMax: 4096,
   accountIdMax: 128,
-  /** `expiresAt` en çok bu kadar ileride olabilir (oturum ömrü üst sınırı, saniye). */
-  expiresMaxAheadSec: 7 * 24 * 3600,
   /** `issuedAt` ile alıcının saati arasındaki en büyük fark (ms; aynı makine). */
   issuedSkewMs: 5 * 60 * 1000,
 } as const
@@ -100,10 +98,11 @@ export function parseSessionMessage(raw: unknown, nowMs: number): SessionMessage
       if (typeof forcePasswordChange !== 'boolean') return null
       const nowSec = Math.floor(nowMs / 1000)
       if (
+        // Üst sınır YOK: oturum ömrü backend yapılandırmasıdır (NIZAMIO_SESSION_TTL'nin
+        // üst sınırı yoktur); istemci geçerli bir belirteci keyfi sınırla reddetmez.
         typeof expiresAt !== 'number' ||
-        !Number.isInteger(expiresAt) ||
-        expiresAt <= nowSec ||
-        expiresAt > nowSec + MESSAGE_LIMITS.expiresMaxAheadSec
+        !Number.isSafeInteger(expiresAt) ||
+        expiresAt <= nowSec
       ) {
         return null
       }
