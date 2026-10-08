@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// YER TUTUCU oturum görünümü (tasarımsız). Giriş ekranı tasarımı F09'dadır; bu sayfa yalnız
+// YER TUTUCU oturum görünümü (tasarımsız). Giriş ekranı tasarımı program sonrası istemci geliştirmesindedir; bu sayfa yalnız
 // http/oturum katmanının gerçek uygulama yığınından geçtiğini e2e ile kanıtlamak içindir.
 import { onMounted, ref, watch } from 'vue'
 

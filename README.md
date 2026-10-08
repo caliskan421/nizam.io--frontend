@@ -2,8 +2,9 @@
 
 NIZAM.IO'nun tarayıcı istemcisi. Durum: **iskelet (WEB-1a)** — proje, kalite kapıları,
 sınır kuralı, tip üretimi, HTTP/oturum/kapsam katmanı, i18n, tasarım token'ları ve gerçek
-backend'e karşı e2e duman kuruldu (`../program/fazlar/F06-web-1a-iskelet.md`). Giriş ekranı,
-kabuk ve kapsam seçici tasarımı F09'dadır; bugünkü oturum sayfası yer tutucudur.
+backend'e karşı e2e duman kuruldu (`../program/fazlar/F06-web-1a-iskelet.md`). Giriş/kabuk/kapsam
+seçici ve bütün ekran tasarımı program sonrası istemci geliştirmesindedir (`../program/` D-0174);
+bugünkü oturum sayfası ve PrimeVue preset/token değerleri yer tutucudur.
 
 ## Yığın
 
@@ -126,5 +127,5 @@ Sınır kuralı (`eslint.config.js`, `boundaries/dependencies`):
 
 ## Süreç
 
-Faz sırası ve durum: `../program/DURUM.md`. Her değişiklik PR + CI; dilim sonunda
+Faz sırası ve durum: `../program/DURUM.md`. Her değişiklik PR + CI; faz sonunda
 Codex tek koşum. Bu depoda `project-control` kaydı tutulmaz.

@@ -1,6 +1,6 @@
 ## Ne değişti
 
-- Faz / dilim: <!-- ör. F09 WEB-1b -->
+- Faz: <!-- ör. F06 WEB-1a -->
 - Değişen modül(ler): <!-- ör. src/modules/identity, src/shared/http -->
 
 ## Backend sözleşmesi

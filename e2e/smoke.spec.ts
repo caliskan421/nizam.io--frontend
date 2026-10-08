@@ -1,6 +1,6 @@
 // Duman senaryosu (F06 kapsam 11): giriş → /v1/me → (sayfa yenileme → sessiz refresh) → çıkış,
 // tarayıcıda gerçek uygulama yığınından (Vue + Pinia + http katmanı + vite preview proxy)
-// gerçek backend'e karşı. Giriş ekranı yer tutucudur (tasarım F09).
+// gerçek backend'e karşı. Giriş ekranı yer tutucudur (tasarım program sonrası istemci geliştirmesi).
 import { expect, test, type Page } from '@playwright/test'
 
 import { ADMIN, readFixture } from './fixture'

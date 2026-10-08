@@ -5,7 +5,7 @@ import { scopedKey, type ScopeSnapshot } from './scope'
 
 /**
  * Kapsam deposu: aktif program + departman (F06 kapsam 6). Kalıcı depolama yok; sayfa
- * yenilemede kapsam yeniden seçilir (seçici UI F09'dadır).
+ * yenilemede kapsam yeniden seçilir (seçici UI program sonrası istemci geliştirmesindedir).
  */
 export const useScopeStore = defineStore('scope', () => {
   const programId = ref<string | null>(null)

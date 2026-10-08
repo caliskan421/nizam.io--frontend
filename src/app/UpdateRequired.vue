@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// YER TUTUCU: sunucu API sürümü desteklenmiyor (sessiz düşüş yok). Tasarım F09'dadır.
+// YER TUTUCU: sunucu API sürümü desteklenmiyor (sessiz düşüş yok). Tasarım program sonrası istemci geliştirmesindedir.
 import { useInstanceStore, SUPPORTED_API_VERSION } from '@/shared/instance/store'
 
 const instance = useInstanceStore()
