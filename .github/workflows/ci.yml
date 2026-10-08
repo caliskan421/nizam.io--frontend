@@ -85,6 +85,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Bağımlılık denetimi (üretim bağımlılıkları)
+        run: pnpm audit --prod
+
   e2e:
     name: 'Playwright duman (gerçek backend, etiket imajı)'
     runs-on: ubuntu-latest
