@@ -19,6 +19,8 @@ if [[ $# -ge 5 ]]; then
   log="$3" golang_tag="$4" golang_digest="$5"
   from_line="$(grep -E "FROM docker.io/library/${golang_tag}" "$log" | head -n 1 || true)"
   echo "buildkit golang FROM: ${from_line:-<yok>}"
+  echo "buildkit taban çözümleme satırları (uzaktan 'resolve …@sha256' yoksa yerel imaj kullanılmıştır):"
+  grep -E "load metadata for|resolve (docker.io|gcr.io)" "$log" | sed 's/^/  /' || echo "  <yok>"
   if [[ "$from_line" != *"$golang_digest"* ]]; then
     # Yerel etiket kullanıldığında BuildKit FROM satırına digest yazmayabilir; o durumda
     # yerel etiketin pinli içerikle aynı imaj olduğu doğrulanır.
