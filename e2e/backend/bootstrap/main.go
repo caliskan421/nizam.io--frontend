@@ -1,11 +1,16 @@
 // nizamio-e2e-bootstrap — YALNIZ web e2e ortamı için ilk yönetici kurulumu.
 //
 // NEDEN VAR: backend `cmd/setup` aktivasyon kodu ister; sahte merkez adaptöründe kod
-// yalnız Go test harness'ında üretilebilir (backend README "Bugünkü sınır"). Bu araç,
-// backend'in kendi entegrasyon testlerinin kullandığı DIŞA AÇIK `composition.Root.Bootstrap`
-// yolunu (D-0067: identity ilk yönetici + organization şirket kaydı) çağırır; aktivasyon
-// ve imaj digest adımı yoktur. Üretim kurulumu değildir; backend deposuna yazılmaz —
-// CI/yerel betik bu dosyayı etiketten çıkarılmış geçici kaynak ağacına kopyalayıp derler.
+// yalnız süreç içinde (Go test harness'ı) üretilebilir (backend README "Bugünkü sınır").
+// Bu araç backend entegrasyon düzeneğinin (internal/composition/compositiontest) yaptığını
+// aynen, DIŞA AÇIK composition API'siyle yapar:
+//  1. sahte merkez kurulumun yapılandırılmış kimliğini verir ve tek kullanımlık kod üretir,
+//     `Provisioning().Activate` GERÇEK aktivasyon akışını koşar (aktivasyonsuz kurulum salt
+//     okunurdur: provisioning.write_not_allowed);
+//  2. `Root.Bootstrap` (D-0067: identity ilk yönetici + organization şirket kaydı).
+//
+// İmaj digest adımı yoktur. Üretim kurulumu değildir; backend deposuna yazılmaz — betik bu
+// dosyayı etiketten çıkarılmış geçici kaynak ağacına kopyalayıp derler.
 //
 // Parola yalnız standart girdiden okunur (backend setup ile aynı ilke).
 package main
@@ -19,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/caliskan421/nizam.io--backend/internal/composition"
+	provusecase "github.com/caliskan421/nizam.io--backend/internal/modules/provisioning/usecase"
 	"github.com/caliskan421/nizam.io--backend/internal/platform/config"
 )
 
@@ -55,6 +61,21 @@ func run() int {
 		return 1
 	}
 	defer root.Close()
+
+	fake := root.FakeControlPlaneAdaptor()
+	if fake == nil {
+		fmt.Fprintln(os.Stderr, "e2e-bootstrap: sahte kontrol düzlemi bağlı değil (NIZAMIO_CONTROL_PLANE_ADAPTER=fake gerekli)")
+		return 2
+	}
+	fake.SetNextInstanceID(cfg.String(config.InstanceID))
+	activation, err := root.Provisioning().Activate.Execute(ctx,
+		provusecase.ActivationInput{ActivationCode: fake.IssueActivationCode()})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return 1
+	}
+	fmt.Printf("e2e-bootstrap: aktivasyon instance=%s yeni=%t zaten=%t\n",
+		activation.InstanceID, activation.Activated, activation.AlreadyActivated)
 
 	report, err := root.Bootstrap(ctx, composition.SetupInput{
 		AdminEmail:         *adminEmail,
