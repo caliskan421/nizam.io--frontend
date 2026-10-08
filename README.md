@@ -1,13 +1,29 @@
 # NIZAM.IO — Web istemcisi
 
-NIZAM.IO'nun tarayıcı istemcisi. Durum: **iskelet henüz yok** — ilk kod WEB-1a fazında
-(`../program/fazlar/F06-web-1a-iskelet.md`) gelir.
+NIZAM.IO'nun tarayıcı istemcisi. Durum: **iskelet (WEB-1a)** — proje, kalite kapıları,
+sınır kuralı kuruldu (`../program/fazlar/F06-web-1a-iskelet.md`). Ekranlar F09'dan itibaren.
 
 ## Yığın
 
 Vue 3.5 · TypeScript strict · Vite · vue-router · Pinia · TanStack Query ·
 `openapi-fetch` (+ `openapi-typescript` tip üretimi) · vee-validate/zod · PrimeVue 4 ·
 Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
+
+## Gereksinimler
+
+- Node **24 LTS** (`.nvmrc`; `engines`), pnpm (`packageManager` alanındaki sürüm; `corepack enable`).
+
+## Komutlar
+
+| Komut | Ne yapar |
+|---|---|
+| `pnpm install --frozen-lockfile` | Bağımlılıklar (kilit dosyası donuk). |
+| `pnpm dev` | Vite geliştirme sunucusu; `/v1`, `/.well-known`, `/healthz` → `NIZAMIO_DEV_BACKEND` (`.env.development`). |
+| `pnpm build` / `pnpm preview` | Üretim paketi / önizleme (önizlemede de aynı proxy). |
+| `pnpm typecheck` | `vue-tsc --build` (strict). |
+| `pnpm lint` | ESLint: sınır kuralı, `localStorage`/`sessionStorage` yasağı, `modules/**/api` içinde elle DTO yasağı. |
+| `pnpm format` / `pnpm format:check` | Prettier. |
+| `pnpm test` | vitest (birim + lint kurallarının negatif testleri). |
 
 ## Backend ile ilişki
 
@@ -20,13 +36,21 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
   `GET /v1/instance/profile` ucundan okunur.
 - Statik içerik CSP'si Caddy'de, API CSP/HSTS backend'dedir.
 
-## Dizin düzeni (plan — WEB-1a)
+## Dizin düzeni
 
 ```text
-src/app/        router, sağlayıcılar, layout
-src/shared/     http, oturum, kapsam, hata, i18n, token'lar
-src/modules/<modul>/  api, pages, components, store, routes.ts, public.ts
+src/main.ts                 giriş noktası
+src/app/                    router, sağlayıcılar, layout
+src/shared/                 http, oturum, kapsam, hata, i18n, token'lar
+src/modules/<modul>/        api/ pages/ components/ store/ routes.ts public.ts
+tests/lint/                 mimari lint kurallarının negatif testleri
 ```
+
+Sınır kuralı (`eslint.config.js`, `boundaries/dependencies`):
+
+- `shared` yalnız `shared`'ı içe aktarır (`app`/`modules` yasak).
+- `app` → `shared` ve modüllerin yalnız `public.ts`'i.
+- Modül → `shared`, kendi iç dosyaları ve başka modüllerin yalnız `public.ts`'i.
 
 ## Süreç
 
