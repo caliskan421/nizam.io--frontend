@@ -82,11 +82,20 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   süreç içinde üretilebilir (backend README "Bugünkü sınır"). Bu yüzden
   `e2e/backend/bootstrap/main.go` backend entegrasyon düzeneğinin yaptığını dışa açık
   composition API'siyle yapar: sahte merkezle gerçek aktivasyon akışı + `Root.Bootstrap`.
-  Yalnız e2e içindir; üretim kurulumu değildir.
+  Yalnız e2e içindir; üretim kurulumu değildir. **Geçicidir:** backend'e test amaçlı
+  aktivasyon yolu gelince araç kaldırılır ve `cmd/setup`'a dönülür. Hiçbir üretim
+  imajına/derlemesine girmediğini CI `e2e/backend/check-isolation.sh` denetler (`dist/` ve
+  backend çalışma imajı).
 - **Fixture:** `e2e/global-setup.ts` yalnız API çağrılarıyla (yönetici girişi → program →
   departman → programa bağlama → üye) kurar; backend seed yüzü yoktur (D-0162).
 - **Duman:** `e2e/smoke.spec.ts` — giriş → `/v1/me` → sayfa yenileme sonrası sessiz refresh
   → çıkış; tarayıcı depolarının boş ve yenileme çerezinin HttpOnly olduğu denetlenir.
+- **İki sekme:** `e2e/two-tabs.spec.ts` — aynı tarayıcı bağlamında iki gerçek sayfa; erişim
+  belirteci dolduktan sonra eşzamanlı 401 → ağda tek `/v1/auth/refresh`, iki oturum da
+  geçerli. Bu senaryo için ikinci bir server (`18081`, `NIZAMIO_SESSION_TTL=1m`, aynı DB)
+  ve ikinci önizleme (`4174`) koşar; normal akışlar `4173 → 18080` (15 dk) üzerindedir.
+- **Tedarik zinciri:** CI eylemleri commit SHA'sına, Postgres ve e2e araç imajının tabanları
+  digest'e sabitlidir. (Backend imajı etiketin kendi `build/Dockerfile`'ıyla derlenir.)
 - **Yerel:** `NIZAMIO_E2E_MODE=local` (varsayılan) Postgres'i `nizamio_web_e2e` Compose
   projesinde açar (`127.0.0.1:15432`); kapatma `pnpm e2e:backend:down`. Paylaşılan
   makinede başka projelerin kaynaklarına dokunulmaz. **CI:** Postgres servis konteyneri,

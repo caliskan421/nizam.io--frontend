@@ -7,13 +7,15 @@ const backend = createFakeBackend()
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   backend.server.resetHandlers()
-  backend.state.requests.length = 0
-  backend.state.refreshMode = 'ok'
+  backend.reset()
 })
 afterAll(() => backend.server.close())
 
 // Depolar modül düzeyindeki tekil oturum nesnesini kullanır; her test taze modül yükler.
 async function freshStores() {
+  // Önceki testlerin modül örnekleri hâlâ yaşar; gerçek BroadcastChannel üzerinden birbirine
+  // "kardeş sekme" gibi görünmesinler diye kanal bu dosyada kapatılır.
+  vi.stubGlobal('BroadcastChannel', undefined)
   vi.resetModules()
   setActivePinia(createPinia())
   const { useSessionStore } = await import('./store')
@@ -29,6 +31,7 @@ describe('oturum deposu', () => {
 
   it('açılışta sessiz refresh: çerez geçerliyse oturum döner', async () => {
     const { session } = await freshStores()
+    backend.seedAmbientSession()
     expect(session.status).toBe('unknown')
     await session.bootstrap()
     expect(session.status).toBe('authenticated')
@@ -41,6 +44,26 @@ describe('oturum deposu', () => {
     backend.state.refreshMode = 'unauthorized'
     await session.bootstrap()
     expect(session.status).toBe('anonymous')
+  })
+
+  it('açılışta refresh 5xx → unavailable (ended değil); yeniden deneme oturumu döndürür', async () => {
+    const { session } = await freshStores()
+    backend.seedAmbientSession()
+    backend.state.refreshMode = 'server_error'
+    await session.bootstrap()
+    expect(session.status).toBe('unavailable')
+
+    backend.state.refreshMode = 'ok'
+    await session.bootstrap()
+    expect(session.status).toBe('authenticated')
+  })
+
+  it('açılışta ağ hatası → unavailable', async () => {
+    const { session } = await freshStores()
+    const { http, HttpResponse } = await import('msw')
+    backend.server.use(http.post('http://localhost/v1/auth/refresh', () => HttpResponse.error()))
+    await session.bootstrap()
+    expect(session.status).toBe('unavailable')
   })
 
   it('giriş → /v1/me → çıkış: çıkış API çağrısı yapılır ve bellek temizlenir', async () => {
@@ -64,9 +87,9 @@ describe('oturum deposu', () => {
     backend.server.use(
       http.post('http://localhost/v1/auth/login', () =>
         HttpResponse.json({
-          token: 'tok-1',
+          token: 'tok-0000000000000001',
           account_id: 'acc-1',
-          expires_at: 1,
+          expires_at: Math.floor(Date.now() / 1000) + 900,
           force_password_change: true,
         }),
       ),

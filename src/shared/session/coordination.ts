@@ -1,4 +1,4 @@
-import type { SessionMessage } from './auth-session'
+import type { SessionMessage } from './messages'
 
 /**
  * Sekmeler arası yenileme koordinasyonu: özel kilit + belirteç yayını. Tarayıcıda Web Locks
@@ -9,7 +9,8 @@ export interface RefreshCoordination {
   readonly crossTabLock: boolean
   withLock<T>(name: string, task: () => Promise<T>): Promise<T>
   publish(message: SessionMessage): void
-  subscribe(listener: (message: SessionMessage) => void): void
+  /** Dinleyici HAM veriyi alır; doğrulama alıcıda yapılır (messages.ts). */
+  subscribe(listener: (raw: unknown) => void): void
 }
 
 export const SESSION_CHANNEL_NAME = 'nizamio:session'
@@ -32,9 +33,7 @@ export function browserCoordination(): RefreshCoordination {
     withLock: (name, task) => (locks ? locks.request(name, { mode: 'exclusive' }, task) : task()),
     publish: (message) => channel?.postMessage(message),
     subscribe: (listener) => {
-      channel?.addEventListener('message', (event: MessageEvent<SessionMessage>) =>
-        listener(event.data),
-      )
+      channel?.addEventListener('message', (event: MessageEvent<unknown>) => listener(event.data))
     },
   }
 }

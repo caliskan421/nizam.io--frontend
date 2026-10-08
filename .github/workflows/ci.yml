@@ -25,13 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Kaynak kodu al
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: pnpm kur (packageManager alanından)
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Node kur (.nvmrc)
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -44,7 +44,7 @@ jobs:
         run: echo "tag=$(jq -r .backendTag api-pin.json)" >> "$GITHUB_OUTPUT"
 
       - name: Backend sözleşmesini etiketten getir (salt okunur deploy key)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: caliskan421/nizam.io--backend
           ref: refs/tags/${{ steps.pin.outputs.tag }}
@@ -85,6 +85,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: 'Ayrım: e2e ilk yönetici aracı yayın paketinde yok (dist/)'
+        run: e2e/backend/check-isolation.sh dist
+
       - name: Bağımlılık denetimi (üretim bağımlılıkları)
         run: pnpm audit --prod
 
@@ -95,7 +98,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
         env:
           # CI'ya özel, tek kullanımlık servis konteyneri kimliği; sır değildir.
           POSTGRES_USER: postgres
@@ -114,13 +117,13 @@ jobs:
       NIZAMIO_DEV_BACKEND: http://127.0.0.1:18080
     steps:
       - name: Kaynak kodu al
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: pnpm kur (packageManager alanından)
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Node kur (.nvmrc)
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -133,7 +136,7 @@ jobs:
         run: echo "tag=$(jq -r .backendTag api-pin.json)" >> "$GITHUB_OUTPUT"
 
       - name: Backend etiketini getir (salt okunur deploy key)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: caliskan421/nizam.io--backend
           ref: refs/tags/${{ steps.pin.outputs.tag }}
@@ -145,10 +148,13 @@ jobs:
       - name: 'Backend: etiketten docker build → roller → migrate → ilk yönetici → server'
         run: e2e/backend/up.sh
 
+      - name: 'Ayrım: e2e ilk yönetici aracı backend çalışma imajında yok'
+        run: e2e/backend/check-isolation.sh image
+
       - name: Playwright chromium kur
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: 'Duman: global setup (API ile fixture) + giriş → /v1/me → çıkış'
+      - name: 'Duman + iki sekme: global setup (API ile fixture), giriş → /v1/me → çıkış, eşzamanlı 401 → tek refresh'
         run: pnpm e2e
 
       - name: Backend günlüğü (hata durumunda)
@@ -157,7 +163,7 @@ jobs:
 
       - name: Playwright raporu ve ekran görüntüsü
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright
           path: |
