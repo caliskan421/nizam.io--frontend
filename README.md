@@ -112,7 +112,7 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   makinede başka projelerin kaynaklarına dokunulmaz. **CI:** Postgres servis konteyneri,
   `NIZAMIO_E2E_MODE=ci`.
 
-## Statik imaj (teslim; F15 WP-428)
+## Statik imaj (teslim)
 
 `Dockerfile` iki aşamalıdır: resmî `node` imajında `pnpm install --frozen-lockfile` +
 `pnpm build`, ardından resmî `caddy` imajında yalnız `dist/` ve `deploy/Caddyfile`. Taban

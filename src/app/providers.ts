@@ -18,7 +18,7 @@ export function installProviders(app: App): void {
   app.use(i18n)
   app.use(PrimeVue, {
     // Çalışma anında enjekte edilen <style> öğeleri web Caddy'sinin istek başı nonce'unu taşır
-    // (CSP `style-src 'nonce-…'`; 'unsafe-inline' yok — F15 WP-428 K1).
+    // (CSP `style-src 'nonce-…'`; 'unsafe-inline' yok).
     csp: { nonce: readCspNonce() },
     theme: {
       preset: NizamPreset,

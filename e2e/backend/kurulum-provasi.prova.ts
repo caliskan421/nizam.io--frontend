@@ -1,4 +1,4 @@
-// Kurulum provası (F15 WP-428 K7; D-0183/7): üretim benzeri paket (backend build/compose.prod.yaml:
+// Kurulum provası: üretim benzeri paket (backend build/compose.prod.yaml:
 // kenar Caddy + web statik imajı + server + db) https üzerinden, AYNI ORIGIN.
 //
 // Koşum: NIZAMIO_PROVA_BASE_URL=https://localhost:18443 NIZAMIO_PROVA_ADMIN_EMAIL=…

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Web statik imajının denetimi (F15 WP-428 K1). CI `image` işi ve yerel prova kullanır.
+# Web statik imajının denetimi. CI `image` işi ve yerel prova kullanır.
 #
 #   deploy/check-image.sh <imaj> [host-portu]
 #
