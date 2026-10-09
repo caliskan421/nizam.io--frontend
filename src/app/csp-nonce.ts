@@ -1,5 +1,5 @@
 /**
- * CSP nonce okuma (F15 WP-428 K1; D-0183/4).
+ * CSP nonce okuma.
  *
  * Üretim imajında SPA belgesinin CSP'sini web konteynerindeki Caddy verir: `style-src` istek
  * başı bir nonce taşır ve aynı değer `templates` ile `index.html`'deki

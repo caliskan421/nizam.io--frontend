@@ -12,7 +12,7 @@ const shortBackend = process.env.NIZAMIO_E2E_SHORT_BACKEND ?? 'http://127.0.0.1:
 const baseURL = `http://127.0.0.1:${port}`
 const SHORT_TTL_BASE_URL = `http://127.0.0.1:${shortPort}`
 
-// KURULUM PROVASI (F15 WP-428 K7): NIZAMIO_PROVA_BASE_URL verilirse yalnız
+// KURULUM PROVASI: NIZAMIO_PROVA_BASE_URL verilirse yalnız
 // e2e/backend/kurulum-provasi.prova.ts, çalışan üretim benzeri pakete (kenar Caddy, https)
 // karşı koşar — önizleme sunucusu, global setup ve fixture yoktur. Paketin yerel CA'sı
 // tarayıcıya yüklenmez (TLS geçerliliği backend build/deploy/duman.sh'ta --cacert ile).

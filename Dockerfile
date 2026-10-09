@@ -1,4 +1,4 @@
-# NIZAM.IO web istemcisi — statik imaj (F15 WP-428 K1; D-0183/3).
+# NIZAM.IO web istemcisi — statik imaj.
 #
 # İki aşama: (1) resmî node imajında kilit dosyasıyla bağımlılık + `vite build`;
 # (2) resmî caddy imajında yalnız derlenmiş dist/ ve deploy/Caddyfile. Çalışma imajında

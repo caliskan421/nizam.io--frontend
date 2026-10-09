@@ -1,4 +1,4 @@
-# NIZAM.IO web statik imajı — konteyner içi Caddy (F15 WP-428 K1; D-0183/3-4).
+# NIZAM.IO web statik imajı — konteyner içi Caddy.
 #
 # Bu sunucu YALNIZ derlenmiş SPA'yı (/srv) sunar; TLS, HSTS, API yönlendirmesi ve istek
 # boyutu sınırı kenar Caddy'sindedir (backend build/Caddyfile). Kenar bu yanıtların CSP'sini
