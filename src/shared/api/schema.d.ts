@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.1.0-api (8c8c83b33e90aef4e8e3edd82713fc709c39c518) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.1.1-api (8606788814f448c71449c10d92ee5a1e359a3bf9) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {

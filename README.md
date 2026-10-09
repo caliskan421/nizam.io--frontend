@@ -37,7 +37,7 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 ## Backend ile ilişki
 
 - Sözleşme: `../nizam.io--backend/docs/api/openapi.yaml` + `error-codes.json`, backend
-  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.1.0-api`).
+  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.1.1-api`).
   `pnpm gen:api` spec'i `git show <etiket>:docs/api/...` ile okur; çalışma ağacı veya
   etiketsiz `main` okunmaz. Üretilen dosyalar commit'lenir; CI backend etiketini salt
   okunur deploy key ile getirir, yeniden üretir ve diff = 0 ister.
@@ -79,14 +79,15 @@ ile geçici kaynak ağacı (`e2e/.state/`, backend deposuna yazılmaz) → etike
 `build/Dockerfile`'ı ile imaj → `migrations/roles.sql` → migrator kimliğiyle `migrate up` →
 roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:18080`).
 
-- **İlk yönetici:** backend `cmd/setup` aktivasyon kodu ister ve sahte merkezde kod yalnız
-  süreç içinde üretilebilir (backend README "Bugünkü sınır"). Bu yüzden
-  `e2e/backend/bootstrap/main.go` backend entegrasyon düzeneğinin yaptığını dışa açık
-  composition API'siyle yapar: sahte merkezle gerçek aktivasyon akışı + `Root.Bootstrap`.
-  Yalnız e2e içindir; üretim kurulumu değildir. **Geçicidir:** backend'e test amaçlı
-  aktivasyon yolu gelince araç kaldırılır ve `cmd/setup`'a dönülür. Hiçbir üretim
-  imajına/derlemesine girmediğini CI `e2e/backend/check-isolation.sh` denetler (`dist/` ve
-  backend çalışma imajı).
+- **İlk yönetici:** etiket imajının kendi `setup` ikilisiyle,
+  `setup --test-activation --expected-digest <imajın NIZAMIO_IMAGE_DIGEST'i>` (parola yalnız
+  standart girdiden). Bayrak yalnız `NIZAMIO_ENV=test|development` ve sahte merkez adaptöründe
+  kabul edilir: sahte merkez aktivasyon kodunu süreç içinde üretir, gerçek aktivasyon +
+  bootstrap koşar; üretimde reddedilir (backend `docs/deployment.md` "Test profili").
+  İmaj `IMAGE_DIGEST` = etiketin commit'i ile derlenir; `up.sh` gömülü değerin bununla
+  eşleştiğini denetler. e2e'ye özel ek araç/imaj yoktur; CI `e2e/backend/check-isolation.sh`
+  `dist/`'te test aktivasyonu izi olmadığını ve backend imajında yalnız `server`, `migrate`,
+  `setup` bulunduğunu denetler.
 - **Fixture:** `e2e/global-setup.ts` yalnız API çağrılarıyla (yönetici girişi → program →
   departman → programa bağlama → üye) kurar; backend seed yüzü yoktur (D-0162).
 - **Duman:** `e2e/smoke.spec.ts` — giriş → `/v1/me` → sayfa yenileme sonrası sessiz refresh
@@ -95,7 +96,7 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   belirteci dolduktan sonra eşzamanlı 401 → ağda tek `/v1/auth/refresh`, iki oturum da
   geçerli. Bu senaryo için ikinci bir server (`18081`, `NIZAMIO_SESSION_TTL=1m`, aynı DB)
   ve ikinci önizleme (`4174`) koşar; normal akışlar `4173 → 18080` (15 dk) üzerindedir.
-- **Tedarik zinciri:** CI eylemleri commit SHA'sına, Postgres ve e2e araç imajının tabanları
+- **Tedarik zinciri:** CI eylemleri commit SHA'sına, Postgres imajı ve backend imajının tabanları
   digest'e sabitlidir. Backend imajı etiketin kendi `build/Dockerfile`'ıyla derlenir;
   `up.sh` yalnız etiketten çıkarılan GEÇİCİ kopyadaki FROM satırlarını digest'li
   referanslara yeniden yazar, `BUILDKIT_SYNTAX` (digest'li) ile derler ve

@@ -3,8 +3,8 @@
 #
 # Sıra (backend README "Binary yüzeyleri ve kurulum sırası"): imaj (etiketin build/Dockerfile'ı)
 # → yönetici bağlantısıyla migrations/roles.sql → migrator kimliğiyle `migrate up` → roles.sql
-# tekrar → ilk yönetici (nizamio-e2e-bootstrap; bkz. bootstrap/main.go başlığı) → uygulama
-# kimliğiyle server.
+# tekrar → ilk yönetici (etiket imajının kendi `setup --test-activation`'ı; sahte merkez,
+# digest doğrulamalı, parola stdin) → uygulama kimliğiyle server.
 #
 # Kip (NIZAMIO_E2E_MODE):
 #   local (varsayılan) — Postgres `nizamio_web_e2e` Compose projesinde (127.0.0.1:15432),
@@ -38,8 +38,9 @@ echo "== backend kaynağı: $tag (etiketten, çalışma ağacı değil)"
 rm -rf "$state/src"
 mkdir -p "$state/src"
 git -C "$backend_dir" archive "refs/tags/$tag" | tar -x -C "$state/src"
-mkdir -p "$state/src/cmd/nizamio-e2e-bootstrap"
-cp "$here/bootstrap/main.go" "$state/src/cmd/nizamio-e2e-bootstrap/main.go"
+# İmaja gömülen digest (backend Makefile IMAGE_DIGEST sözleşmesi): etiketin commit'i.
+# `setup --expected-digest` bunu imajın NIZAMIO_IMAGE_DIGEST'inden okuyup doğrular.
+image_digest="$(git -C "$backend_dir" rev-parse "refs/tags/$tag^{commit}")"
 # GO_VERSION backend Makefile ile aynı kaynaktan: etiketteki go.mod'un `go` satırı (tam değer).
 go_version="$(awk '/^go /{print $2}' "$state/src/go.mod")"
 
@@ -84,19 +85,17 @@ pin_from 'FROM golang:${GO_VERSION}-bookworm AS build' "FROM $golang_ref AS buil
 pin_from 'FROM gcr.io/distroless/static-debian12:nonroot AS runtime' "FROM $distroless_ref AS runtime"
 
 image="nizamio-web-e2e/backend:$tag"
-bootstrap_image="nizamio-web-e2e/bootstrap:$tag"
 build_log="$state/backend-build.log"
 echo "== imaj: $image (etiketin build/Dockerfile'ı, geçici kopyada digest'li FROM, Go $go_version)"
 docker build --progress=plain \
   --build-arg "BUILDKIT_SYNTAX=$syntax_ref" --build-arg "GO_VERSION=$go_version" \
+  --build-arg "IMAGE_DIGEST=$image_digest" \
   -f "$dockerfile" -t "$image" "$state/src" >"$build_log" 2>&1 ||
   { cat "$build_log" >&2; exit 1; }
-docker build -q -f "$here/bootstrap.Dockerfile" -t "$bootstrap_image" "$state/src"
 
 # DENETİM — geçici Dockerfile digest'li mi, BuildKit pinli referansları mı çözdü, çalışma
 # imajı pinli distroless katmanlarıyla mı başlıyor?
 "$here/check-base-pins.sh" "$image" "$distroless_ref" "$dockerfile" "$build_log" "$golang_ref"
-"$here/check-base-pins.sh" "$bootstrap_image" "$distroless_ref" "$here/bootstrap.Dockerfile"
 
 if [[ "$mode" == "ci" ]]; then
   net=(--network host)
@@ -154,9 +153,19 @@ docker run --rm "${net[@]}" --env-file "$env_file" -e "NIZAMIO_DATABASE_URL=$mig
 psql_run -v "migrator_role=$migrator_role" -v "app_role=$app_role" -v "db_name=$db_name" -f - \
   <"$state/src/migrations/roles.sql"
 
-echo "== ilk yönetici: $admin_email"
+# İLK YÖNETİCİ: etiket imajındaki backend `setup` (yalnız NIZAMIO_ENV=test + fake adaptörde kabul
+# edilen --test-activation; sahte merkez kodu süreç içinde üretir, gerçek aktivasyon + bootstrap
+# koşar). --expected-digest imajın kendi NIZAMIO_IMAGE_DIGEST'idir; etiket commit'iyle eşleşmeli.
+embedded_digest="$(docker image inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$image" |
+  sed -n 's/^NIZAMIO_IMAGE_DIGEST=//p')"
+if [[ -z "$embedded_digest" || "$embedded_digest" != "$image_digest" ]]; then
+  echo "HATA: imajın NIZAMIO_IMAGE_DIGEST'i ($embedded_digest) etiket commit'i ($image_digest) değil" >&2
+  exit 1
+fi
+echo "== ilk yönetici: $admin_email (setup --test-activation, digest $embedded_digest)"
 printf '%s\n' "$admin_password" | docker run --rm -i "${net[@]}" --env-file "$env_file" \
-  -e "NIZAMIO_DATABASE_URL=$app_url" "$bootstrap_image" \
+  -e "NIZAMIO_DATABASE_URL=$app_url" --entrypoint /usr/local/bin/setup "$image" \
+  --test-activation --expected-digest "$embedded_digest" \
   --admin-email "$admin_email" --company-name "NIZAM.IO Web E2E"
 
 # İki server aynı veritabanı ve yapılandırmayla koşar; ikincisi YALNIZ oturum ömrü kısa

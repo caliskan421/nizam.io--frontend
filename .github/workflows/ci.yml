@@ -95,7 +95,7 @@ jobs:
           fi
           echo "e2e betiklerinde docker tag/rmi yok"
 
-      - name: 'Ayrım: e2e ilk yönetici aracı yayın paketinde yok (dist/)'
+      - name: 'Ayrım: e2e ilk yönetici yolu (test aktivasyonu) yayın paketinde yok (dist/)'
         run: e2e/backend/check-isolation.sh dist
 
       - name: Bağımlılık denetimi (üretim bağımlılıkları)
@@ -199,10 +199,10 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: 'Backend: etiketten docker build → roller → migrate → ilk yönetici → server'
+      - name: 'Backend: etiketten docker build → roller → migrate → ilk yönetici (setup --test-activation) → server'
         run: e2e/backend/up.sh
 
-      - name: 'Ayrım: e2e ilk yönetici aracı backend çalışma imajında yok'
+      - name: 'Ayrım: backend çalışma imajında yalnız server, migrate, setup'
         run: e2e/backend/check-isolation.sh image
 
       - name: Playwright chromium kur
