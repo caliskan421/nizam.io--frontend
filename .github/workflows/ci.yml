@@ -101,6 +101,50 @@ jobs:
       - name: Bağımlılık denetimi (üretim bağımlılıkları)
         run: pnpm audit --prod
 
+  image:
+    name: 'Web imajı (digest pinli taban · root değil · salt okunur kök · CSP nonce)'
+    runs-on: ubuntu-latest
+    needs: verify
+    timeout-minutes: 20
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 'Taban imajlar digest pinli mi (Dockerfile ARG)'
+        run: |
+          # FROM satırları yalnız ARG ile; ARG varsayılanları ad@sha256:<64 hex> (etiketsiz).
+          if grep -nE '^FROM ' Dockerfile | grep -vE '^[0-9]+:FROM \$\{(NODE|CADDY)_IMAGE\} AS '; then
+            echo "::error::Dockerfile FROM satırı pinli ARG dışında taban kullanıyor"; exit 1
+          fi
+          for arg in NODE_IMAGE CADDY_IMAGE; do
+            grep -qE "^ARG ${arg}=[a-z0-9./-]+@sha256:[0-9a-f]{64}$" Dockerfile ||
+              { echo "::error::$arg digest pinli değil"; exit 1; }
+          done
+          echo "taban imajlar digest pinli"
+
+      - name: İmajı üret (registry'ye itilmez — yayın F23)
+        run: docker build -t "nizamio-web:${GITHUB_SHA}" .
+
+      - name: 'Denetim: salt okunur kök, root değil, SPA fallback, CSP nonce, önbellek, içerik'
+        run: deploy/check-image.sh "nizamio-web:${GITHUB_SHA}"
+
+      - name: İmaj kimliğini (digest) özete yaz
+        run: |
+          id="$(docker image inspect --format '{{.Id}}' "nizamio-web:${GITHUB_SHA}")"
+          size="$(docker image inspect --format '{{.Size}}' "nizamio-web:${GITHUB_SHA}")"
+          {
+            echo "### Web statik imajı"
+            echo ""
+            echo "| Alan | Değer |"
+            echo "|---|---|"
+            echo "| Etiket | \`nizamio-web:${GITHUB_SHA}\` |"
+            echo "| İmaj digest'i (yapılandırma) | \`${id}\` |"
+            echo "| Boyut (bayt) | ${size} |"
+            echo ""
+            echo "Registry'ye itilmez; yayın, imza ve registry digest'i F23'tedir."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "imaj digest'i: $id"
+
   e2e:
     name: 'Playwright duman (gerçek backend, etiket imajı)'
     runs-on: ubuntu-latest

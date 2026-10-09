@@ -1,0 +1,66 @@
+# NIZAM.IO web statik imajı — konteyner içi Caddy (F15 WP-428 K1; D-0183/3-4).
+#
+# Bu sunucu YALNIZ derlenmiş SPA'yı (/srv) sunar; TLS, HSTS, API yönlendirmesi ve istek
+# boyutu sınırı kenar Caddy'sindedir (backend build/Caddyfile). Kenar bu yanıtların CSP'sini
+# EZMEZ: SPA belgesinin CSP'si yalnız burada üretilir, çünkü nonce aynı istekte hem başlığa
+# hem index.html'e yazılmalıdır.
+#
+# Kök olmayan kullanıcı, salt okunur kök dosya sistemi: yönetim API'si kapalı, yapılandırma
+# kalıcılaştırılmaz, otomatik HTTPS kapalı (sertifika kenarda); Caddy'nin veri/yapılandırma
+# dizinleri /tmp altındadır (compose'ta tmpfs).
+{
+	admin off
+	auto_https off
+	persist_config off
+	http_port 8080
+	servers {
+		# Yavaş başlık saldırısına (slowloris) karşı kısa başlık süresi; gövde kenarda sınırlıdır.
+		timeouts {
+			read_header 10s
+			idle 2m
+		}
+	}
+}
+
+:8080 {
+	root * /srv
+	encode zstd gzip
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+	}
+
+	# Parmak izli varlıklar: uzun önbellek, ŞABLONLANMAZ. Eksik varlık 404'tür (SPA'ya düşmez).
+	handle /assets/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# public/ altındaki diğer gerçek dosyalar (favicon vb.): şablonlanmaz, kısa önbellek.
+	@static {
+		file
+		not path / /index.html */
+	}
+	handle @static {
+		header Cache-Control "public, max-age=3600"
+		file_server
+	}
+
+	# SPA belgesi: bilinmeyen her yol index.html'e düşer (istemci yönlendiricisi). Yalnız bu
+	# belge şablonlanır: istek başı nonce ({http.request.uuid}) CSP başlığına ve
+	# <meta name="csp-nonce"> öğesine AYNI istekte yazılır; PrimeVue enjekte ettiği <style>
+	# öğelerine bu nonce'u koyar. 'unsafe-inline' ve 'unsafe-eval' yoktur. Turnstile alanları
+	# script-src/frame-src'dedir. Belge önbelleğe alınmaz (nonce her istekte yenidir).
+	handle {
+		rewrite * /index.html
+		header Cache-Control "no-store"
+		header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'nonce-{http.request.uuid}'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		templates {
+			mime text/html
+		}
+		file_server
+	}
+}

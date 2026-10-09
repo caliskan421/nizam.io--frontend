@@ -111,6 +111,29 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   makinede başka projelerin kaynaklarına dokunulmaz. **CI:** Postgres servis konteyneri,
   `NIZAMIO_E2E_MODE=ci`.
 
+## Statik imaj (teslim; F15 WP-428)
+
+`Dockerfile` iki aşamalıdır: resmî `node` imajında `pnpm install --frozen-lockfile` +
+`pnpm build`, ardından resmî `caddy` imajında yalnız `dist/` ve `deploy/Caddyfile`. Taban
+imajlar digest'e sabitlidir (etiketsiz referans; paylaşılan daemon'da genel etiket oluşmaz).
+
+- Konteyner `8080`'de, **root olmayan** kullanıcıyla (65532) ve **salt okunur kökle** koşar
+  (yazılabilir tek yer `/tmp`, tmpfs); yönetim API'si kapalı, otomatik HTTPS kapalı (TLS
+  kenardadır — backend `build/compose.prod.yaml` + `build/Caddyfile`).
+- Bilinmeyen her yol `index.html`'e düşer (SPA). `/assets/*` uzun önbellekli ve
+  şablonlanmaz; eksik varlık 404'tür. Belge `no-store`'dur.
+- **CSP:** SPA belgesinin CSP'sini bu Caddy verir; `style-src` istek başı nonce taşır
+  (`{http.request.uuid}`), aynı değer `templates` ile `<meta name="csp-nonce">`'a yazılır ve
+  `src/app/csp-nonce.ts` → PrimeVue `csp.nonce`. `'unsafe-inline'`/`'unsafe-eval'` yoktur;
+  Turnstile alanları `script-src`/`frame-src`'dedir. Kenar Caddy bu CSP'yi ezmez; API CSP'si
+  backend'dedir.
+- Denetim: `deploy/check-image.sh <imaj>` (CI `image` işi; registry'ye itilmez, imaj
+  digest'i iş özetine yazılır — yayın/imza F23).
+- **Kurulum provası:** `NIZAMIO_PROVA_BASE_URL=https://… NIZAMIO_PROVA_ADMIN_EMAIL=…
+  NIZAMIO_PROVA_ADMIN_PASSWORD=… pnpm exec playwright test` yalnız
+  `e2e/backend/kurulum-provasi.prova.ts`'yi çalışan pakete karşı koşar (giriş, yenileme
+  sonrası refresh çerezi, CSP ihlali 0, CORS hatası 0).
+
 ## Dizin düzeni
 
 ```text

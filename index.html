@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP nonce: üretim imajında web Caddy'si (deploy/Caddyfile, templates) istek başı değeri yazar. -->
+    <meta name="csp-nonce" content="{{placeholder `http.request.uuid`}}" />
     <title>NIZAM.IO</title>
   </head>
   <body>

@@ -12,7 +12,30 @@ const shortBackend = process.env.NIZAMIO_E2E_SHORT_BACKEND ?? 'http://127.0.0.1:
 const baseURL = `http://127.0.0.1:${port}`
 const SHORT_TTL_BASE_URL = `http://127.0.0.1:${shortPort}`
 
-export default defineConfig({
+// KURULUM PROVASI (F15 WP-428 K7): NIZAMIO_PROVA_BASE_URL verilirse yalnız
+// e2e/backend/kurulum-provasi.prova.ts, çalışan üretim benzeri pakete (kenar Caddy, https)
+// karşı koşar — önizleme sunucusu, global setup ve fixture yoktur. Paketin yerel CA'sı
+// tarayıcıya yüklenmez (TLS geçerliliği backend build/deploy/duman.sh'ta --cacert ile).
+const provaBaseURL = process.env.NIZAMIO_PROVA_BASE_URL
+
+const prova = defineConfig({
+  testDir: 'e2e',
+  testMatch: '**/*.prova.ts',
+  fullyParallel: false,
+  workers: 1,
+  forbidOnly: !!process.env.CI,
+  retries: 0,
+  reporter: 'list',
+  use: {
+    baseURL: provaBaseURL,
+    ignoreHTTPSErrors: true,
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+  },
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+})
+
+const e2e = defineConfig({
   testDir: 'e2e',
   testMatch: '**/*.spec.ts',
   globalSetup: './e2e/global-setup.ts',
@@ -44,3 +67,5 @@ export default defineConfig({
     },
   ],
 })
+
+export default provaBaseURL ? prova : e2e
