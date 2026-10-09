@@ -102,6 +102,28 @@ test('https: giriş → yenileme sonrası refresh çereziyle oturum → CSP ihla
   await expect(page.getByTestId('me-email')).toHaveText(email)
 
   const violations = await cspViolations(page)
+  const consoleBeforeControl = [...consoleProblems]
+  // Negatif kontrol: nonce'suz satır içi <style> engellenmeli ve olay yakalanmalı — dedektör
+  // gerçekten çalışıyor (ihlal 0 sonucu "dinlenmedi" anlamına gelmiyor).
+  const detectorControl = await page.evaluate(
+    () =>
+      new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => resolve(false), 3000)
+        document.addEventListener(
+          'securitypolicyviolation',
+          (e) => {
+            if (e.violatedDirective.startsWith('style-src')) {
+              clearTimeout(timer)
+              resolve(true)
+            }
+          },
+          { once: true },
+        )
+        const style = document.createElement('style')
+        style.textContent = 'body { outline: 1px solid red; }'
+        document.head.append(style)
+      }),
+  )
   await page.screenshot({ path: 'test-results/kurulum-provasi.png', fullPage: true })
   writeFileSync(
     summaryPath,
@@ -118,7 +140,8 @@ test('https: giriş → yenileme sonrası refresh çereziyle oturum → CSP ihla
           path: refreshCookie?.path,
         },
         cspViolations: violations,
-        consoleCspOrCors: consoleProblems,
+        cspDetectorNegativeControl: detectorControl,
+        consoleCspOrCors: consoleBeforeControl,
         failedRequests,
       },
       null,
@@ -126,6 +149,7 @@ test('https: giriş → yenileme sonrası refresh çereziyle oturum → CSP ihla
     ),
   )
   expect(violations, 'CSP ihlali').toEqual([])
-  expect(consoleProblems, 'konsolda CSP/CORS iletisi').toEqual([])
+  expect(detectorControl, "nonce'suz stil engellenip yakalanmalı (negatif kontrol)").toBe(true)
+  expect(consoleBeforeControl, 'konsolda CSP/CORS iletisi').toEqual([])
   expect(failedRequests, 'başarısız istek').toEqual([])
 })
