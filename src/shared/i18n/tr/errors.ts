@@ -6,9 +6,25 @@ export const trErrors: Record<string, string> = {
   // audit
   'audit.entry_rejected': 'İşlem kaydı yazılamadığı için istek tamamlanamadı.',
 
+  // assistant
+  'assistant.busy': 'Asistan şu anda meşgul; biraz sonra yeniden deneyin.',
+  'assistant.capacity_full': 'Asistan kapasitesi dolu; biraz sonra yeniden deneyin.',
+  'assistant.input_invalid': 'Girilen bilgiler geçersiz.',
+  'assistant.limit_exceeded': 'Asistan kullanım sınırına ulaşıldı.',
+  'assistant.not_authorized': 'Bu işlem için yetkiniz yok.',
+  'assistant.not_found': 'Asistan kaydı bulunamadı.',
+  'assistant.provider_unavailable': 'Asistan hizmeti şu anda kullanılamıyor.',
+  'assistant.quota_exceeded': 'Asistan kullanım kotası doldu.',
+  'assistant.refused': 'Asistan bu isteği yanıtlayamadı.',
+
   // collaboration
   'collaboration.agenda_item_not_found': 'Gündem maddesi bulunamadı.',
   'collaboration.agenda_limit_reached': 'Gündem madde sınırına ulaşıldı.',
+  'collaboration.conference_disabled': 'Görüntülü görüşme bu kurulumda kapalı.',
+  'collaboration.conference_not_active': 'Görüşme etkin değil.',
+  'collaboration.conference_provider_unavailable': 'Görüşme hizmeti şu anda kullanılamıyor.',
+  'collaboration.conference_webhook_invalid': 'Görüşme bildirimi geçersiz.',
+  'collaboration.conference_webhook_unauthorized': 'Görüşme bildirimi doğrulanamadı.',
   'collaboration.input_invalid': 'Girilen bilgiler geçersiz.',
   'collaboration.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
   'collaboration.meeting_not_found': 'Toplantı bulunamadı.',
@@ -30,9 +46,12 @@ export const trErrors: Record<string, string> = {
   'identity.account_not_found': 'Hesap bulunamadı.',
   'identity.account_not_locked': 'Hesap kilitli değil.',
   'identity.account_referenced': 'Hesap başka kayıtlarda kullanıldığı için kalıcı silinemez.',
+  'identity.capacity_full': 'Sistem şu anda yoğun; biraz sonra yeniden deneyin.',
   'identity.captcha_invalid': 'Güvenlik doğrulaması başarısız; yeniden deneyin.',
   'identity.captcha_required': 'Güvenlik doğrulaması gerekli.',
   'identity.credentials_invalid': 'E-posta veya parola hatalı.',
+  'identity.download_target_invalid': 'İndirme hedefi geçersiz.',
+  'identity.download_ticket_invalid': 'İndirme bağlantısı geçersiz veya süresi dolmuş.',
   'identity.force_password_change_required': 'Devam etmek için parolanızı değiştirmelisiniz.',
   'identity.input_invalid': 'Girilen bilgiler geçersiz.',
   'identity.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
@@ -48,6 +67,7 @@ export const trErrors: Record<string, string> = {
   'identity.password_too_short': 'Parola çok kısa.',
   'identity.permanent_requires_deleted': 'Kalıcı silme için hesap önce silinmiş olmalı.',
   'identity.session_invalid': 'Oturumunuz geçersiz veya süresi dolmuş; yeniden giriş yapın.',
+  'identity.unavailable': 'Kimlik hizmeti şu anda kullanılamıyor; yeniden deneyin.',
   'identity.weak_password': 'Parola yeterince güçlü değil.',
 
   // notifications
@@ -72,6 +92,7 @@ export const trErrors: Record<string, string> = {
   'organization.department_exists': 'Bu adla bir departman zaten var.',
   'organization.department_in_use': 'Departman kullanımda olduğu için silinemez.',
   'organization.department_not_found': 'Departman bulunamadı.',
+  'organization.department_not_linked': 'Departman bu programa bağlı değil.',
   'organization.input_invalid': 'Girilen bilgiler geçersiz.',
   'organization.invalid_code': 'Departman kodu geçersiz.',
   'organization.invalid_kind': 'Departman türü geçersiz.',
@@ -85,9 +106,9 @@ export const trErrors: Record<string, string> = {
   'organization.not_authorized': 'Bu işlem için yetkiniz yok.',
   'organization.not_deleted': 'Kayıt silinmiş durumda değil.',
   'organization.permanent_requires_deleted': 'Kalıcı silme için kayıt önce silinmiş olmalı.',
+  'organization.program_required': 'Program seçimi gerekli.',
   'organization.task_title': 'Etkilenen görev.',
   'organization.transfer_available': 'Bu hesap başka bir departmandan aktarılabilir.',
-  'organization.transfer_unavailable': 'Bu hesap aktarılamaz.',
 
   // platform
   'platform.body_invalid': 'İstek içeriği geçersiz.',
@@ -106,10 +127,15 @@ export const trErrors: Record<string, string> = {
 
   // program
   'program.already_exists': 'Bu program zaten var.',
+  'program.copy_source_not_linked': 'Ekip kopyalanacak programda bu departman bağlı değil.',
+  'program.department_link_in_use':
+    'Departmanın programda canlı görevleri olduğu için bağı kaldırılamaz.',
+  'program.department_link_name_exists': 'Bu programda aynı adla bir departman zaten var.',
   'program.department_not_found': 'Departman bu programda bulunamadı.',
   'program.duplicate_transfer_item': 'Aktarım listesinde aynı kayıt birden fazla kez var.',
   'program.idempotency_key_reused': 'Bu istek anahtarı farklı bir istekle kullanılmış.',
   'program.input_invalid': 'Girilen bilgiler geçersiz.',
+  'program.invalid_copy_source': 'Ekip kopyası için kaynak program geçersiz.',
   'program.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
   'program.invalid_description': 'Açıklama geçersiz.',
   'program.invalid_limit': 'Sayfa boyutu geçersiz.',
@@ -146,6 +172,8 @@ export const trErrors: Record<string, string> = {
   'records.name_invalid': 'Dosya adı geçersiz.',
   'records.name_taken': 'Bu adla bir dosya zaten var.',
   'records.not_authorized': 'Bu işlem için yetkiniz yok.',
+  'records.tag_invalid': 'Dosya etiketi geçersiz.',
+  'records.tag_required': 'Dosya etiketi gerekli.',
   'records.too_large': 'Dosya çok büyük.',
   'records.too_many_files': 'Dosya sayısı sınırına ulaşıldı.',
   'records.transfer_active': 'Devam eden bir aktarım nedeniyle dosya değiştirilemez.',
@@ -201,6 +229,11 @@ export const trErrors: Record<string, string> = {
   'work.revert_reason_required': 'Geri alma için gerekçe gerekli.',
   'work.stale_completion': 'Görev başka biri tarafından güncellendi; yenileyip yeniden deneyin.',
   'work.stale_transition': 'Görev durumu değişti; yenileyip yeniden deneyin.',
+  'work.subtask_assignee_not_assigned':
+    'Alt görevin sorumlusu görevin atanmış kişilerinden biri olmalı.',
+  'work.subtask_limit_reached': 'Alt görev sınırına ulaşıldı.',
+  'work.subtask_not_found': 'Alt görev bulunamadı.',
+  'work.subtasks_open': 'Açık alt görevler var; önce bunları tamamlayın ya da kapatın.',
   'work.transfer_active': 'Devam eden bir aktarım nedeniyle görev değiştirilemez.',
   'work.transition_not_allowed': 'Bu durum geçişine izin verilmiyor.',
 

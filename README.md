@@ -37,7 +37,7 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 ## Backend ile ilişki
 
 - Sözleşme: `../nizam.io--backend/docs/api/openapi.yaml` + `error-codes.json`, backend
-  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.1.1-api`).
+  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.5.0-api`).
   `pnpm gen:api` spec'i `git show <etiket>:docs/api/...` ile okur; çalışma ağacı veya
   etiketsiz `main` okunmaz. Üretilen dosyalar commit'lenir; CI backend etiketini salt
   okunur deploy key ile getirir, yeniden üretir ve diff = 0 ister.

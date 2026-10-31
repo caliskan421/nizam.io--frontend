@@ -8,12 +8,11 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('ilk dilimin 32 ucu üretildi', () => {
-    expect(entries).toHaveLength(32)
+  it('v0.5.0-api sözleşmesinin 153 ucu üretildi', () => {
+    expect(entries).toHaveLength(153)
   })
 
   it.each(entries)('%s kapsam/CSRF/kimlik tutarlı', (key, meta) => {
-    // Geniş tipe çevrilir: ilk dilimde S3 yok, ama kural gelecekteki etiketlerde de sınanır.
     const op = meta as {
       scope: string
       programHeader: boolean
@@ -24,13 +23,14 @@ describe('operations.gen', () => {
     const method = key.split(' ')[0]
     expect(op.programHeader).toBe(op.scope === 'S2' || op.scope === 'S3')
     expect(op.departmentHeader).toBe(op.scope === 'S3')
-    expect(op.csrf).toBe(method !== 'GET')
+    // Sözleşme istisnası: dosya yükleme (multipart) CSRF başlığı istemez, taşıyıcı yalnız Bearer.
+    expect(op.csrf).toBe(method !== 'GET' && key !== 'POST /v1/work-items/{id}/files')
     expect(op.auth).toBe(op.scope !== 'S0')
   })
 
-  it('hata kataloğu 144 kod ve message_key = errors.<kod>', () => {
+  it('hata kataloğu 171 kod ve message_key = errors.<kod>', () => {
     const codes = Object.entries(ERROR_CODES)
-    expect(codes).toHaveLength(144)
+    expect(codes).toHaveLength(171)
     for (const [code, entry] of codes) expect(entry.messageKey).toBe(`errors.${code}`)
   })
 })
