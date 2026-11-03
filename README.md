@@ -2,7 +2,7 @@
 
 NIZAM.IO'nun tarayıcı istemcisi. Durum: **iskelet (WEB-1a)** — proje, kalite kapıları,
 sınır kuralı, tip üretimi, HTTP/oturum/kapsam katmanı, i18n, tasarım token'ları ve gerçek
-backend'e karşı e2e duman kuruldu (`../program/fazlar/F06-web-1a-iskelet.md`). Giriş/kabuk/kapsam
+backend'e karşı e2e duman kuruldu (`../program/arsiv/v1-teslim/fazlar/F06-web-1a-iskelet.md`). Giriş/kabuk/kapsam
 seçici ve bütün ekran tasarımı program sonrası istemci geliştirmesindedir (`../program/` D-0174);
 bugünkü oturum sayfası ve PrimeVue preset/token değerleri yer tutucudur.
 
