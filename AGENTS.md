@@ -13,8 +13,8 @@ deposundaki eski kayıt sistemine (`project-control`) bağlı değildir.
    - `README.md` — sürüm ve etiket ilkesi
 4. Bu depodaki `README.md` (komutlar, dizin düzeni), `src/CLAUDE.md` (kaynak haritası) ve açık PR'lar.
 
-Spec her zaman bir **backend etiketinden** okunur (güncel pin `api-pin.json`). Etiketsiz
-`main` spec'inden tip üretilmez.
+Pin kuralı tek yerde: kök [`../README.md`](../README.md) (tek cümle) ve backend
+`docs/api/README.md` §8; güncel pin `api-pin.json`.
 
 ## Kurallar
 
