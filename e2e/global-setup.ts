@@ -67,6 +67,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
       data: {
         email: memberEmail,
         full_name: 'E2E Üye',
+        program_id: program.program_id,
         department_id: department.department_id,
         role: 'uye',
       } satisfies Schemas['CreateUserRequest'],
