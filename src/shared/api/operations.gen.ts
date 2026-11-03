@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.11.0-api-rc.1 (bdbfbca1ded4c996d406a54f66bd1aa958cb4f2f) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
+// Kaynak: nizam.io--backend etiket v0.11.0-api (4d0bbd0605ade5adfc0599e9586944ed8dab7bcb) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
 
 export const API_VERSION = "v1" as const
 
