@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.5.0-api (e273d99b6a118ec6600387b0fc8392ba294ba61b) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.11.0-api (4d0bbd0605ade5adfc0599e9586944ed8dab7bcb) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -539,6 +539,528 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/chat-attachments/{attachmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sohbet ekini indirir (sohbet üyesi; indirme bileti hedefi).
+         * @description Mesaj silinmiş, ek yok ya da sohbete erişim yoksa 404 `messaging.message_not_found`. Tarayıcı ve
+         *     indirme yöneticisi `POST /v1/download-tickets` ile bilet alır (ADR-0013).
+         */
+        get: operations["downloadChatAttachment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chat-file-refs/{refId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sohbette paylaşılan dosyayı indirir (sohbet üyesi; indirme bileti hedefi).
+         * @description Erişim mesaja bağlıdır: mesaj silindiyse ya da çağıran sohbetten çıktıysa (bilet tüketiminde
+         *     dahil) 404 `messaging.ref_not_found`. Dosya türünde olmayan referans, yok olan ya da başka
+         *     programa taşınan dosya aynı cevabı alır. Genel dosya indirme ucunun yetkisi değişmez.
+         *     Belirteç taşıyamayan istemci (tarayıcı gezintisi, indirme yöneticisi) `POST /v1/download-tickets`
+         *     ile bu yola bilet alır (ADR-0013); tüketimde aynı denetimler tüketim anındaki durumla koşar.
+         */
+        get: operations["downloadChatSharedFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chat-refs/{refId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paylaşılan öğenin okuyana sınırlı özeti (sohbet üyesi).
+         * @description Referans yok, mesajı silinmiş ya da çağıran sohbet üyesi değilse 404 `messaging.ref_not_found`.
+         *     Hedef canlı okunur: görev/dosya yoksa ya da başka programdaysa, koordinatörlüğün bağı
+         *     kalktıysa 200 `available: false` ve kart alanları yok. Görev kartı kod alanı taşımaz.
+         */
+        get: operations["getChatRefSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seçili programdaki sohbetler (son etkinliğe göre, imleçli).
+         * @description İlk sayfada (imleç boş) ve yazma izni açıkken programın kendiliğinden grupları
+         *     (bağlı her koordinatörlük ve "Genel") tembel ve idempotent kurulur; salt okunur
+         *     modda liste onlarsız döner. Satırda çağıranın grup rolü yoktur (`role` alanı
+         *     yalnız `GET /v1/chats/{chatId}` cevabındadır).
+         */
+        get: operations["listChats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sohbet bilgisi (çağıranın grup rolü dahil). */
+        get: operations["getChat"];
+        put?: never;
+        post?: never;
+        /** Grubu siler (yönetici ya da kurucu; iz satırı kalır). */
+        delete: operations["deleteChat"];
+        options?: never;
+        head?: never;
+        /**
+         * Grup adını (yönetici/kurucu) ya da kaynağını (yönetici) değiştirir.
+         * @description Kaynak değişimi "kapat + aç"tır: eski kaynağın o anki üyeleri başlangıçlarıyla elle
+         *     üyeliğe yazılır, yeni kaynak `source_since` ile başlar.
+         */
+        patch: operations["updateChat"];
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/admins/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Üyeyi grup yöneticisi yapar (hedef ŞY ya da koordinatör). */
+        put: operations["grantChatAdmin"];
+        post?: never;
+        /** Grup yöneticiliğini alır. */
+        delete: operations["revokeChatAdmin"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ek mesajı gönderir (multipart, tek dosya; 201 yeni, 200 aynı istemci kimliğinin tekrarı).
+         * @description İzinli 11 tür (records ile aynı: pdf, png, jpg, csv, doc/docx, xls/xlsx, ppt/pptx, pages); tavan
+         *     `NIZAMIO_MESSAGING_ATTACHMENT_MAX_BYTES` (varsayılan 25 MB). Açıklama isteğe bağlıdır; ek mesajında
+         *     `body` boş olabilir. Tek istek tek dosyadır.
+         *     Aynı `client_message_id` ile farklı gönderim (açıklama, yanıtlanan mesaj ya da ekin adı, MIME
+         *     türü veya boyutu) 409 `messaging.idempotency_key_reused` alır; aynı gönderimin tekrarı 200 döner.
+         */
+        post: operations["sendChatAttachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sohbetin güncel üyeleri (elle + kaynaklı; en çok 200, `truncated`). */
+        get: operations["listChatMembers"];
+        put?: never;
+        /** Gruba elle üye ekler (ekleme kuralı; tek istekte en çok 200). */
+        post: operations["addChatMembers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/members/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Üyeyi çıkarır; hedef çağıranın kendisiyse gruptan ayrılmadır. */
+        delete: operations["removeChatMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sohbet geçmişi (`seq` imleçli; tombstone dönmez).
+         * @description `before`, `after`, `around` en çok biri verilir; hiçbiri yoksa son sayfa. İmleç
+         *     sohbet içi sıra numarasıdır (`seq`), zaman damgasına indirgenmez.
+         */
+        get: operations["listChatMessages"];
+        put?: never;
+        /**
+         * Mesaj gönderir ya da yanıtlar (201 yeni, 200 aynı istemci kimliğinin tekrarı).
+         * @description Tekrar yetkiyi atlamaz: erişimini kaybetmiş çağıran 404 alır. Aynı istemci
+         *     kimliğiyle gönderilmiş mesaj silinmişse 409 `messaging.message_deleted`; aynı istemci
+         *     kimliğiyle farklı gönderim (gövde, yanıtlanan mesaj, bahsetme, referans ya da anket) 409 `messaging.idempotency_key_reused`.
+         *     Yanıtlanan mesaj yoksa 404 `messaging.message_not_found`. Tekrar çocuk
+         *     yazmaz; ilk mesajın bahsetme ve referanslarını döndürür. Yeni olay yoktur:
+         *     bahsetme ve referans `message.created` ile duyurulur.
+         */
+        post: operations["sendChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages/{messageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Mesajı siler (gönderen ya da grup yöneticisi; tombstone). */
+        delete: operations["deleteChatMessage"];
+        options?: never;
+        head?: never;
+        /** Mesajı düzenler (yalnız gönderen; düzenlendi işareti). */
+        patch: operations["editChatMessage"];
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages/{messageId}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mesajı sabitler (birebirde iki taraf; grupta yönetici ya da kurucu).
+         * @description Tekrar sabitleme sabitlenme anını değiştirmez. Silinen mesaj sabitten düşer.
+         */
+        put: operations["pinChatMessage"];
+        post?: never;
+        /** Mesajı sabitten kaldırır. */
+        delete: operations["unpinChatMessage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages/{messageId}/poll/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Anketi bitirir (yalnız açan). */
+        post: operations["closeChatPoll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages/{messageId}/reaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mesaja tepki koyar (kişi başına tek tepki; yenisi eskinin yerine). */
+        put: operations["setChatReaction"];
+        post?: never;
+        /** Tepkiyi kaldırır (yoksa da 204). */
+        delete: operations["deleteChatReaction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages/{messageId}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mesajdan görev açar (şirket yöneticisi ya da hedef departmanın koordinatörü).
+         * @description Açıklama mesaj gövdesidir; `title` boşsa gövdenin ilk 100 karakteri. Başlangıç bugünden,
+         *     bitiş başlangıçtan önce olamaz. Aynı mesajdan ikinci görev serbesttir (uyarı istemcide,
+         *     mesajın `task_ids` alanı). Görev ve mesaj bağı tek transaction'dadır; commit sonrası
+         *     `message.updated` yayılır.
+         */
+        post: operations["createTaskFromChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/messages/{messageId}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ankete oy verir (küme önceki oyun yerine geçer; boş küme oyu geri çeker).
+         * @description Tek seçimli ankette en çok bir seçenek. Kapanmış ya da son tarihi geçmiş ankete 409 `messaging.poll_closed`. Anket olmayan mesaj 404 `messaging.message_not_found`.
+         */
+        put: operations["voteChatPoll"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sabit mesajlar (pinned_at DESC; imleçsiz, tavanlı truncated). */
+        get: operations["listChatPins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Okundu imlecini verilen mesaja ilerletir (geri gitmez). */
+        post: operations["markChatRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/refs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sohbetin paylaşılanları (görev, koordinatörlük, dosya; en yeniden eskiye, statik satır).
+         * @description Satır statiktir; kart `GET /v1/chat-refs/{refId}` ile okunur. Silinmiş mesajın
+         *     referansı listede yoktur. `cursor` önceki sayfanın son `ref_id`'sidir.
+         */
+        get: operations["listChatRefs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/{chatId}/typing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Yazıyor olayını yayar (her zaman 204; DB okuması yok).
+         * @description Yetki abonelik kümesindendir: çağıranın bu programda sohbeti tutan açık akışı yoksa olay sessizce düşer. İstemci ≥ 3 sn aralıkla gönderir.
+         */
+        post: operations["sendChatTyping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Birebir ya da gruba ekleme için aday kişiler (en çok 200; `truncated`).
+         * @description Silinmiş hesap ve çağıranın kendisi listeye girmez. Listede olmayan kişiyle
+         *     birebir açılamaz ya da gruba eklenemez (istemci "neden yazamıyorum" metnini
+         *     birebir kuralından gösterir).
+         */
+        get: operations["listChatCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Birebir sohbet açar ya da mevcut olanı döndürür (201 yeni, 200 mevcut).
+         * @description Birebir kuralı (iki yönlü; roller seçili programdan) yalnız YENİ sohbet açılırken
+         *     uygulanır: rolü sonradan değişen çift mevcut sohbetini 200 ile açar. Karşı taraf
+         *     silinmiş hesapsa ya da kural izin vermiyorsa 403 `messaging.not_authorized`.
+         */
+        post: operations["openDirectChat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grup sohbeti kurar (kurucu + ilk üyeler; kaynak ayarı yalnız ŞY/koordinatör kurucuda). */
+        post: operations["createGroupChat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Görünür bütün sohbetlerde okundu imlecini son mesaja çeker. */
+        post: operations["markAllChatsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chats/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sohbet olaylarının anlık akışı (SSE; içeriksiz olaylar).
+         * @description Olaylar kalıcı değildir ve outbox olayı değildir; yük içeriksizdir (yalnız
+         *     kimlikler). İstemci içeriği güncel yetkiyle HTTP okumasından alır.
+         *
+         *     Kimlik, program yetkisi ve abonelik akış başlığından ÖNCE verilir; hata normal
+         *     hata zarfıyla döner. Akış başladıktan sonra hata zarfı yazılmaz, bağlantı kapanır.
+         *     Sunucu ilk çerçevede `: ok`, sonra 25 sn'de bir `: ping` yorum satırı yazar.
+         *     Akış `NIZAMIO_HTTP_STREAM_TIMEOUT` bütçesiyle sınırlıdır; bütçe dolunca, bağlantı
+         *     kuyruğu taşınca ya da sunucu kapanırken bağlantı kapanır.
+         *
+         *     Yeniden bağlanma protokolü: istemci ÖNCE aboneliği kurar, SONRA sohbet listesini
+         *     ve açık sohbetin görünen penceresini `after` imleciyle uzlaştırır. Olayları ≥ 1 sn
+         *     birleştirip toplu okur. Belirteç yalnız `Authorization` başlığında taşındığı için
+         *     tarayıcı `EventSource` kullanamaz; fetch akışıyla okur.
+         */
+        get: operations["streamChatEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/date-change-requests": {
         parameters: {
             query?: never;
@@ -944,6 +1466,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/chat-unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Programlar arası okunmamış sohbet özeti (program seçici rozeti).
+         * @description Ekip satırı olan programlar; şirket yöneticisine bütün programlar. `mentioned`
+         *     programdaki herhangi bir sohbetin bahsetme rozetidir (`GET /v1/chats` `mentioned`).
+         */
+        get: operations["getChatUnreadOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/departments": {
         parameters: {
             query?: never;
@@ -1180,92 +1723,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Gelen/giden mesajlar (imleçli). */
-        get: operations["listMessages"];
-        put?: never;
-        /** Mesaj gönderir (gönderim matrisi use-case sınırında). */
-        post: operations["sendMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/messages/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Mesajı kalıcı siler (gönderen her zaman; alıcı okuduktan sonra). */
-        delete: operations["deleteMessage"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/messages/{id}/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Mesajı okundu işaretler (yalnız alıcı; idempotent). */
-        post: operations["markMessageRead"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/messages/recipients": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Alıcı adayları (gruplu; yöneticiye kapalı). */
-        get: operations["listMessageRecipients"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/messages/unread-count": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Seçili programdaki okunmamış gelen mesaj sayısı. */
-        get: operations["countUnreadMessages"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/notifications": {
         parameters: {
             query?: never;
@@ -1482,7 +1939,21 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Kapsamdaki programa bağlı (canlı) departmanlar; programdaki adla.
+         * @description Görünürlük `readProgram` ile aynıdır: şirket yöneticisi ya da bu programda ekip
+         *     satırı olan hesap; aksi `404 program.not_found`. Yumuşak silinmiş ya da bağı
+         *     kaldırılmış departman listede yoktur. Liste programdaki ada (eşitlikte
+         *     departman kimliğine) göre bayt sırasıyla sıralıdır;
+         *     sayaç ya da toplam taşımaz. Sayfasızdır: 200'den fazla canlı bağ varsa
+         *     departman kimliği sırasıyla ilk 200 canlı bağ, ada göre sıralı döner ve
+         *     `X-Result-Truncated: true` konur. Görev ekranında şirket yöneticisinin departman
+         *     seçimi bu listeden yapılır (istemci departmanlar arası tarama yapmaz).
+         *     Programda herhangi bir departmanda ekip satırı olan hesap programın bütün
+         *     bağlı departmanlarının adını görür (yapısal bilgi, yetki değil); üye ve
+         *     koordinatör departman seçimi için `/v1/me/departments` kullanır.
+         */
+        get: operations["listProgramDepartments"];
         put?: never;
         /**
          * Departmanı kapsamdaki programa bağlar (isteğe bağlı ad ve ekip kopyasıyla).
@@ -1524,6 +1995,52 @@ export interface paths {
          *     duyarsızdır (ADR-0023 kural 4).
          */
         patch: operations["renameDepartmentLink"];
+        trace?: never;
+    };
+    "/v1/program/work-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seçili programın görünür görevleri (imleçli; departman başlığı yok).
+         * @description Görev listesinin program bağlamındaki ucudur (WORK-K81). Satır biçimi
+         *     `listWorkItems` ile aynıdır (`WorkItemList`: tarihler, adlı atananlar, gecikme
+         *     etiketleri, `subtask_counts`, `pending_date_request`); toplam ya da sayaç eklenmez.
+         *     Bekleyen tarih talebi satır başına yetkiyle dolar (yönetici her satırda,
+         *     koordinatör kendi departmanının satırında; üye satırında `null`; kural tekil
+         *     görev uçlarıyla aynıdır) ve listeyle aynı sorguda okunur; departman başına ek
+         *     istek gerekmez.
+         *
+         *     Görünürlük çağıranın **bu programdaki** ekip satırlarından sunucuda, tek sorguda
+         *     hesaplanır: şirket yöneticisi programın bütün görevlerini, koordinatör koordinatörü
+         *     olduğu departmanların bütün görevlerini, üye üyesi olduğu departmanlarda yalnız
+         *     kendisine atanan görevleri görür; birden çok rolü olan hesap birleşimi görür (aynı
+         *     görev bir kez döner). Silinmiş görev ve silinmiş departmanın satırı yetki vermez.
+         *
+         *     `department_id` verilirse görünürlükle **kesişir**, yetkiyi genişletmez: koordinatör
+         *     olunmayan departman süzülürse yalnız o departmanda kendisine atanan görevler döner
+         *     (ekip satırı yoksa boş liste). Programa bağlı olmayan ya da yumuşak silinmiş
+         *     (bağı duran) departman `404 work.program_scope_invalid`. Boş ya da yalnız
+         *     boşluktan oluşan `department_id` süzgeç verilmemiş sayılır (`limit` ve `cursor`
+         *     boş değerleriyle aynı gelenek).
+         *
+         *     Hiçbir programda ekip satırı olmayan ve yönetici olmayan hesap `403
+         *     organization.membership_required`; bu programda ekip satırı olmayan ve yönetici
+         *     olmayan hesap, var olmayan programla aynı `404 work.program_scope_invalid` alır
+         *     (programın varlığı sızmaz). Sıra `(created_at, id)`; imleç opak; `limit`
+         *     varsayılanı 50, 200 üstü 200'e çekilir. Tek görev istekleri yine görevin kendi
+         *     `program_id` ve `department_id` başlıklarıyla gider.
+         */
+        get: operations["listProgramWorkItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/programs": {
@@ -1899,7 +2416,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kapsamdaki görevler (imleçli). */
+        /**
+         * Kapsamdaki görevler (imleçli).
+         * @description Satırdaki `pending_date_request` yöneticiye ve bu departmanın koordinatörüne
+         *     dolar; üyede her satırda `null` (WORK-K82; tekil görev uçlarıyla aynı kural).
+         */
         get: operations["listWorkItems"];
         put?: never;
         /** Görev açar (tarihler `YYYY-MM-DD`). */
@@ -1917,7 +2438,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Tek görevi açıklamasıyla okur (liste ile aynı rol kümesi, seçili programdaki rol).
+         * @description Şirket yöneticisi ve görevin departmanının koordinatörü kapsamdaki her görevi,
+         *     atanmış üye yalnız kendi görevini okur. Rol, görevin kendi `(program, departman)`
+         *     kapsamından okunur. Kapsam başlığı görevin kapsamıyla uyuşmuyorsa ya da görev
+         *     yok/silinmişse 404 `work.item_not_found`. Atanmamış üye 403 `work.not_assigned`
+         *     alır: bu uç (notlar ve alt görev uçları gibi) görevin varlığını kapsam içindeki
+         *     ekip üyesinden gizlemez.
+         */
+        get: operations["getWorkItem"];
         put?: never;
         post?: never;
         /** Görevi yumuşak siler. */
@@ -2289,6 +2819,9 @@ export interface components {
             /** @description Düşürülen oturum sayısı; sıfırsa alan yoktur. */
             revoked_sessions?: number;
         };
+        AddChatMembersRequest: {
+            account_ids: string[];
+        };
         AddedCount: {
             added: number;
         };
@@ -2437,6 +2970,260 @@ export interface components {
             /** @enum {string} */
             role: "koordinator" | "uye";
         };
+        Chat: {
+            /**
+             * @description Kendiliğinden kurulan grubun türü; elle kurulan sohbette `null`.
+             * @enum {string|null}
+             */
+            auto_kind: "department" | "general" | null;
+            chat_id: string;
+            counterpart_account_id: string | null;
+            counterpart_name: string | null;
+            /** Format: date-time */
+            created_at: string;
+            created_by_account_id: string | null;
+            /** @enum {string} */
+            kind: "direct" | "group";
+            /** Format: date-time */
+            last_message_at: string | null;
+            /** Format: int64 */
+            last_seq: number;
+            /** @description Grupta ad; birebirde `null`. */
+            name: string | null;
+            /**
+             * Format: date-time
+             * @description Birebirde karşı tarafın son aboneliğinin kapandığı an (bellek içi). Çevrimiçiyse ya da bilinmiyorsa (hiç bağlanmamış, sunucu yeniden başlamış) null; grupta ya da çevrimiçi sağlayıcısı yoksa null.
+             */
+            peer_last_seen_at?: string | null;
+            /** @description Birebirde karşı tarafın açık aboneliği var mı; yoksa false (hiç bağlanmamış ya da sunucu yeniden başlamış dahil). Grupta ya da çevrimiçi sağlayıcısı yoksa null. */
+            peer_online?: boolean | null;
+            /**
+             * @description Çağıranın gruptaki rolü (birebirde `member`); sohbet listesinde yoktur.
+             * @enum {string}
+             */
+            role?: "admin" | "founder" | "member";
+            /** @enum {string} */
+            source: "none" | "department" | "program";
+            source_department_id: string | null;
+        };
+        ChatCandidate: {
+            account_id: string;
+            full_name: string;
+            /**
+             * @description Seçili programdaki en yüksek rol.
+             * @enum {string}
+             */
+            role: "company_admin" | "coordinator" | "member";
+        };
+        ChatCandidateList: {
+            items: components["schemas"]["ChatCandidate"][];
+            truncated: boolean;
+        };
+        /** @description SSE olay yükü; içeriksizdir (metin, alıntı taşımaz). Kalıcı değildir. */
+        ChatEvent: {
+            actor_account_id: string;
+            /** @description Üyelik/sohbet olayında sohbete giren ve sohbetten düşen hesaplar; diğer olaylarda boş. */
+            affected_account_ids: string[];
+            chat_id: string;
+            message_id: string | null;
+        };
+        ChatHistory: {
+            items: components["schemas"]["ChatMessage"][];
+            /**
+             * Format: int64
+             * @description Birebirde karşı tarafın okundu imleci (tik); grupta `null`.
+             */
+            peer_read_seq: number | null;
+        };
+        ChatLastMessage: {
+            /** @description Silinmiş mesajda `null`. */
+            body: string | null;
+            /** Format: date-time */
+            created_at: string;
+            deleted: boolean;
+            message_id: string;
+            sender_account_id: string;
+            sender_name: string;
+            /** Format: int64 */
+            seq: number;
+        };
+        ChatList: {
+            items: components["schemas"]["ChatSummary"][];
+            /** @description Boşsa son sayfa. */
+            next_cursor: string;
+        };
+        ChatMember: {
+            account_id: string;
+            founder: boolean;
+            /** @description `true` ise üye grubun kaynağından gelir; elle çıkarılamaz (409 `messaging.member_source_managed`). */
+            from_source: boolean;
+            full_name: string;
+            /** @enum {string} */
+            role: "admin" | "founder" | "member";
+        };
+        ChatMemberList: {
+            items: components["schemas"]["ChatMember"][];
+            truncated: boolean;
+        };
+        ChatMention: {
+            /** @enum {string} */
+            kind: "account" | "department" | "all";
+            /** @description `all`da yoktur. */
+            target_id?: string;
+        };
+        ChatMessage: {
+            attachments: {
+                attachment_id: string;
+                content_type: string;
+                file_name: string;
+                /** Format: int64 */
+                size_bytes: number;
+            }[];
+            body: string;
+            chat_id: string;
+            client_message_id: string;
+            /** Format: date-time */
+            created_at: string;
+            /**
+             * Format: int64
+             * @description Gövdenin düzenleme sürümü (ADR-0027); tombstone, sabitleme ve tepki artırmaz.
+             */
+            edit_revision: number;
+            edited: boolean;
+            /** Format: date-time */
+            edited_at: string | null;
+            /** @description Gönderimdeki bahsetmeler (düzenleme değiştirmez); ad çözülmez. */
+            mentions: components["schemas"]["ChatMention"][];
+            message_id: string;
+            /** Format: date-time */
+            pinned_at: string | null;
+            /** @description Anket (soru mesaj gövdesidir); sonuçta oy verenler görünür. */
+            poll: {
+                /** Format: date-time */
+                closed_at: string | null;
+                /** Format: date-time */
+                closes_at: string | null;
+                multi: boolean;
+                results: {
+                    count: number;
+                    label: string;
+                    option_index: number;
+                    voters: {
+                        account_id: string;
+                        full_name: string | null;
+                    }[];
+                }[];
+            } | null;
+            /** @description Tür başına tepki sayısı; tepki edenler gösterilmez. */
+            reactions: {
+                count: number;
+                /** @enum {string} */
+                kind: "like" | "heart" | "check" | "star";
+                mine: boolean;
+            }[];
+            /** @description Paylaşılan öğeler (statik); kart `GET /v1/chat-refs/{refId}` ile okunur. */
+            refs: components["schemas"]["ChatMessageRef"][];
+            reply_to?: components["schemas"]["ChatMessageQuote"];
+            reply_to_message_id: string | null;
+            sender_account_id: string;
+            /** @description Yalnız geçmiş cevabında. */
+            sender_name?: string;
+            /** Format: int64 */
+            seq: number;
+            /** @description Bu mesajdan açılan görevler. */
+            task_ids: string[];
+        };
+        ChatMessageQuote: {
+            body: string | null;
+            /** @description `true` ise alıntılanan mesaj silinmiştir; diğer alanlar `null`. */
+            deleted: boolean;
+            message_id: string;
+            sender_account_id: string | null;
+            sender_name: string | null;
+        };
+        ChatMessageRef: {
+            /** @enum {string} */
+            kind: "task" | "department" | "file";
+            ref_id: string;
+            target_id: string;
+        };
+        ChatMessageTaskCreated: {
+            message: components["schemas"]["ChatMessage"];
+            work_item_id: string;
+        };
+        ChatPins: {
+            items: components["schemas"]["ChatMessage"][];
+            truncated: boolean;
+        };
+        ChatRefList: {
+            items: components["schemas"]["ChatSharedRef"][];
+            next_cursor: string | null;
+        };
+        ChatRefSummary: {
+            /** @description `false` ise hedef artık yoktur; kart alanları gelmez. */
+            available: boolean;
+            chat_id: string;
+            department?: {
+                name: string;
+            };
+            file?: {
+                content_type: string;
+                /** Format: date-time */
+                created_at: string;
+                name: string;
+                /** Format: int64 */
+                size_bytes: number;
+            };
+            /** @enum {string} */
+            kind: "task" | "department" | "file";
+            message_id: string;
+            ref_id: string;
+            target_id: string;
+            task?: {
+                assignees: {
+                    account_id: string;
+                    full_name: string | null;
+                }[];
+                department_id: string;
+                department_name: string | null;
+                description: string;
+                /** Format: date */
+                end_on: string;
+                /** Format: date */
+                start_on: string;
+                status: string;
+                title: string;
+            };
+        };
+        ChatSharedRef: {
+            /** Format: date-time */
+            created_at: string;
+            /** @enum {string} */
+            kind: "task" | "department" | "file";
+            message_id: string;
+            ref_id: string;
+            sender_account_id: string;
+            target_id: string;
+        };
+        ChatSummary: components["schemas"]["Chat"] & {
+            last_message: components["schemas"]["ChatLastMessage"] | null;
+            /**
+             * @description Okundu imlecinden ve üyelik başlangıcından sonraki, başkasının, silinmemiş bir
+             *     mesajı çağıranı, çağıranın bu programdaki koordinatörlüğünü ya da herkesi anıyor
+             *     (okunmamış sayımıyla aynı sorgu; okundu ile düşer).
+             */
+            mentioned: boolean;
+            unread_count: number;
+        };
+        ChatUnreadOverview: {
+            items: components["schemas"]["ChatUnreadProgram"][];
+        };
+        ChatUnreadProgram: {
+            mentioned: boolean;
+            program_id: string;
+            program_name: string;
+            unread_chats: number;
+        };
         CompletionRequest: {
             /** Format: date */
             completed_on: string;
@@ -2532,6 +3319,15 @@ export interface components {
             kind: "koordinatorluk" | "calisma_grubu";
             name: string;
         };
+        CreateGroupChatRequest: {
+            member_account_ids: string[];
+            /** @description Tek satır, en çok 100 karakter. */
+            name: string;
+            /** @enum {string} */
+            source?: "none" | "department" | "program";
+            /** @description `source=department` iken zorunlu; programa bağlı koordinatörlük. */
+            source_department_id?: string;
+        };
         CreateMeetingRequest: {
             agenda_items?: string[];
             /** @description En az bir departman; ilki sahip departmandır. Hepsi seçili programa katılmış olmalıdır. */
@@ -2561,6 +3357,16 @@ export interface components {
             start_on?: string;
             /** @description 1–300 karakter (kırpılarak), kontrol karakteri yok. */
             title: string;
+        };
+        CreateTaskFromChatMessageRequest: {
+            assignee_account_ids?: string[];
+            department_id: string;
+            /** Format: date */
+            end_date: string;
+            priority?: string;
+            /** Format: date */
+            start_date: string;
+            title?: string;
         };
         CreateUserRequest: {
             company_admin?: boolean;
@@ -2731,6 +3537,14 @@ export interface components {
             /** @description Göreli tüketme yolu (`/v1/downloads/{ticket}`). */
             url: string;
         };
+        EditChatMessageRequest: {
+            body: string;
+            /**
+             * Format: int64
+             * @description İstemcinin gördüğü mesaj `edit_revision` değeri (ADR-0027). Eksikse 422 `messaging.input_invalid` + `messaging.revision_required`, pozitif değilse `messaging.revision_invalid`; bayatsa ve gövde farklıysa 409 `messaging.edit_conflict`. Tamsayı olmayan değer 422 `messaging.input_invalid` (alan `body`).
+             */
+            expected_revision: number;
+        };
         /** @description C2 §3.3 kararlı hata gövdesi. İç hata metni hiçbir zaman taşınmaz. */
         ErrorEnvelope: {
             /** @description Kararlı makine kodu (`<alan>.<durum>`); katalog docs/api/error-codes.json. */
@@ -2781,7 +3595,7 @@ export interface components {
             work_item_id: string;
         };
         FileRecordList: {
-            files: components["schemas"]["FileListItem"][];
+            files: components["schemas"]["WorkItemFileListItem"][];
         };
         Gantt: {
             links: components["schemas"]["GanttLink"][];
@@ -2880,6 +3694,9 @@ export interface components {
             /** @description Web oturum belirteci (yalnız web). */
             token?: string;
         };
+        MarkChatReadRequest: {
+            message_id: string;
+        };
         MarkedCount: {
             marked_count: number;
         };
@@ -2945,6 +3762,11 @@ export interface components {
             converted_to_work_item_id: string | null;
             /** Format: date-time */
             created_at: string;
+            /**
+             * Format: int64
+             * @description Not içeriğinin düzenleme sürümü (ADR-0027); dönüşüm işareti ve silme artırmaz.
+             */
+            edit_revision: number;
             meeting_id: string;
             note_id: string;
             /** Format: date-time */
@@ -2983,26 +3805,6 @@ export interface components {
             email: string;
             /** @description Görünen ad */
             full_name: string;
-        };
-        Message: {
-            content: string;
-            /** Format: date-time */
-            created_at: string;
-            is_read: boolean;
-            message_id: string;
-            program_id: string;
-            /** Format: date-time */
-            read_at: string | null;
-            receiver_account_id: string;
-            receiver_name: string;
-            sender_account_id: string;
-            sender_name: string;
-            subject: string;
-        };
-        MessageList: {
-            items: components["schemas"]["Message"][];
-            /** @description Boşsa son sayfa. */
-            next_cursor: string;
         };
         MonthlyActivity: {
             completed_tasks: number;
@@ -3063,6 +3865,9 @@ export interface components {
             full_name?: string;
             password: string;
         };
+        OpenDirectChatRequest: {
+            account_id: string;
+        };
         OverdueTask: {
             assignees: components["schemas"]["ReportPerson"][];
             days_overdue: number;
@@ -3092,6 +3897,13 @@ export interface components {
             program_id: string;
             year?: number;
         };
+        ProgramDepartment: {
+            /** @description Katalog kodu; kod verilmemişse alan yoktur. */
+            code?: string;
+            department_id: string;
+            /** @description Departmanın bu programdaki adı. */
+            display_name: string;
+        };
         ProgramDepartmentLink: {
             /** @description Bağ kurulurken kopyalanan ekip satırı sayısı (bağ zaten varsa, kopya istenmediyse ya da ad değiştirmede 0). */
             copied_member_count: number;
@@ -3099,6 +3911,9 @@ export interface components {
             /** @description Departmanın bu programdaki adı. */
             display_name: string;
             program_id: string;
+        };
+        ProgramDepartmentList: {
+            departments: components["schemas"]["ProgramDepartment"][];
         };
         ProgramList: {
             programs: components["schemas"]["Program"][];
@@ -3115,19 +3930,6 @@ export interface components {
         PushPublicKey: {
             enabled: boolean;
             public_key: string;
-        };
-        Recipient: {
-            account_id: string;
-            full_name: string;
-        };
-        RecipientGroup: {
-            key: string;
-            recipients: components["schemas"]["Recipient"][];
-            /** @description Grup tavanla kırpıldıysa `true`. */
-            truncated: boolean;
-        };
-        RecipientGroups: {
-            groups: components["schemas"]["RecipientGroup"][];
         };
         RefreshRequest: {
             /** @description Mobil yenileme belirteci. Boş/yoksa web çerezi okunur. */
@@ -3287,6 +4089,14 @@ export interface components {
         ReviewResult: {
             affected_tasks_count: number;
         };
+        ReviseMeetingNoteRequest: {
+            content: string;
+            /**
+             * Format: int64
+             * @description İstemcinin gördüğü not `edit_revision` değeri (ADR-0027). Eksikse 422 `collaboration.input_invalid` + `collaboration.revision_required`, pozitif değilse `collaboration.revision_invalid`; bayatsa ve içerik farklıysa 409 `collaboration.edit_conflict`. Tamsayı olmayan değer 422 `collaboration.input_invalid` (alan `body`).
+             */
+            expected_revision: number;
+        };
         RosterList: {
             members: components["schemas"]["RosterMember"][] | null;
         };
@@ -3343,18 +4153,47 @@ export interface components {
             };
             tasks: components["schemas"]["ReportTask"][];
         };
-        SendMessageRequest: {
-            content: string;
-            receiver_account_id: string;
-            subject: string;
+        SendChatMessageRequest: {
+            /** @description Düz metin, en çok 5.000 karakter; kontrol karakteri reddedilir. */
+            body: string;
+            /** @description İstemcinin ürettiği tekrar kimliği; 1–100 bayt yazdırılabilir ASCII, boşluksuz; (sohbet, gönderen) başına tekil. */
+            client_message_id: string;
+            /**
+             * @description Yapılandırılmış bahsetme listesi; sunucu metni ayrıştırmaz. En çok 20 (tekrar sessizce
+             *     tekilleşir). `account` hedefinin sohbet üyeliği doğrulanmaz (ad çözülmez, rozet yalnız
+             *     görünür sohbette); `department` programa bağlı olmalı; `all` yalnız grupta ve yalnız
+             *     yönetici/kurucu (birebirde 422 `messaging.input_invalid`, yetkisiz 403
+             *     `messaging.not_authorized`). Düzenleme bahsetmeyi değiştirmez.
+             */
+            mentions?: components["schemas"]["ChatMention"][];
+            /** @description Mesajı anket olarak açar (soru = gövde; yalnız grupta, birebirde 422, alan `poll`). */
+            poll?: {
+                /**
+                 * Format: date-time
+                 * @description Şimdiden sonra olmalıdır.
+                 */
+                closes_at?: string;
+                multi?: boolean;
+                /** @description 2–10 tekil, tek satır seçenek (en çok 100 karakter). */
+                options: string[];
+            };
+            /**
+             * @description Paylaşılan öğeler (görev, koordinatörlük, arşiv dosyası); en çok 10, tekrar tekilleşir.
+             *     Hedef gönderenin bugünkü yetkisiyle görünür ve sohbetin programında olmalı; aksi tek
+             *     422 `messaging.input_invalid` (`field: refs`) — varlık sızmaz. Denetim gönderim
+             *     transaction'ından önce yapılır; aynı istemci kimliğiyle tekrar, referans artık
+             *     görünmüyorsa 422 alır (ilk mesaj durur).
+             */
+            refs?: {
+                /** @enum {string} */
+                kind: "task" | "department" | "file";
+                target_id: string;
+            }[];
+            reply_to_message_id?: string;
         };
-        SentMessage: {
-            /** Format: date-time */
-            created_at: string;
-            message_id: string;
-            program_id: string;
-            receiver_account_id: string;
-            subject: string;
+        SetChatReactionRequest: {
+            /** @enum {string} */
+            kind: "like" | "heart" | "check" | "star";
         };
         StatusResult: {
             /** @description İşlemin sonucu (ör. `deleted`, `claimed`, `unclaimed`, `updated`, `removed`). */
@@ -3486,6 +4325,13 @@ export interface components {
             is_checked?: boolean | null;
             title?: string | null;
         };
+        /** @description Verilmeyen alan değişmez; en az biri gerekir. */
+        UpdateChatRequest: {
+            name?: string;
+            /** @enum {string} */
+            source?: "none" | "department" | "program";
+            source_department_id?: string;
+        };
         UpdateDepartmentRequest: {
             code?: string | null;
             description?: string | null;
@@ -3514,6 +4360,11 @@ export interface components {
             /** @description true kapatır, false yeniden açar (tamamlanmış görevde 409 `work.item_completed`). */
             done?: boolean;
             end_on?: string;
+            /**
+             * Format: int64
+             * @description İstemcinin gördüğü `edit_revision` (ADR-0027). title, assignee_account_id, start_on ya da end_on varsa zorunludur (422 `work.input_invalid` + `work.revision_required` / `work.revision_invalid`); yalnız `done` gönderildiğinde gerekmez. Bayat sürüm ve farklı değer 409 `work.edit_conflict`.
+             */
+            expected_revision?: number;
             start_on?: string;
             title?: string;
         };
@@ -3532,6 +4383,16 @@ export interface components {
             description?: string | null;
             /** Format: date */
             end_on?: string | null;
+            /**
+             * Format: int64
+             * @description İstemcinin gördüğü `dates_revision` (ADR-0027). Gövdede start_on, end_on ya da planned_end_on varsa zorunludur; kodlar `expected_revision` ile aynıdır, 409 zarfının alanı `expected_dates_revision`dır. İki grup tek transaction içindedir: biri çatışırsa hiçbiri yazılmaz.
+             */
+            expected_dates_revision?: number;
+            /**
+             * Format: int64
+             * @description İstemcinin gördüğü `edit_revision` (ADR-0027). Gövdede title, description, priority ya da completion_evidence_required varsa zorunludur: yoksa 422 `work.input_invalid` + alan kodu `work.revision_required`, pozitif değilse `work.revision_invalid`; bayatsa ve istenen değerler güncelden farklıysa 409 `work.edit_conflict` (alan `expected_revision`). Değerler zaten günceldeyse 200 ve değişiklik yok. Tamsayı olmayan değer 422 `platform.body_invalid` alır (alan bilgisi yok).
+             */
+            expected_revision?: number;
             /** Format: date */
             planned_end_on?: string | null;
             /** @enum {string|null} */
@@ -3541,6 +4402,14 @@ export interface components {
             /** @description Korumalı alan; dolu gönderilirse 422 work.input_invalid. */
             submitted_on?: string | null;
             title?: string | null;
+        };
+        UpdateWorkNoteRequest: {
+            content: string;
+            /**
+             * Format: int64
+             * @description İstemcinin gördüğü not `edit_revision` değeri (ADR-0027). Eksikse 422 `work.input_invalid` + `work.revision_required`, pozitif değilse `work.revision_invalid`; bayatsa ve içerik farklıysa 409 `work.edit_conflict`. Tamsayı olmayan değer 422 `platform.body_invalid` (alan bilgisi yok).
+             */
+            expected_revision: number;
         };
         UserList: {
             next_cursor?: string;
@@ -3554,29 +4423,88 @@ export interface components {
             revoked_sessions?: number;
             transferred?: boolean;
         };
+        VoteChatPollRequest: {
+            option_indexes: number[];
+        };
         WorkItem: {
             assignee_account_ids: string[];
+            /** @description Atananlar görünen adlarıyla; sıra `assignee_account_ids` ile aynıdır. `assignee_account_ids` geriye uyum için korunur. */
+            assignees: components["schemas"]["WorkItemAssignee"][];
             /** Format: date */
             completed_on?: string;
             /** @description Tamamlanma kanıtı bayrağı (ADR-0024): açıkken onaya sunma, doğrudan tamamlama ve onay en az bir ek dosya ister. */
             completion_evidence_required: boolean;
+            /**
+             * Format: date-time
+             * @description Görevin oluşturulma zamanı (UTC, RFC 3339; WORK-K83). Görev listeleri, `getWorkItem`,
+             *     oluşturma ve güncelleme cevaplarında aynı değerdir; güncelleme değiştirmez. İstemci
+             *     "tanımlanma tarihine göre" sıralamayı bu alanla yapar.
+             */
+            created_at: string;
+            /** @description Görevi oluşturan hesabın kimliği (WORK-K83). Satırı görebilen herkes görür. */
+            created_by_account_id: string;
+            /** @description Oluşturanın görünen adı (WORK-K83); `WorkItemAssignee.full_name` ile aynı kural: hesabın satırı yoksa ya da ad okuması o an başarısızsa `null` (yanıt yine başarılıdır); silinmiş (geri yüklenebilir) hesabın adı döner. */
+            created_by_full_name: string | null;
+            /**
+             * Format: int64
+             * @description Tarih grubunun (başlangıç, bitiş, planlanan bitiş) düzenleme sürümü (ADR-0027); PATCH gövdesinde `expected_dates_revision` olarak geri gönderilir. Bu üç değeri ya da tamamlanma gününü değiştiren her yol artırır (form, tarih talebi onayı, uzatma, iki çekme, yönetici ayarı, tamamlanmaya geçiş, bağımlılık zinciri); gönderim çıpası artırmaz.
+             */
+            dates_revision: number;
             days_early: number;
             days_late: number;
             days_overdue: number;
             department_id: string;
+            /**
+             * Format: int64
+             * @description Görev alanları grubunun (başlık, açıklama, öncelik, kanıt bayrağı) düzenleme sürümü (ADR-0027); PATCH gövdesinde `expected_revision` olarak geri gönderilir. Durum, atama, aktarım ve silme artırmaz.
+             */
+            edit_revision: number;
+            /**
+             * Format: date
+             * @description Bitiş günü (tarih kaydından). Geç tamamlamada tamamlanma gününe itilmiş olabilir; özgün plan `planned_end_on`dadır.
+             */
+            end_on: string;
             is_completed_early: boolean;
             is_completed_late: boolean;
             is_overdue: boolean;
+            /**
+             * @description Görevin bekleyen tarih talebi (WORK-K82). Her cevapta bulunur; `null` "bekleyen talep
+             *     yok ya da çağıran görmeye yetkili değil" demektir ve her uçta aynı anlamı taşır.
+             *     Görev listeleri (`listProgramWorkItems`, `listWorkItems`), `getWorkItem`, oluşturma
+             *     ve güncelleme cevapları aynı kuralla doldurur: şirket yöneticisine her görevde,
+             *     koordinatöre yalnız **bu programda** koordinatörü olduğu departmanın görevinde.
+             *     Üyeye (birleşik rolde yalnız üye olduğu departmanın görevinde de) `null`.
+             *     Onaylanmış ya da reddedilmiş talep görünmez. Yeni oluşturulan görevin bekleyen
+             *     talebi olamayacağından oluşturma cevabında her zaman `null`'dır.
+             */
+            pending_date_request: {
+                /** Format: date */
+                new_end_on: string;
+                /** Format: date */
+                new_start_on: string;
+                /** @description Talep kimliği (`reviewDateChangeRequest` yolundaki `id`). */
+                request_id: string;
+            } | null;
             /** Format: date */
             planned_end_on?: string;
             /** @enum {string} */
             priority: "dusuk" | "orta" | "yuksek" | "acil";
             program_id: string;
+            /**
+             * Format: date
+             * @description Planlanan başlangıç günü (tarih kaydından; liste, oluşturma, güncelleme ve tekil uçta dolu).
+             */
+            start_on: string;
             /** @enum {string} */
             status: "baslanmadi" | "devam_ediyor" | "onaya_sunuldu" | "iade_edildi" | "tamamlandi";
             subtask_counts: components["schemas"]["SubtaskCounts"];
             title: string;
             work_item_id: string;
+        };
+        WorkItemAssignee: {
+            account_id: string;
+            /** @description Görünen ad. Hesabın satırı yoksa `null` (boş dize değil); ad okuması o an başarısızsa da geçici olarak `null` (yanıt yine başarılıdır). İstemci nötr etiket gösterir. Silinmiş (geri yüklenebilir) hesabın adı döner. */
+            full_name: string | null;
         };
         WorkItemDates: {
             /** Format: date */
@@ -3592,6 +4520,25 @@ export interface components {
             /** Format: date */
             submitted_on?: string;
         };
+        /** @description Tekil görev cevabı: `WorkItem` alanları ve zorunlu açıklama (boş dize olabilir). Açıklama listede taşınmaz. */
+        WorkItemDetail: components["schemas"]["WorkItem"] & {
+            description: string;
+        };
+        /** @description Görev dosya listesinin öğesi: `FileListItem` alanları ve yükleyenin görünen adı. Arşiv listesi (`FileListItem`) bu alanı taşımaz. */
+        WorkItemFileListItem: {
+            content_type: string;
+            display_name: string;
+            file_id: string;
+            /** Format: int64 */
+            size_bytes: number;
+            /** @description Dosyanın bağlı olduğu alt görev (ADR-0024); yoksa alan yoktur. Alt görev silinince boşalır. */
+            subtask_id?: string;
+            tag: string;
+            uploaded_by_account_id: string;
+            /** @description Yükleyenin görünen adı; satırı olmayan hesapta ya da ad okuması o an başarısızsa (geçici) `null`, silinmiş hesabın adı döner. */
+            uploaded_by_full_name: string | null;
+            work_item_id: string;
+        };
         WorkItemLifecycleResult: {
             /** @enum {string} */
             status: "restored";
@@ -3603,9 +4550,16 @@ export interface components {
         };
         WorkItemNote: {
             author_account_id: string;
+            /** @description Yazarın görünen adı; ad çözülemezse (geçici okuma hatası dahil) `null`. */
+            author_full_name: string | null;
             content: string;
             /** Format: date-time */
             created_at: string;
+            /**
+             * Format: int64
+             * @description Not içeriğinin düzenleme sürümü (ADR-0027).
+             */
+            edit_revision: number;
             note_id: string;
             /** Format: date-time */
             updated_at: string;
@@ -3623,13 +4577,24 @@ export interface components {
         };
         WorkItemSubtask: {
             assignee_account_id?: string;
+            /** @description Atananın görünen adı; atanan yoksa ya da ad çözülemezse (geçici okuma hatası dahil) `null`. */
+            assignee_full_name: string | null;
             /** Format: date-time */
             created_at: string;
             created_by_account_id: string;
+            /** @description Oluşturanın görünen adı; ad çözülemezse (geçici okuma hatası dahil) `null`. */
+            created_by_full_name: string | null;
             done: boolean;
             /** Format: date-time */
             done_at?: string;
             done_by_account_id?: string;
+            /** @description Kapatanın görünen adı; açık alt görevde ya da ad çözülemezse (geçici okuma hatası dahil) `null`. */
+            done_by_full_name: string | null;
+            /**
+             * Format: int64
+             * @description Yönetim alanlarının (başlık, atanan, tarihler) düzenleme sürümü (ADR-0027); kapatma/açma artırmaz, atama kaldırma ve ekip devrinin atanan boşaltması artırır.
+             */
+            edit_revision: number;
             /** Format: date */
             end_on?: string;
             /** Format: date */
@@ -3687,6 +4652,15 @@ export interface components {
         WorkNoteRequest: {
             content: string;
         };
+        WorkNoteUpdated: {
+            /**
+             * Format: int64
+             * @description Notun yeni düzenleme sürümü (ADR-0027); içerik zaten günceldeyse mevcut sürüm.
+             */
+            edit_revision: number;
+            /** @description Her zaman `updated`. */
+            status: string;
+        };
     };
     responses: never;
     parameters: {
@@ -3700,14 +4674,16 @@ export interface components {
         Cursor: string;
         /** @description Departman kapsamı (S3 uçlarda zorunlu). */
         DepartmentScope: string;
-        /** @description İstemcinin ürettiği opak tekrar anahtarı (en az 128 bit; ör. base64url 22 karakter). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür; eksik ya da sınır dışı anahtar 422 program.transfer_input_invalid (alan idempotency_key). Aynı anahtar + aynı gövde ilk sonucu döndürür, farklı gövde 409 program.idempotency_key_reused. */
+        /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
         IdempotencyKey: string;
-        /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+        /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
         Limit: number;
         PathAccountID: string;
+        PathChatID: string;
         PathDepartmentID: string;
         PathID: string;
         PathItemID: string;
+        PathMessageID: string;
         PathNoteID: string;
         PathSubtaskID: string;
         PathUserID: string;
@@ -4268,7 +5244,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;
@@ -4349,7 +5325,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -4442,7 +5418,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -4525,7 +5501,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -5473,7 +6449,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
                 role?: components["parameters"]["UserRole"];
                 search?: components["parameters"]["UserSearch"];
@@ -6609,6 +7585,3348 @@ export interface operations {
             };
             /** @description Sunucu hatası */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    downloadChatAttachment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    "Cache-Control": components["headers"]["CacheControlNoStore"];
+                    /** @description attachment; filename (ASCII yedek) ve filename* (UTF-8). */
+                    "Content-Disposition"?: string;
+                    "Content-Length": components["headers"]["ContentLength"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    downloadChatSharedFile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                refId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    "Cache-Control": components["headers"]["CacheControlNoStore"];
+                    /** @description attachment; filename (ASCII yedek) ve filename* (UTF-8). */
+                    "Content-Disposition"?: string;
+                    "Content-Length": components["headers"]["ContentLength"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    getChatRefSummary: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                refId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatRefSummary"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listChats: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Arama: grup adı, silinmemiş mesaj metni (ILIKE) ya da birebirde karşı tarafın adı (Türkçe duyarlı katlamayla). Mesaj metninde Türkçe katlama yoktur (GAP-213). En çok 100 karakter. */
+                q?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    getChat: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Chat"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    deleteChat: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    updateChat: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Chat"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    grantChatAdmin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                accountId: components["parameters"]["PathAccountID"];
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    revokeChatAdmin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                accountId: components["parameters"]["PathAccountID"];
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    sendChatAttachment: {
+        parameters: {
+            query: {
+                client_message_id: string;
+                reply_to_message_id?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** @description İsteğe bağlı açıklama; dosya parçasından ÖNCE gönderilir. */
+                    body?: string;
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Aynı istemci kimliğinin tekrarı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Oluşturuldu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listChatMembers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMemberList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    addChatMembers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddChatMembersRequest"];
+            };
+        };
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    removeChatMember: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                accountId: components["parameters"]["PathAccountID"];
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listChatMessages: {
+        parameters: {
+            query?: {
+                /** @description Bu seq'den sonraki mesajlar (uzlaştırma). */
+                after?: number;
+                /** @description Bu seq çevresindeki pencere. */
+                around?: number;
+                /** @description Bu seq'den önceki mesajlar. */
+                before?: number;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Sohbet içi metin araması (ILIKE; Türkçe katlama yok); yalnız `before` ile birleşir, `after`/`around` ile 422 `messaging.invalid_cursor`. */
+                q?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatHistory"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    sendChatMessage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendChatMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Aynı `client_message_id` ile önceki mesaj */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Mesaj yazıldı */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    deleteChatMessage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    editChatMessage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditChatMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    pinChatMessage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    unpinChatMessage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    closeChatPoll: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    setChatReaction: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetChatReactionRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    deleteChatReaction: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    createTaskFromChatMessage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTaskFromChatMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageTaskCreated"];
+                };
+            };
+            /** @description Oluşturuldu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageTaskCreated"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    voteChatPoll: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+                messageId: components["parameters"]["PathMessageID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoteChatPollRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listChatPins: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPins"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    markChatRead: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkChatReadRequest"];
+            };
+        };
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listChatRefs: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                kind?: "task" | "department" | "file";
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatRefList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    sendChatTyping: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                chatId: components["parameters"]["PathChatID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (gövde yok) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listChatCandidates: {
+        parameters: {
+            query: {
+                /** @description `purpose=group` iken mevcut grubun kimliği: üyeler adaylardan düşer. */
+                chat_id?: string;
+                /** @description `direct` (birebir kuralına uyanlar) ya da `group` (ekleme kuralına uyanlar). */
+                purpose: "direct" | "group";
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatCandidateList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    openDirectChat: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenDirectChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Mevcut birebir (kural sorulmaz) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Chat"];
+                };
+            };
+            /** @description Yeni birebir açıldı */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Chat"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    createGroupChat: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGroupChatRequest"];
+            };
+        };
+        responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Chat"];
+                };
+            };
+            /** @description Grup kuruldu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Chat"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    markAllChatsRead: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    streamChatEvents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SSE akışı (olay yükü `ChatEvent`) */
+            200: {
+                headers: {
+                    "Cache-Control": components["headers"]["CacheControlNoStore"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8851,6 +13169,72 @@ export interface operations {
             };
         };
     };
+    getChatUnreadOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatUnreadOverview"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     myDepartments: {
         parameters: {
             query?: never;
@@ -9252,7 +13636,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["NoteRequest"];
+                "application/json": components["schemas"]["ReviseMeetingNoteRequest"];
             };
         };
         responses: {
@@ -9467,7 +13851,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -10488,7 +14872,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -10581,6 +14965,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
                 "X-Nizamio-Program": components["parameters"]["ProgramScope"];
                 /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
@@ -10597,6 +14983,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeetingNote"];
+                };
+            };
             /** @description Başarılı */
             201: {
                 headers: {
@@ -10907,7 +15302,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -10985,560 +15380,12 @@ export interface operations {
             };
         };
     };
-    listMessages: {
-        parameters: {
-            query?: {
-                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
-                cursor?: components["parameters"]["Cursor"];
-                /** @description `inbox` (varsayılan) ya da `sent`; başka değer 422 `collaboration.input_invalid`. */
-                filter?: "inbox" | "sent";
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
-                limit?: components["parameters"]["Limit"];
-            };
-            header: {
-                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
-                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Başarılı */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageList"];
-                };
-            };
-            /** @description Kimlik doğrulanmamış */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Yetkisiz */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Doğrulama hatası */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Hız sınırı aşıldı */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["RetryAfter"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Sunucu hatası */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Bağımlılık erişilemez */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    sendMessage: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
-                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
-                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
-                "X-Requested-With": components["parameters"]["CsrfHeader"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SendMessageRequest"];
-            };
-        };
-        responses: {
-            /** @description Başarılı */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SentMessage"];
-                };
-            };
-            /** @description Kimlik doğrulanmamış */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Yetkisiz */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Çakışma / durum uyuşmazlığı */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Gövde sınırı aşıldı */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Doğrulama hatası */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Hız sınırı aşıldı */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["RetryAfter"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Sunucu hatası */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Bağımlılık erişilemez */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    deleteMessage: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
-                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
-                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
-                "X-Requested-With": components["parameters"]["CsrfHeader"];
-            };
-            path: {
-                id: components["parameters"]["PathID"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description İçerik yok */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Kimlik doğrulanmamış */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Yetkisiz */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Kapsamda bulunamadı */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Çakışma / durum uyuşmazlığı */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Doğrulama hatası */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Hız sınırı aşıldı */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["RetryAfter"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Sunucu hatası */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Bağımlılık erişilemez */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    markMessageRead: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
-                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
-                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
-                "X-Requested-With": components["parameters"]["CsrfHeader"];
-            };
-            path: {
-                id: components["parameters"]["PathID"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description İçerik yok */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Kimlik doğrulanmamış */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Yetkisiz */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Kapsamda bulunamadı */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Çakışma / durum uyuşmazlığı */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Doğrulama hatası */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Hız sınırı aşıldı */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["RetryAfter"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Sunucu hatası */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Bağımlılık erişilemez */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    listMessageRecipients: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
-                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Başarılı */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RecipientGroups"];
-                };
-            };
-            /** @description Kimlik doğrulanmamış */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Yetkisiz */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Kapsamda bulunamadı */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Doğrulama hatası */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Hız sınırı aşıldı */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["RetryAfter"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Sunucu hatası */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Bağımlılık erişilemez */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    countUnreadMessages: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
-                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Başarılı */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CountResult"];
-                };
-            };
-            /** @description Kimlik doğrulanmamış */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Yetkisiz */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Doğrulama hatası */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Hız sınırı aşıldı */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["RetryAfter"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Sunucu hatası */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Bağımlılık erişilemez */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
     listNotifications: {
         parameters: {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;
@@ -12189,7 +16036,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;
@@ -12268,7 +16115,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description İstemcinin ürettiği opak tekrar anahtarı (en az 128 bit; ör. base64url 22 karakter). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür; eksik ya da sınır dışı anahtar 422 program.transfer_input_invalid (alan idempotency_key). Aynı anahtar + aynı gövde ilk sonucu döndürür, farklı gövde 409 program.idempotency_key_reused. */
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
                 /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
                 "X-Requested-With": components["parameters"]["CsrfHeader"];
@@ -12524,6 +16371,94 @@ export interface operations {
             };
             /** @description Gövde sınırı aşıldı */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listProgramDepartments: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    "X-Result-Truncated": components["headers"]["ResultTruncated"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramDepartmentList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12846,6 +16781,100 @@ export interface operations {
             };
             /** @description Gövde sınırı aşıldı */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listProgramWorkItems: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description İsteğe bağlı departman süzgeci; görünürlükle kesişir. Boş ya da yalnız boşluk değer süzgeç yok sayılır. */
+                department_id?: string;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkItemList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15102,7 +19131,7 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
-                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
             };
             header: {
@@ -15195,6 +19224,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
                 /** @description Departman kapsamı (S3 uçlarda zorunlu). */
                 "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -15211,6 +19242,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkItem"];
+                };
+            };
             /** @description Başarılı */
             201: {
                 headers: {
@@ -15258,6 +19298,97 @@ export interface operations {
             };
             /** @description Gövde sınırı aşıldı */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    getWorkItem: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Departman kapsamı (S3 uçlarda zorunlu). */
+                "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkItemDetail"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16583,6 +20714,8 @@ export interface operations {
                 tag: "ister" | "plan" | "girdi" | "analiz" | "cikti" | "sonuc";
             };
             header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
                 /** @description Departman kapsamı (S3 uçlarda zorunlu). */
                 "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -16602,6 +20735,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRecord"];
+                };
+            };
             /** @description Başarılı */
             201: {
                 headers: {
@@ -16790,6 +20932,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
                 /** @description Departman kapsamı (S3 uçlarda zorunlu). */
                 "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -16808,6 +20952,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkItemNote"];
+                };
+            };
             /** @description Başarılı */
             201: {
                 headers: {
@@ -17023,7 +21176,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkNoteRequest"];
+                "application/json": components["schemas"]["UpdateWorkNoteRequest"];
             };
         };
         responses: {
@@ -17033,7 +21186,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StatusResult"];
+                    "application/json": components["schemas"]["WorkNoteUpdated"];
                 };
             };
             /** @description Kimlik doğrulanmamış */
@@ -17547,6 +21700,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
                 /** @description Departman kapsamı (S3 uçlarda zorunlu). */
                 "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -17565,6 +21720,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description İşlem anahtarı tekrarı: aynı anahtar ve aynı istek ilk kaynağın bugünkü temsilini döndürür; yan etki yok (ADR-0027). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkItemSubtask"];
+                };
+            };
             /** @description Başarılı */
             201: {
                 headers: {

@@ -124,6 +124,8 @@ SQL
 migrator_url="postgres://$migrator_role:$role_password@$db_host:5432/$db_name?sslmode=disable"
 app_url="postgres://$app_role:$role_password@$db_host:5432/$db_name?sslmode=disable"
 
+# Video (ADR-0015): varsayılan livekit NIZAMIO_LIVEKIT_* alanlarını zorunlu kılar; web e2e konferans
+# kullanmaz, none ile kapalı. Yalnız bu e2e ortamı; ürün varsayılanı değişmez.
 env_file="$state/backend.env"
 umask 077
 cat >"$env_file" <<ENV
@@ -145,6 +147,7 @@ NIZAMIO_LOGIN_LOCK_DURATION=1m
 NIZAMIO_LOGIN_ATTEMPT_RETENTION=48h
 NIZAMIO_LOGIN_ATTEMPT_CLEANUP_INTERVAL=1m
 NIZAMIO_DISCOVERY_RATE_LIMIT_PER_MINUTE=60
+NIZAMIO_VIDEO_PROVIDER=none
 ENV
 
 echo "== migrate up (migrator kimliği; yedek kontrolü: atılabilir e2e DB için 'migrate verify')"
