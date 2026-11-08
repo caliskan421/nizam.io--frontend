@@ -43,6 +43,8 @@ export interface AuthSessionDeps {
 /** Refresh sonucu: `ok` yeni/güncel belirteç var; `ended` oturum bitti; `failed` geçici hata. */
 export type RefreshOutcome = 'ok' | 'ended' | 'failed'
 
+type RefreshEntry = { generation: number; run: Promise<RefreshOutcome> }
+
 export const REFRESH_PATH = '/v1/auth/refresh'
 export const REFRESH_LOCK_NAME = 'nizamio:auth-refresh'
 
@@ -58,6 +60,11 @@ export const REFRESH_LOCK_NAME = 'nizamio:auth-refresh'
  *    ATMAZ, yayınlanan belirteci kullanır; değilse önce kardeşlerden güncel belirteci ister
  *    (sync-request). Kanal iletileri sıkı doğrulanır (messages.ts).
  *    Gerekçe ve güvenlik varsayımı: docs/refresh-coordination.md.
+ *
+ * Oturum nesli (CX-F0-E-03): her çıkış (doğrulanmış ya da doğrulanamamış, kardeş sekmeden
+ * gelen aynı hesabın çıkışı dahil) nesli artırır. Önceki nesilde başlamış refresh (kilitte
+ * bekleyen ya da yanıtı gecikmiş) ve açık giriş yanıtları UYGULANMAZ; çıkış anı `issuedAt`
+ * eşiği olur, ondan önce alınmış kardeş belirteci reddedilir.
  */
 export class AuthSession {
   #token: string | null = null
@@ -69,7 +76,8 @@ export class AuthSession {
     forcePasswordChange: false,
     serverLogoutUnverified: false,
   }
-  #inflight: Promise<RefreshOutcome> | null = null
+  #generation = 0
+  #inflight: RefreshEntry | null = null
   #listeners = new Set<(s: SessionSnapshot) => void>()
   #tokenWaiters = new Set<() => void>()
   readonly #deps: Required<Omit<AuthSessionDeps, 'coordination'>> & {
@@ -90,27 +98,53 @@ export class AuthSession {
     return this.#snapshot
   }
 
+  /** Geçerli oturum nesli: açık giriş isteğinden ÖNCE alınır, yanıtla `establish`'e verilir. */
+  get generation(): number {
+    return this.#generation
+  }
+
   subscribe(listener: (s: SessionSnapshot) => void): () => void {
     this.#listeners.add(listener)
     return () => this.#listeners.delete(listener)
   }
 
-  /** Giriş yanıtını uygular ve diğer sekmelere yayınlar. */
-  establish(response: LoginResponse | RefreshResponse, forcePasswordChange?: boolean): void {
+  /**
+   * Açık giriş yanıtını uygular ve diğer sekmelere yayınlar; `serverLogoutUnverified`
+   * bayrağını yalnız bu yol kapatır. `generation` isteğin başladığı nesildir: arada çıkış
+   * olduysa yanıt uygulanmaz (`false`).
+   */
+  establish(
+    response: LoginResponse | RefreshResponse,
+    forcePasswordChange?: boolean,
+    generation: number = this.#generation,
+  ): boolean {
+    if (generation !== this.#generation) return false
+    return this.#accept(response, forcePasswordChange, this.#deps.now(), true)
+  }
+
+  #accept(
+    response: LoginResponse | RefreshResponse,
+    forcePasswordChange: boolean | undefined,
+    issuedFrom: number,
+    explicit: boolean,
+  ): boolean {
+    // Doğrulanamayan çıkıştan sonra belirteç yalnız açık girişle gelir.
+    if (!explicit && this.#snapshot.serverLogoutUnverified) return false
     const token = response.token
     if (typeof token !== 'string' || token === '') {
       // Web yanıtında `token` zorunludur; yoksa sözleşme dışı yanıt — oturum kurulmaz.
       this.#end('anonymous')
-      return
+      return false
     }
     const force =
       forcePasswordChange ??
       ('force_password_change' in response
         ? response.force_password_change
         : this.#snapshot.forcePasswordChange)
-    const issuedAt = Math.max(this.#deps.now(), this.#issuedAt + 1)
+    const issuedAt = Math.max(issuedFrom, this.#issuedAt + 1)
     this.#apply(token, response.account_id, response.expires_at, force, issuedAt)
     this.#publishToken()
+    return true
   }
 
   #publishToken(): void {
@@ -139,6 +173,7 @@ export class AuthSession {
    */
   clear(options: { serverUnverified?: boolean } = {}): void {
     const accountId = this.#snapshot.accountId
+    this.#nextGeneration()
     this.#end('anonymous', options.serverUnverified === true)
     if (accountId) {
       this.#deps.coordination.publish({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId })
@@ -169,27 +204,52 @@ export class AuthSession {
   refresh(failedToken: string | null): Promise<RefreshOutcome> {
     // Sunucu çıkışı doğrulanamadı: çerezle sessiz yenileme denenmez (ortak-kurallar §8).
     if (this.#snapshot.serverLogoutUnverified) return Promise.resolve('ended')
-    if (this.#inflight) return this.#inflight
-    const run = this.#deps.coordination
-      .withLock(REFRESH_LOCK_NAME, () => this.#refreshLocked(failedToken))
+    const generation = this.#generation
+    // Önceki nesilden kalan uçuşa katılınmaz: o sonuç bu nesle uygulanmayacaktır.
+    if (this.#inflight?.generation === generation) return this.#inflight.run
+    const entry: RefreshEntry = { generation, run: Promise.resolve('ended') }
+    entry.run = this.#deps.coordination
+      .withLock(REFRESH_LOCK_NAME, () => this.#refreshLocked(failedToken, generation))
       .finally(() => {
-        this.#inflight = null
+        if (this.#inflight === entry) this.#inflight = null
       })
-    this.#inflight = run
-    return run
+    this.#inflight = entry
+    return entry.run
   }
 
-  async #refreshLocked(failedToken: string | null): Promise<RefreshOutcome> {
+  /** Refresh başladıktan sonra çıkış oldu mu (nesil değişti mi)? */
+  #stale(generation: number): boolean {
+    return generation !== this.#generation
+  }
+
+  async #refreshLocked(failedToken: string | null, generation: number): Promise<RefreshOutcome> {
+    // Kilidi beklerken çıkış yapıldıysa refresh ATILMAZ (kilitte bekleyen refresh iptal).
+    if (this.#stale(generation)) return 'ended'
     // Kilidi beklerken başka sekme yenilediyse onun belirteci zaten bize ulaşmıştır.
     if (this.#hasNewerToken(failedToken)) return 'ok'
     // Yayın kilit devrinden sonra ulaşabilir (tarayıcı sıra garantisi yok). Kardeşlerden güncel
     // belirteç istenir; yanıt aynı göndericinin önceki yayınından sonra gelir (kanal FIFO).
     this.#deps.coordination.publish({ v: SESSION_MESSAGE_VERSION, type: 'sync-request' })
-    if (await this.#waitForNewerToken(failedToken, this.#deps.syncWaitMs)) return 'ok'
+    const synced = await this.#waitForNewerToken(failedToken, this.#deps.syncWaitMs)
+    if (this.#stale(generation)) return 'ended'
+    if (synced) return 'ok'
 
-    let response: Response
+    // `issuedAt` isteğin başladığı andır: yanıt bir kardeşin çıkışından sonra gelse de o
+    // sekmenin çıkış eşiğinin altında kalır ve orada uygulanmaz.
+    const startedAt = this.#deps.now()
+    const response = await this.#postRefresh()
+    // Gecikmiş yanıt: arada çıkış olduysa uygulanmaz, durum ve uyarı bayrağı değişmez.
+    if (this.#stale(generation)) return 'ended'
+    if (response === null) return 'failed'
+    if (response.ok) return this.#acceptRefresh(response, generation, startedAt)
+    if (response.status === 401) return this.#refreshRejected(failedToken, generation)
+    // 429/5xx vb.: oturum hakkında hüküm yok; çağırana geçici hata.
+    return 'failed'
+  }
+
+  async #postRefresh(): Promise<Response | null> {
     try {
-      response = await this.#deps.fetch(
+      return await this.#deps.fetch(
         new Request(new URL(REFRESH_PATH, this.#deps.baseUrl), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -198,37 +258,41 @@ export class AuthSession {
         }),
       )
     } catch {
-      return 'failed'
+      return null
     }
+  }
 
-    if (response.ok) {
-      let body: RefreshResponse
-      try {
-        body = (await response.json()) as RefreshResponse
-      } catch {
-        return 'failed'
-      }
-      this.establish(body)
-      return this.#token ? 'ok' : 'ended'
+  async #acceptRefresh(
+    response: Response,
+    generation: number,
+    startedAt: number,
+  ): Promise<RefreshOutcome> {
+    let body: RefreshResponse
+    try {
+      body = (await response.json()) as RefreshResponse
+    } catch {
+      return this.#stale(generation) ? 'ended' : 'failed'
     }
+    if (this.#stale(generation)) return 'ended'
+    return this.#accept(body, undefined, startedAt, false) ? 'ok' : 'ended'
+  }
 
-    if (response.status === 401) {
-      // Kilitsiz ortamda (Web Locks yok) kardeş sekme aynı anda döndürmüş olabilir: backend
-      // eski çerezi 10 sn pay içinde 401 ile reddeder, toplu iptal yapmaz. Kazanan sekmenin
-      // yayını kısa süre beklenir; gelirse oturum sürer. Kilit varken refresh'ler sıralıdır,
-      // her biri güncel çerezle gider; beklemeye gerek yoktur.
-      const waitMs = this.#deps.coordination.crossTabLock ? 0 : this.#deps.peerWaitMs
-      if (await this.#waitForNewerToken(failedToken, waitMs)) return 'ok'
-      const st = this.#snapshot.status
-      if (st === 'unknown' || st === 'anonymous' || st === 'unavailable') {
-        this.#end('anonymous')
-      } else {
-        this.#end('ended')
-      }
-      return 'ended'
+  async #refreshRejected(failedToken: string | null, generation: number): Promise<RefreshOutcome> {
+    // Kilitsiz ortamda (Web Locks yok) kardeş sekme aynı anda döndürmüş olabilir: backend
+    // eski çerezi 10 sn pay içinde 401 ile reddeder, toplu iptal yapmaz. Kazanan sekmenin
+    // yayını kısa süre beklenir; gelirse oturum sürer. Kilit varken refresh'ler sıralıdır,
+    // her biri güncel çerezle gider; beklemeye gerek yoktur.
+    const waitMs = this.#deps.coordination.crossTabLock ? 0 : this.#deps.peerWaitMs
+    const peer = await this.#waitForNewerToken(failedToken, waitMs)
+    if (this.#stale(generation)) return 'ended'
+    if (peer) return 'ok'
+    const st = this.#snapshot.status
+    if (st === 'unknown' || st === 'anonymous' || st === 'unavailable') {
+      this.#end('anonymous')
+    } else {
+      this.#end('ended')
     }
-    // 429/5xx vb.: oturum hakkında hüküm yok; çağırana geçici hata.
-    return 'failed'
+    return 'ended'
   }
 
   #hasNewerToken(failedToken: string | null): boolean {
@@ -261,8 +325,7 @@ export class AuthSession {
 
     switch (message.type) {
       case 'logout':
-        // Yalnız aynı hesabın çıkışı uygulanır.
-        if (current !== null && message.accountId === current) this.#end('anonymous')
+        this.#onLogout(message.accountId)
         return
       case 'sync-request': {
         // Belirteç yalnız taze ise paylaşılır (alıcı eski issuedAt'i zaten reddeder).
@@ -276,6 +339,7 @@ export class AuthSession {
         if (this.#snapshot.serverLogoutUnverified) return
         // Hesap tutarlılığı: oturumdaki hesap doluysa başka hesabın belirteci reddedilir.
         if (current !== null && message.accountId !== current) return
+        // Daha eski ya da son çıkıştan (nesil eşiği) önce alınmış belirteç reddedilir.
         if (message.issuedAt <= this.#issuedAt) return
         this.#apply(
           message.token,
@@ -285,6 +349,26 @@ export class AuthSession {
           message.issuedAt,
         )
     }
+  }
+
+  /**
+   * Kardeş sekmenin çıkışı. Aynı hesabın çıkışı uygulanır; açılıştaki sessiz refresh henüz
+   * sonuçlanmamışsa (`unknown`, hesap bilinmiyor) da uygulanır — yenileme çerezi sekmeler
+   * arasında ortaktır, uçuştaki refresh'in yanıtı artık bu oturumu açmamalıdır.
+   */
+  #onLogout(accountId: string): void {
+    const current = this.#snapshot.accountId
+    const applies = current === null ? this.#snapshot.status === 'unknown' : accountId === current
+    if (!applies) return
+    this.#nextGeneration()
+    this.#end('anonymous')
+  }
+
+  /** Yeni oturum nesli: önceki nesilde başlamış refresh/giriş yanıtları uygulanmaz. */
+  #nextGeneration(): void {
+    this.#generation += 1
+    // Çıkış anı `issuedAt` eşiğidir: ondan önce alınmış kardeş belirteci kabul edilmez.
+    this.#issuedAt = Math.max(this.#deps.now(), this.#issuedAt + 1)
   }
 
   #apply(
