@@ -17,9 +17,11 @@ import type { Mutation, Query, QueryClient } from '@tanstack/vue-query'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 
+import { isScopedQueryKey } from '@/shared/http/query-keys'
+
 import { isAuthorityLoss } from './authority-loss'
 import { resolveScope, type ScopeResolution } from './resolve'
-import { isScopedQueryKey, type ScopeLens } from './scope'
+import { type ScopeLens } from './scope'
 import { invalidateStanding, isStandingKey, useStanding } from './standing'
 import {
   departmentOptions,

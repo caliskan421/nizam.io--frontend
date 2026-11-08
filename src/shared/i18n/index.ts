@@ -3,6 +3,7 @@ import { createI18n } from 'vue-i18n'
 import type { ApiError } from '@/shared/errors/api-error'
 
 import { trErrors } from './tr/errors'
+import { trMutation } from './tr/mutation'
 import { trTerms } from './tr/terms'
 
 /** "a.b" anahtarlarını vue-i18n'in iç içe ileti ağacına çevirir. */
@@ -22,7 +23,7 @@ export function nest(flat: Record<string, string>): Record<string, unknown> {
 }
 
 export const messages = {
-  tr: { errors: nest(trErrors), ...trTerms },
+  tr: { errors: nest(trErrors), ...trTerms, ...trMutation },
 }
 
 /** v1 yalnız TR; altyapı çok dilli (platform.md §5 web sorusu 6). */

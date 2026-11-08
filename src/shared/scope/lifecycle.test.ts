@@ -1,6 +1,8 @@
 import { isCancelledError } from '@tanstack/vue-query'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { isScopedQueryKey } from '@/shared/http/query-keys'
+
 import { createFakeBackend } from '../../../tests/support/fake-backend'
 import {
   createTarget,
@@ -169,9 +171,7 @@ describe('kapsam yaşam döngüsü', () => {
     expect(scope.departments.value.map((d) => d.departmentId)).toEqual(['d2', 'd3'])
     expect(queryClient.getQueryData(oldKey)).toBeUndefined()
     expect(
-      queryClient
-        .getQueryCache()
-        .findAll({ predicate: (q) => m.scope.isScopedQueryKey(q.queryKey) }),
+      queryClient.getQueryCache().findAll({ predicate: (q) => isScopedQueryKey(q.queryKey) }),
     ).toEqual([])
     expect(queryClient.getQueryData(['notifications', 'unread-count'])).toEqual({ count: 3 })
     expect(isCancelledError(await inflight)).toBe(true)
