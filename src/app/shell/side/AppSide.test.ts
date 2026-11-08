@@ -87,11 +87,11 @@ describe('AppSide — geniş menü', () => {
     expect(wrapper.find('[role="menu"]').exists()).toBe(false)
     // E-00-06: Admin merceğinde koordinatörlük kartı yok.
     expect(wrapper.find(card('Koordinatörlük')).exists()).toBe(false)
-    // Menü: F0 → Ana sayfa canlı, Görevler devre dışı + faz notu; Yardım yok.
+    // Menü: F1 → Ana sayfa ve Görevler canlı (devre dışı öğe yok); Yardım yok.
     const nav = wrapper.get('nav[aria-label="Ana menü"]')
     expect(nav.get('a[href="/"]').text()).toContain('Ana sayfa')
-    const tasks = nav.get('a[aria-disabled="true"]')
-    expect(tasks.attributes('title')).toBe('Görevler — F1’de açılacak')
+    expect(nav.get('a[href="/gorevler"]').text()).toContain('Görevler')
+    expect(nav.find('a[aria-disabled="true"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Yardım')
     expect(wrapper.text()).toContain('Deneme Kişi')
     expect(wrapper.text()).toContain('kisi@example.test')
