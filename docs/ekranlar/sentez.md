@@ -152,3 +152,5 @@ Tutarsızlıklar: tür adları/renkleri 01 ≠ 01b; sabit hex (rol renkleri, "Me
 4. WEB-0 O2 açılış istemi `ortak-sozlesme.md` 2a ile yenilenir; uygulayıcılara 00-ortak grubu ve `ortak-kurallar.md` verilir.
 
 **Durum (2026-11-08):** WEB-0 O2–O4 tamamlandı (O2 #19–#23, O3 #24–#25, O4 #26 karar belgesi); O5 kapanış açık (Codex kapısı, ekran görüntüsü doğrulaması) — `../yurutme/web-0/ilerleme.md`.
+
+**F0 kapandı** (Codex KOŞULLU UYGUN, 3. koşum; PR `<kapanış PR>`) — `../reviews/WEB-0-codex.md`; sonraki WEB-1 (`../yurutme/web-1/`).

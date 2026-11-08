@@ -11,7 +11,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2 — Temel | Birleşti (W14 #19, W11 #20, W12 #21, W13 #22, W15 #23) | `2c1c370` |
 | O3 — Kabuk | W21 birleşti (#24) · W22 birleşti (#25) | `5adbeee` · `9b41171` |
 | O4 — Gantt pilotu | Karar belgesi PR #26 (pilot kodu `web0/o4-w31` dalında, birleşmez) | `04cabce` |
-| O5 — Kapanış | Codex tur 2 UYGUN DEĞİL → W16b; tur 3 bekleniyor | `dfc8206` |
+| O5 — Kapanış | Codex KOŞULLU UYGUN (tur 3) — kapanış PR'ı | `5a55ada` |
 
 ## Kayıtlar
 
@@ -47,10 +47,14 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 - **Bilerek yapılmayanlar:** gerçek ekran okuyucu (VoiceOver/NVDA), Safari/Firefox/dokunmatik denenmedi → F3 kabul kanıtı; ay ölçeği, sezon şeridi, dışa aktarım F3 işi.
 - YENİ-EKSİK: yok.
 
-### 2026-11-08 — O5 (açık)
+### 2026-11-08 — O5 (kapanış)
 - **Yapılanlar:** `docs/backend-eksikleri/rapor-F0.md` (F0'da BE satırı değişmedi; F1 öncelik sırası BE-003 → BE-036 → BE-038 → BE-040 → BE-004 → BE-001 → BE-051); `00-ortak` kabul tablosuna W13/W21/W22 onaylı varsayılanları; yol haritası K4 pilot cümlesi; `sentez.md` Y6 notu ve §8 durum satırı; `docs/yurutme/web-1/` iskeleti (F1 oturumları O2–O5, W41–W47 / W51 / W61).
 - **Codex kapısı tur 1** (`main` @ `9b41171`): **UYGUN DEĞİL** — engelleyiciler CX-F0-E-01…E-05; hüküm `docs/reviews/WEB-0-codex.md`. Düzeltme işleri: **W16** E-01/E-02/Ö-01/Ö-03 (korumalı mutasyon: K6 tetikleme, tekrar kapsamı, tekrar nesnesi bütünlüğü, zamanlama testleri) · **W17** E-03 (oturum nesli: devam eden refresh çıkışı geri alamaz) · **W23** E-04 (K7 gerçek rota bağlantısı + satırsız admin) · **belge (bu PR)** E-05 (Gantt kararı + `e614489` kanıt konumu) ve Ö-04 (rozet kabulü F1). Borç: Ö-02 (metrics → `web-tokens.json`), Ö-05 (yazı tipleri), K-01 (`ci.yml` metni) → F1 W61; K-02 (CLAUDE.md okuma yolları) → ürün sahibi; K-03 (Yönetim grubu capability) → F2.
 - **Görsel doğrulama** (main `9b41171`, Playwright + `page.route` sahte backend — alanlar pinli şemadan; üretim CSP nonce ile 0 ihlal; `pageerror` yok): 32 PNG (git'e girmez), açık/koyu × 1440/1024/390, Admin/Koordinatör/çok program/dar menü/K7/çıkış 500 senaryoları. **Birebir:** kenar menüsü 272 px / dar 76 px, kapsam kartı ~55 px, üst çubuk 64 px, rol menüsü (Kenar-Secici panel 3), mercek renk çerçeveleri, anlık tema geçişi, dar menü kapsam simgeleri E-00-40, çok programda seçici açık, çıkış 500 uyarısı. **Yüksek (2):** K7 açık durumları F0'da görünmüyor (ana sayfa → `/oturum`, S0 bastırıyor) → W23 (CX-F0-E-04); Admin Görevler rozetleri F0'da yok → kabul tablosu F1'e çekildi (Ö-04). **Orta (4)** → F1 W61 borcu: program avatarı ayırt edilemiyor, 390 px'te kenar menüsü ~100vh, devre dışı zilde soluk nokta, giriş sayfası koyu temada kenarlıksız alanlar. **Düşük:** tarih/Asistan/Yardım/sürüm etiketi bilinçli (F1/F8/P2/`0.0.0`), yazı tipi bilinen borç (Ö-05). Etkili işlem onayı F0'da tetikleyicisi olmadığından görsel olarak atlandı.
 - **Düzeltme PR'ları birleşti** (main `dfc8206`): #27 W17 `5056db5` — CX-F0-E-03 (oturum nesli; devam eden refresh çıkışı geri alamaz) · #28 W23 `6faa6fd` — CX-F0-E-04 (K7 açık durumları gerçek F0 rotasında + satırsız yönetici departman boşluğu) · #29 W16 `dfc8206` — CX-F0-E-01/E-02/Ö-01/Ö-03 (korumalı mutasyon → K6 bağı, eylem kapsamı sabitleme, tekrar bütünlüğü, zamanlama testleri). E-05/Ö-04 belge olarak bu dalda.
 - **Codex tur 2** (`dfc8206`): **UYGUN DEĞİL** — E-01, E-03, E-04 kapandı; E-02 kısmen → yeni **CX-F0-E-06** (otomatik `conflict_retry` ikinci gönderimde kapsam kontrolü yok) → düzeltme **W16b**; E-05 (Gantt kararı + `e614489` kanıtı) ve Ö-04 (rozet kabulü F1) bu dalda, kapanış PR'ında doğrulanacak; kalan gerçek zaman beklemeleri (Ö-03 artığı) ve kardeş sekme bayrak aktarımı borcu → F1 W61. Hüküm `docs/reviews/WEB-0-codex.md` 2. koşum.
-- **Bekleyen:** W16b PR'ı → Codex tur 3 (kapanış PR'ı dahil); `main`'de tam kapı + e2e CI; yönetim deposu `program/DURUM.md` + `gunluk/` satırı; Y1/Y2/Y3/Y9/Y11/Y12 yol haritası metinleri (ürün sahibi onayı).
+- **W16b birleşti:** #30 `5a55ada` — CX-F0-E-06 (her gönderim öncesi kapsam/nesil kontrolü, otomatik tekrar dahil). **main nihai HEAD `5a55ada`.**
+- **Codex tur 3** (kapanış dalı `2c63264`, main `5a55ada`): **KOŞULLU UYGUN** — E-02/E-06 kapandı; E-05, Ö-04 belgeleri doğrulandı. Koşullar bu PR'da kapatıldı: **Ö-06** (web-1'de koordinatör kod imzası kaldırıldı, bileşen iskeleti W41'e) ve **K-04** (bu kayıt + W61 güncellemesi). F1 devirleri: W41 yakalanmış kapsamı taşıma katmanına bağlar (ilk canlı yazma tüketicilerinden önce, yarış testiyle); W61 borçları.
+- **CI kanıtı:** `<main 5a55ada CI run>`.
+- **Kapanış:** F0 (WEB-0) KOŞULLU UYGUN hükmüyle kapanır; koşullar bu PR'da kapalı. Sonraki: WEB-1 O2 (`docs/yurutme/web-1/`).
+- **Bekleyen (F0 dışı):** yönetim deposu `program/DURUM.md` + `gunluk/` satırı; Y1/Y2/Y3/Y9/Y11/Y12 yol haritası metinleri (ürün sahibi onayı).

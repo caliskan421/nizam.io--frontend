@@ -1,14 +1,15 @@
 # WEB-0 (F0) — Codex nihai kapı hükmü
 
-**Son hüküm: UYGUN DEĞİL** — 2. koşum, `main` @ `dfc8206` (#19–#29 birleşik).
+**Son hüküm: KOŞULLU UYGUN** — 3. koşum, kapanış dalı `2c63264` (`main` @ `5a55ada`, #19–#30 birleşik).
+Koşullar bu PR'da kapatıldı: Ö-06, K-04; F1 devirleri: W41 (kapsam→taşıma katmanı), W61 borçları.
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur.
 Kayıt: yürütme `docs/yurutme/web-0/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
 | Koşum | Denetlenen `main` | Hüküm | Açılan bulgular | Düzeltme |
 |---|---|---|---|---|
 | 1 | `9b41171` | UYGUN DEĞİL | CX-F0-E-01…E-05 (engelleyici); Ö-01…Ö-05; K-01…K-03 | düzeltme PR'ları: PR #27 (W17, E-03) · #28 (W23, E-04) · #29 (W16, E-01/E-02/Ö-01/Ö-03) · belge E-05/Ö-04 bu PR |
-| 2 | `dfc8206` | UYGUN DEĞİL | E-06 (yeni); E-02 kısmen; E-05/Ö-04 kapanış PR'ında | W16b |
-| 3 | (bekleniyor) | — | — | — |
+| 2 | `dfc8206` | UYGUN DEĞİL | E-06 (yeni); E-02 kısmen; E-05/Ö-04 kapanış PR'ında | W16b → PR #30 `5a55ada` |
+| 3 | `2c63264` (kapanış dalı; main `5a55ada`) | KOŞULLU UYGUN | Ö-06, K-04 (belge) | bu PR |
 | — | `9b41171` | Görsel doğrulama: kanıt özeti `docs/yurutme/web-0/ilerleme.md` O5 | yüksek 2 (E-04, Ö-04 ile aynı), orta 4 | W23; F1 W61 |
 
 Düzeltme planı (koordinatör, 2026-11-08): E-01/E-02/Ö-01/Ö-03 → W16 (mutasyon) · E-03 → W17 (oturum nesli) · E-04 → W23 (K7 gerçek rota + satırsız admin) · E-05/Ö-04 → belge, `web0/o5-kapanis` · Ö-02/Ö-05/K-01 → F1 W61 borcu · K-02 → ürün sahibi (CLAUDE.md yolları) · K-03 → F2.
@@ -244,3 +245,67 @@ Yeni bağımsız önemli/küçük bulgu eklenmedi; önceki borçların devamı a
 8. **F1 kabulü:** Kısmi başarıda ilk işlem korunmalı; düzenleme çatışmaları gerçek sürüm gruplarıyla sınanmalı. Bu koşumda tüketici düzeyi kabul doğrulanmadı.
 9. **F1 kabulü:** Ana sayfa P3/P6 sınırında kalmalı; tarih talebi yazması F3’e kadar kapalı tutulmalı. F0 yer tutucu veri uydurmuyor (`HomePlaceholder.vue:6`).
 10. **Açık — W61:** Font, iki tema ve 272/76 px kabuk kabulü gerçek tarayıcı kanıtıyla tamamlanmalı; bu koşumda görsel kabul doğrulanmadı.
+
+---
+
+# WEB-0 (F0) — Codex nihai kapı hükmü — 3. koşum
+
+- **Hüküm: KOŞULLU UYGUN.** E-02/E-06’nın bildirilen otomatik tekrar açığı kaynak ve test tasarımı düzeyinde kapandı; E-05 ve Ö-04 belge düzeltmeleri mevcut. W41/W61 borçları F1 içinde kapatılabilir; ancak kapanış kaydının güncellenmesi ve nihai HEAD’e bağlı CI kanıtı F0 kapanışında tamamlanmalıdır.
+- **Denetlenen HEAD:** `2c6326400d04028805cdd9b6fa0312a74e254fcc`
+- **Dal:** `web0/o5-kapanis`; başlangıç ve bitiş `git status --short` çıktıları boş.
+- **CI:** Kanıtın koordinatörde bulunduğu **kullanıcı beyanıdır**; bağımsız CI başarısı ve üretim diff=0 doğrulanmadı.
+- **Yöntem:** Salt okunur kabuk incelemesi; dosya değiştirilmedi, test/lint/build çalıştırılmadı. Aşağıdaki test hükümleri çalıştırma sonucu değil, test kaynaklarının değerlendirmesidir.
+- **Komutlar:** İlk eylem sırasıyla `git rev-parse HEAD`, `git log --oneline -8`, `git status --short`; devamında `git branch`, `git log --first-parent`, `git diff`, `git show`, `git ls-tree`, `cat`, `nl -ba`, `sed`, `rg`, `head`, `tail`, `ls`, `pwd`.
+- `../program/` bulunamadı; `../nizam.io--program/program/` okundu. Pinli backend sözleşmesi `v0.11.0-api` → `201689ac72ffcb0c128f163088c8ddf80e9dd7cd`.
+
+## E-02/E-06 · E-05 · Ö-04 kapanış tablosu
+
+| Bulgu | Durum | Kanıt | Kalan risk |
+|---|---|---|---|
+| **E-02/E-06 — ilk gönderim ve otomatik tekrar** | **Bildirilen açık kapandı** | `src/shared/http/mutation/engine.ts:307` kapsam/nesil kapısı; `:334` ilk, `:338` otomatik ikinci `sendOnce` öncesinde çağrılıyor. Hook `use-protected-mutation.ts:62` gerçek oturum neslini okuyor, `:93` eyleme kaydediyor. | Motor kontrolü ile HTTP başlık üretimi atomik değil; W41 devri aşağıda. |
+| **E-02 — manuel retry ve confirm** | **Kaynakta kapandı** | `engine.ts:239` retry özgün eylemi koruyor; `:280` confirm yeni anahtara özgün kapsamı ve nesli aktarıyor. İkisi de hook `:88` üzerinden aynı gönderim kapısına dönüyor. | Kapsamlı confirm motor testinde; nesil değişimi confirm testi gerçek hook/HTTP zincirinde. |
+| **E-06 — ikinci isteğin engellenmesi** | **Test tasarımı yeterli** | `use-protected-mutation.test.ts:281`: kontrollü ilk yanıt → A’dan B’ye geçiş → 409; `:310` MSW’de kaydedilen programlar tam `['p1']`. `:316` değişmeyen kapsamda iki istek ve aynı anahtar kontrolü. | Çalıştırılmadı. Otomatik çatışma tekrarında **nesil değişimi** için ayrıca özel senaryo bulunamadı; ortak kapı kaynakta mevcut. |
+| **E-02 — nesil testleri** | **Olumlu** | Aynı test dosyasında `:335` logout sonrası retry, `:353` logout sonrası confirm; MSW anahtar/çağrı sayısı **1** kalıyor. Manuel kapsam retry testi `:201`; ilk gönderim kapsam testi `engine.test.ts:544`. | Bütün hesap değişimi/taşıma yarışlarının tüketici düzeyinde kanıtlandığı iddia edilmez. |
+| **E-05 — karar ve pilot** | **Kapandı** | `docs/architecture/gantt-secimi.md:3` **Karar**; `:4` `web0/o4-w31` ve `e614489`; yol haritası `:20` K4 kendi SVG/yedek SVAR kararını taşıyor. Commit’te sonuç JSON’u okunabilir, PNG’ler mevcut; `origin/web0/o4-w31` commit’i içeriyor. HEAD’in pilot ağacı boş. | PNG içerikleri, ölçümlerin yeniden üretimi ve gerçek ekran okuyucu kabulü bu koşumda doğrulanmadı; F3. |
+| **Ö-04 — rozet kabulü** | **Kapandı** | `docs/ekranlar/00-ortak/README.md:40`–`:41`: E-00-14/15 F1; F0’da çağrı yok. `badges.ts:55`, `:68`, `:77`: canlı faz kapısı; K/Ü sayıları `null`, BE-003 stub’ı. | F1 Admin sayaçlarının GAP-075 elle doğrulaması ve MSW kabulü kalıyor. |
+
+**Mikro görev boşluğu:** `client.ts:82` başlıkları silip `:85` güncel kapsamdan yeniden kuruyor; motorun yakaladığı kapsam taşıma katmanına henüz bağlanmış değil. `web-1/oturum-2-gorevler.md:25` bunu açıkça W41’e veriyor: **ilk F1 yazma tüketicileri açılmadan**, kontrollü yarış testiyle kapatılması koşuluyla devir kabul edilir; sınırsız erteleme kabul edilmez.
+
+## Kapanış belgeleri tutarlılığı
+
+| Madde | Hüküm | Kanıt |
+|---|---|---|
+| Koşum tablosu | **Tur 1/2 doğru; güncelleme gerekli** | `WEB-0-codex.md:7` tablosundaki `9b41171` / `dfc8206`, #27 W17 / #28 W23 / #29 W16 geçmişle örtüşüyor. Tur 3 bekliyor; W16b satırına #30 ve `5a55ada` henüz işlenmemiş. |
+| O2–O4 geçmişi | **Örtüşüyor** | İlk ebeveyn geçmişi: #23 → #20 → #21 → #22 → #19 → #24 → #26 → #25. `ilerleme.md:31` gerçek O2 birleşme sırasını doğru veriyor. |
+| O5 güncelliği | **Eksik** | `ilerleme.md:14`, `:56` hâlâ `dfc8206` / “W16b PR’ı bekliyor”; oysa #30 `5a55ada` birleşmiş ve HEAD’e alınmış. O3’ün eski CI ifadeleri tarihsel kayıt; güncel kapanış kanıtı sayılmaz. |
+| F0 backend devri | **Tutarlı** | `rapor-F0.md:25`–`:31` sıra **BE-003 → 036 → 038 → 040 → 004 → 001 → 051**. `kayit.md` aynı eksikleri açık tutuyor; BE-051 F3, liste alt görev sayacı zaten mevcut. Yeni uç beklemeden sınırlı gösterim kararı korunuyor. |
+| F1 iş/kabul bağlantıları | **Yeterli** | W41–W47 için O2 dosyası `:18` ve W blokları 03 kabul satırlarına; W51 `oturum-3-ana-sayfa.md:16`–`:19` 01 F1 satırlarına bağlı. |
+| K12 | **Bağlı** | `ortak-sozlesme.md` KESİN 10 kapı gevşetmeyi yasaklıyor; W61 tespit satırı K12’yi içeriyor. |
+| K15 | **Düzeltme gerekli** | Yol haritası `:31` “koordinatör kod yazmaz”; F1 README `:9` imza istisnası, O2 `:16` koordinatöre bileşen gövdeleri/prop-emit kodu yazdırıyor. |
+| W61 borç listesi | **Kapsam tam, iki kalem eskimiş** | `oturum-4-temizlik.md:18`–`:27`: Ö-02/Ö-05/K-01, görsel borçlar, gerçek beklemeler ve kardeş bayrak aktarımı mevcut. Standing/sign-out beklemeleri W16b’de zaten giderilmiş; kalan auth-session beklemeleri ayrıştırılmalı. |
+
+## Regresyon örneklemi
+
+- **K1:** `standing-facts.ts:164` yetki hesabına mercek almıyor; `capabilities.ts:38` ve devamı olgularla karar veriyor. W16b bu dosyaları değiştirmiyor.
+- **K2:** `lifecycle.ts:39` kapsamlı sorguları iptal edip kaldırıyor. Başarı geçersizlemesi hook `:81` üzerinden yakalanmış kapsama bağlı; gerçek HTTP testi `:225` B önbelleğine dokunulmadığını denetliyor.
+- **K5:** Aynı anahtarlı tek otomatik tekrar korunuyor; manuel retry özgün gövdeyi, confirm yeni anahtarı kullanıyor. 24 saat kontrolü `engine.ts:235` çağrı anında; K6 yetki kaybı bildirimi `:358` korunmuş.
+- **Taşıma sınırı:** HTTP’nin 401 tekrarı `client.ts:119`–`:125` ayrı yoldur; özgün Request kapsamını korur. Motor kapısının bütün fiziksel ağ gönderimlerinde yeniden çalıştığı iddia edilmez.
+- **Güvenlik:** CSRF `engine.ts:162` / `client.ts:78`; storage erişimi üretim kaynaklarında yalnız `storage-adapter.ts`, izinli dört anahtar `preferences/keys.ts:8`. Hata normalizasyonu sunucu mesajını taşımıyor; sürüm uyumsuzluğu `instance/store.ts:31` açık hata durumuna gidiyor.
+- **Beklemeler:** `standing.test.ts` 20 ms yerine `nextTick` + sorgu/ağ sayısı; `sign-out.test.ts` sahte saat ve timeout sınırı kontrolü kullanıyor.
+- **Lint:** `git diff dfc8206..HEAD -- eslint.config.js` **boş**. Yeni yapılandırma istisnası yok; lint çalıştırılmadı.
+
+## Yeni bulgular
+
+- **CX-F0-Ö-06 — F1 yürütme setinde K15 istisnası geri gelmiş.** `web-1/README.md:9` ve `oturum-2-gorevler.md:16` koordinatöre kod sahipliği veriyor. İmza/yer tutucu hazırlığını W41’e veya ayrı uygulayıcıya devredin; **O2b başlamadan kapanabilir**, F0 çalışma zamanı engeli değildir.
+- **CX-F0-K-04 — Kapanış/devir kayıtları W16b sonrasına güncel değil.** O5’e #30/`5a55ada`, bu hüküm ve denetlenen HEAD eklenmeli; W61’de giderilmiş iki bekleme tamamlandı olarak ayrılmalı. F0 kapanış kaydı tamamlanmadan düzeltilmeli.
+- **Yeni bağımsız engelleyici E-07 saptanmadı.**
+
+## F1'e devir: kabul edilen borçlar ve ön koşullar
+
+1. **F0 kapanışında:** Nihai teslim HEAD’ine bağlı CI/üretim eşitliği kanıtı, bu koşum kaydı ve güncel O5 durumu bağlanmalı. Bunlar F1 sonuna ertelenemez.
+2. **W41:** Yakalanmış kapsamı taşıma katmanına bağlama ve kapsam/nesil yarış testleri, ilk canlı yazma tüketicilerinden önce kapanmalı.
+3. **W61 kabul:** Ö-02 ölçüler, Ö-05 font/görsel kabul, K-01 CI metni, i18n ve görsel borçlar; kalan auth-session zamanlayıcıları ve kardeş `serverLogoutUnverified` aktarımı. E2E’nin gerçek token ömrü beklemesi kabul.
+4. **Kardeş sekme sınırı:** `refresh-coordination.md:55` açık borç olarak doğru; tüm sekmelerde doğrulanamayan logout sonrası sessiz refresh’in engellendiği söylenemez.
+5. **K-02 kabul:** Eski okuma yolları/README durumu ürün sahibi bakımına devredilebilir; bu koşumda alternatif yol açıkça kaydedildi.
+6. **K-03 kabul:** Yönetim kapısının capability katmanına taşınması F2’ye bırakılabilir; mevcut kapı mercekten bağımsız.
+7. **Pilotun main dışında kalması ve F1 rozet ertelemesi kabul.** K15’e aykırı koordinatör kodlama istisnası ve borçların tamamlanmış kabul gibi sunulması **kabul edilmez**.

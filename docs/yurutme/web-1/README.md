@@ -6,7 +6,7 @@ Gereksinim: [`../../architecture/yol-haritasi-web.md`](../../architecture/yol-ha
 
 ## Roller
 
-Web-0 ile aynı ([`../web-0/README.md`](../web-0/README.md) "Roller"): koordinatör özellik kodu yazmaz (yalnız aşağıdaki **imza** commit'leri ve birleştirme çakışması); uygulayıcı kendi worktree'sinde kod + test; nihai kapı Codex `-s read-only` tek koşum → `docs/reviews/WEB-1-codex.md`.
+Web-0 ile aynı ([`../web-0/README.md`](../web-0/README.md) "Roller"): koordinatör yalnız plan, istem, birleştirme ve kayıt yapar — kod yazmaz, imza/iskelet commit'i de atmaz (K15, Codex CX-M-06 / CX-F0-Ö-06); paylaşılan bileşen iskeleti bir uygulayıcının (W41) işidir; birleştirme çakışması dışında dosyaya dokunmaz; uygulayıcı kendi worktree'sinde kod + test; nihai kapı Codex `-s read-only` tek koşum → `docs/reviews/WEB-1-codex.md`.
 
 ## Oturum haritası
 
