@@ -1,0 +1,3027 @@
+{
+  "date": "2026-11-08T20:26:33.529Z",
+  "runs": 5,
+  "bundle": {
+    "baseline": {
+      "jsGz": 30314,
+      "cssGz": 2615,
+      "totalGz": 32929,
+      "raw": 85080
+    },
+    "dhtmlx": {
+      "jsGz": 204516,
+      "cssGz": 53806,
+      "totalGz": 258322,
+      "raw": 850510
+    },
+    "frappe": {
+      "jsGz": 44697,
+      "cssGz": 4612,
+      "totalGz": 49309,
+      "raw": 142719
+    },
+    "index": {
+      "jsGz": 294,
+      "cssGz": 2029,
+      "totalGz": 2323,
+      "raw": 6954
+    },
+    "own": {
+      "jsGz": 34604,
+      "cssGz": 3503,
+      "totalGz": 38107,
+      "raw": 98231
+    },
+    "svar": {
+      "jsGz": 111606,
+      "cssGz": 24335,
+      "totalGz": 135941,
+      "raw": 506236
+    }
+  },
+  "scan": {
+    "baseline": {
+      "eval": 0,
+      "newFunction": 0,
+      "innerHTML": 0,
+      "styleAttrInMarkup": 0,
+      "setAttributeStyle": 0,
+      "styleElement": 0,
+      "insertRule": 0
+    },
+    "dhtmlx": {
+      "eval": 0,
+      "newFunction": 0,
+      "innerHTML": 83,
+      "styleAttrInMarkup": 28,
+      "setAttributeStyle": 0,
+      "styleElement": 0,
+      "insertRule": 0
+    },
+    "frappe": {
+      "eval": 0,
+      "newFunction": 0,
+      "innerHTML": 19,
+      "styleAttrInMarkup": 1,
+      "setAttributeStyle": 0,
+      "styleElement": 0,
+      "insertRule": 0
+    },
+    "index": {
+      "eval": 0,
+      "newFunction": 0,
+      "innerHTML": 0,
+      "styleAttrInMarkup": 0,
+      "setAttributeStyle": 0,
+      "styleElement": 0,
+      "insertRule": 0
+    },
+    "own": {
+      "eval": 0,
+      "newFunction": 0,
+      "innerHTML": 0,
+      "styleAttrInMarkup": 0,
+      "setAttributeStyle": 0,
+      "styleElement": 0,
+      "insertRule": 0
+    },
+    "svar": {
+      "eval": 0,
+      "newFunction": 0,
+      "innerHTML": 1,
+      "styleAttrInMarkup": 0,
+      "setAttributeStyle": 0,
+      "styleElement": 0,
+      "insertRule": 0
+    }
+  },
+  "candidates": {
+    "own": {
+      "renders": [
+        {
+          "firstRenderMs": 92,
+          "sinceNavMs": 146,
+          "domNodes": 351
+        },
+        {
+          "firstRenderMs": 77,
+          "sinceNavMs": 126,
+          "domNodes": 351
+        },
+        {
+          "firstRenderMs": 66,
+          "sinceNavMs": 109,
+          "domNodes": 351
+        },
+        {
+          "firstRenderMs": 76,
+          "sinceNavMs": 142,
+          "domNodes": 351
+        },
+        {
+          "firstRenderMs": 95,
+          "sinceNavMs": 191,
+          "domNodes": 351
+        }
+      ],
+      "csp": [],
+      "pageErrors": [],
+      "a11y": {
+        "roles": {
+          "main": 1,
+          "treegrid": 1,
+          "row": 24,
+          "rowheader": 24,
+          "gridcell": 24,
+          "button": 23,
+          "text": 23,
+          "paragraph": 1
+        },
+        "attrs": {
+          "ariaExpanded": 24,
+          "ariaLevel": 24,
+          "ariaSelected": 23,
+          "ariaLabel": 24,
+          "tabbable": 1
+        },
+        "head": "- main:\n  - treegrid \"Zaman çizelgesi\":\n    - row \"⌄ Aviyonik 24 / 42 Aviyonik\" [expanded] [level=1]:\n      - rowheader \"⌄ Aviyonik 24 / 42\"\n      - gridcell \"Aviyonik\"\n    - row \"Alt görevleri göster Uçuş bilgisayarı kart revizyonu 25 Uçuş bilgisayarı kart revizyonu 25, Tamamlandı, 2026-07-13 – 2026-07-18\" [level=2]:\n      - rowheader \"Alt görevleri göster Uçuş bilgisayarı kart revizyonu 25\":\n        - button \"Alt görevleri göster\": ›\n        - text: Uçuş bilgisayarı kart revizyonu 25\n      - gridcell \"Uçuş bilgisayarı kart revizyonu 25, Tamamlandı, 2026-07-13 – 2026-07-18\"\n    - row \"Alt görevleri göster Gövde kompozit serimi 20 Gövde kompozit serimi 20, Tamamlandı, 2026-07-16 – 2026-08-23\" [level=2]:\n      - rowheader \"Alt görevleri göster Gövde kompozit serimi 20\":\n        - button \"Alt görevleri göster\": ›\n        - text: Gövde kompozit serimi 20"
+      },
+      "keyboard": {
+        "entered": true,
+        "afterTabs": 7,
+        "extraTabs": 0,
+        "first": {
+          "afterTabs": 7,
+          "inGantt": true,
+          "tag": "div",
+          "role": "row",
+          "name": "⌄ Aviyonik 24 / 42Aviyonik"
+        },
+        "arrowsMoveFocus": true,
+        "arrows": [
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "⌄ Aviyonik 24 / 42Aviyonik"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "›Uçuş bilgisayarı kart revizyonu 25Uçuş bilgisayarı kart revizyonu 25, Tamamlandı, 2026-07"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "›Gövde kompozit serimi 20Gövde kompozit serimi 20, Tamamlandı, 2026-07-16 – 2026-08-23"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "›Sponsor sunumu 17Sponsor sunumu 17, Tamamlandı, 2026-07-21 – 2026-07-30, 2 gün geç bitti,"
+          }
+        ],
+        "keyboardDateChange": true
+      },
+      "drag_Koordinatör": {
+        "ok": true,
+        "line": "requestDateChange(new_start_on, new_end_on) — end: 2026-09-12 → 2026-09-27",
+        "widthBefore": 241,
+        "widthAfter": 332
+      },
+      "cspAfterDrag": 0,
+      "drag_Admin": {
+        "ok": true,
+        "line": "extendWorkItem(days=15)",
+        "widthBefore": 241,
+        "widthAfter": 332
+      },
+      "drag_Üye": {
+        "ok": false,
+        "line": "",
+        "widthBefore": 241,
+        "widthAfter": 242
+      },
+      "scroll1x": {
+        "fps": 60,
+        "worstFrameMs": 33,
+        "longFrames": 0,
+        "loafCount": 0,
+        "loafBlockingMs": 0,
+        "gestureMs": 3194,
+        "scrolled": true
+      },
+      "scroll4x": {
+        "fps": 47,
+        "worstFrameMs": 150,
+        "longFrames": 6,
+        "loafCount": 5,
+        "loafBlockingMs": 0,
+        "gestureMs": 3185,
+        "scrolled": true
+      },
+      "firstRenderMedianMs": 77,
+      "sinceNavMedianMs": 142
+    },
+    "svar": {
+      "renders": [
+        {
+          "firstRenderMs": 120,
+          "sinceNavMs": 200,
+          "domNodes": 404
+        },
+        {
+          "firstRenderMs": 112,
+          "sinceNavMs": 203,
+          "domNodes": 404
+        },
+        {
+          "firstRenderMs": 111,
+          "sinceNavMs": 249,
+          "domNodes": 404
+        },
+        {
+          "firstRenderMs": 114,
+          "sinceNavMs": 217,
+          "domNodes": 404
+        },
+        {
+          "firstRenderMs": 120,
+          "sinceNavMs": 200,
+          "domNodes": 404
+        }
+      ],
+      "csp": [],
+      "pageErrors": [],
+      "a11y": {
+        "roles": {
+          "main": 1,
+          "grid": 1,
+          "rowgroup": 1,
+          "row": 21,
+          "columnheader": 1,
+          "gridcell": 20,
+          "text": 2,
+          "img": 1
+        },
+        "attrs": {
+          "ariaExpanded": 20,
+          "ariaLevel": 0,
+          "ariaSelected": 0,
+          "ariaLabel": 0,
+          "tabbable": 3
+        },
+        "head": "- main:\n  - grid:\n    - rowgroup:\n      - row \"görev\":\n        - columnheader \"görev\"\n    - row \"Aviyonik\" [expanded]:\n      - gridcell \"Aviyonik\"\n    - row \"Uçuş bilgisayarı kart revizyonu 25\":\n      - gridcell \"Uçuş bilgisayarı kart revizyonu 25\"\n    - row \"Gövde kompozit serimi 20\":\n      - gridcell \"Gövde kompozit serimi 20\"\n    - row \"Sponsor sunumu 17\":\n      - gridcell \"Sponsor sunumu 17\"\n    - row \"Faydalı yük entegrasyonu 10\":"
+      },
+      "keyboard": {
+        "entered": true,
+        "afterTabs": 7,
+        "extraTabs": 1,
+        "first": {
+          "afterTabs": 7,
+          "inGantt": true,
+          "tag": "div",
+          "role": null,
+          "name": "görevAviyonikUçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Fa"
+        },
+        "arrowsMoveFocus": true,
+        "arrows": [
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "columnheader",
+            "name": "görev"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "columnheader",
+            "name": "görev"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "columnheader",
+            "name": "görev"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "gridcell",
+            "name": "Uçuş bilgisayarı kart revizyonu 25"
+          }
+        ],
+        "keyboardDateChange": false
+      },
+      "drag_Koordinatör": {
+        "ok": true,
+        "line": "requestDateChange(new_start_on, new_end_on) — end: 2026-07-18 → 2026-08-02",
+        "widthBefore": 42,
+        "widthAfter": 132
+      },
+      "cspAfterDrag": 0,
+      "drag_Admin": {
+        "ok": true,
+        "line": "extendWorkItem(days=15)",
+        "widthBefore": 42,
+        "widthAfter": 132
+      },
+      "drag_Üye": {
+        "ok": false,
+        "line": "",
+        "widthBefore": 42,
+        "widthAfter": 42
+      },
+      "scroll1x": {
+        "fps": 60,
+        "worstFrameMs": 17,
+        "longFrames": 0,
+        "loafCount": 0,
+        "loafBlockingMs": 0,
+        "gestureMs": 3174,
+        "scrolled": true
+      },
+      "scroll4x": {
+        "fps": 60,
+        "worstFrameMs": 17,
+        "longFrames": 0,
+        "loafCount": 0,
+        "loafBlockingMs": 0,
+        "gestureMs": 3160,
+        "scrolled": true
+      },
+      "firstRenderMedianMs": 114,
+      "sinceNavMedianMs": 203
+    },
+    "frappe": {
+      "renders": [
+        {
+          "firstRenderMs": 191,
+          "sinceNavMs": 222,
+          "domNodes": 3541
+        },
+        {
+          "firstRenderMs": 230,
+          "sinceNavMs": 287,
+          "domNodes": 3541
+        },
+        {
+          "firstRenderMs": 255,
+          "sinceNavMs": 324,
+          "domNodes": 3541
+        },
+        {
+          "firstRenderMs": 237,
+          "sinceNavMs": 286,
+          "domNodes": 3541
+        },
+        {
+          "firstRenderMs": 238,
+          "sinceNavMs": 281,
+          "domNodes": 3541
+        }
+      ],
+      "csp": [
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        }
+      ],
+      "pageErrors": [],
+      "a11y": {
+        "roles": {
+          "main": 1,
+          "img": 1,
+          "text": 1
+        },
+        "attrs": {
+          "ariaExpanded": 0,
+          "ariaLevel": 0,
+          "ariaSelected": 0,
+          "ariaLabel": 0,
+          "tabbable": 1
+        },
+        "head": "- main:\n  - img: Uçuş bilgisayarı kart revizyonu 25 Gövde kompozit serimi 20 Sponsor sunumu 17 Faydalı yük entegrasyonu 10 Faydalı yük entegrasyonu 1 Sponsor sunumu 11 Uçuş bilgisayarı kart revizyonu 10 Gövde kompozit serimi 23 Gövde kompozit serimi 8 Uçuş bilgisayarı kart revizyonu 19 Faydalı yük entegrasyonu 4 Telemetri protokolü 15 Uçuş bilgisayarı kart revizyonu 7 Uçuş bilgisayarı kart revizyonu 13 Telemetri protokolü 3 Faydalı yük entegrasyonu 16 Faydalı yük entegrasyonu 13 Sponsor sunumu 2 Sponsor sunumu 5 Faydalı yük entegrasyonu 7 Faydalı yük entegrasyonu 25 Telemetri protokolü 18 Faydalı yük entegrasyonu 19 Sponsor sunumu 20 Sponsor sunumu 8 Uçuş bilgisayarı kart revizyonu 4 Sponsor sunumu 14 Sponsor sunumu 23 Gövde kompozit serimi 14 Telemetri protokolü 12 Gövde kompozit serimi 11 Telemetri protokolü 6 Faydalı yük entegrasyonu 22 Uçuş bilgisayarı kart revizyonu 1 Telemetri protokolü 9 Telemetri protokolü 24 Gövde kompozit serimi 5 Uçuş bilgisayarı kart revizyonu 16 Gövde kompozit serimi 17 Gövde kompozit serimi 2 Telemetri protokolü 21 Uçuş bilgisayarı kart revizyonu 22 Kritik tasarım raporu 10 Yer istasyonu arayüzü 12 Motor statik ateşleme 5 Motor statik ateşleme 14 Kritik tasarım raporu 19 Kritik tasarım raporu 1 Paraşüt açma testi 1 Paraşüt açma testi 10 Kritik tasarım raporu 16 Paraşüt açma testi 19 Yer istasyonu arayüzü 3 Paraşüt açma testi 4 Yer istasyonu arayüzü 18 Atış alanı lojistiği 11 Motor statik ateşleme 17 Kritik tasarım raporu 22 Atış alanı lojistiği 23 Motor statik ateşleme 11 Yer istasyonu arayüzü 21 Atış alanı lojistiği 5 Atış alanı lojistiği 8 Paraşüt açma testi 7 Yer istasyonu arayüzü 9 Yer istasyonu arayüzü 15 Kritik tasarım raporu 13 Motor statik ateşleme 2 Kritik tasarım raporu 4 Kritik tasarım raporu 7 Paraşüt açma testi 16 Yer istasyonu arayüzü 6 Atış alanı lojistiği 2 Paraşüt açma testi 25 Atış alanı lojistiği 17 Motor statik ateşleme 23 Paraşüt açma testi 22 Motor statik ateşleme 8 Motor statik ateşleme 20 Yer istasyonu arayüzü 24 Paraşüt açma testi 13 Kritik tasarım raporu 25 Atış alanı lojistiği 20 Atış alanı lojistiği 14 Telemetri protokolü 17 Uçuş bilgisayarı kart revizyonu 18 Uçuş bilgisayarı kart revizyonu 6 Gövde kompozit serimi 13 Telemetri protokolü 14 Gövde kompozit serimi 25 Sponsor sunumu 16 Faydalı yük entegrasyonu 6 Faydalı yük entegrasyonu 21 Faydalı yük entegrasyonu 24 Sponsor sunumu 13 Sponsor sunumu 1 Gövde kompozit serimi 1 Telemetri protokolü 20 Gövde kompozit serimi 4 Faydalı yük entegrasyonu 18 Faydalı yük entegrasyonu 15 Telemetri protokolü 23 Sponsor sunumu 10 Uçuş bilgisayarı kart revizyonu 21 Uçuş bilgisayarı kart revizyonu 15 Telemetri protokolü 5 Faydalı yük entegrasyonu 12 Telemetri protokolü 11 Gövde kompozit serimi 7 Gövde kompozit serimi 16 Sponsor sunumu 22 Uçuş bilgisayarı kart revizyonu 3 Faydalı yük entegrasyonu 9 Sponsor sunumu 19 Sponsor sunumu 25 Uçuş bilgisayarı kart revizyonu 9 Telemetri protokolü 8 Uçuş bilgisayarı kart revizyonu 24 Faydalı yük entegrasyonu 3 Sponsor sunumu 4 Sponsor sunumu 7 Uçuş bilgisayarı kart revizyonu 12 Gövde kompozit serimi 19 Telemetri protokolü 2 Gövde kompozit serimi 10 Gövde kompozit serimi 22 Motor statik ateşleme 13 Paraşüt açma testi 9 Atış alanı lojistiği 4 Motor statik ateşleme 22 Paraşüt açma testi 12 Motor statik ateşleme 25 Yer istasyonu arayüzü 23 Motor statik ateşleme 4 Paraşüt açma testi 15 Atış alanı lojistiği 16 Motor statik ateşleme 19 Kritik tasarım raporu 3 Paraşüt açma testi 3 Yer istasyonu arayüzü 2 Paraşüt açma testi 24 Kritik tasarım raporu 6 Atış alanı lojistiği 13 Atış alanı lojistiği 25 Kritik tasarım raporu 15 Kritik tasarım raporu 21 Kritik tasarım raporu 12 Kritik tasarım raporu 9 Atış alanı lojistiği 1 Paraşüt açma testi 6 Motor statik ateşleme 7 Yer istasyonu arayüzü 8 Atış alanı lojistiği 7 Yer istasyonu arayüzü 14 Yer istasyonu arayüzü 5 Atış alanı lojistiği 10 Atış alanı lojistiği 22 Motor statik ateşleme 16 Atış alanı lojistiği 19 Motor statik ateşleme 1 Motor statik ateşleme 10 Paraşüt açma testi 21 Kritik tasarım raporu 24 Paraşüt açma testi 18 Kritik tasarım raporu 18 Yer istasyonu arayüzü 20 Yer istasyonu arayüzü 11 Yer istasyonu arayüzü 17 Sponsor sunumu 6 Faydalı yük entegrasyonu 2 Gövde kompozit serimi 12 Sponsor sunumu 24 Sponsor sunumu 9 Gövde kompozit serimi 3 Telemetri protokolü 13 Telemetri protokolü 22 Telemetri protokolü 16 Faydalı yük entegrasyonu 14 Sponsor sunumu 18 Uçuş bilgisayarı kart revizyonu 2 Faydalı yük entegrasyonu 8 Uçuş bilgisayarı kart revizyonu 17 Gövde kompozit serimi 6 Faydalı yük entegrasyonu 17 Uçuş bilgisayarı kart revizyonu 5 Gövde kompozit serimi 15 Gövde kompozit serimi 21 Faydalı yük entegrasyonu 11 Uçuş bilgisayarı kart revizyonu 20 Telemetri protokolü 19 Sponsor sunumu 3 Gövde kompozit serimi 18 Sponsor sunumu 21 Faydalı yük entegrasyonu 20 Telemetri protokolü 25 Uçuş bilgisayarı kart revizyonu 14 Faydalı yük entegrasyonu 23 Uçuş bilgisayarı kart revizyonu 11 Faydalı yük entegrasyonu 5 Uçuş bilgisayarı kart revizyonu 23 Uçuş bilgisayarı kart revizyonu 8 Telemetri protokolü 10 Sponsor sunumu 15 Gövde kompozit serimi 9 Sponsor sunumu 12 Telemetri protokolü 7 Telemetri protokolü 1 Telemetri protokolü 4 Motor statik ateşleme 21 Yer istasyonu arayüzü 25 Atış alanı lojistiği 3 Kritik tasarım raporu 5 Yer istasyonu arayüzü 13 Motor statik ateşleme 18 Yer istasyonu arayüzü 10 Paraşüt açma testi 17 Yer istasyonu arayüzü 7 Atış alanı lojistiği 18 Yer istasyonu arayüzü 16 Atış alanı lojistiği 9 Yer istasyonu arayüzü 19 Atış alanı lojistiği 21 Paraşüt açma testi 20 Kritik tasarım raporu 17 Atış alanı lojistiği 6 Kritik tasarım raporu 11 Motor statik ateşleme 9 Atış alanı lojistiği 12 Kritik tasarım raporu 14 Motor statik ateşleme 3 Yer istasyonu arayüzü 4 Kritik tasarım raporu 2 Paraşüt açma testi 2 Kritik tasarım raporu 20 Kritik tasarım raporu 8 Atış alanı lojistiği 24 Yer istasyonu arayüzü 1 Paraşüt açma testi 11 Motor statik ateşleme 24 Paraşüt açma testi 8 Atış alanı lojistiği 15 Motor statik ateşleme 12 Yer istasyonu arayüzü 22 Paraşüt açma testi 23 Motor statik ateşleme 6 Kritik tasarım raporu 23 Paraşüt açma testi 5 Paraşüt açma testi 14 Motor statik ateşleme 15\n  - text: Haziran Temmuz Ağustos Eylül Ekim Kasım Aralık Ocak Şubat Mart 11 Haz - 17 18 - 24 25 - 01 Tem 02 Tem - 08 09 - 15 16 - 22 23 - 29 30 - 05 Ağu 06 Ağu - 12 13 - 19 20 - 26 27 - 02 Eyl 03 Eyl - 09 10 - 16 17 - 23 24 - 30 01 Eki - 07 08 - 14 15 - 21 22 - 28 29 - 04 Kas 05 Kas - 11 12 - 18 19 - 25 26 - 02 Ara 03 Ara - 09 10 - 16 17 - 23 24 - 30 31 - 06 Oca 07 Oca - 13 14 - 20 21 - 27 28 - 03 Şub 04 Şub - 10 11 - 17 18 - 24 25 - 03 Mar 04 Mar - 10 11 - 17 18 - 24 25 - 31"
+      },
+      "keyboard": {
+        "entered": true,
+        "afterTabs": 7,
+        "extraTabs": 1,
+        "first": {
+          "afterTabs": 7,
+          "inGantt": true,
+          "tag": "div",
+          "role": null,
+          "name": "Uçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Faydalı yük ent"
+        },
+        "arrowsMoveFocus": false,
+        "arrows": [
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": null,
+            "name": "Uçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Faydalı yük ent"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": null,
+            "name": "Uçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Faydalı yük ent"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": null,
+            "name": "Uçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Faydalı yük ent"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": null,
+            "name": "Uçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Faydalı yük ent"
+          }
+        ],
+        "keyboardDateChange": false
+      },
+      "drag_Koordinatör": {
+        "ok": true,
+        "line": "requestDateChange(new_start_on, new_end_on) — end: 2027-02-02 → 2027-02-03",
+        "widthBefore": 980,
+        "widthAfter": 1060
+      },
+      "cspAfterDrag": 330,
+      "drag_Admin": {
+        "ok": true,
+        "line": "extendWorkItem(days=1)",
+        "widthBefore": 980,
+        "widthAfter": 1060
+      },
+      "drag_Üye": {
+        "ok": false,
+        "line": "",
+        "widthBefore": 980,
+        "widthAfter": 980
+      },
+      "scroll1x": {
+        "fps": 47,
+        "worstFrameMs": 100,
+        "longFrames": 9,
+        "loafCount": 9,
+        "loafBlockingMs": 211,
+        "gestureMs": 3181,
+        "scrolled": true
+      },
+      "scroll4x": {
+        "fps": 23,
+        "worstFrameMs": 500,
+        "longFrames": 7,
+        "loafCount": 6,
+        "loafBlockingMs": 1602,
+        "gestureMs": 3448,
+        "scrolled": true
+      },
+      "firstRenderMedianMs": 237,
+      "sinceNavMedianMs": 286
+    },
+    "dhtmlx": {
+      "renders": [
+        {
+          "firstRenderMs": 190,
+          "sinceNavMs": 255,
+          "domNodes": 785
+        },
+        {
+          "firstRenderMs": 196,
+          "sinceNavMs": 358,
+          "domNodes": 785
+        },
+        {
+          "firstRenderMs": 195,
+          "sinceNavMs": 332,
+          "domNodes": 785
+        },
+        {
+          "firstRenderMs": 172,
+          "sinceNavMs": 250,
+          "domNodes": 785
+        },
+        {
+          "firstRenderMs": 172,
+          "sinceNavMs": 245,
+          "domNodes": 785
+        }
+      ],
+      "csp": [
+        {
+          "dir": "font-src",
+          "blocked": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuOKfMZg.ttf",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZg.ttf",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.ttf",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyYMZg.ttf",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "data",
+          "sample": ""
+        },
+        {
+          "dir": "font-src",
+          "blocked": "data",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        },
+        {
+          "dir": "style-src-attr",
+          "blocked": "inline",
+          "sample": ""
+        }
+      ],
+      "pageErrors": [],
+      "a11y": {
+        "roles": {
+          "main": 1,
+          "treegrid": 1,
+          "row": 1,
+          "columnheader": 1,
+          "rowgroup": 1,
+          "gridcell": 16,
+          "text": 1,
+          "img": 3
+        },
+        "attrs": {
+          "ariaExpanded": 16,
+          "ariaLevel": 16,
+          "ariaSelected": 16,
+          "ariaLabel": 85,
+          "tabbable": 1
+        },
+        "head": "- main:\n  - treegrid:\n    - row \"görev\":\n      - columnheader \"görev\"\n    - rowgroup:\n      - 'row \"Task: Aviyonik Start date: 2026-07-13 End date: 2027-02-17\" [expanded] [level=1]':\n        - gridcell \"Aviyonik\":  Aviyonik\n      - 'row \"Task: Uçuş bilgisayarı kart revizyonu 25 Start date: 2026-07-13 End date: 2026-07-19\" [level=2]':\n        - gridcell \"Uçuş bilgisayarı kart revizyonu 25\":  Uçuş bilgisayarı kart revizyonu 25\n      - 'row \"Task: Gövde kompozit serimi 20 Start date: 2026-07-16 End date: 2026-08-24\" [level=2]':\n        - gridcell \"Gövde kompozit serimi 20\":  Gövde kompozit serimi 20\n      - 'row \"Task: Sponsor sunumu 17 Start date: 2026-07-21 End date: 2026-07-31\" [level=2]':\n        - gridcell \"Sponsor sunumu 17\":  Sponsor sunumu 17\n      - 'row \"Task: Faydalı yük entegrasyonu 10 Start date: 2026-07-23 End date: 2026-07-29\" [level=2]':"
+      },
+      "keyboard": {
+        "entered": true,
+        "afterTabs": 7,
+        "extraTabs": 0,
+        "first": {
+          "afterTabs": 7,
+          "inGantt": true,
+          "tag": "div",
+          "role": null,
+          "name": "görevAviyonikUçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Fa"
+        },
+        "arrowsMoveFocus": true,
+        "arrows": [
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": null,
+            "name": "görevAviyonikUçuş bilgisayarı kart revizyonu 25Gövde kompozit serimi 20Sponsor sunumu 17Fa"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "Task: Aviyonik \n\t\t\t\t Start date: 2026-07-13 \n\t\t\t\t End date: 2027-02-17"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "Task: Uçuş bilgisayarı kart revizyonu 25 \n\t\t\t\t Start date: 2026-07-13 \n\t\t\t\t End date: 2026"
+          },
+          {
+            "inGantt": true,
+            "tag": "div",
+            "role": "row",
+            "name": "Task: Gövde kompozit serimi 20 \n\t\t\t\t Start date: 2026-07-16 \n\t\t\t\t End date: 2026-08-24"
+          }
+        ],
+        "keyboardDateChange": false
+      },
+      "drag_Koordinatör": {
+        "ok": true,
+        "line": "requestDateChange(new_start_on, new_end_on) — end: 2026-07-18 → 2026-08-01",
+        "widthBefore": 36,
+        "widthAfter": 125
+      },
+      "cspAfterDrag": 476,
+      "drag_Admin": {
+        "ok": true,
+        "line": "extendWorkItem(days=14)",
+        "widthBefore": 36,
+        "widthAfter": 125
+      },
+      "drag_Üye": {
+        "ok": false,
+        "line": "",
+        "widthBefore": 36,
+        "widthAfter": 36
+      },
+      "scroll1x": {
+        "fps": 60,
+        "worstFrameMs": 17,
+        "longFrames": 0,
+        "loafCount": 0,
+        "loafBlockingMs": 0,
+        "gestureMs": 3191,
+        "scrolled": true
+      },
+      "scroll4x": {
+        "fps": 60,
+        "worstFrameMs": 17,
+        "longFrames": 0,
+        "loafCount": 0,
+        "loafBlockingMs": 0,
+        "gestureMs": 3155,
+        "scrolled": true
+      },
+      "firstRenderMedianMs": 190,
+      "sinceNavMedianMs": 255
+    }
+  }
+}
