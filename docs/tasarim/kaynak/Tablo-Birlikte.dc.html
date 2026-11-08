@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Tabloda birlikte çalışma</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.cb-panel{border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-surface); box-sizing:border-box}
+.cb-grid{border:1px solid var(--border-subtle); border-radius:14px; overflow:hidden; background:var(--bg-base)}
+.cb-row{display:grid; min-height:44px; border-bottom:1px solid var(--border-subtle)}
+.cb-row:last-child{border-bottom:0}
+.cb-row--head{min-height:38px; background:var(--bg-surface)}
+.cb-h{display:flex; align-items:center; gap:6px; padding:0 12px; border-right:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-muted)}
+.cb-lock{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:6px; background:color-mix(in srgb, var(--gold) 18%, transparent); color:var(--gold)}
+.cb-n{display:grid; place-items:center; border-right:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; color:var(--ink-faint)}
+.cb-c{position:relative; display:flex; align-items:center; padding:0 12px; border-right:1px solid var(--border-subtle); font-size:13px; white-space:nowrap; overflow:visible; min-width:0}
+.cb-c--lock{color:var(--ink-muted); background:color-mix(in srgb, var(--ink) 3%, transparent)}
+.cb-c--p1{box-shadow:inset 0 0 0 2px #c27ce6; z-index:1}
+.cb-c--p2{box-shadow:inset 0 0 0 2px #ffd166; z-index:1}
+.cb-c--me{box-shadow:inset 0 0 0 2px var(--accent-text); z-index:1}
+.cb-c--note::after{content:""; position:absolute; top:0; right:0; border-style:solid; border-width:0 10px 10px 0; border-color:transparent var(--gold) transparent transparent}
+.cb-tag{position:absolute; left:-2px; top:-20px; height:18px; padding:0 6px; border-radius:5px 5px 5px 0; font-size:10.5px; font-weight:600; line-height:18px; white-space:nowrap}
+.cb-pres{display:flex; align-items:center; gap:10px}
+.cb-pres .rp-av{box-shadow:0 0 0 2px var(--bg-base), 0 0 0 4px var(--c)}
+.cb-pres .rp-avstack .rp-av + .rp-av{margin-left:-6px}
+.cb-pop{position:absolute; width:320px; padding:14px; border:1px solid var(--border-strong); border-radius:var(--radius-md); background:var(--bg-raised); box-shadow:var(--shadow-sheet); display:flex; flex-direction:column; gap:12px; box-sizing:border-box; z-index:3}
+.cb-cm{display:grid; grid-template-columns:26px minmax(0,1fr); gap:10px; font-size:13px; line-height:19px}
+.cb-mention{color:var(--accent-text); font-weight:600}
+.cb-hist{margin:0; padding:0; list-style:none; display:flex; flex-direction:column}
+.cb-hi{display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:start; padding:12px 0; border-top:1px solid var(--border-subtle)}
+.cb-diff{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-muted)}
+.cb-diff s{text-decoration-color:var(--danger)}
+.cb-diff b{color:var(--ink); font-weight:600}
+.cb-undo{height:28px; padding:0 10px; border:1px solid var(--border-subtle); border-radius:8px; background:transparent; color:var(--ink-muted); font:inherit; font-size:12px; cursor:pointer; white-space:nowrap}
+.cb-undo:hover{color:var(--ink); border-color:var(--border-strong)}
+.cb-tip{position:absolute; padding:8px 10px; border-radius:10px; background:var(--ink); color:var(--bg-base); font-size:12px; line-height:16px; white-space:nowrap; z-index:3}
+.cb-rule{display:grid; grid-template-columns:28px minmax(0,1fr); gap:12px}
+.cb-rule b{display:block; font-size:14px; line-height:20px}
+.cb-rule p{margin:2px 0 0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.cb-num{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:var(--bg-overlay); font-family:var(--font-mono); font-size:12px; font-weight:600}
+</style>
+</helmet>
+<div data-theme="dark" style="width:1440px; height:1260px; box-sizing:border-box; padding:56px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:28px">
+
+<header style="display:flex; flex-direction:column; gap:10px; max-width:900px">
+<p class="rp-kicker">Tablolar · birlikte çalışma</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Aynı tabloda aynı anda, kimin ne yaptığını görerek</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Canlı varlık, hücre yorumu, değişiklik geçmişi ve sütun kilidi. Hepsi tablonun içinde; ayrı bir “ortak alan” gerekmez.</p>
+</header>
+
+<div style="display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:24px; align-items:start">
+<section class="cb-panel" style="position:relative; padding:20px 24px 28px; display:flex; flex-direction:column; gap:16px" aria-label="Tablo örneği">
+<div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+<div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto"><span style="font-family:var(--font-display); font-size:22px; line-height:28px; font-weight:600">Fuar haftası vardiya planı</span><span class="rp-cap">Operasyon alanında · İdari işler ve Satış ile paylaşıldı · programdaki herkes görür</span></div>
+<div class="cb-pres" aria-label="Şu an tabloda 3 kişi, 2 kişi görüntülüyor"><span class="rp-avstack"><span class="rp-av rp-av--sm" style="--c:#c27ce6" title="Bahar Kılıç · düzenliyor">BK</span><span class="rp-av rp-av--sm" style="--c:#ffd166" title="Salih Özer · düzenliyor">SÖ</span><span class="rp-av rp-av--sm" style="--c:var(--accent-text)" title="Sen">D</span></span><span class="rp-cap">+2 görüntülüyor</span></div>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button" aria-pressed="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"></path></svg>Geçmiş</button>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a3 3 0 1 0-3-3M8 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM10.6 13.5l2.8 1.8M13.4 8.7l-2.8 1.8"></path></svg>Paylaş</button>
+</div>
+<div style="position:relative; padding-top:6px">
+<div class="cb-grid" role="grid" aria-label="Fuar haftası vardiya planı"><div class="cb-row cb-row--head" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span role="columnheader" class="cb-h">#</span><span role="columnheader" class="cb-h">Vardiya</span><span role="columnheader" class="cb-h">Tarih</span><span role="columnheader" class="cb-h">Sorumlu</span><span role="columnheader" class="cb-h">Koordinatörlük</span><span role="columnheader" class="cb-h">Bütçe<span class="cb-lock" title="Kilitli · yalnız koordinatör düzenler"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4"></path></svg></span></span><span role="columnheader" class="cb-h">Tamam</span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">1</span><span class="cb-c" role="gridcell">Kayıt masası · sabah</span><span class="cb-c" role="gridcell">22 Kas</span><span class="cb-c" role="gridcell">Bahar Kılıç</span><span class="cb-c" role="gridcell">İdari işler</span><span class="cb-c cb-c--lock" role="gridcell">4.500 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox" checked aria-label="Tamam" style="width:16px; height:16px"></span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">2</span><span class="cb-c cb-c--me" role="gridcell">Kayıt masası · öğleden sonra</span><span class="cb-c" role="gridcell">22 Kas</span><span class="cb-c" role="gridcell">Merve Koçoğlu</span><span class="cb-c" role="gridcell">İdari işler</span><span class="cb-c cb-c--lock" role="gridcell">4.500 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox"  aria-label="Tamam" style="width:16px; height:16px"></span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">3</span><span class="cb-c" role="gridcell">Salon A sahne yönetimi</span><span class="cb-c cb-c--p1" role="gridcell">23 Kas<span class="cb-tag" style="background:#c27ce6; color:#17181c">Bahar K. yazıyor…</span></span><span class="cb-c" role="gridcell">Yunus Çiftçioğlu</span><span class="cb-c" role="gridcell">Operasyon</span><span class="cb-c cb-c--lock" role="gridcell">7.200 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox"  aria-label="Tamam" style="width:16px; height:16px"></span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">4</span><span class="cb-c" role="gridcell">Basın merkezi</span><span class="cb-c cb-c--note" role="gridcell">23 Kas</span><span class="cb-c" role="gridcell">Büşra Çiftçioğlu</span><span class="cb-c" role="gridcell">Satış ve pazarlama</span><span class="cb-c cb-c--lock" role="gridcell">3.800 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox"  aria-label="Tamam" style="width:16px; height:16px"></span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">5</span><span class="cb-c" role="gridcell">Jeneratör nöbeti</span><span class="cb-c" role="gridcell">24 Kas</span><span class="cb-c cb-c--p2" role="gridcell">Salih Özer<span class="cb-tag" style="background:#ffd166; color:#17181c">Salih Ö.</span></span><span class="cb-c" role="gridcell">Elektrik ve enerji</span><span class="cb-c cb-c--lock" role="gridcell">2.400 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox"  aria-label="Tamam" style="width:16px; height:16px"></span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">6</span><span class="cb-c" role="gridcell">Ziyaretçi yönlendirme</span><span class="cb-c" role="gridcell">24 Kas</span><span class="cb-c" role="gridcell">Gökçe Nur Usta</span><span class="cb-c" role="gridcell">Operasyon</span><span class="cb-c cb-c--lock" role="gridcell">5.100 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox"  aria-label="Tamam" style="width:16px; height:16px"></span></div><div class="cb-row" role="row" style="grid-template-columns:44px 200px 120px 170px 170px 120px 72px"><span class="cb-n">7</span><span class="cb-c" role="gridcell">Ödül töreni sahne</span><span class="cb-c" role="gridcell">27 Kas</span><span class="cb-c" role="gridcell">Melek Yaşar</span><span class="cb-c" role="gridcell">Operasyon</span><span class="cb-c cb-c--lock" role="gridcell">6.000 ₺</span><span class="cb-c" role="gridcell"><input class="t-check" type="checkbox"  aria-label="Tamam" style="width:16px; height:16px"></span></div></div>
+<div class="cb-pop" role="dialog" aria-label="Basın merkezi hücresi yorumları" style="left:270px; top:236px">
+<div style="display:flex; align-items:center; justify-content:space-between; gap:8px"><span class="rp-kicker">B4 · Basın merkezi</span><button class="t-btn t-btn--ghost t-btn--sm" type="button" style="height:28px">Çözüldü</button></div>
+<div class="cb-cm"><span class="rp-av rp-av--sm" aria-hidden="true">YÇ</span><span><strong style="font-weight:600">Yunus Çiftçioğlu</strong> <span class="rp-cap">dün 18:20</span><br>Basın merkezi iki kişiyle mi kurulacak? <span class="cb-mention">@Büşra Çiftçioğlu</span> teyit eder misin?</span></div>
+<div class="cb-cm"><span class="rp-av rp-av--sm" aria-hidden="true">BÇ</span><span><strong style="font-weight:600">Büşra Çiftçioğlu</strong> <span class="rp-cap">09:45</span><br>Evet, ikinci kişiyi öğleden sonraya ekliyorum.</span></div>
+<div class="t-field"><input class="t-input" type="text" placeholder="Yanıtla, @ ile birini an" aria-label="Yoruma yanıt yaz" style="height:36px; border-radius:12px; padding:0 12px; font-size:13px"></div>
+</div>
+<span class="cb-tip" role="tooltip" style="left:540px; top:-34px">Kilitli sütun · yalnız Operasyon koordinatörü düzenler</span>
+</div>
+</section>
+
+<aside class="cb-panel" style="padding:20px 22px; display:flex; flex-direction:column; gap:10px" aria-label="Son değişiklikler">
+<div style="display:flex; align-items:center; justify-content:space-between; gap:8px"><strong style="font-size:15px">Son değişiklikler</strong><div class="rp-seg" role="group" aria-label="Geçmiş filtresi"><button type="button" aria-pressed="true">Tümü</button><button type="button" aria-pressed="false">Benim</button></div></div>
+<span class="rp-cap">Her değişiklik kişi ve saatle tutulur. Hücre üzerine gelince o hücrenin geçmişi açılır.</span>
+<ul class="cb-hist"><li class="cb-hi"><span class="rp-av rp-av--sm" aria-hidden="true" style="box-shadow:0 0 0 2px #c27ce6">BK</span><span style="display:flex; flex-direction:column; gap:3px; min-width:0"><span style="font-size:13px"><strong style="font-weight:600">Bahar Kılıç</strong> <span class="rp-cap">14:12</span></span><span class="rp-cap rp-trunc">Salon A sahne yönetimi › Tarih</span><span class="cb-diff"><s>23 Kas</s><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><b>24 Kas</b></span></span><button class="cb-undo" type="button" aria-label="Bahar Kılıç değişikliğini geri al">Geri al</button></li><li class="cb-hi"><span class="rp-av rp-av--sm" aria-hidden="true" style="box-shadow:0 0 0 2px #ffd166">SÖ</span><span style="display:flex; flex-direction:column; gap:3px; min-width:0"><span style="font-size:13px"><strong style="font-weight:600">Salih Özer</strong> <span class="rp-cap">13:40</span></span><span class="rp-cap rp-trunc">Jeneratör nöbeti › Sorumlu</span><span class="cb-diff"><s>—</s><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><b>Salih Özer</b></span></span><button class="cb-undo" type="button" aria-label="Salih Özer değişikliğini geri al">Geri al</button></li><li class="cb-hi"><span class="rp-av rp-av--sm" aria-hidden="true" style="box-shadow:0 0 0 2px #73a9e3">MK</span><span style="display:flex; flex-direction:column; gap:3px; min-width:0"><span style="font-size:13px"><strong style="font-weight:600">Merve Koçoğlu</strong> <span class="rp-cap">11:05</span></span><span class="rp-cap rp-trunc">3 satır eklendi</span></span><button class="cb-undo" type="button" aria-label="Merve Koçoğlu değişikliğini geri al">Geri al</button></li><li class="cb-hi"><span class="rp-av rp-av--sm" aria-hidden="true" style="box-shadow:0 0 0 2px #74c27a">YÇ</span><span style="display:flex; flex-direction:column; gap:3px; min-width:0"><span style="font-size:13px"><strong style="font-weight:600">Yunus Çiftçioğlu</strong> <span class="rp-cap">dün 18:22</span></span><span class="rp-cap rp-trunc">Basın merkezi › Bütçe</span><span class="cb-diff"><s>3.200 ₺</s><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><b>3.800 ₺</b></span></span><button class="cb-undo" type="button" aria-label="Yunus Çiftçioğlu değişikliğini geri al">Geri al</button></li></ul>
+<button class="rp-link rp-linkbtn" type="button" style="align-self:flex-start">Tüm geçmişi gör</button>
+</aside>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:28px">
+<div class="cb-rule"><span class="cb-num">1</span><div><b>Canlı varlık</b><p>Üstte tablodaki kişilerin avatarları. Düzenlenen hücre o kişinin rengiyle çerçevelenir; adı çerçevenin üstünde görünür.</p></div></div>
+<div class="cb-rule"><span class="cb-num">2</span><div><b>Hücre yorumu</b><p>Sağ tık › Yorum ekle. Köşedeki sarı üçgen yorum olduğunu gösterir. @ ile anılan kişiye bildirim gider; “Çözüldü” ile kapanır.</p></div></div>
+<div class="cb-rule"><span class="cb-num">3</span><div><b>Değişiklik geçmişi</b><p>“Geçmiş” paneli kimin neyi, eski ve yeni değeriyle değiştirdiğini gösterir. Her satırdan tek tıkla geri alınır.</p></div></div>
+<div class="cb-rule"><span class="cb-num">4</span><div><b>Sütun kilidi</b><p>Sahip ya da koordinatör bir sütunu kilitler. Herkes görür, yalnız kilitleyen ve koordinatörler değiştirir; başlıkta kilit simgesi durur.</p></div></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1260}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

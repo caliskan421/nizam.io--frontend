@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Mesaj pencereleri</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-code{display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:22px; padding:0 7px; border-radius:7px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:500; box-sizing:border-box; flex:none}
+.rp-msgapp{flex:1 1 auto; min-height:0; display:grid; grid-template-columns:320px minmax(0,1fr) 300px; border-top:1px solid var(--border-subtle)}
+.rp-msgapp--two{grid-template-columns:320px minmax(0,1fr) 340px}
+.rp-clist{display:flex; flex-direction:column; min-height:0; border-right:1px solid var(--border-subtle)}
+.rp-clist__head{display:flex; flex-direction:column; gap:10px; padding:16px 16px 10px}
+.rp-clist__scroll{flex:1 1 auto; overflow:auto; padding:0 8px 16px}
+.rp-csec{margin:14px 10px 6px; font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); display:flex; justify-content:space-between; align-items:center}
+.rp-conv{display:grid; grid-template-columns:36px minmax(0,1fr) auto; gap:10px; align-items:center; width:100%; padding:9px 10px; border:0; border-radius:12px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer}
+.rp-conv:hover{background:var(--bg-raised)}
+.rp-conv[aria-current="true"]{background:var(--bg-overlay)}
+.rp-conv__ic{width:36px; height:36px; border-radius:11px; display:grid; place-items:center; background:var(--bg-raised); border:1px solid var(--border-subtle); color:var(--ink-muted); font-family:var(--font-mono); font-size:11px; font-weight:600; box-sizing:border-box}
+.rp-conv__ic--sys{background:color-mix(in srgb, var(--accent-text) 14%, var(--bg-raised)); color:var(--accent-text); border-color:transparent}
+.rp-conv__ic--av{border-radius:50%; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-sans); font-size:12px}
+.rp-conv__name{display:flex; gap:6px; align-items:center; min-width:0; font-size:13px; font-weight:600}
+.rp-conv__prev{font-size:12px; color:var(--ink-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rp-conv__meta{display:flex; flex-direction:column; align-items:flex-end; gap:4px; font-size:11px; color:var(--ink-faint); white-space:nowrap}
+.rp-ubadge{min-width:20px; height:20px; padding:0 6px; border-radius:10px; display:inline-grid; place-items:center; background:var(--accent-text); color:var(--accent-ink); font-size:11px; font-weight:700; box-sizing:border-box}
+.rp-ubadge--at{background:var(--violet); color:var(--on-violet, #fff)}
+.rp-ubadge--mute{background:var(--bg-overlay); color:var(--ink-muted)}
+.rp-systag{height:18px; padding:0 6px; border-radius:5px; font-size:10px; font-weight:600; display:inline-flex; align-items:center; background:var(--bg-overlay); color:var(--ink-muted); flex:none}
+.rp-thread{display:flex; flex-direction:column; min-width:0; min-height:0}
+.rp-thread__head{display:flex; align-items:center; gap:12px; min-height:64px; padding:0 20px; border-bottom:1px solid var(--border-subtle)}
+.rp-pinbar{display:flex; align-items:center; gap:10px; padding:8px 20px; border-bottom:1px solid var(--border-subtle); background:var(--bg-raised); font-size:12px}
+.rp-msgs{flex:1 1 auto; overflow:auto; padding:8px 20px 12px; display:flex; flex-direction:column}
+.rp-daydiv{display:flex; align-items:center; gap:12px; margin:16px 0 8px; font-size:11px; color:var(--ink-faint); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.06em}
+.rp-daydiv::before, .rp-daydiv::after{content:""; flex:1 1 auto; height:1px; background:var(--border-subtle)}
+.rp-newdiv{color:var(--danger)}
+.rp-newdiv::before, .rp-newdiv::after{background:color-mix(in srgb, var(--danger) 45%, transparent)}
+.rp-msg{position:relative; display:grid; grid-template-columns:36px minmax(0,1fr); gap:12px; padding:8px 10px; margin:0 -10px; border-radius:12px}
+.rp-msg:hover, .rp-msg--hover{background:var(--bg-raised)}
+.rp-msg--cont{padding-top:2px}
+.rp-msg__head{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap}
+.rp-msg__who{font-size:13px; font-weight:600}
+.rp-msg__time{font-size:11px; color:var(--ink-faint)}
+.rp-msg__text{margin:3px 0 0; font-size:14px; line-height:22px; color:var(--ink); overflow-wrap:anywhere}
+.rp-mention{padding:0 3px; border-radius:5px; background:color-mix(in srgb, var(--violet) 16%, transparent); color:var(--violet); font-weight:600}
+.rp-mention--me{background:color-mix(in srgb, var(--gold) 22%, transparent); color:var(--gold)}
+.rp-tref{font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--accent-text)}
+.rp-quoteref{display:flex; gap:8px; align-items:center; margin:4px 0 2px; padding:6px 10px; border-left:3px solid var(--border-strong); border-radius:0 8px 8px 0; background:var(--bg-raised); font-size:12px; color:var(--ink-muted); min-width:0}
+.rp-tcard{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px; align-items:center; max-width:520px; margin-top:8px; padding:12px 14px; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-surface)}
+.rp-tcard__meta{display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:12px; color:var(--ink-muted); margin-top:4px}
+.rp-tcard--lock{grid-template-columns:auto minmax(0,1fr); border-style:dashed; background:transparent; color:var(--ink-muted)}
+.rp-fcard{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:12px; align-items:center; max-width:520px; margin-top:8px; padding:10px 12px; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-surface)}
+.rp-fcard__ic{width:40px; height:40px; border-radius:10px; display:grid; place-items:center; background:var(--bg-overlay); font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--ink-muted)}
+.rp-src{display:inline-flex; gap:5px; align-items:center; font-size:11px; color:var(--ink-faint)}
+.rp-reacts{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+.rp-react{display:inline-flex; gap:5px; align-items:center; height:26px; padding:0 9px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--bg-raised); color:var(--ink); font:inherit; font-size:12px; cursor:pointer}
+.rp-react[aria-pressed="true"]{border-color:color-mix(in srgb, var(--accent-text) 55%, transparent); background:color-mix(in srgb, var(--accent-text) 12%, var(--bg-raised))}
+.rp-react--add{color:var(--ink-faint); padding:0 7px}
+.rp-msgtools{position:absolute; right:10px; top:-14px; display:flex; gap:2px; padding:3px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--bg-surface); box-shadow:var(--shadow-card)}
+.rp-msgtools button{width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:8px; background:none; color:var(--ink-muted); cursor:pointer; font-size:14px}
+.rp-msgtools button:hover{background:var(--bg-raised); color:var(--ink)}
+.rp-seen{display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-top:4px; font-size:11px; color:var(--ink-faint)}
+.rp-seen .rp-av{width:16px; height:16px; font-size:8px}
+.rp-poll{max-width:460px; margin-top:8px; padding:14px; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-surface); display:flex; flex-direction:column; gap:8px}
+.rp-popt{position:relative; display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:40px; padding:0 12px; border:1px solid var(--border-subtle); border-radius:10px; overflow:hidden; font-size:13px; background:none; color:var(--ink); font-family:inherit; text-align:left; cursor:pointer}
+.rp-popt__bar{position:absolute; left:0; top:0; bottom:0; background:color-mix(in srgb, var(--accent-text) 12%, transparent); pointer-events:none}
+.rp-popt--on{border-color:color-mix(in srgb, var(--accent-text) 55%, transparent)}
+.rp-popt > *:not(.rp-popt__bar){position:relative}
+.rp-pchk{width:16px; height:16px; border-radius:5px; border:1.5px solid var(--border-control); display:grid; place-items:center; box-sizing:border-box}
+.rp-popt--on .rp-pchk{background:var(--accent-text); border-color:var(--accent-text); color:var(--accent-ink)}
+.rp-typing{padding:0 20px 6px; font-size:12px; color:var(--ink-faint); height:18px}
+.rp-compose{margin:0 20px 18px; border:1px solid var(--border-control); border-radius:16px; background:var(--bg-raised); position:relative}
+.rp-compose__ctx{display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid var(--border-subtle); font-size:12px; color:var(--ink-muted)}
+.rp-compose__text{min-height:44px; padding:12px 14px 6px; font-size:14px; line-height:22px; color:var(--ink)}
+.rp-compose__bar{display:flex; align-items:center; gap:4px; padding:6px 8px 8px}
+.rp-compose__bar .t-iconbtn{width:32px; height:32px}
+.rp-suggest{position:absolute; left:12px; bottom:calc(100% + 8px); width:440px; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-surface); box-shadow:var(--shadow-sheet); padding:6px; z-index:3}
+.rp-suggest__row{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; min-height:44px; padding:0 10px; border-radius:10px; font-size:13px}
+.rp-suggest__row[aria-selected="true"]{background:var(--bg-overlay)}
+.rp-suggest__foot{display:flex; gap:8px; align-items:center; padding:8px 10px 4px; border-top:1px solid var(--border-subtle); margin-top:4px; font-size:11px; color:var(--ink-muted)}
+.rp-dpanel{display:flex; flex-direction:column; min-height:0; overflow:auto; border-left:1px solid var(--border-subtle); padding:18px 18px 24px; gap:18px}
+.rp-dsec{display:flex; flex-direction:column; gap:8px}
+.rp-dsec h3{margin:0; font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center}
+.rp-mini{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; min-height:38px; font-size:12px}
+.rp-viewer{display:flex; align-items:center; gap:10px; padding:8px 20px; background:color-mix(in srgb, var(--violet) 10%, transparent); border-bottom:1px solid color-mix(in srgb, var(--violet) 30%, transparent); font-size:12px}
+.rp-menu2{position:absolute; right:10px; top:22px; width:240px; z-index:4}
+.rp-hl{background:color-mix(in srgb, var(--gold) 30%, transparent); color:var(--ink); border-radius:3px; padding:0 2px}
+.rp-sres{display:flex; flex-direction:column; gap:4px; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--bg-surface); font-size:12px}
+.rp-code--own{background:var(--ink)!important; color:var(--bg-base)!important}
+.rp-role{display:inline-flex; align-items:center; height:20px; padding:0 7px; border-radius:6px; font-size:11px; font-weight:600; background:var(--bg-overlay); color:var(--ink-muted)}
+.rp-role--k{color:var(--gold); background:color-mix(in srgb, var(--gold) 12%, transparent)}
+.rp-role--a{color:var(--violet); background:color-mix(in srgb, var(--violet) 12%, transparent)}
+.rp-inrow{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.rp-quote{margin:0; padding:12px 14px; border-left:3px solid var(--border-strong); border-radius:0 10px 10px 0; background:var(--bg-raised); font-size:13px; line-height:20px; color:var(--ink-muted)}
+/* Mesajlar v2: sohbet düzeni */
+.rp-msgapp{display:grid; grid-template-columns:340px minmax(0,1fr);  border-top:1px solid var(--border-subtle)}
+.rp-ctabs{display:flex; gap:4px; overflow-x:auto; scrollbar-width:none}
+.rp-ctabs button{flex:none; display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px; border:0; border-radius:999px; background:transparent; color:var(--ink-muted); font:inherit; font-size:13px; font-weight:500; cursor:pointer}
+.rp-ctabs button:hover{background:var(--bg-raised); color:var(--ink)}
+.rp-ctabs button[aria-selected="true"]{background:var(--ink); color:var(--bg-base)}
+.rp-ctabs__n{min-width:18px; height:18px; padding:0 5px; border-radius:9px; display:inline-grid; place-items:center; font-size:11px; font-weight:700; background:var(--accent-text); color:var(--accent-ink); box-sizing:border-box}
+.rp-ctabs button[aria-selected="true"] .rp-ctabs__n{background:var(--bg-base); color:var(--ink)}
+.rp-cav{width:44px; height:44px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--bg-overlay); color:var(--ink); font-size:14px; font-weight:600; box-sizing:border-box}
+.rp-cav--sys{background:var(--accent-text); color:var(--accent-ink); font-family:var(--font-display); font-size:17px}
+.rp-cav--code{background:color-mix(in srgb, var(--accent-text) 18%, var(--bg-raised)); color:var(--accent-text); font-family:var(--font-mono); font-size:11px}
+.rp-cav--grp{background:color-mix(in srgb, var(--violet) 22%, var(--bg-raised)); color:var(--violet)}
+.rp-cav--lg{width:60px; height:60px; font-size:18px}
+.rp-conv{display:grid; grid-template-columns:44px minmax(0,1fr); gap:12px; align-items:center; width:100%; padding:8px 10px; border:0; border-radius:14px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer}
+.rp-conv:hover{background:var(--bg-raised)}
+.rp-conv[aria-current="true"]{background:color-mix(in srgb, var(--accent-text) 12%, var(--bg-raised))}
+.rp-conv:focus-visible{outline:2px solid var(--focus-ring); outline-offset:-2px}
+.rp-conv__body{display:flex; flex-direction:column; gap:3px; min-width:0}
+.rp-conv__top{display:flex; align-items:center; gap:6px; min-width:0}
+.rp-conv__name{font-size:14px; font-weight:600}
+.rp-conv__time{font-size:11px; color:var(--ink-faint); flex:none}
+.rp-conv__prev{font-size:13px; color:var(--ink-muted); min-width:0}
+.rp-clist__scroll{padding:0 8px 16px}
+.rp-thread{display:flex; flex-direction:column; min-width:0; min-height:0; background:var(--bg-base)}
+.rp-thread__head{display:flex; align-items:center; gap:8px; min-height:64px; padding:0 16px 0 10px; border-bottom:1px solid var(--border-subtle); background:var(--bg-surface)}
+.rp-thead{display:flex; align-items:center; gap:12px; min-width:0; padding:6px 10px 6px 6px; border:0; border-radius:14px; background:none; color:inherit; font:inherit; cursor:pointer}
+.rp-thead .rp-cav{width:40px; height:40px}
+.rp-thead:hover{background:var(--bg-raised)}
+.rp-pinbar{display:flex; align-items:center; gap:10px; padding:8px 16px; border-bottom:1px solid var(--border-subtle); background:var(--bg-surface)}
+.rp-pinbar__mark{width:3px; align-self:stretch; border-radius:2px; background:var(--accent-text)}
+.rp-chat{flex:1 1 auto; overflow:auto; padding:14px 22px 10px; display:flex; flex-direction:column; gap:2px; background:radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 0) 0 0/22px 22px, var(--bg-base)}
+.rp-sepchip{display:flex; justify-content:center; margin:12px 0 8px; position:sticky; top:0; z-index:1}
+.rp-sepchip > span{padding:5px 14px; border-radius:999px; background:color-mix(in srgb, var(--bg-surface) 88%, transparent); border:1px solid var(--border-subtle); color:var(--ink-muted); font-size:12px; font-weight:600; backdrop-filter:blur(6px)}
+.rp-sepchip .rp-sepchip--new{background:color-mix(in srgb, var(--accent-text) 16%, var(--bg-surface)); border-color:color-mix(in srgb, var(--accent-text) 40%, transparent); color:var(--accent-text)}
+.rp-sepchip:has(.rp-sepchip--new){position:static}
+.rp-row{position:relative; display:grid; grid-template-columns:32px minmax(0,auto) auto; justify-content:start; align-items:end; gap:8px; margin-top:2px}
+.rp-row--first{margin-top:10px}
+.rp-row--me{grid-template-columns:auto minmax(0,auto); justify-content:end}
+.rp-row--me .rp-row__av{display:none}
+.rp-row--me .rp-rowtools{order:-1}
+.rp-row__av{width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--bg-overlay); font-size:11px; font-weight:600}
+.rp-row__col{display:flex; flex-direction:column; min-width:0; max-width:min(620px, 72vw)}
+.rp-row--me .rp-row__col{align-items:flex-end}
+.rp-bub{position:relative; display:flex; flex-direction:column; gap:6px; min-width:120px; max-width:100%; padding:8px 12px 6px; border-radius:16px; background:color-mix(in srgb, var(--ink) 7%, var(--bg-surface)); border:1px solid var(--border-subtle); box-shadow:0 1px 1px rgba(0,0,0,.12); box-sizing:border-box}
+.rp-row--them.rp-row--first .rp-bub{border-top-left-radius:6px}
+.rp-row--me .rp-bub{background:color-mix(in srgb, var(--accent-text) 16%, var(--bg-surface)); border-color:color-mix(in srgb, var(--accent-text) 28%, transparent)}
+.rp-row--me.rp-row--first .rp-bub{border-top-right-radius:6px}
+.rp-row--focus .rp-bub{box-shadow:0 0 0 2px var(--gold)}
+.rp-row--edit .rp-bub{box-shadow:0 0 0 2px color-mix(in srgb, var(--gold) 60%, transparent)}
+.rp-bub--preview{min-width:0}
+.rp-bub__name{display:flex; gap:6px; align-items:center; font-size:13px; font-weight:600}
+.rp-bub__role{font-size:10px; font-weight:600; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em}
+.rp-bub__fwd{display:inline-flex; gap:5px; align-items:center; font-size:12px; color:var(--ink-muted); font-style:italic}
+.rp-bub__quote{display:flex; flex-direction:column; gap:1px; min-width:0; padding:5px 10px; border:0; border-left:3px solid var(--accent-text); border-radius:8px; background:color-mix(in srgb, var(--bg-base) 45%, transparent); color:inherit; font:inherit; font-size:12px; text-align:left; cursor:pointer}
+.rp-bub__quote strong{color:var(--accent-text); font-weight:600}
+.rp-bub__text{margin:0; font-size:14px; line-height:21px; white-space:pre-wrap; overflow-wrap:anywhere}
+.rp-bub__meta{display:flex; gap:6px; align-items:center; justify-content:flex-end; margin-top:-2px; font-size:11px; color:var(--ink-faint); white-space:nowrap}
+.rp-tick{display:inline-grid; place-items:center; border:0; padding:0; background:none; color:var(--ink-faint); cursor:pointer}
+.rp-att{display:grid; grid-template-columns:40px minmax(0,1fr); gap:10px; align-items:center; width:100%; min-width:240px; padding:8px 10px; border:1px solid var(--border-subtle); border-radius:12px; background:color-mix(in srgb, var(--bg-base) 50%, transparent); color:inherit; font:inherit; text-align:left; cursor:pointer; box-sizing:border-box}
+button.rp-att:hover{border-color:var(--border-strong)}
+.rp-att__ic{width:40px; height:40px; border-radius:10px; display:grid; place-items:center; background:var(--bg-overlay); font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--ink-muted)}
+.rp-att__ic--task{background:color-mix(in srgb, var(--accent-text) 16%, transparent); color:var(--accent-text); font-size:9px}
+.rp-att__body{display:flex; flex-direction:column; gap:2px; min-width:0}
+.rp-att__meta{display:flex; gap:6px; align-items:center; font-size:11px; color:var(--ink-muted)}
+.rp-att--lock{border-style:dashed; cursor:default}
+.rp-att--poll{display:flex; flex-direction:column; align-items:stretch; gap:8px; cursor:default; min-width:300px}
+.rp-att--link{display:inline-flex; width:auto; min-width:0; gap:6px; padding:5px 10px; color:var(--accent-text); border-color:color-mix(in srgb, var(--accent-text) 35%, transparent); align-self:flex-start}
+.rp-row .rp-reacts{margin-top:4px}
+.rp-row--me .rp-reacts{justify-content:flex-end}
+.rp-rowtools{position:relative; display:flex; gap:8px; opacity:0; align-self:center; transition:opacity .12s}
+.rp-row:hover .rp-rowtools, .rp-row:focus-within .rp-rowtools, .rp-row--menu .rp-rowtools{opacity:1}
+.rp-rowtools > button{width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:50%; background:var(--bg-surface); color:var(--ink-muted); cursor:pointer; box-shadow:0 0 0 1px var(--border-subtle)}
+.rp-rowtools > button:hover{color:var(--ink)}
+.rp-emojipop{position:absolute; bottom:calc(100% + 6px); display:flex; gap:2px; padding:4px; border-radius:999px; z-index:5}
+.rp-row--them .rp-emojipop{left:0}
+.rp-row--me .rp-emojipop{right:0}
+.rp-emojipop button{width:36px; height:36px; border:0; border-radius:50%; background:none; font-size:20px; cursor:pointer}
+.rp-emojipop button:hover, .rp-emojipop button[aria-pressed="true"]{background:var(--bg-overlay)}
+.rp-msgmenu{position:absolute; top:calc(100% + 6px); width:230px; z-index:5}
+.rp-row--them .rp-msgmenu{right:0}
+.rp-row--me .rp-msgmenu{right:0}
+.rp-cbar{position:relative; padding:10px 16px 16px; background:var(--bg-base)}
+.rp-cbar__ctx{display:flex; align-items:center; gap:10px; margin:0 6px 8px; padding:6px 8px 6px 0; border-radius:12px; background:var(--bg-surface); border:1px solid var(--border-subtle)}
+.rp-cbar__ctxmark{width:3px; align-self:stretch; border-radius:2px}
+.rp-cbar__row{display:grid; grid-template-columns:44px minmax(0,1fr) 44px; gap:8px; align-items:end}
+.rp-cbar__ta{display:block; width:100%; box-sizing:border-box; min-height:44px; max-height:160px; padding:11px 16px; border:1px solid var(--border-control); border-radius:22px; background:var(--bg-surface); resize:none; color:var(--ink); font:inherit; font-size:14px; line-height:20px; outline:none}
+.rp-cbar__ta:focus{border-color:var(--accent-text)}
+.rp-cbtn2{width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:50%; background:var(--bg-surface); color:var(--ink-muted); cursor:pointer; box-shadow:0 0 0 1px var(--border-subtle)}
+.rp-cbtn2:hover{color:var(--ink)}
+.rp-cbtn2[aria-expanded="true"]{color:var(--accent-text); transform:rotate(45deg)}
+.rp-cbtn2--send{background:var(--accent-text); color:var(--accent-ink); box-shadow:none}
+.rp-cbtn2:focus-visible{outline:2px solid var(--focus-ring); outline-offset:2px}
+.rp-plusmenu{position:absolute; left:16px; bottom:calc(100% - 4px); width:300px; z-index:6}
+.rp-plusic{width:32px; height:32px; border-radius:10px; display:grid; place-items:center; flex:none}
+.rp-suggest{left:68px}
+.rp-qacts{display:flex; gap:8px}
+.rp-qact{flex:1 1 0; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised); color:var(--ink); font:inherit; font-size:12px; cursor:pointer}
+.rp-qact:hover{border-color:var(--border-strong)}
+.rp-qact--on{color:var(--gold)}
+.rp-clist__head{gap:12px; padding-bottom:18px}
+.rp-clist__scroll{padding:2px 8px 16px}
+.rp-conv{position:relative; padding:12px 10px; gap:14px}
+.rp-conv + .rp-conv::before{content:""; position:absolute; top:0; left:68px; right:12px; height:1px; background:var(--border-subtle); pointer-events:none}
+.rp-conv:hover::before, .rp-conv[aria-current="true"]::before, .rp-conv:hover + .rp-conv::before, .rp-conv[aria-current="true"] + .rp-conv::before{opacity:0}
+.rp-cav{position:relative}
+.rp-cav--grp, .rp-cav--code, .rp-cav--sys{border-radius:14px}
+.rp-cav--grp::after, .rp-cav--code::after{content:""; position:absolute; right:-4px; bottom:-4px; width:20px; height:20px; border-radius:50%; box-sizing:border-box; border:2px solid var(--bg-surface); background:var(--bg-overlay) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23969ba5' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E") center/11px no-repeat}
+.rp-thead .rp-cav--grp, .rp-thead .rp-cav--code, .rp-thead .rp-cav--sys{border-radius:12px}
+.rp-cav--lg.rp-cav--grp, .rp-cav--lg.rp-cav--code, .rp-cav--lg.rp-cav--sys{border-radius:18px}
+.rp-cav--lg::after{width:24px; height:24px; background-size:13px}
+/* mesajlar sadeleştirme (rev.3) */
+.rp-chat{background:radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink) 3%, transparent) 1px, transparent 0) 0 0/22px 22px, var(--bg-base)}
+.rp-pinbar{position:relative; z-index:4; background:var(--bg-surface); border-bottom:1px solid var(--border-subtle); box-shadow:0 1px 0 var(--border-subtle)}
+.rp-pinbar__label{font-size:12px; font-weight:600; color:var(--ink-muted)}
+.rp-sepchip{z-index:2}
+.rp-ctabs{gap:2px}
+.rp-ctabs button{height:28px; padding:0 9px; font-size:12.5px; gap:5px}
+.rp-ctabs__n{min-width:16px; height:16px; padding:0 4px; font-size:10px}
+.rp-conv[aria-current="true"]{background:var(--bg-overlay)}
+.rp-cav--sys{background:var(--ink); color:var(--bg-base)}
+.rp-cav--code{background:var(--bg-overlay); color:var(--ink)}
+.rp-row{align-items:start}
+.rp-row__av{margin-top:2px}
+.rp-row--me .rp-bub{background:color-mix(in srgb, var(--ink) 12%, var(--bg-surface)); border-color:color-mix(in srgb, var(--ink) 10%, transparent)}
+.rp-bub__name{color:var(--ink) !important; gap:8px}
+.rp-bub__role{display:inline-flex; align-items:center; height:16px; padding:0 5px; border:1px solid var(--border-strong); border-radius:5px; font-size:9.5px; font-weight:600; letter-spacing:.05em; color:var(--ink-muted)}
+.rp-bub__quote{border-left-color:var(--ink-faint)}
+.rp-bub__quote strong{color:var(--ink)}
+.rp-att{background:color-mix(in srgb, var(--ink) 3%, transparent); border:1px solid color-mix(in srgb, var(--ink) 8%, transparent)}
+.rp-att:hover{background:color-mix(in srgb, var(--ink) 6%, transparent)}
+.rp-att__ic{background:color-mix(in srgb, var(--ink) 6%, transparent)}
+.rp-att--link{color:var(--ink-muted); border-color:color-mix(in srgb, var(--ink) 8%, transparent)}
+.rp-att--task{display:flex; flex-direction:column; align-items:stretch; gap:3px; padding:9px 12px; min-width:260px}
+.rp-att__top{display:flex; align-items:center; gap:8px; min-width:0}
+.rp-att__title{font-size:13px; font-weight:600; min-width:0}
+.rp-tid{flex:none; display:inline-flex; align-items:center; height:18px; padding:0 6px; border-radius:5px; border:1px solid color-mix(in srgb, var(--ink) 12%, transparent); font-family:var(--font-mono); font-size:10.5px; font-weight:600; color:var(--ink-muted)}
+.rp-att--task .rp-att__meta{font-size:12px; color:var(--ink-muted); gap:6px}
+.rp-att__sep{color:var(--ink-faint)}
+.rp-att__lock{display:inline-flex; align-items:center; gap:3px}
+.rp-att__lock .t-icon{width:12px; height:12px}
+.rp-tref{display:inline-flex; align-items:center; height:20px; padding:0 6px; margin:0 1px; vertical-align:1px; border-radius:6px; border:1px solid color-mix(in srgb, var(--ink) 12%, transparent); background:color-mix(in srgb, var(--ink) 6%, transparent); color:var(--ink); font-family:var(--font-mono); font-size:11.5px; font-weight:600; line-height:1; cursor:pointer}
+button.rp-tref:hover{background:color-mix(in srgb, var(--ink) 12%, transparent)}
+.rp-mention{padding:0 4px; border-radius:5px; background:color-mix(in srgb, var(--ink) 9%, transparent); color:var(--ink); font-weight:600}
+.rp-mention--me{background:color-mix(in srgb, var(--gold) 16%, transparent); color:var(--gold)}
+.rp-att--poll{background:color-mix(in srgb, var(--ink) 3%, transparent)}
+.rp-att--poll > span:first-child > span, .rp-att--poll > span:first-child > svg{color:var(--ink-muted) !important}
+.rp-popt{grid-template-columns:minmax(0,1fr) auto; min-height:38px; border-color:color-mix(in srgb, var(--ink) 8%, transparent); cursor:pointer; transition:background .15s}
+.rp-popt:hover:not(:disabled){background:color-mix(in srgb, var(--ink) 4%, transparent)}
+.rp-popt .rp-pchk{display:none}
+.rp-popt__bar{background:color-mix(in srgb, var(--ink) 9%, transparent); transition:width .3s ease}
+.rp-popt--on{border-color:color-mix(in srgb, var(--ink) 28%, transparent); font-weight:600}
+.rp-popt--on .rp-popt__bar{background:color-mix(in srgb, var(--ink) 16%, transparent)}
+.rp-popt__lbl{display:inline-flex; align-items:center; gap:6px; min-width:0}
+.rp-popt__lbl .t-icon{width:14px; height:14px; stroke-width:2.6; flex:none}
+.rp-reacts{gap:4px}
+.rp-row .rp-reacts{margin-top:4px}
+.rp-react{height:24px; padding:0 8px; gap:4px; font-size:12px}
+.rp-react[aria-pressed="true"]{border-color:color-mix(in srgb, var(--ink) 30%, transparent); background:color-mix(in srgb, var(--ink) 10%, var(--bg-raised))}
+/* kişi / grup: iki tür avatar; satır aralığı */
+.rp-cav--grp, .rp-cav--code, .rp-cav--sys{background:var(--bg-overlay); color:var(--ink); font-family:inherit; font-size:14px; border-radius:14px}
+.rp-cav--code{font-family:var(--font-mono); font-size:11px}
+.rp-cav--grp::after, .rp-cav--code::after{content:none}
+.rp-conv{padding:13px 12px; margin:3px 0}
+.rp-conv + .rp-conv::before{top:-3px}
+.rp-conv .rp-cav{isolation:isolate; overflow:hidden}
+.rp-conv .rp-cav::before{content:""; position:absolute; inset:0; z-index:-1; background:var(--ink); clip-path:circle(0% at 50% 50%)}
+.rp-conv[aria-current="true"] .rp-cav{color:color-mix(in srgb, var(--bg-base) 62%, var(--ink))}
+.rp-conv[aria-current="true"] .rp-cav::before{clip-path:circle(72% at 50% 50%)}
+.rp-conv--enter .rp-cav::before{animation:rpWipeIn .1s linear both}
+.rp-conv--enter .rp-cav{animation:rpInkIn .1s linear both}
+.rp-conv--leave .rp-cav::before{animation:rpWipeOut .1s linear both}
+.rp-conv--leave .rp-cav{animation:rpInkOut .1s linear both}
+@keyframes rpWipeIn{from{clip-path:circle(0% at 50% 50%)} to{clip-path:circle(72% at 50% 50%)}}
+@keyframes rpWipeOut{from{clip-path:circle(72% at 50% 50%)} to{clip-path:circle(0% at 50% 50%)}}
+@keyframes rpInkIn{0%,49%{color:var(--ink)} 50%,100%{color:color-mix(in srgb, var(--bg-base) 62%, var(--ink))}}
+@keyframes rpInkOut{0%,49%{color:color-mix(in srgb, var(--bg-base) 62%, var(--ink))} 50%,100%{color:var(--ink)}}
+@media (prefers-reduced-motion: reduce){ .rp-conv--enter .rp-cav, .rp-conv--enter .rp-cav::before, .rp-conv--leave .rp-cav, .rp-conv--leave .rp-cav::before{animation:none} }
+/* balon köşeleri: profile bakan köşe az yuvarlak, ardışık mesajlar */
+.rp-row{align-items:end; margin-top:3px}
+.rp-row--first{margin-top:12px}
+.rp-row__av{margin-top:0; align-self:end}
+.rp-row .rp-bub, .rp-row--them.rp-row--first .rp-bub, .rp-row--me.rp-row--first .rp-bub{border-radius:16px}
+.rp-row .rp-bub{border-bottom-left-radius:5px}
+.rp-row:has(.rp-reacts) .rp-row__av{margin-bottom:28px}
+.rp-row--me .rp-bub{background:color-mix(in srgb, var(--accent-text) 17%, var(--bg-surface)); border-color:color-mix(in srgb, var(--accent-text) 26%, transparent)}
+.rp-row--me .rp-bub__meta{color:color-mix(in srgb, var(--ink) 60%, transparent)}
+.rp-row--me .rp-att{background:color-mix(in srgb, var(--ink) 5%, transparent); border-color:color-mix(in srgb, var(--ink) 12%, transparent)}
+/* hepsi yuvarlak; grup = boşluklu ince halka */
+.rp-cav, .rp-cav--grp, .rp-cav--code, .rp-cav--sys, .rp-thead .rp-cav--grp, .rp-thead .rp-cav--code, .rp-thead .rp-cav--sys, .rp-cav--lg.rp-cav--grp, .rp-cav--lg.rp-cav--code, .rp-cav--lg.rp-cav--sys{border-radius:50%}
+.rp-cav--grp, .rp-cav--code, .rp-cav--sys{outline:1.5px solid var(--bg-overlay); outline-offset:2.5px}
+.rp-conv[aria-current="true"] .rp-cav--grp, .rp-conv[aria-current="true"] .rp-cav--code, .rp-conv[aria-current="true"] .rp-cav--sys{outline-color:var(--ink)}
+.rp-cav--lg.rp-cav--grp, .rp-cav--lg.rp-cav--code, .rp-cav--lg.rp-cav--sys{outline-width:2px; outline-offset:3px}
+/* okunmamış rozetleri: hepsi yeşil, sayı tam ortada */
+.rp-ubadge, .rp-ubadge--at, .rp-ubadge--mute{background:var(--accent-text); color:var(--accent-ink)}
+.rp-ubadge{display:inline-flex; align-items:center; justify-content:center; line-height:1; font-variant-numeric:tabular-nums; padding:0 6px}
+.rp-ctabs__n{display:inline-flex; align-items:center; justify-content:center; line-height:1; font-variant-numeric:tabular-nums; min-width:17px; height:17px; padding:0 5px; text-indent:0; letter-spacing:0}
+/* balon: üç köşe geniş, konuşma kuyruğu (diğerleri sol alt, benimkiler sağ alt) */
+.rp-chat .rp-row .rp-bub, .rp-chat .rp-row--first .rp-bub, .rp-chat .rp-row--last .rp-bub{border-radius:18px 18px 18px 4px; border-color:transparent; box-shadow:none}
+.rp-chat .rp-row--me .rp-bub, .rp-chat .rp-row--me.rp-row--first .rp-bub, .rp-chat .rp-row--me.rp-row--last .rp-bub{border-radius:18px 18px 4px 18px; border-color:transparent}
+.rp-chat .rp-row .rp-bub::after{content:""; position:absolute; bottom:-1px; width:10px; height:13px; background:inherit; pointer-events:none}
+.rp-chat .rp-row--them .rp-bub::after{left:-7px; -webkit-mask:radial-gradient(10px 13px at 0 0, transparent 98%, #000 100%); mask:radial-gradient(10px 13px at 0 0, transparent 98%, #000 100%)}
+.rp-chat .rp-row--me .rp-bub::after{right:-7px; -webkit-mask:radial-gradient(10px 13px at 100% 0, transparent 98%, #000 100%); mask:radial-gradient(10px 13px at 100% 0, transparent 98%, #000 100%)}
+.rp-chat .rp-row--focus .rp-bub::after, .rp-chat .rp-row--edit .rp-bub::after{display:none}
+.rp-att{min-width:0; padding:7px 12px 7px 8px; gap:10px; grid-template-columns:32px minmax(0,1fr)}
+.rp-att__ic{width:32px; height:32px; border-radius:8px; font-size:9.5px}
+.rp-att--task{display:flex; flex-direction:row; align-items:center; padding:8px 12px; min-width:0}
+.rp-att.rp-att--poll{min-width:300px; padding:10px 12px}
+.rp-att.rp-att--link{padding:5px 10px}
+.rp-chat .rp-bub__name{color:var(--accent-text) !important}
+/* @ mor, # turuncu; görev kartı yok */
+.rp-mention, .rp-mention--me{padding:0 4px; border-radius:5px; background:color-mix(in srgb, var(--violet) 18%, transparent); color:color-mix(in srgb, var(--violet) 55%, var(--ink)); font-weight:600}
+.rp-mention--me{background:color-mix(in srgb, var(--violet) 30%, transparent)}
+.rp-tref{border-color:color-mix(in srgb, #ff9142 35%, transparent); background:color-mix(in srgb, #ff9142 14%, transparent); color:color-mix(in srgb, #ff9142 80%, var(--ink))}
+button.rp-tref:hover{background:color-mix(in srgb, #ff9142 24%, transparent)}
+.rp-bub__quote .rp-tref{height:17px; font-size:11px; padding:0 4px}
+.rp-person{display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:44px}
+.rp-switch{width:40px; height:24px}
+.rp-stage{box-sizing:border-box; min-height:2500px; padding:48px; background:color-mix(in srgb, var(--bg-base) 70%, #000); display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:32px; align-items:start; font-family:var(--font-sans); color:var(--ink)}
+.rp-stage .t-modal{max-width:none}
+.rp-cap-k{margin:0 0 12px; font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint)}
+</style>
+</helmet>
+<div class="rp-stage" data-theme="{{ theme }}"><div><p class="rp-cap-k">Grup bilgisi · başlığa dokununca</p><div class="t-modal" role="dialog" aria-label="Grup bilgisi"><div class="t-modal__head"><div><h2 class="t-modal__title">Grup bilgisi</h2><p class="t-modal__desc"></p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><div style="display:flex; gap:14px; align-items:center"><span class="rp-cav rp-cav--grp rp-cav--lg" aria-hidden="true">HT</span><span style="display:flex; flex-direction:column; gap:2px"><span style="display:flex; gap:6px; align-items:center"><strong style="font-size:17px; font-weight:600">Hidrofor teslim ekibi</strong><button class="t-iconbtn" type="button" aria-label="Grup adını düzenle" title="Grup adını düzenle" style="width:28px; height:28px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"></path></svg></button></span><span class="rp-cap">Grup · 5 üye · kuran Kadir Özbek</span></span></div><div class="rp-qacts"><button type="button" class="rp-qact"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M6 8a6 6 0 0 1 9.5-4.9M18 8c0 7 3 9 3 9H9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span>Sessize al</span></button><button type="button" class="rp-qact"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21a7 7 0 0 1 13-3.5M19 14v6M16 17h6"></path></svg><span>Üye ekle</span></button><button type="button" class="rp-qact"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 10l5-3v10l-5-3zM3 7h12v10H3z"></path></svg><span>Toplantı planla</span></button></div><div class="rp-ctabs" role="tablist" style="margin:0"><button type="button" role="tab" aria-selected="true">Üyeler<span class="rp-ctabs__n">5</span></button><button type="button" role="tab" aria-selected="false">Dosyalar<span class="rp-ctabs__n">2</span></button><button type="button" role="tab" aria-selected="false">Görevler<span class="rp-ctabs__n">1</span></button><button type="button" role="tab" aria-selected="false">Sabitli<span class="rp-ctabs__n">0</span></button></div><div style="display:flex; flex-direction:column"><div class="rp-person" style="grid-template-columns:32px minmax(0,1fr) auto; min-height:46px"><span class="rp-av rp-av--sm" aria-hidden="true">KÖ</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:500">Kadir Özbek</span><span class="rp-cap">Koordinatör · Altyapı ve tesisat</span></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Mesaj</button></div><div class="rp-person" style="grid-template-columns:32px minmax(0,1fr) auto; min-height:46px"><span class="rp-av rp-av--sm" aria-hidden="true">AV</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:500">Ali Avcı</span><span class="rp-cap">Koordinatör · Altyapı ve tesisat</span></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Mesaj</button></div><div class="rp-person" style="grid-template-columns:32px minmax(0,1fr) auto; min-height:46px"><span class="rp-av rp-av--sm" aria-hidden="true">AA</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:500">Abdullah Ateş</span><span class="rp-cap">Koordinatör · Altyapı ve tesisat</span></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Mesaj</button></div><div class="rp-person" style="grid-template-columns:32px minmax(0,1fr) auto; min-height:46px"><span class="rp-av rp-av--sm" aria-hidden="true">RK</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:500">Reha Koçak</span><span class="rp-cap">Koordinatör · Elektrik ve enerji</span></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Mesaj</button></div><div class="rp-person" style="grid-template-columns:32px minmax(0,1fr) auto; min-height:46px"><span class="rp-av rp-av--sm" aria-hidden="true">MA</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:500">Muhammet Ali Çalışkan (sen)</span><span class="rp-cap">Admin · Sistem koordinatörlüğü</span></span></div></div><div class="rp-inrow" style="align-items:center; padding-top:6px; border-top:1px solid var(--border-subtle)"><span style="font-size:13px">Yalnız @bahsedilince bildir</span><button class="rp-switch" type="button" role="switch" aria-checked="false" aria-label="Yalnız bahsedilince"><span></span></button></div><button class="rp-link rp-linkbtn" type="button" style="align-self:flex-start; color:var(--danger); font-size:13px">Gruptan ayrıl</button></div></div></div><div><p class="rp-cap-k">Mesaj bilgisi · ✓✓ ya da menüden</p><div class="t-modal" role="dialog" aria-label="Mesaj bilgisi"><div class="t-modal__head"><div><h2 class="t-modal__title">Mesaj bilgisi</h2><p class="t-modal__desc">Genel</p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><div class="rp-bub rp-bub--preview"><span class="rp-bub__name" style="color:var(--ink-muted)">Sen</span><p class="rp-bub__text">Kapanış yemeği için gün seçelim, 25 Ekim akşamına kadar oy verin.</p><span class="rp-bub__meta">bugün 10:02</span></div><div class="rp-field" style="gap:6px"><span class="rp-inrow"><span class="t-label" style="margin:0; display:flex; gap:8px; align-items:center"><span style="color:var(--accent-text)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12.5 6 16.5 14 8M10 16.5 18 8"></path></svg></span>Okudu</span><span class="rp-count">3</span></span><div class="rp-person" style="grid-template-columns:28px minmax(0,1fr) auto; min-height:40px"><span class="rp-av rp-av--sm" aria-hidden="true">KÖ</span><span class="rp-trunc" style="font-size:13px">Kadir Özbek</span><span class="rp-cap">en son bunu okudu</span></div><div class="rp-person" style="grid-template-columns:28px minmax(0,1fr) auto; min-height:40px"><span class="rp-av rp-av--sm" aria-hidden="true">YÇ</span><span class="rp-trunc" style="font-size:13px">Yunus Çiftçioğlu</span><span class="rp-cap">en son bunu okudu</span></div><div class="rp-person" style="grid-template-columns:28px minmax(0,1fr) auto; min-height:40px"><span class="rp-av rp-av--sm" aria-hidden="true">BK</span><span class="rp-trunc" style="font-size:13px">Bahar Kılıç</span><span class="rp-cap">en son bunu okudu</span></div></div><div class="rp-field" style="gap:6px"><span class="rp-inrow"><span class="t-label" style="margin:0; display:flex; gap:8px; align-items:center"><span style="color:var(--ink-faint)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>Henüz okumadı</span><span class="rp-count">13</span></span><div class="rp-person" style="grid-template-columns:28px minmax(0,1fr) auto; min-height:40px"><span class="rp-av rp-av--sm" aria-hidden="true">AV</span><span class="rp-trunc" style="font-size:13px">Ali Avcı</span><span class="rp-cap"></span></div><div class="rp-person" style="grid-template-columns:28px minmax(0,1fr) auto; min-height:40px"><span class="rp-av rp-av--sm" aria-hidden="true">AA</span><span class="rp-trunc" style="font-size:13px">Abdullah Ateş</span><span class="rp-cap"></span></div><div class="rp-person" style="grid-template-columns:28px minmax(0,1fr) auto; min-height:40px"><span class="rp-av rp-av--sm" aria-hidden="true">RK</span><span class="rp-trunc" style="font-size:13px">Reha Koçak</span><span class="rp-cap"></span></div><span class="rp-cap">ve 10 kişi daha</span></div><p class="rp-cap" style="margin:0">Okundu bilgisi her kişinin son okuduğu mesaja göre hesaplanır. Sohbette yalnız mesajın altındaki ✓✓ işareti görünür.</p></div></div></div><div><p class="rp-cap-k">Yeni konuşma · grup</p><div class="t-modal" role="dialog" aria-label="Yeni grup"><div class="t-modal__head"><div><h2 class="t-modal__title">Yeni grup</h2><p class="t-modal__desc">Serbest grup: adı ve üyeleri sen belirlersin.</p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><div class="rp-seg" role="group" style="align-self:flex-start"><button type="button" aria-pressed="false">Birebir</button><button type="button" aria-pressed="true">Grup</button></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Grup adı</span><span class="rp-count">21 / 80</span></div><input class="t-input" type="text" value="Hidrofor teslim ekibi"></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Üyeler</span><span class="rp-count">4 + sen</span></div><div style="display:flex; flex-wrap:wrap; gap:6px"><span class="t-chip">Kadir Özbek<button class="t-chip__x" type="button" aria-label="Kadir Özbek çıkar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span><span class="t-chip">Ali Avcı<button class="t-chip__x" type="button" aria-label="Ali Avcı çıkar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span><span class="t-chip">Abdullah Ateş<button class="t-chip__x" type="button" aria-label="Abdullah Ateş çıkar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span><span class="t-chip">Reha Koçak<button class="t-chip__x" type="button" aria-label="Reha Koçak çıkar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span></div><div class="t-field"><input class="t-input t-input--icon" type="text" placeholder="Sezon üyelerinde ara…" aria-label="Üye ara"><svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg></div></div><div style="display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; padding:12px; border-radius:12px; background:var(--bg-raised); font-size:12px; line-height:18px; color:var(--ink-muted)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8h.01M11 12h1v5h1"></path></svg><span>Genel, Koordinatörler ve koordinatörlük grupları sistemde hazır gelir; üyeleri organizasyon yapısından otomatik eklenir ve çıkar.</span></div></div><div class="t-modal__foot"><button class="t-btn t-btn--ghost" type="button">Vazgeç</button><button class="t-btn t-btn--primary" type="button">Grubu oluştur</button></div></div></div><div><p class="rp-cap-k">İlet</p><div class="t-modal" role="dialog" aria-label="Mesajı ilet"><div class="t-modal__head"><div><h2 class="t-modal__title">Mesajı ilet</h2><p class="t-modal__desc">Kadir Özbek · Genel · 09:12</p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><p class="rp-quote">@Altyapı ve tesisat hidrofor pompaları 28 Ekim’de sahada. Montaj planı #ALT-14’te…</p><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Nereye?</span><span class="rp-count">2 seçili</span></div><div class="t-field"><input class="t-input t-input--icon" type="text" placeholder="Kişi ya da grup ara" aria-label="Alıcı ara"><svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg></div><label style="display:grid; grid-template-columns:18px 32px minmax(0,1fr); gap:10px; align-items:center; min-height:44px; font-size:13px"><input class="t-check" type="checkbox" checked style="width:18px; height:18px; margin:0"><span class="rp-conv__ic" style="width:32px; height:32px">HT</span><span><span style="display:block; font-weight:600">Hidrofor teslim ekibi</span><span class="rp-cap">Grup · 5 kişi</span></span></label><label style="display:grid; grid-template-columns:18px 32px minmax(0,1fr); gap:10px; align-items:center; min-height:44px; font-size:13px"><input class="t-check" type="checkbox" checked style="width:18px; height:18px; margin:0"><span class="rp-conv__ic rp-conv__ic--av" style="width:32px; height:32px">RK</span><span><span style="display:block; font-weight:600">Reha Koçak</span><span class="rp-cap">Birebir</span></span></label><label style="display:grid; grid-template-columns:18px 32px minmax(0,1fr); gap:10px; align-items:center; min-height:44px; font-size:13px"><input class="t-check" type="checkbox"  style="width:18px; height:18px; margin:0"><span class="rp-conv__ic" style="width:32px; height:32px">KO</span><span><span style="display:block; font-weight:600">Koordinatörler</span><span class="rp-cap">Sistem grubu · 24</span></span></label></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Not ekle</span></div><input class="t-input" type="text" placeholder="İsteğe bağlı" aria-label="İletme notu"></div><p class="rp-cap" style="margin:0">İletilen mesajdaki #ALT-14 kartı her alıcıya kendi yetkisiyle gösterilir.</p></div><div class="t-modal__foot"><button class="t-btn t-btn--ghost" type="button">Vazgeç</button><button class="t-btn t-btn--primary" type="button">İlet</button></div></div></div><div><p class="rp-cap-k">Mesajdan görev</p><div class="t-modal" role="dialog" aria-label="Mesajdan görev oluştur"><div class="t-modal__head"><div><h2 class="t-modal__title">Mesajdan görev oluştur</h2><p class="t-modal__desc">Bahar Kılıç · Genel · 09:40</p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><p class="rp-quote">Konaklama listesini güncelledim, eksik olan varsa yazın.</p><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Görev başlığı</span><span class="rp-count">40 / 255</span></div><input class="t-input" type="text" value="Konaklama listesindeki eksikleri tamamla"><p class="t-hint" style="margin:0">Boş bırakırsan mesajın ilk 100 karakteri kullanılır.</p></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Hedef koordinatörlük</span></div><div class="rp-chiprow"><button class="rp-chipbtn" type="button" aria-pressed="true">İdari işler</button><button class="rp-chipbtn" type="button">Operasyon</button><button class="rp-chipbtn" type="button">Sistem koordinatörlüğü</button></div><p class="t-hint" style="margin:0">Görev açma yetkisi bugünkü kuralla aynı: admin her birime, koordinatör yalnız kendi birimine açar.</p></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Atanan</span></div><div class="rp-chiprow"><button class="rp-chipbtn" type="button" aria-pressed="true">Bahar Kılıç</button></div></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px"><div class="rp-field"><span class="t-label" style="margin:0">Başlangıç</span><input class="t-input" type="text" value="23.10.2026"></div><div class="rp-field"><span class="t-label" style="margin:0">Bitiş</span><input class="t-input" type="text" value="27.10.2026"></div></div><div style="display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; padding:12px; border-radius:12px; background:var(--bg-raised); font-size:12px; line-height:18px; color:var(--ink-muted)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg><span>Mesaj ile görev birbirine bağlanır: mesajın altında görev kartı, görevin geçmişinde kaynak mesaj görünür. Görev, mesajdaki işaret ve denetim kaydı birlikte yazılır.</span></div></div><div class="t-modal__foot"><button class="t-btn t-btn--ghost" type="button">Vazgeç</button><button class="t-btn t-btn--primary" type="button">Görevi oluştur</button></div></div></div><div><p class="rp-cap-k">Anket</p><div class="t-modal" role="dialog" aria-label="Anket oluştur"><div class="t-modal__head"><div><h2 class="t-modal__title">Anket oluştur</h2><p class="t-modal__desc">Genel grubuna gönderilecek</p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Soru</span><span class="rp-count">39 / 200</span></div><input class="t-input" type="text" value="Kapanış yemeği için hangi günler uygun?"></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Seçenekler</span><span class="rp-count">3 / 10</span></div><div style="display:grid; grid-template-columns:minmax(0,1fr) 32px; gap:6px"><input class="t-input" type="text" value="30 Ekim Cuma" aria-label="Seçenek"><button class="t-iconbtn" type="button" aria-label="Seçeneği sil" style="width:32px; height:44px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div style="display:grid; grid-template-columns:minmax(0,1fr) 32px; gap:6px"><input class="t-input" type="text" value="31 Ekim Cumartesi" aria-label="Seçenek"><button class="t-iconbtn" type="button" aria-label="Seçeneği sil" style="width:32px; height:44px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div style="display:grid; grid-template-columns:minmax(0,1fr) 32px; gap:6px"><input class="t-input" type="text" value="2 Kasım Pazartesi" aria-label="Seçenek"><button class="t-iconbtn" type="button" aria-label="Seçeneği sil" style="width:32px; height:44px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><button class="rp-link rp-linkbtn" type="button" style="align-self:flex-start; font-size:12px">+ Seçenek ekle</button></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px"><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Seçim</span></div><div class="rp-seg" role="group" style="align-self:flex-start"><button type="button" aria-pressed="false">Tek</button><button type="button" aria-pressed="true">Çoklu</button></div></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Oylar</span></div><div class="rp-seg" role="group" style="align-self:flex-start"><button type="button" aria-pressed="true">İsimli</button><button type="button" aria-pressed="false">Anonim</button></div></div></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Son tarih</span></div><input class="t-input" type="text" value="25.10.2026 18:00"><p class="t-hint" style="margin:0">Son tarihten sonra oy verilemez, sonuçlar herkese açılır.</p></div><p class="rp-cap" style="margin:0">Anonim ankette kimin neyi seçtiği kimseye, anketi açana bile gösterilmez.</p></div><div class="t-modal__foot"><button class="t-btn t-btn--ghost" type="button">Vazgeç</button><button class="t-btn t-btn--primary" type="button">Anketi gönder</button></div></div></div><div><p class="rp-cap-k">Dosya ve doküman</p><div class="t-modal" role="dialog" aria-label="Dosya paylaş"><div class="t-modal__head"><div><h2 class="t-modal__title">Dosya paylaş</h2><p class="t-modal__desc">Genel grubuna</p></div><button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div><div class="t-modal__body"><div class="rp-seg" role="group" style="align-self:flex-start"><button type="button" aria-pressed="false">Arşivden</button><button type="button" aria-pressed="true">Yeni yükle</button></div><div style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:22px; border:1.5px dashed var(--border-strong); border-radius:14px; color:var(--ink-muted); font-size:13px"><svg class="t-icon t-icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"></path></svg><span><strong style="color:var(--ink); font-weight:600">Konaklama_listesi_v3.xlsx</strong> · 120 KB</span><span class="rp-cap">Başka dosya için sürükle bırak ya da seç</span></div><div style="display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center; padding:14px; border:1px solid var(--border-subtle); border-radius:12px"><span><span style="display:block; font-weight:600; font-size:14px">Bir görevin arşivine de kaydet</span><span class="rp-cap">Dosya görevin klasörüne düşer; mesaj o dosyayı gösterir.</span></span><button class="rp-switch" type="button" role="switch" aria-checked="true" aria-label="Görev arşivine kaydet"><span></span></button></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Görev</span></div><div class="t-field"><select class="t-select" style="color:var(--ink)" aria-label="Görev"><option>İDA-9 · Konaklama</option></select><svg class="t-icon t-icon--sm t-field__chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></div></div><div class="rp-field"><div class="rp-inrow"><span class="t-label" style="margin:0">Etiket</span></div><div class="rp-chiprow"><button class="rp-chipbtn" type="button" aria-pressed="true"><span class="rp-dot" style="background:var(--ink-muted)"></span>Güncel durum verisi</button><button class="rp-chipbtn" type="button"><span class="rp-dot" style="background:var(--accent-text)"></span>Sonuç dosyası</button></div></div><p class="rp-cap" style="margin:0">“Arşivden” sekmesinde seçilen dosyalar kopyalanmaz, arşivdeki asıl dosyaya bağlantı olarak paylaşılır; okuyan, klasörü görme yetkisi varsa açabilir.</p></div><div class="t-modal__foot"><button class="t-btn t-btn--ghost" type="button">Vazgeç</button><button class="t-btn t-btn--primary" type="button">Gönder</button></div></div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":2500}}'>
+class Component extends DCLogic { renderVals() { return { theme: this.props.theme ?? 'dark' }; } }
+</script>
+</body>
+</html>

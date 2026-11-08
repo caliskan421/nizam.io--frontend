@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Altyapı ve tesisat</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0} .rp-code{display:inline-flex; align-items:center; justify-content:center; min-width:44px; height:24px; padding:0 8px; border-radius:8px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:12px; font-weight:500; box-sizing:border-box; flex:none} .rp-code--lg{min-width:56px; height:56px; border-radius:16px; font-size:16px; background:linear-gradient(180deg, var(--btn-top), var(--btn-bottom)); border:1px solid var(--btn-border)} .rp-kpistrip{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; background:var(--border-subtle)} .rp-kpistrip > *{padding:14px 18px; background:var(--bg-surface); min-width:0}</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="coords" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Koordinatorlukler.dc.html">Koordinatörlükler</a><span aria-hidden="true">/</span><strong>Altyapı ve tesisat</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div style="display:flex; align-items:center; gap:18px">
+<span class="rp-code rp-code--lg" aria-hidden="true">ALT</span>
+<div style="min-width:0"><h1 class="rp-h1">Altyapı ve tesisat</h1><p class="rp-sub">Teknik altyapı · 3 alt birim · 9 kişi · <span style="color:var(--accent-text); font-weight:600">Aktif</span></p></div>
+</div>
+<div class="rp-actions">
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 7l9 6 9-6"></path></svg>Ekibe mesaj</button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Görev ata</button>
+<button class="t-iconbtn" type="button" aria-label="Diğer işlemler: düzenle, birleştir, pasifleştir"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+</div>
+</div>
+
+<div class="rp-body">
+<div style="flex:1 1 100%; min-width:0; display:flex; flex-direction:column; gap:20px">
+<div class="rp-tabs" role="tablist" aria-label="Koordinatörlük">
+<button type="button" role="tab" aria-selected="true">Genel bakış</button>
+<button type="button" role="tab" aria-selected="false">Üyeler <span class="rp-count">9</span></button>
+<button type="button" role="tab" aria-selected="false">Görevler <span class="rp-count">12</span></button>
+<button type="button" role="tab" aria-selected="false">Arşiv <span class="rp-count">15</span></button>
+<button type="button" role="tab" aria-selected="false">Toplantılar <span class="rp-count">2</span></button>
+<button type="button" role="tab" aria-selected="false">Ayarlar</button>
+</div>
+<section class="rp-kpistrip" aria-label="Özet">
+<sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+<div><p class="rp-kicker rp-trunc">{{ k.label }}</p><p class="rp-num" style="margin:4px 0 2px; font-size:26px; line-height:32px; color:{{ k.color }}">{{ k.value }}</p><p class="rp-cap rp-trunc">{{ k.note }}</p></div>
+</sc-for>
+</section>
+</div>
+
+<div class="rp-col" style="gap:20px">
+<section class="t-card" aria-labelledby="about-title" style="padding:24px; display:flex; flex-direction:column; gap:16px">
+<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle" id="about-title">Hakkında</h2><button class="rp-link rp-linkbtn" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"></path></svg>Düzenle</button></div>
+<p style="margin:0; font-size:14px; line-height:22px; color:var(--ink-muted)">Havalimanı yerleşkesinin temiz su, atıksu ve arıtma altyapısını kurar; depolama ve hidrofor sistemlerinin montajından ve devreye alınmasından sorumludur.</p>
+<dl class="rp-dl" style="grid-template-columns:minmax(120px,auto) minmax(0,1fr)">
+<dt>Üst birim</dt><dd>Teknik altyapı</dd>
+<dt>Kuruluş</dt><dd class="rp-mono">10.06.2026</dd>
+<dt>Arşiv klasörü</dt><dd><a class="rp-link" href="Arsiv-Klasor.dc.html" style="justify-content:flex-end">Arşiv / Altyapı ve tesisat</a></dd>
+<dt>Görünürlük</dt><dd>Tüm koordinatörler görebilir</dd>
+</dl>
+</section>
+
+<section class="t-card" aria-labelledby="sub-title" style="padding:24px; display:flex; flex-direction:column; gap:12px">
+<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle" id="sub-title">Alt birimler <span class="rp-count">3</span></h2><button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Alt birim ekle</button></div>
+<sc-for list="{{ subs }}" as="u" hint-placeholder-count="3">
+<div class="rp-tr rp-tr--body" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) 36px; min-height:56px; border-radius:12px; border-bottom:1px solid var(--border-subtle)">
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><a class="rp-title rp-trunc" href="#">{{ u.name }}</a><span class="rp-cap rp-trunc">{{ u.desc }}</span></span>
+<span style="display:flex; align-items:center; gap:8px; min-width:0"><span class="rp-av rp-av--sm" aria-hidden="true">{{ u.ini }}</span><span class="rp-cap rp-trunc">{{ u.lead }}</span></span>
+<span style="display:flex; flex-direction:column; gap:6px; min-width:0"><span class="rp-bar" style="height:4px"><span class="rp-seg-done" style="width:{{ u.pctW }}"></span></span><span class="rp-cap rp-trunc">{{ u.tasks }} görev · %{{ u.pct }} bitti</span></span>
+<button class="t-iconbtn" type="button" aria-label="{{ u.name }} işlemleri" style="width:32px; height:32px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+</div>
+</sc-for>
+</section>
+
+<section class="t-card" aria-labelledby="team-title" style="padding:24px; display:flex; flex-direction:column; gap:16px">
+<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle" id="team-title">Ekip <span class="rp-count">9</span></h2><span style="display:flex; gap:8px"><button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21a7 7 0 0 1 13-3.5M19 14v6M16 17h6"></path></svg>Üye ekle</button><a class="t-btn t-btn--ghost t-btn--sm" href="Kullanicilar.dc.html" style="text-decoration:none">Tüm üyeler</a></span></div>
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px">
+<sc-for list="{{ team }}" as="p" hint-placeholder-count="6">
+<div style="display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; align-items:center; padding:12px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised); min-width:0">
+<span class="rp-av" aria-hidden="true">{{ p.ini }}</span>
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><a class="rp-title rp-trunc" href="Kullanici-KisiselTakip.dc.html" style="font-size:13px">{{ p.name }}</a><span class="rp-cap rp-trunc">{{ p.role }} · {{ p.open }} açık iş</span></span>
+<sc-if value="{{ p.lead }}" hint-placeholder-val="{{ false }}"><span class="t-badge" style="height:22px; padding:0 8px; font-size:11px">Koordinatör</span></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+</div>
+
+<aside class="rp-aside" aria-label="Koordinatörlük özeti">
+<section class="t-card" style="padding:22px; display:flex; flex-direction:column; gap:10px">
+<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle">Dikkat gerektirenler</h2><a class="rp-link" href="Gorevler-Liste.dc.html">Tümü</a></div>
+<sc-for list="{{ att }}" as="t" hint-placeholder-count="4">
+<div style="display:grid; grid-template-columns:8px minmax(0,1fr) auto; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-subtle)">
+<span class="rp-dot {{ t.dot }}" aria-hidden="true"></span>
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><a class="rp-title rp-trunc" href="Gorevler-Liste.dc.html" style="font-size:13px">{{ t.title }}</a><span class="rp-cap rp-trunc">{{ t.who }}</span></span>
+<span class="rp-mono rp-nowrap {{ t.cls }}" style="font-size:12px">{{ t.note }}</span>
+</div>
+</sc-for>
+</section>
+
+<section class="t-card" style="padding:22px; display:flex; flex-direction:column; gap:6px">
+<h2 class="rp-cardtitle" style="margin-bottom:8px">Kısayollar</h2>
+<sc-for list="{{ links }}" as="l" hint-placeholder-count="5">
+<a class="rp-menuitem" href="{{ l.href }}" style="display:grid; grid-template-columns:16px minmax(0,1fr) 16px; min-height:44px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-muted)"><path d="{{ l.d }}"></path></svg><span class="rp-trunc">{{ l.label }}</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M9 6l6 6-6 6"></path></svg></a>
+</sc-for>
+</section>
+
+<section class="t-card" style="padding:22px">
+<h2 class="rp-cardtitle" style="margin-bottom:14px">Son etkinlik</h2>
+<ol class="rp-timeline">
+<sc-for list="{{ feed }}" as="f" hint-placeholder-count="4">
+<li><span class="rp-tl-dot" aria-hidden="true"><span class="rp-dot" style="width:6px; height:6px; background:var(--ink-muted)"></span></span>
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><span class="rp-trunc" style="font-size:13px"><strong style="font-weight:600">{{ f.who }}</strong> <span class="rp-muted">{{ f.what }}</span></span><span class="rp-cap rp-trunc">{{ f.target }}</span></span>
+<span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">{{ f.when }}</span></li>
+</sc-for>
+</ol>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ini = (n) => n.split(' ').map((s) => s[0]).slice(0, 2).join('');
+    const kpis = [
+      { label: 'açık görev', value: 5, note: '12 görevin 7’si bitti', color: 'var(--ink)' },
+      { label: 'geciken', value: 3, note: 'En uzunu 98 gün', color: 'var(--danger)' },
+      { label: 'tamamlanma', value: '%58', note: 'Sezon ortalaması %41', color: 'var(--ink)' },
+      { label: 'tarih talebi', value: 1, note: 'Hidrofor sistemi', color: 'var(--ink)' },
+      { label: 'arşiv', value: 15, note: '9,8 MB · son 23 gün önce', color: 'var(--ink)' }
+    ];
+    const S = (name, desc, lead, tasks, done) => ({ name, desc, lead, ini: ini(lead), tasks, pct: Math.round(done / tasks * 100), pctW: Math.round(done / tasks * 100) + '%' });
+    const subs = [
+      S('Su ve atıksu hatları', 'İletim hattı, temiz ve atıksu imalatları', 'Ali Avcı', 4, 3),
+      S('Arıtma tesisi', 'Paket arıtma ihalesi ve temel betonu', 'Abdullah Ateş', 3, 3),
+      S('Depolama ve hidrofor', 'Su deposu, AFAD depoları, hidrofor', 'Kadir Özbek', 5, 1)
+    ];
+    const P = (name, role, open, lead) => ({ name, role, open, lead: !!lead, ini: ini(name) });
+    const team = [
+      P('Abdullah Ateş', 'Arıtma tesisi', 0, true), P('Ali Avcı', 'Su ve atıksu', 1, true), P('Kadir Özbek', 'Depolama ve hidrofor', 4, true),
+      P('[Üye adı]', 'Su ve atıksu', 0), P('[Üye adı]', 'Arıtma tesisi', 0), P('[Üye adı]', 'Depolama ve hidrofor', 0)
+    ];
+    const att = [
+      { title: 'Su deposu temel betonunun yapılması', who: 'ALT-5 · Kadir Özbek', note: '98 gün gecikti', cls: 'rp-danger-text', dot: 'rp-dot--doing' },
+      { title: 'Hidrofor sistemi kurulumu', who: 'ALT-7 · Kadir Özbek · tarih talebi var', note: '41 gün gecikti', cls: 'rp-danger-text', dot: 'rp-dot--doing' },
+      { title: 'Montaj, test ve devreye alma aşaması', who: 'ALT-10 · Kadir Özbek', note: '21 gün gecikti', cls: 'rp-danger-text', dot: 'rp-dot--doing' }
+    ];
+    const links = [
+      { label: 'Görevlerde aç', href: 'Gorevler-Liste.dc.html', d: 'M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6h9M11 12h9M11 18h9' },
+      { label: 'Zaman çizelgesinde gör', href: 'Gorevler-Zaman.dc.html', d: 'M4 5h9M7 10h11M5 15h7M10 20h10' },
+      { label: 'Arşiv klasörü', href: 'Arsiv-Klasor.dc.html', d: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+      { label: 'Toplantı planla', href: '#', d: 'M15 10l5-3v10l-5-3zM3 7h12v10H3z' },
+      { label: 'Birim raporu (PDF)', href: '#', d: 'M12 4v11M7 10l5 5 5-5M5 20h14' }
+    ];
+    const feed = [
+      { who: 'Kadir Özbek', what: 'tarih talebi gönderdi', target: 'Hidrofor sistemi kurulumu · 10.09 → 31.10', when: '19.10' },
+      { who: 'Ali Avcı', what: '2 dosya yükledi', target: 'Gölgelendirme çalışmaları (kamelya)', when: '28.09' },
+      { who: 'Kadir Özbek', what: 'dosya yükledi', target: 'İklimlendirme hesaplarının yapılması', when: '03.09' },
+      { who: 'Kadir Özbek', what: 'dosya yükledi', target: 'Montaj, test ve devreye alma aşaması', when: '03.09' }
+    ];
+    return { theme: this.props.theme ?? 'dark', kpis, subs, team, att, links, feed };
+  }
+}
+</script>
+</body>
+</html>

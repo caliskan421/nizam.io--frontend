@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Bahar Kılıç</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="users" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="#">Kullanıcılar</a><span aria-hidden="true">/</span><strong>Bahar Kılıç</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head" style="align-items:center">
+<div style="display:grid; grid-template-columns:72px minmax(0,1fr); gap:20px; align-items:center">
+<span class="rp-av rp-av--xl" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">BK</span>
+<div style="min-width:0">
+<div style="display:flex; align-items:center; gap:10px; min-width:0"><h1 class="rp-h1 rp-trunc">Bahar Kılıç</h1><span class="t-badge" style="height:24px; font-size:12px">Üye</span></div>
+<p class="rp-sub rp-trunc">İdari işler · bahar.kilic@teknofest.org</p>
+</div>
+</div>
+<div class="rp-actions">
+<button class="t-iconbtn t-iconbtn--md" type="button" aria-label="Profili düzenle"><svg class="t-icon" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"></path></svg></button>
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 7l9 6 9-6"></path></svg>Mesaj</button>
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Kişisel rapor</button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Görev ata</button>
+</div>
+</div>
+
+<div class="rp-body">
+<div style="flex:1 1 100%; min-width:0; display:flex; flex-direction:column; gap:20px">
+<section aria-label="Görev özeti" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+<button type="button" class="t-card rp-cardbtn" aria-pressed="{{ s.on }}" title="{{ s.title }}" style="display:flex; flex-direction:column; justify-content:space-between; gap:20px; min-height:176px; color:var(--ink)">
+<span style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%">
+<span style="display:inline-flex; align-items:center; gap:10px; min-width:0"><span class="rp-ichip" aria-hidden="true" style="color:{{ s.tone }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="{{ s.d }}"></path></svg></span><span class="rp-trunc" style="font-weight:500; color:var(--ink-muted)">{{ s.label }}</span></span>
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M7 17 17 7M9 7h8v8"></path></svg>
+</span>
+<span style="display:flex; flex-direction:column; gap:12px; width:100%">
+<span class="rp-num" style="font-size:48px; line-height:52px; color:{{ s.color }}">{{ s.value }}</span>
+<span class="rp-bar" style="height:4px"><span style="width:{{ s.w }}; background:{{ s.tone }}"></span></span>
+<span class="rp-cap rp-trunc">{{ s.note }}</span>
+</span>
+</button>
+</sc-for>
+</section>
+
+<div class="rp-tabs" role="tablist" aria-label="Kişi ayrıntısı">
+<button type="button" role="tab" aria-selected="true">Görevler <span class="rp-count">9</span></button>
+<button type="button" role="tab" aria-selected="false">Dosyalar <span class="rp-count">21</span></button>
+<button type="button" role="tab" aria-selected="false">Etkinlik</button>
+<button type="button" role="tab" aria-selected="false">Hesap ve roller</button>
+</div>
+
+<div class="rp-toolbar">
+<div class="rp-tgroup">
+<div class="rp-seg" role="group" aria-label="Gruplama">
+<button type="button" aria-pressed="true">Son tarihe göre</button>
+<button type="button" aria-pressed="false">Duruma göre</button>
+</div>
+</div>
+<span class="rp-grow"></span>
+<div class="rp-tgroup"><span class="rp-cap">Açık görevler · 9 görev</span></div>
+</div>
+</div>
+<div class="rp-col" style="gap:20px">
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Bahar Kılıç görevleri" style="min-width:640px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:8px minmax(0,1fr) 124px 112px 64px 36px">
+<span></span><span role="columnheader">görev</span><span role="columnheader">durum</span><span role="columnheader">bitiş</span><span role="columnheader">kanıt</span><span></span>
+</div>
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div role="row" class="rp-trgroup"><span role="cell" style="color:{{ g.color }}">{{ g.name }}</span><span class="rp-count">{{ g.n }}</span></div>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+<div role="row" class="rp-tr rp-tr--body" style="grid-template-columns:8px minmax(0,1fr) 124px 112px 64px 36px">
+<span class="rp-dot {{ r.dot }}" aria-hidden="true"></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:2px; min-width:0"><a class="rp-title rp-trunc" href="#">{{ r.title }}</a><span class="rp-kicker" style="color:var(--ink-faint)">{{ r.id }}</span></span>
+<span role="cell" class="rp-status"><span class="rp-trunc">{{ r.status }}</span></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:2px"><span class="rp-mono">{{ r.due }}</span><span class="{{ r.relCls }} rp-nowrap" style="font-size:12px">{{ r.rel }}</span></span>
+<span role="cell" class="rp-mono {{ r.fileCls }}">{{ r.files }}</span>
+<span role="cell"><button class="t-iconbtn rp-hoveract" type="button" aria-label="{{ r.title }} görevini aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></button></span>
+</div>
+</sc-for>
+</sc-for>
+</div>
+</div></div>
+</div>
+
+<aside class="rp-aside" aria-label="Takvim ve özet">
+<section class="t-card" style="padding:22px">
+<div class="rp-cardhead"><h2 class="rp-cardtitle">Son tarihler · Ekim</h2><div class="rp-actions"><button class="t-iconbtn" type="button" aria-label="Önceki ay" style="width:28px; height:28px; border-radius:8px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Sonraki ay" style="width:28px; height:28px; border-radius:8px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></button></div></div>
+<div role="grid" aria-label="Ekim 2026" style="display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; text-align:center">
+<sc-for list="{{ dow }}" as="d" hint-placeholder-count="7"><span class="rp-kicker" style="color:var(--ink-faint); padding-bottom:4px">{{ d }}</span></sc-for>
+<sc-for list="{{ cal }}" as="c" hint-placeholder-count="35">
+<span role="gridcell" aria-label="{{ c.aria }}" style="position:relative; display:flex; align-items:center; justify-content:center; height:36px; border-radius:10px; font-size:13px; font-variant-numeric:tabular-nums; background:{{ c.bg }}; color:{{ c.ink }}; font-weight:{{ c.fw }}">{{ c.n }}<span style="position:absolute; bottom:4px; width:4px; height:4px; border-radius:50%; background:{{ c.dot }}"></span></span>
+</sc-for>
+</div>
+<div style="display:flex; gap:16px; margin-top:14px" class="rp-cap"><span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot rp-dot--late" style="width:6px; height:6px"></span>Kaçırılan</span><span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="width:6px; height:6px; background:var(--ink-muted)"></span>Yaklaşan</span></div>
+</section>
+
+<section class="t-card" style="padding:22px">
+<h2 class="rp-cardtitle" style="margin-bottom:14px">Durum dağılımı</h2>
+<div class="rp-bar" style="height:10px; margin-bottom:14px" role="img" aria-label="9 görev: 1 başlamadı, 6 devam, 2 onayda"><span class="rp-seg-todo" style="width:11%"></span><span class="rp-seg-doing" style="width:66%"></span><span class="rp-seg-review" style="width:23%"></span></div>
+<dl class="rp-dl">
+<dt><span class="rp-status" style="font-size:13px; color:var(--ink-muted)"><span class="rp-dot rp-dot--todo"></span>Başlamadı</span></dt><dd class="rp-mono">1</dd>
+<dt><span class="rp-status" style="font-size:13px; color:var(--ink-muted)"><span class="rp-dot rp-dot--doing"></span>Devam ediyor</span></dt><dd class="rp-mono">6</dd>
+<dt><span class="rp-status" style="font-size:13px; color:var(--ink-muted)"><span class="rp-dot rp-dot--review"></span>Onay bekliyor</span></dt><dd class="rp-mono">2</dd>
+</dl>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const IC = { check: 'M5 12.5l4.5 4.5L19 7', bolt: 'M13 3 4 14h7l-1 7 9-11h-7z', warn: 'M12 3 2 20h20zM12 10v4M12 17h.01', clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', file: 'M6 3h9l4 4v14H6zM14 3v5h5' };
+    const stats = [
+      { on: 'false', label: 'Tamamlanma', value: '%0', note: '9 görevin 0’ı bitti', w: '0%', tone: 'var(--accent-text)', color: 'var(--ink)', d: IC.check, title: 'Tamamlananları göster' },
+      { on: 'true', label: 'Açık görev', value: '9', note: '5 tanesi zamanında ilerliyor', w: '100%', tone: 'var(--violet)', color: 'var(--ink)', d: IC.bolt, title: 'Açık görevler' },
+      { on: 'false', label: 'Gecikmede', value: '4', note: 'Açık görevlerin %44’ü', w: '44%', tone: 'var(--danger)', color: 'var(--danger)', d: IC.warn, title: 'Gecikenleri göster' },
+      { on: 'false', label: 'Onay bekleyen', value: '2', note: 'Kanıt yüklendi, onay sırasında', w: '22%', tone: 'var(--gold)', color: 'var(--ink)', d: IC.clock, title: 'Onaydakileri göster' }
+    ];
+    const ST = { todo: ['rp-dot--todo', 'Başlamadı'], doing: ['rp-dot--doing', 'Devam ediyor'], review: ['rp-dot--review', 'Onay bekliyor'] };
+    const T = (id, title, st, due, rel, late, files) => ({ id, title, due, rel, relCls: late ? 'rp-danger-text' : 'rp-faint', files: files ? files + ' dosya' : 'yok', fileCls: files ? '' : 'rp-faint', dot: ST[st][0], status: ST[st][1] });
+    const groups = [
+      { name: 'Gecikmede', color: 'var(--danger)', rows: [
+        T('İDA-1', 'VİP yönetim takip', 'doing', '04.10.2026', '17 gün gecikti', true, 0),
+        T('İDA-2', 'Talep toplama', 'review', '08.10.2026', '13 gün gecikti', true, 1),
+        T('İDA-3', 'Zimmet', 'todo', '10.10.2026', '11 gün gecikti', true, 0),
+        T('İDA-4', 'Biletleme', 'review', '20.10.2026', '1 gün gecikti', true, 6)
+      ] },
+      { name: 'Bu hafta', color: 'var(--ink)', rows: [
+        T('İDA-5', 'Yemek planlama takip', 'doing', '23.10.2026', '2 gün kaldı', false, 10),
+        T('İDA-6', 'Hammaliye planlama ve süreçler', 'doing', '25.10.2026', '4 gün kaldı', false, 1)
+      ] },
+      { name: 'Sonra', color: 'var(--ink-muted)', rows: [
+        T('İDA-7', 'Tır lojistik planlama', 'doing', '27.10.2026', '6 gün kaldı', false, 1),
+        T('İDA-8', 'Tekstil promosyon', 'doing', '28.10.2026', '7 gün kaldı', false, 1),
+        T('İDA-9', 'Konaklama', 'doing', '30.10.2026', '9 gün kaldı', false, 1)
+      ] }
+    ];
+    groups.forEach((g) => { g.n = g.rows.length; });
+    const dow = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
+    const due = { 4: 'late', 8: 'late', 10: 'late', 20: 'late', 23: 'soon', 25: 'soon', 27: 'soon', 28: 'soon', 30: 'soon' };
+    const cal = [];
+    for (let i = 0; i < 3; i++) cal.push({ n: '', bg: 'transparent', ink: 'var(--ink)', fw: 400, dot: 'transparent', aria: '' });
+    for (let d = 1; d <= 31; d++) {
+      const k = due[d]; const today = d === 21;
+      cal.push({ n: d, fw: today ? 600 : 400, aria: d + ' Ekim' + (k ? (k === 'late' ? ', kaçırılan son tarih' : ', yaklaşan son tarih') : ''),
+        bg: today ? 'var(--accent)' : (k ? 'var(--bg-raised)' : 'transparent'), ink: today ? 'var(--accent-ink)' : (d < 21 ? 'var(--ink-muted)' : 'var(--ink)'),
+        dot: k === 'late' ? 'var(--danger)' : (k === 'soon' ? 'var(--ink-muted)' : 'transparent') });
+    }
+    cal.push({ n: '', bg: 'transparent', ink: 'var(--ink)', fw: 400, dot: 'transparent', aria: '' });
+    return { theme: this.props.theme ?? 'dark', stats, groups, dow, cal };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Toplantılar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-code{display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:22px; padding:0 7px; border-radius:7px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:500; box-sizing:border-box; flex:none}
+.rp-code--own{background:var(--ink); color:var(--bg-base)}
+.rp-mrow{display:grid; grid-template-columns:64px minmax(0,1fr) auto auto 20px; gap:20px; align-items:center; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); text-decoration:none; color:inherit}
+.rp-mrow:hover{border-color:var(--border-strong)}
+.rp-mrow--live{border-color:color-mix(in srgb, var(--accent-text) 45%, transparent); background:color-mix(in srgb, var(--accent-text) 5%, var(--bg-surface))}
+.rp-mdate{display:flex; flex-direction:column; align-items:center; justify-content:center; height:56px; border-radius:14px; background:var(--bg-raised); border:1px solid var(--border-subtle)}
+.rp-mdate b{font-family:var(--font-display); font-size:22px; line-height:24px; font-weight:600}
+.rp-mdate span{font-size:11px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.04em}
+.rp-mmeta{display:flex; gap:18px; align-items:center; color:var(--ink-muted); font-size:12px; white-space:nowrap}
+.rp-mmeta > span{display:inline-flex; align-items:center; gap:6px}
+.rp-pill{display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; border:1px solid var(--border-subtle); color:var(--ink-muted); background:var(--bg-raised)}
+.rp-pill--live{color:var(--accent-ink); background:var(--accent-text); border-color:transparent}
+.rp-pill--wait{color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:color-mix(in srgb, var(--gold) 8%, transparent)}
+.rp-live-dot{width:8px; height:8px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px color-mix(in srgb, currentColor 25%, transparent)}
+.rp-daylabel{display:flex; align-items:baseline; gap:10px; margin:6px 0 -2px}
+.rp-daylabel h2{margin:0; font-family:var(--font-display); font-size:15px; font-weight:600}
+.rp-pill--due{color:var(--gold); background:transparent; border-color:color-mix(in srgb, var(--gold) 45%, transparent)}
+.rp-livecard--due{border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:linear-gradient(90deg, color-mix(in srgb, var(--gold) 9%, var(--bg-surface)), var(--bg-surface) 70%)}
+.rp-pill--livesoft{color:var(--accent-text); background:transparent; border-color:color-mix(in srgb, var(--accent-text) 40%, transparent)}
+.rp-livecard{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:20px; align-items:center; padding:18px 20px; border-radius:var(--radius-lg); border:1px solid color-mix(in srgb, var(--accent-text) 40%, transparent); background:linear-gradient(90deg, color-mix(in srgb, var(--accent-text) 12%, var(--bg-surface)), var(--bg-surface) 70%)}
+
+
+.rp-mrow--list{grid-template-columns:60px minmax(0,1fr) auto 18px; gap:16px; padding:12px 16px 12px 12px}
+.rp-mrow--list > span:nth-child(2){align-self:start; padding-top:6px; gap:7px !important}
+.rp-mrow--list .rp-mdate{border-radius:12px}
+.rp-mrow--list .rp-mmeta{display:grid; grid-template-columns:62px 72px 56px; grid-auto-columns:100px; grid-auto-flow:column; gap:14px}
+.rp-mrow--list .rp-mmeta > span{min-width:0; overflow:hidden; text-overflow:ellipsis}
+.rp-mstat{color:var(--ink-muted)}
+.rp-mrow--list .rp-mdate{height:auto; padding:7px 0 0; gap:1px; overflow:hidden}
+.rp-mdate__time{display:block; width:100%; margin-top:5px; padding:4px 0 5px; border-top:1px solid var(--border-subtle); font-style:normal; font-family:var(--font-mono); font-size:12px; font-weight:500; color:var(--ink); text-align:center; letter-spacing:0; text-transform:none}
+.rp-mdate[data-state="live"] .rp-mdate__time{border-top-color:color-mix(in srgb, var(--accent-text) 35%, transparent)}
+.rp-mdate[data-state="due"] .rp-mdate__time{border-top-color:color-mix(in srgb, var(--gold) 35%, transparent)}
+.rp-mdate[data-state="live"]{background:color-mix(in srgb, var(--accent-text) 12%, var(--bg-raised)); border-color:color-mix(in srgb, var(--accent-text) 55%, transparent)}
+.rp-mdate[data-state="live"] > span{color:var(--accent-text); font-weight:600; display:inline-flex; align-items:center; gap:4px}
+.rp-mdate[data-state="due"]{background:color-mix(in srgb, var(--gold) 12%, var(--bg-raised)); border-color:color-mix(in srgb, var(--gold) 50%, transparent)}
+.rp-mdate[data-state="due"] > span{color:var(--gold); font-weight:600; font-size:9px; letter-spacing:.06em}
+.rp-mdate__dot{width:5px; height:5px; border-radius:50%; background:var(--accent-text); animation:rpPulse 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){ .rp-mdate__dot{animation:none} }
+@media (max-width: 900px){ .rp-mrow--list{grid-template-columns:64px minmax(0,1fr) 20px} .rp-mrow--list .rp-mmeta{display:none} }
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="meetings" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Toplantılar</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head rp-mtwrap">
+<div><h1 class="rp-h1">Toplantılar</h1><p class="rp-sub">2026 sezonu · 6 yaklaşan, 8 geçmiş toplantı · Admin olarak sezondaki tüm toplantıları görüyorsun</p></div>
+<div class="rp-actions">
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Yeni toplantı</button>
+</div>
+</div>
+
+<div class="rp-body rp-mtwrap">
+<div style="flex:1 1 100%; min-width:0; display:flex; flex-direction:column; gap:16px">
+
+<div class="rp-toolbar" style="justify-content:space-between">
+<div class="rp-tgroup">
+<div class="rp-seg" role="tablist" aria-label="Toplantı zamanı">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{ t.on }}" title="{{ t.title }}" style="{{ t.style }}">{{ t.label }}<span class="rp-count">{{ t.n }}</span></button></sc-for>
+</div>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button" style="padding:0 12px; gap:6px">Koordinatörlük<svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+<span class="rp-cap">Koyu kod sahip koordinatörlüğü gösterir</span>
+</div>
+
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="3">
+<section aria-label="{{ d.label }}" style="display:flex; flex-direction:column; gap:10px">
+<div class="rp-daylabel"><h2>{{ d.label }}</h2><span class="rp-cap">{{ d.note }}</span></div>
+<sc-for list="{{ d.items }}" as="m" hint-placeholder-count="2">
+<a class="rp-mrow rp-mrow--list {{ m.cls }}" href="Toplanti-Detay.dc.html">
+<span class="rp-mdate" data-state="{{ m.state }}"><b>{{ m.day }}</b><span><sc-if value="{{ m.live }}" hint-placeholder-val="{{ false }}"><i class="rp-mdate__dot" aria-hidden="true"></i></sc-if>{{ m.monLabel }}</span><em class="rp-mdate__time">{{ m.time }}</em></span>
+<span style="display:flex; flex-direction:column; gap:8px; min-width:0">
+<span class="rp-title rp-trunc" style="font-size:15px; font-weight:600">{{ m.title }}</span>
+<span style="display:flex; gap:6px; align-items:center; min-width:0; flex-wrap:wrap">
+<sc-for list="{{ m.deps }}" as="c" hint-placeholder-count="3"><span class="rp-code {{ c.cls }}" title="{{ c.title }}">{{ c.id }}</span></sc-for>
+<span class="rp-cap rp-trunc" style="margin-left:4px">{{ m.depLine }}</span>
+</span>
+</span>
+<span class="rp-mmeta">
+<span title="Gündem"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6h9M11 12h9M11 18h9"></path></svg>{{ m.agenda }}</span>
+<span title="Notlar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v12l-4 4H5zM15 20v-4h4M8 9h8M8 13h5"></path></svg>{{ m.notes }}</span>
+<span title="Katılımcılar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0"></path></svg>{{ m.people }}</span>
+</span>
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+</sc-for>
+</section>
+</sc-for>
+
+<div style="display:flex; justify-content:space-between; gap:16px; padding-top:4px">
+<span class="rp-cap">Geçmiş tarihe toplantı açılamaz; tarih yalnız ileri alınabilir.</span>
+<span class="rp-cap">6 yaklaşan toplantı</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const NAMES = { SİS: 'Sistem koordinatörlüğü', ALT: 'Altyapı ve tesisat', ELE: 'Elektrik ve enerji', ULA: 'Ulaşım planlama', OPE: 'Operasyon', EĞİ: 'Eğitim ve Arge', MEK: 'Mekanik sistemler', İDA: 'İdari işler', FUA: 'Fuar', SAT: 'Satış ve pazarlama' };
+    const M = (day, mon, title, deps, agenda, notes, people, members, conf, time) => {
+      const live = conf === 'live';
+      return {
+        day, mon, title, agenda, notes, people, members: !!members, live, time: time || '10:00', hasPill: live || conf === 'due', state: live ? 'live' : conf === 'due' ? 'due' : '', monLabel: live ? 'Canlı' : conf === 'due' ? 'Bekliyor' : mon, noPill: !(live || conf === 'due'),
+        deps: deps.map((id, i) => ({ id, cls: i === 0 ? 'rp-code--own' : '', title: NAMES[id] + (i === 0 ? ' · sahip' : '') })),
+        depLine: deps.length === 1 ? NAMES[deps[0]] : NAMES[deps[0]] + ' + ' + (deps.length - 1) + ' koordinatörlük',
+        cls: '',
+        conf: live ? 'Canlı' : 'Henüz başlamadı',
+        pillCls: live ? 'rp-pill--livesoft' : 'rp-pill--due'
+      };
+    };
+    const days = [
+      { label: 'Bugün', note: '21 Ekim Çarşamba', items: [
+        M('21', 'Eki', 'Haftalık koordinasyon toplantısı', ['SİS', 'ALT', 'ELE'], '4 / 7', '12 not', '9 kişi', true, 'live', '14:00'),
+        M('21', 'Eki', 'Hidrofor ve su deposu teslim kontrolü', ['ALT'], '0 / 5', '3 not', '4 kişi', true, 'due', '15:30')
+      ] },
+      { label: 'Bu hafta', note: '22 – 25 Ekim', items: [
+        M('23', 'Eki', 'Ulaşım ve güvenlik eşgüdümü', ['ULA', 'OPE', 'İDA'], '0 / 9', 'not yok', '14 kişi', true, 'none', '10:00'),
+        M('24', 'Eki', 'Gönüllü eğitim programı son kontrol', ['EĞİ'], '0 / 4', 'not yok', '22 kişi', true, 'none', '13:30')
+      ] },
+      { label: 'Gelecek hafta', note: '26 Ekim – 1 Kasım', items: [
+        M('27', 'Eki', 'Fuar alanı stant yerleşimi', ['FUA', 'SAT', 'MEK'], '0 / 6', 'not yok', '8 kişi', false, 'none', '11:00'),
+        M('30', 'Eki', 'Enerji yedekleme ve jeneratör testi', ['ELE', 'ALT'], '0 / 3', 'not yok', '5 kişi', false, 'none', '09:30')
+      ] }
+    ];
+    const tabs = [
+      { label: 'Yaklaşan', n: 6, on: 'true', title: '', style: '' },
+      { label: 'Geçmiş', n: 8, on: 'false', title: '', style: '' },
+      { label: 'Silinenler', n: 2, on: 'false', title: 'Yalnız admin görür: geri yükleme ve kalıcı silme', style: 'color:var(--ink-faint)' }
+    ];
+    return { theme: this.props.theme ?? 'dark', days, tabs };
+  }
+}
+</script>
+</body>
+</html>

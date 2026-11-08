@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Görevler, zaman çizelgesi</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.rp-snack { position:absolute; left:50%; bottom:28px; transform:translateX(-50%); z-index:61; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:14px; align-items:center; width:min(560px, calc(100vw - 32px)); box-sizing:border-box; padding:12px 10px 14px 14px; border-radius:16px; background:var(--ink); color:var(--bg-base); font-family:var(--font-sans); font-size:13px; box-shadow:var(--shadow-card); overflow:hidden; animation:rpSnackIn .18s ease-out; }
+.rp-snack__ic { width:32px; height:32px; border-radius:10px; display:grid; place-items:center; background:color-mix(in srgb, var(--bg-base) 14%, transparent); }
+.rp-snack__delta { padding:1px 7px; border-radius:999px; background:color-mix(in srgb, var(--bg-base) 16%, transparent); font-weight:700; opacity:1; }
+.rp-snack__undo { min-height:36px; padding:0 14px; border:0; border-radius:10px; background:var(--bg-base); color:var(--ink); font:inherit; font-weight:700; cursor:pointer; }
+.rp-snack__undo:hover { background:color-mix(in srgb, var(--bg-base) 85%, var(--ink)); }
+.rp-snack__undo:focus-visible, .rp-snack__x:focus-visible { outline:2px solid var(--accent-text); outline-offset:2px; }
+.rp-snack__x { width:32px; height:32px; border:0; border-radius:10px; background:none; color:inherit; opacity:.7; cursor:pointer; display:grid; place-items:center; }
+.rp-snack__x:hover { opacity:1; background:color-mix(in srgb, var(--bg-base) 12%, transparent); }
+.rp-snack__bar { position:absolute; left:0; bottom:0; height:3px; width:100%; transform-origin:left; background:var(--accent-text); animation-duration:5s; animation-timing-function:linear; animation-fill-mode:forwards; }
+@keyframes rpSnackA { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+@keyframes rpSnackB { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+@keyframes rpSnackIn { from { opacity:0; transform:translate(-50%, 8px); } to { opacity:1; transform:translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .rp-snack { animation:none; } }
+</style>
+<style>body{margin:0} :root, [data-theme] { --rp-blue:#5b8def; } [data-theme="light"] { --rp-blue:#2563eb; } .rp-glabel{background:color-mix(in srgb, var(--bg-surface) 72%, transparent); -webkit-backdrop-filter:blur(10px) saturate(1.2); backdrop-filter:blur(10px) saturate(1.2); border:0; border-right:1px solid var(--border-subtle); color:var(--ink); font:inherit}</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}" style="position:relative">
+<div class="rp-side"><dc-import name="Sidebar" active="tasks" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Gorevler-Liste.dc.html">Görevler</a><span aria-hidden="true">/</span><strong>Zaman çizelgesi</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Görevler</h1><p class="rp-sub">263 görev · 158 bitti · <span class="rp-danger-text">91 gecikmede</span></p></div>
+<div class="rp-actions">
+<div class="rp-seg" role="group" aria-label="Görünüm">
+<button type="button" aria-pressed="false"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Liste</button>
+<button type="button" aria-pressed="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 5h9M7 10h11M5 15h7M10 20h10"></path></svg>Zaman çizelgesi</button>
+</div>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Yeni görev</button>
+</div>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:12px; padding:16px 24px 32px">
+<div class="rp-toolbar">
+<div class="rp-tgroup">
+<button class="t-btn t-btn--secondary t-btn--sm" type="button">Koordinatörlük <span class="rp-count" style="color:var(--ink)">3</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+<div class="rp-seg" role="group" aria-label="Durum">
+<button type="button" aria-pressed="true">Tümü</button>
+<button type="button" aria-pressed="false">Açık</button>
+<button type="button" aria-pressed="false">Geciken</button>
+<button type="button" aria-pressed="false">Biten</button>
+</div>
+</div>
+<span class="rp-grow"></span>
+<div class="rp-tgroup">
+<span class="rp-cap rp-nowrap" style="padding-right:4px">Hafta ölçeği</span>
+<button class="t-iconbtn" type="button" aria-label="Uzaklaştır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M5 12h14"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Yakınlaştır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<div class="rp-tgroup">
+<button class="t-iconbtn" type="button" aria-label="PDF olarak dışa aktar"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Görsel olarak indir"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Tam ekran"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg></button>
+</div>
+</div>
+
+<div role="img" aria-label="Sezon genel bakışı: görünen aralık 1 Haziran – 30 Kasım" style="position:relative; display:grid; grid-template-columns:120px minmax(0,1fr); gap:12px; align-items:center; padding:10px 12px; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-surface)">
+<span class="rp-kicker">sezon 2026</span>
+<span style="position:relative; display:flex; align-items:flex-end; gap:2px; height:32px">
+<sc-for list="{{ density }}" as="dn" hint-placeholder-count="35"><span style="flex:1 1 0; height:{{ dn.h }}; border-radius:2px; background:{{ dn.c }}"></span></sc-for>
+<span aria-hidden="true" style="position:absolute; top:-4px; bottom:-4px; left:{{ winL }}; width:{{ winW }}; border:1.5px solid var(--ink); border-radius:8px; background:color-mix(in srgb, var(--ink) 6%, transparent)"></span>
+<span aria-hidden="true" style="position:absolute; top:-6px; bottom:-6px; left:{{ todayO }}; width:2px; background:var(--accent-text)"></span>
+<span title="Şu an baktığın yer" style="position:absolute; top:-8px; bottom:-8px; left:{{ viewO }}; width:3px; margin-left:-1px; border-radius:2px; background:var(--rp-blue); box-shadow:0 0 0 2px color-mix(in srgb, var(--rp-blue) 30%, transparent)"></span>
+</span>
+</div>
+
+<div style="display:flex; gap:8px 20px; align-items:center; flex-wrap:wrap" class="rp-cap">
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--ink-faint)"></span>Başlamadı</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--violet)"></span>Devam ediyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--gold)"></span>Onay bekliyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--danger)"></span>Geri gönderildi</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--accent-text)"></span>Tamamlandı</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:linear-gradient(90deg, var(--accent-text) 50%, var(--danger) 50%)"></span>Geç bitti</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:22px; height:10px; border-radius:4px; border:1.5px dashed var(--danger); display:inline-block; box-sizing:border-box"></span>Gecikmede</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:22px; height:10px; border-radius:0 4px 4px 0; border:1.5px dashed var(--accent-text); border-left:0; display:inline-block; box-sizing:border-box"></span>Tarih talebi</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:3px; height:12px; border-radius:2px; background:var(--rp-blue); display:inline-block"></span>Baktığın yer</span>
+</div>
+<div class="rp-dtable" style="position:relative"><div class="rp-scroll">
+<div style="min-width:1260px; position:relative; min-height:780px">
+
+<div style="display:grid; grid-template-columns:300px minmax(0,1fr); border-bottom:1px solid var(--border-subtle); position:relative">
+<div class="rp-glabel" style="padding:6px 8px 6px 16px; display:flex; justify-content:space-between; align-items:flex-end; gap:8px"><span class="rp-kicker" style="padding-bottom:4px">görev</span><button class="t-iconbtn" type="button" aria-label="Yalnız kodları göster" title="Yalnız kodları göster" style="width:32px; height:32px; border-radius:10px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9 4v16M15 10l-2 2 2 2"></path></svg></button></div>
+<div>
+<div style="display:flex; border-bottom:1px solid var(--border-subtle)">
+<sc-for list="{{ months }}" as="mo" hint-placeholder-count="5"><span class="rp-trunc" style="width:{{ mo.w }}; padding:8px 10px; box-sizing:border-box; border-left:1px solid var(--border-subtle); font-size:13px; font-weight:600">{{ mo.name }}</span></sc-for>
+</div>
+<div style="display:flex">
+<sc-for list="{{ weeks }}" as="wk" hint-placeholder-count="26"><span class="rp-mono" style="flex:0 0 {{ wk.w }}; padding:6px 0; text-align:center; font-size:12px; color:{{ wk.color }}">{{ wk.d }}</span></sc-for>
+</div>
+</div>
+</div>
+
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div style="display:grid; grid-template-columns:300px minmax(0,1fr); background:var(--bg-base); border-bottom:1px solid var(--border-subtle)">
+<button type="button" aria-expanded="{{ g.open }}" class="rp-glabel" style="display:grid; grid-template-columns:16px minmax(0,1fr) auto; gap:8px; align-items:center; padding:10px 16px; color:var(--ink); font-family:inherit; font-size:13px; font-weight:600; text-align:left; cursor:pointer">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate({{ g.rot }})"><path d="M6 9l6 6 6-6"></path></svg>
+<span class="rp-trunc">{{ g.name }}</span><span class="rp-count">{{ g.count }}</span>
+</button>
+<div style="position:relative; height:40px; background-image:linear-gradient(to right, var(--border-subtle) 1px, transparent 1px); background-size:calc(100% * 7 / 183) 100%">
+</div>
+</div>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="8">
+<div class="rp-tr--body" style="display:grid; grid-template-columns:300px minmax(0,1fr); border-bottom:1px solid var(--border-subtle); background:{{ r.rowBg }}">
+<div class="rp-glabel" style="display:grid; grid-template-columns:48px 8px minmax(0,1fr); gap:10px; align-items:center; padding:0 16px; height:44px">
+<span class="rp-kicker" style="color:var(--ink-faint)">{{ r.id }}</span>
+<span class="rp-dot" aria-hidden="true" title="{{ r.dotTitle }}" style="background:{{ r.dotBg }}"></span>
+<a class="rp-title rp-trunc" href="#" style="font-weight:500; font-size:13px">{{ r.title }}</a>
+</div>
+<div style="position:relative; height:44px; background-image:linear-gradient(to right, var(--border-subtle) 1px, transparent 1px); background-size:calc(100% * 7 / 183) 100%">
+<span style="position:absolute; top:10px; height:24px; left:{{ r.x }}; width:{{ r.w }}; border-radius:8px; box-sizing:border-box; background:{{ r.fill }}; border:{{ r.border }}; box-shadow:{{ r.ring }}; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:6px; align-items:center; padding:0 8px; overflow:hidden; font-size:12px; font-weight:600; color:var(--gp-ink); white-space:nowrap">
+<sc-if value="{{ r.dep }}" hint-placeholder-val="{{ false }}"><svg class="t-icon" viewBox="0 0 24 24" aria-label="Bağımlılığı var" style="width:12px; height:12px"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path></svg></sc-if>
+<span class="rp-trunc">{{ r.title }}</span>
+<span class="rp-mono" style="font-size:11px; color:var(--gp-ink-muted)">{{ r.dur }}</span>
+<sc-if value="{{ r.hasOver }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position:absolute; top:-1px; bottom:-1px; left:{{ r.divX }}; width:2px; background:var(--gp-ink); opacity:0.45"></span></sc-if>
+</span>
+<sc-if value="{{ r.sel }}" hint-placeholder-val="{{ false }}">
+<span aria-hidden="true" style="position:absolute; top:14px; height:16px; width:6px; left:calc({{ r.x }} - 3px); border-radius:3px; background:var(--ink); cursor:ew-resize"></span>
+<span aria-hidden="true" style="position:absolute; top:14px; height:16px; width:6px; left:calc({{ r.endX }} - 3px); border-radius:3px; background:var(--ink); cursor:ew-resize"></span>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</sc-for>
+
+<div aria-hidden="true" style="position:absolute; top:0; bottom:0; left:calc(300px + (100% - 300px) * {{ todayP }}); width:2px; background:var(--accent-text); pointer-events:none"></div>
+<span style="position:absolute; top:6px; left:calc(300px + (100% - 300px) * {{ todayP }} - 30px); padding:2px 8px; border-radius:6px; background:var(--accent); color:var(--accent-ink); font-family:var(--font-mono); font-size:12px; font-weight:500">bugün</span>
+</div>
+</div>
+
+<section class="rp-pop" aria-label="Seçili görev" style="position:absolute; right:16px; bottom:16px; width:340px; padding:18px; display:flex; flex-direction:column; gap:14px">
+<div style="display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px; align-items:start">
+<div style="min-width:0"><p class="rp-kicker rp-trunc">ALT-7 · Altyapı ve tesisat</p><p class="rp-clamp2" style="margin:4px 0 0; font-weight:600; font-size:15px; line-height:21px">Havalimanı yerleşkesi hidrofor sistemi kurulumu</p></div>
+<button class="t-iconbtn" type="button" aria-label="Liste görünümünde aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M10 4H4v16h16v-6"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px">
+<label style="display:flex; flex-direction:column; gap:6px; min-width:0"><span class="rp-kicker">başlangıç</span><input class="t-input rp-mono" type="text" value="22.06.2026" style="height:36px; border-radius:12px; padding:0 12px"></label>
+<label style="display:flex; flex-direction:column; gap:6px; min-width:0"><span class="rp-kicker">bitiş</span><input class="t-input rp-mono" type="text" value="10.09.2026" style="height:36px; border-radius:12px; padding:0 12px; border-color:var(--danger)"></label>
+</div>
+<dl class="rp-dl">
+<dt>Durum</dt><dd><span class="rp-status"><span class="rp-dot rp-dot--doing"></span>Devam ediyor</span></dd>
+<dt>Gecikme</dt><dd class="rp-danger-text">41 gün</dd>
+<dt>Kanıt dosyası</dt><dd>1 dosya</dd>
+</dl>
+<p class="rp-cap" style="margin:0">Çubuğun uçlarını sürükleyerek de tarih değiştirebilirsin. Değişiklik onaya gider.</p>
+<div class="rp-iconrow" style="grid-template-columns:minmax(0,1fr) repeat(2, var(--control-md))">
+<button class="t-btn t-btn--primary" type="button" style="min-width:0"><span class="rp-trunc">Tarih talebi gönder</span></button>
+<button class="t-iconbtn" type="button" aria-label="Atanana hatırlat" title="Atanana hatırlat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Diğer işlemler" title="Diğer işlemler"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+</div>
+</section>
+</div>
+
+</div>
+</main>
+<div class="rp-snack" role="status" aria-label="Örnek: sürükleme sonrası geri alınabilir bildirim" style="bottom:24px; left:calc(50% + 136px)">
+<span class="rp-snack__ic" aria-hidden="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 12h12M12 8l4 4-4 4M20 5v14"></path></svg></span>
+<span style="display:flex; flex-direction:column; gap:3px; min-width:0"><span class="rp-trunc" style="font-weight:600">ALT-7 süresi 21 gün uzatıldı</span><span style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px; font-weight:500; opacity:.75"><span style="text-decoration:line-through">22 Haz – 10 Eyl</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><span style="font-weight:700">22 Haz – 01 Eki</span><span class="rp-snack__delta">bitiş +21 gün</span></span></span>
+<button class="rp-snack__undo" type="button">İptal et</button>
+<button class="rp-snack__x" type="button" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+<span class="rp-snack__bar" aria-hidden="true" style="animation:none; transform:scaleX(.62)"></span>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const START = Date.UTC(2026, 5, 1);
+    const TOTAL = 183;
+    const day = (m, d) => (Date.UTC(2026, m - 1, d) - START) / 86400000;
+    const pct = (n) => (n / TOTAL * 100).toFixed(2) + '%';
+    const TODAY = day(10, 21);
+    const months = [['Haziran', 30], ['Temmuz', 31], ['Ağustos', 31], ['Eylül', 30], ['Ekim', 31], ['Kasım', 30]].map(([name, n]) => ({ name, w: pct(n) }));
+    const mondays = [1, 8, 15, 22, 29, 6, 13, 20, 27, 3, 10, 17, 24, 31, 7, 14, 21, 28, 5, 12, 19, 26, 2, 9, 16, 23];
+    const weeks = mondays.map((d, i) => ({ d, w: pct(7), color: i === 20 ? 'var(--ink)' : 'var(--ink-faint)' }));
+    const SC = { done: 'var(--accent-text)', doing: 'var(--violet)' };
+    const R = (id, title, who, st, s, e, o) => {
+      o = o || {};
+      const x = day(s[0], s[1]); const end = day(e[0], e[1]); const done = st === 'done';
+      const late = !done && end < TODAY;
+      const doneLate = done && !!o.doneAt && day(o.doneAt[0], o.doneAt[1]) > end;
+      const visEnd = doneLate ? day(o.doneAt[0], o.doneAt[1]) : late ? TODAY : end;
+      const over = visEnd > end;
+      const sc = SC[st];
+      const gp = 'var(--gp-' + st + ')'; const base = gp;
+      const overC = (doneLate || late) ? 'var(--gp-late)' : 'color-mix(in srgb, ' + gp + ' 55%, var(--bg-surface))';
+      const split = ((end - x) / (visEnd - x) * 100).toFixed(2) + '%';
+      const lateDays = Math.round(visEnd - end);
+      return { id, title, who, x: pct(x), w: pct(visEnd - x), endX: pct(end), visEndX: pct(visEnd),
+        dur: Math.round((end - x) / 7) + ' hf', dep: !!o.dep, sel: !!o.sel, rowBg: o.sel ? 'color-mix(in srgb, var(--ink) 5%, transparent)' : 'transparent',
+        dotBg: (late || doneLate) ? 'linear-gradient(90deg, ' + sc + ' 50%, var(--danger) 50%)' : sc,
+        dotTitle: (done ? 'Tamamlandı' : 'Devam ediyor') + (doneLate ? ' · ' + lateDays + ' gün geç bitti' : late ? ' · ' + lateDays + ' gün gecikmede' : ''),
+        fill: over ? 'linear-gradient(90deg, ' + base + ' 0 ' + split + ', ' + overC + ' ' + split + ' 100%)' : base,
+        border: late ? '1.5px dashed var(--danger)' : '1px solid color-mix(in srgb, ' + sc + ' 70%, transparent)',
+        hasOver: over, divX: 'calc(' + split + ' - 1px)',
+        ring: o.sel ? '0 0 0 2px var(--ink)' : 'none',
+        hasReq: !!o.req, rqw: o.req ? pct(Math.max(0, day(o.req[0], o.req[1]) - visEnd)) : '0%', reqTitle: o.req ? 'Tarih talebi: yeni bitiş ' + o.req[1] + '.' + String(o.req[0]).padStart(2, '0') + ' (onay bekliyor)' : '' };
+    };
+    const KÖ = 'Kadir Özbek';
+    const alt = [
+      R('ALT-1', 'Dolamaç Mezrası–Havalimanı arası iletim hattı', 'Ali Avcı', 'done', [6, 16], [8, 31]),
+      R('ALT-4', 'Temizsu ve atıksu hatları imalatları', KÖ, 'done', [7, 1], [9, 15]),
+      R('ALT-5', 'Su deposu temel betonunun yapılması', KÖ, 'doing', [6, 16], [7, 15], { dep: true }),
+      R('ALT-6', 'AFAD depolarının nakliyesi ve montajı', KÖ, 'done', [6, 22], [8, 20]),
+      R('ALT-7', 'Hidrofor sistemi kurulumu', KÖ, 'doing', [6, 22], [9, 10], { sel: true, req: [10, 31] }),
+      R('ALT-8', 'Paket arıtma temel betonu', KÖ, 'done', [6, 16], [8, 10], { dep: true, doneAt: [9, 2] }),
+      R('ALT-9', 'Paket arıtma tesisi ihale işlemleri', 'Abdullah Ateş', 'done', [6, 19], [6, 29]),
+      R('ALT-10', 'Montaj, test ve devreye alma aşaması', KÖ, 'doing', [7, 7], [9, 30])
+    ];
+    const G = (name, count, s, e, doneRatio, lateTo, open, rows) => {
+      const x = day(s[0], s[1]); const end = day(e[0], e[1]);
+      return { name, count, x: pct(x), w: pct(end - x), doneW: Math.round(doneRatio * 100) + '%', hasLate: !!lateTo, lx: pct(end), lw: pct(TODAY - end),
+        open: open ? 'true' : 'false', rot: open ? '0deg' : '-90deg', rows: rows || [] };
+    };
+    const groups = [
+      G('Altyapı ve tesisat', '5 / 8', [6, 16], [9, 30], 0.62, true, true, alt),
+      G('Mekanik sistemler', '6 / 7', [6, 10], [9, 29], 0.86, true, false),
+      G('Ulaşım planlama', '0 / 3', [6, 10], [9, 5], 0, true, false)
+    ];
+    const SSTART = Date.UTC(2026, 4, 1);
+    const SDAYS = 245;
+    const wl = []; for (let i = 0; i < 35; i++) wl.push(i);
+    const allRows = alt;
+    const density = wl.map((i) => {
+      const ds = (SSTART + i * 7 * 86400000 - START) / 86400000;
+      let n = 0;
+      [[6, 16, 8, 31], [7, 1, 9, 15], [6, 16, 10, 21], [6, 22, 8, 20], [6, 22, 10, 21], [6, 16, 8, 10], [6, 19, 6, 29], [7, 7, 10, 21], [6, 10, 9, 29], [6, 10, 10, 21], [7, 20, 10, 21], [8, 1, 10, 21]].forEach(([a, b, c, d]) => { if (ds + 7 > day(a, b) && ds < day(c, d)) n++; });
+      return { h: (n === 0 ? 2 : 6 + n * 2) + 'px', c: n === 0 ? 'var(--bg-overlay)' : 'var(--ink-muted)' };
+    });
+    const sOff = (d) => ((d * 86400000 + START - SSTART) / 86400000 / SDAYS * 100).toFixed(2) + '%';
+    return { theme: this.props.theme ?? 'dark', yes: true, months, weeks, groups, density,
+      todayP: (TODAY / TOTAL).toFixed(4), winL: sOff(0), winW: (TOTAL / SDAYS * 100).toFixed(2) + '%', todayO: sOff(TODAY), viewO: sOff(Math.round(TOTAL / 2)) };
+  }
+}
+</script>
+</body>
+</html>

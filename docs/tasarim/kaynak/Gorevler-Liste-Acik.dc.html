@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Görevler</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0} .rp-reqtag{display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 7px; border-radius:6px; background:color-mix(in srgb, var(--accent-text) 14%, transparent); color:var(--accent-text); font-family:var(--font-mono); font-size:11px; font-weight:500; white-space:nowrap} .rp-reqbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:8px 10px 8px 12px; border:1px solid color-mix(in srgb, var(--accent-text) 45%, var(--border-subtle)); border-radius:var(--radius-md); background:color-mix(in srgb, var(--accent-text) 8%, var(--bg-surface)); font-size:13px} .rp-reqbar__icon{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; flex:none; background:color-mix(in srgb, var(--accent-text) 18%, transparent); color:var(--accent-text)} .rp-btn-ok{background:linear-gradient(180deg, var(--accent-top), var(--accent)); color:var(--accent-ink); border-color:transparent}
+
+.rp-iconrow--icons{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.rp-iconrow--icons .rp-upbtn{background:linear-gradient(180deg, var(--accent-top), var(--accent)); border-color:transparent; color:var(--accent-ink)}
+.rp-iconrow--icons .rp-upbtn:hover{filter:brightness(1.06); color:var(--accent-ink)}
+.rp-iconrow--icons .rp-upbtn .t-icon{width:20px; height:20px}
+
+.rp-av.rp-tip{position:relative; cursor:default}
+.rp-tip::after{content:attr(data-tip); position:absolute; bottom:calc(100% + 8px); right:0; padding:4px 8px; border-radius:7px; background:var(--ink); color:var(--bg-base); font-size:11px; font-weight:500; letter-spacing:0; line-height:14px; white-space:nowrap; box-shadow:0 6px 18px rgba(0,0,0,.25); opacity:0; transform:translateY(3px); transition:opacity .12s, transform .12s; pointer-events:none; z-index:6}
+.rp-tip:hover, .rp-tip:focus-visible{z-index:3}
+.rp-tip:hover::after, .rp-tip:focus-visible::after{opacity:1; transform:translateY(0)}
+
+.rp-tmeta{display:grid; grid-template-columns:38px 48px minmax(0,1fr) auto; align-items:center; column-gap:8px; min-width:0}
+.rp-tmeta > .rp-kicker{grid-column:1; white-space:nowrap}
+.rp-tmeta > .rp-subtog{grid-column:2; justify-self:center}
+.rp-tmeta > .rp-prio{grid-column:3; white-space:nowrap}
+.rp-tmeta > .rp-cap{grid-column:3}
+.rp-tmeta > .rp-cap::before{content:""; display:inline-block; width:5px; height:5px; margin:0 7px 1px 0; border-radius:50%; background:currentColor; vertical-align:middle}
+.rp-subtog{display:inline-flex; align-items:center; gap:2px; height:20px; padding:0 6px 0 2px; border:0; border-radius:6px; background:none; color:var(--ink-faint); font:inherit; font-family:var(--font-mono); font-size:11px; cursor:pointer; flex:none; white-space:nowrap}
+.rp-subtog .t-icon{width:14px; height:14px; transition:transform .12s linear}
+.rp-subtog[aria-expanded="true"] .t-icon{transform:rotate(90deg)}
+.rp-subtog:hover, .rp-subtog[aria-expanded="true"]{background:var(--bg-raised); color:var(--ink)}
+.rp-subtog[data-has="false"]{opacity:0; padding-left:6px}
+.rp-subtog[data-has="false"] .t-icon{display:none}
+.rp-tr:hover .rp-subtog[data-has="false"], .rp-subtog[data-has="false"]:focus-visible, .rp-subtog[data-has="false"][aria-expanded="true"]{opacity:1}
+.rp-subtog[data-has="true"]{color:var(--ink-muted)}
+.rp-subtog[data-done="true"]{color:var(--accent-text)}
+.rp-subs{padding:10px 16px 12px 52px; border-bottom:1px solid var(--border-subtle); background:color-mix(in srgb, var(--bg-raised) 55%, transparent); display:flex; flex-direction:column; gap:2px}
+.rp-subs__head{display:flex; align-items:baseline; gap:12px; padding:2px 0 8px; flex-wrap:wrap}
+.rp-stask{display:grid; grid-template-columns:18px minmax(0,1fr) 168px 150px 140px 32px; gap:10px; align-items:center; min-height:40px; padding:0 4px; border-radius:8px}
+.rp-stask:hover{background:var(--bg-raised)}
+.rp-stask[data-done="true"]{opacity:.62}
+.rp-stask[data-done="true"] .rp-stask__title{color:var(--ink-muted)}
+.rp-strike{background-image:linear-gradient(currentColor, currentColor); background-repeat:no-repeat; background-position:0 58%; background-size:0% 1.5px}
+.rp-stask[data-done="true"] .rp-strike{background-size:100% 1.5px; color:var(--ink-muted)}
+.rp-stask__title{font-size:13px}
+.rp-subslot{display:inline-flex; align-items:center; gap:6px; width:100%; min-width:0; height:30px; padding:0 8px; box-sizing:border-box; border:1px solid transparent; border-radius:8px; background:none; color:var(--ink-muted); font:inherit; font-size:12px; cursor:pointer; text-align:left}
+.rp-subslot .t-icon{width:14px; height:14px; flex:none; opacity:.8}
+.rp-subslot:hover{border-color:var(--border-subtle); color:var(--ink)}
+.rp-subslot select{flex:1 1 auto; min-width:0; border:0; background:none; color:inherit; font:inherit; padding:0; cursor:pointer; appearance:none; -webkit-appearance:none; outline:none}
+.rp-subslot select option{background:var(--bg-surface); color:var(--ink)}
+.rp-subslot[data-req="true"]::after{content:"*"; margin-left:auto; color:var(--danger); font-weight:700}
+.rp-subslot[data-miss="true"]{border:1px dashed color-mix(in srgb, var(--danger) 60%, transparent); color:var(--danger)}
+.rp-stask__menu{width:30px; height:30px; border-radius:8px}
+.rp-stask--add{grid-template-columns:18px minmax(0,1fr) auto}
+.rp-stask--add:hover{background:none}
+.rp-stask__input{height:32px; border:0; border-bottom:1px dashed var(--border-subtle); background:none; color:var(--ink); font:inherit; font-size:13px; outline:none; padding:0 2px}
+.rp-stask__input:focus{border-bottom-color:var(--accent-text)}
+@media (max-width: 900px){ .rp-stask{grid-template-columns:18px minmax(0,1fr) 32px} .rp-stask > .rp-subslot, .rp-stask > div:not(:last-child){display:none} }
+.rp-dr{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 6px 6px}
+.rp-dr label{display:grid; gap:4px; font-family:var(--font-mono); font-size:11px; color:var(--ink-muted)}
+.rp-dr .t-input{height:34px; padding:0 8px; font-size:13px; color-scheme:dark}
+[data-theme="light"] .rp-dr .t-input{color-scheme:light}
+.rp-thpop__title{padding:6px 10px 8px; font-family:var(--font-mono); font-size:11px; color:var(--ink-muted)}
+
+.rp-dsubs{display:flex; flex-direction:column; gap:2px}
+.rp-dsubs__head{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.rp-dsubs__head .rp-kicker{margin:0}
+.rp-dsubs__n{font-family:var(--font-mono); font-size:12px; color:var(--ink-muted)}
+.rp-dsubs__n[data-all="true"]{color:var(--accent-text)}
+.rp-dsubs__bar{display:block; height:4px; border-radius:2px; background:var(--bg-overlay); overflow:hidden; margin-bottom:6px}
+.rp-dsubs__bar span{display:block; height:100%; background:var(--accent-text); border-radius:2px; transition:width .35s ease}
+.rp-dsub{position:relative; display:grid; grid-template-columns:16px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:32px; padding:0 4px; border-radius:6px; transition:opacity .3s ease; will-change:transform}
+.rp-dsub:hover{background:var(--bg-raised)}
+.rp-dsub__t{font-size:13px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left}
+.rp-dsub[data-done="true"]{opacity:.62}
+.rp-dsub[data-done="true"] .rp-dsub__t{color:var(--ink-muted)}
+.rp-dsub[data-done="true"] .rp-strike{background-size:100% 1.5px; color:var(--ink-muted)}
+.rp-dsub__miss{display:inline-flex; gap:4px; color:var(--danger)}
+.rp-dsub__miss .t-icon{width:14px; height:14px}
+.rp-dsub--add{grid-template-columns:16px minmax(0,1fr); color:var(--ink-faint)}
+.rp-dsub--add:hover{background:none}
+
+.rp-dslink{display:inline-flex; align-items:center; gap:2px; font-size:inherit; color:inherit}
+.rp-dslink .t-icon{width:14px; height:14px; opacity:.7}
+.rp-dsubs__miss{font-size:12px; color:var(--danger); white-space:nowrap}
+.rp-dsubs__n{white-space:nowrap}
+.rp-sblk[data-pop="true"]{z-index:20}
+.rp-sheet .rp-tabs{gap:16px; -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right:28px}
+.rp-sheet .rp-tabs button{font-size:13px}
+
+.rp-ddav{justify-content:flex-end; vertical-align:middle}
+.rp-dl dd.rp-ddcell{overflow:visible; display:flex; justify-content:flex-end; align-items:center; min-width:0}
+.rp-ddone{display:inline-flex; align-items:center; gap:8px; min-width:0; max-width:100%; overflow:hidden}
+.rp-ddone .rp-av{flex:none}
+
+.rp-stask__title{color:var(--ink); text-align:left; cursor:pointer; max-width:100%}
+
+.rp-selbtn{justify-content:space-between; width:100%; min-width:0; gap:6px; padding:0 10px 0 12px; font-size:13px}
+.rp-selbtn > span{min-width:0; overflow:hidden}
+.rp-selbtn > .t-icon{flex:none; margin-right:2px}
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="tasks" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Görevler</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Görevler</h1><p class="rp-sub">263 görev · 21 koordinatörlük · 185 kişi</p></div>
+<div class="rp-actions">
+<div class="rp-seg" role="group" aria-label="Görünüm">
+<button type="button" aria-pressed="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Liste</button>
+<button type="button" aria-pressed="false"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 5h9M7 10h11M5 15h7M10 20h10"></path></svg>Zaman çizelgesi</button>
+</div>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Yeni görev</button>
+</div>
+</div>
+
+<div class="rp-body">
+<div style="flex:1 1 100%; min-width:0; display:flex; flex-direction:column; gap:16px">
+<div class="rp-toolbar">
+<div class="rp-tgroup">
+<div class="rp-seg" role="group" aria-label="Kayıtlı görünümler">
+<button type="button" aria-pressed="true">Tümü <span class="rp-count">(263)</span></button>
+<button type="button" aria-pressed="false">Başlamadı <span class="rp-count">(57)</span></button>
+<button type="button" aria-pressed="false">Devam ediyor <span class="rp-count">(67)</span></button>
+<button type="button" aria-pressed="false">Geciken <span class="rp-count">(91)</span></button>
+<button type="button" aria-pressed="false">Onay bekleyen <span class="rp-count">(3)</span></button>
+<button type="button" aria-pressed="false">Tamamlanan <span class="rp-count">(130)</span></button>
+</div>
+</div>
+<div class="rp-tgroup"><div class="rp-seg" role="group" aria-label="Tarih talebi filtresi"><button type="button" aria-pressed="false">Tarih talebi <span class="rp-count">(3)</span></button></div></div>
+</div>
+
+<div class="rp-toolbar">
+<div class="rp-tgroup rp-tgroup--grow">
+<div class="t-field" style="flex:1 1 200px; min-width:0">
+<svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg>
+<input class="t-input t-input--icon" type="search" aria-label="Görev ara" placeholder="Başlık, kimlik veya kişi…" style="height:36px; border-radius:12px; padding-left:40px">
+</div>
+</div>
+<div class="rp-tgroup">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+<button class="t-btn t-btn--sm {{ f.cls }}" type="button" style="padding:0 12px; gap:6px">{{ f.label }}<sc-if value="{{ f.active }}" hint-placeholder-val="{{ false }}"><span class="rp-count" style="color:var(--ink)">{{ f.value }}</span></sc-if><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+</sc-for>
+</div>
+</div>
+<div class="rp-reqbar" role="region" aria-label="Bekleyen tarih değişikliği talepleri">
+<span class="rp-reqbar__icon"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4"></path></svg></span>
+<span class="rp-trunc" style="min-width:0; flex:1 1 240px"><strong style="font-weight:600">3 tarih değişikliği talebi onay bekliyor</strong> <span class="rp-muted">· Eğitim ve Arge, Ulaşım planlama, Altyapı ve tesisat</span></span>
+<button class="t-btn t-btn--sm rp-btn-ok" type="button" style="flex:none">Talepleri incele<svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</div>
+</div>
+<div class="rp-col">
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Görevler" style="min-width:640px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:20px minmax(0,1fr) 124px 132px 60px">
+<span role="columnheader"><input class="t-check" type="checkbox" aria-label="Tümünü seç" style="width:18px; height:18px"></span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">görev</button></span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">durum</button></span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">bitiş</button></span>
+<span role="columnheader">kişi</span>
+</div>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+<div role="row" class="rp-tr rp-tr--body {{ r.cls }}" style="grid-template-columns:20px minmax(0,1fr) 124px 132px 60px; min-height:64px">
+<span role="cell"><input class="t-check" type="checkbox" aria-label="{{ r.id }} seç" style="width:18px; height:18px"></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:4px; min-width:0">
+<a class="rp-title rp-trunc" href="#">{{ r.title }}</a>
+<span class="rp-tmeta"><span class="rp-kicker" style="color:var(--ink-faint)">{{ r.id }}</span><button type="button" class="rp-subtog" data-has="{{ r.subHas }}" data-done="{{ r.subAll }}" aria-expanded="{{ r.subOpenA }}" onClick="{{ r.subToggle }}" title="Alt görevler"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg><span>{{ r.subLabel }}</span></button><span class="rp-cap rp-trunc">{{ r.coord }}</span></span>
+</span>
+<span role="cell" class="rp-status"><span class="rp-dot {{ r.dot }}" aria-hidden="true"></span><span class="rp-trunc">{{ r.status }}</span></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:3px; align-items:flex-start"><span class="rp-mono">{{ r.due }}</span><span class="{{ r.noteCls }} rp-nowrap" style="font-size:12px">{{ r.note }}</span><sc-if value="{{ r.hasReq }}" hint-placeholder-val="{{ false }}"><span class="rp-reqtag" title="{{ r.reqTitle }}"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg>{{ r.req }}</span></sc-if></span>
+<span role="cell"><span class="rp-avstack"><sc-for list="{{ r.people }}" as="p" hint-placeholder-count="1"><span class="rp-av rp-av--sm rp-tip" data-tip="{{ p.full }}" aria-label="{{ p.full }}" tabindex="0">{{ p.ini }}</span></sc-for></span></span>
+</div>
+<sc-if value="{{ r.subOpen }}" hint-placeholder-val="{{ false }}">
+<div role="row" class="rp-subs" aria-label="{{ r.id }} alt görevleri">
+<div class="rp-subs__head"><span class="rp-kicker">alt görevler · {{ r.subDoneN }}/{{ r.subN }}</span><span class="rp-cap">Kişi ve tarih isteğe bağlıdır; kanıtı zorunlu olan alt görev, kanıt yüklenmeden bitirilemez. Görev, tüm alt görevler bitmeden tamamlanamaz.</span></div>
+<sc-for list="{{ r.subs }}" as="u" hint-placeholder-count="3">
+<div class="rp-stask" data-done="{{ u.doneA }}">
+<input class="t-check" type="checkbox" checked="{{ u.done }}" onChange="{{ u.toggle }}" aria-label="{{ u.title }} tamamlandı" style="width:18px; height:18px">
+<button type="button" class="rp-stask__title rp-linkbtn rp-trunc" title="Görev detayında aç"><span class="rp-strike">{{ u.title }}</span></button>
+<label class="rp-subslot" data-req="{{ u.pReq }}" data-miss="{{ u.pMiss }}" title="{{ u.pTip }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"></path></svg><select onChange="{{ u.setP }}" aria-label="Kişi"><sc-for list="{{ u.pOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label>
+<div style="position:relative; min-width:0"><button type="button" class="rp-subslot" data-req="{{ u.dReq }}" data-miss="{{ u.dMiss }}" title="{{ u.dTip }}" aria-expanded="{{ u.dOpenA }}" onClick="{{ u.dToggle }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg><span class="rp-trunc">{{ u.dLabel }}</span></button>
+<sc-if value="{{ u.dOpen }}" hint-placeholder-val="{{ false }}"><div class="rp-pop" role="dialog" aria-label="Alt görev tarihleri" style="top:calc(100% + 6px); left:0; width:280px; padding:10px; display:grid; gap:10px"><div class="rp-dr" style="padding:0"><label>başlangıç<input class="t-input" type="date" value="{{ u.start }}" onChange="{{ u.setStart }}"></label><label>bitiş<input class="t-input" type="date" value="{{ u.end }}" min="{{ u.start }}" onChange="{{ u.setEnd }}"></label></div><div style="display:flex; justify-content:space-between"><button class="t-btn t-btn--secondary t-btn--sm" type="button" onClick="{{ u.clearD }}">Tarihi kaldır</button><button class="t-btn t-btn--primary t-btn--sm" type="button" onClick="{{ u.dToggle }}">Tamam</button></div></div></sc-if></div>
+<button type="button" class="rp-subslot" data-req="{{ u.fReq }}" data-miss="{{ u.fMiss }}" title="{{ u.fTip }}" onClick="{{ u.fileAct }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4"></path></svg><span class="rp-trunc">{{ u.fLabel }}</span></button>
+<div style="position:relative"><button type="button" class="t-iconbtn rp-stask__menu" aria-label="{{ u.title }} seçenekleri" aria-expanded="{{ u.mOpenA }}" onClick="{{ u.mToggle }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></button>
+<sc-if value="{{ u.mOpen }}" hint-placeholder-val="{{ false }}"><div class="rp-pop" role="menu" style="top:calc(100% + 6px); right:0; width:230px"><div class="rp-thpop__title">zorunlu alanlar</div><label class="rp-menuitem" style="display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px"><input class="t-check" type="checkbox" checked="{{ u.pReqB }}" onChange="{{ u.reqP }}" style="width:18px; height:18px">Kişi ataması</label><label class="rp-menuitem" style="display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px"><input class="t-check" type="checkbox" checked="{{ u.dReqB }}" onChange="{{ u.reqD }}" style="width:18px; height:18px">Tarih aralığı</label><label class="rp-menuitem" style="display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px"><input class="t-check" type="checkbox" checked="{{ u.fReqB }}" onChange="{{ u.reqF }}" style="width:18px; height:18px">Kanıt dosyası (arşiv)</label><div style="height:1px; background:var(--border-subtle); margin:6px 4px"></div><button type="button" class="rp-menuitem" role="menuitem" onClick="{{ u.del }}" style="color:var(--danger)">Alt görevi sil</button></div></sc-if></div>
+</div>
+</sc-for>
+<div class="rp-stask rp-stask--add"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M12 5v14M5 12h14"></path></svg><input class="rp-stask__input" type="text" placeholder="Alt görev ekle ve Enter’a bas" aria-label="{{ r.id }} için alt görev ekle" value="{{ r.subDraft }}" onChange="{{ r.subSetDraft }}" onKeyDown="{{ r.subKey }}"><sc-if value="{{ r.subCanAdd }}" hint-placeholder-val="{{ false }}"><button class="t-btn t-btn--secondary t-btn--sm" type="button" onClick="{{ r.subAdd }}">Ekle</button></sc-if></div>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</div></div>
+
+<div style="display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:12px">
+<span class="rp-cap rp-trunc">1–10 / 263 görev</span>
+<nav class="t-pages" aria-label="Sayfalar" style="flex-wrap:nowrap">
+<button class="t-page" type="button" aria-label="Önceki sayfa"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button class="t-page" type="button" aria-current="page">1</button>
+<button class="t-page" type="button">2</button>
+<button class="t-page" type="button">3</button>
+<span class="rp-faint">…</span>
+<button class="t-page" type="button">27</button>
+<button class="t-page" type="button" aria-label="Sonraki sayfa"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></button>
+</nav>
+<span class="rp-cap rp-trunc" style="text-align:right">Sayfa başına 10</span>
+</div>
+</div>
+
+<aside class="rp-aside" aria-label="Görev ayrıntısı">
+<section class="rp-sheet" style="gap:18px">
+<div class="rp-sheethead" style="grid-template-columns:minmax(0,1fr) auto auto">
+<div style="min-width:0"><p class="rp-kicker rp-trunc">MEK-6 · Mekanik sistemler</p><h2 style="margin:6px 0 0; font-family:var(--font-display); font-size:20px; line-height:26px; font-weight:600" class="rp-clamp2">Faz3 asfalt işlemi</h2></div>
+<button class="t-iconbtn" type="button" aria-label="Tam sayfada aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M10 4H4v16h16v-6"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Paneli kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div style="display:grid; grid-template-columns:minmax(0,1fr); gap:8px">
+<button class="t-btn t-btn--secondary t-btn--sm rp-selbtn" type="button"><span class="rp-status"><span class="rp-dot rp-dot--doing"></span>Devam ediyor</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+<div class="rp-tabs" role="tablist" aria-label="Görev ayrıntısı">
+<button type="button" role="tab" aria-selected="true">Özet</button>
+<button type="button" role="tab" aria-selected="false">Alt görevler <span class="rp-count">4</span></button>
+<button type="button" role="tab" aria-selected="false">Dosyalar <span class="rp-count">0</span></button>
+<button type="button" role="tab" aria-selected="false">Notlar <span class="rp-count">0</span></button>
+</div>
+<dl class="rp-dl">
+<dt>Atanan</dt><dd class="rp-ddcell"><span class="rp-ddone"><span class="rp-trunc">Mevlüt Yunus Kayacan</span></span></dd>
+<dt>Oluşturan</dt><dd class="rp-ddcell"><span class="rp-ddone"><span class="rp-trunc">Muhammet Ali Çalışkan</span></span></dd>
+<dt>Tanımlandı</dt><dd class="rp-mono">10.06.2026</dd>
+<dt>Tarih aralığı</dt><dd class="rp-mono">20.07 → 25.07.2026</dd>
+<dt>Kanıt dosyası</dt><dd><button class="rp-linkbtn rp-dslink" type="button" title="Arşivde bu görevin klasörünü aç">Yok<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button></dd>
+</dl>
+<div style="display:flex; flex-direction:column; gap:12px">
+<p class="rp-kicker">ilerleme</p>
+<ol class="rp-timeline">
+<li><span class="rp-tl-dot" aria-hidden="true"><span class="rp-dot rp-dot--done" style="width:6px; height:6px"></span></span><span style="font-size:13px">Görev tanımlandı</span><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">10 Haz</span></li>
+<li><span class="rp-tl-dot" aria-hidden="true"><span class="rp-dot rp-dot--doing" style="width:6px; height:6px"></span></span><span style="font-size:13px">Planlanan başlangıç</span><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">20 Tem</span></li>
+<li><span class="rp-tl-dot" aria-hidden="true"><span class="rp-dot rp-dot--late" style="width:6px; height:6px"></span></span><span style="font-size:13px">Plan bitişi geçti</span><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">25 Tem</span></li>
+<li><span class="rp-tl-dot" aria-hidden="true" style="border-color:var(--danger)"><span class="rp-dot rp-dot--late" style="width:6px; height:6px"></span></span><span class="rp-danger-text" style="font-size:13px; font-weight:600">88 gündür gecikmede</span><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">bugün</span></li>
+</ol>
+</div>
+<div class="rp-iconrow rp-iconrow--icons">
+<button class="t-iconbtn rp-upbtn" type="button" aria-label="Kanıt dosyası yükle" title="Kanıt dosyası yükle"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 18v-7M9 14l3-3 3 3"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Atanana hatırlat" title="Atanana hatırlat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Tarih değişikliği iste" title="Tarih değişikliği iste"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Kopyala" title="Kopyala"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M8 8h12v12H8zM4 16V4h12"></path></svg></button>
+<button class="t-iconbtn t-iconbtn--danger" type="button" aria-label="Görevi sil" title="Görevi sil"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg></button>
+</div>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"light"},"$preview":{"width":1440,"height":1560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = (full) => ({ full, ini: full.split(' ').map((s) => s[0]).slice(0, 2).join('') });
+    const ST = { done: ['rp-dot--done', 'Tamamlandı'], doing: ['rp-dot--doing', 'Devam ediyor'], review: ['rp-dot--review', 'Onay bekliyor'], todo: ['rp-dot--todo', 'Başlamadı'] };
+    const PR = { high: ['rp-prio--high', 'Yüksek'], mid: ['rp-prio--mid', 'Orta'] };
+    const R = (id, title, coord, st, pr, due, note, late, people, sel, req) => ({ id, title, coord, due, note, people: people.map(P), hasReq: !!req, req: req ? 'Talep · ' + req[1] : '', reqTitle: req ? 'Bitiş ' + req[0] + ' → ' + req[1] + ' talep edildi' : '',
+      cls: sel ? 'rp-sel' : '', dot: ST[st][0], status: ST[st][1], prioCls: PR[pr][0], prio: PR[pr][1], noteCls: late ? 'rp-danger-text' : 'rp-faint' });
+    const MYK = 'Mevlüt Yunus Kayacan';
+    const rows = [
+      R('MEK-6', 'Faz3 asfalt işlemi', 'Mekanik sistemler', 'doing', 'high', '25.07.2026', '88 gün gecikti', true, [MYK], true),
+      R('ULA-1', 'Öğrenci ve misafir otopark zemin düzenlemesi faz5 ve faz6', 'Ulaşım planlama', 'doing', 'mid', '02.08.2026', '80 gün gecikti', true, ['Salih Özer']),
+      R('ULA-2', 'Öğrenci ve misafir otopark temel oluşturma ve sıkıştırma faz5 ve faz6', 'Ulaşım planlama', 'doing', 'mid', '05.09.2026', '46 gün gecikti', true, ['Salih Özer']),
+      R('ULA-3', 'Paydaş ve VİP otopark zemin düzenlemesi faz7 ve faz8', 'Ulaşım planlama', 'doing', 'mid', '05.09.2026', '46 gün gecikti', true, ['Salih Özer'], false, ['05 Eyl', '15 Kas']),
+      R('ALT-7', 'Hidrofor sistemi kurulumu', 'Altyapı ve tesisat', 'doing', 'high', '10.09.2026', '41 gün gecikti', true, ['Kadir Özbek'], false, ['10 Eyl', '31 Eki']),
+      R('İDA-1', 'VİP yönetim takip', 'İdari işler', 'doing', 'mid', '04.10.2026', '17 gün gecikti', true, ['Bahar Kılıç']),
+      R('İDA-2', 'Talep toplama', 'İdari işler', 'review', 'mid', '08.10.2026', '13 gün gecikti', true, ['Bahar Kılıç']),
+      R('İDA-3', 'Zimmet', 'İdari işler', 'todo', 'mid', '10.10.2026', '11 gün gecikti', true, ['Bahar Kılıç']),
+      R('İDA-4', 'Biletleme', 'İdari işler', 'review', 'mid', '20.10.2026', '1 gün gecikti', true, ['Bahar Kılıç']),
+      R('İDA-5', 'Yemek planlama takip', 'İdari işler', 'doing', 'mid', '23.10.2026', '2 gün kaldı', false, ['Bahar Kılıç'])
+    ];
+
+    const SU = (title, done, o) => { o = o || {}; const rq = o.req || {}; const pn = o.as || '';
+      return { title, done, doneA: done ? 'true' : 'false', pReq: rq.p ? 'true' : 'false', pMiss: rq.p && !pn ? 'true' : 'false', pTip: '', pOpts: [{ v: '', label: pn || (rq.p ? 'Kişi seç' : 'Kişi yok'), sel: true }],
+        dReq: rq.d ? 'true' : 'false', dMiss: rq.d && !o.d ? 'true' : 'false', dTip: '', dLabel: o.d || (rq.d ? 'Tarih seç' : 'Tarih yok'), dOpen: false, dOpenA: 'false',
+        fReq: rq.f ? 'true' : 'false', fMiss: rq.f && !o.f ? 'true' : 'false', fTip: '', fLabel: o.f || (rq.f ? 'Kanıt yükle' : 'Kanıt yok'), mOpen: false, mOpenA: 'false' }; };
+    const SUBS = { 'MEK-6': [SU('Asfalt serimi ve silindir', false, { as: MYK, d: '20 Tem – 24 Tem' }), SU('Saha fotoğrafları', false, { req: { f: true } }), SU('Zemin temizliği ve hazırlık', true, { as: MYK }), SU('Astar (bitüm emülsiyonu) uygulaması', true)],
+      'ULA-1': [SU('a', true), SU('b', false), SU('c', false)], 'ALT-7': [SU('a', true), SU('b', false), SU('c', false)] };
+    rows.forEach((r) => { const L = SUBS[r.id] || []; const dn = L.filter((u) => u.done).length; Object.assign(r, { subHas: L.length ? 'true' : 'false', subAll: L.length && dn === L.length ? 'true' : 'false', subLabel: L.length ? dn + '/' + L.length : '+ alt', subN: L.length, subDoneN: dn, subOpen: r.id === 'MEK-6', subOpenA: r.id === 'MEK-6' ? 'true' : 'false', subs: L, subDraft: '', subCanAdd: false }); });
+    const filters = [
+      { label: 'Kişi', active: false, value: '', cls: 't-btn--secondary' },
+      { label: 'Koordinatörlük', active: true, value: '3', cls: 't-btn--secondary' }
+    ];
+    return { theme: this.props.theme ?? 'light', rows, filters };
+  }
+}
+</script>
+</body>
+</html>

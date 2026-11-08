@@ -1,0 +1,304 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Arsiv-Klasor.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "title": "07 · Arşiv › Klasör",
+      "w": 1440,
+      "x": 1446,
+      "y": 7696
+    },
+    "Arsiv.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "06 · Arşiv",
+      "w": 1440,
+      "x": -74,
+      "y": 7696
+    },
+    "Gorevler-Liste-Acik.dc.html": {
+      "expand": "fill",
+      "h": 1560,
+      "title": "A2 · Açık tema › Görevler",
+      "w": 1440,
+      "x": 1446,
+      "y": 16400
+    },
+    "Gorevler-Liste.dc.html": {
+      "expand": "fill",
+      "h": 1560,
+      "title": "03 · Görevler › Liste",
+      "w": 1440,
+      "x": -74,
+      "y": 2457
+    },
+    "Gorevler-Zaman.dc.html": {
+      "expand": "fill",
+      "h": 1320,
+      "title": "03c · Görevler › Zaman çizelgesi",
+      "w": 1440,
+      "x": 1446,
+      "y": 2457
+    },
+    "Islem-Gecmisi.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "title": "01b · Ana sayfa › İşlem geçmişi",
+      "w": 1440,
+      "x": 1520,
+      "y": -1560
+    },
+    "Koordinatorluk-Detay.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "title": "08b · Koordinatörlük › Altyapı ve tesisat",
+      "w": 1440,
+      "x": 1446,
+      "y": 5783
+    },
+    "Koordinatorlukler.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "title": "08 · Koordinatörlükler",
+      "w": 1440,
+      "x": -74,
+      "y": 5783
+    },
+    "Kullanici-KisiselTakip.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "title": "05b · Kullanıcı › Kişisel takip",
+      "w": 1440,
+      "x": 1446,
+      "y": 4170
+    },
+    "Kullanicilar.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "title": "05 · Kullanıcılar",
+      "w": 1440,
+      "x": -74,
+      "y": 4170
+    },
+    "Main-Acik.dc.html": {
+      "expand": "fill",
+      "h": 2700,
+      "title": "A1 · Açık tema › Ana sayfa",
+      "w": 1440,
+      "x": -74,
+      "y": 16400
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 2700,
+      "title": "01 · Ana sayfa",
+      "w": 1440,
+      "x": 0,
+      "y": -1560
+    },
+    "Mesajlar-Acik.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "A3 · Açık tema › Mesajlar",
+      "w": 1440,
+      "x": 2966,
+      "y": 16400
+    },
+    "Mesajlar-Pencereler.dc.html": {
+      "expand": "fill",
+      "h": 2500,
+      "title": "10c · Mesajlar › Pencereler",
+      "w": 1440,
+      "x": 2966,
+      "y": 12300
+    },
+    "Mesajlar-Uye.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "10b · Mesajlar › Üye görünümü (MSG-043)",
+      "w": 1440,
+      "x": 1446,
+      "y": 12300
+    },
+    "Mesajlar.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "10 · Mesajlar › Genel grup",
+      "w": 1440,
+      "x": -74,
+      "y": 12300
+    },
+    "Prototip.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Çalışan prototip · Play ile aç",
+      "w": 1440,
+      "x": -2334,
+      "y": -1560
+    },
+    "Sidebar.dc.html": {
+      "h": 1100,
+      "title": "Ortak · Kenar menüsü",
+      "w": 272,
+      "x": -346,
+      "y": -1560
+    },
+    "Tablo-Baglanti.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "11d · Tablo › Tablo bağlantısı",
+      "w": 1440,
+      "x": 4486,
+      "y": 15000
+    },
+    "Tablo-Detay-Acik.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "A4 · Açık tema › Tablo",
+      "w": 1440,
+      "x": 4486,
+      "y": 16400
+    },
+    "Tablo-Detay.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "11b · Tablo › Fuar haftası vardiya planı",
+      "w": 1440,
+      "x": 1446,
+      "y": 15000
+    },
+    "Tablo-Pencereler.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "11c · Tablo › Paylaş",
+      "w": 1440,
+      "x": 2966,
+      "y": 15000
+    },
+    "Tablolar.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "11 · Tablolar",
+      "w": 1440,
+      "x": -74,
+      "y": 15000
+    },
+    "Toplanti-Detay.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "title": "09b · Toplantı › Haftalık koordinasyon",
+      "w": 1440,
+      "x": 1446,
+      "y": 9300
+    },
+    "Toplanti-Formlar.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "09c · Toplantı › Pencereler",
+      "w": 1440,
+      "x": 2966,
+      "y": 9300
+    },
+    "Toplanti-Gorusme.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "09d · Toplantı › Görüşme (tam ekran)",
+      "w": 1440,
+      "x": -74,
+      "y": 11100
+    },
+    "Toplanti-Kucuk.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "09e · Toplantı › Küçültülmüş görüşme",
+      "w": 1440,
+      "x": 1446,
+      "y": 11100
+    },
+    "Toplantilar.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "09 · Toplantılar",
+      "w": 1440,
+      "x": -74,
+      "y": 9300
+    },
+    "Kenar-Secici.dc.html": {
+      "x": 3040,
+      "y": -1560,
+      "w": 1440,
+      "h": 1000,
+      "title": "Ortak · Kenar menüsü › Program, rol, koordinatörlük"
+    },
+    "Gorevler-AltGorev.dc.html": {
+      "x": 2966,
+      "y": 2457,
+      "w": 1440,
+      "h": 1420,
+      "title": "03d · Görevler › Alt görevler ve zaman çizelgesi"
+    },
+    "Tablo-Birlikte.dc.html": {
+      "x": 6006,
+      "y": 15000,
+      "w": 1440,
+      "h": 1260,
+      "title": "11e · Tablo › Birlikte çalışma"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-21T12:17:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "lightTitle": {
+      "kind": "title1",
+      "maxW": 5960,
+      "text": "Açık tema örnekleri",
+      "w": 240,
+      "x": -74,
+      "y": 16060
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Islem-Gecmisi.dc.html",
+    "Sidebar.dc.html",
+    "Kenar-Secici.dc.html",
+    "Gorevler-Liste.dc.html",
+    "Gorevler-Zaman.dc.html",
+    "Gorevler-AltGorev.dc.html",
+    "Kullanicilar.dc.html",
+    "Kullanici-KisiselTakip.dc.html",
+    "Arsiv.dc.html",
+    "Arsiv-Klasor.dc.html",
+    "Koordinatorlukler.dc.html",
+    "Koordinatorluk-Detay.dc.html",
+    "Toplantilar.dc.html",
+    "Toplanti-Detay.dc.html",
+    "Toplanti-Formlar.dc.html",
+    "Toplanti-Gorusme.dc.html",
+    "Toplanti-Kucuk.dc.html",
+    "Mesajlar.dc.html",
+    "Mesajlar-Uye.dc.html",
+    "Mesajlar-Pencereler.dc.html",
+    "Tablolar.dc.html",
+    "Tablo-Detay.dc.html",
+    "Tablo-Pencereler.dc.html",
+    "Tablo-Baglanti.dc.html",
+    "Tablo-Birlikte.dc.html",
+    "Main-Acik.dc.html",
+    "Gorevler-Liste-Acik.dc.html",
+    "Mesajlar-Acik.dc.html",
+    "Tablo-Detay-Acik.dc.html",
+    "Prototip.dc.html"
+  ],
+  "pages": [],
+  "title": "RoketPortal — Yeniden Tasarım"
+}

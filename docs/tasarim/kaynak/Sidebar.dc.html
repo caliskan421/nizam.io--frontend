@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal kenar menüsü</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.sb-sw{position:relative; display:flex; flex-direction:column; gap:8px}
+.sb-pair{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px}
+.sb-card{position:relative; z-index:1; display:flex; flex-direction:column; gap:4px; width:100%; min-height:56px; padding:8px 10px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); color:var(--ink); font-family:inherit; text-align:left; cursor:pointer; box-sizing:border-box; min-width:0}
+.sb-card:hover{border-color:var(--border-strong)}
+.sb-card[aria-expanded="true"]{border-color:var(--border-strong); background:var(--bg-raised); z-index:31}
+.sb-card--koord{border-color:color-mix(in srgb, #74c27a 50%, var(--border-subtle))}
+.sb-card--uye{border-color:color-mix(in srgb, #73a9e3 50%, var(--border-subtle))}
+.sb-card__l{display:flex; align-items:center; justify-content:space-between; gap:4px; font-family:var(--font-mono); font-size:10.5px; line-height:13px; letter-spacing:0.02em; color:var(--ink-muted)}
+.sb-card__l svg{width:12px; height:12px; color:var(--ink-faint)}
+.sb-card__v{display:flex; align-items:center; gap:6px; min-width:0; font-size:13px; line-height:18px; font-weight:600}
+.sb-card__v > span:last-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
+.sb-pav{width:18px; height:18px; border-radius:5px; display:inline-flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:700; flex:none}
+.sb-pav--lg{width:28px; height:28px; border-radius:8px; font-size:11px}
+.sb-dot{width:8px; height:8px; border-radius:50%; flex:none}
+.sb-scrim{position:fixed; inset:0; z-index:30; border:0; padding:0; background:transparent; cursor:default}
+.sb-pop{position:absolute; left:0; right:0; z-index:32; padding:6px; border:1px solid var(--border-strong); border-radius:var(--radius-md); background:var(--bg-raised); box-shadow:var(--shadow-sheet); display:flex; flex-direction:column; gap:2px}
+.sb-pop__h{margin:0; padding:8px 10px 4px; font-family:var(--font-mono); font-size:11px; line-height:14px; letter-spacing:0.02em; color:var(--ink-muted)}
+.sb-it{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; width:100%; min-height:40px; padding:6px 10px; border:0; border-radius:10px; background:transparent; color:var(--ink); font-family:inherit; font-size:13px; text-align:left; cursor:pointer; box-sizing:border-box}
+.sb-it:hover{background:var(--bg-overlay)}
+.sb-it[aria-checked="true"]{background:var(--bg-overlay); font-weight:600}
+.sb-it__lead{display:inline-flex; align-items:center; gap:10px; min-width:0}
+.sb-it__lead > span:last-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+</style>
+</helmet>
+<div style="box-sizing:border-box; min-height:100vh; height:100%; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px">
+
+<sc-if value="{{ full }}" hint-placeholder-val="{{ true }}">
+<div style="box-sizing:border-box; min-height:100vh; height:100%; padding:20px 16px; display:flex; flex-direction:column; gap:20px">
+<div style="display:grid; grid-template-columns:32px minmax(0,1fr) 36px; gap:10px; align-items:center; padding:0 4px">
+<span aria-hidden="true" style="width:32px; height:32px; border-radius:10px; background:linear-gradient(180deg, var(--accent-top), var(--accent)); color:var(--accent-ink); display:inline-flex; align-items:center; justify-content:center"><svg class="t-icon" viewBox="0 0 24 24" style="stroke-width:2"><path d="M5 19c1-4 3-6 6-7M13 11c2-4 5-6 8-7-1 3-3 6-7 8M9 15l-3 3M11 8 8 7 5 9l3 1M16 13l1 3-2 3-1-3"></path></svg></span>
+<span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-family:var(--font-display); font-weight:600; font-size:16px; letter-spacing:-0.01em">RoketPortal</span><span class="rp-kicker" style="color:var(--ink-faint)">v2.0</span></span>
+<button class="t-iconbtn" type="button" aria-label="Menüyü daralt" onClick="{{ toggle }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9 4v16M15 10l-2 2 2 2"></path></svg></button>
+</div>
+
+<div class="sb-sw">
+<sc-if value="{{ sw.anyOpen }}" hint-placeholder-val="{{ false }}"><button type="button" class="sb-scrim" aria-label="Menüyü kapat" onClick="{{ sw.close }}"></button></sc-if>
+<div class="sb-pair">
+<button type="button" class="sb-card" aria-haspopup="menu" aria-expanded="{{ sw.progExp }}" aria-label="Program: {{ sw.progName }}" onClick="{{ sw.toggleProg }}"><span class="sb-card__l">Program<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="sb-card__v"><span class="sb-pav" aria-hidden="true" style="background:{{ sw.progBg }}; color:{{ sw.progInk }}">{{ sw.progAv }}</span><span>{{ sw.progShort }}</span></span></button>
+<button type="button" class="sb-card {{ sw.roleCls }}" aria-haspopup="menu" aria-expanded="{{ sw.roleExp }}" aria-label="Rol: {{ sw.roleLabel }}" onClick="{{ sw.toggleRole }}"><span class="sb-card__l">Rol<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="sb-card__v"><span class="sb-dot" aria-hidden="true" style="background:{{ sw.roleColor }}"></span><span>{{ sw.roleLabel }}</span></span></button>
+</div>
+<sc-if value="{{ sw.showCoord }}" hint-placeholder-val="{{ false }}">
+<button type="button" class="sb-card" aria-haspopup="menu" aria-expanded="{{ sw.coordExp }}" aria-label="Koordinatörlük: {{ sw.coordName }}" onClick="{{ sw.toggleCoord }}"><span class="sb-card__l">Koordinatörlük<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="sb-card__v"><span>{{ sw.coordName }}</span></span></button>
+</sc-if>
+<sc-if value="{{ sw.progOpen }}" hint-placeholder-val="{{ false }}"><div class="sb-pop" role="menu" aria-label="Program seç" style="top:64px">
+<sc-for list="{{ sw.progs }}" as="p" hint-placeholder-count="2"><button type="button" class="sb-it" role="menuitemradio" aria-checked="{{ p.on }}" onClick="{{ p.pick }}"><span class="sb-it__lead"><span class="sb-pav sb-pav--lg" aria-hidden="true" style="background:{{ p.bg }}; color:{{ p.ink }}">{{ p.av }}</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc">{{ p.name }}</span><span class="rp-cap" style="font-weight:400">{{ p.sub }}</span></span></span><sc-if value="{{ p.onB }}" hint-placeholder-val="{{ false }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></button></sc-for>
+</div></sc-if>
+<sc-if value="{{ sw.roleOpen }}" hint-placeholder-val="{{ false }}"><div class="sb-pop" role="menu" aria-label="Rol seç" style="top:64px">
+<sc-for list="{{ sw.roles }}" as="r" hint-placeholder-count="3"><button type="button" class="sb-it" role="menuitemradio" aria-checked="{{ r.on }}" onClick="{{ r.pick }}"><span class="sb-it__lead"><span class="sb-dot" aria-hidden="true" style="background:{{ r.color }}"></span><span>{{ r.label }}</span></span><sc-if value="{{ r.onB }}" hint-placeholder-val="{{ false }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if><sc-if value="{{ r.showN }}" hint-placeholder-val="{{ false }}"><span class="rp-count">{{ r.n }}</span></sc-if></button></sc-for>
+</div></sc-if>
+<sc-if value="{{ sw.coordOpen }}" hint-placeholder-val="{{ false }}"><div class="sb-pop" role="menu" aria-label="Koordinatörlük seç" style="top:128px">
+<p class="sb-pop__h">{{ sw.coordHead }}</p>
+<sc-for list="{{ sw.coords }}" as="c" hint-placeholder-count="2"><button type="button" class="sb-it" role="menuitemradio" aria-checked="{{ c.on }}" onClick="{{ c.pick }}"><span class="rp-trunc">{{ c.name }}</span><sc-if value="{{ c.onB }}" hint-placeholder-val="{{ false }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></button></sc-for>
+</div></sc-if>
+</div>
+
+<nav aria-label="Ana menü" class="rp-navgroups" style="flex:1 1 auto; padding:8px 0 0 4px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+<div class="rp-navgroup">
+<p class="rp-navlabel">{{ g.label }}</p>
+<div class="rp-navlist" style="display:flex; flex-direction:column; gap:2px">
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+<a class="t-nav" href="#" aria-current="{{ it.current }}" onClick="{{ it.go }}">
+<svg class="t-icon" viewBox="0 0 24 24"><path d="{{ it.d }}"></path></svg>
+<span class="rp-trunc" style="flex:1 1 auto">{{ it.label }}</span>
+<sc-if value="{{ it.hasBadge2 }}" hint-placeholder-val="{{ false }}"><span class="t-badge t-badge--count" title="{{ it.badge2Title }}" aria-label="{{ it.badge2Title }}" style="min-width:22px; height:20px; border-radius:10px; background:var(--bg-overlay); color:var(--ink-muted); box-shadow:inset 0 0 0 1px var(--border-strong)">{{ it.badge2 }}</span></sc-if>
+<sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span class="t-badge t-badge--count" title="{{ it.badgeTitle }}" style="min-width:22px; height:20px; border-radius:10px; background:{{ it.badgeBg }}; color:{{ it.badgeInk }}">{{ it.badge }}</span></sc-if>
+<sc-if value="{{ it.beta }}" hint-placeholder-val="{{ false }}"><span class="rp-kicker" style="padding:1px 6px; border:1px solid var(--border-strong); border-radius:6px">beta</span></sc-if>
+</a>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</nav>
+
+<div style="display:flex; flex-direction:column; gap:10px">
+<div class="rp-navlist"><a class="t-nav" href="#"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"></path></svg><span class="rp-trunc" style="flex:1 1 auto">Yardım ve rehberler</span></a></div>
+<div style="display:grid; grid-template-columns:32px minmax(0,1fr) 36px; gap:10px; align-items:center; padding:10px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)">
+<span class="rp-av" aria-hidden="true">MA</span>
+<span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-weight:600; font-size:13px">Muhammet Ali Çalışkan</span><span class="rp-cap rp-trunc">macaliskan@gmail.com</span></span>
+<button class="t-iconbtn" type="button" aria-label="Çıkış yap"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg></button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rail }}" hint-placeholder-val="{{ false }}">
+<div class="rp-rail" style="box-sizing:border-box; min-height:100vh; height:100%; padding:20px 12px; display:flex; flex-direction:column; align-items:stretch; gap:16px">
+<button class="rp-raillogo" type="button" aria-label="Menüyü genişlet" title="Menüyü genişlet" onClick="{{ toggle }}"><span class="rp-raillogo__mark" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24" style="stroke-width:2"><path d="M5 19c1-4 3-6 6-7M13 11c2-4 5-6 8-7-1 3-3 6-7 8M9 15l-3 3M11 8 8 7 5 9l3 1M16 13l1 3-2 3-1-3"></path></svg></span><span class="rp-raillogo__open" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9 4v16M13 10l2 2-2 2"></path></svg></span></button>
+<nav aria-label="Ana menü" class="rp-navlist" style="display:flex; flex-direction:column; gap:16px; flex:1 1 auto">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+<div style="display:flex; flex-direction:column; gap:2px; padding-top:12px; border-top:1px solid var(--border-subtle)">
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+<a class="t-nav" href="#" aria-current="{{ it.current }}" onClick="{{ it.go }}" aria-label="{{ it.label }}" title="{{ it.label }}"><svg class="t-icon" viewBox="0 0 24 24"><path d="{{ it.d }}"></path></svg></a>
+</sc-for>
+</div>
+</sc-for>
+</nav>
+<span class="rp-av" aria-hidden="true" style="align-self:center">MA</span>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","tasks","archive","meetings","calendar","memory","messages","sheets","users","coords","season","sim"],"default":"home"},"collapsed":{"editor":"boolean","default":false},"onNavigate":{"editor":null},"onToggle":{"editor":null},"ctx":{"editor":null},"onCtx":{"editor":null},"$preview":{"width":272,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active ?? 'home';
+    const rail = this.props.collapsed === true || this.props.collapsed === 'true';
+    const D = {
+      home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+      tasks: 'M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6h9M11 12h9M11 18h9',
+      gantt: 'M4 5h9M7 10h11M5 15h7M10 20h10',
+      dates: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M12 13v3l2 1',
+      archive: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      meetings: 'M15 10l5-3v10l-5-3zM3 7h12v10H3z',
+      messages: 'M3 6h18v12H3zM3 7l9 6 9-6',
+      sheets: 'M4 5h16v14H4zM4 10h16M4 15h16M10 5v14',
+      calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h2M12 14h2M16 14h2M8 17h2M12 17h2',
+      memory: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z',
+      users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-4-6.3',
+      coords: 'M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M15 9h4a1 1 0 0 1 1 1v11M3 21h18M9 7h2M9 11h2M9 15h2',
+      season: 'M5 21V4M5 4h11l-2 4 2 4H5',
+      sim: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9'
+    };
+    const nav = this.props.onNavigate;
+    const mk = (id, label, badge, tone, beta, badge2) => ({ id, label, d: D[id], current: id === active ? 'page' : 'false', badge: badge || '', hasBadge: !!badge, beta: !!beta,
+      badge2: badge2 || '', hasBadge2: !!badge2, badge2Title: badge2 ? badge2 + ' tarih değişikliği talebi bekliyor' : '', badgeTitle: id === 'tasks' && badge ? badge + ' geciken görev' : '',
+      go: (e) => { if (typeof nav === 'function') { if (e && e.preventDefault) e.preventDefault(); nav(id); } },
+      badgeBg: tone === 'danger' ? 'var(--danger)' : tone === 'gold' ? 'var(--gold)' : 'var(--bg-overlay)', badgeInk: tone === 'danger' ? 'var(--on-danger)' : tone === 'gold' ? 'var(--on-gold)' : 'var(--ink)' });
+    const groups = [
+      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevler', this.props.lateCount === undefined ? '91' : (this.props.lateCount ? String(this.props.lateCount) : ''), 'danger', false, this.props.reqCount === undefined ? '3' : (this.props.reqCount ? String(this.props.reqCount) : '')), mk('calendar', 'Takvim')] },
+      { label: 'İçerik', items: [mk('memory', 'Kurumsal hafıza'), mk('archive', 'Arşiv'), mk('meetings', 'Toplantılar'), mk('messages', 'Mesajlar', this.props.msgCount === undefined ? '2' : (this.props.msgCount ? String(this.props.msgCount) : '')), mk('sheets', 'Tablolar')] },
+      { label: 'Yönetim', items: [mk('users', 'Kullanıcılar'), mk('coords', 'Koordinatörlükler'), mk('season', 'Teknofest ve sezon')] },
+      { label: 'Deneysel', items: [mk('sim', 'Simülasyon', '', '', true)] }
+    ];
+    const DEF = { progs: [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }],
+      progId: 'sur', roleId: 'admin', coordId: null,
+      roles: [{ id: 'admin', coords: [] }, { id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }] };
+    const cx = this.props.ctx && this.props.ctx.progs ? this.props.ctx : DEF;
+    const RL = { admin: ['Admin', '#e57a9a', ''], koord: ['Koordinatör', '#74c27a', 'sb-card--koord'], uye: ['Üye', '#73a9e3', 'sb-card--uye'] };
+    const st = this.state || {};
+    const open = st.swOpen || null;
+    const setOpen = (k) => this.setState({ swOpen: open === k ? null : k });
+    const send = (ch) => { this.setState({ swOpen: null }); const fn = this.props.onCtx; if (typeof fn === 'function') fn(ch); else this.setState({ swLocal: Object.assign({}, st.swLocal || {}, ch) }); };
+    const loc = this.props.onCtx ? {} : (st.swLocal || {});
+    const progId = loc.prog || cx.progId, roleId = loc.role || cx.roleId, coordId = loc.coord !== undefined ? loc.coord : cx.coordId;
+    const prog = cx.progs.find((p) => p.id === progId) || cx.progs[0];
+    const role = cx.roles.find((r) => r.id === roleId) || cx.roles[0];
+    const rl = RL[role.id] || RL.admin;
+    const coord = (role.coords || []).find((c) => c.id === coordId) || (role.coords || [])[0] || null;
+    const sw = {
+      anyOpen: !!open, close: () => this.setState({ swOpen: null }),
+      progOpen: open === 'prog', roleOpen: open === 'role', coordOpen: open === 'coord',
+      progExp: open === 'prog' ? 'true' : 'false', roleExp: open === 'role' ? 'true' : 'false', coordExp: open === 'coord' ? 'true' : 'false',
+      toggleProg: () => setOpen('prog'), toggleRole: () => setOpen('role'), toggleCoord: () => setOpen('coord'),
+      progName: prog.name, progShort: prog.short, progAv: prog.av, progBg: prog.bg, progInk: prog.ink,
+      roleLabel: rl[0], roleColor: rl[1], roleCls: rl[2],
+      showCoord: role.id !== 'admin' && !!coord, coordName: coord ? coord.name : '',
+      coordHead: role.id === 'koord' ? 'Koordinatör olduğun birimler' : 'Üye olduğun birimler',
+      progs: cx.progs.map((p) => ({ name: p.name, sub: p.sub, av: p.av, bg: p.bg, ink: p.ink, on: p.id === prog.id ? 'true' : 'false', onB: p.id === prog.id, pick: () => send({ prog: p.id }) })),
+      roles: cx.roles.map((r) => ({ label: (RL[r.id] || RL.admin)[0], color: (RL[r.id] || RL.admin)[1], n: String((r.coords || []).length), showN: r.id !== 'admin' && r.id !== role.id, on: r.id === role.id ? 'true' : 'false', onB: r.id === role.id, pick: () => send({ role: r.id }) })),
+      coords: (role.coords || []).map((c) => ({ name: c.name, on: coord && c.id === coord.id ? 'true' : 'false', onB: !!(coord && c.id === coord.id), pick: () => send({ coord: c.id }) }))
+    };
+    const shown = role.id === 'admin' ? groups : groups.filter((g) => g.label !== 'Yönetim' && g.label !== 'Deneysel');
+    const tg = this.props.onToggle;
+    return { groups: shown, sw, rail, full: !rail, toggle: () => { if (typeof tg === 'function') tg(); } };
+  }
+}
+</script>
+</body>
+</html>

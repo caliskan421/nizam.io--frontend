@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Küçültülmüş görüşme</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-code--own{background:var(--ink)!important; color:var(--bg-base)!important}
+.rp-mrow{display:grid; grid-template-columns:64px minmax(0,1fr) auto auto 20px; gap:20px; align-items:center; width:100%; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); color:inherit; font:inherit; text-align:left; cursor:pointer; box-sizing:border-box}
+.rp-mrow:hover{border-color:var(--border-strong)}
+.rp-mrow:focus-visible{outline:2px solid var(--focus-ring); outline-offset:2px}
+.rp-mrow--live{border-color:color-mix(in srgb, var(--accent-text) 45%, transparent); background:color-mix(in srgb, var(--accent-text) 5%, var(--bg-surface))}
+.rp-mdate{display:flex; flex-direction:column; align-items:center; justify-content:center; height:56px; border-radius:14px; background:var(--bg-raised); border:1px solid var(--border-subtle)}
+.rp-mdate b{font-family:var(--font-display); font-size:22px; line-height:24px; font-weight:600}
+.rp-mdate span{font-size:11px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.04em}
+.rp-mmeta{display:flex; gap:18px; align-items:center; color:var(--ink-muted); font-size:12px; white-space:nowrap}
+.rp-mmeta > span{display:inline-flex; align-items:center; gap:6px}
+.rp-pill{display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; border:1px solid var(--border-subtle); color:var(--ink-muted); background:var(--bg-raised)}
+.rp-pill--live{color:var(--accent-ink); background:var(--accent-text); border-color:transparent}
+.rp-pill--wait{color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:color-mix(in srgb, var(--gold) 8%, transparent)}
+.rp-pill--violet{color:var(--violet); border-color:color-mix(in srgb, var(--violet) 40%, transparent); background:color-mix(in srgb, var(--violet) 8%, transparent)}
+.rp-live-dot{width:8px; height:8px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px color-mix(in srgb, currentColor 25%, transparent)}
+.rp-daylabel{display:flex; align-items:baseline; gap:10px; margin:6px 0 -2px}
+.rp-daylabel h2{margin:0; font-family:var(--font-display); font-size:15px; font-weight:600}
+.rp-livecard{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:20px; align-items:center; padding:18px 20px; border-radius:var(--radius-lg); border:1px solid color-mix(in srgb, var(--accent-text) 40%, transparent); background:linear-gradient(90deg, color-mix(in srgb, var(--accent-text) 12%, var(--bg-surface)), var(--bg-surface) 70%)}
+.rp-mtprev{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; padding:10px 14px; border:1px dashed var(--border-strong); border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-del{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-subtle)}
+.rp-conf{box-sizing:border-box; padding:20px 22px; border-radius:var(--radius-lg); border:1px solid color-mix(in srgb, var(--accent-text) 40%, transparent); background:linear-gradient(90deg, color-mix(in srgb, var(--accent-text) 12%, var(--bg-surface)), var(--bg-surface) 70%)}
+.rp-conf--off{border-color:var(--border-subtle); background:var(--bg-surface)}
+.rp-conf__icon{width:52px; height:52px; border-radius:16px; display:grid; place-items:center; background:var(--accent-text); color:var(--accent-ink)}
+.rp-conf--off .rp-conf__icon{background:var(--bg-overlay); color:var(--ink-muted)}
+.rp-tiles{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; margin-top:18px}
+.rp-tile{position:relative; height:104px; border-radius:14px; background:var(--bg-raised); border:1px solid var(--border-subtle); display:grid; place-items:center; overflow:hidden}
+.rp-tile--me{border-color:var(--accent-text)}
+.rp-tile--nocam{background:var(--bg-base)}
+.rp-tile__name{position:absolute; left:8px; right:8px; bottom:6px; display:flex; gap:6px; align-items:center; font-size:12px; font-weight:500; min-width:0}
+.rp-agenda{display:grid; grid-template-columns:20px minmax(0,1fr) auto 32px; gap:12px; align-items:center; min-height:52px; padding:6px 4px; border-bottom:1px solid var(--border-subtle)}
+.rp-agenda--done .rp-agenda__t{color:var(--ink-muted); text-decoration:line-through; text-decoration-color:var(--ink-faint)}
+.rp-note{display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; padding:16px 0; border-bottom:1px solid var(--border-subtle)}
+.rp-note__body{margin:6px 0 0; font-size:14px; line-height:22px; color:var(--ink); white-space:pre-wrap; overflow-wrap:anywhere}
+.rp-note__foot{display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.rp-role{display:inline-flex; align-items:center; height:20px; padding:0 7px; border-radius:6px; font-size:11px; font-weight:600; background:var(--bg-overlay); color:var(--ink-muted)}
+.rp-role--k{color:var(--gold); background:color-mix(in srgb, var(--gold) 12%, transparent)}
+.rp-role--a{color:var(--violet); background:color-mix(in srgb, var(--violet) 12%, transparent)}
+.rp-tasklink{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 10px; border-radius:8px; border:1px solid color-mix(in srgb, var(--accent-text) 35%, transparent); background:none; color:var(--accent-text); font:inherit; font-size:12px; font-weight:600; cursor:pointer}
+.rp-composer{display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--border-control); border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-composer textarea{border:0; background:none; resize:vertical; min-height:56px; color:var(--ink); font:inherit; font-size:14px; line-height:22px; outline:none}
+.rp-addrow{display:grid; grid-template-columns:20px minmax(0,1fr) auto; gap:12px; align-items:center; min-height:52px; padding:0 4px; color:var(--ink-faint)}
+.rp-addrow input{border:0; background:none; color:var(--ink); font:inherit; font-size:14px; outline:none; min-width:0; height:40px}
+.rp-person{display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:44px}
+.rp-warn{display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border-radius:12px; background:color-mix(in srgb, var(--gold) 10%, transparent); border:1px solid color-mix(in srgb, var(--gold) 30%, transparent); font-size:12px; line-height:18px}
+.rp-inrow{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.rp-depchip{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto auto; gap:8px; align-items:center; min-height:40px; padding:0 6px 0 8px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--bg-raised); font-size:13px}
+.rp-own{font-size:11px; font-weight:600; color:var(--accent-text)}
+.rp-quote{margin:0; padding:12px 14px; border-left:3px solid var(--border-strong); border-radius:0 10px 10px 0; background:var(--bg-raised); font-size:13px; line-height:20px; color:var(--ink-muted)}
+.rp-call{position:relative; height:900px; z-index:1; display:flex; flex-direction:column; background:#0b0c0e; color:#f2f3f5; font-family:var(--font-sans); --ink:#f2f3f5; --ink-muted:#a9adb5; --ink-faint:#71757d; --bg-raised:#17191d; --bg-surface:#121417; --bg-overlay:#22252a; --border-subtle:#25282d; --border-strong:#33363c; --border-control:#3a3e45}
+.rp-call__top{display:flex; align-items:center; gap:14px; height:64px; padding:0 18px; border-bottom:1px solid #1d1f23; flex:none; box-sizing:border-box}
+.rp-call__body{flex:1 1 auto; min-height:0; display:grid; gap:0}
+.rp-call__stage{min-width:0; min-height:0; display:flex; flex-direction:column; gap:12px; padding:16px 16px 14px}
+.rp-call__view{flex:1 1 auto; min-height:0; position:relative; display:flex}
+.rp-call__ctrl{flex:none; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; padding-top:4px}
+.rp-call__sep{width:1px; height:36px; background:#2a2d32; margin:0 8px}
+.rp-call__side{min-width:0; min-height:0; display:flex; flex-direction:column; border-left:1px solid #1d1f23; background:#101215}
+.rp-call__pane{flex:1 1 auto; min-height:0; overflow:auto; padding:10px 12px 16px}
+.rp-cbtn{display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:76px; height:58px; padding:0 8px; border:0; border-radius:14px; background:#1b1d21; color:#e9eaed; font:inherit; font-size:11px; font-weight:500; cursor:pointer}
+.rp-cbtn:hover{background:#25282d}
+.rp-cbtn:focus-visible, .rp-pipbtn:focus-visible, .rp-pip__video:focus-visible{outline:2px solid var(--accent-text); outline-offset:2px}
+.rp-cbtn--off{background:color-mix(in srgb, var(--danger) 22%, #1b1d21); color:#ffb4ab}
+.rp-cbtn--on{background:color-mix(in srgb, var(--accent-text) 22%, #1b1d21); color:var(--accent-text)}
+.rp-vtile{position:relative; border-radius:16px; overflow:hidden; display:grid; place-items:center; min-height:0; background:#1c1e22; border:1px solid #26292e}
+.rp-vtile:nth-child(3n+2){background:#202226}
+.rp-vtile:nth-child(3n){background:#1a1c1f}
+.rp-vtile--main{flex:1 1 auto}
+.rp-vtile--nocam{background:#121316 !important}
+.rp-vtile--talk{box-shadow:inset 0 0 0 3px var(--accent-text)}
+.rp-vtile--me{outline:1px solid #3a3e45; outline-offset:-1px}
+.rp-vtile__av{width:96px; height:96px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.12); color:#fff; font-family:var(--font-display); font-size:30px; font-weight:600; backdrop-filter:blur(4px)}
+.rp-vtile--sm .rp-vtile__av{width:44px; height:44px; font-size:15px}
+.rp-vtile__name{position:absolute; left:10px; bottom:10px; display:inline-flex; gap:6px; align-items:center; max-width:calc(100% - 20px); padding:4px 10px; border-radius:8px; background:rgba(0,0,0,.55); color:#fff; font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rp-vtile--sm .rp-vtile__name{left:6px; bottom:6px; padding:2px 6px; font-size:11px}
+.rp-vtile__name .t-icon{width:14px; height:14px}
+.rp-gallery{flex:1 1 auto; display:grid; gap:10px; grid-auto-rows:1fr}
+.rp-strip{flex:none; display:grid; grid-auto-flow:column; grid-auto-columns:minmax(140px, 180px); gap:10px; height:104px; overflow-x:auto}
+.rp-share{flex:1 1 auto; position:relative; border-radius:16px; background:#050607; display:grid; place-items:center; padding:28px; overflow:hidden}
+.rp-share__win{width:100%; max-width:1100px; height:100%; max-height:620px; border-radius:12px; background:#f4f5f7; color:#1b1d21; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.rp-share__bar{display:flex; gap:6px; align-items:center; height:34px; padding:0 12px; background:#e3e5e9; font-size:12px}
+.rp-share__bar span{width:10px; height:10px; border-radius:50%; background:#c4c7cd}
+.rp-share__bar b{margin-left:10px; font-weight:600; color:#4b4f57}
+.rp-share__body{position:relative; flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:24px 28px}
+.rp-share__row{display:grid; grid-template-columns:200px minmax(0,1fr); gap:16px; align-items:center; font-size:13px}
+.rp-share__lbl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#3a3e45}
+.rp-share__trk{position:relative; height:18px; border-radius:6px; background:#e6e8ec; display:block}
+.rp-share__trk span{position:absolute; top:0; bottom:0; border-radius:6px}
+.rp-share__today{position:absolute; top:16px; bottom:16px; left:calc(28px + 216px + (100% - 272px) * .72); width:2px; background:#7fbf3f}
+.rp-share__tag{position:absolute; left:16px; top:16px; display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:8px; background:rgba(0,0,0,.65); color:#fff; font-size:12px; font-weight:600}
+.rp-pip{position:absolute; right:28px; bottom:32px; z-index:5; width:360px; border-radius:20px; overflow:hidden; background:#15171b; color:#f2f3f5; font-family:var(--font-sans); --ink:#f2f3f5; --ink-muted:#a9adb5; border:1px solid rgba(255,255,255,.14); box-shadow:0 0 0 1px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.35), 0 18px 40px -6px rgba(0,0,0,.6), 0 40px 90px -20px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.08); transform:translateZ(0); animation:rpPipIn .28s cubic-bezier(.2,1.2,.4,1)}
+@keyframes rpPipIn{from{opacity:0; transform:translateY(16px) scale(.96)} to{opacity:1; transform:none}}
+.rp-pip:hover{box-shadow:0 0 0 1px rgba(0,0,0,.55), 0 4px 10px rgba(0,0,0,.4), 0 24px 52px -6px rgba(0,0,0,.65), 0 48px 110px -20px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1)}
+.rp-pip__video{position:relative; display:grid; place-items:center; width:100%; height:196px; border:0; padding:0; cursor:pointer; background:#0b0c0e; color:inherit; font:inherit}
+.rp-pip__share{width:86%; height:76%; border-radius:8px; background:#f4f5f7; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:12px; box-sizing:border-box}
+.rp-pulse{animation:rpPulse 1.4s ease-in-out infinite}
+@keyframes rpPulse{0%,100%{opacity:1; transform:scale(1)} 50%{opacity:.35; transform:scale(.7)}}
+.rp-eq{display:inline-flex; align-items:flex-end; gap:2px; height:10px; margin-right:6px}
+.rp-eq i{display:block; width:2px; height:100%; border-radius:1px; background:var(--accent-text); transform-origin:bottom; animation:rpEq .9s ease-in-out infinite}
+.rp-eq i:nth-child(2){animation-delay:.2s} .rp-eq i:nth-child(3){animation-delay:.4s}
+@keyframes rpEq{0%,100%{transform:scaleY(.3)} 50%{transform:scaleY(1)}}
+@media (prefers-reduced-motion: reduce){ .rp-pulse, .rp-eq i, .rp-pip{animation:none} }
+.rp-pip__label{position:absolute; left:8px; bottom:8px; display:inline-flex; align-items:center; padding:2px 8px; border-radius:6px; background:rgba(0,0,0,.6); font-size:11px; font-weight:500}
+.rp-pip__live{position:absolute; right:8px; top:8px; display:inline-flex; gap:6px; align-items:center; padding:2px 8px; border-radius:999px; background:var(--accent-text); color:var(--accent-ink); font-size:11px; font-weight:700}
+.rp-pip__bar{display:flex; align-items:center; gap:6px; padding:12px 12px 12px 16px; background:linear-gradient(180deg, rgba(255,255,255,.04), transparent)}
+.rp-pipbtn{width:34px; height:34px; flex:none; display:grid; place-items:center; border:0; border-radius:10px; background:#1f2226; color:#e9eaed; cursor:pointer}
+.rp-pipbtn:hover{background:#2a2d32}
+.rp-pipbtn--off{background:color-mix(in srgb, var(--danger) 25%, #1f2226); color:#ffb4ab}
+.rp-pipbtn--leave{background:var(--danger); color:var(--on-danger, #fff)}
+.rp-incall{display:flex; align-items:center; gap:12px; margin-top:16px; padding:12px 14px; border-radius:12px; background:color-mix(in srgb, var(--accent-text) 10%, transparent)}
+@media (prefers-reduced-motion: reduce) { .rp-call, .rp-pip { animation:none } }
+.rp-pip{width:360px; display:flex; flex-direction:column; gap:0; background:transparent; border-radius:20px; overflow:hidden; box-shadow:0 30px 70px rgba(0,0,0,.55), 0 10px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.10); transition:transform .2s ease}
+.rp-pip:hover{transform:translateY(-3px)}
+.rp-pip__video{height:200px; padding-bottom:0; border-radius:0; background:rgba(4,5,6,.82); -webkit-backdrop-filter:blur(20px) saturate(1.2); backdrop-filter:blur(20px) saturate(1.2)}
+.rp-pip__label{top:auto; bottom:10px; left:10px}
+.rp-pip__live{top:10px; right:10px}
+.rp-pip__bar{position:static; padding:10px 10px 10px 14px; border-radius:0; background:color-mix(in srgb, #121417 60%, transparent); -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4); border-top:1px solid rgba(255,255,255,.10)}
+.rp-pip__bar .rp-cap{color:rgba(255,255,255,.72)}
+.rp-pipbtn{background:rgba(255,255,255,.08)}
+.rp-pipbtn:hover{background:rgba(255,255,255,.16)}
+.rp-pipbtn--off{background:color-mix(in srgb, var(--danger) 25%, transparent); color:#ffb4ab}
+.rp-pipbtn--leave, .rp-pipbtn--leave:hover{background:var(--danger); color:#fff}
+.rp-pipbtn--leave:hover{filter:brightness(1.1)}
+@media (prefers-reduced-motion: reduce){ .rp-pip{transition:none} .rp-pip:hover{transform:none} }
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}" style="position:relative; min-height:900px">
+<div class="rp-side"><dc-import name="Sidebar" active="tasks" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+<div class="rp-topbar"><div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Görevler</strong></nav><span class="rp-grow"></span><button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button></div>
+<div class="rp-head"><div><h1 class="rp-h1">Görevler</h1><p class="rp-sub">Görüşme sürerken sistemde gezinebilirsin; toplantı sağ altta küçük pencerede devam eder.</p></div></div>
+<div class="rp-body"><section class="t-card" style="flex:1 1 100%; padding:6px 0; overflow:hidden"><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">ALT-5</span><span class="rp-trunc" style="font-size:14px">Su deposu temel betonunun yapılması</span><span class="rp-cap">Kadir Özbek</span><span class="rp-cap">15 Tem</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">ALT-7</span><span class="rp-trunc" style="font-size:14px">Havalimanı yerleşkesi hidrofor sistemi kurulumu</span><span class="rp-cap">Kadir Özbek</span><span class="rp-cap">10 Eyl</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">ALT-10</span><span class="rp-trunc" style="font-size:14px">Montaj, test ve devreye alma aşaması</span><span class="rp-cap">Kadir Özbek</span><span class="rp-cap">30 Eyl</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">ELE-3</span><span class="rp-trunc" style="font-size:14px">Enerji ihtiyaç analizi</span><span class="rp-cap">Reha Koçak</span><span class="rp-cap">12 Eki</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">ELE-4</span><span class="rp-trunc" style="font-size:14px">Trafo ve dağıtım projesi</span><span class="rp-cap">Reha Koçak</span><span class="rp-cap">18 Kas</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">İDA-5</span><span class="rp-trunc" style="font-size:14px">Yemek planlama takip</span><span class="rp-cap">Bahar Kılıç</span><span class="rp-cap">23 Eki</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">İDA-9</span><span class="rp-trunc" style="font-size:14px">Konaklama</span><span class="rp-cap">Bahar Kılıç</span><span class="rp-cap">30 Eki</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">OPE-2</span><span class="rp-trunc" style="font-size:14px">Gönüllü vardiya çizelgesi</span><span class="rp-cap">Yunus Çiftçioğlu</span><span class="rp-cap">1 Kas</span></div><div style="display:grid; grid-template-columns:90px minmax(0,1fr) 140px 120px; gap:20px; align-items:center; height:52px; padding:0 18px; border-bottom:1px solid var(--border-subtle)"><span class="rp-code" style="background:var(--bg-overlay)">SİS-1</span><span class="rp-trunc" style="font-size:14px">Portal kullanıcı eğitimleri</span><span class="rp-cap">Muhammet Ali Çalışkan</span><span class="rp-cap">29 Eki</span></div></section></div>
+</main>
+<div class="rp-pip" role="region" aria-label="Küçültülmüş toplantı">
+<button type="button" class="rp-pip__video" aria-label="Görüşmeyi büyüt"><span class="rp-pip__share"><span class="rp-share__trk" style="height:6px"><span style="left:2.3%; width:16%; background:#e5484d"></span></span><span class="rp-share__trk" style="height:6px"><span style="left:10%; width:28%; background:#8b7cf6"></span></span><span class="rp-share__trk" style="height:6px"><span style="left:17%; width:40%; background:#e5484d"></span></span><span class="rp-share__trk" style="height:6px"><span style="left:70%; width:1.5%; background:#b9bcc3"></span></span><span class="rp-share__trk" style="height:6px"><span style="left:28%; width:22%; background:#7fbf3f"></span></span></span><span class="rp-pip__label"><span class="rp-eq" aria-hidden="true"><i></i><i></i><i></i></span>Kadir Özbek · ekran</span><span class="rp-pip__live"><span class="rp-live-dot rp-pulse"></span>Canlı · 6 / 25</span></button>
+<div class="rp-pip__bar"><span style="display:flex; flex-direction:column; min-width:0; flex:1 1 auto"><strong class="rp-trunc" style="font-size:13px; font-weight:600">Haftalık koordinasyon toplantısı</strong><span class="rp-cap rp-trunc">32 dakikadır sürüyor</span></span>
+<button class="rp-pipbtn" type="button" aria-label="Mikrofonu kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button><button class="rp-pipbtn rp-pipbtn--off" type="button" aria-label="Kamerayı aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M3 3l18 18M15 10l5-3v10M15 15v2H5M3 7h2m4 0h6v6"></path></svg></button><button class="rp-pipbtn" type="button" aria-label="Büyüt"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></button><button class="rp-pipbtn rp-pipbtn--leave" type="button" aria-label="Ayrıl"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg></button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic { renderVals() { return { theme: this.props.theme ?? 'dark' }; } }
+</script>
+</body>
+</html>

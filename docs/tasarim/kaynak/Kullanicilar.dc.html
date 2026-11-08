@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Kullanıcılar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="users" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Kullanıcılar</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Kullanıcılar</h1><p class="rp-sub">185 kullanıcı · roller ve koordinatörlük atamaları</p></div>
+<div class="rp-actions">
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Dışa aktar</button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21a7 7 0 0 1 13-3.5M19 14v6M16 17h6"></path></svg>Kullanıcı davet et</button>
+</div>
+</div>
+
+<div class="rp-body">
+<div class="rp-toolbar" style="flex:1 1 100%; min-width:0">
+<div class="rp-tgroup">
+<div class="rp-seg" role="group" aria-label="Rol">
+<button type="button" aria-pressed="true">Tümü <span class="rp-count">185</span></button>
+<button type="button" aria-pressed="false">Admin <span class="rp-count">10</span></button>
+<button type="button" aria-pressed="false">Koordinatör <span class="rp-count">33</span></button>
+<button type="button" aria-pressed="false">Üye <span class="rp-count">153</span></button>
+</div>
+</div>
+<div class="rp-tgroup rp-tgroup--grow">
+<div class="t-field" style="flex:1 1 180px; min-width:0">
+<svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg>
+<input class="t-input t-input--icon" type="search" aria-label="Kullanıcı ara" placeholder="Ad, e-posta…" style="height:36px; border-radius:12px; padding-left:40px">
+</div>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button">Koordinatörlük<svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+</div>
+<div class="rp-col">
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Kullanıcılar" style="min-width:640px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:20px minmax(0,2fr) 152px minmax(0,1.2fr) 36px">
+<span role="columnheader"><input class="t-check" type="checkbox" aria-label="Tümünü seç" style="width:18px; height:18px"></span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">kullanıcı ↑</button></span>
+<span role="columnheader">roller</span>
+<span role="columnheader">koordinatörlük</span>
+<span role="columnheader"><span class="rp-sr">Ayrıntı</span></span>
+</div>
+<sc-for list="{{ users }}" as="u" hint-placeholder-count="10">
+<div role="row" class="rp-tr rp-tr--body {{ u.cls }}" style="grid-template-columns:20px minmax(0,2fr) 152px minmax(0,1.2fr) 36px">
+<span role="cell"><input class="t-check" type="checkbox" aria-label="{{ u.name }} seç" style="width:18px; height:18px"></span>
+<span role="cell" class="rp-cellmain"><span class="rp-av" aria-hidden="true">{{ u.ini }}</span><span class="rp-cellmain__text"><a class="rp-title rp-trunc" href="Kullanici-KisiselTakip.dc.html" title="Profil ve kişisel iş takibi">{{ u.name }}</a><span class="rp-cap rp-trunc">{{ u.email }}</span></span></span>
+<span role="cell" style="display:flex; gap:6px; align-items:center; flex-wrap:nowrap; overflow:hidden">
+<span class="t-badge" style="height:24px; padding:0 10px; font-size:12px; background:{{ u.r1bg }}; box-shadow:{{ u.r1ring }}">{{ u.r1 }}</span>
+<sc-if value="{{ u.hasMore }}" hint-placeholder-val="{{ false }}"><span class="t-badge" title="{{ u.moreTitle }}" style="height:24px; padding:0 8px; font-size:12px; background:transparent; box-shadow:inset 0 0 0 1px var(--border-strong); color:var(--ink-muted)">+{{ u.more }}</span></sc-if>
+</span>
+<span role="cell" class="rp-trunc {{ u.coordCls }}">{{ u.coord }}</span>
+<span role="cell"><button class="t-iconbtn rp-hoveract" type="button" aria-label="{{ u.name }} ayrıntısını aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></button></span>
+</div>
+</sc-for>
+</div>
+</div></div>
+
+<div style="display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:12px">
+<span class="rp-cap rp-trunc">1–10 / 185 kullanıcı</span>
+<nav class="t-pages" aria-label="Sayfalar" style="flex-wrap:nowrap">
+<button class="t-page" type="button" aria-label="Önceki sayfa"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button class="t-page" type="button" aria-current="page">1</button>
+<button class="t-page" type="button">2</button>
+<button class="t-page" type="button">3</button>
+<span class="rp-faint">…</span>
+<button class="t-page" type="button">19</button>
+<button class="t-page" type="button" aria-label="Sonraki sayfa"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></button>
+</nav>
+<span class="rp-cap rp-trunc" style="text-align:right">Sayfa başına 10</span>
+</div>
+</div>
+
+<aside class="rp-aside" aria-label="Seçili kullanıcı">
+<section class="rp-sheet">
+<div class="rp-sheethead">
+<span class="rp-av rp-av--lg" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">BK</span>
+<div style="min-width:0">
+<h2 class="rp-trunc" style="margin:0; font-family:var(--font-display); font-size:20px; line-height:26px; font-weight:600">Bahar Kılıç</h2>
+<p class="rp-cap rp-trunc" style="margin:2px 0 0">İdari işler · Üye</p>
+</div>
+<button class="t-iconbtn" type="button" aria-label="Paneli kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+
+<a href="#" class="t-card--inset" style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)) 20px; gap:8px; align-items:center; text-decoration:none; color:var(--ink); padding:14px 16px; border:1px solid var(--border-subtle)">
+<span style="min-width:0"><span class="rp-kicker" style="display:block">açık</span><span class="rp-num" style="font-size:20px">9</span></span>
+<span style="min-width:0"><span class="rp-kicker" style="display:block">geciken</span><span class="rp-num rp-danger-text" style="font-size:20px">4</span></span>
+<span style="min-width:0"><span class="rp-kicker" style="display:block">onayda</span><span class="rp-num" style="font-size:20px">2</span></span>
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-muted)"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+<a class="t-btn t-btn--secondary t-btn--block" href="Kullanici-KisiselTakip.dc.html" style="text-decoration:none; justify-content:space-between"><span class="rp-trunc">Profil ve kişisel iş takibi</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+
+<fieldset style="border:0; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; min-width:0">
+<legend class="rp-kicker" style="padding:0 0 8px">roller</legend>
+<sc-for list="{{ roleOptions }}" as="o" hint-placeholder-count="3">
+<label style="display:grid; grid-template-columns:20px minmax(0,1fr); gap:12px; align-items:start; padding:12px; border-radius:14px; border:1px solid {{ o.border }}; background:{{ o.bg }}; cursor:pointer">
+<input class="t-check" type="checkbox" checked="{{ o.on }}" style="margin-top:1px">
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><span style="font-weight:600">{{ o.label }}</span><span class="rp-cap">{{ o.desc }}</span></span>
+</label>
+</sc-for>
+</fieldset>
+
+<div style="display:flex; flex-direction:column; gap:10px">
+<p class="rp-kicker">koordinatörlük</p>
+<div style="display:flex; gap:8px; align-items:center; min-width:0">
+<span class="t-chip" style="min-width:0"><span class="rp-trunc">İdari işler</span><button class="t-chip__x" type="button" aria-label="İdari işler atamasını kaldır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span>
+<button class="t-btn t-btn--ghost t-btn--sm" type="button" style="height:28px; padding:0 10px; border-radius:8px; border-style:dashed"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Ekle</button>
+</div>
+</div>
+
+<hr class="rp-hairline">
+<div style="display:flex; flex-direction:column; gap:2px">
+<button class="rp-menuitem" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 7l9 6 9-6"></path></svg><span class="rp-grow rp-trunc">Şifre sıfırlama bağlantısı</span></button>
+<button class="rp-menuitem" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4"></path></svg><span class="rp-grow rp-trunc">Hesabı kilitle</span></button>
+<button class="rp-menuitem rp-menuitem--danger" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg><span class="rp-grow rp-trunc">Kullanıcıyı sil</span></button>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px">
+<button class="t-btn t-btn--secondary" type="button" style="min-width:0">Vazgeç</button>
+<button class="t-btn t-btn--primary" type="button" style="min-width:0">Kaydet</button>
+</div>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ROLE = {
+      admin: { label: 'Admin', bg: 'transparent', ring: 'inset 0 0 0 1px var(--border-control)' },
+      koord: { label: 'Koordinatör', bg: 'var(--bg-overlay)', ring: 'none' },
+      uye: { label: 'Üye', bg: 'var(--bg-overlay)', ring: 'none' }
+    };
+    const U = (name, email, roles, coord, sel) => {
+      const rs = roles.map((r) => ROLE[r]);
+      return { name, email, coord: coord || 'Atanmamış', coordCls: coord ? '' : 'rp-faint',
+        ini: name.split(' ').map((s) => s[0]).slice(0, 2).join(''),
+        r1: rs[0].label, r1bg: rs[0].bg, r1ring: rs[0].ring, hasMore: rs.length > 1, more: rs.length - 1,
+        moreTitle: rs.slice(1).map((r) => r.label).join(', '), cls: sel ? 'rp-sel' : '' };
+    };
+    const users = [
+      U('Sistem Admin', 'admin@teknofest.local', ['admin', 'koord'], ''),
+      U('Abdullah Ateş', 'abdullahatesdrive@gmail.com', ['koord'], 'Altyapı ve tesisat'),
+      U('Ali Avcı', 'aliavci05@gmail.com', ['koord'], 'Altyapı ve tesisat'),
+      U('Bahar Kılıç', 'bahar.kilic@teknofest.org', ['uye'], 'İdari işler', true),
+      U('Gökhan Tanaydın', 'gokhantanaydin@hotmail.com', ['koord'], ''),
+      U('Mevlüt Yunus Kayacan', 'mevlutkayacan@isparta.edu.tr', ['koord'], 'Mekanik sistemler, Sistem koordinatörlüğü'),
+      U('Osman Hansu', 'o_hansu@hotmail.com', ['koord'], 'Mekanik sistemler'),
+      U('Reha Koçak', 'rehakocak2000@gmail.com', ['koord'], 'Elektrik ve enerji'),
+      U('Salih Özer', 'sallih@hotmail.com', ['koord'], 'Ulaşım planlama'),
+      U('Salim Sağlık', 'salim.saglik@teknofest.org', ['koord'], 'Fuar')
+    ];
+    const O = (label, desc, on) => ({ label, desc, on, border: on ? 'var(--border-strong)' : 'var(--border-subtle)', bg: on ? 'var(--bg-raised)' : 'transparent' });
+    const roleOptions = [
+      O('Admin', 'Tüm koordinatörlükleri, kullanıcıları ve sezonu yönetir.', false),
+      O('Koordinatör', 'Koordinatörlüğünde görev atar, dosyaları onaylar.', false),
+      O('Üye', 'Atanan görevleri yürütür, kanıt dosyası yükler.', true)
+    ];
+    return { theme: this.props.theme ?? 'dark', users, roleOptions };
+  }
+}
+</script>
+</body>
+</html>

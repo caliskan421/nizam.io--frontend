@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Arşiv</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="archive" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Arşiv</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Arşiv</h1><p class="rp-sub">Kurumsal hafıza · tamamlanan her görevin kanıt dosyaları burada</p></div>
+<div class="rp-actions">
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Tümünü indir</button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"></path></svg>Dosya yükle</button>
+</div>
+</div>
+
+<div class="rp-body">
+<div style="flex:1 1 100%; min-width:0; display:flex; flex-direction:column; gap:28px">
+<div style="display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center">
+<div class="t-field">
+<svg class="t-icon t-field__icon" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg>
+<input class="t-input t-input--icon" type="search" aria-label="Tüm arşivde ara" placeholder="Tüm arşivde ara: dosya, görev, kişi veya etiket…" style="height:52px; border-radius:16px; font-size:15px; padding-right:56px">
+<span class="t-kbd" style="position:absolute; right:14px">/</span>
+</div>
+<div class="rp-seg" role="group" aria-label="Dosya türü">
+<button type="button" aria-pressed="true">Tümü</button>
+<button type="button" aria-pressed="false">Görsel</button>
+<button type="button" aria-pressed="false">Belge</button>
+<button type="button" aria-pressed="false">PDF</button>
+</div>
+</div>
+</div>
+<div class="rp-col" style="gap:28px">
+
+<section aria-labelledby="coord-title" style="display:flex; flex-direction:column; gap:12px">
+<div class="rp-cardhead" style="margin:0">
+<h2 class="rp-cardtitle" id="coord-title">Koordinatörlükler <span class="rp-count" style="font-size:13px">21</span></h2>
+<div class="rp-actions"><button class="t-btn t-btn--secondary t-btn--sm" type="button">Sırala: Son yükleme<svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button></div>
+</div>
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(196px, 1fr)); gap:14px">
+<sc-for list="{{ folders }}" as="f" hint-placeholder-count="12">
+<a href="#" class="rp-folder" style="opacity:{{ f.op }}">
+<span style="display:flex; justify-content:space-between; align-items:flex-start"><span class="rp-folder__icon" aria-hidden="true"></span><sc-if value="{{ f.group }}" hint-placeholder-val="{{ false }}"><span class="rp-kicker" style="padding:1px 6px; border:1px solid var(--border-strong); border-radius:6px">grup</span></sc-if></span>
+<span class="rp-clamp2" style="font-weight:600; font-size:14px; line-height:20px; min-height:40px">{{ f.name }}</span>
+<span style="display:flex; flex-direction:column; gap:8px; margin-top:auto">
+<span class="rp-cap rp-trunc">{{ f.meta }}</span>
+<span style="display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center"><span class="rp-mono rp-trunc" style="font-size:12px">{{ f.size }}</span><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">{{ f.rel }}</span></span>
+</span>
+</a>
+</sc-for>
+</div>
+<a class="rp-link" href="#" style="align-self:center; padding:8px">9 koordinatörlük daha</a>
+</section>
+</div>
+
+<aside class="rp-aside" aria-label="Etiketler ve depolama">
+<section class="t-card" style="padding:22px; display:flex; flex-direction:column; gap:14px">
+<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle">Etiketler</h2><span class="rp-cap">dosya türünü anlatır</span></div>
+<div style="display:flex; flex-direction:column; gap:2px">
+<sc-for list="{{ tags }}" as="t" hint-placeholder-count="3">
+<a href="#" class="rp-menuitem" style="display:grid; grid-template-columns:10px minmax(0,1fr) auto; gap:12px"><span class="rp-dot" style="background:{{ t.c }}; width:10px; height:10px"></span><span class="rp-trunc">{{ t.name }}</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M9 6l6 6-6 6"></path></svg></a>
+</sc-for>
+</div>
+<div style="display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:14px; background:var(--bg-raised); border:1px solid var(--border-subtle)">
+<label class="rp-kicker" for="newtag">yeni etiket</label>
+<input class="t-input" id="newtag" type="text" value="Toplantı tutanağı" style="height:36px; border-radius:12px">
+<div style="display:grid; grid-template-columns:repeat(5, 28px) minmax(0,1fr); gap:8px; align-items:center" role="radiogroup" aria-label="Etiket rengi">
+<button type="button" role="radio" aria-checked="false" aria-label="Mor" style="width:28px; height:28px; border-radius:50%; border:0; background:var(--violet); cursor:pointer"></button>
+<button type="button" role="radio" aria-checked="true" aria-label="Sarı" style="width:28px; height:28px; border-radius:50%; border:0; background:var(--gold); cursor:pointer; box-shadow:0 0 0 2px var(--bg-raised), 0 0 0 4px var(--ink)"></button>
+<button type="button" role="radio" aria-checked="false" aria-label="Yeşil" style="width:28px; height:28px; border-radius:50%; border:0; background:var(--accent-text); cursor:pointer"></button>
+<button type="button" role="radio" aria-checked="false" aria-label="Kırmızı" style="width:28px; height:28px; border-radius:50%; border:0; background:var(--danger); cursor:pointer"></button>
+<button type="button" role="radio" aria-checked="false" aria-label="Gri" style="width:28px; height:28px; border-radius:50%; border:0; background:var(--ink-muted); cursor:pointer"></button>
+<button class="t-btn t-btn--primary t-btn--sm" type="button" style="justify-self:end">Oluştur</button>
+</div>
+</div>
+</section>
+
+<section class="t-card" style="padding:22px">
+<p class="rp-kicker">depolama</p>
+<p style="margin:6px 0 14px"><span class="rp-num" style="font-size:30px; line-height:36px">668,7</span> <span class="rp-muted">MB · 333 dosya</span></p>
+<div class="rp-bar" style="height:8px; margin-bottom:14px" role="img" aria-label="Mekanik sistemler 229,1 MB, Operasyon 205,1 MB, Mimari tasarım 88,9 MB, diğerleri 145,6 MB"><span style="width:34.3%; background:var(--ink)"></span><span style="width:30.7%; background:var(--ink-muted)"></span><span style="width:13.3%; background:var(--border-control)"></span><span style="width:21.7%; background:var(--bg-overlay)"></span></div>
+<dl class="rp-dl">
+<dt>Mekanik sistemler</dt><dd class="rp-mono">229,1 MB</dd>
+<dt>Operasyon</dt><dd class="rp-mono">205,1 MB</dd>
+<dt>Mimari tasarım</dt><dd class="rp-mono">88,9 MB</dd>
+<dt>Diğer 18 klasör</dt><dd class="rp-mono">145,6 MB</dd>
+</dl>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const pins = [
+      { name: 'Gölgelendirme çalışmaları (kamelya)', path: 'Altyapı ve tesisat' },
+      { name: 'Montaj, test ve devreye alma aşaması', path: 'Altyapı ve tesisat' },
+      { name: 'Operasyon', path: 'Koordinatörlük · 78 dosya' }
+    ];
+    const F = (name, files, tasks, size, rel, group) => ({ name, size, rel, group: !!group,
+      meta: files ? files + ' dosya · ' + tasks + ' görev' : 'Henüz dosya yok', op: files ? 1 : 0.55 });
+    const folders = [
+      F('Operasyon', 78, 53, '205,1 MB', '4 gün'),
+      F('Mimari tasarım', 8, 5, '88,9 MB', '8 gün'),
+      F('Bursiyer', 7, 7, '11,3 MB', '12 gün'),
+      F('Elektrik ve enerji', 60, 11, '23,2 MB', '22 gün', true),
+      F('Altyapı ve tesisat', 15, 12, '9,8 MB', '23 gün', true),
+      F('Bilişim teknolojileri koordinatörlüğü', 7, 7, '312,8 KB', '23 gün'),
+      F('Eğitim ve Arge', 3, 3, '152,7 KB', '28 gün'),
+      F('Mekanik sistemler', 38, 8, '229,1 MB', '37 gün', true),
+      F('Kurumsal iletişim', 10, 1, '16,8 MB', '48 gün'),
+      F('Deneyap', 2, 2, '333,3 KB', '49 gün'),
+      F('Fuar', 0, 0, '0 B', '—'),
+      F('Toplumsal çalışmalar', 0, 0, '0 B', '—')
+    ];
+    const tags = [
+      { name: 'Saha görselleri', c: 'var(--violet)' },
+      { name: 'Sonuç dosyası', c: 'var(--accent-text)' },
+      { name: 'Güncel durum verisi', c: 'var(--ink-muted)' }
+    ];
+    return { theme: this.props.theme ?? 'dark', pins, folders, tags };
+  }
+}
+</script>
+</body>
+</html>
