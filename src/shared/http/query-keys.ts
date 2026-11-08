@@ -15,7 +15,7 @@
 import type { QueryKey } from '@tanstack/vue-query'
 
 import type { OperationMeta } from '@/shared/api/operations.gen'
-import { scopedKey, type ScopeSnapshot } from '@/shared/scope/scope'
+import { QUERY_KEY_ROOT, scopedKey, type ScopeSnapshot } from '@/shared/scope/scope'
 
 export type OperationId = OperationMeta['operationId']
 export type QueryFilters = Record<string, unknown>
@@ -26,10 +26,19 @@ export function scoped(scope: ScopeSnapshot, parts: ReadonlyArray<Part>): QueryK
   return scopedKey(scope, ...parts)
 }
 
-/** Anahtar `scoped(...)` ile mi başlıyor (kapsam değişiminde iptal + düşürme hedefi)? */
-export function isScopedQueryKey(key: QueryKey): boolean {
-  const second = key[1]
-  return key[0] === 'nizamio' && typeof second === 'object' && second !== null
+/**
+ * Anahtar `scoped(...)`/`scopedKey(...)` ile mi üretildi (kapsam değişiminde iptal + düşürme
+ * hedefi)? TEK tanım; `shared/scope/scope.ts` bunu yeniden dışa aktarır (W13 temizliği).
+ */
+export function isScopedQueryKey(key: readonly unknown[]): boolean {
+  const head = key[1]
+  return (
+    key[0] === QUERY_KEY_ROOT &&
+    typeof head === 'object' &&
+    head !== null &&
+    !Array.isArray(head) &&
+    'program' in head
+  )
 }
 
 export type ArchiveFacet = 'folders' | 'tasks' | 'attachments' | 'uploaders'
@@ -292,58 +301,42 @@ function workItemChild(scope: ScopeSnapshot, child: string, id?: string): Invali
   }
 }
 
-function filterFor(
-  resource: QueryResource,
-  scope: ScopeSnapshot,
-  ctx: InvalidationContext,
-): InvalidationFilter | null {
-  switch (resource) {
-    case 'instance.profile':
-    case 'report':
-      return null
-    case 'notifications.unreadCount':
-      return { queryKey: queryKeys.notifications.unreadCount() }
-    case 'chats.unreadOverview':
-      return { queryKey: queryKeys.chatsUnread.overview() }
-    case 'programs':
-      return { queryKey: queryKeys.programs.all() }
-    case 'me':
-      // ['me'] öneki ['me','departments']'ı da kapsar.
-      return { queryKey: queryKeys.me.root() }
-    case 'users':
-      return { queryKey: queryKeys.users.all() }
-    case 'departments':
-      return { queryKey: queryKeys.departments.all(scope) }
-    case 'workItems.list':
-      return {
-        queryKey: queryKeys.workItems.all(scope),
-        predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),
-      }
-    case 'workItems.item':
-      if (ctx.workItemId !== undefined) {
-        return { queryKey: queryKeys.workItems.item(scope, ctx.workItemId), exact: true }
-      }
-      return {
-        queryKey: queryKeys.workItems.all(scope),
-        predicate: ({ queryKey }) => queryKey.length === 4 && typeof queryKey[3] === 'string',
-      }
-    case 'workItems.subtasks':
-      return workItemChild(scope, 'subtasks', ctx.workItemId)
-    case 'workItems.notes':
-      return workItemChild(scope, 'notes', ctx.workItemId)
-    case 'workItems.files':
-      return workItemChild(scope, 'files', ctx.workItemId)
-    case 'gantt':
-      return { queryKey: queryKeys.gantt.all(scope) }
-    case 'dateRequests':
-      return { queryKey: queryKeys.dateRequests.all(scope) }
-    case 'archive':
-      return { queryKey: queryKeys.archive.all(scope) }
-    case 'meetings':
-      return { queryKey: queryKeys.meetings.all(scope) }
-    case 'chats':
-      return { queryKey: queryKeys.chats.all(scope) }
-  }
+type FilterBuilder = (scope: ScopeSnapshot, ctx: InvalidationContext) => InvalidationFilter | null
+
+const prefix =
+  (key: (scope: ScopeSnapshot) => QueryKey): FilterBuilder =>
+  (scope) => ({ queryKey: key(scope) })
+
+/** Kaynak → filtre eşlemesi (§6). null: yazma sonrası geçersizleme yok. */
+const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
+  'instance.profile': () => null,
+  report: () => null,
+  'notifications.unreadCount': prefix(() => queryKeys.notifications.unreadCount()),
+  'chats.unreadOverview': prefix(() => queryKeys.chatsUnread.overview()),
+  programs: prefix(() => queryKeys.programs.all()),
+  // ['me'] öneki ['me','departments']'ı da kapsar.
+  me: prefix(() => queryKeys.me.root()),
+  users: prefix(() => queryKeys.users.all()),
+  departments: prefix(queryKeys.departments.all),
+  'workItems.list': (scope) => ({
+    queryKey: queryKeys.workItems.all(scope),
+    predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),
+  }),
+  'workItems.item': (scope, ctx) =>
+    ctx.workItemId !== undefined
+      ? { queryKey: queryKeys.workItems.item(scope, ctx.workItemId), exact: true }
+      : {
+          queryKey: queryKeys.workItems.all(scope),
+          predicate: ({ queryKey }) => queryKey.length === 4 && typeof queryKey[3] === 'string',
+        },
+  'workItems.subtasks': (scope, ctx) => workItemChild(scope, 'subtasks', ctx.workItemId),
+  'workItems.notes': (scope, ctx) => workItemChild(scope, 'notes', ctx.workItemId),
+  'workItems.files': (scope, ctx) => workItemChild(scope, 'files', ctx.workItemId),
+  gantt: prefix(queryKeys.gantt.all),
+  dateRequests: prefix(queryKeys.dateRequests.all),
+  archive: prefix(queryKeys.archive.all),
+  meetings: prefix(queryKeys.meetings.all),
+  chats: prefix(queryKeys.chats.all),
 }
 
 /** Bir mutasyonun geçersizlediği §6 kaynakları. */
@@ -360,6 +353,6 @@ export function invalidationFilters(
   ctx: InvalidationContext = {},
 ): InvalidationFilter[] {
   return resourcesInvalidatedBy(operation)
-    .map((resource) => filterFor(resource, scope, ctx))
+    .map((resource) => FILTERS[resource](scope, ctx))
     .filter((f): f is InvalidationFilter => f !== null)
 }

@@ -11,15 +11,17 @@ import { computed } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
+import { queryKeys } from '@/shared/http/query-keys'
 import { useSessionStore } from '@/shared/session/store'
 
 import { hasErrorCode } from './authority-loss'
 import { parsePrograms, parseStanding, type ProgramOption, type Standing } from './standing-facts'
 
+/** Anahtarlar tek fabrikadan (`shared/http/query-keys.ts`, ortak-kurallar §6). */
 export const STANDING_KEYS = {
-  me: ['me'],
-  myDepartments: ['me', 'departments'],
-  programs: ['programs'],
+  me: queryKeys.me.root(),
+  myDepartments: queryKeys.me.departments(),
+  programs: queryKeys.programs.all(),
 } as const
 
 const STANDING_KEY_LIST: ReadonlyArray<readonly string[]> = Object.values(STANDING_KEYS)

@@ -46,16 +46,7 @@ export function globalKey(
 
 /**
  * Anahtar `scopedKey(...)` ile mi üretildi (kapsam değişiminde iptal + önbellekten düşer)?
- * GEÇİCİ: W14'ün `src/shared/http/query-keys.ts` içindeki aynı imzalı `isScopedQueryKey` ile
- * tekilleştirilecek; birleşmede tek tanım kalır, `lifecycle.ts` onu kullanır.
+ * Tek tanım sorgu anahtarı fabrikasındadır (`shared/http/query-keys.ts`); burada yalnız
+ * kapsam katmanının (lifecycle) mevcut içe aktarımı için yeniden dışa aktarılır.
  */
-export function isScopedQueryKey(key: readonly unknown[]): boolean {
-  const head = key[1]
-  return (
-    key[0] === QUERY_KEY_ROOT &&
-    typeof head === 'object' &&
-    head !== null &&
-    !Array.isArray(head) &&
-    'program' in head
-  )
-}
+export { isScopedQueryKey } from '@/shared/http/query-keys'

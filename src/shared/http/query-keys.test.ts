@@ -2,7 +2,12 @@ import { QueryClient, type QueryKey } from '@tanstack/vue-query'
 import { describe, expect, it } from 'vitest'
 
 import { OPERATIONS } from '@/shared/api/operations.gen'
-import type { ScopeSnapshot } from '@/shared/scope/scope'
+import {
+  isScopedQueryKey as scopeLayerIsScoped,
+  scopedKey,
+  type ScopeSnapshot,
+} from '@/shared/scope/scope'
+import { STANDING_KEYS } from '@/shared/scope/standing'
 
 import {
   INVALIDATED_BY,
@@ -10,6 +15,7 @@ import {
   isScopedQueryKey,
   queryKeys,
   resourcesInvalidatedBy,
+  scoped,
   type OperationId,
   type QueryResource,
 } from './query-keys'
@@ -246,5 +252,63 @@ describe('query-keys — kapsam ve hedef', () => {
   it("['me'] öneki departmanlarımı da kapsar", () => {
     const keys = [queryKeys.me.root(), queryKeys.me.departments(), queryKeys.programs.all()]
     expect(hits('removeCoordinator', keys)).toEqual([keys[0], keys[1]])
+  })
+})
+
+describe('query-keys — W13 kapsam katmanıyla tekilleştirme', () => {
+  const lensed: ScopeSnapshot = { programId: 'p1', departmentId: 'd1', lens: 'coordinator' }
+  const scopedKeys: QueryKey[] = [
+    queryKeys.departments.all(lensed),
+    queryKeys.workItems.list(lensed, f),
+    queryKeys.workItems.item(lensed, 'w1'),
+    queryKeys.workItems.files(lensed, 'w1'),
+    queryKeys.gantt.face(lensed, 'program'),
+    queryKeys.dateRequests.list(lensed, f),
+    queryKeys.report.dashboard(lensed),
+    queryKeys.archive.list(lensed, 'folders', f),
+    queryKeys.meetings.notes(lensed, 'm1'),
+    queryKeys.chats.messages(lensed, 'c1'),
+  ]
+  const accountKeys: QueryKey[] = [
+    queryKeys.instance.profile(),
+    queryKeys.notifications.unreadCount(),
+    queryKeys.chatsUnread.overview(),
+    queryKeys.programs.all(),
+    queryKeys.me.root(),
+    queryKeys.me.departments(),
+    queryKeys.users.list(f),
+  ]
+
+  it('scoped() scopedKey() üzerine kuruludur (mercek dahil)', () => {
+    expect(scoped(lensed, ['work-items', 'w1'])).toEqual(scopedKey(lensed, 'work-items', 'w1'))
+    expect(queryKeys.workItems.item(lensed, 'w1')[1]).toEqual({
+      program: 'p1',
+      department: 'd1',
+      lens: 'coordinator',
+    })
+  })
+
+  it('kapsam katmanının predicate’i tek tanımdır ve aynı anahtarları seçer', () => {
+    expect(scopeLayerIsScoped).toBe(isScopedQueryKey)
+    for (const key of scopedKeys) expect(scopeLayerIsScoped(key), String(key[2])).toBe(true)
+    for (const key of accountKeys) expect(scopeLayerIsScoped(key), String(key[0])).toBe(false)
+  })
+
+  it('kapsam temizliği (lifecycle predicate) yalnız scoped anahtarları düşürür', () => {
+    const client = new QueryClient()
+    for (const key of [...scopedKeys, ...accountKeys]) client.setQueryData(key, 1)
+    client.removeQueries({ predicate: (q) => scopeLayerIsScoped(q.queryKey) })
+    const left = client
+      .getQueryCache()
+      .getAll()
+      .map((q) => q.queryKey)
+    expect(left).toHaveLength(accountKeys.length)
+    expect(left).toEqual(expect.arrayContaining(accountKeys))
+  })
+
+  it('standing anahtarları fabrikadan gelir', () => {
+    expect(STANDING_KEYS.me).toEqual(queryKeys.me.root())
+    expect(STANDING_KEYS.myDepartments).toEqual(queryKeys.me.departments())
+    expect(STANDING_KEYS.programs).toEqual(queryKeys.programs.all())
   })
 })
