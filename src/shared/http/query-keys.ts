@@ -28,7 +28,8 @@ export function scoped(scope: ScopeSnapshot, parts: ReadonlyArray<Part>): QueryK
 
 /**
  * Anahtar `scoped(...)`/`scopedKey(...)` ile mi üretildi (kapsam değişiminde iptal + düşürme
- * hedefi)? TEK tanım; `shared/scope/scope.ts` bunu yeniden dışa aktarır (W13 temizliği).
+ * hedefi)? TEK tanım; kapsam temizliği (`shared/scope/lifecycle.ts`) doğrudan buradan alır.
+ * Bağımlılık tek yönlüdür: query-keys → scope (`scopedKey`); scope http'yi içe aktarmaz.
  */
 export function isScopedQueryKey(key: readonly unknown[]): boolean {
   const head = key[1]

@@ -2,11 +2,7 @@ import { QueryClient, type QueryKey } from '@tanstack/vue-query'
 import { describe, expect, it } from 'vitest'
 
 import { OPERATIONS } from '@/shared/api/operations.gen'
-import {
-  isScopedQueryKey as scopeLayerIsScoped,
-  scopedKey,
-  type ScopeSnapshot,
-} from '@/shared/scope/scope'
+import { globalKey, scopedKey, type ScopeSnapshot } from '@/shared/scope/scope'
 import { STANDING_KEYS } from '@/shared/scope/standing'
 
 import {
@@ -288,16 +284,18 @@ describe('query-keys — W13 kapsam katmanıyla tekilleştirme', () => {
     })
   })
 
-  it('kapsam katmanının predicate’i tek tanımdır ve aynı anahtarları seçer', () => {
-    expect(scopeLayerIsScoped).toBe(isScopedQueryKey)
-    for (const key of scopedKeys) expect(scopeLayerIsScoped(key), String(key[2])).toBe(true)
-    for (const key of accountKeys) expect(scopeLayerIsScoped(key), String(key[0])).toBe(false)
+  it('isScopedQueryKey (lifecycle temizliğinin predicate’i) yalnız scopedKey anahtarlarını seçer', () => {
+    for (const key of scopedKeys) expect(isScopedQueryKey(key), String(key[2])).toBe(true)
+    expect(isScopedQueryKey(scopedKey({ programId: 'p1', departmentId: null }, 'x'))).toBe(true)
+    for (const key of accountKeys) expect(isScopedQueryKey(key), String(key[0])).toBe(false)
+    expect(isScopedQueryKey(globalKey('x'))).toBe(false)
+    expect(isScopedQueryKey(['nizamio', ['program']])).toBe(false)
   })
 
   it('kapsam temizliği (lifecycle predicate) yalnız scoped anahtarları düşürür', () => {
     const client = new QueryClient()
     for (const key of [...scopedKeys, ...accountKeys]) client.setQueryData(key, 1)
-    client.removeQueries({ predicate: (q) => scopeLayerIsScoped(q.queryKey) })
+    client.removeQueries({ predicate: (q) => isScopedQueryKey(q.queryKey) })
     const left = client
       .getQueryCache()
       .getAll()

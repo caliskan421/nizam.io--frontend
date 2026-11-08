@@ -43,10 +43,3 @@ export function globalKey(
 ): readonly unknown[] {
   return [QUERY_KEY_ROOT, 'global', ...parts] as const
 }
-
-/**
- * Anahtar `scopedKey(...)` ile mi üretildi (kapsam değişiminde iptal + önbellekten düşer)?
- * Tek tanım sorgu anahtarı fabrikasındadır (`shared/http/query-keys.ts`); burada yalnız
- * kapsam katmanının (lifecycle) mevcut içe aktarımı için yeniden dışa aktarılır.
- */
-export { isScopedQueryKey } from '@/shared/http/query-keys'

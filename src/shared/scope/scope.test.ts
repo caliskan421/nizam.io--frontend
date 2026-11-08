@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { globalKey, isScopedQueryKey, scopedKey } from './scope'
+import { scopedKey } from './scope'
 
 describe('sorgu anahtarları', () => {
   it('kapsamlı anahtar program, departman ve merceği taşır', () => {
@@ -15,15 +15,5 @@ describe('sorgu anahtarları', () => {
     })
   })
 
-  it('isScopedQueryKey yalnız scopedKey anahtarlarını seçer', () => {
-    expect(isScopedQueryKey(scopedKey({ programId: 'p1', departmentId: null }, 'work-items'))).toBe(
-      true,
-    )
-    expect(isScopedQueryKey(globalKey('x'))).toBe(false)
-    expect(isScopedQueryKey(['me'])).toBe(false)
-    expect(isScopedQueryKey(['me', 'departments'])).toBe(false)
-    expect(isScopedQueryKey(['programs'])).toBe(false)
-    expect(isScopedQueryKey(['notifications', 'unread-count'])).toBe(false)
-    expect(isScopedQueryKey(['nizamio', ['program']])).toBe(false)
-  })
+  // isScopedQueryKey testi tek tanımın yanında: src/shared/http/query-keys.test.ts.
 })
