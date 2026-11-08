@@ -16,3 +16,5 @@ src/shared/tokens/*.gen.*
 e2e/.state/
 # Tasarım kaynağı — elle biçimlenmez
 docs/tasarim/kaynak/
+# Tasarım sistemi kopyası — blob pinli, bayt bayt aynı kalır
+tokens/design-system.tokens.json
