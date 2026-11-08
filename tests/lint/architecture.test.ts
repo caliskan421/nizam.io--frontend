@@ -83,6 +83,57 @@ describe('depolama yasağı', () => {
   })
 })
 
+describe('depolama istisnası (yalnız src/shared/preferences/storage-adapter.ts)', () => {
+  const ADAPTER = 'src/shared/preferences/storage-adapter.ts'
+  const storageRule = (id: string) =>
+    id === 'no-restricted-globals' ||
+    id === 'no-restricted-syntax' ||
+    id === 'no-restricted-properties'
+
+  it.each([
+    'export const s = globalThis.localStorage\n',
+    "export const s = localStorage.getItem('nizamio.pref.ui.theme')\n",
+  ])('istisna dosyasında localStorage serbest: %s', async (code) => {
+    const ids = await ruleIds(ADAPTER, code)
+    expect(ids.some(storageRule)).toBe(false)
+  })
+
+  it.each([
+    "sessionStorage.setItem('t', 'x')\nexport {}\n",
+    'export const s = globalThis.sessionStorage\n',
+    "export const s = globalThis['sessionStorage']\n",
+  ])('istisna dosyasında da sessionStorage yasak: %s', async (code) => {
+    const ids = await ruleIds(ADAPTER, code)
+    expect(ids.some(storageRule)).toBe(true)
+  })
+
+  it('istisna no-restricted-syntax kuralına dokunmaz: depolama dışı seçiciler komşu dosyayla aynı', async () => {
+    const selectors = async (file: string) => {
+      const config = (await eslint.calculateConfigForFile(file)) as {
+        rules?: Record<string, unknown[] | undefined>
+      }
+      return (config.rules?.['no-restricted-syntax'] ?? [])
+        .slice(1)
+        .map((option) => (option as { selector: string }).selector)
+        .filter((selector) => !/localStorage|sessionStorage/.test(selector))
+    }
+    expect(await selectors(ADAPTER)).toEqual(await selectors('src/shared/preferences/index.ts'))
+  })
+
+  it.each([
+    'src/shared/preferences/index.ts',
+    'src/shared/preferences/keys.ts',
+    'src/shared/preferences/storage-adapter.test.ts',
+    'src/shared/preferences/sub/storage-adapter.ts',
+    'src/shared/scope/storage-adapter.ts',
+    'src/shared/session/store.ts',
+    'src/modules/work/model/storage-adapter.ts',
+  ])('preferences istisnası dışında localStorage hâlâ yasak: %s', async (file) => {
+    const ids = await ruleIds(file, 'export const s = globalThis.localStorage\n')
+    expect(ids.some(storageRule)).toBe(true)
+  })
+})
+
 describe('elle DTO yasağı (src/modules/**/api)', () => {
   const API = 'src/modules/identity/api/__lint_fixture__.ts'
 

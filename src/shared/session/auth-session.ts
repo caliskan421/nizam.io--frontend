@@ -19,6 +19,13 @@ export interface SessionSnapshot {
   /** Erişim belirtecinin bitişi (Unix saniyesi). */
   expiresAt: number | null
   forcePasswordChange: boolean
+  /**
+   * Çıkış isteği başarısız / zaman aşımı (ortak-kurallar §8): sunucu oturumu kapattığı
+   * doğrulanamadı, HttpOnly yenileme çerezi hâlâ geçerli olabilir. Bu bayrak açıkken sessiz
+   * yenileme (401 sonrası ve açılıştaki refresh) YAPILMAZ ve kardeş sekmeden gelen belirteç
+   * kabul edilmez; yalnız açık giriş (`establish`) bayrağı kapatır. Yalnız bellekte tutulur.
+   */
+  serverLogoutUnverified: boolean
 }
 
 export interface AuthSessionDeps {
@@ -60,6 +67,7 @@ export class AuthSession {
     accountId: null,
     expiresAt: null,
     forcePasswordChange: false,
+    serverLogoutUnverified: false,
   }
   #inflight: Promise<RefreshOutcome> | null = null
   #listeners = new Set<(s: SessionSnapshot) => void>()
@@ -125,10 +133,13 @@ export class AuthSession {
     this.#setSnapshot({ ...this.#snapshot, forcePasswordChange: true })
   }
 
-  /** Çıkış: bellek temizlenir, diğer sekmelere bildirilir. API çağrısı depo katmanındadır. */
-  clear(): void {
+  /**
+   * Çıkış: bellek temizlenir, diğer sekmelere bildirilir. API çağrısı `scope/sign-out.ts`'tedir.
+   * `serverUnverified`: sunucu çıkışı doğrulanamadı → açık girişe kadar sessiz yenileme yok.
+   */
+  clear(options: { serverUnverified?: boolean } = {}): void {
     const accountId = this.#snapshot.accountId
-    this.#end('anonymous')
+    this.#end('anonymous', options.serverUnverified === true)
     if (accountId) {
       this.#deps.coordination.publish({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId })
     }
@@ -142,6 +153,7 @@ export class AuthSession {
       accountId: null,
       expiresAt: null,
       forcePasswordChange: false,
+      serverLogoutUnverified: this.#snapshot.serverLogoutUnverified,
     })
   }
 
@@ -155,6 +167,8 @@ export class AuthSession {
    * sessiz refresh için null). Aynı sekmede eşzamanlı çağrılar tek promise paylaşır.
    */
   refresh(failedToken: string | null): Promise<RefreshOutcome> {
+    // Sunucu çıkışı doğrulanamadı: çerezle sessiz yenileme denenmez (ortak-kurallar §8).
+    if (this.#snapshot.serverLogoutUnverified) return Promise.resolve('ended')
     if (this.#inflight) return this.#inflight
     const run = this.#deps.coordination
       .withLock(REFRESH_LOCK_NAME, () => this.#refreshLocked(failedToken))
@@ -258,6 +272,8 @@ export class AuthSession {
         return
       }
       case 'token':
+        // Doğrulanamayan çıkıştan sonra belirteç yalnız açık girişle gelir.
+        if (this.#snapshot.serverLogoutUnverified) return
         // Hesap tutarlılığı: oturumdaki hesap doluysa başka hesabın belirteci reddedilir.
         if (current !== null && message.accountId !== current) return
         if (message.issuedAt <= this.#issuedAt) return
@@ -280,13 +296,28 @@ export class AuthSession {
   ): void {
     this.#token = token
     this.#issuedAt = issuedAt
-    this.#setSnapshot({ status: 'authenticated', accountId, expiresAt, forcePasswordChange })
+    this.#setSnapshot({
+      status: 'authenticated',
+      accountId,
+      expiresAt,
+      forcePasswordChange,
+      serverLogoutUnverified: false,
+    })
     for (const waiter of [...this.#tokenWaiters]) waiter()
   }
 
-  #end(status: 'anonymous' | 'ended'): void {
+  #end(
+    status: 'anonymous' | 'ended',
+    serverLogoutUnverified: boolean = this.#snapshot.serverLogoutUnverified,
+  ): void {
     this.#token = null
-    this.#setSnapshot({ status, accountId: null, expiresAt: null, forcePasswordChange: false })
+    this.#setSnapshot({
+      status,
+      accountId: null,
+      expiresAt: null,
+      forcePasswordChange: false,
+      serverLogoutUnverified,
+    })
   }
 
   #setSnapshot(next: SessionSnapshot): void {
