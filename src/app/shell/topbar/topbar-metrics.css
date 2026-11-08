@@ -1,0 +1,17 @@
+/*
+ * Üst çubuk ölçüleri — tasarım kaynağındaki (docs/tasarim/kaynak/theme.css `rp-navbtns`,
+ * Main.dc.html zil noktası) ölçek DIŞI değerler. `app/shell/topbar` içinde px yazılan TEK yer
+ * (topbar-styles.test.ts denetler); renk yazılmaz. Ölçekte karşılığı olanlar (`--rp-topbar-h`,
+ * `--rp-topbar-pad-y`, boşluk, köşe) doğrudan token'dan okunur. Kalıcı yeri
+ * `design/web-tokens.json` (K9) — taşınınca bu dosya kalkar.
+ */
+@layer components {
+  .rp-topbar {
+    --topbar-nav-size: 30px;
+    --topbar-nav-icon: 18px;
+    --topbar-crumb-fs: 13px;
+    --topbar-dot: 7px;
+    --topbar-dot-top: 6px;
+    --topbar-dot-right: 7px;
+  }
+}

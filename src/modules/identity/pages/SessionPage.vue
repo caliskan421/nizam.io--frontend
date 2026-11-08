@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // YER TUTUCU oturum görünümü (tasarımsız). Giriş ekranı tasarımı program sonrası istemci geliştirmesindedir; bu sayfa yalnız
 // http/oturum katmanının gerçek uygulama yığınından geçtiğini e2e ile kanıtlamak içindir.
+import { useQueryClient } from '@tanstack/vue-query'
 import { onMounted, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -10,6 +11,7 @@ import { errorText } from '@/shared/i18n'
 import { useSessionStore } from '@/shared/session/store'
 
 const session = useSessionStore()
+const queryClient = useQueryClient()
 const { t } = useI18n()
 const email = ref('')
 const password = ref('')
@@ -38,8 +40,10 @@ async function submit(): Promise<void> {
   }
 }
 
+// Çıkış sorgu önbelleğini de boşaltır (W13 notu); doğrulanamayan çıkışın uyarısı uygulama
+// kökünde (`app/states` LogoutUnverifiedNotice, ortak-kurallar §8).
 async function logout(): Promise<void> {
-  await session.logout()
+  await session.logout(queryClient)
 }
 
 watch(

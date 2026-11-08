@@ -1,0 +1,60 @@
+/*
+ * Onay penceresi ve yazma sonucu bildirimi — `Toplanti-Formlar.dc.html` "Silme onayı" gövdesi
+ * (14/22 metin, `--ink-muted`, paragraf arası 10) ve `rp-cap-k` başlık kalıbı. Kural: yalnız
+ * token; ölçek dışı değerler `../styles/metrics.css` (`--ui-*`).
+ */
+@layer components {
+  .ui-confirm__body {
+    gap: var(--ui-gap-sm);
+    font: var(--text-body);
+    color: var(--ink-muted);
+  }
+  .ui-confirm__body p {
+    margin: 0;
+  }
+  .ui-confirm__body .ui-confirm__k,
+  .ui-notice__k {
+    font: var(--text-label);
+    color: var(--ink-faint);
+  }
+  .ui-confirm__list,
+  .ui-notice__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    list-style: none;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--ink);
+    font: var(--text-body-strong);
+  }
+
+  /* Yerinde sonuç bildirimi ("sonuç bilinmiyor", çakışma) */
+  .ui-notice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .ui-notice--danger {
+    border-color: var(--danger);
+  }
+  .ui-notice p {
+    margin: 0;
+  }
+  .ui-notice__hint {
+    color: var(--ink-muted);
+  }
+  .ui-notice__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+}

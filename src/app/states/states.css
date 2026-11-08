@@ -1,0 +1,34 @@
+/*
+ * Kabuk içi durum alanı (K7 açık durumları, kapsam yükleniyor / hata / seçim). Tasarımda
+ * karşılığı yok (00-ortak `mekanizma.md` §6); `rp-body` dolgusu + `rp-empty` kalıbı. Yalnız token.
+ */
+@layer components {
+  .shell-state {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-8);
+  }
+  .shell-state__note {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-faint);
+  }
+  .shell-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  @media (max-width: 900px) {
+    .shell-state {
+      padding: var(--space-5);
+    }
+  }
+}

@@ -1,17 +1,14 @@
 // Duman senaryosu (F06 kapsam 11): giriş → /v1/me → (sayfa yenileme → sessiz refresh) → çıkış,
 // tarayıcıda gerçek uygulama yığınından (Vue + Pinia + http katmanı + vite preview proxy)
 // gerçek backend'e karşı. Giriş ekranı yer tutucudur (tasarım program sonrası istemci geliştirmesi).
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { ADMIN, readFixture } from './fixture'
+import { storageHasOnlyAllowedKeys } from './storage-check'
 
-async function storageIsEmpty(page: Page): Promise<boolean> {
-  return page.evaluate(
-    () =>
-      window.localStorage.length === 0 &&
-      window.sessionStorage.length === 0 &&
-      !document.cookie.includes('nizamio'),
-  )
+/** İstekteki erişim belirteci (bilinen gizli değer: hiçbir depoda geçmemeli). */
+function bearerOf(request: { headers(): Record<string, string> }): string {
+  return (request.headers()['authorization'] ?? '').replace(/^Bearer\s+/, '')
 }
 
 test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', async ({ page }) => {
@@ -37,8 +34,11 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   await expect(status).toHaveAttribute('data-status', 'authenticated')
   await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
 
-  // Belirteç tarayıcı depolarına yazılmadı; yenileme çerezi HttpOnly (JS göremez).
-  expect(await storageIsEmpty(page)).toBe(true)
+  // Belirteç tarayıcı depolarına yazılmadı: yalnız K2 izinli tercih anahtarları (kapsam kimlikleri,
+  // tema), sessionStorage boş, gerçek erişim belirteci hiçbir yerde yok; yenileme çerezi HttpOnly.
+  const accessToken = bearerOf(meResponse.request())
+  expect(accessToken).not.toBe('')
+  expect(await storageHasOnlyAllowedKeys(page, [accessToken])).toEqual([])
   const cookies = await page.context().cookies()
   const refreshCookie = cookies.find((c) => c.name === 'nizamio_web_refresh')
   expect(refreshCookie?.httpOnly).toBe(true)
@@ -47,10 +47,12 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   // Sayfa yenileme: bellek sıfırlanır; oturum HttpOnly çerezle sessiz refresh ile döner.
   const silentRefresh = page.waitForResponse((r) => r.url().endsWith('/v1/auth/refresh'))
   await page.reload()
-  expect((await silentRefresh).status()).toBe(200)
+  const refreshed = await silentRefresh
+  expect(refreshed.status()).toBe(200)
+  const renewed = ((await refreshed.json()) as { access_token?: string }).access_token ?? ''
   await expect(status).toHaveAttribute('data-status', 'authenticated')
   await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
-  expect(await storageIsEmpty(page)).toBe(true)
+  expect(await storageHasOnlyAllowedKeys(page, [accessToken, renewed])).toEqual([])
 
   await page.screenshot({ path: 'test-results/smoke-authenticated.png', fullPage: true })
 
@@ -61,6 +63,10 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   expect(logoutResponse.status()).toBe(204)
   expect(logoutResponse.request().headers()['x-requested-with']).toBeTruthy()
   await expect(status).toHaveAttribute('data-status', 'anonymous')
+  // Çıkışta kapsam kimlikleri silinir, yalnız tema tercihi kalabilir (E-00-29).
+  expect(await storageHasOnlyAllowedKeys(page, [accessToken, renewed])).toEqual([])
+  const kept = await page.evaluate(() => Object.keys(window.localStorage))
+  expect(kept.filter((key) => key.includes('scope.'))).toEqual([])
 
   // Çıkıştan sonra yenileme: oturum dönmez.
   await page.reload()
