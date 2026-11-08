@@ -49,7 +49,9 @@ export function useSideScope() {
     lifecycle,
     store,
     program,
-    avatar: computed(() => (program.value ? programAvatar(program.value) : null)),
+    avatar: computed(() =>
+      program.value ? programAvatar(program.value, lifecycle.programs.value) : null,
+    ),
     lens,
     department,
     visible,
