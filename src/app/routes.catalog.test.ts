@@ -216,11 +216,12 @@ describe('konum üretme ve süzgeç okuma', () => {
         durum: 'yok',
         talep: '1',
         sirala: 'bitis:yukari',
-        kisi: ['abc-1', null],
+        koordinatorluk: ['abc-1', null],
+        kisi: 'abc-2',
         q: '   ',
         bilinmeyen: 'x',
       }),
-    ).toEqual({ talep: true, kisi: 'abc-1' })
+    ).toEqual({ talep: true, koordinatorluk: 'abc-1' })
   })
 
   it.each([

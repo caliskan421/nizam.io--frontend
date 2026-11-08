@@ -13,8 +13,9 @@ import { outcomeText } from './notify'
  * Yerinde yazma sonucu bildirimi (formun altında):
  *  - "sonuç bilinmiyor" (`unknown_outcome`): metin + süre içindeyse "Yeniden gönder" — aynı
  *    anahtar ve aynı gövdeyle (`outcome.retry`); yeni sonuç `resolved` ile çağırana döner.
- *  - çakışma (`edit_conflict`): metin + değişen alanların adları (`fields`, çağıran çevirir);
- *    alan alan seçim F1'de.
+ *  - çakışma (`edit_conflict`): metin + değişen alanların adları (`fields`, çağıran çevirir) +
+ *    "Alanları karşılaştır" → `compare` (çağıran `shared/ui/conflict` `useConflictResolver`
+ *    ile `ConflictDialog`'u açar; taban/etiketler çağırandadır).
  * Diğer sonuçlarda hiçbir şey çizilmez.
  */
 type Outcome = MutationOutcome<unknown, unknown, unknown>
@@ -22,7 +23,10 @@ type Outcome = MutationOutcome<unknown, unknown, unknown>
 const props = withDefaults(defineProps<{ outcome: Outcome | null; fields?: readonly string[] }>(), {
   fields: () => [],
 })
-const emit = defineEmits<{ resolved: [outcome: Outcome] }>()
+const emit = defineEmits<{
+  resolved: [outcome: Outcome]
+  compare: [outcome: Extract<Outcome, { kind: 'edit_conflict' }>]
+}>()
 
 const sending = ref(false)
 const shown = computed(() =>
@@ -54,7 +58,11 @@ async function resend(): Promise<void> {
           <li v-for="field in fields" :key="field">{{ field }}</li>
         </ul>
       </template>
-      <p class="ui-notice__hint">{{ confirmText('confirm.conflict.later') }}</p>
+      <div class="ui-notice__actions">
+        <UiButton size="sm" data-testid="outcome-compare" @click="emit('compare', shown)">
+          {{ confirmText('confirm.conflict.compare') }}
+        </UiButton>
+      </div>
     </template>
     <div v-else-if="retry" class="ui-notice__actions">
       <UiButton size="sm" :disabled="sending" data-testid="outcome-retry" @click="resend">
