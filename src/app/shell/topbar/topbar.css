@@ -1,0 +1,133 @@
+/*
+ * Üst çubuk görünümü — theme.css `rp-topbar`, `rp-navbtns`, `rp-crumbs`, `rp-kicker`,
+ * `rp-themebtn` ve Main.dc.html zil noktasının birebir karşılığı. Kural: yalnız token; px yalnız
+ * topbar-metrics.css'te (medya koşulu hariç: CSS değişkeni medya koşulunda kullanılamaz; değer
+ * `--rp-narrow-max` ile aynıdır). Açık tema yalnız token değişimiyle; tema simgesi yalnız CSS ile.
+ */
+@import './topbar-metrics.css';
+
+@layer components {
+  .rp-topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--rp-topbar-pad-y) var(--space-8);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    min-height: var(--rp-topbar-h);
+    box-sizing: border-box;
+  }
+  @media (max-width: 900px) {
+    .rp-topbar {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+  }
+
+  /* Geri / İleri */
+  .rp-navbtns {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    flex: none;
+    margin-right: var(--space-1);
+  }
+  .rp-navbtns button {
+    display: grid;
+    place-items: center;
+    width: var(--topbar-nav-size);
+    height: var(--topbar-nav-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .rp-navbtns button .t-icon {
+    width: var(--topbar-nav-icon);
+    height: var(--topbar-nav-icon);
+    stroke-width: 2;
+  }
+  .rp-navbtns button:hover:not(:disabled) {
+    background: var(--bg-raised);
+  }
+  .rp-navbtns button:active:not(:disabled) {
+    background: var(--bg-overlay);
+  }
+  .rp-navbtns button:disabled {
+    color: var(--ink-faint);
+    opacity: 0.45;
+    cursor: default;
+  }
+  .rp-navbtns button:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-hairline);
+  }
+
+  /* Konum izi */
+  .rp-crumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: var(--topbar-crumb-fs);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .rp-crumbs a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    flex: none;
+  }
+  .rp-crumbs a:hover {
+    color: var(--ink);
+  }
+  .rp-crumbs a:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-hairline);
+  }
+  .rp-crumbs strong {
+    color: var(--ink);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Tarih */
+  .rp-topbar .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* Tema düğmesi: koyuda güneş, açıkta ay (yalnız CSS) */
+  .rp-themebtn .rp-ic-moon {
+    display: none;
+  }
+  [data-theme='light'] .rp-themebtn .rp-ic-sun {
+    display: none;
+  }
+  [data-theme='light'] .rp-themebtn .rp-ic-moon {
+    display: inline-block;
+  }
+
+  /* Bildirim zili: okunmamış noktası (sayı yok) */
+  .topbar-bell {
+    position: relative;
+  }
+  .topbar-bell__dot {
+    position: absolute;
+    top: var(--topbar-dot-top);
+    right: var(--topbar-dot-right);
+    width: var(--topbar-dot);
+    height: var(--topbar-dot);
+    border-radius: var(--radius-full);
+    background: var(--danger);
+    box-shadow: 0 0 0 var(--ui-focus-width) var(--bg-base);
+  }
+}
