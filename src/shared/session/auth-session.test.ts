@@ -69,6 +69,31 @@ describe('AuthSession — sunucu çıkışı doğrulanamadı (ortak-kurallar §8
     expect(a.session.snapshot.serverLogoutUnverified).toBe(true)
   })
 
+  it('bayrak kardeş sekmeye aktarılır: kardeş anonim, sessiz refresh yok; açık giriş kapatır', async () => {
+    const browser = createFakeBrowser()
+    const a = tab(browser)
+    const b = tab(browser)
+    const channel = channelObserver(browser)
+    const loggedIn = channel.next()
+    a.session.establish(login(1))
+    await loggedIn
+    expect(b.session.snapshot.status).toBe('authenticated')
+
+    const loggedOut = channel.next()
+    a.session.clear({ serverUnverified: true })
+    await loggedOut
+    expect(b.session.token).toBeNull()
+    expect(b.session.snapshot).toMatchObject({ status: 'anonymous', serverLogoutUnverified: true })
+    expect(await b.session.refresh(null)).toBe('ended')
+    expect(b.fetch).not.toHaveBeenCalled()
+
+    b.session.establish(login(2))
+    expect(b.session.snapshot).toMatchObject({
+      status: 'authenticated',
+      serverLogoutUnverified: false,
+    })
+  })
+
   it('açık giriş bayrağı kapatır; normal çıkış bayrak koymaz', () => {
     const { session } = tab(createFakeBrowser())
     session.establish(login(1))

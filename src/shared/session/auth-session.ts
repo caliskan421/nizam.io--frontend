@@ -176,6 +176,14 @@ export class AuthSession {
     this.#nextGeneration()
     this.#end('anonymous', options.serverUnverified === true)
     if (accountId) {
+      // Bayrak kardeşlere `logout`'tan ÖNCE gider (belirteç taşımaz; messages.ts).
+      if (options.serverUnverified) {
+        this.#deps.coordination.publish({
+          v: SESSION_MESSAGE_VERSION,
+          type: 'logout-unverified',
+          accountId,
+        })
+      }
       this.#deps.coordination.publish({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId })
     }
   }
@@ -327,6 +335,9 @@ export class AuthSession {
       case 'logout':
         this.#onLogout(message.accountId)
         return
+      case 'logout-unverified':
+        this.#onLogoutUnverified(message.accountId)
+        return
       case 'sync-request': {
         // Belirteç yalnız taze ise paylaşılır (alıcı eski issuedAt'i zaten reddeder).
         if (this.#snapshot.status !== 'authenticated') return
@@ -362,6 +373,23 @@ export class AuthSession {
     if (!applies) return
     this.#nextGeneration()
     this.#end('anonymous')
+  }
+
+  /**
+   * Kardeş sekmenin sunucu çıkışı doğrulanamadı (ortak-kurallar §8): aynı hesabın sekmesi ya da
+   * hesabı bilinmeyen sekme bayrağı alır; açık girişe kadar sessiz refresh ve kardeş belirteci
+   * kabul edilmez. Oturumu açık (ya da açılış refresh'i süren) sekme anonim olur; zaten oturumsuz
+   * sekmenin durumu (ended/anonymous/unavailable) korunur, yalnız bayrak eklenir.
+   */
+  #onLogoutUnverified(accountId: string): void {
+    const current = this.#snapshot.accountId
+    if (current !== null && current !== accountId) return
+    this.#nextGeneration()
+    if (current !== null || this.#snapshot.status === 'unknown') {
+      this.#end('anonymous', true)
+    } else {
+      this.#setSnapshot({ ...this.#snapshot, serverLogoutUnverified: true })
+    }
   }
 
   /** Yeni oturum nesli: önceki nesilde başlamış refresh/giriş yanıtları uygulanmaz. */
