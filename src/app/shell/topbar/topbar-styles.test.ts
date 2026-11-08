@@ -34,6 +34,24 @@ describe('üst çubuk görünüm kuralları', () => {
     }
   })
 
+  it('zil devre dışıyken okunmamış noktası soluk değil; düğme yüzü aynı oranda soluk', () => {
+    const style = stripComments(read('topbar.css'))
+    const rule = (sel: string) =>
+      new RegExp(`${sel.replace(/[.:]/g, (c) => `\\${c}`)} \\{([^}]*)\\}`).exec(style)?.[1] ?? ''
+    // .t-iconbtn:disabled (opacity 0.4) çocuğa geçer: düğme opak, perde 1 - 0.4 = 0.6.
+    const ui = stripComments(read('../../../shared/ui/styles/ui.css'))
+    expect(ui).toMatch(/\.t-iconbtn:disabled \{\s*opacity: 0\.4;/)
+    expect(rule('.rp-topbar .topbar-bell:disabled')).toMatch(/opacity: 1;/)
+    const veil = rule('.topbar-bell:disabled::before')
+    expect(veil).toMatch(/background: var\(--bg-base\);/)
+    expect(veil).toMatch(/opacity: 0\.6;/)
+    expect(veil).toMatch(/pointer-events: none;/)
+    const dot = rule('.topbar-bell__dot')
+    expect(dot).toMatch(/z-index: 1;/)
+    expect(dot).toMatch(/background: var\(--danger\);/)
+    expect(dot).not.toMatch(/opacity/)
+  })
+
   it('tema simgesi CSS ile: koyuda ay gizli, açıkta güneş gizli', () => {
     const style = stripComments(read('topbar.css'))
     expect(style).toMatch(/\.rp-themebtn \.rp-ic-moon \{\s*display: none;/)

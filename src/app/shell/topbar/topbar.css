@@ -129,6 +129,22 @@
   .topbar-bell {
     position: relative;
   }
+  /* Zil F7'ye kadar devre dışı (ortak-kurallar §5), okunmamış noktası ise canlı: `.t-iconbtn:disabled`
+     opaklığı çocuğa da geçeceği için düğme opak bırakılır, aynı soluklaştırma düğme yüzüne
+     zemin rengi perdesiyle verilir (zemin --bg-base: 0.4 opaklıkla birebir aynı). Nokta perdenin
+     üstünde, tam opak. */
+  .rp-topbar .topbar-bell:disabled {
+    opacity: 1;
+  }
+  .topbar-bell:disabled::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--ui-hairline));
+    border-radius: inherit;
+    background: var(--bg-base);
+    opacity: 0.6;
+    pointer-events: none;
+  }
   .topbar-bell__dot {
     position: absolute;
     top: var(--topbar-dot-top);
@@ -136,6 +152,7 @@
     width: var(--topbar-dot);
     height: var(--topbar-dot);
     border-radius: var(--radius-full);
+    z-index: 1;
     background: var(--danger);
     box-shadow: 0 0 0 var(--ui-focus-width) var(--bg-base);
   }
