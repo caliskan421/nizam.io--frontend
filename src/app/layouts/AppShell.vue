@@ -2,11 +2,13 @@
 import { computed, provide, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { isRouteName } from '@/app/routes.catalog'
 import { AppSide, SCOPE_LIFECYCLE_KEY } from '@/app/shell/side/public'
 import { AppTopbar } from '@/app/shell/topbar/public'
 import type { ShellContent } from '@/app/shell/types'
 import { resolveShellContent, ShellState } from '@/app/states/public'
 import { useScopeLifecycle } from '@/shared/scope/lifecycle'
+import { useProgramDepartmentGap } from '@/shared/scope/standing'
 import { UiToast } from '@/shared/ui'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
@@ -15,10 +17,12 @@ import { ConfirmHost } from '@/shared/ui/confirm'
  * sağda `rp-main` (üst çubuk + içerik). Kapsam yaşam döngüsü burada BİR kez kurulur ve
  * `SCOPE_LIFECYCLE_KEY` ile sağlanır. Daraltma yalnız oturum belleğinde (P10). K7 açık durumları
  * ve kapsam bekleme durumları rota içeriği yerine yerinde gösterilir (URL'siz). Bildirim ve onay
- * yuvaları (`UiToast`, `ConfirmHost`) burada bir kez yerleşir.
+ * yuvaları (`UiToast`, `ConfirmHost`) burada bir kez yerleşir. Yöneticinin "programa departman
+ * katılmamış" durumu Admin merceğinde program departman listesinden saptanır (yalnız içerik alanı).
  */
 const lifecycle = useScopeLifecycle()
 provide(SCOPE_LIFECYCLE_KEY, lifecycle)
+const departmentGap = useProgramDepartmentGap(() => lifecycle.status.value === 'ready')
 
 const collapsed = ref(false)
 const route = useRoute()
@@ -28,6 +32,8 @@ const content = computed<ShellContent>(() =>
     status: lifecycle.status.value,
     emptyReason: lifecycle.emptyReason.value,
     routeScope: route.meta.scope,
+    routeName: isRouteName(route.name) ? route.name : undefined,
+    departmentGap: departmentGap.value,
   }),
 )
 const stateContent = computed(() => (content.value.kind === 'content' ? null : content.value))

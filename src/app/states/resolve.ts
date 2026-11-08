@@ -7,18 +7,21 @@
  *    hiçbir kart gösterilmez.
  *  - Görünür program yok → "program yok" (yönetici: "program oluştur", F2'de).
  *  - Seçili programda mercek yok → "programa departman katılmamış" (yönetici: "departman ekle").
+ *    Yönetici (Admin merceği her programda vardır) için aynı durum programın bağlı departman
+ *    listesinin boşluğundan gelir (`DepartmentGap`, `listProgramDepartments`); yalnız içerik
+ *    alanında gösterilir, menü/kabuk açık kalır. Liste beklenirken içerik yerine "yükleniyor".
+ *    Bu durumdan muaf rotalar `NO_DEPARTMENT_EXEMPT_ROUTES` (F2 yönetim ekranları buraya).
  *  - Kapsam yükleniyor / hata / seçim bekleniyor: yalnız kapsamlı rotalarda (S2/S3) içerik yerine
  *    durum gösterilir — kapsamsız istek atılmaz (`client.scope_missing`); S0/S1 içerik çizilir.
  *  - S0 rotaları (açık kimlik sayfaları, ör. `/oturum`) kapsamdan bağımsızdır: açık durum onların
- *    yerine geçmez (kurulum provası ilk programdan önce de giriş/oturum sayfasını görür). F0'da
- *    ana sayfa geçici olarak `/oturum`'a yönlendiğinden açık durumlar ana sayfa içeriği (01, S1)
- *    bağlanınca görünür; S1+ her rotada geçerlidir.
+ *    yerine geçmez (kurulum provası ilk programdan önce de giriş/oturum sayfasını görür). S1+
+ *    her rotada geçerlidir (F0 ana sayfası `HomePlaceholder`, S1).
  * "Güncelleme gerekli" kabuktan önce, uygulama kökünde ele alınır (`UpdateRequired.vue`).
  */
-import type { OpenStateName } from '@/app/routes.catalog'
+import type { OpenStateName, RouteName } from '@/app/routes.catalog'
 import type { ShellContent } from '@/app/shell/types'
 import type { ScopeStatus } from '@/shared/scope/lifecycle'
-import type { ScopeEmptyReason } from '@/shared/scope/resolve'
+import type { DepartmentGap, ScopeEmptyReason } from '@/shared/scope/resolve'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
 export const EMPTY_REASON_STATES: Readonly<Record<ScopeEmptyReason, OpenStateName>> = {
@@ -27,19 +30,33 @@ export const EMPTY_REASON_STATES: Readonly<Record<ScopeEmptyReason, OpenStateNam
   no_lens: 'state.no-department',
 }
 
+/**
+ * Yöneticinin "programa departman katılmamış" durumundan muaf rotalar. F2'de departman ekleme
+ * yolu açılınca yönetim ekranları (Koordinatörlükler vb.) buraya eklenir; F0'da boş.
+ */
+export const NO_DEPARTMENT_EXEMPT_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>()
+
 export interface ShellContentInput {
   status: ScopeStatus
   emptyReason: ScopeEmptyReason | null
   routeScope: ScopeClass | undefined
+  /** Etkin rota adı (muafiyet denetimi); katalog dışı / eşleşmeyen rota için `undefined`. */
+  routeName?: RouteName | undefined
+  /** Yönetici program departman boşluğu (`useProgramDepartmentGap`); verilmezse `none`. */
+  departmentGap?: DepartmentGap
 }
 
 const SCOPED: ReadonlySet<ScopeClass> = new Set<ScopeClass>(['S2', 'S3'])
 
-export function resolveShellContent(input: ShellContentInput): ShellContent {
-  if (input.routeScope === 'S0') return { kind: 'content' }
-  if (input.emptyReason) return { kind: 'open-state', name: EMPTY_REASON_STATES[input.emptyReason] }
-  if (!input.routeScope || !SCOPED.has(input.routeScope)) return { kind: 'content' }
-  switch (input.status) {
+function departmentGapContent(input: ShellContentInput): ShellContent | null {
+  if (input.routeName && NO_DEPARTMENT_EXEMPT_ROUTES.has(input.routeName)) return null
+  if (input.departmentGap === 'empty') return { kind: 'open-state', name: 'state.no-department' }
+  if (input.departmentGap === 'checking') return { kind: 'loading' }
+  return null
+}
+
+function scopeStatusContent(status: ScopeStatus): ShellContent {
+  switch (status) {
     case 'ready':
       return { kind: 'content' }
     case 'selecting':
@@ -49,4 +66,13 @@ export function resolveShellContent(input: ShellContentInput): ShellContent {
     default:
       return { kind: 'loading' }
   }
+}
+
+export function resolveShellContent(input: ShellContentInput): ShellContent {
+  if (input.routeScope === 'S0') return { kind: 'content' }
+  if (input.emptyReason) return { kind: 'open-state', name: EMPTY_REASON_STATES[input.emptyReason] }
+  const gap = departmentGapContent(input)
+  if (gap) return gap
+  if (!input.routeScope || !SCOPED.has(input.routeScope)) return { kind: 'content' }
+  return scopeStatusContent(input.status)
 }
