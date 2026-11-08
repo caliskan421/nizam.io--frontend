@@ -42,7 +42,7 @@ const [evidence] = form.defineField('evidence')
 const priorityOptions = PRIORITIES.map((p) => ({ value: p, label: priorityLabel(p) }))
 const assigneeOptions = computed(() => [
   { value: '', label: formsText('workForms.create.field.assigneeNone') },
-  ...members.candidates.value.map((c) => ({ value: c.accountId, label: c.fullName })),
+  ...members.members.value.map((c) => ({ value: c.accountId, label: c.fullName })),
 ])
 const noDepartment = computed(() => departments.options.value.length === 0)
 const membersHint = computed(() => {

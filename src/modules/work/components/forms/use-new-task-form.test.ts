@@ -192,12 +192,61 @@ describe('useNewTaskForm — gönderim (K5)', () => {
     expect(created).not.toHaveBeenCalled()
 
     if (notice?.kind !== 'unknown_outcome' || !notice.retry) throw new Error('tekrar yok')
-    r.resolved(await notice.retry())
+    await r.resolved(await notice.retry())
     const [a, b] = sent('POST', '/v1/work-items')
     expect(a!.headers.get('Idempotency-Key')).toBe(b!.headers.get('Idempotency-Key'))
     expect(b!.body).toEqual(a!.body)
     expect(created).toHaveBeenCalledOnce()
     expect(r.notice.value).toBeNull()
+  })
+
+  it('sonuç bilinmiyor → "Yeniden gönder" başarı → ek atama adımı koşar (kısmi metin yok)', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items`, () =>
+        ++calls === 1
+          ? errorEnvelope('platform.internal', 500)
+          : json(workItem({ work_item_id: 'w9', department_id: 'd1' }), 200),
+      ),
+      http.post(`${ORIGIN}/v1/work-items/w9/assignments`, () => json({ added: 1 })),
+    )
+    const { r, h, created } = setup()
+    await h.flush()
+    await fill(r, { assignee: 'acc-1', extra: ['acc-2'] })
+    await r.submit()
+    expect(sent('POST', '/v1/work-items/w9/assignments')).toHaveLength(0)
+    const notice = r.notice.value
+    if (notice?.kind !== 'unknown_outcome' || !notice.retry) throw new Error('tekrar yok')
+
+    await r.resolved(await notice.retry())
+    const [assign] = sent('POST', '/v1/work-items/w9/assignments')
+    expect(assign!.body).toEqual({ account_ids: ['acc-2'] })
+    expect(assign!.headers.get('X-Nizamio-Department')).toBe('d1')
+    expect(created).toHaveBeenCalledOnce()
+    expect(toasts()).toEqual(['Görev oluşturuldu.'])
+  })
+
+  it('"Yeniden gönder" başarı + ek atama başarısız → kısmi başarı metni', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items`, () =>
+        ++calls === 1
+          ? errorEnvelope('platform.internal', 500)
+          : json(workItem({ work_item_id: 'w9', department_id: 'd1' }), 200),
+      ),
+      http.post(`${ORIGIN}/v1/work-items/w9/assignments`, () =>
+        errorEnvelope('work.assignee_not_member', 422),
+      ),
+    )
+    const { r, h, created } = setup()
+    await h.flush()
+    await fill(r, { extra: ['acc-2'] })
+    await r.submit()
+    const notice = r.notice.value
+    if (notice?.kind !== 'unknown_outcome' || !notice.retry) throw new Error('tekrar yok')
+    await r.resolved(await notice.retry())
+    expect(created).toHaveBeenCalledOnce()
+    expect(toasts()).toEqual(['Görev oluşturuldu, ek atama yapılamadı.'])
   })
 
   it('alanla eşlenmeyen hata ortak bildirime (sunucu message değil, kod metni)', async () => {

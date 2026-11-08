@@ -5,7 +5,9 @@
  *    seçenekse o (ortak-kurallar §1); seçenek dışı önseçim düşer.
  *  - Gönder = yeni kullanıcı eylemi → yeni `Idempotency-Key` (`useCreateWorkItemWithAssignees`;
  *    düzeltip yeniden gönderme yeni anahtar). Ağ tekrarı yalnız "sonuç bilinmiyor" bildirimindeki
- *    "Yeniden gönder" ile, aynı anahtar + aynı gövde (`UiOutcomeNotice`).
+ *    "Yeniden gönder" ile, aynı anahtar + aynı gövde (`UiOutcomeNotice`); başarıyla biterse ek
+ *    atama adımı (`addAssignments`) o zaman koşar.
+ *  - Atanan adayları `useDepartmentMembers` (`listMembers`; yalnız görev ataması).
  *  - Başarı: liste/görev geçersizlemesi veri katmanında; `created` → çağıran paneli açar.
  *    Kısmi başarı (ek atama başarısız) gerçek durumu söyler (ortak-kurallar §7, CX-S-03).
  *  - 422 alan hataları ilgili alana (kod → i18n); diğer hatalar ortak bildirim.
@@ -13,14 +15,15 @@
 import { useForm } from 'vee-validate'
 import { computed, shallowRef, watch } from 'vue'
 
-import type { MutationOutcome } from '@/shared/http/mutation'
+import { runWithFollowUps, type MutationOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { useToast } from '@/shared/ui'
 
-import { useCreateWorkItemWithAssignees } from '../../api'
-import { createPartialText, workText } from '../../model/messages'
-import { departmentTarget } from '../../model/target'
+import { useAddAssignments, useCreateWorkItemWithAssignees } from '../../api'
+import { useDepartmentMembers } from '../../api/members'
+import { createPartialText } from '../../model/messages'
+import { departmentTarget, targetOf } from '../../model/target'
 import type { WorkItem } from '../../model/types'
 import { formsText } from './messages'
 import {
@@ -31,7 +34,6 @@ import {
   toTypedSchema,
   type NewTaskValues,
 } from './new-task-schema'
-import { useAssigneeCandidates } from './use-assignee-candidates'
 import { useTaskDepartments } from './use-task-departments'
 
 export interface NewTaskFormHooks {
@@ -51,17 +53,16 @@ function pickDepartment(current: string, preferred: string, options: readonly { 
 }
 
 export function useNewTaskForm(hooks: NewTaskFormHooks) {
-  const store = useScopeStore()
   const form = useForm<NewTaskValues>({
     validationSchema: toTypedSchema(newTaskSchema()),
     initialValues: emptyNewTask(null),
   })
   const departments = useTaskDepartments(() => form.values.departmentId)
-  const members = useAssigneeCandidates(() =>
-    hooks.open() ? departmentTarget(store.snapshot, form.values.departmentId || null) : null,
+  const members = useDepartmentMembers(() =>
+    hooks.open() ? form.values.departmentId || null : null,
   )
   const extraCandidates = computed(() =>
-    members.candidates.value.filter((c) => c.accountId !== form.values.assignee),
+    members.members.value.filter((c) => c.accountId !== form.values.assignee),
   )
 
   watch(
@@ -106,6 +107,24 @@ export function useNewTaskForm(hooks: NewTaskFormHooks) {
   return { form, departments, members, extraCandidates, toggleExtra, ...submitting }
 }
 
+/** Ek atama adımı (`addAssignments`, görevin KENDİ kapsamı); ek atanan yoksa adım yok. */
+function assignmentSteps(assign: ReturnType<typeof useAddAssignments>, extra: readonly string[]) {
+  return (item: WorkItem) =>
+    extra.length === 0
+      ? []
+      : [
+          {
+            name: 'assignments',
+            run: () =>
+              assign.submit({
+                target: targetOf(item),
+                workItemId: item.work_item_id,
+                accountIds: extra,
+              }),
+          },
+        ]
+}
+
 function useNewTaskSubmit(
   form: ReturnType<typeof useForm<NewTaskValues>>,
   canAssignExtra: { value: boolean },
@@ -113,8 +132,10 @@ function useNewTaskSubmit(
 ) {
   const store = useScopeStore()
   const create = useCreateWorkItemWithAssignees()
+  const assign = useAddAssignments()
   const notice = shallowRef<CreateOutcome | null>(null)
-  let requestedExtra = false
+  /** Son gönderimin ek atananları (ana atanan hariç) — "Yeniden gönder" başarısında koşar. */
+  let pendingExtra: string[] = []
 
   function finish(item: WorkItem, partial: string | null): void {
     useToast().push(
@@ -143,7 +164,7 @@ function useNewTaskSubmit(
     if (!target) return
     notice.value = null
     const extra = canAssignExtra.value ? values.extra : []
-    requestedExtra = extra.some((id) => id !== values.assignee)
+    pendingExtra = [...new Set(extra)].filter((id) => id !== values.assignee)
     const result = await create.submit({
       target,
       body: toCreateBody(values),
@@ -153,13 +174,22 @@ function useNewTaskSubmit(
     finish(result.primary.data, createPartialText(result))
   })
 
-  /** "Yeniden gönder" sonucu (aynı anahtar): ek atama adımı bu yolda koşmaz → kısmi metin. */
-  function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): void {
+  /**
+   * "Yeniden gönder" sonucu (aynı anahtar). Başarıda ek atama adımı şimdi koşar; kısmi metin
+   * yalnız ek atama gerçekten başarısızsa (ortak-kurallar §7).
+   */
+  async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Promise<void> {
     const result = outcome as CreateOutcome
     notice.value = null
     if (result.kind !== 'success') return fail(result)
-    finish(result.data, requestedExtra ? workText('work.create.partial') : null)
+    const composite = await runWithFollowUps(
+      () => Promise.resolve(result),
+      assignmentSteps(assign, pendingExtra),
+    )
+    if (composite.kind === 'primary_failed') return fail(composite.primary)
+    finish(composite.primary.data, createPartialText(composite))
   }
 
-  return { submit, resolved, notice, isPending: create.isPending }
+  const isPending = computed(() => create.isPending.value || assign.isPending.value)
+  return { submit, resolved, notice, isPending }
 }
