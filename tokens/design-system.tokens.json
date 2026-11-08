@@ -1,0 +1,918 @@
+{
+ "name": "RoketPortal Mobil",
+ "version": 1,
+ "meta": {
+  "source": "design",
+  "artifact": "RoketPortal mobil prototip (11-Giris.dc.html)",
+  "synced": "2026-10-28"
+ },
+ "color": {
+  "themes": [
+   {
+    "id": "dark",
+    "name": "Koyu"
+   },
+   {
+    "id": "light",
+    "name": "Açık"
+   }
+  ],
+  "tokens": [
+   {
+    "name": "bg-base",
+    "value": {
+     "dark": "#0b0b0b",
+     "light": "#f6f6f3"
+    },
+    "usage": "Ekran zemini ve cam çubukların karıştığı renk. Klasör ön yüzü bu renge doğru söner."
+   },
+   {
+    "name": "bg-surface",
+    "value": {
+     "dark": "#151515",
+     "light": "#ffffff"
+    },
+    "usage": "Alt sayfa (sheet), çekmece ve kart yüzeyi; daire ikon düğmelerinin dolgusu."
+   },
+   {
+    "name": "bg-raised",
+    "value": {
+     "dark": "#1f1f1f",
+     "light": "#f1f1ed"
+    },
+    "usage": "Satır kartı (form satırları), hap sekme rayı, karşı tarafın mesaj balonu, yazma alanı."
+   },
+   {
+    "name": "bg-overlay",
+    "value": {
+     "dark": "#2a2a2a",
+     "light": "#e7e7e2"
+    },
+    "usage": "Hap sekmenin kayan başparmağı, segment içi seçili öğe, avatar zemini, kapalı anahtar."
+   },
+   {
+    "name": "border-subtle",
+    "value": {
+     "dark": "#262626",
+     "light": "#e5e5df"
+    },
+    "usage": "Kart ve tablo kenarı, satır ayırıcı, sekme alt çizgisi."
+   },
+   {
+    "name": "border-strong",
+    "value": {
+     "dark": "#3a3a3a",
+     "light": "#d0d0c9"
+    },
+    "usage": "Açılır menü kenarı, boş durum kesik çizgisi, seçili segmentin iç çizgisi, üzerine gelinen düğme kenarı."
+   },
+   {
+    "name": "border-control",
+    "value": {
+     "dark": "#6b6b6b",
+     "light": "#96968f"
+    },
+    "usage": "Hayalet düğme ve form kontrolü kenarı; her iki temada zemin üzerinde 3:1 üstünde."
+   },
+   {
+    "name": "ink",
+    "value": {
+     "dark": "#f5f5f5",
+     "light": "#161615"
+    },
+    "usage": "Gövde metni ve başlıklar; bg-base, bg-surface ve bg-raised üzerinde okunur. Snackbar ve tost zemininde ters kullanılır."
+   },
+   {
+    "name": "ink-muted",
+    "value": {
+     "dark": "#a1a1a1",
+     "light": "#5c5c57"
+    },
+    "usage": "İkincil metin: alt başlık, etiket, sütun başlığı, pasif sekme; bg-base ve bg-surface üzerinde 4.5:1 üstü."
+   },
+   {
+    "name": "ink-faint",
+    "value": {
+     "dark": "#8a8a8a",
+     "light": "#71716b"
+    },
+    "usage": "Üçüncül metin: kimlik numarası, sayaç, boş durum yazısı, başlamadı durumu; bg-base ve bg-surface üzerinde 4.5:1 üstü."
+   },
+   {
+    "name": "accent",
+    "value": {
+     "dark": "#c8f53c",
+     "light": "#c8f53c"
+    },
+    "usage": "Ana eylem: Kanıt yükle, Oluştur, + düğmesi, gönder düğmesi, açık anahtar. Metin rengi değil."
+   },
+   {
+    "name": "accent-ink",
+    "value": {
+     "dark": "#0b0b0b",
+     "light": "#161615"
+    },
+    "usage": "accent dolgusu üzerindeki metin ve ikon."
+   },
+   {
+    "name": "accent-top",
+    "value": {
+     "dark": "#d8f866",
+     "light": "#d8f866"
+    },
+    "usage": "Ana eylem düğmesi ve logo karosunun üst degrade durağı (accent ile biter)."
+   },
+   {
+    "name": "accent-text",
+    "value": {
+     "dark": "#c8f53c",
+     "light": "#4a6a00"
+    },
+    "usage": "Vurgu metni ve işaretleri: seçili sekme çizgisi, seçili satır şeridi, tamamlandı durumu, gerçekleşen harcama çubuğu. Koyu temada lime, açık temada koyu yeşil; her iki zeminde okunur."
+   },
+   {
+    "name": "focus-ring",
+    "value": {
+     "dark": "#c8f53c",
+     "light": "#4a6a00"
+    },
+    "usage": "Klavye odağı: 2px düz çizgi, 2px boşlukla. Her iki temada tüm yüzeylerde 3:1 üstü."
+   },
+   {
+    "name": "violet",
+    "value": {
+     "dark": "#9b30d9",
+     "light": "#7a26c1"
+    },
+    "usage": "Devam ediyor ve taahhüt anlamı: durum noktası, çubuk dilimi, taahhüt tutarı. Koyu temada bg-surface üzerinde 3.1:1, bu yüzden yalnızca 20px üstü rakam ve işaretlerde metin olarak kullanılır."
+   },
+   {
+    "name": "on-violet",
+    "value": {
+     "dark": "#ffffff",
+     "light": "#ffffff"
+    },
+    "usage": "violet dolgusu üzerindeki metin."
+   },
+   {
+    "name": "gold",
+    "value": {
+     "dark": "#ffd166",
+     "light": "#a86f00"
+    },
+    "usage": "Bekliyor anlamı: onayda, onay bekliyor, %80 uyarısı, bekleyen sayaç rozeti. Açık temada beyaz üzerinde 3.9:1; küçük metinde kalın ağırlıkla ya da işaret olarak kullanılır."
+   },
+   {
+    "name": "on-gold",
+    "value": {
+     "dark": "#0b0b0b",
+     "light": "#ffffff"
+    },
+    "usage": "gold dolgusu üzerindeki metin (rozet sayısı)."
+   },
+   {
+    "name": "danger",
+    "value": {
+     "dark": "#ff5a5a",
+     "light": "#d02b2b"
+    },
+    "usage": "Gecikme, aşım, red ve silme: durum noktası, rakam, uyarı şeridi, tehlikeli eylem. Her iki zeminde 4.5:1 üstü."
+   },
+   {
+    "name": "on-danger",
+    "value": {
+     "dark": "#0b0b0b",
+     "light": "#ffffff"
+    },
+    "usage": "danger dolgusu üzerindeki metin (geciken görev rozeti)."
+   },
+   {
+    "name": "btn-top",
+    "value": {
+     "dark": "#323232",
+     "light": "#ffffff"
+    },
+    "usage": "İkincil düğme ve ikon düğmesinin üst degrade durağı."
+   },
+   {
+    "name": "btn-bottom",
+    "value": {
+     "dark": "#262626",
+     "light": "#f4f4f0"
+    },
+    "usage": "İkincil düğme ve ikon düğmesinin alt degrade durağı."
+   },
+   {
+    "name": "btn-border",
+    "value": {
+     "dark": "#3c3c3c",
+     "light": "#d5d5ce"
+    },
+    "usage": "İkincil düğme ve ikon düğmesi kenarı."
+   },
+   {
+    "name": "surface-top",
+    "value": {
+     "dark": "#1c1c1c",
+     "light": "#ffffff"
+    },
+    "usage": "Panel, sheet ve açılır menünün üst degrade durağı (bg-surface ile biter)."
+   },
+   {
+    "name": "edge-light",
+    "value": {
+     "dark": "#ffffff12",
+     "light": "#ffffffcc"
+    },
+    "usage": "Düğme ve panellerin üst iç ışık çizgisi (inset 0 1px 0)."
+   },
+   {
+    "name": "scrim",
+    "value": {
+     "dark": "#0000008c",
+     "light": "#16161566"
+    },
+    "usage": "Alt sayfa ve çekmecenin arka örtüsü."
+   },
+   {
+    "name": "gp-todo",
+    "value": {
+     "dark": "#b4b7be",
+     "light": "#d3d6dc"
+    },
+    "usage": "Zaman çizelgesi çubuğu: başlamadı. Üzerindeki yazı gp-ink."
+   },
+   {
+    "name": "gp-doing",
+    "value": {
+     "dark": "#c27ce6",
+     "light": "#d2a2ee"
+    },
+    "usage": "Zaman çizelgesi çubuğu: devam ediyor. Üzerindeki yazı gp-ink."
+   },
+   {
+    "name": "gp-review",
+    "value": {
+     "dark": "#ffd166",
+     "light": "#ffdc85"
+    },
+    "usage": "Zaman çizelgesi çubuğu: onay bekliyor. Üzerindeki yazı gp-ink."
+   },
+   {
+    "name": "gp-back",
+    "value": {
+     "dark": "#ff9a85",
+     "light": "#ffb4a4"
+    },
+    "usage": "Zaman çizelgesi çubuğu: geri gönderildi. Üzerindeki yazı gp-ink."
+   },
+   {
+    "name": "gp-done",
+    "value": {
+     "dark": "#c8f53c",
+     "light": "#d6f56f"
+    },
+    "usage": "Zaman çizelgesi çubuğu: tamamlandı. Üzerindeki yazı gp-ink."
+   },
+   {
+    "name": "gp-late",
+    "value": {
+     "dark": "#ff7d7d",
+     "light": "#ffa0a0"
+    },
+    "usage": "Zaman çizelgesi çubuğu: gecikmiş kısım. Üzerindeki yazı gp-ink."
+   },
+   {
+    "name": "gp-late-line",
+    "value": {
+     "dark": "#ff5a5a",
+     "light": "#d02b2b"
+    },
+    "usage": "Zaman çizelgesinde bugün çizgisi ve gecikme sınırı."
+   },
+   {
+    "name": "gp-ink",
+    "value": {
+     "dark": "#17181c",
+     "light": "#17181c"
+    },
+    "usage": "Zaman çizelgesi çubuklarının üzerindeki metin; her iki temada açık çubuk renkleri üzerinde okunur."
+   },
+   {
+    "name": "gp-ink-muted",
+    "value": {
+     "dark": "#4a4d55",
+     "light": "#4a4d55"
+    },
+    "usage": "Zaman çizelgesi çubuklarındaki ikincil metin (tarih aralığı)."
+   },
+   {
+    "name": "role-admin",
+    "value": {
+     "dark": "#e57a9a",
+     "light": "#e57a9a"
+    },
+    "usage": "Yönetici rolü işareti: kullanıcı listesi, rol etiketi noktası. Pastel; metin rengi değil."
+   },
+   {
+    "name": "role-koord",
+    "value": {
+     "dark": "#74c27a",
+     "light": "#74c27a"
+    },
+    "usage": "Koordinatör rolü işareti ve koordinatörlük tablolarının kart tonu. Pastel; metin rengi değil."
+   },
+   {
+    "name": "role-uye",
+    "value": {
+     "dark": "#73a9e3",
+     "light": "#73a9e3"
+    },
+    "usage": "Üye rolü işareti, kişisel alan tonu ve takvimde tablo kaydı rengi. Pastel; metin rengi değil."
+   },
+   {
+    "name": "glass-bar",
+    "value": {
+     "dark": "rgba(11, 11, 11, 0.78)",
+     "light": "rgba(246, 246, 243, 0.78)"
+    },
+    "usage": "Yapışkan üst çubuk, sabit sekme şeridi, sohbet başlığı ve yazma alanının cam dolgusu (bg-base %78). Altında içerik bulanıklaşarak kayar."
+   },
+   {
+    "name": "glass-float",
+    "value": {
+     "dark": "rgba(18, 18, 18, 0.74)",
+     "light": "rgba(255, 255, 255, 0.78)"
+    },
+    "usage": "Yüzen kontroller: alt menü kapsülü, asistan dairesi, üst çubuktaki menü dairesi."
+   },
+   {
+    "name": "glass-menu",
+    "value": {
+     "dark": "rgba(24, 24, 24, 0.86)",
+     "light": "rgba(255, 255, 255, 0.92)"
+    },
+    "usage": "Alt menüden açılan kısayol menüsü (flyout)."
+   },
+   {
+    "name": "glass-edge",
+    "value": {
+     "dark": "rgba(255, 255, 255, 0.08)",
+     "light": "rgba(22, 22, 21, 0.10)"
+    },
+    "usage": "Cam yüzeylerin 1px kenarı ve flyout ayırıcı çizgisi."
+   },
+   {
+    "name": "glass-ink",
+    "value": {
+     "dark": "#f5f5f5",
+     "light": "#161615"
+    },
+    "usage": "Cam yüzeyler üzerindeki metin ve ikon; glass-float ve glass-menu üzerinde 4.5:1 üstü."
+   },
+   {
+    "name": "glass-ink-faint",
+    "value": {
+     "dark": "#8a8a8a",
+     "light": "#71716b"
+    },
+    "usage": "Flyout başlığı ve ikincil satır yazısı (glass-menu üzerinde)."
+   },
+   {
+    "name": "nav-highlight",
+    "value": {
+     "dark": "rgba(255, 255, 255, 0.13)",
+     "light": "rgba(22, 22, 21, 0.08)"
+    },
+    "usage": "Alt menüde etkin öğenin kayan vurgusu."
+   },
+   {
+    "name": "scrim-soft",
+    "value": {
+     "dark": "rgba(0, 0, 0, 0.28)",
+     "light": "rgba(22, 22, 21, 0.18)"
+    },
+    "usage": "Flyout açıkken ekranı hafifçe karartan örtü."
+   },
+   {
+    "name": "bubble-mine",
+    "value": {
+     "dark": "#414b22",
+     "light": "#f3fdd4"
+    },
+    "usage": "Kendi mesaj balonun (accent %22, koyu zemine karışık). Üzerindeki metin ink."
+   },
+   {
+    "name": "bubble-other",
+    "value": {
+     "dark": "{bg-raised}",
+     "light": "{bg-raised}"
+    },
+    "usage": "Başkasının mesaj balonu. Üzerindeki metin ink."
+   },
+   {
+    "name": "quote-fill",
+    "value": {
+     "dark": "rgba(255, 255, 255, 0.06)",
+     "light": "rgba(22, 22, 21, 0.05)"
+    },
+    "usage": "Balon içindeki alıntı kutusu ve anket seçeneği zemini."
+   },
+   {
+    "name": "ref-chip",
+    "value": {
+     "dark": "#373d23",
+     "light": "#ecf2d4"
+    },
+    "usage": "Yazma alanında eklenen atıf hapı (accent %14, bg-raised). İkon accent-text, etiket ink."
+   },
+   {
+    "name": "day-chip",
+    "value": {
+     "dark": "rgba(40, 40, 40, 0.80)",
+     "light": "rgba(231, 231, 226, 0.85)"
+    },
+    "usage": "Sohbet akışındaki gün hapı; üzerindeki yazı ink-muted."
+   },
+   {
+    "name": "switch-knob",
+    "value": {
+     "dark": "#ffffff",
+     "light": "#ffffff"
+    },
+    "usage": "Anahtarın (switch) yuvarlak başı; iki temada da beyaz."
+   },
+   {
+    "name": "folder-back",
+    "value": {
+     "dark": "#6e6e6e",
+     "light": "#a8a8a2"
+    },
+    "usage": "Klasör ikonunun arka kapağı ve sekmesi (düz renk)."
+   },
+   {
+    "name": "folder-front",
+    "value": {
+     "dark": "rgba(175, 175, 175, 0.55)",
+     "light": "rgba(255, 255, 255, 0.60)"
+    },
+    "usage": "Klasör ön panelinin üst rengi; bulanık cam olarak aşağı doğru bg-base rengine söner."
+   },
+   {
+    "name": "folder-front-mid",
+    "value": {
+     "dark": "rgba(95, 95, 95, 0.55)",
+     "light": "rgba(210, 210, 204, 0.55)"
+    },
+    "usage": "Klasör ön panelinin orta durağı (%45)."
+   },
+   {
+    "name": "avatar-1",
+    "value": {
+     "dark": "#c8f53c",
+     "light": "#c8f53c"
+    },
+    "usage": "Kişi avatarı renk sırası 1. Üzerindeki baş harfler on-avatar."
+   },
+   {
+    "name": "avatar-2",
+    "value": {
+     "dark": "#b39dff",
+     "light": "#b39dff"
+    },
+    "usage": "Kişi avatarı renk sırası 2."
+   },
+   {
+    "name": "avatar-3",
+    "value": {
+     "dark": "#ffd166",
+     "light": "#ffd166"
+    },
+    "usage": "Kişi avatarı renk sırası 3."
+   },
+   {
+    "name": "avatar-4",
+    "value": {
+     "dark": "#6ec1ff",
+     "light": "#6ec1ff"
+    },
+    "usage": "Kişi avatarı renk sırası 4."
+   },
+   {
+    "name": "avatar-5",
+    "value": {
+     "dark": "#ff8a65",
+     "light": "#ff8a65"
+    },
+    "usage": "Kişi avatarı renk sırası 5."
+   },
+   {
+    "name": "on-avatar",
+    "value": {
+     "dark": "#121212",
+     "light": "#121212"
+    },
+    "usage": "Renkli avatar üzerindeki baş harfler."
+   }
+  ]
+ },
+ "type": {
+  "fonts": [],
+  "families": {
+   "sans": "\"Inter\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+   "display": "\"Poppins\", \"Inter\", system-ui, sans-serif",
+   "mono": "\"Geist Mono\", ui-monospace, SFMono-Regular, Menlo, monospace"
+  },
+  "groups": [
+   {
+    "name": "Display",
+    "family": "display",
+    "styles": [
+     {
+      "name": "m-greet",
+      "fontSize": "30px",
+      "lineHeight": "36px",
+      "fontWeight": 600,
+      "letterSpacing": "-0.015em",
+      "sample": "Merhaba Muhammet Ali",
+      "usage": "Ana sayfa karşılaması; iki satıra bölünür, ad tek satırda kesilir."
+     },
+     {
+      "name": "m-kpi",
+      "fontSize": "30px",
+      "lineHeight": "34px",
+      "fontWeight": 600,
+      "letterSpacing": "-0.02em",
+      "sample": "%49",
+      "usage": "KPI kutucuğundaki büyük rakam."
+     },
+     {
+      "name": "m-h1",
+      "fontSize": "28px",
+      "lineHeight": "34px",
+      "fontWeight": 600,
+      "letterSpacing": "-0.015em",
+      "sample": "Görevler",
+      "usage": "Kök sayfa başlığı (Görevler, Koordinatörlükler, Arşiv, Mesajlar)."
+     },
+     {
+      "name": "m-h1-detail",
+      "fontSize": "24px",
+      "lineHeight": "30px",
+      "fontWeight": 600,
+      "letterSpacing": "-0.01em",
+      "sample": "Su deposu temel betonunun yapılması",
+      "usage": "Detay sayfası başlığı (görev, koordinatörlük)."
+     },
+     {
+      "name": "m-sheet-title",
+      "fontSize": "20px",
+      "lineHeight": "26px",
+      "fontWeight": 600,
+      "sample": "Yeni görev",
+      "usage": "Alt sayfa başlığı."
+     },
+     {
+      "name": "m-title-input",
+      "fontSize": "20px",
+      "lineHeight": "28px",
+      "fontWeight": 600,
+      "sample": "Ne yapılması gerekiyor?",
+      "usage": "Alt sayfanın ilk büyük alanı (görev başlığı, Ad Soyad)."
+     },
+     {
+      "name": "m-brand",
+      "fontSize": "16px",
+      "lineHeight": "20px",
+      "fontWeight": 600,
+      "letterSpacing": "-0.01em",
+      "sample": "RoketPortal",
+      "usage": "Üst çubuktaki ürün adı."
+     }
+    ]
+   },
+   {
+    "name": "Text",
+    "family": "sans",
+    "styles": [
+     {
+      "name": "m-card-title",
+      "fontSize": "16px",
+      "lineHeight": "22px",
+      "fontWeight": 600,
+      "sample": "Faz3 asfalt işlemi",
+      "usage": "Görev kartı başlığı; en çok iki satır."
+     },
+     {
+      "name": "m-input",
+      "fontSize": "16px",
+      "lineHeight": "21px",
+      "fontWeight": 400,
+      "sample": "Mesaj",
+      "usage": "Yazma alanı ve metin girişleri; 16px altı iOS’ta yakınlaştırma yapar."
+     },
+     {
+      "name": "m-message",
+      "fontSize": "15px",
+      "lineHeight": "21px",
+      "fontWeight": 400,
+      "sample": "Saha ekibi 29–31 Ekim arasında sahada olacak.",
+      "usage": "Mesaj balonu metni."
+     },
+     {
+      "name": "m-list",
+      "fontSize": "15px",
+      "lineHeight": "20px",
+      "fontWeight": 500,
+      "sample": "Koordinatörlükler",
+      "usage": "Çekmece satırı, sohbet listesi adı."
+     },
+     {
+      "name": "m-body",
+      "fontSize": "14px",
+      "lineHeight": "20px",
+      "fontWeight": 400,
+      "sample": "Kanıt dosyası zorunlu",
+      "usage": "Form satırı etiketi ve değeri, menü satırı."
+     },
+     {
+      "name": "m-nav-label",
+      "fontSize": "13px",
+      "lineHeight": "16px",
+      "fontWeight": 600,
+      "sample": "Görevler",
+      "usage": "Alt menüde etkin öğenin etiketi (Koordinatörlükler için 12px)."
+     },
+     {
+      "name": "m-tab",
+      "fontSize": "13px",
+      "lineHeight": "16px",
+      "fontWeight": 600,
+      "sample": "Özet",
+      "usage": "Hap sekme etiketi; seçili 600, diğerleri 500."
+     },
+     {
+      "name": "m-caption",
+      "fontSize": "12px",
+      "lineHeight": "16px",
+      "fontWeight": 400,
+      "sample": "79 görevin 39’u bitti",
+      "usage": "Alt yazı, kart meta bilgisi."
+     }
+    ]
+   },
+   {
+    "name": "Mono",
+    "family": "mono",
+    "styles": [
+     {
+      "name": "m-code",
+      "fontSize": "13px",
+      "lineHeight": "20px",
+      "fontWeight": 400,
+      "sample": "ALT-5 · 16.06 → 15.07.2026",
+      "usage": "Görev kodu, tarih, detay çubuğundaki soluk kod."
+     },
+     {
+      "name": "m-kicker",
+      "fontSize": "12px",
+      "lineHeight": "16px",
+      "fontWeight": 500,
+      "letterSpacing": "0.02em",
+      "sample": "tüm görevler · 76",
+      "usage": "Küçük harfli bölüm etiketi."
+     },
+     {
+      "name": "m-mono-sm",
+      "fontSize": "11px",
+      "lineHeight": "14px",
+      "fontWeight": 400,
+      "sample": "işlem geçmişi",
+      "usage": "Flyout başlığı, rozet sayısı, sekme sayacı, çekmece grup adı."
+     },
+     {
+      "name": "m-program",
+      "fontSize": "10px",
+      "lineHeight": "13px",
+      "fontWeight": 400,
+      "letterSpacing": "0.02em",
+      "sample": "Şanlıurfa Teknofest",
+      "usage": "Ürün adının altındaki program satırı ve alt menü alt yazısı."
+     }
+    ]
+   }
+  ]
+ },
+ "spacing": {
+  "tokens": [
+   {
+    "name": "m-gutter",
+    "value": "16px",
+    "usage": "Ekran yan boşluğu; alt menü de ekran kenarından bu kadar içeride."
+   },
+   {
+    "name": "m-gap-xs",
+    "value": "4px",
+    "usage": "Rozet ve tepki hapları arası."
+   },
+   {
+    "name": "m-gap-sm",
+    "value": "8px",
+    "usage": "Yan yana düğmeler, başlık satırındaki daire düğmeler."
+   },
+   {
+    "name": "m-gap-md",
+    "value": "10px",
+    "usage": "Kart listesi ve KPI ızgarası aralığı."
+   },
+   {
+    "name": "m-gap-lg",
+    "value": "18px",
+    "usage": "Alt sayfa içindeki bloklar arası."
+   },
+   {
+    "name": "m-gap-xl",
+    "value": "24px",
+    "usage": "Sayfa bölümleri arası; alt menünün ekran altına uzaklığı."
+   },
+   {
+    "name": "m-row-pad",
+    "value": "14px",
+    "usage": "Satır kartı ve KPI kutucuğu iç yatay boşluğu."
+   },
+   {
+    "name": "m-card-pad",
+    "value": "16px",
+    "usage": "Görev kartı iç boşluğu."
+   }
+  ]
+ },
+ "radius": {
+  "tokens": [
+   {
+    "name": "m-r-bubble-tail",
+    "value": "6px",
+    "usage": "Mesaj balonunun gruplanmış köşesi."
+   },
+   {
+    "name": "m-r-folder",
+    "value": "10px",
+    "usage": "Klasör ön paneli, seçim kutusu, küçük çip."
+   },
+   {
+    "name": "m-r-tile",
+    "value": "12px",
+    "usage": "Görev kartındaki tarih kutusu, ikon kutusu."
+   },
+   {
+    "name": "m-r-attach",
+    "value": "14px",
+    "usage": "Ek seçeneği kutusu, tost."
+   },
+   {
+    "name": "m-r-group",
+    "value": "16px",
+    "usage": "Çekmece grupları, sohbet listesinde grup avatarı."
+   },
+   {
+    "name": "m-r-row",
+    "value": "18px",
+    "usage": "Satır kartı (form satırları) ve mesaj balonu."
+   },
+   {
+    "name": "m-r-card",
+    "value": "20px",
+    "usage": "Görev kartı, KPI kutucuğu."
+   },
+   {
+    "name": "m-r-flyout",
+    "value": "26px",
+    "usage": "Alt menüden açılan kısayol menüsü."
+   },
+   {
+    "name": "m-r-sheet",
+    "value": "28px",
+    "usage": "Alt sayfanın üst köşeleri, çekmecenin sol köşeleri."
+   },
+   {
+    "name": "m-r-pill",
+    "value": "9999px",
+    "usage": "Hap sekmeler, alt menü kapsülü, daire düğmeler, rozetler."
+   }
+  ]
+ },
+ "shadow": {
+  "tokens": [
+   {
+    "name": "m-sh-float",
+    "value": {
+     "dark": "0 12px 32px rgba(0,0,0,0.45)",
+     "light": "0 10px 28px rgba(22,22,21,0.14)"
+    },
+    "usage": "Alt menü kapsülü ve asistan dairesi."
+   },
+   {
+    "name": "m-sh-menu",
+    "value": {
+     "dark": "0 20px 48px rgba(0,0,0,0.55)",
+     "light": "0 20px 48px rgba(22,22,21,0.16)"
+    },
+    "usage": "Flyout menü."
+   },
+   {
+    "name": "m-sh-drawer",
+    "value": {
+     "dark": "-24px 0 60px rgba(0,0,0,0.45)",
+     "light": "-24px 0 60px rgba(22,22,21,0.14)"
+    },
+    "usage": "Sağdan açılan çekmece."
+   },
+   {
+    "name": "m-sh-sheet",
+    "value": {
+     "dark": "0 24px 64px rgba(0,0,0,0.6)",
+     "light": "0 24px 64px rgba(22,22,21,0.14)"
+    },
+    "usage": "Alt sayfa."
+   },
+   {
+    "name": "m-sh-thumb",
+    "value": {
+     "dark": "0 1px 2px rgba(0,0,0,0.25)",
+     "light": "0 1px 2px rgba(22,22,21,0.12)"
+    },
+    "usage": "Hap sekmenin kayan başparmağı."
+   },
+   {
+    "name": "m-sh-knob",
+    "value": "0 1px 3px rgba(0,0,0,0.35)",
+    "usage": "Anahtar başı."
+   }
+  ]
+ },
+ "size": {
+  "note": "Dokunma hedefleri ve sabit ölçüler.",
+  "tokens": [
+   {
+    "name": "m-tap",
+    "value": "44px",
+    "usage": "En küçük dokunma hedefi: ikon düğmeleri, geri, daire eylemler."
+   },
+   {
+    "name": "m-appbar",
+    "value": "56px",
+    "usage": "Üst çubuk yüksekliği (8px üst boşluk dahil)."
+   },
+   {
+    "name": "m-nav",
+    "value": "64px",
+    "usage": "Alt menü kapsülü ve asistan dairesi yüksekliği."
+   },
+   {
+    "name": "m-row",
+    "value": "52px",
+    "usage": "Satır kartındaki satır yüksekliği."
+   },
+   {
+    "name": "m-tab-h",
+    "value": "36px",
+    "usage": "Hap sekme yüksekliği."
+   },
+   {
+    "name": "m-composer",
+    "value": "40px",
+    "usage": "Yazma alanı, ek ve gönder düğmesi yüksekliği."
+   }
+  ]
+ },
+ "blur": {
+  "note": "backdrop-filter bulanıklıkları.",
+  "tokens": [
+   {
+    "name": "m-blur-bar",
+    "value": "18px",
+    "usage": "Üst çubuk ve sekme şeridi (saturate 1.4 ile)."
+   },
+   {
+    "name": "m-blur-chat",
+    "value": "20px",
+    "usage": "Sohbet başlığı ve yazma alanı (saturate 1.5 ile)."
+   },
+   {
+    "name": "m-blur-float",
+    "value": "22px",
+    "usage": "Alt menü, asistan ve menü dairesi (saturate 150% ile)."
+   },
+   {
+    "name": "m-blur-menu",
+    "value": "24px",
+    "usage": "Flyout menü (saturate 160% ile)."
+   },
+   {
+    "name": "m-blur-folder",
+    "value": "8px",
+    "usage": "Klasör ön paneli."
+   }
+  ]
+ }
+}

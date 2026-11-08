@@ -1,18 +1,22 @@
-/* Katman sırası: Tailwind teması → temel → PrimeVue → Tailwind yardımcıları. */
+/* Katman sırası: Tailwind teması → temel → PrimeVue → Tailwind yardımcıları.
+   Token değişkenleri (tokens.gen.css) katmansızdır: Tailwind/PrimeVue tema değişkenlerini ezer. */
 @layer theme, base, primevue, components, utilities;
 
 @import 'tailwindcss';
-@import 'tailwindcss-primeui';
 @import '../../shared/tokens/tokens.gen.css';
+/* Varsayılan Tailwind ölçeklerini kapatır; PrimeUI yardımcıları (bg-primary …) sonra eklenir ve
+   PrimeVue preset'i üzerinden yine token değişkenlerine çözülür. */
 @import '../../shared/tokens/tailwind.gen.css';
+@import 'tailwindcss-primeui';
 
+/* Koyu varsayılan; `<html data-theme>` her zaman yazılır (shared/tokens/theme.ts). */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
 
 @layer base {
   html {
-    font-family: var(--nz-font-sans);
-    background: var(--nz-color-background);
-    color: var(--nz-color-text);
-    line-height: var(--nz-leading-normal);
+    background: var(--bg-base);
+    color: var(--ink);
+    font: var(--text-body);
   }
 }
