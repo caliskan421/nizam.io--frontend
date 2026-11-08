@@ -6,6 +6,7 @@ import { CLIENT_ERROR_CODES } from '@/shared/errors/client-codes'
 
 import { errorText, i18n } from './index'
 import { trErrors } from './tr/errors'
+import { trMutation } from './tr/mutation'
 
 // Katalogdaki her kod (zarf kodları + fields[] alan kodları) ve her istemci kodu için elle
 // yazılmış TR metni vardır; fazlası yoktur.
@@ -48,5 +49,19 @@ describe('TR hata metinleri', () => {
     expect(errorText(new ApiError({ code: 'identity.credentials_invalid' }))).toBe(
       'E-posta veya parola hatalı.',
     )
+  })
+
+  it('yazma protokolü metinleri (mutation.*) uygulama i18n ağacında çözülür', () => {
+    const g = i18n.global
+    const walk = (node: Record<string, unknown>, prefix: string): string[] =>
+      Object.entries(node).flatMap(([k, v]) =>
+        typeof v === 'string'
+          ? [`${prefix}${k}`]
+          : walk(v as Record<string, unknown>, `${prefix}${k}.`),
+      )
+    const keys = walk(trMutation, '')
+    expect(keys.length).toBeGreaterThan(0)
+    for (const key of keys) expect(g.te(key), key).toBe(true)
+    expect(g.t('mutation.outcome.rate_limited_seconds', { seconds: 7 })).toContain('7')
   })
 })
