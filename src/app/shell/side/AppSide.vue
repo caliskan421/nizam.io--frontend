@@ -1,0 +1,75 @@
+<script setup lang="ts">
+import './side.css'
+
+import { ref, watch } from 'vue'
+
+import type { ScopeStep } from '@/shared/scope/resolve'
+
+import SideAccount from './SideAccount.vue'
+import SideBrand from './SideBrand.vue'
+import SideNav from './SideNav.vue'
+import SideRail from './SideRail.vue'
+import SideScope from './SideScope.vue'
+import { useTaskBadges } from './badges'
+import { useSideMenu } from './menu'
+import { injectScopeLifecycle } from './scope-key'
+import type { SwitcherState } from './scope-view'
+import { buildVersionLabel } from './version'
+
+/**
+ * Kenar menüsü (00-ortak; `Sidebar.dc.html`, `Kenar-Secici.dc.html`). Kabuk sözleşmesi:
+ * `collapsed` + `update:collapsed` (daraltma yalnız oturum belleği, P10 — durumu kabuk tutar);
+ * kapsam yaşam döngüsü `SCOPE_LIFECYCLE_KEY` ile sağlanır, burada KURULMAZ.
+ *
+ * Seçim bekleniyorsa (çok seçenek + hatırlanan yok; ortak-kurallar §1) ilgili seçici açılır
+ * (odak çalınmaz); dar hâldeyse menü genişletilir.
+ */
+const props = defineProps<{ collapsed: boolean }>()
+const emit = defineEmits<{ 'update:collapsed': [value: boolean] }>()
+
+const lifecycle = injectScopeLifecycle()
+const { groups, activeKey } = useSideMenu()
+const { badges } = useTaskBadges()
+const version = buildVersionLabel()
+const switcher = ref<SwitcherState | null>(null)
+
+watch(
+  () => lifecycle.pending.value,
+  (step) => {
+    if (!step) return
+    switcher.value = { which: step, focus: false }
+    if (props.collapsed) emit('update:collapsed', false)
+  },
+  { immediate: true },
+)
+
+function collapse(): void {
+  switcher.value = null
+  emit('update:collapsed', true)
+}
+
+function openFromRail(which: ScopeStep): void {
+  switcher.value = { which, focus: true }
+  emit('update:collapsed', false)
+}
+</script>
+
+<template>
+  <aside class="rp-side" :class="{ 'rp-side--rail': collapsed }">
+    <SideRail
+      v-if="collapsed"
+      :groups="groups"
+      :active-key="activeKey"
+      @expand="emit('update:collapsed', false)"
+      @open="openFromRail"
+    />
+    <div v-else class="side-full">
+      <SideBrand :version="version" @collapse="collapse" />
+      <SideScope v-model:switcher="switcher" />
+      <SideNav :groups="groups" :active-key="activeKey" :badges="badges" />
+      <div class="side-foot">
+        <SideAccount />
+      </div>
+    </div>
+  </aside>
+</template>
