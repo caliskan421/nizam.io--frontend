@@ -1,13 +1,14 @@
 # WEB-0 (F0) — Codex nihai kapı hükmü
 
-**Son hüküm: UYGUN DEĞİL** — 1. koşum, `main` @ `9b41171` (#19–#26 birleşik).
+**Son hüküm: UYGUN DEĞİL** — 2. koşum, `main` @ `dfc8206` (#19–#29 birleşik).
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur.
 Kayıt: yürütme `docs/yurutme/web-0/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
 | Koşum | Denetlenen `main` | Hüküm | Açılan bulgular | Düzeltme |
 |---|---|---|---|---|
 | 1 | `9b41171` | UYGUN DEĞİL | CX-F0-E-01…E-05 (engelleyici); Ö-01…Ö-05; K-01…K-03 | düzeltme PR'ları: PR #27 (W17, E-03) · #28 (W23, E-04) · #29 (W16, E-01/E-02/Ö-01/Ö-03) · belge E-05/Ö-04 bu PR |
-| 2 | `dfc8206` | (bekleniyor) | — | — |
+| 2 | `dfc8206` | UYGUN DEĞİL | E-06 (yeni); E-02 kısmen; E-05/Ö-04 kapanış PR'ında | W16b |
+| 3 | (bekleniyor) | — | — | — |
 | — | `9b41171` | Görsel doğrulama: kanıt özeti `docs/yurutme/web-0/ilerleme.md` O5 | yüksek 2 (E-04, Ö-04 ile aynı), orta 4 | W23; F1 W61 |
 
 Düzeltme planı (koordinatör, 2026-11-08): E-01/E-02/Ö-01/Ö-03 → W16 (mutasyon) · E-03 → W17 (oturum nesli) · E-04 → W23 (K7 gerçek rota + satırsız admin) · E-05/Ö-04 → belge, `web0/o5-kapanis` · Ö-02/Ö-05/K-01 → F1 W61 borcu · K-02 → ürün sahibi (CLAUDE.md yolları) · K-03 → F2.
@@ -142,3 +143,104 @@ Karar belgesi ham ölçüm, ekran görüntüsü ve pilot kaynaklarına işaret e
 8. Kısmi başarıda ilk oluşturma/atama korunsun; düzenleme çatışmaları gerçek sürüm gruplarıyla çözülsün.
 9. F1 sade ana sayfa P3/P6 sınırında kalsın; tarih talebi gönderimi F3’e kadar devre dışı olsun.
 10. Font, tema ve 272/76 px kabuk kabulü gerçek tarayıcıda doğrulansın; test dosyası sayısı görsel kabulün yerine geçmesin.
+
+---
+
+# WEB-0 (F0) — Codex nihai kapı hükmü — 2. koşum
+
+- Hüküm: **UYGUN DEĞİL**. E-01, E-03 ve E-04 kaynak/test bağlaması bakımından kapanmış; ancak otomatik çatışma tekrarında kapsam kontrolünün atlanması E-02’yi açık bırakıyor. E-05’in sabit pilot kanıtı erişilebilir, fakat karar ve rozet kabulü düzeltmeleri denetlenen HEAD’de bulunmadığından kapanış PR’ında doğrulanacak.
+- **CI:** PR #27/#28/#29 ve main koşumlarının yeşil olduğu **kullanıcı beyanıdır**; bu denetimde bağımsız CI sonucu doğrulanmadı.
+- **Denetlenen HEAD:** `dfc82061b48d98fb7dce53b73602771e3a6742ed`.
+- **PR listesi:** düzeltmeler #27 W17, #28 W23, #29 W16; önceki teslimler #19–#26.
+- **Okunan:** 60’tan fazla dosyanın tam veya ilgili bölümleri; genel arama ve envanter çıktıları ayrıca. Backend sözleşmesi `v0.11.0-api` → `201689ac72ffcb0c128f163088c8ddf80e9dd7cd` üzerinden okundu.
+- **Komutlar:** ilk olarak `git rev-parse HEAD`, `git log --oneline -15`; ardından `git status --short`, `git diff`, `git show`, `git branch --contains`, `git ls-tree`, `cat`, `nl -ba`, `rg`, `sed`, `head`, `tail`, `ls`, `pwd`.
+- **Salt okunur:** dosya değiştirilmedi; test/lint/build çalıştırılmadı. Başlangıç ve bitiş çalışma ağacı durumları temizdi.
+- `../program/` bulunamadı; `../nizam.io--program/program/` okundu. İlk hüküm belirtilen scratchpad dosyasından alındı.
+
+İlk komutların kanıt özeti:
+
+```text
+HEAD: dfc82061b48d98fb7dce53b73602771e3a6742ed
+dfc8206 Merge pull request #29 from caliskan421/web0/o5-w16
+6faa6fd Merge pull request #28 from caliskan421/web0/o5-w23
+5056db5 Merge pull request #27 from caliskan421/web0/o5-w17
+```
+
+## E-01…E-05 kapanış tablosu
+
+Aşağıdaki “kapandı” hükümleri kaynak ve test tasarımı incelemesidir; testlerin burada çalıştırıldığı anlamına gelmez.
+
+| Bulgu | Durum | Kanıt | Kalan risk |
+|---|---|---|---|
+| **E-01 — Korumalı mutasyon → standing** | **Kapandı** | `src/shared/http/mutation/engine.ts:326` yetki kaybını bildiriyor; `use-protected-mutation.ts:63` QueryClient kanalına yayınlıyor; `src/shared/scope/lifecycle.ts:61` dinliyor, `:93` standing’i geçersizliyor. `lifecycle.test.ts:61` gerçek hook → uygulama HTTP istemcisi → MSW zinciri; `:270` altı kod, `:291` departman kaybı, `:308` program kaybı, `:335` üyelik kaybı. | Yapay reddeden **mutasyon** yerine gerçek korumalı yazma kullanılmış. Yapay hata atan sorgu testi ayrı sorgu yolunu sınamak üzere kalmış (`:244`). |
+| **E-02 — Eyleme bağlı kapsam** | **Kısmen** | `engine.ts:124` kapsam kopyalanıyor; `:302` karşılaştırılıyor; `:279` onay özgün kapsamı taşıyor. Hook `:77` başarı geçersizlemesini yakalanmış kapsamla yapıyor. Manuel retry testi `use-protected-mutation.test.ts:199`; kontrollü başarı testi `:223`; confirm testi `engine.test.ts:548`. | **Otomatik conflict retry kontrolü atlıyor:** `engine.ts:198–201`; aşağıdaki **E-06**. Ayrıca anlık görüntü hesap/oturum nesli taşımıyor (`engine.ts:41`, `scope/scope.ts:11`); hesap değişimi güvenliği bu testlerle doğrulanamadı. |
+| **E-03 — Çıkış sonrası eski yanıt** | **Kapandı** | `auth-session.ts:176` nesli artırıyor; `:121` establish karşılaştırması; `:227`, `:234`, `:242`, `:276`, `:287` refresh bekleme/yanıt sınırları. `session/store.ts:52` girişten önce nesli alıyor. Kardeş logout `:359`, token eşiği `:343`. Testler `auth-session.test.ts:103`, `:123`, `:151`, `:172`, `:202`; gerçek logout/refresh bağlaması `sign-out.test.ts:101`. | Kardeş token yolu sayısal nesil yerine `issuedAt` eşiği kullanıyor. Doğrulanamayan çıkış bayrağı refresh/kardeş token kabulünü engelliyor (`:132`, `:206`, `:339`). Bayrağın diğer sekmeye taşınmaması belgelenmiş sınırdır (`docs/refresh-coordination.md:55`); sayfa yenilemesinde bellek bayrağı kaybolur (`sign-out.ts:11`). |
+| **E-04 — K7 üretim erişilebilirliği** | **Kapandı** | `router.ts:33` gerçek `/` → `HomePlaceholder`; `session-gate.ts:20` oturum kapısı. `standing.ts:163` yalnız hazır Admin kapsamında `listProgramDepartments`; `scope/resolve.ts:121` boşluk ayrımı. `AppShell.vue:45` menüyü içerik durumundan ayrı tutuyor. Üretim router’ı `shell.lifecycle.test.ts:49`; üç durum `:73`, `:86`, `:137`; menü `:150`, kapsam başlığı `:153`, koordinatörde çağrı yok `:168`. | `NO_DEPARTMENT_EXEMPT_ROUTES` F0’da boş (`states/resolve.ts:37`); F2 yönetim yolları açılırken doldurulmalı. Departman okuma hatası boşluk sayılmıyor (`scope/resolve.ts:124`); hata görünürlüğü ayrıca ekran kabulünde izlenmeli. |
+| **E-05 — Gantt karar/kanıt zinciri** | **Kısmen** | `e6144897b9e9d578b211a5a84122bc216f5147d6` erişilebilir ve yerel `origin/web0/o4-w31` referansı tarafından içeriliyor. Commit’te `pilot/gantt/evidence/results.json` okundu; PNG dosyaları ağaçta mevcut. HEAD’de `gantt-secimi.md:3` hâlâ **Öneri**, `:4` sabit commit içermiyor. | “Karar” düzeltmesi koordinatör beyanıdır; **kapanış PR’ında doğrulanacak**. PNG içerikleri ve ölçümlerin yeniden üretimi bu koşumda doğrulanmadı. |
+
+## Regresyon
+
+| Madde | Hüküm | Kanıt |
+|---|---|---|
+| **K1 — Mercek ≠ yetki** | Örneklem uygun | `standing-facts.ts:164` yetki hesabına mercek almıyor; `modules/work/model/capabilities.ts:38` olgularla karar veriyor. `lifecycle.test.ts:111` mercek değişiminde yöneticiliği koruyor. |
+| **K2 — Kapsam ve temizlik** | Seçim/önbellek uygun; yazma sınırı açık | `scope/resolve.ts:57` çok seçenekten sessiz ilk seçim yapmıyor; `lifecycle.ts:37` kapsamlı sorguları iptal edip kaldırıyor. Yazma için E-02/E-06 geçerli. |
+| **K5 — Yazma protokolü** | **Uygun değil** | `engine.ts:198–201` otomatik ikinci gönderimde kapsam kontrolü yok. Ö-01 düzeltmeleri mevcut: kopyalanamayan gövde reddi `:94`, ayrı draft `:231`, retry çağrısında 24 saat kontrolü `:237`. |
+| **K6 — Yetki kaybı** | Örneklem uygun | E-01 zinciri bağlı; kanal QueryClient başına (`authority-loss.ts:40`), dinleyici sökümü mevcut (`lifecycle.ts:62`). |
+| **K7 — Açık durumlar** | Uygun | Gerçek uygulama kökü/router ile üç durum sınanıyor (`shell.lifecycle.test.ts:43`). S0 muafiyeti `states/resolve.ts:72`; sürüm uyumsuzluğu `instance/store.ts:31`, `App.vue:46`. |
+| **K9 — Görsel sistem** | Önceki borçlar sürüyor | Yeni yer tutucu token kullanıyor (`HomePlaceholder.vue:26`); koyu başlangıç `providers.ts:16`. Ayrı ölçü kaynakları `ui/styles/metrics.css:10`, `shell/side/side-metrics.css:10` mevcut. Görsel eşitlik doğrulanmadı. |
+| **K10 — Rota kataloğu** | Örneklem uygun | Router katalogdan kuruluyor (`router.ts:73`); ana sayfa S1/F0, görevler F1 ve öncesinde devre dışı (`routes.catalog.ts:85`, `:104`). |
+| **K12 — 250 / 60 / 12** | Yeni istisna yok | `git diff 9b41171..HEAD -- eslint.config.js` boş. `eslint.config.js:181` eşikler aynı; `:183` Vue istisnası boş; `:190` önceki üç fonksiyon istisnası korunuyor. |
+| **K13 — designStub** | Örneklem uygun | `badges.ts:85` BE-003 için sayı uydurmuyor, `null` kullanıyor. Rozet kabul belgesi hâlâ uzlaştırılmalı. |
+| **Belirteç / storage** | Örneklem uygun | Token `auth-session.ts:70` özel bellek alanında; üretim kaynak taramasında storage erişimi yalnız `storage-adapter.ts:33`. İzinli dört anahtar `preferences/keys.ts:8`. |
+| **Sunucu message / CSRF** | Örneklem uygun | `api-error.ts:99` alan mesajlarını taşımıyor; `client.ts:78` yazma başlığı ekliyor. Görev başlığı veri istisnası `confirmation.ts:20`, kaçışlı çizim `ConfirmDialog.vue:90`. |
+| **CSP** | Kaynakta regresyon yok | `deploy/Caddyfile:60` nonce’lu politika; `providers.ts:24` PrimeVue nonce bağlantısı. İlgili güvenlik dosyalarında tabana göre diff yok; çalışma anı CSP doğrulanmadı. |
+| **Döngüsel import** | İncelenen yeni bağlantıda yok | `authority-loss.ts:15` yalnız hata/tip bağımlılıkları taşıyor; lifecycle veya mutation’a geri import yok. `query-keys.ts:18` → temel `scope.ts`; `scope.ts:1` yalnız tip import ediyor. Tüm depo grafiği için mutlak döngüsüzlük hükmü verilmedi. |
+
+**Testlerin niteliği:**
+
+- **E-01/E-04:** Eski bağlama boşlukları giderilmiş. Altı yetki kaybı kodu gerçek HTTP normalizasyonundan geçiyor; K7’de HomeStub yerine üretim router’ı kullanılıyor.
+- **E-02:** Manuel retry ve başarı anındaki kapsam değişimi gerçek HTTP ile sınanıyor. Confirm kapsam değişimi motor seviyesinde sınanıyor; otomatik conflict retry sırasında kapsam değişimi testi bulunamadı.
+- **E-03:** Yeni yarış testleri kontrollü Promise ve sahte saat kullanıyor (`auth-session.test.ts:63`, `:173`); kilit bekleme testi ağ çağrısı sayısını da denetliyor (`:147`).
+- **Ö-03:** Eski 30 ms mutasyon ayrımı sahte saatle değiştirilmiş (`engine.test.ts:258`); lifecycle negatif kontrolü süre beklemek yerine sorgu durumunu okuyor (`lifecycle.test.ts:79`).
+- **Gerçek zaman tamamen kaldırılmamış:** `standing.test.ts:48` 20 ms; `auth-session.test.ts:39`, `:45` sıfır süreli zamanlayıcı; `sign-out.test.ts:142` gerçek 20 ms timeout; `e2e/two-tabs.spec.ts:34` gerçek token ömrü için 65 saniye bekleme. Dolayısıyla genel deterministik test kapanışı iddia edilmiyor.
+
+## Yeni bulgular
+
+### CX-F0-E-06 — Otomatik çatışma tekrarı kapsam kontrolünü atlıyor
+
+**Engelleyici; E-02’nin kapanmasını önleyen yeni saptanmış yol.**
+
+1. A kapsamında eylem başlar; `runAction()` kapsamı yalnız girişte kontrol eder (`src/shared/http/mutation/engine.ts:322`).
+2. İlk istek beklerken kullanıcı B kapsamına geçer.
+3. A isteği `409 platform.conflict_retry` döndürür.
+4. `sendWithConflictRetry()` doğrudan ikinci `sendOnce()` çağrısını yapar (`engine.ts:201`).
+5. HTTP ara katmanı başlıkları güncel B kapsamından üretir (`src/shared/http/client.ts:82`).
+
+Böylece A’nın anahtarı/gövdesi B kapsamında gönderilebilir; başarı geçersizlemesi ise A’ya uygulanır (`use-protected-mutation.ts:77`). Pinli sözleşme aynı anahtarın farklı kapsamla tekrarını istemci hatası sayar (`backend docs/api/istemci-akislari.md:302–318`).
+
+**Kapanış ölçütü:** Her gönderim öncesinde kapsamı doğrulayın veya taşıma katmanında eylemin kapsamını güvenle sabitleyin. Kontrollü ilk yanıtla A → B → `conflict_retry` zincirini gerçek hook/HTTP üzerinden sınayın; B başlıklı ikinci istek çıkmamalı. Bu sonuç kaynak akışından çıkarılmıştır; bu koşumda test çalıştırılmadı.
+
+Yeni bağımsız önemli/küçük bulgu eklenmedi; önceki borçların devamı aşağıdadır.
+
+## Kabul edilen borçlar
+
+- **F1 W61 — Ö-02 / Ö-05 / K-01:** ölçülerin token kaynağına taşınması, font/görsel kabul, eski CI hata metni. Kaynak kanıtları: `metrics.css:6`, `side-metrics.css:6`, `app/styles/main.css:5`, `.github/workflows/ci.yml:64`. W61 dosyası bu HEAD’de yok; devir **kullanıcı beyanı**, kapanış PR’ında doğrulanacak.
+- **Ö-01:** belirtilen kopyalama/draft/24 saat açıkları kaynakta kapanmış (`engine.test.ts:473`, `:494`).
+- **Ö-03:** hedeflenen kırılgan mutasyon/lifecycle beklemeleri giderilmiş; yukarıdaki kalan gerçek zaman beklemeleri temizlik kapsamına alınmalı.
+- **Ö-04:** F1’e erteleme beyanı kabul edildi; HEAD’de `docs/ekranlar/00-ortak/README.md:40` hâlâ F0 elle doğrulaması istiyor. **Kapanış PR’ında doğrulanacak.**
+- **K-02 — Ürün sahibi:** eski okuma yolları ve README durum metni sürüyor (`README.md:3`; `../program/` okuma hataları).
+- **K-03 — F2:** yönetim menüsü olgu kapısı capability katmanına taşınacak (`src/app/shell/side/menu.ts:47`).
+- **Kardeş sekme sınırı:** doğrulanamayan çıkış bilgisinin iletiye eklenmesi belgede F1 W61’e bırakılmış (`docs/refresh-coordination.md:55`); sekmelerin tamamında sessiz refresh engeli sağlandığı iddia edilemez.
+
+## F1 ön koşulları (güncel)
+
+1. **Açık:** E-02/E-06 kapatılsın; E-05 karar ve Ö-04 kabul düzeltmeleri kapanış PR’ında doğrulansın. Son düzeltme HEAD’i için CI/üretim eşitliği kanıtı bağlansın; mevcut yeşil CI bilgisi kullanıcı beyanıdır.
+2. **Kısmen:** İlk yazma tüketicisi kapsam değişiminde gönderim, manuel/otomatik tekrar, onay ve başarıyı kapsasın; otomatik tekrar açığı yukarıdadır.
+3. **Kapandı:** Yetki kaybı testleri gerçek korumalı mutasyon katmanından geçiyor (`lifecycle.test.ts:61`).
+4. **Kapandı:** K7 testleri üretim router’ını kullanıyor (`shell.lifecycle.test.ts:49`).
+5. **Kapandı, sınırı kayıtlı:** Devam eden refresh, kilit bekleme ve gecikmiş yanıt sınanıyor (`auth-session.test.ts:103`, `:123`); kardeş bayrak aktarımı borcu sürüyor.
+6. **F1 kabulü:** Görev listesi K3 gereği tek uçtan kurulmalı; departman fan-out yapılmamalı. Bu koşum F1 uygulamasını doğrulamadı.
+7. **F1 kabulü:** Eksik sayfalama sayaçları “yüklenen kayıtlar içinde” olarak etiketlenmeli; BE-003 taklit edilmemeli.
+8. **F1 kabulü:** Kısmi başarıda ilk işlem korunmalı; düzenleme çatışmaları gerçek sürüm gruplarıyla sınanmalı. Bu koşumda tüketici düzeyi kabul doğrulanmadı.
+9. **F1 kabulü:** Ana sayfa P3/P6 sınırında kalmalı; tarih talebi yazması F3’e kadar kapalı tutulmalı. F0 yer tutucu veri uydurmuyor (`HomePlaceholder.vue:6`).
+10. **Açık — W61:** Font, iki tema ve 272/76 px kabuk kabulü gerçek tarayıcı kanıtıyla tamamlanmalı; bu koşumda görsel kabul doğrulanmadı.
