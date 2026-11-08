@@ -48,7 +48,7 @@ Yol haritası ürün sahibi kabulüdür; bu tablo **önerilen metni** verir, dos
 | Y3 | K1 eylem görünürlüğü kaynağı | **Değiştir (geniş)** | `istemci-akislari.md` §4 toplantı, organizasyon (departman/ekip/bağ, kullanıcı/hesap/üyelik), records ve reporting işlemlerini kapsamıyor → geçişte modül README kural kimlikleri (meetings §4, ORGANIZATION-K*, RECORDS-K*) sürümlü kaynak; nihai hedef §4 genişletmesi (BE-036 belge paketi) |
 | Y4 | §4 F1/F6 ana sayfa | **Ürün sahibine sor** (soru 7) | Teknik olarak yönetici panosu `reportDashboard` ile F1'de kurulabilir; Codex varsayılanı: F1 = KPI + sade özet, tam koordinatörlük kartları/akış/rapor F6 ("uç varlığı faz kapsamını büyütmez"). Koordinatör önerisi de kaydedildi (01/eksikler.md §4) |
 | Y5 | K3 tek `department_id` | **Değiştirme** | v1 tek seçim. K3'e not: yasak = departmanları ayrı çağrılarla birleştirmek; sayfalama, tek kayıt okuması, kullanıcı eylemiyle N yazma yasak değil (`ortak-kurallar.md` §9) |
-| Y6 | K4 / ADR-0024 / 03d | **Değiştirme** | Alt görev sayaçları gerçek (BE-051), çubuklar nötr/devre dışı; aktif zamanlama ayrı ürün + backend ADR. Oklar `links`'ten çizilir (veri var) |
+| Y6 | K4 / ADR-0024 / 03d | **Değiştirme** | Alt görev sayaçları gerçek (BE-051), çubuklar nötr/devre dışı; aktif zamanlama ayrı ürün + backend ADR. Oklar `links`'ten çizilir (veri var). **K4 kararı (W31, 2026-11-08):** kendi SVG Gantt, yedek SVAR Vue Gantt (`../architecture/gantt-secimi.md`); Y6 hükmü değişmez |
 | Y7 | K8 Tablolar gerçek zamanlı | **Şimdi değiştirme** | v1 dışı; modül ADR'sinde karar (BE-093…106 paketi yeni-1). Yalnız yenilemeyle teslim edilecekse "herkes anında görür" vaadi tuvalden kalkar |
 | Y8 | K14 faz görünürlüğü | **Ürün sahibine sor** (soru 2); varsayılan **gizli** | Menü girişleri (Arşiv, Mesajlar, Asistan, hedefsiz Yardım) gizli; ekran içi faz dışı eylemler açıklamalı devre dışı; zil paneli yoksa tıklanabilir kontrol yok. Matris: `ortak-kurallar.md` §5 |
 | Y9 | K2 depolama istisnası | **Değiştir (küçük)** | Daraltma durumu oturum belleğinde; kalıcılık istenirse `sidebar_collapsed` izinli anahtar |
@@ -150,3 +150,5 @@ Tutarsızlıklar: tür adları/renkleri 01 ≠ 01b; sabit hex (rol renkleri, "Me
 2. Yol haritası Y1, Y2, Y3, Y9, Y11, Y12 metinleri ürün sahibi onayıyla `yol-haritasi-web.md`'ye girer.
 3. Bu klasör + `kayit.md` + `rapor-tespit-2026-11-08.md` + `EKRANLAR-codex.md` + `ortak-sozlesme.md` değişikliği tek PR olarak (`web0/o1-belgeler` dalı üstüne ya da ayrı dal) açılır; CI yeşil → birleştirme.
 4. WEB-0 O2 açılış istemi `ortak-sozlesme.md` 2a ile yenilenir; uygulayıcılara 00-ortak grubu ve `ortak-kurallar.md` verilir.
+
+**Durum (2026-11-08):** WEB-0 O2–O4 tamamlandı (O2 #19–#23, O3 #24–#25, O4 #26 karar belgesi); O5 kapanış açık (Codex kapısı, ekran görüntüsü doğrulaması) — `../yurutme/web-0/ilerleme.md`.
