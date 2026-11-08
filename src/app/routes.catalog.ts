@@ -86,7 +86,8 @@ export const ROUTES = {
   home: {
     path: '/',
     title: 'Ana sayfa',
-    // F0'da kabuk + kapsam; 01 içeriği (S2/S3) F1'de bağlanır.
+    // F0'da kabuk + kapsam. F1 notu: 01 sade ana sayfa (O3, W51) S2/S3 uçlarını sayfa içinden
+    // okur; rota kapsamı S1 kalır (kapsam kabukta seçilir, sayfa kapsamsızken açık durum).
     scope: 'S1',
     phase: 'F0',
     menu: { group: 'takip', key: 'home', order: 1 },
@@ -106,15 +107,16 @@ export const ROUTES = {
     title: 'Görevler',
     scope: 'S2',
     phase: 'F1',
-    // ortak-kurallar §5: F0'da menüde görünür, F1'de canlı.
+    // ortak-kurallar §5: F0'da menüde görünür (devre dışı), F1'de canlı (`CURRENT_PHASE`).
     before: 'devre_disi',
     menu: { group: 'takip', key: 'tasks', order: 2 },
     params: {},
+    // 03 README satır dışı varsayımlar (kabul): `kisi` F1'de yok (E-03-11 statik, BE-038);
+    // sayfa/imleç URL'de taşınmaz (E-03-39); panel sekmesi bellekte (E-03-45).
     query: {
       durum: oneOf(['baslanmadi', 'devam_ediyor', 'onaya_sunuldu', 'iade_edildi', 'tamamlandi']),
       talep: bool,
       q: text,
-      kisi: id,
       koordinatorluk: id,
       sirala: sortBy(['gorev', 'durum', 'bitis']),
       gorev: id,
