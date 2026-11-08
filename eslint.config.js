@@ -75,6 +75,27 @@ export default defineConfigWithVueTs(
     rules: storageBan,
   },
   {
+    // Tek depolama istisnası (yol haritası K2): yalnız bu dosya, yalnız `localStorage`; izinli
+    // anahtar listesi `src/shared/preferences/keys.ts`. `sessionStorage` burada da yasak.
+    // Kanıt: tests/lint/architecture.test.ts "depolama istisnası".
+    name: 'nizamio/depolama-istisnasi',
+    files: ['src/shared/preferences/storage-adapter.ts'],
+    rules: {
+      'no-restricted-globals': ['error', { name: 'sessionStorage', message: storageMessage }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MemberExpression[property.name="sessionStorage"]',
+          message: storageMessage,
+        },
+        {
+          selector: 'MemberExpression[property.value="sessionStorage"]',
+          message: storageMessage,
+        },
+      ],
+    },
+  },
+  {
     name: 'nizamio/elle-dto-yasagi',
     files: ['src/modules/**/api/**/*.{ts,tsx,mts,cts}'],
     rules: {
