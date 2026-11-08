@@ -86,7 +86,9 @@ describe('depolama yasağı', () => {
 describe('depolama istisnası (yalnız src/shared/preferences/storage-adapter.ts)', () => {
   const ADAPTER = 'src/shared/preferences/storage-adapter.ts'
   const storageRule = (id: string) =>
-    id === 'no-restricted-globals' || id === 'no-restricted-syntax'
+    id === 'no-restricted-globals' ||
+    id === 'no-restricted-syntax' ||
+    id === 'no-restricted-properties'
 
   it.each([
     'export const s = globalThis.localStorage\n',
@@ -103,6 +105,19 @@ describe('depolama istisnası (yalnız src/shared/preferences/storage-adapter.ts
   ])('istisna dosyasında da sessionStorage yasak: %s', async (code) => {
     const ids = await ruleIds(ADAPTER, code)
     expect(ids.some(storageRule)).toBe(true)
+  })
+
+  it('istisna no-restricted-syntax kuralına dokunmaz: depolama dışı seçiciler komşu dosyayla aynı', async () => {
+    const selectors = async (file: string) => {
+      const config = (await eslint.calculateConfigForFile(file)) as {
+        rules?: Record<string, unknown[] | undefined>
+      }
+      return (config.rules?.['no-restricted-syntax'] ?? [])
+        .slice(1)
+        .map((option) => (option as { selector: string }).selector)
+        .filter((selector) => !/localStorage|sessionStorage/.test(selector))
+    }
+    expect(await selectors(ADAPTER)).toEqual(await selectors('src/shared/preferences/index.ts'))
   })
 
   it.each([

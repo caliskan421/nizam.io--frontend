@@ -19,7 +19,7 @@ import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 
 import { isAuthorityLoss } from './authority-loss'
 import { resolveScope, type ScopeResolution } from './resolve'
-import { isScopedKey, type ScopeLens } from './scope'
+import { isScopedQueryKey, type ScopeLens } from './scope'
 import { invalidateStanding, isStandingKey, useStanding } from './standing'
 import {
   departmentOptions,
@@ -32,7 +32,7 @@ import { useScopeStore } from './store'
 
 /** Kapsamlı sorguları iptal eder ve önbellekten düşürür (K2). */
 export function purgeScopedQueries(client: QueryClient): void {
-  const filters = { predicate: (query: Query) => isScopedKey(query.queryKey) }
+  const filters = { predicate: (query: Query) => isScopedQueryKey(query.queryKey) }
   void client.cancelQueries(filters)
   client.removeQueries(filters)
 }

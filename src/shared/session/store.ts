@@ -1,9 +1,11 @@
+import type { QueryClient } from '@tanstack/vue-query'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
 import { api, authSession } from '@/shared/http'
 import { unwrap } from '@/shared/http/unwrap'
 import type { components } from '@/shared/api/schema'
+import { signOut, type SignOutOutcome } from '@/shared/scope/sign-out'
 
 type LoginRequest = components['schemas']['LoginRequest']
 type MeResponse = components['schemas']['MeResponse']
@@ -22,6 +24,8 @@ export const useSessionStore = defineStore('session', () => {
   const accountId = computed(() => state.value.accountId)
   const forcePasswordChange = computed(() => state.value.forcePasswordChange)
   const isAuthenticated = computed(() => state.value.status === 'authenticated')
+  /** Son çıkışta sunucu doğrulaması alınamadı (ortak-kurallar §8); açık girişe kadar sürer. */
+  const serverLogoutUnverified = computed(() => state.value.serverLogoutUnverified)
   const me = shallowRef<MeResponse | null>(null)
 
   /**
@@ -32,6 +36,8 @@ export const useSessionStore = defineStore('session', () => {
   async function bootstrap(): Promise<void> {
     const current = state.value.status
     if (current !== 'unknown' && current !== 'unavailable') return
+    // Doğrulanamayan çıkıştan sonra çerezle sessiz giriş yok; yalnız açık giriş (§8).
+    if (state.value.serverLogoutUnverified) return
     const outcome = await authSession.refresh(null)
     if (outcome === 'failed' && authSession.snapshot.status !== 'authenticated') {
       authSession.markUnavailable()
@@ -51,15 +57,16 @@ export const useSessionStore = defineStore('session', () => {
     return me.value
   }
 
-  /** Çıkış: API çağrısı (başarısız olsa da) + bellek temizliği + diğer sekmelere bildirim. */
-  async function logout(): Promise<void> {
+  /**
+   * Çıkış (E-00-29): `scope/sign-out.ts` `signOut` — API çağrısı, bellek/önbellek/kapsam
+   * temizliği, diğer sekmelere bildirim. Başarısız/zaman aşımı → `server_unverified`.
+   * `queryClient` verilirse sorgu önbelleği de boşaltılır (bileşende `useQueryClient()`).
+   */
+  async function logout(queryClient: QueryClient | null = null): Promise<SignOutOutcome> {
     try {
-      if (authSession.token) await unwrap(api.POST('/v1/auth/logout', {}))
-    } catch {
-      // Sunucu tarafı oturum zaten düşmüş olabilir; yerel temizlik her durumda yapılır.
+      return await signOut(queryClient)
     } finally {
       me.value = null
-      authSession.clear()
     }
   }
 
@@ -68,6 +75,7 @@ export const useSessionStore = defineStore('session', () => {
     accountId,
     forcePasswordChange,
     isAuthenticated,
+    serverLogoutUnverified,
     me,
     bootstrap,
     login,

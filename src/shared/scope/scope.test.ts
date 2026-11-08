@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { globalKey, isScopedKey, scopedKey } from './scope'
+import { globalKey, isScopedQueryKey, scopedKey } from './scope'
 
 describe('sorgu anahtarları', () => {
   it('kapsamlı anahtar program, departman ve merceği taşır', () => {
@@ -15,13 +15,15 @@ describe('sorgu anahtarları', () => {
     })
   })
 
-  it('isScopedKey yalnız scopedKey anahtarlarını seçer', () => {
-    expect(isScopedKey(scopedKey({ programId: 'p1', departmentId: null }, 'work-items'))).toBe(true)
-    expect(isScopedKey(globalKey('x'))).toBe(false)
-    expect(isScopedKey(['me'])).toBe(false)
-    expect(isScopedKey(['me', 'departments'])).toBe(false)
-    expect(isScopedKey(['programs'])).toBe(false)
-    expect(isScopedKey(['notifications', 'unread-count'])).toBe(false)
-    expect(isScopedKey(['nizamio', ['program']])).toBe(false)
+  it('isScopedQueryKey yalnız scopedKey anahtarlarını seçer', () => {
+    expect(isScopedQueryKey(scopedKey({ programId: 'p1', departmentId: null }, 'work-items'))).toBe(
+      true,
+    )
+    expect(isScopedQueryKey(globalKey('x'))).toBe(false)
+    expect(isScopedQueryKey(['me'])).toBe(false)
+    expect(isScopedQueryKey(['me', 'departments'])).toBe(false)
+    expect(isScopedQueryKey(['programs'])).toBe(false)
+    expect(isScopedQueryKey(['notifications', 'unread-count'])).toBe(false)
+    expect(isScopedQueryKey(['nizamio', ['program']])).toBe(false)
   })
 })

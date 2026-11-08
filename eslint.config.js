@@ -72,26 +72,22 @@ export default defineConfigWithVueTs(
   {
     name: 'nizamio/depolama-yasagi',
     files: ['src/**/*.{ts,vue}'],
+    // Tek istisna aşağıdaki 'nizamio/depolama-istisnasi' bloğunda (yalnız bu dosya).
+    ignores: ['src/shared/preferences/storage-adapter.ts'],
     rules: storageBan,
   },
   {
     // Tek depolama istisnası (yol haritası K2): yalnız bu dosya, yalnız `localStorage`; izinli
     // anahtar listesi `src/shared/preferences/keys.ts`. `sessionStorage` burada da yasak.
-    // Kanıt: tests/lint/architecture.test.ts "depolama istisnası".
+    // `no-restricted-syntax` bilinçli olarak KULLANILMAZ: başka bloklardaki seçiciler (ör. rol
+    // dizesi kuralı) bu dosyada da aynen geçerli kalır. Kanıt: tests/lint/architecture.test.ts.
     name: 'nizamio/depolama-istisnasi',
     files: ['src/shared/preferences/storage-adapter.ts'],
     rules: {
       'no-restricted-globals': ['error', { name: 'sessionStorage', message: storageMessage }],
-      'no-restricted-syntax': [
+      'no-restricted-properties': [
         'error',
-        {
-          selector: 'MemberExpression[property.name="sessionStorage"]',
-          message: storageMessage,
-        },
-        {
-          selector: 'MemberExpression[property.value="sessionStorage"]',
-          message: storageMessage,
-        },
+        { property: 'sessionStorage', message: storageMessage },
       ],
     },
   },

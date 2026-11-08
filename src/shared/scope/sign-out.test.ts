@@ -27,9 +27,12 @@ async function signedIn() {
   return { m, prefs, store, queryClient }
 }
 
-function expectCleared(ctx: Awaited<ReturnType<typeof signedIn>>) {
+function expectCleared(ctx: Awaited<ReturnType<typeof signedIn>>, unverified: boolean) {
   expect(ctx.m.http.authSession.token).toBeNull()
-  expect(ctx.m.session.useSessionStore().status).toBe('anonymous')
+  const session = ctx.m.session.useSessionStore()
+  expect(session.status).toBe('anonymous')
+  expect(session.serverLogoutUnverified).toBe(unverified)
+  expect(session.me).toBeNull()
   expect(ctx.store.snapshot).toEqual({ programId: null, lens: null, departmentId: null })
   expect(ctx.queryClient.getQueryCache().getAll()).toEqual([])
   expect(ctx.prefs.read('scope.programId')).toBeNull()
@@ -41,12 +44,11 @@ function expectCleared(ctx: Awaited<ReturnType<typeof signedIn>>) {
 describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
   it('204 → doğrulandı; X-Requested-With gider; bellek, önbellek ve scope.* temizlenir', async () => {
     const ctx = await signedIn()
-    const outcome = await ctx.m.signOut.signOut(ctx.queryClient)
+    const outcome = await ctx.m.session.useSessionStore().logout(ctx.queryClient)
     expect(outcome).toBe('verified')
-    expect(ctx.m.signOut.signOutNotice.value).toBe('verified')
     const logout = backend.state.requests.find((r) => r.path === '/v1/auth/logout')
     expect(logout?.headers.get('X-Requested-With')).toBeTruthy()
-    expectCleared(ctx)
+    expectCleared(ctx, false)
   })
 
   it('sunucu hatası → "sunucu çıkışı doğrulanamadı"; sessiz yenileme denenmez', async () => {
@@ -57,14 +59,43 @@ describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
     )
     const ctx = await signedIn()
     const refreshBefore = backend.count('/v1/auth/refresh')
-    const outcome = await ctx.m.signOut.signOut(ctx.queryClient)
+    const outcome = await ctx.m.session.useSessionStore().logout(ctx.queryClient)
     expect(outcome).toBe('server_unverified')
-    expect(ctx.m.signOut.signOutNotice.value).toBe('server_unverified')
     expect(backend.count('/v1/auth/refresh')).toBe(refreshBefore)
-    expectCleared(ctx)
+    expectCleared(ctx, true)
+  })
 
-    ctx.m.signOut.acknowledgeSignOutNotice()
-    expect(ctx.m.signOut.signOutNotice.value).toBeNull()
+  it('doğrulanamadı → 401 sonrası refresh yok, açılış bootstrap yok; açık giriş normale döndürür', async () => {
+    backend.server.use(
+      http.post('http://localhost/v1/auth/logout', () =>
+        backend.envelope('platform.internal', 500),
+      ),
+    )
+    const ctx = await signedIn()
+    const session = ctx.m.session.useSessionStore()
+    // Çerez sunucuda hâlâ geçerli (çıkış doğrulanmadı): sessiz yenileme olsaydı oturum dönerdi.
+    backend.seedAmbientSession()
+    await session.logout(ctx.queryClient)
+    const refreshBefore = backend.count('/v1/auth/refresh')
+
+    const me = await ctx.m.http.api.GET('/v1/me')
+    expect(me.response.status).toBe(401)
+    await session.bootstrap()
+    expect(backend.count('/v1/auth/refresh')).toBe(refreshBefore)
+    expect(session.status).toBe('anonymous')
+    expect(session.serverLogoutUnverified).toBe(true)
+
+    // Kardeş sekmeden gelen belirteç de kabul edilmez (yalnız açık giriş).
+    expect(await ctx.m.http.authSession.refresh(null)).toBe('ended')
+    expect(backend.count('/v1/auth/refresh')).toBe(refreshBefore)
+
+    await session.login({ email: 'kisi@example.test', password: 'dogru-parola' })
+    expect(session.status).toBe('authenticated')
+    expect(session.serverLogoutUnverified).toBe(false)
+    backend.expireAccess()
+    const again = await ctx.m.http.api.GET('/v1/me')
+    expect(again.response.status).toBe(200)
+    expect(backend.count('/v1/auth/refresh')).toBe(refreshBefore + 1)
   })
 
   it('ağ hatası → doğrulanamadı', async () => {
@@ -72,7 +103,7 @@ describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
     const ctx = await signedIn()
     expect(await ctx.m.signOut.signOut(ctx.queryClient)).toBe('server_unverified')
     expect(backend.count('/v1/auth/refresh')).toBe(0)
-    expectCleared(ctx)
+    expectCleared(ctx, true)
   })
 
   it('zaman aşımı → doğrulanamadı', async () => {
@@ -83,6 +114,6 @@ describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
     expect(await ctx.m.signOut.signOut(ctx.queryClient, { timeoutMs: 20 })).toBe(
       'server_unverified',
     )
-    expectCleared(ctx)
+    expectCleared(ctx, true)
   })
 })
