@@ -5,6 +5,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { effectScope } from 'vue'
 
 import type { components } from '@/shared/api/schema'
+import type { ApiError } from '@/shared/errors/api-error'
+import { onAuthorityLoss } from '@/shared/scope/authority-loss'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { AuthSession } from '@/shared/session/auth-session'
 
@@ -21,11 +23,15 @@ beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   server.resetHandlers()
   keys.length = 0
+  current = scope
 })
 afterAll(() => server.close())
 
 const keys: Array<string | null> = []
 const scope: ScopeSnapshot = { programId: 'p1', departmentId: 'd1' }
+const scopeB: ScopeSnapshot = { programId: 'p2', departmentId: 'd2' }
+/** İstemcinin ve kancanın okuduğu güncel kapsam (kullanıcı seçici ile değiştirir). */
+let current: ScopeSnapshot = scope
 const api = createApiClient({
   baseUrl: BASE,
   session: new AuthSession({
@@ -33,7 +39,7 @@ const api = createApiClient({
     fetch: (r) => globalThis.fetch(r),
     coordination: noopCoordination(),
   }),
-  scope: () => scope,
+  scope: () => current,
 })
 const body: CreateBody = { title: 'Rapor', start_on: '2026-11-01', end_on: '2026-11-10' }
 
@@ -43,7 +49,7 @@ function setup<V, D>(
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const effect = effectScope()
   const mutation = effect.run(() =>
-    useProtectedMutation<V, D>({ ...options, queryClient, scope: () => scope }),
+    useProtectedMutation<V, D>({ ...options, queryClient, scope: () => current }),
   )!
   return { mutation, queryClient, stop: () => effect.stop() }
 }
@@ -189,4 +195,84 @@ describe('useProtectedMutation', () => {
     expect(invalidated(seeded.list)).toBe(false)
     stop()
   })
+
+  it('A’da sonuç bilinmiyor → B’ye geçildi → retry gönderilmez (scope_changed)', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${BASE}/v1/work-items`, ({ request }) => {
+        keys.push(request.headers.get('Idempotency-Key'))
+        calls += 1
+        return calls === 1 ? HttpResponse.error() : HttpResponse.json({ id: 'w1' }, { status: 200 })
+      }),
+    )
+    const { mutation, stop } = setup<CreateBody, unknown>(createWorkItem)
+    const first = await mutation.submit(body)
+    if (first.kind !== 'unknown_outcome') throw new Error(first.kind)
+
+    current = scopeB
+    const blocked = await first.retry!()
+    expect(blocked).toMatchObject({ kind: 'scope_changed', scope, draft: body })
+    expect(keys).toHaveLength(1)
+
+    current = { ...scope }
+    expect(await first.retry!()).toMatchObject({ kind: 'success', replayed: true })
+    expect(keys).toEqual([first.idempotencyKey, first.idempotencyKey])
+    stop()
+  })
+
+  it('başarı geçersizlemesi yakalanan kapsamla yapılır (gönderim sırasında kapsam değişse de)', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let arrived!: () => void
+    const reached = new Promise<void>((resolve) => (arrived = resolve))
+    const programs: Array<string | null> = []
+    server.use(
+      http.post(`${BASE}/v1/work-items`, async ({ request }) => {
+        programs.push(request.headers.get('X-Nizamio-Program'))
+        arrived()
+        await gate
+        return HttpResponse.json({ id: 'w1' }, { status: 201 })
+      }),
+    )
+    const { mutation, queryClient, stop } = setup<CreateBody, unknown>(createWorkItem)
+    const { seeded, invalidated } = seed(queryClient)
+    const listB = queryKeys.workItems.list(scopeB, { status: 'yeni' })
+    queryClient.setQueryData(listB, { seeded: true })
+
+    const pending = mutation.submit(body)
+    await reached
+    current = scopeB
+    release()
+    expect((await pending).kind).toBe('success')
+    expect(programs).toEqual(['p1'])
+    expect(invalidated(seeded.list)).toBe(true)
+    expect(invalidated(listB)).toBe(false)
+    stop()
+  })
+
+  it.each([
+    ['organization.not_authorized', 403],
+    ['work.program_scope_invalid', 404],
+  ] as const)(
+    '%s: sonuç failed döner ve QueryClient yetki kaybı kanalına yayınlanır',
+    async (code, status) => {
+      server.use(
+        http.post(`${BASE}/v1/work-items`, () =>
+          HttpResponse.json({ code, message: 'x', request_id: 'r' }, { status }),
+        ),
+      )
+      const { mutation, queryClient, stop } = setup<CreateBody, unknown>(createWorkItem)
+      const heard: ApiError[] = []
+      const other: ApiError[] = []
+      const off = onAuthorityLoss(queryClient, (e) => heard.push(e))
+      const offOther = onAuthorityLoss(new QueryClient(), (e) => other.push(e))
+      const outcome = await mutation.submit(body)
+      expect(outcome).toMatchObject({ kind: 'failed', error: { code } })
+      expect(heard.map((e) => e.code)).toEqual([code])
+      expect(other).toEqual([])
+      off()
+      offOther()
+      stop()
+    },
+  )
 })

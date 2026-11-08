@@ -7,7 +7,8 @@
  *     BÜTÜN sorgular iptal edilir ve önbellekten düşer: eski kapsamın verisi hiç görünmez.
  *  3. Yetki kaybı (K6 + Y1 kodları) bir sorgu ya da mutasyondan gelince standing geçersizlenir;
  *     yeni olgularla kapsam yeniden doğrulanır (geçersiz seçim düşer: tek seçenekte otomatik,
- *     çokta seçici).
+ *     çokta seçici). Korumalı yazmalar hatayı fırlatmadığı için (`useProtectedMutation`
+ *     normalize sonuç döner) kayıp, `authority-loss.ts` kanalından da dinlenir.
  *  4. Pencere görünür olunca / odağa dönünce standing tazelenir.
  *
  * Mercek ≠ yetki (ortak-kurallar §1): `facts` mercekten bağımsızdır; mercek yalnız kapsamı
@@ -19,7 +20,7 @@ import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 
 import { isScopedQueryKey } from '@/shared/http/query-keys'
 
-import { isAuthorityLoss } from './authority-loss'
+import { isAuthorityLoss, onAuthorityLoss } from './authority-loss'
 import { resolveScope, type ScopeResolution } from './resolve'
 import { type ScopeLens } from './scope'
 import { invalidateStanding, isStandingKey, useStanding } from './standing'
@@ -57,9 +58,11 @@ function watchAuthorityLoss(client: QueryClient, onLoss: () => void): () => void
     const mutation: Mutation<unknown, unknown, unknown, unknown> = event.mutation
     if (isAuthorityLoss(mutation.state.error)) onLoss()
   })
+  const offReported = onAuthorityLoss(client, onLoss)
   return () => {
     offQueries()
     offMutations()
+    offReported()
   }
 }
 
