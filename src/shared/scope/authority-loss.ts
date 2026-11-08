@@ -7,6 +7,10 @@
  * koordinatörlük kaybıdır (27 org ucu), `reporting.not_authorized` yöneticiliğin düştüğünü,
  * `work.not_authorized` (Gantt yüzleri) koordinatörlüğün düştüğünü gösterebilir. Hepsinde
  * doğru tepki aynıdır: standing'i sunucudan yeniden oku.
+ *
+ * Yazma katmanı (`useProtectedMutation`) 403/404'ü fırlatmaz, normalize sonuç döndürür; bu
+ * yüzden TanStack `error` olayı oluşmaz. Normalize sonuçtaki yetki kaybı `reportAuthorityLoss`
+ * ile QueryClient başına kanala yayınlanır; kapsam yaşam döngüsü `onAuthorityLoss` ile dinler.
  */
 import type { ServerErrorCode } from '@/shared/api/error-codes.gen'
 import { ApiError } from '@/shared/errors/api-error'
@@ -22,10 +26,35 @@ export const AUTHORITY_LOSS_CODES = [
 
 const LOSS: ReadonlySet<string> = new Set(AUTHORITY_LOSS_CODES)
 
-export function isAuthorityLoss(error: unknown): boolean {
+export function isAuthorityLoss(error: unknown): error is ApiError {
   return error instanceof ApiError && LOSS.has(error.code)
 }
 
 export function hasErrorCode(error: unknown, code: ServerErrorCode): boolean {
   return error instanceof ApiError && error.code === code
+}
+
+type AuthorityLossListener = (error: ApiError) => void
+
+/** QueryClient başına dinleyiciler (uygulamada tek istemci; testlerde istemci başına yalıtım). */
+const listeners = new WeakMap<object, Set<AuthorityLossListener>>()
+
+/** Yetki kaybı dinleyicisi ekler; söküm fonksiyonu döner. */
+export function onAuthorityLoss(client: object, listener: AuthorityLossListener): () => void {
+  let set = listeners.get(client)
+  if (!set) {
+    set = new Set()
+    listeners.set(client, set)
+  }
+  set.add(listener)
+  return () => {
+    set.delete(listener)
+  }
+}
+
+/** Hata yetki kaybıysa bu istemcinin dinleyicilerine yayınlar; yayınlandıysa `true`. */
+export function reportAuthorityLoss(client: object, error: unknown): boolean {
+  if (!isAuthorityLoss(error)) return false
+  for (const listener of [...(listeners.get(client) ?? [])]) listener(error)
+  return true
 }

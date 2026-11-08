@@ -52,6 +52,17 @@ describe('outcomeMessage', () => {
     expect(g.t('mutation.outcome.partial')).not.toBe('')
   })
 
+  it('scope_changed kendi anahtarına gider (TR metni i18n sahibince eklenecek)', () => {
+    expect(
+      outcomeMessage({
+        kind: 'scope_changed',
+        draft: {},
+        idempotencyKey: 'k',
+        scope: { programId: 'p1', departmentId: null },
+      }),
+    ).toEqual({ key: 'mutation.outcome.scope_changed' })
+  })
+
   it('failed hata kodunun kendi metnine gider', () => {
     expect(outcomeMessage({ kind: 'failed', error })).toEqual({
       key: 'errors.work.not_authorized',
