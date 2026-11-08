@@ -73,19 +73,20 @@ function watchFocus(target: ScopeLifecycleTarget, onFocus: () => void): () => vo
   }
 }
 
-export function useScopeLifecycle(
-  target: ScopeLifecycleTarget = { window: globalThis.window, document: globalThis.document },
-) {
-  const client = useQueryClient()
-  const store = useScopeStore()
-  const standing = useStanding()
-  const resolution = shallowRef<ScopeResolution | null>(null)
+type StandingState = ReturnType<typeof useStanding>
+type ScopeStore = ReturnType<typeof useScopeStore>
 
+/** Kapsam değişiminde temizlik, yetki kaybı ve odak dinleyicileri; kapsam kapanınca söker. */
+function bindLifecycleListeners(
+  client: QueryClient,
+  store: ScopeStore,
+  standing: StandingState,
+  target: ScopeLifecycleTarget,
+): () => void {
   const refreshStanding = () => {
     if (standing.status.value === 'idle') return
     void invalidateStanding(client)
   }
-
   const offChange = store.onChange(() => purgeScopedQueries(client))
   const offLoss = watchAuthorityLoss(client, refreshStanding)
   const offFocus = watchFocus(target, refreshStanding)
@@ -94,7 +95,12 @@ export function useScopeLifecycle(
     offLoss()
     offFocus()
   })
+  return refreshStanding
+}
 
+/** Standing her değiştiğinde kapsamı çözer, depoya yazar ve hatırlar. */
+function watchStanding(store: ScopeStore, standing: StandingState) {
+  const resolution = shallowRef<ScopeResolution | null>(null)
   function reconcile(): void {
     const facts = standing.standing.value
     if (standing.status.value !== 'ready' || !facts) {
@@ -105,18 +111,13 @@ export function useScopeLifecycle(
       standing: facts,
       programs: standing.programs.value,
       membershipRequired: standing.membershipRequired.value,
-      current: {
-        programId: store.programId,
-        lens: store.lens,
-        departmentId: store.departmentId,
-      },
+      current: { programId: store.programId, lens: store.lens, departmentId: store.departmentId },
       remembered: store.remembered(),
     })
     resolution.value = next
     store.commit(next.selection)
     store.persist()
   }
-
   watch(
     [
       standing.status,
@@ -128,20 +129,39 @@ export function useScopeLifecycle(
     reconcile,
     { immediate: true },
   )
+  return resolution
+}
 
-  const programs = computed(() =>
-    standing.standing.value ? programOptions(standing.standing.value, standing.programs.value) : [],
-  )
+/** Seçici seçenekleri ve kapsam olguları (salt türetim). */
+function scopeOptions(store: ScopeStore, standing: StandingState) {
+  const facts = standing.standing
   const lenses = computed(() =>
-    standing.standing.value && store.programId
-      ? lensOptions(standing.standing.value, store.programId)
-      : [],
+    facts.value && store.programId ? lensOptions(facts.value, store.programId) : [],
   )
-  const departments = computed(() =>
-    standing.standing.value && store.programId && store.lens
-      ? departmentOptions(standing.standing.value, store.programId, store.lens)
-      : [],
-  )
+  return {
+    programs: computed(() =>
+      facts.value ? programOptions(facts.value, standing.programs.value) : [],
+    ),
+    lenses,
+    departments: computed(() =>
+      facts.value && store.programId && store.lens
+        ? departmentOptions(facts.value, store.programId, store.lens)
+        : [],
+    ),
+    /** Seçili kapsamdaki yetki olguları; mercek değişimi `companyAdmin`'i değiştirmez (P1). */
+    facts: computed<ScopeFacts>(() => scopeFacts(facts.value, store.programId, store.departmentId)),
+    /** Tek mercekli kullanıcıda Rol kartı salt gösterimdir (P11). */
+    lensFixed: computed(() => lenses.value.length <= 1),
+  }
+}
+
+export function useScopeLifecycle(
+  target: ScopeLifecycleTarget = { window: globalThis.window, document: globalThis.document },
+) {
+  const store = useScopeStore()
+  const standing = useStanding()
+  const refreshStanding = bindLifecycleListeners(useQueryClient(), store, standing, target)
+  const resolution = watchStanding(store, standing)
 
   const status = computed<ScopeStatus>(() => {
     const s = standing.status.value
@@ -150,19 +170,11 @@ export function useScopeLifecycle(
     return r ? (r.kind === 'ready' ? 'ready' : r.kind) : 'loading'
   })
 
-  /** Seçili kapsamdaki yetki olguları; mercek değişimi `companyAdmin`'i değiştirmez (P1). */
-  const facts = computed<ScopeFacts>(() =>
-    scopeFacts(standing.standing.value, store.programId, store.departmentId),
-  )
-
   return {
+    ...scopeOptions(store, standing),
     status,
     error: standing.error,
     standing: standing.standing,
-    facts,
-    programs,
-    lenses,
-    departments,
     /** Seçici hangi basamakta açık olmalı (çok seçenek + hatırlanan yok). */
     pending: computed(() =>
       resolution.value?.kind === 'selecting' ? resolution.value.pending : null,
@@ -171,8 +183,6 @@ export function useScopeLifecycle(
     emptyReason: computed(() =>
       resolution.value?.kind === 'empty' ? resolution.value.reason : null,
     ),
-    /** Tek mercekli kullanıcıda Rol kartı salt gösterimdir (P11). */
-    lensFixed: computed(() => lenses.value.length <= 1),
     programsTruncated: standing.programsTruncated,
     departmentsTruncated: standing.departmentsTruncated,
     selectProgram: (programId: string) => store.setProgram(programId),
