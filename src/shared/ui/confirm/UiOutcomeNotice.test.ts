@@ -49,7 +49,7 @@ describe('UiOutcomeNotice', () => {
     expect(wrapper.find('[data-testid="outcome-retry"]').exists()).toBe(false)
   })
 
-  it('çakışma: değişen alanlar listelenir, alan alan seçim F1 notu', () => {
+  it('çakışma: değişen alanlar listelenir; "Alanları karşılaştır" ConflictDialog akışına yönlendirir', async () => {
     const outcome: Outcome = {
       kind: 'edit_conflict',
       error: new ApiError({ code: 'work.edit_conflict', status: 409 }),
@@ -62,7 +62,9 @@ describe('UiOutcomeNotice', () => {
       'Başlık',
       'Öncelik',
     ])
-    expect(wrapper.text()).toContain('F1’de')
+    expect(wrapper.text()).not.toContain('F1’de')
+    await wrapper.get('[data-testid="outcome-compare"]').trigger('click')
+    expect(wrapper.emitted('compare')?.[0]).toEqual([outcome])
   })
 
   it('diğer sonuçlarda bir şey çizilmez', () => {

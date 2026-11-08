@@ -16,8 +16,8 @@ export const trConfirm = {
     },
     conflict: {
       fields: 'Değişen alanlar',
-      // ortak-kurallar §7, K5: alan alan seçim diyaloğu F1'de.
-      later: 'Alan alan karşılaştırma F1’de açılacak; şimdilik kaydı yenileyip yeniden düzenleyin.',
+      // ortak-kurallar §7, K5: alan alan seçim `shared/ui/conflict` (`ConflictDialog`).
+      compare: 'Alanları karşılaştır',
     },
   },
 } as const
