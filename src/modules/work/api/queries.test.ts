@@ -153,18 +153,53 @@ describe('ayrıntı uçları — görevin kendi kapsamı (S3)', () => {
   })
 })
 
-describe('useWorkItemTarget', () => {
-  it('yüklenmiş liste satırından görevin kendi kapsamı; Admin merceğinde liste dışı → null', async () => {
+describe('useWorkItemTarget — liste verisine reaktif', () => {
+  it('önce null; liste SONRADAN yüklenince hedef dolar; kendisi istek atmaz', async () => {
     server.use(http.get(`${ORIGIN}${LIST}`, () => json({ items: [workItem()] })))
     const h = harness(ADMIN_SCOPE)
-    const { list, known, unknown } = h.run(() => ({
-      list: useWorkItemList(null),
+    const { known, unknown } = h.run(() => ({
       known: useWorkItemTarget('w1'),
       unknown: useWorkItemTarget('w9'),
     }))
+    await h.flush()
+    expect(known.value).toBeNull()
+    expect(sent('GET', LIST)).toHaveLength(0)
+
+    const list = h.run(() => useWorkItemList(null))
     await list.query.suspense()
+    expect(sent('GET', LIST)).toHaveLength(1)
     expect(known.value).toEqual(target)
     expect(unknown.value).toBeNull()
+  })
+
+  it('"daha fazla yükle" ile gelen satır da hedefi doldurur; süzgeçli liste anahtarı verilebilir', async () => {
+    server.use(
+      http.get(`${ORIGIN}${LIST}`, ({ request }) =>
+        new URL(request.url).searchParams.get('cursor')
+          ? json({ items: [workItem({ work_item_id: 'w2', department_id: 'd5' })] })
+          : json({ items: [workItem()], next_cursor: 'c1' }),
+      ),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const second = h.run(() => useWorkItemTarget('w2', 'd2'))
+    const list = h.run(() => useWorkItemList('d2'))
+    await list.query.suspense()
+    expect(second.value).toBeNull()
+    await list.query.fetchNextPage()
+    expect(second.value).toEqual({ programId: 'p1', departmentId: 'd5' })
+  })
+
+  it('kapsam değişince sıfırlanır (yeni anahtar, eski satır kullanılmaz)', async () => {
+    server.use(http.get(`${ORIGIN}${LIST}`, () => json({ items: [workItem()] })))
+    const h = harness(ADMIN_SCOPE)
+    const { resolved, list } = h.run(() => ({
+      resolved: useWorkItemTarget('w1'),
+      list: useWorkItemList(null),
+    }))
+    await list.query.suspense()
+    expect(resolved.value).toEqual(target)
+    h.store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    expect(resolved.value).toBeNull()
   })
 
   it('Koordinatör merceğinde liste dışı görev → seçili birim', () => {
