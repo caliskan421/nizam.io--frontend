@@ -15,10 +15,17 @@
     min-height: var(--rp-topbar-h);
     box-sizing: border-box;
   }
+  /* Menü düğmesi yalnız dar ekranda (kenar menüsü orada varsayılan kapalı). */
+  .rp-topbar .rp-navtoggle {
+    display: none;
+  }
   @media (max-width: 900px) {
     .rp-topbar {
       padding-left: var(--space-5);
       padding-right: var(--space-5);
+    }
+    .rp-topbar .rp-navtoggle {
+      display: inline-flex;
     }
   }
 
@@ -88,9 +95,12 @@
     outline: var(--ui-focus-width) solid var(--focus-ring);
     outline-offset: var(--ui-hairline);
   }
+  /* Son parça daralınca üç noktayla kesilir (esnek öğe: min-width 0 olmadan kesilmez). */
   .rp-crumbs strong {
+    min-width: 0;
     color: var(--ink);
     font-weight: 600;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }

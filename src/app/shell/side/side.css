@@ -29,16 +29,28 @@
       scrollbar-width: none;
     }
   }
+  /* Dar ekran (P3 en sade; tasarımda mobil yok): menü varsayılan kapalı, `rp-side--open` ile
+     soldan perdeli kaplama (perde AppShell'de). İçerik ilk ekranda görünür. */
   @media (max-width: 900px) {
-    .rp-side,
-    .rp-side--rail {
-      flex-basis: 100%;
-      border-right: 0;
-      border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    .rp-side {
+      display: none;
+    }
+    .rp-side.rp-side--open {
+      display: block;
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 40;
+      width: var(--rp-side-w);
+      max-width: 100%;
+      overflow-y: auto;
+      box-shadow: var(--shadow-sheet);
+    }
+    .rp-side--open.rp-side--rail {
+      width: var(--rp-rail-w);
     }
     .side-full,
     .side-rail {
-      min-height: 0;
+      min-height: 100%;
     }
   }
 

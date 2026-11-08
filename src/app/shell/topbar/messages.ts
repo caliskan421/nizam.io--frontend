@@ -10,6 +10,8 @@ export const trTopbar = {
     back: 'Geri',
     forward: 'İleri',
     crumbs: 'Konum',
+    // Dar ekran (≤ 900 px) kenar menüsü kaplaması.
+    menu: 'Menü',
     theme: 'Temayı değiştir',
     bell: 'Bildirimler',
     bellUnread: 'Bildirimler, {n} okunmamış',

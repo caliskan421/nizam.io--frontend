@@ -3,6 +3,7 @@ import { computed, provide, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { isRouteName } from '@/app/routes.catalog'
+import { useNarrowNav } from '@/app/shell/narrow-nav'
 import { AppSide, SCOPE_LIFECYCLE_KEY } from '@/app/shell/side/public'
 import { AppTopbar } from '@/app/shell/topbar/public'
 import type { ShellContent } from '@/app/shell/types'
@@ -19,6 +20,7 @@ import { ConfirmHost } from '@/shared/ui/confirm'
  * ve kapsam bekleme durumları rota içeriği yerine yerinde gösterilir (URL'siz). Bildirim ve onay
  * yuvaları (`UiToast`, `ConfirmHost`) burada bir kez yerleşir. Yöneticinin "programa departman
  * katılmamış" durumu Admin merceğinde program departman listesinden saptanır (yalnız içerik alanı).
+ * Dar ekranda (≤ 900 px) kenar menüsü varsayılan kapalı, perdeli kaplama (`narrow-nav.ts`).
  */
 const lifecycle = useScopeLifecycle()
 provide(SCOPE_LIFECYCLE_KEY, lifecycle)
@@ -26,6 +28,7 @@ const departmentGap = useProgramDepartmentGap(() => lifecycle.status.value === '
 
 const collapsed = ref(false)
 const route = useRoute()
+const nav = useNarrowNav(() => route.fullPath)
 
 const content = computed<ShellContent>(() =>
   resolveShellContent({
@@ -41,10 +44,17 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
 </script>
 
 <template>
-  <div class="rp-page" data-testid="app-shell">
-    <AppSide v-model:collapsed="collapsed" />
+  <div class="rp-page" data-testid="app-shell" @keydown.esc="nav.close()">
+    <AppSide v-model:collapsed="collapsed" :narrow-open="nav.open.value" @reveal="nav.reveal()" />
+    <div
+      v-if="nav.open.value"
+      class="rp-narrow-scrim"
+      aria-hidden="true"
+      data-testid="narrow-scrim"
+      @click="nav.close()"
+    />
     <main class="rp-main">
-      <AppTopbar :open-state="openState" />
+      <AppTopbar :open-state="openState" :nav-open="nav.open.value" @toggle-nav="nav.toggle()" />
       <ShellState v-if="stateContent" :content="stateContent" />
       <slot v-else />
     </main>
@@ -69,6 +79,19 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
     min-width: 0;
     display: flex;
     flex-direction: column;
+  }
+  /* Dar ekran kaplamasının perdesi; geniş ekranda hiç görünmez. */
+  .rp-narrow-scrim {
+    display: none;
+  }
+  @media (max-width: 900px) {
+    .rp-narrow-scrim {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 39;
+      background: var(--scrim);
+    }
   }
 }
 </style>
