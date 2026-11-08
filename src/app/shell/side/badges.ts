@@ -9,8 +9,8 @@
  *  - Tarih talebi rozeti Üye merceğinde HER ZAMAN gizli (istemci-akislari §6; eksik değil, kural).
  *  - Bildirim sayacı hesap genelidir (S1): anahtar kapsamsız, kapsam değişince yeniden istenmez.
  *
- * Anahtar: `scoped(['report','dashboard'])` = `useScopeStore().queryKey('report','dashboard')`
- * (W14 `query-keys.ts` birleşince oradan okunur).
+ * Anahtarlar `shared/http/query-keys.ts`: `scoped(['report','dashboard'])` (kapsam değişince
+ * düşer) ve hesap geneli `['notifications','unread-count']`.
  */
 import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
@@ -19,6 +19,7 @@ import { CURRENT_PHASE, type Phase, visibilityOf } from '@/app/routes.catalog'
 import type { components } from '@/shared/api/schema'
 import { designStub } from '@/shared/design-stub'
 import { api, unwrap } from '@/shared/http'
+import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { useSessionStore } from '@/shared/session/store'
 
@@ -62,7 +63,7 @@ export function useTaskBadges(
   )
   const query = useQuery(
     computed(() => ({
-      queryKey: [...store.queryKey('report', 'dashboard')],
+      queryKey: queryKeys.report.dashboard(store.snapshot),
       queryFn: fetcher,
       enabled: adminView.value,
       staleTime: 30_000,
@@ -89,7 +90,7 @@ export function useTaskBadges(
 }
 
 /** Kenar menüsünde ortak bildirim sayacı anahtarı (ortak-kurallar §6). */
-export const UNREAD_NOTIFICATIONS_KEY = ['notifications', 'unread-count'] as const
+export const UNREAD_NOTIFICATIONS_KEY = queryKeys.notifications.unreadCount()
 
 /** Okunmamış bildirim sayısı (E-00-38; zil paneli F7'ye kadar devre dışı). Hata → `null`. */
 export function useUnreadNotifications(

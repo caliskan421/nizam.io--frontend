@@ -9,6 +9,7 @@ import { computed, type Ref } from 'vue'
 
 import type { components } from '@/shared/api/schema'
 import { api, unwrap } from '@/shared/http'
+import { queryKeys } from '@/shared/http/query-keys'
 
 import { departmentCode } from './program-avatar'
 import { useSideScope } from './scope-view'
@@ -34,7 +35,7 @@ export function useDepartmentCode(
   )
   const query = useQuery(
     computed(() => ({
-      queryKey: [...scope.store.queryKey('departments')],
+      queryKey: queryKeys.departments.all(scope.store.snapshot),
       queryFn: fetcher,
       enabled: enabled.value,
       staleTime: 60_000,
