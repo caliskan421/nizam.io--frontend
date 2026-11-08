@@ -4,8 +4,9 @@ import { isCancelledError, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, provide } from 'vue'
-import { createMemoryHistory } from 'vue-router'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
+import { isScopedQueryKey } from '@/shared/http/query-keys'
 import {
   createTarget,
   freshModules,
@@ -18,7 +19,13 @@ import {
 import { createFakeBackend } from '../../../../tests/support/fake-backend'
 
 const backend = createFakeBackend()
-beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+beforeAll(async () => {
+  backend.server.listen({ onUnhandledFrame: 'error' })
+  // Isınma: SFC ve standing modüllerinin dönüşümü bir kez yapılır; test başına
+  // `vi.resetModules()` sonrası yalnız yeniden değerlendirme kalır.
+  await import('./AppSide.vue')
+  await import('@/shared/scope/lifecycle')
+})
 afterEach(() => {
   backend.server.resetHandlers()
   backend.reset()
@@ -33,8 +40,14 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
   // Taze modül grafiğiyle (aynı oturum/istemci nesneleri) bileşen ve anahtar.
   const { default: AppSide } = await import('./AppSide.vue')
   const { SCOPE_LIFECYCLE_KEY } = await import('./scope-key')
-  const { createAppRouter } = await import('@/app/router')
-  const router = createAppRouter(createMemoryHistory())
+  // Yalnız menünün bağlandığı rotalar (tam katalog router'ı burada gereksiz yük).
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'home', component: { render: () => null } },
+      { path: '/oturum', name: 'identity.session', component: { render: () => null } },
+    ],
+  })
   await router.push('/oturum')
   const queryClient = newQueryClient()
   const target = createTarget()
@@ -115,7 +128,7 @@ describe('AppSide + kapsam yaşam döngüsü', () => {
     const oldScope = JSON.stringify(oldKey[1])
     const leftovers = queryClient
       .getQueryCache()
-      .findAll({ predicate: (q) => m.scope.isScopedQueryKey(q.queryKey) })
+      .findAll({ predicate: (q) => isScopedQueryKey(q.queryKey) })
     expect(leftovers.filter((q) => JSON.stringify(q.queryKey[1]) === oldScope)).toEqual([])
     expect(leftovers.every((q) => q.state.data === undefined)).toBe(true)
     expect(isCancelledError(await inflight)).toBe(true)

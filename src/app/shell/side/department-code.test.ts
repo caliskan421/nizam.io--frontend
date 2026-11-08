@@ -2,6 +2,9 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
+import { isScopedQueryKey, queryKeys } from '@/shared/http/query-keys'
+import { purgeScopedQueries } from '@/shared/scope/lifecycle'
+
 import { createFakeLifecycle, setupWithScope, sideContext } from './__tests__/fake-lifecycle'
 import { useDepartmentCode } from './department-code'
 
@@ -30,7 +33,11 @@ describe('dar menü birim kodu (E-00-40)', () => {
     )
     const { code, ctx, store } = await boot(fetcher)
     expect(code.value).toBe('SİS')
-    expect(ctx.queryClient.getQueryData([...store.queryKey('departments')])).toHaveLength(2)
+    const key = queryKeys.departments.all(store.snapshot)
+    expect(ctx.queryClient.getQueryData(key)).toHaveLength(2)
+    expect(isScopedQueryKey(key)).toBe(true)
+    purgeScopedQueries(ctx.queryClient)
+    expect(ctx.queryClient.getQueryData(key)).toBeUndefined()
   })
 
   it('kod yoksa ya da okuma başarısızsa baş harf', async () => {

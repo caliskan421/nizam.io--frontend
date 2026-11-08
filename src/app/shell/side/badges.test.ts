@@ -1,6 +1,9 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
+import { queryKeys, isScopedQueryKey } from '@/shared/http/query-keys'
+import { purgeScopedQueries } from '@/shared/scope/lifecycle'
+
 import { createFakeLifecycle, setupWithScope, sideContext } from './__tests__/fake-lifecycle'
 import { useTaskBadges, useUnreadNotifications, type DashboardCounts } from './badges'
 
@@ -43,9 +46,12 @@ describe('Görevler rozetleri', () => {
     const { badges, ctx, store } = await boot('admin', 'F1', fetcher)
     expect(fetcher).toHaveBeenCalledTimes(1)
     expect(badges.value).toEqual({ overdue: 5, pendingDates: 2 })
-    expect(ctx.queryClient.getQueryData([...store.queryKey('report', 'dashboard')])).toEqual(
-      counts(5, 2),
-    )
+    const key = queryKeys.report.dashboard(store.snapshot)
+    expect(ctx.queryClient.getQueryData(key)).toEqual(counts(5, 2))
+    // Kapsamlı anahtar: kapsam değişiminde temizlik hedefi.
+    expect(isScopedQueryKey(key)).toBe(true)
+    purgeScopedQueries(ctx.queryClient)
+    expect(ctx.queryClient.getQueryData(key)).toBeUndefined()
   })
 
   it('0 sayıda ve hata durumunda rozet gizli', async () => {
@@ -73,7 +79,10 @@ describe('bildirim sayacı (E-00-38)', () => {
     const { count } = setupWithScope(ctx, lifecycle, () => useUnreadNotifications(fetcher))
     await flushPromises()
     expect(count.value).toBe(3)
-    expect(ctx.queryClient.getQueryData(['notifications', 'unread-count'])).toBe(3)
+    expect(ctx.queryClient.getQueryData(queryKeys.notifications.unreadCount())).toBe(3)
+    expect(isScopedQueryKey(queryKeys.notifications.unreadCount())).toBe(false)
+    purgeScopedQueries(ctx.queryClient)
+    expect(ctx.queryClient.getQueryData(queryKeys.notifications.unreadCount())).toBe(3)
     store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(1)
