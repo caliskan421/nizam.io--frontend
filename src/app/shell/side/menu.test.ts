@@ -1,11 +1,56 @@
-import { describe, expect, it } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 
-import { menuEntries } from '@/app/routes.catalog'
+import { CURRENT_PHASE, menuEntries } from '@/app/routes.catalog'
 
 import { createFakeLifecycle, setupWithScope, sideContext } from './__tests__/fake-lifecycle'
+import { useTaskBadges } from './badges'
 import { menuIcon, phaseNote, sideMenuGroups, useSideMenu } from './menu'
 
 const admin = { ready: true, companyAdmin: true }
+
+vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
+
+describe('etkin faz F1 (W42 faz geçişi)', () => {
+  it('Görevler menü öğesi canlı (devre dışı değil, faz notu yok)', () => {
+    expect(CURRENT_PHASE).toBe('F1')
+    const groups = sideMenuGroups(menuEntries(), admin)
+    expect(groups.map((g) => g.group)).toEqual(['takip'])
+    expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
+      ['home', 'canli'],
+      ['tasks', 'canli'],
+    ])
+  })
+
+  it('/gorevler rotasında etkin öğe tasks', async () => {
+    const ctx = await sideContext('/gorevler')
+    const { lifecycle } = createFakeLifecycle()
+    const menu = setupWithScope(ctx, lifecycle, () => useSideMenu())
+    expect(menu.activeKey.value).toBe('tasks')
+  })
+
+  it('Admin rozetleri faz parametresi olmadan reportDashboard’dan gelir; K/Ü BE-003 statik', async () => {
+    const fetcher = vi.fn(() => Promise.resolve({ overdue_tasks: 4, pending_date_changes: 1 }))
+    const ctx = await sideContext()
+    const { lifecycle, store } = createFakeLifecycle()
+    store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    const { badges } = setupWithScope(ctx, lifecycle, () => useTaskBadges(undefined, fetcher))
+    await flushPromises()
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(badges.value).toEqual({ overdue: 4, pendingDates: 1 })
+
+    const coordCtx = await sideContext()
+    const coord = createFakeLifecycle({
+      facts: { companyAdmin: false, coordinator: true, member: false },
+    })
+    coord.store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
+    const idle = vi.fn(() => Promise.resolve({ overdue_tasks: 9, pending_date_changes: 9 }))
+    const other = setupWithScope(coordCtx, coord.lifecycle, () => useTaskBadges(undefined, idle))
+    await flushPromises()
+    expect(idle).not.toHaveBeenCalled()
+    expect(other.badges.value).toEqual({ overdue: null, pendingDates: null })
+  })
+})
 
 describe('kenar menüsü grupları', () => {
   it('F0: yalnız Takip; Görevler devre dışı faz notuyla; boş gruplar başlıksız yok', () => {
