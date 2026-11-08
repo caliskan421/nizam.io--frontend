@@ -34,7 +34,27 @@ doğrulaması), `e2e/two-tabs.spec.ts` (iki gerçek sayfa, gerçek backend).
    Kalıcı depolama (localStorage/sessionStorage/IndexedDB/çerez) kullanılmaz; ileti yalnız
    aynı origin'in açık sekmelerine bellekten bellek gider.
 4. **Çıkış:** `logout` iletisi (hesap kimliğiyle) aynı hesaptaki diğer sekmelerin
-   belleğini de temizler; başka hesabın `logout`'u yok sayılır.
+   belleğini de temizler; başka hesabın `logout`'u yok sayılır. Hesabı henüz bilinmeyen
+   (açılış refresh'i süren, `unknown`) sekme de iletiyi uygular; yenileme çerezi sekmeler
+   arasında ortaktır.
+   - **Oturum nesli (CX-F0-E-03):** her çıkış nesli artırır. Bu, kendi sekmedeki `clear()`
+     (doğrulanmış ya da doğrulanamamış) ve uygulanan kardeş `logout`'u için geçerlidir.
+     Önceki nesilde başlamış refresh **uygulanmaz** (`'ended'`): kilitte bekleyen refresh
+     ağa çıkmaz, gecikmiş 200 yanıtı belirteci kurmaz, durum ve
+     `serverLogoutUnverified` değişmez. Yeni nesildeki refresh eski uçuşa katılmaz. Açık
+     giriş nesli istekten önce alır (`establish(..., generation)`); arada çıkış olduysa
+     yanıt yok sayılır.
+   - **`issuedAt` anlamı:** girişte belirtecin alındığı an. Refresh'te ise isteğin
+     **başladığı** an (en az önceki `issuedAt + 1`).
+   - **Çıkış eşiği:** çıkış anı sekmenin `issuedAt` eşiği olur. Eşikten önce alınmış ya da
+     başlamış kardeş belirteci reddedilir. Örnek: kardeş sekme çıkıştan önce başlattığı
+     refresh'in yanıtını, çıkış iletisi kendisine ulaşmadan yayınlarsa bu belirteç
+     reddedilir. Çıkıştan sonra kardeşte yapılan açık giriş kabul edilir.
+   - `serverLogoutUnverified` yalnız açık girişle kapanır. Refresh yolu ve kardeş belirteci
+     bayrak açıkken reddedilir.
+   - **Bilinen sınır (ileti şeması kararı F1 W61):** doğrulanamayan çıkışın `logout`
+     iletisi "doğrulanamadı" bilgisini taşımaz. Kardeş sekme anonim olur ama bayrağı
+     almaz. HttpOnly çerez hâlâ geçerliyse o sekme sonradan sessiz refresh yapabilir.
 
 ## Güvenlik varsayımı ve kanal doğrulaması
 
