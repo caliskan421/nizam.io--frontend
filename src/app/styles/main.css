@@ -3,6 +3,8 @@
 @layer theme, base, primevue, components, utilities;
 
 @import 'tailwindcss';
+/* Kendi barındırılan yazı tipleri (font-src 'self'); @font-face katmansızdır. */
+@import './fonts/fonts.css';
 @import '../../shared/tokens/tokens.gen.css';
 /* Varsayılan Tailwind ölçeklerini kapatır; PrimeUI yardımcıları (bg-primary …) sonra eklenir ve
    PrimeVue preset'i üzerinden yine token değişkenlerine çözülür. */
