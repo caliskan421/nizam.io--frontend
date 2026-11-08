@@ -9,6 +9,9 @@
  * Eylem, oluşturulduğu andaki kapsamı (program / departman / mercek) taşır. Aynı anahtarın
  * başka kapsamla tekrarı sunucuda istemci hatasıdır (istemci-akislari §8): kapsam değiştiyse
  * eylem gönderilmez, `scope_changed` döner. Başarı geçersizlemesi de bu kapsamla yapılır.
+ * Eylem oturum neslini de taşır: arada çıkış olduysa (nesil değişti) eylem gönderilmez.
+ * Kapsam ve nesil **her gönderimden önce** denetlenir — `platform.conflict_retry` otomatik
+ * tekrarı dahil (CX-F0-E-06).
  */
 import {
   ApiError,
@@ -49,6 +52,8 @@ export interface MutationAction<V> {
   readonly priorAttempts: number
   /** Eylemin oluşturulduğu kapsam; `null` ise motor kapsam denetlemez (kapsamsız çağıran). */
   readonly scope: ScopeSnapshot | null
+  /** Eylemin oluşturulduğu oturum nesli; `null` ise motor nesil denetlemez. */
+  readonly generation: number | null
 }
 
 /** `send`'e verilen bağlam. Çağıran başlıkları ve `confirm`'ü isteğe yerleştirir. */
@@ -78,6 +83,8 @@ export interface EngineOptions<V, D, S> {
   now?: () => number
   /** Gönderim anındaki güncel kapsam; eylemin yakalanmış kapsamıyla karşılaştırılır. */
   scope?: () => ScopeSnapshot
+  /** Gönderim anındaki oturum nesli (`AuthSession.generation`); her çıkışta artar. */
+  generation?: () => number
   /** Sonuç K6/Y1 yetki kaybı kodu taşıyorsa çağrılır (sonuç yine normalize döner). */
   onAuthorityLoss?: (error: ApiError) => void
 }
@@ -113,7 +120,12 @@ export function sameScope(a: ScopeSnapshot, b: ScopeSnapshot): boolean {
 /** Yeni kullanıcı eylemi: yeni anahtar, dondurulmuş gövde, o anki kapsamın anlık görüntüsü. */
 export function newAction<V>(
   vars: V,
-  opts: { confirm?: boolean; now?: () => number; scope?: ScopeSnapshot | null } = {},
+  opts: {
+    confirm?: boolean
+    now?: () => number
+    scope?: ScopeSnapshot | null
+    generation?: number | null
+  } = {},
 ): MutationAction<V> {
   return {
     vars: freezeVars(vars),
@@ -122,6 +134,7 @@ export function newAction<V>(
     firstSentAt: (opts.now ?? Date.now)(),
     priorAttempts: 0,
     scope: opts.scope ? { ...opts.scope } : null,
+    generation: opts.generation ?? null,
   }
 }
 
@@ -189,20 +202,6 @@ async function sendOnce<V, D, S>(
 
 const isConflictRetry = (a: Attempt<unknown>): boolean =>
   !a.ok && a.error.status === 409 && a.error.code === CONFLICT_RETRY_CODE
-
-/** Gönderim + `platform.conflict_retry`'da aynı anahtar ve gövdeyle tek otomatik tekrar. */
-async function sendWithConflictRetry<V, D, S>(
-  action: MutationAction<V>,
-  opts: EngineOptions<V, D, S>,
-): Promise<{ attempt: Attempt<D>; attempts: number }> {
-  let attempt = await sendOnce(action, opts)
-  let attempts = action.priorAttempts + 1
-  if (isConflictRetry(attempt)) {
-    attempt = await sendOnce(action, opts)
-    attempts += 1
-  }
-  return { attempt, attempts }
-}
 
 type Failure<D> = Extract<Attempt<D>, { ok: false }>
 
@@ -277,7 +276,14 @@ async function classifyConflict<V, D, S>(
     taskTitles: extractTaskTitles(failure.body),
     // Onay yeni bir kullanıcı kararıdır: yeni eylem (yeni anahtar), aynı taslak, aynı kapsam.
     confirm: () =>
-      c.rerun(newAction(c.action.vars, { confirm: true, now: c.now, scope: c.action.scope })),
+      c.rerun(
+        newAction(c.action.vars, {
+          confirm: true,
+          now: c.now,
+          scope: c.action.scope,
+          generation: c.action.generation,
+        }),
+      ),
   }
 }
 
@@ -294,11 +300,17 @@ async function classifyFailure<V, D, S>(
   return conflict ?? { kind: 'failed', error }
 }
 
-/** Eylemin kapsamı gönderim anındaki kapsamdan farklıysa gönderilmeyecek sonuç; aynıysa null. */
-function scopeChanged<V, D, S>(
+/**
+ * Gönderim kapısı: eylemin oturum nesli ya da kapsamı güncel değerden farklıysa gönderilmeyecek
+ * sonuç; aynıysa null. Nesil değişimi (çıkış) `client.session_ended` olarak döner.
+ */
+function blockedSend<V, D, S>(
   action: MutationAction<V>,
   opts: EngineOptions<V, D, S>,
 ): MutationOutcome<V, D, S> | null {
+  if (action.generation !== null && opts.generation && action.generation !== opts.generation()) {
+    return { kind: 'failed', error: clientError('client.session_ended') }
+  }
   if (!action.scope || !opts.scope || sameScope(action.scope, opts.scope())) return null
   return {
     kind: 'scope_changed',
@@ -308,20 +320,40 @@ function scopeChanged<V, D, S>(
   }
 }
 
+type Sent<D> = { attempt: Attempt<D>; attempts: number }
+
+/**
+ * Gönderim + `platform.conflict_retry`'da aynı anahtar ve gövdeyle tek otomatik tekrar. Her
+ * `sendOnce` öncesi kapı denetlenir: ilk istek beklerken kapsam ya da nesil değiştiyse ikinci
+ * istek çıkmaz (CX-F0-E-06).
+ */
+async function sendGuarded<V, D, S>(
+  action: MutationAction<V>,
+  opts: EngineOptions<V, D, S>,
+): Promise<Sent<D> | MutationOutcome<V, D, S>> {
+  const blocked = blockedSend(action, opts)
+  if (blocked) return blocked
+  const first = await sendOnce(action, opts)
+  if (!isConflictRetry(first)) return { attempt: first, attempts: action.priorAttempts + 1 }
+  const again = blockedSend(action, opts)
+  if (again) return again
+  return { attempt: await sendOnce(action, opts), attempts: action.priorAttempts + 2 }
+}
+
 /**
  * Bir eylemi koşturur ve sonucu sınıflandırır. `platform.conflict_retry` aynı anahtar + aynı
  * gövdeyle **bir kez** otomatik tekrar edilir; başka hiçbir sonuç otomatik tekrar edilmez.
- * Kapsam eylemden bu yana değiştiyse hiç gönderilmez (`scope_changed`). Yetki kaybı kodları
- * `onAuthorityLoss` ile bildirilir (K6).
+ * Kapsam ya da oturum nesli eylemden bu yana değiştiyse (otomatik tekrar dahil) gönderilmez.
+ * Yetki kaybı kodları `onAuthorityLoss` ile bildirilir (K6).
  */
 export async function runAction<V, D, S>(
   action: MutationAction<V>,
   opts: EngineOptions<V, D, S>,
   rerun: Rerun<V, D, S>,
 ): Promise<MutationOutcome<V, D, S>> {
-  const blocked = scopeChanged(action, opts)
-  if (blocked) return blocked
-  const { attempt, attempts } = await sendWithConflictRetry(action, opts)
+  const sent = await sendGuarded(action, opts)
+  if ('kind' in sent) return sent
+  const { attempt, attempts } = sent
   if (!attempt.ok) {
     if (isAuthorityLoss(attempt.error)) opts.onAuthorityLoss?.(attempt.error)
     return classifyFailure(attempt, { action, opts, rerun, attempts, now: opts.now ?? Date.now })

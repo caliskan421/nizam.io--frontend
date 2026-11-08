@@ -32,15 +32,12 @@ const scope: ScopeSnapshot = { programId: 'p1', departmentId: 'd1' }
 const scopeB: ScopeSnapshot = { programId: 'p2', departmentId: 'd2' }
 /** İstemcinin ve kancanın okuduğu güncel kapsam (kullanıcı seçici ile değiştirir). */
 let current: ScopeSnapshot = scope
-const api = createApiClient({
+const session = new AuthSession({
   baseUrl: BASE,
-  session: new AuthSession({
-    baseUrl: BASE,
-    fetch: (r) => globalThis.fetch(r),
-    coordination: noopCoordination(),
-  }),
-  scope: () => current,
+  fetch: (r) => globalThis.fetch(r),
+  coordination: noopCoordination(),
 })
+const api = createApiClient({ baseUrl: BASE, session, scope: () => current })
 const body: CreateBody = { title: 'Rapor', start_on: '2026-11-01', end_on: '2026-11-10' }
 
 function setup<V, D>(
@@ -49,7 +46,12 @@ function setup<V, D>(
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const effect = effectScope()
   const mutation = effect.run(() =>
-    useProtectedMutation<V, D>({ ...options, queryClient, scope: () => current }),
+    useProtectedMutation<V, D>({
+      generation: () => session.generation,
+      ...options,
+      queryClient,
+      scope: () => current,
+    }),
   )!
   return { mutation, queryClient, stop: () => effect.stop() }
 }
@@ -275,4 +277,105 @@ describe('useProtectedMutation', () => {
       stop()
     },
   )
+
+  it('conflict_retry otomatik tekrarı: ilk istek beklerken B’ye geçildi → ikinci istek çıkmaz', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let arrived!: () => void
+    const reached = new Promise<void>((resolve) => (arrived = resolve))
+    const programs: Array<string | null> = []
+    server.use(
+      http.post(`${BASE}/v1/work-items`, async ({ request }) => {
+        programs.push(request.headers.get('X-Nizamio-Program'))
+        keys.push(request.headers.get('Idempotency-Key'))
+        if (programs.length > 1) return HttpResponse.json({ id: 'w1' }, { status: 201 })
+        arrived()
+        await gate
+        return HttpResponse.json(
+          { code: 'platform.conflict_retry', message: 'x', request_id: 'r' },
+          { status: 409 },
+        )
+      }),
+    )
+    const { mutation, queryClient, stop } = setup<CreateBody, unknown>(createWorkItem)
+    const { seeded, invalidated } = seed(queryClient)
+
+    const pending = mutation.submit(body)
+    await reached
+    current = scopeB
+    release()
+    const outcome = await pending
+
+    expect(outcome).toMatchObject({ kind: 'scope_changed', scope, draft: body })
+    expect(programs).toEqual(['p1'])
+    expect(outcome.kind === 'scope_changed' && outcome.idempotencyKey).toBe(keys[0])
+    expect(invalidated(seeded.list)).toBe(false)
+    stop()
+  })
+
+  it('aynı kapsamda conflict_retry: aynı anahtarla tek otomatik tekrar gider', async () => {
+    server.use(
+      http.post(`${BASE}/v1/work-items`, ({ request }) => {
+        keys.push(request.headers.get('Idempotency-Key'))
+        return keys.length === 1
+          ? HttpResponse.json(
+              { code: 'platform.conflict_retry', message: 'x', request_id: 'r' },
+              { status: 409 },
+            )
+          : HttpResponse.json({ id: 'w1' }, { status: 201 })
+      }),
+    )
+    const { mutation, stop } = setup<CreateBody, unknown>(createWorkItem)
+    expect((await mutation.submit(body)).kind).toBe('success')
+    expect(keys).toHaveLength(2)
+    expect(keys[0]).toBe(keys[1])
+    stop()
+  })
+
+  it('çıkış (oturum nesli değişti) → retry istek atmaz, session_ended', async () => {
+    server.use(
+      http.post(`${BASE}/v1/work-items`, ({ request }) => {
+        keys.push(request.headers.get('Idempotency-Key'))
+        return HttpResponse.error()
+      }),
+    )
+    const { mutation, stop } = setup<CreateBody, unknown>(createWorkItem)
+    const first = await mutation.submit(body)
+    if (first.kind !== 'unknown_outcome') throw new Error(first.kind)
+
+    session.clear()
+    const blocked = await first.retry!()
+    expect(blocked).toMatchObject({ kind: 'failed', error: { code: 'client.session_ended' } })
+    expect(keys).toHaveLength(1)
+    stop()
+  })
+
+  it('çıkış (oturum nesli değişti) → confirm istek atmaz', async () => {
+    let calls = 0
+    server.use(
+      http.delete(`${BASE}/v1/departments/dep1/memberships/acc1`, () => {
+        calls += 1
+        return HttpResponse.json(
+          { code: 'organization.confirmation_required', message: 'x', request_id: 'r' },
+          { status: 409 },
+        )
+      }),
+    )
+    const { mutation, stop } = setup<{ id: string; accountId: string }, unknown>({
+      operation: 'removeMember',
+      send: (vars, ctx) =>
+        api.DELETE('/v1/departments/{id}/memberships/{accountId}', {
+          params: { path: vars, header: ctx.headers },
+        }),
+    })
+    const first = await mutation.submit({ id: 'dep1', accountId: 'acc1' })
+    if (first.kind !== 'confirmation_required') throw new Error(first.kind)
+    session.clear()
+    expect(await first.confirm()).toMatchObject({
+      kind: 'failed',
+      error: { code: 'client.session_ended' },
+    })
+    expect(calls).toBe(1)
+    stop()
+  })
 })
