@@ -1,0 +1,139 @@
+{
+  "$description": "Web'e özgü tasarım token'ları (yol haritası K9). Yalnız tasarım kopyasındaki docs/tasarim/kaynak/theme.css ve tema-sistemi/tokens.css'te olup tasarım sistemi kaynağında (tokens/design-system.tokens.json) bulunmayan değerler. Değer düz CSS değeri ya da {dark, light} çiftidir; '{ad}' başka bir token'a başvurur (CSS'te var(--ad)). Kaynakta olan bir adı burada tekrar tanımlamak üreticide hatadır. Değiştirme: bu dosya + `pnpm gen:tokens` + PR.",
+  "version": 1,
+  "groups": {
+    "color": {
+      "$description": "theme.css açık tema kurallarındaki ham renkler.",
+      "tokens": [
+        {
+          "name": "rp-done-fill",
+          "value": { "dark": "{accent-text}", "light": "#7fb800" },
+          "usage": "Tamamlandı noktası ve yığılmış çubuk dilimi (rp-dot--done, rp-seg-done); açık temada zeytin yerine dolgu yeşili."
+        }
+      ]
+    },
+    "shadow": {
+      "$description": "tokens.css / theme.css gölgeleri; kaynakta eşi olan değer başvuruyla gelir.",
+      "tokens": [
+        {
+          "name": "shadow-card",
+          "value": {
+            "dark": "0 12px 32px rgba(0,0,0,0.5)",
+            "light": "0 1px 2px rgba(22,22,21,0.05), 0 6px 20px rgba(22,22,21,0.06)"
+          },
+          "usage": "Kart, toplu işlem çubuğu, tost; açık temada t-card / rp-dtable gölgesi."
+        },
+        {
+          "name": "shadow-sheet",
+          "value": { "dark": "{m-sh-sheet}", "light": "{m-sh-sheet}" },
+          "usage": "Modal, açılır menü, yan panel (kaynak m-sh-sheet ile aynı değer)."
+        },
+        {
+          "name": "rp-seg-on-shadow",
+          "value": {
+            "dark": "inset 0 0 0 1px {border-strong}",
+            "light": "0 1px 2px rgba(17,17,17,0.08), inset 0 0 0 1px {border-subtle}"
+          },
+          "usage": "Segment kontrolünde basılı düğme (rp-seg button[aria-pressed=true])."
+        },
+        {
+          "name": "rp-bubble-them-shadow",
+          "value": { "dark": "none", "light": "0 1px 1px rgba(22,22,21,0.06)" },
+          "usage": "Sohbette karşı tarafın balonu (açık tema)."
+        }
+      ]
+    },
+    "space": {
+      "$description": "tokens.css boşluk ölçeği (4px adım).",
+      "tokens": [
+        { "name": "space-1", "value": "4px" },
+        { "name": "space-2", "value": "8px" },
+        { "name": "space-3", "value": "12px" },
+        { "name": "space-4", "value": "16px" },
+        { "name": "space-5", "value": "20px" },
+        { "name": "space-6", "value": "24px" },
+        { "name": "space-8", "value": "32px" },
+        { "name": "space-10", "value": "40px" },
+        { "name": "space-12", "value": "48px" },
+        { "name": "space-16", "value": "64px" }
+      ]
+    },
+    "radius": {
+      "$description": "tokens.css köşe yarıçapları.",
+      "tokens": [
+        { "name": "radius-xs", "value": "8px" },
+        { "name": "radius-sm", "value": "12px" },
+        { "name": "radius-md", "value": "16px" },
+        { "name": "radius-lg", "value": "20px" },
+        { "name": "radius-xl", "value": "28px" },
+        { "name": "radius-full", "value": "9999px" }
+      ]
+    },
+    "size": {
+      "$description": "tokens.css denetim ve ikon ölçüleri.",
+      "tokens": [
+        { "name": "control-sm", "value": "36px" },
+        { "name": "control-md", "value": "44px" },
+        { "name": "control-lg", "value": "52px" },
+        { "name": "icon-sm", "value": "16px" },
+        { "name": "icon-md", "value": "20px" },
+        { "name": "icon-lg", "value": "24px" }
+      ]
+    },
+    "focus": {
+      "$description": "Klavye odak halkası ölçüleri (kaynak focus-ring kullanımı: 2px düz çizgi, 2px boşluk; bundle.css :focus-visible).",
+      "tokens": [
+        { "name": "focus-ring-width", "value": "2px" },
+        { "name": "focus-ring-offset", "value": "2px" }
+      ]
+    },
+    "text": {
+      "$description": "tokens.css yazı stilleri (CSS font kısaltması: ağırlık boyut/satır aile).",
+      "tokens": [
+        { "name": "text-display-xl", "value": "600 48px/52px {font-display}" },
+        { "name": "text-display-lg", "value": "600 36px/42px {font-display}" },
+        { "name": "text-heading-1", "value": "600 28px/34px {font-display}" },
+        { "name": "text-heading-2", "value": "600 22px/28px {font-display}" },
+        { "name": "text-title", "value": "600 18px/26px {font-sans}" },
+        { "name": "text-body-lg", "value": "400 16px/24px {font-sans}" },
+        { "name": "text-body", "value": "400 14px/20px {font-sans}" },
+        { "name": "text-body-strong", "value": "600 14px/20px {font-sans}" },
+        { "name": "text-caption", "value": "400 12px/16px {font-sans}" },
+        { "name": "text-button", "value": "500 14px/20px {font-sans}" },
+        { "name": "text-label", "value": "500 12px/16px {font-mono}" },
+        { "name": "text-mono-body", "value": "400 13px/20px {font-mono}" }
+      ]
+    },
+    "layout": {
+      "$description": "theme.css rp-* sayfa iskeleti ölçüleri (yerleşim kuralları theme.css başlığında).",
+      "tokens": [
+        { "name": "rp-side-w", "value": "272px", "usage": ".rp-side kenar menüsü genişliği." },
+        {
+          "name": "rp-rail-w",
+          "value": "76px",
+          "usage": ".rp-side--rail daraltılmış menü genişliği."
+        },
+        { "name": "rp-main-basis", "value": "560px", "usage": ".rp-main esnek taban genişliği." },
+        { "name": "rp-topbar-h", "value": "64px", "usage": ".rp-topbar en küçük yüksekliği." },
+        { "name": "rp-topbar-pad-y", "value": "14px", "usage": ".rp-topbar dikey iç boşluğu." },
+        { "name": "rp-head-basis", "value": "320px", "usage": ".rp-head başlık bloğu tabanı." },
+        { "name": "rp-col-basis", "value": "620px", "usage": ".rp-col ana sütun tabanı." },
+        { "name": "rp-aside-basis", "value": "340px", "usage": ".rp-aside yan sütun tabanı." },
+        { "name": "rp-aside-max", "value": "380px", "usage": ".rp-aside en büyük genişliği." },
+        { "name": "rp-row-h", "value": "56px", "usage": ".rp-tr ızgara tablo satırı yüksekliği." },
+        {
+          "name": "rp-seg-h",
+          "value": "32px",
+          "usage": ".rp-seg düğmesi, .rp-chipbtn, toplu işlem düğmesi yüksekliği."
+        },
+        { "name": "rp-tab-h", "value": "40px", "usage": ".rp-tabs sekme yüksekliği." },
+        { "name": "rp-menu-row-h", "value": "36px", "usage": ".rp-menuitem satır yüksekliği." },
+        {
+          "name": "rp-narrow-max",
+          "value": "900px",
+          "usage": "Dar yerleşim sınırı (@media max-width); 901px ve üstü geniş. Medya sorgusunda var() çalışmaz: TS tarafında tokenPx('rp-narrow-max')."
+        }
+      ]
+    }
+  }
+}

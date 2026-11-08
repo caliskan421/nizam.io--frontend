@@ -4,7 +4,7 @@ NIZAM.IO'nun tarayıcı istemcisi. Durum: **iskelet (WEB-1a)** — proje, kalite
 sınır kuralı, tip üretimi, HTTP/oturum/kapsam katmanı, i18n, tasarım token'ları ve gerçek
 backend'e karşı e2e duman kuruldu (`../program/arsiv/v1-teslim/fazlar/F06-web-1a-iskelet.md`). Giriş/kabuk/kapsam
 seçici ve bütün ekran tasarımı program sonrası istemci geliştirmesindedir (`../program/` D-0174);
-bugünkü oturum sayfası ve PrimeVue preset/token değerleri yer tutucudur.
+bugünkü oturum sayfası yer tutucudur; tasarım token'ları tasarım sisteminden gelir (K9, aşağıda `tokens/`).
 
 ## Yığın
 
@@ -31,7 +31,7 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 | `pnpm e2e:backend:up` | Gerçek backend'i etiketten kurar (bkz. "e2e"). |
 | `pnpm e2e` | Playwright duman (global setup API ile fixture kurar; `vite preview` + chromium). |
 | `pnpm e2e:backend:down` | e2e backend kaynaklarını adıyla kapatır. |
-| `pnpm gen:tokens` | `tokens/tokens.json` → `src/shared/tokens/tokens.gen.{css,ts}` + `tailwind.gen.css`. |
+| `pnpm gen:tokens` | `tokens/design-system.tokens.json` (pinli kopya) + `design/web-tokens.json` → `src/shared/tokens/tokens.gen.{css,ts}` + `tailwind.gen.css`; kopyanın blob'u `api-pin.json` → `designTokens` ile uyuşmazsa durur. |
 | `pnpm gen:check` | İki üreticiyi koşar ve `git diff --exit-code` uygular (CI kapısı). |
 
 ## Backend ile ilişki
@@ -65,10 +65,28 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 - `i18n/` — vue-i18n (v1 yalnız TR). `tr/errors.ts`: katalogdaki her zarf ve alan kodu +
   `client.*` kodları için elle yazılmış metin (anahtar `errors.<kod>`); eksik/fazla testle
   denetlenir. Bilinmeyen kod genel metne düşer.
-- `tokens/` — kökteki `tokens/tokens.json` (renk, tipografi, boşluk, radius; açık/koyu;
-  platformdan bağımsız, mobil de okur) → üretilmiş CSS değişkenleri (`--nz-*`,
-  `[data-theme='dark']`), Tailwind v4 `@theme` eşlemesi, PrimeVue 4 preset'i (Aura +
-  `definePreset`, `preset.ts`). Tailwind ↔ PrimeVue: `tailwindcss-primeui`, CSS katmanları.
+- `tokens/` — tasarım token'ları (yol haritası K9). Kaynak iki dosyadır:
+  - `tokens/design-system.tokens.json` — mobil deposundaki tasarım sistemi
+    `docs/design/design sytem/tokens.json` dosyasının **birebir kopyası** (elle düzenlenmez,
+    biçimlendirilmez). Pin `api-pin.json` → `designTokens {repo, commit, path, blob}`;
+    `gen:tokens` kopyanın `git hash-object` blob'unu pinle karşılaştırır, uyuşmazlıkta durur
+    (CI mobil deposuna erişmez). **Güncelleme:** `git -C <mobil> show <commit>:"<path>" >
+    tokens/design-system.tokens.json` → `api-pin.json`'da `commit` + `blob` (`git hash-object`)
+    → `pnpm gen:tokens` → PR.
+  - `design/web-tokens.json` — yalnız web'e özgü değerler: tasarım kopyasındaki
+    `docs/tasarim/kaynak/tema-sistemi/tokens.css` ve `theme.css`'te olup kaynakta olmayanlar
+    (boşluk/köşe/denetim ölçeği, `text-*` yazı stilleri, `shadow-card`, `rp-*` yerleşim
+    ölçüleri, açık tema ham değerleri). Kaynaktaki bir adı tekrar tanımlamak üretim hatasıdır.
+  Çıktılar: `tokens.gen.css` — tasarımla **aynı adlı** CSS değişkenleri (`--bg-base`, `--ink`,
+  `--space-4`, `--gp-*`, `--role-*` …); koyu varsayılan (`:root, [data-theme='dark']`), açık
+  tema `[data-theme='light']`. `tailwind.gen.css` — Tailwind v4 eşlemesi (`bg-bg-surface`,
+  `text-ink`, `rounded-md`, `shadow-card`, `p-4` = `4 × --space-1`); varsayılan Tailwind
+  renk/yazı/köşe/gölge ölçekleri kapalıdır. `tokens.gen.ts` — ad → koyu/açık değer
+  (`TokenName` tipi); `css-var.ts` `cssVar()` / `tokenPx()`. `preset.ts` — PrimeVue 4 preset'i
+  (Aura + `definePreset`), anlamsal katman token değişkenlerine bağlı; PrimeVue yalnız
+  davranış içindir. `theme.ts` — `<html data-theme>`; sistem tercihi okunmaz, varsayılan koyu.
+  Tasarım ↔ çıktı denetimi `tokens.test.ts` (tasarımdaki her `--*` adı ve değeri üretilmiş
+  CSS'te), pin denetimi `gen-tokens.test.ts`.
 - `instance/` — `GET /v1/instance/profile`; `api_version` desteklenmiyorsa
   `update_required` durumu (sessiz düşüş yok).
 
@@ -146,7 +164,8 @@ scripts/gen-api.ts          tip/katalog/kapsam haritası üreticisi
 src/modules/<modul>/        api/ pages/ components/ store/ routes.ts public.ts
 tests/lint/                 mimari lint kurallarının negatif testleri
 tests/support/              MSW sahte backend, sahte sekme koordinasyonu
-tokens/tokens.json          tasarım token'larının tek kaynağı (web + mobil)
+tokens/                     tasarım sistemi token kopyası (pinli; api-pin.json designTokens)
+design/web-tokens.json      web'e özgü token'lar (tasarım kopyasından)
 e2e/                        Playwright duman, global setup, backend kurulum betikleri
 docs/                       tasarım notları (refresh koordinasyonu); Codex hükmü docs/reviews/
 scripts/gen-tokens.ts       token üreticisi
