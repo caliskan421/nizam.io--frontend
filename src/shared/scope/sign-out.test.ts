@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { createFakeBackend } from '../../../tests/support/fake-backend'
 import { freshModules, newQueryClient } from './__tests__/harness'
@@ -139,9 +139,19 @@ describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
       http.post('http://localhost/v1/auth/logout', () => new Promise<Response>(() => undefined)),
     )
     const ctx = await signedIn()
-    expect(await ctx.m.signOut.signOut(ctx.queryClient, { timeoutMs: 20 })).toBe(
-      'server_unverified',
-    )
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      let settled = false
+      const pending = ctx.m.signOut.signOut(ctx.queryClient).finally(() => {
+        settled = true
+      })
+      await vi.advanceTimersByTimeAsync(ctx.m.signOut.SIGN_OUT_TIMEOUT_MS - 1)
+      expect(settled).toBe(false)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(await pending).toBe('server_unverified')
+    } finally {
+      vi.useRealTimers()
+    }
     expectCleared(ctx, true)
   })
 })

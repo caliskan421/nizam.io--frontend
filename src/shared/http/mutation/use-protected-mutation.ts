@@ -9,8 +9,9 @@
  *  - Yalnız başarıda §6 geçersizleme listesi yeniden okunur ve **bitmesi beklenir**; iyimser
  *    güncelleme yoktur (başarı yanıtı gelmeden ekran değişmez). Geçersizleme eylemin
  *    **yakalanmış** kapsamıyla yapılır (gönderim sırasında kapsam değişse de).
- *  - Eylem oluşturulurken kapsam anlık görüntüsü alınır; tekrar/onay anında kapsam değiştiyse
- *    istek gönderilmez, `scope_changed` döner (aynı anahtar başka kapsamla gönderilmez).
+ *  - Eylem oluşturulurken kapsam ve oturum nesli anlık görüntüsü alınır; HER gönderimden önce
+ *    (tekrar, onay, `conflict_retry` otomatik tekrarı) denetlenir: kapsam değiştiyse
+ *    `scope_changed`, çıkış olduysa `failed` + `client.session_ended`; istek gönderilmez.
  *  - 403/404 yetki kaybı kodları (K6) sonuç olarak döner (fırlatılmaz) ve aynı QueryClient'ın
  *    yetki kaybı kanalına yayınlanır (`reportAuthorityLoss`): standing yenilenir, kapsam
  *    yeniden doğrulanır.
@@ -24,6 +25,7 @@ import { reportAuthorityLoss } from '@/shared/scope/authority-loss'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 
+import { authSession } from '../index'
 import { invalidationFilters, type InvalidationContext } from '../query-keys'
 import { newAction, runAction, type EngineOptions, type MutationAction, type Rerun } from './engine'
 import type { MutationOutcome } from './outcome'
@@ -57,9 +59,11 @@ export function useProtectedMutation<V, D, S = unknown>(
 ): ProtectedMutation<V, D, S> {
   const queryClient = options.queryClient ?? useQueryClient()
   const readScope = options.scope ?? activeScope
+  const readGeneration = options.generation ?? (() => authSession.generation)
   const engine: EngineOptions<V, D, S> = {
     ...options,
     scope: readScope,
+    generation: readGeneration,
     onAuthorityLoss: (error) => {
       options.onAuthorityLoss?.(error)
       reportAuthorityLoss(queryClient, error)
@@ -85,7 +89,9 @@ export function useProtectedMutation<V, D, S = unknown>(
 
   return {
     submit: (vars) =>
-      mutation.mutateAsync(newAction(vars, { now: options.now, scope: readScope() })),
+      mutation.mutateAsync(
+        newAction(vars, { now: options.now, scope: readScope(), generation: readGeneration() }),
+      ),
     isPending: mutation.isPending,
     outcome: mutation.data,
     reset: mutation.reset,
