@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 
 import { createFakeBackend } from '../../../tests/support/fake-backend'
 import { freshModules, newQueryClient, row, standingHandlers, withSetup } from './__tests__/harness'
@@ -44,9 +45,12 @@ describe('useStanding', () => {
     const m = await freshModules()
     await m.session.useSessionStore().logout()
     backend.reset()
-    const { result } = withSetup(() => m.standing.useStanding(), m.pinia, newQueryClient())
-    await new Promise((r) => setTimeout(r, 20))
+    const queryClient = newQueryClient()
+    const { result } = withSetup(() => m.standing.useStanding(), m.pinia, queryClient)
+    await nextTick()
+    // Etkin sorgu abonelikte eşzamanlı getirmeye başlar; zaman beklemesi gerekmez.
     expect(result.status.value).toBe('idle')
+    expect(queryClient.isFetching()).toBe(0)
     expect(backend.count('/v1/me')).toBe(0)
   })
 
