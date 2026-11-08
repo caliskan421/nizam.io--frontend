@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { EMPTY_SELECTION, resolveScope, type ResolveInput, type ScopeSelection } from './resolve'
+import {
+  EMPTY_SELECTION,
+  programDepartmentGap,
+  resolveScope,
+  type ResolveInput,
+  type ScopeSelection,
+} from './resolve'
 import { parseStanding, type ProgramOption } from './standing-facts'
 
 const row = (program: string, department: string, role: string) => ({
@@ -163,6 +169,28 @@ describe('resolveScope', () => {
     expect(r).toEqual({
       kind: 'ready',
       selection: { programId: 'p1', lens: 'member', departmentId: 'd1' },
+    })
+  })
+})
+
+describe('programDepartmentGap (yönetici "programa departman katılmamış")', () => {
+  it('yalnız Admin kapsamında; liste beklenirken checking, boşsa empty', () => {
+    const gap = (adminScope: boolean, departments: unknown[] | undefined, failed = false) =>
+      programDepartmentGap({ adminScope, departments, failed })
+    expect(gap(false, [])).toBe('none')
+    expect(gap(true, undefined)).toBe('checking')
+    expect(gap(true, [])).toBe('empty')
+    expect(gap(true, [{}])).toBe('none')
+    expect(gap(true, undefined, true)).toBe('none')
+    // Önceki veri varken tazeleme hatası: veriye göre.
+    expect(gap(true, [], true)).toBe('empty')
+  })
+
+  it("satırsız yönetici resolveScope ile no_lens'e düşmez (Admin merceği her programda)", () => {
+    const r = resolveScope(input({ admin: true, programs: [P('p1')] }))
+    expect(r).toEqual({
+      kind: 'ready',
+      selection: { programId: 'p1', lens: 'admin', departmentId: null },
     })
   })
 })

@@ -25,6 +25,11 @@ export interface StandingFixture {
   rows: FixtureRow[]
   programs: Array<{ program_id: string; name: string; year?: number }> | 'membership_required'
   programsTruncated?: boolean
+  /**
+   * `listProgramDepartments` yanıtı (program kimliği → bağlı departman kimlikleri). Verilmeyen
+   * program için tek bağlı departman döner (yönetici için "departman yok" durumu yalnız açıkça).
+   */
+  programDepartments?: Record<string, string[]>
 }
 
 export const row = (program: string, department: string, role: string): FixtureRow => ({
@@ -68,6 +73,14 @@ export function standingHandlers(backend: Backend, fixture: StandingFixture) {
         { programs: fixture.programs },
         { headers: fixture.programsTruncated ? { 'X-Result-Truncated': 'true' } : {} },
       )
+    }),
+    http.get('http://localhost/v1/program/departments', ({ request }) => {
+      record(request)
+      const program = request.headers.get('X-Nizamio-Program') ?? ''
+      const ids = fixture.programDepartments?.[program] ?? ['d-bagli']
+      return HttpResponse.json({
+        departments: ids.map((id) => ({ department_id: id, display_name: `Birim ${id}` })),
+      })
     }),
   ]
 }

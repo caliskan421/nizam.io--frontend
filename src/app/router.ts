@@ -26,16 +26,21 @@ import { identityRoutes } from '@/modules/identity/public'
 
 type ViewLoader = RouteComponent | (() => Promise<RouteComponent>)
 
-/** Modüllerin verdiği sayfa kayıtları (ad → bileşen). Yeni modül buraya `public.ts`'iyle eklenir. */
-export const MODULE_ROUTES: readonly RouteRecordRaw[] = [...identityRoutes]
-
 /**
- * Sayfası henüz bağlanmamış canlı rotanın geçici yönlendirmesi. F0'da ana sayfa içeriği
- * (01 grubu) yok; oturum sayfasına gider. F1'de 01 bağlanınca satır kalkar.
+ * Uygulamanın kendi verdiği sayfalar. F0 ana sayfası (`home`) kabuk içinde nötr yer tutucudur;
+ * F1'de 01 grubu (`modules/home`) bağlanınca bu kayıt kalkar ve modül kaydı yerini alır.
  */
-export const INTERIM_REDIRECTS: Partial<Record<RouteName, RouteName>> = {
-  home: 'identity.session',
-}
+export const APP_ROUTES: readonly RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('@/app/pages/HomePlaceholder.vue'),
+    meta: { scope: 'S1' },
+  },
+]
+
+/** Sayfa kayıtları (ad → bileşen). Yeni modül buraya `public.ts`'iyle eklenir. */
+export const MODULE_ROUTES: readonly RouteRecordRaw[] = [...APP_ROUTES, ...identityRoutes]
 
 function moduleViews(records: readonly RouteRecordRaw[]): Map<RouteName, ViewLoader> {
   const views = new Map<RouteName, ViewLoader>()
@@ -61,8 +66,6 @@ function toRecord(name: RouteName, view: ViewLoader | undefined): RouteRecordRaw
   const spec = routeSpec(name)
   const meta = { scope: spec.scope, title: spec.title, menuKey: activeMenuKey(name) }
   if (view) return { path: spec.path, name, component: view, meta }
-  const target = INTERIM_REDIRECTS[name]
-  if (target) return { path: spec.path, name, redirect: { name: target }, meta }
   throw new Error(`canlı rotanın sayfası yok: ${name}`)
 }
 

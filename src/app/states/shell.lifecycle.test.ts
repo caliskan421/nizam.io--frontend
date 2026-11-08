@@ -1,11 +1,11 @@
-// Kabuk + açık durumlar, GERÇEK uygulama kökü (App.vue) ve GERÇEK kapsam yaşam döngüsüyle,
-// sahte backend (MSW) karşısında: her K7 tetikleyicisi ve çıkış hatası (ortak-kurallar §8).
+// Kabuk + açık durumlar, GERÇEK uygulama kökü (App.vue), GERÇEK üretim router'ı
+// (`createAppRouter`; F0 ana sayfa yer tutucusu dahil) ve GERÇEK kapsam yaşam döngüsüyle, sahte
+// backend (MSW) karşısında: her K7 tetikleyicisi ve çıkış hatası (ortak-kurallar §8).
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createMemoryHistory } from 'vue-router'
 
 import {
   freshModules,
@@ -19,6 +19,16 @@ import { createFakeBackend } from '../../../tests/support/fake-backend'
 
 const backend = createFakeBackend()
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+// Isınma: bir kez tam açılış (App + üretim router'ı + tembel sayfalar + kabuk). Soğuk dönüşüm
+// maliyeti ilk testin 5 sn sınırına yüklenmez (tam koşuda zaman aşımı titremesi, Codex Ö-03);
+// modüller her testte `freshModules` ile yeniden değerlendirilir, dönüşüm önbelleği kalır.
+beforeAll(async () => {
+  const { wrapper } = await bootApp({ companyAdmin: false, rows: [], programs: [] }, '/oturum')
+  wrapper.unmount()
+  backend.server.resetHandlers()
+  backend.reset()
+  document.body.innerHTML = ''
+}, 30_000)
 afterEach(() => {
   backend.server.resetHandlers()
   backend.reset()
@@ -30,21 +40,13 @@ const unread = http.get('http://localhost/v1/notifications/unread-count', () =>
   HttpResponse.json({ count: 0 }),
 )
 
-// F0'da ana sayfa içeriği (01, S1) yok ve `/` oturum sayfasına (S0) yönlenir; açık durumlar S1+
-// rotada görünür. Ana sayfa, F1'de bağlanacağı gibi katalog adıyla bir yer tutucu bileşene bağlanır.
-const HomeStub = defineComponent({ render: () => h('p', { 'data-testid': 'home-page' }) })
-
 async function bootApp(fixture: StandingFixture, path = '/') {
   backend.server.use(...standingHandlers(backend, fixture), unread)
   const m = await freshModules()
   const { default: App } = await import('@/app/App.vue')
-  const { buildRoutes, MODULE_ROUTES } = await import('@/app/router')
+  const { createAppRouter } = await import('@/app/router')
   const { i18n } = await import('@/shared/i18n')
-  const routes = buildRoutes('F0', [
-    ...MODULE_ROUTES,
-    { path: '/', name: 'home', component: HomeStub },
-  ])
-  const router = createRouter({ history: createMemoryHistory(), routes })
+  const router = createAppRouter(createMemoryHistory())
   await router.push(path)
   const queryClient = newQueryClient()
   const wrapper = mount(App, {
@@ -53,8 +55,11 @@ async function bootApp(fixture: StandingFixture, path = '/') {
   })
   await vi.waitFor(() => expect(wrapper.find('[data-testid="app-shell"]').exists()).toBe(true))
   await flushPromises()
-  return { m, wrapper }
+  return { m, wrapper, router }
 }
+
+const departmentRequests = () =>
+  backend.state.requests.filter((r) => r.path === '/v1/program/departments')
 
 async function openState(wrapper: Awaited<ReturnType<typeof bootApp>>['wrapper'], name: string) {
   await vi.waitFor(() => expect(wrapper.find(`[data-open-state="${name}"]`).exists()).toBe(true))
@@ -116,13 +121,69 @@ describe('kabuk açık durumları (sahte backend)', () => {
     expect(backend.state.requests.some((r) => /^\/v1\/programs\/./.test(r.path))).toBe(false)
   })
 
+  it('kapsam hazır → `/` kabuk içinde F0 ana sayfa yer tutucusu (yönlendirme yok)', async () => {
+    const { wrapper, router } = await bootApp({
+      companyAdmin: false,
+      rows: [row('p1', 'd1', 'uye')],
+      programs: [{ program_id: 'p1', name: 'Bir' }],
+    })
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="home-page"]').exists()).toBe(true))
+    expect(router.currentRoute.value.name).toBe('home')
+    expect(wrapper.find('[data-testid="shell-state"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="home-page"]').text()).toContain('F1’de')
+    expect(crumbText(wrapper)).toMatch(/Bir\s*\/\s*Ana sayfa/)
+  })
+
+  it('yönetici + programa bağlı departman yok → "departman yok" (yalnız içerik; menü açık)', async () => {
+    const { wrapper } = await bootApp({
+      companyAdmin: true,
+      rows: [],
+      programs: [{ program_id: 'p1', name: 'Bir' }],
+      programDepartments: { p1: [] },
+    })
+    const state = await openState(wrapper, 'state.no-department')
+    expect(state.text()).toContain('Bu programa henüz departman katılmadı.')
+    const button = state.get('button')
+    expect(button.text()).toBe('Departman ekle')
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[data-testid="home-page"]').exists()).toBe(false)
+    expect(wrapper.find('aside.rp-side').exists()).toBe(true)
+    expect(crumbText(wrapper)).toMatch(/^Bir\s*\/\s*Programa departman katılmamış$/)
+    const [request] = departmentRequests()
+    expect(request?.headers.get('X-Nizamio-Program')).toBe('p1')
+  })
+
+  it('yönetici + bağlı departman var → ana sayfa; açık durum yok', async () => {
+    const { wrapper } = await bootApp({
+      companyAdmin: true,
+      rows: [],
+      programs: [{ program_id: 'p1', name: 'Bir' }],
+      programDepartments: { p1: ['d1'] },
+    })
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="home-page"]').exists()).toBe(true))
+    expect(wrapper.find('[data-testid="shell-state"]').exists()).toBe(false)
+    expect(departmentRequests()).toHaveLength(1)
+  })
+
+  it('koordinatör merceği departman listesi sormaz, "departman yok"a düşmez', async () => {
+    const { wrapper } = await bootApp({
+      companyAdmin: false,
+      rows: [row('p1', 'd1', 'koordinator')],
+      programs: [{ program_id: 'p1', name: 'Bir' }],
+      programDepartments: { p1: [] },
+    })
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="home-page"]').exists()).toBe(true))
+    expect(wrapper.find('[data-open-state="state.no-department"]').exists()).toBe(false)
+    expect(departmentRequests()).toHaveLength(0)
+  })
+
   it('çıkış hatası → kabuk kalkar, giriş ekranında "sunucu çıkışı doğrulanamadı"; refresh yok', async () => {
     backend.server.use(
       http.post('http://localhost/v1/auth/logout', () =>
         backend.envelope('platform.internal', 500),
       ),
     )
-    const { wrapper } = await bootApp({
+    const { wrapper, router } = await bootApp({
       companyAdmin: true,
       rows: [],
       programs: [{ program_id: 'p1', name: 'Bir' }],
@@ -136,7 +197,10 @@ describe('kabuk açık durumları (sahte backend)', () => {
     expect(wrapper.get('[data-testid="logout-unverified"]').text()).toContain(
       'Bu cihazdaki oturum kapatıldı, sunucu doğrulaması alınamadı.',
     )
-    expect(wrapper.find('[data-testid="login-form"]').exists()).toBe(true)
+    // `/` oturum açık değilken içerik göstermez; kimlik sayfasına (S0) yönlenir.
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('identity.session'))
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="login-form"]').exists()).toBe(true))
+    expect(wrapper.find('[data-testid="home-page"]').exists()).toBe(false)
     expect(backend.count('/v1/auth/refresh')).toBe(refreshBefore)
   })
 
