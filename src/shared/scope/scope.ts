@@ -43,19 +43,3 @@ export function globalKey(
 ): readonly unknown[] {
   return [QUERY_KEY_ROOT, 'global', ...parts] as const
 }
-
-/**
- * Anahtar `scopedKey(...)` ile mi üretildi (kapsam değişiminde iptal + önbellekten düşer)?
- * GEÇİCİ: W14'ün `src/shared/http/query-keys.ts` içindeki aynı imzalı `isScopedQueryKey` ile
- * tekilleştirilecek; birleşmede tek tanım kalır, `lifecycle.ts` onu kullanır.
- */
-export function isScopedQueryKey(key: readonly unknown[]): boolean {
-  const head = key[1]
-  return (
-    key[0] === QUERY_KEY_ROOT &&
-    typeof head === 'object' &&
-    head !== null &&
-    !Array.isArray(head) &&
-    'program' in head
-  )
-}
