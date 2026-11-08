@@ -19,7 +19,8 @@ import {
 import { identityRoutes } from '@/modules/identity/public'
 
 // Router'ın tek kaynağı rota kataloğudur (K10): yol, ad, kapsam ve faz katalogdan gelir;
-// modüller yalnız katalog adına bağlı sayfa bileşenini verir (`modules/<m>/routes.ts`).
+// modüller katalog adına bağlı sayfa bileşenini verir (`modules/<m>/routes.ts`); modülün
+// yazdığı yol/kapsam katalogla aynı olmak zorundadır (sapma hatadır).
 // Yalnız etkin fazda `canli` rotalar kaydedilir; gizli rotanın yolu bilinmeyen yol gibi ana
 // sayfaya düşer.
 
@@ -44,6 +45,9 @@ function moduleViews(records: readonly RouteRecordRaw[]): Map<RouteName, ViewLoa
     }
     if (views.has(record.name)) throw new Error(`modül rotası iki kez: ${record.name}`)
     if (!record.component) throw new Error(`modül rotası bileşensiz: ${record.name}`)
+    if (record.path !== routeSpec(record.name).path) {
+      throw new Error(`modül rotası yolu katalogla uyuşmuyor: ${record.name}`)
+    }
     const declared = record.meta?.scope
     if (declared && declared !== routeSpec(record.name).scope) {
       throw new Error(`modül rotası kapsamı katalogla uyuşmuyor: ${record.name}`)

@@ -20,7 +20,8 @@ describe('router — katalog tek kaynak', () => {
     ])
   })
 
-  it('yol, kapsam ve başlık katalogdan; modülün kendi yolu yok sayılır', () => {
+  it('yol, kapsam ve başlık katalogdan; modül yolu katalogla aynı', () => {
+    expect(MODULE_ROUTES.find((r) => r.name === 'identity.session')?.path).toBe('/oturum')
     const session = buildRoutes('F0').find((r) => r.name === 'identity.session')
     expect(session?.path).toBe(routeSpec('identity.session').path)
     expect(session?.meta).toEqual({ scope: 'S0', title: 'Oturum', menuKey: undefined })
@@ -49,7 +50,7 @@ describe('router — katalog tek kaynak', () => {
   it('modülün sayfası ileri fazda canlı rotayı bağlar', () => {
     const records: RouteRecordRaw[] = [
       ...MODULE_ROUTES,
-      { path: '/x', name: 'work.tasks', component: view, meta: { scope: 'S2' } },
+      { path: '/gorevler', name: 'work.tasks', component: view, meta: { scope: 'S2' } },
     ]
     const routes = buildRoutes('F1', records)
     expect(routes.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')
@@ -58,9 +59,13 @@ describe('router — katalog tek kaynak', () => {
 
   it.each([
     [{ path: '/x', name: 'admin.users', component: view, meta: { scope: 'S1' } }, /katalogda yok/],
-    [{ path: '/x', name: 'home', component: view, meta: { scope: 'S0' } }, /kapsamı/],
-    [{ path: '/x', name: 'identity.session', component: view, meta: { scope: 'S0' } }, /iki kez/],
-    [{ path: '/x', name: 'home', redirect: '/' }, /bileşensiz/],
+    [{ path: '/', name: 'home', component: view, meta: { scope: 'S0' } }, /kapsamı/],
+    [
+      { path: '/oturum', name: 'identity.session', component: view, meta: { scope: 'S0' } },
+      /iki kez/,
+    ],
+    [{ path: '/', name: 'home', redirect: '/' }, /bileşensiz/],
+    [{ path: '/', name: 'work.tasks', component: view, meta: { scope: 'S2' } }, /yolu katalogla/],
   ] as [RouteRecordRaw, RegExp][])('tutarsız modül rotası reddedilir (%#)', (record, error) => {
     expect(() => buildRoutes('F0', [...MODULE_ROUTES, record])).toThrow(error)
   })
