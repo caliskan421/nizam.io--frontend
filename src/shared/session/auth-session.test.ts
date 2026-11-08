@@ -23,11 +23,32 @@ function tab(browser: ReturnType<typeof createFakeBrowser>) {
   return { session, fetch }
 }
 
+/**
+ * Kanal teslimi için kontrollü Promise (sıfır süreli zamanlayıcı yok): sahte kanal iletileri
+ * abonelik sırasıyla mikro görev olarak teslim eder; sekmelerden SONRA abone olan gözlemci
+ * iletiyi aldığında önceki sekmelerin işleyicileri çalışmıştır.
+ */
+function channelObserver(browser: ReturnType<typeof createFakeBrowser>) {
+  const probe = browser.tab()
+  let waiter: (() => void) | null = null
+  probe.subscribe(() => {
+    waiter?.()
+    waiter = null
+  })
+  return {
+    next: () =>
+      new Promise<void>((resolve) => {
+        waiter = resolve
+      }),
+  }
+}
+
 describe('AuthSession — sunucu çıkışı doğrulanamadı (ortak-kurallar §8)', () => {
   it('bayrak açıkken refresh ağa çıkmaz; kardeş sekme belirteci kabul edilmez', async () => {
     const browser = createFakeBrowser()
     const a = tab(browser)
     const b = tab(browser)
+    const channel = channelObserver(browser)
     a.session.establish(login(1))
     a.session.clear({ serverUnverified: true })
     expect(a.session.snapshot).toMatchObject({ status: 'anonymous', serverLogoutUnverified: true })
@@ -35,14 +56,16 @@ describe('AuthSession — sunucu çıkışı doğrulanamadı (ortak-kurallar §8
     expect(await a.session.refresh(null)).toBe('ended')
     expect(a.fetch).not.toHaveBeenCalled()
 
+    const delivered = channel.next()
     b.session.establish(login(2))
-    await new Promise((r) => setTimeout(r, 0))
+    await delivered
     expect(a.session.token).toBeNull()
     expect(a.session.snapshot.serverLogoutUnverified).toBe(true)
 
     // Kardeşten gelen çıkış iletisi bayrağı düşürmez.
+    const injected = channel.next()
     browser.inject({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId: 'acc-1' })
-    await new Promise((r) => setTimeout(r, 0))
+    await injected
     expect(a.session.snapshot.serverLogoutUnverified).toBe(true)
   })
 
