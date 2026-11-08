@@ -7,6 +7,7 @@ Kayıt: yürütme `docs/yurutme/web-0/ilerleme.md` (O5); yönetim deposu satır�
 | Koşum | Denetlenen `main` | Hüküm | Açılan bulgular | Düzeltme |
 |---|---|---|---|---|
 | 1 | `9b41171` | UYGUN DEĞİL | CX-F0-E-01…E-05 (engelleyici); Ö-01…Ö-05; K-01…K-03 | düzeltme PR'ları: <doldurulacak> |
+| — | `9b41171` | Görsel doğrulama: kanıt özeti `docs/yurutme/web-0/ilerleme.md` O5 | yüksek 2 (E-04, Ö-04 ile aynı), orta 4 | W23; F1 W61 |
 
 Düzeltme planı (koordinatör, 2026-11-08): E-01/E-02/Ö-01/Ö-03 → W16 (mutasyon) · E-03 → W17 (oturum nesli) · E-04 → W23 (K7 gerçek rota + satırsız admin) · E-05/Ö-04 → belge, `web0/o5-kapanis` · Ö-02/Ö-05/K-01 → F1 W61 borcu · K-02 → ürün sahibi (CLAUDE.md yolları) · K-03 → F2.
 
