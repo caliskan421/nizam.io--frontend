@@ -1,0 +1,170 @@
+/*
+ * Dosyalar bileşenleri (W46). Renk, boşluk, yarıçap ve yazı yalnız token'dan; açık tema token
+ * katmanından gelir. Ölçek dışı iki ölçü (alt görev yuvası `rp-subslot`, Gorevler-Liste.dc.html)
+ * yalnız aşağıdaki metrik bloğundadır.
+ */
+@layer components {
+  :root {
+    --wf-slot-h: 30px;
+    --wf-slot-icon: 14px;
+  }
+
+  /* Alt görev kanıt yuvası (`rp-subslot` birebir) */
+  .wf-subslot {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+    width: 100%;
+    min-width: 0;
+    height: var(--wf-slot-h);
+    padding: 0 var(--space-2);
+    box-sizing: border-box;
+    border: var(--ui-hairline) solid transparent;
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--ink-muted);
+    font: inherit;
+    font-size: var(--ui-fs-xs);
+    text-align: left;
+    cursor: pointer;
+  }
+  .wf-subslot .t-icon {
+    width: var(--wf-slot-icon);
+    height: var(--wf-slot-icon);
+    flex: none;
+    opacity: 0.8;
+  }
+  .wf-subslot:hover:not(:disabled) {
+    border-color: var(--border-subtle);
+    color: var(--ink);
+  }
+  .wf-subslot:disabled {
+    cursor: default;
+  }
+  .wf-subslot:focus-visible {
+    outline: var(--ui-focus-width) solid var(--accent-text);
+    outline-offset: var(--ui-hairline);
+  }
+
+  /* Dosyalar sekmesi */
+  .wf-tab {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .wf-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .wf-evidence {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    font-size: var(--ui-fs-sm);
+  }
+  .wf-evidence dt {
+    color: var(--ink-muted);
+  }
+  .wf-evidence dd {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    color: var(--ink);
+  }
+  .wf-req {
+    color: var(--ink-faint);
+    font: var(--text-label);
+  }
+  .wf-linkbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-faint);
+    font: inherit;
+  }
+  .wf-linkbtn:disabled {
+    cursor: not-allowed;
+  }
+  .wf-status {
+    margin: 0;
+    color: var(--ink-faint);
+    font-size: var(--ui-fs-sm);
+  }
+
+  /* Dosya satırı */
+  .wf-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .wf-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    color: var(--ink-muted);
+  }
+  .wf-row__main {
+    display: grid;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .wf-row__name {
+    color: var(--ink);
+    font: var(--ui-text-sm-medium);
+  }
+  .wf-row__meta {
+    color: var(--ink-faint);
+    font-size: var(--ui-fs-xs);
+  }
+  .wf-row__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .wf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Formlar (yükleme penceresi, ad değiştirme) */
+  .wf-form {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .wf-file {
+    width: 100%;
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .wf-file::file-selector-button {
+    margin-right: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: var(--ui-hairline) solid var(--border-strong);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-button);
+    cursor: pointer;
+  }
+  .wf-error {
+    margin: 0;
+    color: var(--danger);
+    font-size: var(--ui-fs-sm);
+  }
+}
