@@ -5,6 +5,10 @@
  * Bir **eylem** (`MutationAction`) = kullanıcının bir gönderimi: dondurulmuş gövde + tek
  * `Idempotency-Key`. Ağ tekrarı (sonuç bilinmiyor → `retry`, `platform.conflict_retry`) aynı
  * eylemi yeniden gönderir; düzeltip yeniden gönderme ve onay (`confirm`) yeni eylemdir.
+ *
+ * Eylem, oluşturulduğu andaki kapsamı (program / departman / mercek) taşır. Aynı anahtarın
+ * başka kapsamla tekrarı sunucuda istemci hatasıdır (istemci-akislari §8): kapsam değiştiyse
+ * eylem gönderilmez, `scope_changed` döner. Başarı geçersizlemesi de bu kapsamla yapılır.
  */
 import {
   ApiError,
@@ -13,11 +17,13 @@ import {
   toApiError,
 } from '@/shared/errors/api-error'
 import { CONFIRMATION_REQUIRED_CODE, extractTaskTitles } from '@/shared/errors/confirmation'
+import { isAuthorityLoss } from '@/shared/scope/authority-loss'
+import type { ScopeSnapshot } from '@/shared/scope/scope'
 
 import { CSRF_HEADER_VALUE } from '../client'
 import type { OperationId } from '../query-keys'
 import { generateIdempotencyKey } from './idempotency-key'
-import type { MutationOutcome, UnknownReason } from './outcome'
+import type { MutationOutcome, MutationUnknown, UnknownReason } from './outcome'
 
 /** Sözleşmenin `confirmation_required` döndürdüğü yegâne uçlar (ortak-kurallar §7, sentez G7). */
 export const CONFIRMATION_OPERATIONS: ReadonlySet<OperationId> = new Set<OperationId>([
@@ -41,6 +47,8 @@ export interface MutationAction<V> {
   readonly firstSentAt: number
   /** Bu anahtarla daha önce yapılmış gönderim sayısı (tekrar tespiti). */
   readonly priorAttempts: number
+  /** Eylemin oluşturulduğu kapsam; `null` ise motor kapsam denetlemez (kapsamsız çağıran). */
+  readonly scope: ScopeSnapshot | null
 }
 
 /** `send`'e verilen bağlam. Çağıran başlıkları ve `confirm`'ü isteğe yerleştirir. */
@@ -68,24 +76,44 @@ export interface EngineOptions<V, D, S> {
   readCurrent?: (vars: V) => Promise<S>
   timeoutMs?: number
   now?: () => number
+  /** Gönderim anındaki güncel kapsam; eylemin yakalanmış kapsamıyla karşılaştırılır. */
+  scope?: () => ScopeSnapshot
+  /** Sonuç K6/Y1 yetki kaybı kodu taşıyorsa çağrılır (sonuç yine normalize döner). */
+  onAuthorityLoss?: (error: ApiError) => void
 }
 
 /** Aynı ya da yeni eylemi yeniden koşturan geri çağrı (hook'ta `mutateAsync`). */
 export type Rerun<V, D, S> = (action: MutationAction<V>) => Promise<MutationOutcome<V, D, S>>
 
-/** Gövdeyi dondurur: çağıran taslağı sonradan değiştirse de tekrar aynı gövdeyi gönderir. */
+/**
+ * Gövdenin derin kopyası: çağıran taslağı sonradan değiştirse de tekrar aynı gövdeyi gönderir.
+ * Kopyalanamayan gövde (fonksiyon, sembol, DOM düğümü…) açıkça reddedilir; özgün değişebilir
+ * nesneye asla geri düşülmez. Dosya yüklemelerinde `File`/`Blob` taşınır, `FormData` `send`
+ * içinde kurulur.
+ */
 export function freezeVars<V>(vars: V): V {
   try {
     return structuredClone(vars)
-  } catch {
-    return vars
+  } catch (cause) {
+    throw new TypeError('Yazma gövdesi kopyalanamıyor (structuredClone desteklemiyor).', {
+      cause,
+    })
   }
 }
 
-/** Yeni kullanıcı eylemi: yeni anahtar, dondurulmuş gövde. */
+/** Kapsam kimliği: program + departman + mercek (`null` ≡ yok). */
+export function sameScope(a: ScopeSnapshot, b: ScopeSnapshot): boolean {
+  return (
+    (a.programId ?? null) === (b.programId ?? null) &&
+    (a.departmentId ?? null) === (b.departmentId ?? null) &&
+    (a.lens ?? null) === (b.lens ?? null)
+  )
+}
+
+/** Yeni kullanıcı eylemi: yeni anahtar, dondurulmuş gövde, o anki kapsamın anlık görüntüsü. */
 export function newAction<V>(
   vars: V,
-  opts: { confirm?: boolean; now?: () => number } = {},
+  opts: { confirm?: boolean; now?: () => number; scope?: ScopeSnapshot | null } = {},
 ): MutationAction<V> {
   return {
     vars: freezeVars(vars),
@@ -93,6 +121,7 @@ export function newAction<V>(
     confirm: opts.confirm ?? false,
     firstSentAt: (opts.now ?? Date.now)(),
     priorAttempts: 0,
+    scope: opts.scope ? { ...opts.scope } : null,
   }
 }
 
@@ -185,21 +214,32 @@ interface Classify<V, D, S> {
   now: () => number
 }
 
-/** Sonuç bilinmiyor: taslak + anahtar korunur; pencere içinde aynı eylem yeniden gönderilir. */
+/**
+ * Sonuç bilinmiyor: taslak + anahtar korunur; pencere içinde aynı eylem yeniden gönderilir.
+ * `draft` gönderilecek gövdenin ayrı kopyasıdır (UI değiştirse de tekrar gövdesi değişmez).
+ * 24 saat penceresi `retry()` çağrıldığı anda yeniden denetlenir; dolmuşsa gönderim yapılmaz.
+ */
 function unknownOutcome<V, D, S>(
   failure: Failure<D> & { reason: UnknownReason },
   { action, rerun, attempts, now }: Classify<V, D, S>,
-): MutationOutcome<V, D, S> {
-  const withinWindow = now() - action.firstSentAt < RETRY_WINDOW_MS
-  return {
+): MutationUnknown<V, D, S> {
+  const expired = () => now() - action.firstSentAt >= RETRY_WINDOW_MS
+  const outcome: MutationUnknown<V, D, S> = {
     kind: 'unknown_outcome',
     error: failure.error,
     reason: failure.reason,
-    draft: action.vars,
+    draft: freezeVars(action.vars),
     idempotencyKey: action.idempotencyKey,
     firstSentAt: action.firstSentAt,
-    retry: withinWindow ? () => rerun({ ...action, priorAttempts: attempts }) : null,
+    retry: null,
   }
+  if (!expired()) {
+    outcome.retry = () =>
+      expired()
+        ? Promise.resolve({ ...outcome, retry: null })
+        : rerun({ ...action, priorAttempts: attempts })
+  }
+  return outcome
 }
 
 /** Onay yalnız organizasyon uçlarında ve henüz onay verilmemişse sınıf olur. */
@@ -226,7 +266,7 @@ async function classifyConflict<V, D, S>(
       kind: 'edit_conflict',
       error,
       groups: error.fields.map((f) => f.field),
-      draft: c.action.vars,
+      draft: freezeVars(c.action.vars),
       server: await readServer(c.action.vars, c.opts),
     }
   }
@@ -235,8 +275,9 @@ async function classifyConflict<V, D, S>(
     kind: 'confirmation_required',
     error,
     taskTitles: extractTaskTitles(failure.body),
-    // Onay yeni bir kullanıcı kararıdır: yeni eylem (yeni anahtar), aynı taslak.
-    confirm: () => c.rerun(newAction(c.action.vars, { confirm: true, now: c.now })),
+    // Onay yeni bir kullanıcı kararıdır: yeni eylem (yeni anahtar), aynı taslak, aynı kapsam.
+    confirm: () =>
+      c.rerun(newAction(c.action.vars, { confirm: true, now: c.now, scope: c.action.scope })),
   }
 }
 
@@ -253,17 +294,36 @@ async function classifyFailure<V, D, S>(
   return conflict ?? { kind: 'failed', error }
 }
 
+/** Eylemin kapsamı gönderim anındaki kapsamdan farklıysa gönderilmeyecek sonuç; aynıysa null. */
+function scopeChanged<V, D, S>(
+  action: MutationAction<V>,
+  opts: EngineOptions<V, D, S>,
+): MutationOutcome<V, D, S> | null {
+  if (!action.scope || !opts.scope || sameScope(action.scope, opts.scope())) return null
+  return {
+    kind: 'scope_changed',
+    draft: freezeVars(action.vars),
+    idempotencyKey: action.idempotencyKey,
+    scope: { ...action.scope },
+  }
+}
+
 /**
  * Bir eylemi koşturur ve sonucu sınıflandırır. `platform.conflict_retry` aynı anahtar + aynı
  * gövdeyle **bir kez** otomatik tekrar edilir; başka hiçbir sonuç otomatik tekrar edilmez.
+ * Kapsam eylemden bu yana değiştiyse hiç gönderilmez (`scope_changed`). Yetki kaybı kodları
+ * `onAuthorityLoss` ile bildirilir (K6).
  */
 export async function runAction<V, D, S>(
   action: MutationAction<V>,
   opts: EngineOptions<V, D, S>,
   rerun: Rerun<V, D, S>,
 ): Promise<MutationOutcome<V, D, S>> {
+  const blocked = scopeChanged(action, opts)
+  if (blocked) return blocked
   const { attempt, attempts } = await sendWithConflictRetry(action, opts)
   if (!attempt.ok) {
+    if (isAuthorityLoss(attempt.error)) opts.onAuthorityLoss?.(attempt.error)
     return classifyFailure(attempt, { action, opts, rerun, attempts, now: opts.now ?? Date.now })
   }
   return {

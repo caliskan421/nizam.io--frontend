@@ -25,7 +25,8 @@ test('iki sekme, eşzamanlı 401 → tek refresh, iki oturum da geçerli', async
   await expect(status(pageA)).toHaveAttribute('data-status', 'authenticated')
 
   const pageB = await context.newPage()
-  await pageB.goto('/')
+  // Oturum açıkken `/` kabuk içinde ana sayfayı gösterir; oturum bilgisi `/oturum` sayfasında.
+  await pageB.goto('/oturum')
   await expect(status(pageB)).toHaveAttribute('data-status', 'authenticated')
   await expect(pageB.getByTestId('me-email')).toHaveText(ADMIN.email)
 

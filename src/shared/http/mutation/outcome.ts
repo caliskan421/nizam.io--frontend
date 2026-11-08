@@ -6,6 +6,7 @@
  * (sunucu `message` alanı gösterilmez).
  */
 import type { ApiError } from '@/shared/errors/api-error'
+import type { ScopeSnapshot } from '@/shared/scope/scope'
 
 /** 201 yeni kaynak; 200 aynı anahtarın ilk kaynağı (tekrar) ya da olağan güncelleme. */
 export interface MutationSuccess<D> {
@@ -77,6 +78,19 @@ export interface MutationConfirmationRequired<V, D, S> {
   confirm: () => Promise<MutationOutcome<V, D, S>>
 }
 
+/**
+ * Eylem başka bir kapsamda (program / departman / mercek) oluşturulmuştu; kapsam o zamandan beri
+ * değişti. Aynı anahtar başka kapsamla gönderilemez (istemci-akislari §8): istek **gönderilmedi**.
+ * Kullanıcı özgün kapsama dönüp yeniden dener ya da kaydı denetler; taslak korunur.
+ */
+export interface MutationScopeChanged<V> {
+  kind: 'scope_changed'
+  draft: V
+  idempotencyKey: string
+  /** Eylemin yakalandığı (özgün) kapsam. */
+  scope: ScopeSnapshot
+}
+
 /** Diğer bütün hatalar (403/404/422/diğer 409…): kod → i18n; karar kullanıcıda. */
 export interface MutationFailed {
   kind: 'failed'
@@ -91,6 +105,7 @@ export type MutationOutcome<V, D, S = unknown> =
   | MutationUnknown<V, D, S>
   | MutationRateLimited
   | MutationConfirmationRequired<V, D, S>
+  | MutationScopeChanged<V>
   | MutationFailed
 
 export type MutationKind = MutationOutcome<unknown, unknown>['kind']
@@ -122,6 +137,8 @@ export function outcomeMessage(outcome: MutationOutcome<unknown, unknown>): Outc
       return rateLimitMessage(outcome.retryAfter)
     case 'confirmation_required':
       return { key: 'mutation.outcome.confirmation_required' }
+    case 'scope_changed':
+      return { key: 'mutation.outcome.scope_changed' }
     case 'failed':
       return { key: outcome.error.messageKey }
   }

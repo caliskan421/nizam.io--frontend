@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { EMPTY_REASON_STATES, resolveShellContent } from './resolve'
+import { EMPTY_REASON_STATES, NO_DEPARTMENT_EXEMPT_ROUTES, resolveShellContent } from './resolve'
 
 describe('kabuk içeriği (K7)', () => {
   it('boş neden → açık durum (S1+ ve eşleşmeyen rota)', () => {
@@ -38,5 +38,36 @@ describe('kabuk içeriği (K7)', () => {
         'content',
       )
     }
+  })
+
+  it('yönetici departman boşluğu → "departman yok" (S1 ana sayfa dahil); S0 muaf', () => {
+    const base = { status: 'ready', emptyReason: null } as const
+    for (const routeScope of ['S1', 'S2', 'S3'] as const) {
+      expect(
+        resolveShellContent({ ...base, routeScope, routeName: 'home', departmentGap: 'empty' }),
+      ).toEqual({ kind: 'open-state', name: 'state.no-department' })
+    }
+    expect(resolveShellContent({ ...base, routeScope: 'S0', departmentGap: 'empty' }).kind).toBe(
+      'content',
+    )
+    expect(resolveShellContent({ ...base, routeScope: 'S1', departmentGap: 'checking' }).kind).toBe(
+      'loading',
+    )
+    expect(resolveShellContent({ ...base, routeScope: 'S1', departmentGap: 'none' }).kind).toBe(
+      'content',
+    )
+    expect(resolveShellContent({ ...base, routeScope: 'S1' }).kind).toBe('content')
+  })
+
+  it('boş neden departman boşluğundan önce gelir; F0 muafiyet listesi boş (F2 yönetim)', () => {
+    expect(
+      resolveShellContent({
+        status: 'empty',
+        emptyReason: 'no_program',
+        routeScope: 'S1',
+        departmentGap: 'empty',
+      }),
+    ).toEqual({ kind: 'open-state', name: 'state.no-program' })
+    expect(NO_DEPARTMENT_EXEMPT_ROUTES.size).toBe(0)
   })
 })

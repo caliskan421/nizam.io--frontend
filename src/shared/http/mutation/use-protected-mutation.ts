@@ -7,13 +7,20 @@
  *  - Onay (`confirmation_required.confirm`) yeni eylem, `confirm=true`.
  *  - Sonuç asla fırlatılmaz; `MutationOutcome` döner (UI `kind` ile dallanır).
  *  - Yalnız başarıda §6 geçersizleme listesi yeniden okunur ve **bitmesi beklenir**; iyimser
- *    güncelleme yoktur (başarı yanıtı gelmeden ekran değişmez).
+ *    güncelleme yoktur (başarı yanıtı gelmeden ekran değişmez). Geçersizleme eylemin
+ *    **yakalanmış** kapsamıyla yapılır (gönderim sırasında kapsam değişse de).
+ *  - Eylem oluşturulurken kapsam anlık görüntüsü alınır; tekrar/onay anında kapsam değiştiyse
+ *    istek gönderilmez, `scope_changed` döner (aynı anahtar başka kapsamla gönderilmez).
+ *  - 403/404 yetki kaybı kodları (K6) sonuç olarak döner (fırlatılmaz) ve aynı QueryClient'ın
+ *    yetki kaybı kanalına yayınlanır (`reportAuthorityLoss`): standing yenilenir, kapsam
+ *    yeniden doğrulanır.
  * UI yoktur; diyaloglar (O3) bu sonucu tüketir.
  */
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { getActivePinia } from 'pinia'
 import type { Ref } from 'vue'
 
+import { reportAuthorityLoss } from '@/shared/scope/authority-loss'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -50,16 +57,24 @@ export function useProtectedMutation<V, D, S = unknown>(
 ): ProtectedMutation<V, D, S> {
   const queryClient = options.queryClient ?? useQueryClient()
   const readScope = options.scope ?? activeScope
+  const engine: EngineOptions<V, D, S> = {
+    ...options,
+    scope: readScope,
+    onAuthorityLoss: (error) => {
+      options.onAuthorityLoss?.(error)
+      reportAuthorityLoss(queryClient, error)
+    },
+  }
 
   const mutation = useMutation<MutationOutcome<V, D, S>, never, MutationAction<V>>(
     {
-      mutationFn: (action) => runAction(action, options, rerun),
+      mutationFn: (action) => runAction(action, engine, rerun),
       // Otomatik tekrar yalnız motorun içinde (conflict_retry, bir kez).
       retry: false,
       onSuccess: async (outcome, action) => {
         if (outcome.kind !== 'success') return
         const ctx = options.invalidation?.(action.vars, outcome.data) ?? {}
-        const filters = invalidationFilters(options.operation, readScope(), ctx)
+        const filters = invalidationFilters(options.operation, action.scope ?? readScope(), ctx)
         await Promise.all(filters.map((filter) => queryClient.invalidateQueries(filter)))
       },
     },
@@ -69,7 +84,8 @@ export function useProtectedMutation<V, D, S = unknown>(
   const rerun: Rerun<V, D, S> = (action) => mutation.mutateAsync(action)
 
   return {
-    submit: (vars) => mutation.mutateAsync(newAction(vars, { now: options.now })),
+    submit: (vars) =>
+      mutation.mutateAsync(newAction(vars, { now: options.now, scope: readScope() })),
     isPending: mutation.isPending,
     outcome: mutation.data,
     reset: mutation.reset,

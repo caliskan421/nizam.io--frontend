@@ -1,9 +1,12 @@
-import { isCancelledError } from '@tanstack/vue-query'
+import { isCancelledError, type QueryClient } from '@tanstack/vue-query'
+import { http } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import type { components } from '@/shared/api/schema'
 import { isScopedQueryKey } from '@/shared/http/query-keys'
 
 import { createFakeBackend } from '../../../tests/support/fake-backend'
+import { AUTHORITY_LOSS_CODES } from './authority-loss'
 import {
   createTarget,
   freshModules,
@@ -45,6 +48,46 @@ async function boot(
 
 async function settle(scope: { status: { value: string } }, expected: string) {
   await vi.waitFor(() => expect(scope.status.value).toBe(expected))
+}
+
+type Modules = Awaited<ReturnType<typeof freshModules>>
+type CreateBody = components['schemas']['CreateWorkItemRequest']
+const body: CreateBody = { title: 'Rapor', start_on: '2026-11-01', end_on: '2026-11-10' }
+
+/**
+ * Gerçek zincir: `useProtectedMutation` → uygulama API istemcisi (kapsam başlıkları Pinia
+ * deposundan) → MSW. Sunucu `code`/`status` döndürür; sonuç fırlatılmaz, normalize döner.
+ */
+async function protectedWrite(m: Modules, queryClient: QueryClient, code: string, status: number) {
+  backend.server.use(
+    http.post('http://localhost/v1/work-items', () => backend.envelope(code, status)),
+  )
+  const { useProtectedMutation } = await import('@/shared/http/mutation')
+  const { result } = withSetup(
+    () =>
+      useProtectedMutation<CreateBody, unknown>({
+        operation: 'createWorkItem',
+        send: (vars, ctx) =>
+          m.http.api.POST('/v1/work-items', { params: { header: ctx.headers }, body: vars }),
+      }),
+    m.pinia,
+    queryClient,
+  )
+  return result.submit(body)
+}
+
+/** Standing tazelemesi başlamadı: geçersizleme eşzamanlı işlenir, zaman beklemesi gerekmez. */
+function expectStandingUntouched(m: Modules, queryClient: QueryClient) {
+  for (const key of Object.values(m.standing.STANDING_KEYS)) {
+    const state = queryClient.getQueryState(key)
+    expect(state?.isInvalidated, key.join('/')).toBe(false)
+    expect(state?.fetchStatus, key.join('/')).toBe('idle')
+  }
+}
+
+const LOSS_STATUS: Partial<Record<string, number>> = {
+  'work.program_scope_invalid': 404,
+  'program.not_found': 404,
 }
 
 describe('kapsam yaşam döngüsü', () => {
@@ -224,6 +267,71 @@ describe('kapsam yaşam döngüsü', () => {
     expect(backend.count('/v1/me')).toBeGreaterThan(1)
   })
 
+  it.each(AUTHORITY_LOSS_CODES)(
+    'yetki kaybı (korumalı mutasyon %s): sonuç failed, standing tazelenir',
+    async (code) => {
+      const { scope, queryClient, m } = await boot({
+        companyAdmin: false,
+        rows: [row('p1', 'd1', 'uye')],
+        programs: [{ program_id: 'p1', name: 'Bir' }],
+      })
+      await settle(scope, 'ready')
+      const before = { me: backend.count('/v1/me'), deps: backend.count('/v1/me/departments') }
+
+      const outcome = await protectedWrite(m, queryClient, code, LOSS_STATUS[code] ?? 403)
+
+      expect(outcome).toMatchObject({ kind: 'failed', error: { code } })
+      await vi.waitFor(() => expect(backend.count('/v1/me')).toBeGreaterThan(before.me))
+      await vi.waitFor(() =>
+        expect(backend.count('/v1/me/departments')).toBeGreaterThan(before.deps),
+      )
+    },
+  )
+
+  it('yetki kaybı (mutasyon 403 organization.not_authorized): kapsam yeniden doğrulanır', async () => {
+    const fixture: StandingFixture = {
+      companyAdmin: false,
+      rows: [row('p1', 'd1', 'uye'), row('p1', 'd2', 'uye')],
+      programs: [{ program_id: 'p1', name: 'Bir' }],
+    }
+    const { scope, store, queryClient, m } = await boot(fixture, { departmentId: 'd1' })
+    await settle(scope, 'ready')
+    expect(store.departmentId).toBe('d1')
+
+    fixture.rows = [row('p1', 'd2', 'uye')]
+    const outcome = await protectedWrite(m, queryClient, 'organization.not_authorized', 403)
+
+    expect(outcome.kind).toBe('failed')
+    await vi.waitFor(() => expect(store.departmentId).toBe('d2'))
+  })
+
+  it('yetki kaybı (mutasyon 404 work.program_scope_invalid): geçersiz program düşer', async () => {
+    const fixture: StandingFixture = {
+      companyAdmin: false,
+      rows: [row('p1', 'd1', 'uye'), row('p2', 'd2', 'uye')],
+      programs: [
+        { program_id: 'p1', name: 'Bir' },
+        { program_id: 'p2', name: 'İki' },
+      ],
+    }
+    const { scope, store, queryClient, m } = await boot(fixture, {
+      programId: 'p1',
+      lens: 'member',
+      departmentId: 'd1',
+    })
+    await settle(scope, 'ready')
+    expect(store.snapshot).toEqual({ programId: 'p1', lens: 'member', departmentId: 'd1' })
+
+    fixture.rows = [row('p2', 'd2', 'uye')]
+    fixture.programs = [{ program_id: 'p2', name: 'İki' }]
+    const outcome = await protectedWrite(m, queryClient, 'work.program_scope_invalid', 404)
+
+    expect(outcome.kind).toBe('failed')
+    await vi.waitFor(() =>
+      expect(store.snapshot).toEqual({ programId: 'p2', lens: 'member', departmentId: 'd2' }),
+    )
+  })
+
   it('yetki kaybı (mutasyon 403 organization.membership_required) → K7', async () => {
     const fixture: StandingFixture = {
       companyAdmin: false,
@@ -235,25 +343,16 @@ describe('kapsam yaşam döngüsü', () => {
 
     fixture.rows = []
     fixture.programs = 'membership_required'
-    await queryClient
-      .getMutationCache()
-      .build(queryClient, {
-        mutationFn: () =>
-          Promise.reject(
-            new m.errors.ApiError({ code: 'organization.membership_required', status: 403 }),
-          ),
-      })
-      .execute(undefined)
-      .catch(() => undefined)
+    await protectedWrite(m, queryClient, 'organization.membership_required', 403)
 
     await settle(scope, 'empty')
     expect(scope.emptyReason.value).toBe('membership_required')
   })
 
-  it('yetki kaybı olmayan hata standing tazelemez', async () => {
+  it('yetki kaybı olmayan hata (sorgu ya da korumalı mutasyon) standing tazelemez', async () => {
     const { scope, store, queryClient, m } = await boot({
-      companyAdmin: true,
-      rows: [],
+      companyAdmin: false,
+      rows: [row('p1', 'd1', 'uye')],
       programs: [{ program_id: 'p1', name: 'Bir' }],
     })
     await settle(scope, 'ready')
@@ -266,12 +365,16 @@ describe('kapsam yaşam döngüsü', () => {
         },
       })
       .catch(() => undefined)
-    await new Promise((r) => setTimeout(r, 20))
+    expectStandingUntouched(m, queryClient)
+
+    const outcome = await protectedWrite(m, queryClient, 'work.item_not_found', 404)
+    expect(outcome.kind).toBe('failed')
+    expectStandingUntouched(m, queryClient)
     expect(backend.count('/v1/me')).toBe(before)
   })
 
   it('pencere görünür olunca / odağa dönünce standing tazelenir', async () => {
-    const { scope, target } = await boot({
+    const { scope, target, queryClient, m } = await boot({
       companyAdmin: true,
       rows: [],
       programs: [{ program_id: 'p1', name: 'Bir' }],
@@ -281,7 +384,7 @@ describe('kapsam yaşam döngüsü', () => {
 
     target.document.visibilityState = 'hidden'
     target.document.dispatchEvent(new Event('visibilitychange'))
-    await new Promise((r) => setTimeout(r, 20))
+    expectStandingUntouched(m, queryClient)
     expect(backend.count('/v1/me')).toBe(before)
 
     target.document.visibilityState = 'visible'

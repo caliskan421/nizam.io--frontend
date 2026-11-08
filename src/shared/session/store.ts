@@ -44,9 +44,14 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
+  /**
+   * Açık giriş. Nesil istekten önce alınır: yanıt gelmeden çıkış olduysa (bu ya da kardeş
+   * sekmede) yanıt uygulanmaz, oturum anonim kalır (CX-F0-E-03).
+   */
   async function login(body: LoginRequest): Promise<void> {
+    const generation = authSession.generation
     const response = await unwrap(api.POST('/v1/auth/login', { body }))
-    authSession.establish(response, response.force_password_change)
+    authSession.establish(response, response.force_password_change, generation)
   }
 
   async function loadMe(): Promise<MeResponse | null> {

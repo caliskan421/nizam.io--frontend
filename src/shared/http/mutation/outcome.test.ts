@@ -36,6 +36,12 @@ const samples: Array<MutationOutcome<unknown, unknown>> = [
   { kind: 'rate_limited', error, retryAfter: 5 },
   { kind: 'rate_limited', error, retryAfter: 61 },
   { kind: 'confirmation_required', error, taskTitles: [], confirm: noop },
+  {
+    kind: 'scope_changed',
+    draft: {},
+    idempotencyKey: 'k',
+    scope: { programId: 'p1', departmentId: null },
+  },
 ]
 
 const i18n = createI18n({ legacy: false, locale: 'tr', messages: { tr: trMutation } })
@@ -50,6 +56,18 @@ describe('outcomeMessage', () => {
       expect(text).not.toMatch(/[{}]/)
     }
     expect(g.t('mutation.outcome.partial')).not.toBe('')
+  })
+
+  it('scope_changed kendi anahtarına gider', () => {
+    expect(
+      outcomeMessage({
+        kind: 'scope_changed',
+        draft: {},
+        idempotencyKey: 'k',
+        scope: { programId: 'p1', departmentId: null },
+      }),
+    ).toEqual({ key: 'mutation.outcome.scope_changed' })
+    expect(i18n.global.t('mutation.outcome.scope_changed')).toContain('kapsama dönün')
   })
 
   it('failed hata kodunun kendi metnine gider', () => {
