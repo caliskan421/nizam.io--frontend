@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Program, rol ve koordinatörlük</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ks{--r-admin:#e57a9a; --r-koord:#74c27a; --r-uye:#73a9e3}
+.ks-col{display:flex; flex-direction:column; gap:14px; min-width:0}
+.ks-frame{position:relative; width:272px; height:600px; box-sizing:border-box; padding:20px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-base); display:flex; flex-direction:column; gap:8px; overflow:hidden}
+.ks-logo{display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; align-items:center; padding:0 4px 12px}
+.ks-logo > span:first-child{width:28px; height:28px; border-radius:9px; background:linear-gradient(180deg, var(--accent-top), var(--accent))}
+.ks-pav{width:18px; height:18px; border-radius:5px; display:inline-flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:700; flex:none}
+.ks-pav--lg{width:28px; height:28px; border-radius:8px; font-size:11px}
+.ks-dot{width:8px; height:8px; border-radius:50%; flex:none}
+.ks-pair{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px}
+.ks-card{display:flex; flex-direction:column; gap:4px; width:100%; min-height:56px; padding:8px 10px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); color:var(--ink); font-family:inherit; text-align:left; cursor:pointer; box-sizing:border-box; min-width:0}
+.ks-card:hover{border-color:var(--border-strong)}
+.ks-card[aria-expanded="true"]{border-color:var(--border-strong); background:var(--bg-raised)}
+.ks-card__l{display:flex; align-items:center; justify-content:space-between; gap:4px; font-family:var(--font-mono); font-size:10.5px; line-height:13px; letter-spacing:0.02em; color:var(--ink-muted)}
+.ks-card__l svg{width:12px; height:12px; color:var(--ink-faint)}
+.ks-card__v{display:flex; align-items:center; gap:6px; min-width:0; font-size:13px; line-height:18px; font-weight:600}
+.ks-card__v > span:last-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
+.ks-card--k{border-color:color-mix(in srgb, var(--r-koord) 45%, var(--border-subtle))}
+.ks-card--u{border-color:color-mix(in srgb, var(--r-uye) 45%, var(--border-subtle))}
+.ks-pop{position:absolute; left:16px; right:16px; z-index:2; padding:6px; border:1px solid var(--border-strong); border-radius:var(--radius-md); background:var(--bg-raised); box-shadow:var(--shadow-sheet); display:flex; flex-direction:column; gap:2px}
+.ks-pop__h{margin:0; padding:8px 10px 4px; font-family:var(--font-mono); font-size:11px; line-height:14px; letter-spacing:0.02em; color:var(--ink-muted)}
+.ks-it{display:grid; grid-template-columns:minmax(0,1fr) 16px; gap:10px; align-items:center; width:100%; min-height:40px; padding:6px 10px; border:0; border-radius:10px; background:transparent; color:var(--ink); font-family:inherit; font-size:13px; text-align:left; cursor:pointer; box-sizing:border-box}
+.ks-it:hover{background:var(--bg-overlay)}
+.ks-it[aria-checked="true"]{background:var(--bg-overlay); font-weight:600}
+.ks-it__lead{display:inline-flex; align-items:center; gap:10px; min-width:0}
+.ks-it__lead > span:last-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ks-sep{height:1px; margin:4px 2px; background:var(--border-subtle)}
+.ks-ghost{display:flex; flex-direction:column; gap:2px; margin-top:12px; opacity:0.4}
+.ks-ghost span{display:flex; align-items:center; gap:10px; padding:8px 10px; font-size:13.5px; font-weight:500}
+.ks-note{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.ks-rule{display:flex; flex-direction:column; gap:4px; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.ks-rule h3{margin:0; font-size:14px; line-height:20px; font-weight:600}
+.ks-rule p{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+</style>
+</helmet>
+<div class="ks" data-theme="dark" style="width:1440px; height:1000px; box-sizing:border-box; padding:56px 56px 48px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:32px">
+
+<header style="display:flex; flex-direction:column; gap:10px; max-width:900px">
+<p class="rp-kicker">Kenar menüsü · program, rol, koordinatörlük</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Program ve rol yan yana, koordinatörlük altında</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Gerçek menü genişliğinde (272 px). Üst satırda iki dar kart, alt satırda tam genişlikte koordinatörlük. Sıra soldan sağa, yukarıdan aşağı: önce program, sonra rol, sonra birim.</p>
+</header>
+
+<div style="display:grid; grid-template-columns:repeat(4, 272px); justify-content:space-between">
+
+<!-- ========== 1 · KAPALI ========== -->
+<section class="ks-col" aria-labelledby="d1">
+<div><p class="rp-kicker">1</p><h2 id="d1" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Kapalı · Admin</h2></div>
+<div class="ks-frame">
+<div class="ks-logo"><span aria-hidden="true"></span><span style="font-family:var(--font-display); font-weight:600; font-size:15px">RoketPortal</span></div>
+<div class="ks-pair">
+<button type="button" class="ks-card" aria-haspopup="menu" aria-label="Program: Şanlıurfa Teknofest"><span class="ks-card__l">Program<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="ks-card__v"><span class="ks-pav" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">ŞT</span><span>Şanlıurfa</span></span></button>
+<button type="button" class="ks-card" aria-haspopup="menu" aria-label="Rol: Admin"><span class="ks-card__l">Rol<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="ks-card__v"><span class="ks-dot" aria-hidden="true" style="background:var(--r-admin)"></span><span>Admin</span></span></button>
+</div>
+<div class="ks-ghost" aria-hidden="true"><span>Ana sayfa</span><span>Görevler</span><span>Takvim</span><span>Arşiv</span></div>
+</div>
+<p class="ks-note">Admin her şeyi gördüğü için koordinatörlük kartı çıkmaz; yalnızca Koordinatör ve Üye rolünde görünür.</p>
+</section>
+
+<!-- ========== 2 · PROGRAM AÇIK ========== -->
+<section class="ks-col" aria-labelledby="d2">
+<div><p class="rp-kicker">2</p><h2 id="d2" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Program menüsü</h2></div>
+<div class="ks-frame">
+<div class="ks-logo"><span aria-hidden="true"></span><span style="font-family:var(--font-display); font-weight:600; font-size:15px">RoketPortal</span></div>
+<div class="ks-pair">
+<button type="button" class="ks-card" aria-haspopup="menu" aria-expanded="true" aria-label="Program: Şanlıurfa Teknofest"><span class="ks-card__l">Program<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></span><span class="ks-card__v"><span class="ks-pav" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">ŞT</span><span>Şanlıurfa</span></span></button>
+<button type="button" class="ks-card" aria-haspopup="menu" aria-label="Rol: Admin"><span class="ks-card__l">Rol<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="ks-card__v"><span class="ks-dot" aria-hidden="true" style="background:var(--r-admin)"></span><span>Admin</span></span></button>
+</div>
+<div class="ks-pop" role="menu" aria-label="Program seç" style="top:134px">
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="true"><span class="ks-it__lead"><span class="ks-pav ks-pav--lg" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">ŞT</span><span style="display:flex; flex-direction:column; min-width:0"><span>Şanlıurfa Teknofest</span><span class="rp-cap" style="font-weight:400">2026 sezonu</span></span></span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></button>
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="false"><span class="ks-it__lead"><span class="ks-pav ks-pav--lg" aria-hidden="true" style="background:var(--gold); color:var(--on-gold)">İT</span><span style="display:flex; flex-direction:column; min-width:0"><span>İzmir Teknofest</span><span class="rp-cap">2026 sezonu</span></span></span><span></span></button>
+</div>
+</div>
+<p class="ks-note">Program değişince rol ve koordinatörlük o programdaki ilk uygun seçime döner.</p>
+</section>
+
+<!-- ========== 3 · ROL AÇIK ========== -->
+<section class="ks-col" aria-labelledby="d3">
+<div><p class="rp-kicker">3</p><h2 id="d3" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Rol menüsü</h2></div>
+<div class="ks-frame">
+<div class="ks-logo"><span aria-hidden="true"></span><span style="font-family:var(--font-display); font-weight:600; font-size:15px">RoketPortal</span></div>
+<div class="ks-pair">
+<button type="button" class="ks-card" aria-haspopup="menu" aria-label="Program: Şanlıurfa Teknofest"><span class="ks-card__l">Program<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="ks-card__v"><span class="ks-pav" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">ŞT</span><span>Şanlıurfa</span></span></button>
+<button type="button" class="ks-card" aria-haspopup="menu" aria-expanded="true" aria-label="Rol: Admin"><span class="ks-card__l">Rol<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></span><span class="ks-card__v"><span class="ks-dot" aria-hidden="true" style="background:var(--r-admin)"></span><span>Admin</span></span></button>
+</div>
+<div class="ks-pop" role="menu" aria-label="Rol seç" style="top:134px">
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="true"><span class="ks-it__lead"><span class="ks-dot" aria-hidden="true" style="background:var(--r-admin)"></span><span>Admin</span></span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></button>
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="false"><span class="ks-it__lead"><span class="ks-dot" aria-hidden="true" style="background:var(--r-koord)"></span><span>Koordinatör</span></span><span class="rp-count">2</span></button>
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="false"><span class="ks-it__lead"><span class="ks-dot" aria-hidden="true" style="background:var(--r-uye)"></span><span>Üye</span></span><span class="rp-count">3</span></button>
+</div>
+</div>
+<p class="ks-note">Yalnızca bu programda sahip olduğun roller. Sağdaki sayı, o roldeki koordinatörlük sayısı.</p>
+</section>
+
+<!-- ========== 4 · KOORDİNATÖRLÜK AÇIK (ÜYE) ========== -->
+<section class="ks-col" aria-labelledby="d4">
+<div><p class="rp-kicker">4</p><h2 id="d4" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Koordinatörlük · Üye</h2></div>
+<div class="ks-frame">
+<div class="ks-logo"><span aria-hidden="true"></span><span style="font-family:var(--font-display); font-weight:600; font-size:15px">RoketPortal</span></div>
+<div class="ks-pair">
+<button type="button" class="ks-card" aria-haspopup="menu" aria-label="Program: Şanlıurfa Teknofest"><span class="ks-card__l">Program<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="ks-card__v"><span class="ks-pav" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">ŞT</span><span>Şanlıurfa</span></span></button>
+<button type="button" class="ks-card ks-card--u" aria-haspopup="menu" aria-label="Rol: Üye"><span class="ks-card__l">Rol<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="ks-card__v"><span class="ks-dot" aria-hidden="true" style="background:var(--r-uye)"></span><span>Üye</span></span></button>
+</div>
+<button type="button" class="ks-card" aria-haspopup="menu" aria-expanded="true" aria-label="Koordinatörlük: Altyapı ve tesisat"><span class="ks-card__l">Koordinatörlük<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></span><span class="ks-card__v"><span>Altyapı ve tesisat</span></span></button>
+<div class="ks-pop" role="menu" aria-label="Koordinatörlük seç" style="top:198px">
+<p class="ks-pop__h">Üye olduğun birimler</p>
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="true"><span>Altyapı ve tesisat</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></button>
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="false"><span>Elektrik ve enerji</span><span></span></button>
+<button type="button" class="ks-it" role="menuitemradio" aria-checked="false"><span>Operasyon</span><span></span></button>
+</div>
+</div>
+<p class="ks-note">Liste seçili role göre süzülür. Rol kartının çerçevesi rol rengini alır; Admin dışında olduğun hep görünür.</p>
+</section>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px">
+<div class="ks-rule"><h3>Kartlar dar ama okunur</h3><p>Programın kısa adı (Şanlıurfa, İzmir) üstte görünür; tam adı menüde yazar. Rol adları en uzun hâliyle (Koordinatör) sığar.</p></div>
+<div class="ks-rule"><h3>Menüler kendi kartının altında açılır</h3><p>Her menü yalnızca kendi seçimini içerir: programlar, rollerin ya da birimlerin. Ek satır, ayar veya ekleme yok.</p></div>
+<div class="ks-rule"><h3>Daraltılmış menüde</h3><p>Dar kenar menüsünde üç kart, üst üste üç küçük simgeye dönüşür: program harfleri, rol noktası, birim kodu.</p></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

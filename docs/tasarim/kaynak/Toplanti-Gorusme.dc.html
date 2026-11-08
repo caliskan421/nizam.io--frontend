@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Görüşme</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-code--own{background:var(--ink)!important; color:var(--bg-base)!important}
+.rp-mrow{display:grid; grid-template-columns:64px minmax(0,1fr) auto auto 20px; gap:20px; align-items:center; width:100%; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); color:inherit; font:inherit; text-align:left; cursor:pointer; box-sizing:border-box}
+.rp-mrow:hover{border-color:var(--border-strong)}
+.rp-mrow:focus-visible{outline:2px solid var(--focus-ring); outline-offset:2px}
+.rp-mrow--live{border-color:color-mix(in srgb, var(--accent-text) 45%, transparent); background:color-mix(in srgb, var(--accent-text) 5%, var(--bg-surface))}
+.rp-mdate{display:flex; flex-direction:column; align-items:center; justify-content:center; height:56px; border-radius:14px; background:var(--bg-raised); border:1px solid var(--border-subtle)}
+.rp-mdate b{font-family:var(--font-display); font-size:22px; line-height:24px; font-weight:600}
+.rp-mdate span{font-size:11px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.04em}
+.rp-mmeta{display:flex; gap:18px; align-items:center; color:var(--ink-muted); font-size:12px; white-space:nowrap}
+.rp-mmeta > span{display:inline-flex; align-items:center; gap:6px}
+.rp-pill{display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; border:1px solid var(--border-subtle); color:var(--ink-muted); background:var(--bg-raised)}
+.rp-pill--live{color:var(--accent-ink); background:var(--accent-text); border-color:transparent}
+.rp-pill--wait{color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:color-mix(in srgb, var(--gold) 8%, transparent)}
+.rp-pill--violet{color:var(--violet); border-color:color-mix(in srgb, var(--violet) 40%, transparent); background:color-mix(in srgb, var(--violet) 8%, transparent)}
+.rp-live-dot{width:8px; height:8px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px color-mix(in srgb, currentColor 25%, transparent)}
+.rp-daylabel{display:flex; align-items:baseline; gap:10px; margin:6px 0 -2px}
+.rp-daylabel h2{margin:0; font-family:var(--font-display); font-size:15px; font-weight:600}
+.rp-livecard{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:20px; align-items:center; padding:18px 20px; border-radius:var(--radius-lg); border:1px solid color-mix(in srgb, var(--accent-text) 40%, transparent); background:linear-gradient(90deg, color-mix(in srgb, var(--accent-text) 12%, var(--bg-surface)), var(--bg-surface) 70%)}
+.rp-mtprev{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; padding:10px 14px; border:1px dashed var(--border-strong); border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-del{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-subtle)}
+.rp-conf{box-sizing:border-box; padding:20px 22px; border-radius:var(--radius-lg); border:1px solid color-mix(in srgb, var(--accent-text) 40%, transparent); background:linear-gradient(90deg, color-mix(in srgb, var(--accent-text) 12%, var(--bg-surface)), var(--bg-surface) 70%)}
+.rp-conf--off{border-color:var(--border-subtle); background:var(--bg-surface)}
+.rp-conf__icon{width:52px; height:52px; border-radius:16px; display:grid; place-items:center; background:var(--accent-text); color:var(--accent-ink)}
+.rp-conf--off .rp-conf__icon{background:var(--bg-overlay); color:var(--ink-muted)}
+.rp-tiles{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; margin-top:18px}
+.rp-tile{position:relative; height:104px; border-radius:14px; background:var(--bg-raised); border:1px solid var(--border-subtle); display:grid; place-items:center; overflow:hidden}
+.rp-tile--me{border-color:var(--accent-text)}
+.rp-tile--nocam{background:var(--bg-base)}
+.rp-tile__name{position:absolute; left:8px; right:8px; bottom:6px; display:flex; gap:6px; align-items:center; font-size:12px; font-weight:500; min-width:0}
+.rp-agenda{display:grid; grid-template-columns:20px minmax(0,1fr) auto 32px; gap:12px; align-items:center; min-height:52px; padding:6px 4px; border-bottom:1px solid var(--border-subtle)}
+.rp-agenda--done .rp-agenda__t{color:var(--ink-muted); text-decoration:line-through; text-decoration-color:var(--ink-faint)}
+.rp-note{display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; padding:16px 0; border-bottom:1px solid var(--border-subtle)}
+.rp-note__body{margin:6px 0 0; font-size:14px; line-height:22px; color:var(--ink); white-space:pre-wrap; overflow-wrap:anywhere}
+.rp-note__foot{display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.rp-role{display:inline-flex; align-items:center; height:20px; padding:0 7px; border-radius:6px; font-size:11px; font-weight:600; background:var(--bg-overlay); color:var(--ink-muted)}
+.rp-role--k{color:var(--gold); background:color-mix(in srgb, var(--gold) 12%, transparent)}
+.rp-role--a{color:var(--violet); background:color-mix(in srgb, var(--violet) 12%, transparent)}
+.rp-tasklink{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 10px; border-radius:8px; border:1px solid color-mix(in srgb, var(--accent-text) 35%, transparent); background:none; color:var(--accent-text); font:inherit; font-size:12px; font-weight:600; cursor:pointer}
+.rp-composer{display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--border-control); border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-composer textarea{border:0; background:none; resize:vertical; min-height:56px; color:var(--ink); font:inherit; font-size:14px; line-height:22px; outline:none}
+.rp-addrow{display:grid; grid-template-columns:20px minmax(0,1fr) auto; gap:12px; align-items:center; min-height:52px; padding:0 4px; color:var(--ink-faint)}
+.rp-addrow input{border:0; background:none; color:var(--ink); font:inherit; font-size:14px; outline:none; min-width:0; height:40px}
+.rp-person{display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:44px}
+.rp-warn{display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border-radius:12px; background:color-mix(in srgb, var(--gold) 10%, transparent); border:1px solid color-mix(in srgb, var(--gold) 30%, transparent); font-size:12px; line-height:18px}
+.rp-inrow{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.rp-depchip{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto auto; gap:8px; align-items:center; min-height:40px; padding:0 6px 0 8px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--bg-raised); font-size:13px}
+.rp-own{font-size:11px; font-weight:600; color:var(--accent-text)}
+.rp-quote{margin:0; padding:12px 14px; border-left:3px solid var(--border-strong); border-radius:0 10px 10px 0; background:var(--bg-raised); font-size:13px; line-height:20px; color:var(--ink-muted)}
+.rp-call{position:relative; height:900px; z-index:1; display:flex; flex-direction:column; background:#0b0c0e; color:#f2f3f5; font-family:var(--font-sans); --ink:#f2f3f5; --ink-muted:#a9adb5; --ink-faint:#71757d; --bg-raised:#17191d; --bg-surface:#121417; --bg-overlay:#22252a; --border-subtle:#25282d; --border-strong:#33363c; --border-control:#3a3e45}
+.rp-call__top{display:flex; align-items:center; gap:14px; height:64px; padding:0 18px; border-bottom:1px solid #1d1f23; flex:none; box-sizing:border-box}
+.rp-call__body{flex:1 1 auto; min-height:0; display:grid; gap:0}
+.rp-call__stage{min-width:0; min-height:0; display:flex; flex-direction:column; gap:12px; padding:16px 16px 14px}
+.rp-call__view{flex:1 1 auto; min-height:0; position:relative; display:flex}
+.rp-call__ctrl{flex:none; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; padding-top:4px}
+.rp-call__sep{width:1px; height:36px; background:#2a2d32; margin:0 8px}
+.rp-call__side{min-width:0; min-height:0; display:flex; flex-direction:column; border-left:1px solid #1d1f23; background:#101215}
+.rp-call__pane{flex:1 1 auto; min-height:0; overflow:auto; padding:10px 12px 16px}
+.rp-cbtn{display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:76px; height:58px; padding:0 8px; border:0; border-radius:14px; background:#1b1d21; color:#e9eaed; font:inherit; font-size:11px; font-weight:500; cursor:pointer}
+.rp-cbtn:hover{background:#25282d}
+.rp-cbtn:focus-visible, .rp-pipbtn:focus-visible, .rp-pip__video:focus-visible{outline:2px solid var(--accent-text); outline-offset:2px}
+.rp-cbtn--off{background:color-mix(in srgb, var(--danger) 22%, #1b1d21); color:#ffb4ab}
+.rp-cbtn--on{background:color-mix(in srgb, var(--accent-text) 22%, #1b1d21); color:var(--accent-text)}
+.rp-vtile{position:relative; border-radius:16px; overflow:hidden; display:grid; place-items:center; min-height:0; background:#1c1e22; border:1px solid #26292e}
+.rp-vtile:nth-child(3n+2){background:#202226}
+.rp-vtile:nth-child(3n){background:#1a1c1f}
+.rp-vtile--main{flex:1 1 auto}
+.rp-vtile--nocam{background:#121316 !important}
+.rp-vtile--talk{box-shadow:inset 0 0 0 3px var(--accent-text)}
+.rp-vtile--me{outline:1px solid #3a3e45; outline-offset:-1px}
+.rp-vtile__av{width:96px; height:96px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.12); color:#fff; font-family:var(--font-display); font-size:30px; font-weight:600; backdrop-filter:blur(4px)}
+.rp-vtile--sm .rp-vtile__av{width:44px; height:44px; font-size:15px}
+.rp-vtile__name{position:absolute; left:10px; bottom:10px; display:inline-flex; gap:6px; align-items:center; max-width:calc(100% - 20px); padding:4px 10px; border-radius:8px; background:rgba(0,0,0,.55); color:#fff; font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rp-vtile--sm .rp-vtile__name{left:6px; bottom:6px; padding:2px 6px; font-size:11px}
+.rp-vtile__name .t-icon{width:14px; height:14px}
+.rp-gallery{flex:1 1 auto; display:grid; gap:10px; grid-auto-rows:1fr}
+.rp-strip{flex:none; display:grid; grid-auto-flow:column; grid-auto-columns:minmax(140px, 180px); gap:10px; height:104px; overflow-x:auto}
+.rp-share{flex:1 1 auto; position:relative; border-radius:16px; background:#050607; display:grid; place-items:center; padding:28px; overflow:hidden}
+.rp-share__win{width:100%; max-width:1100px; height:100%; max-height:620px; border-radius:12px; background:#f4f5f7; color:#1b1d21; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.rp-share__bar{display:flex; gap:6px; align-items:center; height:34px; padding:0 12px; background:#e3e5e9; font-size:12px}
+.rp-share__bar span{width:10px; height:10px; border-radius:50%; background:#c4c7cd}
+.rp-share__bar b{margin-left:10px; font-weight:600; color:#4b4f57}
+.rp-share__body{position:relative; flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:24px 28px}
+.rp-share__row{display:grid; grid-template-columns:200px minmax(0,1fr); gap:16px; align-items:center; font-size:13px}
+.rp-share__lbl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#3a3e45}
+.rp-share__trk{position:relative; height:18px; border-radius:6px; background:#e6e8ec; display:block}
+.rp-share__trk span{position:absolute; top:0; bottom:0; border-radius:6px}
+.rp-share__today{position:absolute; top:16px; bottom:16px; left:calc(28px + 216px + (100% - 272px) * .72); width:2px; background:#7fbf3f}
+.rp-share__tag{position:absolute; left:16px; top:16px; display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:8px; background:rgba(0,0,0,.65); color:#fff; font-size:12px; font-weight:600}
+.rp-pip{position:absolute; right:24px; bottom:24px; z-index:5; width:340px; border-radius:16px; overflow:hidden; background:#121417; color:#f2f3f5; box-shadow:0 18px 50px rgba(0,0,0,.45), 0 0 0 1px #2a2d32; font-family:var(--font-sans); --ink:#f2f3f5; --ink-muted:#a9adb5}
+.rp-pip__video{position:relative; display:grid; place-items:center; width:100%; height:180px; border:0; padding:0; cursor:pointer; background:#0b0c0e; color:inherit; font:inherit}
+.rp-pip__share{width:86%; height:76%; border-radius:8px; background:#f4f5f7; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:12px; box-sizing:border-box}
+.rp-pip__label{position:absolute; left:8px; bottom:8px; padding:2px 8px; border-radius:6px; background:rgba(0,0,0,.6); font-size:11px; font-weight:500}
+.rp-pip__live{position:absolute; right:8px; top:8px; display:inline-flex; gap:6px; align-items:center; padding:2px 8px; border-radius:999px; background:var(--accent-text); color:var(--accent-ink); font-size:11px; font-weight:700}
+.rp-pip__bar{display:flex; align-items:center; gap:6px; padding:10px 10px 10px 14px}
+.rp-pipbtn{width:34px; height:34px; flex:none; display:grid; place-items:center; border:0; border-radius:10px; background:#1f2226; color:#e9eaed; cursor:pointer}
+.rp-pipbtn:hover{background:#2a2d32}
+.rp-pipbtn--off{background:color-mix(in srgb, var(--danger) 25%, #1f2226); color:#ffb4ab}
+.rp-pipbtn--leave{background:var(--danger); color:var(--on-danger, #fff)}
+.rp-incall{display:flex; align-items:center; gap:12px; margin-top:16px; padding:12px 14px; border-radius:12px; background:color-mix(in srgb, var(--accent-text) 10%, transparent)}
+@media (prefers-reduced-motion: reduce) { .rp-call, .rp-pip { animation:none } }
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="font-family:var(--font-sans)">
+<div class="rp-call" role="dialog" aria-label="Görüntülü toplantı: Haftalık koordinasyon toplantısı">
+<header class="rp-call__top">
+<span class="rp-pill rp-pill--live"><span class="rp-live-dot"></span>Canlı</span>
+<span style="display:flex; flex-direction:column; min-width:0"><strong class="rp-trunc" style="font-size:15px; font-weight:600">Haftalık koordinasyon toplantısı</strong><span class="rp-cap rp-trunc">14:02’de başladı · host olarak bağlısın</span></span>
+<span class="rp-grow"></span>
+<span class="rp-avstack"><span class="rp-av rp-av--sm">KÖ</span><span class="rp-av rp-av--sm">AA</span><span class="rp-av rp-av--sm">AV</span><span class="rp-av rp-av--sm">RK</span></span>
+<span class="rp-cap rp-nowrap">6 / 25</span>
+<button class="t-btn t-btn--ghost t-btn--sm" type="button">Toplantı sayfası</button>
+<button class="t-iconbtn" type="button" aria-label="Küçült"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"></path></svg></button>
+</header>
+<div class="rp-call__body" style="grid-template-columns:minmax(0,1fr) 380px">
+<section class="rp-call__stage" aria-label="Görüntü">
+<div class="rp-call__view">
+<div class="rp-share" role="img" aria-label="Kadir Özbek ekranını paylaşıyor">
+<div class="rp-share__win"><div class="rp-share__bar"><span></span><span></span><span></span><b>RoketPortal — Görevler › Zaman çizelgesi · SİS, ALT, ELE</b></div><div class="rp-share__body"><div class="rp-share__row"><span class="rp-share__lbl">ALT-5 · Su deposu temel betonu</span><span class="rp-share__trk"><span style="left:2.3%; width:16%; background:#e5484d"></span></span></div><div class="rp-share__row"><span class="rp-share__lbl">ALT-7 · Hidrofor sistemi kurulumu</span><span class="rp-share__trk"><span style="left:10%; width:28%; background:#8b7cf6"></span></span></div><div class="rp-share__row"><span class="rp-share__lbl">ALT-10 · Montaj, test ve devreye alma</span><span class="rp-share__trk"><span style="left:17%; width:40%; background:#e5484d"></span></span></div><div class="rp-share__row"><span class="rp-share__lbl">ALT-14 · Hidrofor montaj ekibi saha planı</span><span class="rp-share__trk"><span style="left:70%; width:1.5%; background:#b9bcc3"></span></span></div><div class="rp-share__row"><span class="rp-share__lbl">ELE-3 · Enerji ihtiyaç analizi</span><span class="rp-share__trk"><span style="left:28%; width:22%; background:#7fbf3f"></span></span></div><div class="rp-share__row"><span class="rp-share__lbl">ELE-4 · Trafo ve dağıtım projesi</span><span class="rp-share__trk"><span style="left:40%; width:35%; background:#8b7cf6"></span></span></div><div class="rp-share__row"><span class="rp-share__lbl">ELE-9 · Jeneratör yakıt tankı teklifi</span><span class="rp-share__trk"><span style="left:67%; width:8%; background:#b9bcc3"></span></span></div><span class="rp-share__today"></span></div></div>
+<span class="rp-share__tag"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v12H3zM8 21h8M12 17v4"></path></svg>Kadir Özbek ekranını paylaşıyor</span>
+</div>
+</div>
+<div class="rp-strip"><div class="rp-vtile rp-vtile--sm rp-vtile--talk"><span class="rp-vtile__av">KÖ</span><span class="rp-vtile__name"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>Kadir Özbek</span></div><div class="rp-vtile rp-vtile--sm "><span class="rp-vtile__av">AA</span><span class="rp-vtile__name"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V6a3 3 0 0 0-5.7-1.3M19 11a7 7 0 0 1-1.2 3.9M5 11a7 7 0 0 0 10.4 6.1M12 18v3"></path></svg>Abdullah Ateş</span></div><div class="rp-vtile rp-vtile--sm "><span class="rp-vtile__av">AV</span><span class="rp-vtile__name"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>Ali Avcı</span></div><div class="rp-vtile rp-vtile--sm rp-vtile--nocam"><span class="rp-vtile__av">RK</span><span class="rp-vtile__name"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>Reha Koçak</span></div><div class="rp-vtile rp-vtile--sm "><span class="rp-vtile__av">MK</span><span class="rp-vtile__name"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V6a3 3 0 0 0-5.7-1.3M19 11a7 7 0 0 1-1.2 3.9M5 11a7 7 0 0 0 10.4 6.1M12 18v3"></path></svg>Mevlüt Kayacan</span></div><div class="rp-vtile rp-vtile--sm rp-vtile--me"><span class="rp-vtile__av">MA</span><span class="rp-vtile__name"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>Sen</span></div></div>
+<div class="rp-call__ctrl" role="toolbar" aria-label="Görüşme denetimleri"><button class="rp-cbtn " type="button"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"></path></svg><span>Sessize al</span></button><button class="rp-cbtn " type="button"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 10l5-3v10l-5-3zM3 7h12v10H3z"></path></svg><span>Kamerayı kapat</span></button><button class="rp-cbtn " type="button"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v12H3zM8 21h8M12 17v4M12 13V8M9.5 10.5 12 8l2.5 2.5"></path></svg><span>Ekranı paylaş</span></button><button class="rp-cbtn " type="button"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h8v7H3zM13 4h8v7h-8zM3 13h8v7H3zM13 13h8v7h-8z"></path></svg><span>Galeri</span></button><button class="rp-cbtn rp-cbtn--on" type="button"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM15 4v16"></path></svg><span>Paneli gizle</span></button><button class="rp-cbtn " type="button"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"></path></svg><span>Küçült</span></button><span class="rp-call__sep" aria-hidden="true"></span><button class="t-btn t-btn--ghost" type="button" style="color:var(--danger)">Herkes için bitir</button><button class="t-btn t-btn--danger" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg>Ayrıl</button></div>
+</section>
+<aside class="rp-call__side" aria-label="Toplantı çalışma alanı">
+<div style="display:flex; align-items:center; gap:8px; padding:12px 12px 0">
+<div class="rp-seg" role="tablist" aria-label="Yan panel" style="flex:1 1 auto"><button type="button" role="tab" aria-selected="false" style="flex:1 1 0; justify-content:center">Gündem <span class="rp-count">4/7</span></button><button type="button" role="tab" aria-selected="true" aria-pressed="true" style="flex:1 1 0; justify-content:center">Notlar <span class="rp-count">5</span></button><button type="button" role="tab" aria-selected="false" style="flex:1 1 0; justify-content:center">Kişiler <span class="rp-count">6</span></button></div>
+<button class="t-iconbtn" type="button" aria-label="Yan paneli kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div class="rp-call__pane">
+<div class="rp-composer" style="padding:10px 12px"><textarea aria-label="Not yaz" placeholder="Görüşme sırasında not al…" style="min-height:64px"></textarea><div style="display:flex; justify-content:space-between; align-items:center; gap:8px"><span class="rp-cap">0 / 2000</span><button class="t-btn t-btn--primary t-btn--sm" type="button">Not ekle</button></div></div>
+<article class="rp-note" style="grid-template-columns:28px minmax(0,1fr); padding:12px 2px"><span class="rp-av rp-av--sm" aria-hidden="true">MA</span><div style="min-width:0"><div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap"><strong style="font-size:12px; font-weight:600">Muhammet Ali Çalışkan</strong><span class="rp-role rp-role--a">Admin</span><span class="rp-cap">bugün 14:31</span></div><p class="rp-note__body" style="font-size:13px; line-height:20px; margin-top:4px">Trafo onayı gelmezse saha pano montajını 3 Kasım’a kaydıralım.</p><div class="rp-note__foot" style="gap:10px; margin-top:8px"><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Göreve dönüştür</button><span class="rp-grow"></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Düzenle</button><button class="rp-link rp-linkbtn" type="button" style="font-size:12px; color:var(--danger)">Sil</button></div></div></article><article class="rp-note" style="grid-template-columns:28px minmax(0,1fr); padding:12px 2px"><span class="rp-av rp-av--sm" aria-hidden="true">MK</span><div style="min-width:0"><div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap"><strong style="font-size:12px; font-weight:600">Mevlüt Yunus Kayacan</strong><span class="rp-role rp-role--k">Koordinatör</span><span class="rp-cap">bugün 14:25</span></div><p class="rp-note__body" style="font-size:13px; line-height:20px; margin-top:4px">Jeneratör yakıt tankı için ikinci bir tedarikçiden teklif alalım. Mevcut teklif teslim süresini 3 hafta gösteriyor.</p><div class="rp-note__foot" style="gap:10px; margin-top:8px"><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Göreve dönüştür</button><span class="rp-grow"></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Düzenle</button><button class="rp-link rp-linkbtn" type="button" style="font-size:12px; color:var(--danger)">Sil</button></div></div></article><article class="rp-note" style="grid-template-columns:28px minmax(0,1fr); padding:12px 2px"><span class="rp-av rp-av--sm" aria-hidden="true">KÖ</span><div style="min-width:0"><div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap"><strong style="font-size:12px; font-weight:600">Kadir Özbek</strong><span class="rp-role rp-role--k">Koordinatör</span><span class="rp-cap">bugün 14:15</span></div><p class="rp-note__body" style="font-size:13px; line-height:20px; margin-top:4px">Hidrofor pompalarının teslimi 28 Ekim’e kaydı. Montaj ekibi 29–31 Ekim arasında sahada olacak.</p><div class="rp-note__foot" style="gap:10px; margin-top:8px"><button class="rp-tasklink" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>ALT-14</button><span class="rp-grow"></span><button class="rp-link rp-linkbtn" type="button" style="font-size:12px">Düzenle</button><button class="rp-link rp-linkbtn" type="button" style="font-size:12px; color:var(--danger)">Sil</button></div></div></article>
+</div>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic { renderVals() { return { theme: this.props.theme ?? 'dark' }; } }
+</script>
+</body>
+</html>

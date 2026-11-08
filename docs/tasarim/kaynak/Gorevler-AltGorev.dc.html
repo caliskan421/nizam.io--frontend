@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Alt görevler ve zaman çizelgesi</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.rp-mono{font-family:var(--font-mono)}
+.sg-panel{border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-surface); padding:20px 24px; box-sizing:border-box}
+.sg-gantt{position:relative; overflow:hidden}
+.sg-row{display:grid; grid-template-columns:300px 966px; align-items:center; min-height:48px; border-bottom:1px solid var(--border-subtle)}
+.sg-row--head{min-height:28px; border-bottom:1px solid var(--border-strong)}
+.sg-row--sub{min-height:30px; border-bottom:1px dashed color-mix(in srgb, var(--border-subtle) 70%, transparent); background:color-mix(in srgb, var(--ink) 2%, transparent)}
+.sg-row--hover{background:var(--bg-raised)}
+.sg-lab{display:grid; grid-template-columns:52px minmax(0,1fr); gap:10px; align-items:center; padding:6px 16px 6px 0; min-width:0}
+.sg-lab--sub{grid-template-columns:30px 18px minmax(0,1fr); gap:8px; padding-left:22px}
+.sg-track{position:relative; height:48px}
+.sg-row--sub .sg-track{height:30px}
+.sg-tog{display:inline-flex; align-items:center; gap:2px; height:28px; padding:0 6px 0 2px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-base); color:var(--ink-muted); font-family:var(--font-mono); font-size:11px; cursor:pointer; justify-self:start}
+.sg-tog:hover{color:var(--ink); border-color:var(--border-strong)}
+.sg-tog[aria-expanded="true"]{color:var(--ink); border-color:var(--border-strong); background:var(--bg-raised)}
+.sg-tog--none{border:0; background:none}
+.sg-bar{position:absolute; top:12px; height:24px; border-radius:7px; box-sizing:border-box; color:var(--gp-ink); overflow:hidden}
+.sg-bar--clip{border-top-left-radius:0; border-bottom-left-radius:0}
+.sg-bar__t{position:absolute; left:8px; top:0; line-height:24px; font-size:11.5px; font-weight:600; white-space:nowrap}
+.sg-prog{position:absolute; left:0; right:0; bottom:0; height:4px; background:color-mix(in srgb, var(--gp-ink) 16%, transparent)}
+.sg-prog > span{display:block; height:100%; background:var(--gp-ink)}
+.sg-prog--lg{position:relative; display:block; height:6px; border-radius:3px; overflow:hidden; background:var(--bg-overlay); flex:1 1 auto}
+.sg-prog--lg > span{background:var(--accent-text); border-radius:3px}
+.sg-tick{position:absolute; top:7px; width:10px; height:10px; transform:rotate(45deg); background:var(--bg-base); border:2px solid var(--gp-ink); box-sizing:border-box; border-radius:2px}
+.sg-tick--done{background:var(--gp-ink)}
+.sg-chip{position:absolute; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; gap:3px; height:20px; padding:0 7px; border-radius:6px; background:var(--bg-overlay); color:var(--ink-muted); font-family:var(--font-mono); font-size:11px; font-weight:500; white-space:nowrap}
+.sg-chip--all{color:var(--accent-text); background:color-mix(in srgb, var(--accent-text) 14%, transparent)}
+.sg-tree{position:relative; height:30px}
+.sg-tree::before{content:""; position:absolute; left:10px; top:-1px; bottom:-1px; border-left:1px solid var(--border-strong)}
+.sg-tree::after{content:""; position:absolute; left:10px; top:50%; width:14px; border-top:1px solid var(--border-strong)}
+.sg-tree--last::before{bottom:50%}
+.sg-sst{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border-strong); box-sizing:border-box; flex:none}
+.sg-sst--done{border-color:var(--accent-text); background:var(--accent-text); color:var(--bg-base)}
+.sg-sst--done svg{width:11px !important; height:11px !important; stroke-width:3}
+.sg-sbar{position:absolute; top:50%; height:8px; margin-top:-4px; border-radius:4px; background:transparent; border:1.5px solid var(--gp-doing); box-sizing:border-box}
+.sg-sbar--done{background:color-mix(in srgb, var(--gp-done) 55%, transparent); border-color:transparent}
+.sg-nodate{position:absolute; top:50%; transform:translateY(-50%); font-size:11.5px; color:var(--ink-faint); white-space:nowrap; font-style:italic}
+.sg-tip{width:300px; display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid var(--border-strong); border-radius:var(--radius-md); background:var(--bg-raised); box-shadow:var(--shadow-sheet); box-sizing:border-box}
+.sg-tiplist{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px}
+.sg-tiplist li{display:grid; grid-template-columns:16px minmax(0,1fr) auto; gap:8px; align-items:center}
+.sg-card{width:100%; padding:20px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-base); box-sizing:border-box}
+.sg-sub{display:grid; grid-template-columns:18px minmax(0,1fr); gap:12px; align-items:start; padding:10px 0; border-top:1px solid var(--border-subtle); font-size:13.5px}
+.sg-pill{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 10px; border:1px solid var(--border-subtle); border-radius:999px; background:var(--bg-surface); color:var(--ink); font-family:inherit; font-size:12px; cursor:pointer}
+.sg-pill--on{border-color:var(--border-strong)}
+.sg-pill--ghost{border-style:dashed; color:var(--ink-muted)}
+.sg-pill--req{cursor:default; color:var(--gold); border-color:color-mix(in srgb, var(--gold) 45%, var(--border-subtle))}
+.sg-gtag{margin-left:2px; padding:1px 6px; border-radius:6px; background:color-mix(in srgb, var(--gp-doing) 22%, transparent); color:var(--ink); font-size:10.5px; font-weight:600}
+.sg-add{display:grid; grid-template-columns:16px minmax(0,1fr); gap:10px; align-items:center; height:40px; padding:0 12px; border:1px dashed var(--border-strong); border-radius:var(--radius-md); color:var(--ink-muted)}
+.sg-add input{border:0; background:transparent; color:var(--ink); font:inherit; font-size:13px; outline:none; min-width:0}
+.sg-legend{display:flex; flex-wrap:wrap; gap:8px 20px; align-items:center; font-size:12.5px; color:var(--ink-muted)}
+.sg-legend > span{display:inline-flex; align-items:center; gap:8px}
+.sg-rule{display:grid; grid-template-columns:28px minmax(0,1fr); gap:12px; align-items:start}
+.sg-rule b{display:block; font-size:14px; line-height:20px; color:var(--ink)}
+.sg-rule p{margin:2px 0 0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.sg-num{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:var(--bg-overlay); font-family:var(--font-mono); font-size:12px; font-weight:600}
+</style>
+</helmet>
+<div data-theme="dark" style="width:1440px; height:1420px; box-sizing:border-box; padding:56px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:28px">
+
+<header style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px">
+<div style="display:flex; flex-direction:column; gap:10px; max-width:860px">
+<p class="rp-kicker">Görevler · alt görevler</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Alt görevler çubuğun içinde, istenince satır olarak</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Zaman çizelgesi varsayılan olarak yalnızca görevleri gösterir. Alt görevler ana çubuğun altındaki ilerleme çizgisi ve bitiş işaretleriyle okunur. Satır sayısı artmaz; tek görevi ya da hepsini açınca ince alt satırlar belirir.</p>
+</div>
+<div class="rp-seg" role="group" aria-label="Alt görev gösterimi">
+<button type="button" aria-pressed="true">Kapalı</button>
+<button type="button" aria-pressed="false">Tümünü aç</button>
+</div>
+</header>
+
+<section class="sg-panel" aria-label="Zaman çizelgesi örneği" style="padding:16px 24px 20px">
+<div class="sg-gantt" role="grid" aria-label="Zaman çizelgesi, alt görevlerle">
+<div class="sg-row sg-row--head" role="row"><div class="sg-lab" style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted)">Görev · alt görev</div><div class="sg-track" style="height:28px"><span style="position:absolute; left:0px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">1 Eki</span><span style="position:absolute; left:84px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">5 Eki</span><span style="position:absolute; left:231px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">12 Eki</span><span style="position:absolute; left:378px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">19 Eki</span><span style="position:absolute; left:525px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">26 Eki</span><span style="position:absolute; left:672px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">2 Kas</span><span style="position:absolute; left:819px; top:0; bottom:0; padding-left:6px; border-left:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11px; line-height:28px; color:var(--ink-muted); white-space:nowrap">9 Kas</span></div></div>
+<div style="position:relative">
+<div aria-hidden="true" style="position:absolute; top:0; bottom:0; left:300px; width:966px; pointer-events:none"><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:42px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:63px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:84px; width:1px; background:var(--border-subtle)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:189px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:210px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:231px; width:1px; background:var(--border-subtle)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:336px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:357px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:378px; width:1px; background:var(--border-subtle)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:483px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:504px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:525px; width:1px; background:var(--border-subtle)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:630px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:651px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:672px; width:1px; background:var(--border-subtle)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:777px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:798px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:819px; width:1px; background:var(--border-subtle)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:924px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:945px; width:21px; background:color-mix(in srgb, var(--ink) 3%, transparent)"></span><span aria-hidden="true" style="position:absolute; top:0; bottom:0; left:430px; width:2px; background:var(--accent-text)"></span><span style="position:absolute; top:-2px; left:408px; padding:1px 6px; border-radius:6px; background:var(--accent-text); color:var(--bg-base); font-family:var(--font-mono); font-size:10.5px; font-weight:600">Bugün</span></div>
+<div class="sg-row" role="row"><div class="sg-lab"><span class="sg-tog sg-tog--none" aria-hidden="true"></span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:600">Etkinlik günü koordinasyon planı</span><span class="rp-cap rp-trunc"><span class="rp-mono">OPE-6</span> · Operasyon</span></span></div><div class="sg-track"><span class="sg-bar" style="left:84px; width:504px; background:var(--gp-doing)" title="Devam ediyor"><span class="sg-bar__t">Devam ediyor</span></span></div></div>
+<div class="sg-row" role="row"><div class="sg-lab"><button type="button" class="sg-tog" aria-expanded="false" aria-label="İDA-5 alt görevlerini göster"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px; transform:rotate(0deg)"><path d="M9 6l6 6-6 6"></path></svg><span>1/2</span></button><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:600">Yemek planlama takip</span><span class="rp-cap rp-trunc"><span class="rp-mono">İDA-5</span> · İdari işler</span></span></div><div class="sg-track"><span class="sg-bar" style="left:0px; width:483px; background:var(--gp-doing)" title="Devam ediyor"><span class="sg-bar__t">Devam ediyor</span><span class="sg-prog" aria-hidden="true"><span style="width:50%"></span></span></span><span class="sg-chip" style="left:491px">1/2</span></div></div>
+<div class="sg-row" role="row"><div class="sg-lab"><button type="button" class="sg-tog" aria-expanded="true" aria-label="ULA-1 alt görevlerini gizle"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px; transform:rotate(90deg)"><path d="M9 6l6 6-6 6"></path></svg><span>1/3</span></button><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:600">Otopark zemin düzenlemesi faz5 ve faz6</span><span class="rp-cap rp-trunc"><span class="rp-mono">ULA-1</span> · Ulaşım planlama</span></span></div><div class="sg-track"><span class="sg-bar sg-bar--clip" style="left:0px; width:966px; background:var(--gp-doing)" title="Devam ediyor"><span class="sg-bar__t">Devam ediyor</span><span class="sg-prog" aria-hidden="true"><span style="width:33%"></span></span></span></div></div>
+<div class="sg-row sg-row--sub" role="row"><div class="sg-lab sg-lab--sub"><span class="sg-tree" aria-hidden="true"></span><span class="sg-sst sg-sst--done" aria-label="Tamamlandı"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span><span class="rp-trunc" style="font-size:12.5px; color:var(--ink-muted); text-decoration:line-through; text-decoration-color:var(--border-strong)">Zemin etüdü raporu</span></div><div class="sg-track"><span class="sg-sbar sg-sbar--done" style="left:0px; width:168px"></span><span class="rp-cap" style="position:absolute; left:176px; top:50%; transform:translateY(-50%); white-space:nowrap">1 Eki – 8 Eki</span></div></div>
+<div class="sg-row sg-row--sub" role="row"><div class="sg-lab sg-lab--sub"><span class="sg-tree" aria-hidden="true"></span><span class="sg-sst" aria-label="Açık"></span><span class="rp-trunc" style="font-size:12.5px; ">Faz5 sıkıştırma</span></div><div class="sg-track"><span class="sg-sbar" style="left:441px; width:315px"></span><span class="rp-cap" style="position:absolute; left:764px; top:50%; transform:translateY(-50%); white-space:nowrap">22 Eki – 5 Kas</span></div></div>
+<div class="sg-row sg-row--sub" role="row"><div class="sg-lab sg-lab--sub"><span class="sg-tree sg-tree--last" aria-hidden="true"></span><span class="sg-sst" aria-label="Açık"></span><span class="rp-trunc" style="font-size:12.5px; ">Faz6 sıkıştırma</span></div><div class="sg-track"><span class="sg-nodate" style="left:0px">Tarih yok · ana görev süresince</span></div></div>
+<div class="sg-row sg-row--hover" role="row"><div class="sg-lab"><button type="button" class="sg-tog" aria-expanded="false" aria-label="ALT-7 alt görevlerini göster"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px; transform:rotate(0deg)"><path d="M9 6l6 6-6 6"></path></svg><span>1/3</span></button><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:600">Hidrofor sistemi kurulumu</span><span class="rp-cap rp-trunc"><span class="rp-mono">ALT-7</span> · Altyapı ve tesisat</span></span></div><div class="sg-track"><span class="sg-bar sg-bar--clip" style="left:0px; width:651px; background:var(--gp-doing)" title="Devam ediyor"><span class="sg-bar__t">Devam ediyor</span><span class="sg-tick" style="left:635px" title="Montaj ekibini planla · bitiş 31 Eki"></span><span class="sg-prog" aria-hidden="true"><span style="width:33%"></span></span></span><span class="sg-chip" style="left:659px">1/3</span></div></div>
+<div class="sg-row" role="row"><div class="sg-lab"><button type="button" class="sg-tog" aria-expanded="false" aria-label="EĞİ-1 alt görevlerini göster"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px; transform:rotate(0deg)"><path d="M9 6l6 6-6 6"></path></svg><span>1/4</span></button><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:600">Gönüllü eğitim içeriği</span><span class="rp-cap rp-trunc"><span class="rp-mono">EĞİ-1</span> · Eğitim ve Arge</span></span></div><div class="sg-track"><span aria-hidden="true" style="position:absolute; top:50%; left:357px; width:73px; height:0; border-top:2px dashed var(--gp-late-line)"></span><span class="sg-bar" style="left:105px; width:252px; background:var(--gp-late)" title="Gecikti"><span class="sg-bar__t">Gecikti</span><span class="sg-tick" style="left:236px" title="Sunum taslağı · bitiş 17 Eki"></span><span class="sg-prog" aria-hidden="true"><span style="width:25%"></span></span></span><span class="sg-chip" style="left:365px">1/4</span></div></div>
+<div class="sg-row" role="row"><div class="sg-lab"><button type="button" class="sg-tog" aria-expanded="false" aria-label="İDA-2 alt görevlerini göster"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px; transform:rotate(0deg)"><path d="M9 6l6 6-6 6"></path></svg><span>2/2</span></button><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px; font-weight:600">Talep toplama</span><span class="rp-cap rp-trunc"><span class="rp-mono">İDA-2</span> · İdari işler</span></span></div><div class="sg-track"><span class="sg-bar sg-bar--clip" style="left:0px; width:168px; background:var(--gp-review)" title="Onay bekliyor"><span class="sg-bar__t">Onay bekliyor</span><span class="sg-prog" aria-hidden="true"><span style="width:100%"></span></span></span><span class="sg-chip sg-chip--all" style="left:176px"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>2/2</span></div></div>
+</div>
+</div>
+<div class="sg-legend" style="margin-top:16px">
+<span><span class="sg-tog" style="pointer-events:none; height:22px"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M9 6l6 6-6 6"></path></svg>1/3</span>Alt görev var · tıklayınca açılır</span>
+<span><span style="position:relative; display:inline-block; width:40px; height:12px; border-radius:4px; background:var(--gp-doing); overflow:hidden"><span class="sg-prog" style="height:3px"><span style="width:33%"></span></span></span>Alttaki çizgi: biten alt görev oranı</span>
+<span><span class="sg-tick" style="position:relative; top:0; display:inline-block; border-color:var(--ink); background:transparent"></span>Tarihli alt görevin bitişi</span>
+<span><span class="sg-sbar" style="position:relative; top:0; margin:0; display:inline-block; width:40px"></span>Açık alt görev</span>
+<span><span class="sg-sbar sg-sbar--done" style="position:relative; top:0; margin:0; display:inline-block; width:40px"></span>Biten alt görev</span>
+</div>
+</section>
+
+<div style="display:grid; grid-template-columns:420px 300px minmax(0,1fr); gap:32px; align-items:start">
+<section style="display:flex; flex-direction:column; gap:12px">
+<h2 style="margin:0; font-size:16px; line-height:22px; font-weight:600">Tanımlama · görev detayında</h2>
+<div class="sg-card" style="display:flex; flex-direction:column; gap:12px">
+<div style="display:flex; flex-direction:column; gap:2px"><span class="rp-kicker">ALT-7 · Altyapı ve tesisat</span><span style="font-family:var(--font-display); font-weight:600; font-size:18px; line-height:24px">Hidrofor sistemi kurulumu</span></div>
+<div style="display:flex; align-items:center; justify-content:space-between"><span style="font-weight:600; font-size:13px">Alt görevler</span><span class="rp-mono" style="font-size:12px; color:var(--ink-muted)">1 / 3 tamamlandı</span></div>
+<span class="sg-prog sg-prog--lg" aria-hidden="true"><span style="width:33%"></span></span>
+<div class="sg-sub">
+<input class="t-check" type="checkbox" checked aria-label="Pompa tedarikçisinden teyit al tamamlandı" style="width:18px; height:18px">
+<span style="display:flex; flex-direction:column; gap:6px; min-width:0"><span style="color:var(--ink-muted); text-decoration:line-through">Pompa tedarikçisinden teyit al</span></span>
+</div>
+<div class="sg-sub">
+<input class="t-check" type="checkbox" aria-label="Montaj ekibini planla tamamlandı" style="width:18px; height:18px">
+<span style="display:flex; flex-direction:column; gap:6px; min-width:0"><span>Montaj ekibini planla</span><span style="display:flex; flex-wrap:wrap; gap:6px"><button type="button" class="sg-pill"><span class="rp-av rp-av--sm" aria-hidden="true" style="width:18px; height:18px; font-size:8px">KO</span>Kişi</button><button type="button" class="sg-pill sg-pill--on"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:13px; height:13px"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg>29–31 Eki<span class="sg-gtag">Gantt’ta</span></button></span></span>
+</div>
+<div class="sg-sub">
+<input class="t-check" type="checkbox" aria-label="Basınç testi tamamlandı" style="width:18px; height:18px">
+<span style="display:flex; flex-direction:column; gap:6px; min-width:0"><span>Basınç testi</span><span style="display:flex; flex-wrap:wrap; gap:6px"><button type="button" class="sg-pill sg-pill--ghost"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:13px; height:13px"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg>Tarih ekle</button><span class="sg-pill sg-pill--req"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:13px; height:13px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"></path></svg>Kanıt zorunlu</span></span></span>
+</div>
+<div class="sg-add"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><input type="text" placeholder="Alt görev ekle ve Enter’a bas" aria-label="Alt görev ekle"></div>
+<p class="rp-cap" style="margin:0">Tarihi olan alt görev zaman çizelgesinde kendi çubuğuyla, tarihi olmayan yalnızca listede görünür.</p>
+</div>
+</section>
+<section style="display:flex; flex-direction:column; gap:12px">
+<h2 style="margin:0; font-size:16px; line-height:22px; font-weight:600">Kapalı çubuğun üzerine gelince</h2>
+<div class="sg-tip" role="tooltip">
+<div style="display:flex; flex-direction:column; gap:2px"><span class="rp-kicker">ALT-7 · Altyapı ve tesisat</span><span style="font-weight:600; font-size:14px">Hidrofor sistemi kurulumu</span><span class="rp-cap">22 Haz – 31 Eki · Devam ediyor</span></div>
+<div style="display:flex; align-items:center; gap:8px"><span class="sg-prog sg-prog--lg" aria-hidden="true"><span style="width:33%"></span></span><span class="rp-mono" style="font-size:12px">1/3</span></div>
+<ul class="sg-tiplist">
+<li><span class="sg-sst sg-sst--done"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span><span style="color:var(--ink-muted)">Pompa tedarikçisinden teyit al</span><span></span></li>
+<li><span class="sg-sst"></span><span>Montaj ekibini planla</span><span class="rp-cap rp-mono">29–31 Eki</span></li>
+<li><span class="sg-sst"></span><span>Basınç testi</span><span class="rp-cap">tarih yok</span></li>
+</ul>
+<span class="rp-cap">Tıkla: alt görevleri satır olarak aç</span>
+</div>
+</section>
+<section style="display:flex; flex-direction:column; gap:18px">
+<h2 style="margin:0; font-size:16px; line-height:22px; font-weight:600">Kurallar</h2>
+<div class="sg-rule"><span class="sg-num">1</span><div><b>Varsayılan kapalı</b><p>Her görev tek satır. Alt görevler çubuğun altındaki ince ilerleme çizgisi ve bitiş işaretleriyle görünür, satır eklemez.</p></div></div>
+<div class="sg-rule"><span class="sg-num">2</span><div><b>Açmak görev görev ya da hepsi birden</b><p>Soldaki “1/3” düğmesi yalnızca o görevi açar. Üstteki “Tümünü aç” bütün görevleri açar. Açık satırlar daha ince ve girintilidir.</p></div></div>
+<div class="sg-rule"><span class="sg-num">3</span><div><b>Tarih isteğe bağlı</b><p>Tarihi olan alt görev kendi ince çubuğuyla, tarihi olmayan “Tarih yok” yazısıyla görünür. Tanımlarken “Tarih ekle” demek yeterli.</p></div></div>
+<div class="sg-rule"><span class="sg-num">4</span><div><b>Ana görevin dışına taşmaz</b><p>Alt görev tarihi ana görevin başlangıç ve bitişi arasında seçilir. Taşacaksa önce ana görev için tarih talebi istenir.</p></div></div>
+</section>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1420}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

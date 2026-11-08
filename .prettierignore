@@ -14,3 +14,5 @@ docs/**/*.md
 .backend/
 src/shared/tokens/*.gen.*
 e2e/.state/
+# Tasarım kaynağı — elle biçimlenmez
+docs/tasarim/kaynak/
