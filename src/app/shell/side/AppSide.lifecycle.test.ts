@@ -19,7 +19,13 @@ import {
 import { createFakeBackend } from '../../../../tests/support/fake-backend'
 
 const backend = createFakeBackend()
-beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+beforeAll(async () => {
+  backend.server.listen({ onUnhandledFrame: 'error' })
+  // Isınma: SFC ve standing modüllerinin dönüşümü bir kez yapılır; test başına
+  // `vi.resetModules()` sonrası yalnız yeniden değerlendirme kalır.
+  await import('./AppSide.vue')
+  await import('@/shared/scope/lifecycle')
+})
 afterEach(() => {
   backend.server.resetHandlers()
   backend.reset()
