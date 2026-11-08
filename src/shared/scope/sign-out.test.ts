@@ -98,6 +98,34 @@ describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
     expect(backend.count('/v1/auth/refresh')).toBe(refreshBefore + 1)
   })
 
+  it('CX-F0-E-03: sürmekte olan refresh doğrulanamayan çıkıştan sonra dönerse uygulanmaz', async () => {
+    let refreshStarted!: () => void
+    const started = new Promise<void>((r) => (refreshStarted = r))
+    let releaseRefresh!: () => void
+    const gate = new Promise<void>((r) => (releaseRefresh = r))
+    backend.server.use(
+      http.post('http://localhost/v1/auth/logout', () =>
+        backend.envelope('platform.internal', 500),
+      ),
+      // Yanıt bekletilir, sonra varsayılan (200, yeni belirteç) işleyiciye düşer.
+      http.post('http://localhost/v1/auth/refresh', async () => {
+        refreshStarted()
+        await gate
+      }),
+    )
+    const ctx = await signedIn()
+    backend.seedAmbientSession()
+    const { authSession } = ctx.m.http
+    const refresh = authSession.refresh(authSession.token)
+    await started
+
+    expect(await ctx.m.session.useSessionStore().logout(ctx.queryClient)).toBe('server_unverified')
+    releaseRefresh()
+    expect(await refresh).toBe('ended')
+    expect(backend.count('/v1/auth/refresh')).toBe(1)
+    expectCleared(ctx, true)
+  })
+
   it('ağ hatası → doğrulanamadı', async () => {
     backend.server.use(http.post('http://localhost/v1/auth/logout', () => HttpResponse.error()))
     const ctx = await signedIn()
