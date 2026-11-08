@@ -3,7 +3,8 @@
  * e-posta) + `GET /v1/me/departments` (ekip satırları) + `GET /v1/programs` (program adları;
  * `organization.membership_required` sinyali, G14). Üçü de S1'dir; anahtarlar KAPSAMSIZDIR
  * (ortak-kurallar §6: `['me']`, `['me','departments']`, `['programs']`), kapsam değişiminde
- * düşmez. Yeni uç yoktur.
+ * düşmez. Yeni uç yoktur. Ek olarak yönetici için program departman boşluğu (K7):
+ * `useProgramDepartmentGap` (S2 `listProgramDepartments`, kapsamlı anahtar).
  */
 import type { QueryClient } from '@tanstack/vue-query'
 import { useQuery } from '@tanstack/vue-query'
@@ -15,7 +16,9 @@ import { queryKeys } from '@/shared/http/query-keys'
 import { useSessionStore } from '@/shared/session/store'
 
 import { hasErrorCode } from './authority-loss'
+import { programDepartmentGap, type DepartmentGap } from './resolve'
 import { parsePrograms, parseStanding, type ProgramOption, type Standing } from './standing-facts'
+import { useScopeStore } from './store'
 
 /** Anahtarlar tek fabrikadan (`shared/http/query-keys.ts`, ortak-kurallar §6). */
 export const STANDING_KEYS = {
@@ -145,4 +148,36 @@ export function useStanding() {
     programsTruncated: computed(() => programs.data.value?.truncated === true),
     departmentsTruncated: computed(() => departments.data.value?.truncated === true),
   }
+}
+
+export async function fetchProgramDepartments() {
+  return unwrap(api.GET('/v1/program/departments'))
+}
+
+/**
+ * Yönetici için "programa departman katılmamış" (K7) tespiti: Admin merceğinde, kapsam hazırken
+ * `listProgramDepartments` (S2; anahtar `scoped(['departments'])`, ortak-kurallar §6) okunur.
+ * Kapsamlı anahtar olduğundan program değişiminde düşer (K2); `linkDepartment` vb. geçersizler.
+ * Koordinatör/Üye merceğinde istek atılmaz.
+ */
+export function useProgramDepartmentGap(scopeReady: () => boolean) {
+  const store = useScopeStore()
+  const adminScope = computed(
+    () => scopeReady() && store.lens === 'admin' && store.programId !== null,
+  )
+  const query = useQuery({
+    queryKey: computed(() => queryKeys.departments.all(store.snapshot)),
+    queryFn: fetchProgramDepartments,
+    enabled: adminScope,
+    retry: retryTransient,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  })
+  return computed<DepartmentGap>(() =>
+    programDepartmentGap({
+      adminScope: adminScope.value,
+      departments: query.data.value?.departments,
+      failed: query.error.value !== null,
+    }),
+  )
 }

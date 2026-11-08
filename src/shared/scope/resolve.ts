@@ -32,7 +32,11 @@ export type ScopeEmptyReason =
   | 'membership_required'
   /** Görünür program yok (yönetici: "program oluştur"; diğerleri bilgilendirme). */
   | 'no_program'
-  /** Seçili programda kullanıcının merceği yok (savunma; sözleşmede beklenmez). */
+  /**
+   * Seçili programda kullanıcının merceği yok (savunma; sözleşmede beklenmez). Yönetici için
+   * "programa departman katılmamış" ayrıca `programDepartmentGap` ile saptanır: Admin merceği
+   * her programda bulunduğundan satırsız yönetici bu nedene düşmez.
+   */
   | 'no_lens'
 
 export type ScopeResolution =
@@ -94,4 +98,28 @@ export function resolveScope(input: ResolveInput): ScopeResolution {
     }
   }
   return { kind: 'ready', selection: { programId, lens, departmentId } }
+}
+
+/**
+ * Seçili programın bağlı departman durumu (K7 "programa departman katılmamış", yönetici).
+ * Kaynak `listProgramDepartments` (S2, `scoped(['departments'])`): yalnız Admin merceğinde ve
+ * kapsam hazırken sorulur; Koordinatör/Üye merceği ekip satırından gelir, zaten bağlı birimdedir.
+ *  - `none`: denetim yok, bağ var ya da okunamadı (hata içeriği kendi ekranında; yanlış açık
+ *    durum gösterilmez).
+ *  - `checking`: liste bekleniyor (içerik görünüp kaybolmasın).
+ *  - `empty`: programa hiç departman bağlanmamış.
+ */
+export type DepartmentGap = 'none' | 'checking' | 'empty'
+
+export interface DepartmentGapInput {
+  /** Kapsam hazır ve mercek Admin mi (denetim yalnız bu durumda). */
+  adminScope: boolean
+  departments: readonly unknown[] | undefined
+  failed: boolean
+}
+
+export function programDepartmentGap(input: DepartmentGapInput): DepartmentGap {
+  if (!input.adminScope) return 'none'
+  if (input.departments) return input.departments.length === 0 ? 'empty' : 'none'
+  return input.failed ? 'none' : 'checking'
 }

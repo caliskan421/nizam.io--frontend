@@ -82,3 +82,78 @@ describe('useStanding', () => {
     expect((result.error.value as { code: string }).code).toBe('identity.unavailable')
   })
 })
+
+describe('useProgramDepartmentGap (K7 yönetici "departman yok")', () => {
+  async function setup(departments: string[] | 'forbidden') {
+    const { http } = await import('msw')
+    const { ref } = await import('vue')
+    const { flushPromises } = await import('@vue/test-utils')
+    const handlers = standingHandlers(backend, {
+      companyAdmin: true,
+      rows: [],
+      programs: [{ program_id: 'p1', name: 'Bir' }],
+      programDepartments: departments === 'forbidden' ? {} : { p1: departments },
+    })
+    backend.server.use(...handlers)
+    if (departments === 'forbidden') {
+      backend.server.use(
+        http.get('http://localhost/v1/program/departments', () =>
+          backend.envelope('program.not_found', 404),
+        ),
+      )
+    }
+    const m = await freshModules()
+    const queryClient = newQueryClient()
+    const ready = ref(false)
+    const { result } = withSetup(
+      () => m.standing.useProgramDepartmentGap(() => ready.value),
+      m.pinia,
+      queryClient,
+    )
+    const store = m.store.useScopeStore()
+    const count = () => backend.count('/v1/program/departments')
+    return { m, result, ready, store, queryClient, count, flushPromises }
+  }
+
+  it('kapsam hazır değilken ya da Admin dışı mercekte istek yok, sonuç "none"', async () => {
+    const { result, ready, store, count, flushPromises } = await setup([])
+    store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    await flushPromises()
+    expect(result.value).toBe('none')
+    store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
+    ready.value = true
+    await flushPromises()
+    expect(result.value).toBe('none')
+    expect(count()).toBe(0)
+  })
+
+  it('Admin merceği + boş liste → "empty"; kapsamlı anahtar, program başlığı', async () => {
+    const { result, ready, store, queryClient, count } = await setup([])
+    store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    ready.value = true
+    await vi.waitFor(() => expect(result.value).toBe('empty'))
+    expect(count()).toBe(1)
+    const { queryKeys } = await import('@/shared/http/query-keys')
+    expect(queryClient.getQueryData(queryKeys.departments.all(store.snapshot))).toBeDefined()
+    const request = backend.state.requests.find((r) => r.path === '/v1/program/departments')
+    expect(request?.headers.get('X-Nizamio-Program')).toBe('p1')
+  })
+
+  it('bağlı departman var → "none"; okuma hatası yanlış açık durum üretmez', async () => {
+    const linked = await setup(['d1'])
+    linked.store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    linked.ready.value = true
+    expect(linked.result.value).toBe('checking')
+    await vi.waitFor(() => expect(linked.count()).toBe(1))
+    await vi.waitFor(() => expect(linked.result.value).toBe('none'))
+
+    backend.server.resetHandlers()
+    backend.reset()
+    const failed = await setup('forbidden')
+    failed.store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    failed.ready.value = true
+    expect(failed.result.value).toBe('checking')
+    // 404 bir hükümdür (tekrar yok); hata → "none" (içerik kendi hatasını gösterir).
+    await vi.waitFor(() => expect(failed.result.value).toBe('none'))
+  })
+})
