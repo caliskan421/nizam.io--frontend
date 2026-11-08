@@ -1,0 +1,27 @@
+/*
+ * Ayrıntı paneli ölçüleri — tasarım kaynağındaki (docs/tasarim/kaynak/theme.css `rp-sheet`,
+ * `rp-sheethead`, `rp-dl`, `rp-timeline`, `rp-tl-dot`, `rp-dot`; Gorevler-Liste.dc.html panel
+ * işaretlemesi ve `.rp-sheet .rp-tabs`, `rp-dslink`, `rp-upbtn`) ölçek DIŞI değerler. Bu dizinde
+ * px yazılan TEK yer (detail-styles.test.ts denetler); renk yazılmaz. Ölçekte karşılığı olanlar
+ * (boşluk, köşe, denetim/simge boyu, yazı stilleri) doğrudan token'dan okunur.
+ */
+@layer components {
+  .wd {
+    --wd-sheet-gap: 18px;
+    --wd-head-gap: 14px;
+    --wd-title-font: 600 20px/26px var(--font-display);
+    --wd-fs: 13px;
+    --wd-tabs-gap: 16px;
+    --wd-tabs-fade: 28px;
+    --wd-dl-label-min: 88px;
+    --wd-dl-gap-y: 10px;
+    --wd-dot: 8px;
+    --wd-dot-ring: 1.5px;
+    --wd-tl-dot: 20px;
+    --wd-tl-inner: 6px;
+    --wd-tl-line-left: 9px;
+    --wd-tl-line-top: 14px;
+    --wd-link-icon: 14px;
+    --wd-skeleton-h: 14px;
+  }
+}

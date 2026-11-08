@@ -50,18 +50,36 @@ describe('router — katalog tek kaynak', () => {
     expect(router.hasRoute('work.tasks')).toBe(false)
   })
 
-  it('ileri fazda sayfası olmayan canlı rota hatadır (sessiz boş rota yok)', () => {
-    expect(() => buildRoutes('F1')).toThrow(/sayfası yok: work.tasks/)
+  it('sayfası olmayan canlı rota hatadır (sessiz boş rota yok)', () => {
+    const withoutTasks = MODULE_ROUTES.filter((r) => r.name !== 'work.tasks')
+    expect(() => buildRoutes('F1', withoutTasks)).toThrow(/sayfası yok: work.tasks/)
+    expect(() => buildRoutes('F2')).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('modülün sayfası ileri fazda canlı rotayı bağlar', () => {
-    const records: RouteRecordRaw[] = [
-      ...MODULE_ROUTES,
-      { path: '/gorevler', name: 'work.tasks', component: view, meta: { scope: 'S2' } },
-    ]
-    const routes = buildRoutes('F1', records)
-    expect(routes.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')
-    expect(liveRouteNames('F1')).toContain('work.tasks')
+  it('F1 (etkin faz): Görevler modül sayfasına bağlı (work/public workRoutes)', async () => {
+    const routes = buildRoutes()
+    expect(routes.map((r) => r.name ?? r.path)).toEqual([
+      'home',
+      'identity.session',
+      'work.tasks',
+      '/:pathMatch(.*)*',
+    ])
+    expect(MODULE_ROUTES.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')
+    expect(liveRouteNames()).toContain('work.tasks')
+    const router = memoryRouter(routes)
+    await router.push('/gorevler?durum=geciken')
+    const current = router.currentRoute.value
+    expect(current.name).toBe('work.tasks')
+    expect(current.meta).toEqual({ scope: 'S2', title: 'Görevler', menuKey: 'tasks' })
+    expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'TasksPage' })
+  })
+
+  it('F1: henüz canlı olmayan rotaların yolu kayıtlı değil', async () => {
+    const router = memoryRouter(buildRoutes('F1'))
+    for (const path of ['/zaman-cizelgesi', '/kullanicilar', '/toplantilar']) {
+      await router.push(path)
+      expect(router.currentRoute.value.name, path).toBe('home')
+    }
   })
 
   it.each([
@@ -87,6 +105,6 @@ describe('router — katalog tek kaynak', () => {
         .getRoutes()
         .map((r) => r.name)
         .filter(Boolean),
-    ).toEqual(expect.arrayContaining(['home', 'identity.session']))
+    ).toEqual(expect.arrayContaining(['home', 'identity.session', 'work.tasks']))
   })
 })

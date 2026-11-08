@@ -46,6 +46,8 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
     routes: [
       { path: '/', name: 'home', component: { render: () => null } },
       { path: '/oturum', name: 'identity.session', component: { render: () => null } },
+      // F1: Görevler menü öğesi canlı (bağlantı rota adını çözer).
+      { path: '/gorevler', name: 'work.tasks', component: { render: () => null } },
     ],
   })
   await router.push('/oturum')
@@ -124,7 +126,7 @@ describe('AppSide + kapsam yaşam döngüsü', () => {
     expect(store.snapshot).toEqual({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
     expect(queryClient.getQueryData(oldKey)).toBeUndefined()
     // Eski kapsamın (Admin merceği) hiçbir sorgusu kalmaz; yeni kapsamın veri taşımayan
-    // kapalı gözlemcisi (rozet, F0'da devre dışı) sayılmaz.
+    // kapalı gözlemcisi (rozet; K/Ü merceğinde uç çağrılmaz, BE-003) sayılmaz.
     const oldScope = JSON.stringify(oldKey[1])
     const leftovers = queryClient
       .getQueryCache()
