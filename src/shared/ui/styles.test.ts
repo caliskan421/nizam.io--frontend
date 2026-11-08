@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// shared/ui görünüm kuralları (W12 kabulü): ham renk yok, px yalnız metrics.css'te, satır içi
-// stil yok (CSP `style-src` nonce'lu; `'unsafe-inline'` yok), bileşen ≤ 150 satır.
+// shared/ui görünüm kuralları (W12 kabulü): ham renk yok, px yok (ölçek dışı `--ui-*` ölçüleri
+// üretilmiş token'da; CX-F0-Ö-02), satır içi stil yok (CSP `style-src` nonce'lu;
+// `'unsafe-inline'` yok), bileşen ≤ 150 satır.
 const dir = fileURLToPath(new URL('.', import.meta.url))
 
 function files(sub: string, ext: string): { name: string; text: string }[] {
@@ -36,17 +37,13 @@ describe('shared/ui görünüm kuralları', () => {
     }
   })
 
-  it('px yalnız metrics.css içinde', () => {
+  it('px yok; özel özellik tanımı yok (ölçüler üretilmiş token’dan)', () => {
     for (const { name, text } of [...components, ...styles]) {
-      if (name.endsWith('metrics.css')) continue
       expect(text.match(PX)?.[0], name).toBeUndefined()
     }
-  })
-
-  it('metrics.css yalnız --ui-* değişkeni tanımlar', () => {
-    const metrics = styles.find((s) => s.name.endsWith('metrics.css'))!.text
-    const declarations = metrics.replace(/\/\*[\s\S]*?\*\//g, '').match(/[\w-]+\s*:/g) ?? []
-    for (const decl of declarations) expect(decl, decl).toMatch(/^--ui-[\w-]+\s*:$/)
+    for (const { name, text } of styles) {
+      expect(text.match(/(?:^|[{;\s])--[\w-]+\s*:/)?.[0], name).toBeUndefined()
+    }
   })
 
   it('satır içi stil yok', () => {

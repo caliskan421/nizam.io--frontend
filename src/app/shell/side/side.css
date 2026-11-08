@@ -1,12 +1,11 @@
 /*
  * Kenar menüsü görünümü — `Sidebar.dc.html` (`sb-*`), `Kenar-Secici.dc.html` (`ks-*`) ve
  * theme.css (`rp-side`, `rp-rail`, `rp-raillogo`, `rp-navgroups`) birebir karşılığı. Kural: yalnız
- * token (`var(--…)`); ham renk yok, px yalnız side-metrics.css'te (medya sorgusu koşulu hariç:
- * CSS değişkeni medya koşulunda kullanılamaz; değer `--rp-narrow-max` ile aynıdır).
+ * token (`var(--…)`); ham renk ve px yok — ölçek dışı `--side-*` ölçüleri design/web-tokens.json
+ * `side` grubundan üretilir (medya sorgusu koşulu hariç: CSS değişkeni medya koşulunda
+ * kullanılamaz; değer `--rp-narrow-max` ile aynıdır).
  * Açık tema yalnız token değişimiyle (rol renkleri iki temada aynı).
  */
-@import './side-metrics.css';
-
 @layer components {
   .rp-side {
     flex: 0 0 var(--rp-side-w);

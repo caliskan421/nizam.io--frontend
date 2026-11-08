@@ -1,5 +1,5 @@
 {
-  "$description": "Web'e özgü tasarım token'ları (yol haritası K9). Yalnız tasarım kopyasındaki docs/tasarim/kaynak/theme.css ve tema-sistemi/tokens.css'te olup tasarım sistemi kaynağında (tokens/design-system.tokens.json) bulunmayan değerler. Değer düz CSS değeri ya da {dark, light} çiftidir; '{ad}' başka bir token'a başvurur (CSS'te var(--ad)). Kaynakta olan bir adı burada tekrar tanımlamak üreticide hatadır. Değiştirme: bu dosya + `pnpm gen:tokens` + PR.",
+  "$description": "Web'e özgü tasarım token'ları (yol haritası K9). Yalnız tasarım kopyasındaki docs/tasarim/kaynak/theme.css ve tema-sistemi/tokens.css'te olup tasarım sistemi kaynağında (tokens/design-system.tokens.json) bulunmayan değerler; ui/side/topbar grupları bileşen işaretlemesindeki (bundle.css, *.dc.html) ölçek dışı ölçülerdir — src altında px yalnız üretilmiş token dosyasındadır (CX-F0-Ö-02, px-scope.test.ts). Değer düz CSS değeri ya da {dark, light} çiftidir; '{ad}' başka bir token'a başvurur (CSS'te var(--ad)). Kaynakta olan bir adı burada tekrar tanımlamak üreticide hatadır. Değiştirme: bu dosya + `pnpm gen:tokens` + PR.",
   "version": 1,
   "groups": {
     "color": {
@@ -133,6 +133,92 @@
           "value": "900px",
           "usage": "Dar yerleşim sınırı (@media max-width); 901px ve üstü geniş. Medya sorgusunda var() çalışmaz: TS tarafında tokenPx('rp-narrow-max')."
         }
+      ]
+    },
+    "ui": {
+      "$description": "shared/ui bileşen ölçüleri — tema-sistemi/bundle.css ve theme.css'teki ölçek DIŞI değerler (eski shared/ui/styles/metrics.css; CX-F0-Ö-02).",
+      "tokens": [
+        { "name": "ui-hairline", "value": "1px" },
+        { "name": "ui-focus-width", "value": "2px" },
+        { "name": "ui-backdrop-blur", "value": "10px" },
+        { "name": "ui-fs-xs", "value": "12px" },
+        { "name": "ui-fs-sm", "value": "13px" },
+        { "name": "ui-text-sm-medium", "value": "500 13px/20px {font-sans}" },
+        { "name": "ui-text-sm-strong", "value": "600 13px/20px {font-sans}" },
+        { "name": "ui-text-xs-strong", "value": "600 12px/16px {font-sans}" },
+        { "name": "ui-text-stat", "value": "600 40px/44px {font-display}" },
+        { "name": "ui-gap-2xs", "value": "2px" },
+        { "name": "ui-gap-xs", "value": "6px" },
+        { "name": "ui-gap-sm", "value": "10px" },
+        { "name": "ui-pill-h", "value": "28px" },
+        { "name": "ui-count-size", "value": "16px" },
+        { "name": "ui-chip-x", "value": "20px" },
+        { "name": "ui-check-size", "value": "20px" },
+        { "name": "ui-check-border", "value": "1.5px" },
+        { "name": "ui-check-mark", "value": "14px" },
+        { "name": "ui-input-icon-pad", "value": "46px" },
+        { "name": "ui-select-chevron-inset", "value": "14px" },
+        { "name": "ui-kbd-size", "value": "24px" },
+        { "name": "ui-kbd-pad", "value": "6px" },
+        { "name": "ui-nav-pad-y", "value": "10px" },
+        { "name": "ui-navlist-pad-y", "value": "9px" },
+        { "name": "ui-nav-bar-w", "value": "4px" },
+        { "name": "ui-nav-bar-h", "value": "20px" },
+        { "name": "ui-seg-h", "value": "32px" },
+        {
+          "name": "ui-seg-pressed-shadow-light",
+          "value": {
+            "dark": "0 1px 2px color-mix(in srgb, {ink} 8%, transparent)",
+            "light": "0 1px 2px color-mix(in srgb, {ink} 8%, transparent)"
+          }
+        },
+        { "name": "ui-tab-h", "value": "40px" },
+        { "name": "ui-tab-bar", "value": "2px" },
+        { "name": "ui-stat-aside-w", "value": "144px" },
+        { "name": "ui-modal-w", "value": "560px" },
+        { "name": "ui-toast-offset", "value": "28px" },
+        { "name": "ui-toast-pad-x", "value": "18px" },
+        { "name": "ui-toast-radius", "value": "14px" },
+        { "name": "ui-av-sm", "value": "26px" },
+        { "name": "ui-av-md", "value": "32px" },
+        { "name": "ui-av-lg", "value": "52px" },
+        { "name": "ui-av-xl", "value": "72px" },
+        { "name": "ui-av-fs-sm", "value": "10px" },
+        { "name": "ui-av-fs-md", "value": "12px" },
+        { "name": "ui-av-fs-lg", "value": "16px" },
+        { "name": "ui-av-fs-xl", "value": "22px" }
+      ]
+    },
+    "side": {
+      "$description": "Kenar menüsü ölçüleri — Sidebar.dc.html, Kenar-Secici.dc.html, theme.css rp-raillogo ölçek DIŞI değerleri (eski side-metrics.css; CX-F0-Ö-02).",
+      "tokens": [
+        { "name": "side-logo-radius", "value": "10px" },
+        { "name": "side-raillogo-radius", "value": "11px" },
+        { "name": "side-label-font", "value": "400 10.5px/13px {font-mono}" },
+        { "name": "side-value-font", "value": "600 13px/18px {font-sans}" },
+        { "name": "side-chevron", "value": "12px" },
+        { "name": "side-pav", "value": "18px" },
+        { "name": "side-pav-radius", "value": "5px" },
+        { "name": "side-pav-fs", "value": "8.5px" },
+        { "name": "side-pav-lg", "value": "28px" },
+        { "name": "side-pav-lg-fs", "value": "11px" },
+        { "name": "side-dot", "value": "8px" },
+        { "name": "side-item-radius", "value": "10px" },
+        { "name": "side-navgroups-gap", "value": "28px" },
+        { "name": "side-badge-w", "value": "22px" },
+        { "name": "side-badge-h", "value": "20px" },
+        { "name": "side-badge-radius", "value": "10px" }
+      ]
+    },
+    "topbar": {
+      "$description": "Üst çubuk ölçüleri — theme.css rp-navbtns, Main.dc.html zil noktası ölçek DIŞI değerleri (eski topbar-metrics.css; CX-F0-Ö-02).",
+      "tokens": [
+        { "name": "topbar-nav-size", "value": "30px" },
+        { "name": "topbar-nav-icon", "value": "18px" },
+        { "name": "topbar-crumb-fs", "value": "13px" },
+        { "name": "topbar-dot", "value": "7px" },
+        { "name": "topbar-dot-top", "value": "6px" },
+        { "name": "topbar-dot-right", "value": "7px" }
       ]
     }
   }

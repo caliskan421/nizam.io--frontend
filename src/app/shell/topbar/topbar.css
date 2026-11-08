@@ -1,11 +1,10 @@
 /*
  * Üst çubuk görünümü — theme.css `rp-topbar`, `rp-navbtns`, `rp-crumbs`, `rp-kicker`,
- * `rp-themebtn` ve Main.dc.html zil noktasının birebir karşılığı. Kural: yalnız token; px yalnız
- * topbar-metrics.css'te (medya koşulu hariç: CSS değişkeni medya koşulunda kullanılamaz; değer
- * `--rp-narrow-max` ile aynıdır). Açık tema yalnız token değişimiyle; tema simgesi yalnız CSS ile.
+ * `rp-themebtn` ve Main.dc.html zil noktasının birebir karşılığı. Kural: yalnız token; px yok —
+ * ölçek dışı `--topbar-*` ölçüleri design/web-tokens.json `topbar` grubundan üretilir (medya
+ * koşulu hariç: CSS değişkeni medya koşulunda kullanılamaz; değer `--rp-narrow-max` ile aynıdır).
+ * Açık tema yalnız token değişimiyle; tema simgesi yalnız CSS ile.
  */
-@import './topbar-metrics.css';
-
 @layer components {
   .rp-topbar {
     display: flex;

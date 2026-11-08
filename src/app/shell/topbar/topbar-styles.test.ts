@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// Üst çubuk görünüm kuralları (KESİN 5): ham renk yok, px yalnız topbar-metrics.css'te (medya
-// koşulu hariç), satır içi stil yok, .vue ≤ 250 satır; tema simgesi yalnız CSS ile.
+// Üst çubuk görünüm kuralları (KESİN 5): ham renk yok, px yok (medya koşulu hariç; `--topbar-*`
+// ölçüleri üretilmiş token'da, CX-F0-Ö-02), satır içi stil yok, .vue ≤ 250 satır; tema simgesi yalnız CSS ile.
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const read = (name: string) => readFileSync(join(dir, name), 'utf8')
 const vue = readdirSync(dir).filter((n) => n.endsWith('.vue'))
@@ -18,15 +18,11 @@ const stripComments = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, '')
 const stripMedia = (text: string) => text.replace(/@media[^{]*\{/g, '@media {')
 
 describe('üst çubuk görünüm kuralları', () => {
-  it('ham renk yok; px yalnız topbar-metrics.css (yalnız --topbar-*)', () => {
+  it('ham renk yok; px yok (medya koşulu hariç); ayrı ölçü dosyası yok', () => {
+    expect(css.filter((name) => name.includes('metrics'))).toEqual([])
     for (const name of [...vue, ...css]) {
       expect(stripComments(read(name)).match(RAW_COLOR)?.[0], name).toBeUndefined()
-      if (name === 'topbar-metrics.css') continue
       expect(stripMedia(stripComments(read(name))).match(PX)?.[0], name).toBeUndefined()
-    }
-    const metrics = stripComments(read('topbar-metrics.css'))
-    for (const decl of metrics.match(/[\w-]+\s*:/g) ?? []) {
-      expect(decl).toMatch(/^--topbar-[\w-]+\s*:$/)
     }
   })
 
