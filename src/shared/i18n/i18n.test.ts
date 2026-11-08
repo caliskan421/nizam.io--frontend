@@ -7,6 +7,7 @@ import { CLIENT_ERROR_CODES } from '@/shared/errors/client-codes'
 import { errorText, i18n } from './index'
 import { trErrors } from './tr/errors'
 import { trMutation } from './tr/mutation'
+import { trConfirm, trConflict, trUi } from './tr/ui'
 
 // Katalogdaki her kod (zarf kodları + fields[] alan kodları) ve her istemci kodu için elle
 // yazılmış TR metni vardır; fazlası yoktur.
@@ -63,5 +64,23 @@ describe('TR hata metinleri', () => {
     expect(keys.length).toBeGreaterThan(0)
     for (const key of keys) expect(g.te(key), key).toBe(true)
     expect(g.t('mutation.outcome.rate_limited_seconds', { seconds: 7 })).toContain('7')
+  })
+
+  it('shared/ui metinleri (ui.*, confirm.*, conflict.*) statik ağaçta; bileşen yüklenmeden çözülür', () => {
+    const g = i18n.global
+    const walk = (node: Record<string, unknown>, prefix: string): [string, string][] =>
+      Object.entries(node).flatMap(([k, v]) =>
+        typeof v === 'string'
+          ? [[`${prefix}${k}`, v] as [string, string]]
+          : walk(v as Record<string, unknown>, `${prefix}${k}.`),
+      )
+    // Bu test shared/ui modüllerini içe aktarmaz: çalışma anı birleştirme olsaydı anahtar yoktu.
+    const entries = [trUi, trConfirm, trConflict].flatMap((tree) => walk(tree, ''))
+    expect(entries.length).toBeGreaterThan(20)
+    for (const [key, text] of entries) {
+      expect(g.te(key), key).toBe(true)
+      expect(g.tm(key), key).toBe(text)
+    }
+    expect(g.t('conflict.choice', { field: 'Başlık' })).toBe('Başlık: kalacak değer')
   })
 })

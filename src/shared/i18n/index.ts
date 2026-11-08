@@ -5,6 +5,7 @@ import type { ApiError } from '@/shared/errors/api-error'
 import { trErrors } from './tr/errors'
 import { trMutation } from './tr/mutation'
 import { trTerms } from './tr/terms'
+import { trConfirm, trConflict, trUi } from './tr/ui'
 
 /** "a.b" anahtarlarını vue-i18n'in iç içe ileti ağacına çevirir. */
 export function nest(flat: Record<string, string>): Record<string, unknown> {
@@ -23,7 +24,7 @@ export function nest(flat: Record<string, string>): Record<string, unknown> {
 }
 
 export const messages = {
-  tr: { errors: nest(trErrors), ...trTerms, ...trMutation },
+  tr: { errors: nest(trErrors), ...trTerms, ...trMutation, ...trUi, ...trConfirm, ...trConflict },
 }
 
 /** v1 yalnız TR; altyapı çok dilli (platform.md §5 web sorusu 6). */
