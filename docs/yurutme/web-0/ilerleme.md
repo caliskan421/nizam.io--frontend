@@ -9,8 +9,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O1 — Belgeler | Birleşti (#18) | `d010acb` |
 | O1b — Ekran tespitleri | Birleşti (#18, O1 ile aynı PR) | `d010acb` |
 | O2 — Temel | Birleşti (W14 #19, W11 #20, W12 #21, W13 #22, W15 #23) | `2c1c370` |
-| O3 — Kabuk | W21 birleşti (#24) · W22 PR #25 (CI) | `5adbeee` · `<#25 merge>` |
-| O4 — Gantt pilotu | Karar belgesi PR #26 (pilot kodu `web0/o4-w31` dalında, birleşmez) | `<#26 merge>` |
+| O3 — Kabuk | W21 birleşti (#24) · W22 birleşti (#25) | `5adbeee` · `9b41171` |
+| O4 — Gantt pilotu | Karar belgesi PR #26 (pilot kodu `web0/o4-w31` dalında, birleşmez) | `04cabce` |
 | O5 — Kapanış | Sürüyor (`web0/o5-kapanis`) | — |
 
 ## Kayıtlar
@@ -49,4 +49,5 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 ### 2026-11-08 — O5 (açık)
 - **Yapılanlar:** `docs/backend-eksikleri/rapor-F0.md` (F0'da BE satırı değişmedi; F1 öncelik sırası BE-003 → BE-036 → BE-038 → BE-040 → BE-004 → BE-001 → BE-051); `00-ortak` kabul tablosuna W13/W21/W22 onaylı varsayılanları; yol haritası K4 pilot cümlesi; `sentez.md` Y6 notu ve §8 durum satırı; `docs/yurutme/web-1/` iskeleti (F1 oturumları O2–O5, W41–W47 / W51 / W61).
-- **Bekleyen:** #25 ve #26 birleşmesi (hash yer tutucuları); `main`'de tam kapı + e2e CI; açık/koyu tema × 1440/1024/390 kabuk ekran görüntüsü doğrulaması; **Codex kapısı** (`docs/reviews/WEB-0-codex.md`); yönetim deposu `program/DURUM.md` + `gunluk/` satırı; Y1/Y2/Y3/Y9/Y11/Y12 yol haritası metinleri (ürün sahibi onayı).
+- **Codex kapısı tur 1** (`main` @ `9b41171`): **UYGUN DEĞİL** — engelleyiciler CX-F0-E-01…E-05; hüküm `docs/reviews/WEB-0-codex.md`. Düzeltme işleri: **W16** E-01/E-02/Ö-01/Ö-03 (korumalı mutasyon: K6 tetikleme, tekrar kapsamı, tekrar nesnesi bütünlüğü, zamanlama testleri) · **W17** E-03 (oturum nesli: devam eden refresh çıkışı geri alamaz) · **W23** E-04 (K7 gerçek rota bağlantısı + satırsız admin) · **belge (bu PR)** E-05 (Gantt kararı + `e614489` kanıt konumu) ve Ö-04 (rozet kabulü F1). Borç: Ö-02 (metrics → `web-tokens.json`), Ö-05 (yazı tipleri), K-01 (`ci.yml` metni) → F1 W61; K-02 (CLAUDE.md okuma yolları) → ürün sahibi; K-03 (Yönetim grubu capability) → F2.
+- **Bekleyen:** W16/W17/W23 PR'ları → Codex tur 2; `main`'de tam kapı + e2e CI; açık/koyu tema × 1440/1024/390 kabuk ekran görüntüsü doğrulaması; yönetim deposu `program/DURUM.md` + `gunluk/` satırı; Y1/Y2/Y3/Y9/Y11/Y12 yol haritası metinleri (ürün sahibi onayı).

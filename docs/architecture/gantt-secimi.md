@@ -1,10 +1,10 @@
 # Gantt kütüphanesi seçimi — F0 pilotu (K4)
 
-**Durum:** Öneri (W31, 2026-11-08). Kesin karar koordinatörde, yol haritasındaki K4 satırına işlenecek. Kurulum F3'te.
-**Pin:** `v0.11.0-api` (`Gantt`, `GanttTask`, `GanttLink`) · **Kanıt:** `pilot/gantt/` (ana uygulamaya birleşmez)
+**Durum:** Karar (koordinatör, 2026-11-08): kendi SVG Gantt; yedek SVAR. Yol haritası K4 satırına işlendi. Kurulum F3'te.
+**Pin:** `v0.11.0-api` (`Gantt`, `GanttTask`, `GanttLink`) · **Kanıt (sabit konum):** origin dalı `web0/o4-w31`, commit `e614489` — `pilot/gantt/**` + `pilot/gantt/evidence/` (main'e girmez; okuma: `git show e614489:pilot/gantt/evidence/results.json`)
 **Tespit kaynakları:** `docs/ekranlar/03c-zaman-cizelgesi/mekanizma.md` §8.1 (17 yetenek), `backend.md` §6 (veri gereksinimi), `ozellikler.md` §1–§2, `ortak-kurallar.md` §12 P8, `docs/tasarim/kaynak/Gorevler-Zaman.dc.html`, `Gorevler-AltGorev.dc.html`, `theme.css` (`--gp-*`), `deploy/Caddyfile` (CSP).
 
-## 1. Karar (öneri)
+## 1. Karar (koordinatör, 2026-11-08)
 
 **Kendi SVG Gantt'ımız (Vue 3 bileşeni + saf hesap katmanı).** Denenen üç açık kaynak kütüphanenin hiçbiri K4'ün zorunlu kapılarının hepsini geçmedi: DHTMLX Community ve Frappe üretim CSP'sini çiğniyor (satır içi `style` öznitelikleri); SVAR CSP'yi yalnız simge fontunu kapatınca geçiyor, ama erişilebilirlik modeli (düz `grid`, `aria-level`/`aria-selected` yok, hücre adı yalnız başlık, klavyeyle aç/kapa yok) ve "bugün" işaretinin PRO'da olması tasarımı birebir karşılamıyor. Kendi çizimimiz aynı veriyle bütün zorunlu ölçütleri geçti, puan tablosunda birinci (86/100), paket maliyeti tabana göre +5,1 KB gzip.
 
@@ -99,7 +99,7 @@ Puan 0–5, ağırlıklı toplam 100. **Kapı** sütunu K4'ün zorunlu şartlar�
 | Paket boyutu (5) | 5 | 2 | 4 | 0 |
 | **Toplam (100)** | **86** | **65** | **39** | **57** |
 | **Kapı** | geçti | koşullu geçti | CSP ✗, 200+ ✗ (sanallaştırma yok) | CSP ✗ |
-| **Öneri** | **seç** | yedek | ele | ele |
+| **Karar** | **seç** | yedek | ele | ele |
 
 ### 6.1 §8.1 yetenek listesi (17 madde) — pilotta görülen
 
@@ -123,7 +123,7 @@ Puan 0–5, ağırlıklı toplam 100. **Kapı** sütunu K4'ün zorunlu şartlar�
 | 16 | `prefers-reduced-motion` (isteğe bağlı) | animasyon yok | denenmedi | çubuk `<animate>` var | denenmedi |
 | 17 | Vue 3 + TS, ağaç sarsma, boyut, oklar + sanallaştırma | ✓ | ✓ | TS yok | TS var, Vue sarmalayıcısı ticari |
 
-## 7. Öneri ve F3 uygulama notu
+## 7. Karar ve F3 uygulama notu
 
 **Kendi SVG Gantt.** F3'te `modules/work` (ya da zaman çizelgesi modülü) altında, K12 boyut kapısına uyacak biçimde bölünür:
 
@@ -145,6 +145,8 @@ Puan 0–5, ağırlıklı toplam 100. **Kapı** sütunu K4'ün zorunlu şartlar�
 
 ## 9. Yeniden üretim
 
+Pilot ağacı yalnız `e614489`'de (origin `web0/o4-w31`) bulunur; önce `git fetch origin web0/o4-w31 && git switch --detach e614489`.
+
 ```sh
 cd pilot/gantt
 pnpm install          # kendi package.json'ı; kök package.json/pnpm-lock.yaml değişmez
@@ -154,4 +156,4 @@ pnpm measure          # RUNS=5 varsayılan; ONLY=own,svar ile süzülür → evi
 pnpm dev              # index.html: adaylar arası bağlantılar
 ```
 
-Kanıt dosyaları: `pilot/gantt/evidence/results.json` (ham ölçümler, CSP ihlal listeleri, erişilebilirlik ağacı başı, klavye ve sürükleme izleri), `pilot/gantt/evidence/*.png`.
+Kanıt dosyaları (sabit konum: origin dalı `web0/o4-w31`, commit `e614489`; main'de `pilot/` yoktur): `pilot/gantt/evidence/results.json` (ham ölçümler, CSP ihlal listeleri, erişilebilirlik ağacı başı, klavye ve sürükleme izleri), `pilot/gantt/evidence/*.png`.
