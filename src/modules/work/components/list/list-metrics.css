@@ -1,0 +1,36 @@
+/*
+ * Görev tablosu ölçüleri — tasarım kaynağındaki (docs/tasarim/kaynak/Gorevler-Liste.dc.html
+ * artboard `<style>`, theme.css `rp-tr`, `rp-dot`, `rp-avstack`, `rp-tip`) ölçek DIŞI değerler.
+ * `components/list` içinde px yazılan TEK yer (list-styles.test.ts denetler); renk yazılmaz.
+ * Ölçekte karşılığı olanlar (boşluk, köşe, yazı stilleri, `--ui-*`) doğrudan token'dan okunur.
+ */
+@layer components {
+  .rp-dtable {
+    --list-min-w: 640px;
+    --list-cols: 20px minmax(0, 1fr) 124px 132px 60px;
+    --list-row-h: 64px;
+    --list-meta-cols: 38px 48px minmax(0, 1fr) auto;
+    --list-gap-3xs: 3px;
+    --list-fs-2xs: 11px;
+    --list-dot: 8px;
+    --list-dot-ring: 1.5px;
+    --list-cap-dot: 5px;
+    --list-cap-dot-gap: 7px;
+    --list-pill-h: 20px;
+    --list-pill-radius: 6px;
+    --list-pill-pad: 7px;
+    --list-tog-pad-start: 2px;
+    --list-tog-icon: 14px;
+    --list-tag-icon: 12px;
+    --list-av-overlap: -3px;
+    --list-av-ring: 2px;
+    --list-tip-offset: 8px;
+    --list-tip-pad: 4px 8px;
+    --list-tip-radius: 7px;
+    --list-tip-font: 500 11px/14px var(--font-sans);
+    --list-tip-shift: 3px;
+    --list-sel-bar: 2px;
+    --list-subs-pad: 10px 16px 12px 52px;
+    --list-skel-h: 12px;
+  }
+}
