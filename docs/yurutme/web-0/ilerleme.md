@@ -55,6 +55,6 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 - **Codex tur 2** (`dfc8206`): **UYGUN DEĞİL** — E-01, E-03, E-04 kapandı; E-02 kısmen → yeni **CX-F0-E-06** (otomatik `conflict_retry` ikinci gönderimde kapsam kontrolü yok) → düzeltme **W16b**; E-05 (Gantt kararı + `e614489` kanıtı) ve Ö-04 (rozet kabulü F1) bu dalda, kapanış PR'ında doğrulanacak; kalan gerçek zaman beklemeleri (Ö-03 artığı) ve kardeş sekme bayrak aktarımı borcu → F1 W61. Hüküm `docs/reviews/WEB-0-codex.md` 2. koşum.
 - **W16b birleşti:** #30 `5a55ada` — CX-F0-E-06 (her gönderim öncesi kapsam/nesil kontrolü, otomatik tekrar dahil). **main nihai HEAD `5a55ada`.**
 - **Codex tur 3** (kapanış dalı `2c63264`, main `5a55ada`): **KOŞULLU UYGUN** — E-02/E-06 kapandı; E-05, Ö-04 belgeleri doğrulandı. Koşullar bu PR'da kapatıldı: **Ö-06** (web-1'de koordinatör kod imzası kaldırıldı, bileşen iskeleti W41'e) ve **K-04** (bu kayıt + W61 güncellemesi). F1 devirleri: W41 yakalanmış kapsamı taşıma katmanına bağlar (ilk canlı yazma tüketicilerinden önce, yarış testiyle); W61 borçları.
-- **CI kanıtı:** `<main 5a55ada CI run>`.
+- **CI kanıtı:** `https://github.com/caliskan421/nizam.io--frontend/actions/runs/42527539173`.
 - **Kapanış:** F0 (WEB-0) KOŞULLU UYGUN hükmüyle kapanır; koşullar bu PR'da kapalı. Sonraki: WEB-1 O2 (`docs/yurutme/web-1/`).
 - **Bekleyen (F0 dışı):** yönetim deposu `program/DURUM.md` + `gunluk/` satırı; Y1/Y2/Y3/Y9/Y11/Y12 yol haritası metinleri (ürün sahibi onayı).
