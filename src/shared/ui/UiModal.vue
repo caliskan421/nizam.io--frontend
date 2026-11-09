@@ -5,12 +5,15 @@ import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 
 import { useFocusTrap } from './focus-trap'
 import { uiText } from './messages'
+import { useModalLayer } from './modal-layer'
 import UiIconButton from './UiIconButton.vue'
 
 /**
  * Pencere (`t-modal`): `role="dialog"` + `aria-modal="true"`, başlık/açıklama bağlı, odak tuzağı,
  * kapanınca odak tetiğe döner. `dismissible` iken Esc, perde tıklaması ve kapat düğmesi kapatır;
  * değilse (ör. işlem sürerken) yalnız çağıran kapatır. Gövde varsayılan yuva, düğmeler `footer`.
+ * Odak gönderimde (`disabled` düğme) `BODY`'ye düşse de Esc/Tab pencerede kalır ve odak geri
+ * alınır (`modal-layer.ts`, W83).
  */
 const props = withDefaults(
   defineProps<{
@@ -26,6 +29,7 @@ const emit = defineEmits<{ close: [] }>()
 
 const panel = ref<HTMLElement | null>(null)
 const trap = useFocusTrap(panel)
+const layer = useModalLayer(panel, dismiss)
 const id = `ui-modal-${useId()}`
 
 function dismiss(): void {
@@ -60,8 +64,11 @@ watch(
   async (isOpen, wasOpen) => {
     if (isOpen) {
       await nextTick()
+      if (!open.value) return
       trap.activate()
+      layer.enter()
     } else if (wasOpen) {
+      layer.leave()
       trap.deactivate()
     }
   },
@@ -69,6 +76,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  layer.leave()
   if (open.value) trap.deactivate()
 })
 </script>
