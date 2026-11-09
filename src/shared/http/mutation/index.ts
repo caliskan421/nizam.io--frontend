@@ -19,6 +19,7 @@ export {
   type MutationSuccess,
   type OutcomeMessage,
 } from './outcome'
+export { ownerLife, type OwnerLife } from './owner'
 export { runWithFollowUps, type CompositeOutcome, type FollowUpStep } from './partial'
 export {
   NOTE_REVISION_GROUPS,

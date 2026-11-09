@@ -11,7 +11,8 @@
  * eylem gönderilmez, `scope_changed` döner. Başarı geçersizlemesi de bu kapsamla yapılır.
  * Eylem oturum neslini de taşır: arada çıkış olduysa (nesil değişti) eylem gönderilmez.
  * Kapsam ve nesil **her gönderimden önce** denetlenir — `platform.conflict_retry` otomatik
- * tekrarı dahil (CX-F0-E-06).
+ * tekrarı dahil (CX-F0-E-06). Aynı kapı sahip yaşamını da denetler (`alive`; CX-F1-E-05):
+ * sahip söküldükten sonra yeni HTTP yazması başlamaz (`owner_disposed`).
  */
 import {
   ApiError,
@@ -87,6 +88,11 @@ export interface EngineOptions<V, D, S> {
   generation?: () => number
   /** Sonuç K6/Y1 yetki kaybı kodu taşıyorsa çağrılır (sonuç yine normalize döner). */
   onAuthorityLoss?: (error: ApiError) => void
+  /**
+   * Yazmanın sahibi yaşıyor mu (CX-F1-E-05; `ownerLife`). `false` ise gönderilmez →
+   * `owner_disposed`. Verilmezse sahipsiz sayılır (her zaman canlı).
+   */
+  alive?: () => boolean
 }
 
 /** Aynı ya da yeni eylemi yeniden koşturan geri çağrı (hook'ta `mutateAsync`). */
@@ -301,13 +307,22 @@ async function classifyFailure<V, D, S>(
 }
 
 /**
- * Gönderim kapısı: eylemin oturum nesli ya da kapsamı güncel değerden farklıysa gönderilmeyecek
- * sonuç; aynıysa null. Nesil değişimi (çıkış) `client.session_ended` olarak döner.
+ * Gönderim kapısı: sahip sökülmüşse (`owner_disposed`; CX-F1-E-05) ya da eylemin oturum nesli
+ * veya kapsamı güncel değerden farklıysa gönderilmeyecek sonuç; aksi hâlde null. Nesil değişimi
+ * (çıkış) `client.session_ended` olarak döner. Her gönderimden önce (ilk istek, `retry`,
+ * `confirm`, `conflict_retry` otomatik tekrarı) denetlenir.
  */
 function blockedSend<V, D, S>(
   action: MutationAction<V>,
   opts: EngineOptions<V, D, S>,
 ): MutationOutcome<V, D, S> | null {
+  if (opts.alive && !opts.alive()) {
+    return {
+      kind: 'owner_disposed',
+      draft: freezeVars(action.vars),
+      idempotencyKey: action.idempotencyKey,
+    }
+  }
   if (action.generation !== null && opts.generation && action.generation !== opts.generation()) {
     return { kind: 'failed', error: clientError('client.session_ended') }
   }

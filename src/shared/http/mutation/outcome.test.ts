@@ -42,6 +42,7 @@ const samples: Array<MutationOutcome<unknown, unknown>> = [
     idempotencyKey: 'k',
     scope: { programId: 'p1', departmentId: null },
   },
+  { kind: 'owner_disposed', draft: {}, idempotencyKey: 'k' },
 ]
 
 const i18n = createI18n({ legacy: false, locale: 'tr', messages: { tr: trMutation } })
@@ -68,6 +69,13 @@ describe('outcomeMessage', () => {
       }),
     ).toEqual({ key: 'mutation.outcome.scope_changed' })
     expect(i18n.global.t('mutation.outcome.scope_changed')).toContain('kapsama dönün')
+  })
+
+  it('owner_disposed kendi anahtarına gider (unknown metnine düşmez)', () => {
+    expect(outcomeMessage({ kind: 'owner_disposed', draft: {}, idempotencyKey: 'k' })).toEqual({
+      key: 'mutation.outcome.owner_disposed',
+    })
+    expect(i18n.global.te('mutation.outcome.owner_disposed')).toBe(true)
   })
 
   it('failed hata kodunun kendi metnine gider', () => {

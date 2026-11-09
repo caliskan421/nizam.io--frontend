@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { effectScope } from 'vue'
 
 import { useConflictResolver } from './use-conflict'
 
@@ -33,5 +34,31 @@ describe('useConflictResolver', () => {
     await expect(first).resolves.toBeNull()
     resolver.dismiss()
     await expect(second).resolves.toBeNull()
+  })
+
+  it('sökülmüş sahip: gerçek çakışma olmasa da {} değil null; diyalog açılmaz (CX-F1-E-05)', async () => {
+    const effect = effectScope()
+    const resolver = effect.run(() => useConflictResolver())!
+    effect.stop()
+    await expect(resolver.resolve({ ...input, draft: { priority: 'acil' } })).resolves.toBeNull()
+    await expect(resolver.resolve(input)).resolves.toBeNull()
+    expect(resolver.open.value).toBe(false)
+  })
+
+  it('açık diyalog sahip sökülünce vazgeçle kapanır', async () => {
+    const effect = effectScope()
+    const resolver = effect.run(() => useConflictResolver())!
+    const pending = resolver.resolve(input)
+    expect(resolver.open.value).toBe(true)
+    effect.stop()
+    await expect(pending).resolves.toBeNull()
+    expect(resolver.open.value).toBe(false)
+  })
+
+  it('canlı sahipte davranış aynı: gerçek çakışma yoksa {}', async () => {
+    const effect = effectScope()
+    const resolver = effect.run(() => useConflictResolver())!
+    await expect(resolver.resolve({ ...input, draft: { priority: 'acil' } })).resolves.toEqual({})
+    effect.stop()
   })
 })
