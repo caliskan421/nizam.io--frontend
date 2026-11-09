@@ -9,6 +9,7 @@ import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
+import { ConfirmHost } from '@/shared/ui/confirm'
 
 import { http, json, ORIGIN, sent, server } from '../../../__tests__/harness'
 
@@ -147,7 +148,12 @@ export async function mountAt(
   component: Component,
   props: Record<string, unknown>,
   path = '/kullanicilar/u1',
-  options: { selection?: ScopeSelection; queryClient?: QueryClient } = {},
+  options: {
+    selection?: ScopeSelection
+    queryClient?: QueryClient
+    /** Gerçek W75 `UserPanel` + onay penceresi (taslak yok). */
+    realPanel?: boolean
+  } = {},
 ): Promise<MountContext> {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -160,11 +166,16 @@ export async function mountAt(
     })
   const router = createTestRouter()
   await router.push(path)
-  const wrapper = mount(component, {
-    props,
+  const host = defineComponent({
+    setup:
+      (_, { attrs }) =>
+      () => [h(component, attrs), options.realPanel ? h(ConfirmHost) : null],
+  })
+  const wrapper = mount(host, {
+    attrs: props,
     global: {
       plugins: [pinia, [VueQueryPlugin, { queryClient }], router],
-      stubs: { UserPanel: UserPanelStub },
+      stubs: options.realPanel ? {} : { UserPanel: UserPanelStub },
     },
     attachTo: document.body,
   })
