@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import UserChip from './UserChip.vue'
@@ -33,5 +33,31 @@ describe('UserChip (E-05-32)', () => {
     const busy = mount(UserChip, { props: { ...base, busy: true } })
     expect(busy.get('[data-testid="chip-remove"]').attributes('disabled')).toBeDefined()
     expect(busy.get('[data-testid="chip-role"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('W82a odak dönüşü: işlem bitince odak gövdeye düştüyse başlatan düğmeye döner', async () => {
+    const w = mount(UserChip, { props: base, attachTo: document.body })
+    const remove = w.get<HTMLButtonElement>('[data-testid="chip-remove"]').element
+    remove.focus()
+    await w.get('[data-testid="chip-remove"]').trigger('click')
+    await w.setProps({ busy: true })
+    // Onay penceresi (odak onun içindeydi) kapandı ve odağı kapalı düğmeye veremedi: gövdeye düştü.
+    const dialog = document.body.appendChild(document.createElement('button'))
+    dialog.focus()
+    dialog.remove()
+    expect(document.activeElement).toBe(document.body)
+    await w.setProps({ busy: false })
+    await flushPromises()
+    expect(document.activeElement).toBe(remove)
+    // Odak başka yerdeyse çalınmaz.
+    const other = document.body.appendChild(document.createElement('button'))
+    await w.get('[data-testid="chip-remove"]').trigger('click')
+    await w.setProps({ busy: true })
+    other.focus()
+    await w.setProps({ busy: false })
+    await flushPromises()
+    expect(document.activeElement).toBe(other)
+    other.remove()
+    w.unmount()
   })
 })

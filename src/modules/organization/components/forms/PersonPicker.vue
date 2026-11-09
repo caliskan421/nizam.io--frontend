@@ -120,7 +120,7 @@ function onKeydown(event: KeyboardEvent): void {
         aria-autocomplete="list"
         :aria-label="field ? undefined : label"
         :aria-expanded="open ? 'true' : 'false'"
-        :aria-controls="listId"
+        :aria-controls="open ? listId : undefined"
         :aria-activedescendant="activeId"
         :placeholder="orgText('forms.picker.placeholder')"
         @focus="active = true"

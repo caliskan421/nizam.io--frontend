@@ -77,8 +77,8 @@ function retry(): void {
   if (withReport.value) void coords.dashboard.refetch()
 }
 
-/** Atama/oluşturma sonrası rapor yazmalarla geçersizlenmez (odakta tazelenir): kart tazelensin. */
-function refreshReport(): void {
+/** Pano hata durumunda yeniden dene (yazma sonrası tazeleme geçersizleme haritasında, W82a). */
+function retryReport(): void {
   if (withReport.value) void coords.dashboard.refetch()
 }
 
@@ -109,7 +109,7 @@ function createTask(departmentId: string): void {
           :loading="loading || (coords.dashboard.isPending.value && !reportError)"
           :error="reportError"
           :retrying="coords.dashboard.isFetching.value"
-          @retry="refreshReport"
+          @retry="retryReport"
         />
         <CoordsToolbar
           :search="url.state.value.search"
@@ -180,13 +180,12 @@ function createTask(departmentId: string): void {
         </div>
       </div>
     </div>
-    <DepartmentForm v-if="canCreate" v-model:open="creating" @saved="refreshReport" />
+    <DepartmentForm v-if="canCreate" v-model:open="creating" />
     <CoordinatorAssignDialog
       v-if="assignTarget"
       :open="true"
       :department-id="assignTarget"
       @update:open="(open: boolean) => !open && (assignTarget = null)"
-      @assigned="refreshReport"
     />
   </section>
 </template>
