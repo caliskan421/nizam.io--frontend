@@ -31,11 +31,6 @@ export const trStates = {
     loading: 'Kapsam yükleniyor',
     error: 'Kapsam bilgisi alınamadı',
     phase: { F2: '{action} F2’de açılacak.' },
-    // F0 ana sayfa yer tutucusu (01 içeriği F1'de; ortak-kurallar §4: sahte veri yok).
-    home: {
-      title: 'Ana sayfa F1’de açılacak',
-      text: 'Görevleriniz ve pano özeti F1’de burada görünecek.',
-    },
   },
 } as const
 
