@@ -18,6 +18,22 @@ import {
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
+// Rota kapısı sayfa GÖVDESİNDEN bağımsız sınanır (web-1 W41b dersi): dört sayfa hafif taslakla
+// değiştirilir; gövde içeriği her O2b işçisinin kendi sayfa testindedir. Böylece gövdeler
+// dolduruldukça bu dosya kırılmaz.
+function pageStub(name: string) {
+  return async () => {
+    const { defineComponent, h } = await import('vue')
+    return {
+      default: defineComponent({ name, setup: () => () => h('div', { 'data-page': name }) }),
+    }
+  }
+}
+vi.mock('./pages/UsersPage.vue', pageStub('UsersPage'))
+vi.mock('./pages/UserPage.vue', pageStub('UserPage'))
+vi.mock('./pages/CoordinatorshipsPage.vue', pageStub('CoordinatorshipsPage'))
+vi.mock('./pages/CoordinatorshipPage.vue', pageStub('CoordinatorshipPage'))
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
 
@@ -70,12 +86,15 @@ async function visit(path: string, lens: 'admin' | 'coordinator' = 'admin') {
   return { wrapper, router }
 }
 
-const PATHS = [
-  '/kullanicilar',
-  '/kullanicilar/acc-2',
-  '/koordinatorlukler',
-  '/koordinatorlukler/d9',
+/** Yol → rota kaydının yüklemesi gereken sayfa (taslak adı). */
+const PAGES: [string, string][] = [
+  ['/kullanicilar', 'UsersPage'],
+  ['/kullanicilar/acc-2', 'UserPage'],
+  ['/koordinatorlukler', 'CoordinatorshipsPage'],
+  ['/koordinatorlukler/d9', 'CoordinatorshipPage'],
 ]
+const PATHS = PAGES.map(([path]) => path)
+const STANDING_PATHS = ['/v1/me', '/v1/me/departments', '/v1/programs']
 
 describe('organizasyon rotaları — kayıt', () => {
   it('dört katalog rotası, kapsam sınıfları', () => {
@@ -89,24 +108,21 @@ describe('organizasyon rotaları — kayıt', () => {
 })
 
 describe('rota kapısı (company_admin olgusu; P1, P13, P16)', () => {
-  it.each(PATHS)('yönetici: %s yer tutucu sayfayı çizer (boş, bozuk değil)', async (path) => {
+  it.each(PAGES)('yönetici: %s → kapıdan geçer, %s sayfası çizilir', async (path, page) => {
     standing(true, [])
     const { wrapper, router } = await visit(path)
-    await vi.waitFor(() => expect(wrapper.find('[data-skeleton-page]').exists()).toBe(true))
+    await vi.waitFor(() => expect(wrapper.find(`[data-page="${page}"]`).exists()).toBe(true))
     expect(router.currentRoute.value.path).toBe(path)
-    expect(wrapper.find('h1').exists()).toBe(true)
-    // Yer tutucu sayfa veri isteği atmaz (yalnız standing okumaları).
-    expect(requests.map((r) => r.path).sort()).toEqual([
-      '/v1/me',
-      '/v1/me/departments',
-      '/v1/programs',
-    ])
+    // Kapının kendi okuması yalnız standing'dir (sayfa taslağı istek atmaz).
+    expect([...new Set(requests.map((r) => r.path))].sort()).toEqual(STANDING_PATHS)
   })
 
   it('Koordinatör merceğindeki yönetici de girer (mercek yetki değil)', async () => {
     standing(true, [{ department_id: 'd1', role: 'koordinator' }])
     const { wrapper, router } = await visit('/koordinatorlukler', 'coordinator')
-    await vi.waitFor(() => expect(wrapper.find('[data-skeleton-page]').exists()).toBe(true))
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-page="CoordinatorshipsPage"]').exists()).toBe(true),
+    )
     expect(router.currentRoute.value.name).toBe('organization.coordinatorships')
   })
 
@@ -118,7 +134,7 @@ describe('rota kapısı (company_admin olgusu; P1, P13, P16)', () => {
     for (const path of PATHS) {
       const { wrapper, router } = await visit(path, 'coordinator')
       await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('home'))
-      expect(wrapper.find('[data-skeleton-page]').exists()).toBe(false)
+      expect(wrapper.find('[data-page]').exists()).toBe(false)
     }
   })
 
@@ -127,7 +143,7 @@ describe('rota kapısı (company_admin olgusu; P1, P13, P16)', () => {
     standingPartial()
     const { wrapper, router } = await visit('/kullanicilar')
     await flushPromises()
-    expect(wrapper.find('[data-skeleton-page]').exists()).toBe(false)
+    expect(wrapper.find('[data-page]').exists()).toBe(false)
     expect(router.currentRoute.value.path).toBe('/kullanicilar')
   })
 })
