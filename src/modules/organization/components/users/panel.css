@@ -1,0 +1,203 @@
+/*
+ * 05 yan panel — theme.css `rp-sheet`, `rp-sheethead`, `rp-kicker`, `rp-num`, `rp-hairline`
+ * ve Kullanicilar.dc.html `<aside>` satır içi stillerinin (görev özeti şeridi, rol kartları,
+ * çip + kesikli "Ekle", hesap menüsü) birebir karşılığı. Kural: yalnız token; px yok
+ * (`--users-*` üretilmiş token). Seçiciler `.users-panel` altında.
+ */
+@layer components {
+  .users-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-width: 0;
+    padding: var(--space-6);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(180deg, var(--surface-top), var(--bg-surface));
+    box-shadow: inset 0 var(--ui-hairline) 0 var(--edge-light);
+    color: var(--ink);
+    box-sizing: border-box;
+  }
+
+  /* Yardımcılar (theme.css) */
+  .users-panel .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .users-panel .rp-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .users-panel .rp-faint {
+    color: var(--ink-faint);
+  }
+  .users-panel .rp-num {
+    font: var(--users-strip-num);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .users-panel .rp-danger-text {
+    color: var(--danger);
+  }
+  .users-panel .rp-hairline {
+    height: var(--ui-hairline);
+    margin: 0;
+    border: 0;
+    background: var(--border-subtle);
+  }
+
+  /* Başlık (`rp-sheethead`) */
+  .users-panel__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--users-sheethead-gap);
+    align-items: start;
+  }
+  .users-panel .users-panel__av {
+    background: var(--violet);
+    color: var(--on-violet);
+  }
+  .users-panel__who {
+    min-width: 0;
+  }
+  .users-panel__name {
+    margin: 0;
+    font: var(--users-name);
+  }
+  .users-panel__who .rp-cap {
+    margin-top: var(--ui-gap-2xs);
+  }
+
+  /* Görev özeti şeridi (E-05-29) */
+  .users-panel .users-strip {
+    display: grid;
+    grid-template-columns: var(--users-strip-cols);
+    gap: var(--space-2);
+    align-items: center;
+    padding: var(--users-strip-pad);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .users-panel .users-strip__cell {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .users-panel .users-strip__go {
+    color: var(--ink-muted);
+  }
+  .users-panel .users-strip__partial {
+    grid-column: 1 / -1;
+  }
+  .users-panel .users-panel__profile {
+    justify-content: space-between;
+    text-decoration: none;
+  }
+
+  /* Rol kartları (E-05-31) */
+  .users-panel .users-roles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .users-panel .users-roles__legend {
+    padding: 0 0 var(--space-2);
+  }
+  .users-panel .users-role {
+    display: grid;
+    grid-template-columns: var(--users-role-cols);
+    gap: var(--space-3);
+    align-items: start;
+    padding: var(--space-3);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--users-role-radius);
+    background: transparent;
+    cursor: not-allowed;
+  }
+  .users-panel .users-role--on {
+    border-color: var(--border-strong);
+    background: var(--bg-raised);
+  }
+  .users-panel .users-role__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .users-panel .users-role__label {
+    font-weight: 600;
+  }
+
+  /* Koordinatörlük çipleri (E-05-32/33) */
+  .users-panel .users-chips {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .users-panel .users-chips__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+  }
+  .users-panel .users-chip {
+    position: relative;
+    min-width: 0;
+  }
+  .users-panel .users-chip__role {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    border: 0;
+    padding: 0 var(--space-1);
+    background: none;
+    color: var(--ink-muted);
+    font: inherit;
+    cursor: pointer;
+  }
+  .users-panel .users-chip__role--static {
+    cursor: default;
+  }
+  .users-panel .users-chip__role:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .users-panel .users-pop {
+    top: calc(100% + var(--ui-gap-xs));
+    left: 0;
+    width: var(--users-pop-w);
+  }
+  .users-panel .users-chips__add {
+    height: var(--users-add-h);
+    padding: var(--users-add-pad);
+    border-radius: var(--radius-xs);
+    border-style: dashed;
+  }
+  .users-panel .users-chips__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .users-panel .users-chips__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
+  /* Hesap eylemleri (E-05-34…36) */
+  .users-panel .users-account {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+  }
+}
