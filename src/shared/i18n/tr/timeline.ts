@@ -46,6 +46,7 @@ export const trTimeline = {
       actions: {
         save: 'Kaydet',
         requestDate: 'Tarih talebi gönder',
+        openRequest: 'Tarih değişikliği iste',
         approve: 'Onayla',
         reject: 'Reddet',
         remind: 'Atanana hatırlat',
