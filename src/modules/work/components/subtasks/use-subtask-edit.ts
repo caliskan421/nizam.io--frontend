@@ -136,7 +136,8 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   const owner = ownerLife()
 
   function report(outcome: AnyOutcome | null): void {
-    if (outcome === null || outcome.kind === 'success') return
+    // `owner_disposed`: ekran söküldü, istek gönderilmedi — bildirim ve yeniden okuma yok.
+    if (outcome === null || outcome.kind === 'success' || outcome.kind === 'owner_disposed') return
     notifyOutcome(outcome)
     void deps.reload()
   }
