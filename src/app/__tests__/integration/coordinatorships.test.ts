@@ -47,7 +47,7 @@ const nav = (label: string) => click(() => byText('nav a', label))
 const tab = (value: string) => $(`[role="tab"][data-value="${value}"]`)
 
 describe('08 → 08b → Üye ekle (senaryo 1)', () => {
-  it('Üye ekle (gerçek MemberAddDialog) → Ekip ve Üyeler sayaçları, 05 listesi yenilenir', async () => {
+  it('Üye ekle (gerçek MemberAddDialog) → Ekip/Üyeler sayaçları, 05 listesi ve 08 kartı (pano) yenilenir', async () => {
     const app = await boot({ ...ADMIN, path: '/kullanicilar' })
     await until(() => row(PEOPLE.free.account_id), '05 satırı')
     expect(coordCell(PEOPLE.free.account_id)).toBe('Atanmamış')
@@ -61,6 +61,8 @@ describe('08 → 08b → Üye ekle (senaryo 1)', () => {
 
     await click('[data-action="team-add"]')
     await pickPerson(PEOPLE.free.account_id)
+    await idle(app.queryClient)
+    const reportsBefore = backend.sent('GET', '/v1/reports/dashboard').length
     await click('[role="dialog"] [data-testid="of-submit"]')
     await until(() => !$('[role="dialog"]'), 'diyalog kapanır')
     await until(() => $('[data-testid="cd-team-count"]')?.textContent?.trim() === '4', 'Ekip 4')
@@ -75,12 +77,17 @@ describe('08 → 08b → Üye ekle (senaryo 1)', () => {
     await nav('Kullanıcılar')
     await until(() => coordCell(PEOPLE.free.account_id) === 'Mekanik', '05 listesi yenilendi')
 
-    // Açık uç (ortak-kurallar §6): pano yazmayla geçersizlenmez, odakta tazelenir (`staleTime`
-    // 60 sn içinde odak da tazelemez). 08b'den yapılan yazma 08 kartını tazelemez — tasarım kararı.
+    // Koordinatör kararı (W82a): organizasyon yazması eylemin programının panosunu geçersizler.
+    // 08 kartı yeni sayıyı gösterir; ekleme sonrası tek `reportDashboard` yeniden okuması.
     await nav('Koordinatörlükler')
-    await until(() => card('d1'))
+    await until(() => cardNumber('d1', 'members') === '4', '08 kartı yeni sayı')
     await idle(app.queryClient)
-    expect(cardNumber('d1', 'members')).toBe('3')
+    expect(backend.sent('GET', '/v1/reports/dashboard').length - reportsBefore).toBe(1)
+    expect(
+      backend
+        .sent('GET', '/v1/reports/dashboard')
+        .every((r) => r.headers.get('X-Nizamio-Program') === 'p1'),
+    ).toBe(true)
   })
 })
 

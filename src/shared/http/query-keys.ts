@@ -239,6 +239,21 @@ const CATALOG_DEPARTMENT_WRITES = [
   'permanentDeleteDepartment',
 ] as const satisfies readonly OperationId[]
 
+// Panoyu (rapor) geçersizleyen organizasyon yazmaları (koordinatör kararı, W82a): üyelik,
+// koordinatörlük, birim ve kullanıcı yazmaları seyrek ve pano sayıları (üye/koordinatör sayısı,
+// birim kümesi) doğrudan onlara bağlı. Görev yazmaları panoyu geçersizlemez (§6: odakta tazele).
+const REPORT_ORGANIZATION_WRITES = [
+  ...MEMBERSHIP_WRITES,
+  'createDepartment',
+  'linkDepartment',
+  'updateDepartment',
+  'renameDepartmentLink',
+  'deleteDepartment',
+  'createUser',
+  'deleteUser',
+  'deleteAccount',
+] as const satisfies readonly OperationId[]
+
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
   ...new Set(lists.flat()),
 ]
@@ -299,8 +314,8 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
   gantt: unique(DATE_WRITES, DEPENDENCY_WRITES, ['createWorkItem', 'deleteWorkItem']),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
-  // Yazma sonrası geçersizleme yok; odakta tazele.
-  report: [],
+  // Görev yazmalarıyla geçersizleme yok (odakta tazele); organizasyon yazmaları geçersizler (W82a).
+  report: REPORT_ORGANIZATION_WRITES,
   archive: FILE_WRITES,
   meetings: [
     'createMeeting',
@@ -398,10 +413,27 @@ const prefix =
   (key: (scope: ScopeSnapshot) => QueryKey): FilterBuilder =>
   (scope) => ({ queryKey: key(scope) })
 
+/**
+ * Eylemin PROGRAMININ panosu (`scoped([... 'report', 'dashboard', …])`), mercek/birim parçasından
+ * bağımsız: Admin ve Koordinatör merceğindeki pano anahtarları aynı programdadır. Başka programın
+ * panosuna dokunulmaz (K2); programsız eylemde geçersizleme yok.
+ */
+function reportOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
+  if (scope.programId === null) return null
+  return {
+    queryKey: [QUERY_KEY_ROOT],
+    predicate: ({ queryKey }) =>
+      isScopedQueryKey(queryKey) &&
+      (queryKey[1] as { program: unknown }).program === scope.programId &&
+      queryKey[2] === 'report' &&
+      queryKey[3] === 'dashboard',
+  }
+}
+
 /** Kaynak → filtre eşlemesi (§6). null: yazma sonrası geçersizleme yok. */
 const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'instance.profile': () => null,
-  report: () => null,
+  report: reportOfProgram,
   'notifications.unreadCount': prefix(() => queryKeys.notifications.unreadCount()),
   'chats.unreadOverview': prefix(() => queryKeys.chatsUnread.overview()),
   programs: prefix(() => queryKeys.programs.all()),
