@@ -68,7 +68,7 @@ export interface StackPerson {
   name: string
 }
 
-/** Kişi sütununa sığan yığın (E-03-27; 60 px = 3 küçük avatar). */
+/** Kişi sütununda tablo kenarına taşmadan kırpılmayan yığın (E-03-27; 3 küçük avatar). */
 export const AVATAR_STACK_MAX = 3
 
 /**
