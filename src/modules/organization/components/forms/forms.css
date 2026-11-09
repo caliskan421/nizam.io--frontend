@@ -1,0 +1,97 @@
+/*
+ * W74 organizasyon formları — tasarımda çizilmemiş (P3, P17): `shared/ui` (`t-modal`, `rp-field`,
+ * `t-input`, `t-select`, `t-chip`, `rp-menuitem`, `rp-av`) + en sade yerleşim. Kural: yalnız
+ * token; ham renk/px yok, satır içi stil yok (forms-styles.test.ts).
+ */
+@layer components {
+  .of-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .of-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--rp-head-basis)), 1fr));
+    gap: var(--space-3);
+  }
+  .of-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+    margin: 0;
+    padding: var(--space-4) 0 0;
+    border: 0;
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .of-section > legend {
+    padding: 0;
+    margin-bottom: var(--space-2);
+  }
+  .of-textarea {
+    height: auto;
+    min-height: calc(var(--control-md) * 2);
+    padding: var(--space-3) var(--space-4);
+    resize: vertical;
+  }
+  .of-note {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .of-note p {
+    margin: 0;
+  }
+  .of-note__title {
+    font: var(--text-body-strong);
+  }
+  .of-note__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Kişi seçici (E-08-33/79, E-05-33; P3) */
+  .of-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .of-picker__selected {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .of-picker__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    max-height: calc(var(--control-sm) * 6);
+    overflow-y: auto;
+    margin: 0;
+    padding: var(--space-1);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    list-style: none;
+  }
+  .of-picker__list .rp-menuitem[aria-selected='true'] {
+    background: var(--bg-raised);
+  }
+  .of-picker__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+}
