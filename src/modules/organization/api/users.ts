@@ -124,7 +124,11 @@ export function useUserList(
   }
 }
 
-/** 409 `identity.account_exists` + alan `organization.transfer_available` (E-05-05). */
+/**
+ * 409 `identity.account_exists` + alan `organization.transfer_available` (E-05-05). Aktarılacak
+ * hesabın kimliği sözleşmede yok (BE-107): teklif tanınır, `transfer_account_id` istemcide
+ * bilinemez — aktarım eylemi BE-107 kapanana dek kurulmaz.
+ */
 export function isTransferAvailable(error: ApiError): boolean {
   return error.fields.some((f) => f.code === 'organization.transfer_available')
 }
