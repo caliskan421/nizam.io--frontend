@@ -12,7 +12,7 @@ import {
 } from '../__tests__/harness'
 import { useDepartmentWorkItems, usePersonWorkItems } from './work'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetHarness())
 afterAll(() => server.close())
 

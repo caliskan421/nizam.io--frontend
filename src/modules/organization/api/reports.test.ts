@@ -15,7 +15,7 @@ import {
 } from '../__tests__/harness'
 import { useCoordinatorships } from './reports'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetHarness())
 afterAll(() => server.close())
 

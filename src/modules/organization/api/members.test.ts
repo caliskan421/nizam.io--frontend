@@ -32,7 +32,7 @@ import {
   useUpdateMembershipRole,
 } from './members'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetHarness())
 afterAll(() => server.close())
 
