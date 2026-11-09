@@ -46,7 +46,7 @@ export const trTimeline = {
         department: {
           label: 'Koordinatörlük',
           menu: 'Koordinatörlük seç',
-          all: 'Tümü',
+          all: 'Tüm koordinatörlükler',
         },
         status: {
           label: 'Durum',

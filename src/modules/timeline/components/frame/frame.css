@@ -1,0 +1,255 @@
+/*
+ * Zaman çizelgesi sayfa çerçevesi — Gorevler-Zaman.dc.html (başlık, araç çubuğu, görev aralığı
+ * şeridi, açıklama) ve theme.css `rp-head`, `rp-toolbar`, `rp-tgroup`, `rp-seg`, `rp-kicker`,
+ * `rp-status`, `rp-dot` birebir karşılığı. Kural: yalnız token; px yok (medya koşulu hariç: değer
+ * `--rp-narrow-max` ile aynı). Açıklama noktaları çubuk paletidir (`--gp-*`, iki tema). Sınıflar
+ * `tl-` önekli ve bileşene özeldir.
+ */
+@layer components {
+  /* Başlık (E-03C-02…04) */
+  .tl-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .tl-head__text {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .tl-head__title {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .tl-head__sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .tl-head__danger {
+    color: var(--danger);
+  }
+  .tl-head__partial {
+    color: var(--ink-faint);
+  }
+  .tl-head__actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Araç çubuğu (E-03C-05…12) */
+  .tl-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+  }
+  .tl-group {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tl-grow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .tl-scale {
+    padding-right: var(--space-1);
+    color: var(--ink-muted);
+    font: var(--text-caption);
+    white-space: nowrap;
+  }
+  .tl-toolbar .t-iconbtn[aria-disabled='true'] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .tl-toolbar .t-iconbtn[aria-pressed='true'] {
+    background: var(--bg-overlay);
+    color: var(--ink);
+  }
+  .tl-pop-anchor {
+    position: relative;
+  }
+  .tl-pop {
+    top: calc(100% + var(--ui-gap-xs));
+    left: 0;
+    width: var(--tasks-pop-w);
+    max-height: var(--tasks-pop-max-h);
+    overflow-y: auto;
+  }
+
+  /* Görev aralığı şeridi (E-03C-14…18) */
+  .tl-strip {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, calc(var(--space-12) * 2.5)) minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--ui-gap-sm) var(--space-3);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .tl-strip__label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .tl-strip__kicker {
+    margin: 0;
+    color: var(--ink-muted);
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+  }
+  .tl-strip__range {
+    margin: 0;
+    color: var(--ink-faint);
+    font: var(--text-caption);
+  }
+  .tl-strip__track {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: var(--ui-gap-2xs);
+    width: 100%;
+    height: var(--ui-seg-h);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .tl-strip__track:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+  .tl-strip__bar {
+    flex-basis: 0;
+    min-width: 0;
+    border-radius: var(--ui-gap-2xs);
+    background: var(--ink-muted);
+  }
+  .tl-strip__bar--empty {
+    background: var(--bg-overlay);
+  }
+  .tl-strip__frame {
+    position: absolute;
+    top: calc(-1 * var(--space-1));
+    bottom: calc(-1 * var(--space-1));
+    box-sizing: border-box;
+    border: var(--ui-check-border) solid var(--ink);
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+    pointer-events: none;
+  }
+  .tl-strip__today {
+    position: absolute;
+    top: calc(-1 * var(--space-1) - var(--ui-gap-2xs));
+    bottom: calc(-1 * var(--space-1) - var(--ui-gap-2xs));
+    width: var(--ui-focus-width);
+    background: var(--accent-text);
+    pointer-events: none;
+  }
+  .tl-strip__here {
+    position: absolute;
+    top: calc(-1 * var(--space-2));
+    bottom: calc(-1 * var(--space-2));
+    width: calc(var(--space-1) - var(--ui-hairline));
+    margin-left: calc(-1 * var(--ui-hairline));
+    border-radius: var(--ui-gap-2xs);
+    background: var(--ink);
+    box-shadow: 0 0 0 var(--ui-focus-width) color-mix(in srgb, var(--ink) 30%, transparent);
+    pointer-events: none;
+  }
+
+  /* Açıklama (E-03C-19): noktalar çubuk paletiyle eşlenir */
+  .tl-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tl-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--ink-muted);
+    font-size: var(--ui-fs-xs);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .tl-legend__dot {
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--list-dot);
+    height: var(--list-dot);
+    border-radius: var(--radius-full);
+  }
+  .tl-legend__dot--todo {
+    background: var(--gp-todo);
+  }
+  .tl-legend__dot--doing {
+    background: var(--gp-doing);
+  }
+  .tl-legend__dot--review {
+    background: var(--gp-review);
+  }
+  .tl-legend__dot--back {
+    background: var(--gp-back);
+  }
+  .tl-legend__dot--done {
+    background: var(--gp-done);
+  }
+  .tl-legend__dot--doneLate {
+    background: linear-gradient(90deg, var(--gp-done) 50%, var(--gp-late) 50%);
+  }
+  .tl-legend__swatch {
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+    width: calc(var(--space-5) + var(--ui-gap-2xs));
+    height: var(--ui-gap-sm);
+    border: var(--ui-check-border) dashed var(--danger);
+    border-radius: var(--ui-gap-xs);
+  }
+  .tl-legend__swatch--request {
+    border-color: var(--accent-text);
+    border-left-width: 0;
+    border-radius: 0 var(--ui-gap-xs) var(--ui-gap-xs) 0;
+  }
+  .tl-legend__mark {
+    display: inline-block;
+    flex: none;
+    width: calc(var(--space-1) - var(--ui-hairline));
+    height: var(--ui-fs-xs);
+    border-radius: var(--ui-gap-2xs);
+    background: var(--ink);
+  }
+
+  @media (max-width: 900px) {
+    .tl-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .tl-strip {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
