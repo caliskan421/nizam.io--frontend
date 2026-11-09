@@ -155,4 +155,4 @@ Tutarsızlıklar: tür adları/renkleri 01 ≠ 01b; sabit hex (rol renkleri, "Me
 
 **F0 kapandı** (Codex KOŞULLU UYGUN, 3. koşum; PR `#31`) — `../reviews/WEB-0-codex.md`; sonraki WEB-1 (`../yurutme/web-1/`).
 
-**F1: O2/O3 tamam (2026-11-09)**, entegrasyon (W48) + temizlik (W61) + Codex kapısı sürüyor — `../yurutme/web-1/ilerleme.md`; F2 kabul tabloları (05, 08) **geçici kabul** (ürün soruları #13–#18 bekliyor), yürütme seti `../yurutme/web-2/`.
+**F1 kapandı (2026-11-09; Codex KOŞULLU UYGUN, `../reviews/WEB-1-codex.md`)** — `../yurutme/web-1/ilerleme.md`; F2 kabul tabloları (05, 08) **kabul** (ürün sahibi 2026-11-09, ortak-kurallar §12 P12–P17), yürütme seti `../yurutme/web-2/`.
