@@ -11,7 +11,7 @@ import CoordinatorshipPage from './CoordinatorshipPage.vue'
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   unmountAll()
   resetHarness()

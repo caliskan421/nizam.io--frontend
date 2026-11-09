@@ -23,7 +23,7 @@ import CoordinatorshipDetail from './CoordinatorshipDetail.vue'
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   unmountAll()
   resetHarness()
@@ -145,5 +145,28 @@ describe('ekipten çıkar — removeMember (onay SORGUDA)', () => {
     await settle()
     expect(sent('DELETE', DELETE)).toHaveLength(1)
     expect(sent('GET', '/v1/departments/d1/members').length).toBeGreaterThan(before)
+  })
+})
+
+describe('yaşam döngüsü (KESİN 20)', () => {
+  it('istek sürerken sayfa söküldü → geç 409 onay açmaz, ikinci istek ve bildirim yok', async () => {
+    let release: () => void = () => undefined
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const { wrapper, h } = await mountMembers()
+    server.use(
+      http.delete(`${ORIGIN}${DELETE}`, async () => {
+        await gate
+        return confirmationRequired(['Rapor'])
+      }),
+    )
+    await openMenu(wrapper, 'a1')
+    await wrapper.get('[data-action="remove"]').trigger('click')
+    await settle()
+    wrapper.unmount()
+    release()
+    await settle()
+    expect(h.confirmQueue.current.value).toBeNull()
+    expect(sent('DELETE', DELETE)).toHaveLength(1)
+    expect(document.querySelector('.rp-toast')).toBeNull()
   })
 })
