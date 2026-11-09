@@ -156,3 +156,26 @@ export interface ListCompleteness {
   /** `X-Result-Truncated: true` — "liste eksik olabilir". */
   truncated: boolean
 }
+
+/** `listUsers` süzgeçleri (S1; anahtar `['users', filters]`). Rol süzgeci sunucuya GİTMEZ (ret). */
+export interface UserListFilters {
+  /** Sunucu `search` (yalnız ad, Türkçe katlamalı; E-05-07); boş/`null` → gönderilmez. */
+  search: string | null
+  /** `sort_by=name` açıkça; yön (E-05-10). */
+  sortOrder: SortOrder
+}
+
+export type SortOrder = 'asc' | 'desc'
+
+/** Sayfa + sunucu kesme bayrağı (`X-Result-Truncated`). */
+export interface UserPage {
+  page: UserList
+  truncated: boolean
+}
+
+/** openapi-fetch sonucu (yalnız başlık okuma yardımcısı için). */
+export interface FetchResultLike<D> {
+  data?: D
+  error?: unknown
+  response: Response
+}
