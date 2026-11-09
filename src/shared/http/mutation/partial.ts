@@ -10,7 +10,9 @@
  * oturum nesli; `MutationSuccess.context`) gönderilmelidir — `followUps` bu bağlamı alır ve
  * `submit(vars, { context })` ile geçirir. Birincil yanıt beklenirken kapsam ya da oturum
  * değiştiyse motor ardıl isteği göndermez (`scope_changed` / `client.session_ended`); birincil
- * başarı korunur, sonuç `partial` olur (CX-F1-E-03).
+ * başarı korunur, sonuç `partial` olur (CX-F1-E-03). Aynı kapı sahip yaşamını da denetler
+ * (CX-F1-E-05): birincil yanıt beklenirken sahip (bileşen) söküldüyse ardıl adım gönderilmez
+ * (`owner_disposed`), birincil başarı korunur, sonuç `partial` olur.
  */
 import type { ActionContext, MutationOutcome, MutationSuccess } from './outcome'
 

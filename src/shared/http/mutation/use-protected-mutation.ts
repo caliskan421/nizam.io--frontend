@@ -17,6 +17,11 @@
  *    yeniden doğrulanır.
  *  - Bileşik işlemde ardıl adım `submit(vars, { context })` ile ilk eylemin bağlamını taşır
  *    (CX-F1-E-03): bağlam güncel değilse adım gönderilmez.
+ *  - Sahip yaşamı (CX-F1-E-05): hook kurulduğu etki kapsamının sökülmesini izler (`ownerLife`).
+ *    Sökülmeden sonra bu hook üzerinden YENİ HTTP yazması başlamaz — yeni `submit`, `retry`,
+ *    `confirm` devamı ve `conflict_retry` otomatik tekrarı motor kapısında `owner_disposed` ile
+ *    döner (istek yok, bildirim yok, söz asılı kalmaz). Uçuştaki istek iptal edilmez. Etki
+ *    kapsamı DIŞINDA kurulan hook (uygulama düzeyi) sahipsizdir: her zaman canlı sayılır.
  *  - Değişkenler motora verilmeden önce Vue vekillerinden derin açılır (`toPlainVars`):
  *    `reactive`/`ref` taşıyan form durumu doğrudan gönderilebilir; motor Vue'dan bağımsız kalır.
  * UI yoktur; diyaloglar (O3) bu sonucu tüketir.
@@ -33,8 +38,9 @@ import { authSession } from '../index'
 import { invalidationFilters, type InvalidationContext } from '../query-keys'
 import { newAction, runAction, type EngineOptions, type MutationAction, type Rerun } from './engine'
 import type { ActionContext, MutationOutcome } from './outcome'
+import { ownerLife } from './owner'
 
-export interface ProtectedMutationOptions<V, D, S> extends EngineOptions<V, D, S> {
+export interface ProtectedMutationOptions<V, D, S> extends Omit<EngineOptions<V, D, S>, 'alive'> {
   /** Geçersizlemenin hedef kaydı (ör. görev kimliği); verilmezse kaynak geneli. */
   invalidation?: (vars: V, data: D) => InvalidationContext
   /** Yazma anındaki kapsam; varsayılan Pinia kapsam deposu. */
@@ -121,10 +127,13 @@ export function useProtectedMutation<V, D, S = unknown>(
   const queryClient = options.queryClient ?? useQueryClient()
   const readScope = options.scope ?? activeScope
   const readGeneration = options.generation ?? (() => authSession.generation)
+  // Kurulduğu etki kapsamının yaşamı; kapsam dışında kurulduysa sahipsiz (her zaman canlı).
+  const owner = ownerLife()
   const engine: EngineOptions<V, D, S> = {
     ...options,
     scope: readScope,
     generation: readGeneration,
+    alive: owner.alive,
     onAuthorityLoss: (error) => {
       options.onAuthorityLoss?.(error)
       reportAuthorityLoss(queryClient, error)

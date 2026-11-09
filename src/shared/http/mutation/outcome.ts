@@ -103,6 +103,18 @@ export interface MutationScopeChanged<V> {
   scope: ScopeSnapshot
 }
 
+/**
+ * Yazmanın sahibi (hook'un kurulduğu bileşen / etki kapsamı) söküldü; istek **gönderilmedi**
+ * (CX-F1-E-05). Yeni `submit`, `retry`, `confirm` devamı ve `platform.conflict_retry` otomatik
+ * tekrarı bu kapıdan geçer. Dinleyen ekran yoktur: bildirim üretilmez (`outcomeToast` → null).
+ * Başlamış (uçuştaki) istek geriye dönük iptal edilmez; bu sonuç yalnız YENİ gönderimi durdurur.
+ */
+export interface MutationOwnerDisposed<V> {
+  kind: 'owner_disposed'
+  draft: V
+  idempotencyKey: string
+}
+
 /** Diğer bütün hatalar (403/404/422/diğer 409…): kod → i18n; karar kullanıcıda. */
 export interface MutationFailed {
   kind: 'failed'
@@ -124,6 +136,7 @@ export type MutationOutcome<V, D, S = unknown> =
   | MutationRateLimited
   | MutationConfirmationRequired<V, D, S>
   | MutationScopeChanged<V>
+  | MutationOwnerDisposed<V>
   | MutationFailed
 
 export type MutationKind = MutationOutcome<unknown, unknown>['kind']
@@ -157,6 +170,10 @@ export function outcomeMessage(outcome: MutationOutcome<unknown, unknown>): Outc
       return { key: 'mutation.outcome.confirmation_required' }
     case 'scope_changed':
       return { key: 'mutation.outcome.scope_changed' }
+    case 'owner_disposed':
+      // Gösterilmez (dinleyen ekran yok; `outcomeToast` null). Metin gerekirse en temkinli
+      // protokol metni: istek gönderilmedi, taslak korunur, yeniden gönderilebilir.
+      return { key: 'mutation.outcome.unknown' }
     case 'failed':
       return { key: outcome.error.messageKey }
   }

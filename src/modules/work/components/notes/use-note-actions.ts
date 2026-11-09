@@ -10,11 +10,13 @@
  *    (O5 görsel kusur, W63): sunucu sürümü ilerlemediyse yeniden gönderilmez; diyalogsuz
  *    (kendiliğinden birleşen) yeniden gönderim kullanıcı eylemi başına EN ÇOK bir kez — ikinci
  *    409 çakışma bildirimiyle durur (kendiliğinden yeniden gönderim yok).
+ *  - Sahip sökülmesi (CX-F1-E-05): düzenleme yanıtı (409) bileşen söküldükten sonra gelirse
+ *    çakışma akışına girilmez, yeniden gönderim yok; ilk çağrı tamamlanır.
  *  - Sil: istemci onayı (`useConfirm`, sunucu onay istemez) → `deleteWorkItemNote`.
  * Diğer sonuçlar ortak bildirim (`notifyOutcome`; metin hata kodundan, i18n).
  */
 import { ApiError } from '@/shared/errors/api-error'
-import type { MutationOutcome } from '@/shared/http/mutation'
+import { ownerLife, type MutationOutcome } from '@/shared/http/mutation'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
@@ -75,6 +77,7 @@ type NoteRef = () => { target: WorkTarget; workItemId: string }
 function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
   const update = useUpdateNote()
   const conflict = useConflictResolver()
+  const owner = ownerLife()
 
   /** Döngü koruması: çakışma bildirilir, düzenleyici açık kalır (taslak korunur). */
   function stopConflict(outcome: AnyOutcome): SettleResult {
@@ -130,6 +133,8 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
     if (content === base.content) return { done: true, notice: null }
     const outcome = await update.submit({ ...ref(), noteId: base.note_id, base, content })
     if (outcome.kind === 'edit_conflict') {
+      // Geç yanıt sökülmeden sonra geldi: çakışma akışı (diyalog/yeniden gönderim) yok.
+      if (!owner.alive()) return { done: false, notice: null }
       return resolveConflict(outcome, base, content, outcome.server, autoRetried)
     }
     return settle(outcome, refetch)

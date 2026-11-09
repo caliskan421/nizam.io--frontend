@@ -4,6 +4,11 @@
  * sorar (hiç yoksa diyalog açılmadan boş seçim döner — değişiklikler kendiliğinden birleşir).
  * Kullanıcı vazgeçerse `null`. Seçim sonrası gövde `resolveDraft`, taban sunucunun kaydıdır.
  *
+ * Sahip yaşamı (CX-F1-E-05): çözümleyici kurulduğu etki kapsamının sökülmesini izler. Sökülmüş
+ * sahip için `resolve` ne diyalog açar ne de "kendiliğinden birleşti" (`{}`) döner — vazgeç
+ * (`null`) döner; tüketiciler vazgeçte yeniden göndermez. Açık diyalog sökülmede vazgeçle kapanır.
+ * Etki kapsamı dışında kurulan çözümleyici sahipsizdir (her zaman canlı).
+ *
  *   const conflict = useConflictResolver()
  *   if (outcome.kind === 'edit_conflict' && outcome.server) {
  *     const choices = await conflict.resolve({ base, draft, server: outcome.server, labels })
@@ -13,6 +18,8 @@
  *     @resolve="conflict.choose" @cancel="conflict.dismiss" />
  */
 import { shallowRef } from 'vue'
+
+import { ownerLife } from '@/shared/http/mutation'
 
 import {
   conflictRows,
@@ -33,7 +40,10 @@ export function useConflictResolver() {
     done?.(choices)
   }
 
+  const owner = ownerLife(() => settle(null))
+
   function resolve(input: ConflictInput): Promise<ConflictChoices | null> {
+    if (!owner.alive()) return Promise.resolve(null)
     const rows = conflictRows(input)
     if (rows.length === 0) return Promise.resolve({})
     settle(null)
