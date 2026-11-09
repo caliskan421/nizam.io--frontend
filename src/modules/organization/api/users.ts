@@ -36,7 +36,7 @@ import {
   isTruncated,
   ORGANIZATION_STALE_MS,
   retryTransient,
-  unwrapMarked,
+  unwrapList,
   USER_PAGE_LIMIT,
 } from './http'
 import { useKeylessMutation } from './keyless'
@@ -54,7 +54,7 @@ function readUsers(
   signal?: AbortSignal,
 ) {
   const search = filters.search?.trim()
-  return unwrapMarked(
+  return unwrapList(
     api.GET('/v1/admin/users', {
       params: {
         query: {

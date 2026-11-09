@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 
+import { useDepartmentRoster } from '@/modules/organization/public'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import {
@@ -8,6 +9,7 @@ import {
   errorEnvelope,
   harness,
   http,
+  HttpResponse,
   json,
   ORIGIN,
   resetHarness,
@@ -77,6 +79,41 @@ describe('useDepartmentMembers (listMembers)', () => {
     const r = h.run(() => useDepartmentMembers('d2'))
     await vi.waitFor(() => expect(r.status.value).toBe('error'))
     expect(r.members.value).toEqual([])
+    expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(1)
+  })
+})
+
+describe('X-Result-Truncated: work ve organizasyon aynı anahtarı aynı biçimde doldurur', () => {
+  function truncatedRoster() {
+    server.use(
+      http.get(`${ORIGIN}/v1/departments/:id/members`, () =>
+        HttpResponse.json(
+          { members: [member('a', 'Zeynep')] },
+          { headers: { 'X-Result-Truncated': 'true' } },
+        ),
+      ),
+    )
+  }
+
+  it('önce work doldurur → organizasyon truncated görür (tek istek)', async () => {
+    truncatedRoster()
+    const h = harness(ADMIN_SCOPE)
+    const work = h.run(() => useDepartmentMembers('d2'))
+    await vi.waitFor(() => expect(work.status.value).toBe('ready'))
+    const org = h.run(() => useDepartmentRoster('d2'))
+    await h.flush()
+    expect(org.truncated.value).toBe(true)
+    expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(1)
+  })
+
+  it('tersi: organizasyon doldurur → work aday listesi değişmeden okunur', async () => {
+    truncatedRoster()
+    const h = harness(ADMIN_SCOPE)
+    const org = h.run(() => useDepartmentRoster('d2'))
+    await vi.waitFor(() => expect(org.truncated.value).toBe(true))
+    const work = h.run(() => useDepartmentMembers('d2'))
+    await h.flush()
+    expect(work.members.value).toEqual([{ accountId: 'a', fullName: 'Zeynep' }])
     expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(1)
   })
 })

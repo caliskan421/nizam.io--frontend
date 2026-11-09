@@ -32,7 +32,7 @@ import {
   ORGANIZATION_STALE_MS,
   programHeader,
   retryTransient,
-  unwrapMarked,
+  unwrapList,
 } from './http'
 import { useKeylessMutation } from './keyless'
 
@@ -40,7 +40,7 @@ const collator = new Intl.Collator('tr-TR', { sensitivity: 'base' })
 
 /** `listMembers` (S2; ŞY ve o departmanın K; Ü 403). `status = deleted` satırları da gelir. */
 export function fetchRoster(programId: string, departmentId: string, signal?: AbortSignal) {
-  return unwrapMarked(
+  return unwrapList(
     api.GET('/v1/departments/{id}/members', {
       params: { header: programHeader(programId), path: { id: departmentId } },
       signal,
@@ -50,7 +50,7 @@ export function fetchRoster(programId: string, departmentId: string, signal?: Ab
 
 /** `listAssignable` (S2; yalnız K — ŞY 403, ORGANIZATION-K16). */
 export function fetchAssignable(programId: string, departmentId: string, signal?: AbortSignal) {
-  return unwrapMarked(
+  return unwrapList(
     api.GET('/v1/departments/{id}/assignable', {
       params: { header: programHeader(programId), path: { id: departmentId } },
       signal,

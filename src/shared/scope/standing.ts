@@ -13,6 +13,7 @@ import { computed } from 'vue'
 import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
+import { unwrapList } from '@/shared/http/truncation'
 import { useSessionStore } from '@/shared/session/store'
 
 import { hasErrorCode } from './authority-loss'
@@ -150,8 +151,9 @@ export function useStanding() {
   }
 }
 
+/** `listProgramDepartments` — ortak okuma yardımcısıyla (`X-Result-Truncated` önbellekte). */
 export async function fetchProgramDepartments() {
-  return unwrap(api.GET('/v1/program/departments'))
+  return unwrapList(api.GET('/v1/program/departments'))
 }
 
 /**

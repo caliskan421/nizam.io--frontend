@@ -42,7 +42,7 @@ import {
   programHeader,
   readProgramDepartments,
   retryTransient,
-  unwrapMarked,
+  unwrapList,
 } from './http'
 import { useKeylessMutation } from './keyless'
 
@@ -80,7 +80,7 @@ export function useCatalogDepartments(enabled: MaybeRefOrGetter<boolean> = true)
     computed(() => ({
       queryKey: queryKeys.catalog.departments(),
       queryFn: ({ signal }: QueryFunctionContext) =>
-        unwrapMarked(api.GET('/v1/departments', { signal })),
+        unwrapList(api.GET('/v1/departments', { signal })),
       enabled: toValue(enabled),
       retry: retryTransient,
       staleTime: ORGANIZATION_STALE_MS,
@@ -102,7 +102,7 @@ export function useDeletedDepartments(enabled: MaybeRefOrGetter<boolean> = true)
       return {
         queryKey: queryKeys.deletedDepartments.all(scope),
         queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-          unwrapMarked(
+          unwrapList(
             api.GET('/v1/admin/deleted/departments', {
               params: {
                 header: programHeader(scope.programId ?? ''),

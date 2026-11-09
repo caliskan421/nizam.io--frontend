@@ -172,10 +172,3 @@ export interface UserPage {
   page: UserList
   truncated: boolean
 }
-
-/** openapi-fetch sonucu (yalnız başlık okuma yardımcısı için). */
-export interface FetchResultLike<D> {
-  data?: D
-  error?: unknown
-  response: Response
-}
