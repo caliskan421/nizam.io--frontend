@@ -226,6 +226,39 @@ describe('useNewTaskForm — gönderim (K5)', () => {
     expect(toasts()).toEqual(['Görev oluşturuldu.'])
   })
 
+  it('CX-F1-E-03 (d): "Yeniden gönder" yanıtı beklerken kapsam A→B → ek atama gönderilmez, kısmi metin', async () => {
+    let calls = 0
+    let arrive!: () => void
+    let release!: () => void
+    const arrived = new Promise<void>((r) => (arrive = r))
+    const released = new Promise<void>((r) => (release = r))
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items`, async () => {
+        if (++calls === 1) return errorEnvelope('platform.internal', 500)
+        arrive()
+        await released
+        return json(workItem({ work_item_id: 'w9', department_id: 'd1' }), 200)
+      }),
+      http.post(`${ORIGIN}/v1/work-items/w9/assignments`, () => json({ added: 1 })),
+    )
+    const { r, h, created } = setup()
+    await h.flush()
+    await fill(r, { assignee: 'acc-1', extra: ['acc-2'] })
+    await r.submit()
+    const notice = r.notice.value
+    if (notice?.kind !== 'unknown_outcome' || !notice.retry) throw new Error('tekrar yok')
+
+    const retried = notice.retry()
+    await arrived
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    release()
+    await r.resolved(await retried)
+    expect(sent('POST', '/v1/work-items')).toHaveLength(2)
+    expect(sent('POST', '/v1/work-items/w9/assignments')).toHaveLength(0)
+    expect(created).toHaveBeenCalledOnce()
+    expect(toasts()).toEqual(['Görev oluşturuldu, ek atama yapılamadı.'])
+  })
+
   it('"Yeniden gönder" başarı + ek atama başarısız → kısmi başarı metni', async () => {
     let calls = 0
     server.use(

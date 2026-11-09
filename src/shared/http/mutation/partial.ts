@@ -5,8 +5,14 @@
  * gelen adımlar (ör. `addAssignments`) başarısız olsa da birincil kayıt geri alınmaz ve
  * kullanıcıya ilk yanıtın gerçek durumu söylenir ("görev oluşturuldu, ek atama yapılamadı").
  * Birincil başarısızsa ardıl adımlar koşmaz.
+ *
+ * Bütün işlem tek kullanıcı eylemidir: ardıl adımlar birincil eylemin bağlamıyla (kapsam +
+ * oturum nesli; `MutationSuccess.context`) gönderilmelidir — `followUps` bu bağlamı alır ve
+ * `submit(vars, { context })` ile geçirir. Birincil yanıt beklenirken kapsam ya da oturum
+ * değiştiyse motor ardıl isteği göndermez (`scope_changed` / `client.session_ended`); birincil
+ * başarı korunur, sonuç `partial` olur (CX-F1-E-03).
  */
-import type { MutationOutcome, MutationSuccess } from './outcome'
+import type { ActionContext, MutationOutcome, MutationSuccess } from './outcome'
 
 export interface FollowUpStep {
   /** Adımın kararlı adı (UI metni modülde: ör. 'assignments'). */
@@ -33,13 +39,13 @@ export type CompositeOutcome<V, D, S> =
  */
 export async function runWithFollowUps<V, D, S>(
   primary: () => Promise<MutationOutcome<V, D, S>>,
-  followUps: (data: D) => readonly FollowUpStep[],
+  followUps: (data: D, context: ActionContext | undefined) => readonly FollowUpStep[],
 ): Promise<CompositeOutcome<V, D, S>> {
   const first = await primary()
   if (first.kind !== 'success') return { kind: 'primary_failed', primary: first }
 
   const steps: StepResult[] = []
-  for (const step of followUps(first.data)) {
+  for (const step of followUps(first.data, first.context)) {
     steps.push({ name: step.name, outcome: await step.run() })
   }
   const failed = steps.filter((s) => s.outcome.kind !== 'success').map((s) => s.name)

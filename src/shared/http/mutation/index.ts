@@ -4,6 +4,7 @@ export {
   RETRY_WINDOW_MS,
   newAction,
   runAction,
+  sameScope,
   type MutationAction,
   type SendContext,
   type SendResult,
@@ -11,6 +12,7 @@ export {
 export { generateIdempotencyKey, isValidIdempotencyKey } from './idempotency-key'
 export {
   outcomeMessage,
+  type ActionContext,
   rateLimitMessage,
   type MutationKind,
   type MutationOutcome,
@@ -30,4 +32,5 @@ export {
   useProtectedMutation,
   type ProtectedMutation,
   type ProtectedMutationOptions,
+  type SubmitOptions,
 } from './use-protected-mutation'

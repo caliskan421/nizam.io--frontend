@@ -37,6 +37,13 @@ describe('kısmi başarı (CX-S-03)', () => {
     expect(result.steps[0]!.outcome.kind).toBe('failed')
   })
 
+  it('ardıl adımlar birincil başarının eylem bağlamını alır (CX-F1-E-03)', async () => {
+    const context = { scope: { programId: 'p1', departmentId: 'd1' }, generation: 3 }
+    const followUps = vi.fn(() => [])
+    await runWithFollowUps(() => Promise.resolve({ ...success('x'), context }), followUps)
+    expect(followUps).toHaveBeenCalledWith('x', context)
+  })
+
   it('birincil başarısızsa ardıl adım koşmaz', async () => {
     const step = vi.fn(() => Promise.resolve(success(null)))
     const result = await runWithFollowUps(

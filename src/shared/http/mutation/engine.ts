@@ -364,6 +364,7 @@ export async function runAction<V, D, S>(
     status: attempt.status,
     replayed: attempt.status === 200 && attempts > 1,
     idempotencyKey: action.idempotencyKey,
+    context: { scope: action.scope ? { ...action.scope } : null, generation: action.generation },
   }
 }
 
