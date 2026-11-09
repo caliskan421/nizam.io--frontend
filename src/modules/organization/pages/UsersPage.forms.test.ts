@@ -47,10 +47,6 @@ async function expectNoSecret(qc: QueryClient): Promise<void> {
     .getQueryCache()
     .getAll()
     .map((q) => q.state)
-  const mutations = qc
-    .getMutationCache()
-    .getAll()
-    .map((m) => m.state)
   expect(JSON.stringify(queries)).not.toContain(SECRET)
   // Mutasyon `gcTime: 0` ile önbellekten düşer (W71 `useSetTemporaryPassword`).
   await vi.waitFor(() =>
