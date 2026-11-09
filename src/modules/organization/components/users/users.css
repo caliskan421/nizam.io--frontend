@@ -21,7 +21,9 @@
   [data-theme='light'] .users-table .rp-dtable {
     box-shadow: var(--shadow-card);
   }
+  /* Konumlu: yatay kaydırma, mutlak konumlu `rp-sr` başlığını da içinde tutar (390'da taşma). */
   .users-table .rp-scroll {
+    position: relative;
     overflow-x: auto;
   }
   .users-table .users-grid {

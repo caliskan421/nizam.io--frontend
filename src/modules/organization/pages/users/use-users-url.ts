@@ -3,7 +3,8 @@
  * eklemez (`replace`); panel açma/kapama ekler (`push`: geri tuşu paneli kapatır). Kapsam
  * (program/mercek/birim) değişince arama ve rol sekmesi korunur; koordinatörlük süzgeci, `secili`
  * ve imleç sıfırlanır (`usersQueryAfterScopeChange`; imleç anahtarla düşer). `onReset` açık
- * diyalogları kapatmak içindir.
+ * diyalogları kapatmak içindir. Kapsamın ilk çözümü (program yokken program seçilmesi) değişim
+ * sayılmaz (S1 rotası kapsamdan önce çizilir).
  */
 import { computed, onScopeDispose } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -24,7 +25,10 @@ export function useUsersUrl(onReset: () => void = () => {}) {
     return router[history]({ name: USERS_ROUTE.name, query })
   }
 
-  const stop = store.onChange(() => {
+  // S1 rotası kapsam çözülmeden çizilir: ilk çözüm (program yok → program) kapsam DEĞİŞİMİ
+  // değildir; derin bağlantıdaki `secili`/`koordinatorluk` korunur.
+  const stop = store.onChange((_current, previous) => {
+    if (previous.programId === null) return
     onReset()
     const kept = parseUsersQuery(usersQueryAfterScopeChange(route.query))
     void router.replace({ name: USERS_ROUTE.name, query: usersQuery(kept) })

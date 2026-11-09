@@ -48,4 +48,26 @@ describe('useUsersUrl', () => {
     expect(reset).toHaveBeenCalledTimes(1)
     expect(router.currentRoute.value.query).toEqual({ rol: 'uye', q: 'ay' })
   })
+
+  it('kapsamın ilk çözümü (program yok → program) değişim sayılmaz: derin bağlantı korunur', async () => {
+    const reset = vi.fn()
+    const probe = defineComponent({
+      setup() {
+        useUsersUrl(reset)
+        return () => h('div')
+      },
+    })
+    const { router, store } = await mountWith(
+      probe,
+      {},
+      {
+        path: '/kullanicilar?koordinatorluk=d1&secili=u1',
+        selection: { programId: null, lens: null, departmentId: null },
+      },
+    )
+    store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    await settle()
+    expect(reset).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.query).toEqual({ koordinatorluk: 'd1', secili: 'u1' })
+  })
 })
