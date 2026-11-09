@@ -198,7 +198,13 @@ describe('useProtectedMutation', () => {
     expect(second.kind).toBe('success')
     expect(invalidated(seeded.me)).toBe(true)
     expect(invalidated(queryKeys.users.list({ q: '' }))).toBe(true)
-    expect(invalidated(seeded.list)).toBe(false)
+    // Atama devri (ORGANIZATION-K18; 05/08 backend.md §5): görev listesi ve kayıtları yakalanan
+    // kapsamda yeniden okunur; başka programın önbelleği dokunulmaz (K2). W14'teki `false`
+    // beklentisi o günkü §6 tablosunun aynasıydı (devir satırı yoktu), bilinçli karar değildi.
+    expect(invalidated(seeded.list)).toBe(true)
+    expect(invalidated(seeded.item)).toBe(true)
+    expect(invalidated(seeded.otherScopeList)).toBe(false)
+    expect(invalidated(seeded.notes)).toBe(false)
     stop()
   })
 

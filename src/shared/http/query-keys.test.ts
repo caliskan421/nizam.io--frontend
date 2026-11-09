@@ -116,6 +116,11 @@ const TABLE: Array<{
       'extendWorkItem',
       'requestDateChange',
       'reviewDateChangeRequest',
+      // Atama devri (ORGANIZATION-K17/K18/K29).
+      'removeMember',
+      'removeCoordinator',
+      'updateMembershipRole',
+      'deleteUser',
     ],
   },
   {
