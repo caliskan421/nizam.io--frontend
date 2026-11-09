@@ -65,4 +65,11 @@ describe('ana sayfa görünüm kuralları', () => {
     const card = files.find((f) => f.name === 'components/KpiCard.vue')!.text
     expect(card).toMatch(/'--home-kpi-fill': `\$\{props\.card\.bar\}%`/)
   })
+
+  it('KPI kartı gövdesi üstten hizalı (not satırı olmayan kartta değer kaymaz, W63)', () => {
+    const css = stripComments(files.find((f) => f.name === 'pages/home.css')!.text)
+    const rule = /\.home-page \.home-kpi \{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(rule).toMatch(/justify-content: flex-start/)
+    expect(rule).not.toMatch(/space-between/)
+  })
 })

@@ -4,6 +4,7 @@ import './home.css'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
+import { lensAssignee } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import { invalidateStanding, useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -55,7 +56,7 @@ const standingError = computed(() =>
   kpiSource.value === 'error' ? toApiError(standing.error.value) : null,
 )
 /** Üye merceğinde "bana atananlar" (birleşik rolde zorunlu, salt üyede etkisiz). */
-const assignee = computed(() => (store.lens === 'member' ? (facts.value?.accountId ?? null) : null))
+const assignee = computed(() => lensAssignee(store.lens, facts.value?.accountId))
 const actions = computed(() => quickActions(facts.value, store.programId))
 
 function retryStanding(): void {

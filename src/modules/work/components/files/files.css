@@ -54,8 +54,13 @@
     justify-content: space-between;
     gap: var(--space-3);
   }
+  /*
+   * Kanıt satırı: etiket, "gerekli" ve "Arşivde aç" kırılmaz (nowrap, küçülmez); yalnız dosya
+   * adı kısalır (…). Dar panelde satır üç satıra kırılıyordu (O5 görsel kusur, W63).
+   */
   .wf-evidence {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     gap: var(--space-2);
     min-width: 0;
@@ -63,22 +68,31 @@
     font-size: var(--ui-fs-sm);
   }
   .wf-evidence dt {
+    flex: none;
     color: var(--ink-muted);
+    white-space: nowrap;
   }
   .wf-evidence dd {
     display: inline-flex;
+    flex: 1 1 auto;
     align-items: center;
     gap: var(--space-2);
     min-width: 0;
     margin: 0;
     color: var(--ink);
   }
+  .wf-evidence dd > .rp-trunc {
+    min-width: 0;
+  }
   .wf-req {
+    flex: none;
     color: var(--ink-faint);
     font: var(--text-label);
+    white-space: nowrap;
   }
   .wf-linkbtn {
     display: inline-flex;
+    flex: none;
     align-items: center;
     gap: var(--ui-gap-2xs);
     padding: 0;
@@ -86,6 +100,7 @@
     background: none;
     color: var(--ink-faint);
     font: inherit;
+    white-space: nowrap;
   }
   .wf-linkbtn:disabled {
     cursor: not-allowed;

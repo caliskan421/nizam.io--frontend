@@ -5,7 +5,8 @@
  *    bekleme durumundadır, görünen değer yalnız yeniden okunan listeden gelir.
  *  - Kişi / tarih / başlık (E-03-32…34): `expected_revision` (W41 sarmalayıcısı). 409
  *    `work.edit_conflict` → `shared/ui/conflict` alan alan seçim → sunucu kaydı yeni tabanla
- *    YENİ eylem (otomatik tekrar yok).
+ *    YENİ eylem. Döngü koruması: sürüm ilerlemediyse yeniden gönderilmez; diyalogsuz (kendiliğinden
+ *    birleşen) yeniden gönderim kullanıcı eylemi başına en çok bir kez (W63).
  *  - Sil (E-03-36/64): istemci onayı (`useConfirm`; `confirmation_required` bu uçta yok).
  *  - Bu uçlar `Idempotency-Key` almaz: sonuç bilinmiyor / başarısızlıkta liste yeniden okunur
  *    (sunucu tek doğru), metin `notifyOutcome` (hata kodu → i18n).
@@ -14,7 +15,7 @@ import { shallowRef } from 'vue'
 
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
-import { resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
+import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 
 import { useDeleteSubtask, useUpdateSubtask } from '../../api'
 import type {
@@ -57,9 +58,18 @@ function conflictFormat(item: () => WorkItem) {
   }
 }
 
+/** Çakışma çözümü: `stop` → döngü koruması (bildirilir); `next` null → gönderilecek fark yok. */
+interface Resolution {
+  stop: boolean
+  next: UpdateSubtaskBody | null
+  /** Diyalog açılmadan (gerçek çakışma yokken) birleşti. */
+  automatic: boolean
+}
+
 /**
  * 409 `edit_conflict`: yalnız gerçek çakışan alanlar sorulur (`shared/ui/conflict`); seçim
- * sonrası gönderilecek değişiklik, vazgeçte ya da yazılacak fark kalmadıysa `null`.
+ * sonrası gönderilecek değişiklik, vazgeçte ya da yazılacak fark kalmadıysa `null`. Bu eylemde
+ * diyalogsuz bir yeniden gönderim zaten yapıldıysa (`autoRetried`) ikincisi yapılmaz (`stop`).
  */
 function useConflictFlow(item: () => WorkItem) {
   const conflict = useConflictResolver()
@@ -69,18 +79,22 @@ function useConflictFlow(item: () => WorkItem) {
     base: WorkItemSubtask,
     changes: UpdateSubtaskBody,
     server: WorkItemSubtask,
-  ): Promise<UpdateSubtaskBody | null> {
+    autoRetried: boolean,
+  ): Promise<Resolution> {
     const theirs = subtaskValues(server)
-    const choices = await conflict.resolve({
+    const input = {
       base: subtaskValues(base),
       draft: changes,
       server: theirs,
       labels: conflictLabels(),
       format,
-    })
-    if (choices === null) return null
+    }
+    const automatic = conflictRows(input).length === 0
+    if (automatic && autoRetried) return { stop: true, next: null, automatic }
+    const choices = await conflict.resolve(input)
+    if (choices === null) return { stop: false, next: null, automatic }
     const next = keepDatePair(resolveDraft(changes, theirs, choices), server)
-    return Object.keys(next).length === 0 ? null : next
+    return { stop: false, next: Object.keys(next).length === 0 ? null : next, automatic }
   }
 
   return { conflict, resolve }
@@ -126,6 +140,7 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   async function send(
     base: WorkItemSubtask,
     changes: UpdateSubtaskBody,
+    autoRetried = false,
   ): Promise<UpdateOutcome | null> {
     const workItemId = deps.item().work_item_id
     // Yazma değişkeni dondurulur (`structuredClone`): sorgu/props vekilleri düz kopyaya çevrilir.
@@ -134,8 +149,9 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
     if (outcome.kind !== 'edit_conflict' || outcome.server === null) return outcome
     // Sunucu sürümü ilerlemediyse yeniden göndermek aynı çakışmayı doğurur: bildirilir.
     if (outcome.server.edit_revision === base.edit_revision) return outcome
-    const next = await resolve(base, changes, outcome.server)
-    return next === null ? null : send(outcome.server, next)
+    const step = await resolve(base, changes, outcome.server, autoRetried)
+    if (step.stop) return outcome
+    return step.next === null ? null : send(outcome.server, step.next, step.automatic)
   }
 
   /** Kişi / tarih / başlık / `done` yazması; satır istek boyunca beklemede. */
