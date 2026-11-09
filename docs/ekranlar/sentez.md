@@ -156,3 +156,5 @@ Tutarsızlıklar: tür adları/renkleri 01 ≠ 01b; sabit hex (rol renkleri, "Me
 **F0 kapandı** (Codex KOŞULLU UYGUN, 3. koşum; PR `#31`) — `../reviews/WEB-0-codex.md`; sonraki WEB-1 (`../yurutme/web-1/`).
 
 **F1 kapandı (2026-11-09; Codex KOŞULLU UYGUN, `../reviews/WEB-1-codex.md`)** — `../yurutme/web-1/ilerleme.md`; F2 kabul tabloları (05, 08) **kabul** (ürün sahibi 2026-11-09, ortak-kurallar §12 P12–P17), yürütme seti `../yurutme/web-2/`.
+
+**F2 kapanıyor (2026-11-09)** — O2–O4 `main`'de (#51–#61); 05 ve 08 kabul tabloları **kabul — uygulandı**, BE-107 eklendi (`../backend-eksikleri/rapor-F2.md`); kapanış (görsel doğrulama, Codex kapısı `../reviews/WEB-2-codex.md`) koordinatörde — `../yurutme/web-2/ilerleme.md`. **F3 kabul tablosu** (`03c-zaman-cizelgesi/README.md`) **geçici kabul — ürün onayı bekliyor** (Codex §6 #11–#12 varsayılanları; P8 bağlayıcı; kendi SVG Gantt). Yürütme seti `../yurutme/web-3/` hazır; **F3 ürün sahibinin uyarısı/onayı olmadan açılmaz**.
