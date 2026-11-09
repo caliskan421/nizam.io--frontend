@@ -264,7 +264,9 @@ describe('zorunlu parola değişimi (K-1; P14)', () => {
     await changePassword('yanlis-parola', NEW_PASSWORD)
     await until(() => fieldError('current_password'), '401 alan hatası')
     expect(fieldError('current_password')).toBe('Mevcut parola hatalı.')
-    // Yanlış mevcut parola oturumu düşürmez (yenileme sonrası tek tekrar da 401).
+    // Yanlış mevcut parola: refresh ve tekrar YOK (deneme kovasına tek yazım; W83b); oturum sürer.
+    expect(passwordPosts()).toHaveLength(2) // 422 + 401, her biri bir kez
+    expect(backend.sent('POST', '/v1/auth/refresh')).toHaveLength(0)
     expect(app.session.status).toBe('authenticated')
     expect(form()).not.toBeNull()
 

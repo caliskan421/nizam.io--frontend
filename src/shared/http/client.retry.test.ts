@@ -349,3 +349,45 @@ describe('taşıyıcı tekrarı = aynı isteğin tamamlanması (CX-F1-E-05 devam
     })
   })
 })
+
+const NO_SCOPE: ScopeSnapshot = { programId: null, departmentId: null }
+
+describe('kimlikle ilgisiz 401 kodu: refresh ve tekrar yok (W83b)', () => {
+  it.each(['identity.credentials_invalid', 'program.password_invalid'])(
+    '%s (changePassword yanlış mevcut parola) → refresh 0, tekrar 0, hata olduğu gibi döner',
+    async (code) => {
+      const tab = await loggedInTab(NO_SCOPE)
+      const seen: Request[] = []
+      backend.server.use(
+        http.post(`${BASE}/v1/auth/password`, ({ request }) => {
+          seen.push(request)
+          return backend.envelope(code, 401)
+        }),
+      )
+      const result = await tab.client.POST('/v1/auth/password', {
+        body: { current_password: 'yanlis', new_password: 'Yeni-Parola-1' },
+      })
+      expect(result.response.status).toBe(401)
+      await expect(unwrap(Promise.resolve(result))).rejects.toMatchObject({ code })
+      expect(seen).toHaveLength(1)
+      expect(backend.state.refreshCount).toBe(0)
+      expect(tab.session.snapshot.status).toBe('authenticated')
+    },
+  )
+
+  it('platform.unauthenticated aynı uçta yenileme yoluna devam eder (1 refresh, 1 tekrar)', async () => {
+    const tab = await loggedInTab(NO_SCOPE)
+    const seen: Request[] = []
+    backend.server.use(
+      http.post(`${BASE}/v1/auth/password`, ({ request }) => {
+        seen.push(request)
+        return backend.envelope('platform.unauthenticated', 401)
+      }),
+    )
+    await tab.client.POST('/v1/auth/password', {
+      body: { current_password: 'x', new_password: 'y' },
+    })
+    expect(seen).toHaveLength(2)
+    expect(backend.state.refreshCount).toBe(1)
+  })
+})
