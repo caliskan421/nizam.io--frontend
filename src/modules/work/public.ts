@@ -1,6 +1,7 @@
 // work modülünün dışa açık yüzü. Diğer modüller (ör. 01 ana sayfa) ve `app/` yalnız bu dosyayı
 // içe aktarır. Sayfa kaydı `workRoutes` (`app/router.ts` `MODULE_ROUTES`).
 export * from './api'
+export { assignedSubset, isAssignedTo, lensAssignee } from './model/assignment'
 export {
   canCreateWorkItem,
   coordinatorDepartmentIds,

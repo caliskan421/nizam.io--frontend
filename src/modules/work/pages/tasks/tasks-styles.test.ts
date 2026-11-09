@@ -59,4 +59,13 @@ describe('görev listesi sayfa görünüm kuralları', () => {
     expect(tasks).toMatch(/\.rp-aside \{[^}]*max-width: var\(--rp-aside-max\)/)
     expect(tasks).toMatch(/\.rp-head > :first-child \{[^}]*flex: 1 1 var\(--rp-head-basis\)/)
   })
+
+  it('başlık eylemleri dar ekranda sarar, başlığı aşmaz (390 px taşması, W63)', () => {
+    const tasks = stripComments(read('tasks.css'))
+    const actions = /\.tasks-page \.rp-actions \{([^}]*)\}/.exec(tasks)?.[1] ?? ''
+    expect(actions).toMatch(/flex-wrap: wrap/)
+    expect(actions).toMatch(/min-width: 0/)
+    expect(actions).toMatch(/max-width: 100%/)
+    expect(actions).not.toMatch(/flex: none/)
+  })
 })

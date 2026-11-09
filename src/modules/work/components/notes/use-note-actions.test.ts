@@ -83,6 +83,55 @@ describe('useNoteActions — düzenleme ve çakışma', () => {
     expect(refetch).toHaveBeenCalledOnce()
   })
 
+  // Döngü koruması (O5 görsel kusur): sürekli 409 dönen sunucuda istek sayısı sınırlı (≤ 2).
+  it('sürekli 409, sunucu kaydı tabanla aynı (sürüm ilerlemedi) → tek PATCH, çakışma bildirimi', async () => {
+    server.use(
+      http.patch(`${URL}/n1`, conflict409),
+      http.get(URL, () => json({ notes: [base], total: 1 })),
+    )
+    const { actions } = setup()
+    expect(await actions.saveNote(base, 'Benim')).toEqual({ done: false, notice: null })
+    expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(1)
+    expect(actions.conflict.open.value).toBe(false)
+    expect(toastMessages()).toHaveLength(1)
+  })
+
+  it('sürekli 409, sunucu sürümü ilerliyor ama içerik aynı → en çok bir diyalogsuz yeniden gönderim (2 PATCH)', async () => {
+    let revision = base.edit_revision
+    server.use(
+      http.patch(`${URL}/n1`, conflict409),
+      http.get(URL, () => json({ notes: [{ ...base, edit_revision: ++revision }], total: 1 })),
+    )
+    const { actions } = setup()
+    expect(await actions.saveNote(base, 'Benim')).toEqual({ done: false, notice: null })
+    expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(2)
+    expect(actions.conflict.open.value).toBe(false)
+    expect(toastMessages()).toHaveLength(1)
+  })
+
+  it('diyalogla "Benim" seçildikten sonra yine 409 → diyalog yeniden açılır, kendiliğinden gönderim yok', async () => {
+    let revision = base.edit_revision
+    server.use(
+      http.patch(`${URL}/n1`, conflict409),
+      http.get(URL, () =>
+        json({
+          notes: [{ ...base, content: `Onun ${++revision}`, edit_revision: revision }],
+          total: 1,
+        }),
+      ),
+    )
+    const { actions } = setup()
+    const pending = actions.saveNote(base, 'Benim')
+    await vi.waitFor(() => expect(actions.conflict.open.value).toBe(true))
+    actions.conflict.choose({ content: 'mine' })
+    await vi.waitFor(() => expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(2))
+    await vi.waitFor(() => expect(actions.conflict.open.value).toBe(true))
+    expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(2)
+    actions.conflict.dismiss()
+    expect(await pending).toEqual({ done: false, notice: null })
+    expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(2)
+  })
+
   it('çakışmada vazgeç → düzenleyici açık kalır (taslak korunur)', async () => {
     server.use(
       http.patch(`${URL}/n1`, conflict409),

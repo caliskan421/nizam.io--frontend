@@ -96,6 +96,24 @@ describe('görev satırı (E-03-18…29)', () => {
     expect(people[0]!.text()).toBe('AY')
   })
 
+  it('dört atanan: iki avatar + "+2" (kalan adlar ipucunda), sütuna sığar (E-03-27)', () => {
+    const row = mountRow({
+      assignees: [
+        { account_id: 'a1', full_name: 'Ayşe Yılmaz' },
+        { account_id: 'a2', full_name: 'Bora Kaya' },
+        { account_id: 'a3', full_name: 'Can Ak' },
+        { account_id: 'a4', full_name: null },
+      ],
+    })
+    const people = row.findAll('.task-row__person')
+    expect(people).toHaveLength(3)
+    expect(people.slice(0, 2).map((p) => p.text())).toEqual(['AY', 'BK'])
+    const more = row.get('.task-row__more')
+    expect(more.text()).toBe('+2')
+    expect(more.attributes('aria-label')).toBe('2 kişi daha: Can Ak, Bilinmeyen kişi')
+    expect(more.attributes('data-tip')).toBe('2 kişi daha: Can Ak, Bilinmeyen kişi')
+  })
+
   it('toplu seçim kutusu ve öncelik DOM’da yok (P7, E-03-29)', () => {
     const row = mountRow({ priority: 'acil' })
     expect(row.find('input[type="checkbox"]').exists()).toBe(false)

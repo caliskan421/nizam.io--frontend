@@ -34,12 +34,19 @@
     color: var(--ink-muted);
     font: var(--text-body);
   }
+  /*
+   * Eylemler (görünüm seçici + "Yeni görev"): geniş ekranda tek satır; satır sığmazsa kendi
+   * içinde sarar ve başlık genişliğini aşmaz (390 px'te `flex: none` + `nowrap` sayfayı
+   * yatay taşırıyordu — W63, İş 5).
+   */
   .tasks-page .rp-actions {
     display: flex;
     gap: var(--space-2);
     align-items: center;
-    flex: none;
-    flex-wrap: nowrap;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
   }
 
   /* Gövde */

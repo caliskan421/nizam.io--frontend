@@ -127,6 +127,24 @@ describe('alt görev düzenleme', () => {
     expect(reload).toHaveBeenCalledTimes(1)
   })
 
+  it('sürekli 409, sürüm ilerliyor ama gerçek çakışma yok → en çok bir diyalogsuz yeniden gönderim (2 PATCH)', async () => {
+    let revision = subtask().edit_revision
+    server.use(
+      http.patch(`${ORIGIN}${PATH}/s1`, () =>
+        errorEnvelope('work.edit_conflict', 409, [{ field: 'expected_revision', code: 'x' }]),
+      ),
+      http.get(`${ORIGIN}${PATH}`, () =>
+        json({ subtasks: [subtask({ edit_revision: ++revision })], total: 1 }),
+      ),
+    )
+    const { edit, reload } = setup()
+    await edit.patch(subtask(), { title: 'Benim' })
+    expect(sent('PATCH', `${PATH}/s1`)).toHaveLength(2)
+    expect(edit.conflict.open.value).toBe(false)
+    expect(useToast().current.value).not.toBeNull()
+    expect(reload).toHaveBeenCalledTimes(1)
+  })
+
   it('sil: onay iptal → istek yok; onay → DELETE', async () => {
     server.use(http.delete(`${ORIGIN}${PATH}/s1`, () => json({ status: 'deleted' })))
     const { edit } = setup()

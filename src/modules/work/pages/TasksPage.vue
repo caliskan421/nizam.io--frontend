@@ -156,6 +156,7 @@ function loadMore(): void {
           :count="list.requestCount.value"
           :departments="list.requestDepartments.value"
           :can-review="canReview"
+          :complete="list.complete.value"
         />
       </div>
       <div class="rp-col">
