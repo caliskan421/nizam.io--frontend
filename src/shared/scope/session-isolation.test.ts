@@ -4,8 +4,16 @@
 // içeriği denetlenir. Dört senaryo: (yerel | kardeş sekme çıkışı) × (geciktirilmiş GET | geçici
 // hata tekrarı). Kardeş sekme, oturumun gerçek `BroadcastChannel` aboneliğine sahte kanal
 // üzerinden `logout` iletisiyle konuşur.
+//
+// Ağ katmanı: `fetch` doğrudan MSW işleyicilerine gider (`getResponse`), soket düzeyi yakalamaya
+// değil. CI'da (PR #60) yerel tekrar senaryosunda giriş isteği MSW'ye hiç ulaşmadan gerçek
+// soketten `localhost:80`'e gitti (ECONNREFUSED, MSW "unhandled" iletisi yok): @mswjs/interceptors
+// 0.45 isteği soket düzeyinde, başlatan `fetch`'in async bağlamıyla eşleştirir; çıkışta iptal
+// edilen (abort) uçuştaki okumalarla aynı anda kurulan bağlantı yük altında bu eşleşmeyi
+// kaçırabiliyor. Burada her istek bir işleyiciye düşmek ZORUNDA (yoksa açık hata + kayıt), iptal
+// isteğin sinyaliyle anında uygulanır, test sonunda bütün işleyici çalışmaları beklenir.
 import { focusManager, QueryClient, type Query } from '@tanstack/vue-query'
-import { http, HttpResponse } from 'msw'
+import { getResponse, http, HttpResponse, RequestHandler } from 'msw'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -16,7 +24,47 @@ import { createTarget, withSetup } from './__tests__/harness'
 
 const backend = createFakeBackend()
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+/** İşleyicisi olmayan istekler (her test sonunda boş olmalı). */
+const unhandled: string[] = []
+/** Süren işleyici çalışmaları (iptal edilmiş isteklerinki dahil); test sonunda beklenir. */
+const running = new Set<Promise<unknown>>()
+const mounted: Array<{ unmount: () => void }> = []
+
+/** `fetch` yerine: istek doğrudan MSW işleyicilerine; iptal sinyali hemen uygulanır. */
+async function handlerFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const request = input instanceof Request && init === undefined ? input : new Request(input, init)
+  const { signal } = request
+  if (signal.aborted) throw new DOMException('İstek iptal edildi', 'AbortError')
+  const work = getResponse(
+    backend.server.listHandlers().filter((h): h is RequestHandler => h instanceof RequestHandler),
+    request,
+  )
+  running.add(work)
+  void work.finally(() => running.delete(work))
+  const aborted = new Promise<never>((_, reject) =>
+    signal.addEventListener(
+      'abort',
+      () => reject(new DOMException('İstek iptal edildi', 'AbortError')),
+      { once: true },
+    ),
+  )
+  const response = await Promise.race([work, aborted])
+  if (!response) {
+    unhandled.push(`${request.method} ${new URL(request.url).pathname}`)
+    throw new TypeError(`işleyicisiz istek: ${request.method} ${request.url}`)
+  }
+  return response
+}
+
+/** Test sonu: işleyici çalışmaları bitti, işleyicisiz istek yok. */
+async function drained(): Promise<void> {
+  while (running.size > 0) await Promise.allSettled([...running])
+  expect(unhandled).toEqual([])
+}
+
 afterEach(() => {
+  for (const app of mounted.splice(0)) app.unmount()
+  unhandled.length = 0
   backend.server.resetHandlers()
   backend.reset()
   focusManager.setFocused(undefined)
@@ -91,6 +139,7 @@ function standing(mode: MeMode) {
 async function boot() {
   FakeChannel.live = []
   vi.stubGlobal('BroadcastChannel', FakeChannel)
+  vi.stubGlobal('fetch', handlerFetch)
   vi.resetModules()
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -102,7 +151,8 @@ async function boot() {
   const client = new QueryClient({
     defaultOptions: { queries: { gcTime: Infinity, retryDelay: 0 } },
   })
-  withSetup(() => lifecycle.useScopeLifecycle(createTarget()), pinia, client)
+  const { wrapper } = withSetup(() => lifecycle.useScopeLifecycle(createTarget()), pinia, client)
+  mounted.push(wrapper)
   return { session, client, version: SESSION_MESSAGE_VERSION }
 }
 
@@ -152,8 +202,11 @@ describe.each(['yerel', 'kardeş'] as const)('%s çıkış → başka hesapla gi
     await signOut(ctx, where)
     await signInOther(ctx)
     endpoints.release()
+    await drained()
     await settleQueries(ctx.client)
     expectNoOldAccount(ctx.client)
+    // Geç yanıt gerçekten geldi (işleyici bitti) ve acc-1 için tek istek vardı.
+    expect(endpoints.meCalls.filter((a) => a === 'acc-1')).toEqual(['acc-1'])
   })
 
   it('geçici hata tekrarı: eski sorgu yeni hesabın kimliğiyle sürdürülmez', async () => {
@@ -168,10 +221,13 @@ describe.each(['yerel', 'kardeş'] as const)('%s çıkış → başka hesapla gi
     )
     const old = meQuery(ctx.client)!
     expect(old.state.fetchFailureCount).toBe(1)
+    // Diğer standing okumaları yerleşti (duraklatılmış tekrar `fetching` sayılmaz).
+    await settleQueries(ctx.client)
     await signOut(ctx, where)
     await signInOther(ctx)
     focusManager.setFocused(true)
     await settleQueries(ctx.client)
+    await drained()
     // Eski sorgu nesnesi yeni hesabın verisini taşımaz (tekrarı acc-2 ile koşmadı).
     expect(old.state.data).toBeUndefined()
     expectNoOldAccount(ctx.client)
