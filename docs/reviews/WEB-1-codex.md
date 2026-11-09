@@ -1,6 +1,6 @@
 # WEB-1 (F1) — Codex nihai kapı hükmü
 
-**Son hüküm: `<tur 5 hükmü>`** — 5. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 5 HEAD>` (`main` #32–#47 + PR #48 `45360c0` birleşik).
+**Son hüküm: `<tur 6 hükmü>`** — 6. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 6 HEAD>` (`main` #32–#48 + `<W67 PR>` birleşik).
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur (tur 1 modeli `gpt-6-astra`).
 Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
@@ -10,7 +10,8 @@ Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satır�
 | 2 | `45957f9` (#32–#45 birleşik) | UYGUN DEĞİL | E-01, E-03 kapandı; E-04 kod düzeltmeleri uygun (kanıt kapanış PR'ında); **E-02 kısmen** — `subtasks_open` onayı sahipsiz, geç yanıtta bağlam, kabul → mutasyon başlangıcı boşluğu; Ö-06 (yeni) | W64 → PR #46 `1126caf` (E-02 kalan üç boşluk, Ö-06 etiketi) · K-01…K-03 + E-04 kanıt özeti bu PR |
 | 3 | kapanış dalı `3a1522f` (main `1126caf`, #32–#46 birleşik) | UYGUN DEĞİL | E-02 boşluk 2 ve 3 kapandı; boşluk 1 kısmen — **sökülmüş sahip geç 409'da onay açabiliyor**; regresyon kanıtı eksikleri (`close_subtasks` kabul ↔ gönderim; üç silme testinde bağlam aktarımının açık denetimi; mimari testin dolaylı zinciri izlememesi); E-04 kanıt kaydı, K-01…K-03, Ö-06 kapandı | W65 → PR #47 `58400af` · kayıt netleştirmeleri bu PR |
 | 4 | kapanış dalı `fa53822` (main `58400af`, #32–#47 birleşik) | UYGUN DEĞİL | E-02 kapandı (sökülmüş sahip onay açamaz; regresyon kanıtı (i)–(iii) yeterli); **CX-F1-E-05 (yeni)** — alt görev çakışma birleştirmesi sökülmeden sonra yeni PATCH başlatabiliyor (koordinatörün istediği "onay dışı sökülme sonrası yazma" örnekleminde bulundu) | W66 → PR #48 `45360c0` (sınıf ortak yazma katmanında kapatılır) · tablo başlığı bu PR |
-| 5 | `<tur 5 HEAD>` | `<tur 5 hükmü>` | `<tur 5 bulguları>` | `<tur 5 düzeltme>` |
+| 5 | kapanış dalı `225afbe` (main `45360c0`, #32–#48 birleşik) | UYGUN DEĞİL | E-05'in çakışma yolu kapandı (ortak sahip kapısı uygun; D1/D2 bağımsız kanıtlı); **"E-05 devamı"** — taşıyıcının `401 → refresh →` özdeş yeniden gönderimi sahip kapısından geçmiyor; Ö-07 (yeni, F2'ye uygun) sökülmüş ekranın geç bildirimi | **Koordinatör kararı:** taşıyıcı tekrarı "aynı isteğin tamamlanması"dır, sahip kapısı uygulanmaz (`docs/ekranlar/ortak-kurallar.md` §7); güvenlik değişmezleri (özdeş istek, tek tekrar, aynı kimlik/oturum nesli) W67 → `<W67 PR>` ile doğrulanır/sabitlenir · Ö-07 → F2 W82 (15) |
+| 6 | `<tur 6 HEAD>` | `<tur 6 hükmü>` | `<tur 6 bulguları>` | `<tur 6 düzeltme>` |
 | — | `67d31b4` | Görsel doğrulama (üretim paketi + üretim CSP'si + Playwright + sahte `/v1`; gerçek backend yok): 53 senaryo, 96 görüntü (88 uygulama + 8 tasarım), iki tema × 1440/1024/390 × Admin/Koordinatör/Üye; kanıt özeti `docs/yurutme/web-1/ilerleme.md` O5 | yüksek 1 (alt görev onay kutusu 2 px, E-03-31), orta 2 (`/gorevler` 390 px'te 10 px yatay taşma; not çakışmasında sınırsız yeniden gönderim), düşük 5; bilinçli fark 22 | 8 kusurun 8'i W63 #44 (yeniden ölçüm: taşma 390/1024/1440 = 0/0/0; CSP ihlali 30 senaryoda 0) |
 
 Düzeltme planı (koordinatör, 2026-11-09): E-01 → W63 (PR #44; `work/model/assignment.ts` tek yüklem — liste, sekme sayaçları, talep sayısı, sayfalayıcı, boş durum ve ana sayfa KPI aynı kümeden) · E-02/E-03 → W62 (PR #45; `use-confirm` kapsam + oturum nesli + hesap bağı; bileşik yazmada `submit(vars, { context })`) · E-04 → görsel doğrulama turu (main `67d31b4`) + W63 #44 (390 px taşma ve diğer 7 görsel kusur) · Ö-01 → W63 · Ö-02 → W63 kısmen, kalan F2 entegrasyon turu (W82) · Ö-03 → W62 (`/layers.css` `no-cache`, duman testinde tüm CSP ihlalleri 0) · Ö-04, Ö-05 → F2 borcu (W82) · K-01, K-02, K-03 → belge, `web1/o5-kapanis` (K-03 eşik ↔ token eşlemesi F2 borcu) · K-04 → W63.
@@ -440,4 +441,66 @@ Kapanış: sahip yaşamını açılış anında doğrulayın; sökülmüş örne
 3. **F2 O5:** gerçek Caddy+backend tarayıcı tanığı, yükleme/indirme ve gerçek `/` üzerinde dolu KPI CSP senaryosu.
 4. **W71/W82:** capability taşıması, sayaç/avatar ve medya eşik–token borçları; ürün soruları #13–#18. Pin yükseltmesi ayrı sözleşme incelemesi olarak kalmalı.
 
-<!-- TUR 5 TAM METNİ BURAYA -->
+---
+
+# WEB-1 (F1) — Codex nihai kapı hükmü — 5. koşum
+
+- **Hüküm: UYGUN DEĞİL.** W66, E-05’in geç `edit_conflict` sonrası yeniden gönderim yolunu kapatıyor; ancak HTTP katmanının `401 → refresh → yeniden gönderim` yolu sahip kapısını atlayarak sökülmeden sonra yeni PATCH başlatabiliyor. Bu somut yazma açığı F2 öncesinde kapanmalı; aşağıdaki geç bildirim kusurları F2’ye devredilebilir.
+- **Denetlenen:** `web1/o5-kapanis` — `225afbe7a399df39e03ca04a06ebb0b0fdaf0e63`; başlangıç/bitiş çalışma ağacı temiz.
+- **İlk komutlar:** `git rev-parse HEAD`, `git log --oneline -10`, `git status --short`.
+- **Diğer komutlar:** `git branch --show-current`, `git log --first-parent`, `git diff`, `git show`, `rg`, `nl -ba`, `sed`, `cat`, `head`, `tail`, `ls`.
+- Dosya değiştirilmedi; test/lint/build çalıştırılmadı. Beş yerel kapı, `gen:check`, 223 dosya/1628 test, üç yeşil CI işi ve koruma kaldırma sayıları **kullanıcı beyanıdır**; bağımsız doğrulanmadı.
+- Kısaltmalar: `S = src/shared`, `W = src/modules/work`, `Y1 = docs/yurutme/web-1`, `Y2 = docs/yurutme/web-2`.
+
+## E-05 kapanışı ve sınıf taraması
+
+| Madde | Durum | Kanıt dosya:satır | Kalan risk |
+|---|---|---|---|
+| Sahip yaşamının motora aktarılması | Uygun | `S/http/mutation/owner.ts:25`; `S/http/mutation/use-protected-mutation.ts:131` | Kapsam dışında kurulan örnek bilinçli olarak canlı. |
+| İlk `submit`, `retry`, `confirm` | Motor düzeyinde kapalı | `S/http/mutation/engine.ts:242,284,319,349`; `use-protected-mutation.ts:159,162` | HTTP içindeki tekrar aşağıda açık. |
+| `conflict_retry` otomatik tekrarı | Kapalı | `S/http/mutation/engine.ts:353` | İkinci `sendOnce` öncesi sahip denetleniyor. |
+| Bileşik ardıl adım | Yazma kapalı | `W/api/items.ts:75,90`; `S/http/mutation/partial.ts:46,51,55` | İlk başarı korunur; `partial` içindeki `owner_disposed` UI’da ayrıca ele alınmalı. |
+| `owner_disposed` tüketimi | Doğrudan sonuçta uygun | `S/http/mutation/use-protected-mutation.ts:149`; `S/ui/confirm/notify.ts:34`; `W/components/subtasks/use-subtask-edit.ts:140`; `W/components/notes/use-note-actions.ts:55`; `W/components/forms/use-status-transition.ts:51` | İncelenen doğrudan dallarda yeni yazma, bildirim, yeniden okuma veya asılı söz yok; bileşik bildirim istisnası aşağıda. |
+| Çözümleyici / tüketici savunması | Tutarlı | `S/ui/conflict/use-conflict.ts:43,46`; `W/components/subtasks/use-subtask-edit.ts:156`; `W/components/notes/use-note-actions.ts:137` | Geç çözüm `null`; açık diyalog sökülmede tamamlanır. |
+| Alt görev/not gecikmiş 409 testleri | Kaynak mantığı anlamlı | `W/components/subtasks/use-subtask-edit.dispose.test.ts:67,90,105`; `W/components/notes/use-note-actions.dispose.test.ts:52,71,85` | D1+D2+D3 kaldırılırsa fark içeren taslak yeniden gönderilir; PATCH=1 beklentileri kırılır. Koşulmadı. |
+| D1 bağımsız kanıtı | Anlamlı | `S/http/mutation/use-protected-mutation.owner.test.ts:108,124,140,158,178`; `W/api/owner-dispose.test.ts:48` | D2/D3 kullanılmadan gerçek hook ve HTTP sayımı sınanıyor. |
+| D2/D3 ayrımı | Dürüst kayıt | `S/ui/conflict/use-conflict.test.ts:39,48`; alt görev dispose testi `:6`; not dispose testi `:5` | D2 bağımsız sınanıyor; D3 tek başına kaldırılınca yakalanmaması açıkça yazılı. |
+| Geç indirme bileti | Kapalı | `W/components/files/use-file-actions.ts:47,56,60`; `use-file-actions.dispose.test.ts:104,122` | Sökülmede tüketim yok; başarılı geç bilet sonucu temizlenir. |
+| Modül/uygulama doğrudan yazmaları | Ayrı kaçış bulunmadı | `W/api/items.ts:38,52,111,130,144,169`; `W/api/subtasks.ts:29,57,75`; `W/api/notes.ts:25,47,66`; `W/api/files.ts:33,51,65,83` | `rg` ile bulunan üretim HTTP yazmaları korumalı `send` içinde; bunların kullandığı taşıyıcıda aşağıdaki açık var. |
+
+## Regresyon ve kayıt
+
+- **Canlı/sahipsiz davranış:** canlı otomatik tekrar ve sahipsiz gönderim kaynak testleri mevcut (`S/http/mutation/use-protected-mutation.owner.test.ts:222,235`); canlı oluştur→atama `complete` bekliyor (`W/api/owner-dispose.test.ts:76`). Çalışma zamanı başarısı doğrulanmadı.
+- **E-02 korunmuş:** açılışta sahip denetimi ve ilk bağlam aktarımı mevcut (`S/ui/confirm/use-confirm.ts:223,226,252`; `W/components/forms/use-status-transition.ts:101,103,149`).
+- **E-03 korunmuş:** ilk başarı bağlamı ek atamaya taşınıyor; kısmi başarı kaybolmuyor (`W/api/items.ts:83,92`; `S/http/mutation/partial.ts:53`).
+- **Uygulama düzeyi istisnalar meşru:** giriş/refresh/çıkış bileşen yaşamına bağlı hook değildir (`S/session/store.ts:51`; `S/session/auth-session.ts:212`; `S/scope/sign-out.ts:36,47`). Çıkış temizliği ve oturum sayfasına gezinme korunmuş (`src/app/shell/side/SideAccount.vue:29,33`); tercihler HTTP yazması değil, uygulama tekil deposudur (`S/preferences/index.ts:42,63`).
+- **W48:** oluşturma→panel ve kapsam değişimi beklentileri korunmuş (`W/pages/tasks/__tests__/integration/events.test.ts:53`; `scope.test.ts:64,106`). Üretim router/AppShell kapsamı hâlâ F2 borcu (`integration/harness.ts:1`; `Y2/oturum-4-entegrasyon.md:20`).
+- **`git diff 58400af..HEAD -- eslint.config.js` boş.**
+- First-parent geçmişi: #48 `45360c0` → #47 `58400af` → #46 `1126caf`; #32–#48 mevcut. `660f349` ikinci ebeveyn olarak `45360c0`’ı birleştiriyor; bu main adayıyla HEAD arasındaki fark yalnız belgeler.
+- Koşum tablosu başlığı ve tur 1–4 hash’leri tutarlı (`docs/reviews/WEB-1-codex.md:7`). W66 ve KESİN 20 kayıtlı (`Y1/ilerleme.md:67`; `Y2/ortak-sozlesme.md:40`), fakat “sınıf kapandı” iddiası aşağıdaki taşıyıcı yolunu kapsamıyor.
+- **Tur 5 dışında yer tutucu var:** `<kapanış main hash>` (`Y1/ilerleme.md:15,82,97`); birleşme sonrası doldurulmalı. Tur 5 alanları ve tam metin yeri ayrıca bekliyor (`docs/reviews/WEB-1-codex.md:3,13,443`).
+- `../program/` yok; alternatif `../nizam.io--program/program/{DURUM,README}.md` okundu. WEB-1 için aktif FNN kaydı doğrulanamadı.
+
+## Yeni bulgular
+
+**CX-F1-E-05 devamı — engelleyici: 401 sonrası taşıyıcı tekrarı sahip kapısını atlıyor.**
+
+- Somut sıra: alt görev PATCH gönderilir → sahip sökülür → ilk istek 401 döner → refresh başarılı olur → aynı PATCH yeniden gönderilir.
+- Gerçek giriş `W/api/subtasks.ts:60`; uç kimliklidir (`S/api/operations.gen.ts:188`). `S/http/client.ts:151` refresh bekler, `:155` isteği klonlar, `:157` doğrudan `doFetch(retry)` çağırır; sahip yaşamını denetlemez ve motora dönmez.
+- `ownerLife` yalnız yaşam bayrağını değiştirir (`S/http/mutation/owner.ts:28`); uçuştaki sinyal sökülmede iptal edilmez. Böylece ilk HTTP yanıtından sonra **ikinci HTTP yazması** başlayabilir; bu, yalnız başlamış isteğin tamamlanması değildir.
+- **F2 öncesi kapanış:** taşıyıcı tekrarından önce sahip kapısı uygulanmalı; geciktirilmiş 401 ve refresh sırasında sökülme testleri ikinci PATCH=0, ilk sözün tamamlanması ve canlı sahipte tekrarın korunmasını göstermeli. Mevcut owner testleri bu yolu sınamıyor. Bulguyu kaynak zinciriyle doğruladım; koşumla üretmedim.
+
+**CX-F1-Ö-07 — F2’ye uygun: sökülmüş ekranın geç bildirimi.**
+
+- Oluşturma beklerken sökülmede ek atama engellense bile sonuç `partial` olur; form koşulsuz `finish()` üzerinden global bildirim basar (`W/components/forms/use-new-task-form.ts:170,175,176,143`; `S/ui/use-toast.ts:22,35`).
+- Pano işlemi beklerken detay sökülürse başarı/hata bildirimi yine basılır (`W/components/detail/DetailActions.vue:45,46,48`). Alt görevde geç sıradan hata da yaşam denetimsiz bildirim ve yeniden okuma başlatır (`W/components/subtasks/use-subtask-edit.ts:154,166,141,142`).
+- Bunlar ek sunucu yazması kanıtı değildir; sahip yaşamına bağlı görünür sonuç politikası ve geciktirilmiş yanıt testleriyle **F2 W82 içinde** kapatılabilir.
+
+## F2'ye devir
+
+1. **F2 açılmadan:** E-05’in taşıyıcı tekrar yolu kod ve regresyon kanıtıyla kapanmalı.
+2. **Kapanış PR’ında:** bu hüküm, gerçek denetlenen HEAD, nihai aday/CI bağlantıları ve birleşme sonrası kapanış hash’i kayda bağlanmalı.
+3. **F2 W82 içinde:** Ö-07 ile mevcut router/AppShell, kapsam/çıkış/onay, bekleme ve erişilebilirlik borçları kapatılmalı.
+4. **F2 O5:** gerçek Caddy+backend, yükleme/indirme ve gerçek `/` üzerinde dolu KPI CSP tanığı korunmalı.
+
+<!-- TUR 6 TAM METNİ BURAYA -->
