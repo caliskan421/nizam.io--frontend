@@ -2,6 +2,9 @@
  * CX-F1-E-05 (not düzenleme) — ilk PATCH beklerken bileşen sökülür, geç `409 work.edit_conflict`
  * gelir (sürüm ilerlemiş, içerik tabanla aynı → "kendiliğinden birleşen" çakışma). Sökülmeden
  * sonra yeniden gönderim YOK; ilk çağrı tamamlanır, diyalog/bildirim yok. Gerçek hook + MSW.
+ * Dürüst sınır: tüketici savunması (`use-note-actions` içindeki `owner.alive()` denetimi, D3)
+ * derinlik savunmasıdır ve tek başına hiçbir testle yakalanmaz — kaldırılırsa çözümleyici (D2)
+ * ve motor kapısı (D1) bu testi yine yeşil tutar; üçü birden kaldırılınca kırmızıya döner.
  */
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { mount } from '@vue/test-utils'

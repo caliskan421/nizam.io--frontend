@@ -3,6 +3,10 @@
  * work.edit_conflict` gelir (sürüm ilerlemiş, başlık tabanla aynı, başka alan değişmiş →
  * "kendiliğinden birleşen" çakışma). Sökülmeden sonra ikinci PATCH ÇIKMAZ; ilk çağrı tamamlanır,
  * diyalog/bildirim yok. Gerçek hook + gerçek API istemcisi + MSW; çağrı sayısıyla.
+ * Dürüst sınır: tüketici savunması (`use-subtask-edit` içindeki `owner.alive()` denetimi, D3)
+ * derinlik savunmasıdır ve tek başına hiçbir testle yakalanmaz — kaldırılırsa çözümleyici (D2,
+ * `null`) ve motor kapısı (D1, `owner_disposed`) bu testi yine yeşil tutar; üçü birden
+ * kaldırılınca kırmızıya döner.
  */
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { mount } from '@vue/test-utils'
