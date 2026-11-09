@@ -14,11 +14,36 @@ import {
   server,
   workItem,
 } from '../../model/__tests__/harness'
+import type * as ApiModule from '../../api'
 import { NOTES_PATH, notesHarness, resetNotes, toastMessages } from './__tests__/notes-harness'
 import { noticeContent, settle, useNoteActions } from './use-note-actions'
 
+// Silme `submit` argümanları kaydedilir (gerçek hook sarılır): onay bağlamının AÇIKÇA geçtiğinin
+// tanığı (senkron başlatmada bağlamsız submit de A'yı yakalar; argüman denetimi farkı görür).
+const deletes = vi.hoisted(() => ({ calls: [] as unknown[][] }))
+
+vi.mock('../../api', async (original) => {
+  const api = await original<typeof ApiModule>()
+  return {
+    ...api,
+    useDeleteNote: () => {
+      const real = api.useDeleteNote()
+      return {
+        ...real,
+        submit: (...args: Parameters<typeof real.submit>) => {
+          deletes.calls.push(args)
+          return real.submit(...args)
+        },
+      }
+    },
+  }
+})
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
-afterEach(() => resetNotes())
+afterEach(() => {
+  deletes.calls.length = 0
+  resetNotes()
+})
 afterAll(() => server.close())
 
 const URL = `${ORIGIN}${NOTES_PATH}`
@@ -190,10 +215,16 @@ describe('useNoteActions — silme', () => {
   it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0 (yazma onayın bağlamıyla)', async () => {
     server.use(http.delete(`${URL}/n1`, () => json({ status: 'deleted' })))
     const { h, actions } = setup()
+    const scopeA = { ...h.store.snapshot }
     const confirm = useConfirm()
     const run = actions.deleteNote(base)
     await h.flush()
     const accepting = confirm.accept(confirm.current.value!.id)
+    // Yazma onayın yakaladığı A bağlamıyla başladı: `submit(vars, { context })` açıkça.
+    expect(deletes.calls).toHaveLength(1)
+    expect(deletes.calls[0]![1]).toEqual({
+      context: { scope: scopeA, generation: expect.any(Number) },
+    })
     h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
     await accepting
     expect(await run).toBe(false)

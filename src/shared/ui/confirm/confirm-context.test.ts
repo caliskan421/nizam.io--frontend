@@ -3,7 +3,15 @@
 // yakaladığı bağlamla başlar — tüketici bağlamı atlayamaz. Kaynak taranır (üretim dosyaları):
 //  1. `confirmWrite(...)` çağrısının başlatıcısı `(context) => …` biçimindedir ve gövdesindeki
 //     her `submit(` çağrısı `{ context }` taşır (bağlamsız submit yok);
-//  2. boolean dönen eski yol (`useConfirm().confirm`, `{ confirm } = useConfirm()`) yoktur.
+//  2. boolean dönen eski yol (`useConfirm().confirm`, `{ confirm } = useConfirm()`) yoktur;
+//  3. dolaylı zincir (`use-status-transition.ts`: `confirmWrite → resend → send → submit`):
+//     başlatıcı bağlamı `resend(context)` ile iletir ve `send`'in `submit` çağrısı `{ context }`
+//     taşır (metin düzeyinde, yalnız bu bilinen zincir için).
+// NE GARANTİ ETMEZ: bu bir veri akışı analizi değildir — metin kalıbıdır. Bağlamın gerçekten
+// İLK eylemin bağlamı olduğu ve bayatsa yazma çıkmadığı davranış testleriyle sabitlenir:
+// tüketici testlerinde sarılmış gerçek hook'un `submit` ikinci argümanı denetlenir
+// (DeleteTaskAction / use-file-actions / use-note-actions / use-subtask-edit (c);
+// use-status-transition (e): ikinci submit'in bağlamı = ilk geçişin `failed.context`).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -72,6 +80,16 @@ describe('onay → yazma bağlamı atlanamaz (CX-F1-E-02)', () => {
       }
     },
   )
+
+  it('dolaylı zincir: use-status-transition bağlamı resend → send → submit boyunca iletir', () => {
+    const rel = 'src/modules/work/components/forms/use-status-transition.ts'
+    const text = files.find((f) => f.rel === rel)!.text
+    expect(text).toMatch(/\(context\)\s*=>\s*resend\(context\)/)
+    const send = text.slice(text.indexOf('async function send('))
+    expect(send).toMatch(/^async function send\([^)]*context\?: ActionContext\)/)
+    const [submit] = callArgs(send, 'submit')
+    expect(submit, `${rel}: send içindeki submit bağlamsız`).toMatch(/\{\s*context\s*\}/)
+  })
 
   it('boolean dönen onay yolu yok: üretimde `confirm` alınmaz', () => {
     for (const { rel, text } of files) {
