@@ -68,6 +68,12 @@ const TABLE: Array<{
     mustInvalidate: ['linkDepartment', 'unlinkDepartment', 'renameDepartmentLink'],
   },
   {
+    resource: 'departments.members',
+    key: queryKeys.departments.members(S, 'd2'),
+    expected: [...root(S), 'departments', 'd2', 'members'],
+    mustInvalidate: ['assignMembership', 'updateMembershipRole', 'removeMember', 'deleteAccount'],
+  },
+  {
     resource: 'workItems.list',
     key: queryKeys.workItems.list(S, f),
     expected: [...root(S), 'work-items', f],
@@ -210,6 +216,16 @@ describe('query-keys — kapsam ve hedef', () => {
     expect(isScopedQueryKey(queryKeys.me.root())).toBe(false)
     expect(isScopedQueryKey(queryKeys.users.list({}))).toBe(false)
     expect(isScopedQueryKey(['nizamio', 'global', 'x'])).toBe(false)
+  })
+
+  it('üyelik yazması departman ekiplerini geçersizler, departman listesini değil', () => {
+    const keys = [
+      queryKeys.departments.all(S),
+      queryKeys.departments.members(S, 'd1'),
+      queryKeys.departments.members(S, 'd2'),
+    ]
+    expect(hits('assignMembership', keys)).toEqual([keys[1], keys[2]])
+    expect(hits('createWorkItem', keys)).toEqual([])
   })
 
   it('görev dosyaları 03/03c/06 için tek anahtar', () => {
