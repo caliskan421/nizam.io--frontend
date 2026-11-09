@@ -1,6 +1,6 @@
 # WEB-1 (F1) — Codex nihai kapı hükmü
 
-**Son hüküm: `<tur 5 hükmü>`** — 5. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 5 HEAD>` (`main` #32–#47 + `<W66 PR>` birleşik).
+**Son hüküm: `<tur 5 hükmü>`** — 5. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 5 HEAD>` (`main` #32–#47 + PR #48 `45360c0` birleşik).
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur (tur 1 modeli `gpt-6-astra`).
 Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
@@ -9,7 +9,7 @@ Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satır�
 | 1 | `67d31b4` (#32–#43 birleşik) | UYGUN DEĞİL | CX-F1-E-01…E-04 (engelleyici); Ö-01…Ö-05; K-01…K-04 | W63 → PR #44 `a3ffe64` (E-01, Ö-01, Ö-02 kısmen, K-04, görsel kusurlar) · W62 → PR #45 `45957f9` (E-02, E-03, Ö-03) · belge K-01/K-02/K-03 kapanış dalı `web1/o5-kapanis` |
 | 2 | `45957f9` (#32–#45 birleşik) | UYGUN DEĞİL | E-01, E-03 kapandı; E-04 kod düzeltmeleri uygun (kanıt kapanış PR'ında); **E-02 kısmen** — `subtasks_open` onayı sahipsiz, geç yanıtta bağlam, kabul → mutasyon başlangıcı boşluğu; Ö-06 (yeni) | W64 → PR #46 `1126caf` (E-02 kalan üç boşluk, Ö-06 etiketi) · K-01…K-03 + E-04 kanıt özeti bu PR |
 | 3 | kapanış dalı `3a1522f` (main `1126caf`, #32–#46 birleşik) | UYGUN DEĞİL | E-02 boşluk 2 ve 3 kapandı; boşluk 1 kısmen — **sökülmüş sahip geç 409'da onay açabiliyor**; regresyon kanıtı eksikleri (`close_subtasks` kabul ↔ gönderim; üç silme testinde bağlam aktarımının açık denetimi; mimari testin dolaylı zinciri izlememesi); E-04 kanıt kaydı, K-01…K-03, Ö-06 kapandı | W65 → PR #47 `58400af` · kayıt netleştirmeleri bu PR |
-| 4 | kapanış dalı `fa53822` (main `58400af`, #32–#47 birleşik) | UYGUN DEĞİL | E-02 kapandı (sökülmüş sahip onay açamaz; regresyon kanıtı (i)–(iii) yeterli); **CX-F1-E-05 (yeni)** — alt görev çakışma birleştirmesi sökülmeden sonra yeni PATCH başlatabiliyor (koordinatörün istediği "onay dışı sökülme sonrası yazma" örnekleminde bulundu) | W66 → `<W66 PR>` (sınıf ortak yazma katmanında kapatılır) · tablo başlığı bu PR |
+| 4 | kapanış dalı `fa53822` (main `58400af`, #32–#47 birleşik) | UYGUN DEĞİL | E-02 kapandı (sökülmüş sahip onay açamaz; regresyon kanıtı (i)–(iii) yeterli); **CX-F1-E-05 (yeni)** — alt görev çakışma birleştirmesi sökülmeden sonra yeni PATCH başlatabiliyor (koordinatörün istediği "onay dışı sökülme sonrası yazma" örnekleminde bulundu) | W66 → PR #48 `45360c0` (sınıf ortak yazma katmanında kapatılır) · tablo başlığı bu PR |
 | 5 | `<tur 5 HEAD>` | `<tur 5 hükmü>` | `<tur 5 bulguları>` | `<tur 5 düzeltme>` |
 | — | `67d31b4` | Görsel doğrulama (üretim paketi + üretim CSP'si + Playwright + sahte `/v1`; gerçek backend yok): 53 senaryo, 96 görüntü (88 uygulama + 8 tasarım), iki tema × 1440/1024/390 × Admin/Koordinatör/Üye; kanıt özeti `docs/yurutme/web-1/ilerleme.md` O5 | yüksek 1 (alt görev onay kutusu 2 px, E-03-31), orta 2 (`/gorevler` 390 px'te 10 px yatay taşma; not çakışmasında sınırsız yeniden gönderim), düşük 5; bilinçli fark 22 | 8 kusurun 8'i W63 #44 (yeniden ölçüm: taşma 390/1024/1440 = 0/0/0; CSP ihlali 30 senaryoda 0) |
 
