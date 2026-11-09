@@ -15,6 +15,7 @@ import { api } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { unwrapList } from '@/shared/http/truncation'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 import type { ProgramTarget } from '../model/types'
 import { programHeaders, retryTransient } from './http'
@@ -48,8 +49,9 @@ export function useDepartmentMembers(departmentId: MaybeRefOrGetter<string | nul
       const id = toValue(departmentId)
       return {
         queryKey: queryKeys.departments.members(scope, id ?? ''),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchDepartmentMembers({ programId: scope.programId ?? '' }, id ?? '', signal),
+        ),
         enabled: id !== null && id !== '' && scope.programId !== null,
         retry: retryTransient,
         staleTime: STALE_MS,

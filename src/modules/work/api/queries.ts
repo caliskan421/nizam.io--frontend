@@ -5,6 +5,8 @@
  * ya da görevin kendi kapsamından (ayrıntı uçları) gelir.
  *
  * Yetki kaybı (403/404 K6 kodları) sorgu hatası olarak kapsam yaşam döngüsünce dinlenir.
+ * Okuyucular oturuma bağlıdır (`sessionBound`, CX-F1-Ö-08): başka oturumda başlamış sorgunun
+ * tekrarı gönderilmez, geç yanıtı önbelleğe yazılmaz.
  */
 import {
   useInfiniteQuery,
@@ -18,6 +20,7 @@ import { queryKeys } from '@/shared/http/query-keys'
 import { fetchMyDepartments } from '@/shared/scope/standing'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 import { listDepartmentFilter, resolveTarget } from '../model/target'
 import type { WorkItem, WorkItemList, WorkItemResource, WorkTarget } from '../model/types'
@@ -44,8 +47,10 @@ function listOptions(scope: ScopeSnapshot, departmentId: string | null, fetchEna
   const programId = scope.programId
   return {
     queryKey: queryKeys.workItems.list(scope, { department: departmentId }),
-    queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-      fetchWorkItemPage({ programId: programId ?? '' }, departmentId, pageParam, signal),
+    queryFn: sessionBound(
+      ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
+        fetchWorkItemPage({ programId: programId ?? '' }, departmentId, pageParam, signal),
+    ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last: WorkItemList) => last.next_cursor || undefined,
     enabled: fetchEnabled && programId !== null,
@@ -82,8 +87,9 @@ function itemQuery<D>(
       const scope = store.snapshot
       return {
         queryKey: queryKeys.workItems[part](scope, id ?? ''),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetcher(resolved ?? { programId: '', departmentId: '' }, id ?? '', signal),
+        ),
         enabled: id !== null && resolved !== null && scope.programId !== null,
         retry: retryTransient,
         staleTime: STALE_MS,
@@ -165,8 +171,9 @@ export function useProgramDepartments() {
       const scope = store.snapshot
       return {
         queryKey: queryKeys.departments.all(scope),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchProgramDepartments({ programId: scope.programId ?? '' }, signal),
+        ),
         enabled: scope.programId !== null,
         retry: retryTransient,
         staleTime: STALE_MS,
@@ -187,7 +194,7 @@ export function useMyProgramDepartments() {
   const store = useScopeStore()
   const query = useQuery({
     queryKey: queryKeys.me.departments(),
-    queryFn: fetchMyDepartments,
+    queryFn: sessionBound(fetchMyDepartments),
     retry: retryTransient,
     staleTime: STALE_MS,
     refetchOnWindowFocus: false,

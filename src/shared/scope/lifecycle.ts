@@ -10,6 +10,9 @@
  *     çokta seçici). Korumalı yazmalar hatayı fırlatmadığı için (`useProtectedMutation`
  *     normalize sonuç döner) kayıp, `authority-loss.ts` kanalından da dinlenir.
  *  4. Pencere görünür olunca / odağa dönünce standing tazelenir.
+ *  5. Oturum ayrımı (CX-F1-Ö-08): oturum nesli değişince (her çıkış — kardeş sekme dahil) ya da
+ *     başka hesaba geçişte bütün sorgular iptal edilir ve önbellek boşalır
+ *     (`shared/session/query-session.ts`).
  *
  * Mercek ≠ yetki (ortak-kurallar §1): `facts` mercekten bağımsızdır; mercek yalnız kapsamı
  * (ve dolayısıyla başlıkları + sorgu anahtarlarını) belirler.
@@ -19,6 +22,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 
 import { isScopedQueryKey } from '@/shared/http/query-keys'
+import { bindSessionQueries } from '@/shared/session/query-session'
 
 import { isAuthorityLoss, onAuthorityLoss } from './authority-loss'
 import { resolveScope, type ScopeResolution } from './resolve'
@@ -165,7 +169,10 @@ export function useScopeLifecycle(
 ) {
   const store = useScopeStore()
   const standing = useStanding()
-  const refreshStanding = bindLifecycleListeners(useQueryClient(), store, standing, target)
+  const client = useQueryClient()
+  // Oturum ayrımı (CX-F1-Ö-08): her çıkış (kardeş sekme dahil) / hesap değişimi → iptal + boşalt.
+  onScopeDispose(bindSessionQueries(client))
+  const refreshStanding = bindLifecycleListeners(client, store, standing, target)
   const resolution = watchStanding(store, standing)
 
   const status = computed<ScopeStatus>(() => {

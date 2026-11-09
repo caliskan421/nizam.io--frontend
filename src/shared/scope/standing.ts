@@ -14,6 +14,7 @@ import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { unwrapList } from '@/shared/http/truncation'
+import { SessionChangedError, sessionBound } from '@/shared/session/query-session'
 import { useSessionStore } from '@/shared/session/store'
 
 import { hasErrorCode } from './authority-loss'
@@ -36,9 +37,12 @@ export function isStandingKey(key: readonly unknown[]): boolean {
   )
 }
 
-/** Yalnız geçici hatalarda (ağ, 5xx) en çok iki tekrar; 4xx bir hükümdür, tekrarlanmaz. */
+/**
+ * Yalnız geçici hatalarda (ağ, 5xx) en çok iki tekrar; 4xx bir hükümdür, tekrarlanmaz. Oturum
+ * değiştiyse (`SessionChangedError`, CX-F1-Ö-08) eski sorgu sürdürülmez.
+ */
 function retryTransient(failureCount: number, error: unknown): boolean {
-  if (failureCount >= 2) return false
+  if (failureCount >= 2 || error instanceof SessionChangedError) return false
   if (!(error instanceof ApiError)) return true
   return error.status === null || error.status >= 500
 }
@@ -58,16 +62,27 @@ async function withTruncation<D>(
   return { data, truncated }
 }
 
-export async function fetchMe() {
-  return unwrap(api.GET('/v1/me'))
+/**
+ * Okuyucular iptal sinyalini taşır (CX-F1-Ö-08): çıkışta iptal edilen sorgunun isteği kesilir.
+ * Doğrudan `queryFn` olarak verilebilsinler diye sorgu bağlamı da kabul edilir.
+ */
+type SignalSource = AbortSignal | { signal?: AbortSignal } | undefined
+
+const signalOf = (source: SignalSource): AbortSignal | undefined =>
+  source instanceof AbortSignal ? source : source?.signal
+
+export async function fetchMe(source?: SignalSource) {
+  return unwrap(api.GET('/v1/me', { signal: signalOf(source) }))
 }
 
-export async function fetchMyDepartments() {
-  return withTruncation(api.GET('/v1/me/departments'))
+export async function fetchMyDepartments(source?: SignalSource) {
+  return withTruncation(api.GET('/v1/me/departments', { signal: signalOf(source) }))
 }
 
-export async function fetchPrograms() {
-  const { data, truncated } = await withTruncation(api.GET('/v1/programs'))
+export async function fetchPrograms(source?: SignalSource) {
+  const { data, truncated } = await withTruncation(
+    api.GET('/v1/programs', { signal: signalOf(source) }),
+  )
   return { programs: parsePrograms(data), truncated }
 }
 
@@ -92,16 +107,17 @@ export function useStanding() {
     refetchOnWindowFocus: false,
   } as const
 
-  const me = useQuery({ ...common, queryKey: STANDING_KEYS.me, queryFn: fetchMe })
+  // Okuyucular oturuma bağlı (CX-F1-Ö-08): eski oturumun geç yanıtı/tekrarı önbelleğe girmez.
+  const me = useQuery({ ...common, queryKey: STANDING_KEYS.me, queryFn: sessionBound(fetchMe) })
   const departments = useQuery({
     ...common,
     queryKey: STANDING_KEYS.myDepartments,
-    queryFn: fetchMyDepartments,
+    queryFn: sessionBound(fetchMyDepartments),
   })
   const programs = useQuery({
     ...common,
     queryKey: STANDING_KEYS.programs,
-    queryFn: fetchPrograms,
+    queryFn: sessionBound(fetchPrograms),
   })
 
   const standing = computed<Standing | null>(() => {
@@ -180,8 +196,9 @@ export function useProgramDepartmentGap(scopeReady: () => boolean) {
   )
   const query = useQuery({
     queryKey: computed(() => queryKeys.departments.all(store.snapshot)),
-    queryFn: ({ signal }: { signal: AbortSignal }) =>
+    queryFn: sessionBound(({ signal }: { signal: AbortSignal }) =>
       fetchProgramDepartments(store.programId, signal),
+    ),
     enabled: adminScope,
     retry: retryTransient,
     staleTime: 30_000,
