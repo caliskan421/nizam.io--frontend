@@ -301,8 +301,10 @@ export async function pickPerson(accountId: string, root = '[role="dialog"]'): P
 }
 
 /** Kenar menüsü kapsam kartı → menü öğesi (gerçek kabuk seçicisi; `kind` kartın erişilebilir adı). */
-export async function switchScope(kind: 'Program' | 'Rol' | 'Departman', option: string) {
-  await click(() => $(`aside button.side-card[aria-label^="${kind}:"]`))
+export async function switchScope(kind: 'Program' | 'Rol' | 'Koordinatörlük', option: string) {
+  const card = await until(() => $(`aside button.side-card[aria-label^="${kind}:"]`), kind)
+  // Seçim bekleyen kapsamda kabuk menüyü kendisi açmış olabilir (K2): yeniden tıklamak kapatır.
+  if (card.getAttribute('aria-expanded') !== 'true') await click(() => card)
   await click(
     () =>
       $$('[role="menuitem"], [role="menuitemradio"]').find((el) =>
