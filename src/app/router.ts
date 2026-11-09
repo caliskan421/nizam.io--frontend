@@ -17,6 +17,7 @@ import {
   routeSpec,
 } from '@/app/routes.catalog'
 import { identityRoutes } from '@/modules/identity/public'
+import { workRoutes } from '@/modules/work/public'
 
 // Router'ın tek kaynağı rota kataloğudur (K10): yol, ad, kapsam ve faz katalogdan gelir;
 // modüller katalog adına bağlı sayfa bileşenini verir (`modules/<m>/routes.ts`); modülün
@@ -27,8 +28,8 @@ import { identityRoutes } from '@/modules/identity/public'
 type ViewLoader = RouteComponent | (() => Promise<RouteComponent>)
 
 /**
- * Uygulamanın kendi verdiği sayfalar. F0 ana sayfası (`home`) kabuk içinde nötr yer tutucudur;
- * F1'de 01 grubu (`modules/home`) bağlanınca bu kayıt kalkar ve modül kaydı yerini alır.
+ * Uygulamanın kendi verdiği sayfalar. Ana sayfa (`home`) kabuk içinde nötr yer tutucudur (F1
+ * açılışında da); 01 grubu (`modules/home`, O3) bağlanınca bu kayıt kalkar, modül kaydı gelir.
  */
 export const APP_ROUTES: readonly RouteRecordRaw[] = [
   {
@@ -40,7 +41,11 @@ export const APP_ROUTES: readonly RouteRecordRaw[] = [
 ]
 
 /** Sayfa kayıtları (ad → bileşen). Yeni modül buraya `public.ts`'iyle eklenir. */
-export const MODULE_ROUTES: readonly RouteRecordRaw[] = [...APP_ROUTES, ...identityRoutes]
+export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
+  ...APP_ROUTES,
+  ...identityRoutes,
+  ...workRoutes,
+]
 
 function moduleViews(records: readonly RouteRecordRaw[]): Map<RouteName, ViewLoader> {
   const views = new Map<RouteName, ViewLoader>()

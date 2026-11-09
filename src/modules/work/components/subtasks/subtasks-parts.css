@@ -1,0 +1,240 @@
+/*
+ * Alt görev parçaları: yuvalar (`rp-subslot`), menü ve tarih açılırları (`rp-pop` konumu,
+ * `rp-thpop__title`, `rp-dr`), ekle satırı (`rp-stask__input`), panel sekmesi (`rp-dsubs`,
+ * `rp-dsub`, ilerleme çubuğu), dar ekran. Kural subtasks.css ile aynı (yalnız token).
+ */
+@layer components {
+  .rp-subslot {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sub-gap-xs);
+    width: 100%;
+    min-width: 0;
+    height: var(--sub-slot-h);
+    padding: 0 var(--space-2);
+    box-sizing: border-box;
+    border: var(--ui-hairline) solid transparent;
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--ink-muted);
+    font: inherit;
+    font-size: var(--sub-fs-xs);
+    text-align: left;
+  }
+  button.rp-subslot,
+  label.rp-subslot {
+    cursor: pointer;
+  }
+  .rp-subslot .t-icon {
+    width: var(--sub-icon);
+    height: var(--sub-icon);
+    flex: none;
+    opacity: 0.8;
+  }
+  button.rp-subslot:hover:not(:disabled),
+  label.rp-subslot:hover {
+    border-color: var(--border-subtle);
+    color: var(--ink);
+  }
+  .rp-subslot select {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    appearance: none;
+    outline: none;
+  }
+  .rp-subslot select option {
+    background: var(--bg-surface);
+    color: var(--ink);
+  }
+  .rp-subslot:focus-within {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .rp-subslot:disabled,
+  .rp-subslot select:disabled {
+    cursor: progress;
+  }
+
+  .rp-stask__menu {
+    width: var(--sub-menu-btn);
+    height: var(--sub-menu-btn);
+    border-radius: var(--radius-xs);
+  }
+  .sub-pop {
+    top: calc(100% + var(--sub-gap-xs));
+  }
+  .sub-pop--date {
+    left: 0;
+    display: grid;
+    gap: var(--sub-gap-sm);
+    width: var(--sub-pop-date-w);
+    padding: var(--sub-gap-sm);
+  }
+  .sub-pop--menu {
+    right: 0;
+    width: var(--sub-pop-menu-w);
+  }
+  .rp-thpop__title {
+    margin: 0;
+    padding: var(--sub-gap-xs) var(--sub-gap-sm) var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--sub-fs-2xs);
+    color: var(--ink-muted);
+  }
+  .sub-flag {
+    display: grid;
+    grid-template-columns: var(--sub-check) minmax(0, 1fr);
+    gap: var(--sub-gap-sm);
+    align-items: center;
+    min-height: var(--control-sm);
+    padding: 0 var(--sub-gap-sm);
+    color: var(--ink-muted);
+    font: var(--ui-text-sm-medium);
+  }
+  .sub-sep {
+    height: var(--ui-hairline);
+    margin: var(--sub-gap-xs) var(--space-1);
+    background: var(--border-subtle);
+  }
+  .rp-dr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  .rp-dr label {
+    display: grid;
+    gap: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--sub-fs-2xs);
+    color: var(--ink-muted);
+  }
+  .rp-dr .t-input {
+    height: var(--sub-date-input-h);
+    padding: 0 var(--space-2);
+    font-size: var(--sub-fs-sm);
+    color-scheme: dark;
+  }
+  [data-theme='light'] .rp-dr .t-input {
+    color-scheme: light;
+  }
+  .sub-pop__hint {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--danger);
+  }
+  .sub-pop__actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .rp-stask__input {
+    min-width: 0;
+    height: var(--space-8);
+    padding: 0 var(--sub-gap-2xs);
+    border: 0;
+    border-bottom: var(--ui-hairline) dashed var(--border-subtle);
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--sub-fs-sm);
+    outline: none;
+  }
+  .rp-stask__input:focus {
+    border-bottom-color: var(--accent-text);
+  }
+  .sub-add-icon {
+    color: var(--ink-faint);
+  }
+
+  /* Panel "Alt görevler" sekmesi (E-03-60) */
+  .rp-dsubs__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--sub-gap-xs);
+  }
+  .rp-dsubs__n {
+    font-family: var(--font-mono);
+    font-size: var(--sub-fs-xs);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .rp-dsubs__n[data-all='true'] {
+    color: var(--accent-text);
+  }
+  .rp-dsubs__bar {
+    display: block;
+    width: 100%;
+    height: var(--sub-bar-h);
+    margin: 0 0 var(--sub-gap-xs);
+    border: 0;
+    border-radius: var(--sub-bar-radius);
+    background: var(--bg-overlay);
+    overflow: hidden;
+    appearance: none;
+  }
+  .rp-dsubs__bar::-webkit-progress-bar {
+    background: var(--bg-overlay);
+  }
+  .rp-dsubs__bar::-webkit-progress-value {
+    background: var(--accent-text);
+    border-radius: var(--sub-bar-radius);
+  }
+  .rp-dsubs__bar::-moz-progress-bar {
+    background: var(--accent-text);
+    border-radius: var(--sub-bar-radius);
+  }
+  .rp-dsub {
+    display: grid;
+    grid-template-columns: var(--sub-check-panel) minmax(0, 1fr) auto;
+    grid-template-areas: 'check title menu' '. slots slots';
+    column-gap: var(--sub-gap-sm);
+    align-items: center;
+    min-height: var(--sub-row-panel-h);
+    padding: 0 var(--space-1);
+    border-radius: var(--sub-radius-row-panel);
+  }
+  .rp-dsub:hover {
+    background: var(--bg-raised);
+  }
+  .rp-dsub > .sub-check {
+    grid-area: check;
+    width: var(--sub-check-panel);
+    height: var(--sub-check-panel);
+  }
+  .rp-dsub > .rp-dsub__t {
+    grid-area: title;
+  }
+  .rp-dsub > .sub-menu {
+    grid-area: menu;
+  }
+  .rp-dsub > .sub-slots {
+    grid-area: slots;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sub-gap-xs);
+  }
+  .rp-dsub--add {
+    grid-template-columns: var(--sub-check-panel) minmax(0, 1fr) auto;
+    grid-template-areas: none;
+    color: var(--ink-faint);
+  }
+  .rp-dsub--add:hover {
+    background: none;
+  }
+
+  @media (max-width: 900px) {
+    .rp-stask:not(.rp-stask--add) {
+      grid-template-columns: var(--sub-check) minmax(0, 1fr) var(--sub-col-menu);
+    }
+    .rp-stask > .sub-slots {
+      display: none;
+    }
+  }
+}

@@ -1,12 +1,63 @@
 <script setup lang="ts">
-import type { DeleteTaskActionProps, DeleteTaskActionEmits } from '../index'
+import { computed } from 'vue'
 
-/** W45 — `DeleteTaskAction` yer tutucusu (W41 iskeleti). Gövde sahibi W45; sözleşme `../index.ts`'te sabit. */
-defineProps<DeleteTaskActionProps>()
-defineEmits<DeleteTaskActionEmits>()
+import { useStanding } from '@/shared/scope/standing'
+import { useScopeStore } from '@/shared/scope/store'
+import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { UiIconButton, useToast } from '@/shared/ui'
+
+import { useDeleteWorkItem } from '../../api'
+import { canManageWorkItem, workActorFacts } from '../../model/capabilities'
+import { targetOf } from '../../model/target'
+import type { DeleteTaskActionEmits, DeleteTaskActionProps } from '../index'
+import { formsText } from './messages'
+
+/**
+ * W45 · E-03-56, E-03-64 — "Görevi sil" (tasarım `t-iconbtn--danger`, çöp). Yalnız yönetici ve
+ * görevin koordinatörü görür (s.139); diğerinde gizli. `deleteWorkItem` `confirmation_required`
+ * döndürmez (ortak-kurallar §7) → onay istemci diyaloğu (`shared/ui/confirm`); vazgeçte istek
+ * yok. Başarıda liste/görev yeniden okunur (veri katmanı) ve `deleted` → panel kapanır.
+ */
+const props = defineProps<DeleteTaskActionProps>()
+const emit = defineEmits<DeleteTaskActionEmits>()
+
+const store = useScopeStore()
+const { standing } = useStanding()
+const remove = useDeleteWorkItem()
+const { confirm } = useConfirm()
+
+const allowed = computed(() =>
+  canManageWorkItem(workActorFacts(standing.value, store.programId, props.item)),
+)
+
+async function onDelete(): Promise<void> {
+  if (remove.isPending.value) return
+  const item = props.item
+  const ok = await confirm({
+    title: formsText('workForms.remove.title'),
+    body: [formsText('workForms.remove.body', { title: item.title })],
+    confirmLabel: formsText('workForms.remove.confirm'),
+    tone: 'danger',
+  })
+  if (!ok) return
+  const outcome = await remove.submit({ target: targetOf(item), workItemId: item.work_item_id })
+  if (outcome.kind !== 'success') {
+    notifyOutcome(outcome)
+    return
+  }
+  useToast().push({ message: formsText('workForms.remove.done') })
+  emit('deleted', item.work_item_id)
+}
 </script>
 
 <template>
-  <!-- W45: DeleteTaskAction gövdesi -->
-  <span hidden data-placeholder="DeleteTaskAction" />
+  <UiIconButton
+    v-if="allowed"
+    icon="trash"
+    tone="danger"
+    :label="formsText('workForms.remove.action')"
+    :disabled="remove.isPending.value"
+    data-testid="wf-delete"
+    @click="onDelete"
+  />
 </template>
