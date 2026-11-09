@@ -15,8 +15,17 @@ const USERS_ROOT = queryKeys.users.all()[0]
 export function useUserCacheIndex() {
   const queryClient = useQueryClient()
   const version = ref(0)
+  let queued = false
+  // Yalnız veri değişimi (gözlemci ekle/çıkar olayları değil); bir sonraki mikro görevde tek
+  // artış — render sırasında doğan önbellek olayı aynı render'ı yeniden tetiklemez.
   const stop = queryClient.getQueryCache().subscribe((event) => {
-    if (event.query.queryKey[0] === USERS_ROOT) version.value += 1
+    if (event.query.queryKey[0] !== USERS_ROOT || queued) return
+    if (event.type !== 'updated' && event.type !== 'removed') return
+    queued = true
+    queueMicrotask(() => {
+      queued = false
+      version.value += 1
+    })
   })
   onScopeDispose(stop)
 

@@ -8,6 +8,7 @@ import { defineComponent, h, type Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import type { ScopeSelection } from '@/shared/scope/resolve'
+import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
@@ -100,7 +101,13 @@ const mounted: VueWrapper[] = []
 export async function mountWith(
   component: Component,
   props: Record<string, unknown>,
-  options: { selection?: ScopeSelection; path?: string; stubs?: Record<string, Component> } = {},
+  options: {
+    selection?: ScopeSelection
+    path?: string
+    stubs?: Record<string, Component>
+    /** Bağlamadan önce önbelleği doldurur (ör. yüklenmiş liste sayfası). */
+    seed?: (queryClient: QueryClient) => void
+  } = {},
 ): Promise<Mounted> {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -109,6 +116,7 @@ export async function mountWith(
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
   })
+  options.seed?.(queryClient)
   const router = makeRouter()
   await router.push(options.path ?? '/kullanicilar')
   const host = defineComponent({
@@ -147,4 +155,41 @@ export function confirmButton(label: string): HTMLButtonElement | undefined {
   return [
     ...document.querySelectorAll<HTMLButtonElement>('[data-testid="confirm-dialog"] button'),
   ].find((b) => b.textContent?.trim() === label)
+}
+
+/** Yüklenmiş ilk `listUsers` sayfası (05 tablosu ile aynı anahtar). */
+export function seedUsers(users = USERS) {
+  return (queryClient: QueryClient) =>
+    queryClient.setQueryData(queryKeys.users.list({ search: null, sortOrder: 'asc' }), {
+      pages: [{ page: { users }, truncated: false }],
+      pageParams: [undefined],
+    })
+}
+
+/** Görev listesi satırı (sözleşme şekli; yalnız sayımda kullanılan alanlar anlamlı). */
+export function task(id: string, assignee: string, status: string, overdue = false) {
+  return {
+    work_item_id: id,
+    program_id: 'p1',
+    department_id: 'd1',
+    title: `Görev ${id}`,
+    priority: 'orta',
+    status,
+    assignees: [{ account_id: assignee, full_name: 'Kişi' }],
+    assignee_account_ids: [assignee],
+    start_on: '2026-11-01',
+    end_on: '2026-11-10',
+    is_overdue: overdue,
+    days_overdue: overdue ? 2 : 0,
+    is_completed_late: false,
+    days_late: 0,
+    is_completed_early: false,
+    days_early: 0,
+    completion_evidence_required: false,
+    subtask_counts: { total: 0, done: 0 },
+    pending_date_request: null,
+    created_at: '2026-11-01T08:00:00Z',
+    edit_revision: 1,
+    dates_revision: 1,
+  }
 }
