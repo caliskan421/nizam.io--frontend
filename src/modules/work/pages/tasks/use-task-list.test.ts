@@ -68,8 +68,10 @@ describe('useTaskList', () => {
     const h = harness(COORD_SCOPE)
     const state = ref<TasksUrlState>({ ...DEFAULT_TASKS_STATE, department: 'd2' })
     const list = h.run(() => useTaskList(state, ref(true)))
+    // Veri gelmeden özet yok (sayı yazılmaz).
+    expect(list.summary.value).toBeNull()
     await settle()
     expect(listRequests()[0]!.query.get('department_id')).toBe('d1')
-    expect(list.summary.value.departments).toBe(1)
+    expect(list.summary.value?.departments).toBe(1)
   })
 })

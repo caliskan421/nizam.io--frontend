@@ -72,12 +72,19 @@ export function useTaskList(state: Ref<TasksUrlState>, showRequests: Ref<boolean
       .filter((name): name is string => Boolean(name)),
   )
 
-  /** E-03-04: görev = yüklenen satır, koordinatörlük = süzgeç seçenek sayısı, kişi = tekil atanan. */
-  const summary = computed(() => ({
-    tasks: items.value.length,
-    departments: store.lens === 'admin' ? byId.value.size : 1,
-    people: uniqueAssigneeCount(items.value),
-  }))
+  /**
+   * E-03-04: görev = yüklenen satır, koordinatörlük = süzgeç seçenek sayısı, kişi = tekil atanan.
+   * Veri yokken (ilk yükleme sürüyor / hata) `null` — sayı yazılmaz.
+   */
+  const summary = computed(() =>
+    list.query.data.value === undefined
+      ? null
+      : {
+          tasks: items.value.length,
+          departments: store.lens === 'admin' ? byId.value.size : 1,
+          people: uniqueAssigneeCount(items.value),
+        },
+  )
 
   return {
     query: list.query,

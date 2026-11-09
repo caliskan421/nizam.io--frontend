@@ -21,6 +21,13 @@ describe('sayfa başlığı (E-03-03…06)', () => {
     )
   })
 
+  it('veri yokken (yükleniyor / hata) alt satır ve sayı yok', () => {
+    const head = mount(TasksHead, { props: { summary: null, complete: false, canCreate: true } })
+    expect(head.find('[data-testid="tasks-summary"]').exists()).toBe(false)
+    expect(head.text()).not.toMatch(/\d/)
+    expect(head.text()).not.toContain('yüklenen kayıtlar içinde')
+  })
+
   it('görünüm seçici: Liste basılı, Zaman çizelgesi devre dışı + F3 notu (E-03-05)', () => {
     const head = mount(TasksHead, { props: { summary, complete: true, canCreate: false } })
     const [list, timeline] = head.get('[role="group"][aria-label="Görünüm"]').findAll('button')
