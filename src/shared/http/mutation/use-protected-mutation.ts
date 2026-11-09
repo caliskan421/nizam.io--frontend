@@ -15,6 +15,8 @@
  *  - 403/404 yetki kaybı kodları (K6) sonuç olarak döner (fırlatılmaz) ve aynı QueryClient'ın
  *    yetki kaybı kanalına yayınlanır (`reportAuthorityLoss`): standing yenilenir, kapsam
  *    yeniden doğrulanır.
+ *  - Bileşik işlemde ardıl adım `submit(vars, { context })` ile ilk eylemin bağlamını taşır
+ *    (CX-F1-E-03): bağlam güncel değilse adım gönderilmez.
  *  - Değişkenler motora verilmeden önce Vue vekillerinden derin açılır (`toPlainVars`):
  *    `reactive`/`ref` taşıyan form durumu doğrudan gönderilebilir; motor Vue'dan bağımsız kalır.
  * UI yoktur; diyaloglar (O3) bu sonucu tüketir.
@@ -30,7 +32,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { authSession } from '../index'
 import { invalidationFilters, type InvalidationContext } from '../query-keys'
 import { newAction, runAction, type EngineOptions, type MutationAction, type Rerun } from './engine'
-import type { MutationOutcome } from './outcome'
+import type { ActionContext, MutationOutcome } from './outcome'
 
 export interface ProtectedMutationOptions<V, D, S> extends EngineOptions<V, D, S> {
   /** Geçersizlemenin hedef kaydı (ör. görev kimliği); verilmezse kaynak geneli. */
@@ -46,9 +48,18 @@ export interface ProtectedMutationOptions<V, D, S> extends EngineOptions<V, D, S
   gcTime?: number
 }
 
+export interface SubmitOptions {
+  /**
+   * Eylemin bağlamı (kapsam + oturum nesli). Verilmezse o anki değerler yakalanır. Bileşik
+   * işlemin ardıl adımı ilk eylemin bağlamını verir (`MutationSuccess.context`): arada kapsam ya
+   * da oturum değiştiyse motor isteği göndermez, geçersizleme de bu kapsamla yapılır.
+   */
+  context?: ActionContext
+}
+
 export interface ProtectedMutation<V, D, S> {
   /** Yeni kullanıcı eylemi (gönder düğmesi). */
-  submit: (vars: V) => Promise<MutationOutcome<V, D, S>>
+  submit: (vars: V, opts?: SubmitOptions) => Promise<MutationOutcome<V, D, S>>
   isPending: Ref<boolean>
   /** Son eylemin sonucu. */
   outcome: Ref<MutationOutcome<V, D, S> | undefined>
@@ -139,12 +150,12 @@ export function useProtectedMutation<V, D, S = unknown>(
   const rerun: Rerun<V, D, S> = (action) => mutation.mutateAsync(action)
 
   return {
-    submit: (vars) =>
+    submit: (vars, opts) =>
       mutation.mutateAsync(
         newAction(toPlainVars(vars), {
           now: options.now,
-          scope: readScope(),
-          generation: readGeneration(),
+          scope: opts?.context ? opts.context.scope : readScope(),
+          generation: opts?.context ? opts.context.generation : readGeneration(),
         }),
       ),
     isPending: mutation.isPending,

@@ -8,6 +8,16 @@
 import type { ApiError } from '@/shared/errors/api-error'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 
+/**
+ * Eylem bağlamı: eylemin oluşturulduğu kapsam + oturum nesli (`null` ≡ denetlenmez). Bileşik
+ * işlemde ardıl adımlar ilk eylemin bağlamıyla gönderilir (`submit(vars, { context })`); motor
+ * gönderim öncesi güncel değerle karşılaştırır (CX-F1-E-03).
+ */
+export interface ActionContext {
+  readonly scope: ScopeSnapshot | null
+  readonly generation: number | null
+}
+
 /** 201 yeni kaynak; 200 aynı anahtarın ilk kaynağı (tekrar) ya da olağan güncelleme. */
 export interface MutationSuccess<D> {
   kind: 'success'
@@ -16,6 +26,8 @@ export interface MutationSuccess<D> {
   /** Aynı anahtar daha önce gönderilmişti ve sunucu 200 döndü (ilk kaynağın bugünkü temsili). */
   replayed: boolean
   idempotencyKey: string
+  /** Başarılı eylemin bağlamı (motor her zaman doldurur; ardıl adımlar bunu taşır). */
+  context?: ActionContext
 }
 
 /** 409 `*.edit_conflict`: bayat sürüm grubu + sunucunun güncel değeri (alan alan seçim için). */

@@ -15,7 +15,7 @@
 import { useForm } from 'vee-validate'
 import { computed, shallowRef, watch } from 'vue'
 
-import { runWithFollowUps, type MutationOutcome } from '@/shared/http/mutation'
+import { runWithFollowUps, type ActionContext, type MutationOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { useToast } from '@/shared/ui'
@@ -107,20 +107,22 @@ export function useNewTaskForm(hooks: NewTaskFormHooks) {
   return { form, departments, members, extraCandidates, toggleExtra, ...submitting }
 }
 
-/** Ek atama adımı (`addAssignments`, görevin KENDİ kapsamı); ek atanan yoksa adım yok. */
+/**
+ * Ek atama adımı (`addAssignments`, görevin KENDİ kapsamı); ek atanan yoksa adım yok. Adım
+ * oluşturma eyleminin bağlamıyla (kapsam + oturum nesli) gönderilir (CX-F1-E-03).
+ */
 function assignmentSteps(assign: ReturnType<typeof useAddAssignments>, extra: readonly string[]) {
-  return (item: WorkItem) =>
+  return (item: WorkItem, context: ActionContext | undefined) =>
     extra.length === 0
       ? []
       : [
           {
             name: 'assignments',
             run: () =>
-              assign.submit({
-                target: targetOf(item),
-                workItemId: item.work_item_id,
-                accountIds: extra,
-              }),
+              assign.submit(
+                { target: targetOf(item), workItemId: item.work_item_id, accountIds: extra },
+                { context },
+              ),
           },
         ]
 }
@@ -175,8 +177,9 @@ function useNewTaskSubmit(
   })
 
   /**
-   * "Yeniden gönder" sonucu (aynı anahtar). Başarıda ek atama adımı şimdi koşar; kısmi metin
-   * yalnız ek atama gerçekten başarısızsa (ortak-kurallar §7).
+   * "Yeniden gönder" sonucu (aynı anahtar). Başarıda ek atama adımı şimdi koşar — tekrar edilen
+   * İLK eylemin bağlamıyla (`result.context`; CX-F1-E-03); kısmi metin yalnız ek atama
+   * gerçekten başarısızsa (ortak-kurallar §7).
    */
   async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Promise<void> {
     const result = outcome as CreateOutcome

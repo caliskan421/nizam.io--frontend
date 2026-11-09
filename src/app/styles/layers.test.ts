@@ -34,12 +34,15 @@ describe('CSS katman sırası', () => {
     expect(link).toBeLessThan(html.indexOf('</head>'))
   })
 
-  it('Caddy: parmak izsiz dosya uzun immutable önbellek almaz; imaj dist/ (public dahil) taşır', () => {
+  it('Caddy: parmak izsiz dosya uzun immutable önbellek almaz, /layers.css no-cache; imaj dist/ (public dahil) taşır', () => {
     const caddy = read('deploy/Caddyfile')
     expect(caddy).toMatch(
       /handle \/assets\/\* \{\s*header Cache-Control "public, max-age=31536000, immutable"/,
     )
     expect(caddy).toMatch(/handle @static \{\s*header Cache-Control "public, max-age=3600"/)
+    // /layers.css parmak izsiz: saatlik önbellek yerine her istekte yeniden doğrulama.
+    expect(caddy).toMatch(/handle \/layers\.css \{\s*header Cache-Control "no-cache"\s*file_server/)
+    expect(caddy.indexOf('handle /layers.css')).toBeLessThan(caddy.indexOf('handle @static'))
     expect(read('Dockerfile')).toMatch(/COPY --from=build \/src\/dist \/srv/)
     expect(read('vite.config.ts')).not.toMatch(/publicDir:\s*false/)
   })

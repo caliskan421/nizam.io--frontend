@@ -39,6 +39,13 @@
 		file_server
 	}
 
+	# Katman sırası (public/layers.css) parmak izsizdir: her istekte yeniden doğrulanır
+	# (ETag/Last-Modified), sıra değişirse eski dosya önbellekte yaşamaz (CX-F1-Ö-03).
+	handle /layers.css {
+		header Cache-Control "no-cache"
+		file_server
+	}
+
 	# public/ altındaki diğer gerçek dosyalar (favicon vb.): şablonlanmaz, kısa önbellek.
 	@static {
 		file
