@@ -167,6 +167,24 @@ describe('erişilebilirlik rolleri ve odak dönüşü (senaryo 8)', () => {
     expect(document.activeElement).toBe(add)
   })
 
+  it('08b üye satırı menüsü → Ekipten çıkar → onay vazgeç → odak satır menüsüne döner', async () => {
+    await boot({ ...ADMIN, path: '/koordinatorlukler/d1?sekme=uyeler' })
+    const menu = await until(
+      () => $('[data-member="acc-member"] [data-action="row-menu"]'),
+      'satır menüsü',
+    )
+    menu.focus()
+    menu.click()
+    await click('[data-member="acc-member"] [data-action="remove"]')
+    const dialog = await until(() => $('[data-testid="confirm-dialog"]'), 'onay')
+    expect($('[data-testid="confirm-items"]', dialog)?.textContent).toContain('Motor testi')
+    await click(() => byText('button', 'Vazgeç', dialog))
+    await until(() => !$('[data-testid="confirm-dialog"]'))
+    await until(() => !(menu as HTMLButtonElement).disabled, 'işlem bitti')
+    expect(document.activeElement).toBe(menu)
+    expect(backend.sent('DELETE', '/v1/departments/d1/memberships/acc-member')).toHaveLength(1)
+  })
+
   it('05b gömülü panel + kişisel takip yan alanı: iç içe aside yok', async () => {
     await boot({ ...ADMIN, path: '/kullanicilar/acc-member?sekme=hesap' })
     await until(() => $('[data-panel="hesap"] [data-testid="user-panel"]'), 'gömülü panel')

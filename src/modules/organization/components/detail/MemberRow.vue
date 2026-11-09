@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import type { TeamRole } from '@/shared/scope/standing-facts'
@@ -14,6 +14,9 @@ import { detailText } from './messages'
  * Üyeler sekmesi satırı (E-08-59; P3 minimum): avatar, ad → 05b, rol rozeti, `status = deleted`
  * soluk + "silinmiş". İşlem menüsü yalnız yetkide (`changeMembershipRole` / `removeMember`;
  * kendi satırında gizli — capability `notSelf`) ve etkin satırda.
+ * Odak dönüşü (W82a): menü öğesi seçilince söküldüğü için odak gövdeye düşüyor, işlem sürerken
+ * açılan onay penceresi de odağı kapalı düğmeye veremiyordu; işlem bitince odak gövdedeyse satır
+ * menüsü düğmesine döner.
  */
 const props = defineProps<{
   member: RosterMember
@@ -44,8 +47,24 @@ function onFocusOut(event: FocusEvent): void {
   if (open.value && next && !root.value?.contains(next)) open.value = false
 }
 
+/** Bu satırdan başlatılan işlem sürüyor mu (bitince odak dönüşü). */
+let started = false
+
+watch(
+  () => props.busy,
+  (busy) => {
+    if (busy || !started) return
+    started = false
+    void nextTick(() => {
+      const lost = document.activeElement === null || document.activeElement === document.body
+      if (lost) root.value?.querySelector<HTMLElement>('[data-action="row-menu"]')?.focus()
+    })
+  },
+)
+
 function choose(action: 'role' | 'remove'): void {
   open.value = false
+  started = true
   if (action === 'remove') emit('remove')
   else emit('setRole', lead.value ? 'member' : 'coordinator')
 }
