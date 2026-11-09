@@ -11,8 +11,9 @@
 import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { api, unwrap } from '@/shared/http'
+import { api } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
+import { unwrapList } from '@/shared/http/truncation'
 import { useScopeStore } from '@/shared/scope/store'
 
 import type { ProgramTarget } from '../model/types'
@@ -21,13 +22,13 @@ import { programHeaders, retryTransient } from './http'
 const STALE_MS = 30_000
 const collator = new Intl.Collator('tr-TR', { sensitivity: 'base' })
 
-/** `listMembers` (S2; yalnız program başlığı). */
+/** `listMembers` (S2; yalnız program başlığı); kesme bayrağı ortak yardımcıyla önbellekte. */
 export function fetchDepartmentMembers(
   target: ProgramTarget,
   departmentId: string,
   signal?: AbortSignal,
 ) {
-  return unwrap(
+  return unwrapList(
     api.GET('/v1/departments/{id}/members', {
       params: { header: programHeaders(target), path: { id: departmentId } },
       signal,

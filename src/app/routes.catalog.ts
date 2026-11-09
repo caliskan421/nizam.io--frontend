@@ -11,13 +11,14 @@
 // - Kapsam (program/departman/mercek) URL'ye yazılmaz (K2; 00-ortak kabul E-00-04).
 // - Parametre ve süzgeç adları grup README "Rota (önerilen, K10)" satırlarından; katalog son
 //   sözü söyler (ad uyumu, rol değeri taşıyan süzgeçlerin dışarıda bırakılması — bkz. girdiler).
+import { USER_ROLE_TABS } from '@/modules/organization/public'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
 export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F1'
+export const CURRENT_PHASE: Phase = 'F2'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -155,8 +156,10 @@ export const ROUTES = {
     phase: 'F2',
     menu: { group: 'yonetim', key: 'users', order: 1 },
     params: {},
-    // `rol` sekmesi F2'de capability ile bağlanır (rol değeri katalogda taşınmaz, K1 lint).
-    query: { q: text, koordinatorluk: id, secili: id },
+    // 05 README rota satırı (W71, F2 geçişi): `rol` sekmesi (E-05-06) — değer kümesi organizasyon
+    // capability dosyasından (rol dizesi yalnız orada, K1 lint); `sayfa` yok (imleç URL'de
+    // taşınmaz, P4/E-05-23).
+    query: { rol: oneOf(USER_ROLE_TABS), q: text, koordinatorluk: id, secili: id },
   },
   'organization.user': {
     path: '/kullanicilar/:accountId',
@@ -179,8 +182,9 @@ export const ROUTES = {
     phase: 'F2',
     menu: { group: 'yonetim', key: 'coords', order: 2 },
     params: {},
-    // `sirala` değer kümesi tasarımda tanımsız → F2 açılışında.
-    query: { gorunum: oneOf(['liste', 'yapi']), q: text },
+    // 08 kabul (W71): `gorunum` yalnız `liste` ("Yapı" devre dışı, BE-016; E-08-12); `sirala`
+    // yalnız ada göre + yön (E-08-16, `Intl.Collator('tr')`).
+    query: { gorunum: oneOf(['liste']), q: text, sirala: sortBy(['ad']) },
   },
   'organization.coordinatorship': {
     path: '/koordinatorlukler/:departmentId',
@@ -189,9 +193,8 @@ export const ROUTES = {
     phase: 'F2',
     parent: 'organization.coordinatorships',
     params: { departmentId: id },
-    query: {
-      sekme: oneOf(['genel', 'uyeler', 'gorevler', 'arsiv', 'toplantilar', 'ayarlar']),
-    },
+    // E-08-57: Arşiv (F5) ve Toplantılar (F4) sekmeleri devre dışı → URL'de seçilemez.
+    query: { sekme: oneOf(['genel', 'uyeler', 'gorevler', 'ayarlar']) },
   },
   'collaboration.meetings': {
     path: '/toplantilar',

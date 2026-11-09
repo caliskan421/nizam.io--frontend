@@ -65,13 +65,42 @@ const TABLE: Array<{
     resource: 'departments',
     key: queryKeys.departments.all(S),
     expected: [...root(S), 'departments'],
-    mustInvalidate: ['linkDepartment', 'unlinkDepartment', 'renameDepartmentLink'],
+    mustInvalidate: [
+      'linkDepartment',
+      'unlinkDepartment',
+      'renameDepartmentLink',
+      'updateDepartment',
+    ],
   },
   {
     resource: 'departments.members',
     key: queryKeys.departments.members(S, 'd2'),
     expected: [...root(S), 'departments', 'd2', 'members'],
-    mustInvalidate: ['assignMembership', 'updateMembershipRole', 'removeMember', 'deleteAccount'],
+    mustInvalidate: [
+      'assignMembership',
+      'updateMembershipRole',
+      'removeMember',
+      'deleteAccount',
+      'createUser',
+    ],
+  },
+  {
+    resource: 'departments.assignable',
+    key: queryKeys.departments.assignable(S, 'd2'),
+    expected: [...root(S), 'departments', 'd2', 'assignable'],
+    mustInvalidate: ['assignMembership', 'removeMember', 'createUser', 'deleteUser'],
+  },
+  {
+    resource: 'catalog.departments',
+    key: queryKeys.catalog.departments(),
+    expected: ['catalog', 'departments'],
+    mustInvalidate: ['createDepartment', 'updateDepartment', 'deleteDepartment'],
+  },
+  {
+    resource: 'deletedDepartments',
+    key: queryKeys.deletedDepartments.all(S),
+    expected: [...root(S), 'deleted-departments'],
+    mustInvalidate: ['deleteDepartment', 'restoreDepartment'],
   },
   {
     resource: 'workItems.list',
@@ -87,6 +116,11 @@ const TABLE: Array<{
       'extendWorkItem',
       'requestDateChange',
       'reviewDateChangeRequest',
+      // Atama devri (ORGANIZATION-K17/K18/K29).
+      'removeMember',
+      'removeCoordinator',
+      'updateMembershipRole',
+      'deleteUser',
     ],
   },
   {
@@ -226,6 +260,20 @@ describe('query-keys — kapsam ve hedef', () => {
     ]
     expect(hits('assignMembership', keys)).toEqual([keys[1], keys[2]])
     expect(hits('createWorkItem', keys)).toEqual([])
+  })
+
+  it('üyelik yazması atanabilir havuzu da geçersizler; katalog ve silinenler S1/ayrı kök', () => {
+    const keys = [
+      queryKeys.departments.assignable(S, 'd1'),
+      queryKeys.catalog.departments(),
+      queryKeys.deletedDepartments.all(S),
+    ]
+    expect(hits('removeMember', keys)).toEqual([keys[0]])
+    expect(hits('createDepartment', keys)).toEqual([keys[1]])
+    // Katalog silme bağlı departman listesini (önek: ekip ve havuz dahil) de düşürür.
+    expect(hits('deleteDepartment', keys)).toEqual(keys)
+    expect(isScopedQueryKey(queryKeys.catalog.departments())).toBe(false)
+    expect(isScopedQueryKey(queryKeys.deletedDepartments.all(S))).toBe(true)
   })
 
   it('görev dosyaları 03/03c/06 için tek anahtar', () => {

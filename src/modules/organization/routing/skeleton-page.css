@@ -1,0 +1,22 @@
+/*
+ * İskelet yer tutucu sayfa (W71) — tasks.css `rp-head` / `rp-h1` ölçüleriyle aynı token'lar.
+ * Kural: yalnız token; px yok, ham renk yok. Sınıflar `.org-skeleton-page` altında kapsanır.
+ */
+@layer components {
+  .org-skeleton-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .org-skeleton-page .rp-head {
+    padding: var(--space-6) var(--space-8) 0;
+  }
+  .org-skeleton-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .org-skeleton-page__body {
+    padding: var(--space-6) var(--space-8);
+  }
+}

@@ -51,15 +51,21 @@ describe('router — katalog tek kaynak', () => {
   it('sayfası olmayan canlı rota hatadır (sessiz boş rota yok)', () => {
     const withoutTasks = MODULE_ROUTES.filter((r) => r.name !== 'work.tasks')
     expect(() => buildRoutes('F1', withoutTasks)).toThrow(/sayfası yok: work.tasks/)
-    expect(() => buildRoutes('F2')).toThrow(/sayfası yok: organization.users/)
+    expect(() => buildRoutes('F3')).toThrow(/sayfası yok: work.timeline/)
+    const withoutUsers = MODULE_ROUTES.filter((r) => r.name !== 'organization.users')
+    expect(() => buildRoutes('F2', withoutUsers)).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('F1 (etkin faz): Görevler modül sayfasına bağlı (work/public workRoutes)', async () => {
+  it('F2 (etkin faz): Görevler ve organizasyon modül sayfalarına bağlı', async () => {
     const routes = buildRoutes()
     expect(routes.map((r) => r.name ?? r.path)).toEqual([
       'home',
       'identity.session',
       'work.tasks',
+      'organization.users',
+      'organization.user',
+      'organization.coordinatorships',
+      'organization.coordinatorship',
       '/:pathMatch(.*)*',
     ])
     expect(MODULE_ROUTES.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')

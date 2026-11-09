@@ -63,6 +63,20 @@ export const queryKeys = {
     /** `listMembers` — departmanın seçili programdaki ekibi (görev atama adayları). */
     members: (s: ScopeSnapshot, departmentId: string) =>
       scoped(s, ['departments', departmentId, 'members']),
+    /** `listAssignable` — departmana eklenebilecek hesaplar (yalnız koordinatör; 08 §5). */
+    assignable: (s: ScopeSnapshot, departmentId: string) =>
+      scoped(s, ['departments', departmentId, 'assignable']),
+  },
+  /**
+   * Departman kataloğu (`listDepartments`, S1; 08 `backend.md` §5 `['catalog','departments']`):
+   * şirket geneli ad/kod/tür/açıklama — kapsam değişiminde düşmez.
+   */
+  catalog: {
+    departments: () => ['catalog', 'departments'] as const,
+  },
+  /** Silinmiş departmanlar (`listDeletedDepartments`, S2, imleçli; K7 ad eşleşmesi). */
+  deletedDepartments: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-departments']),
   },
   workItems: {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
@@ -112,6 +126,9 @@ export type QueryResource =
   | 'me'
   | 'departments'
   | 'departments.members'
+  | 'departments.assignable'
+  | 'catalog.departments'
+  | 'deletedDepartments'
   | 'workItems.list'
   | 'workItems.item'
   | 'workItems.subtasks'
@@ -186,6 +203,35 @@ const MEMBERSHIP_WRITES = [
   'removeCoordinator',
 ] as const satisfies readonly OperationId[]
 
+// Kullanıcı/hesap durumunu değiştiren uçlar (ekip satırı `status`, hesap silme/geri yükleme).
+const ACCOUNT_LIFECYCLE_WRITES = [
+  'deleteAccount',
+  'restoreAccount',
+  'permanentDeleteAccount',
+  'deleteUser',
+] as const satisfies readonly OperationId[]
+
+// Atama devri (ORGANIZATION-K17/K18/K29; 05 `backend.md` §5, 08 §5): ekipten çıkarma, rol
+// düşürme, koordinatörlüğü kaldırma ve hesap silme açık görev atamalarını işlemi yapana devreder →
+// görev listesi ve görev kayıtları değişir. Geçersizleme eylemin YAKALANMIŞ kapsamıyla yapılır
+// (`scoped` önek): başka programın önbelleğine dokunulmaz (K2).
+const ASSIGNMENT_HANDOVER_WRITES = [
+  'removeMember',
+  'removeCoordinator',
+  'updateMembershipRole',
+  'deleteUser',
+  'deleteAccount',
+] as const satisfies readonly OperationId[]
+
+// Departman kataloğunu değiştiren uçlar (S1; 08 `backend.md` §5).
+const CATALOG_DEPARTMENT_WRITES = [
+  'createDepartment',
+  'updateDepartment',
+  'deleteDepartment',
+  'restoreDepartment',
+  'permanentDeleteDepartment',
+] as const satisfies readonly OperationId[]
+
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
   ...new Set(lists.flat()),
 ]
@@ -207,24 +253,40 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'resetProgram',
     'transferWorkItems',
   ],
-  // K6 yetki kaybı ayrıca standing katmanında; burada üyelik değişiklikleri.
-  me: MEMBERSHIP_WRITES,
+  // K6 yetki kaybı ayrıca standing katmanında; burada üyelik değişiklikleri. Kenar menüsü
+  // birim adı `me/departments`'tan okunur (08 §5: `renameDepartmentLink`, kopyalı bağ);
+  // hedef = çağıran olan `updateUser` adı/yöneticiliği değiştirir (05 §5).
+  me: unique(MEMBERSHIP_WRITES, ['renameDepartmentLink', 'linkDepartment', 'updateUser']),
+  // §6 (link/unlink/rename) + kodu değiştiren katalog güncellemesi ve katalog silme (08 §5).
   departments: [
     'linkDepartment',
     'unlinkDepartment',
     'renameDepartmentLink',
+    'updateDepartment',
+    'deleteDepartment',
     'restoreDepartment',
     'permanentDeleteDepartment',
   ],
-  // Ekip satırı ve hesap durumu (`status: deleted`) değiştiren uçlar.
-  'departments.members': unique(MEMBERSHIP_WRITES, [
-    'deleteAccount',
-    'restoreAccount',
-    'permanentDeleteAccount',
-    'deleteUser',
-  ]),
-  'workItems.list': unique(WORK_ITEM_WRITES, DATE_WRITES, SUBTASK_WRITES),
-  'workItems.item': unique(WORK_ITEM_WRITES, DATE_WRITES, SUBTASK_WRITES, ['attachFile']),
+  // Ekip satırı ve hesap durumu (`status: deleted`) değiştiren uçlar; `createUser` ekip
+  // satırıyla birlikte hesap açar (05 §2).
+  'departments.members': unique(MEMBERSHIP_WRITES, ACCOUNT_LIFECYCLE_WRITES, ['createUser']),
+  // Atanabilir havuz (08 §5): ekip yazmaları + havuza giren/çıkan hesaplar.
+  'departments.assignable': unique(MEMBERSHIP_WRITES, ACCOUNT_LIFECYCLE_WRITES, ['createUser']),
+  'catalog.departments': CATALOG_DEPARTMENT_WRITES,
+  deletedDepartments: ['deleteDepartment', 'restoreDepartment', 'permanentDeleteDepartment'],
+  'workItems.list': unique(
+    WORK_ITEM_WRITES,
+    DATE_WRITES,
+    SUBTASK_WRITES,
+    ASSIGNMENT_HANDOVER_WRITES,
+  ),
+  'workItems.item': unique(
+    WORK_ITEM_WRITES,
+    DATE_WRITES,
+    SUBTASK_WRITES,
+    ['attachFile'],
+    ASSIGNMENT_HANDOVER_WRITES,
+  ),
   'workItems.subtasks': unique(SUBTASK_WRITES, ['transitionWorkItem', 'removeAssignment']),
   'workItems.notes': NOTE_WRITES,
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
@@ -315,6 +377,14 @@ function workItemChild(scope: ScopeSnapshot, child: string, id?: string): Invali
   }
 }
 
+/** `scoped(['departments', id, <alt>])` biçimli anahtarlar (alt = members | assignable). */
+function departmentChild(scope: ScopeSnapshot, child: string): InvalidationFilter {
+  return {
+    queryKey: queryKeys.departments.all(scope),
+    predicate: ({ queryKey }) => queryKey.length === 5 && queryKey[4] === child,
+  }
+}
+
 type FilterBuilder = (scope: ScopeSnapshot, ctx: InvalidationContext) => InvalidationFilter | null
 
 const prefix =
@@ -332,10 +402,10 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   me: prefix(() => queryKeys.me.root()),
   users: prefix(() => queryKeys.users.all()),
   departments: prefix(queryKeys.departments.all),
-  'departments.members': (scope) => ({
-    queryKey: queryKeys.departments.all(scope),
-    predicate: ({ queryKey }) => queryKey.length === 5 && queryKey[4] === 'members',
-  }),
+  'departments.members': (scope) => departmentChild(scope, 'members'),
+  'departments.assignable': (scope) => departmentChild(scope, 'assignable'),
+  'catalog.departments': prefix(() => queryKeys.catalog.departments()),
+  deletedDepartments: prefix(queryKeys.deletedDepartments.all),
   'workItems.list': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),

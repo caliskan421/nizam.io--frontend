@@ -13,6 +13,7 @@ import { computed } from 'vue'
 import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
+import { unwrapList } from '@/shared/http/truncation'
 import { useSessionStore } from '@/shared/session/store'
 
 import { hasErrorCode } from './authority-loss'
@@ -150,8 +151,20 @@ export function useStanding() {
   }
 }
 
-export async function fetchProgramDepartments() {
-  return unwrap(api.GET('/v1/program/departments'))
+/**
+ * `listProgramDepartments` (S2) — `scoped(['departments'])` anahtarının TEK okuyucusu. Kabuk K7
+ * tespiti, dar menü birim kodu (E-00-40), work ad sözlüğü ve organizasyon 08 ızgarası bunu
+ * çağırır: önbellekteki şekil her zaman `ProgramDepartmentList` + kesildiyse `truncated: true`
+ * (`shared/http/truncation.ts`). `programId` verilirse program başlığı açıkça yazılır (anahtarın
+ * anlık görüntüsü); verilmezse istek anındaki depo kapsamı.
+ */
+export async function fetchProgramDepartments(programId?: string | null, signal?: AbortSignal) {
+  return unwrapList(
+    api.GET('/v1/program/departments', {
+      ...(programId ? { params: { header: { 'X-Nizamio-Program': programId } } } : {}),
+      signal,
+    }),
+  )
 }
 
 /**
@@ -167,7 +180,8 @@ export function useProgramDepartmentGap(scopeReady: () => boolean) {
   )
   const query = useQuery({
     queryKey: computed(() => queryKeys.departments.all(store.snapshot)),
-    queryFn: fetchProgramDepartments,
+    queryFn: ({ signal }: { signal: AbortSignal }) =>
+      fetchProgramDepartments(store.programId, signal),
     enabled: adminScope,
     retry: retryTransient,
     staleTime: 30_000,

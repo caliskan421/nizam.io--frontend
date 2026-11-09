@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  COORDINATORSHIP_QUERY_KEYS,
+  COORDINATORSHIP_TABS,
+  COORDINATORSHIPS_QUERY_KEYS,
+  COORDINATORSHIPS_SORT_FIELDS,
+  COORDINATORSHIPS_VIEWS,
+  USER_CARDS,
+  USER_GROUPINGS,
+  USER_QUERY_KEYS,
+  USER_ROLE_TABS,
+  USER_TABS,
+  USERS_QUERY_KEYS,
+} from '@/modules/organization/public'
+import {
   TASKS_NEW_TASK_QUERY,
   TASKS_QUERY_KEYS,
   TASKS_SORT_FIELDS,
@@ -55,11 +68,20 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F1 (O2b: Görevler canlı; W42 faz geçişi)', () => {
-    expect(CURRENT_PHASE).toBe('F1')
+  it('etkin faz F2 (WEB-2 O2a: Kullanıcılar + Koordinatörlükler canlı; W71 faz geçişi)', () => {
+    expect(CURRENT_PHASE).toBe('F2')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
-    expect(liveRouteNames()).toEqual(['home', 'identity.session', 'work.tasks'])
+    expect(liveRouteNames()).toEqual([
+      'home',
+      'identity.session',
+      'work.tasks',
+      'organization.users',
+      'organization.user',
+      'organization.coordinatorships',
+      'organization.coordinatorship',
+    ])
+    expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])
   })
 
   it('faz görünürlüğü ortak-kurallar §5 matrisiyle birebir', () => {
@@ -137,8 +159,17 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F1): Ana sayfa ve Görevler canlı; diğerleri gizli', () => {
-    expect(menuEntries()).toEqual([
+  it('etkin faz (F2): Ana sayfa, Görevler ve Yönetim öğeleri canlı; diğerleri gizli', () => {
+    expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
+      ['home', 'takip', 'canli'],
+      ['tasks', 'takip', 'canli'],
+      ['users', 'yonetim', 'canli'],
+      ['coords', 'yonetim', 'canli'],
+    ])
+  })
+
+  it('F1: Ana sayfa ve Görevler canlı; diğerleri gizli', () => {
+    expect(menuEntries('F1')).toEqual([
       {
         name: 'home',
         title: 'Ana sayfa',
@@ -210,7 +241,7 @@ describe('konum üretme ve süzgeç okuma', () => {
   it('canlı olmayan rotaya bağlantı üretilmez', () => {
     expect(() => routeLocation('work.tasks', {}, {}, 'F0')).toThrow(/canlı değil/)
     expect(() => routeLocation('work.timeline', {})).toThrow(/canlı değil/)
-    expect(() => routeLocation('organization.users', {})).toThrow(/canlı değil/)
+    expect(() => routeLocation('organization.users', {}, {}, 'F1')).toThrow(/canlı değil/)
   })
 
   it('etkin fazda Görevler bağlantısı üretilir (sekme, talep, panel)', () => {
@@ -236,6 +267,43 @@ describe('konum üretme ve süzgeç okuma', () => {
     expect(Object.keys(spec.query)).toEqual([...TASKS_QUERY_KEYS])
     expect(spec.query.durum).toEqual({ kind: 'enum', values: [...TASKS_STATUS_FILTERS] })
     expect(spec.query.sirala).toEqual({ kind: 'sort', fields: [...TASKS_SORT_FIELDS] })
+  })
+
+  it('organizasyon süzgeçleri modülün URL kümeleriyle aynı (organization/routes.ts)', () => {
+    const users = routeSpec('organization.users')
+    expect(Object.keys(users.query)).toEqual([...USERS_QUERY_KEYS])
+    expect(users.query.rol).toEqual({ kind: 'enum', values: [...USER_ROLE_TABS] })
+    const user = routeSpec('organization.user')
+    expect(Object.keys(user.query)).toEqual([...USER_QUERY_KEYS])
+    expect(user.query.sekme).toEqual({ kind: 'enum', values: [...USER_TABS] })
+    expect(user.query.kart).toEqual({ kind: 'enum', values: [...USER_CARDS] })
+    expect(user.query.grupla).toEqual({ kind: 'enum', values: [...USER_GROUPINGS] })
+    const coords = routeSpec('organization.coordinatorships')
+    expect(Object.keys(coords.query)).toEqual([...COORDINATORSHIPS_QUERY_KEYS])
+    expect(coords.query.gorunum).toEqual({ kind: 'enum', values: [...COORDINATORSHIPS_VIEWS] })
+    expect(coords.query.sirala).toEqual({
+      kind: 'sort',
+      fields: [...COORDINATORSHIPS_SORT_FIELDS],
+    })
+    const coord = routeSpec('organization.coordinatorship')
+    expect(Object.keys(coord.query)).toEqual([...COORDINATORSHIP_QUERY_KEYS])
+    expect(coord.query.sekme).toEqual({ kind: 'enum', values: [...COORDINATORSHIP_TABS] })
+  })
+
+  it('F2 organizasyon bağlantıları: rol sekmesi, 08 sıralama; devre dışı sekme/görünüm düşer', () => {
+    expect(routeLocation('organization.users', {}, { rol: 'koordinator', q: 'ali' }).query).toEqual(
+      { rol: 'koordinator', q: 'ali' },
+    )
+    expect(
+      routeLocation('organization.coordinatorships', {}, { sirala: 'ad:azalan' }).query,
+    ).toEqual({ sirala: 'ad:azalan' })
+    expect(
+      parseRouteQuery('organization.coordinatorships', { gorunum: 'yapi', sirala: 'x' }),
+    ).toEqual({})
+    expect(parseRouteQuery('organization.coordinatorship', { sekme: 'arsiv' })).toEqual({})
+    expect(parseRouteQuery('organization.users', { rol: 'admin', sayfa: '2' })).toEqual({
+      rol: 'admin',
+    })
   })
 
   it('ileri fazda süzgeçler kodlanır (bool → 1/0, sıralama alan:yön)', () => {

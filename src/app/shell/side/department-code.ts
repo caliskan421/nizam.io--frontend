@@ -2,30 +2,28 @@
  * Dar menü birim kodu (E-00-40). `MyDepartment` kod taşımaz; kod `listProgramDepartments`
  * (S2, `X-Nizamio-Program`) satırındaki `ProgramDepartment.code`'dan `department_id` ile
  * eşlenir; kod yoksa ya da okuma başarısızsa birim adının baş harfleri. Seçim listesi bu uçtan
- * KURULMAZ (istemci-akislari §2). Anahtar `scoped(['departments'])` (ortak-kurallar §6).
+ * KURULMAZ (istemci-akislari §2). Anahtar `scoped(['departments'])` (ortak-kurallar §6); bu
+ * anahtarın TEK okuyucusu `shared/scope/standing.ts` `fetchProgramDepartments` — önbellek şekli
+ * work / kabuk K7 / organizasyon okuyucularıyla aynı (`{ departments, truncated? }`; W71c).
  */
 import { useQuery } from '@tanstack/vue-query'
 import { computed, type Ref } from 'vue'
 
-import type { components } from '@/shared/api/schema'
-import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
+import { fetchProgramDepartments } from '@/shared/scope/standing'
 
 import { departmentCode } from './program-avatar'
 import { useSideScope } from './scope-view'
 
-type ProgramDepartment = components['schemas']['ProgramDepartment']
-
-export async function fetchProgramDepartments(): Promise<ProgramDepartment[]> {
-  const list = await unwrap(api.GET('/v1/program/departments'))
-  return list.departments
-}
+/** Paylaşılan anahtarın tek şekli (ortak okuyucunun dönüşü). */
+type ProgramDepartmentList = Awaited<ReturnType<typeof fetchProgramDepartments>>
 
 export function useDepartmentCode(
   active: Ref<boolean>,
-  fetcher: () => Promise<ProgramDepartment[]> = fetchProgramDepartments,
+  fetcher?: (programId: string | null) => Promise<ProgramDepartmentList>,
 ) {
   const scope = useSideScope()
+  const read = fetcher ?? ((programId: string | null) => fetchProgramDepartments(programId))
   const enabled = computed(
     () =>
       active.value &&
@@ -36,7 +34,7 @@ export function useDepartmentCode(
   const query = useQuery(
     computed(() => ({
       queryKey: queryKeys.departments.all(scope.store.snapshot),
-      queryFn: fetcher,
+      queryFn: () => read(scope.store.programId),
       enabled: enabled.value,
       staleTime: 60_000,
     })),
@@ -46,7 +44,7 @@ export function useDepartmentCode(
     if (!department || !scope.showDepartment.value) return null
     const row = query.isError.value
       ? undefined
-      : query.data.value?.find((d) => d.department_id === department.departmentId)
+      : query.data.value?.departments.find((d) => d.department_id === department.departmentId)
     return departmentCode(row?.code, department.displayName)
   })
   return { code }
