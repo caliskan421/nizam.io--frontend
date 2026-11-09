@@ -89,10 +89,10 @@ describe('durum bayrağı önceliği (E-08-37)', () => {
 })
 
 describe('metin erişimi', () => {
-  it('yer tutucular doldurulur; eksik parametre olduğu gibi kalır', () => {
+  it('statik ağaçtan (organization.coordinatorships.*), yer tutucular doldurulur', () => {
     expect(coordsText('coordinatorships.footer.count', { shown: 2, total: 5 })).toBe(
       '2 / 5 koordinatörlük gösteriliyor',
     )
-    expect(coordsText('coordinatorships.head.count')).toBe('{n} koordinatörlük')
+    expect(coordsText('coordinatorships.head.title')).toBe('Koordinatörlükler')
   })
 })
