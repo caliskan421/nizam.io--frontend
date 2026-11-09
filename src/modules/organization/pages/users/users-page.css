@@ -1,0 +1,138 @@
+/*
+ * 05 Kullanıcılar sayfa görünümü — theme.css `rp-head`, `rp-h1`, `rp-sub`, `rp-actions`,
+ * `rp-body`, `rp-col`, `rp-aside`, `rp-toolbar`, `rp-tgroup` ve Kullanicilar.dc.html araç çubuğu
+ * satır içi stillerinin (arama 36 px / 12 yarıçap, `flex:1 1 180px`) birebir karşılığı. Kural:
+ * yalnız token; px yok — `--users-*` üretilmiş token (medya koşulu hariç: değer
+ * `--rp-narrow-max` ile aynı). Sınıflar `.users-page` altında kapsanır.
+ */
+@layer components {
+  .users-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık */
+  .users-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .users-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .users-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .users-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .users-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Gövde */
+  .users-page .rp-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    align-items: flex-start;
+  }
+  .users-page .rp-col {
+    flex: 999 1 var(--rp-col-basis);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .users-page .rp-aside {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .users-page .rp-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+
+  /* Araç çubuğu */
+  .users-page .rp-toolbar {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+  }
+  .users-page .rp-tgroup {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .users-page .users-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .users-page .rp-tgroup--grow {
+    flex: 1 1 var(--users-grow-basis);
+  }
+  .users-page .rp-tgroup--grow .t-field {
+    flex: 1 1 var(--users-search-basis);
+    min-width: 0;
+  }
+  .users-page .users-search {
+    height: var(--users-search-h);
+    border-radius: var(--radius-sm);
+  }
+  .users-page .users-toolbar__note {
+    flex: 1 1 100%;
+  }
+  .users-page .users-pop-anchor {
+    position: relative;
+  }
+  .users-page .users-filterbtn {
+    gap: var(--ui-gap-xs);
+    padding: 0 var(--space-3);
+  }
+  .users-page .users-filterpop {
+    top: calc(100% + var(--ui-gap-xs));
+    right: 0;
+    width: var(--users-pop-w);
+    max-height: var(--users-pop-max-h);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 900px) {
+    .users-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .users-page .rp-body {
+      padding: var(--space-5);
+    }
+    .users-page .rp-aside {
+      max-width: none;
+    }
+  }
+}
