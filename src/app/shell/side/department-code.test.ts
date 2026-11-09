@@ -1,19 +1,25 @@
+import { focusManager } from '@tanstack/vue-query'
 import { flushPromises } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 import { useProgramDepartments } from '@/modules/work/public'
+import { authSession } from '@/shared/http'
 import { isScopedQueryKey, queryKeys } from '@/shared/http/query-keys'
 import { isListTruncated } from '@/shared/http/truncation'
 import { purgeScopedQueries } from '@/shared/scope/lifecycle'
+import { SessionChangedError } from '@/shared/session/query-session'
 
 import { createFakeLifecycle, setupWithScope, sideContext } from './__tests__/fake-lifecycle'
 import { useDepartmentCode } from './department-code'
 
 type Row = { department_id: string; display_name: string; code?: string }
-type Fetcher = () => Promise<{ departments: Row[]; truncated?: true }>
+type Fetcher = (
+  programId: string | null,
+  signal?: AbortSignal,
+) => Promise<{ departments: Row[]; truncated?: true }>
 
 async function boot(fetcher: Fetcher | undefined, active = true) {
   const ctx = await sideContext()
@@ -60,6 +66,80 @@ describe('dar menü birim kodu (E-00-40)', () => {
     const fetcher = vi.fn(() => Promise.resolve({ departments: [] }))
     const { code } = await boot(fetcher, false)
     expect(fetcher).not.toHaveBeenCalled()
+    expect(code.value).toBe('SK')
+  })
+})
+
+// CX-F2-Ö-01: kabuk okuyucusu oturuma bağlı (`sessionBound`) ve iptal sinyalini okuyucuya iletir.
+// Çıkış → başka hesapla giriş sırasında geç yanıt / geçici hata tekrarı yeni oturuma uygulanmaz.
+describe('dar menü birim kodu okuyucu kapısı (CX-F2-Ö-01)', () => {
+  const login = (accountId: string) => ({
+    token: `tok-${accountId}`,
+    account_id: accountId,
+    expires_at: Math.floor(Date.now() / 1000) + 900,
+    force_password_change: false,
+  })
+  const ROWS = [{ department_id: 'd1', display_name: 'Sistem koordinatörlüğü', code: 'ESK' }]
+
+  afterEach(() => {
+    focusManager.setFocused(undefined)
+    authSession.clear()
+  })
+
+  async function bootWith(fetcher: Fetcher, retries = false) {
+    authSession.establish(login('acc-1'))
+    const ctx = await sideContext()
+    if (retries) {
+      ctx.queryClient.setDefaultOptions({ queries: { retry: 1, retryDelay: 0, gcTime: Infinity } })
+    }
+    const { lifecycle, store } = createFakeLifecycle({
+      lenses: [{ lens: 'coordinator', departmentCount: 1 }],
+      departments: [{ departmentId: 'd1', displayName: 'Sistem koordinatörlüğü' }],
+    })
+    store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
+    const { code } = setupWithScope(ctx, lifecycle, () => useDepartmentCode(ref(true), fetcher))
+    const key = queryKeys.departments.all(store.snapshot)
+    return { code, ctx, key }
+  }
+
+  function switchAccount(): void {
+    authSession.clear()
+    authSession.establish(login('acc-2'))
+  }
+
+  it('geciktirilmiş GET: geç yanıt önbelleğe yazılmaz; okuyucu iptal sinyalini alır', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const fetcher = vi.fn<Fetcher>(async () => {
+      await gate
+      return { departments: ROWS }
+    })
+    const { code, ctx, key } = await bootWith(fetcher)
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
+    expect(fetcher.mock.calls[0]![0]).toBe('p1')
+    expect(fetcher.mock.calls[0]![1]).toBeInstanceOf(AbortSignal)
+    switchAccount()
+    release()
+    await vi.waitFor(() => expect(ctx.queryClient.getQueryState(key)?.status).toBe('error'))
+    expect(ctx.queryClient.getQueryData(key)).toBeUndefined()
+    expect(ctx.queryClient.getQueryState(key)?.error).toBeInstanceOf(SessionChangedError)
+    expect(code.value).toBe('SK')
+  })
+
+  it('geçici hata tekrarı: eski sorgu yeni hesabın kimliğiyle sürdürülmez', async () => {
+    const fetcher = vi.fn<Fetcher>(() => Promise.reject(new Error('503')))
+    // Tekrar, odak dönene dek bekler (TanStack `pause`): hesap değişimi tam bu aralıkta olur.
+    focusManager.setFocused(false)
+    const { code, ctx, key } = await bootWith(fetcher, true)
+    await vi.waitFor(() => expect(ctx.queryClient.getQueryState(key)?.fetchStatus).toBe('paused'))
+    switchAccount()
+    fetcher.mockImplementation(() => Promise.resolve({ departments: ROWS }))
+    focusManager.setFocused(true)
+    await vi.waitFor(() => expect(ctx.queryClient.getQueryState(key)?.status).toBe('error'))
+    // Tek çağrı (başarısız ilk deneme); tekrar okuyucuya ulaşmadı, yeni oturumda veri yazılmadı.
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(ctx.queryClient.getQueryState(key)?.error).toBeInstanceOf(SessionChangedError)
+    expect(ctx.queryClient.getQueryData(key)).toBeUndefined()
     expect(code.value).toBe('SK')
   })
 })

@@ -194,6 +194,15 @@ function expectNoOldAccount(client: QueryClient): void {
   if (current) expect(current.account_id).toBe('acc-2')
 }
 
+/**
+ * Olumlu doğrulama (CX-F2-Ö-01): yeni hesabın `me` verisi önbellekte GERÇEKTEN var — eski verinin
+ * yokluğu tek başına yetmez (önbellek tamamen boş kalsa da geçerdi).
+ */
+function expectNewAccount(client: QueryClient, meCalls: string[]): void {
+  expect(client.getQueryData<{ account_id: string }>(['me'])?.account_id).toBe('acc-2')
+  expect(meCalls.filter((a) => a === 'acc-2').length).toBeGreaterThan(0)
+}
+
 describe.each(['yerel', 'kardeş'] as const)('%s çıkış → başka hesapla giriş (Ö-08)', (where) => {
   it('geciktirilmiş GET: eski oturumun geç yanıtı yeni oturumun önbelleğine yazılmaz', async () => {
     const endpoints = standing('hold')
@@ -205,6 +214,7 @@ describe.each(['yerel', 'kardeş'] as const)('%s çıkış → başka hesapla gi
     await drained()
     await settleQueries(ctx.client)
     expectNoOldAccount(ctx.client)
+    expectNewAccount(ctx.client, endpoints.meCalls)
     // Geç yanıt gerçekten geldi (işleyici bitti) ve acc-1 için tek istek vardı.
     expect(endpoints.meCalls.filter((a) => a === 'acc-1')).toEqual(['acc-1'])
   })
@@ -231,6 +241,7 @@ describe.each(['yerel', 'kardeş'] as const)('%s çıkış → başka hesapla gi
     // Eski sorgu nesnesi yeni hesabın verisini taşımaz (tekrarı acc-2 ile koşmadı).
     expect(old.state.data).toBeUndefined()
     expectNoOldAccount(ctx.client)
+    expectNewAccount(ctx.client, endpoints.meCalls)
     // acc-1 tek istek (başarısız ilk deneme); acc-2 yalnız yeni oturumun kendi okuması.
     expect(endpoints.meCalls.filter((a) => a === 'acc-1')).toEqual(['acc-1'])
   })

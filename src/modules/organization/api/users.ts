@@ -19,6 +19,7 @@ import { ApiError } from '@/shared/errors/api-error'
 import { api } from '@/shared/http'
 import { isDetached, markDetached, type MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
+import { sessionBound } from '@/shared/session/query-session'
 
 import { serverRoleOf } from '../model/capabilities'
 import type {
@@ -103,8 +104,11 @@ export function useUserList(
       })
       return {
         queryKey: key,
-        queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-          fetchUserPage(current, pageParam, signal),
+        // Okuyucu kapısı (CX-F2-Ö-01): başka oturumda başlamış okuma bu oturuma yazılmaz.
+        queryFn: sessionBound(
+          ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
+            fetchUserPage(current, pageParam, signal),
+        ),
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (last: UserPage) => last.page.next_cursor || undefined,
         enabled: toValue(enabled),

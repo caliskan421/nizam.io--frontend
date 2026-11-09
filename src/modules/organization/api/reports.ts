@@ -14,6 +14,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 import { joinCoordinatorships } from '../model/coordinatorships'
 import { useProgramDepartmentIndex } from './departments'
@@ -35,8 +36,10 @@ export function useOrganizationDashboard(enabled: MaybeRefOrGetter<boolean>) {
       const scope = store.snapshot
       return {
         queryKey: queryKeys.report.dashboard(scope),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        // Okuyucu kapısı (CX-F2-Ö-01): başka oturumda başlamış okuma bu oturuma yazılmaz.
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchDashboard(scope.programId ?? '', signal),
+        ),
         enabled: toValue(enabled) && scope.programId !== null,
         retry: retryTransient,
         staleTime: DASHBOARD_STALE_MS,
