@@ -3,6 +3,7 @@
 // gerçek backend'e karşı. Giriş ekranı yer tutucudur (tasarım program sonrası istemci geliştirmesi).
 import { expect, test } from '@playwright/test'
 
+import { cspViolations, enforceCaddyCsp, loadedFontFamilies } from './csp-check'
 import { ADMIN, readFixture } from './fixture'
 import { storageHasOnlyAllowedKeys } from './storage-check'
 
@@ -15,6 +16,8 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   const fixture = readFixture()
   const status = page.getByTestId('session-status')
 
+  // Üretim CSP'si (deploy/Caddyfile) belgeye eklenir; ihlaller sayfada toplanır (csp-check.ts).
+  await enforceCaddyCsp(page)
   await page.goto('/')
   await expect(status).toHaveAttribute('data-status', 'anonymous')
 
@@ -33,6 +36,11 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   )
   await expect(status).toHaveAttribute('data-status', 'authenticated')
   await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
+
+  // Kendi barındırılan yazı tipleri `font-src 'self'` altında yüklendi: font ihlali 0 (CX-F0-Ö-05).
+  const violations = await cspViolations(page)
+  expect(violations.filter((v) => v.directive === 'font-src')).toEqual([])
+  expect(await loadedFontFamilies(page)).toEqual(expect.arrayContaining(['Inter', 'Poppins']))
 
   // Belirteç tarayıcı depolarına yazılmadı: yalnız K2 izinli tercih anahtarları (kapsam kimlikleri,
   // tema), sessionStorage boş, gerçek erişim belirteci hiçbir yerde yok; yenileme çerezi HttpOnly.
