@@ -1,0 +1,28 @@
+Yazı tipi dosyalarının kaynağı (CX-F0-Ö-05). Dosyalar npm paketlerinden yalnız KOPYALANDI;
+paket bağımlılığı eklenmedi (package.json / pnpm-lock.yaml değişmez). Lisans: SIL Open Font
+License 1.1 — her ailenin lisans metni yanında (OFL-*.txt, paketteki LICENSE dosyasının kopyası).
+
+Inter (değişken, wght 100–900) — @fontsource-variable/inter@5.3.0
+  https://registry.npmjs.org/@fontsource-variable/inter/-/inter-5.3.0.tgz
+  inter-latin-wght-normal.woff2        sha256 3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62
+  inter-latin-ext-wght-normal.woff2    sha256 34b9c504cab7a73e37b746343a449132e56cf7b5481af2cb81dc74dcff25c956
+  Lisans: OFL-Inter.txt (The Inter Project Authors, https://github.com/rsms/inter)
+
+Poppins (statik, 600) — @fontsource/poppins@5.3.0
+  https://registry.npmjs.org/@fontsource/poppins/-/poppins-5.3.0.tgz
+  poppins-latin-600-normal.woff2       sha256 f4e80d9dfd374d02989b87a27b5ed4cb78fbb177c27f1478e9a8b0afb7513149
+  poppins-latin-ext-600-normal.woff2   sha256 bb1f2d582e7fba586ab70c91ef062d3becaf78b887654953863521b73665d171
+  Lisans: OFL-Poppins.txt (The Poppins Project Authors, https://github.com/itfoundry/Poppins)
+  Yalnız 600: tasarımda --font-display her yerde 600 ağırlıkla kullanılır (text-*, m-* stilleri).
+
+Geist Mono (değişken, wght 100–900) — @fontsource-variable/geist-mono@5.3.0
+  https://registry.npmjs.org/@fontsource-variable/geist-mono/-/geist-mono-5.3.0.tgz
+  geist-mono-latin-wght-normal.woff2     sha256 684ad5b531f81d43c1e8c7038262d5db7cdc1f68006e04d6c7769efa8d33c8cc
+  geist-mono-latin-ext-wght-normal.woff2 sha256 1a189eb997c3e2ece68373e387afaec9e8617424186c4b1ab3cff7c54ba6223b
+  Lisans: OFL-GeistMono.txt (The Geist Project Authors, https://github.com/vercel/geist-font)
+
+Alt kümeler: latin + latin-ext (Türkçe ğ ş ı İ latin-ext'te). unicode-range değerleri paketin
+wght.css / latin*.css dosyalarındaki ile aynıdır.
+
+Güncelleme: yeni sürümün tarball'ından aynı adlı dosyaları kopyala, sha256 satırlarını yenile,
+fonts.test.ts yeşil kalsın.

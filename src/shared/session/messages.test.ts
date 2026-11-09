@@ -35,6 +35,11 @@ describe('parseSessionMessage — sıkı şema', () => {
     expect(parseSessionMessage({ v: 1, type: 'sync-request' }, NOW)).not.toBeNull()
   })
 
+  it('logout-unverified yalnız hesap kimliği taşır (belirteç yok)', () => {
+    const msg = { v: 1, type: 'logout-unverified', accountId: 'acc-1' }
+    expect(parseSessionMessage(msg, NOW)).toEqual(msg)
+  })
+
   it.each([
     ['null', null],
     ['metin', 'token'],
@@ -58,6 +63,11 @@ describe('parseSessionMessage — sıkı şema', () => {
     ['bayrak metin', { ...valid, forcePasswordChange: 'false' }],
     ['logout hesapsız', { v: 1, type: 'logout' }],
     ['logout ekstra alan', { v: 1, type: 'logout', accountId: 'acc-1', all: true }],
+    ['logout-unverified hesapsız', { v: 1, type: 'logout-unverified' }],
+    [
+      'logout-unverified belirteç taşır',
+      { v: 1, type: 'logout-unverified', accountId: 'acc-1', token: valid.token },
+    ],
     ['sync ekstra alan', { v: 1, type: 'sync-request', token: 'x' }],
   ])('%s → reddedilir', (_name, raw) => {
     expect(parseSessionMessage(raw, NOW)).toBeNull()
@@ -134,6 +144,42 @@ describe('AuthSession kanal girdisi', () => {
     inject({ v: 1, type: 'logout', accountId: 'acc-1' })
     expect(s.snapshot.status).toBe('anonymous')
     expect(s.token).toBeNull()
+  })
+
+  it('kardeşin doğrulanamayan çıkışı: aynı hesap anonim olur, bayrak açılır', () => {
+    const { s, inject } = session()
+    inject(valid)
+    inject({ v: 1, type: 'logout-unverified', accountId: 'acc-2' })
+    expect(s.snapshot).toMatchObject({ status: 'authenticated', serverLogoutUnverified: false })
+    inject({ v: 1, type: 'logout-unverified', accountId: 'acc-1' })
+    expect(s.snapshot).toMatchObject({ status: 'anonymous', serverLogoutUnverified: true })
+    expect(s.token).toBeNull()
+    // Ardından gelen logout bayrağı düşürmez; kardeş belirteci reddedilir.
+    inject({ v: 1, type: 'logout', accountId: 'acc-1' })
+    inject({ ...valid, token: 'tok-0000000000000009', issuedAt: NOW + 10 })
+    expect(s.snapshot.serverLogoutUnverified).toBe(true)
+    expect(s.token).toBeNull()
+  })
+
+  it('oturumsuz sekme durumunu korur, yalnız bayrağı alır; açılıştaki sekme anonim olur', () => {
+    const ended = session()
+    ended.inject(valid)
+    ended.s.expire()
+    ended.inject({ v: 1, type: 'logout-unverified', accountId: 'acc-1' })
+    expect(ended.s.snapshot).toMatchObject({ status: 'ended', serverLogoutUnverified: true })
+    const booting = session()
+    booting.inject({ v: 1, type: 'logout-unverified', accountId: 'acc-1' })
+    expect(booting.s.snapshot).toMatchObject({ status: 'anonymous', serverLogoutUnverified: true })
+  })
+
+  it('doğrulanamayan çıkış: önce logout-unverified, sonra logout yayınlanır', () => {
+    const { s, inject, published } = session()
+    inject(valid)
+    s.clear({ serverUnverified: true })
+    expect(published).toEqual([
+      { v: 1, type: 'logout-unverified', accountId: 'acc-1' },
+      { v: 1, type: 'logout', accountId: 'acc-1' },
+    ])
   })
 
   it('yayınlanan iletiler sürümlüdür ve logout hesap kimliği taşır', () => {

@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// Kenar menüsü görünüm kuralları (KESİN 5): ham renk yok, px yalnız side-metrics.css'te (medya
-// koşulu hariç), satır içi stil yok, .vue ≤ 250 satır; 272/76 px genişlik ve taşma önlemleri token.
+// Kenar menüsü görünüm kuralları (KESİN 5): ham renk yok, px yok (medya koşulu hariç; `--side-*`
+// ölçüleri üretilmiş token'da, CX-F0-Ö-02), satır içi stil yok, .vue ≤ 250 satır; 272/76 px genişlik ve taşma önlemleri token.
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const read = (name: string) => readFileSync(join(dir, name), 'utf8')
 const vue = readdirSync(dir).filter((n) => n.endsWith('.vue'))
@@ -24,14 +24,11 @@ describe('kenar menüsü görünüm kuralları', () => {
     }
   })
 
-  it('px yalnız side-metrics.css içinde (medya koşulu hariç); metrics yalnız --side-*', () => {
+  it('px yok (medya koşulu hariç); ayrı ölçü dosyası yok', () => {
+    expect(css.filter((name) => name.includes('metrics'))).toEqual([])
     for (const name of [...vue, ...css]) {
-      if (name === 'side-metrics.css') continue
       expect(stripMedia(stripComments(read(name))).match(PX)?.[0], name).toBeUndefined()
     }
-    const metrics = stripComments(read('side-metrics.css'))
-    for (const decl of metrics.match(/[\w-]+\s*:/g) ?? [])
-      expect(decl).toMatch(/^--side-[\w-]+\s*:$/)
   })
 
   it('medya koşulu dar ekran eşiğiyle (--rp-narrow-max = 900px) aynı', () => {

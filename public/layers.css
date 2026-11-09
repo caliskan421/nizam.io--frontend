@@ -1,0 +1,8 @@
+/*
+ * CSS katman sırası — sayfanın İLK stil kaynağı (index.html'de ilk <link>). Vite ortak CSS
+ * parçalarını (ör. shared/ui `@layer components` içeren chunk) giriş CSS'inden önce bağlar; sıra
+ * bildirimi yalnız main.css'te olsaydı önce gelen parça `components`'i ilk katman yapar, Tailwind
+ * base/preflight bileşen stillerini ezerdi. Liste src/app/styles/main.css ile AYNIDIR
+ * (src/app/styles/layers.test.ts denetler). Parmak izsiz dosya: Caddy kısa önbellekle sunar.
+ */
+@layer theme, base, primevue, components, utilities;

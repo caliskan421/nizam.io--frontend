@@ -52,9 +52,16 @@ doğrulaması), `e2e/two-tabs.spec.ts` (iki gerçek sayfa, gerçek backend).
      reddedilir. Çıkıştan sonra kardeşte yapılan açık giriş kabul edilir.
    - `serverLogoutUnverified` yalnız açık girişle kapanır. Refresh yolu ve kardeş belirteci
      bayrak açıkken reddedilir.
-   - **Bilinen sınır (ileti şeması kararı F1 W61):** doğrulanamayan çıkışın `logout`
-     iletisi "doğrulanamadı" bilgisini taşımaz. Kardeş sekme anonim olur ama bayrağı
-     almaz. HttpOnly çerez hâlâ geçerliyse o sekme sonradan sessiz refresh yapabilir.
+   - **Bayrak kardeşlere aktarılır (F1 W61):** doğrulanamayan çıkışta sekme önce
+     `{v, type: 'logout-unverified', accountId}`, ardından olağan `logout` iletisini yayınlar.
+     İleti belirteç taşımaz (tam alan kümesi; fazla alan → ret). Aynı hesabın sekmesi ve
+     hesabı henüz bilinmeyen (`unknown`) sekme anonim olur ve `serverLogoutUnverified`
+     bayrağını alır; zaten oturumsuz sekme (`anonymous` / `ended` / `unavailable`) durumunu
+     korur, yalnız bayrağı alır. Böylece HttpOnly çerez hâlâ geçerli olsa da hiçbir açık sekme
+     açık girişe kadar sessiz refresh yapmaz ve kardeş belirtecini kabul etmez. Sıra (önce
+     `logout-unverified`) bu türü tanımayan eski sürümlü sekme için geriye uyumdur: o sekme
+     ilk iletiyi yok sayar, ikinci `logout`'u uygular. Sınır: bayrak bellektedir; sayfa
+     yenilemesinde kaybolur (`scope/sign-out.ts`).
 
 ## Güvenlik varsayımı ve kanal doğrulaması
 
@@ -66,7 +73,8 @@ sıkı CSP (inline betik yok) F15 Caddy yapılandırmasıyla uygulanır.
 
 Buna rağmen kanal savunmacı okunur (`messages.ts`, `parseSessionMessage`):
 
-- Sürüm alanı (`v: 1`), bilinen tür (`token` / `logout` / `sync-request`), **tam alan
+- Sürüm alanı (`v: 1`), bilinen tür (`token` / `logout` / `logout-unverified` /
+  `sync-request`), **tam alan
   kümesi** (eksik veya fazla alan → ret), alan türleri ve uzunlukları (belirteç 16–4096
   karakter, izinli karakter kümesi; hesap kimliği ≤ 128).
 - `expiresAt` güvenli tamsayı ve gelecekte. **Üst sınır yoktur:** oturum ömrü backend
@@ -78,7 +86,9 @@ Buna rağmen kanal savunmacı okunur (`messages.ts`, `parseSessionMessage`):
 - `issuedAt` alıcının saatine en çok 5 dk uzak (aynı makine). Eski belirteç
   `sync-request` yanıtında da paylaşılmaz.
 - Hesap tutarlılığı: oturumda hesap doluysa farklı hesabın `token` iletisi reddedilir;
-  `logout` yalnız aynı hesap için uygulanır. Aynı hesapta yalnız daha yeni `issuedAt` kazanır.
+  `logout` yalnız aynı hesap (ya da açılış refresh'i süren sekme) için uygulanır;
+  `logout-unverified` ayrıca oturumsuz sekmeye yalnız bayrak olarak uygulanır, başka hesabın
+  oturumuna dokunmaz. Aynı hesapta yalnız daha yeni `issuedAt` kazanır.
 - Geçersiz ileti **sessizce yok sayılır** (hata fırlatılmaz, durum değişmez).
 
 ### Neden bu yöntem

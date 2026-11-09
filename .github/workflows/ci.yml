@@ -61,7 +61,7 @@ jobs:
           pnpm gen:tokens
           paths="src/shared/api src/shared/tokens"
           if ! git diff --exit-code -- $paths; then
-            echo "::error::Üretilmiş dosyalar kaynakla (backend etiketi / tokens.json) uyuşmuyor; 'pnpm gen:api && pnpm gen:tokens' koşup commit'leyin."
+            echo "::error::Üretilmiş dosyalar kaynakla (backend etiketi / tokens/design-system.tokens.json / design/web-tokens.json) uyuşmuyor; 'pnpm gen:api && pnpm gen:tokens' koşup commit'leyin."
             exit 1
           fi
           if [ -n "$(git status --porcelain -- $paths)" ]; then

@@ -1,11 +1,9 @@
 /*
  * Görev tablosu görünümü — theme.css `rp-dtable`, `rp-tr`, `rp-status`, `rp-dot`, `rp-avstack`
  * ve Gorevler-Liste.dc.html artboard `<style>` (`rp-tmeta`, `rp-subtog`, `rp-reqtag`, `rp-tip`)
- * birebir karşılığı. Kural: yalnız token; px yalnız list-metrics.css'te. Sınıflar `.rp-dtable`
+ * birebir karşılığı. Kural: yalnız token; px yok (`--list-*` üretilmiş token). Sınıflar `.rp-dtable`
  * altında kapsanır (başka ekranların aynı adlı sınıflarıyla çakışmaz). Açık tema token'la.
  */
-@import './list-metrics.css';
-
 @layer components {
   .rp-dtable {
     border: var(--ui-hairline) solid var(--border-subtle);

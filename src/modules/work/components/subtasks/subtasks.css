@@ -2,11 +2,10 @@
  * Alt görev görünümü — `Gorevler-Liste.dc.html` artboard stilleri: satır içi blok (`rp-subs`,
  * `rp-stask`, `rp-subslot`, `rp-strike`, `rp-stask--add`) ve panel sekmesi (`rp-dsubs`,
  * `rp-dsub`, `rp-dsubs__bar`), tarih açılırı (`rp-dr`), menü başlığı (`rp-thpop__title`).
- * Kural: yalnız token (`var(--…)`); ham renk yok, px yalnız subtasks-metrics.css'te (medya
+ * Kural: yalnız token (`var(--…)`); ham renk ve px yok — `--sub-*` ölçüleri üretilmiş token (medya
  * koşulu hariç: değer `--rp-narrow-max` ile aynı). Açık tema yalnız token değişimiyle; tarih
  * girişinin `color-scheme`'i temaya göre. Eksik vurgusu (`data-miss`) ve "*" yok (P5, BE-006).
  */
-@import './subtasks-metrics.css';
 @import './subtasks-parts.css';
 
 @layer components {

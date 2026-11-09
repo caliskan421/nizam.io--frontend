@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// Görev listesi sayfa görünüm kuralları (KESİN 5): ham renk yok, px yalnız tasks-metrics.css'te
-// (medya koşulu hariç), satır içi stil yok, .vue ≤ 250 satır (sayfa dahil).
+// Görev listesi sayfa görünüm kuralları (KESİN 5): ham renk yok, px yok (medya koşulu hariç;
+// `--tasks-*` üretilmiş token), satır içi stil yok, .vue ≤ 250 satır (sayfa dahil).
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const read = (name: string) => readFileSync(join(dir, name), 'utf8')
 const page = readFileSync(join(dir, '../TasksPage.vue'), 'utf8')
@@ -28,17 +28,14 @@ describe('görev listesi sayfa görünüm kuralları', () => {
     }
   })
 
-  it('px yalnız tasks-metrics.css içinde (medya koşulu hariç); metrics yalnız --tasks-*', () => {
+  it('px yok (medya koşulu hariç); ayrı ölçü dosyası yok', () => {
+    expect(css.filter((name) => name.includes('metrics'))).toEqual([])
     for (const [name, text] of [
       ...[...vue, ...css].map((n) => [n, read(n)]),
       ['TasksPage', page],
     ]) {
-      if (name === 'tasks-metrics.css') continue
       expect(stripMedia(stripComments(text!)).match(PX)?.[0], name).toBeUndefined()
     }
-    const metrics = stripComments(read('tasks-metrics.css'))
-    for (const decl of metrics.match(/[\w-]+\s*:/g) ?? [])
-      expect(decl).toMatch(/^--tasks-[\w-]+\s*:$/)
   })
 
   it('medya koşulu dar ekran eşiğiyle (--rp-narrow-max = 900px) aynı', () => {

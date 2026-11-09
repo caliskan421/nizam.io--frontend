@@ -5,23 +5,9 @@
  */
 import type { CompositeOutcome } from '@/shared/http/mutation'
 import { i18n } from '@/shared/i18n'
+import { trWork } from '@/shared/i18n/tr/work'
 
-export const trWork = {
-  work: {
-    create: {
-      // ortak-kurallar §7, CX-S-03: ilk yanıtın gerçek durumu söylenir; ilk atanan korunur.
-      partial: 'Görev oluşturuldu, ek atama yapılamadı.',
-    },
-  },
-} as const
-
-let merged = false
-
-function ensureMerged(): void {
-  if (merged) return
-  i18n.global.mergeLocaleMessage('tr', trWork)
-  merged = true
-}
+export { trWork }
 
 type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
@@ -31,7 +17,6 @@ export type WorkTextKey = Leaves<typeof trWork>
 
 /** `work.*` metni (TR). */
 export function workText(key: WorkTextKey): string {
-  ensureMerged()
   return i18n.global.t(key)
 }
 

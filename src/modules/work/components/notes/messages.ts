@@ -4,45 +4,14 @@
  * sunucu verisidir; burada örnek veri yok (ortak-kurallar §4).
  */
 import { i18n } from '@/shared/i18n'
+import { trNotes } from '@/shared/i18n/tr/work'
 
-export const trNotes = {
-  work: {
-    notes: {
-      list: 'Notlar',
-      loading: 'Notlar yükleniyor…',
-      empty: 'Henüz not yok',
-      emptyWriter: 'Göreve ilk notu siz ekleyin.',
-      composer: 'Not yaz',
-      placeholder: 'Göreve not yaz…',
-      add: 'Not ekle',
-      editor: 'Notu düzenle',
-      save: 'Kaydet',
-      cancel: 'Vazgeç',
-      edit: 'Düzenle',
-      remove: 'Sil',
-      edited: 'düzenlendi',
-      unknownAuthor: 'Adı bilinmeyen kişi',
-      field: 'Not',
-      confirmTitle: 'Not silinsin mi?',
-      confirmBody: 'Not bu görevden kaldırılır.',
-      confirmAccept: 'Notu sil',
-    },
-  },
-} as const
-
-let merged = false
-
-function ensureMerged(): void {
-  if (merged) return
-  i18n.global.mergeLocaleMessage('tr', trNotes)
-  merged = true
-}
+export { trNotes }
 
 export type NotesTextKey = keyof typeof trNotes.work.notes
 
 /** `work.notes.*` metni (TR). */
 export function notesText(key: NotesTextKey): string {
-  ensureMerged()
   return i18n.global.t(`work.notes.${key}`)
 }
 
