@@ -21,8 +21,8 @@ const user = (id: string, name: string, memberships: string[] | null): KnownUser
 })
 
 const DEPTS = new Map<string, ProgramDepartment>([
-  ['d1', { department_id: 'd1', display_name: 'Mekanik' } as ProgramDepartment],
-  ['d2', { department_id: 'd2', display_name: 'İdari işler' } as ProgramDepartment],
+  ['d1', { department_id: 'd1', display_name: 'Mekanik' }],
+  ['d2', { department_id: 'd2', display_name: 'İdari işler' }],
 ])
 
 describe('satır modeli (seçili program etiketleri)', () => {
@@ -85,7 +85,7 @@ describe('sekmeler, arama, sıralama', () => {
     expect(filterByTab(rows, 'koordinator').map((r) => r.accountId)).toEqual(['a'])
     expect(filterByTab(rows, 'uye').map((r) => r.accountId)).toEqual(['b'])
     expect(filterByTab(rows, 'admin')).toEqual([])
-    expect(tabCounts(rows)).toEqual({ tumu: 3, koordinator: 1, uye: 1 })
+    expect(tabCounts(rows)).toEqual({ tumu: 3, admin: 0, koordinator: 1, uye: 1 })
   })
 
   it('arama yalnız ad, Türkçe katlamalı (I/ı)', () => {

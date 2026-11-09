@@ -1,0 +1,157 @@
+/*
+ * 05 Kullanıcılar tablosu — theme.css `rp-dtable`, `rp-tr`, `rp-cellmain`, `rp-hoveract`,
+ * `rp-title`, `rp-faint`, `rp-cap` ve Kullanicilar.dc.html satır içi stillerinin (ızgara
+ * `20px minmax(0,2fr) 152px minmax(0,1.2fr) 36px`, rozet 24 px) birebir karşılığı. Kural: yalnız
+ * token; px yok (`--users-*` üretilmiş token). Seçiciler `.users-table` altında: work
+ * `list.css`'in genel `.rp-dtable .rp-tr` ızgarasını özgüllükle ezer, başka ekrana sızmaz.
+ */
+@layer components {
+  .users-table {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .users-table .rp-dtable {
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  [data-theme='light'] .users-table .rp-dtable {
+    box-shadow: var(--shadow-card);
+  }
+  .users-table .rp-scroll {
+    overflow-x: auto;
+  }
+  .users-table .users-grid {
+    min-width: var(--users-min-w);
+  }
+
+  /* Satırlar */
+  .users-table .rp-dtable .rp-tr {
+    display: grid;
+    grid-template-columns: var(--users-cols);
+    align-items: center;
+    column-gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    min-height: var(--rp-row-h);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    box-sizing: border-box;
+  }
+  .users-table .rp-tr > * {
+    min-width: 0;
+  }
+  .users-table .rp-tr:last-child {
+    border-bottom: 0;
+  }
+  .users-table .rp-dtable .rp-tr--head {
+    min-height: 0;
+    padding: var(--ui-gap-sm) var(--space-4);
+    font: var(--text-label);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .users-table .rp-dtable .rp-tr--body {
+    min-height: var(--rp-row-h);
+    cursor: pointer;
+  }
+  .users-table .rp-tr--body:hover,
+  .users-table .rp-tr.rp-sel {
+    background: var(--bg-raised);
+  }
+  .users-table .rp-tr.rp-sel {
+    box-shadow: inset var(--ui-tab-bar) 0 0 var(--accent-text);
+  }
+  .users-table .rp-sortbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    border: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .users-table .rp-hoveract {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .users-table .rp-tr--body:hover .rp-hoveract,
+  .users-table .rp-tr.rp-sel .rp-hoveract,
+  .users-table .rp-hoveract:focus-visible {
+    opacity: 1;
+  }
+
+  /* Hücreler */
+  .users-table .rp-cellmain {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .users-table .rp-cellmain__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .users-table .rp-title {
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .users-table .rp-title:hover {
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+  .users-table .rp-faint {
+    color: var(--ink-faint);
+  }
+  .users-table .rp-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .users-table .users-row__roles {
+    display: flex;
+    gap: var(--ui-gap-xs);
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .users-table .users-badge {
+    height: var(--users-badge-h);
+    padding: var(--users-badge-pad);
+    font-size: var(--ui-fs-xs);
+  }
+  .users-table .users-badge--more {
+    padding: var(--users-more-pad);
+    background: transparent;
+    box-shadow: inset 0 0 0 var(--ui-hairline) var(--border-strong);
+    color: var(--ink-muted);
+  }
+
+  /* İskelet */
+  .users-table .users-skel {
+    display: block;
+    height: var(--users-skel-h);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+  .users-table .users-row--skeleton > :first-child .users-skel {
+    visibility: hidden;
+  }
+
+  /* Sayfalayıcı satırı (E-05-22…24) ve notlar */
+  .users-table .users-pager {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .users-table .users-note--warn {
+    color: var(--danger);
+  }
+}

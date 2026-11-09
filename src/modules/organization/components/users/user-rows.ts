@@ -10,7 +10,12 @@
  */
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
-import { matchesRoleTab, teamRoleOf, type UserRoleTab } from '../../model/capabilities'
+import {
+  matchesRoleTab,
+  teamRoleOf,
+  USER_ROLE_TABS,
+  type UserRoleTab,
+} from '../../model/capabilities'
 import { orderedRoles, programMemberships } from '../../model/memberships'
 import type {
   KnownUser,
@@ -75,10 +80,11 @@ export function filterByTab(rows: readonly UserRow[], tab: UserRoleTab): UserRow
   return rows.filter((row) => matchesRoleTab(tab, rowRoles(row)))
 }
 
-/** Sekme sayaçları (yüklenen küme; "Admin" sayılamaz — BE-042). */
-export function tabCounts(rows: readonly UserRow[]) {
-  const count = (tab: UserRoleTab) => filterByTab(rows, tab).length
-  return { tumu: rows.length, koordinator: count('koordinator'), uye: count('uye') }
+/** Sekme sayaçları (yüklenen küme; "Admin" sayılamaz — BE-042, hep 0). */
+export function tabCounts(rows: readonly UserRow[]): Record<UserRoleTab, number> {
+  const counts = {} as Record<UserRoleTab, number>
+  for (const tab of USER_ROLE_TABS) counts[tab] = filterByTab(rows, tab).length
+  return counts
 }
 
 /** Türkçe büyük/küçük ve I/ı katlaması (sunucu `search` ile aynı anlam: yalnız ad). */
