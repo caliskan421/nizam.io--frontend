@@ -63,6 +63,36 @@ export function personName(fullName: string | null | undefined): string {
   return name ? name : taskListText('taskList.unknownPerson')
 }
 
+export interface StackPerson {
+  id: string
+  name: string
+}
+
+/** Kişi sütununa sığan yığın (E-03-27; 60 px = 3 küçük avatar). */
+export const AVATAR_STACK_MAX = 3
+
+/**
+ * Avatar yığını: en çok `max` öğe; fazlası varsa son yuva "+n" (kalan adlar ipucunda). Dört
+ * atananlı satırda dördüncü avatar sütun kenarında kırpılıyordu (O5 görsel kusur, W63).
+ */
+export function avatarStack(
+  people: readonly StackPerson[],
+  max = AVATAR_STACK_MAX,
+): { shown: StackPerson[]; more: { count: number; label: string; text: string } | null } {
+  if (people.length <= max) return { shown: [...people], more: null }
+  const shown = people.slice(0, max - 1)
+  const rest = people.slice(max - 1)
+  const names = rest.map((p) => p.name).join(', ')
+  return {
+    shown,
+    more: {
+      count: rest.length,
+      text: taskListText('taskList.morePeople', { n: rest.length }),
+      label: taskListText('taskList.morePeopleLabel', { n: rest.length, names }),
+    },
+  }
+}
+
 /** Alt görev düğmesi (E-03-21): `data-has`, `data-done`, etiket "t/n" ya da "+ alt". */
 export function subtaskToggle(counts: WorkItem['subtask_counts']) {
   const has = counts.total > 0

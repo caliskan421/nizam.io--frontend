@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import { WORK_ITEM_STATUSES } from '../../model/types'
 import { taskListText, trTaskList } from './messages'
-import { dueNote, personName, requestTag, STATUS_DOT, statusLabel, subtaskToggle } from './row-view'
+import {
+  avatarStack,
+  dueNote,
+  personName,
+  requestTag,
+  STATUS_DOT,
+  statusLabel,
+  subtaskToggle,
+} from './row-view'
 
 const base = {
   status: 'devam_ediyor',
@@ -65,5 +73,19 @@ describe('satır gösterimi', () => {
 
   it('metinler i18n ağacından', () => {
     expect(taskListText('taskList.column.bitis')).toBe(trTaskList.taskList.column.bitis)
+  })
+})
+
+describe('avatar yığını (E-03-27, en çok 3 yuva)', () => {
+  const p = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `a${i}`, name: `K${i}` }))
+  it('≤ 3 kişi: hepsi, "+n" yok', () => {
+    expect(avatarStack(p(0))).toEqual({ shown: [], more: null })
+    expect(avatarStack(p(3)).shown).toHaveLength(3)
+    expect(avatarStack(p(3)).more).toBeNull()
+  })
+  it('> 3 kişi: iki avatar + "+n"', () => {
+    const stack = avatarStack(p(5))
+    expect(stack.shown.map((s) => s.id)).toEqual(['a0', 'a1'])
+    expect(stack.more).toEqual({ count: 3, text: '+3', label: '3 kişi daha: K2, K3, K4' })
   })
 })
