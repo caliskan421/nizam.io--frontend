@@ -66,7 +66,11 @@ describe('durum bayrağı önceliği (E-08-37)', () => {
     })
     expect(
       flagOf(view('d1', 'B', null, stat('d1', { last_activity_at: daysAgo(40) })), NOW),
-    ).toMatchObject({ kind: 'quiet', tone: 'danger', text: 'Sessiz · son görev hareketi 40 gün önce' })
+    ).toMatchObject({
+      kind: 'quiet',
+      tone: 'danger',
+      text: 'Sessiz · son görev hareketi 40 gün önce',
+    })
     expect(
       flagOf(view('d1', 'B', null, stat('d1', { last_activity_at: null })), NOW),
     ).toMatchObject({ kind: 'quiet', text: 'Sessiz · görev hareketi yok' })
