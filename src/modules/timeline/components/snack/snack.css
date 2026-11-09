@@ -1,0 +1,152 @@
+/*
+ * W95 geri alınabilir bildirim — `Gorevler-Zaman.dc.html` `rp-snack` (E-03C-67…72). Kural: yalnız
+ * token; ölçek dışı ölçüler en yakın mevcut token'a eşlenir (tasarım değeri yorumda): ikon kutusu
+ * ve ✕ 32 px = `--ui-av-md`, genişlik 560 px = `--ui-modal-w`, yarıçap 16 = `--radius-md`,
+ * düğme yarıçapı 10 → `--radius-xs` (8), dolgu 12/10/14/14 → `--space-3`/`--space-4`, çubuk 3 px
+ * = 3 × `--ui-hairline`. Z-katmanı bildirimin (60) üstünde (61, tasarım).
+ */
+@layer components {
+  .rp-snack {
+    position: fixed;
+    left: 50%;
+    bottom: var(--ui-toast-offset);
+    transform: translateX(-50%);
+    z-index: 61;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: var(--space-3);
+    align-items: center;
+    width: min(var(--ui-modal-w), calc(100vw - var(--space-8)));
+    box-sizing: border-box;
+    padding: var(--space-3) var(--space-3) var(--space-4) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--ink);
+    color: var(--bg-base);
+    font-family: var(--font-sans);
+    font-size: var(--ui-fs-sm);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    animation: rp-snack-in 0.18s ease-out;
+  }
+  .rp-snack__ic {
+    display: grid;
+    place-items: center;
+    width: var(--ui-av-md);
+    height: var(--ui-av-md);
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, var(--bg-base) 14%, transparent);
+  }
+  .rp-snack__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .rp-snack__title {
+    font-weight: 600;
+  }
+  .rp-snack__range {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: var(--ui-fs-xs);
+    font-weight: 500;
+  }
+  .rp-snack__old {
+    text-decoration: line-through;
+    opacity: 0.75;
+  }
+  .rp-snack__arrow {
+    opacity: 0.75;
+  }
+  .rp-snack__new {
+    font-weight: 700;
+  }
+  .rp-snack__note {
+    font-size: var(--ui-fs-xs);
+    opacity: 0.75;
+  }
+  .rp-snack__delta {
+    padding: var(--ui-gap-2xs) var(--ui-gap-xs);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-base) 16%, transparent);
+    font-weight: 700;
+  }
+  .rp-snack__undo {
+    min-height: var(--control-sm);
+    padding: 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: var(--bg-base);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .rp-snack__undo:hover {
+    background: color-mix(in srgb, var(--bg-base) 85%, var(--ink));
+  }
+  .rp-snack__undo:focus-visible,
+  .rp-snack__x:focus-visible {
+    outline: var(--ui-focus-width) solid var(--accent-text);
+    outline-offset: var(--ui-focus-width);
+  }
+  .rp-snack__x {
+    display: grid;
+    place-items: center;
+    width: var(--ui-av-md);
+    height: var(--ui-av-md);
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+  }
+  .rp-snack__x:hover {
+    opacity: 1;
+    background: color-mix(in srgb, var(--bg-base) 12%, transparent);
+  }
+  /* Geri sayım: oran `useDelayedSend` ölçümünden (CSS değişkeni); 100 ms'lik adımlar doğrusal. */
+  .rp-snack__bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(var(--ui-hairline) * 3);
+    transform-origin: left;
+    transform: scaleX(var(--snack-left, 1));
+    transition: transform 0.1s linear;
+    background: var(--accent-text);
+  }
+  /* Kenar menüsü açıkken içerik alanının ortası (tasarım: 50% + yarım kenar menüsü); dar
+     kabukta menü kapalı → pencere ortası. Eşik --rp-narrow-max + 1 (media-thresholds.test). */
+  @media (min-width: 901px) {
+    .rp-snack {
+      left: calc(50% + var(--rp-side-w) / 2);
+    }
+  }
+  /* Açık tema: çubuk vurgu zemini (theme.css). */
+  :root[data-theme='light'] .rp-snack__bar {
+    background: var(--accent);
+  }
+  @keyframes rp-snack-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, var(--space-2));
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rp-snack {
+      animation: none;
+    }
+    .rp-snack__bar {
+      transition: none;
+    }
+  }
+}
