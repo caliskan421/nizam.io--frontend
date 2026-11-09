@@ -14,7 +14,8 @@
  * tercihidir ve burada kodlanır.
  *
  * Varsayımlar (karar yok → en dar güvenli davranış, rapora yazılı):
- *  - Üye yüzünde (`memberGantt`) yönetici olsa da tutamaç/tarih yazımı yoktur ("Üye → yok").
+ *  - Üye yüzünde düz üye (yönetici değil) tarih/bağımlılık yazamaz; `company_admin` yetkisi
+ *    yüzden bağımsız korunur (P1) ve Admin politikasıyla yazar. Yüz yalnız okunan Gantt'ı seçer.
  *  - Tamamlanmış görevde tutamaç yoktur (uzatma 409 `work.item_completed`; backend.md §3).
  */
 import type { ScopeSnapshot } from '@/shared/scope/scope'
@@ -55,7 +56,7 @@ export const TIMELINE_CAPABILITY_SOURCES: Readonly<Record<TimelineCapability, st
   requestDateChange:
     'istemci-akislari §4 s.151 / P8: Koordinatör requestDateChange; bekleyen talep varken gizli; Admin tek başına gizli',
   reviewDateRequest:
-    'istemci-akislari §4 s.152 / P5: bekleyen talebi onayla/reddet — yalnız company_admin; Üye yüzünde yok',
+    'istemci-akislari §4 s.152 / P5: bekleyen talebi onayla/reddet — yalnız company_admin; yönetici yetkisi yüzden bağımsız',
   seeDateRequest:
     '03c E-03C-42: talep uzantısı — Admin her görevde, Koordinatör kendi biriminde, Üye hiç',
   manageDependencies:
@@ -66,7 +67,8 @@ export const TIMELINE_CAPABILITY_SOURCES: Readonly<Record<TimelineCapability, st
 
 /** Yönetim yetkisi (company_admin) ya da görevin departmanında koordinatörlük. */
 function manages(f: TimelineActorFacts): boolean {
-  return f.face !== 'member' && (f.companyAdmin || f.coordinator)
+  if (f.face === 'member') return f.companyAdmin
+  return f.companyAdmin || f.coordinator
 }
 
 /**
@@ -75,7 +77,6 @@ function manages(f: TimelineActorFacts): boolean {
  * yüzünde yok.
  */
 export function datePolicy(f: TimelineActorFacts): DatePolicy {
-  if (f.face === 'member') return 'none'
   if (f.companyAdmin) return 'direct'
   if (f.face === 'coordinator' && f.coordinator) return 'request'
   return 'none'
@@ -101,7 +102,7 @@ export function canRequestDateChange(c: TimelineActionContext): boolean {
 
 /** Bekleyen talebi onayla / reddet (E-03C-64, s.152): yönetici ve görevde bekleyen talep var. */
 export function canReviewDateRequest(c: TimelineActionContext): boolean {
-  return c.face !== 'member' && c.companyAdmin && c.pendingDateRequest === true
+  return c.companyAdmin && c.pendingDateRequest === true
 }
 
 /** Talep uzantısı / bekleyen talep gösterimi (E-03C-42). */

@@ -110,7 +110,11 @@ const TABLE: ReadonlyArray<[string, TimelineActionContext, TimelineCapability[]]
   ],
   ['Üye, üye yüzü: salt okuma', ctx('member', 'U'), []],
   ['Koordinatör merceği olmayan üye yüzü (koordinatör olgusu)', ctx('member', 'K', 'U'), []],
-  ['Admin, üye yüzü: tarih/bağımlılık yazımı yok (en dar güvenli)', ctx('member', 'Y'), []],
+  [
+    'Admin, üye yüzü: yönetici yetkisi korunur (P1) → Admin politikası',
+    ctx('member', 'Y'),
+    ['dragHandles', 'directDateWrite', 'seeDateRequest', 'manageDependencies', 'readDependencies'],
+  ],
   ['yetkisiz (satır yok), koordinatör yüzü', ctx('coordinator', 'U'), []],
 ]
 
@@ -139,7 +143,7 @@ describe('tarih yazma politikası', () => {
       'direct',
     ],
     ['Üye → yok', ctx('member', 'U'), 'none'],
-    ['Üye yüzünde yönetici de yok', ctx('member', 'Y', 'K'), 'none'],
+    ['Üye yüzünde yönetici (P1) → doğrudan', ctx('member', 'Y', 'K'), 'direct'],
     ['yetkisiz → yok', ctx('coordinator'), 'none'],
   ]
   it.each(policies)('%s', (_name, context, policy) => {
