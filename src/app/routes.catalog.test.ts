@@ -70,20 +70,22 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F2 (WEB-2 O2a: Kullanıcılar + Koordinatörlükler canlı; W71 faz geçişi)', () => {
-    expect(CURRENT_PHASE).toBe('F2')
+  it('etkin faz F3 (WEB-3 W91 faz geçişi: Zaman çizelgesi canlı)', () => {
+    expect(CURRENT_PHASE).toBe('F3')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
       'home',
       'identity.session',
       'work.tasks',
+      'work.timeline',
       'organization.users',
       'organization.user',
       'organization.coordinatorships',
       'organization.coordinatorship',
       'program.programs',
     ])
+    expect(liveRouteNames('F2')).not.toContain('work.timeline')
     expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])
   })
 
@@ -162,10 +164,11 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F2): Ana sayfa, Görevler ve Yönetim öğeleri canlı; diğerleri gizli', () => {
+  it('etkin faz (F3): Ana sayfa, Görevler, Zaman çizelgesi ve Yönetim öğeleri canlı; diğerleri gizli', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],
+      ['gantt', 'takip', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
       ['season', 'yonetim', 'canli'],
@@ -225,6 +228,7 @@ describe('menü', () => {
     expect(menuEntries('F4').map((e) => `${e.group}:${e.key}`)).toEqual([
       'takip:home',
       'takip:tasks',
+      'takip:gantt',
       'icerik:meetings',
       'yonetim:users',
       'yonetim:coords',
@@ -233,7 +237,7 @@ describe('menü', () => {
   })
 
   it('alt rotalar üst menü öğesini etkin yapar; konum izi kökten yaprağa', () => {
-    expect(activeMenuKey('work.timeline')).toBe('tasks')
+    expect(activeMenuKey('work.timeline')).toBe('gantt')
     expect(activeMenuKey('organization.user')).toBe('users')
     expect(activeMenuKey('collaboration.meeting')).toBe('meetings')
     expect(activeMenuKey('identity.session')).toBeUndefined()
@@ -251,7 +255,7 @@ describe('konum üretme ve süzgeç okuma', () => {
 
   it('canlı olmayan rotaya bağlantı üretilmez', () => {
     expect(() => routeLocation('work.tasks', {}, {}, 'F0')).toThrow(/canlı değil/)
-    expect(() => routeLocation('work.timeline', {})).toThrow(/canlı değil/)
+    expect(() => routeLocation('work.timeline', {}, {}, 'F2')).toThrow(/canlı değil/)
     expect(() => routeLocation('organization.users', {}, {}, 'F1')).toThrow(/canlı değil/)
   })
 
@@ -263,6 +267,23 @@ describe('konum üretme ve süzgeç okuma', () => {
       params: {},
       query: { durum: 'geciken', talep: '1', gorev: 'w-1' },
     })
+  })
+
+  it('Zaman çizelgesi bağlantısı (F3): durum, departman, ölçek, seçili, altgörev tipli; geçersiz değer düşer', () => {
+    expect(
+      routeLocation(
+        'work.timeline',
+        {},
+        { durum: 'geciken', departman: 'd-2', olcek: 'ay', secili: 'w-1', altgorev: 'kapali' },
+      ),
+    ).toEqual({
+      name: 'work.timeline',
+      params: {},
+      query: { durum: 'geciken', departman: 'd-2', olcek: 'ay', secili: 'w-1', altgorev: 'kapali' },
+    })
+    expect(
+      parseRouteQuery('work.timeline', { olcek: 'yil', durum: 'acik', departman: 'd 2', x: '1' }),
+    ).toEqual({ durum: 'acik' })
   })
 
   it('Görevler "Yeni görev" girişi: yeni → 1 (E-03-06, W48)', () => {

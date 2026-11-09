@@ -10,6 +10,7 @@ import { trOrganization } from './tr/organization'
 import { trProgram } from './tr/program'
 import { trSide, trTopbar } from './tr/shell'
 import { trStates } from './tr/states'
+import { trTimeline } from './tr/timeline'
 import { trConfirm, trConflict, trUi } from './tr/ui'
 import {
   trNotes,
@@ -87,6 +88,7 @@ export const messages = {
     trWorkFiles,
     trOrganization,
     trProgram,
+    trTimeline,
   ),
 }
 

@@ -93,6 +93,8 @@ export const queryKeys = {
     notes: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'notes']),
     /** 03, 03c ve 06 AYNI anahtarı kullanır. */
     files: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'files']),
+    /** `listDependencies` — 03 ve 03c AYNI anahtarı kullanır. */
+    dependencies: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'dependencies']),
   },
   gantt: {
     all: (s: ScopeSnapshot) => scoped(s, ['gantt']),
@@ -141,6 +143,7 @@ export type QueryResource =
   | 'workItems.subtasks'
   | 'workItems.notes'
   | 'workItems.files'
+  | 'workItems.dependencies'
   | 'gantt'
   | 'dateRequests'
   | 'report'
@@ -312,6 +315,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'workItems.subtasks': unique(SUBTASK_WRITES, ['transitionWorkItem', 'removeAssignment']),
   'workItems.notes': NOTE_WRITES,
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
+  'workItems.dependencies': DEPENDENCY_WRITES,
   gantt: unique(DATE_WRITES, DEPENDENCY_WRITES, ['createWorkItem', 'deleteWorkItem']),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
   // Görev yazmalarıyla geçersizleme yok (odakta tazele); organizasyon yazmaları geçersizler (W82a).
@@ -459,6 +463,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'workItems.subtasks': (scope, ctx) => workItemChild(scope, 'subtasks', ctx.workItemId),
   'workItems.notes': (scope, ctx) => workItemChild(scope, 'notes', ctx.workItemId),
   'workItems.files': (scope, ctx) => workItemChild(scope, 'files', ctx.workItemId),
+  'workItems.dependencies': (scope, ctx) => workItemChild(scope, 'dependencies', ctx.workItemId),
   gantt: prefix(queryKeys.gantt.all),
   dateRequests: prefix(queryKeys.dateRequests.all),
   archive: prefix(queryKeys.archive.all),

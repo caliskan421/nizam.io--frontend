@@ -51,17 +51,19 @@ describe('router — katalog tek kaynak', () => {
   it('sayfası olmayan canlı rota hatadır (sessiz boş rota yok)', () => {
     const withoutTasks = MODULE_ROUTES.filter((r) => r.name !== 'work.tasks')
     expect(() => buildRoutes('F1', withoutTasks)).toThrow(/sayfası yok: work.tasks/)
-    expect(() => buildRoutes('F3')).toThrow(/sayfası yok: work.timeline/)
+    const withoutTimeline = MODULE_ROUTES.filter((r) => r.name !== 'work.timeline')
+    expect(() => buildRoutes('F3', withoutTimeline)).toThrow(/sayfası yok: work.timeline/)
     const withoutUsers = MODULE_ROUTES.filter((r) => r.name !== 'organization.users')
     expect(() => buildRoutes('F2', withoutUsers)).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('F2 (etkin faz): Görevler ve organizasyon modül sayfalarına bağlı', async () => {
+  it('F3 (etkin faz): Görevler, organizasyon ve zaman çizelgesi modül sayfalarına bağlı', async () => {
     const routes = buildRoutes()
     expect(routes.map((r) => r.name ?? r.path)).toEqual([
       'home',
       'identity.session',
       'work.tasks',
+      'work.timeline',
       'organization.users',
       'organization.user',
       'organization.coordinatorships',
@@ -77,6 +79,15 @@ describe('router — katalog tek kaynak', () => {
     expect(current.name).toBe('work.tasks')
     expect(current.meta).toEqual({ scope: 'S2', title: 'Görevler', menuKey: 'tasks' })
     expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'TasksPage' })
+  })
+
+  it('F3: /zaman-cizelgesi çalışır (yer tutucu sayfa gövdesine bağlı olmadan: ad, kapsam, süzgeç)', async () => {
+    const router = memoryRouter(buildRoutes())
+    await router.push('/zaman-cizelgesi?olcek=ay&durum=geciken')
+    const current = router.currentRoute.value
+    expect(current.name).toBe('work.timeline')
+    expect(current.meta).toMatchObject({ scope: 'S2', title: 'Zaman çizelgesi', menuKey: 'gantt' })
+    expect(current.query).toEqual({ olcek: 'ay', durum: 'geciken' })
   })
 
   it('F1: henüz canlı olmayan rotaların yolu kayıtlı değil', async () => {

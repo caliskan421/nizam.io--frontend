@@ -49,6 +49,8 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
       { path: '/oturum', name: 'identity.session', component: { render: () => null } },
       // F1: Görevler menü öğesi canlı (bağlantı rota adını çözer).
       { path: '/gorevler', name: 'work.tasks', component: { render: () => null } },
+      // F3 (W91): Zaman çizelgesi menü öğesi.
+      { path: '/zaman-cizelgesi', name: 'work.timeline', component: { render: () => null } },
       // F2 (W71): yönetici menüsündeki Yönetim öğeleri.
       { path: '/kullanicilar', name: 'organization.users', component: { render: () => null } },
       {

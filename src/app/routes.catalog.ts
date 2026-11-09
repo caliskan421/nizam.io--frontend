@@ -18,7 +18,7 @@ export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F2'
+export const CURRENT_PHASE: Phase = 'F3'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -142,11 +142,17 @@ export const ROUTES = {
     title: 'Zaman çizelgesi',
     scope: 'S2',
     phase: 'F3',
+    // ortak-kurallar §5: F3'te menü "Zaman çizelgesi" canlı (önceki fazlarda gizli).
+    menu: { group: 'takip', key: 'gantt', order: 3 },
     parent: 'work.tasks',
     params: {},
-    // `departman` süzgeci yok: birim kenar menüsünden seçilir (K3, BE-058).
+    // 03c README rota satırı (W91, F3 geçişi): `departman` Admin yüzünde TEK departman süzgeci
+    // (E-03C-05, K3; çoklu seçim yok — BE-058 koşullu) ve 08 E-08-86 kısayolu; Koordinatör/Üye
+    // yüzünde birim kenar menüsünden seçilir. `altgorev` yalnız `kapali` canlıdır ("Tümünü aç"
+    // devre dışı, K3/E-03C-13) ama değer kümesi tablodaki gibi `tumu`yu da tanır.
     query: {
       durum: oneOf(['tumu', 'acik', 'geciken', 'biten']),
+      departman: id,
       olcek: oneOf(['gun', 'hafta', 'ay']),
       secili: id,
       altgorev: oneOf(['kapali', 'tumu']),
