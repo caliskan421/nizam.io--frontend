@@ -4,9 +4,9 @@
 // + GERÇEK oturum (sahte `/v1/auth/login` ile açık giriş; belirteç yalnız bellekte) + GERÇEK
 // Teleport + durumlu sahte backend (`fake-org*.ts`, sunucu görünürlüğüyle). Taslak bileşen yok.
 //
-// Deterministik: gerçek süre beklemesi ve `setTimeout(0)` yerleşme döngüsü YOK. Beklemeler DOM /
-// durum KOŞULUNA bağlıdır (`until`: söz kuyruğu + tembel içe aktarım yerleşmesi; üst sınır tur
-// sayısıdır, saat değil). Modül grafiği her açılışta tazelenir (tekil oturum/kapsam/onay nesneleri);
+// Deterministik: gerçek süre beklemesi ve `setTimeout(0)` yerleşme döngüsü YOK. Sorgu yerleşmesi
+// ortak olay tabanlı `settleQueries` ile (`idle`; Ö-04); DOM / durum koşulu `until` ile (söz kuyruğu
+// + tembel içe aktarım yerleşmesi; üst sınır tur sayısıdır, saat değil). Modül grafiği her açılışta tazelenir (tekil oturum/kapsam/onay nesneleri);
 // soğuk dönüşüm maliyeti test dosyasının `beforeAll` ısınmasında ödenir (W81 kalıbı).
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -16,6 +16,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import { createMemoryHistory, type Router } from 'vue-router'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeLens } from '@/shared/scope/scope'
 
 import { createDb, fakeOrg, ORIGIN, PASSWORD, type OrgDb, type ServerRoles } from './fake-org'
@@ -186,13 +187,14 @@ export async function until<T>(
   throw new Error(`${label} sağlanmadı`)
 }
 
-/** Yerleşme: koşul tabanlı (sorgu ve yazma kalmayana dek, en az iki boş tur). */
+/**
+ * Yerleşme: ortak olay tabanlı bekleme (`settleQueries`, Ö-04): uçuştaki sorgu/yazmalar bitene ve
+ * sonuçla tetiklenen yeniden okumalar işlenene dek; meşgulken yalnız önbellek olayı beklenir.
+ * Tembel rota bileşenlerinin içe aktarımı da yerleşir.
+ */
 export async function idle(client: QueryClient): Promise<void> {
-  let quiet = 0
-  await until(() => {
-    quiet = client.isFetching() === 0 && client.isMutating() === 0 ? quiet + 1 : 0
-    return quiet >= 3
-  }, 'sorgu yerleşmesi')
+  await vi.dynamicImportSettled()
+  await settleQueries(client)
 }
 
 export const $ = (selector: string, root: ParentNode = document.body) =>
