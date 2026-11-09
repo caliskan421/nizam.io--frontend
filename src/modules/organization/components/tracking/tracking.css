@@ -1,0 +1,562 @@
+/*
+ * 05b Kişisel takip görünümü — Kullanici-KisiselTakip.dc.html artboard ve theme.css `rp-head`,
+ * `rp-h1`, `rp-sub`, `rp-actions`, `rp-body`, `rp-col`, `rp-aside`, `rp-cardbtn`, `rp-ichip`,
+ * `rp-num`, `rp-bar`, `rp-cap`, `rp-toolbar`, `rp-dtable`, `rp-tr`, `rp-trgroup`, `rp-dot`,
+ * `rp-status`, `rp-kicker`, `rp-mono`, `rp-hoveract`, `rp-cardhead`, `rp-cardtitle`, `rp-dl`,
+ * `rp-seg-*` birebir karşılığı. Kural: yalnız token; px yok — ölçek dışı `--pt-*` ölçüleri
+ * design/web-tokens.json `tracking` grubundan (medya koşulu hariç: değer `--rp-narrow-max`).
+ * Sınıflar `.pt-page` altında kapsanır (work `rp-dtable` kurallarının sütun ızgarasını ezer).
+ * Açık tema farkı yalnız token ve `t-card` / `rp-dtable` gölgesidir.
+ */
+@layer components {
+  .pt-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Profil başlığı (E-05-41…48) */
+  .pt-page .rp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .pt-page .pt-who {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+    display: grid;
+    grid-template-columns: var(--ui-av-xl) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+  }
+  .pt-page .pt-avatar {
+    background: var(--violet);
+    color: var(--on-violet);
+  }
+  .pt-page .pt-avatar--blank {
+    background: var(--bg-raised);
+  }
+  .pt-page .pt-namebox {
+    min-width: 0;
+  }
+  .pt-page .pt-name {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .pt-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .pt-page .pt-role {
+    height: var(--pt-badge-h);
+    font: var(--text-caption);
+    font-weight: 600;
+  }
+  .pt-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    font: var(--text-body);
+    color: var(--ink-muted);
+  }
+  .pt-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .pt-page .pt-phase[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Gövde (rp-body) */
+  .pt-page .pt-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    min-width: 0;
+  }
+  .pt-page .pt-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-top: var(--space-5);
+    min-width: 0;
+  }
+  .pt-page .pt-split {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    align-items: flex-start;
+    min-width: 0;
+  }
+  .pt-page .rp-col {
+    flex: 999 1 var(--rp-col-basis);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .pt-page .rp-aside {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .pt-page .rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+  }
+  .pt-page .rp-grow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Yardımcılar (theme.css) */
+  .pt-page .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .pt-page .rp-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .pt-page .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-faint);
+  }
+  .pt-page .rp-mono {
+    font: var(--text-mono-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .pt-page .rp-faint {
+    color: var(--ink-faint);
+  }
+  .pt-page .rp-danger-text {
+    color: var(--danger);
+  }
+  .pt-page .rp-nowrap {
+    white-space: nowrap;
+  }
+  .pt-page .pt-partial {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .pt-page .pt-skel {
+    display: block;
+    height: var(--pt-skel-line);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+  .pt-page .pt-skel--num {
+    height: var(--pt-skel-num);
+    width: 40%;
+  }
+  .pt-page .pt-skel--name {
+    height: var(--pt-skel-num);
+    width: 50%;
+  }
+
+  /* Özet kartları (E-05-49…52) */
+  .pt-page .pt-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--pt-kpi-min), 1fr));
+    gap: var(--space-4);
+  }
+  .pt-page .rp-cardbtn {
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .pt-page .rp-cardbtn:hover {
+    border-color: var(--border-strong);
+  }
+  .pt-page .rp-cardbtn:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  /* Gövde üstten hizalanır: not satırı olmayan "Onay bekleyen" kartında (E-05-52) değer ve çubuk
+     öbür kartlarla aynı satırda kalır (01 W63 kalıbı). */
+  .pt-page .pt-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-5);
+    min-height: var(--pt-kpi-h);
+    color: var(--ink);
+  }
+  .pt-page .pt-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+  }
+  .pt-page .pt-card__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .pt-page .pt-card__label {
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .pt-page .pt-card__go {
+    color: var(--ink-faint);
+  }
+  .pt-page .pt-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+  }
+  .pt-page .pt-card__value {
+    font: var(--text-display-xl);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .pt-page .pt-card__value--danger {
+    color: var(--danger);
+  }
+  .pt-page .rp-ichip {
+    width: var(--pt-chip);
+    height: var(--pt-chip);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    color: var(--pt-tone);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+  }
+  .pt-page .rp-bar {
+    display: flex;
+    gap: var(--ui-gap-2xs);
+    height: var(--pt-bar-h);
+    border-radius: var(--radius-full);
+    background: var(--bg-overlay);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .pt-page .rp-bar > span {
+    display: block;
+    height: 100%;
+    flex: none;
+  }
+  .pt-page .pt-card__fill {
+    width: var(--pt-fill, 0%);
+    background: var(--pt-tone);
+  }
+  .pt-page .pt-tone--accent {
+    --pt-tone: var(--accent-text);
+  }
+  .pt-page .pt-tone--violet {
+    --pt-tone: var(--violet);
+  }
+  .pt-page .pt-tone--danger {
+    --pt-tone: var(--danger);
+  }
+  .pt-page .pt-tone--gold {
+    --pt-tone: var(--gold);
+  }
+
+  /* Görev tablosu (E-05-59…67) */
+  .pt-page .rp-dtable {
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  [data-theme='light'] .pt-page .rp-dtable {
+    box-shadow: var(--shadow-card);
+  }
+  .pt-page .rp-dtable .rp-scroll {
+    overflow-x: auto;
+  }
+  .pt-page .rp-dtable .pt-table {
+    min-width: var(--pt-min-w);
+  }
+  .pt-page .rp-dtable .rp-tr {
+    display: grid;
+    grid-template-columns: var(--pt-cols);
+    align-items: center;
+    column-gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    min-height: var(--rp-row-h);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    box-sizing: border-box;
+    cursor: default;
+  }
+  .pt-page .rp-dtable .rp-tr > * {
+    min-width: 0;
+  }
+  .pt-page .rp-dtable .rp-tr:last-child {
+    border-bottom: 0;
+  }
+  .pt-page .rp-dtable .rp-tr--head {
+    min-height: 0;
+    padding: var(--pt-row-pad-sm);
+    font: var(--text-label);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .pt-page .rp-dtable .rp-tr--body:hover {
+    background: var(--bg-raised);
+  }
+  .pt-page .rp-dtable .rp-trgroup {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    padding: var(--pt-row-pad-sm);
+    background: var(--bg-base);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    color: var(--ink-muted);
+    font: var(--ui-text-sm-strong);
+    white-space: nowrap;
+  }
+  .pt-page .rp-trgroup .pt-group--danger {
+    color: var(--danger);
+  }
+  .pt-page .rp-trgroup .pt-group--ink {
+    color: var(--ink);
+  }
+  .pt-page .rp-trgroup .pt-group--muted {
+    color: var(--ink-muted);
+  }
+  .pt-page .pt-task {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .pt-page .rp-title {
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .pt-page .rp-title:hover {
+    text-decoration: underline;
+  }
+  .pt-page .pt-due {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+  }
+  .pt-page .pt-due__note {
+    font: var(--text-caption);
+  }
+  .pt-page .rp-hoveract {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .pt-page .rp-tr--body:hover .rp-hoveract,
+  .pt-page .rp-hoveract:focus-visible {
+    opacity: 1;
+  }
+  .pt-page .pt-table-empty {
+    padding: var(--space-4);
+  }
+
+  /* Durum noktası ve etiketi */
+  .pt-page .rp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--ui-text-sm-medium);
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .pt-page .rp-dot {
+    width: var(--pt-dot);
+    height: var(--pt-dot);
+    border-radius: var(--radius-full);
+    flex: none;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+  .pt-page .rp-dot--todo {
+    border: var(--pt-dot-ring) solid var(--ink-faint);
+  }
+  .pt-page .rp-dot--doing {
+    background: var(--violet);
+  }
+  .pt-page .rp-dot--review {
+    background: var(--gold);
+  }
+  .pt-page .rp-dot--back,
+  .pt-page .rp-dot--late {
+    background: var(--danger);
+  }
+  .pt-page .rp-dot--done {
+    background: var(--rp-done-fill);
+  }
+  .pt-page .rp-dot--soon {
+    background: var(--ink-muted);
+  }
+  .pt-page .pt-dot-sm {
+    width: var(--pt-dot-sm);
+    height: var(--pt-dot-sm);
+  }
+
+  /* Yan kartlar (E-05-68…75) */
+  .pt-page .pt-card-box {
+    padding: var(--pt-card-pad);
+  }
+  .pt-page .rp-cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    min-width: 0;
+  }
+  .pt-page .rp-cardtitle {
+    margin: 0;
+    font: var(--pt-card-title);
+  }
+  .pt-page .pt-dist-title {
+    margin-bottom: var(--pt-card-gap);
+  }
+  .pt-page .pt-calnav {
+    width: var(--pt-cal-btn);
+    height: var(--pt-cal-btn);
+    border-radius: var(--radius-xs);
+  }
+  .pt-page .pt-cal {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--space-1);
+    text-align: center;
+  }
+  .pt-page .pt-cal__row {
+    display: contents;
+  }
+  .pt-page .pt-cal__dow {
+    padding-bottom: var(--space-1);
+  }
+  .pt-page .pt-cal__cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--pt-cal-cell);
+    border-radius: var(--pt-cal-radius);
+    font: var(--pt-cal-font);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .pt-page .pt-cal__cell--past {
+    color: var(--ink-muted);
+  }
+  .pt-page .pt-cal__cell--due {
+    background: var(--bg-raised);
+  }
+  .pt-page .pt-cal__cell--today {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .pt-page .pt-cal__mark {
+    position: absolute;
+    bottom: var(--space-1);
+    width: var(--pt-cal-dot);
+    height: var(--pt-cal-dot);
+    border-radius: var(--radius-full);
+  }
+  .pt-page .pt-cal__mark--late {
+    background: var(--danger);
+  }
+  .pt-page .pt-cal__mark--soon {
+    background: var(--ink-muted);
+  }
+  .pt-page .pt-legend {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--pt-card-gap);
+  }
+  .pt-page .pt-legend .rp-status {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .pt-page .pt-dist {
+    height: var(--pt-dist-h);
+    margin-bottom: var(--pt-card-gap);
+  }
+  .pt-page .pt-dist > span {
+    width: var(--pt-share, 0%);
+  }
+  .pt-page .rp-seg-todo {
+    background: var(--ink-faint);
+  }
+  .pt-page .rp-seg-doing {
+    background: var(--violet);
+  }
+  .pt-page .rp-seg-review {
+    background: var(--gold);
+  }
+  .pt-page .rp-seg-back {
+    background: var(--danger);
+  }
+  .pt-page .rp-dl {
+    display: grid;
+    grid-template-columns: var(--pt-dl-cols);
+    gap: var(--pt-dl-gap);
+    margin: 0;
+    font: var(--ui-text-sm-medium);
+  }
+  .pt-page .rp-dl dt {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .pt-page .rp-dl dt .rp-status {
+    color: var(--ink-muted);
+  }
+  .pt-page .rp-dl dd {
+    margin: 0;
+    text-align: right;
+    color: var(--ink);
+    font-weight: 500;
+    min-width: 0;
+  }
+
+  /* Dar ekran: kabukla aynı eşik (`--rp-narrow-max`). Başlık eylemleri satıra sığmazsa sarar
+     (tasarımda tek satır; 390 px'te yatay taşma olmaması için bilinçli). */
+  @media (max-width: 900px) {
+    .pt-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .pt-page .pt-body {
+      padding: var(--space-5);
+    }
+    .pt-page .rp-aside {
+      max-width: none;
+    }
+    .pt-page .rp-actions {
+      flex-wrap: wrap;
+      flex: 1 1 auto;
+    }
+  }
+}

@@ -334,6 +334,52 @@
   --cd-badge-font: 600 11px/16px var(--font-sans);
   --cd-dot: 8px;
   --cd-member-min: 260px;
+  /* web · users */
+  --users-min-w: 640px;
+  --users-cols: 20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px;
+  --users-badge-h: 24px;
+  --users-badge-pad: 0 10px;
+  --users-more-pad: 0 8px;
+  --users-grow-basis: 280px;
+  --users-search-h: 36px;
+  --users-search-basis: 180px;
+  --users-pop-w: 260px;
+  --users-pop-max-h: 320px;
+  --users-skel-h: 12px;
+  --users-sheethead-gap: 14px;
+  --users-name: 600 20px/26px var(--font-display);
+  --users-strip-cols: repeat(3, minmax(0, 1fr)) 20px;
+  --users-strip-pad: 14px 16px;
+  --users-strip-num: 600 20px/26px var(--font-display);
+  --users-role-cols: 20px minmax(0, 1fr);
+  --users-role-radius: 14px;
+  --users-add-h: 28px;
+  --users-add-pad: 0 10px;
+  /* web · tracking */
+  --pt-badge-h: 24px;
+  --pt-kpi-min: 200px;
+  --pt-kpi-h: 176px;
+  --pt-chip: 36px;
+  --pt-bar-h: 4px;
+  --pt-cols: 8px minmax(0, 1fr) 124px 112px 64px 36px;
+  --pt-min-w: 640px;
+  --pt-row-pad-sm: 10px 16px;
+  --pt-dot: 8px;
+  --pt-dot-ring: 1.5px;
+  --pt-dot-sm: 6px;
+  --pt-card-pad: 22px;
+  --pt-card-title: 600 16px/24px var(--font-sans);
+  --pt-card-gap: 14px;
+  --pt-cal-cell: 36px;
+  --pt-cal-radius: 10px;
+  --pt-cal-font: 400 13px/20px var(--font-sans);
+  --pt-cal-btn: 28px;
+  --pt-cal-dot: 4px;
+  --pt-dist-h: 10px;
+  --pt-dl-cols: minmax(88px, auto) minmax(0, 1fr);
+  --pt-dl-gap: 10px 16px;
+  --pt-skel-line: 16px;
+  --pt-skel-num: 52px;
 }
 
 :root,

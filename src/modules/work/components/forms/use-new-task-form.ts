@@ -13,7 +13,7 @@
  *  - 422 alan hataları ilgili alana (kod → i18n); diğer hatalar ortak bildirim.
  */
 import { useForm } from 'vee-validate'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 
 import { runWithFollowUps, type ActionContext, type MutationOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
@@ -39,6 +39,10 @@ import { useTaskDepartments } from './use-task-departments'
 export interface NewTaskFormHooks {
   open: () => boolean
   departmentId: () => string | null | undefined
+  /** URL girişinden hedef birim (W76); yetkili seçenekler dışındaysa yok sayılır. */
+  presetDepartment?: () => string | null | undefined
+  /** URL girişinden ön atanan (W76); formun birimindeki ekipte değilse yok sayılır. */
+  assignee?: () => string | null | undefined
   created: (item: WorkItem) => void
   close: () => void
 }
@@ -65,18 +69,26 @@ export function useNewTaskForm(hooks: NewTaskFormHooks) {
     members.members.value.filter((c) => c.accountId !== form.values.assignee),
   )
 
+  /** URL hedefi (W76) bekliyor: departman listesi gelene dek ya da hedef uygulanana dek. */
+  const presetPending = ref(false)
   watch(
     hooks.open,
     (isOpen) => {
+      presetPending.value = isOpen && Boolean(hooks.presetDepartment?.())
       if (isOpen) form.resetForm({ values: emptyNewTask(hooks.departmentId() ?? null) })
     },
     { immediate: true },
   )
   watch(
-    [hooks.open, departments.options],
-    ([isOpen, options]) => {
+    [hooks.open, departments.options, departments.settled],
+    ([isOpen, options, settled]) => {
       if (!isOpen || options.length === 0) return
-      const next = pickDepartment(form.values.departmentId, hooks.departmentId() ?? '', options)
+      // URL hedefi (W76) yalnız yetkili seçenekler arasındaysa; liste gelmeden karar verilmez.
+      const preset = presetPending.value ? (hooks.presetDepartment?.() ?? '') : ''
+      const found = preset !== '' && options.some((o) => o.value === preset)
+      if (found || settled) presetPending.value = false
+      const current = found ? preset : form.values.departmentId
+      const next = pickDepartment(current, hooks.departmentId() ?? '', options)
       if (next !== form.values.departmentId) form.setFieldValue('departmentId', next)
     },
     { immediate: true },
@@ -97,6 +109,8 @@ export function useNewTaskForm(hooks: NewTaskFormHooks) {
       ),
   )
 
+  useAssigneePreset(form, members, hooks, presetPending)
+
   const submitting = useNewTaskSubmit(form, departments.canAssignExtra, hooks)
 
   function toggleExtra(accountId: string, on: boolean): void {
@@ -105,6 +119,40 @@ export function useNewTaskForm(hooks: NewTaskFormHooks) {
   }
 
   return { form, departments, members, extraCandidates, toggleExtra, ...submitting }
+}
+
+/**
+ * Ön atanan (W76): açılışta bir kez alınır; formun birimi için ekip listesi hazır olunca kişi
+ * ekipteyse atanan alanı dolar, değilse sessizce düşer. Birim değişimi sıfırlaması (yukarıdaki
+ * izleyici) önce çalışır; bu izleyici ondan SONRA kaydedilir.
+ */
+function useAssigneePreset(
+  form: ReturnType<typeof useForm<NewTaskValues>>,
+  members: ReturnType<typeof useDepartmentMembers>,
+  hooks: NewTaskFormHooks,
+  departmentPending: { value: boolean },
+) {
+  let pending: string | null = null
+  watch(
+    hooks.open,
+    (isOpen) => {
+      pending = isOpen ? (hooks.assignee?.() ?? null) : null
+    },
+    { immediate: true },
+  )
+  watch(
+    [hooks.open, members.status, members.members, () => departmentPending.value],
+    ([isOpen, status, list, waiting]) => {
+      if (!isOpen || waiting || pending === null || form.values.departmentId === '') return
+      if (status === 'loading' || status === 'idle') return
+      const id = pending
+      pending = null
+      if (status === 'ready' && list.some((m) => m.accountId === id)) {
+        form.setFieldValue('assignee', id)
+      }
+    },
+    { immediate: true },
+  )
 }
 
 /**

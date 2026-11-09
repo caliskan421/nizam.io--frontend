@@ -379,6 +379,60 @@
         { "name": "cd-dot", "value": "8px" },
         { "name": "cd-member-min", "value": "260px" }
       ]
+    },
+    "users": {
+      "$description": "modules/organization 05 Kullanıcılar ölçüleri — Kullanicilar.dc.html satır içi stilleri ve theme.css rp-sheethead ölçek DIŞI değerleri (W75; CX-F0-Ö-02).",
+      "tokens": [
+        { "name": "users-min-w", "value": "640px" },
+        { "name": "users-cols", "value": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px" },
+        { "name": "users-badge-h", "value": "24px" },
+        { "name": "users-badge-pad", "value": "0 10px" },
+        { "name": "users-more-pad", "value": "0 8px" },
+        { "name": "users-grow-basis", "value": "280px" },
+        { "name": "users-search-h", "value": "36px" },
+        { "name": "users-search-basis", "value": "180px" },
+        { "name": "users-pop-w", "value": "260px" },
+        { "name": "users-pop-max-h", "value": "320px" },
+        { "name": "users-skel-h", "value": "12px" },
+        { "name": "users-sheethead-gap", "value": "14px" },
+        { "name": "users-name", "value": "600 20px/26px {font-display}" },
+        { "name": "users-strip-cols", "value": "repeat(3, minmax(0, 1fr)) 20px" },
+        { "name": "users-strip-pad", "value": "14px 16px" },
+        { "name": "users-strip-num", "value": "600 20px/26px {font-display}" },
+        { "name": "users-role-cols", "value": "20px minmax(0, 1fr)" },
+        { "name": "users-role-radius", "value": "14px" },
+        { "name": "users-add-h", "value": "28px" },
+        { "name": "users-add-pad", "value": "0 10px" }
+      ]
+    },
+    "tracking": {
+      "$description": "modules/organization 05b Kişisel takip ölçüleri — Kullanici-KisiselTakip.dc.html artboard ve theme.css (rp-dtable, rp-trgroup, rp-dot, rp-dl, rp-bar, takvim hücresi) ölçek DIŞI değerleri (W76).",
+      "tokens": [
+        { "name": "pt-badge-h", "value": "24px" },
+        { "name": "pt-kpi-min", "value": "200px" },
+        { "name": "pt-kpi-h", "value": "176px" },
+        { "name": "pt-chip", "value": "36px" },
+        { "name": "pt-bar-h", "value": "4px" },
+        { "name": "pt-cols", "value": "8px minmax(0, 1fr) 124px 112px 64px 36px" },
+        { "name": "pt-min-w", "value": "640px" },
+        { "name": "pt-row-pad-sm", "value": "10px 16px" },
+        { "name": "pt-dot", "value": "8px" },
+        { "name": "pt-dot-ring", "value": "1.5px" },
+        { "name": "pt-dot-sm", "value": "6px" },
+        { "name": "pt-card-pad", "value": "22px" },
+        { "name": "pt-card-title", "value": "600 16px/24px {font-sans}" },
+        { "name": "pt-card-gap", "value": "14px" },
+        { "name": "pt-cal-cell", "value": "36px" },
+        { "name": "pt-cal-radius", "value": "10px" },
+        { "name": "pt-cal-font", "value": "400 13px/20px {font-sans}" },
+        { "name": "pt-cal-btn", "value": "28px" },
+        { "name": "pt-cal-dot", "value": "4px" },
+        { "name": "pt-dist-h", "value": "10px" },
+        { "name": "pt-dl-cols", "value": "minmax(88px, auto) minmax(0, 1fr)" },
+        { "name": "pt-dl-gap", "value": "10px 16px" },
+        { "name": "pt-skel-line", "value": "16px" },
+        { "name": "pt-skel-num", "value": "52px" }
+      ]
     }
   }
 }
