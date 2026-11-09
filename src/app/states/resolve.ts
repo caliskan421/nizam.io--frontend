@@ -5,7 +5,9 @@
  *
  *  - `organization.membership_required` (`listPrograms` 403) → "departman ataması bekleniyor";
  *    hiçbir kart gösterilmez.
- *  - Görünür program yok → "program yok" (yönetici: "program oluştur", F2'de).
+ *  - Görünür program yok → "program yok" (yönetici: "Program oluştur" → `/programlar`, W81).
+ *    Program yönetimi rotası bu durumdan muaftır (`NO_PROGRAM_EXEMPT_ROUTES`): sayfanın kendi
+ *    boş durumu ve "Yeni program" düğmesi çizilir (rota kapısı yönetici olmayanı geri gönderir).
  *  - Seçili programda mercek yok → "programa departman katılmamış" (yönetici: "departman ekle").
  *    Yönetici (Admin merceği her programda vardır) için aynı durum programın bağlı departman
  *    listesinin boşluğundan gelir (`DepartmentGap`, `listProgramDepartments`); yalnız içerik
@@ -34,14 +36,28 @@ export const EMPTY_REASON_STATES: Readonly<Record<ScopeEmptyReason, OpenStateNam
  * Yöneticinin "programa departman katılmamış" durumundan muaf rotalar (W22 devri, F2 açılışı —
  * 05/08 README satır dışı varsayımlar, kabul): yönetici departmansız programda kullanıcı
  * oluşturup departman bağlayabilmeli (05) ve 08'e girip birim ekleyebilmeli (E-08-39). Program
- * yönetimi rotası W81'de eklenir.
+ * yönetimi (E-00-25, W81): departmansız programa departman bağlama ve aktarım buradan yapılır.
  */
 export const NO_DEPARTMENT_EXEMPT_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>([
   'organization.users',
   'organization.user',
   'organization.coordinatorships',
   'organization.coordinatorship',
+  'program.programs',
 ])
+
+/** "Program yok" (K7) durumundan muaf rotalar: program oluşturma yolu (E-00-25, W81). */
+export const NO_PROGRAM_EXEMPT_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>([
+  'program.programs',
+])
+
+function isExemptEmpty(input: ShellContentInput): boolean {
+  return (
+    input.emptyReason === 'no_program' &&
+    input.routeName !== undefined &&
+    NO_PROGRAM_EXEMPT_ROUTES.has(input.routeName)
+  )
+}
 
 export interface ShellContentInput {
   status: ScopeStatus
@@ -77,7 +93,9 @@ function scopeStatusContent(status: ScopeStatus): ShellContent {
 
 export function resolveShellContent(input: ShellContentInput): ShellContent {
   if (input.routeScope === 'S0') return { kind: 'content' }
-  if (input.emptyReason) return { kind: 'open-state', name: EMPTY_REASON_STATES[input.emptyReason] }
+  if (input.emptyReason && !isExemptEmpty(input)) {
+    return { kind: 'open-state', name: EMPTY_REASON_STATES[input.emptyReason] }
+  }
   const gap = departmentGapContent(input)
   if (gap) return gap
   if (!input.routeScope || !SCOPED.has(input.routeScope)) return { kind: 'content' }

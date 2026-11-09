@@ -49,7 +49,14 @@ export const queryKeys = {
   instance: { profile: () => ['instance', 'profile'] as const },
   notifications: { unreadCount: () => ['notifications', 'unread-count'] as const },
   chatsUnread: { overview: () => ['chats', 'unread-overview'] as const },
-  programs: { all: () => ['programs'] as const },
+  programs: {
+    all: () => ['programs'] as const,
+    /**
+     * Aktarım geçmişi (`listTransfers`, S1; W81). `['programs']` önekinin altında: program ve
+     * aktarım yazmalarının §6 geçersizlemesi geçmişi de yeniden okutur.
+     */
+    transfers: () => ['programs', 'transfers'] as const,
+  },
   me: {
     root: () => ['me'] as const,
     departments: () => ['me', 'departments'] as const,

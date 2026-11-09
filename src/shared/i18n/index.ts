@@ -7,6 +7,7 @@ import { trMutation } from './tr/mutation'
 import { trTerms } from './tr/terms'
 import { trHome } from './tr/home'
 import { trOrganization } from './tr/organization'
+import { trProgram } from './tr/program'
 import { trSide, trTopbar } from './tr/shell'
 import { trStates } from './tr/states'
 import { trConfirm, trConflict, trUi } from './tr/ui'
@@ -85,6 +86,7 @@ export const messages = {
     trNotes,
     trWorkFiles,
     trOrganization,
+    trProgram,
   ),
 }
 

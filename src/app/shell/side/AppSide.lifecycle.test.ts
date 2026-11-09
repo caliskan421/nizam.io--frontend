@@ -55,6 +55,8 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
         name: 'organization.coordinatorships',
         component: { render: () => null },
       },
+      // F2 (W81): "Teknofest ve sezon".
+      { path: '/programlar', name: 'program.programs', component: { render: () => null } },
     ],
   })
   await router.push('/oturum')

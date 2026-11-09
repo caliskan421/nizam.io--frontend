@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { EMPTY_REASON_STATES, NO_DEPARTMENT_EXEMPT_ROUTES, resolveShellContent } from './resolve'
+import {
+  EMPTY_REASON_STATES,
+  NO_DEPARTMENT_EXEMPT_ROUTES,
+  NO_PROGRAM_EXEMPT_ROUTES,
+  resolveShellContent,
+} from './resolve'
 
 describe('kabuk içeriği (K7)', () => {
   it('boş neden → açık durum (S1+ ve eşleşmeyen rota)', () => {
@@ -79,12 +84,29 @@ describe('kabuk içeriği (K7)', () => {
     ).toEqual({ kind: 'open-state', name: 'state.no-program' })
   })
 
+  it('"program yok": yalnız program yönetimi rotası muaf (W81); diğer boş nedenler muaf değil', () => {
+    expect([...NO_PROGRAM_EXEMPT_ROUTES]).toEqual(['program.programs'])
+    const base = { status: 'empty', routeScope: 'S1', routeName: 'program.programs' } as const
+    expect(resolveShellContent({ ...base, emptyReason: 'no_program' })).toEqual({
+      kind: 'content',
+    })
+    expect(resolveShellContent({ ...base, emptyReason: 'membership_required' })).toEqual({
+      kind: 'open-state',
+      name: 'state.membership-pending',
+    })
+    expect(resolveShellContent({ ...base, emptyReason: 'no_program', routeName: 'home' })).toEqual({
+      kind: 'open-state',
+      name: 'state.no-program',
+    })
+  })
+
   it('F2 yönetim rotaları "programa departman katılmamış" durumundan muaf (W22 devri)', () => {
     expect([...NO_DEPARTMENT_EXEMPT_ROUTES].sort()).toEqual([
       'organization.coordinatorship',
       'organization.coordinatorships',
       'organization.user',
       'organization.users',
+      'program.programs',
     ])
     const base = { status: 'ready', emptyReason: null } as const
     for (const routeName of NO_DEPARTMENT_EXEMPT_ROUTES) {

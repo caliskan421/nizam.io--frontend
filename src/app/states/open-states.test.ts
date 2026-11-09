@@ -3,13 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { openStateCopy } from './open-states'
 
 describe('açık durum içeriği', () => {
-  it('program yok: yönetici "program oluştur" devre dışı + F2 notu; diğerleri bilgilendirme', () => {
+  it('program yok: yönetici "program oluştur" → /programlar bağlantısı (W81); diğerleri bilgilendirme', () => {
     const admin = openStateCopy('state.no-program', true)!
     expect(admin.title).toBe('Program yok')
-    expect(admin.action).toEqual({
-      label: 'Program oluştur',
-      note: 'Program oluştur F2’de açılacak.',
-    })
+    expect(admin.action).toEqual({ label: 'Program oluştur', note: null, to: 'program.programs' })
     const other = openStateCopy('state.no-program', false)!
     expect(other.action).toBeNull()
     expect(other.text).not.toBe(admin.text)
@@ -23,7 +20,11 @@ describe('açık durum içeriği', () => {
   })
 
   it('departman yok: yönetici "departman ekle" devre dışı', () => {
-    expect(openStateCopy('state.no-department', true)?.action?.label).toBe('Departman ekle')
+    expect(openStateCopy('state.no-department', true)?.action).toEqual({
+      label: 'Departman ekle',
+      note: 'Departman ekle F2’de açılacak.',
+      to: null,
+    })
     expect(openStateCopy('state.no-department', false)?.action).toBeNull()
   })
 

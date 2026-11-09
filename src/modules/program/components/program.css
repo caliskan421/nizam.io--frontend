@@ -1,0 +1,239 @@
+/*
+ * "Teknofest ve sezon" (E-00-25, W81) — tuvalde çizilmedi (P3): `shared/ui` (`t-card`, `t-modal`,
+ * `rp-field`, `t-input`, `t-select`, `t-check`, `t-chip`, `t-badge`) + kabuk ve 08 sayfalarının
+ * başlık/gövde dili (`rp-head`, `rp-h1`, `rp-sub`, `rp-actions`, `rp-body`). Kural: yalnız token;
+ * ham renk / px yok, satır içi stil yok (program-styles.test.ts). Sınıflar `pg-` önekli.
+ */
+@layer components {
+  .pg-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık (08 Koordinatörlükler ile aynı ölçüler) */
+  .pg-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .pg-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .pg-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .pg-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .pg-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Gövde: iki sütun, dar ekranda tek sütun */
+  .pg-page .rp-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    align-items: flex-start;
+  }
+  .pg-page .rp-body > .rp-empty,
+  .pg-page .rp-body > .ui-error,
+  .pg-page .rp-body > .t-hint {
+    flex: 1 1 100%;
+  }
+  .pg-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    flex: 1 1 var(--rp-main-basis);
+    min-width: 0;
+  }
+  .pg-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  /* Liste satırları (program listesi, aktarım geçmişi) */
+  .pg-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .pg-list__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    min-height: var(--rp-row-h);
+    padding: var(--space-3) 0;
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .pg-list__row:first-child {
+    border-top: 0;
+  }
+  .pg-list__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex: 1 1 var(--rp-col-basis);
+    min-width: 0;
+  }
+  .pg-list__name {
+    color: var(--ink);
+    font: var(--text-body-strong);
+  }
+  .pg-list__actions {
+    display: flex;
+    gap: var(--space-1);
+  }
+  .pg-cap {
+    margin: 0;
+    color: var(--ink-muted);
+    font: var(--text-caption);
+  }
+  .pg-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .pg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Formlar (pencereler ve aktarım kartı) */
+  .pg-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .pg-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--rp-head-basis)), 1fr));
+    gap: var(--space-3);
+  }
+  .pg-textarea {
+    height: auto;
+    min-height: calc(var(--control-md) * 2);
+    padding: var(--space-3) var(--space-4);
+    resize: vertical;
+  }
+  .pg-note {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .pg-note p,
+  .pg-danger__body {
+    margin: 0;
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .pg-stub {
+    display: block;
+  }
+
+  /* Aktarım görev seçimi */
+  .pg-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .pg-items__bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .pg-items__bar > .pg-cap {
+    flex: 1 1 auto;
+  }
+  .pg-items__list {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(var(--rp-row-h) * 8);
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+  .pg-items__row {
+    padding: var(--space-2) var(--space-3);
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .pg-items__row:first-child {
+    border-top: 0;
+  }
+  .pg-items__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    color: var(--ink);
+    font: var(--text-body);
+    cursor: pointer;
+  }
+
+  /* Önizleme özeti */
+  .pg-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+  }
+  .pg-preview > h4 {
+    margin: 0;
+  }
+  .pg-preview__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .pg-preview__list > [data-tone='warn'] {
+    color: var(--gold);
+  }
+  .pg-preview__list > [data-tone='danger'] {
+    color: var(--danger);
+  }
+}
