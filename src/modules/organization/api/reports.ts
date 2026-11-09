@@ -2,8 +2,10 @@
  * Rapor tabanlı okuma (08 `backend.md` ana karar; REPORTING-K01 — yalnız şirket yöneticisi).
  *
  *  - `reportDashboard` (S2): ana sayfa (01) ile AYNI anahtar (`queryKeys.report.dashboard`) ve
- *    ham `DashboardReport` şekli — pano paylaşılır, ikinci istek yok. Yazma sonrası geçersizleme
- *    yok, odakta tazelenir (ortak-kurallar §6).
+ *    ham `DashboardReport` şekli — pano paylaşılır, ikinci istek yok. Organizasyon yazmaları
+ *    (üyelik, koordinatörlük, birim, kullanıcı) başarıda eylemin programının panosunu geçersizler
+ *    (koordinatör kararı W82a; `query-keys.ts` `REPORT_ORGANIZATION_WRITES` / `reportOfProgram`);
+ *    görev yazmaları geçersizlemez, odakta tazelenir (ortak-kurallar §6).
  *  - `useCoordinatorships`: 08 kart ızgarası = `listProgramDepartments` ⋈
  *    `coordinatorship_stats[]` — ŞY'de TEK `listProgramDepartments` + TEK `reportDashboard`;
  *    birim başına istek yok (K3). 08b tek birim seçimi aynı kümeden (`findCoordinatorship`).
