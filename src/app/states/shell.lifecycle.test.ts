@@ -96,13 +96,14 @@ describe('kabuk açık durumları (sahte backend)', () => {
     expect(crumbText(wrapper)).toBe('Departman ataması bekleniyor')
   })
 
-  it('yönetici + program yok → "program oluştur" devre dışı (F2)', async () => {
+  it('yönetici + program yok → "Program oluştur" /programlar bağlantısı (W81)', async () => {
     const { wrapper } = await bootApp({ companyAdmin: true, rows: [], programs: [] })
     const state = await openState(wrapper, 'state.no-program')
-    const button = state.get('button')
-    expect(button.text()).toBe('Program oluştur')
-    expect(button.attributes('disabled')).toBeDefined()
-    expect(state.text()).toContain('F2’de açılacak')
+    expect(state.find('button').exists()).toBe(false)
+    const link = state.get('[data-testid="open-state-action"]')
+    expect(link.text()).toBe('Program oluştur')
+    expect(link.attributes('href')).toBe('/programlar')
+    expect(state.text()).not.toContain('F2’de açılacak')
   })
 
   it('yönetici olmayan + program yok → bilgilendirme, eylem yok', async () => {
