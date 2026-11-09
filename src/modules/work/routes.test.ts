@@ -40,7 +40,15 @@ describe('görev rotası davranışı', () => {
   })
 
   it('süzgeç adları ve durum değerleri (Geciken + 5 durum)', () => {
-    expect(TASKS_QUERY_KEYS).toEqual(['durum', 'talep', 'q', 'koordinatorluk', 'sirala', 'gorev'])
+    expect(TASKS_QUERY_KEYS).toEqual([
+      'durum',
+      'talep',
+      'q',
+      'koordinatorluk',
+      'sirala',
+      'gorev',
+      'yeni',
+    ])
     expect(TASKS_STATUS_FILTERS).toContain('iade_edildi')
     expect(TASKS_STATUS_FILTERS).toContain('geciken')
   })

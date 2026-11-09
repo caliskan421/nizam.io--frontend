@@ -4,7 +4,7 @@
  * başına; başarıda `query-keys.ts` geçersizleme listesi yeniden okunur, iyimser güncelleme yok;
  * kapsam başlığı eylemin hedefinden (görevin kendi program/departmanı).
  */
-import { computed } from 'vue'
+import { computed, shallowReactive } from 'vue'
 
 import { api } from '@/shared/http'
 import {
@@ -150,9 +150,20 @@ export function useOwnStatusWorkItem() {
   })
 }
 
+/**
+ * Bu istemcide silinmekte olan görevler (W48). Silme başarısının geçersizlemesi açık panelin
+ * görev okumasını yeniden koşturur (404 `work.item_not_found`) ve listeyi yeniden okur; bu
+ * pencerede panel bunu "bulunamadı" sayıp ayrıca bildirim göstermez — `deleted` ile kapanır.
+ */
+const deleting = shallowReactive(new Set<string>())
+
+export function isDeletingWorkItem(workItemId: string): boolean {
+  return deleting.has(workItemId)
+}
+
 /** `deleteWorkItem` — onay istemci diyaloğunda (`confirmation_required` bu uçta yok). */
 export function useDeleteWorkItem() {
-  return useProtectedMutation<WorkItemRef, StatusResult>({
+  const mutation = useProtectedMutation<WorkItemRef, StatusResult>({
     operation: 'deleteWorkItem',
     send: (vars, ctx) =>
       api.DELETE('/v1/work-items/{id}', {
@@ -161,4 +172,13 @@ export function useDeleteWorkItem() {
       }),
     invalidation: byItem,
   })
+  async function submit(vars: WorkItemRef) {
+    deleting.add(vars.workItemId)
+    try {
+      return await mutation.submit(vars)
+    } finally {
+      deleting.delete(vars.workItemId)
+    }
+  }
+  return { ...mutation, submit }
 }

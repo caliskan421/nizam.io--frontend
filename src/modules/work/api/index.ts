@@ -10,6 +10,7 @@ export {
 } from './fetchers'
 export { programHeaders, retryTransient, scopeHeaders, WORK_ITEM_PAGE_LIMIT } from './http'
 export {
+  isDeletingWorkItem,
   useAddAssignments,
   useCreateWorkItem,
   useCreateWorkItemWithAssignees,
