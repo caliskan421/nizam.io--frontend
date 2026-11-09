@@ -14,7 +14,7 @@ const emit = defineEmits<{ select: [card: TrackingCard] }>()
 </script>
 
 <template>
-  <section class="pt-cards" :aria-label="trackingText('userTracking.cards.region')">
+  <section class="pt-cards" :aria-label="trackingText('organization.tracking.cards.region')">
     <template v-if="cards">
       <button
         v-for="card in cards"

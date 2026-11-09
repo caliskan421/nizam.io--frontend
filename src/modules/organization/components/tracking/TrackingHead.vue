@@ -34,17 +34,17 @@ const store = useScopeStore()
 const { standing } = useStanding()
 
 const displayName = computed(
-  () => props.name ?? (props.resolved ? trackingText('userTracking.unknownPerson') : null),
+  () => props.name ?? (props.resolved ? trackingText('organization.tracking.unknownPerson') : null),
 )
 const roleLabels = computed(() =>
-  props.roles.map((role) => trackingText(`userTracking.head.role.${role}`)),
+  props.roles.map((role) => trackingText(`organization.tracking.head.role.${role}`)),
 )
 const subtitle = computed(() => {
   const units = props.units
   if (units === null) return null
-  if (units.length === 0) return trackingText('userTracking.head.unassigned')
+  if (units.length === 0) return trackingText('organization.tracking.head.unassigned')
   if (units.length === 1) return units[0]!.name
-  return trackingText('userTracking.head.moreUnits', {
+  return trackingText('organization.tracking.head.moreUnits', {
     first: units[0]!.name,
     n: units.length - 1,
   })
@@ -57,13 +57,13 @@ const phases = computed(() =>
       ['report', 'F6'],
     ] as const
   ).map(([key, phase]) => {
-    const label = trackingText(`userTracking.head.${key}`)
+    const label = trackingText(`organization.tracking.head.${key}`)
     return {
       key,
       label,
-      note: trackingText('userTracking.head.phaseNote', {
+      note: trackingText('organization.tracking.head.phaseNote', {
         label,
-        phase: trackingText(`userTracking.head.phase.${phase}`),
+        phase: trackingText(`organization.tracking.head.phase.${phase}`),
       }),
     }
   }),
@@ -71,8 +71,8 @@ const phases = computed(() =>
 
 const canAssign = computed(() => canCreateWorkItem(standing.value, store.programId))
 const assignBlocked = computed(() => {
-  if (props.units === null) return trackingText('userTracking.assign.unknownUnits')
-  if (props.units.length === 0) return trackingText('userTracking.assign.noUnits')
+  if (props.units === null) return trackingText('organization.tracking.assign.unknownUnits')
+  if (props.units.length === 0) return trackingText('organization.tracking.assign.noUnits')
   return null
 })
 
@@ -97,7 +97,7 @@ function assign(): void {
 
 function confirmPick(): void {
   if (!options.value.some((o) => o.value === chosen.value)) {
-    error.value = trackingText('userTracking.assign.required')
+    error.value = trackingText('organization.tracking.assign.required')
     return
   }
   picking.value = false
@@ -124,7 +124,7 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
             >{{ roleLabels[0]
             }}{{
               roleLabels.length > 1
-                ? ` ${trackingText('userTracking.head.moreRoles', { n: roleLabels.length - 1 })}`
+                ? ` ${trackingText('organization.tracking.head.moreRoles', { n: roleLabels.length - 1 })}`
                 : ''
             }}</UiBadge
           >
@@ -136,8 +136,8 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
       <RouterLink
         class="t-iconbtn t-iconbtn--md"
         :to="usersPanelLocation(accountId)"
-        :aria-label="trackingText('userTracking.head.editProfile')"
-        :title="trackingText('userTracking.head.editProfile')"
+        :aria-label="trackingText('organization.tracking.head.editProfile')"
+        :title="trackingText('organization.tracking.head.editProfile')"
         data-edit-profile
       >
         <svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -176,30 +176,30 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
         data-assign
         @click="assign"
       >
-        {{ trackingText('userTracking.head.assign') }}
+        {{ trackingText('organization.tracking.head.assign') }}
       </UiButton>
     </div>
     <UiModal
       v-model:open="picking"
-      :title="trackingText('userTracking.assign.title')"
-      :description="trackingText('userTracking.assign.description')"
+      :title="trackingText('organization.tracking.assign.title')"
+      :description="trackingText('organization.tracking.assign.description')"
     >
       <form id="pt-assign" novalidate data-assign-form @submit.prevent="confirmPick">
-        <UiField :label="trackingText('userTracking.assign.field')" :error="error">
+        <UiField :label="trackingText('organization.tracking.assign.field')" :error="error">
           <UiSelect
             v-model="chosen"
             name="departmentId"
             :options="options"
-            :placeholder="trackingText('userTracking.assign.placeholder')"
+            :placeholder="trackingText('organization.tracking.assign.placeholder')"
           />
         </UiField>
       </form>
       <template #footer>
         <UiButton variant="ghost" @click="picking = false">
-          {{ trackingText('userTracking.assign.cancel') }}
+          {{ trackingText('organization.tracking.assign.cancel') }}
         </UiButton>
         <UiButton variant="primary" type="submit" form="pt-assign" data-assign-submit>
-          {{ trackingText('userTracking.assign.submit') }}
+          {{ trackingText('organization.tracking.assign.submit') }}
         </UiButton>
       </template>
     </UiModal>

@@ -83,7 +83,7 @@ const codes = computed(() => {
 const personName = computed(
   () =>
     profile.name.value ??
-    (profile.resolved.value ? trackingText('userTracking.unknownPerson') : null),
+    (profile.resolved.value ? trackingText('organization.tracking.unknownPerson') : null),
 )
 
 const cards = computed(() => (loading.value ? null : cardViews(trackingCounts(items.value))))
@@ -91,8 +91,8 @@ const selected = computed(() => cardItems(items.value, state.value.card))
 const groups = computed(() => groupRows(selected.value, state.value.grouping, today))
 const month = computed(() => state.value.month ?? monthOf(today))
 const caption = computed(() =>
-  trackingText('userTracking.toolbar.caption', {
-    list: trackingText(`userTracking.toolbar.list.${state.value.card}`),
+  trackingText('organization.tracking.toolbar.caption', {
+    list: trackingText(`organization.tracking.toolbar.list.${state.value.card}`),
     n: selected.value.length,
   }),
 )
@@ -100,20 +100,20 @@ const caption = computed(() =>
 const tabs = computed<UiChoiceOption<TrackingTab>[]>(() => [
   {
     value: 'gorevler',
-    label: trackingText('userTracking.tabs.gorevler'),
+    label: trackingText('organization.tracking.tabs.gorevler'),
     count: loading.value || loadError.value ? undefined : selected.value.length,
   },
-  { value: 'dosyalar', label: trackingText('userTracking.tabs.dosyalar') },
-  { value: 'etkinlik', label: trackingText('userTracking.tabs.etkinlik') },
-  { value: 'hesap', label: trackingText('userTracking.tabs.hesap') },
+  { value: 'dosyalar', label: trackingText('organization.tracking.tabs.dosyalar') },
+  { value: 'etkinlik', label: trackingText('organization.tracking.tabs.etkinlik') },
+  { value: 'hesap', label: trackingText('organization.tracking.tabs.hesap') },
 ])
 const tab = computed({
   get: () => state.value.tab,
   set: (value: TrackingTab) => void url.update({ tab: value }),
 })
 const groupings = computed<UiChoiceOption<TrackingGrouping>[]>(() => [
-  { value: 'son-tarih', label: trackingText('userTracking.toolbar.byDue') },
-  { value: 'durum', label: trackingText('userTracking.toolbar.byStatus') },
+  { value: 'son-tarih', label: trackingText('organization.tracking.toolbar.byDue') },
+  { value: 'durum', label: trackingText('organization.tracking.toolbar.byStatus') },
 ])
 
 function setGrouping(value: TrackingGrouping | null): void {
@@ -136,7 +136,7 @@ const previousTitle = document.title
 watch(
   personName,
   (name) => {
-    if (name) document.title = trackingText('userTracking.documentTitle', { name })
+    if (name) document.title = trackingText('organization.tracking.documentTitle', { name })
   },
   { immediate: true },
 )
@@ -156,7 +156,7 @@ onBeforeUnmount(() => (document.title = previousTitle))
       <UiErrorState
         v-if="loadError"
         :error="loadError"
-        :title="trackingText('userTracking.cards.error')"
+        :title="trackingText('organization.tracking.cards.error')"
         retryable
         data-load-error
         @retry="retry"
@@ -168,12 +168,16 @@ onBeforeUnmount(() => (document.title = previousTitle))
         @select="(card) => void url.update({ card })"
       />
       <p v-if="partial" class="rp-cap pt-partial" role="status" data-partial>
-        {{ trackingText('userTracking.cards.partial') }}
+        {{ trackingText('organization.tracking.cards.partial') }}
         <UiButton v-if="nextError" variant="ghost" size="sm" data-retry-next @click="retryNext">
-          {{ trackingText('userTracking.retry') }}
+          {{ trackingText('organization.tracking.retry') }}
         </UiButton>
       </p>
-      <UiTabs v-model="tab" :options="tabs" :label="trackingText('userTracking.tabs.label')">
+      <UiTabs
+        v-model="tab"
+        :options="tabs"
+        :label="trackingText('organization.tracking.tabs.label')"
+      >
         <template #default="{ value }">
           <div v-if="value === 'gorevler'" class="pt-panel" data-panel="gorevler">
             <template v-if="!loadError">
@@ -181,7 +185,7 @@ onBeforeUnmount(() => (document.title = previousTitle))
                 <UiSegmented
                   :model-value="state.grouping"
                   :options="groupings"
-                  :label="trackingText('userTracking.toolbar.grouping')"
+                  :label="trackingText('organization.tracking.toolbar.grouping')"
                   @update:model-value="setGrouping"
                 />
                 <span class="rp-grow" />
@@ -208,12 +212,18 @@ onBeforeUnmount(() => (document.title = previousTitle))
           </div>
           <div v-else-if="value === 'dosyalar'" class="pt-panel" data-panel="dosyalar">
             <DesignStub id="BE-046" as="div">
-              <UiPlaceholder kind="soon" :text="trackingText('userTracking.tabs.filesSoon')" />
+              <UiPlaceholder
+                kind="soon"
+                :text="trackingText('organization.tracking.tabs.filesSoon')"
+              />
             </DesignStub>
           </div>
           <div v-else-if="value === 'etkinlik'" class="pt-panel" data-panel="etkinlik">
             <DesignStub id="BE-015" as="div">
-              <UiPlaceholder kind="soon" :text="trackingText('userTracking.tabs.activitySoon')" />
+              <UiPlaceholder
+                kind="soon"
+                :text="trackingText('organization.tracking.tabs.activitySoon')"
+              />
             </DesignStub>
           </div>
           <div v-else class="pt-panel" data-panel="hesap">

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { trackingText, trUserTracking } from './messages'
+import { trackingText, trOrganization } from './messages'
 
 function leaves(node: unknown, path: string): [string, string][] {
   if (typeof node === 'string') return [[path, node]]
@@ -11,15 +11,17 @@ function leaves(node: unknown, path: string): [string, string][] {
 
 describe('05b metinleri', () => {
   it('yer tutucular doldurulur; eksik parametre olduğu gibi kalır', () => {
-    expect(trackingText('userTracking.table.overdue', { n: 3 })).toBe('3 gün gecikti')
-    expect(trackingText('userTracking.toolbar.caption', { list: 'Açık görevler' })).toBe(
+    expect(trackingText('organization.tracking.table.overdue', { n: 3 })).toBe('3 gün gecikti')
+    expect(trackingText('organization.tracking.toolbar.caption', { list: 'Açık görevler' })).toBe(
       'Açık görevler · {n} görev',
     )
-    expect(trackingText('userTracking.documentTitle', { name: 'Ada' })).toBe('RoketPortal — Ada')
+    expect(trackingText('organization.tracking.documentTitle', { name: 'Ada' })).toBe(
+      'RoketPortal — Ada',
+    )
   })
 
   it('her yaprak dolu; sunucu metni ya da sahte veri içermez', () => {
-    const all = leaves(trUserTracking, '')
+    const all = leaves(trOrganization, '')
     expect(all.length).toBeGreaterThan(80)
     for (const [key, text] of all) {
       expect(text.trim(), key).not.toBe('')
@@ -28,8 +30,8 @@ describe('05b metinleri', () => {
   })
 
   it('olmayan anahtar anahtarın kendisini döndürür', () => {
-    expect(trackingText('userTracking.yok' as Parameters<typeof trackingText>[0])).toBe(
-      'userTracking.yok',
+    expect(trackingText('organization.tracking.yok' as Parameters<typeof trackingText>[0])).toBe(
+      'organization.tracking.yok',
     )
   })
 })

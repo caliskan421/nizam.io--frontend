@@ -53,15 +53,19 @@ const view = computed(() =>
       <div
         role="table"
         class="pt-table"
-        :aria-label="trackingText('userTracking.table.label', { name })"
+        :aria-label="trackingText('organization.tracking.table.label', { name })"
         :aria-busy="loading ? 'true' : undefined"
       >
         <div role="row" class="rp-tr rp-tr--head">
           <span />
-          <span role="columnheader">{{ trackingText('userTracking.table.task') }}</span>
-          <span role="columnheader">{{ trackingText('userTracking.table.statusHeader') }}</span>
-          <span role="columnheader">{{ trackingText('userTracking.table.due') }}</span>
-          <span role="columnheader">{{ trackingText('userTracking.table.evidence') }}</span>
+          <span role="columnheader">{{ trackingText('organization.tracking.table.task') }}</span>
+          <span role="columnheader">{{
+            trackingText('organization.tracking.table.statusHeader')
+          }}</span>
+          <span role="columnheader">{{ trackingText('organization.tracking.table.due') }}</span>
+          <span role="columnheader">{{
+            trackingText('organization.tracking.table.evidence')
+          }}</span>
           <span />
         </div>
         <template v-if="loading">
@@ -76,7 +80,7 @@ const view = computed(() =>
         </template>
         <div v-else-if="groups.length === 0" role="row" class="pt-table-empty">
           <p role="cell" class="rp-empty" data-table-empty>
-            {{ trackingText('userTracking.table.empty') }}
+            {{ trackingText('organization.tracking.table.empty') }}
           </p>
         </div>
         <template v-for="group in view" v-else :key="group.key">
@@ -116,8 +120,10 @@ const view = computed(() =>
               <RouterLink
                 class="t-iconbtn rp-hoveract"
                 :to="taskLocation(item.work_item_id)"
-                :aria-label="trackingText('userTracking.table.open', { title: item.title })"
-                :title="trackingText('userTracking.table.open', { title: item.title })"
+                :aria-label="
+                  trackingText('organization.tracking.table.open', { title: item.title })
+                "
+                :title="trackingText('organization.tracking.table.open', { title: item.title })"
               >
                 <UiIcon name="chevron-right" size="sm" />
               </RouterLink>
