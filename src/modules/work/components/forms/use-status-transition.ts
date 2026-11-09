@@ -12,7 +12,7 @@
  *    otomatik tekrar yok (§8). İyimser güncelleme yok.
  */
 import { useQueryClient, type QueryClient } from '@tanstack/vue-query'
-import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, getCurrentScope, onScopeDispose, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
 import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { invalidationFilters } from '@/shared/http/query-keys'
@@ -74,6 +74,17 @@ function rereadAfter(client: QueryClient, o: Outcome, fallback: ScopeSnapshot, i
 
 type ConfirmWrite = ReturnType<typeof useConfirm>['confirmWrite']
 
+interface Life {
+  disposed: boolean
+}
+
+/** Kurulum kapsamının yaşamı: söküldüyse `disposed` (geç yanıtta yeni onay açılmaz). */
+function trackLife(): Life {
+  const life: Life = { disposed: false }
+  if (getCurrentScope()) onScopeDispose(() => (life.disposed = true))
+  return life
+}
+
 /**
  * `work.subtasks_open` onayı İLK geçişin bağlamıyla (CX-F1-E-02): geç gelen 409'da bağlam
  * bayatsa onay hiç açılmaz; kabulde `close_subtasks: true` tekrarı bu bağlamla gönderilir
@@ -81,9 +92,13 @@ type ConfirmWrite = ReturnType<typeof useConfirm>['confirmWrite']
  */
 function confirmCloseSubtasks(
   confirmWrite: ConfirmWrite,
+  life: Life,
   o: Outcome,
   resend: (context: ActionContext) => Promise<Outcome>,
 ): Promise<Outcome | null> {
+  // Tüketici savunması (tur 3): geç 409 sökülmeden sonra geldiyse onay akışına girilmez; ilk
+  // çağrı yine düzgün tamamlanır (asılı promise yok). Ortak katman da sökülmüş sahibi reddeder.
+  if (life.disposed) return Promise.resolve(null)
   const first = o.kind === 'failed' ? o.context : undefined
   return confirmWrite(CLOSE_SUBTASKS_CONFIRM(), (context) => resend(context), { context: first })
 }
@@ -95,6 +110,7 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   const transition = useTransitionWorkItem()
   // Kurulumda alınır: onay bu bileşenin etki kapsamına aittir, sökülünce iptal (CX-F1-E-02).
   const { confirmWrite } = useConfirm()
+  const life = trackLife()
 
   const facts = computed(() => workActorFacts(standing.value, store.programId, toValue(item)))
   const targets = computed<WorkItemStatus[]>(() =>
@@ -110,7 +126,7 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
     }
     const code = codeOf(o)
     if (code === 'work.subtasks_open' && canCloseSubtasks(body.to) && !body.close_subtasks) {
-      const again = await confirmCloseSubtasks(confirmWrite, o, (context) =>
+      const again = await confirmCloseSubtasks(confirmWrite, life, o, (context) =>
         send(current, { ...body, close_subtasks: true }, context),
       )
       if (again) return again
