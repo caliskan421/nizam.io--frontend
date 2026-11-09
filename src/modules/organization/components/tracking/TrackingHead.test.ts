@@ -60,6 +60,8 @@ describe('profil başlığı (E-05-41…47)', () => {
     expect(wrapper.find('[data-edit-profile]').attributes('href')).toBe('/kullanicilar?secili=u1')
     const message = wrapper.find('[data-phase="message"]')
     expect(message.attributes('aria-disabled')).toBe('true')
+    expect(wrapper.find('[data-edit-profile] svg.t-icon').exists()).toBe(true)
+    expect(message.find('svg.t-icon').exists()).toBe(true)
     expect(message.attributes('aria-label')).toBe('Mesaj — F7’de açılacak')
     expect(wrapper.find('[data-phase="report"]').attributes('title')).toBe(
       'Kişisel rapor — F6’da açılacak',

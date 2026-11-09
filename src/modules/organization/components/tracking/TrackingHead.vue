@@ -6,7 +6,7 @@ import { canCreateWorkItem } from '@/modules/work/public'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
-import { UiAvatar, UiBadge, UiButton, UiField, UiModal, UiSelect } from '@/shared/ui'
+import { UiAvatar, UiBadge, UiButton, UiField, UiIcon, UiModal, UiSelect } from '@/shared/ui'
 
 import { usersPanelLocation } from '../../routes'
 import { newTaskLocation, type PersonUnit } from './assign'
@@ -53,13 +53,14 @@ const subtitle = computed(() => {
 const phases = computed(() =>
   (
     [
-      ['message', 'F7'],
-      ['report', 'F6'],
+      ['message', 'F7', 'mail'],
+      ['report', 'F6', 'download'],
     ] as const
-  ).map(([key, phase]) => {
+  ).map(([key, phase, icon]) => {
     const label = trackingText(`tracking.head.${key}`)
     return {
       key,
+      icon,
       label,
       note: trackingText('tracking.head.phaseNote', {
         label,
@@ -140,9 +141,7 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
         :title="trackingText('tracking.head.editProfile')"
         data-edit-profile
       >
-        <svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4" />
-        </svg>
+        <UiIcon name="edit" />
       </RouterLink>
       <button
         v-for="phase in phases"
@@ -154,17 +153,7 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
         :aria-label="phase.note"
         :data-phase="phase.key"
       >
-        <svg
-          v-if="phase.key === 'message'"
-          class="t-icon t-icon--sm"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M3 6h18v12H3zM3 7l9 6 9-6" />
-        </svg>
-        <svg v-else class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
-        </svg>
+        <UiIcon :name="phase.icon" size="sm" />
         <span class="rp-trunc">{{ phase.label }}</span>
       </button>
       <UiButton

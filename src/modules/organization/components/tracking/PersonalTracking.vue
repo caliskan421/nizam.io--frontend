@@ -5,6 +5,7 @@ import { computed, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { toApiError } from '@/shared/errors/api-error'
+import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 import {
   DesignStub,
@@ -84,6 +85,9 @@ const personName = computed(
   () =>
     profile.name.value ?? (profile.resolved.value ? trackingText('tracking.unknownPerson') : null),
 )
+
+/** E-05-40: kırıntının son parçası kişi adı; ad gelmeden katalog başlığı kalır. */
+usePageCrumb(personName)
 
 const cards = computed(() => (loading.value ? null : cardViews(trackingCounts(items.value))))
 const selected = computed(() => cardItems(items.value, state.value.card))

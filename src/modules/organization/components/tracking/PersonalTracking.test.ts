@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { pageCrumb } from '@/shared/navigation/page-crumb'
+
 import { requests, resetHarness } from '../../__tests__/harness'
 import { usePersonWorkItems } from '../../api'
 import {
@@ -268,6 +270,8 @@ describe('başlık ve ad kaynağı (E-05-40…44)', () => {
     expect(wrapper.find('[data-units]').text()).toBe('Mekanik')
     expect(wrapper.text()).not.toContain('@')
     expect(document.title).toBe('RoketPortal — Bahar Kılıç')
+    // E-05-40: kırıntının son parçası kişi adı.
+    expect(pageCrumb.value).toBe('Bahar Kılıç')
     // Önbellekte yoktu: görevlerden gelen adla TEK `listUsers` araması.
     const lookups = requests.filter((r) => r.path === USERS)
     expect(lookups).toHaveLength(1)
@@ -291,5 +295,6 @@ describe('başlık ve ad kaynağı (E-05-40…44)', () => {
     expect(document.title).toBe('RoketPortal — Bahar Kılıç')
     wrapper.unmount()
     expect(document.title).toBe('Önceki')
+    expect(pageCrumb.value).toBeNull()
   })
 })
