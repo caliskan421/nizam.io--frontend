@@ -324,6 +324,35 @@
         { "name": "home-skel-line", "value": "16px" },
         { "name": "home-skel-num", "value": "52px" }
       ]
+    },
+    "tracking": {
+      "$description": "modules/organization 05b Kişisel takip ölçüleri — Kullanici-KisiselTakip.dc.html artboard ve theme.css (rp-dtable, rp-trgroup, rp-dot, rp-dl, rp-bar, takvim hücresi) ölçek DIŞI değerleri (W76).",
+      "tokens": [
+        { "name": "pt-badge-h", "value": "24px" },
+        { "name": "pt-kpi-min", "value": "200px" },
+        { "name": "pt-kpi-h", "value": "176px" },
+        { "name": "pt-chip", "value": "36px" },
+        { "name": "pt-bar-h", "value": "4px" },
+        { "name": "pt-cols", "value": "8px minmax(0, 1fr) 124px 112px 64px 36px" },
+        { "name": "pt-min-w", "value": "640px" },
+        { "name": "pt-row-pad-sm", "value": "10px 16px" },
+        { "name": "pt-dot", "value": "8px" },
+        { "name": "pt-dot-ring", "value": "1.5px" },
+        { "name": "pt-dot-sm", "value": "6px" },
+        { "name": "pt-card-pad", "value": "22px" },
+        { "name": "pt-card-title", "value": "600 16px/24px {font-sans}" },
+        { "name": "pt-card-gap", "value": "14px" },
+        { "name": "pt-cal-cell", "value": "36px" },
+        { "name": "pt-cal-radius", "value": "10px" },
+        { "name": "pt-cal-font", "value": "400 13px/20px {font-sans}" },
+        { "name": "pt-cal-btn", "value": "28px" },
+        { "name": "pt-cal-dot", "value": "4px" },
+        { "name": "pt-dist-h", "value": "10px" },
+        { "name": "pt-dl-cols", "value": "minmax(88px, auto) minmax(0, 1fr)" },
+        { "name": "pt-dl-gap", "value": "10px 16px" },
+        { "name": "pt-skel-line", "value": "16px" },
+        { "name": "pt-skel-num", "value": "52px" }
+      ]
     }
   }
 }

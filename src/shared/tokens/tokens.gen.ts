@@ -2053,6 +2053,150 @@ export const TOKENS = {
     "origin": "web",
     "dark": "52px",
     "light": "52px"
+  },
+  "pt-badge-h": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "24px",
+    "light": "24px"
+  },
+  "pt-kpi-min": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "200px",
+    "light": "200px"
+  },
+  "pt-kpi-h": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "176px",
+    "light": "176px"
+  },
+  "pt-chip": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "36px",
+    "light": "36px"
+  },
+  "pt-bar-h": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "4px",
+    "light": "4px"
+  },
+  "pt-cols": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "8px minmax(0, 1fr) 124px 112px 64px 36px",
+    "light": "8px minmax(0, 1fr) 124px 112px 64px 36px"
+  },
+  "pt-min-w": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "640px",
+    "light": "640px"
+  },
+  "pt-row-pad-sm": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "10px 16px",
+    "light": "10px 16px"
+  },
+  "pt-dot": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "8px",
+    "light": "8px"
+  },
+  "pt-dot-ring": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "1.5px",
+    "light": "1.5px"
+  },
+  "pt-dot-sm": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "pt-card-pad": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "pt-card-title": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "600 16px/24px var(--font-sans)",
+    "light": "600 16px/24px var(--font-sans)"
+  },
+  "pt-card-gap": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "pt-cal-cell": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "36px",
+    "light": "36px"
+  },
+  "pt-cal-radius": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "pt-cal-font": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "400 13px/20px var(--font-sans)",
+    "light": "400 13px/20px var(--font-sans)"
+  },
+  "pt-cal-btn": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "28px",
+    "light": "28px"
+  },
+  "pt-cal-dot": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "4px",
+    "light": "4px"
+  },
+  "pt-dist-h": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "pt-dl-cols": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "minmax(88px, auto) minmax(0, 1fr)",
+    "light": "minmax(88px, auto) minmax(0, 1fr)"
+  },
+  "pt-dl-gap": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "10px 16px",
+    "light": "10px 16px"
+  },
+  "pt-skel-line": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "16px",
+    "light": "16px"
+  },
+  "pt-skel-num": {
+    "group": "tracking",
+    "origin": "web",
+    "dark": "52px",
+    "light": "52px"
   }
 } as const
 
