@@ -157,3 +157,42 @@ Kök: `scratchpad/o5-f2-gorsel/`. Toplam **442 PNG**.
 | `tasarim/` | 8 | 4 tasarım × 2 tema, 1440 |
 
 Betikler ve ham sonuçlar aynı klasörde: `seed.mjs`, `lib.mjs`, `matrix.mjs`, `writes.mjs`, `w2.mjs`, `forms.mjs`, `upload.mjs`, `mock.mjs`, `b7.mjs`, `loginf.mjs`, `*.json`.
+
+## 9. #62 sonrası hedefli yeniden tanık (adım 3b; CX-F2-Ö-03)
+
+## #62 (W83) hedefli yeniden tanık — gerçek imaj (CX-F2-Ö-03)
+
+- **Kaynak:** main `d036208` (git status temiz)
+- **İmaj:** `docker build` → `nizamio-web-o5f2b:d036208`
+- **Kenar:** `nizamio-web-o5f2b-edge` (aynı digest'li Caddy), ağ `nizamio-web-o5f2b-net`, `localhost:18494`
+- **Backend:** ayaktaki `nizamio_web_e2e-server` (`v0.11.0-api`), yeniden kurulmadı
+- **Tema ve genişlik:** 52 ölçüm (390/1024/1440 × koyu/açık); betik `scratchpad/o5-f2-gorsel/retest62.mjs`
+- **Her ölçümde:** taşma 0, CSP ihlali 0, `pageerror` 0
+
+| Akış | Ölçüm | Sonuç |
+|---|---|---|
+| K-1 geçici parola | Yönetici panelden belirler: `PATCH /v1/admin/accounts/{id}` 200 | ✔ |
+| K-1 zorunlu değişim | Deniz geçici parolayla girer: form açılır. `/kullanicilar` ve `/gorevler` → `/oturum`, form var, kabuk yok | ✔ |
+| K-1 yanlış mevcut parola | `POST /v1/auth/password` 1, `/v1/auth/refresh` 0. Hata alanın altında: "Mevcut parola hatalı.", `aria-invalid` + odak `current_password` | ✔ |
+| K-1 doğru parola | Yalnız `POST /v1/auth/password`. Giriş formuna dönüldü; "Parolanız değiştirildi. Yeni parolanızla giriş yapın." | ✔ |
+| K-1 yeni parolayla giriş | `/` → kabuk, "Merhaba Deniz Üye" | ✔ |
+| K-1 parola sızıntısı | Geçici ve yeni parola DOM, localStorage, sessionStorage, Cache Storage, adres çubuğu ve istek yolunda yok | ✔ |
+| K-2 diyalog odağı | Yeni koordinatörlük / kullanıcı oluştur / geçici parola, 1440 ve 390'da: geçersiz gönderim (Enter) → odak ilk hatalı alanda (`name` / `email` / `password`). 8 Tab diyalog içinde kalıyor; Esc kapatıyor | ✔ (6/6) |
+| K-3 | `/kullanicilar` 390/1024/1440 × 2 tema: tablo rozetlerinde kırpılma 0, yatay taşma 0. 390 görüntüsü: "Tümü 15 · Admin · Koordinatör 5 · Üye 5" tam görünüyor, rozetler tam | ✔ |
+| K-6 | 08b Üyeler + `x-result-truncated: true` (`page.route`, gerçek gövde, aynı imaj) → "Üye listesi eksik olabilir" | ✔ |
+| K-4 | 05 "Tümü 15 / Koordinatör 5 / Üye 5" parantezsiz; 08b "Üyeler 4 / Görevler 7" parantezsiz; 03 "Tümü (20) / Başlamadı (7)…" parantezli | ✔ |
+| K-5 | 390'da kırıntı: 08b "Yazılım Koordinat…", 05b "Elif Üye". "/ /" artığı yok; üst parçalar ekran okuyucuya açık | ✔ |
+
+Yeni kusur yok.
+
+Yan etki (atılabilir e2e DB): Deniz Üye'nin parolası değişti (`Yeni-O5b-Parola-2026!`). Çalıştırılan geçici parola diyalogları gönderilmedi.
+
+Temizlik:
+- `nizamio-web-o5f2b`, `nizamio-web-o5f2b-edge` kapsayıcıları ve `nizamio-web-o5f2b-net` ağı kaldırıldı.
+- `nizamio-web-o5f2b:d036208` imajı silindi (`sha256:089d1024…`).
+- `docker ps -a --filter name=nizamio-web` boş; 18493 ve 18494 portlarında dinleyen yok.
+- Ana dizinde `git status` temiz.
+
+Görüntüler `scratchpad/o5-f2-gorsel/shots/retest62/` altında (52 adet).
+
+Görüntüler (52) depo dışında. Temizlik: `docker ps -a --filter name=nizamio-web` boş.
