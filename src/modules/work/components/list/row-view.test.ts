@@ -76,16 +76,25 @@ describe('satır gösterimi', () => {
   })
 })
 
-describe('avatar yığını (E-03-27, en çok 3 yuva)', () => {
+describe('avatar yığını (E-03-27, en çok 2 yuva — 60 px sütun)', () => {
   const p = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `a${i}`, name: `K${i}` }))
-  it('≤ 3 kişi: hepsi, "+n" yok', () => {
+  it('≤ 2 kişi: hepsi, "+n" yok', () => {
     expect(avatarStack(p(0))).toEqual({ shown: [], more: null })
-    expect(avatarStack(p(3)).shown).toHaveLength(3)
-    expect(avatarStack(p(3)).more).toBeNull()
+    expect(avatarStack(p(2)).shown).toHaveLength(2)
+    expect(avatarStack(p(2)).more).toBeNull()
   })
-  it('> 3 kişi: iki avatar + "+n"', () => {
+  it('3 kişi: bir avatar + "+2"', () => {
+    const stack = avatarStack(p(3))
+    expect(stack.shown.map((s) => s.id)).toEqual(['a0'])
+    expect(stack.more).toEqual({ count: 2, text: '+2', label: '2 kişi daha: K1, K2' })
+  })
+  it('> 3 kişi: bir avatar + "+n"', () => {
     const stack = avatarStack(p(5))
-    expect(stack.shown.map((s) => s.id)).toEqual(['a0', 'a1'])
-    expect(stack.more).toEqual({ count: 3, text: '+3', label: '3 kişi daha: K2, K3, K4' })
+    expect(stack.shown.map((s) => s.id)).toEqual(['a0'])
+    expect(stack.more).toEqual({
+      count: 4,
+      text: '+4',
+      label: '4 kişi daha: K1, K2, K3, K4',
+    })
   })
 })

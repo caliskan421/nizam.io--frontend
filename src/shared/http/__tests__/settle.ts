@@ -45,6 +45,8 @@ export async function settleQueries(
   clients: Clients,
   { held, limit = 500 }: { held?: HeldQuery; limit?: number } = {},
 ): Promise<void> {
+  // Yanlış düzenek (izlenecek istemci yok) sessizce "yerleşti" sayılmaz.
+  if (list(clients).length === 0) throw new Error('settleQueries: izlenecek QueryClient yok')
   for (let events = 0; events < limit; events += 1) {
     await flushPromises()
     if (busy(clients, held)) {

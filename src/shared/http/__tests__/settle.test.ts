@@ -44,6 +44,10 @@ describe('settleQueries', () => {
     expect(client.isFetching()).toBe(0)
   })
 
+  it('izlenecek istemci yoksa açık hata (yanlış düzenek "yerleşti" sayılmaz)', async () => {
+    await expect(settleQueries([])).rejects.toThrow('izlenecek QueryClient yok')
+  })
+
   it('olay sınırı dolarsa açık hata (süre değil, olay sayısı)', async () => {
     await expect(settleQueries(new QueryClient(), { limit: 0 })).rejects.toThrow(
       'sorgular yerleşmedi',

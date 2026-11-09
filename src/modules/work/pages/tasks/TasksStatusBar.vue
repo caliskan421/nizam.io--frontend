@@ -12,13 +12,14 @@ import type { TaskTab } from './url-state'
  * Durum sekmeleri satırı (E-03-07…09). Tümü + 5 durum (P5, `iade_edildi` = "Geri gönderildi")
  * + "Geciken" (`is_overdue`, durumla kesişir); sayaçlar yüklenen kümeden (BE-003), imleç
  * bitmediyse "yüklenen kayıtlar içinde" etiketi (§10). Tarih talebi süzgeci sekmeyle VE'dir;
- * talep verisi olmayanlarda (üye; WORK-K82) gizli.
+ * talep verisi olmayanlarda (üye; WORK-K82) gizli. Veri yokken (ilk yükleme / hata) sayaçlar
+ * `null`: sekmeler sayısız çizilir, "(0)" yazılmaz.
  */
 const props = defineProps<{
   tab: TaskTab
-  counts: Readonly<Record<TaskTab, number>>
+  counts: Readonly<Record<TaskTab, number>> | null
   requests: boolean
-  requestCount: number
+  requestCount: number | null
   showRequests: boolean
   complete: boolean
 }>()
@@ -38,11 +39,15 @@ const tabOptions = computed<UiChoiceOption<TaskTab>[]>(() =>
   ORDER.map((value) => ({
     value,
     label: tasksText(`tasksPage.tabs.${value}`),
-    count: props.counts[value],
+    count: props.counts?.[value],
   })),
 )
 const requestOptions = computed<UiChoiceOption<'talep'>[]>(() => [
-  { value: 'talep', label: tasksText('tasksPage.requests.filter'), count: props.requestCount },
+  {
+    value: 'talep',
+    label: tasksText('tasksPage.requests.filter'),
+    count: props.requestCount ?? undefined,
+  },
 ])
 
 const tabModel = computed({

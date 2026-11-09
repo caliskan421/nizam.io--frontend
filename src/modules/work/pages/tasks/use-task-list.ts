@@ -57,7 +57,10 @@ export function useTaskList(state: Ref<TasksUrlState>, showRequests: Ref<boolean
         matchesSearch(item, state.value.search, codeOf(item)),
     ),
   )
-  const counts = computed(() => tabCounts(base.value))
+  /** Sekme sayaçları; veri yokken (ilk yükleme sürüyor / hata) `null` — "(0)" yazılmaz. */
+  const counts = computed(() =>
+    list.query.data.value === undefined ? null : tabCounts(base.value),
+  )
   const rows = computed(() =>
     sortItems(
       base.value.filter((item) => inTab(item, state.value.tab)),

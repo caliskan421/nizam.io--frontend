@@ -96,7 +96,7 @@ describe('görev satırı (E-03-18…29)', () => {
     expect(people[0]!.text()).toBe('AY')
   })
 
-  it('dört atanan: iki avatar + "+2" (kalan adlar ipucunda), sütuna sığar (E-03-27)', () => {
+  it('dört atanan: bir avatar + "+3" (kalan adlar ipucunda), sütuna sığar (E-03-27)', () => {
     const row = mountRow({
       assignees: [
         { account_id: 'a1', full_name: 'Ayşe Yılmaz' },
@@ -106,12 +106,13 @@ describe('görev satırı (E-03-18…29)', () => {
       ],
     })
     const people = row.findAll('.task-row__person')
-    expect(people).toHaveLength(3)
-    expect(people.slice(0, 2).map((p) => p.text())).toEqual(['AY', 'BK'])
+    expect(people).toHaveLength(2)
+    expect(people[0]!.text()).toBe('AY')
     const more = row.get('.task-row__more')
-    expect(more.text()).toBe('+2')
-    expect(more.attributes('aria-label')).toBe('2 kişi daha: Can Ak, Bilinmeyen kişi')
-    expect(more.attributes('data-tip')).toBe('2 kişi daha: Can Ak, Bilinmeyen kişi')
+    expect(more.text()).toBe('+3')
+    const label = '3 kişi daha: Bora Kaya, Can Ak, Bilinmeyen kişi'
+    expect(more.attributes('aria-label')).toBe(label)
+    expect(more.attributes('data-tip')).toBe(label)
   })
 
   it('toplu seçim kutusu ve öncelik DOM’da yok (P7, E-03-29)', () => {

@@ -5,7 +5,10 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
+import { tokenPx } from '@/shared/tokens/css-var'
 import { TOKENS } from '@/shared/tokens/tokens.gen'
+
+import { AVATAR_STACK_MAX } from './row-view'
 
 // Görev tablosu görünüm kuralları (KESİN 5): ham renk yok, px yok (`--list-*` üretilmiş token),
 // satır içi stil yok, .vue ≤ 250 satır; ızgara tasarımla aynı.
@@ -47,5 +50,19 @@ describe('görev tablosu görünüm kuralları', () => {
     expect(read('list.css')).toMatch(
       /\.rp-dtable \.rp-tr \{[^}]*grid-template-columns: var\(--list-cols\)/,
     )
+  })
+
+  it('avatar yığını kişi sütununa sığar (W82 borç 13): yuva × 26 px − bindirme ≤ 60 px', () => {
+    const column = Number(/(\d+)px$/.exec(TOKENS['list-cols'].dark)![1])
+    const avatar = tokenPx('ui-av-sm')
+    // Bindirme negatif px (tokenPx yalnız pozitif px okur).
+    const overlap = Number(/^(-?\d+)px$/.exec(TOKENS['list-av-overlap'].dark)![1])
+    const width = AVATAR_STACK_MAX * avatar + (AVATAR_STACK_MAX - 1) * overlap
+    expect({ avatar, overlap, column }).toEqual({ avatar: 26, overlap: -3, column: 60 })
+    expect(width).toBe(49)
+    expect(width).toBeLessThanOrEqual(column)
+    // Bir yuva fazlası sığmaz (eski 3 yuva = 72 px).
+    expect(width + avatar + overlap).toBeGreaterThan(column)
+    expect(read('list.css')).toMatch(/margin-left: var\(--list-av-overlap\)/)
   })
 })

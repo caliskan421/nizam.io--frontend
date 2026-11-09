@@ -1,22 +1,21 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
+
 import {
   ADMIN_SCOPE,
   COORD_SCOPE,
+  errorEnvelope,
   harness,
+  http,
+  ORIGIN,
   resetHarness,
   server,
   workItem,
 } from '../../model/__tests__/harness'
 import type { WorkItem } from '../../model/types'
-import {
-  listHandler,
-  listRequests,
-  settle,
-  standingHandlers,
-  ADMIN,
-} from './__tests__/page-harness'
+import { LIST, listHandler, listRequests, standingHandlers, ADMIN } from './__tests__/page-harness'
 import { useTaskList } from './use-task-list'
 import { DEFAULT_TASKS_STATE, type TasksUrlState } from './url-state'
 
@@ -44,7 +43,7 @@ describe('useTaskList', () => {
     const state = ref<TasksUrlState>({ ...DEFAULT_TASKS_STATE })
     const show = ref(true)
     const list = h.run(() => useTaskList(state, show))
-    await settle()
+    await settleQueries(h.queryClient)
     expect(list.rows.value.map((r) => r.work_item_id)).toEqual(['a', 'b'])
     expect(list.summary.value).toEqual({ tasks: 2, departments: 2, people: 2 })
     expect(list.requestCount.value).toBe(1)
@@ -70,8 +69,21 @@ describe('useTaskList', () => {
     const list = h.run(() => useTaskList(state, ref(true)))
     // Veri gelmeden özet yok (sayı yazılmaz).
     expect(list.summary.value).toBeNull()
-    await settle()
+    await settleQueries(h.queryClient)
     expect(listRequests()[0]!.query.get('department_id')).toBe('d1')
     expect(list.summary.value?.departments).toBe(1)
+  })
+
+  it('veri yokken (ilk yükleme / hata) sekme sayaçları null — "(0)" yazılmaz', async () => {
+    server.use(
+      ...standingHandlers(ADMIN),
+      http.get(`${ORIGIN}${LIST}`, () => errorEnvelope('platform.internal', 503)),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const list = h.run(() => useTaskList(ref({ ...DEFAULT_TASKS_STATE }), ref(true)))
+    expect(list.counts.value).toBeNull()
+    await settleQueries(h.queryClient)
+    expect(list.query.isError.value).toBe(true)
+    expect(list.counts.value).toBeNull()
   })
 })

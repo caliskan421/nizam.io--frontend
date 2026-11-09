@@ -68,12 +68,15 @@ export interface StackPerson {
   name: string
 }
 
-/** Kişi sütununda tablo kenarına taşmadan kırpılmayan yığın (E-03-27; 3 küçük avatar). */
-export const AVATAR_STACK_MAX = 3
+/**
+ * Kişi sütununa (60 px, `--list-cols`) sığan yığın (E-03-27): tasarım ölçüleriyle (26 px küçük
+ * avatar, −3 px bindirme) iki yuva 49 px; üç yuva 72 px taşıyordu (W82 borç 13).
+ */
+export const AVATAR_STACK_MAX = 2
 
 /**
- * Avatar yığını: en çok `max` öğe; fazlası varsa son yuva "+n" (kalan adlar ipucunda). Dört
- * atananlı satırda dördüncü avatar sütun kenarında kırpılıyordu (O5 görsel kusur, W63).
+ * Avatar yığını: en çok `max` öğe; fazlası varsa son yuva "+n" (kalan adlar ipucunda). Çok
+ * atananlı satırda yığın sütun kenarını aşıyordu (O5 görsel kusur W63; F2 W82 borç 13).
  */
 export function avatarStack(
   people: readonly StackPerson[],
