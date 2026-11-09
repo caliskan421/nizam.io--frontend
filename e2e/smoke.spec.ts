@@ -1,7 +1,7 @@
 // Duman senaryosu (F06 kapsam 11): giriş → /v1/me → (sayfa yenileme → sessiz refresh) → çıkış,
 // tarayıcıda gerçek uygulama yığınından (Vue + Pinia + http katmanı + vite preview proxy)
 // gerçek backend'e karşı. Giriş ekranı yer tutucudur (tasarım program sonrası istemci geliştirmesi).
-import { expect, test } from '@playwright/test'
+import { expect, test, type Response } from '@playwright/test'
 
 import { cspViolations, describeViolations, enforceCaddyCsp, loadedFontFamilies } from './csp-check'
 import { ADMIN, readFixture } from './fixture'
@@ -11,6 +11,12 @@ import { storageHasOnlyAllowedKeys } from './storage-check'
 /** İstekteki erişim belirteci (bilinen gizli değer: hiçbir depoda geçmemeli). */
 function bearerOf(request: { headers(): Record<string, string> }): string {
   return (request.headers()['authorization'] ?? '').replace(/^Bearer\s+/, '')
+}
+
+/** Sessiz refresh yanıtı başarılı; dönen erişim belirteci (depo denetiminde aranacak gizli değer). */
+async function accessTokenOf(response: Response): Promise<string> {
+  expect(response.status()).toBe(200)
+  return ((await response.json()) as { access_token?: string }).access_token ?? ''
 }
 
 test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', async ({ page }) => {
@@ -74,15 +80,30 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
 
   await page.screenshot({ path: 'test-results/smoke-authenticated.png', fullPage: true })
 
+  // Giriş akışı kimlik sayfasında sürer: anonim `/` → `/oturum` yönlendirmesi (session-gate),
+  // giriş ve yenileme aynı rotada kalır. `session-status` / `logout` yalnız bu sayfadadır.
+  const sessionPath = new URL(page.url()).pathname
+  expect(sessionPath).toBe('/oturum')
+
   // Görev listesi parçası da üretim CSP'sinde ihlalsiz (CX-F1-Ö-03). Tam gezinme: bellek sıfırlanır,
   // oturum sessiz refresh ile döner; ihlal toplayıcı her belgede yeniden kurulur.
+  const tasksRefresh = page.waitForResponse((r) => r.url().endsWith('/v1/auth/refresh'))
   await page.goto('/gorevler')
+  const tasksToken = await accessTokenOf(await tasksRefresh)
   await expect(page.getByTestId('app-shell')).toBeVisible()
   await page.waitForLoadState('networkidle')
   const taskViolations = await cspViolations(page)
   expect(taskViolations, describeViolations('/gorevler', taskViolations)).toEqual([])
-  await page.goto('/')
+
+  // Kimlik sayfasına geri dönüş (tam gezinme → sessiz refresh); testin geri kalanı orada.
+  const backRefresh = page.waitForResponse((r) => r.url().endsWith('/v1/auth/refresh'))
+  await page.goto(sessionPath)
+  const backToken = await accessTokenOf(await backRefresh)
   await expect(status).toHaveAttribute('data-status', 'authenticated')
+  await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
+  await expect(page.getByTestId('logout')).toBeVisible()
+  const seenTokens = [accessToken, renewed, tasksToken, backToken]
+  expect(await storageHasOnlyAllowedKeys(page, seenTokens)).toEqual([])
 
   // Çıkış: gerçek POST /v1/auth/logout (204) + bellek temizliği.
   const logout = page.waitForResponse((r) => r.url().endsWith('/v1/auth/logout'))
@@ -92,7 +113,7 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   expect(logoutResponse.request().headers()['x-requested-with']).toBeTruthy()
   await expect(status).toHaveAttribute('data-status', 'anonymous')
   // Çıkışta kapsam kimlikleri silinir, yalnız tema tercihi kalabilir (E-00-29).
-  expect(await storageHasOnlyAllowedKeys(page, [accessToken, renewed])).toEqual([])
+  expect(await storageHasOnlyAllowedKeys(page, seenTokens)).toEqual([])
   const kept = await page.evaluate(() => Object.keys(window.localStorage))
   expect(kept.filter((key) => key.includes('scope.'))).toEqual([])
 
