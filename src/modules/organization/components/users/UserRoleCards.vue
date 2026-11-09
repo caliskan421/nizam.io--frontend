@@ -22,13 +22,13 @@ const roles = computed(() => new Set<TeamRole>(props.labels.map((l) => l.role)))
 const DERIVED: readonly { role: TeamRole; label: UsersTextKey; desc: UsersTextKey }[] = [
   {
     role: 'coordinator',
-    label: 'organization.users.panel.role.coordinator',
-    desc: 'organization.users.panel.role.coordinatorDesc',
+    label: 'users.panel.role.coordinator',
+    desc: 'users.panel.role.coordinatorDesc',
   },
   {
     role: 'member',
-    label: 'organization.users.panel.role.member',
-    desc: 'organization.users.panel.role.memberDesc',
+    label: 'users.panel.role.member',
+    desc: 'users.panel.role.memberDesc',
   },
 ]
 </script>
@@ -36,19 +36,15 @@ const DERIVED: readonly { role: TeamRole; label: UsersTextKey; desc: UsersTextKe
 <template>
   <fieldset class="users-roles" data-testid="user-roles">
     <legend class="rp-kicker users-roles__legend">
-      {{ usersText('organization.users.panel.rolesTitle') }}
+      {{ usersText('users.panel.rolesTitle') }}
     </legend>
     <DesignStub id="BE-042" as="div">
       <label class="users-role" data-role-card="admin">
         <UiCheck disabled :model-value="false" />
         <span class="users-role__text">
-          <span class="users-role__label">{{
-            usersText('organization.users.panel.role.admin')
-          }}</span>
-          <span class="rp-cap">{{ usersText('organization.users.panel.role.adminDesc') }}</span>
-          <span class="rp-cap rp-faint">{{
-            usersText('organization.users.panel.role.adminUnknown')
-          }}</span>
+          <span class="users-role__label">{{ usersText('users.panel.role.admin') }}</span>
+          <span class="rp-cap">{{ usersText('users.panel.role.adminDesc') }}</span>
+          <span class="rp-cap rp-faint">{{ usersText('users.panel.role.adminUnknown') }}</span>
         </span>
       </label>
     </DesignStub>
@@ -65,6 +61,6 @@ const DERIVED: readonly { role: TeamRole; label: UsersTextKey; desc: UsersTextKe
         <span class="rp-cap">{{ usersText(card.desc) }}</span>
       </span>
     </label>
-    <p class="rp-cap">{{ usersText('organization.users.panel.rolesNote') }}</p>
+    <p class="rp-cap">{{ usersText('users.panel.rolesNote') }}</p>
   </fieldset>
 </template>

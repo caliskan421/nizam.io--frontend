@@ -49,9 +49,9 @@ const showPager = computed(
 )
 const caption = computed(() => {
   const n = view.source.value.length
-  if (view.complete.value) return usersText('organization.users.pager.complete', { n })
-  const loaded = designStub('BE-011', usersText('organization.users.pager.partial', { n }))
-  return `${loaded} · ${usersText('organization.users.partial')}`
+  if (view.complete.value) return usersText('users.pager.complete', { n })
+  const loaded = designStub('BE-011', usersText('users.pager.partial', { n }))
+  return `${loaded} · ${usersText('users.partial')}`
 })
 </script>
 
@@ -60,7 +60,7 @@ const caption = computed(() => {
     <UiErrorState
       v-if="view.loadError.value"
       :error="view.loadError.value"
-      :title="usersText('organization.users.table.error')"
+      :title="usersText('users.table.error')"
       retryable
       :retrying="view.retrying.value"
       @retry="view.retry"
@@ -68,20 +68,12 @@ const caption = computed(() => {
     <UiEmptyState
       v-else-if="isEmpty"
       :icon="filtered ? 'search' : 'users'"
-      :title="
-        usersText(
-          filtered ? 'organization.users.empty.filteredTitle' : 'organization.users.empty.title',
-        )
-      "
-      :text="
-        usersText(
-          filtered ? 'organization.users.empty.filteredText' : 'organization.users.empty.text',
-        )
-      "
+      :title="usersText(filtered ? 'users.empty.filteredTitle' : 'users.empty.title')"
+      :text="usersText(filtered ? 'users.empty.filteredText' : 'users.empty.text')"
     >
       <template v-if="filtered" #action>
         <RouterLink class="t-btn t-btn--secondary t-btn--sm" :to="{ name: USERS_ROUTE.name }">
-          {{ usersText('organization.users.empty.clear') }}
+          {{ usersText('users.empty.clear') }}
         </RouterLink>
       </template>
     </UiEmptyState>
@@ -90,7 +82,7 @@ const caption = computed(() => {
         <div
           role="table"
           class="users-grid"
-          :aria-label="usersText('organization.users.table.label')"
+          :aria-label="usersText('users.table.label')"
           :aria-busy="view.loading.value ? 'true' : undefined"
         >
           <div role="row" class="rp-tr rp-tr--head">
@@ -99,25 +91,17 @@ const caption = computed(() => {
               <button
                 type="button"
                 class="rp-sortbtn"
-                :title="usersText('organization.users.table.sortHint')"
+                :title="usersText('users.table.sortHint')"
                 data-testid="users-sort"
                 @click="view.toggleSort"
               >
-                {{
-                  usersText(
-                    ascending
-                      ? 'organization.users.table.sortAsc'
-                      : 'organization.users.table.sortDesc',
-                  )
-                }}
+                {{ usersText(ascending ? 'users.table.sortAsc' : 'users.table.sortDesc') }}
               </button>
             </span>
-            <span role="columnheader">{{ usersText('organization.users.table.roles') }}</span>
-            <span role="columnheader">{{
-              usersText('organization.users.table.coordinatorship')
-            }}</span>
+            <span role="columnheader">{{ usersText('users.table.roles') }}</span>
+            <span role="columnheader">{{ usersText('users.table.coordinatorship') }}</span>
             <span role="columnheader">
-              <span class="rp-sr">{{ usersText('organization.users.table.detail') }}</span>
+              <span class="rp-sr">{{ usersText('users.table.detail') }}</span>
             </span>
           </div>
           <template v-if="view.loading.value">
@@ -126,7 +110,7 @@ const caption = computed(() => {
               :key="`skeleton-${n}`"
               role="row"
               class="rp-tr users-row--skeleton"
-              :aria-label="n === 1 ? usersText('organization.users.table.loading') : undefined"
+              :aria-label="n === 1 ? usersText('users.table.loading') : undefined"
               data-skeleton
             >
               <span v-for="c in 5" :key="c" role="cell"><span class="users-skel" /></span>
@@ -160,22 +144,16 @@ const caption = computed(() => {
         data-testid="users-more"
         @click="view.loadMore"
       >
-        {{
-          usersText(
-            view.loadingMore.value
-              ? 'organization.users.pager.loadingMore'
-              : 'organization.users.pager.more',
-          )
-        }}
+        {{ usersText(view.loadingMore.value ? 'users.pager.loadingMore' : 'users.pager.more') }}
       </UiButton>
       <span v-else aria-hidden="true" />
       <span aria-hidden="true" />
     </div>
     <p v-if="view.truncated.value" class="rp-cap users-note--warn" data-testid="users-truncated">
-      {{ usersText('organization.users.table.truncated') }}
+      {{ usersText('users.table.truncated') }}
     </p>
     <p v-if="!view.rosterMode.value" class="rp-cap users-note" data-testid="users-no-team">
-      {{ usersText('organization.users.table.noTeam') }}
+      {{ usersText('users.table.noTeam') }}
     </p>
   </div>
 </template>

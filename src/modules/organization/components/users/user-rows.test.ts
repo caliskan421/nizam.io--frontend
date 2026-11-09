@@ -102,7 +102,7 @@ describe('sekmeler, arama, sıralama', () => {
 
 describe('metinler', () => {
   it('yer tutucular doldurulur; ağaçta olmayan parça boş döner', () => {
-    expect(usersText('organization.users.pager.complete', { n: 3 })).toBe('3 kullanıcı')
-    expect(usersText('organization.users.table.open', { name: 'Ayşe' })).toBe('Ayşe ayrıntısını aç')
+    expect(usersText('users.pager.complete', { n: 3 })).toBe('3 kullanıcı')
+    expect(usersText('users.table.open', { name: 'Ayşe' })).toBe('Ayşe ayrıntısını aç')
   })
 })

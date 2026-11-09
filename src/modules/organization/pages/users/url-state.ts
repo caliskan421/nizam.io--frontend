@@ -1,6 +1,6 @@
 /**
  * 05 Kullanıcılar URL durumu (K10; README rota satırı). Ad ve değer kümeleri rota kataloğuyla
- * (`organization.users.query`) aynıdır: `rol` (sekme; yoksa "Tümü"), `q` (arama), `koordinatorluk`
+ * (`users.query`) aynıdır: `rol` (sekme; yoksa "Tümü"), `q` (arama), `koordinatorluk`
  * (tek birim), `secili` (yan panel). İmleç/sayfa URL'de taşınmaz (P4). Geçersiz değer sessizce
  * düşer; bilinmeyen anahtar yazılmaz.
  */

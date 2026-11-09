@@ -57,23 +57,23 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
       class="t-btn t-btn--secondary t-btn--sm users-filterbtn"
       aria-haspopup="menu"
       :aria-expanded="open ? 'true' : 'false'"
-      :title="disabled ? usersText('organization.users.department.noProgram') : name(model)"
+      :title="disabled ? usersText('users.department.noProgram') : name(model)"
       :disabled="disabled"
       data-testid="department-filter"
       @click="toggle"
     >
-      {{ usersText('organization.users.department.label') }}
+      {{ usersText('users.department.label') }}
       <UiCount v-if="model" value="1" />
       <UiIcon name="chevron-down" size="sm" />
     </button>
     <UiMenu
       v-if="open"
       class="users-filterpop"
-      :label="usersText('organization.users.department.menu')"
+      :label="usersText('users.department.menu')"
       @close="close(true)"
     >
       <UiMenuItem :checked="model === null" @select="pick(null)">
-        {{ usersText('organization.users.department.all') }}
+        {{ usersText('users.department.all') }}
       </UiMenuItem>
       <UiMenuItem
         v-for="d in departments"

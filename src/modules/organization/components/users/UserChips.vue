@@ -82,7 +82,7 @@ async function submitAdd(): Promise<void> {
 
 <template>
   <div class="users-chips" data-testid="user-chips">
-    <p class="rp-kicker">{{ usersText('organization.users.panel.chips.title') }}</p>
+    <p class="rp-kicker">{{ usersText('users.panel.chips.title') }}</p>
     <div class="users-chips__list">
       <UserChip
         v-for="chip in chips"
@@ -103,7 +103,7 @@ async function submitAdd(): Promise<void> {
         data-testid="chip-add"
         @click="startAdd"
       >
-        + {{ usersText('organization.users.panel.chips.add') }}
+        + {{ usersText('users.panel.chips.add') }}
       </button>
     </div>
     <div v-if="adding" class="users-chips__form" data-testid="chip-add-form">
@@ -111,20 +111,20 @@ async function submitAdd(): Promise<void> {
         <UiSelect
           v-model="department"
           :options="options"
-          :placeholder="usersText('organization.users.panel.chips.departmentPlaceholder')"
-          :aria-label="usersText('organization.users.panel.chips.department')"
+          :placeholder="usersText('users.panel.chips.departmentPlaceholder')"
+          :aria-label="usersText('users.panel.chips.department')"
           data-testid="chip-add-department"
         />
         <UiSelect
           v-if="chooseRole"
           v-model="roleValue"
           :options="roleOptions"
-          :aria-label="usersText('organization.users.panel.chips.roleLabel')"
+          :aria-label="usersText('users.panel.chips.roleLabel')"
           data-testid="chip-add-role"
         />
         <div class="users-chips__actions">
           <UiButton size="sm" @click="adding = false">
-            {{ usersText('organization.users.panel.chips.cancel') }}
+            {{ usersText('users.panel.chips.cancel') }}
           </UiButton>
           <UiButton
             size="sm"
@@ -133,14 +133,14 @@ async function submitAdd(): Promise<void> {
             data-testid="chip-add-submit"
             @click="submitAdd"
           >
-            {{ usersText('organization.users.panel.chips.submit') }}
+            {{ usersText('users.panel.chips.submit') }}
           </UiButton>
         </div>
       </template>
       <p v-else class="rp-cap" data-testid="chip-add-none">
-        {{ usersText('organization.users.panel.chips.none') }}
+        {{ usersText('users.panel.chips.none') }}
         <RouterLink :to="{ name: COORDINATORSHIPS_ROUTE.name }">
-          {{ usersText('organization.users.panel.chips.goCoordinatorships') }}
+          {{ usersText('users.panel.chips.goCoordinatorships') }}
         </RouterLink>
       </p>
     </div>

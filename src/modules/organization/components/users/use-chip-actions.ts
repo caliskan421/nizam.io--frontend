@@ -38,22 +38,10 @@ export function reportOutcome(outcome: AnyOutcome | null, success: UsersTextKey)
 function impact(kind: 'role' | 'remove'): ConfirmOptions {
   const isRole = kind === 'role'
   return {
-    title: usersText(
-      isRole
-        ? 'organization.users.panel.impact.roleTitle'
-        : 'organization.users.panel.impact.removeTitle',
-    ),
-    body: [
-      usersText(
-        isRole
-          ? 'organization.users.panel.impact.roleBody'
-          : 'organization.users.panel.impact.removeBody',
-      ),
-    ],
+    title: usersText(isRole ? 'users.panel.impact.roleTitle' : 'users.panel.impact.removeTitle'),
+    body: [usersText(isRole ? 'users.panel.impact.roleBody' : 'users.panel.impact.removeBody')],
     confirmLabel: usersText(
-      isRole
-        ? 'organization.users.panel.impact.roleConfirm'
-        : 'organization.users.panel.impact.removeConfirm',
+      isRole ? 'users.panel.impact.roleConfirm' : 'users.panel.impact.removeConfirm',
     ),
     tone: isRole ? 'primary' : 'danger',
   }
@@ -83,23 +71,20 @@ export function useChipActions(accountId: () => string) {
       const vars = { programId, departmentId, accountId: accountId(), role }
       return reportOutcome(
         await updateRole.submit(vars, impact('role')),
-        'organization.users.panel.chips.roleChanged',
+        'users.panel.chips.roleChanged',
       )
     })
 
   const removeChip = (departmentId: string) =>
     run(departmentId, async (programId) => {
       const vars = { programId, departmentId, accountId: accountId() }
-      return reportOutcome(
-        await remove.submit(vars, impact('remove')),
-        'organization.users.panel.chips.removed',
-      )
+      return reportOutcome(await remove.submit(vars, impact('remove')), 'users.panel.chips.removed')
     })
 
   const add = (departmentId: string, role: TeamRole) =>
     run('add', async (programId) => {
       const vars = { programId, departmentId, accountId: accountId(), role }
-      return reportOutcome(await assign.submit(vars), 'organization.users.panel.chips.added')
+      return reportOutcome(await assign.submit(vars), 'users.panel.chips.added')
     })
 
   return { pending, changeRole, removeChip, add }

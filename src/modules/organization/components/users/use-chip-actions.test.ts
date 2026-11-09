@@ -50,18 +50,18 @@ describe('useChipActions', () => {
   })
 
   it('reportOutcome: vazgeç ve sökülmüş sahip sessiz; başarı bildirimi', () => {
-    expect(reportOutcome(null, 'organization.users.panel.chips.added')).toBe(false)
+    expect(reportOutcome(null, 'users.panel.chips.added')).toBe(false)
     expect(
       reportOutcome(
         { kind: 'owner_disposed' } as Parameters<typeof reportOutcome>[0] & object,
-        'organization.users.panel.chips.added',
+        'users.panel.chips.added',
       ),
     ).toBe(false)
     expect(useToast().queue.value).toHaveLength(0)
     expect(
       reportOutcome(
         { kind: 'success', data: {} } as Parameters<typeof reportOutcome>[0] & object,
-        'organization.users.panel.chips.added',
+        'users.panel.chips.added',
       ),
     ).toBe(true)
     expect(useToast().queue.value.map((t) => t.message)).toEqual(['Koordinatörlüğe eklendi.'])
