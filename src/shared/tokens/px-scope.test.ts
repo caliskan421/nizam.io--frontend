@@ -8,8 +8,9 @@ import { describe, expect, it } from 'vitest'
 import { TOKENS } from './tokens.gen'
 
 // CX-F0-Ö-02: ölçek dışı px değerleri design/web-tokens.json → `pnpm gen:tokens` ile üretilir; px
-// yalnız üretilmiş token dosyasında. Tek istisna medya koşulu (CSS değişkeni orada çalışmaz;
-// değer `--rp-narrow-max` ile aynı, kabuk stil testleri denetler).
+// yalnız üretilmiş token dosyasında. Tek istisna medya koşulu (CX-F1-K-03): CSS değişkeni `@media`
+// koşulunda çalışmaz, eşik sayı olarak yazılır. Bu istisna serbest değildir — her medya eşiğinin
+// `--rp-narrow-max` (ya da +1) token değerine eşitliği `media-thresholds.test.ts` ile sabitlenir.
 const src = fileURLToPath(new URL('../..', import.meta.url))
 const GENERATED = new Set(['shared/tokens/tokens.gen.css', 'shared/tokens/tailwind.gen.css'])
 const PX = /\d(?:\.\d+)?px\b/

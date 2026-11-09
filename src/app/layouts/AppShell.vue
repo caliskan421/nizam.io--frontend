@@ -93,6 +93,7 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
   .rp-narrow-scrim {
     display: none;
   }
+  /* Eşik = `--rp-narrow-max` (medya koşulunda var() çalışmaz; eşitlik media-thresholds.test.ts). */
   @media (max-width: 900px) {
     .rp-narrow-scrim {
       display: block;
