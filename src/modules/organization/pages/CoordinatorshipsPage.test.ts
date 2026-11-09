@@ -239,7 +239,7 @@ describe('eylemler (E-08-05, E-08-33, E-08-38)', () => {
     expect(wrapper.get('[data-form]').attributes('data-form')).toBe('open')
   })
 
-  it('"Koordinatör ata" → diyalog birimle açılır; atama sonrası rapor yeniden okunur', async () => {
+  it('"Koordinatör ata" → diyalog birimle açılır; sayfa raporu kendisi yeniden okumaz (W82a: geçersizleme haritası)', async () => {
     server.use(...handlers())
     const { wrapper } = await page()
     await wrapper.get('[data-department="d2"] .coords-assign').trigger('click')
@@ -247,7 +247,7 @@ describe('eylemler (E-08-05, E-08-33, E-08-38)', () => {
     expect(dialog.props('departmentId')).toBe('d2')
     dialog.vm.$emit('assigned', 'acc-9')
     await settle()
-    expect(sent('GET', DASHBOARD_PATH)).toHaveLength(2)
+    expect(sent('GET', DASHBOARD_PATH)).toHaveLength(1)
     dialog.vm.$emit('update:open', false)
     await settle()
     expect(wrapper.find('[data-assign]').exists()).toBe(false)

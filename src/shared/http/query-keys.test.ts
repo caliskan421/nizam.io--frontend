@@ -163,7 +163,7 @@ const TABLE: Array<{
     resource: 'report',
     key: queryKeys.report.coordinatorships(S),
     expected: [...root(S), 'report', 'dashboard', 'coordinatorships'],
-    mustInvalidate: [],
+    mustInvalidate: ['assignMembership', 'removeCoordinator', 'linkDepartment', 'deleteUser'],
   },
   {
     resource: 'archive',
@@ -226,9 +226,23 @@ describe('query-keys — §6 tablosu', () => {
     },
   )
 
-  it('kurulum profili ve pano hiçbir yazmayla geçersizlenmez', () => {
+  it('kurulum profili hiçbir yazmayla geçersizlenmez; pano görev yazmalarıyla geçersizlenmez', () => {
     expect(INVALIDATED_BY['instance.profile']).toEqual([])
-    expect(INVALIDATED_BY.report).toEqual([])
+    for (const op of ['createWorkItem', 'updateWorkItem', 'transitionWorkItem', 'deleteWorkItem']) {
+      expect(INVALIDATED_BY.report, op).not.toContain(op)
+    }
+  })
+
+  it('W82a: organizasyon yazması yalnız eylemin programının panosunu vurur (mercek/birimden bağımsız)', () => {
+    const adminLens = queryKeys.report.dashboard({ programId: S.programId, departmentId: null })
+    const coordLens = queryKeys.report.dashboard({ programId: S.programId, departmentId: 'd9' })
+    const other = queryKeys.report.dashboard({ programId: 'baska', departmentId: null })
+    const tasks = queryKeys.workItems.list(S, {})
+    expect(hits('assignMembership', [adminLens, coordLens, other, tasks])).toEqual([
+      adminLens,
+      coordLens,
+    ])
+    expect(hits('createWorkItem', [adminLens])).toEqual([])
   })
 
   it('her operationId sözleşmede var ve yazma ucudur', () => {

@@ -62,6 +62,8 @@ describe('PersonPicker (E-08-33/79 seçici; P3)', () => {
     const input = $('[name="person-search"]') as HTMLInputElement
     expect(input.getAttribute('role')).toBe('combobox')
     expect(input.getAttribute('aria-label')).toBe('Kişi')
+    // W82a: liste yokken `aria-controls` olmayan öğeye başvurmaz; açılınca listeyi gösterir.
+    expect(input.hasAttribute('aria-controls')).toBe(false)
     input.dispatchEvent(new Event('focus'))
     await vi.waitFor(() => expect($('[role="option"]')).not.toBeNull())
     await h.flush()
@@ -70,6 +72,9 @@ describe('PersonPicker (E-08-33/79 seçici; P3)', () => {
     expect(req!.query.get('sort_order')).toBe('asc')
     expect(req!.query.get('search')).toBeNull()
     expect(input.getAttribute('aria-expanded')).toBe('true')
+    expect(
+      document.getElementById(input.getAttribute('aria-controls')!)?.getAttribute('role'),
+    ).toBe('listbox')
     expect(document.body.querySelectorAll('[role="option"]')).toHaveLength(2)
   })
 
