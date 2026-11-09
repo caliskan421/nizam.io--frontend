@@ -3,7 +3,7 @@
 // gerçek backend'e karşı. Giriş ekranı yer tutucudur (tasarım program sonrası istemci geliştirmesi).
 import { expect, test } from '@playwright/test'
 
-import { cspViolations, enforceCaddyCsp, loadedFontFamilies } from './csp-check'
+import { cspViolations, describeViolations, enforceCaddyCsp, loadedFontFamilies } from './csp-check'
 import { ADMIN, readFixture } from './fixture'
 import { componentLayerProbe } from './layer-check'
 import { storageHasOnlyAllowedKeys } from './storage-check'
@@ -38,9 +38,10 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   await expect(status).toHaveAttribute('data-status', 'authenticated')
   await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
 
-  // Kendi barındırılan yazı tipleri `font-src 'self'` altında yüklendi: font ihlali 0 (CX-F0-Ö-05).
+  // Üretim CSP'sinde BÜTÜN ihlaller 0 (CX-F1-Ö-03; yazı tipi CX-F0-Ö-05 dahil): kendi barındırılan
+  // yazı tipleri `font-src 'self'` ile yüklendi; ayrıntı hata iletisinde.
   const violations = await cspViolations(page)
-  expect(violations.filter((v) => v.directive === 'font-src')).toEqual([])
+  expect(violations, describeViolations('/', violations)).toEqual([])
   expect(await loadedFontFamilies(page)).toEqual(expect.arrayContaining(['Inter', 'Poppins']))
 
   // Katman sırası (W61b): kabuk yüklendi; components katmanı Tailwind base/preflight'ın üstünde.
@@ -72,6 +73,16 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   expect(await storageHasOnlyAllowedKeys(page, [accessToken, renewed])).toEqual([])
 
   await page.screenshot({ path: 'test-results/smoke-authenticated.png', fullPage: true })
+
+  // Görev listesi parçası da üretim CSP'sinde ihlalsiz (CX-F1-Ö-03). Tam gezinme: bellek sıfırlanır,
+  // oturum sessiz refresh ile döner; ihlal toplayıcı her belgede yeniden kurulur.
+  await page.goto('/gorevler')
+  await expect(page.getByTestId('app-shell')).toBeVisible()
+  await page.waitForLoadState('networkidle')
+  const taskViolations = await cspViolations(page)
+  expect(taskViolations, describeViolations('/gorevler', taskViolations)).toEqual([])
+  await page.goto('/')
+  await expect(status).toHaveAttribute('data-status', 'authenticated')
 
   // Çıkış: gerçek POST /v1/auth/logout (204) + bellek temizliği.
   const logout = page.waitForResponse((r) => r.url().endsWith('/v1/auth/logout'))
