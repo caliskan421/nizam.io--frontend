@@ -15,6 +15,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { api } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 import { serverRoleOf } from '../model/capabilities'
 import type {
@@ -71,8 +72,10 @@ function departmentQuery<D>(
       const id = toValue(departmentId)
       return {
         queryKey: key(scope, id ?? ''),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        // Okuyucu kapısı (CX-F2-Ö-01): başka oturumda başlamış okuma bu oturuma yazılmaz.
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetcher(scope.programId ?? '', id ?? '', signal),
+        ),
         enabled: toValue(enabled) && id !== null && id !== '' && scope.programId !== null,
         retry: retryTransient,
         staleTime: ORGANIZATION_STALE_MS,

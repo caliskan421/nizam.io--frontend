@@ -6,11 +6,12 @@
  * anahtarın TEK okuyucusu `shared/scope/standing.ts` `fetchProgramDepartments` — önbellek şekli
  * work / kabuk K7 / organizasyon okuyucularıyla aynı (`{ departments, truncated? }`; W71c).
  */
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, type Ref } from 'vue'
 
 import { queryKeys } from '@/shared/http/query-keys'
 import { fetchProgramDepartments } from '@/shared/scope/standing'
+import { sessionBound } from '@/shared/session/query-session'
 
 import { departmentCode } from './program-avatar'
 import { useSideScope } from './scope-view'
@@ -20,10 +21,12 @@ type ProgramDepartmentList = Awaited<ReturnType<typeof fetchProgramDepartments>>
 
 export function useDepartmentCode(
   active: Ref<boolean>,
-  fetcher?: (programId: string | null) => Promise<ProgramDepartmentList>,
+  fetcher?: (programId: string | null, signal?: AbortSignal) => Promise<ProgramDepartmentList>,
 ) {
   const scope = useSideScope()
-  const read = fetcher ?? ((programId: string | null) => fetchProgramDepartments(programId))
+  const read =
+    fetcher ??
+    ((programId: string | null, signal?: AbortSignal) => fetchProgramDepartments(programId, signal))
   const enabled = computed(
     () =>
       active.value &&
@@ -34,7 +37,11 @@ export function useDepartmentCode(
   const query = useQuery(
     computed(() => ({
       queryKey: queryKeys.departments.all(scope.store.snapshot),
-      queryFn: () => read(scope.store.programId),
+      // Okuyucu kapısı + iptal sinyali (CX-F2-Ö-01): başka oturumda başlamış okuma bu oturuma
+      // yazılmaz; çıkışta iptal edilen sorgunun isteği kesilir.
+      queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+        read(scope.store.programId, signal),
+      ),
       enabled: enabled.value,
       staleTime: 60_000,
     })),

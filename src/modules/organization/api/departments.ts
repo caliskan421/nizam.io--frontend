@@ -24,6 +24,7 @@ import { api } from '@/shared/http'
 import { runWithFollowUps } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 import type {
   CreateCoordinatorshipInput,
@@ -57,8 +58,10 @@ export function useProgramDepartmentIndex(enabled: MaybeRefOrGetter<boolean> = t
       const scope = store.snapshot
       return {
         queryKey: queryKeys.departments.all(scope),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        // Okuyucu kapısı (CX-F2-Ö-01): başka oturumda başlamış okuma bu oturuma yazılmaz.
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           readProgramDepartments(scope.programId ?? '', signal),
+        ),
         enabled: toValue(enabled) && scope.programId !== null,
         retry: retryTransient,
         staleTime: ORGANIZATION_STALE_MS,
@@ -79,8 +82,9 @@ export function useCatalogDepartments(enabled: MaybeRefOrGetter<boolean> = true)
   const query = useQuery(
     computed(() => ({
       queryKey: queryKeys.catalog.departments(),
-      queryFn: ({ signal }: QueryFunctionContext) =>
+      queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
         unwrapList(api.GET('/v1/departments', { signal })),
+      ),
       enabled: toValue(enabled),
       retry: retryTransient,
       staleTime: ORGANIZATION_STALE_MS,
@@ -101,19 +105,21 @@ export function useDeletedDepartments(enabled: MaybeRefOrGetter<boolean> = true)
       const scope = store.snapshot
       return {
         queryKey: queryKeys.deletedDepartments.all(scope),
-        queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-          unwrapList(
-            api.GET('/v1/admin/deleted/departments', {
-              params: {
-                header: programHeader(scope.programId ?? ''),
-                query: {
-                  limit: DELETED_DEPARTMENT_PAGE_LIMIT,
-                  ...(pageParam ? { cursor: pageParam } : {}),
+        queryFn: sessionBound(
+          ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
+            unwrapList(
+              api.GET('/v1/admin/deleted/departments', {
+                params: {
+                  header: programHeader(scope.programId ?? ''),
+                  query: {
+                    limit: DELETED_DEPARTMENT_PAGE_LIMIT,
+                    ...(pageParam ? { cursor: pageParam } : {}),
+                  },
                 },
-              },
-              signal,
-            }),
-          ),
+                signal,
+              }),
+            ),
+        ),
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (last: DeletedDepartmentList) => last.next_cursor || undefined,
         enabled: toValue(enabled) && scope.programId !== null,

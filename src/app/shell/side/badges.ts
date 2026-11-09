@@ -12,7 +12,7 @@
  * Anahtarlar `shared/http/query-keys.ts`: `scoped(['report','dashboard'])` (kapsam değişince
  * düşer) ve hesap geneli `['notifications','unread-count']`.
  */
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { CURRENT_PHASE, type Phase, visibilityOf } from '@/app/routes.catalog'
@@ -21,6 +21,7 @@ import { designStub } from '@/shared/design-stub'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 import { useSessionStore } from '@/shared/session/store'
 
 import { injectScopeLifecycle } from './scope-key'
@@ -28,12 +29,12 @@ import { injectScopeLifecycle } from './scope-key'
 type DashboardReport = components['schemas']['DashboardReport']
 export type DashboardCounts = Pick<DashboardReport, 'overdue_tasks' | 'pending_date_changes'>
 
-export async function fetchDashboardCounts(): Promise<DashboardCounts> {
-  return unwrap(api.GET('/v1/reports/dashboard'))
+export async function fetchDashboardCounts(signal?: AbortSignal): Promise<DashboardCounts> {
+  return unwrap(api.GET('/v1/reports/dashboard', { signal }))
 }
 
-export async function fetchUnreadNotificationCount(): Promise<number> {
-  const result = await unwrap(api.GET('/v1/notifications/unread-count'))
+export async function fetchUnreadNotificationCount(signal?: AbortSignal): Promise<number> {
+  const result = await unwrap(api.GET('/v1/notifications/unread-count', { signal }))
   return result.count
 }
 
@@ -48,7 +49,7 @@ function positive(value: number | undefined): number | null {
 
 export function useTaskBadges(
   phase: Phase = CURRENT_PHASE,
-  fetcher: () => Promise<DashboardCounts> = fetchDashboardCounts,
+  fetcher: (signal?: AbortSignal) => Promise<DashboardCounts> = fetchDashboardCounts,
 ) {
   const lifecycle = injectScopeLifecycle()
   const store = useScopeStore()
@@ -64,7 +65,8 @@ export function useTaskBadges(
   const query = useQuery(
     computed(() => ({
       queryKey: queryKeys.report.dashboard(store.snapshot),
-      queryFn: fetcher,
+      // Okuyucu kapısı (CX-F2-Ö-01; faz etkinliğinden bağımsız): eski oturumun okuması yazılmaz.
+      queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetcher(signal)),
       enabled: adminView.value,
       staleTime: 30_000,
     })),
@@ -94,12 +96,12 @@ export const UNREAD_NOTIFICATIONS_KEY = queryKeys.notifications.unreadCount()
 
 /** Okunmamış bildirim sayısı (E-00-38; zil paneli F7'ye kadar devre dışı). Hata → `null`. */
 export function useUnreadNotifications(
-  fetcher: () => Promise<number> = fetchUnreadNotificationCount,
+  fetcher: (signal?: AbortSignal) => Promise<number> = fetchUnreadNotificationCount,
 ) {
   const session = useSessionStore()
   const query = useQuery({
     queryKey: UNREAD_NOTIFICATIONS_KEY,
-    queryFn: fetcher,
+    queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetcher(signal)),
     enabled: computed(() => session.isAuthenticated),
     staleTime: 30_000,
   })
