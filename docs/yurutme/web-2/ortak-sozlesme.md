@@ -1,6 +1,6 @@
 # Ortak sözleşme — her uygulayıcı isteminin başına AYNEN eklenir
 
-> Koordinatör `---` çizgisinden sonraki kısmı kopyalar, `<W-ID>`, `<WORKTREE>`, `<DAL>` yer tutucularını doldurur, altına uygulayıcıya özel istemi ekler. Kaynak: `../web-1/ortak-sozlesme.md` (WEB-2 adlarıyla; 2a, 6 güncellendi; KESİN 15–16 web-1 dersleriyle eklendi).
+> Koordinatör `---` çizgisinden sonraki kısmı kopyalar, `<W-ID>`, `<WORKTREE>`, `<DAL>` yer tutucularını doldurur, altına uygulayıcıya özel istemi ekler. Kaynak: `../web-1/ortak-sozlesme.md` (WEB-2 adlarıyla; 2a, 6 güncellendi; KESİN 15–16 web-1 dersleriyle eklendi; KESİN 17–21 web-1 O5 Codex tur 1 ve düzeltme turu dersleriyle eklendi).
 
 ---
 
@@ -34,6 +34,11 @@ Sen NIZAM.IO web istemcisinde (Vue 3, WEB-2) bir **uygulayıcısın** (`<W-ID>`)
 14. **Soru sorulmaz.** Belirsizlikte kabul tablosu → `ortak-kurallar.md` → yol haritası varsayılanıyla ilerle, rapora yaz. Monitor / `until … sleep` / `watch` kullanma.
 15. **Yazma değişkenleri düz nesnedir; Vue vekilleri hook'ta açılır.** Bileşen `ref`/`reactive` nesnesini mutasyona olduğu gibi vermez; `useProtectedMutation` vekilleri açar (W41c), sen bunu atlatacak klon/serileştirme yazmazsın. (Web-1 dersi.)
 16. **Paralel işçiler komşu bileşeni taslakla test ettiyse entegrasyon turu zorunludur.** Komşu W'nin bileşenini taslakla (stub) değiştirdiğin her testi rapora `TASLAK: <bileşen> — <test dosyası>` satırıyla yazarsın; bu satırlar O4 (W82) entegrasyon turunun girdisidir. (Web-1 W48 dersi.)
+17. **Her UI PR'ında üretim paketi görsel dumanı** (`pnpm build` çıktısı + üretim CSP'si, sahte `/v1`): değişen rotalarda hesaplanmış stil (dolgu/yazı tipi/katman sırası beklenen değerde), 390/1024/1440 genişlikte yatay taşma 0, açık + koyu tema, **tüm CSP ihlalleri 0** (yalnız `font-src` değil). Ölçümler rapordaki `Görsel duman:` satırına yazılır; satırsız rapor teslim sayılmaz. (Web-1 dersi: CSS katman sırası #37–#43 arası birleşmiş üretim paketini bozdu, hiçbir kapı yakalamadı; Codex CX-F1-Ö-03.)
+18. **e2e değişikliği sahte `/v1` ile tam akış provası olmadan teslim edilmez.** `e2e/**`'ye dokunduysan değişen spec'i sahte `/v1` ile baştan sona yerelde koşar, sonucu rapora yazarsın (KESİN 11'deki "`pnpm e2e` koşmazsın" yalnız tam paket için geçerlidir; değiştirdiğin spec'in provası zorunludur). (Web-1 dersi: #45 duman testi CI'da kırmızı.)
+19. **İş başına commit.** Her anlamlı iş adımı (bir E-kimliği, bir düzeltme, bir test dosyası) bittiğinde kendi commit'ini atarsın; oturum kesintisinde commit'lenmemiş değişiklik bırakmazsın. (Web-1 dersi: üç işçi oturumu kesildi.)
+20. **Bileşik yazma ve onay ortak altyapıdan.** Çok adımlı yazmalar (oluştur → bağla, oluştur → ata, üyelik zinciri) ilk eylemin bağlamını taşır: ardıl adımlar `followUps(data, context)` + `submit(vars, { context })`; bağlam değiştiyse ardıl adım gönderilmez, ilk başarı korunur, kısmi sonuç bildirilir. İstemci onayları ve `organization.confirmation_required` akışları `shared/ui/confirm` `use-confirm` ile — kapsam/oturum nesli/hesap bağı ve sökülmede vazgeç hazırdır; tüketici kendi kuyruk, iptal ya da bayat bağlam mantığını yazmaz. (Codex CX-F1-E-02/E-03, W62.)
+21. **Üye merceği / atanan süzmesi tek yüklemden.** "Bana atananlar" ya da "atanan = bu kişi" kümesi yalnız `src/modules/work/public.ts` üzerinden `work/model/assignment.ts` yüklemleriyle (`isAssignedTo`, `lensAssignee`, `assignedSubset`) kurulur; liste, sayaçlar, sayfalayıcı, boş durum ve KPI aynı kümeden beslenir; ayrı süzme kodu yazılmaz (pinli spec'te sunucu atanan süzgeci yok — BE-038). (Codex CX-F1-E-01, W63.)
 
 ## SERBEST
 
@@ -48,6 +53,8 @@ Kapı: typecheck / lint / format / test (sayı) / build — sonuç
 YENİ-EKSİK: (satırlar ya da "yok")
 SAHİPLİK-DIŞI İHTİYAÇ: (satırlar ya da "yok")
 TASLAK: (satırlar ya da "yok")
+Görsel duman: rota × 390/1024/1440 taşma · iki tema · hesaplanmış stil · CSP ihlali sayısı (UI değişmediyse "UI yok")
+e2e provası: (değişen spec + sonuç ya da "e2e değişmedi")
 Varsayım (koordinatör onayı gerekir): (satırlar ya da "yok")
 Açık kalan / risk:
 ```
