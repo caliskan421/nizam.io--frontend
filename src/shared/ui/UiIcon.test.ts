@@ -22,6 +22,10 @@ describe('UiIcon', () => {
     expect(md.classes()).not.toContain('t-icon--md')
   })
 
+  it('kalem (Düzenle) tasarım kaynağındaki yol (Koordinatorluk-Detay.dc.html)', () => {
+    expect(ICONS.edit).toBe('M4 20h4L19 9l-4-4L4 16zM14 6l4 4')
+  })
+
   it('her yol yalnız SVG yol komutlarından oluşur', () => {
     for (const d of Object.values(ICONS)) expect(d).toMatch(/^M[0-9MmLlHhVvCcSsAaZz .,-]+$/)
   })

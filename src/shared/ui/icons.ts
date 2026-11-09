@@ -67,6 +67,8 @@ export const ICONS = {
   close: 'M6 6l12 12M18 6 6 18',
   copy: 'M8 8h12v12H8zM4 16V4h12',
   trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  /** Düzenle (Koordinatorluk-Detay.dc.html "Hakkında › Düzenle"). */
+  edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
 } as const
 
 export type IconName = keyof typeof ICONS
