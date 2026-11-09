@@ -1,6 +1,6 @@
 # WEB-2 (F2) — Codex nihai kapı hükmü
 
-**Son hüküm: KOŞULLU UYGUN** — 1. koşum, kapanış dalı `web2/o5-kapanis` @ `9a18ee8` (`main` @ `d036208`, #51–#62 birleşik).
+**Son hüküm: KOŞULLU UYGUN** — 2. koşum, kapanış dalı `web2/o5-kapanis` @ `8a282e8` (`main` @ `d52510c`, #51–#63 birleşik). Tek koşul (Ö-03 kayıt cümlesi) bu PR'da kapatıldı; F3 devirleri `docs/yurutme/web-3/`.
 Koşullar: CX-F2-Ö-01…Ö-03 F3 açılmadan / F3 içinde kapatılır; "Ö-07/Ö-08 tamamen kapandı" ve "bütün görsel kusurlar kapandı" ifadeleri kanıt sınırına göre düzeltilir (bu PR).
 Denetçi: Codex, `codex exec -s read-only`, tek ve salt okunur koşum; test/lint/build çalıştırmadı, dosya değiştirmedi.
 Kayıt: yürütme `docs/yurutme/web-2/ilerleme.md` (O5); görsel tanık `docs/yurutme/web-2/dogrulama-F2.md`; yönetim deposu satırı kapanışta.
@@ -8,7 +8,7 @@ Kayıt: yürütme `docs/yurutme/web-2/ilerleme.md` (O5); görsel tanık `docs/yu
 | Koşum | Denetlenen dal/HEAD | Hüküm | Açılan bulgular | Düzeltme |
 |---|---|---|---|---|
 | 1 | kapanış dalı `9a18ee8` (main `d036208`, #51–#62 birleşik) | **KOŞULLU UYGUN** | Engelleyici yok; CX-F2-Ö-01 (Ö-08 okuyucu katmanı: organizasyon `queryFn`'leri ve kabuk `department-code.ts` `sessionBound`/signal'siz) · Ö-02 (program `redactPassword` sökülmüş sahip işaretini düşürüyor) · Ö-03 (görsel tanık `7ee18fe` imajı; "hepsi kapandı" K-7/K-8 ile çelişiyor) · K-01 (`useToast` kurulum istisnaları) · K-02 (E-05-05 satırı, BE-036(4) sıralama değer kümesi, `reports.ts` yorumu) · K-03 (kesilmiş liste `complete`) · K-04 (Ö-07 metninde önbellek uzlaştırması ayrımı) | Ö-01, Ö-02, K-01, K-03 (ve K-02'nin `reports.ts` yorumu) → **W84** (PR #63 `d52510c`) · Ö-03 → bu PR belge düzeltmesi + #62 sonrası hedefli gerçek imaj tanığı (gerçek imaj yeniden tanığı (adım 3b): main `d036208` → `nizamio-web-o5f2b:d036208` + Caddy kenarı + gerçek backend; 52 ölçüm (390/1024/1440 × koyu/açık) taşma 0, CSP 0, `pageerror` 0; K-1 zorunlu parola akışı uçtan uca (yanlış mevcut parolada `POST /v1/auth/password` 1, refresh 0; parolalar DOM/depo/önbellek/adres çubuğunda yok), K-2 üç formda 6/6, K-3 390 px kırpılma 0, K-6 uyarı görünüyor (`page.route` başlığıyla), K-4/K-5 doğrulandı; yeni kusur yok — ayrıntı `dogrulama-F2.md` §9) · K-02, K-04 → bu PR |
-| 2 | `<tur 2 HEAD>` | `<tur 2 hüküm>` | `<tur 2 bulgular>` | `<tur 2 düzeltme>` |
+| 2 | kapanış dalı `8a282e8` (main `d52510c`, #51–#63 birleşik) | **KOŞULLU UYGUN** | Ö-01, Ö-02, K-01…K-04 kaynakta kapandı; Ö-03 koşullu — `ilerleme.md` adım 3 paragrafı eski tanığı güncel durum gibi anlatıyordu; yeni işlevsel bulgu yok | kayıt cümlesi bu PR'da düzeltildi; F3 devirleri W97 (11)–(15), ürün/tasarım kararları `web-3/ilerleme.md` |
 
 Düzeltme planı (koordinatör, 2026-11-10): **Ö-01/Ö-02/K-01/K-03 kod → W84** (PR #63 `d52510c`): organizasyon okuyucuları (`users.ts`, `reports.ts`, `departments.ts`, `members.ts`) ve kabuk `department-code.ts` `sessionBound` + signal, gecikmiş GET/tekrar senaryoları ve yeni hesabın olumlu doğrulaması; `program/api/programs.ts` `redactPassword` `isDetached/markDetached` kalıbıyla; ortak yardımcıların `useToast` istisnası (setup'ta yakalanan bildirici ya da açık belge); `complete` hesabına `!truncated`. **Ö-03 → bu PR:** `ilerleme.md` adım 3 paragrafı kusur bazlı tabloya çevrildi (K-1…K-6 #62, K-7/K-8 F3 W97'ye devredildi); #62 sonrası etkilenen akışlar gerçek imajda yeniden tanıklanır → gerçek imaj yeniden tanığı (adım 3b): main `d036208` → `nizamio-web-o5f2b:d036208` + Caddy kenarı + gerçek backend; 52 ölçüm (390/1024/1440 × koyu/açık) taşma 0, CSP 0, `pageerror` 0; K-1 zorunlu parola akışı uçtan uca (yanlış mevcut parolada `POST /v1/auth/password` 1, refresh 0; parolalar DOM/depo/önbellek/adres çubuğunda yok), K-2 üç formda 6/6, K-3 390 px kırpılma 0, K-6 uyarı görünüyor (`page.route` başlığıyla), K-4/K-5 doğrulandı; yeni kusur yok — ayrıntı `dogrulama-F2.md` §9. **K-02, K-04 → bu PR:** E-05-05 satırı BE-107 ile daraltıldı; `kayit.md` BE-036 madde 4 ve `rapor-F2.md`'ye `listUsers` sıralama değer kümesi notu; `ortak-kurallar.md` §7 Ö-07 metninde ortak önbellek uzlaştırması ile sökülmüş ekranın ek okuma/UI akışı/bildirim başlatmaması ayrıldı, pano `staleTime` periyodik yenileme değildir. "Ö-07/Ö-08 tamamen kapandı" ifadeleri "W82b ile kapandı; okuyucu katmanı W84 ile tamamlandı" biçimine çevrildi.
 
@@ -136,4 +136,50 @@ Yöntem/yol, program başlığı, `confirm` konumu, gövde alanları, aktarım a
 9. W97 timeout riski ölçülerek çözülsün; sabit uyku veya kapsamı daraltılmış sahte bileşenlerle yeşile çevrilmesin.
 10. F3 kapanışında CI kanıtı, son uygulama commit’i ve görsel tanık aynı sürüme bağlansın; K-7/K-8 dahil devredilen kusurlar kaybolmasın.
 
-<!-- TUR 2 TAM METNİ BURAYA -->
+---
+
+# WEB-2 (F2) — Codex nihai kapı hükmü — 2. koşum
+
+- **Hüküm: KOŞULLU UYGUN.** Ö-01/Ö-02 ve K-01…K-04 kaynak düzeyinde karşılanmış; incelenen değişikliklerde yeni işlevsel engelleyici saptamadım. Tek kalan koşul, Ö-03 kaydındaki yeniden tanık çelişkisinin F2 kapanış PR’ında düzeltilmesidir.
+- **Denetlenen:** `web2/o5-kapanis` @ `8a282e87bdbad79d78d26af44b74fb704ca3307a`; başlangıç/bitiş çalışma ağacı temiz.
+- **Komutlar:** İlk işlem `git rev-parse HEAD`, `git log --oneline -12`, `git status --short`; ardından `git log --first-parent`, `git diff`, `rg`, `nl -ba`, `sed`, `cat`, `ls`. Test/lint/build çalıştırılmadı; dosya değiştirilmedi.
+- Yol kısaltmaları: **O**=`src/modules/organization`, **P**=`src/modules/program`, **S**=`src/shared`, **Y2/Y3**=`docs/yurutme/web-2` / `web-3`.
+
+## Ö-01…Ö-03 ve K-01…K-04 kapanış tablosu
+
+| Bulgu | Durum | Kanıt dosya:satır | Kalan risk |
+|---|---|---|---|
+| Ö-01 | Kaynakta kapandı | `O/api/users.ts:108`; `departments.ts:62,85,108`; `members.ts:76`; `reports.ts:42`; `src/app/shell/side/department-code.ts:42`; `badges.ts:69,104` | İstenen tüm `queryFn` taramasında sarmalsız tanım yok. Çalışma zamanı bu koşumda doğrulanmadı. |
+| Ö-02 | Kapandı | `P/api/programs.ts:114`; `P/api/programs.test.ts:148` | Yeni nesne `isDetached→markDetached` ile işareti koruyor; taslaksız sonuç aynı nesne. Test geçişi bağımsız doğrulanmadı. |
+| Ö-03 | Koşullu | `Y2/ilerleme.md:94,98,104`; `Y2/dogrulama-F2.md:161`; `Y3/oturum-3-entegrasyon.md:20` | Kusur tablosu, #62 tanığı ve devir mevcut; `ilerleme.md:94` hâlâ “henüz yeniden gözlenmedi” diyor. |
+| K-01 | Belgeyle kapandı | `S/ui/confirm/notify.ts:16,38,54`; `S/ui/confirm/use-confirm.ts:28,263` | Sonuç sonrası `useToast()` sürüyor; detached/owner denetimi önce yapılıyor. Ortak yardımcı istisnası açık. |
+| K-02 | Kapandı | `docs/ekranlar/05-kullanicilar/README.md:38`; `docs/backend-eksikleri/kayit.md:43`; `O/api/reports.ts:5` | BE-107 aktarımı devre dışı; BE-036(4) enum eksiği açık. Backend eksikleri kapanmış sayılmıyor. |
+| K-03 | Kapandı | `O/api/users.ts:123`; `O/components/users/use-users-view.ts:114`; `O/api/users.test.ts:88` | Liste ve tek-birim kipinde kesilmiş küme `complete=false`; test kaynakları iki kipi de kapsıyor. |
+| K-04 | Kapandı | `docs/ekranlar/ortak-kurallar.md:80,95` | Ortak önbellek uzlaştırması ile sökülmüş ekranın ek okuma/UI/bildirim başlatması ayrılmış; `staleTime` periyodik yenileme sayılmıyor. |
+
+Ö-01’de signal uç çağrısına taşınıyor: `O/api/users.ts:68,81,84`, `departments.ts:86,119`, `members.ts:47,57`, `reports.ts:29`; ortak departman zinciri `O/api/http.ts:34` → `S/scope/standing.ts:177`; kabuk sayaçları `badges.ts:33,37`.
+
+Yeni testler anlamlı: `O/api/users.session.test.ts:56,80` merkezi iptal bağını kurmadan gecikmiş GET ve duraklatılmış tekrar sırasında acc-1→acc-2 geçişini, boş önbelleği ve yalnız eski Bearer çağrısını denetliyor. `department-code.test.ts:110,129` aynı kapıyı enjekte edilen okuyucuyla sınayıp signal varlığını doğruluyor; gerçek ağ iptalinin kanıtı değil.
+
+`S/scope/session-isolation.test.ts:201,217,244` yeni hesabın `me` verisinin gerçekten önbellekte bulunmasını ve acc-2 okumasını şart koşuyor. Ö-02 testi sökülme sonrası bilinmeyen sonuçta boş parola, detached işareti, `reachesOwner=false` ve bildirim yokluğunu birlikte denetliyor.
+
+## Regresyon ve kayıt
+
+- `git diff d036208..HEAD -- eslint.config.js` **boş**. `origin/main --first-parent` üzerinde #63 `d52510c`, ardından #62 `d036208` mevcut.
+- W82b merkezi bağlama korunmuş: `S/scope/lifecycle.ts:174`, `S/session/query-session.ts:76`. W67 aynı kimlikle özgün isteği tamamlama kuralı korunmuş: `S/http/client.ts:117,139`.
+- K5 motoru ve anahtarsız bilinmeyen sonuç uzlaştırması değişmemiş: `O/api/keyless.ts:61,72`. W84 okuyucu sarmalları mevcut anahtar/etkinlik/sayfalama düzenini koruyor; incelenen farklarda yazma protokolünü bozan değişiklik yok.
+- #62 gerçek imaj tanığı `Y2/dogrulama-F2.md:165` ile `d036208`/Caddy/backend’e bağlı; K-1…K-6 sonuçları satır 174–184’te. K-6’nın `page.route` müdahalesi açıkça belirtilmiş; bu tanık **W84/denetlenen HEAD tanığı değildir**.
+- 52 ölçüm ve sıfır taşma/CSP/pageerror sonuçları kayıtlı koordinatör beyanıdır. Ham betik bu worktree’de yok; görüntüler depo dışında (`:196`). Sonuçlar bağımsız **doğrulanamadı**.
+- CI yeşilliği, 348 dosya/2349 test ve düzeltmeler geri alınınca kırmızı sonucu **kullanıcı/işçi beyanıdır**.
+- `../program/` yok; yönetim kaydı `../nizam.io--program/program/` üzerinden okundu. Bu rapor ve kapanış hash’i kayda koordinatörce işlenmeli.
+
+## Yeni bulgular (varsa)
+
+Yeni işlevsel bulgu yok. **Ö-03 kayıt artığı:** `Y2/ilerleme.md:94` eski tanığı güncel durum gibi anlatıyor; “ilk tanık 7ee18fe; #62 yeniden tanığı §9” şeklinde düzeltilmeli. Bu koşul **F2 kapanış PR’ında**, F3 açılmadan kapanır.
+
+## F3'e devir
+
+- **W97 (11–15):** çip kaldırmada çift bildirim; bağlı `DepartmentForm` kapsam değişimi sonrası bildirim; entegrasyon testlerinin süre sınırı; **K-7** giriş formu istemci doğrulaması; **K-8** dar ekranda yan panel görünürlüğü (`Y3/oturum-3-entegrasyon.md:20`).
+- **Ürün/tasarım:** `unlock` simgesi, W81 aktarım kaynağı varsayımı ve §6 #11–#12 kararları (`Y3/ilerleme.md:19,22`).
+- **Ürün sahibi açıkça onaylamadan F3 başlamaz** (`Y3/README.md:3`).
+

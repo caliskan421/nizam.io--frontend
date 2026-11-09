@@ -8,7 +8,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 | Oturum | Durum | main hash |
 |---|---|---|
-| O1 — F3 kabul tablosu (03c) | **Geçici kabul — ürün onayı bekliyor** (WEB-2 O5 adım 2, 2026-11-09; Codex §6 #11–#12 varsayılanları, P8 bağlayıcı, kendi SVG Gantt) | `<WEB-2 kapanış main hash>` |
+| O1 — F3 kabul tablosu (03c) | **Geçici kabul — ürün onayı bekliyor** (WEB-2 O5 adım 2, 2026-11-09; Codex §6 #11–#12 varsayılanları, P8 bağlayıcı, kendi SVG Gantt) | kapanış PR'ının birleşme commit'i (aday `main` @ `d52510c` = #51–#63 + yalnız belgeler) |
 | O2a — Zaman çizelgesi veri katmanı (W91) | Bekliyor — ürün sahibinin F3 uyarısı/onayı | — |
 | O2b — Gantt çekirdeği, çerçeve, panel, sürükleme, 03d (W92–W96) | Bekliyor | — |
 | O3 — Entegrasyon turu (W97) | Bekliyor | — |
