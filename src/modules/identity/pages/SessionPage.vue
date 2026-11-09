@@ -156,10 +156,6 @@ onMounted(() => {
     flex-direction: column;
     gap: var(--space-4);
   }
-  /* theme.css `.rp-field` gap 6 px (shared/ui `.rp-field` bunu taşımıyor; burada tamamlanır). */
-  .session-form .rp-field {
-    gap: var(--ui-gap-xs);
-  }
   .session-info {
     display: flex;
     flex-direction: column;
