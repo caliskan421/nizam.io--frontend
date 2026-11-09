@@ -3,7 +3,7 @@
  * fan-out yoktur (K3, ortak-kurallar §9). Kapsam başlıkları isteğe özeldir (`./http`).
  */
 import { api, unwrap } from '@/shared/http'
-import { unwrapList } from '@/shared/http/truncation'
+import { fetchProgramDepartments as fetchSharedProgramDepartments } from '@/shared/scope/standing'
 
 import type { ProgramTarget, WorkTarget } from '../model/types'
 import { programHeaders, scopeHeaders, WORK_ITEM_PAGE_LIMIT } from './http'
@@ -76,10 +76,8 @@ export function fetchNotes(target: WorkTarget, workItemId: string, signal?: Abor
 /**
  * `listProgramDepartments` (S2): ad/kod çözümü bütün rollerde, Admin koordinatörlük süzgeci
  * seçenekleri. Sayfasız; > 200 bağda ilk 200 + `X-Result-Truncated: true` → önbellekte
- * `truncated: true` (ortak yardımcı; aynı anahtarı paylaşan okuyucularla aynı biçim).
+ * `truncated: true` — anahtarın TEK okuyucusu `shared/scope/standing.ts` (aynı şekil).
  */
 export function fetchProgramDepartments(target: ProgramTarget, signal?: AbortSignal) {
-  return unwrapList(
-    api.GET('/v1/program/departments', { params: { header: programHeaders(target) }, signal }),
-  )
+  return fetchSharedProgramDepartments(target.programId, signal)
 }

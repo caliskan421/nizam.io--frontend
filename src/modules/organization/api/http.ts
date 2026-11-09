@@ -12,8 +12,7 @@
  *    doldurursa doldursun bayrak doğrudur).
  *  - Okumalarda yalnız geçici hatalar tekrarlanır (`retryTransient`, work ile aynı kural).
  */
-import { api } from '@/shared/http'
-import { unwrapList } from '@/shared/http/truncation'
+import { fetchProgramDepartments } from '@/shared/scope/standing'
 
 export { isListTruncated as isTruncated, unwrapList } from '@/shared/http/truncation'
 
@@ -30,9 +29,7 @@ export function programHeader(programId: string) {
   return { 'X-Nizamio-Program': programId }
 }
 
-/** Program başlığı açıkça verilen tek S2 okuması (kapsamsız istek atılmaz: `enabled`). */
+/** Program departmanları: anahtarın TEK okuyucusu (`shared/scope/standing.ts`, aynı şekil). */
 export function readProgramDepartments(programId: string, signal?: AbortSignal) {
-  return unwrapList(
-    api.GET('/v1/program/departments', { params: { header: programHeader(programId) }, signal }),
-  )
+  return fetchProgramDepartments(programId, signal)
 }
