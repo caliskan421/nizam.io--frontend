@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { pageCrumb } from '@/shared/navigation/page-crumb'
 import { ICONS } from '@/shared/ui'
 
 import { requests, resetHarness, sent, server } from '../../__tests__/harness'
@@ -65,6 +66,14 @@ describe('E-08-52 derin bağlantı / seçili programda yok', () => {
     expect(wrapper.get('[data-testid="cd-sub"]').text()).toBe('3 kişi')
   })
 
+  it('E-08-50: kırıntı son parçası birim adı; sökülünce katalog başlığına döner', async () => {
+    server.use(...serverHandlers())
+    const { wrapper } = await mountDetail()
+    expect(pageCrumb.value).toBe('Altyapı ve tesisat')
+    wrapper.unmount()
+    expect(pageCrumb.value).toBeNull()
+  })
+
   it('kodsuz birimde rozet ad baş harfleri (İ büyük harf, tr)', async () => {
     server.use(...serverHandlers())
     const { wrapper } = await mountDetail({ departmentId: 'd2' })
@@ -79,6 +88,7 @@ describe('E-08-52 derin bağlantı / seçili programda yok', () => {
     )
     expect(wrapper.get('[data-action="back"]').attributes('href')).toBe('/koordinatorlukler')
     expect(dataPaths().sort()).toEqual(['/v1/program/departments', '/v1/reports/dashboard'])
+    expect(pageCrumb.value).toBeNull()
   })
 
   it('kapsam değişince birim yeni programda yoksa aynı ileti (ayrıntı boşalır)', async () => {

@@ -2,6 +2,7 @@
 import { computed, ref, useId, watch } from 'vue'
 
 import { canCreateWorkItem } from '@/modules/work/public'
+import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -46,6 +47,9 @@ const viewTeam = computed(() => can('viewTeam', facts.value))
 const canEdit = computed(() => can('editDepartment', facts.value))
 const canAddMember = computed(() => can('assignMembership', facts.value))
 const canCreateTask = computed(() => canCreateWorkItem(standing.value, store.programId))
+
+/** E-08-50: kırıntının son parçası birim adı (bulunamayan birimde katalog başlığı). */
+usePageCrumb(() => props.view.displayName)
 
 const roster = useDepartmentRoster(id, viewTeam)
 const work = useDepartmentWorkItems(id)

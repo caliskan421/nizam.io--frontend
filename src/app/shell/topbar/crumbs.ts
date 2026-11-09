@@ -6,8 +6,10 @@
  *    Program seçili değilse parça yoktur.
  *  - Ara parçalar üst rotalardır (08b → Koordinatörlükler); yalnız canlı ve parametresiz üst
  *    rota bağlantıdır — tıklanabilir ama işlevsiz bağlantı üretilmez.
- *  - Son parça geçerli sayfa adı (bağlantı değil). Açık durum gösteriliyorsa (K7) son parça
- *    açık durumun katalog başlığıdır ve ara parça yoktur.
+ *  - Son parça geçerli sayfa adı (bağlantı değil): sayfa kayıt etiketi verdiyse o (08b birim adı,
+ *    05b kişi adı — `shared/navigation/page-crumb.ts`), yoksa katalog başlığı (veri gelmeden sahte
+ *    ad yok). Açık durum gösteriliyorsa (K7) son parça açık durumun katalog başlığıdır ve ara
+ *    parça yoktur (sayfa etiketi yok sayılır).
  */
 import {
   CURRENT_PHASE,
@@ -38,6 +40,8 @@ export interface CrumbInput {
   routeName: RouteName | null
   programName: string | null
   openState: OpenStateName | null
+  /** Sayfanın verdiği dinamik son parça (`pageCrumb`); yoksa katalog başlığı. */
+  pageLabel?: string | null
   phase?: Phase
 }
 
@@ -51,6 +55,7 @@ export function buildCrumbs({
   routeName,
   programName,
   openState,
+  pageLabel = null,
   phase = CURRENT_PHASE,
 }: CrumbInput): Crumbs {
   const links: Crumb[] = []
@@ -61,5 +66,5 @@ export function buildCrumbs({
   for (const parent of trail.slice(0, -1)) {
     links.push({ label: routeSpec(parent).title, to: linkTo(parent, phase) })
   }
-  return { links, current: routeSpec(routeName).title }
+  return { links, current: pageLabel ?? routeSpec(routeName).title }
 }
