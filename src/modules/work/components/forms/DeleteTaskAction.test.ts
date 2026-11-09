@@ -15,11 +15,35 @@ import {
   server,
   workItem,
 } from '../../model/__tests__/harness'
+import type * as ApiModule from '../../api'
 import { $, formsHarness, resetForms, type WhoSeed } from './__tests__/forms-harness'
 import DeleteTaskAction from './DeleteTaskAction.vue'
 
+// GERÇEK `useDeleteWorkItem` sarılır; yalnız `submit` çağrı argümanları kaydedilir (bağlam
+// aktarımının tanığı). İstek yine gerçek hook → motor → API istemcisi → MSW zincirinden geçer.
+const deletes = vi.hoisted(() => ({ calls: [] as unknown[][] }))
+vi.mock('../../api', async (original) => {
+  const api = await original<typeof ApiModule>()
+  return {
+    ...api,
+    useDeleteWorkItem: () => {
+      const real = api.useDeleteWorkItem()
+      return {
+        ...real,
+        submit: (...args: Parameters<typeof real.submit>) => {
+          deletes.calls.push(args)
+          return real.submit(...args)
+        },
+      }
+    },
+  }
+})
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
-afterEach(() => resetForms())
+afterEach(() => {
+  deletes.calls.length = 0
+  resetForms()
+})
 afterAll(() => server.close())
 
 const PATH = '/v1/work-items/w1'
@@ -96,8 +120,14 @@ describe('DeleteTaskAction (E-03-56, E-03-64)', () => {
   it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0', async () => {
     server.use(http.delete(`${ORIGIN}${PATH}`, () => json({ status: 'deleted' })))
     const { h, wrapper } = render()
+    const scopeA = { ...h.store.snapshot }
     const dialog = await openConfirm()
     const accepting = dialog.accept(dialog.current.value!.id)
+    // Yazma onayın yakaladığı A bağlamıyla başladı (açık aktarım: `submit(vars, { context })`).
+    expect(deletes.calls).toHaveLength(1)
+    expect(deletes.calls[0]![1]).toEqual({
+      context: { scope: scopeA, generation: expect.any(Number) },
+    })
     h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
     await accepting
     // Yazma sonucu bildirimle görünür (scope_changed ya da başarı): sonuç gelene dek beklenir.

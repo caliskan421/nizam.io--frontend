@@ -14,13 +14,6 @@ const ROOT = fileURLToPath(new URL('../../../../', import.meta.url))
 const SRC = join(ROOT, 'src')
 const SELF = join(SRC, 'shared/ui/confirm')
 
-/**
- * Bağlam parametresini henüz geçiremeyen tüketici: `useDeleteWorkItem().submit` (api/items.ts)
- * tek argümanlı; yazma kabulle aynı anda başlar, eylem bağlamı kabulde doğrulanan bağlamla aynı
- * anda yakalanır. `api/items.ts` geçişi eklenince bu liste BOŞALTILMALI (test aşağıda zorlar).
- */
-const PENDING_PASSTHROUGH = new Set(['src/modules/work/components/forms/DeleteTaskAction.vue'])
-
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name)
@@ -69,7 +62,6 @@ describe('onay → yazma bağlamı atlanamaz (CX-F1-E-02)', () => {
   it.each(writers.map((f) => [f.rel, f.text] as const))(
     '%s: başlatıcı (context) => …, gövdedeki her submit bağlamlı',
     (rel, text) => {
-      if (PENDING_PASSTHROUGH.has(rel)) return
       for (const args of callArgs(text, 'confirmWrite')) {
         expect(args, rel).toMatch(/\(\s*context\s*\)\s*=>/)
         const body = args.slice(args.search(/\(\s*context\s*\)\s*=>/))
@@ -80,22 +72,6 @@ describe('onay → yazma bağlamı atlanamaz (CX-F1-E-02)', () => {
       }
     },
   )
-
-  it('bekleyen geçiş istisnası yalnız tek argümanlı silme sarmalayıcısı sürdükçe geçerli', () => {
-    const items = readFileSync(join(SRC, 'modules/work/api/items.ts'), 'utf8')
-    const wrapper = /async function submit\(([^)]*)\)/.exec(items)?.[1] ?? ''
-    // Sarmalayıcı bağlam alırsa istisna kaldırılmalı: bu test o an kırmızıya döner.
-    expect(wrapper.includes(','), 'api/items.ts bağlam geçiriyor: PENDING_PASSTHROUGH boşalt').toBe(
-      false,
-    )
-    for (const rel of PENDING_PASSTHROUGH) {
-      const text = files.find((f) => f.rel === rel)!.text
-      // Yazma kabulle aynı anda başlar: başlatıcının gövdesi doğrudan submit çağrısıdır.
-      for (const args of callArgs(text, 'confirmWrite')) {
-        expect(args, rel).toMatch(/\(\s*\)\s*=>\s*\n?\s*remove\.submit\(/)
-      }
-    }
-  })
 
   it('boolean dönen onay yolu yok: üretimde `confirm` alınmaz', () => {
     for (const { rel, text } of files) {

@@ -39,11 +39,9 @@ async function onDelete(): Promise<void> {
     confirmLabel: formsText('workForms.remove.confirm'),
     tone: 'danger' as const,
   }
-  // Silme kabulle AYNI anda (araya `await` girmeden) başlar; vazgeç/iptal → null, istek yok
-  // (CX-F1-E-02). `useDeleteWorkItem().submit` henüz bağlam parametresi geçirmiyor (api/items.ts
-  // sahiplik dışı): eylem bağlamı kabul anında doğrulanan bağlamla aynı anda yakalanır.
-  const outcome = await confirmWrite(options, () =>
-    remove.submit({ target: targetOf(item), workItemId: item.work_item_id }),
+  // Silme onayın yakaladığı bağlamla başlar (CX-F1-E-02); vazgeç/iptal → null, istek yok.
+  const outcome = await confirmWrite(options, (context) =>
+    remove.submit({ target: targetOf(item), workItemId: item.work_item_id }, { context }),
   )
   if (outcome === null) return
   if (outcome.kind !== 'success') {

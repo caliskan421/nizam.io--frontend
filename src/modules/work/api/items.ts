@@ -10,6 +10,7 @@ import { api } from '@/shared/http'
 import {
   runWithFollowUps,
   useProtectedMutation,
+  type SubmitOptions,
   withExpectedRevisions,
   WORK_ITEM_REVISION_GROUPS,
 } from '@/shared/http/mutation'
@@ -174,10 +175,11 @@ export function useDeleteWorkItem() {
       }),
     invalidation: byItem,
   })
-  async function submit(vars: WorkItemRef) {
+  /** İkinci argüman (`{ context }`) motora aynen geçer: onaylı silme onayın bağlamıyla başlar. */
+  async function submit(vars: WorkItemRef, opts?: SubmitOptions) {
     deleting.add(vars.workItemId)
     try {
-      return await mutation.submit(vars)
+      return await mutation.submit(vars, opts)
     } finally {
       deleting.delete(vars.workItemId)
     }
