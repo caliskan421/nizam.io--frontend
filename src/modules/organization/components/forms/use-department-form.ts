@@ -21,13 +21,16 @@ export function useDepartmentForm(hooks: DepartmentFormHooks) {
   const editing = computed(() => Boolean(hooks.departmentId()))
   const notice = shallowRef<AnyOutcome | null>(null)
   const index = useProgramDepartmentIndex(hooks.open)
+  // Kurulumda (eşzamanlı) alınır: form sökülünce geç sonucun bildirimi düşer (W82c).
+  const toast = useToast()
 
   const ctx: DepartmentFormContext = {
     hooks,
     dialog,
     index,
+    toast,
     done(message, departmentId) {
-      useToast().push({ message })
+      toast.push({ message })
       hooks.saved(departmentId)
       hooks.close()
     },

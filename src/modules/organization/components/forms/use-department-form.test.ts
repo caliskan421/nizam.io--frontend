@@ -60,13 +60,17 @@ describe('DepartmentForm yaşamı', () => {
     )
   })
 
-  it('sökülmüş bileşen: geç yanıtta bildirim/emit yok, bağ adımı gönderilmez', async () => {
+  it('sökülmüş bileşen: bağ adımı gönderilmez; kısmi sonuç yalnız uygulama düzeyinde (W82c)', async () => {
     const release = gatedCreate()
     const { h, wrapper } = await submitting()
     wrapper.unmount()
     release()
     await h.flush()
-    expect(toasts()).toEqual([])
+    // Katalog kaydı gerçek, bağ yok: tek uygulama düzeyi bildirim (pushAppNotice); emit yok.
+    expect(toasts()).toEqual([
+      'Departman kataloğa eklendi ancak programa bağlanamadı. Programa eklemeyi yeniden deneyin.',
+    ])
+    expect(wrapper.emitted('saved')).toBeUndefined()
     expect(sent('POST', '/v1/program/departments')).toHaveLength(0)
   })
 })

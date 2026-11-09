@@ -12,7 +12,6 @@ import { computed, ref, watch } from 'vue'
 
 import type { ActionContext } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
-import { useToast } from '@/shared/ui'
 
 import { useCatalogDepartments, useRenameDepartmentLink, useUpdateDepartment } from '../../api'
 import type {
@@ -221,7 +220,7 @@ export function useEditMode(ctx: DepartmentFormContext, editing: { value: boolea
     original.value = keptValues(before, values, steps)
     if (steps.some((s) => s.outcome.kind === 'success')) ctx.hooks.saved(id)
     if (steps.every((s) => s.outcome.kind === 'success')) {
-      for (const s of steps) useToast().push({ message: stepText(s.name, true) })
+      for (const s of steps) ctx.toast.push({ message: stepText(s.name, true) })
       ctx.hooks.close()
       return
     }
@@ -238,7 +237,7 @@ export function useEditMode(ctx: DepartmentFormContext, editing: { value: boolea
     results.value = []
     const plan = planEdit(before, values, loader.catalogMissing.value)
     if (plan.displayName === null && plan.changes === null) {
-      useToast().push({ message: orgText('forms.department.edit.noChange') })
+      ctx.toast.push({ message: orgText('forms.department.edit.noChange') })
       return ctx.hooks.close()
     }
     const steps = await sendSteps(rename, update, { id, programId, ...plan })

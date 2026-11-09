@@ -13,7 +13,7 @@
  */
 import { ref } from 'vue'
 
-import type { MutationOutcome } from '@/shared/http/mutation'
+import { reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
@@ -24,11 +24,20 @@ import { usersText, type UsersTextKey } from './messages'
 
 type AnyOutcome = MutationOutcome<unknown, unknown, unknown>
 
-/** Sonucu bildirir; başarıysa `true`. Vazgeç / sökülmüş sahip → sessiz. */
-export function reportOutcome(outcome: AnyOutcome | null, success: UsersTextKey): boolean {
-  if (outcome === null || outcome.kind === 'owner_disposed') return false
+type Toast = ReturnType<typeof useToast>
+
+/**
+ * Sonucu bildirir; başarıysa `true`. Vazgeç / sökülmüş sahip (geç sonuç dahil) → sessiz. `toast`
+ * çağıranın KURULUMDA aldığı örnektir (sahip yaşamını bilir; CX-F1-Ö-07, W82c).
+ */
+export function reportOutcome(
+  toast: Toast,
+  outcome: AnyOutcome | null,
+  success: UsersTextKey,
+): boolean {
+  if (outcome === null || !reachesOwner(outcome)) return false
   if (outcome.kind === 'success') {
-    useToast().push({ message: usersText(success) })
+    toast.push({ message: usersText(success) })
     return true
   }
   notifyOutcome(outcome)
@@ -49,6 +58,7 @@ function impact(kind: 'role' | 'remove'): ConfirmOptions {
 
 export function useChipActions(accountId: () => string) {
   const store = useScopeStore()
+  const toast = useToast() // kurulumda: panel sökülünce geç sonucun bildirimi düşer
   const updateRole = useUpdateMembershipRole()
   const remove = useRemoveMember()
   const assign = useAssignMembership()
@@ -70,6 +80,7 @@ export function useChipActions(accountId: () => string) {
     run(departmentId, async (programId) => {
       const vars = { programId, departmentId, accountId: accountId(), role }
       return reportOutcome(
+        toast,
         await updateRole.submit(vars, impact('role')),
         'users.panel.chips.roleChanged',
       )
@@ -78,13 +89,17 @@ export function useChipActions(accountId: () => string) {
   const removeChip = (departmentId: string) =>
     run(departmentId, async (programId) => {
       const vars = { programId, departmentId, accountId: accountId() }
-      return reportOutcome(await remove.submit(vars, impact('remove')), 'users.panel.chips.removed')
+      return reportOutcome(
+        toast,
+        await remove.submit(vars, impact('remove')),
+        'users.panel.chips.removed',
+      )
     })
 
   const add = (departmentId: string, role: TeamRole) =>
     run('add', async (programId) => {
       const vars = { programId, departmentId, accountId: accountId(), role }
-      return reportOutcome(await assign.submit(vars), 'users.panel.chips.added')
+      return reportOutcome(toast, await assign.submit(vars), 'users.panel.chips.added')
     })
 
   return { pending, changeRole, removeChip, add }
