@@ -52,7 +52,7 @@ export function useLinkStep(ctx: DepartmentFormContext) {
     })
     if (!ctx.dialog.alive() || outcome.kind === 'owner_disposed') return
     if (outcome.kind === 'success') {
-      return ctx.done(orgText('orgForms.department.link.done'), chosen.departmentId)
+      return ctx.done(orgText('organization.forms.department.link.done'), chosen.departmentId)
     }
     if (outcome.kind === 'failed') {
       const found = serverFieldErrors(

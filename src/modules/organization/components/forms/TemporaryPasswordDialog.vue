@@ -31,7 +31,7 @@ const EMPTY: Values = { password: '' }
 const mutation = useSetTemporaryPassword()
 const form = useForm<Values>({
   validationSchema: toTypedSchema<Values, Values>(
-    z.object({ password: z.string().min(1, orgText('orgForms.password.required')) }),
+    z.object({ password: z.string().min(1, orgText('organization.forms.password.required')) }),
   ),
   initialValues: EMPTY,
 })
@@ -74,8 +74,8 @@ const handle = form.handleSubmit(async (values) => {
     useToast().push({
       message:
         count > 0
-          ? orgText('orgForms.password.doneRevoked', { count })
-          : orgText('orgForms.password.done'),
+          ? orgText('organization.forms.password.doneRevoked', { count })
+          : orgText('organization.forms.password.done'),
     })
     emit('done')
     close()
@@ -100,20 +100,20 @@ function submit(): void {
 <template>
   <UiModal
     :open="open"
-    :title="orgText('orgForms.password.title')"
-    :description="orgText('orgForms.password.description')"
+    :title="orgText('organization.forms.password.title')"
+    :description="orgText('organization.forms.password.description')"
     :dismissible="!pending"
     @update:open="setOpen"
   >
     <form id="of-temp-password" class="of-form" novalidate @submit.prevent="submit">
-      <UiField :label="orgText('orgForms.password.field')" :error="errors.password">
+      <UiField :label="orgText('organization.forms.password.field')" :error="errors.password">
         <UiInput v-model="password" type="password" name="password" autocomplete="new-password" />
       </UiField>
       <UiOutcomeNotice :outcome="notice" />
     </form>
     <template #footer>
       <UiButton variant="ghost" :disabled="pending" @click="setOpen(false)">
-        {{ orgText('orgForms.common.cancel') }}
+        {{ orgText('organization.forms.common.cancel') }}
       </UiButton>
       <UiButton
         variant="primary"
@@ -122,7 +122,7 @@ function submit(): void {
         :disabled="pending"
         data-testid="of-submit"
       >
-        {{ orgText('orgForms.password.submit') }}
+        {{ orgText('organization.forms.password.submit') }}
       </UiButton>
     </template>
   </UiModal>

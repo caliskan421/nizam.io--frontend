@@ -45,12 +45,15 @@ function codeField() {
   return z
     .string()
     .trim()
-    .refine((v) => v === '' || CODE_INPUT.test(v), orgText('orgForms.department.error.code'))
+    .refine(
+      (v) => v === '' || CODE_INPUT.test(v),
+      orgText('organization.forms.department.error.code'),
+    )
 }
 
 export function createSchema() {
   return z.object({
-    name: z.string().trim().min(1, orgText('orgForms.department.error.name')),
+    name: z.string().trim().min(1, orgText('organization.forms.department.error.name')),
     kind: z.enum(KINDS),
     code: codeField(),
     description: z.string(),
@@ -70,7 +73,7 @@ export function displayNameField() {
     .trim()
     .refine(
       (v) => v.length >= 2 && v.length <= 120,
-      orgText('orgForms.department.error.displayName'),
+      orgText('organization.forms.department.error.displayName'),
     )
 }
 
@@ -81,7 +84,7 @@ export function editSchema(hadCode: () => boolean) {
     kind: z.enum(KINDS),
     code: codeField().refine(
       (v) => !(hadCode() && v === ''),
-      orgText('orgForms.department.error.codeRequired'),
+      orgText('organization.forms.department.error.codeRequired'),
     ),
     description: z.string(),
   })
@@ -95,7 +98,7 @@ export function linkSchema() {
       .trim()
       .refine(
         (v) => v === '' || (v.length >= 2 && v.length <= 120),
-        orgText('orgForms.department.error.displayName'),
+        orgText('organization.forms.department.error.displayName'),
       ),
   })
 }

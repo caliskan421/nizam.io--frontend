@@ -1,5 +1,5 @@
 /**
- * W74 form bileşenlerinin ekran metinleri (`orgForms.*`; kaynak `shared/i18n/tr/organization.ts`).
+ * W74 form bileşenlerinin ekran metinleri (`organization.forms.*`; kaynak `shared/i18n/tr/organization.ts`).
  * Sunucu `message` alanı gösterilmez; hata metni kod → `errors.*` (`shared/i18n` `errorText`).
  *
  * Ağaç uygulama i18n'ine kayıtlıysa (`shared/i18n/index.ts` — koordinatörün birleştirme işi)
@@ -7,23 +7,23 @@
  * birleştirme YOK — statik ağaç tek kaynak). İki yol aynı metni verir (test).
  */
 import { i18n } from '@/shared/i18n'
-import { trOrgForms } from '@/shared/i18n/tr/organization'
+import { trOrganizationForms } from '@/shared/i18n/tr/organization'
 
 import type { DepartmentKind } from '../../model/types'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
-export { trOrgForms }
+export { trOrganizationForms }
 
 type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
 }[keyof T & string]
 
-export type OrgFormsTextKey = Leaves<typeof trOrgForms>
+export type OrgFormsTextKey = Leaves<typeof trOrganizationForms>
 
 type Node = string | { readonly [key: string]: Node }
 
 function lookup(key: string): string {
-  let node: Node = trOrgForms
+  let node: Node = trOrganizationForms
   for (const part of key.split('.')) {
     if (typeof node === 'string') return key
     const next: Node | undefined = node[part]
@@ -39,7 +39,7 @@ function interpolate(text: string, params: Record<string, string | number>): str
   )
 }
 
-/** `orgForms.*` metni (TR). */
+/** `organization.forms.*` metni (TR). */
 export function orgText(key: OrgFormsTextKey, params?: Record<string, string | number>): string {
   const g = i18n.global
   if (g.te(key)) return params ? g.t(key, params) : g.t(key)
@@ -48,9 +48,9 @@ export function orgText(key: OrgFormsTextKey, params?: Record<string, string | n
 }
 
 export function kindLabel(kind: DepartmentKind): string {
-  return orgText(`orgForms.kind.${kind}`)
+  return orgText(`organization.forms.kind.${kind}`)
 }
 
 export function roleLabel(role: TeamRole): string {
-  return orgText(`orgForms.role.${role}`)
+  return orgText(`organization.forms.role.${role}`)
 }

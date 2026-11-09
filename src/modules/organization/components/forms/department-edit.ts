@@ -58,10 +58,13 @@ function contextOf(outcome: AnyOutcome): ActionContext | undefined {
 }
 
 const STEP_TEXT = {
-  rename: { ok: 'orgForms.department.edit.nameDone', fail: 'orgForms.department.edit.nameFailed' },
+  rename: {
+    ok: 'organization.forms.department.edit.nameDone',
+    fail: 'organization.forms.department.edit.nameFailed',
+  },
   catalog: {
-    ok: 'orgForms.department.edit.catalogDone',
-    fail: 'orgForms.department.edit.catalogFailed',
+    ok: 'organization.forms.department.edit.catalogDone',
+    fail: 'organization.forms.department.edit.catalogFailed',
   },
 } as const
 
@@ -235,7 +238,7 @@ export function useEditMode(ctx: DepartmentFormContext, editing: { value: boolea
     results.value = []
     const plan = planEdit(before, values, loader.catalogMissing.value)
     if (plan.displayName === null && plan.changes === null) {
-      useToast().push({ message: orgText('orgForms.department.edit.noChange') })
+      useToast().push({ message: orgText('organization.forms.department.edit.noChange') })
       return ctx.hooks.close()
     }
     const steps = await sendSteps(rename, update, { id, programId, ...plan })

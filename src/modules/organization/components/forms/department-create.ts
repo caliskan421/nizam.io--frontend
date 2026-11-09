@@ -79,7 +79,10 @@ interface CreateSettle {
 
 function settleCreate(result: CreateResult, name: string, s: CreateSettle): void {
   if (result.kind === 'complete') {
-    return s.ctx.done(orgText('orgForms.department.created'), result.primary.data.department_id)
+    return s.ctx.done(
+      orgText('organization.forms.department.created'),
+      result.primary.data.department_id,
+    )
   }
   if (result.kind === 'partial') {
     const created = result.primary.data
@@ -87,7 +90,7 @@ function settleCreate(result: CreateResult, name: string, s: CreateSettle): void
     s.ctx.hooks.saved(created.department_id)
     // Pencere kapsam değişiminde kapandıysa kısmi sonuç yine söylenir (KESİN 20).
     if (!s.ctx.hooks.open()) {
-      useToast().push({ message: orgText('orgForms.department.partial'), tone: 'danger' })
+      useToast().push({ message: orgText('organization.forms.department.partial'), tone: 'danger' })
     }
     s.link.offer({ departmentId: created.department_id, name: created.name })
     return

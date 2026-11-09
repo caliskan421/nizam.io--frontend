@@ -102,11 +102,11 @@ function onKeydown(event: KeyboardEvent): void {
   <div class="of-picker" data-testid="person-picker">
     <div v-if="modelValue" class="of-picker__selected" data-testid="picker-selected">
       <UiAvatar :name="modelValue.fullName" size="sm" />
-      <UiChip removable :remove-label="orgText('orgForms.picker.clear')" @remove="clear">
+      <UiChip removable :remove-label="orgText('organization.forms.picker.clear')" @remove="clear">
         {{ modelValue.fullName }}
       </UiChip>
       <span class="rp-sr" role="status">
-        {{ orgText('orgForms.picker.selected', { name: modelValue.fullName }) }}
+        {{ orgText('organization.forms.picker.selected', { name: modelValue.fullName }) }}
       </span>
     </div>
     <template v-else>
@@ -122,7 +122,7 @@ function onKeydown(event: KeyboardEvent): void {
         :aria-expanded="open ? 'true' : 'false'"
         :aria-controls="listId"
         :aria-activedescendant="activeId"
-        :placeholder="orgText('orgForms.picker.placeholder')"
+        :placeholder="orgText('organization.forms.picker.placeholder')"
         @focus="active = true"
         @keydown="onKeydown"
       />
@@ -131,7 +131,7 @@ function onKeydown(event: KeyboardEvent): void {
           :id="listId"
           class="of-picker__list"
           role="listbox"
-          :aria-label="orgText('orgForms.picker.results')"
+          :aria-label="orgText('organization.forms.picker.results')"
           data-testid="picker-list"
         >
           <li
@@ -150,17 +150,19 @@ function onKeydown(event: KeyboardEvent): void {
           </li>
         </ul>
         <div class="of-picker__status" aria-live="polite">
-          <UiHint v-if="loading">{{ orgText('orgForms.picker.loading') }}</UiHint>
+          <UiHint v-if="loading">{{ orgText('organization.forms.picker.loading') }}</UiHint>
           <template v-else-if="failed">
-            <UiHint error>{{ orgText('orgForms.picker.failed') }}</UiHint>
+            <UiHint error>{{ orgText('organization.forms.picker.failed') }}</UiHint>
             <UiButton size="sm" variant="ghost" @click="query.refetch()">
-              {{ orgText('orgForms.picker.retry') }}
+              {{ orgText('organization.forms.picker.retry') }}
             </UiButton>
           </template>
           <UiHint v-else-if="options.length === 0" data-testid="picker-empty">
-            {{ orgText('orgForms.picker.empty') }}
+            {{ orgText('organization.forms.picker.empty') }}
           </UiHint>
-          <UiHint v-if="list.truncated.value">{{ orgText('orgForms.picker.truncated') }}</UiHint>
+          <UiHint v-if="list.truncated.value">{{
+            orgText('organization.forms.picker.truncated')
+          }}</UiHint>
           <UiButton
             v-if="query.hasNextPage.value"
             size="sm"
@@ -169,7 +171,7 @@ function onKeydown(event: KeyboardEvent): void {
             data-testid="picker-more"
             @click="query.fetchNextPage()"
           >
-            {{ orgText('orgForms.picker.more') }}
+            {{ orgText('organization.forms.picker.more') }}
           </UiButton>
         </div>
       </template>
