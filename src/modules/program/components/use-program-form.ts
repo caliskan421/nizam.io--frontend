@@ -6,10 +6,10 @@
  * program varsa mevcut programı 200 ile döndürür (`created: false`) — kullanıcıya söylenir.
  */
 import { useForm } from 'vee-validate'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import type { MutationOutcome } from '@/shared/http/mutation'
-import { useToast } from '@/shared/ui'
+import { focusFirstInvalid, useToast } from '@/shared/ui'
 import { notifyOutcome } from '@/shared/ui/confirm'
 
 import { fetchProgram, useCreateProgram, useUpdateProgram } from '../api'
@@ -140,6 +140,12 @@ export function useProgramForm(opts: ProgramFormOptions) {
     busy: dialog.busy,
     retry: loader.retry,
     stop: loader.stop,
-    submit: () => dialog.once(() => handle()),
+    // Gönderim bitince (istemci doğrulaması ya da sunucu alan hatası) odak penceredeki ilk hatalı
+    // alana (F2 görsel doğrulaması K-2; W83 ortak kalıbı `form-kit`).
+    submit: async () => {
+      await dialog.once(() => handle())
+      await nextTick()
+      if (dialog.alive()) focusFirstInvalid()
+    },
   }
 }
