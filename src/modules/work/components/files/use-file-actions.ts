@@ -6,7 +6,8 @@
  *
  *  - İndirme: `issueDownloadTicket` → yanıt `url` hemen tarayıcıya verilir → mutasyon sonucu
  *    sıfırlanır (`finally`; bilet bellekte tutulmaz, hata yolunda da).
- *  - Sil: kalıcı → istemci onayı (`useConfirm().confirm`, §7; `confirmation_required` yok).
+ *  - Sil: kalıcı → istemci onayı (`confirmWrite`, §7; `confirmation_required` yok); silme
+ *    onayın yakaladığı bağlamla başlar (CX-F1-E-02).
  *  - Ad değiştir: sonuç çağırana döner (409 `records.name_taken` alanın altında gösterilir).
  */
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
@@ -28,7 +29,7 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
   const ticket = useDownloadTicket()
   const rename = useRenameFile()
   const remove = useDeleteFile()
-  const { confirm } = useConfirm()
+  const { confirmWrite } = useConfirm()
 
   function ref(): FileRef {
     const current = toValue(item)
@@ -59,15 +60,15 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
   }
 
   async function del(): Promise<boolean> {
-    const accepted = await confirm({
+    const options = {
       title: filesText('workFiles.remove.title'),
       description: toValue(file).display_name,
       body: [filesText('workFiles.remove.body')],
       confirmLabel: filesText('workFiles.remove.confirm'),
-      tone: 'danger',
-    })
-    if (!accepted) return false
-    const outcome = await remove.submit(ref())
+      tone: 'danger' as const,
+    }
+    const outcome = await confirmWrite(options, (context) => remove.submit(ref(), { context }))
+    if (outcome === null) return false
     if (outcome.kind === 'success') return true
     notifyOutcome(outcome)
     return false

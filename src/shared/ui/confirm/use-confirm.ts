@@ -2,9 +2,12 @@
  * Onay diyalogları (K5, ortak-kurallar §7). Uygulama geneli tek kuyruk; kabukta bir kez
  * `<ConfirmHost />` yerleşir ve kuyruğun başını gösterir.
  *
- *  - `confirm(options)` — **genel istemci onayı**: sunucunun onay istemediği etkili eylemler
- *    (görev silme, tarih uçları, nottan görev, `assignMembership`, koordinatör atama…). Kabul →
- *    `true`, vazgeç → `false`; isteği çağıran gönderir.
+ *  - `confirmWrite(options, start, { context? })` — **yazma başlatan istemci onayı**: sunucunun
+ *    onay istemediği etkili eylemler (görev/alt görev/dosya/not silme, `subtasks_open`…).
+ *    Kabulde `start(context)` kabulle AYNI anda çağrılır; yazma onayın yakaladığı bağlamla
+ *    (`submit(vars, { context })`) başlar, pencere yazma bitene dek meşgul kalır. Vazgeç/iptal
+ *    → `null`. Boolean dönen (bağlamı tüketiciye bırakan) bir yol YOKTUR: onay → yazma
+ *    arasında bağlam atlanamaz (CX-F1-E-02; `confirm-context.test.ts` mimari denetimi).
  *  - `confirmImpact(outcome, options)` — **etkili işlem onayı** (iki aşama): yalnız
  *    organizasyon uçlarının 409 `organization.confirmation_required` sonucu
  *    (`removeCoordinator`, `removeMember`, `updateMembershipRole`). 1) `fields[]` görev
@@ -15,14 +18,18 @@
  * Yaşam döngüsü (CX-F1-E-02): onay açılırken kapsam (program/departman/mercek), oturum nesli
  * (`AuthSession.generation`) ve hesap yakalanır. Kapsam değişimi, çıkış/oturum sonu/hesap
  * değişimi ve onayı açan bileşenin sökülmesi (`useConfirm()` çağıran kapsamın `onScopeDispose`'u)
- * bekleyen onayı **vazgeç** olarak kapatır (`false` / `null`; yazma başlamaz). Savunma derinliği:
- * kabul anında yakalanan bağlam güncel değilse kabul de vazgeç sayılır. Tüketici ek kod yazmaz.
+ * bekleyen onayı **vazgeç** olarak kapatır (`null`; yazma başlamaz). Onay açan
+ * `useConfirm()` kurulumda (etki kapsamında) alınmalıdır; dışarıda alınan örnek onay açamaz
+ * (geliştirme/testte hata). Savunma derinliği:
+ * kabul anında yakalanan bağlam güncel değilse kabul de vazgeç sayılır. Başlamış HTTP isteği
+ * geriye dönük iptal edilmez; meşgul (yazma süren) girdi süpürmeden muaftır — o istek zaten
+ * onayın bağlamını taşır ve motor kapısı gönderimden hemen önce denetler.
  */
 import { getActivePinia } from 'pinia'
 import { computed, getCurrentScope, onScopeDispose, shallowRef } from 'vue'
 
 import { authSession } from '@/shared/http'
-import { sameScope, type MutationOutcome } from '@/shared/http/mutation'
+import { sameScope, type ActionContext, type MutationOutcome } from '@/shared/http/mutation'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -108,10 +115,10 @@ function bindWatchers(): void {
   }
 }
 
-function enqueue(entry: NewEntry): number {
+function enqueue(entry: NewEntry, context: ConfirmContext = captureContext()): number {
   const { options, items, onAccept, onCancel } = entry
   const request: ConfirmRequest = { id: nextId++, options, items, busy: false }
-  queue.value = [...queue.value, { request, context: captureContext(), onAccept, onCancel }]
+  queue.value = [...queue.value, { request, context, onAccept, onCancel }]
   bindWatchers()
   return request.id
 }
@@ -136,7 +143,7 @@ async function accept(id: number): Promise<void> {
   // Savunma derinliği: dinleyici kaçırsa da bayat bağlamda kabul = vazgeç.
   if (!isCurrent(entry.context)) return cancel(id)
   setBusy(id, true)
-  let settle: (() => void) | undefined
+  let settle: () => void = entry.onCancel
   try {
     settle = await entry.onAccept()
   } finally {
@@ -155,11 +162,62 @@ function cancel(id: number): void {
 /** Açılan onayın kimliğini sahibine bildirir (bileşen sökülünce iptal için). */
 type Track = (id: number) => void
 
-function confirm(options: ConfirmOptions, track?: Track): Promise<boolean> {
+/**
+ * Onayı açan bir sahip (etki kapsamı) şarttır: sahipsiz onay bileşen sökülünce kapanmaz
+ * (CX-F1-E-02). Geliştirme/testte açık hata; üretimde onay hiç açılmaz (yazma başlamaz).
+ */
+function requireOwner(track: Track | null): Track | null {
+  if (track || !import.meta.env.DEV) return track
+  throw new Error(
+    'useConfirm(): etki kapsamı dışında alındı — onay sahipsiz kalır; kurulumda (setup) çağırın.',
+  )
+}
+
+/** Kabulde yazmayı başlatır: onayın yakaladığı bağlam (`submit(vars, { context })`) verilir. */
+export type StartWrite<T> = (context: ActionContext) => Promise<T>
+
+export interface ConfirmWriteOptions {
+  /**
+   * Onayı doğuran İLK eylemin bağlamı (ör. `MutationFailed.context`). Verilirse onay bu
+   * bağlamla açılır; açılış anında zaten bayatsa onay hiç açılmaz (sessiz vazgeç, `null`).
+   */
+  context?: ActionContext
+}
+
+/** Onayın bağlamı: verilen ilk eylem bağlamı (güncel değilse `null`) ya da şimdiki an. */
+function openContext(given: ActionContext | undefined): ConfirmContext | null {
+  const now = captureContext()
+  if (!given) return now
+  const candidate: ConfirmContext = {
+    scope: given.scope ? { ...given.scope } : null,
+    generation: given.generation ?? now.generation,
+    accountId: now.accountId,
+  }
+  return isCurrent(candidate) ? candidate : null
+}
+
+/**
+ * Yazma başlatan onay (CX-F1-E-02): kabulde `start(context)` aynı anda (kabul denetiminin
+ * hemen ardından, araya `await` girmeden) çağrılır; yazma onayın yakaladığı bağlamla kurulur ve
+ * motor kapısı gönderimden hemen önce bağlamı güncel değerle karşılaştırır — onay ile yazma
+ * başlangıcı arasında kapsam/oturum değişse de yeni bağlamda yazma başlamaz. Pencere yazma
+ * bitene dek açık (meşgul) kalır. Vazgeç/iptal → `null`; kabul → `start`'ın sonucu.
+ */
+function confirmWrite<T>(
+  options: ConfirmOptions,
+  start: StartWrite<T>,
+  opts: ConfirmWriteOptions,
+  track: Track | null,
+): Promise<T | null> {
+  const owner = requireOwner(track)
   return new Promise((resolve) => {
-    const onAccept = () => Promise.resolve(() => resolve(true))
-    const id = enqueue({ options, items: [], onAccept, onCancel: () => resolve(false) })
-    track?.(id)
+    const context = owner ? openContext(opts.context) : null
+    if (!owner || !context) return resolve(null)
+    const onAccept = async () => {
+      const value = await start({ scope: context.scope, generation: context.generation })
+      return () => resolve(value)
+    }
+    owner(enqueue({ options, items: [], onAccept, onCancel: () => resolve(null) }, context))
   })
 }
 
@@ -178,9 +236,11 @@ export function unassignedTasks(data: unknown): number {
 function confirmImpact<V, D, S>(
   outcome: ConfirmationRequired<V, D, S>,
   options: ConfirmOptions,
-  track?: Track,
+  track: Track | null,
 ): Promise<MutationOutcome<V, D, S> | null> {
+  const owner = requireOwner(track)
   return new Promise((resolve) => {
+    if (!owner) return resolve(null)
     const onAccept = async () => {
       const result = await outcome.confirm()
       const n = result.kind === 'success' ? unassignedTasks(result.data) : 0
@@ -195,16 +255,17 @@ function confirmImpact<V, D, S>(
       onAccept,
       onCancel: () => resolve(null),
     })
-    track?.(id)
+    owner(id)
   })
 }
 
 /**
  * Bileşen (ya da etki kapsamı) içinde çağrılırsa bu çağrının açtığı onaylar kapsam kapanınca
- * (bileşen sökülünce) vazgeçle kapanır.
+ * (bileşen sökülünce) vazgeçle kapanır. Kapsam dışında alınan örnek onay AÇAMAZ
+ * (`requireOwner`); yalnız kuyruğu okur/yönetir (kabuk yuvası, testler).
  */
-function ownedOpeners() {
-  if (!getCurrentScope()) return { track: undefined }
+function ownedOpeners(): { track: Track | null } {
+  if (!getCurrentScope()) return { track: null }
   const owned = new Set<number>()
   onScopeDispose(() => {
     for (const id of owned) cancel(id)
@@ -217,7 +278,11 @@ export function useConfirm() {
   return {
     /** Gösterilen istek (kuyruğun başı). */
     current: computed(() => queue.value[0]?.request ?? null),
-    confirm: (options: ConfirmOptions) => confirm(options, track),
+    confirmWrite: <T>(
+      options: ConfirmOptions,
+      start: StartWrite<T>,
+      opts: ConfirmWriteOptions = {},
+    ) => confirmWrite(options, start, opts, track),
     confirmImpact: <V, D, S>(outcome: ConfirmationRequired<V, D, S>, options: ConfirmOptions) =>
       confirmImpact(outcome, options, track),
     accept,

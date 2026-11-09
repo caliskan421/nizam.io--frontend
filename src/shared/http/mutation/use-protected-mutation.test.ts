@@ -419,6 +419,31 @@ describe('submit(vars, { context }) — bileşik işlemde ilk eylemin bağlamı 
   })
 })
 
+describe('başarısız sonuç da eylem bağlamını taşır (CX-F1-E-02)', () => {
+  it('sunucu hatası → failed.context = eylemin kapsamı + nesli; istemci kapısı hatasında yok', async () => {
+    server.use(
+      http.post(`${BASE}/v1/work-items`, () =>
+        HttpResponse.json(
+          { code: 'work.subtasks_open', message: 'x', request_id: 'r' },
+          { status: 409 },
+        ),
+      ),
+    )
+    const { mutation, stop } = setup<CreateBody, unknown>(createWorkItem)
+    const failed = await mutation.submit(body)
+    expect(failed).toMatchObject({
+      kind: 'failed',
+      context: { scope, generation: session.generation },
+    })
+    if (failed.kind !== 'failed') throw new Error(failed.kind)
+    session.clear()
+    const blocked = await mutation.submit(body, { context: failed.context })
+    expect(blocked).toMatchObject({ kind: 'failed', error: { code: 'client.session_ended' } })
+    expect(blocked.kind === 'failed' && blocked.context).toBeUndefined()
+    stop()
+  })
+})
+
 describe('Vue vekili taşıyan değişkenler (toPlainVars)', () => {
   it('reactive + iç içe ref: gönderim başarılı, gövde dondurulmuş düz kopya', async () => {
     const bodies: unknown[] = []

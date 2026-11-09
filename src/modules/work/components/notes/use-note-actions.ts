@@ -146,7 +146,7 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
 export function useNoteActions(item: () => WorkItem, refetch: () => Promise<unknown>) {
   const add = useAddNote()
   const remove = useDeleteNote()
-  const { confirm } = useConfirm()
+  const { confirmWrite } = useConfirm()
 
   const ref = () => ({ target: targetOf(item()), workItemId: item().work_item_id })
   const edit = useNoteEdit(ref, refetch)
@@ -156,10 +156,15 @@ export function useNoteActions(item: () => WorkItem, refetch: () => Promise<unkn
     return settle(await add.submit({ ...ref(), content }), refetch)
   }
 
-  /** Kendi notunu sil: istemci onayı; sonuç bilinmiyorsa liste yeniden okunur. */
+  /**
+   * Kendi notunu sil: istemci onayı; silme onayın yakaladığı bağlamla başlar (CX-F1-E-02).
+   * Sonuç bilinmiyorsa liste yeniden okunur.
+   */
   async function deleteNote(note: WorkItemNote): Promise<boolean> {
-    if (!(await confirm(DELETE_CONFIRM()))) return false
-    const outcome = await remove.submit({ ...ref(), noteId: note.note_id })
+    const outcome = await confirmWrite(DELETE_CONFIRM(), (context) =>
+      remove.submit({ ...ref(), noteId: note.note_id }, { context }),
+    )
+    if (outcome === null) return false
     if (outcome.kind === 'success') return true
     notifyOutcome(outcome)
     if (outcome.kind === 'unknown_outcome' || outcome.kind === 'failed') await refetch()

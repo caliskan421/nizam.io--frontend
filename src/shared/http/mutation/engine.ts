@@ -26,7 +26,7 @@ import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { CSRF_HEADER_VALUE } from '../client'
 import type { OperationId } from '../query-keys'
 import { generateIdempotencyKey } from './idempotency-key'
-import type { MutationOutcome, MutationUnknown, UnknownReason } from './outcome'
+import type { ActionContext, MutationOutcome, MutationUnknown, UnknownReason } from './outcome'
 
 /** Sözleşmenin `confirmation_required` döndürdüğü yegâne uçlar (ortak-kurallar §7, sentez G7). */
 export const CONFIRMATION_OPERATIONS: ReadonlySet<OperationId> = new Set<OperationId>([
@@ -354,9 +354,12 @@ export async function runAction<V, D, S>(
   const sent = await sendGuarded(action, opts)
   if ('kind' in sent) return sent
   const { attempt, attempts } = sent
+  const context = contextOf(action)
   if (!attempt.ok) {
     if (isAuthorityLoss(attempt.error)) opts.onAuthorityLoss?.(attempt.error)
-    return classifyFailure(attempt, { action, opts, rerun, attempts, now: opts.now ?? Date.now })
+    const c = { action, opts, rerun, attempts, now: opts.now ?? Date.now }
+    const outcome = await classifyFailure(attempt, c)
+    return outcome.kind === 'failed' ? { ...outcome, context } : outcome
   }
   return {
     kind: 'success',
@@ -364,8 +367,13 @@ export async function runAction<V, D, S>(
     status: attempt.status,
     replayed: attempt.status === 200 && attempts > 1,
     idempotencyKey: action.idempotencyKey,
-    context: { scope: action.scope ? { ...action.scope } : null, generation: action.generation },
+    context,
   }
+}
+
+/** Eylemin bağlamı (kapsam kopyası + nesil); sonuçta ardıl karar/adım için açığa çıkar. */
+function contextOf<V>(action: MutationAction<V>): ActionContext {
+  return { scope: action.scope ? { ...action.scope } : null, generation: action.generation }
 }
 
 async function readServer<V, D, S>(vars: V, opts: EngineOptions<V, D, S>): Promise<S | null> {

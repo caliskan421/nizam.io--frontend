@@ -107,6 +107,12 @@ export interface MutationScopeChanged<V> {
 export interface MutationFailed {
   kind: 'failed'
   error: ApiError
+  /**
+   * Sunucudan dönen hatada eylemin bağlamı (başarıdaki ile simetrik; CX-F1-E-02): hatanın
+   * ardından gelen kullanıcı kararı (ör. `work.subtasks_open` onayı) İLK eylemin bağlamıyla
+   * açılır ve gönderilir. İstemci kapısının ürettiği hatada (`client.session_ended`) yoktur.
+   */
+  context?: ActionContext
 }
 
 export type MutationOutcome<V, D, S = unknown> =

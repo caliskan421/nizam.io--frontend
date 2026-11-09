@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { defineComponent, type PropType } from 'vue'
 
+import { authSession } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useToast } from '@/shared/ui'
 import { useConfirm } from '@/shared/ui/confirm'
@@ -15,12 +17,15 @@ import {
   workItem,
 } from '../../model/__tests__/harness'
 import { TRANSITION_MATRIX, type TransitionActor } from '../../model/transitions'
-import { WORK_ITEM_STATUSES, type WorkItemStatus } from '../../model/types'
+import { WORK_ITEM_STATUSES, type WorkItem, type WorkItemStatus } from '../../model/types'
 import { formsHarness, ME, resetForms, type WhoSeed } from './__tests__/forms-harness'
 import { useStatusTransition } from './use-status-transition'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
-afterEach(() => resetForms())
+afterEach(() => {
+  resetForms()
+  if (authSession.snapshot.accountId) authSession.clear()
+})
 afterAll(() => server.close())
 
 const PATH = '/v1/work-items/w1/transitions'
@@ -162,5 +167,118 @@ describe('useStatusTransition — yazma', () => {
     expect(bodies()).toHaveLength(1)
     expect(toasts()).toEqual(['Görev durumu değişti; yenileyip yeniden deneyin.'])
     expect(h.queryClient.getQueryState(item)?.isInvalidated).toBe(true)
+  })
+})
+
+// CX-F1-E-02 (tur 2): `subtasks_open` onayı GERÇEK hook + MSW zincirinde ilk geçişin yaşam
+// döngüsüne bağlı; "ikinci yazma" (`close_subtasks: true`) istek sayısıyla ölçülür.
+describe('subtasks_open onayı — yaşam döngüsü (CX-F1-E-02)', () => {
+  const Probe = defineComponent({
+    props: { item: { type: Object as PropType<WorkItem>, required: true } },
+    setup(props, { expose }) {
+      expose(
+        useStatusTransition(() => props.item, { transitioned: vi.fn(), requestEvidence: vi.fn() }),
+      )
+      return () => null
+    },
+  })
+  type ProbeApi = ReturnType<typeof useStatusTransition>
+
+  function mountProbe(who: WhoSeed = COORD) {
+    const h = formsHarness(COORD_SCOPE, who)
+    const wrapper = h.mount(Probe, { item: workItem({ status: 'devam_ediyor' }) })
+    return { h, wrapper, api: wrapper.vm as unknown as ProbeApi }
+  }
+
+  it('(a) onay açıkken bileşen sökülür → onay iptal, ikinci POST 0', async () => {
+    server.use(http.post(`${ORIGIN}${PATH}`, () => errorEnvelope('work.subtasks_open', 409)))
+    const { h, wrapper, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await h.flush()
+    const dialog = useConfirm()
+    const id = dialog.current.value!.id
+    wrapper.unmount()
+    await done
+    expect(dialog.current.value).toBeNull()
+    await dialog.accept(id)
+    await h.flush()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+  /** Elle bırakılan yanıt kapısı (gerçek süre beklemesi yok). */
+  function hold() {
+    let arrive!: () => void
+    let release!: () => void
+    const arrived = new Promise<void>((r) => (arrive = r))
+    const released = new Promise<void>((r) => (release = r))
+    return { arrived, release, wait: () => (arrive(), released) }
+  }
+
+  /** İlk geçiş yanıtı (409 subtasks_open) elle bırakılır; ikinci gönderim sayılır. */
+  function delayedSubtasksOpen() {
+    const gate = hold()
+    server.use(
+      http.post(`${ORIGIN}${PATH}`, async () => {
+        await gate.wait()
+        return errorEnvelope('work.subtasks_open', 409)
+      }),
+    )
+    return gate
+  }
+
+  const login = (accountId: string) => ({
+    token: `tok-${accountId}`,
+    account_id: accountId,
+    expires_at: Math.floor(Date.now() / 1000) + 900,
+    force_password_change: false,
+  })
+
+  it('(b) ilk geçiş beklerken kapsam A→B → geç 409: onay açılmaz, ikinci POST 0', async () => {
+    const gate = delayedSubtasksOpen()
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    gate.release()
+    await done
+    await h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+
+  it('(b) ilk geçiş beklerken çıkış → başka hesapla giriş → geç 409: onay açılmaz, ikinci POST 0', async () => {
+    authSession.establish(login('acc-x'))
+    const gate = delayedSubtasksOpen()
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    authSession.clear()
+    authSession.establish(login('acc-y'))
+    gate.release()
+    await done
+    await h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+
+  it('(d) değişmeyen bağlamda geç 409 → onay → ikinci POST ilk geçişin bağlamıyla gider', async () => {
+    let calls = 0
+    const gate = hold()
+    server.use(
+      http.post(`${ORIGIN}${PATH}`, async () => {
+        if (++calls > 1) return json(result('tamamlandi'))
+        await gate.wait()
+        return errorEnvelope('work.subtasks_open', 409)
+      }),
+    )
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    gate.release()
+    await vi.waitFor(() => expect(useConfirm().current.value).not.toBeNull())
+    await useConfirm().accept(useConfirm().current.value!.id)
+    await done
+    await h.flush()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }, { to: 'tamamlandi', close_subtasks: true }])
+    expect(sent('POST', PATH)[1]!.headers.get('X-Nizamio-Department')).toBe('d2')
   })
 })
