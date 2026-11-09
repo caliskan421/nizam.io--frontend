@@ -1,6 +1,7 @@
 # WEB-1 (F1) — Codex nihai kapı hükmü
 
-**Son hüküm: `<tur 6 hükmü>`** — 6. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 6 HEAD>` (`main` #32–#48 + PR #49 `39fc791` birleşik).
+**Son hüküm: KOŞULLU UYGUN** — 6. koşum, kapanış dalı `web1/o5-kapanis` @ `c34aa97` (`main` @ `39fc791`, #32–#49 birleşik).
+Koşullar: kapanış kaydı bu PR'da kapatıldı; Ö-07 (sökülmüş ekranın geç bildirimi) ve Ö-08 (sorgu tekrarlarında oturum/önbellek ayrımı) F2 W82 (15)–(16); mevcut F2 borçları `docs/yurutme/web-2/oturum-4-entegrasyon.md`.
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur (tur 1 modeli `gpt-6-astra`).
 Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
@@ -11,7 +12,7 @@ Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satır�
 | 3 | kapanış dalı `3a1522f` (main `1126caf`, #32–#46 birleşik) | UYGUN DEĞİL | E-02 boşluk 2 ve 3 kapandı; boşluk 1 kısmen — **sökülmüş sahip geç 409'da onay açabiliyor**; regresyon kanıtı eksikleri (`close_subtasks` kabul ↔ gönderim; üç silme testinde bağlam aktarımının açık denetimi; mimari testin dolaylı zinciri izlememesi); E-04 kanıt kaydı, K-01…K-03, Ö-06 kapandı | W65 → PR #47 `58400af` · kayıt netleştirmeleri bu PR |
 | 4 | kapanış dalı `fa53822` (main `58400af`, #32–#47 birleşik) | UYGUN DEĞİL | E-02 kapandı (sökülmüş sahip onay açamaz; regresyon kanıtı (i)–(iii) yeterli); **CX-F1-E-05 (yeni)** — alt görev çakışma birleştirmesi sökülmeden sonra yeni PATCH başlatabiliyor (koordinatörün istediği "onay dışı sökülme sonrası yazma" örnekleminde bulundu) | W66 → PR #48 `45360c0` (sınıf ortak yazma katmanında kapatılır) · tablo başlığı bu PR |
 | 5 | kapanış dalı `225afbe` (main `45360c0`, #32–#48 birleşik) | UYGUN DEĞİL | E-05'in çakışma yolu kapandı (ortak sahip kapısı uygun; D1/D2 bağımsız kanıtlı); **"E-05 devamı"** — taşıyıcının `401 → refresh →` özdeş yeniden gönderimi sahip kapısından geçmiyor; Ö-07 (yeni, F2'ye uygun) sökülmüş ekranın geç bildirimi | **Koordinatör kararı:** taşıyıcı tekrarı "aynı isteğin tamamlanması"dır, sahip kapısı uygulanmaz (`docs/ekranlar/ortak-kurallar.md` §7); güvenlik değişmezleri (özdeş istek, tek tekrar, aynı kimlik/oturum nesli) W67 → PR #49 `39fc791` ile doğrulanır/sabitlenir · Ö-07 → F2 W82 (15) |
-| 6 | `<tur 6 HEAD>` | `<tur 6 hükmü>` | `<tur 6 bulguları>` | `<tur 6 düzeltme>` |
+| 6 | kapanış dalı `c34aa97` (main `39fc791`, #32–#49 birleşik) | **KOŞULLU UYGUN** | Koordinatör kararı (401 sonrası özdeş tekrar = aynı isteğin tamamlanması) W67 değişmezleriyle **kabul edildi**; E-05 devamı engelleyici olmaktan çıktı; Ö-08 (yeni, F2) sorgu tekrarlarında oturum/önbellek ayrımı | kapanış kaydı bu PR · Ö-07 → F2 W82 (15) · Ö-08 → F2 W82 (16) |
 | — | `67d31b4` | Görsel doğrulama (üretim paketi + üretim CSP'si + Playwright + sahte `/v1`; gerçek backend yok): 53 senaryo, 96 görüntü (88 uygulama + 8 tasarım), iki tema × 1440/1024/390 × Admin/Koordinatör/Üye; kanıt özeti `docs/yurutme/web-1/ilerleme.md` O5 | yüksek 1 (alt görev onay kutusu 2 px, E-03-31), orta 2 (`/gorevler` 390 px'te 10 px yatay taşma; not çakışmasında sınırsız yeniden gönderim), düşük 5; bilinçli fark 22 | 8 kusurun 8'i W63 #44 (yeniden ölçüm: taşma 390/1024/1440 = 0/0/0; CSP ihlali 30 senaryoda 0) |
 
 Düzeltme planı (koordinatör, 2026-11-09): E-01 → W63 (PR #44; `work/model/assignment.ts` tek yüklem — liste, sekme sayaçları, talep sayısı, sayfalayıcı, boş durum ve ana sayfa KPI aynı kümeden) · E-02/E-03 → W62 (PR #45; `use-confirm` kapsam + oturum nesli + hesap bağı; bileşik yazmada `submit(vars, { context })`) · E-04 → görsel doğrulama turu (main `67d31b4`) + W63 #44 (390 px taşma ve diğer 7 görsel kusur) · Ö-01 → W63 · Ö-02 → W63 kısmen, kalan F2 entegrasyon turu (W82) · Ö-03 → W62 (`/layers.css` `no-cache`, duman testinde tüm CSP ihlalleri 0) · Ö-04, Ö-05 → F2 borcu (W82) · K-01, K-02, K-03 → belge, `web1/o5-kapanis` (K-03 eşik ↔ token eşlemesi F2 borcu) · K-04 → W63.
@@ -503,4 +504,62 @@ Kapanış: sahip yaşamını açılış anında doğrulayın; sökülmüş örne
 3. **F2 W82 içinde:** Ö-07 ile mevcut router/AppShell, kapsam/çıkış/onay, bekleme ve erişilebilirlik borçları kapatılmalı.
 4. **F2 O5:** gerçek Caddy+backend, yükleme/indirme ve gerçek `/` üzerinde dolu KPI CSP tanığı korunmalı.
 
-<!-- TUR 6 TAM METNİ BURAYA -->
+---
+
+# WEB-1 (F1) — Codex nihai kapı hükmü — 6. koşum
+
+- **Hüküm: KOŞULLU UYGUN.** Özdeş 401 tekrarını aynı isteğin tamamlanması sayan karar, W67’nin gönderim kimliği denetimiyle kabul edilebilir; önceki E-05 devamını engelleyici olarak sürdürmüyorum. Kapanış kayıtları tamamlanmalı; geç bildirim ve sorgu önbelleğinin oturumlar arasında ayrılması F2 W82’de kapatılmalıdır.
+- **Denetlenen:** `web1/o5-kapanis` — `c34aa97f62321eebc1e3be8dd67857f46a79a77c`; başlangıç/bitiş çalışma ağacı temiz.
+- **İlk komutlar:** `git rev-parse HEAD`, `git log --oneline -10`, `git status --short`.
+- **Diğer komutlar:** `git branch --show-current`, `git log --first-parent`, `git diff`, `git show`, `rg`, `nl -ba`, `sed`, `cat`, `head`, `tail`, `ls`, `pwd`.
+- Dosya değiştirilmedi; test/lint/build çalıştırılmadı. Beş kapı + `gen:check`, 225 dosya/1639 test, üç yeşil CI işi ve koruma kaldırma sayıları **kullanıcı beyanıdır**.
+- Kısaltmalar: `S = src/shared`, `W = src/modules/work`, `Y1 = docs/yurutme/web-1`, `Y2 = docs/yurutme/web-2`.
+
+## Karar hükmü (A)
+
+**Kabul ediyorum.** Sahip sökülmesi kullanıcı komutunun geri alınması değildir. Kimlik nedeniyle reddedilmiş isteğin aynı hedef, gövde, kapsam ve işlem anahtarıyla tamamlanması; yeni onay, çakışma birleştirmesi veya bileşik ardıl adımdan ayrılabilir (`docs/ekranlar/ortak-kurallar.md:89–91`).
+
+Sahip kapısı eklemek, yalnız belirtecin dolduğu anda gönderilen komutu tamamlanmadan bırakabilir; mevcut ayrım bu zararı önlüyor. Bunun başarı garantisi olmadığı açık kalmalıdır: refresh başarısızlığı veya ikinci 401 komutu yine başarısız bırakabilir; sökülmüş ekrandaki sonuç bildirimi Ö-07 kapsamındadır. Aynı kimlik ve özdeşlik koşulları gevşetilmemelidir.
+
+## Değişmezler
+
+| Madde | Durum | Kanıt dosya:satır | Kalan risk |
+|---|---|---|---|
+| Özdeş istek | Uygun | `S/http/client.ts:170,178,133–135` | Başlıklar uygulanmış istek klonlanıyor; yalnız Authorization değişiyor, kapsam yeniden okunmuyor. |
+| JSON/multipart kanıtı | Anlamlı | `S/http/client.retry.test.ts:130,137,169` | Yöntem/URL/gövde ve ilgili başlık eşitlikleri var; koşulmadı. |
+| En fazla bir tekrar | Uygun | `S/http/client.ts:135,198,210`; `client.retry.test.ts:202` | Ham fetch ara katmana dönmez; ikinci 401 aynen döner. |
+| Eşzamanlı refresh | Uygun | `S/session/auth-session.ts:212–225`; `client.retry.test.ts:219` | Sekme içi uçuş paylaşılır; çalışma zamanı doğrulanmadı. |
+| Kimliğin yakalanması | Uygun | `S/http/client.ts:172–178` | Token, nesil ve hesap gönderim öncesi onRequest içinde alınır; 401 anında alınmaz. |
+| Refresh sonrası karşılaştırma | Uygun | `S/http/client.ts:127–135` | Nesil **ve** hesap eşitliği beklemeden sonra; denetim ile fetch arasında başka await yok. |
+| `NO_REFRESH` | Uygun | `S/http/client.ts:39,194`; `S/session/auth-session.ts:258` | Login/refresh/logout dışlanır; oturum refresh’i ayrıca ham fetch kullanır. |
+| Koruma kaldırma duyarlılığı | Kaynakta anlamlı | `S/http/client.retry.test.ts:288,314,332` | Aynı hesapta yeniden giriş nesil koşulunu; aynı nesilde kimliksiz→giriş hesap koşulunu ayırır. Bildirilen kırmızı test sayıları doğrulanmadı. |
+| Sökülme sonrası tamamlanma | Uygun | `W/api/owner-dispose-refresh.test.ts:121,135,141,146` | İki özdeş istek + başarı; sonraki submit için `owner_disposed` ve ek HTTP yokluğu sınanıyor. |
+| GET’in 401 tekrarı | Aynı kapıdan geçiyor | `S/http/client.ts:194–198` | Yöntem ayrımı yok; başka hesabın token’ıyla bu taşıyıcı tekrarından başarılı okuma üretilemez. |
+
+`rg` taramasında üretim `doFetch(retry)` için ikinci yol bulunmadı. Diğer `refresh()` çağrısı açılış bootstrap’ıdır (`S/session/store.ts:41`); özgün kaynak isteğini tekrar göndermiyor.
+
+## Regresyon ve kayıt
+
+- **`git diff 45360c0..HEAD -- eslint.config.js` boş.**
+- First-parent `origin/main`: #49 `39fc791` → #48 `45360c0` → #47 `58400af` → #46 `1126caf`; #32–#49 mevcut.
+- `a11568c` ebeveynleri `ba9b38d` ve `39fc791`; kapanış HEAD’i `c34aa97`. `39fc791..HEAD` farkı yalnız belgeler.
+- §7’deki ayrım ile `docs/refresh-coordination.md:130` ve kaynak davranışı tutarlı.
+- Koşum 1–5 tablosundaki hash’ler geçmişle tutarlı; tur 6 hâlâ yer tutucu (`docs/reviews/WEB-1-codex.md:3,14`).
+- Kapanış main hash’i hâlâ yer tutucu (`Y1/ilerleme.md:15,84,99`). Bu hüküm/HEAD ve nihai CI bağlantısı kapanış PR’ına; birleşme hash’i birleşme sonrası kayda işlenmeli.
+- `../program/` yok; alternatif `../nizam.io--program/program/` durum/protokolü okundu. WEB-1 için aktif FNN kaydı doğrulanamadı.
+
+## Yeni bulgular (varsa)
+
+**Ö-08 — F2 W82: sorgu tekrarları için oturum/önbellek ayrımı ayrıca korunmalı.**
+
+TanStack geçici hata tekrarları yeni API çağrısı kurar; ilk sorgunun nesil/hesabını taşımaz (`W/api/queries.ts:47,52`; `W/api/http.ts:29`; `S/scope/standing.ts:39,60–69,94`). W67 her yeni çağrının kimliğini yakalar; önceki sorgu denemesinin kimliğine bağlamaz. Dolayısıyla aynı kimlik gereksinimi sorgu yaşamında da önemlidir.
+
+Yerel çıkış sorguları iptal edip önbelleği temizler (`S/scope/sign-out.ts:48–51`). Kardeş sekme çıkışı ise AuthSession’ı değiştirir (`S/session/auth-session.ts:370–375`); store aboneliği yalnız durumu aktarır (`S/session/store.ts:19–21`). Standing anahtarları hesaptan bağımsızdır ve okuyucuları AbortSignal tüketmez (`S/scope/standing.ts:24–27,60–69`). Bu yollarda geç yanıtın/eski sorgunun hesap değişimi sonrasında önbelleğe karışmasını dışlayan genel kapı bulunamadı; fiilî yeniden üretim **doğrulanamadı**.
+
+## F2'ye devir
+
+1. **Kapanış PR’ında:** tur 6 hükmü, denetlenen HEAD ve nihai adayın CI kanıtı bağlanmalı; birleşme hash’i sonrasında tamamlanmalı.
+2. **F2 W82 içinde:** Ö-07’nin kayıtlı (15) kalemi kapatılmalı (`Y2/oturum-4-entegrasyon.md:20`).
+3. **F2 W82 içinde:** Ö-08 açık kabul maddesi olmalı; yerel/kardeş sekme çıkışı → başka hesapla giriş sırasında geciktirilmiş GET ve geçici hata tekrarı sınanmalı. Eski sorgunun yeni hesapla devam etmesi ve geç yanıtın yeni oturum önbelleğine yazılması engellenmeli.
+4. Mevcut W82 üretim router/AppShell borçları ve F2 O5 gerçek Caddy+backend tanığı korunmalı.
+
