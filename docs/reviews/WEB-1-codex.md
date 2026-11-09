@@ -1,13 +1,14 @@
 # WEB-1 (F1) — Codex nihai kapı hükmü
 
-**Son hüküm: `<tur 2 hükmü>`** — 2. koşum, `main` @ `<kapanış main hash>` (#32–#45 birleşik).
+**Son hüküm: `<tur 3 hükmü>`** — 3. koşum, `main` @ `<tur 3 main>` (#32–#45 + `<W64 PR>` birleşik).
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur (tur 1 modeli `gpt-6-astra`).
 Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
 | Koşum | Denetlenen `main` | Hüküm | Açılan bulgular | Düzeltme |
 |---|---|---|---|---|
-| 1 | `67d31b4` (#32–#43 birleşik) | UYGUN DEĞİL | CX-F1-E-01…E-04 (engelleyici); Ö-01…Ö-05; K-01…K-04 | W63 → PR #44 `a3ffe64` (E-01, Ö-01, Ö-02 kısmen, K-04, görsel kusurlar) · W62 → PR #45 `<#45 hash>` (E-02, E-03, Ö-03) · belge K-01/K-02/K-03 kapanış dalı `web1/o5-kapanis` |
-| 2 | `<tur 2 main>` | `<tur 2 hükmü>` | `<tur 2 bulguları>` | `<tur 2 düzeltme>` |
+| 1 | `67d31b4` (#32–#43 birleşik) | UYGUN DEĞİL | CX-F1-E-01…E-04 (engelleyici); Ö-01…Ö-05; K-01…K-04 | W63 → PR #44 `a3ffe64` (E-01, Ö-01, Ö-02 kısmen, K-04, görsel kusurlar) · W62 → PR #45 `45957f9` (E-02, E-03, Ö-03) · belge K-01/K-02/K-03 kapanış dalı `web1/o5-kapanis` |
+| 2 | `45957f9` (#32–#45 birleşik) | UYGUN DEĞİL | E-01, E-03 kapandı; E-04 kod düzeltmeleri uygun (kanıt kapanış PR'ında); **E-02 kısmen** — `subtasks_open` onayı sahipsiz, geç yanıtta bağlam, kabul → mutasyon başlangıcı boşluğu; Ö-06 (yeni) | W64 → `<W64 PR>` (E-02 kalan üç boşluk, Ö-06 etiketi) · K-01…K-03 + E-04 kanıt özeti bu PR |
+| 3 | `<tur 3 main>` | `<tur 3 hükmü>` | `<tur 3 bulguları>` | `<tur 3 düzeltme>` |
 | — | `67d31b4` | Görsel doğrulama (üretim paketi + üretim CSP'si + Playwright + sahte `/v1`; gerçek backend yok): 53 senaryo, 96 görüntü (88 uygulama + 8 tasarım), iki tema × 1440/1024/390 × Admin/Koordinatör/Üye; kanıt özeti `docs/yurutme/web-1/ilerleme.md` O5 | yüksek 1 (alt görev onay kutusu 2 px, E-03-31), orta 2 (`/gorevler` 390 px'te 10 px yatay taşma; not çakışmasında sınırsız yeniden gönderim), düşük 5; bilinçli fark 22 | 8 kusurun 8'i W63 #44 (yeniden ölçüm: taşma 390/1024/1440 = 0/0/0; CSP ihlali 30 senaryoda 0) |
 
 Düzeltme planı (koordinatör, 2026-11-09): E-01 → W63 (PR #44; `work/model/assignment.ts` tek yüklem — liste, sekme sayaçları, talep sayısı, sayfalayıcı, boş durum ve ana sayfa KPI aynı kümeden) · E-02/E-03 → W62 (PR #45; `use-confirm` kapsam + oturum nesli + hesap bağı; bileşik yazmada `submit(vars, { context })`) · E-04 → görsel doğrulama turu (main `67d31b4`) + W63 #44 (390 px taşma ve diğer 7 görsel kusur) · Ö-01 → W63 · Ö-02 → W63 kısmen, kalan F2 entegrasyon turu (W82) · Ö-03 → W62 (`/layers.css` `no-cache`, duman testinde tüm CSP ihlalleri 0) · Ö-04, Ö-05 → F2 borcu (W82) · K-01, K-02, K-03 → belge, `web1/o5-kapanis` (K-03 eşik ↔ token eşlemesi F2 borcu) · K-04 → W63.
@@ -196,4 +197,97 @@ Açık olay/istek tamamlanma koşullarını bekleyin. `auth-session.test.ts:31` 
 
 ---
 
-<!-- TUR 2 TAM METNİ BURAYA -->
+---
+
+# WEB-1 (F1) — Codex nihai kapı hükmü — 2. koşum
+
+- **Hüküm: UYGUN DEĞİL.** E-01 ve oluşturma → ek atama kapsamındaki E-03 kaynak incelemesinde kapanmış; E-04 düzeltmeleri olumlu, kabul kanıtının kayda bağlanması bekliyor. E-02’de `subtasks_open` yaşam döngüsü ve kabul → mutasyon başlangıcı arasındaki bağlam boşluğu sürdüğü için F2 kapısı açılamaz.
+- **Denetlenen:** `main`, `45957f96aa88044496238446a52e38821bc4bedf`; başlangıç ve bitiş çalışma ağacı temiz.
+- **İlk komutlar:** `git rev-parse HEAD`, `git log --oneline -12`, `git status --short`.
+- **Diğer komutlar:** `git branch --show-current`, `git diff 67d31b4..HEAD -- eslint.config.js`, `git diff 67d31b4..HEAD --stat`, hedefli `git diff`, pinli sözleşme için `git show`, `rg`, `cat`, `nl -ba`, `sed`, `head`, `tail`.
+- Dosya değiştirilmedi; test/lint/build çalıştırılmadı. Test değerlendirmeleri kaynak incelemesidir; tersine çevirme koşumu yapılmadı.
+- CI yeşilliği, 53 senaryo / 96 görüntü ve yeniden ölçüm sonuçları **kullanıcı beyanıdır**; dış kanıtlar bağımsız doğrulanmadı.
+- İlk koşumun tam metni okundu. `../program/` yok; `../nizam.io--program/program/{DURUM,README}.md` okundu, aktif WEB-1 FNN kaydı doğrulanamadı. Açık PR listesi doğrulanmadı; #44/#45 birleşmeleri yerel geçmişte görüldü.
+- Aşağıda `W = src/modules/work`, `H = src/modules/home`, `S = src/shared`.
+
+## E-01…E-04 kapanış tablosu
+
+| Bulgu | Durum | Kanıt dosya:satır | Kalan risk |
+|---|---|---|---|
+| **E-01 — Üye merceği** | **Kapandı — kaynak düzeyinde** | `W/model/assignment.ts:14`; `W/pages/tasks/use-task-list.ts:50,60,68,79`; `W/pages/TasksPage.vue:78,80,209`; `H/model/kpi.ts:71` | İstemci yalnız yüklenen sayfaları süzer; sunucu imleci ve kısmi etiket korunmalı. |
+| **E-02 — Onay yaşam döngüsü** | **Kapanmadı — engelleyici** | `S/ui/confirm/use-confirm.ts:133,148,158,206`; `W/components/forms/use-status-transition.ts:56,91,108` | `subtasks_open` onayı bileşen sahipliği olmadan açılıyor; geç yanıt yeni bağlamda onay doğurabiliyor. Genel kabul sonrası bağlam da mutasyona aktarılmıyor. |
+| **E-03 — Oluştur → ek atama** | **Kapandı — kaynak düzeyinde** | `S/http/mutation/engine.ts:236,334,367`; `use-protected-mutation.ts:140,153`; `partial.ts:42`; `W/api/items.ts:80`; `W/components/forms/use-new-task-form.ts:188` | `context` türde isteğe bağlı; gelecekteki bileşik tüketiciler bağlamı atlamamalı. |
+| **E-04 — Görsel kabul** | **Kod düzeltmeleri uygun; kanıt kapanışı koşullu** | `W/pages/tasks/tasks.css:42`; `W/components/subtasks/subtasks.css:73`; `W/components/forms/new-task-schema.ts:25`; not/alt görev akışları aşağıda | Gerçek ölçümler ve son adayla eşleşmeleri doğrulanmadı; kapanış PR’ında kalıcı kanıt özeti gerekli. |
+
+**A — E-01 ayrıntısı**
+
+- Satırlar, sekme sayaçları, talep sayısı/bandı, özet, sayfalayıcının yüklenen sayısı ve boş durum aynı **mercekle daraltılmış temel kümeden** türetiliyor. Sekmeler ayrıca arama/talep süzmesini, satırlar ayrıca seçili sekmeyi uygular; bunların sayılarının her durumda eşit olması beklenmez.
+- KPI aynı `isAssignedTo` yüklemini `work/public.ts` üzerinden kullanıyor. Farklı sayıda sayfa yüklenmiş ekranların toplamlarının eşitliği garanti edilmez; kısmi etiket bu sınırı belirtir.
+- K1/P1 ihlali saptanmadı: liste süzmesi ayrıntı yetkisine dönüşmemiş. Yönetici+Üye merceğinde başkasının görevine derin bağlantı açık kalıyor (`member-lens.test.ts:158`); salt atanmamış üyede liste dışlama ve 403 sınanıyor (`personas.test.ts:138`).
+- Süzme kaldırılırsa yönetici fikstüründeki `o1/o2` satırları geri gelir; `member-lens.test.ts:120,121,125,151,172` beklentileri kaynak mantığı gereği bozulur. Bu, sunucunun zaten süzdüğü bir fikstüre dayanan etkisiz test değildir; gerçek koşum doğrulanmadı.
+- Pinli `openapi.yaml:5074` yalnız `department_id`, `limit`, `cursor` tanımlar; yeni sunucu süzgeci uydurulmamış.
+
+**B — E-02 ayrıntısı ve gerekli düzeltme**
+
+- Görev/alt görev/dosya/not silme yolları `useConfirm()` çağrısını kurulum sırasında yapıyor: sırasıyla `DeleteTaskAction.vue:27`, `use-subtask-edit.ts:131`, `use-file-actions.ts:31`, `use-note-actions.ts:149`.
+- Ortak katman kapsam+nesil+hesap yakalıyor; bekleyen onayı kapsam/oturum değişiminde ve sahibinin sökülmesinde iptal ediyor. Bayat kabul kontrolü de var (`use-confirm.ts:70,79,87,137,209`).
+- **Eksik yol:** `confirmCloseSubtasks()` içindeki `useConfirm()` ilk isteğin `await` dönüşünden sonra çağrılıyor (`use-status-transition.ts:57,92,114`). Bu anda aktif Vue etki kapsamı yok; `ownedOpeners()` sahiplik kaydetmiyor (`use-confirm.ts:207`). Panel aynı kapsamda kapatılsa bile onay yaşayabilir ve eski göreve ikinci yazma başlayabilir.
+- **Geç yanıt boşluğu:** İlk geçiş A’da gönderilip B’ye geçildikten sonra `work.subtasks_open` gelirse onay **B bağlamını** yakalar. Kabulde `send(current, …)` eski A hedefini yeni mutasyon bağlamıyla gönderir (`use-status-transition.ts:92,109`); ilk eylem bağı korunmaz.
+- **Kabul boşluğu:** `accept()` geçerliliği denetledikten sonra `busy=true` yapıp `await entry.onAccept()` bekler. Bu arada kapsam değişirse `sweep/cancel` busy girdiyi atlar; ardından `true` çözülür ve silme tüketicisi güncel bağlamla yeni mutasyon kurar (`use-confirm.ts:137–160`; `DeleteTaskAction.vue:43`). Bu, kaynakta kurulabilen yarış sıralamasıdır; koşumla yeniden üretilmedi.
+- Başlamış HTTP isteğini busy durumda geriye dönük iptal etmemek kabul edilebilir. **Henüz başlamamış yazmanın eski onayla yeni bağlamda başlaması kabul edilemez.**
+- `confirmImpact` ilk eylemin kapsam/neslini motorun `outcome.confirm()` kapanımıyla koruyor (`engine.ts:278`); üretim tüketicisi taramada bulunmadı. Genel kuyruk ve kapsam iptali testi mevcut (`use-confirm.test.ts:312`).
+- Kapanış için onayı kurulumda sahiplenin; ilk geçiş bağlamını geç yanıt/onaylı tekrar boyunca taşıyın; genel onayın bağlamını mutasyon başlangıcına kadar doğrulayın. Sökülme, gecikmiş 409 sonrası A→B/çıkış ve kabul ile gönderim arasındaki değişim için **sıfır ikinci yazma** testleri eklenmeli.
+
+**C — E-03 ayrıntısı**
+
+- İlk gönderim bağlamı yakalanıyor; otomatik tekrar ve manuel retry aynı eylemi koruyor; başarı bağlamı ardıl adıma aktarılıyor. Motor her gönderim öncesi kapsam/nesil denetliyor.
+- A→B’de ek atama sıfır, ilk başarı korunmuş kısmi sonuç ve yalnız A geçersizlemesi açıkça sınanıyor (`items.test.ts:190,208–210`). Çıkış→başka hesap ve değişmeyen bağlam testleri de var (`:213,233`); manuel retry yolu `use-new-task-form.test.ts:229`.
+- API genişletmesi geriye uyumlu: ikinci `submit` argümanı ve başarıdaki `context` isteğe bağlı. Mevcut tek argümanlı tüketicilerde kaynak düzeyinde kırılma görülmedi; derleme çalıştırılmadı.
+- **`created(item)` B’de çağrılması tek başına kusur değil:** ilk başarı gerçek ve korunmalı. Üretim alıcısı program/departman kapsamını denetleyerek panel açıyor (`use-new-task-entry.ts:46,54`); bu bildirim ek atama veya B önbelleğine yazma yapmıyor.
+
+**D — E-04 ayrıntısı**
+
+- Eylem grubunun sarılması/daralması ve checkbox sarmalayıcısının hücreyi doldurması ilgili CSS nedenlerini gideriyor. 390 px taşma=0 ve 18×18 sonuçları yalnız kullanıcı beyanıdır.
+- `jitless` ilk şema oluşumundan önce ayarlanmış; zod kullanımı form katmanıyla sınırlı. CSP gevşetilmemiş.
+- Notta aynı sürüm durduruluyor; diyalogsuz ikinci tekrar engelleniyor (`use-note-actions.ts:102,110,119`). Alt görevde eşdeğer koruma var (`use-subtask-edit.ts:93,151,154`).
+- Sürekli ilerleyen sürümde **iki PATCH** sınırı testlerde açık (`use-note-actions.test.ts:99`; `use-subtask-edit.test.ts:130`). Kullanıcının yeni diyalog kararı sayacı sıfırlar; bu otomatik sonsuz döngü değildir.
+- `rg` ile `resolveConflict`, `retry`, `saveNote`, `conflict.resolve`, `resolveDraft` zincirleri tarandı. İncelenen zincirlerde başka sınırsız **otomatik** tekrar bulunmadı; motor tek tekrar, sorgu tekrarı en çok iki (`engine.ts:334`; `W/api/http.ts:29`).
+- Sahte yanıtlı üretim görsel turu + gerçek backend CI dumanı **F1 için kabul edilebilir katmanlı kanıttır**; aynı senaryoların tamamını gerçek backend ile yeniden çekmek şart değil.
+- Ancak kapanışta aday SHA’sı, görsel matris/yeniden ölçüm özeti, CI run/artefakt bağlantıları ve gerçek **web imajı** işinin sonucu bağlanmalı (`ci.yml:125,129,148`). Mevcut imaj kontrolü HTTP/CSP/nonce tanığıdır; tarayıcı görsel tanığı değildir (`deploy/check-image.sh:40`).
+
+## Ö/K bulguları durumu
+
+| Bulgu | Durum | Kanıt / sınır |
+|---|---|---|
+| **Ö-01** | **Kapandı** | `RequestBand.vue:28` kısmi etiketi; `TasksPage.vue:159` bağlantısı. |
+| **Ö-02** | **Kısmen kapandı; kalanı F2 borcu kabul** | Görünürlük/403 ve gerçek ana sayfa tıklaması düzeldi (`harness.ts:58`; `entry.test.ts:47`). Üretim router/kabuk hâlâ yok (`harness.ts:177,194`); test F2’de `app` düzeyine taşınabilir. |
+| **Ö-03** | **Kısmen kapandı; kalanı F2 borcu kabul** | `/layers.css` no-cache; bütün CSP ihlalleri denetleniyor. Preview’a politika enjekte ediliyor (`e2e/csp-check.ts:46`); gerçek Caddy tarayıcı kabulü değil. |
+| **Ö-04** | **F2 borcu kabul** | Tahmini yerleşme ve gerçek `setTimeout(0)` sürüyor (`harness.ts:208,216`); “gerçek zamanlayıcı yok” yorumu yanlış. |
+| **Ö-05** | **F2 borcu kabul** | Dar menü odak dönüşü/arka içeriği etkisizleştirme/kaydırma kilidi yok (`src/app/shell/narrow-nav.ts:17`). |
+| **K-01/K-02/K-03** | **Kapanış PR’ında kapanmalı** | İlerleme hâlâ bekliyor; README eski; `backend.md:85` ve `sentez.md:19` eski anlatımı taşıyor. Medya koşulu istisnası ve token eşleşmesi açık kayda girmeli; sonuncusu bu koşumda yeniden doğrulanamadı. |
+| **K-04** | **Kapandı** | `use-file-actions.ts:50` bilet tüketimini `finally` ile temizliyor. |
+
+## Regresyon örneklemi
+
+- **K1/K3:** Yetki ve mercek ayrımı korunmuş; tek liste ucu, departman fan-out yok; pin değişmemiş (`v0.11.0-api`).
+- **K5:** İlk bağlamla retry/ardıl adım ve A kapsamındaki geçersizleme uygun; **E-02 nedeniyle bütün yazma yaşam döngüsü uygun sayılamaz**.
+- **K11:** vee-validate/zod form katmanında; jitless ayarı CSP ile uyumlu.
+- **K12:** `git diff 67d31b4..HEAD -- eslint.config.js` **boş**; yeni lint istisnası yok. Lint başarısı bağımsız doğrulanmadı.
+- **Güvenlik:** CSRF ve açık hedef kapsam başlıkları korunmuş (`S/http/client.ts:84,122`); storage taramasında yalnız tercih adapteri erişimi görüldü; desteklenmeyen API sürümü açık hata (`S/instance/store.ts:31`). Çerez/gerçek tarayıcı sonuçları CI beyanı sınırındadır.
+- **Diff özeti:** **54 dosya, 1.481 ekleme, 145 silme**.
+
+## Yeni bulgular
+
+- Yeni engelleyici kimlik açılmadı: yukarıdaki onay açıkları **CX-F1-E-02’nin kapanmamış kapsamıdır**.
+- **CX-F1-Ö-06 — Dumanın ana sayfa CSP kapsamı olduğundan geniş anlatılıyor.** `smoke.spec.ts:84` giriş sonrası rotanın `/oturum` olduğunu doğruluyor; önceki ihlal kontrolünü `/` diye etiketlemek dolu ana sayfa/KPI tanığı yapmaz. F2’de gerçek `/` gezinmesi, `home-page` ve dolu KPI beklentisi eklenmeli; kapanış kaydı mevcut testi doğru adlandırmalı.
+
+## F2’ye devir: kabul edilen borçlar ve ön koşullar
+
+1. **F2 ön koşulu:** E-02 kod ve sıfır-yazma testleriyle kapanmalı; belge düzeltmesi olarak ertelenemez.
+2. **Kapanış PR’ı:** K-01…K-03, E-04 kanıt özeti, aday SHA/CI/imaj eşleşmesi ve bu hüküm kayda bağlanmalı.
+3. **F2 içinde:** Üretim router/AppShell ile kapsam, yetki kaybı, çıkış ve onay entegrasyonu; modül sınırına yeni istisna eklenmeden.
+4. **F2 içinde:** Gerçek ana sayfa/dolu KPI CSP testi, üretim paketi görsel kapısı ve gerçek Caddy üzerinde tarayıcı tanığı.
+5. **F2 içinde:** Koşul/olay temelli test beklemeleri; dar menünün odak ve kaydırma yaşam döngüsü.
+6. Yönetim capability taşıması ve F2 kabul/BE devirleri hedef işlere yazılmalı (`oturum-5-kapanis.md:13,14`). Pin yükseltmesi ayrı sözleşme incelemesi olarak kalmalı.
+
+<!-- TUR 3 TAM METNİ BURAYA -->

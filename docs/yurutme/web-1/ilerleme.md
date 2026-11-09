@@ -12,8 +12,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2 entegrasyon turu (W48) | Birleşti (#42) | `e34a22c` |
 | O3 — Sade ana sayfa (W51) | Birleşti (#39) | `b74b8ab` |
 | O4 — Temizlik (W61) | Birleşti (#43; CSS katman sırası düzeltmesi dahil) | `67d31b4` |
-| O5 — Kapanış | Belgeler (adım 1, 2, 5, 6) + görsel doğrulama (adım 3, main `67d31b4`) + Codex tur 1 **UYGUN DEĞİL** (adım 4); tur 2 `<tur 2 hükmü>` | `<kapanış main hash>` |
-| O5 düzeltme turu (W62, W63) | Birleşti (W63 #44 · W62 #45) | `a3ffe64` · `<#45 hash>` |
+| O5 — Kapanış | Belgeler (adım 1, 2, 5, 6) + görsel doğrulama (adım 3, main `67d31b4`) + Codex tur 1 **UYGUN DEĞİL** (adım 4); tur 2 `UYGUN DEĞİL (yalnız E-02 kalan boşlukları; W64 `<W64 PR>`) → tur 3 `<tur 3 hükmü>`` | `<kapanış main hash>` |
+| O5 düzeltme turu (W62, W63) | Birleşti (W63 #44 · W62 #45) | `a3ffe64` · `45957f9` |
 
 ## Kayıtlar
 
@@ -58,9 +58,9 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 - **Adım 4 — Codex tur 1** (main `67d31b4`, model `gpt-6-astra`, `-s read-only`): **UYGUN DEĞİL** → [`../../reviews/WEB-1-codex.md`](../../reviews/WEB-1-codex.md) (tam metin). Engelleyiciler: E-01 Üye merceği liste süzmesi; E-02 istemci onayının kapsam/oturum yaşam döngüsü; E-03 oluştur → ek atama bağlamı; E-04 görsel kabul + 390 px taşma. Ayrıca Ö-01…Ö-05, K-01…K-04.
 - **Düzeltmeler:**
   - **W63 #44 `a3ffe64`** — E-01 (`work/model/assignment.ts` tek yüklem; liste, sekme sayaçları, talep sayısı, sayfalayıcı, boş durum, ana sayfa KPI aynı kümeden; pinli spec'te sunucu atanan süzgeci yok → istemci süzmesi); Ö-01 (talep bandı kısmi etiketi); Ö-02 kısmen (sahte backend sunucu görünürlüğünü uygular, atanmamış üye testi sözleşmeye uygun, `entry.test.ts` gerçek tıklama; üretim `createAppRouter`/`AppShell` harness'e alınamadı — modül → `app/` sınır kuralı → F2 borcu); K-04 (bilet `reset` `finally`); görsel kusurların 8'i de (yeniden ölçüm: taşma 390/1024/1440 = 0/0/0; CSP ihlali 30 senaryoda 0; onay kutusu satırda 18×18, panelde 16×16; çakışmada eylem başına en fazla bir diyalogsuz yeniden gönderim; `z.config({ jitless: true })`). vitest 1544 → **1569**.
-  - **W62 #45 `<#45 hash>`** — E-02 (`shared/ui/confirm/use-confirm.ts` onay açılırken kapsam + oturum nesli + hesap yakalar; kapsam değişimi, çıkış/hesap değişimi, bileşen sökülmesi bekleyen onayı vazgeç sayar; bayat bağlamda kabul de vazgeç; tüketiciler değişmedi); E-03 (`submit(vars, { context })`, `MutationSuccess.context`; ardıl adım ilk eylemin bağlamıyla; değişimde ek atama gönderilmez, ilk başarı korunur, kısmi sonuç bildirilir); Ö-03 (`/layers.css` `no-cache`; duman testi `/` ve `/gorevler`'de tüm CSP ihlalleri 0). vitest 1569 → **1583** (#45 dalı).
+  - **W62 #45 `45957f9`** — E-02 (`shared/ui/confirm/use-confirm.ts` onay açılırken kapsam + oturum nesli + hesap yakalar; kapsam değişimi, çıkış/hesap değişimi, bileşen sökülmesi bekleyen onayı vazgeç sayar; bayat bağlamda kabul de vazgeç; tüketiciler değişmedi); E-03 (`submit(vars, { context })`, `MutationSuccess.context`; ardıl adım ilk eylemin bağlamıyla; değişimde ek atama gönderilmez, ilk başarı korunur, kısmi sonuç bildirilir); Ö-03 (`/layers.css` `no-cache`; duman testi `/` ve `/gorevler`'de tüm CSP ihlalleri 0). vitest 1569 → **1583** (#45 dalı).
   - **Belge (`web1/o5-kapanis`)** — K-01 (bu kayıt, durum tablosu, `README.md` durum ifadesi); K-02 (`03-gorevler-liste/backend.md` sekme sayaçları ve `sentez.md` G3 pinli spec'le uzlaştırıldı); K-03 (px kuralının medya koşulu istisnası belgelere yazıldı; eşik ↔ token eşlemesi F2 borcu).
-- **Kapı:** vitest **1480** (#41 sonrası) → **1505** (#42) → **1544** (#43) → **1569** (#44) → **1583** (#45 dalı). Codex tur 2: `<tur 2 hükmü>`; kapanış main `<kapanış main hash>`.
+- **Kapı:** vitest **1480** (#41 sonrası) → **1505** (#42) → **1544** (#43) → **1569** (#44) → **1583** (#45 dalı). Codex tur 2: `UYGUN DEĞİL (yalnız E-02 kalan boşlukları; W64 `<W64 PR>`) → tur 3 `<tur 3 hükmü>``; kapanış main `<kapanış main hash>`.
 - **YENİ-EKSİK:** yok — düzeltme turunda (W62/W63) BE satırı eklenmedi; `listProgramWorkItems`'ta atanan süzgeci yok → BE-038 notu `../../backend-eksikleri/rapor-F1.md` §1.
 - **Süreç olayları ve dersler:**
   - **#45 ilk CI koşumunda "Playwright duman" kırmızı.** W62'nin duman testine eklediği `/gorevler` adımından sonra `goto('/')` kimlik sayfası yerine ana sayfayı açıyordu (`session-status` yalnız `/oturum`'da); üretim kodu değil test hatası; düzeltildi (`c13a1bb`). İşçi e2e'yi yerelde gerçek backend'siz koşamamıştı. **Ders:** e2e değişikliği sahte `/v1` ile tam akış provası olmadan PR'a girmez.
@@ -75,4 +75,4 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
   - Codex önerisi: her UI PR'ı için üretim paketi görsel kapısı + faz sonunda gerçek imaj tanığı.
   - K-03 — medya koşulu eşiklerinin token değerleriyle eşlenmesi; Yönetim menüsü kapısı organization `capabilities.ts`'e (W71).
   - Yeni bileşik işlemler `followUps(data, context)` + `submit(…, { context })` kullanır; F2 `confirmation_required` akışları `use-confirm` yaşam döngüsünü tüketir.
-- **Bekleyen:** Codex tur 2 (`<tur 2 hükmü>`) → `docs/reviews/WEB-1-codex.md`; #45 birleşme hash'i `<#45 hash>`; kapanış main `<kapanış main hash>`; yönetim deposu `program/DURUM.md` + `gunluk/` satırı; ürün sahibi cevapları (#13–#18).
+- **Bekleyen:** Codex tur 2 (`UYGUN DEĞİL (yalnız E-02 kalan boşlukları; W64 `<W64 PR>`) → tur 3 `<tur 3 hükmü>``) → `docs/reviews/WEB-1-codex.md`; #45 birleşme hash'i `45957f9`; kapanış main `<kapanış main hash>`; yönetim deposu `program/DURUM.md` + `gunluk/` satırı; ürün sahibi cevapları (#13–#18).
