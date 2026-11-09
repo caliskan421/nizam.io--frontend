@@ -1,0 +1,242 @@
+/*
+ * W94 seçili görev paneli, tarih talebi formu, bağımlılık penceresi — `Gorevler-Zaman.dc.html`
+ * `<section class="rp-pop" aria-label="Seçili görev">` (sağ alt, 340 genişlik, 18 dolgu, 14 aralık)
+ * birebir; çizilmemiş parçalar (Kaydet, Onayla/Reddet, talep uzantısı, formlar, bağımlılık
+ * penceresi) P3: `shared/ui` + en sade yerleşim. Kural: yalnız token; px yok (genişlik
+ * `--rp-aside-basis`). Açık/koyu tema yalnız token değişimiyle.
+ */
+@layer components {
+  .tp {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    box-sizing: border-box;
+    width: min(var(--rp-aside-basis), calc(100% - var(--space-8)));
+    max-height: calc(100% - var(--space-8));
+    padding: var(--space-5);
+    overflow-y: auto;
+    border: var(--ui-hairline) solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--surface-top), var(--bg-surface));
+    box-shadow:
+      inset 0 var(--ui-hairline) 0 var(--edge-light),
+      var(--shadow-card);
+    color: var(--ink);
+  }
+  .tp p {
+    margin: 0;
+  }
+  .tp .tp-kicker {
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .tp-trunc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tp-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Üst satır (E-03C-54…57) */
+  .tp-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: var(--space-2);
+    align-items: start;
+  }
+  .tp-head__text {
+    min-width: 0;
+  }
+  .tp-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-top: var(--ui-gap-2xs);
+    overflow: hidden;
+    font: var(--text-title);
+  }
+
+  /* Tarih girdileri (E-03C-58/59) */
+  .tp-dates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .tp-date {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-xs);
+    min-width: 0;
+  }
+  .tp-date--late .t-input {
+    border-color: var(--danger);
+  }
+  .tp-date__error {
+    font: var(--text-caption);
+    color: var(--danger);
+  }
+
+  /* Özet satırları (`rp-dl`) */
+  .tp-dl {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--ui-gap-sm) var(--space-4);
+    margin: 0;
+    font: var(--ui-text-sm-medium);
+  }
+  .tp-dl dt {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .tp-dl dd {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .tp-danger {
+    color: var(--danger);
+  }
+  .tp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .tp-dot {
+    display: inline-block;
+    flex: none;
+    width: var(--wd-dot);
+    height: var(--wd-dot);
+    border-radius: var(--radius-full);
+    box-sizing: border-box;
+  }
+  .tp-dot--baslanmadi {
+    border: var(--wd-dot-ring) solid var(--ink-faint);
+  }
+  .tp-dot--devam_ediyor {
+    background: var(--violet);
+  }
+  .tp-dot--onaya_sunuldu {
+    background: var(--gold);
+  }
+  .tp-dot--iade_edildi {
+    background: var(--danger);
+  }
+  .tp-dot--tamamlandi {
+    background: var(--rp-done-fill);
+  }
+
+  /* Bekleyen talep uzantısı (E-03C-42): kesik çerçeve */
+  .tp-pending {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-xs);
+    padding: var(--space-3);
+    border: var(--ui-hairline) dashed var(--danger);
+    border-radius: var(--radius-sm);
+    font: var(--ui-text-sm-medium);
+  }
+  .tp-pending__range {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .tp-pending__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .tp-help {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .tp-error {
+    font: var(--text-caption);
+    color: var(--danger);
+  }
+
+  /* Eylem satırı (`rp-iconrow`) */
+  .tp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .tp-actions__main {
+    display: flex;
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .tp-actions__main .t-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .tp-actions__icons {
+    position: relative;
+    display: flex;
+    gap: var(--space-2);
+  }
+  .tp-menu {
+    right: 0;
+    bottom: calc(100% + var(--ui-gap-xs));
+  }
+
+  /* Yükleniyor / hata */
+  .tp-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .tp-skeleton__line {
+    display: block;
+    height: var(--wd-skeleton-h);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+
+  /* Formlar ve bağımlılık penceresi */
+  .tp-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .tp-form__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .tp-form__current {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .tp-form__error {
+    font: var(--text-caption);
+    color: var(--danger);
+  }
+  .tp-deps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tp-deps li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: center;
+  }
+}
