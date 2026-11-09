@@ -111,12 +111,8 @@ function onRowClick(event: MouseEvent): void {
       </span>
     </span>
   </div>
-  <div
-    v-if="expanded"
-    role="row"
-    class="task-row__subs"
-    :aria-label="taskListText('taskList.subtasksOf', { title: item.title })"
-  >
+  <!-- Yerleşim kabı (rolsüz): tablo satırı + hücreyi `SubtaskBlock` verir (row > cell; W48). -->
+  <div v-if="expanded" class="task-row__subs">
     <SubtaskBlock :item="item" @open-subtasks="emit('openSubtasks', $event)" />
   </div>
 </template>

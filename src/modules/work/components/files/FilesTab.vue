@@ -41,7 +41,8 @@ const archivePhase = filesText('workFiles.tab.archivePhase')
 </script>
 
 <template>
-  <section class="wf-tab" data-testid="files-tab" :aria-label="filesText('workFiles.tab.title')">
+  <!-- Sekme paneli (`role="tabpanel"`, sekme adıyla) içinde: ek bölge işareti yok (W48). -->
+  <div class="wf-tab" data-testid="files-tab">
     <div class="wf-head">
       <dl class="wf-evidence" data-testid="files-evidence">
         <dt>{{ filesText('workFiles.tab.evidence') }}</dt>
@@ -105,5 +106,5 @@ const archivePhase = filesText('workFiles.tab.archivePhase')
     </ul>
 
     <FileUploadDialog v-if="access.canUpload.value" v-model:open="uploadOpen" :item="item" />
-  </section>
+  </div>
 </template>

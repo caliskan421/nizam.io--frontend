@@ -4,6 +4,7 @@ import {
   clearedFilters,
   DEFAULT_TASKS_STATE,
   hasActiveFilters,
+  newTaskRequested,
   nextSort,
   parseTasksQuery,
   tasksQuery,
@@ -79,5 +80,14 @@ describe('görev listesi URL durumu (K10)', () => {
     const cleared = clearedFilters(state)
     expect(hasActiveFilters(cleared)).toBe(false)
     expect(tasksQuery(cleared)).toEqual({ sirala: 'durum:artan', gorev: 'w1' })
+  })
+
+  it('yeni: "Yeni görev" girişi okunur ama durumda taşınmaz ve yazılmaz (W48)', () => {
+    expect(newTaskRequested({ yeni: '1' })).toBe(true)
+    expect(newTaskRequested({ yeni: '0' })).toBe(false)
+    expect(newTaskRequested({})).toBe(false)
+    expect(tasksQuery(parseTasksQuery({ yeni: '1', durum: 'geciken' }))).toEqual({
+      durum: 'geciken',
+    })
   })
 })
