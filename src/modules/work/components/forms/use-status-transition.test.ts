@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { defineComponent, type PropType } from 'vue'
 
 import { queryKeys } from '@/shared/http/query-keys'
 import { useToast } from '@/shared/ui'
@@ -15,7 +16,7 @@ import {
   workItem,
 } from '../../model/__tests__/harness'
 import { TRANSITION_MATRIX, type TransitionActor } from '../../model/transitions'
-import { WORK_ITEM_STATUSES, type WorkItemStatus } from '../../model/types'
+import { WORK_ITEM_STATUSES, type WorkItem, type WorkItemStatus } from '../../model/types'
 import { formsHarness, ME, resetForms, type WhoSeed } from './__tests__/forms-harness'
 import { useStatusTransition } from './use-status-transition'
 
@@ -162,5 +163,41 @@ describe('useStatusTransition — yazma', () => {
     expect(bodies()).toHaveLength(1)
     expect(toasts()).toEqual(['Görev durumu değişti; yenileyip yeniden deneyin.'])
     expect(h.queryClient.getQueryState(item)?.isInvalidated).toBe(true)
+  })
+})
+
+// CX-F1-E-02 (tur 2): `subtasks_open` onayı GERÇEK hook + MSW zincirinde ilk geçişin yaşam
+// döngüsüne bağlı; "ikinci yazma" (`close_subtasks: true`) istek sayısıyla ölçülür.
+describe('subtasks_open onayı — yaşam döngüsü (CX-F1-E-02)', () => {
+  const Probe = defineComponent({
+    props: { item: { type: Object as PropType<WorkItem>, required: true } },
+    setup(props, { expose }) {
+      expose(
+        useStatusTransition(() => props.item, { transitioned: vi.fn(), requestEvidence: vi.fn() }),
+      )
+      return () => null
+    },
+  })
+  type ProbeApi = ReturnType<typeof useStatusTransition>
+
+  function mountProbe(who: WhoSeed = COORD) {
+    const h = formsHarness(COORD_SCOPE, who)
+    const wrapper = h.mount(Probe, { item: workItem({ status: 'devam_ediyor' }) })
+    return { h, wrapper, api: wrapper.vm as unknown as ProbeApi }
+  }
+
+  it('(a) onay açıkken bileşen sökülür → onay iptal, ikinci POST 0', async () => {
+    server.use(http.post(`${ORIGIN}${PATH}`, () => errorEnvelope('work.subtasks_open', 409)))
+    const { h, wrapper, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await h.flush()
+    const dialog = useConfirm()
+    const id = dialog.current.value!.id
+    wrapper.unmount()
+    await done
+    expect(dialog.current.value).toBeNull()
+    await dialog.accept(id)
+    await h.flush()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
   })
 })

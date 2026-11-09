@@ -53,8 +53,10 @@ function needsReread(o: Outcome): boolean {
   return o.kind === 'failed' && o.error.status === 409
 }
 
-function confirmCloseSubtasks(): Promise<boolean> {
-  return useConfirm().confirm({
+type Confirm = ReturnType<typeof useConfirm>['confirm']
+
+function confirmCloseSubtasks(confirm: Confirm): Promise<boolean> {
+  return confirm({
     title: formsText('workForms.transition.subtasks.title'),
     body: [formsText('workForms.transition.subtasks.body')],
     confirmLabel: formsText('workForms.transition.subtasks.confirm'),
@@ -74,6 +76,8 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   const { standing } = useStanding()
   const queryClient = useQueryClient()
   const transition = useTransitionWorkItem()
+  // Kurulumda alınır: onay bu bileşenin etki kapsamına aittir, sökülünce iptal (CX-F1-E-02).
+  const { confirm } = useConfirm()
 
   const facts = computed(() => workActorFacts(standing.value, store.programId, toValue(item)))
   const targets = computed<WorkItemStatus[]>(() =>
@@ -89,7 +93,8 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
     }
     const code = codeOf(o)
     if (code === 'work.subtasks_open' && canCloseSubtasks(body.to) && !body.close_subtasks) {
-      if (await confirmCloseSubtasks()) return send(current, { ...body, close_subtasks: true })
+      if (await confirmCloseSubtasks(confirm))
+        return send(current, { ...body, close_subtasks: true })
     } else if (code === 'work.attachment_required') {
       useToast().push({ message: formsText('workForms.transition.evidence'), tone: 'danger' })
       hooks.requestEvidence()

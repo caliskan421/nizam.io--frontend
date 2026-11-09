@@ -15,7 +15,9 @@
  * Yaşam döngüsü (CX-F1-E-02): onay açılırken kapsam (program/departman/mercek), oturum nesli
  * (`AuthSession.generation`) ve hesap yakalanır. Kapsam değişimi, çıkış/oturum sonu/hesap
  * değişimi ve onayı açan bileşenin sökülmesi (`useConfirm()` çağıran kapsamın `onScopeDispose`'u)
- * bekleyen onayı **vazgeç** olarak kapatır (`false` / `null`; yazma başlamaz). Savunma derinliği:
+ * bekleyen onayı **vazgeç** olarak kapatır (`false` / `null`; yazma başlamaz). Onay açan
+ * `useConfirm()` kurulumda (etki kapsamında) alınmalıdır; dışarıda alınan örnek onay açamaz
+ * (geliştirme/testte hata). Savunma derinliği:
  * kabul anında yakalanan bağlam güncel değilse kabul de vazgeç sayılır. Tüketici ek kod yazmaz.
  */
 import { getActivePinia } from 'pinia'
@@ -155,11 +157,23 @@ function cancel(id: number): void {
 /** Açılan onayın kimliğini sahibine bildirir (bileşen sökülünce iptal için). */
 type Track = (id: number) => void
 
-function confirm(options: ConfirmOptions, track?: Track): Promise<boolean> {
+/**
+ * Onayı açan bir sahip (etki kapsamı) şarttır: sahipsiz onay bileşen sökülünce kapanmaz
+ * (CX-F1-E-02). Geliştirme/testte açık hata; üretimde onay hiç açılmaz (yazma başlamaz).
+ */
+function requireOwner(track: Track | null): Track | null {
+  if (track || !import.meta.env.DEV) return track
+  throw new Error(
+    'useConfirm(): etki kapsamı dışında alındı — onay sahipsiz kalır; kurulumda (setup) çağırın.',
+  )
+}
+
+function confirm(options: ConfirmOptions, track: Track | null): Promise<boolean> {
+  const owner = requireOwner(track)
   return new Promise((resolve) => {
+    if (!owner) return resolve(false)
     const onAccept = () => Promise.resolve(() => resolve(true))
-    const id = enqueue({ options, items: [], onAccept, onCancel: () => resolve(false) })
-    track?.(id)
+    owner(enqueue({ options, items: [], onAccept, onCancel: () => resolve(false) }))
   })
 }
 
@@ -178,9 +192,11 @@ export function unassignedTasks(data: unknown): number {
 function confirmImpact<V, D, S>(
   outcome: ConfirmationRequired<V, D, S>,
   options: ConfirmOptions,
-  track?: Track,
+  track: Track | null,
 ): Promise<MutationOutcome<V, D, S> | null> {
+  const owner = requireOwner(track)
   return new Promise((resolve) => {
+    if (!owner) return resolve(null)
     const onAccept = async () => {
       const result = await outcome.confirm()
       const n = result.kind === 'success' ? unassignedTasks(result.data) : 0
@@ -195,16 +211,17 @@ function confirmImpact<V, D, S>(
       onAccept,
       onCancel: () => resolve(null),
     })
-    track?.(id)
+    owner(id)
   })
 }
 
 /**
  * Bileşen (ya da etki kapsamı) içinde çağrılırsa bu çağrının açtığı onaylar kapsam kapanınca
- * (bileşen sökülünce) vazgeçle kapanır.
+ * (bileşen sökülünce) vazgeçle kapanır. Kapsam dışında alınan örnek onay AÇAMAZ
+ * (`requireOwner`); yalnız kuyruğu okur/yönetir (kabuk yuvası, testler).
  */
-function ownedOpeners() {
-  if (!getCurrentScope()) return { track: undefined }
+function ownedOpeners(): { track: Track | null } {
+  if (!getCurrentScope()) return { track: null }
   const owned = new Set<number>()
   onScopeDispose(() => {
     for (const id of owned) cancel(id)
