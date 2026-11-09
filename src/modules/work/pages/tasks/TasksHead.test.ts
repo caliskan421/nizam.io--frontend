@@ -14,7 +14,11 @@ const makeRouter = () =>
     ],
   })
 
-function mountHead(props: Record<string, unknown>): VueWrapper {
+function mountHead(props: {
+  summary: { tasks: number; departments: number; people: number } | null
+  complete: boolean
+  canCreate: boolean
+}): VueWrapper {
   return mount(TasksHead, { props, global: { plugins: [makeRouter()] } })
 }
 
