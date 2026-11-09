@@ -3,12 +3,10 @@ import './forms.css'
 
 import { useForm } from 'vee-validate'
 import { computed, ref, shallowRef, watch } from 'vue'
-import { z } from 'zod'
 
 import { designStub } from '@/shared/design-stub'
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
-import type { TeamRole } from '@/shared/scope/standing-facts'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 import {
@@ -27,6 +25,15 @@ import { can, organizationFacts } from '../../model/capabilities'
 import type { UserCreateDialogEmits, UserCreateDialogProps } from '../index'
 import { serverFieldErrors, toTypedSchema, useFormDialog } from './form-kit'
 import { orgText, roleLabel } from './messages'
+import {
+  emptyUser,
+  pickDepartment,
+  USER_CODES,
+  USER_FIELDS,
+  USER_ROLES,
+  userSchema,
+  type UserValues,
+} from './user-schema'
 
 /**
  * W74 · E-05-05 "Kullanıcı oluştur" (P14; davet değil — e-posta daveti yok, BE-013). P3 en sade
@@ -43,33 +50,14 @@ import { orgText, roleLabel } from './messages'
 const props = withDefaults(defineProps<UserCreateDialogProps>(), { departmentId: null })
 const emit = defineEmits<UserCreateDialogEmits>()
 
-const ROLES = ['member', 'coordinator'] as const satisfies readonly TeamRole[]
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 const store = useScopeStore()
 const { standing } = useStanding()
 const create = useCreateUser()
 const index = useProgramDepartmentIndex(() => props.open)
 
-interface Values {
-  email: string
-  fullName: string
-  departmentId: string
-  role: TeamRole
-}
-function empty(): Values {
-  return { email: '', fullName: '', departmentId: props.departmentId ?? '', role: 'member' }
-}
-
-const form = useForm<Values>({
-  validationSchema: toTypedSchema<Values, Values>(
-    z.object({
-      email: z.string().trim().regex(EMAIL, orgText('orgForms.user.error.email')),
-      fullName: z.string().trim(),
-      departmentId: z.string().min(1, orgText('orgForms.user.error.department')),
-      role: z.enum(ROLES),
-    }),
-  ),
+const empty = () => emptyUser(props.departmentId)
+const form = useForm<UserValues>({
+  validationSchema: toTypedSchema<UserValues, UserValues>(userSchema()),
   initialValues: empty(),
 })
 const [email] = form.defineField('email')
@@ -92,7 +80,7 @@ const chooseRole = computed(() =>
     }),
   ),
 )
-const roleOptions = ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
+const roleOptions = USER_ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
 
 /** BE-107: aktarılacak hesabın kimliği sözleşmede yok → aktarım kurulamaz. */
 const transferAccountId = designStub('BE-107', null as string | null)
@@ -114,10 +102,8 @@ watch(
   [() => props.open, departmentOptions],
   ([isOpen, options]) => {
     if (!isOpen || options.length === 0) return
-    const has = (id: string) => id !== '' && options.some((o) => o.value === id)
-    const current = form.values.departmentId
-    const next = has(current) ? current : options.length === 1 ? options[0]!.value : ''
-    if (next !== current) form.setFieldValue('departmentId', next)
+    const next = pickDepartment(form.values.departmentId, options)
+    if (next !== form.values.departmentId) form.setFieldValue('departmentId', next)
   },
   { immediate: true },
 )
@@ -159,21 +145,7 @@ const handle = form.handleSubmit(async (values) => {
       transferOffered.value = true
       return
     }
-    const found = serverFieldErrors(
-      outcome.error,
-      {
-        email: 'email' as const,
-        full_name: 'fullName' as const,
-        department_id: 'departmentId' as const,
-        role: 'role' as const,
-      },
-      {
-        'identity.account_exists': 'email' as const,
-        'identity.account_email_deleted': 'email' as const,
-        'organization.department_not_linked': 'departmentId' as const,
-        'organization.department_not_found': 'departmentId' as const,
-      },
-    )
+    const found = serverFieldErrors(outcome.error, USER_FIELDS, USER_CODES)
     if (Object.keys(found).length > 0) return form.setErrors(found)
   }
   if (outcome.kind === 'unknown_outcome') {

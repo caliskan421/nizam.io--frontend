@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import type { JsonBodyType } from 'msw'
 import { defineComponent, h as render, nextTick, ref } from 'vue'
 
 import { ADMIN_SCOPE, http, json, knownUser, ORIGIN, sent, server } from '../../__tests__/harness'
@@ -6,7 +7,7 @@ import type { PersonOption } from '../../model/types'
 import { $, formsHarness, resetForms, setValue } from './__tests__/harness'
 import PersonPicker from './PersonPicker.vue'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   vi.useRealTimers()
   resetForms()
@@ -32,12 +33,12 @@ const Host = defineComponent({
   },
 })
 
-function usersHandler(pages: Record<string, unknown> = {}) {
+function usersHandler(pages: Record<string, JsonBodyType> = {}) {
   server.use(
     http.get(USERS, ({ request }) => {
       const url = new URL(request.url)
       const cursor = url.searchParams.get('cursor')
-      if (cursor && pages[cursor]) return json(pages[cursor] as object)
+      if (cursor && pages[cursor]) return json(pages[cursor])
       return json({
         users: [knownUser('u1', 'Ayşe Yılmaz'), knownUser('u2', 'Bora Kaya')],
         next_cursor: pages.next ? 'c2' : '',

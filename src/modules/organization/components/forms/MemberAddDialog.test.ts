@@ -24,7 +24,7 @@ import {
 } from './__tests__/harness'
 import MemberAddDialog from './MemberAddDialog.vue'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetForms())
 afterAll(() => server.close())
 

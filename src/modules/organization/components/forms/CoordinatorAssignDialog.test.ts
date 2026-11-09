@@ -14,7 +14,7 @@ import {
 import { $, click, formsHarness, pickPerson, resetForms, toasts } from './__tests__/harness'
 import CoordinatorAssignDialog from './CoordinatorAssignDialog.vue'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetForms())
 afterAll(() => server.close())
 

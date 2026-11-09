@@ -14,7 +14,7 @@ import {
 import { $, click, formsHarness, resetForms, setValue, toasts } from './__tests__/harness'
 import TemporaryPasswordDialog from './TemporaryPasswordDialog.vue'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetForms())
 afterAll(() => server.close())
 
