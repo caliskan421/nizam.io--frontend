@@ -1,0 +1,185 @@
+/*
+ * Görev listesi sayfa görünümü — theme.css `rp-head`, `rp-h1`, `rp-sub`, `rp-actions`, `rp-body`,
+ * `rp-col`, `rp-aside`, `rp-toolbar`, `rp-tgroup` ve Gorevler-Liste.dc.html `rp-reqbar`,
+ * `rp-btn-ok` birebir karşılığı. Kural: yalnız token; px yalnız tasks-metrics.css'te (medya
+ * koşulu hariç: değer `--rp-narrow-max` ile aynı). Sınıflar `.tasks-page` altında kapsanır.
+ */
+@import './tasks-metrics.css';
+
+@layer components {
+  .tasks-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık */
+  .tasks-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .tasks-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .tasks-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .tasks-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .tasks-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: none;
+    flex-wrap: nowrap;
+  }
+
+  /* Gövde */
+  .tasks-page .rp-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    align-items: flex-start;
+  }
+  .tasks-page .tasks-tools {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .tasks-page .rp-col {
+    flex: 999 1 var(--rp-col-basis);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .tasks-page .rp-aside {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Araç çubukları */
+  .tasks-page .rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+  }
+  .tasks-page .rp-tgroup {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .tasks-page .rp-tgroup--grow {
+    flex: 1 1 var(--tasks-grow-basis);
+  }
+  .tasks-page .tasks-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .tasks-page .tasks-search {
+    flex: 1 1 var(--tasks-search-basis);
+    min-width: 0;
+  }
+  .tasks-page .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .tasks-page .rp-muted {
+    color: var(--ink-muted);
+  }
+  .tasks-page .tasks-pop-anchor {
+    position: relative;
+  }
+  .tasks-page .tasks-filterbtn {
+    gap: var(--ui-gap-xs);
+    padding: 0 var(--space-3);
+  }
+  .tasks-page .tasks-filterbtn__n {
+    color: var(--ink);
+  }
+  .tasks-page .tasks-pop {
+    top: calc(100% + var(--ui-gap-xs));
+    right: 0;
+    width: var(--tasks-pop-w);
+    max-height: var(--tasks-pop-max-h);
+    overflow-y: auto;
+  }
+
+  /* Tarih talebi bandı (E-03-13) */
+  .tasks-page .rp-reqbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ui-gap-sm) var(--tasks-reqbar-gap-x);
+    padding: var(--space-2) var(--ui-gap-sm) var(--space-2) var(--space-3);
+    border: var(--ui-hairline) solid
+      color-mix(in srgb, var(--accent-text) 45%, var(--border-subtle));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent-text) 8%, var(--bg-surface));
+    font-size: var(--ui-fs-sm);
+  }
+  .tasks-page .rp-reqbar__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tasks-reqbar-icon);
+    height: var(--tasks-reqbar-icon);
+    border-radius: var(--radius-xs);
+    flex: none;
+    background: color-mix(in srgb, var(--accent-text) 18%, transparent);
+    color: var(--accent-text);
+  }
+  .tasks-page .rp-reqbar__text {
+    flex: 1 1 var(--tasks-reqbar-text-basis);
+  }
+  .tasks-page .rp-reqbar__text strong {
+    font-weight: 600;
+  }
+  .tasks-page .rp-btn-ok {
+    flex: none;
+    background: linear-gradient(180deg, var(--accent-top), var(--accent));
+    color: var(--accent-ink);
+    border-color: transparent;
+  }
+
+  /* Sayfalayıcı satırı (E-03-38…40) */
+  .tasks-page .tasks-pager {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  @media (max-width: 900px) {
+    .tasks-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .tasks-page .rp-body {
+      padding: var(--space-5);
+    }
+    .tasks-page .rp-aside {
+      max-width: none;
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { reactive } from 'vue'
 
 import { isValidIdempotencyKey } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
@@ -128,5 +129,37 @@ describe('dosya yazmaları', () => {
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
     expect(req!.headers.get('X-Requested-With')).toBe('XMLHttpRequest')
     expect(req!.body).toEqual({ method: 'GET', path: '/v1/files/f1/download' })
+  })
+
+  it('indirme bileti mutasyon önbelleğinde kalmaz (gcTime 0 + reset)', async () => {
+    const ticket = { ticket: 't9', url: '/v1/downloads/t9', expires_at: '2026-11-09T00:01:00Z' }
+    server.use(http.post(`${ORIGIN}/v1/download-tickets`, () => json(ticket, 201)))
+    const h = harness(ADMIN_SCOPE)
+    const issue = h.run(() => useDownloadTicket())
+    expect(await issue.submit({ ...ref, fileId: 'f1' })).toMatchObject({ kind: 'success' })
+    const cached = () =>
+      h.queryClient
+        .getMutationCache()
+        .getAll()
+        .filter((m) => JSON.stringify(m.state.data ?? null).includes('t9'))
+    vi.useFakeTimers()
+    try {
+      issue.reset()
+      vi.advanceTimersByTime(0)
+      expect(cached()).toEqual([])
+      expect(issue.outcome.value).toBeUndefined()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('reactive form durumundaki dosya ile yükleme (Vue vekili açılır, File korunur)', async () => {
+    server.use(http.post(`${ORIGIN}/v1/work-items/w1/files`, () => json(record, 201)))
+    const h = harness(COORD_SCOPE)
+    const attach = h.run(() => useAttachFile())
+    const file = new File(['abc'], 'rapor.pdf', { type: 'application/pdf' })
+    const form = reactive({ ...ref, file, tag: 'sonuc' as const })
+    expect((await attach.submit(form)).kind).toBe('success')
+    expect(sent('POST', '/v1/work-items/w1/files')[0]!.query.get('tag')).toBe('sonuc')
   })
 })
