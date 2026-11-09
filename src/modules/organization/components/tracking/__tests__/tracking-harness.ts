@@ -12,6 +12,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
 import { http, json, ORIGIN, sent, server } from '../../../__tests__/harness'
+import { UserPanelStub } from './user-panel-stub'
 
 export const LIST = '/v1/program/work-items'
 export const USERS = '/v1/admin/users'
@@ -107,19 +108,7 @@ export function usersHandler(
 
 export const listRequests = () => sent('GET', LIST)
 
-export const UserPanelStub = defineComponent({
-  name: 'UserPanel',
-  props: { accountId: { type: String, required: true }, embedded: Boolean },
-  emits: ['close', 'deleted'],
-  setup:
-    (p, { emit }) =>
-    () =>
-      h('div', {
-        'data-user-panel': p.accountId,
-        'data-embedded': String(p.embedded),
-        onClick: () => emit('deleted', p.accountId),
-      }),
-})
+export { UserPanelStub }
 
 const mounted: VueWrapper[] = []
 
