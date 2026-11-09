@@ -65,7 +65,10 @@ function newTask(): void {
 }
 
 function select(id: string | null): void {
-  if (id !== null) trigger = document.activeElement as HTMLElement | null
+  if (id !== null) {
+    const active = document.activeElement
+    trigger = active instanceof HTMLElement && active !== document.body ? active : null
+  }
   void url.update({ selected: id }, 'push')
 }
 

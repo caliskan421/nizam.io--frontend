@@ -227,6 +227,17 @@ describe('Zaman çizelgesi — seçim ve panel', () => {
     expect(document.activeElement).toBe(row.element)
   })
 
+  it('odak izi yoksa (fare ile seçim) panel kapanınca odak Gantt kabına döner, gövdeye düşmez', async () => {
+    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    await ctx.wrapper.get('[data-row="w1"]').trigger('click')
+    await flushPromises()
+    await ctx.wrapper.get('[data-close]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(ctx.wrapper.get('[data-testid="timeline-board"]').element)
+  })
+
   it('Liste görünümünde aç: /gorevler?gorev=‹id›', async () => {
     server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE, '/zaman-cizelgesi?secili=w1')
