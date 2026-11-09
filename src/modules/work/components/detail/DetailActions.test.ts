@@ -89,6 +89,28 @@ describe('eylem satırı — davranış', () => {
     })
   })
 
+  it.each([
+    ['başarı', (resolve: () => void) => resolve()],
+    ['ret', (_: () => void, reject: () => void) => reject()],
+  ] as const)(
+    'Kopyala beklerken ayrıntı söküldü (%s): geç bildirim yok (CX-F1-Ö-07)',
+    async (_name, settle) => {
+      let resolve!: () => void
+      let reject!: () => void
+      const writeText = vi.fn(
+        () => new Promise<void>((ok, fail) => ((resolve = ok), (reject = () => fail(new Error())))),
+      )
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      const wrapper = mountActions(FACTS.member)
+      await action(wrapper, 'copy').trigger('click')
+      expect(writeText).toHaveBeenCalledOnce()
+      wrapper.unmount()
+      settle(resolve, reject)
+      await flushPromises()
+      expect(useToast().queue.value).toEqual([])
+    },
+  )
+
   it('Kanıt yükle → upload; DeleteTaskAction deleted → deleted', async () => {
     const wrapper = mountActions(FACTS.coordinator)
     await action(wrapper, 'upload').trigger('click')

@@ -189,3 +189,30 @@ export function rateLimitMessage(retryAfter: number | null): OutcomeMessage {
     params: { minutes: Math.ceil(retryAfter / SECONDS_PER_MINUTE) },
   }
 }
+
+/**
+ * Sahibi sökülmüş sonuçlar (CX-F1-Ö-07). İstek sahip (ekran) yaşarken gönderildi ama sonucu
+ * sahip SÖKÜLDÜKTEN sonra geldi: sunucu sonucu gerçektir (geçersizleme yapılır) fakat ekran onu
+ * tüketmez — kullanıcıya bildirim ve yeniden okuma yok. `useProtectedMutation` işaretler;
+ * ortak bildirim (`notifyOutcome`) bu sonuçları yok sayar.
+ */
+const DETACHED = new WeakSet<object>()
+
+/** Sonucu "sahibi sökülmüş" diye işaretler (yalnız yazma katmanı). */
+export function markDetached<T extends object>(outcome: T): T {
+  DETACHED.add(outcome)
+  return outcome
+}
+
+/** Sonuç sahibi söküldükten sonra mı geldi. */
+export function isDetached(outcome: object): boolean {
+  return DETACHED.has(outcome)
+}
+
+/**
+ * Ekran bu sonucu tüketebilir mi (bildirim, yeniden okuma, ardıl UI akışı): sahip sökülmüşse
+ * (`owner_disposed` ya da geç gelen sonuç) `false`.
+ */
+export function reachesOwner(outcome: MutationOutcome<unknown, unknown, unknown>): boolean {
+  return outcome.kind !== 'owner_disposed' && !isDetached(outcome)
+}

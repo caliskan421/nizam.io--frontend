@@ -116,3 +116,45 @@ describe('alt görev başlığı — sökülmeden sonra geç edit_conflict (CX-F
     unmount()
   })
 })
+
+/** İlk PATCH sunucuda bekletilir ve sıradan bir hatayla (422) döner. */
+function lateFailure() {
+  const gate = deferred()
+  let arrived!: () => void
+  const reached = new Promise<void>((resolve) => (arrived = resolve))
+  server.use(
+    http.patch(`${ORIGIN}${PATH}/s1`, async () => {
+      arrived()
+      await gate.gate
+      return errorEnvelope('work.assignee_not_member', 422)
+    }),
+  )
+  return { reached, release: gate.release }
+}
+
+describe('alt görev — sökülmeden sonra geç sıradan hata (CX-F1-Ö-07)', () => {
+  it('sökülme → geç 422: bildirim yok, yeniden okuma yok', async () => {
+    const late = lateFailure()
+    const { edit, reload, unmount } = mountEdit()
+    const run = edit.patch(subtask(), { title: 'Benim' })
+    await late.reached
+    unmount()
+    late.release()
+    await run
+    expect(sent('PATCH', `${PATH}/s1`)).toHaveLength(1)
+    expect(useToast().queue.value).toEqual([])
+    expect(reload).not.toHaveBeenCalled()
+  })
+
+  it('kontrol — canlı sahipte aynı geç 422 bildirilir ve liste yeniden okunur', async () => {
+    const late = lateFailure()
+    const { edit, reload, unmount } = mountEdit()
+    const run = edit.patch(subtask(), { title: 'Benim' })
+    await late.reached
+    late.release()
+    await run
+    expect(useToast().queue.value).toHaveLength(1)
+    expect(reload).toHaveBeenCalledOnce()
+    unmount()
+  })
+})

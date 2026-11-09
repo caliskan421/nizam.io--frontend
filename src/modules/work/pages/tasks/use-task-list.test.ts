@@ -51,7 +51,7 @@ describe('useTaskList', () => {
 
     state.value = { ...state.value, requests: true }
     expect(list.rows.value.map((r) => r.work_item_id)).toEqual(['b'])
-    expect(list.counts.value.tumu).toBe(1)
+    expect(list.counts.value?.tumu).toBe(1)
     // Talep verisi görünmeyen kullanıcıda süzgeç etkisiz.
     show.value = false
     expect(list.rows.value).toHaveLength(2)

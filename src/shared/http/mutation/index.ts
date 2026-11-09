@@ -11,7 +11,10 @@ export {
 } from './engine'
 export { generateIdempotencyKey, isValidIdempotencyKey } from './idempotency-key'
 export {
+  isDetached,
+  markDetached,
   outcomeMessage,
+  reachesOwner,
   type ActionContext,
   rateLimitMessage,
   type MutationKind,

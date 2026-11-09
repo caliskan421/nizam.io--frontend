@@ -254,7 +254,10 @@ function confirmImpact<V, D, S>(
       const result = await outcome.confirm()
       const n = result.kind === 'success' ? unassignedTasks(result.data) : 0
       return () => {
-        if (n > 0) useToast().push({ message: confirmText('confirm.impact.result', { n }) })
+        // Onayı açan sahip söküldüyse etki bildirimi yok (CX-F1-Ö-07).
+        if (n > 0 && owner.alive) {
+          useToast().push({ message: confirmText('confirm.impact.result', { n }) })
+        }
         resolve(result)
       }
     }
