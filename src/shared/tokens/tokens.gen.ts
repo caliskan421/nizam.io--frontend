@@ -2053,6 +2053,102 @@ export const TOKENS = {
     "origin": "web",
     "dark": "52px",
     "light": "52px"
+  },
+  "cd-head-gap": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "18px",
+    "light": "18px"
+  },
+  "cd-code-lg": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "56px",
+    "light": "56px"
+  },
+  "cd-code-lg-font": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "500 16px/20px var(--font-mono)",
+    "light": "500 16px/20px var(--font-mono)"
+  },
+  "cd-kpi-min": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "150px",
+    "light": "150px"
+  },
+  "cd-kpi-pad-y": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "cd-kpi-pad-x": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "18px",
+    "light": "18px"
+  },
+  "cd-kpi-num": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "600 26px/32px var(--font-display)",
+    "light": "600 26px/32px var(--font-display)"
+  },
+  "cd-card-title": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "600 16px/24px var(--font-sans)",
+    "light": "600 16px/24px var(--font-sans)"
+  },
+  "cd-aside-pad": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "cd-about-text": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "400 14px/22px var(--font-sans)",
+    "light": "400 14px/22px var(--font-sans)"
+  },
+  "cd-dl-label-min": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "120px",
+    "light": "120px"
+  },
+  "cd-team-min": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "220px",
+    "light": "220px"
+  },
+  "cd-badge-h": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "cd-badge-font": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "600 11px/16px var(--font-sans)",
+    "light": "600 11px/16px var(--font-sans)"
+  },
+  "cd-dot": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "8px",
+    "light": "8px"
+  },
+  "cd-member-min": {
+    "group": "coordinatorship",
+    "origin": "web",
+    "dark": "260px",
+    "light": "260px"
   }
 } as const
 

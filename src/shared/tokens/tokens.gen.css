@@ -287,6 +287,23 @@
   --home-link-icon: 14px;
   --home-skel-line: 16px;
   --home-skel-num: 52px;
+  /* web · coordinatorship */
+  --cd-head-gap: 18px;
+  --cd-code-lg: 56px;
+  --cd-code-lg-font: 500 16px/20px var(--font-mono);
+  --cd-kpi-min: 150px;
+  --cd-kpi-pad-y: 14px;
+  --cd-kpi-pad-x: 18px;
+  --cd-kpi-num: 600 26px/32px var(--font-display);
+  --cd-card-title: 600 16px/24px var(--font-sans);
+  --cd-aside-pad: 22px;
+  --cd-about-text: 400 14px/22px var(--font-sans);
+  --cd-dl-label-min: 120px;
+  --cd-team-min: 220px;
+  --cd-badge-h: 22px;
+  --cd-badge-font: 600 11px/16px var(--font-sans);
+  --cd-dot: 8px;
+  --cd-member-min: 260px;
 }
 
 :root,

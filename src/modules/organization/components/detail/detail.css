@@ -1,0 +1,482 @@
+/*
+ * 08b Koordinatörlük detayı görünümü — Koordinatorluk-Detay.dc.html (`rp-code--lg`,
+ * `rp-kpistrip`, Hakkında / Ekip / Dikkat gerektirenler / Kısayollar / Son etkinlik kartları) ve
+ * theme.css `rp-head`, `rp-h1`, `rp-sub`, `rp-actions`, `rp-body`, `rp-col`, `rp-aside`,
+ * `rp-kicker`, `rp-num`, `rp-cap`, `rp-cardhead`, `rp-cardtitle`, `rp-link`, `rp-linkbtn`,
+ * `rp-dl`, `rp-dot`, `rp-title`, `rp-mono` birebir karşılığı. Kural: yalnız token; px yok —
+ * ölçek dışı `--cd-*` ölçüleri design/web-tokens.json `coordinatorship` grubundan üretilir
+ * (medya koşulu hariç: değer `--rp-narrow-max` ile aynı). Sınıflar `.cd-page` altında kapsanır.
+ */
+@layer components {
+  .cd-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık (E-08-51…56) */
+  .cd-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .cd-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .cd-page .cd-head__id {
+    display: flex;
+    align-items: center;
+    gap: var(--cd-head-gap);
+  }
+  .cd-page .cd-head__text {
+    min-width: 0;
+  }
+  .cd-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .cd-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+    min-height: var(--space-5);
+  }
+  .cd-page .cd-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+    color: var(--ink);
+    font-family: var(--font-mono);
+  }
+  .cd-page .cd-code--lg {
+    min-width: var(--cd-code-lg);
+    height: var(--cd-code-lg);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-md);
+    font: var(--cd-code-lg-font);
+    background: linear-gradient(180deg, var(--btn-top), var(--btn-bottom));
+    border: var(--ui-hairline) solid var(--btn-border);
+  }
+  .cd-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .cd-page .t-btn {
+    text-decoration: none;
+  }
+  .cd-page .t-btn[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .cd-page .cd-phase {
+    font: var(--text-label);
+    color: var(--ink-faint);
+  }
+  .cd-page .cd-menuwrap {
+    position: relative;
+  }
+  .cd-page .cd-pop {
+    top: calc(100% + var(--space-1));
+    right: 0;
+    min-width: var(--cd-team-min);
+  }
+
+  /* Gövde */
+  .cd-page .rp-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    align-items: flex-start;
+  }
+  .cd-page .cd-tabs {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .cd-page .cd-tabs [aria-disabled='true'] {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .cd-page .cd-panel {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    align-items: flex-start;
+  }
+  .cd-page .cd-panel:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .cd-page .rp-col {
+    flex: 999 1 var(--rp-col-basis);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .cd-page .rp-aside {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .cd-page .cd-state {
+    padding: var(--space-8);
+  }
+  .cd-page .cd-skeleton {
+    display: flex;
+    align-items: center;
+    gap: var(--cd-head-gap);
+  }
+  .cd-page .cd-skel {
+    display: block;
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+  .cd-page .cd-skel--code {
+    width: var(--cd-code-lg);
+    height: var(--cd-code-lg);
+    border-radius: var(--radius-md);
+  }
+  .cd-page .cd-skel--title {
+    width: 40%;
+    height: var(--space-8);
+  }
+
+  /* Yardımcılar (theme.css) */
+  .cd-page .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .cd-page .rp-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .cd-page .rp-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .cd-page .rp-mono {
+    font-family: var(--font-mono);
+    font-size: var(--ui-fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .cd-page .rp-nowrap {
+    white-space: nowrap;
+  }
+  .cd-page .rp-danger-text {
+    color: var(--danger);
+  }
+  .cd-page .rp-title {
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .cd-page .rp-title:hover {
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+  .cd-page .rp-cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .cd-page .rp-cardhead > :first-child {
+    min-width: 0;
+  }
+  .cd-page .cd-cardhead__actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .cd-page .rp-cardtitle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+    margin: 0;
+    font: var(--cd-card-title);
+  }
+  .cd-page .rp-link {
+    color: var(--ink-muted);
+    text-decoration: none;
+    font: var(--ui-text-sm-medium);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    white-space: nowrap;
+    flex: none;
+  }
+  .cd-page .rp-link:hover {
+    color: var(--ink);
+  }
+  .cd-page .rp-linkbtn {
+    border: 0;
+    background: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .cd-page .cd-disabled-link {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .cd-page .cd-disabled-link:hover {
+    color: var(--ink-faint);
+  }
+
+  /* KPI şeridi (E-08-64…69) */
+  .cd-page .cd-kpistrip {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--cd-kpi-min), 1fr));
+    gap: var(--ui-hairline);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--border-subtle);
+  }
+  .cd-page .cd-kpi {
+    padding: var(--cd-kpi-pad-y) var(--cd-kpi-pad-x);
+    background: var(--bg-surface);
+    min-width: 0;
+  }
+  .cd-page .cd-kpi[aria-disabled='true'] .cd-kpi__value {
+    color: var(--ink-faint);
+  }
+  .cd-page .cd-kpi__value {
+    margin: var(--space-1) 0 var(--ui-gap-2xs);
+    font: var(--cd-kpi-num);
+    color: var(--ink);
+  }
+  .cd-page .cd-kpi__value.rp-danger-text {
+    color: var(--danger);
+  }
+  .cd-page .cd-strip-error {
+    flex: 1 1 100%;
+  }
+
+  /* Kartlar */
+  .cd-page .cd-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .cd-page .cd-card--aside {
+    padding: var(--cd-aside-pad);
+    gap: var(--ui-gap-sm);
+  }
+  .cd-page .cd-narrow {
+    flex: 1 1 100%;
+    max-width: var(--rp-col-basis);
+  }
+  .cd-page .cd-about {
+    margin: 0;
+    font: var(--cd-about-text);
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+  .cd-page .rp-dl {
+    display: grid;
+    grid-template-columns: minmax(var(--cd-dl-label-min), auto) minmax(0, 1fr);
+    gap: var(--ui-gap-sm) var(--space-4);
+    margin: 0;
+    font-size: var(--ui-fs-sm);
+  }
+  .cd-page .rp-dl dt {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .cd-page .rp-dl dd {
+    margin: 0;
+    text-align: right;
+    color: var(--ink);
+    font-weight: 500;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cd-page .rp-dl dd.cd-wrap {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .cd-page .cd-badge {
+    height: var(--cd-badge-h);
+    padding: 0 var(--space-2);
+    font: var(--cd-badge-font);
+  }
+
+  /* Ekip (E-08-78…81) */
+  .cd-page .cd-team {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--cd-team-min), 100%), 1fr));
+    gap: var(--ui-gap-sm);
+  }
+  .cd-page .cd-tile {
+    display: grid;
+    grid-template-columns: var(--ui-av-md) minmax(0, 1fr) auto;
+    gap: var(--ui-gap-sm);
+    align-items: center;
+    padding: var(--space-3);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    min-width: 0;
+  }
+  .cd-page .cd-tile__text,
+  .cd-page .cd-attn__text,
+  .cd-page .cd-member__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .cd-page .cd-tile__name,
+  .cd-page .cd-attn__title {
+    font-size: var(--ui-fs-sm);
+  }
+
+  /* Dikkat gerektirenler (E-08-82/83) */
+  .cd-page .cd-attn {
+    display: grid;
+    grid-template-columns: var(--cd-dot) minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .cd-page .cd-attn__late {
+    font-size: var(--ui-fs-xs);
+  }
+  .cd-page .cd-dot {
+    width: var(--cd-dot);
+    height: var(--cd-dot);
+    border-radius: var(--radius-full);
+    flex: none;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+  .cd-page .cd-dot--baslanmadi {
+    border: var(--ui-check-border) solid var(--ink-faint);
+  }
+  .cd-page .cd-dot--devam_ediyor {
+    background: var(--violet);
+  }
+  .cd-page .cd-dot--onaya_sunuldu {
+    background: var(--gold);
+  }
+  .cd-page .cd-dot--iade_edildi {
+    background: var(--danger);
+  }
+  .cd-page .cd-dot--tamamlandi {
+    background: var(--accent-text);
+  }
+
+  /* Kısayollar (E-08-84…88) */
+  .cd-page .cd-shortcuts {
+    gap: var(--ui-gap-xs);
+  }
+  .cd-page .cd-shortcuts__title,
+  .cd-page .cd-feed__title {
+    margin-bottom: var(--space-2);
+  }
+  .cd-page .cd-shortcut {
+    display: grid;
+    grid-template-columns: var(--icon-sm) minmax(0, 1fr) auto;
+    min-height: var(--control-md);
+    text-decoration: none;
+  }
+  .cd-page .cd-shortcut__icon {
+    color: var(--ink-muted);
+  }
+  .cd-page .cd-shortcut__go {
+    color: var(--ink-faint);
+  }
+  .cd-page .cd-shortcut[aria-disabled='true'] {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .cd-page .cd-shortcut[aria-disabled='true']:hover {
+    background: transparent;
+  }
+
+  /* Üyeler sekmesi (E-08-59) */
+  .cd-page .cd-members {
+    flex: 1 1 100%;
+  }
+  .cd-page .cd-memberlist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cd-page .cd-member {
+    display: grid;
+    grid-template-columns: var(--ui-av-sm) minmax(0, 1fr) auto var(--control-sm);
+    gap: var(--space-3);
+    align-items: center;
+    min-height: var(--rp-row-h);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    min-width: 0;
+  }
+  .cd-page .cd-member:last-child {
+    border-bottom: 0;
+  }
+  .cd-page .cd-member--deleted {
+    opacity: 0.55;
+  }
+  .cd-page .cd-badge--lead {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .cd-page .cd-member__menu {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .cd-page .cd-open03 {
+    align-self: flex-start;
+  }
+
+  @media (max-width: 900px) {
+    .cd-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .cd-page .rp-body {
+      padding: var(--space-5);
+    }
+    .cd-page .cd-state {
+      padding: var(--space-5);
+    }
+    .cd-page .rp-aside {
+      max-width: none;
+    }
+  }
+}
