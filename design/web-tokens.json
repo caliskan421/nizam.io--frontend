@@ -358,6 +358,27 @@
         { "name": "coords-skel-h", "value": "212px" },
         { "name": "coords-group-gap", "value": "20px" }
       ]
+    },
+    "coordinatorship": {
+      "$description": "modules/organization 08b Koordinatörlük detayı ölçüleri — Koordinatorluk-Detay.dc.html (rp-code--lg, rp-kpistrip, Hakkında/Ekip/Dikkat/Kısayollar kartları) ve theme.css rp-dl / rp-cardtitle / rp-kicker ölçek DIŞI değerleri (W73).",
+      "tokens": [
+        { "name": "cd-head-gap", "value": "18px" },
+        { "name": "cd-code-lg", "value": "56px" },
+        { "name": "cd-code-lg-font", "value": "500 16px/20px {font-mono}" },
+        { "name": "cd-kpi-min", "value": "150px" },
+        { "name": "cd-kpi-pad-y", "value": "14px" },
+        { "name": "cd-kpi-pad-x", "value": "18px" },
+        { "name": "cd-kpi-num", "value": "600 26px/32px {font-display}" },
+        { "name": "cd-card-title", "value": "600 16px/24px {font-sans}" },
+        { "name": "cd-aside-pad", "value": "22px" },
+        { "name": "cd-about-text", "value": "400 14px/22px {font-sans}" },
+        { "name": "cd-dl-label-min", "value": "120px" },
+        { "name": "cd-team-min", "value": "220px" },
+        { "name": "cd-badge-h", "value": "22px" },
+        { "name": "cd-badge-font", "value": "600 11px/16px {font-sans}" },
+        { "name": "cd-dot", "value": "8px" },
+        { "name": "cd-member-min", "value": "260px" }
+      ]
     }
   }
 }
