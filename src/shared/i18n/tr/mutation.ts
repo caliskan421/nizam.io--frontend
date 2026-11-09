@@ -20,6 +20,8 @@ export const trMutation = {
       confirmation_required:
         'Bu işlem aşağıdaki görevlerdeki atamayı kaldıracak. Devam etmek istiyor musunuz?',
       partial: 'İlk işlem tamamlandı; sonraki adımlardan bazıları yapılamadı.',
+      // Ekran söküldüğü için gönderilmeyen işlem (CX-F1-E-05); bildirim olarak gösterilmez.
+      owner_disposed: 'Ekran kapatıldığı için işlem gönderilmedi.',
       scope_changed:
         'Bu işlem başka bir program veya departman seçiliyken başlatılmıştı; yeniden göndermek için o kapsama dönün ya da kaydı denetleyin.',
     },

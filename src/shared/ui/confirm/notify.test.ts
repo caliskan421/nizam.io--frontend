@@ -34,6 +34,13 @@ describe('yazma sonucu bildirimi', () => {
     expect(notifyOutcome(success)).toBe(false)
   })
 
+  it('owner_disposed (sahip söküldü, istek gönderilmedi) bildirim üretmez (CX-F1-E-05)', () => {
+    const disposed: Outcome = { kind: 'owner_disposed', draft: {}, idempotencyKey: 'k' }
+    expect(outcomeToast(disposed)).toBeNull()
+    expect(notifyOutcome(disposed)).toBe(false)
+    expect(useToast().queue.value).toEqual([])
+  })
+
   it('sonuç bilinmiyor ve çakışma kalıcı tehlike bildirimi; metin i18n', () => {
     expect(outcomeToast(unknown)).toEqual({
       message: outcomeText(unknown),

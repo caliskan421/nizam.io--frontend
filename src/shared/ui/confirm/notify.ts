@@ -8,6 +8,7 @@
  *    korunur, yeniden gönderme yerinde (`UiOutcomeNotice`, `retry`).
  *  - `edit_conflict` → kalıcı bildirim; alan listesi yerinde, alan alan seçim F1'de.
  *  - `confirmation_required` → bildirim değil, `useConfirm().confirmImpact` penceresi.
+ *  - `owner_disposed` → bildirim yok: sahip (ekran) söküldü, istek gönderilmedi (CX-F1-E-05).
  */
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { outcomeMessage } from '@/shared/http/mutation'
@@ -30,6 +31,7 @@ export function outcomeToast(outcome: AnyOutcome): ToastInput | null {
   switch (outcome.kind) {
     case 'success':
     case 'confirmation_required':
+    case 'owner_disposed':
       return null
     case 'unknown_outcome':
     case 'edit_conflict':

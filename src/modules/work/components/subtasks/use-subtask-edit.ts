@@ -7,13 +7,16 @@
  *    `work.edit_conflict` → `shared/ui/conflict` alan alan seçim → sunucu kaydı yeni tabanla
  *    YENİ eylem. Döngü koruması: sürüm ilerlemediyse yeniden gönderilmez; diyalogsuz (kendiliğinden
  *    birleşen) yeniden gönderim kullanıcı eylemi başına en çok bir kez (W63).
+ *  - Sahip sökülmesi (CX-F1-E-05): ilk PATCH'in geç yanıtı bileşen söküldükten sonra gelirse
+ *    çakışma akışına girilmez, yeniden gönderim yok; ilk çağrı `null` ile tamamlanır (ortak
+ *    kapı da sökülmüş sahip adına yeni yazmayı durdurur — `useProtectedMutation`).
  *  - Sil (E-03-36/64): istemci onayı (`useConfirm`; `confirmation_required` bu uçta yok).
  *  - Bu uçlar `Idempotency-Key` almaz: sonuç bilinmiyor / başarısızlıkta liste yeniden okunur
  *    (sunucu tek doğru), metin `notifyOutcome` (hata kodu → i18n).
  */
 import { shallowRef } from 'vue'
 
-import type { MutationOutcome } from '@/shared/http/mutation'
+import { ownerLife, type MutationOutcome } from '@/shared/http/mutation'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 
@@ -130,9 +133,11 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   const { conflict, resolve } = useConflictFlow(deps.item)
   const { confirmWrite } = useConfirm()
   const pending = usePendingRows()
+  const owner = ownerLife()
 
   function report(outcome: AnyOutcome | null): void {
-    if (outcome === null || outcome.kind === 'success') return
+    // `owner_disposed`: ekran söküldü, istek gönderilmedi — bildirim ve yeniden okuma yok.
+    if (outcome === null || outcome.kind === 'success' || outcome.kind === 'owner_disposed') return
     notifyOutcome(outcome)
     void deps.reload()
   }
@@ -147,6 +152,8 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
     const vars = { target: { ...deps.target() }, workItemId, base: { ...base }, changes }
     const outcome = await update.submit(vars)
     if (outcome.kind !== 'edit_conflict' || outcome.server === null) return outcome
+    // Geç yanıt sökülmeden sonra geldi: çakışma akışı (diyalog/yeniden gönderim) yok.
+    if (!owner.alive()) return null
     // Sunucu sürümü ilerlemediyse yeniden göndermek aynı çakışmayı doğurur: bildirilir.
     if (outcome.server.edit_revision === base.edit_revision) return outcome
     const step = await resolve(base, changes, outcome.server, autoRetried)
