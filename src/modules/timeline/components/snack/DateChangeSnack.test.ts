@@ -32,7 +32,7 @@ describe('DateChangeSnack — metinler (E-03C-68/69)', () => {
     expect(w.attributes('role')).toBe('status')
     expect(w.text()).toContain('Hidrofor kurulumu süresi 21 gün uzatıldı')
     expect(w.find('.rp-snack__old').text()).toBe('22 Haz – 10 Eyl')
-    expect(w.find('.rp-snack__new').text()).toBe('22 Haz – 1 Eki')
+    expect(w.find('.rp-snack__new').text()).toBe('22 Haz – 01 Eki')
     expect(w.findAll('.rp-snack__delta').map((b) => b.text())).toEqual(['bitiş +21 gün'])
     expect(w.text()).not.toContain('Değişiklik onaya gider')
   })

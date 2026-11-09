@@ -25,11 +25,14 @@ export function dragText(key: DragTextKey, params?: Record<string, string | numb
 
 type MonthKey = Extract<DragTextKey, `timeline.snack.month.${string}`>
 
+/** Tasarım: gün iki haneli (`01 Eki`). */
+const pad = (day: number): string => String(day).padStart(2, '0')
+
 /** `22 Haz` (gün + 3 harfli ay); bozuk tarih olduğu gibi döner. */
 export function formatDay(iso: string): string {
   const parts = dayAndMonth(iso)
   if (!parts) return iso
-  return `${parts[0]} ${dragText(`timeline.snack.month.m${parts[1]}` as MonthKey)}`
+  return `${pad(parts[0])} ${dragText(`timeline.snack.month.m${parts[1]}` as MonthKey)}`
 }
 
 /** `22 Haz – 10 Eyl` (E-03C-69). */
@@ -37,9 +40,9 @@ export function formatRange(range: { start: string; end: string }): string {
   const [s, e] = [dayAndMonth(range.start), dayAndMonth(range.end)]
   if (!s || !e) return `${range.start} – ${range.end}`
   return dragText('timeline.snack.range', {
-    startDay: s[0],
+    startDay: pad(s[0]),
     startMonth: dragText(`timeline.snack.month.m${s[1]}` as MonthKey),
-    endDay: e[0],
+    endDay: pad(e[0]),
     endMonth: dragText(`timeline.snack.month.m${e[1]}` as MonthKey),
   })
 }
