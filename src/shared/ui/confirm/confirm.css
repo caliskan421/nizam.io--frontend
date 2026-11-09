@@ -1,7 +1,7 @@
 /*
  * Onay penceresi ve yazma sonucu bildirimi — `Toplanti-Formlar.dc.html` "Silme onayı" gövdesi
  * (14/22 metin, `--ink-muted`, paragraf arası 10) ve `rp-cap-k` başlık kalıbı. Kural: yalnız
- * token; ölçek dışı değerler `../styles/metrics.css` (`--ui-*`).
+ * token; ölçek dışı değerler üretilmiş `--ui-*` token'ları (design/web-tokens.json `ui`).
  */
 @layer components {
   .ui-confirm__body {

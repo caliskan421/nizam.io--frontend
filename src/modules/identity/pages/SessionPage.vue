@@ -1,6 +1,8 @@
 <script setup lang="ts">
-// YER TUTUCU oturum görünümü (tasarımsız). Giriş ekranı tasarımı program sonrası istemci geliştirmesindedir; bu sayfa yalnız
-// http/oturum katmanının gerçek uygulama yığınından geçtiğini e2e ile kanıtlamak içindir.
+// Oturum görünümü (giriş ekranı tasarımı yok; P3 en sade). Alanlar ve düğmeler `shared/ui`
+// (`UiField` + `UiInput`, `UiButton`) ile kurulur: iki temada kenarlık, etiket ve boşluk token'dan
+// (O4 görsel borç). Sayfa http/oturum katmanının gerçek yığından geçtiğini e2e ile de kanıtlar
+// (`input[name]`, "Giriş" düğmesi, `data-testid`'ler e2e sözleşmesidir).
 import { useQueryClient } from '@tanstack/vue-query'
 import { onMounted, ref, watch } from 'vue'
 
@@ -9,6 +11,7 @@ import { useI18n } from 'vue-i18n'
 import { toApiError, type ApiError } from '@/shared/errors/api-error'
 import { errorText } from '@/shared/i18n'
 import { useSessionStore } from '@/shared/session/store'
+import { UiButton, UiCard, UiField, UiInput } from '@/shared/ui'
 
 const session = useSessionStore()
 const queryClient = useQueryClient()
@@ -58,50 +61,126 @@ onMounted(() => {
 </script>
 
 <template>
-  <section data-testid="session-page">
-    <h1>NIZAM.IO</h1>
-    <p data-testid="session-status" :data-status="session.status">
-      {{ t(`terms.session.${session.status}`) }}
-    </p>
-
-    <button
-      v-if="session.status === 'unavailable'"
-      type="button"
-      data-testid="retry-bootstrap"
-      @click="session.bootstrap()"
-    >
-      {{ t('terms.action.retry') }}
-    </button>
-
-    <form
-      v-if="session.status === 'anonymous' || session.status === 'ended'"
-      data-testid="login-form"
-      @submit.prevent="submit"
-    >
-      <label
-        >e-posta <input v-model="email" name="email" type="email" autocomplete="username"
-      /></label>
-      <label>
-        parola
-        <input v-model="password" name="password" type="password" autocomplete="current-password" />
-      </label>
-      <button type="submit" :disabled="busy">giriş</button>
-    </form>
-
-    <div v-if="session.status === 'authenticated'" data-testid="session-info">
-      <p data-testid="me-email">{{ session.me?.email }}</p>
-      <p v-if="session.forcePasswordChange" data-testid="force-password-change">
-        parola değişimi gerekli
+  <section class="session-page" data-testid="session-page">
+    <UiCard class="session-card" as="div">
+      <h1 class="session-card__brand">NIZAM.IO</h1>
+      <p class="session-card__status" data-testid="session-status" :data-status="session.status">
+        {{ t(`terms.session.${session.status}`) }}
       </p>
-      <button type="button" data-testid="reload-me" @click="loadMe">
-        {{ t('terms.action.refreshMe') }}
-      </button>
-      <button type="button" data-testid="logout" @click="logout">çıkış</button>
-    </div>
 
-    <p v-if="error" data-testid="error" role="alert">
-      <span :data-code="error.code">{{ errorText(error) }}</span>
-      <small v-if="error.requestId"> ({{ error.requestId }})</small>
-    </p>
+      <UiButton
+        v-if="session.status === 'unavailable'"
+        data-testid="retry-bootstrap"
+        @click="session.bootstrap()"
+      >
+        {{ t('terms.action.retry') }}
+      </UiButton>
+
+      <form
+        v-if="session.status === 'anonymous' || session.status === 'ended'"
+        class="session-form"
+        data-testid="login-form"
+        @submit.prevent="submit"
+      >
+        <UiField label="E-posta">
+          <UiInput v-model="email" name="email" type="email" autocomplete="username" />
+        </UiField>
+        <UiField label="Parola">
+          <UiInput
+            v-model="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+          />
+        </UiField>
+        <UiButton type="submit" variant="primary" block :disabled="busy">Giriş</UiButton>
+      </form>
+
+      <div
+        v-if="session.status === 'authenticated'"
+        class="session-info"
+        data-testid="session-info"
+      >
+        <p class="session-info__email" data-testid="me-email">{{ session.me?.email }}</p>
+        <p v-if="session.forcePasswordChange" data-testid="force-password-change">
+          Parola değişimi gerekli
+        </p>
+        <div class="session-info__actions">
+          <UiButton data-testid="reload-me" @click="loadMe">
+            {{ t('terms.action.refreshMe') }}
+          </UiButton>
+          <UiButton variant="ghost" data-testid="logout" @click="logout">Çıkış</UiButton>
+        </div>
+      </div>
+
+      <p v-if="error" class="session-error" data-testid="error" role="alert">
+        <span :data-code="error.code">{{ errorText(error) }}</span>
+        <small v-if="error.requestId" class="session-error__id">({{ error.requestId }})</small>
+      </p>
+    </UiCard>
   </section>
 </template>
+
+<style>
+/* Yalnız token; px yok. Kart genişliği dar sütun ölçüsü (`--rp-aside-max`). */
+@layer components {
+  .session-page {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: var(--space-6) var(--space-4);
+    background: var(--bg-base);
+  }
+  .session-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+    max-width: var(--rp-aside-max);
+    box-sizing: border-box;
+  }
+  .session-card__brand {
+    margin: 0;
+    font: var(--text-heading-2);
+    color: var(--ink);
+  }
+  .session-card__status,
+  .session-info p {
+    margin: 0;
+    font: var(--text-body);
+    color: var(--ink-muted);
+  }
+  .session-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .session-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .session-info .session-info__email {
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .session-info__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .session-error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
+    font: var(--text-body);
+    color: var(--danger);
+  }
+  .session-error__id {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+}
+</style>

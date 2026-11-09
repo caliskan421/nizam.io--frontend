@@ -26,13 +26,25 @@ export type LogoutMessage = {
   accountId: string
 }
 
+/**
+ * Sunucu çıkışı doğrulanamadı (ortak-kurallar §8): kardeş sekmeler de açık girişe kadar sessiz
+ * yenileme yapmasın diye bayrak aktarılır. Belirteç taşımaz. `logout`'tan ÖNCE yayınlanır;
+ * bu türü tanımayan (eski sürüm) sekme yok sayar ve ardından gelen `logout`'u uygular.
+ */
+export type LogoutUnverifiedMessage = {
+  v: typeof SESSION_MESSAGE_VERSION
+  type: 'logout-unverified'
+  accountId: string
+}
+
 /** Kilidi alan ama belirteci değişmemiş sekmenin, kardeşlerinden güncel belirteci istemesi. */
 export type SyncRequestMessage = {
   v: typeof SESSION_MESSAGE_VERSION
   type: 'sync-request'
 }
 
-export type SessionMessage = TokenMessage | LogoutMessage | SyncRequestMessage
+export type SessionMessage =
+  TokenMessage | LogoutMessage | LogoutUnverifiedMessage | SyncRequestMessage
 
 /** Sınırlar: belirteç biçimi, hesap kimliği, zaman pencereleri. */
 export const MESSAGE_LIMITS = {
@@ -72,6 +84,57 @@ function isAccountId(value: unknown): value is string {
   )
 }
 
+function isToken(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length >= MESSAGE_LIMITS.tokenMin &&
+    value.length <= MESSAGE_LIMITS.tokenMax &&
+    TOKEN_PATTERN.test(value)
+  )
+}
+
+/** `token` iletisi (alan kümesi önceden denetlenir). */
+function parseToken(m: Record<string, unknown>, nowMs: number): TokenMessage | null {
+  const { token, accountId, expiresAt, forcePasswordChange, issuedAt } = m
+  if (!isToken(token) || !isAccountId(accountId)) return null
+  if (typeof forcePasswordChange !== 'boolean') return null
+  const nowSec = Math.floor(nowMs / 1000)
+  if (
+    // Üst sınır YOK: oturum ömrü backend yapılandırmasıdır (NIZAMIO_SESSION_TTL'nin
+    // üst sınırı yoktur); istemci geçerli bir belirteci keyfi sınırla reddetmez.
+    typeof expiresAt !== 'number' ||
+    !Number.isSafeInteger(expiresAt) ||
+    expiresAt <= nowSec
+  ) {
+    return null
+  }
+  if (
+    typeof issuedAt !== 'number' ||
+    !Number.isFinite(issuedAt) ||
+    Math.abs(issuedAt - nowMs) > MESSAGE_LIMITS.issuedSkewMs
+  ) {
+    return null
+  }
+  return {
+    v: SESSION_MESSAGE_VERSION,
+    type: 'token',
+    token,
+    accountId,
+    expiresAt,
+    forcePasswordChange,
+    issuedAt,
+  }
+}
+
+/** `logout` / `logout-unverified`: yalnız hesap kimliği taşır. */
+function parseAccountOnly(
+  m: Record<string, unknown>,
+  type: 'logout' | 'logout-unverified',
+): LogoutMessage | LogoutUnverifiedMessage | null {
+  if (!hasExactKeys(m, LOGOUT_KEYS) || !isAccountId(m.accountId)) return null
+  return { v: SESSION_MESSAGE_VERSION, type, accountId: m.accountId }
+}
+
 /**
  * Ham kanal verisini doğrular; geçersizse null. `nowMs` alıcının saati.
  * Kabul edilen ileti yalnız bilinen biçimdedir — başka hiçbir alan taşınmaz.
@@ -83,49 +146,11 @@ export function parseSessionMessage(raw: unknown, nowMs: number): SessionMessage
   if (m.v !== SESSION_MESSAGE_VERSION) return null
 
   switch (m.type) {
-    case 'token': {
-      if (!hasExactKeys(m, TOKEN_KEYS)) return null
-      const { token, accountId, expiresAt, forcePasswordChange, issuedAt } = m
-      if (
-        typeof token !== 'string' ||
-        token.length < MESSAGE_LIMITS.tokenMin ||
-        token.length > MESSAGE_LIMITS.tokenMax ||
-        !TOKEN_PATTERN.test(token)
-      ) {
-        return null
-      }
-      if (!isAccountId(accountId)) return null
-      if (typeof forcePasswordChange !== 'boolean') return null
-      const nowSec = Math.floor(nowMs / 1000)
-      if (
-        // Üst sınır YOK: oturum ömrü backend yapılandırmasıdır (NIZAMIO_SESSION_TTL'nin
-        // üst sınırı yoktur); istemci geçerli bir belirteci keyfi sınırla reddetmez.
-        typeof expiresAt !== 'number' ||
-        !Number.isSafeInteger(expiresAt) ||
-        expiresAt <= nowSec
-      ) {
-        return null
-      }
-      if (
-        typeof issuedAt !== 'number' ||
-        !Number.isFinite(issuedAt) ||
-        Math.abs(issuedAt - nowMs) > MESSAGE_LIMITS.issuedSkewMs
-      ) {
-        return null
-      }
-      return {
-        v: SESSION_MESSAGE_VERSION,
-        type: 'token',
-        token,
-        accountId,
-        expiresAt,
-        forcePasswordChange,
-        issuedAt,
-      }
-    }
+    case 'token':
+      return hasExactKeys(m, TOKEN_KEYS) ? parseToken(m, nowMs) : null
     case 'logout':
-      if (!hasExactKeys(m, LOGOUT_KEYS) || !isAccountId(m.accountId)) return null
-      return { v: SESSION_MESSAGE_VERSION, type: 'logout', accountId: m.accountId }
+    case 'logout-unverified':
+      return parseAccountOnly(m, m.type)
     case 'sync-request':
       if (!hasExactKeys(m, SYNC_KEYS)) return null
       return { v: SESSION_MESSAGE_VERSION, type: 'sync-request' }

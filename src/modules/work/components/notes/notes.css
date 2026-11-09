@@ -1,10 +1,8 @@
 /*
  * Notlar sekmesi görünümü — tasarım `rp-note` (satır), `rp-composer` (yazma alanı) birebir
  * karşılığı (Toplanti-Detay.dc.html; görev notları çizilmedi, P3: aynı dil). Kural: yalnız
- * token; px yalnız notes-metrics.css'te. Açık tema yalnız token değişimiyle.
+ * token; px yok (`--notes-*` üretilmiş token). Açık tema yalnız token değişimiyle.
  */
-@import './notes-metrics.css';
-
 @layer components {
   .wk-notes {
     display: flex;

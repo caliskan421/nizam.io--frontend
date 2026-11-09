@@ -1,34 +1,11 @@
 import { i18n } from '@/shared/i18n'
+import { trConfirm } from '@/shared/i18n/tr/ui'
 
 /**
- * Onay ve yazma sonucu bildirim metinleri (`confirm.*`). Protokol metinleri (`mutation.*`,
- * `src/shared/i18n/tr/mutation.ts`) burada tekrar edilmez, oradan okunur. Sunucu `message`
- * alanı kullanıcıya gösterilmez; tek istisna 409 `organization.confirmation_required`
- * zarfındaki görev BAŞLIKLARIDIR (veri; `shared/errors/confirmation.ts`).
+ * Onay ve yazma sonucu bildirim metinleri (`confirm.*`; statik i18n ağacında,
+ * `src/shared/i18n/tr/ui.ts`). Protokol metinleri (`mutation.*`) oradan okunur.
  */
-export const trConfirm = {
-  confirm: {
-    cancel: 'Vazgeç',
-    impact: {
-      items: 'Atamadan düşecek görevler',
-      // MembershipChange: `unassigned_tasks` devredilen aktif atama sayısı (ORGANIZATION-K18).
-      result: 'İşlem tamamlandı; {n} görevdeki atama devredildi.',
-    },
-    conflict: {
-      fields: 'Değişen alanlar',
-      // ortak-kurallar §7, K5: alan alan seçim `shared/ui/conflict` (`ConflictDialog`).
-      compare: 'Alanları karşılaştır',
-    },
-  },
-} as const
-
-let merged = false
-
-function ensureMerged(): void {
-  if (merged) return
-  i18n.global.mergeLocaleMessage('tr', trConfirm)
-  merged = true
-}
+export { trConfirm }
 
 type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
@@ -41,7 +18,6 @@ export function confirmText(
   key: ConfirmTextKey,
   params: Record<string, string | number> = {},
 ): string {
-  ensureMerged()
   return i18n.global.t(key, params)
 }
 

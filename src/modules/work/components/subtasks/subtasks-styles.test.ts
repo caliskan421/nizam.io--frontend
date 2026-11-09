@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// Alt görev görünüm kuralları (KESİN 5): ham renk yok, px yalnız subtasks-metrics.css'te (medya
-// koşulu hariç), satır içi stil yok, .vue ≤ 250 satır; açık tema tarih girişi; eksik vurgusu yok.
+// Alt görev görünüm kuralları (KESİN 5): ham renk yok, px yok (medya koşulu hariç;
+// `--sub-*` üretilmiş token), satır içi stil yok, .vue ≤ 250 satır; açık tema tarih girişi; eksik vurgusu yok.
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const read = (name: string) => readFileSync(join(dir, name), 'utf8')
 const vue = readdirSync(dir).filter((n) => n.endsWith('.vue'))
@@ -24,14 +24,11 @@ describe('alt görev görünüm kuralları', () => {
     }
   })
 
-  it('px yalnız subtasks-metrics.css içinde (medya koşulu hariç); metrics yalnız --sub-*', () => {
+  it('px yok (medya koşulu hariç); ayrı ölçü dosyası yok', () => {
+    expect(css.filter((name) => name.includes('metrics'))).toEqual([])
     for (const name of [...vue, ...css]) {
-      if (name === 'subtasks-metrics.css') continue
       expect(stripMedia(stripComments(read(name))).match(PX)?.[0], name).toBeUndefined()
     }
-    const metrics = stripComments(read('subtasks-metrics.css'))
-    for (const decl of metrics.match(/[\w-]+\s*:/g) ?? [])
-      expect(decl).toMatch(/^--sub-[\w-]+\s*:$/)
   })
 
   it('medya koşulu dar ekran eşiğiyle (--rp-narrow-max = 900px) aynı', () => {

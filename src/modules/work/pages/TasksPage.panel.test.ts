@@ -102,9 +102,13 @@ describe('Görevler › Liste — ayrıntı paneli (URL gorev)', () => {
       .trigger('click')
     const dialog = ctx.wrapper.get('[data-new-task]')
     expect(dialog.attributes()).toMatchObject({ 'data-new-task': 'open', 'data-dept': 'd2' })
+    ctx.wrapper.findComponent({ name: 'NewTaskDialog' }).vm.$emit('created', ROWS[1])
+    await settle()
+    expect(ctx.router.currentRoute.value.query).toEqual({ koordinatorluk: 'd2', gorev: 'w2' })
+    // Süzgeçli listenin dışındaki görev panelde açılmaz (hedef çözülemez; W48).
     ctx.wrapper.findComponent({ name: 'NewTaskDialog' }).vm.$emit('created', ROWS[0])
     await settle()
-    expect(ctx.router.currentRoute.value.query).toEqual({ koordinatorluk: 'd2', gorev: 'w1' })
+    expect(ctx.router.currentRoute.value.query).toEqual({ koordinatorluk: 'd2', gorev: 'w2' })
   })
 })
 

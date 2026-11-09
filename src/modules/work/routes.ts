@@ -8,6 +8,7 @@
  *    (`gorev`) sıfırlanır (03 README satır dışı varsayım, kabul — K2 yalnız `scoped` sorguları
  *    düşürür). İmleç URL'de yoktur (E-03-39), sonsuz sorgu anahtarıyla zaten düşer.
  *  - Görev bağlantısı (E-03-55 "Kopyala", P7): `/gorevler?gorev=<id>`.
+ *  - Yeni görev girişi (E-03-06, W48): `/gorevler?yeni=1` (`TASKS_NEW_TASK_QUERY`).
  *
  * Sayfa kaydı `workRoutes` (W42): `work.tasks` → `pages/TasksPage.vue`. Router yol/kapsam
  * uyuşmazlığını reddeder; süzgeç adları ve değer kümeleri katalogla aynıdır
@@ -26,6 +27,7 @@ export const TASKS_QUERY_KEYS = [
   'koordinatorluk',
   'sirala',
   'gorev',
+  'yeni',
 ] as const
 
 /**
@@ -43,6 +45,12 @@ export const TASKS_STATUS_FILTERS = [
 
 /** `sirala` alanları (`alan:artan|azalan`; E-03-16, istemci sıralaması BE-040). */
 export const TASKS_SORT_FIELDS = ['gorev', 'durum', 'bitis'] as const
+
+/**
+ * "Yeni görev" girişi (E-03-06; W48, ana sayfa hızlı işlemi): `?yeni=1` formu açar (yetkisizde
+ * yok sayılır); sayfa parametreyi okuyunca `replace` ile düşürür (geri tuşu formu açmaz).
+ */
+export const TASKS_NEW_TASK_QUERY = { yeni: '1' } as const
 
 /** Görev listesi sayfası (katalog `work.tasks`, S2). */
 export const workRoutes: RouteRecordRaw[] = [

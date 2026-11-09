@@ -34,15 +34,16 @@ async function mountTopbar(
 }
 
 describe('üst çubuk', () => {
-  it('sıra: geri/ileri → konum izi → tema → zil; Asistan ve Yardım yok (P2)', async () => {
+  it('sıra: [menü, dar ekran] → geri/ileri → konum izi → tema → zil; Asistan/Yardım yok (P2)', async () => {
     const { wrapper } = await mountTopbar()
     const bar = wrapper.get('[data-testid="topbar"]')
     expect(bar.classes()).toContain('rp-topbar')
     const order = bar.element.children
-    expect(order[0]?.getAttribute('aria-label')).toBe('Gezinme geçmişi')
-    expect(order[1]?.getAttribute('aria-label')).toBe('Konum')
-    expect(order[2]?.getAttribute('data-testid')).toBe('theme-toggle')
-    expect(order[3]?.getAttribute('data-testid')).toBe('topbar-bell')
+    expect(order[0]?.getAttribute('data-testid')).toBe('topbar-menu')
+    expect(order[1]?.getAttribute('aria-label')).toBe('Gezinme geçmişi')
+    expect(order[2]?.getAttribute('aria-label')).toBe('Konum')
+    expect(order[3]?.getAttribute('data-testid')).toBe('theme-toggle')
+    expect(order[4]?.getAttribute('data-testid')).toBe('topbar-bell')
     expect(wrapper.text()).not.toContain('Asistan')
     expect(wrapper.find('[title="Asistana sor"]').exists()).toBe(false)
   })
@@ -61,6 +62,18 @@ describe('üst çubuk', () => {
     const { wrapper } = await mountTopbar()
     await wrapper.setProps({ openState: 'state.no-program' })
     expect(wrapper.get('[data-testid="topbar-crumbs"] strong').text()).toBe('Program yok')
+  })
+
+  it('menü düğmesi kenar menüsünü denetler; tık toggle-nav yayar, durum aria-expanded', async () => {
+    const { wrapper } = await mountTopbar()
+    const button = wrapper.get('[data-testid="topbar-menu"]')
+    expect(button.attributes('aria-controls')).toBe('app-side')
+    expect(button.attributes('aria-expanded')).toBe('false')
+    expect(button.attributes('aria-label')).toBe('Menü')
+    await button.trigger('click')
+    expect(wrapper.emitted('toggle-nav')).toHaveLength(1)
+    await wrapper.setProps({ navOpen: true })
+    expect(button.attributes('aria-expanded')).toBe('true')
   })
 
   it('ilk açılışta geri ve ileri devre dışı', async () => {

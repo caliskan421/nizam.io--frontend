@@ -74,7 +74,7 @@ function openUpload(): void {
       :kicker="kicker"
       :title="item?.title ?? null"
       :title-id="titleId"
-      @close="emit('close', 'user')"
+      @close="panel.close('user')"
     />
     <template v-if="item && facts">
       <DetailStatus :item="item" :facts="facts" @request-evidence="openUpload" />
@@ -100,7 +100,7 @@ function openUpload(): void {
         :item="item"
         :facts="facts"
         @upload="openUpload"
-        @deleted="emit('close', 'deleted')"
+        @deleted="panel.close('deleted')"
       />
       <FileUploadDialog v-if="canUpload" v-model:open="uploadOpen" :item="item" />
     </template>

@@ -1,8 +1,12 @@
 /* Katman sırası: Tailwind teması → temel → PrimeVue → Tailwind yardımcıları.
-   Token değişkenleri (tokens.gen.css) katmansızdır: Tailwind/PrimeVue tema değişkenlerini ezer. */
+   Token değişkenleri (tokens.gen.css) katmansızdır: Tailwind/PrimeVue tema değişkenlerini ezer.
+   Aynı liste public/layers.css'te sayfanın ilk stil kaynağı olarak da bildirilir (ortak CSS
+   parçaları bu dosyadan önce yüklenebilir); iki liste layers.test.ts ile eşit tutulur. */
 @layer theme, base, primevue, components, utilities;
 
 @import 'tailwindcss';
+/* Kendi barındırılan yazı tipleri (font-src 'self'); @font-face katmansızdır. */
+@import './fonts/fonts.css';
 @import '../../shared/tokens/tokens.gen.css';
 /* Varsayılan Tailwind ölçeklerini kapatır; PrimeUI yardımcıları (bg-primary …) sonra eklenir ve
    PrimeVue preset'i üzerinden yine token değişkenlerine çözülür. */

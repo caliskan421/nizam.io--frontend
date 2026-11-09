@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // shared/ui kuralları (W12) bu alt dizinde de: ham renk yok, px yok (ölçek dışı `--ui-*`
-// metrics.css'te), satır içi stil yok, bileşen ≤ 150 satır.
+// üretilmiş token'da), satır içi stil yok, bileşen ≤ 150 satır.
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const files = readdirSync(dir).filter((n) => n.endsWith('.vue') || n.endsWith('.css'))
 const RAW_COLOR =

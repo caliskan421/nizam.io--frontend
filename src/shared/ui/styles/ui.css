@@ -1,9 +1,9 @@
 /*
  * shared/ui görünümü — tasarım kaynağının (docs/tasarim/kaynak/tema-sistemi/bundle.css `t-*`,
  * theme.css `rp-*`) birebir karşılığı. Kural: yalnız token (`var(--…)`); ham renk ve px yok
- * (px'ler metrics.css'te). Açık tema `[data-theme='light']` (tasarım seçicisi).
+ * (ölçek dışı `--ui-*` ölçüleri design/web-tokens.json `ui` grubundan üretilir). Açık tema
+ * `[data-theme='light']` (tasarım seçicisi).
  */
-@import './metrics.css';
 
 @layer components {
   /* Simge */
@@ -230,9 +230,11 @@
   .t-hint--error {
     color: var(--danger);
   }
+  /* theme.css `.rp-field` birebir: etiket ↔ denetim ↔ açıklama arası 6 px (`--ui-gap-xs`). */
   .rp-field {
     display: flex;
     flex-direction: column;
+    gap: var(--ui-gap-xs);
     min-width: 0;
   }
 
