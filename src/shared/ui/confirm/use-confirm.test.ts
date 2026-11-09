@@ -392,6 +392,21 @@ describe('confirmWrite — yazma onayın bağlamıyla başlar (CX-F1-E-02)', () 
     expect(await result).toBe('yazıldı')
   })
 
+  it('sökülmüş açıcı (kapsamı kapanmış) yeni onay AÇAMAZ: confirmWrite ve confirmImpact → null', async () => {
+    scoped()
+    const owner = effectScope()
+    const opener = owner.run(() => useConfirm())!
+    owner.stop() // sahip öldü; kümesinde açık onay yoktu (geç yanıt senaryosu)
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    expect(await opener.confirmWrite(OPTIONS, start)).toBeNull()
+    expect(start).not.toHaveBeenCalled()
+    const confirm = vi.fn()
+    const impact = { kind: 'confirmation_required', taskTitles: [], confirm } as never
+    expect(await opener.confirmImpact(impact, OPTIONS)).toBeNull()
+    expect(confirm).not.toHaveBeenCalled()
+    expect(useConfirm().current.value).toBeNull()
+  })
+
   it('vazgeç → null, start çağrılmaz', async () => {
     scoped()
     const start = vi.fn(() => Promise.resolve('yazıldı'))

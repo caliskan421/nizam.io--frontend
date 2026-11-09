@@ -18,11 +18,37 @@ import {
 } from '../../model/__tests__/harness'
 import { TRANSITION_MATRIX, type TransitionActor } from '../../model/transitions'
 import { WORK_ITEM_STATUSES, type WorkItem, type WorkItemStatus } from '../../model/types'
+import type * as ApiModule from '../../api'
 import { formsHarness, ME, resetForms, type WhoSeed } from './__tests__/forms-harness'
 import { useStatusTransition } from './use-status-transition'
 
+// GERÇEK `useTransitionWorkItem` sarılır; `submit` argümanları ve sonuçları kaydedilir (bağlamın
+// `confirmWrite → resend → send → submit` zincirinde uçtan uca taşındığının tanığı). İstek yine
+// gerçek hook → motor → API istemcisi → MSW zincirinden geçer.
+const transitions = vi.hoisted(() => ({ calls: [] as unknown[][], outcomes: [] as unknown[] }))
+vi.mock('../../api', async (original) => {
+  const api = await original<typeof ApiModule>()
+  return {
+    ...api,
+    useTransitionWorkItem: () => {
+      const real = api.useTransitionWorkItem()
+      return {
+        ...real,
+        submit: async (...args: Parameters<typeof real.submit>) => {
+          transitions.calls.push(args)
+          const outcome = await real.submit(...args)
+          transitions.outcomes.push(outcome)
+          return outcome
+        },
+      }
+    },
+  }
+})
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
+  transitions.calls.length = 0
+  transitions.outcomes.length = 0
   resetForms()
   if (authSession.snapshot.accountId) authSession.clear()
 })
@@ -280,5 +306,37 @@ describe('subtasks_open onayı — yaşam döngüsü (CX-F1-E-02)', () => {
     await h.flush()
     expect(bodies()).toEqual([{ to: 'tamamlandi' }, { to: 'tamamlandi', close_subtasks: true }])
     expect(sent('POST', PATH)[1]!.headers.get('X-Nizamio-Department')).toBe('d2')
+  })
+  it('(a2) ilk POST beklerken bileşen sökülür → geç 409 (bağlam DEĞİŞMEZ): onay yok, ilk çağrı tamamlanır, ikinci POST 0', async () => {
+    const gate = delayedSubtasksOpen()
+    const { h, wrapper, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    wrapper.unmount()
+    gate.release()
+    await done // asılı kalmaz
+    await h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+
+  it('(e) close_subtasks: kabulün hemen ardından A→B → ikinci POST 0; ikinci submit İLK eylemin bağlamını alır', async () => {
+    server.use(http.post(`${ORIGIN}${PATH}`, () => errorEnvelope('work.subtasks_open', 409)))
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await vi.waitFor(() => expect(useConfirm().current.value).not.toBeNull())
+    const accepting = useConfirm().accept(useConfirm().current.value!.id)
+    // Kabulle aynı anda ikinci submit kuruldu: bağlamı ilk geçişin başarısız sonucundaki bağlam.
+    expect(transitions.calls).toHaveLength(2)
+    const first = transitions.outcomes[0] as { kind: string; context?: unknown }
+    expect(first.kind).toBe('failed')
+    expect(first.context).toMatchObject({ scope: { programId: 'p1', departmentId: 'd1' } })
+    expect(transitions.calls[1]![1]).toEqual({ context: first.context })
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    await accepting
+    await done
+    await h.flush()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+    expect((transitions.outcomes[1] as { kind: string }).kind).toBe('scope_changed')
   })
 })
