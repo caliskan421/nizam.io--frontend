@@ -457,6 +457,8 @@
         { "name": "gantt-today-pill-h", "value": "20px" },
         { "name": "gantt-today-pill-r", "value": "6px" },
         { "name": "gantt-ring-w", "value": "2px" },
+        { "name": "gantt-split-w", "value": "2px" },
+        { "name": "gantt-hit-w", "value": "12px" },
         { "name": "gantt-link-w", "value": "1.5px" },
         { "name": "gantt-dash", "value": "4 3" },
         { "name": "gantt-late-border", "value": "1.5px" },

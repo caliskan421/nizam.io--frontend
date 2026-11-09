@@ -267,3 +267,16 @@ describe('eksen başlığı (E-03C-23…26)', () => {
     expect(axisModel('gun', RANGE, '2027-05-05').todayX).toBeNull()
   })
 })
+
+describe('plan kenarları (oklar için)', () => {
+  it('taşmasız sol ve sağ kenar; çizilemeyen görev null', async () => {
+    const { planEdges } = await import('./timeline')
+    const late = task({
+      start_on: '2026-11-02',
+      end_on: '2026-11-05',
+      lateness: { ...task().lateness, is_overdue: true },
+    })
+    expect(planEdges(late, RANGE, 'gun')).toEqual({ left: 0, planRight: 4 * 21 })
+    expect(planEdges(task({ start_on: 'x' }), RANGE, 'gun')).toBeNull()
+  })
+})

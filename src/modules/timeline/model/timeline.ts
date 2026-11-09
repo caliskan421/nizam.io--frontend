@@ -32,6 +32,8 @@ export const GEOMETRY = {
   handleH: px('gantt-handle-h'),
   handleR: px('gantt-handle-r'),
   summaryH: px('gantt-summary-h'),
+  ringW: px('gantt-ring-w'),
+  hitW: px('gantt-hit-w'),
   depIcon: px('gantt-dep-icon'),
   pillW: px('gantt-today-pill-w'),
   pillH: px('gantt-today-pill-h'),
@@ -273,6 +275,19 @@ export function barGeometry(task: BarDates, ctx: BarContext): BarGeometry | null
     clipLeft,
     overflow: overW > 0 && over ? over.kind : null,
   }
+}
+
+/**
+ * Plan çubuğunun sol ve sağ kenarı (taşmasız): oklar ön görevin planlanan bitişinden bağımlı
+ * görevin başlangıcına gider. Çizilemeyen görev için `null`.
+ */
+export function planEdges(
+  task: BarDates,
+  range: GanttDayRange,
+  scale: GanttScale,
+): { left: number; planRight: number } | null {
+  const bar = barGeometry(task, { range, scale, today: range.start })
+  return bar ? { left: bar.x, planRight: bar.planRight } : null
 }
 
 /** Plan aralığının süresi (gün, uçlar dahil); bozuk tarih `null`. */

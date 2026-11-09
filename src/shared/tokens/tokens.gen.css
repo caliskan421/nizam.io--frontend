@@ -401,6 +401,8 @@
   --gantt-today-pill-h: 20px;
   --gantt-today-pill-r: 6px;
   --gantt-ring-w: 2px;
+  --gantt-split-w: 2px;
+  --gantt-hit-w: 12px;
   --gantt-link-w: 1.5px;
   --gantt-dash: 4 3;
   --gantt-late-border: 1.5px;

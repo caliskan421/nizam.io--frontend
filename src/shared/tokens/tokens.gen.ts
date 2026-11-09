@@ -2708,6 +2708,18 @@ export const TOKENS = {
     "dark": "2px",
     "light": "2px"
   },
+  "gantt-split-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "2px",
+    "light": "2px"
+  },
+  "gantt-hit-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "12px",
+    "light": "12px"
+  },
   "gantt-link-w": {
     "group": "gantt",
     "origin": "web",
