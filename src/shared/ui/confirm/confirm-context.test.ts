@@ -1,13 +1,24 @@
 // @vitest-environment node
 // Mimari denetim (CX-F1-E-02): yazma başlatan her onay `confirmWrite` ile ve yazma onayın
-// yakaladığı bağlamla başlar — tüketici bağlamı atlayamaz. Kaynak taranır (üretim dosyaları):
+// yakaladığı bağlamla başlar — tüketici bağlamı atlayamaz. Kaynak taranır (üretim dosyaları).
+// Tüketiciler ELLE LİSTELENMEZ: `src/modules/**` içinde `confirmWrite(` / `useConfirm(` /
+// `confirmImpact(` geçen her üretim dosyası (test ve `__tests__` hariç) taranır; yeni modül ya da
+// işçi (W74, W75, W81…) satır eklemeden aynı kurallara tabidir. Kurallar:
 //  1. `confirmWrite(...)` çağrısının başlatıcısı `(context) => …` biçimindedir ve gövdesindeki
 //     her `submit(` çağrısı `{ context }` taşır (bağlamsız submit yok);
 //  2. boolean dönen eski yol (`useConfirm().confirm`, `{ confirm } = useConfirm()`) yoktur;
 //  3. dolaylı zincir (`use-status-transition.ts`: `confirmWrite → resend → send → submit`):
 //     başlatıcı bağlamı `resend(context)` ile iletir ve `send`'in `submit` çağrısı `{ context }`
-//     taşır (metin düzeyinde, yalnız bu bilinen zincir için).
-// NE GARANTİ ETMEZ: bu bir veri akışı analizi değildir — metin kalıbıdır. Bağlamın gerçekten
+//     taşır (metin düzeyinde, yalnız bu bilinen zincir için);
+//  4. `confirmImpact(outcome, …)` (sunucu `confirmation_required` devamı): ilk argüman aynı
+//     dosyada `const <ad> = await …submit(<vars>, <seçenek>)` ile alınmış sonuçtur — devam isteği
+//     motorun `outcome.confirm()`'üdür ve İLK eylemin bağlamını (kapsam + nesil) taşır; ilk
+//     submit çağıranın seçeneğini (`{ context }` dahil) iletir (ikinci argüman var);
+//  5. `outcome.confirm()` onay diyaloğu dışında çağrılmaz: modüllerde yalnız sonucu SARAN bir
+//     `confirm: () => …` tanımının içinde geçebilir (ör. anahtarsız organizasyon sarmalayıcısı);
+//     onaysız doğrudan devam yolu yoktur.
+// NE GARANTİ ETMEZ: bu bir veri akışı analizi değildir — metin kalıbıdır. `useConfirm()`'ün
+// kurulumda (eşzamanlı) alındığını metin denetlemez (çalışma anında `requireOwner` yakalar). Bağlamın gerçekten
 // İLK eylemin bağlamı olduğu ve bayatsa yazma çıkmadığı davranış testleriyle sabitlenir:
 // tüketici testlerinde sarılmış gerçek hook'un `submit` ikinci argümanı denetlenir
 // (DeleteTaskAction / use-file-actions / use-note-actions / use-subtask-edit (c);
@@ -52,19 +63,25 @@ const files = sources(SRC).map((path) => ({
   rel: relative(ROOT, path),
   text: readFileSync(path, 'utf8'),
 }))
-const writers = files.filter((f) => f.text.includes('confirmWrite('))
+const CONSUMER = /\b(confirmWrite|useConfirm|confirmImpact)\(/
+const consumers = files.filter((f) => f.rel.startsWith('src/modules/') && CONSUMER.test(f.text))
+const writers = consumers.filter((f) => f.text.includes('confirmWrite('))
+const impacts = consumers.filter((f) => f.text.includes('confirmImpact('))
+const modules = files.filter((f) => f.rel.startsWith('src/modules/'))
 
 describe('onay → yazma bağlamı atlanamaz (CX-F1-E-02)', () => {
-  it('yazma başlatan onay tüketicileri bulundu (tarama boş değil)', () => {
-    expect(writers.map((f) => f.rel).sort()).toEqual(
-      [
-        'src/modules/work/components/files/use-file-actions.ts',
+  it('tüketiciler taramayla bulunur (elle liste yok; tarama boş değil)', () => {
+    // Bilinen tüketiciler alt küme olarak bulunmalı (tarayıcı bozulursa yakalanır); yeni
+    // tüketiciler listeye eklenmeden aynı kurallardan geçer.
+    expect(consumers.map((f) => f.rel)).toEqual(
+      expect.arrayContaining([
         'src/modules/work/components/forms/DeleteTaskAction.vue',
         'src/modules/work/components/forms/use-status-transition.ts',
-        'src/modules/work/components/notes/use-note-actions.ts',
-        'src/modules/work/components/subtasks/use-subtask-edit.ts',
-      ].sort(),
+        'src/modules/organization/api/confirm.ts',
+      ]),
     )
+    expect(writers.length).toBeGreaterThan(0)
+    expect(impacts.length).toBeGreaterThan(0)
   })
 
   it.each(writers.map((f) => [f.rel, f.text] as const))(
@@ -95,6 +112,29 @@ describe('onay → yazma bağlamı atlanamaz (CX-F1-E-02)', () => {
     for (const { rel, text } of files) {
       expect(text, rel).not.toMatch(/\{\s*confirm\s*[,}][^}]*\}?\s*=\s*useConfirm\(\)/)
       expect(text, rel).not.toMatch(/useConfirm\(\)\.confirm\(/)
+    }
+  })
+
+  it.each(impacts.map((f) => [f.rel, f.text] as const))(
+    '%s: confirmImpact devamı ilk eylemin sonucundan, ilk submit seçeneği iletir',
+    (rel, text) => {
+      for (const args of callArgs(text, 'confirmImpact')) {
+        const outcome = /^\s*([A-Za-z_$][\w$]*)\s*,/.exec(args)?.[1]
+        expect(outcome, `${rel}: confirmImpact ilk argümanı tanımlayıcı değil`).toBeDefined()
+        const origin = new RegExp(`const\\s+${outcome}\\s*=\\s*await\\s+[\\w$.]*submit\\(`)
+        expect(text, `${rel}: ${outcome} bir submit sonucundan alınmamış`).toMatch(origin)
+        const at = text.search(origin)
+        const [submit] = callArgs(text.slice(at), 'submit')
+        expect(submit, `${rel}: ilk submit seçeneği iletmiyor`).toMatch(/,\s*\S/)
+      }
+    },
+  )
+
+  it('outcome.confirm() yalnız sonucu saran confirm: () => … tanımında (onaysız devam yok)', () => {
+    for (const { rel, text } of modules) {
+      for (const line of text.split('\n').filter((l) => /\.confirm\(\)/.test(l))) {
+        expect(line, rel).toMatch(/confirm:\s*(async\s*)?\(\)\s*=>/)
+      }
     }
   })
 })
