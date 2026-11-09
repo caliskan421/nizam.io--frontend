@@ -4,8 +4,8 @@
 //
 // Kurallar:
 // - Yalnız v1 (F0–F4) ekranları; v1 dışı modüller (Arşiv F5, Mesajlar F7, İşlem geçmişi, Tablolar,
-//   Takvim, Kurumsal hafıza, Simülasyon) ve hedefi tanımsız öğeler (Teknofest ve sezon, Yardım,
-//   Asistan) katalogda YOKTUR.
+//   Takvim, Kurumsal hafıza, Simülasyon) ve hedefi tanımsız öğeler (Yardım, Asistan) katalogda
+//   YOKTUR. "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
 // - Router yalnız `CURRENT_PHASE`'te `canli` olan rotaları kaydeder; diğerleri bilinmeyen yol gibi
 //   davranır. Menü `gizli` öğeyi göstermez, `devre_disi` öğeyi faz notuyla tıklanamaz gösterir.
 // - Kapsam (program/departman/mercek) URL'ye yazılmaz (K2; 00-ortak kabul E-00-04).
@@ -195,6 +195,17 @@ export const ROUTES = {
     params: { departmentId: id },
     // E-08-57: Arşiv (F5) ve Toplantılar (F4) sekmeleri devre dışı → URL'de seçilemez.
     query: { sekme: oneOf(['genel', 'uyeler', 'gorevler', 'ayarlar']) },
+  },
+  'program.programs': {
+    path: '/programlar',
+    title: 'Teknofest ve sezon',
+    // E-00-25 (W81): tuvalde artboard yok → P3 minimum; yalnız `company_admin` (P1). Program uçları
+    // S1; seçili programa bağlı bölümler sayfa içinde kapsam hazırken çizilir.
+    scope: 'S1',
+    phase: 'F2',
+    menu: { group: 'yonetim', key: 'season', order: 3 },
+    params: {},
+    query: {},
   },
   'collaboration.meetings': {
     path: '/toplantilar',

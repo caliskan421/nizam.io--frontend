@@ -34,13 +34,14 @@ export const EMPTY_REASON_STATES: Readonly<Record<ScopeEmptyReason, OpenStateNam
  * Yöneticinin "programa departman katılmamış" durumundan muaf rotalar (W22 devri, F2 açılışı —
  * 05/08 README satır dışı varsayımlar, kabul): yönetici departmansız programda kullanıcı
  * oluşturup departman bağlayabilmeli (05) ve 08'e girip birim ekleyebilmeli (E-08-39). Program
- * yönetimi rotası W81'de eklenir.
+ * yönetimi (E-00-25, W81): departmansız programa departman bağlama ve aktarım buradan yapılır.
  */
 export const NO_DEPARTMENT_EXEMPT_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>([
   'organization.users',
   'organization.user',
   'organization.coordinatorships',
   'organization.coordinatorship',
+  'program.programs',
 ])
 
 export interface ShellContentInput {

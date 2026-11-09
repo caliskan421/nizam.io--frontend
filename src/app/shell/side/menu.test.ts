@@ -23,6 +23,7 @@ describe('etkin faz F2 (W71 faz geçişi)', () => {
     expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['users', 'canli'],
       ['coords', 'canli'],
+      ['season', 'canli'],
     ])
     const nonAdmin = sideMenuGroups(menuEntries(), { ready: true, companyAdmin: false })
     expect(nonAdmin.map((g) => g.group)).toEqual(['takip'])
@@ -84,8 +85,9 @@ describe('kenar menüsü grupları', () => {
     const keys = sideMenuGroups(menuEntries('F4'), admin).flatMap((g) =>
       g.entries.map((e) => e.key),
     )
-    expect(keys).toEqual(['home', 'tasks', 'meetings', 'users', 'coords'])
-    for (const hidden of ['calendar', 'memory', 'archive', 'messages', 'sheets', 'sim', 'season']) {
+    // "Teknofest ve sezon" (E-00-25) F2'de Yönetim grubunda (W81).
+    expect(keys).toEqual(['home', 'tasks', 'meetings', 'users', 'coords', 'season'])
+    for (const hidden of ['calendar', 'memory', 'archive', 'messages', 'sheets', 'sim']) {
       expect(keys).not.toContain(hidden)
     }
   })

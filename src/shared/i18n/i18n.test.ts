@@ -10,6 +10,7 @@ import { CLIENT_ERROR_CODES } from '@/shared/errors/client-codes'
 import { errorText, i18n, mergeTrees } from './index'
 import { trHome } from './tr/home'
 import { trOrganization } from './tr/organization'
+import { trProgram } from './tr/program'
 import { trSide, trTopbar } from './tr/shell'
 import { trStates } from './tr/states'
 import { trErrors } from './tr/errors'
@@ -123,6 +124,7 @@ describe('TR hata metinleri', () => {
       trNotes,
       trWorkFiles,
       trOrganization,
+      trProgram,
     ]
     const entries = trees.flatMap((tree) => walk(tree, ''))
     expect(entries.length).toBeGreaterThan(300)

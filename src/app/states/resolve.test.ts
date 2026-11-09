@@ -85,6 +85,7 @@ describe('kabuk içeriği (K7)', () => {
       'organization.coordinatorships',
       'organization.user',
       'organization.users',
+      'program.programs',
     ])
     const base = { status: 'ready', emptyReason: null } as const
     for (const routeName of NO_DEPARTMENT_EXEMPT_ROUTES) {

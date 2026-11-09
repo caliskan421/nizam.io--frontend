@@ -66,6 +66,7 @@ describe('router — katalog tek kaynak', () => {
       'organization.user',
       'organization.coordinatorships',
       'organization.coordinatorship',
+      'program.programs',
       '/:pathMatch(.*)*',
     ])
     expect(MODULE_ROUTES.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')

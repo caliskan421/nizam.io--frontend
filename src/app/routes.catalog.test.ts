@@ -60,6 +60,8 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
   },
+  // E-00-25 "Teknofest ve sezon" (W81): F2'de canlı, yalnız yönetici menüsünde.
+  'program.programs': { F0: 'gizli', F1: 'gizli', F2: 'canli', F3: 'canli', F4: 'canli' },
   'collaboration.meetings': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'gizli', F4: 'canli' },
   'collaboration.meeting': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'gizli', F4: 'canli' },
 }
@@ -80,6 +82,7 @@ describe('rota kataloğu — yapı', () => {
       'organization.user',
       'organization.coordinatorships',
       'organization.coordinatorship',
+      'program.programs',
     ])
     expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])
   })
@@ -165,6 +168,7 @@ describe('menü', () => {
       ['tasks', 'takip', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
+      ['season', 'yonetim', 'canli'],
     ])
   })
 
@@ -211,13 +215,20 @@ describe('menü', () => {
   })
 
   it('F2: Yönetim grubu açılır; F4: Toplantılar İçerik grubunda, grup sırası takip → içerik → yönetim', () => {
-    expect(menuEntries('F2').map((e) => e.key)).toEqual(['home', 'tasks', 'users', 'coords'])
+    expect(menuEntries('F2').map((e) => e.key)).toEqual([
+      'home',
+      'tasks',
+      'users',
+      'coords',
+      'season',
+    ])
     expect(menuEntries('F4').map((e) => `${e.group}:${e.key}`)).toEqual([
       'takip:home',
       'takip:tasks',
       'icerik:meetings',
       'yonetim:users',
       'yonetim:coords',
+      'yonetim:season',
     ])
   })
 
