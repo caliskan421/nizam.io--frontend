@@ -2,6 +2,8 @@
 // GERÇEK sayfa + panel + sekmeler + yeni görev formu ile. Rol dizeleri yalnız burada (K1 lint).
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { trTasksPage } from '@/shared/i18n/tr/work'
+
 import { server, workItem } from '../../../../model/__tests__/harness'
 import type { StandingFixture } from '../page-harness'
 import {
@@ -62,6 +64,7 @@ async function open(persona: Persona): Promise<AppContext> {
 }
 
 const has = (selector: string) => body().find(selector).exists()
+const EMPTY_TITLE = trTasksPage.tasksPage.empty.title
 
 /** Panelde görünen eylemler + Notlar / Dosyalar sekmelerindeki yazma denetimleri. */
 async function visible(ctx: AppContext) {
@@ -130,16 +133,36 @@ describe('W48 · yetki görünürlüğü (dört kişilik, gerçek bileşenler)',
     })
   })
 
-  it('atanmamış üye: salt okunur', async () => {
-    const ctx = await open(UNASSIGNED)
-    expect(await visible(ctx)).toEqual({
+  // Pinli sözleşme (`istemci-akislari.md` s.162, `listProgramWorkItems` açıklaması): atanmamış
+  // üye görevi listede görmez, ayrıntı ucunda 403 alır. Sahte backend bu yetkiyi uygular.
+  it('atanmamış üye: görev listede yok; derin bağlantı 403 work.not_assigned → panel yetkisiz durumu', async () => {
+    await open(UNASSIGNED)
+    expect(has('[data-work-item="w1"]')).toBe(false)
+    expect(body().find('[data-testid="tasks-page"] .rp-empty__title').text()).toBe(EMPTY_TITLE)
+    const alert = body().find('.rp-aside [role="alert"]')
+    expect(alert.exists()).toBe(true)
+    expect(alert.text()).toContain('Bu görev size atanmamış.')
+    expect(alert.find('button').exists()).toBe(false)
+  })
+
+  it('atanmamış üye: yetki düğmeleri yok (negatif — durum, yükleme, sil, yeni görev, not, dosya)', async () => {
+    await open(UNASSIGNED)
+    expect({
+      statusMenu: has('[data-testid="wf-status-trigger"]'),
+      upload: has('[data-action="upload"]'),
+      remove: has('[data-testid="wf-delete"]'),
+      newTask: has('[data-testid="tasks-page"] .rp-head button.t-btn--primary'),
+      noteInput: has('[data-testid="note-input"]'),
+      filesUpload: has('[data-testid="files-upload"]'),
+      tabs: has('.rp-aside [role="tab"]'),
+    }).toEqual({
       statusMenu: false,
-      statusReadonly: true,
       upload: false,
       remove: false,
       newTask: false,
       noteInput: false,
       filesUpload: false,
+      tabs: false,
     })
   })
 })
