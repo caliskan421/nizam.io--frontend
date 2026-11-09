@@ -2053,6 +2053,126 @@ export const TOKENS = {
     "origin": "web",
     "dark": "52px",
     "light": "52px"
+  },
+  "users-min-w": {
+    "group": "users",
+    "origin": "web",
+    "dark": "640px",
+    "light": "640px"
+  },
+  "users-cols": {
+    "group": "users",
+    "origin": "web",
+    "dark": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px",
+    "light": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px"
+  },
+  "users-badge-h": {
+    "group": "users",
+    "origin": "web",
+    "dark": "24px",
+    "light": "24px"
+  },
+  "users-badge-pad": {
+    "group": "users",
+    "origin": "web",
+    "dark": "0 10px",
+    "light": "0 10px"
+  },
+  "users-more-pad": {
+    "group": "users",
+    "origin": "web",
+    "dark": "0 8px",
+    "light": "0 8px"
+  },
+  "users-grow-basis": {
+    "group": "users",
+    "origin": "web",
+    "dark": "280px",
+    "light": "280px"
+  },
+  "users-search-h": {
+    "group": "users",
+    "origin": "web",
+    "dark": "36px",
+    "light": "36px"
+  },
+  "users-search-basis": {
+    "group": "users",
+    "origin": "web",
+    "dark": "180px",
+    "light": "180px"
+  },
+  "users-pop-w": {
+    "group": "users",
+    "origin": "web",
+    "dark": "260px",
+    "light": "260px"
+  },
+  "users-pop-max-h": {
+    "group": "users",
+    "origin": "web",
+    "dark": "320px",
+    "light": "320px"
+  },
+  "users-skel-h": {
+    "group": "users",
+    "origin": "web",
+    "dark": "12px",
+    "light": "12px"
+  },
+  "users-sheethead-gap": {
+    "group": "users",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "users-name": {
+    "group": "users",
+    "origin": "web",
+    "dark": "600 20px/26px var(--font-display)",
+    "light": "600 20px/26px var(--font-display)"
+  },
+  "users-strip-cols": {
+    "group": "users",
+    "origin": "web",
+    "dark": "repeat(3, minmax(0, 1fr)) 20px",
+    "light": "repeat(3, minmax(0, 1fr)) 20px"
+  },
+  "users-strip-pad": {
+    "group": "users",
+    "origin": "web",
+    "dark": "14px 16px",
+    "light": "14px 16px"
+  },
+  "users-strip-num": {
+    "group": "users",
+    "origin": "web",
+    "dark": "600 20px/26px var(--font-display)",
+    "light": "600 20px/26px var(--font-display)"
+  },
+  "users-role-cols": {
+    "group": "users",
+    "origin": "web",
+    "dark": "20px minmax(0, 1fr)",
+    "light": "20px minmax(0, 1fr)"
+  },
+  "users-role-radius": {
+    "group": "users",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "users-add-h": {
+    "group": "users",
+    "origin": "web",
+    "dark": "28px",
+    "light": "28px"
+  },
+  "users-add-pad": {
+    "group": "users",
+    "origin": "web",
+    "dark": "0 10px",
+    "light": "0 10px"
   }
 } as const
 

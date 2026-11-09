@@ -324,6 +324,31 @@
         { "name": "home-skel-line", "value": "16px" },
         { "name": "home-skel-num", "value": "52px" }
       ]
+    },
+    "users": {
+      "$description": "modules/organization 05 Kullanıcılar ölçüleri — Kullanicilar.dc.html satır içi stilleri ve theme.css rp-sheethead ölçek DIŞI değerleri (W75; CX-F0-Ö-02).",
+      "tokens": [
+        { "name": "users-min-w", "value": "640px" },
+        { "name": "users-cols", "value": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px" },
+        { "name": "users-badge-h", "value": "24px" },
+        { "name": "users-badge-pad", "value": "0 10px" },
+        { "name": "users-more-pad", "value": "0 8px" },
+        { "name": "users-grow-basis", "value": "280px" },
+        { "name": "users-search-h", "value": "36px" },
+        { "name": "users-search-basis", "value": "180px" },
+        { "name": "users-pop-w", "value": "260px" },
+        { "name": "users-pop-max-h", "value": "320px" },
+        { "name": "users-skel-h", "value": "12px" },
+        { "name": "users-sheethead-gap", "value": "14px" },
+        { "name": "users-name", "value": "600 20px/26px {font-display}" },
+        { "name": "users-strip-cols", "value": "repeat(3, minmax(0, 1fr)) 20px" },
+        { "name": "users-strip-pad", "value": "14px 16px" },
+        { "name": "users-strip-num", "value": "600 20px/26px {font-display}" },
+        { "name": "users-role-cols", "value": "20px minmax(0, 1fr)" },
+        { "name": "users-role-radius", "value": "14px" },
+        { "name": "users-add-h", "value": "28px" },
+        { "name": "users-add-pad", "value": "0 10px" }
+      ]
     }
   }
 }
