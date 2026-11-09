@@ -1,15 +1,16 @@
 # WEB-1 (F1) — Codex nihai kapı hükmü
 
-**Son hüküm: `<tur 4 hükmü>`** — 4. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 4 HEAD>` (`main` #32–#46 + PR #47 `58400af` birleşik).
+**Son hüküm: `<tur 5 hükmü>`** — 5. koşum, kapanış dalı `web1/o5-kapanis` @ `<tur 5 HEAD>` (`main` #32–#47 + `<W66 PR>` birleşik).
 Denetçi: Codex, `codex exec -s read-only`, her koşum tek ve salt okunur (tur 1 modeli `gpt-6-astra`).
 Kayıt: yürütme `docs/yurutme/web-1/ilerleme.md` (O5); yönetim deposu satırı kapanışta.
 
-| Koşum | Denetlenen `main` | Hüküm | Açılan bulgular | Düzeltme |
+| Koşum | Denetlenen dal/HEAD | Hüküm | Açılan bulgular | Düzeltme |
 |---|---|---|---|---|
 | 1 | `67d31b4` (#32–#43 birleşik) | UYGUN DEĞİL | CX-F1-E-01…E-04 (engelleyici); Ö-01…Ö-05; K-01…K-04 | W63 → PR #44 `a3ffe64` (E-01, Ö-01, Ö-02 kısmen, K-04, görsel kusurlar) · W62 → PR #45 `45957f9` (E-02, E-03, Ö-03) · belge K-01/K-02/K-03 kapanış dalı `web1/o5-kapanis` |
 | 2 | `45957f9` (#32–#45 birleşik) | UYGUN DEĞİL | E-01, E-03 kapandı; E-04 kod düzeltmeleri uygun (kanıt kapanış PR'ında); **E-02 kısmen** — `subtasks_open` onayı sahipsiz, geç yanıtta bağlam, kabul → mutasyon başlangıcı boşluğu; Ö-06 (yeni) | W64 → PR #46 `1126caf` (E-02 kalan üç boşluk, Ö-06 etiketi) · K-01…K-03 + E-04 kanıt özeti bu PR |
 | 3 | kapanış dalı `3a1522f` (main `1126caf`, #32–#46 birleşik) | UYGUN DEĞİL | E-02 boşluk 2 ve 3 kapandı; boşluk 1 kısmen — **sökülmüş sahip geç 409'da onay açabiliyor**; regresyon kanıtı eksikleri (`close_subtasks` kabul ↔ gönderim; üç silme testinde bağlam aktarımının açık denetimi; mimari testin dolaylı zinciri izlememesi); E-04 kanıt kaydı, K-01…K-03, Ö-06 kapandı | W65 → PR #47 `58400af` · kayıt netleştirmeleri bu PR |
-| 4 | `<tur 4 HEAD>` | `<tur 4 hükmü>` | `<tur 4 bulguları>` | `<tur 4 düzeltme>` |
+| 4 | kapanış dalı `fa53822` (main `58400af`, #32–#47 birleşik) | UYGUN DEĞİL | E-02 kapandı (sökülmüş sahip onay açamaz; regresyon kanıtı (i)–(iii) yeterli); **CX-F1-E-05 (yeni)** — alt görev çakışma birleştirmesi sökülmeden sonra yeni PATCH başlatabiliyor (koordinatörün istediği "onay dışı sökülme sonrası yazma" örnekleminde bulundu) | W66 → `<W66 PR>` (sınıf ortak yazma katmanında kapatılır) · tablo başlığı bu PR |
+| 5 | `<tur 5 HEAD>` | `<tur 5 hükmü>` | `<tur 5 bulguları>` | `<tur 5 düzeltme>` |
 | — | `67d31b4` | Görsel doğrulama (üretim paketi + üretim CSP'si + Playwright + sahte `/v1`; gerçek backend yok): 53 senaryo, 96 görüntü (88 uygulama + 8 tasarım), iki tema × 1440/1024/390 × Admin/Koordinatör/Üye; kanıt özeti `docs/yurutme/web-1/ilerleme.md` O5 | yüksek 1 (alt görev onay kutusu 2 px, E-03-31), orta 2 (`/gorevler` 390 px'te 10 px yatay taşma; not çakışmasında sınırsız yeniden gönderim), düşük 5; bilinçli fark 22 | 8 kusurun 8'i W63 #44 (yeniden ölçüm: taşma 390/1024/1440 = 0/0/0; CSP ihlali 30 senaryoda 0) |
 
 Düzeltme planı (koordinatör, 2026-11-09): E-01 → W63 (PR #44; `work/model/assignment.ts` tek yüklem — liste, sekme sayaçları, talep sayısı, sayfalayıcı, boş durum ve ana sayfa KPI aynı kümeden) · E-02/E-03 → W62 (PR #45; `use-confirm` kapsam + oturum nesli + hesap bağı; bileşik yazmada `submit(vars, { context })`) · E-04 → görsel doğrulama turu (main `67d31b4`) + W63 #44 (390 px taşma ve diğer 7 görsel kusur) · Ö-01 → W63 · Ö-02 → W63 kısmen, kalan F2 entegrasyon turu (W82) · Ö-03 → W62 (`/layers.css` `no-cache`, duman testinde tüm CSP ihlalleri 0) · Ö-04, Ö-05 → F2 borcu (W82) · K-01, K-02, K-03 → belge, `web1/o5-kapanis` (K-03 eşik ↔ token eşlemesi F2 borcu) · K-04 → W63.
@@ -385,4 +386,58 @@ Kapanış: sahip yaşamını açılış anında doğrulayın; sökülmüş örne
 4. **F2 O5:** gerçek Caddy+backend tarayıcı tanığı, dosya yükleme/indirme; ayrıca gerçek `/` ve dolu KPI CSP senaryosu açık kabul maddesi olmalı.
 5. **W71 ve sonrası:** Yönetim capability taşıması, ilk bağlamla bileşik yazmalar, ortak onay altyapısı; ürün soruları #13–#18 hâlâ geçici kabul. Backend pin yükseltmesi ayrı sözleşme incelemesi olarak kalmalı.
 
-<!-- TUR 4 TAM METNİ BURAYA -->
+---
+
+# WEB-1 (F1) — Codex nihai kapı hükmü — 4. koşum
+
+- **Hüküm: UYGUN DEĞİL.** W65, E-02’nin geç `work.subtasks_open` yanıtıyla sökülmüş sahipten onay açılması yolunu kapatıyor; istenen regresyon kanıtları kaynak düzeyinde yeterli. Ancak onay dışı örneklemde, sökülme sonrası geç `edit_conflict` sonucunun alt görev için yeni PATCH başlatabildiği somut bir yol kaldı.
+- **Denetlenen:** `web1/o5-kapanis` — `fa53822746901d11a75b89be450c9b96d0e87428`; başlangıç/bitiş çalışma ağacı temiz.
+- **İlk komutlar:** `git rev-parse HEAD`, `git log --oneline -10`, `git status --short`.
+- **Diğer komutlar:** `git branch --show-current`, `git log --first-parent`, `git diff`, `git show`, `rg`, `nl -ba`, `sed`, `cat`, `head`, `tail`, `ls`.
+- Dosya değiştirilmedi; test/lint/build çalıştırılmadı. Beş yerel kapı, CI üç iş ve koruma kaldırma koşumlarının sonuçları **kullanıcı beyanıdır**; bağımsız doğrulanmadı.
+- Kısaltmalar: `W = src/modules/work`, `S = src/shared`, `Y1 = docs/yurutme/web-1`, `Y2 = docs/yurutme/web-2`.
+
+## E-02 son açık ve regresyon kanıtı
+
+| Madde | Durum | Kanıt dosya:satır | Kalan risk |
+|---|---|---|---|
+| Sökülmüş sahipten açılış | **Kapandı** | `S/ui/confirm/use-confirm.ts:223,252,282,293` | Dışa sunulan iki açıcı da yaşamı denetliyor; başka açıcı yok. |
+| Geç 409; ilk çağrının tamamlanması | **Kapandı** | `W/components/forms/use-status-transition.ts:101,129,143` | `null` sonrası ilk sonuç döner; bu yolda ikinci yazma veya asılı promise yok. |
+| (a2) regresyonu | **Anlamlı** | `W/components/forms/use-status-transition.test.ts:310` | İki savunma birlikte kaldırılırsa `await done` tamamlanmaz. Tek savunmanın kaldırılması diğerince örtülebilir. |
+| Ortak katmanın bağımsız testi | **Mevcut** | `S/ui/confirm/use-confirm.test.ts:395` | Sökülmüş örnekte iki açıcı için `null`, başlatıcı çağrısı yokluğu denetleniyor. |
+| (i) `close_subtasks` kabul–gönderim arası | **Kapandı** | `W/components/forms/use-status-transition.test.ts:323,334,339` | İkinci `submit` ilk bağlamı alıyor; A→B ardından ikinci POST yok ve `scope_changed` bekleniyor. |
+| (ii) Üç silmede açık bağlam aktarımı | **Kapandı** | `W/components/files/use-file-actions.test.ts:175`; `W/components/notes/use-note-actions.test.ts:225`; `W/components/subtasks/use-subtask-edit.test.ts:206` | İkinci argüman kaldırılırsa açık eşitlik beklentileri bozulur; koşum yapılmadı. |
+| (iii) Dolaylı zincir | **Yeterli, sınırı açık** | `S/ui/confirm/confirm-context.test.ts:7,84`; `W/components/forms/use-status-transition.test.ts:334` | Metin testi `resend→send` bağlantısını tek başına bütünüyle kanıtlamaz; davranış testindeki ikinci argüman denetimi tamamlar. Genel veri akışı analizi değildir. |
+| Açık onay sökülmede iptal | **Korunmuş** | `S/ui/confirm/use-confirm.ts:155,280`; `W/components/forms/use-status-transition.test.ts:219` | Başlamış işlem busy ise geriye dönük iptal edilmez. |
+| Kapsam/oturum iptali; meşgul pencere | **Kaynakta korunmuş** | `S/ui/confirm/use-confirm.ts:89,96,108,140,155` | W65 bu mekanizmaları değiştirmiyor; çalışma zamanı sonucu doğrulanmadı. |
+
+## Kayıt ve tutarlılık
+
+- `git log --first-parent origin/main`: **#47 `58400af` → #46 `1126caf` → #45 `45957f9` → #44 `a3ffe64`**; #32–#47 birleşmeleri mevcut. `3b22d52`, `58400af`’ı kapanış dalına birleştiriyor; HEAD bunun üstündeki belge commit’i.
+- Tur 3 kaydı kapanış HEAD’i `3a1522f` ile main `1126caf`’ı doğru ayırıyor (`docs/reviews/WEB-1-codex.md:11`). Tablo başlığındaki “Denetlenen main” ifadesi kapanış dalı satırlarını kapsamıyor; “Denetlenen dal/HEAD” yapılmalı (`:7`).
+- `/oturum` düzeltmesi ve koruma kaldırma beyanının kapsamı **netleşmiş** (`Y1/ilerleme.md:63,64,65`).
+- KESİN 20, açık onayın iptali ile sökülmüş sahibin yeni onay açamamasını doğru ayırıyor (`Y2/ortak-sozlesme.md:40`).
+- Tur 4 hükmü/HEAD ve kapanış main alanları hâlâ yer tutucu; bu koşum sonrası koordinatörce doldurulmalı (`docs/reviews/WEB-1-codex.md:3,12`; `Y1/ilerleme.md:80,95`).
+- Görsel aday/CI kaydı `1126caf`’a ait (`Y1/ilerleme.md:67,79`); W65’in yeşil CI sonucu bu denetimde yalnız kullanıcı beyanıdır.
+- **`git diff 1126caf..HEAD -- eslint.config.js` boş.**
+- `../program/` bulunamadı; `../nizam.io--program/program/{DURUM,README}.md` okundu. WEB-1 için aktif FNN kaydı doğrulanamadı.
+
+## Yeni bulgular (varsa)
+
+**CX-F1-E-05 — Engelleyici: alt görev çakışma birleştirmesi sökülmeden sonra yeni yazma başlatabiliyor.**
+
+- Somut sıra: kullanıcı başlığı değiştirir → ilk PATCH beklerken bileşen sökülür → geç `work.edit_conflict` gelir → güncel kayıtta sürüm ilerlemiştir, başlık eskiyle aynıdır, başka alan değişmiştir → otomatik birleştirme yeni PATCH başlatır.
+- İlk yanıtın ardından güncel kayıt okunuyor (`S/http/mutation/engine.ts:263`; `W/api/subtasks.ts:45,68`). Gerçek alan çakışması yoksa resolver, sahip yaşamını denetlemeden `{}` çözüyor (`S/ui/conflict/use-conflict.ts:36`).
+- Alt görev akışı çözümden sonra doğrudan yeniden `send()` çağırıyor; yeni `submit` öncesinde sökülme denetimi yok (`W/components/subtasks/use-subtask-edit.ts:94,148,152,154`). Gerçek PATCH bağlantısı `W/api/subtasks.ts:60`.
+- Motor yalnız kapsam/oturum neslini denetliyor; aynı bağlamdaki sökülme bu kapıyı kapatmıyor (`S/http/mutation/engine.ts:307`; `S/http/mutation/use-protected-mutation.ts:153`).
+- **Bu, başlamış isteğin sürmesi değil, sökülmeden sonra yeni yazmadır.** Kaynak zincirinden çıkarımdır; koşumla yeniden üretilmedi.
+- Kapanış: bu ardıl yazmaya sahip yaşamı denetimi ve geciktirilmiş çakışma yanıtı testinde **ikinci PATCH 0 + ilk çağrı tamamlanır** kanıtı eklenmeli. Zamanlayıcı örneklemindeki arama geciktirmesi yalnız olay yayıyor; burada yazma bulgusu yok (`W/pages/tasks/TasksFilterBar.vue:43`).
+
+## F2'ye devir
+
+1. **F2 öncesi:** E-05 kapanmalı; bu hüküm ve nihai adayın CI kanıtı kapanış kaydına bağlanmalı.
+2. **W82:** üretim router/AppShell entegrasyonu; kapsam/çıkış/403/onay senaryoları; koşul temelli beklemeler ve dar menü erişilebilirliği.
+3. **F2 O5:** gerçek Caddy+backend tarayıcı tanığı, yükleme/indirme ve gerçek `/` üzerinde dolu KPI CSP senaryosu.
+4. **W71/W82:** capability taşıması, sayaç/avatar ve medya eşik–token borçları; ürün soruları #13–#18. Pin yükseltmesi ayrı sözleşme incelemesi olarak kalmalı.
+
+<!-- TUR 5 TAM METNİ BURAYA -->
