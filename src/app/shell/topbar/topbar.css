@@ -32,13 +32,11 @@
     .rp-topbar .rp-kicker {
       display: none;
     }
-    /* Konum izi bağlantıları da üç noktayla kesilir; önce bağlantı daralır, son parça korunur.
-       Özgüllük artırıldı: derleyici medya kuralını temel `.rp-crumbs a`'nın önüne taşıyabiliyor. */
-    .rp-topbar .rp-crumbs a {
-      flex: 0 100 auto;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    /* Dar ekranda konum izinin yalnız son parçası (geçerli sayfa) görünür: bağlantılar sıfıra
+       daralınca ayırıcılar "/ /" artığı bırakıyordu (F2 görsel doğrulaması K-5). Program adı kenar
+       menüsünün kapsam kartında; üst düzey sayfa menüde. Son parça üç noktayla kesilir. */
+    .rp-topbar .rp-crumbs > :not(strong) {
+      display: none;
     }
   }
 
