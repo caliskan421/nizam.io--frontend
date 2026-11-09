@@ -52,7 +52,7 @@ const searching = computed(
 const subline = computed(() => {
   if (!row.value) return ''
   const head = panelSubline(row.value, index.byId.value)
-  if (!head) return usersText('usersPage.panel.noTeam')
+  if (!head) return usersText('organization.users.panel.noTeam')
   const first = head.more > 0 ? `${head.first} +${head.more}` : head.first
   return `${first} · ${usersText(ROLE_TEXT[head.role])}`
 })
@@ -61,7 +61,7 @@ const subline = computed(() => {
 <template>
   <section
     class="users-panel"
-    :aria-label="usersText('usersPage.panel.label')"
+    :aria-label="usersText('organization.users.panel.label')"
     :data-account="accountId"
     data-testid="user-panel"
   >
@@ -74,13 +74,13 @@ const subline = computed(() => {
       <UiIconButton
         v-if="!embedded"
         icon="close"
-        :label="usersText('usersPage.panel.close')"
+        :label="usersText('organization.users.panel.close')"
         data-testid="panel-close"
         @click="emit('close')"
       />
     </div>
     <p v-if="!row && !searching" class="rp-cap" data-testid="panel-missing">
-      {{ usersText('usersPage.panel.missing') }}
+      {{ usersText('organization.users.panel.missing') }}
     </p>
     <template v-if="row">
       <UserTaskStrip v-if="store.programId !== null" :account-id="accountId" />
@@ -90,7 +90,7 @@ const subline = computed(() => {
         :to="userLocation(accountId)"
         data-testid="panel-profile"
       >
-        <span class="rp-trunc">{{ usersText('usersPage.panel.profile') }}</span>
+        <span class="rp-trunc">{{ usersText('organization.users.panel.profile') }}</span>
         <UiIcon name="arrow-right" size="sm" />
       </RouterLink>
       <UserRoleCards :labels="row.labels" />

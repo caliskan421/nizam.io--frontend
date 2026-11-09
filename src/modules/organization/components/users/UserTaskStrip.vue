@@ -27,21 +27,21 @@ const ready = computed(() => person.query.data.value !== undefined)
   <RouterLink
     class="t-card--inset users-strip"
     :to="userLocation(accountId, { kart: 'acik' })"
-    :aria-label="usersText('usersPage.panel.summary.label')"
+    :aria-label="usersText('organization.users.panel.summary.label')"
     data-testid="user-strip"
   >
     <span class="users-strip__cell">
-      <span class="rp-kicker">{{ usersText('usersPage.panel.summary.open') }}</span>
+      <span class="rp-kicker">{{ usersText('organization.users.panel.summary.open') }}</span>
       <span class="rp-num" data-testid="strip-open">{{ ready ? summary.open : '—' }}</span>
     </span>
     <span class="users-strip__cell">
-      <span class="rp-kicker">{{ usersText('usersPage.panel.summary.overdue') }}</span>
+      <span class="rp-kicker">{{ usersText('organization.users.panel.summary.overdue') }}</span>
       <span class="rp-num rp-danger-text" data-testid="strip-overdue">
         {{ ready ? summary.overdue : '—' }}
       </span>
     </span>
     <span class="users-strip__cell">
-      <span class="rp-kicker">{{ usersText('usersPage.panel.summary.approval') }}</span>
+      <span class="rp-kicker">{{ usersText('organization.users.panel.summary.approval') }}</span>
       <span class="rp-num" data-testid="strip-approval">{{ ready ? summary.approval : '—' }}</span>
     </span>
     <UiIcon class="users-strip__go" name="chevron-right" size="sm" />
@@ -50,7 +50,7 @@ const ready = computed(() => person.query.data.value !== undefined)
       class="rp-cap users-strip__partial"
       data-testid="strip-partial"
     >
-      {{ usersText('usersPage.panel.summary.partial') }}
+      {{ usersText('organization.users.panel.summary.partial') }}
     </span>
   </RouterLink>
 </template>

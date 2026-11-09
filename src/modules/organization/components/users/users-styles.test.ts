@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 
 import { TOKENS } from '@/shared/tokens/tokens.gen'
 
-import { trUsersPage, usersText, type UsersTextKey } from './messages'
+import { trUsers, usersText, type UsersTextKey } from './messages'
 
 // 05 Kullanıcılar görünüm kuralları (KESİN 5): ham renk yok, px yok (`--users-*` üretilmiş
 // token; medya koşulu hariç), satır içi stil yok, .vue ≤ 250 satır; ızgara ve ölçüler
@@ -75,13 +75,13 @@ describe('05 metinleri', () => {
     )
 
   it('her yaprak dolu çözülür; sunucu iletisi yok', () => {
-    const keys = walk(trUsersPage, '') as UsersTextKey[]
+    const keys = walk(trUsers, 'organization.users.') as UsersTextKey[]
     expect(keys.length).toBeGreaterThan(80)
     for (const key of keys) expect(usersText(key).trim(), key).not.toBe('')
   })
 
-  it('kaynakta geçen her usersPage.* anahtarı ağaçta', () => {
-    const known = new Set(walk(trUsersPage, ''))
+  it('kaynakta geçen her organization.users.* anahtarı ağaçta', () => {
+    const known = new Set(walk(trUsers, 'organization.users.'))
     for (const path of files
       .filter((p) => p.endsWith('.vue'))
       .concat(
@@ -89,7 +89,7 @@ describe('05 metinleri', () => {
           .filter((n) => n.endsWith('.ts') && !n.endsWith('.test.ts'))
           .map((n) => join(here, n)),
       )) {
-      for (const [, key] of read(path).matchAll(/'(usersPage\.[A-Za-z.]+)'/g)) {
+      for (const [, key] of read(path).matchAll(/'(organization\.users\.[A-Za-z.]+)'/g)) {
         expect(known.has(key!), `${path}: ${key}`).toBe(true)
       }
     }

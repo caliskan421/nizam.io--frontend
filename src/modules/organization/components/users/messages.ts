@@ -1,23 +1,24 @@
-import { trUsersPage } from '@/shared/i18n/tr/organization'
+import { trOrganization } from '@/shared/i18n/tr/organization'
 
-export { trUsersPage }
+/** Bu ekranın alt ağacı (`organization.users.*`). */
+export const trUsers = trOrganization.organization.users
 
 type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
 }[keyof T & string]
 
-export type UsersTextKey = Leaves<typeof trUsersPage>
+export type UsersTextKey = Leaves<typeof trUsers, 'organization.users.'>
 
 type Node = string | { readonly [key: string]: Node }
 
 /**
- * `usersPage.*` metni (TR). Kaynak statik ağaç `shared/i18n/tr/organization.ts`'tir (çalışma
- * anında ileti eklenmez). Ağacın uygulama i18n kaydı (`shared/i18n/index.ts`) bu işçinin
+ * `organization.users.*` metni (TR). Kaynak statik ağaç `shared/i18n/tr/organization.ts`
+ * (çalışma anında ileti eklenmez). Ağacın uygulama i18n kaydı (`shared/i18n/index.ts`) bu işçinin
  * sahipliği dışında olduğundan metin doğrudan aynı statik ağaçtan okunur ve `{ad}` yer
  * tutucuları burada doldurulur (çoğul/biçim yok).
  */
 export function usersText(key: UsersTextKey, params: Record<string, string | number> = {}): string {
-  let node: Node = trUsersPage
+  let node: Node = trOrganization
   for (const part of key.split('.')) {
     node = typeof node === 'string' ? node : (node[part] ?? '')
   }

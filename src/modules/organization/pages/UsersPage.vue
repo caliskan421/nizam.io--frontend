@@ -44,10 +44,12 @@ const view = provideUsersView(() => ({
 const facts = computed(() => organizationFacts(standing.value, store.programId))
 const canCreate = computed(() => store.programId !== null && can('createUser', facts.value))
 const summary = computed(() => {
-  if (view.loading.value) return usersText('usersPage.summary.loading')
+  if (view.loading.value) return usersText('organization.users.summary.loading')
   const n = view.source.value.length
   return usersText(
-    view.complete.value ? 'usersPage.summary.complete' : 'usersPage.summary.partial',
+    view.complete.value
+      ? 'organization.users.summary.complete'
+      : 'organization.users.summary.partial',
     {
       n,
     },
@@ -93,7 +95,7 @@ function onCreated(accountId: string): void {
       />
       <div class="rp-col">
         <p v-if="selectedMissing" class="rp-cap" role="status" data-testid="users-selected-missing">
-          {{ usersText('usersPage.deepLink.missing') }}
+          {{ usersText('organization.users.deepLink.missing') }}
         </p>
         <UsersTable
           :role-tab="state.tab"
@@ -103,7 +105,11 @@ function onCreated(accountId: string): void {
           @select="select"
         />
       </div>
-      <aside v-if="panelId" class="rp-aside" :aria-label="usersText('usersPage.panel.label')">
+      <aside
+        v-if="panelId"
+        class="rp-aside"
+        :aria-label="usersText('organization.users.panel.label')"
+      >
         <UserPanel :key="panelId" :account-id="panelId" @close="closePanel" @deleted="closePanel" />
       </aside>
     </div>

@@ -18,14 +18,14 @@ const emit = defineEmits<{ create: [] }>()
 <template>
   <div class="rp-head">
     <div>
-      <h1 class="rp-h1">{{ usersText('usersPage.title') }}</h1>
+      <h1 class="rp-h1">{{ usersText('organization.users.title') }}</h1>
       <p class="rp-sub" data-testid="users-summary">{{ summary }}</p>
     </div>
     <div class="rp-actions">
       <DesignStub id="BE-014">
         <button class="t-btn t-btn--secondary" type="button" disabled data-testid="users-export">
           <UsersIcon name="download" />
-          <span class="rp-trunc">{{ usersText('usersPage.export') }}</span>
+          <span class="rp-trunc">{{ usersText('organization.users.export') }}</span>
         </button>
       </DesignStub>
       <UiButton
@@ -35,7 +35,7 @@ const emit = defineEmits<{ create: [] }>()
         data-testid="users-create"
         @click="emit('create')"
       >
-        {{ usersText('usersPage.create') }}
+        {{ usersText('organization.users.create') }}
       </UiButton>
     </div>
   </div>

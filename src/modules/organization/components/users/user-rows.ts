@@ -34,8 +34,8 @@ export interface UserRow {
 }
 
 export const ROLE_TEXT: Readonly<Record<TeamRole, UsersTextKey>> = {
-  coordinator: 'usersPage.roles.coordinator',
-  member: 'usersPage.roles.member',
+  coordinator: 'organization.users.roles.coordinator',
+  member: 'organization.users.roles.member',
 }
 
 const collator = new Intl.Collator('tr-TR', { sensitivity: 'base' })

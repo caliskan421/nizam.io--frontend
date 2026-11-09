@@ -65,7 +65,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
       class="users-chip__role"
       aria-haspopup="menu"
       :aria-expanded="open ? 'true' : 'false'"
-      :aria-label="usersText('usersPage.panel.chips.roleMenu', { name })"
+      :aria-label="usersText('organization.users.panel.chips.roleMenu', { name })"
       :disabled="busy"
       data-testid="chip-role"
       @click="toggle"
@@ -80,7 +80,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
       v-if="canRemove"
       class="t-chip__x"
       type="button"
-      :aria-label="usersText('usersPage.panel.chips.remove', { name })"
+      :aria-label="usersText('organization.users.panel.chips.remove', { name })"
       :disabled="busy"
       data-testid="chip-remove"
       @click="emit('remove')"
@@ -90,7 +90,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     <UiMenu
       v-if="open"
       class="users-pop"
-      :label="usersText('usersPage.panel.chips.roleMenu', { name })"
+      :label="usersText('organization.users.panel.chips.roleMenu', { name })"
       @close="close(true)"
     >
       <UiMenuItem

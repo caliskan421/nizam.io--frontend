@@ -38,7 +38,7 @@ const SEARCH_DEBOUNCE_MS = 300
 
 const options = computed<UiChoiceOption<UserRoleTab>[]>(() =>
   USER_ROLE_TABS.map((tab) => {
-    const label = usersText(`usersPage.tabs.${tab}`)
+    const label = usersText(`organization.users.tabs.${tab}`)
     if (tab === 'admin') return designStub('BE-042', { value: tab, label, disabled: true })
     return { value: tab, label, count: props.counts[tab] }
   }),
@@ -86,10 +86,10 @@ onBeforeUnmount(cancel)
       <UiSegmented
         v-model="tabModel"
         :options="options"
-        :label="usersText('usersPage.tabs.label')"
+        :label="usersText('organization.users.tabs.label')"
       />
       <span v-if="!complete" class="rp-cap" data-testid="tabs-partial">
-        {{ usersText('usersPage.partial') }}
+        {{ usersText('organization.users.partial') }}
       </span>
     </div>
     <div class="rp-tgroup rp-tgroup--grow">
@@ -98,8 +98,8 @@ onBeforeUnmount(cancel)
         class="users-search"
         type="search"
         icon="search"
-        :aria-label="usersText('usersPage.search.label')"
-        :placeholder="usersText('usersPage.search.placeholder')"
+        :aria-label="usersText('organization.users.search.label')"
+        :placeholder="usersText('organization.users.search.placeholder')"
         data-testid="users-search"
       />
       <CoordinatorshipFilter
@@ -110,7 +110,7 @@ onBeforeUnmount(cancel)
       />
     </div>
     <p v-if="departmentsTruncated" class="rp-cap users-toolbar__note">
-      {{ usersText('usersPage.department.truncated') }}
+      {{ usersText('organization.users.department.truncated') }}
     </p>
   </div>
 </template>

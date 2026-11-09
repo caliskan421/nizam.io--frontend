@@ -39,13 +39,21 @@ function impact(kind: 'role' | 'remove'): ConfirmOptions {
   const isRole = kind === 'role'
   return {
     title: usersText(
-      isRole ? 'usersPage.panel.impact.roleTitle' : 'usersPage.panel.impact.removeTitle',
+      isRole
+        ? 'organization.users.panel.impact.roleTitle'
+        : 'organization.users.panel.impact.removeTitle',
     ),
     body: [
-      usersText(isRole ? 'usersPage.panel.impact.roleBody' : 'usersPage.panel.impact.removeBody'),
+      usersText(
+        isRole
+          ? 'organization.users.panel.impact.roleBody'
+          : 'organization.users.panel.impact.removeBody',
+      ),
     ],
     confirmLabel: usersText(
-      isRole ? 'usersPage.panel.impact.roleConfirm' : 'usersPage.panel.impact.removeConfirm',
+      isRole
+        ? 'organization.users.panel.impact.roleConfirm'
+        : 'organization.users.panel.impact.removeConfirm',
     ),
     tone: isRole ? 'primary' : 'danger',
   }
@@ -75,7 +83,7 @@ export function useChipActions(accountId: () => string) {
       const vars = { programId, departmentId, accountId: accountId(), role }
       return reportOutcome(
         await updateRole.submit(vars, impact('role')),
-        'usersPage.panel.chips.roleChanged',
+        'organization.users.panel.chips.roleChanged',
       )
     })
 
@@ -84,14 +92,14 @@ export function useChipActions(accountId: () => string) {
       const vars = { programId, departmentId, accountId: accountId() }
       return reportOutcome(
         await remove.submit(vars, impact('remove')),
-        'usersPage.panel.chips.removed',
+        'organization.users.panel.chips.removed',
       )
     })
 
   const add = (departmentId: string, role: TeamRole) =>
     run('add', async (programId) => {
       const vars = { programId, departmentId, accountId: accountId(), role }
-      return reportOutcome(await assign.submit(vars), 'usersPage.panel.chips.added')
+      return reportOutcome(await assign.submit(vars), 'organization.users.panel.chips.added')
     })
 
   return { pending, changeRole, removeChip, add }

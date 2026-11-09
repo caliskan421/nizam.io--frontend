@@ -54,16 +54,16 @@ async function onUnlock(): Promise<void> {
   if (outcome.kind === 'failed' && outcome.error.code === 'identity.account_not_found') {
     void queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
   }
-  reportOutcome(outcome, 'usersPage.panel.account.unlocked')
+  reportOutcome(outcome, 'organization.users.panel.account.unlocked')
 }
 
 async function onDelete(): Promise<void> {
   if (remove.isPending.value) return
   const accountId = props.accountId
   const options = {
-    title: usersText('usersPage.panel.account.deleteTitle'),
-    body: [usersText('usersPage.panel.account.deleteBody', { name: props.name })],
-    confirmLabel: usersText('usersPage.panel.account.deleteConfirm'),
+    title: usersText('organization.users.panel.account.deleteTitle'),
+    body: [usersText('organization.users.panel.account.deleteBody', { name: props.name })],
+    confirmLabel: usersText('organization.users.panel.account.deleteConfirm'),
     tone: 'danger' as const,
   }
   // Silme onayın yakaladığı bağlamla başlar (CX-F1-E-02); vazgeç/iptal → null, istek yok.
@@ -75,7 +75,7 @@ async function onDelete(): Promise<void> {
     notifyOutcome(outcome)
     return
   }
-  useToast().push({ message: usersText('usersPage.panel.account.deleted') })
+  useToast().push({ message: usersText('organization.users.panel.account.deleted') })
   emit('deleted', accountId)
 }
 </script>
@@ -86,7 +86,7 @@ async function onDelete(): Promise<void> {
       <button class="rp-menuitem" type="button" disabled data-testid="account-reset">
         <UsersIcon name="mail" />
         <span class="rp-menuitem__label rp-trunc">
-          {{ usersText('usersPage.panel.account.resetLink') }}
+          {{ usersText('organization.users.panel.account.resetLink') }}
         </span>
       </button>
     </DesignStub>
@@ -94,7 +94,7 @@ async function onDelete(): Promise<void> {
       <button class="rp-menuitem" type="button" disabled data-testid="account-lock">
         <UsersIcon name="lock" />
         <span class="rp-menuitem__label rp-trunc">
-          {{ usersText('usersPage.panel.account.lock') }}
+          {{ usersText('organization.users.panel.account.lock') }}
         </span>
       </button>
     </DesignStub>
@@ -107,7 +107,7 @@ async function onDelete(): Promise<void> {
     >
       <UiIcon name="shield" size="sm" />
       <span class="rp-menuitem__label rp-trunc">
-        {{ usersText('usersPage.panel.account.temporaryPassword') }}
+        {{ usersText('organization.users.panel.account.temporaryPassword') }}
       </span>
     </button>
     <button
@@ -120,7 +120,7 @@ async function onDelete(): Promise<void> {
     >
       <UsersIcon name="unlock" />
       <span class="rp-menuitem__label rp-trunc">
-        {{ usersText('usersPage.panel.account.unlock') }}
+        {{ usersText('organization.users.panel.account.unlock') }}
       </span>
     </button>
     <button
@@ -133,7 +133,7 @@ async function onDelete(): Promise<void> {
     >
       <UiIcon name="trash" size="sm" />
       <span class="rp-menuitem__label rp-trunc">
-        {{ usersText('usersPage.panel.account.delete') }}
+        {{ usersText('organization.users.panel.account.delete') }}
       </span>
     </button>
     <TemporaryPasswordDialog

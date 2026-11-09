@@ -44,7 +44,7 @@ const restTitle = computed(() => badges.value.rest.map((r) => usersText(ROLE_TEX
         <RouterLink
           class="rp-title rp-trunc"
           :to="userLocation(row.accountId)"
-          :title="usersText('usersPage.table.profile')"
+          :title="usersText('organization.users.table.profile')"
           data-testid="user-name"
           @click.stop
         >
@@ -72,13 +72,13 @@ const restTitle = computed(() => badges.value.rest.map((r) => usersText(ROLE_TEX
       :title="names.join(', ')"
       data-testid="user-coord"
     >
-      {{ names.length > 0 ? names.join(', ') : usersText('usersPage.table.unassigned') }}
+      {{ names.length > 0 ? names.join(', ') : usersText('organization.users.table.unassigned') }}
     </span>
     <span role="cell">
       <UiIconButton
         class="rp-hoveract"
         icon="chevron-right"
-        :label="usersText('usersPage.table.open', { name: row.fullName })"
+        :label="usersText('organization.users.table.open', { name: row.fullName })"
         data-testid="user-open"
         @click.stop="emit('select')"
       />

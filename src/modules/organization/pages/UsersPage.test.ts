@@ -29,7 +29,7 @@ const stub = (
   props: string[],
   render: (
     p: Record<string, unknown>,
-    emit: (event: string, ...args: unknown[]) => void,
+    emit: (event: 'created', ...args: unknown[]) => void,
   ) => unknown,
 ) =>
   defineComponent({
