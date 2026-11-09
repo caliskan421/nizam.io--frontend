@@ -71,9 +71,17 @@
     min-width: 0;
   }
   .sub-check {
+    display: inline-flex;
     width: var(--sub-check);
     height: var(--sub-check);
   }
+  /*
+   * Kutu hücreyi doldurur. Sarmalayıcı (`.t-checkwrap`, içeriğe göre boyutlanan inline-flex)
+   * de hücre boyutunu almalı: yalnız `.t-check { width: 100% }` döngüsel yüzde olur ve kutu
+   * kenarlık kalınlığına (2 px) çöker (O5 görsel kusur E-03-31, W63).
+   */
+  .rp-subs .t-checkwrap,
+  .rp-dsubs .t-checkwrap,
   .rp-subs .t-check,
   .rp-dsubs .t-check {
     width: 100%;

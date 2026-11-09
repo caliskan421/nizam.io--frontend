@@ -54,4 +54,12 @@ describe('alt görev görünüm kuralları', () => {
     expect(all).toMatch(/\[data-theme='light'\] \.rp-dr \.t-input \{\s*color-scheme: light;/)
     expect(all).not.toMatch(/data-miss|data-req/)
   })
+
+  it('onay kutusu hücreyi doldurur: sarmalayıcı da boyut alır (2 px çökme, E-03-31)', () => {
+    const all = css.map((name) => stripComments(read(name))).join('\n')
+    const rule = /\.rp-subs \.t-checkwrap,[^{]*\{([^}]*)\}/.exec(all)
+    expect(rule?.[0]).toContain('.rp-dsubs .t-checkwrap')
+    expect(rule?.[0]).toContain('.rp-subs .t-check')
+    expect(rule?.[1]).toMatch(/width: 100%;\s*height: 100%;/)
+  })
 })
