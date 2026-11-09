@@ -346,14 +346,18 @@ describe('E-08-82…90 yan sütun', () => {
     )
   })
 
-  it('Kısayollar: Görevlerde aç canlı; F3/F5/F4 devre dışı; PDF yok; Son etkinlik stub', async () => {
+  it('Kısayollar: Görevlerde aç + Zaman çizelgesinde gör canlı; F5/F4 devre dışı; PDF yok; Son etkinlik stub', async () => {
     server.use(...serverHandlers())
     const { wrapper } = await mountDetail()
     expect(wrapper.get('[data-shortcut="tasks"]').attributes('href')).toBe(
       '/gorevler?koordinatorluk=d1',
     )
+    // E-08-86 (F3): admin yüzü tek departman süzgeciyle zaman çizelgesine
+    expect(wrapper.get('[data-shortcut="timeline"]').attributes('href')).toBe(
+      '/zaman-cizelgesi?departman=d1',
+    )
+    expect(wrapper.get('[data-shortcut="timeline"]').attributes('aria-disabled')).toBeUndefined()
     for (const [key, phase] of [
-      ['timeline', 'F3’te'],
       ['archive', 'F5’te'],
       ['meeting', 'F4’te'],
     ]) {

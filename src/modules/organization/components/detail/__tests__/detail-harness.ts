@@ -211,6 +211,7 @@ export async function mountWith(
     routes: [
       { path: '/', name: 'home', component: empty },
       { path: '/gorevler', name: 'work.tasks', component: empty },
+      { path: '/zaman-cizelgesi', name: 'work.timeline', component: empty },
       { path: '/kullanicilar', name: 'organization.users', component: empty },
       { path: '/kullanicilar/:accountId', name: 'organization.user', component: empty },
       { path: '/koordinatorlukler', name: 'organization.coordinatorships', component: empty },
