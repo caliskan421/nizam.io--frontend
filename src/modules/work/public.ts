@@ -17,6 +17,7 @@ export type { WorkItem, WorkItemDetail, WorkItemStatus, WorkTarget } from './mod
 export { WORK_ITEM_STATUSES } from './model/types'
 export {
   taskLink,
+  TASKS_NEW_TASK_QUERY,
   TASKS_QUERY_KEYS,
   TASKS_ROUTE,
   TASKS_SORT_FIELDS,

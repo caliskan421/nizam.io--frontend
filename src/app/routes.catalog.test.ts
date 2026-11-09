@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { TASKS_QUERY_KEYS, TASKS_SORT_FIELDS, TASKS_STATUS_FILTERS } from '@/modules/work/public'
+import {
+  TASKS_NEW_TASK_QUERY,
+  TASKS_QUERY_KEYS,
+  TASKS_SORT_FIELDS,
+  TASKS_STATUS_FILTERS,
+} from '@/modules/work/public'
 
 import {
   activeMenuKey,
@@ -216,6 +221,14 @@ describe('konum üretme ve süzgeç okuma', () => {
       params: {},
       query: { durum: 'geciken', talep: '1', gorev: 'w-1' },
     })
+  })
+
+  it('Görevler "Yeni görev" girişi: yeni → 1 (E-03-06, W48)', () => {
+    expect(routeLocation('work.tasks', {}, { yeni: true }).query).toEqual({ yeni: '1' })
+    expect(routeLocation('work.tasks', {}, { yeni: true }).query).toEqual({
+      ...TASKS_NEW_TASK_QUERY,
+    })
+    expect(parseRouteQuery('work.tasks', { yeni: '1' })).toEqual({ yeni: true })
   })
 
   it('Görevler süzgeçleri modülün URL okuyucusuyla aynı küme (work/routes.ts)', () => {

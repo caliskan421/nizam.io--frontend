@@ -18,12 +18,13 @@ describe('Hızlı işlemler (E-01-08…11)', () => {
     expect(wrapper.get('h2').text()).toBe('Hızlı işlemler')
     const create = wrapper.get('[data-quick="newTask"]')
     expect(create.element.tagName).toBe('A')
-    expect(create.attributes('href')).toBe('/gorevler')
+    expect(create.attributes('href')).toBe('/gorevler?yeni=1')
     expect(create.text()).toBe('Yeni görev')
     expect(wrapper.text()).not.toContain('Rapor oluştur')
     await create.trigger('click')
     await settle()
     expect(router.currentRoute.value.name).toBe('work.tasks')
+    expect(router.currentRoute.value.query).toEqual({ yeni: '1' })
   })
 
   it('faz dışı: aria-disabled + faz notu; tıklama gezinmez', async () => {

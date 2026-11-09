@@ -31,7 +31,6 @@ export const trWorkFiles = {
       cancel: 'Vazgeç',
     },
     tab: {
-      title: 'Dosyalar',
       upload: 'Dosya yükle',
       loading: 'Dosyalar yükleniyor…',
       empty: 'Henüz dosya yok',

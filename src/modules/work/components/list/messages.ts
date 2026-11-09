@@ -23,7 +23,6 @@ export const trTaskList = {
     unknownPerson: 'Bilinmeyen kişi',
     subtasks: 'Alt görevler',
     subtasksNone: '+ alt',
-    subtasksOf: '{title} alt görevleri',
     loading: 'Görevler yükleniyor',
   },
 } as const

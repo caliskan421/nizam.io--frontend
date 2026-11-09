@@ -6,6 +6,8 @@
  *  - `durum`: sekme (yoksa "Tümü"), `talep`: tarih talebi süzgeci (`1`), `q`: arama,
  *    `koordinatorluk`: tek departman (yalnız Admin merceğinde anlamlı, K3), `sirala`:
  *    `alan:yön` (yoksa sunucu sırası), `gorev`: açık panel.
+ *  - `yeni`: "Yeni görev" girişi (`newTaskRequested`); durumda taşınmaz, yazılmaz (sayfa okuyunca
+ *    düşer, W48).
  *  - `kisi` F1'de yok (E-03-11 statik, BE-038); imleç ve panel sekmesi URL'de taşınmaz.
  *  - Geçersiz değer sessizce düşer (URL elle bozulabilir); bilinmeyen anahtar yazılmaz.
  */
@@ -82,6 +84,11 @@ export function parseTasksQuery(query: Readonly<Record<string, unknown>>): Tasks
     sort: sortValue(query.sirala),
     open: idValue(query.gorev),
   }
+}
+
+/** "Yeni görev" girişi istendi mi (`?yeni=1`, katalog `bool`). */
+export function newTaskRequested(query: Readonly<Record<string, unknown>>): boolean {
+  return first(query.yeni) === '1'
 }
 
 /** Tipli durumdan sorgu dizgisi; varsayılan değerler yazılmaz. */

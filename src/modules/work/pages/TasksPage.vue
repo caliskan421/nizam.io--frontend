@@ -17,7 +17,7 @@ import {
   canReviewDateChange,
   coordinatorDepartmentIds,
 } from '../model/capabilities'
-import type { WorkItem } from '../model/types'
+import { listDepartmentFilter } from '../model/target'
 import { tasksText } from './tasks/messages'
 import RequestBand from './tasks/RequestBand.vue'
 import TasksFilterBar from './tasks/TasksFilterBar.vue'
@@ -25,6 +25,7 @@ import TasksHead from './tasks/TasksHead.vue'
 import TasksPager from './tasks/TasksPager.vue'
 import TasksStatusBar from './tasks/TasksStatusBar.vue'
 import { clearedFilters, hasActiveFilters, nextSort, type SortField } from './tasks/url-state'
+import { useNewTaskEntry } from './tasks/use-new-task-entry'
 import { useTaskList } from './tasks/use-task-list'
 import { useTasksUrl } from './tasks/use-tasks-url'
 
@@ -32,18 +33,20 @@ import { useTasksUrl } from './tasks/use-tasks-url'
  * 03 · Görevler › Liste (`/gorevler`, S2; W42). Tek uç `listProgramWorkItems` + istemci
  * sekme/arama/sıralama (K3, P4); URL durumu katalogdaki süzgeçler (K10). Eylem görünürlüğü
  * yalnız sunucu olgularından (`capabilities.ts`, P1); mercek yalnız içerik kapsamını seçer
- * (koordinatörlük süzgeci yalnız Admin merceğinde). Panel `gorev` ile (W43), yeni görev W45.
+ * (koordinatörlük süzgeci yalnız Admin merceğinde). Panel `gorev` ile (W43), yeni görev W45
+ * (`?yeni=1` girişi ve sonucu `useNewTaskEntry`, W48). Kapsam değişince bellekteki durum
+ * (panel sekmesi, açık alt görev blokları) ve açık yeni görev formu sıfırlanır.
  */
 const store = useScopeStore()
 const { standing } = useStanding()
 const panelTab = ref<WorkDetailTab>('summary')
 const tableKey = ref(0)
-const creating = ref(false)
 const today = istanbulToday()
 
 const url = useTasksUrl(() => {
   panelTab.value = 'summary'
   tableKey.value += 1
+  entry.close()
 })
 
 const adminLens = computed(() => store.lens === 'admin')
@@ -94,9 +97,14 @@ function openTask(workItemId: string, tab: WorkDetailTab = 'summary'): void {
   void url.update({ open: workItemId }, 'push')
 }
 
-function onCreated(item: WorkItem): void {
-  openTask(item.work_item_id)
-}
+const entry = useNewTaskEntry({
+  ready: () => standing.value !== null,
+  canCreate: () => canCreate.value,
+  listDepartment: () => listDepartmentFilter(store.snapshot, state.value.department),
+  normalizeUrl: () => void url.update({}),
+  open: (id) => openTask(id),
+})
+const creating = entry.creating
 
 function onSort(field: SortField): void {
   void url.update({ sort: nextSort(state.value.sort, field) })
@@ -218,7 +226,7 @@ function loadMore(): void {
       v-if="canCreate"
       v-model:open="creating"
       :department-id="newTaskDepartment"
-      @created="onCreated"
+      @created="entry.created"
     />
   </section>
 </template>

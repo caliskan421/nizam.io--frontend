@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
-import { TASKS_ROUTE } from '@/modules/work/public'
+import { TASKS_NEW_TASK_QUERY, TASKS_ROUTE } from '@/modules/work/public'
 import { UiIcon } from '@/shared/ui'
 
 import { homeText } from '../model/messages'
@@ -41,7 +41,7 @@ function disabledHint(action: QuickAction): string {
       <template v-for="action in actions" :key="action.key">
         <RouterLink
           v-if="action.phase === null"
-          :to="{ name: TASKS_ROUTE.name }"
+          :to="{ name: TASKS_ROUTE.name, query: TASKS_NEW_TASK_QUERY }"
           class="rp-cardbtn home-tile"
           :data-quick="action.key"
         >

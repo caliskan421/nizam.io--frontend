@@ -129,6 +129,8 @@ export const ROUTES = {
       koordinatorluk: id,
       sirala: sortBy(['gorev', 'durum', 'bitis']),
       gorev: id,
+      // "Yeni görev" girişi (E-03-06; 01 hızlı işlemi, W48): formu açar, sayfa okuyunca düşer.
+      yeni: bool,
     },
   },
   'work.timeline': {

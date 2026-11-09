@@ -18,6 +18,7 @@ import {
 } from '../model/__tests__/harness'
 import { createPartialText } from '../model/messages'
 import {
+  isDeletingWorkItem,
   useCreateWorkItem,
   useCreateWorkItemWithAssignees,
   useDeleteWorkItem,
@@ -224,7 +225,12 @@ describe('geçiş ve silme', () => {
     const h = harness(ADMIN_SCOPE)
     const { keys, stale } = seed(h)
     const remove = h.run(() => useDeleteWorkItem())
-    expect((await remove.submit(ref)).kind).toBe('success')
+    const pending = remove.submit(ref)
+    // Silme + geçersizleme sürerken görev "silinmekte" (panel 404'ü bulunamadı saymaz; W48).
+    expect(isDeletingWorkItem('w1')).toBe(true)
+    expect(isDeletingWorkItem('w2')).toBe(false)
+    expect((await pending).kind).toBe('success')
+    expect(isDeletingWorkItem('w1')).toBe(false)
     const [req] = sent('DELETE', '/v1/work-items/w1')
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
     expect(stale(keys.list)).toBe(true)
