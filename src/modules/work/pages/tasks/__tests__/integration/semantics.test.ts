@@ -85,7 +85,7 @@ describe('W48 · erişilebilirlik ağacı (gerçek bileşenler)', () => {
 })
 
 describe('W48 · faz görünürlüğü (§5)', () => {
-  it('Zaman çizelgesi ve tarih talebi düğmeleri devre dışı "F3’te"; Arşiv bağlantısı "F5’te"', async () => {
+  it('Zaman çizelgesi ve talepleri incele düğmeleri devre dışı "F3’te"; tarih talebi canlı; Arşiv bağlantısı "F5’te"', async () => {
     const ctx = await openWithSubtasks()
     const timeline = body().find('[data-phase="F3"][aria-pressed="false"]')
     expect(timeline.attributes('disabled')).toBeDefined()
@@ -97,8 +97,9 @@ describe('W48 · faz görünürlüğü (§5)', () => {
     for (const button of review) expect(button.attributes('disabled')).toBeDefined()
 
     const dateRequest = body().find('[data-action="date-request"]')
-    expect(dateRequest.attributes('disabled')).toBeDefined()
-    expect(dateRequest.attributes('aria-label')).toContain('F3’te')
+    // WEB-3 W94: "Tarih değişikliği iste" F3'te canlı (timeline DateRequestForm; E-03-54).
+    expect(dateRequest.attributes('disabled')).toBeUndefined()
+    expect(dateRequest.attributes('aria-label')).toBe('Tarih değişikliği iste')
 
     panelTab('Dosyalar').click()
     await settle(ctx.queryClient)

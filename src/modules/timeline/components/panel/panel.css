@@ -13,11 +13,11 @@
     z-index: 5;
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--wd-head-gap);
     box-sizing: border-box;
     width: min(var(--rp-aside-basis), calc(100% - var(--space-8)));
     max-height: calc(100% - var(--space-8));
-    padding: var(--space-5);
+    padding: var(--wd-sheet-gap);
     overflow-y: auto;
     border: var(--ui-hairline) solid var(--border-strong);
     border-radius: var(--radius-md);
@@ -59,9 +59,10 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    margin-top: var(--ui-gap-2xs);
+    margin-top: var(--ui-gap-xs);
     overflow: hidden;
-    font: var(--text-title);
+    /* Tasarım 600 15/21; bire bir token yok → en yakın gövde başlığı (600 14/20). */
+    font: var(--text-body-strong);
   }
 
   /* Tarih girdileri (E-03C-58/59) */
@@ -75,6 +76,12 @@
     flex-direction: column;
     gap: var(--ui-gap-xs);
     min-width: 0;
+  }
+  .tp .t-input {
+    height: var(--control-sm);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    font: var(--text-mono-body);
   }
   .tp-date--late .t-input {
     border-color: var(--danger);
@@ -90,7 +97,7 @@
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--ui-gap-sm) var(--space-4);
     margin: 0;
-    font: var(--ui-text-sm-medium);
+    font-size: var(--ui-fs-sm);
   }
   .tp-dl dt {
     color: var(--ink-muted);
