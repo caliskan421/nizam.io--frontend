@@ -1,7 +1,7 @@
 # Backend eksikleri — kayıt
 
 Tohum: tasarım tuvali ↔ `v0.11.0-api` karşılaştırması (2026-11-08). Fazlar açıldıkça uygulayıcılar satır ekler; koordinatör kimlik verir. Biçim: [README](README.md).
-Güncelleme 2026-11-08 (ekran tespitleri, Codex KOŞULLU UYGUN): BE-001…035 düzeltildi, BE-036…BE-106 eklendi; kaynak `../ekranlar/sentez.md` §3 ve `../reviews/EKRANLAR-codex.md` §4.
+Güncelleme 2026-11-08 (ekran tespitleri, Codex KOŞULLU UYGUN): BE-001…035 düzeltildi, BE-036…BE-106 eklendi; BE-107 WEB-2 W71 (2026-11-09); kaynak `../ekranlar/sentez.md` §3 ve `../reviews/EKRANLAR-codex.md` §4.
 
 | BE | Faz | Ekran | Tasarım öğesi | Eksik | Şimdilik | Bağ | Boyut | Durum |
 |---|---|---|---|---|---|---|---|---|
@@ -111,3 +111,4 @@ Güncelleme 2026-11-08 (ekran tespitleri, Codex KOŞULLU UYGUN): BE-001…035 d�
 | BE-104 | sonra | 11e Tablolar | Hücre yorumları + `@` anma bildirimi | Tablolar — yorum uçları + `tables.comment.mentioned` olayı (11/yeni-12) | v1 dışı | BE-031, BE-097; yetki kararı (tablo rolü mü program rolü mü) | M | açık |
 | BE-105 | sonra | 11e Tablolar | Sütun kilidi | Tablolar — `lockTableColumn`/`unlockTableColumn` + `Column.lock`, 403 `tables.column_locked` (11/yeni-13) | v1 dışı | BE-031, BE-095; yetki kararı ("koordinatör" tablo rolü mü program rolü mü) | S–M | açık |
 | BE-106 | sonra | 11b/11e Tablolar | Gerçek zamanlı ortak çalışma + varlık | Tablolar — `streamTableEvents` + `after_seq` uzlaştırma + varlık; K8 ile çelişir (11/yeni-14) | v1 dışı; tazeleme | BE-031, BE-103, K8; koşullu: canlı çalışma ürün vaadi korunursa (Codex §6 s.31) | L | açık |
+| BE-107 | F2 | 05 Kullanıcılar | "Kullanıcı oluştur" — mevcut hesabı bu koordinatörlüğe aktar | `createUser` 409 `organization.transfer_available`: aktarılacak hesabın kimliği sözleşmede yok (yalnız kodda `fields[field=account_id].message`); `transfer_account_id` bilinemez (WEB-2 W71, 2026-11-09) | Aktarım eylemi devre dışı + açıklamalı (`designStub('BE-107')`); teklif tanınır (`isTransferAvailable`), kullanıcı yönlendirilir | BE-036 (hata gövdesi sözleşmesi) | S | açık |
