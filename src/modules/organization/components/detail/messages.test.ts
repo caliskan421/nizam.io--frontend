@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { trCoordinatorship } from '@/shared/i18n/tr/organization'
+import { trOrganization } from '@/shared/i18n/tr/organization'
 
 import { detailText, type DetailTextKey } from './messages'
 
@@ -12,8 +12,8 @@ function leaves(node: unknown, prefix = ''): [string, string][] {
   )
 }
 
-describe('08b metinleri (coordinatorship.*)', () => {
-  const entries = leaves(trCoordinatorship)
+describe('08b metinleri (organization.coordinatorship.*)', () => {
+  const entries = leaves(trOrganization)
 
   it('her yaprak dolu, statik ağaçtan çözülür; vue-i18n özel karakteri yok', () => {
     expect(entries.length).toBeGreaterThan(60)
@@ -25,10 +25,14 @@ describe('08b metinleri (coordinatorship.*)', () => {
   })
 
   it('yer tutucular doldurulur; eksik parametre olduğu gibi kalır', () => {
-    expect(detailText('coordinatorship.head.people', { n: 9 })).toBe('9 kişi')
-    expect(detailText('coordinatorship.kpi.openNote', { total: 12, done: 7, suffix: '’si' })).toBe(
-      '12 görevin 7’si bitti',
-    )
-    expect(detailText('coordinatorship.team.open')).toBe('{n} açık iş')
+    expect(detailText('organization.coordinatorship.head.people', { n: 9 })).toBe('9 kişi')
+    expect(
+      detailText('organization.coordinatorship.kpi.openNote', {
+        total: 12,
+        done: 7,
+        suffix: '’si',
+      }),
+    ).toBe('12 görevin 7’si bitti')
+    expect(detailText('organization.coordinatorship.team.open')).toBe('{n} açık iş')
   })
 })

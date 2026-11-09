@@ -63,7 +63,7 @@ function edit(): void {
         <h1 class="rp-h1 rp-trunc" data-testid="cd-title">{{ view.displayName }}</h1>
         <p class="rp-sub" data-testid="cd-sub">
           <template v-if="people !== null">
-            {{ detailText('coordinatorship.head.people', { n: people }) }}
+            {{ detailText('organization.coordinatorship.head.people', { n: people }) }}
           </template>
         </p>
       </div>
@@ -73,12 +73,12 @@ function edit(): void {
         type="button"
         class="t-btn t-btn--secondary"
         aria-disabled="true"
-        :title="detailText('coordinatorship.phase.f7')"
+        :title="detailText('organization.coordinatorship.phase.f7')"
         data-action="message"
       >
         <UiIcon name="messages" size="sm" />
-        {{ detailText('coordinatorship.head.message') }}
-        <span class="cd-phase">{{ detailText('coordinatorship.phase.f7') }}</span>
+        {{ detailText('organization.coordinatorship.head.message') }}
+        <span class="cd-phase">{{ detailText('organization.coordinatorship.phase.f7') }}</span>
       </button>
       <RouterLink
         v-if="canCreateTask"
@@ -87,13 +87,13 @@ function edit(): void {
         data-action="assign"
       >
         <UiIcon name="plus" size="sm" />
-        {{ detailText('coordinatorship.head.assign') }}
+        {{ detailText('organization.coordinatorship.head.assign') }}
       </RouterLink>
       <div v-if="canEdit" class="cd-menuwrap">
         <UiIconButton
           icon="more"
           size="md"
-          :label="detailText('coordinatorship.head.more')"
+          :label="detailText('organization.coordinatorship.head.more')"
           :aria-expanded="menuOpen ? 'true' : 'false'"
           aria-haspopup="menu"
           data-action="more"
@@ -102,18 +102,18 @@ function edit(): void {
         <UiMenu
           v-if="menuOpen"
           class="cd-pop"
-          :label="detailText('coordinatorship.head.more')"
+          :label="detailText('organization.coordinatorship.head.more')"
           @close="closeMenu"
         >
           <UiMenuItem data-action="edit" @select="edit">
-            {{ detailText('coordinatorship.head.edit') }}
+            {{ detailText('organization.coordinatorship.head.edit') }}
           </UiMenuItem>
           <DesignStub id="BE-017" as="div">
             <UiMenuItem disabled data-action="merge">
-              {{ detailText('coordinatorship.head.merge') }}
+              {{ detailText('organization.coordinatorship.head.merge') }}
             </UiMenuItem>
             <UiMenuItem disabled data-action="deactivate">
-              {{ detailText('coordinatorship.head.deactivate') }}
+              {{ detailText('organization.coordinatorship.head.deactivate') }}
             </UiMenuItem>
           </DesignStub>
         </UiMenu>

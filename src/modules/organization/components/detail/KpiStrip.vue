@@ -14,7 +14,7 @@ defineProps<{ cells: readonly KpiCell[]; loading: boolean; error: boolean }>()
 <template>
   <section
     class="cd-kpistrip"
-    :aria-label="detailText('coordinatorship.kpi.region')"
+    :aria-label="detailText('organization.coordinatorship.kpi.region')"
     :aria-busy="loading ? 'true' : undefined"
     data-region="kpi"
   >
@@ -33,6 +33,6 @@ defineProps<{ cells: readonly KpiCell[]; loading: boolean; error: boolean }>()
     </div>
   </section>
   <p v-if="error" class="rp-cap cd-strip-error" role="status" data-kpi-error>
-    {{ detailText('coordinatorship.kpi.error') }}
+    {{ detailText('organization.coordinatorship.kpi.error') }}
   </p>
 </template>

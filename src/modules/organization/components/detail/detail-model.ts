@@ -93,9 +93,9 @@ export interface WorkSet {
   complete: boolean
 }
 
-const EMPTY = () => detailText('coordinatorship.kpi.empty')
+const EMPTY = () => detailText('organization.coordinatorship.kpi.empty')
 const loadedSuffix = (work: WorkSet) =>
-  work.complete ? '' : ` · ${detailText('coordinatorship.kpi.loaded')}`
+  work.complete ? '' : ` · ${detailText('organization.coordinatorship.kpi.loaded')}`
 
 export function longestOverdue(items: readonly WorkItem[]): number | null {
   const days = items.filter((i) => i.is_overdue).map((i) => i.days_overdue)
@@ -107,14 +107,18 @@ export function pendingDateRequests(items: readonly WorkItem[]): WorkItem[] {
 }
 
 function openCell(stat: CoordinatorshipStat | null): KpiCell {
-  const base = { key: 'open', label: detailText('coordinatorship.kpi.open'), danger: false }
+  const base = {
+    key: 'open',
+    label: detailText('organization.coordinatorship.kpi.open'),
+    danger: false,
+  }
   if (!stat) return { ...base, key: 'open', value: EMPTY(), note: '', disabled: false }
   const done = stat.completed_tasks
   return {
     ...base,
     key: 'open',
     value: String(stat.total_tasks - done),
-    note: detailText('coordinatorship.kpi.openNote', {
+    note: detailText('organization.coordinatorship.kpi.openNote', {
       total: stat.total_tasks,
       done,
       suffix: possessiveSuffix(done),
@@ -128,12 +132,13 @@ function overdueCell(stat: CoordinatorshipStat | null, work: WorkSet): KpiCell {
   const note =
     longest === null
       ? work.complete
-        ? detailText('coordinatorship.kpi.overdueNone')
+        ? detailText('organization.coordinatorship.kpi.overdueNone')
         : ''
-      : detailText('coordinatorship.kpi.overdueNote', { days: longest }) + loadedSuffix(work)
+      : detailText('organization.coordinatorship.kpi.overdueNote', { days: longest }) +
+        loadedSuffix(work)
   return {
     key: 'overdue',
-    label: detailText('coordinatorship.kpi.overdue'),
+    label: detailText('organization.coordinatorship.kpi.overdue'),
     value: stat ? String(stat.overdue_tasks) : EMPTY(),
     note,
     danger: stat !== null && stat.overdue_tasks > 0,
@@ -150,11 +155,16 @@ export function seasonAverage(dashboard: DashboardReport | null | undefined): nu
 function completionCell(stat: CoordinatorshipStat | null, season: number | null): KpiCell {
   return {
     key: 'completion',
-    label: detailText('coordinatorship.kpi.completion'),
+    label: detailText('organization.coordinatorship.kpi.completion'),
     value: stat
-      ? detailText('coordinatorship.kpi.completionValue', { p: Math.round(stat.completion_rate) })
+      ? detailText('organization.coordinatorship.kpi.completionValue', {
+          p: Math.round(stat.completion_rate),
+        })
       : EMPTY(),
-    note: season === null ? '' : detailText('coordinatorship.kpi.completionNote', { p: season }),
+    note:
+      season === null
+        ? ''
+        : detailText('organization.coordinatorship.kpi.completionNote', { p: season }),
     danger: false,
     disabled: false,
   }
@@ -166,11 +176,11 @@ function dateRequestCell(work: WorkSet, loading: boolean): KpiCell {
   const note = first
     ? first + loadedSuffix(work)
     : work.complete
-      ? detailText('coordinatorship.kpi.dateRequestNone')
+      ? detailText('organization.coordinatorship.kpi.dateRequestNone')
       : ''
   return {
     key: 'dateRequest',
-    label: detailText('coordinatorship.kpi.dateRequest'),
+    label: detailText('organization.coordinatorship.kpi.dateRequest'),
     value: loading ? EMPTY() : String(pending.length),
     note,
     danger: false,
@@ -192,9 +202,9 @@ export function kpiCells(input: {
     dateRequestCell(input.work, input.workLoading),
     {
       key: 'archive',
-      label: detailText('coordinatorship.kpi.archive'),
+      label: detailText('organization.coordinatorship.kpi.archive'),
       value: EMPTY(),
-      note: detailText('coordinatorship.phase.f5'),
+      note: detailText('organization.coordinatorship.phase.f5'),
       danger: false,
       disabled: true,
     },
@@ -222,16 +232,16 @@ export function attentionRows(
     .slice(0, limit)
     .map((i) => {
       const names = i.assignees.map((a) => a.full_name).filter((n): n is string => Boolean(n))
-      const parts = [detailText('coordinatorship.attention.code', { code }), ...names]
+      const parts = [detailText('organization.coordinatorship.attention.code', { code }), ...names]
       if (i.pending_date_request !== null) {
-        parts.push(detailText('coordinatorship.attention.dateRequest'))
+        parts.push(detailText('organization.coordinatorship.attention.dateRequest'))
       }
       return {
         workItemId: i.work_item_id,
         title: i.title,
         status: i.status,
         who: parts.join(' · '),
-        late: detailText('coordinatorship.attention.late', { days: i.days_overdue }),
+        late: detailText('organization.coordinatorship.attention.late', { days: i.days_overdue }),
       }
     })
 }
