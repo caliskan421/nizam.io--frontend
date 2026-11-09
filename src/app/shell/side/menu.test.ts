@@ -11,7 +11,7 @@ const admin = { ready: true, companyAdmin: true }
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F3 (W91 faz geçişi; menü F2 ile aynı — Zaman çizelgesi segment rotasıdır)', () => {
+describe('etkin faz F3 (W91 faz geçişi; Zaman çizelgesi menüde canlı)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
     expect(CURRENT_PHASE).toBe('F3')
     const groups = sideMenuGroups(menuEntries(), admin)
@@ -19,6 +19,7 @@ describe('etkin faz F3 (W91 faz geçişi; menü F2 ile aynı — Zaman çizelges
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['home', 'canli'],
       ['tasks', 'canli'],
+      ['gantt', 'canli'],
     ])
     expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['users', 'canli'],
@@ -86,7 +87,7 @@ describe('kenar menüsü grupları', () => {
       g.entries.map((e) => e.key),
     )
     // "Teknofest ve sezon" (E-00-25) F2'de Yönetim grubunda (W81).
-    expect(keys).toEqual(['home', 'tasks', 'meetings', 'users', 'coords', 'season'])
+    expect(keys).toEqual(['home', 'tasks', 'gantt', 'meetings', 'users', 'coords', 'season'])
     for (const hidden of ['calendar', 'memory', 'archive', 'messages', 'sheets', 'sim']) {
       expect(keys).not.toContain(hidden)
     }

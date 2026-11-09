@@ -164,10 +164,11 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F2): Ana sayfa, Görevler ve Yönetim öğeleri canlı; diğerleri gizli', () => {
+  it('etkin faz (F3): Ana sayfa, Görevler, Zaman çizelgesi ve Yönetim öğeleri canlı; diğerleri gizli', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],
+      ['gantt', 'takip', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
       ['season', 'yonetim', 'canli'],
@@ -227,6 +228,7 @@ describe('menü', () => {
     expect(menuEntries('F4').map((e) => `${e.group}:${e.key}`)).toEqual([
       'takip:home',
       'takip:tasks',
+      'takip:gantt',
       'icerik:meetings',
       'yonetim:users',
       'yonetim:coords',
@@ -235,7 +237,7 @@ describe('menü', () => {
   })
 
   it('alt rotalar üst menü öğesini etkin yapar; konum izi kökten yaprağa', () => {
-    expect(activeMenuKey('work.timeline')).toBe('tasks')
+    expect(activeMenuKey('work.timeline')).toBe('gantt')
     expect(activeMenuKey('organization.user')).toBe('users')
     expect(activeMenuKey('collaboration.meeting')).toBe('meetings')
     expect(activeMenuKey('identity.session')).toBeUndefined()

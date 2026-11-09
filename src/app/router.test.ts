@@ -86,7 +86,7 @@ describe('router — katalog tek kaynak', () => {
     await router.push('/zaman-cizelgesi?olcek=ay&durum=geciken')
     const current = router.currentRoute.value
     expect(current.name).toBe('work.timeline')
-    expect(current.meta).toMatchObject({ scope: 'S2', title: 'Zaman çizelgesi', menuKey: 'tasks' })
+    expect(current.meta).toMatchObject({ scope: 'S2', title: 'Zaman çizelgesi', menuKey: 'gantt' })
     expect(current.query).toEqual({ olcek: 'ay', durum: 'geciken' })
   })
 

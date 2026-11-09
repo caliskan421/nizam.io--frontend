@@ -142,6 +142,8 @@ export const ROUTES = {
     title: 'Zaman çizelgesi',
     scope: 'S2',
     phase: 'F3',
+    // ortak-kurallar §5: F3'te menü "Zaman çizelgesi" canlı (önceki fazlarda gizli).
+    menu: { group: 'takip', key: 'gantt', order: 3 },
     parent: 'work.tasks',
     params: {},
     // 03c README rota satırı (W91, F3 geçişi): `departman` Admin yüzünde TEK departman süzgeci
