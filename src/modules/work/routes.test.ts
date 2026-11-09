@@ -48,6 +48,7 @@ describe('görev rotası davranışı', () => {
       'sirala',
       'gorev',
       'yeni',
+      'atanan',
     ])
     expect(TASKS_STATUS_FILTERS).toContain('iade_edildi')
     expect(TASKS_STATUS_FILTERS).toContain('geciken')

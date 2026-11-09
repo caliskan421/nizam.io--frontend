@@ -132,6 +132,9 @@ export const ROUTES = {
       gorev: id,
       // "Yeni görev" girişi (E-03-06; 01 hızlı işlemi, W48): formu açar, sayfa okuyunca düşer.
       yeni: bool,
+      // Yeni görev formunda ön atanan (E-05-48 "Görev ata", W76): yalnız `yeni` ile anlamlı,
+      // formun birimindeki ekipte değilse yok sayılır; `yeni` ile birlikte URL'den düşer.
+      atanan: id,
     },
   },
   'work.timeline': {
