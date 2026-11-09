@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// Dar ekran (O4 görsel borç): menü düğmesi yalnız ≤ 900 px; konum izinin son parçası üç noktayla
-// kesilir (esnek öğe min-width 0).
+// Dar ekran (O4 görsel borç): menü düğmesi yalnız ≤ 900 px; konum izinde yalnız son parça kalır
+// ve üç noktayla kesilir (esnek öğe min-width 0; W83 K-5).
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const css = readFileSync(join(dir, 'topbar.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 const media = css.indexOf('@media (max-width: 900px)')
@@ -21,11 +21,8 @@ describe('üst çubuk — dar ekran', () => {
     expect(css.slice(media)).toMatch(/\.rp-topbar \.rp-kicker \{\s*display: none;/)
   })
 
-  it('dar ekranda konum izi bağlantısı önce daralır, üç noktalı kesilir', () => {
-    const rule = /\.rp-topbar \.rp-crumbs a \{([^}]*)\}/.exec(css.slice(media))?.[1] ?? ''
-    expect(rule).toContain('flex: 0 100 auto')
-    expect(rule).toContain('min-width: 0')
-    expect(rule).toContain('text-overflow: ellipsis')
+  it('dar ekranda konum izinde yalnız geçerli sayfa; bağlantı ve ayırıcı artığı yok (K-5)', () => {
+    expect(css.slice(media)).toMatch(/\.rp-topbar \.rp-crumbs > :not\(strong\) \{\s*display: none;/)
   })
 
   it('konum izi son parçası üç noktalı kesilir', () => {

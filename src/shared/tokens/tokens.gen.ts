@@ -2336,6 +2336,12 @@ export const TOKENS = {
     "dark": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px",
     "light": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px"
   },
+  "users-cols-narrow": {
+    "group": "users",
+    "origin": "web",
+    "dark": "20px minmax(0, 1fr) auto 36px",
+    "light": "20px minmax(0, 1fr) auto 36px"
+  },
   "users-badge-h": {
     "group": "users",
     "origin": "web",

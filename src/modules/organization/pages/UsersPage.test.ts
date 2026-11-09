@@ -72,10 +72,10 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
 
     const tabs = wrapper.findAll('.rp-seg button')
     expect(tabs.map((t) => t.text().replace(/\s+/g, ' '))).toEqual([
-      'Tümü (3)',
+      'Tümü 3',
       'Admin',
-      'Koordinatör (1)',
-      'Üye (2)',
+      'Koordinatör 1',
+      'Üye 2',
     ])
     expect(tabs[1]!.attributes('disabled')).toBeDefined()
     expect(wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(false)

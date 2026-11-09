@@ -5,6 +5,7 @@ import './confirm.css'
 import { nextTick, onBeforeUnmount, onMounted, ref, useId } from 'vue'
 
 import { useFocusTrap } from '../focus-trap'
+import { useModalLayer } from '../modal-layer'
 import UiButton from '../UiButton.vue'
 import { confirmText } from './messages'
 import type { ConfirmRequest } from './use-confirm'
@@ -20,6 +21,7 @@ const emit = defineEmits<{ accept: []; cancel: [] }>()
 
 const panel = ref<HTMLElement | null>(null)
 const trap = useFocusTrap(panel)
+const layer = useModalLayer(panel, cancel)
 const id = `ui-confirm-${useId()}`
 
 function cancel(): void {
@@ -48,8 +50,12 @@ function onBackdropClick(event: MouseEvent): void {
 onMounted(async () => {
   await nextTick()
   trap.activate()
+  layer.enter()
 })
-onBeforeUnmount(() => trap.deactivate())
+onBeforeUnmount(() => {
+  layer.leave()
+  trap.deactivate()
+})
 </script>
 
 <template>

@@ -385,6 +385,7 @@
       "tokens": [
         { "name": "users-min-w", "value": "640px" },
         { "name": "users-cols", "value": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px" },
+        { "name": "users-cols-narrow", "value": "20px minmax(0, 1fr) auto 36px" },
         { "name": "users-badge-h", "value": "24px" },
         { "name": "users-badge-pad", "value": "0 10px" },
         { "name": "users-more-pad", "value": "0 8px" },

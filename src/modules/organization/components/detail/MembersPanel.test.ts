@@ -110,6 +110,31 @@ describe('rol değiştir — updateMembershipRole (onay GÖVDEDE)', () => {
   })
 })
 
+describe('K-6 (F2 görsel doğrulaması): X-Result-Truncated → "liste eksik olabilir"', () => {
+  it('listMembers kesildi → Üyeler sekmesinde uyarı DOM’da; kesilmediyse yok', async () => {
+    const plain = await mountMembers()
+    expect(plain.wrapper.find('[data-members-truncated]').exists()).toBe(false)
+    unmountAll()
+    resetHarness()
+
+    // İlk eşleşen işleyici yanıtlar: kesik `listMembers` önce.
+    server.use(
+      http.get(`${ORIGIN}/v1/departments/:id/members`, () =>
+        json({ members: ROSTER }, 200, { 'X-Result-Truncated': 'true' }),
+      ),
+      ...serverHandlers({ roster: ROSTER }),
+    )
+    const { wrapper } = await mountWith(CoordinatorshipDetail, {
+      departmentId: 'd1',
+      tab: 'uyeler',
+    })
+    await settle()
+    const notice = wrapper.get('[data-members-truncated]')
+    expect(notice.text()).toBe('Üye listesi eksik olabilir')
+    expect(wrapper.findAll('[data-member]')).toHaveLength(ROSTER.length)
+  })
+})
+
 describe('ekipten çıkar — removeMember (onay SORGUDA)', () => {
   it('confirmation_required → kabulde ?confirm=true; başarıda ekip yeniden okunur', async () => {
     let calls = 0

@@ -38,6 +38,18 @@ export const CSRF_HEADER_VALUE = 'XMLHttpRequest'
 /** Refresh denenmeyecek uçlar: 401'leri oturum hakkında hükümdür, döngü yapmaz. */
 const NO_REFRESH: ReadonlySet<string> = new Set(['login', 'refresh', 'logout'])
 
+/**
+ * Kimlik yenilemesiyle ilgisi olmayan 401 kodları (error-codes.json'daki 401'ler içinden): sır /
+ * imza reddidir, belirteç bayatlığı DEĞİL. Refresh + tekrar yapılmaz — yeniden deneme sunucunun
+ * parola deneme kovasına ikinci kez yazardı (W83b; `changePassword` yanlış mevcut parola).
+ * `platform.unauthenticated` ve `identity.session_invalid` yenileme yoluna devam eder.
+ */
+const NO_REFRESH_CODES: ReadonlySet<string> = new Set([
+  'identity.credentials_invalid',
+  'program.password_invalid',
+  'collaboration.conference_webhook_unauthorized',
+])
+
 const WRITE_METHODS: ReadonlySet<string> = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 export interface ApiClientDeps {
@@ -149,7 +161,8 @@ export function operationMeta(method: string, schemaPath: string): OperationMeta
  *     kapsamının önüne geçer (`applyScopeHeaders`). S0/S1'de yalnız açıkça verilen başlık.
  *  4. Kimlik: `Authorization: Bearer <bellekteki belirteç>` (S0 uçlarda gönderilmez).
  *  5. 401 → tek uçuş refresh → orijinal istek BİR kez tekrarlanır (`retryAfterRefresh`;
- *     sözleşme orada). Refresh/login/logout uçlarında refresh denenmez.
+ *     sözleşme orada). Refresh/login/logout uçlarında ve kimlikle ilgisiz 401 kodlarında
+ *     (`NO_REFRESH_CODES`: sır/imza reddi) refresh denenmez.
  *  6. 403 `identity.force_password_change_required` → oturumda zorunlu parola değişimi bayrağı.
  */
 export function createApiClient(deps: ApiClientDeps): ApiClient {
@@ -194,6 +207,8 @@ export function createApiClient(deps: ApiClientDeps): ApiClient {
       if (response.status !== 401 || !entry.meta.auth || NO_REFRESH.has(entry.meta.operationId)) {
         return response
       }
+      const code = await peekCode(response)
+      if (code !== null && NO_REFRESH_CODES.has(code)) return response
 
       return retryAfterRefresh(entry, response, deps.session, doFetch)
     },

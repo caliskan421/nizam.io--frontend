@@ -35,6 +35,21 @@ describe('program formu — oluşturma', () => {
     expect(sent('POST', '/v1/programs')).toHaveLength(0)
   })
 
+  it('K-2: geçersiz gönderimde odak ilk hatalı alana (ad)', async () => {
+    const h = harness(ADMIN_SCOPE)
+    h.mount(ProgramFormDialog, { open: true })
+    // Pencere açılış odağı yerleşsin; ardından klavye: açıklama alanındayken form gönderilir.
+    await vi.waitFor(() =>
+      expect($('[role="dialog"]')!.contains(document.activeElement)).toBe(true),
+    )
+    const description = $('[name="description"]') as HTMLElement
+    description.focus()
+    expect(document.activeElement).toBe(description)
+    $('#pg-program-form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await vi.waitFor(() => expect(document.activeElement).toBe($('[name="name"]')))
+    expect(document.activeElement?.getAttribute('aria-invalid')).toBe('true')
+  })
+
   it('oluşturur; yıl seçilebilir; kısa ad/renk statik (BE-001) ve gönderilmez', async () => {
     server.use(
       refetch,

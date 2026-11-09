@@ -156,4 +156,25 @@
   .users-table .users-note--warn {
     color: var(--danger);
   }
+
+  /* Dar ekran (tasarım 390 çizmez; F2 görsel doğrulaması K-3): tablo yatay kaydırılmaz — 640 px
+     alt sınırı kalkar, roller sütunu içeriği kadar (rozet kırpılmaz), koordinatörlük hücresi
+     ikinci satıra ad sütununun altına iner; başlık satırı aynı yerleşimi izler. */
+  @media (max-width: 900px) {
+    .users-table .users-grid {
+      min-width: 0;
+    }
+    .users-table .rp-dtable .rp-tr {
+      grid-template-columns: var(--users-cols-narrow);
+      row-gap: var(--space-1);
+    }
+    .users-table .rp-tr > :nth-child(4) {
+      grid-column: 2 / 4;
+      grid-row: 2;
+    }
+    .users-table .rp-tr > :nth-child(5) {
+      grid-column: 4;
+      grid-row: 1;
+    }
+  }
 }

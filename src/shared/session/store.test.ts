@@ -99,6 +99,27 @@ describe('oturum deposu', () => {
   })
 })
 
+describe('parola değişimi sonrası (W83 K-1)', () => {
+  it('endAfterPasswordChange: çıkış isteği yok; bellek, önbellek ve kapsam temizlenir', async () => {
+    const { session, scope } = await freshStores()
+    const { QueryClient } = await import('@tanstack/vue-query')
+    await session.login({ email: 'a@example.test', password: 'dogru-parola' })
+    scope.setProgram('prg-1')
+    const client = new QueryClient()
+    client.setQueryData(['x'], 1)
+
+    session.endAfterPasswordChange(client)
+    expect(session.status).toBe('anonymous')
+    expect(session.serverLogoutUnverified).toBe(false)
+    expect(session.me).toBeNull()
+    expect(scope.programId).toBeNull()
+    expect(client.getQueryData(['x'])).toBeUndefined()
+    expect(backend.count('/v1/auth/logout')).toBe(0)
+    const { authSession } = await import('@/shared/http')
+    expect(authSession.token).toBeNull()
+  })
+})
+
 describe('kapsam deposu', () => {
   it('program değişince departman sıfırlanır; sorgu anahtarları kapsamla ayrışır', async () => {
     const { scope } = await freshStores()
