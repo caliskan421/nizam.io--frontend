@@ -24,7 +24,7 @@ const emit = defineEmits<{ edit: [] }>()
       <h2 id="cd-settings-title" class="rp-cardtitle">
         {{ detailText('coordinatorship.settings.label') }}
       </h2>
-      <UiButton size="sm" data-action="settings-edit" @click="emit('edit')">
+      <UiButton size="sm" icon="edit" data-action="settings-edit" @click="emit('edit')">
         {{ detailText('coordinatorship.settings.edit') }}
       </UiButton>
     </div>

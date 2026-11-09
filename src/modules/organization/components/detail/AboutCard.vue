@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DesignStub } from '@/shared/ui'
+import { DesignStub, UiIcon } from '@/shared/ui'
 
 import { detailText } from './messages'
 
@@ -26,6 +26,7 @@ const emit = defineEmits<{ edit: [] }>()
         data-action="about-edit"
         @click="emit('edit')"
       >
+        <UiIcon name="edit" size="sm" />
         {{ detailText('coordinatorship.about.edit') }}
       </button>
     </div>

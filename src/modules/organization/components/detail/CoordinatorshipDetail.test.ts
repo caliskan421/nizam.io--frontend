@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { ICONS } from '@/shared/ui'
+
 import { requests, resetHarness, sent, server } from '../../__tests__/harness'
 import {
   ADMIN,
@@ -283,6 +285,7 @@ describe('E-08-70…77 Hakkında', () => {
     const archive = wrapper.get('[data-field="archive"]')
     expect(archive.attributes('aria-disabled')).toBe('true')
     expect(archive.text()).toBe('F5’te')
+    expect(wrapper.get('[data-action="about-edit"] path').attributes('d')).toBe(ICONS.edit)
     expect(wrapper.text()).not.toContain('Üst birim')
     expect(wrapper.text()).not.toContain('Alt birim')
   })

@@ -105,7 +105,7 @@ function edit(): void {
           :label="detailText('coordinatorship.head.more')"
           @close="closeMenu"
         >
-          <UiMenuItem data-action="edit" @select="edit">
+          <UiMenuItem icon="edit" data-action="edit" @select="edit">
             {{ detailText('coordinatorship.head.edit') }}
           </UiMenuItem>
           <DesignStub id="BE-017" as="div">
