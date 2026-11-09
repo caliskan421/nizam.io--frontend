@@ -65,27 +65,30 @@ export function filterTasks(
 }
 
 /** Görevin çizilen son günü: planlanan bitiş, bitiş ve (varsa) tamamlanma gününün en geçi. */
-function lastDay(task: GanttTask): string | null {
-  let best: string | null = null
-  for (const day of [plannedEnd(task), task.end_on, task.completed_on]) {
-    const n = dayNumber(day)
-    if (n !== null && (best === null || n > (dayNumber(best) ?? -Infinity))) best = day
-  }
-  return best
+function lastDay(task: GanttTask): number | null {
+  const days = [plannedEnd(task), task.end_on, task.completed_on]
+    .map(dayNumber)
+    .filter((n) => n !== null)
+  return days.length === 0 ? null : Math.max(...days)
 }
+
+/** Görevin çizilen aralığı (başlangıç, son gün); tarihsiz ya da bozuk görev `null`. */
+function spanOf(task: GanttTask): { first: number; last: number } | null {
+  const first = dayNumber(task.start_on)
+  const last = lastDay(task)
+  return first === null || last === null || last < first ? null : { first, last }
+}
+
+const isoOf = (day: number): string => new Date(day * 86_400_000).toISOString().slice(0, 10)
 
 /** Yüklü görevlerin en erken başlangıç – en geç bitişi (E-03C-14); tarihli görev yoksa `null`. */
 export function taskRange(tasks: readonly GanttTask[]): DayRange | null {
-  let start: string | null = null
-  let end: string | null = null
-  for (const task of tasks) {
-    const first = dayNumber(task.start_on)
-    const last = lastDay(task)
-    if (first === null || last === null) continue
-    if (start === null || first < (dayNumber(start) ?? Infinity)) start = task.start_on
-    if (end === null || (dayNumber(last) ?? -Infinity) > (dayNumber(end) ?? -Infinity)) end = last
+  const spans = tasks.map(spanOf).filter((span) => span !== null)
+  if (spans.length === 0) return null
+  return {
+    start: isoOf(Math.min(...spans.map((span) => span.first))),
+    end: isoOf(Math.max(...spans.map((span) => span.last))),
   }
-  return start !== null && end !== null && dayDiff(start, end)! >= 0 ? { start, end } : null
 }
 
 /** Haftalık (aralık başından 7'şer gün) çizilen görev sayısı (E-03C-15). */
@@ -97,12 +100,10 @@ export function weeklyHistogram(tasks: readonly GanttTask[], range: DayRange | n
   const weeks = Math.ceil((span + 1) / 7)
   const counts: number[] = Array.from({ length: weeks }, () => 0)
   for (const task of tasks) {
-    const first = dayNumber(task.start_on)
-    const lastText = lastDay(task)
-    const last = lastText === null ? null : dayNumber(lastText)
-    if (first === null || last === null || last < first) continue
-    const from = Math.max(0, Math.floor((first - origin) / 7))
-    const to = Math.min(weeks - 1, Math.floor((last - origin) / 7))
+    const drawn = spanOf(task)
+    if (drawn === null) continue
+    const from = Math.max(0, Math.floor((drawn.first - origin) / 7))
+    const to = Math.min(weeks - 1, Math.floor((drawn.last - origin) / 7))
     for (let week = from; week <= to; week += 1) counts[week] = (counts[week] ?? 0) + 1
   }
   return counts

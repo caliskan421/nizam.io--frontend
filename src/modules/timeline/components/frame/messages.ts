@@ -1,5 +1,5 @@
 import { i18n } from '@/shared/i18n'
-import { trTimeline } from '@/shared/i18n/tr/timeline'
+import type { trTimeline } from '@/shared/i18n/tr/timeline'
 
 type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
