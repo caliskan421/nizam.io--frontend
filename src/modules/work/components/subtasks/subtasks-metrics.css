@@ -1,0 +1,37 @@
+/*
+ * Alt görev ölçüleri — tasarım kaynağındaki (docs/tasarim/kaynak/Gorevler-Liste.dc.html
+ * `rp-subs`, `rp-stask`, `rp-subslot`, `rp-dsubs`, `rp-dsub`, `rp-dr`) ölçek DIŞI değerler.
+ * `components/subtasks` içinde px yazılan TEK yer (subtasks-styles.test.ts denetler); renk
+ * yazılmaz. Ölçekte karşılığı olanlar (boşluk, köşe, kontrol, yazı stilleri) token'dan okunur.
+ * Kalıcı yeri `design/web-tokens.json` (K9) — taşınınca bu dosya kalkar.
+ */
+@layer components {
+  .rp-subs,
+  .rp-dsubs {
+    --sub-indent: 52px;
+    --sub-pad-top: 10px;
+    --sub-gap-2xs: 2px;
+    --sub-gap-xs: 6px;
+    --sub-gap-sm: 10px;
+    --sub-check: 18px;
+    --sub-check-panel: 16px;
+    --sub-col-person: 168px;
+    --sub-col-date: 150px;
+    --sub-col-file: 140px;
+    --sub-col-menu: 32px;
+    --sub-menu-btn: 30px;
+    --sub-slot-h: 30px;
+    --sub-row-panel-h: 32px;
+    --sub-radius-row-panel: 6px;
+    --sub-icon: 14px;
+    --sub-fs-sm: 13px;
+    --sub-fs-xs: 12px;
+    --sub-fs-2xs: 11px;
+    --sub-strike: 1.5px;
+    --sub-bar-h: 4px;
+    --sub-bar-radius: 2px;
+    --sub-pop-date-w: 280px;
+    --sub-pop-menu-w: 230px;
+    --sub-date-input-h: 34px;
+  }
+}

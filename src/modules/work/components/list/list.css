@@ -1,0 +1,318 @@
+/*
+ * Görev tablosu görünümü — theme.css `rp-dtable`, `rp-tr`, `rp-status`, `rp-dot`, `rp-avstack`
+ * ve Gorevler-Liste.dc.html artboard `<style>` (`rp-tmeta`, `rp-subtog`, `rp-reqtag`, `rp-tip`)
+ * birebir karşılığı. Kural: yalnız token; px yalnız list-metrics.css'te. Sınıflar `.rp-dtable`
+ * altında kapsanır (başka ekranların aynı adlı sınıflarıyla çakışmaz). Açık tema token'la.
+ */
+@import './list-metrics.css';
+
+@layer components {
+  .rp-dtable {
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  [data-theme='light'] .rp-dtable {
+    box-shadow: var(--shadow-card);
+  }
+  .rp-dtable .rp-scroll {
+    overflow-x: auto;
+  }
+  .rp-dtable .task-table {
+    min-width: var(--list-min-w);
+  }
+
+  /* Satırlar */
+  .rp-dtable .rp-tr {
+    display: grid;
+    grid-template-columns: var(--list-cols);
+    align-items: center;
+    column-gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    min-height: var(--rp-row-h);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    box-sizing: border-box;
+  }
+  .rp-dtable .rp-tr > * {
+    min-width: 0;
+  }
+  .rp-dtable .rp-tr:last-child {
+    border-bottom: 0;
+  }
+  .rp-dtable .rp-tr--head {
+    min-height: 0;
+    padding: var(--ui-gap-sm) var(--space-4);
+    font: var(--text-label);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .rp-dtable .rp-tr--body {
+    min-height: var(--list-row-h);
+    cursor: pointer;
+  }
+  .rp-dtable .rp-tr--body:hover,
+  .rp-dtable .rp-tr.rp-sel {
+    background: var(--bg-raised);
+  }
+  .rp-dtable .rp-tr.rp-sel {
+    box-shadow: inset var(--list-sel-bar) 0 0 var(--accent-text);
+  }
+  .rp-dtable .rp-sortbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    border: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Görev hücresi */
+  .rp-dtable .task-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .rp-dtable .rp-title {
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .rp-dtable .rp-title:hover {
+    text-decoration: underline;
+    text-underline-offset: var(--list-tip-shift);
+  }
+  .rp-dtable .rp-tmeta {
+    display: grid;
+    grid-template-columns: var(--list-meta-cols);
+    align-items: center;
+    column-gap: var(--space-2);
+    min-width: 0;
+  }
+  .rp-dtable .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .rp-dtable .task-row__code {
+    grid-column: 1;
+    color: var(--ink-faint);
+  }
+  .rp-dtable .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .rp-dtable .task-row__dept {
+    grid-column: 3;
+  }
+  .rp-dtable .task-row__dept::before {
+    content: '';
+    display: inline-block;
+    width: var(--list-cap-dot);
+    height: var(--list-cap-dot);
+    margin: 0 var(--list-cap-dot-gap) var(--ui-hairline) 0;
+    border-radius: var(--radius-full);
+    background: currentColor;
+    vertical-align: middle;
+  }
+
+  /* Alt görev düğmesi (E-03-21) */
+  .rp-dtable .rp-subtog {
+    grid-column: 2;
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    height: var(--list-pill-h);
+    padding: 0 var(--ui-gap-xs) 0 var(--list-tog-pad-start);
+    border: 0;
+    border-radius: var(--list-pill-radius);
+    background: none;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: var(--list-fs-2xs);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .rp-dtable .rp-subtog .t-icon {
+    width: var(--list-tog-icon);
+    height: var(--list-tog-icon);
+    transition: transform 0.12s linear;
+  }
+  .rp-dtable .rp-subtog[aria-expanded='true'] .t-icon {
+    transform: rotate(90deg);
+  }
+  .rp-dtable .rp-subtog:hover,
+  .rp-dtable .rp-subtog[aria-expanded='true'] {
+    background: var(--bg-raised);
+    color: var(--ink);
+  }
+  .rp-dtable .rp-subtog[data-has='false'] {
+    opacity: 0;
+    padding-left: var(--ui-gap-xs);
+  }
+  .rp-dtable .rp-subtog[data-has='false'] .t-icon {
+    display: none;
+  }
+  .rp-dtable .rp-tr:hover .rp-subtog[data-has='false'],
+  .rp-dtable .rp-subtog[data-has='false']:focus-visible,
+  .rp-dtable .rp-subtog[data-has='false'][aria-expanded='true'] {
+    opacity: 1;
+  }
+  .rp-dtable .rp-subtog[data-has='true'] {
+    color: var(--ink-muted);
+  }
+  .rp-dtable .rp-subtog[data-done='true'] {
+    color: var(--accent-text);
+  }
+  .rp-dtable .task-row__subs {
+    padding: var(--list-subs-pad);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-raised) 55%, transparent);
+  }
+
+  /* Durum (E-03-23) */
+  .rp-dtable .rp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--ui-text-sm-medium);
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .rp-dtable .rp-dot {
+    width: var(--list-dot);
+    height: var(--list-dot);
+    border-radius: var(--radius-full);
+    flex: none;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+  .rp-dtable .rp-dot--todo {
+    border: var(--list-dot-ring) solid var(--ink-faint);
+  }
+  .rp-dtable .rp-dot--doing {
+    background: var(--violet);
+  }
+  .rp-dtable .rp-dot--review {
+    background: var(--gold);
+  }
+  .rp-dtable .rp-dot--back {
+    background: var(--danger);
+  }
+  .rp-dtable .rp-dot--done {
+    background: var(--rp-done-fill);
+  }
+
+  /* Bitiş (E-03-24…26) */
+  .rp-dtable .task-row__due {
+    display: flex;
+    flex-direction: column;
+    gap: var(--list-gap-3xs);
+    align-items: flex-start;
+  }
+  .rp-dtable .rp-mono {
+    font: var(--text-mono-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .rp-dtable .task-row__note {
+    font-size: var(--ui-fs-xs);
+  }
+  .rp-dtable .rp-nowrap {
+    white-space: nowrap;
+  }
+  .rp-dtable .rp-faint {
+    color: var(--ink-faint);
+  }
+  .rp-dtable .rp-danger-text {
+    color: var(--danger);
+  }
+  .rp-dtable .rp-reqtag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    height: var(--list-pill-h);
+    padding: 0 var(--list-pill-pad);
+    border-radius: var(--list-pill-radius);
+    background: color-mix(in srgb, var(--accent-text) 14%, transparent);
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: var(--list-fs-2xs);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .rp-dtable .rp-reqtag .t-icon {
+    width: var(--list-tag-icon);
+    height: var(--list-tag-icon);
+  }
+
+  /* Kişiler (E-03-27) */
+  .rp-dtable .rp-avstack {
+    display: inline-flex;
+    flex: none;
+  }
+  .rp-dtable .task-row__person + .task-row__person {
+    margin-left: var(--list-av-overlap);
+  }
+  .rp-dtable .task-row__person .rp-av {
+    box-shadow: 0 0 0 var(--list-av-ring) var(--bg-surface);
+  }
+  .rp-dtable .rp-tip {
+    position: relative;
+    display: inline-flex;
+    cursor: default;
+    border-radius: var(--radius-full);
+  }
+  .rp-dtable .rp-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + var(--list-tip-offset));
+    right: 0;
+    padding: var(--list-tip-pad);
+    border-radius: var(--list-tip-radius);
+    background: var(--ink);
+    color: var(--bg-base);
+    font: var(--list-tip-font);
+    white-space: nowrap;
+    box-shadow: var(--shadow-card);
+    opacity: 0;
+    transform: translateY(var(--list-tip-shift));
+    transition:
+      opacity 0.12s,
+      transform 0.12s;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .rp-dtable .rp-tip:hover,
+  .rp-dtable .rp-tip:focus-visible {
+    z-index: 3;
+  }
+  .rp-dtable .rp-tip:hover::after,
+  .rp-dtable .rp-tip:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .rp-dtable .rp-tip:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--ui-hairline);
+  }
+
+  /* Yükleniyor (K7): iskelet satır */
+  .rp-dtable .task-row--skeleton {
+    min-height: var(--list-row-h);
+  }
+  .rp-dtable .task-skel {
+    display: block;
+    height: var(--list-skel-h);
+    border-radius: var(--list-pill-radius);
+    background: var(--bg-raised);
+  }
+  .rp-dtable .task-row--skeleton > :first-child .task-skel {
+    visibility: hidden;
+  }
+}

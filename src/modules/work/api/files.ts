@@ -75,12 +75,14 @@ export function useDeleteFile() {
 
 /**
  * `issueDownloadTicket` (S1; görevin kapsamı bilete yazılır) → `{ticket, url, expires_at}`.
- * Çağıran `url`'i hemen açar (`redeemDownloadTicket`, S0); bilet saklanmaz. Sunucu kaydını
- * değiştirmez: geçersizleme yok.
+ * Çağıran `url`'i hemen açar (`redeemDownloadTicket`, S0); bilet saklanmaz: `gcTime: 0` ile
+ * mutasyon önbelleğinden düşer; çağıran URL'i açtıktan sonra `reset()` çağırarak gözlemcideki
+ * (`outcome`) kopyayı da siler. Sunucu kaydını değiştirmez: geçersizleme yok.
  */
 export function useDownloadTicket() {
   return useProtectedMutation<FileRef, DownloadTicket>({
     operation: 'issueDownloadTicket',
+    gcTime: 0,
     send: (vars, ctx) =>
       api.POST('/v1/download-tickets', {
         params: { header: scopeHeaders(vars.target) },

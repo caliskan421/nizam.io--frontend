@@ -1,0 +1,310 @@
+/*
+ * Ayrıntı paneli görünümü — theme.css `rp-sheet`, `rp-sheethead`, `rp-kicker`, `rp-clamp2`,
+ * `rp-dl`, `rp-status`, `rp-dot--*`, `rp-timeline`, `rp-tl-dot`, `rp-iconrow`, `rp-linkbtn` ve
+ * Gorevler-Liste.dc.html panel stillerinin (`.rp-sheet .rp-tabs`, `rp-dslink`,
+ * `rp-iconrow--icons .rp-upbtn`) birebir karşılığı; seçiciler `.wd` altında (başka ekranın
+ * `rp-*` tanımıyla çakışmaz). Kural: yalnız token; px yalnız detail-metrics.css'te. Açık tema
+ * yalnız token değişimiyle (`--rp-done-fill` açıkta ayrı değer).
+ */
+@import './detail-metrics.css';
+
+@layer components {
+  .wd {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-sheet-gap);
+    min-width: 0;
+    padding: var(--space-6);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(180deg, var(--surface-top), var(--bg-surface));
+    box-shadow: inset 0 var(--ui-hairline) 0 var(--edge-light);
+    color: var(--ink);
+    box-sizing: border-box;
+  }
+
+  /* Yardımcılar (theme.css) */
+  .wd .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .wd .rp-clamp2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .wd .rp-nowrap {
+    white-space: nowrap;
+  }
+  .wd .rp-mono {
+    font-family: var(--font-mono);
+    font-size: var(--wd-fs);
+    font-variant-numeric: tabular-nums;
+  }
+  .wd .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .wd .rp-danger-text {
+    color: var(--danger);
+  }
+
+  /* Üst bilgi (`rp-sheethead`; "Tam sayfada aç" gizli → iki sütun) */
+  .wd-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--wd-head-gap);
+    align-items: start;
+  }
+  .wd-head__text {
+    min-width: 0;
+  }
+  .wd-title {
+    margin: var(--ui-gap-xs) 0 0;
+    font: var(--wd-title-font);
+  }
+
+  /* Durum: salt okunur etiket (E-03-44) */
+  .wd-readonly {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    min-height: var(--control-sm);
+    margin: 0;
+  }
+  .wd .rp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--wd-fs);
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .wd .rp-dot {
+    display: inline-block;
+    flex: none;
+    width: var(--wd-dot);
+    height: var(--wd-dot);
+    border-radius: var(--radius-full);
+    box-sizing: border-box;
+  }
+  .wd .rp-dot--todo {
+    border: var(--wd-dot-ring) solid var(--ink-faint);
+  }
+  .wd .rp-dot--doing {
+    background: var(--violet);
+  }
+  .wd .rp-dot--review {
+    background: var(--gold);
+  }
+  .wd .rp-dot--back,
+  .wd .rp-dot--late {
+    background: var(--danger);
+  }
+  .wd .rp-dot--done {
+    background: var(--rp-done-fill);
+  }
+
+  /* Sekmeler (`.rp-sheet .rp-tabs`: sağ kenarda solma maskesi) */
+  .wd-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-sheet-gap);
+    min-width: 0;
+  }
+  .wd .rp-tabs {
+    gap: var(--wd-tabs-gap);
+    padding-right: var(--wd-tabs-fade);
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      var(--ink) calc(100% - var(--wd-tabs-fade)),
+      transparent
+    );
+    mask-image: linear-gradient(90deg, var(--ink) calc(100% - var(--wd-tabs-fade)), transparent);
+  }
+  .wd .rp-tabs button {
+    font-size: var(--wd-fs);
+  }
+  .wd [role='tabpanel']:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+
+  /* Özet (`rp-dl`) */
+  .wd-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-sheet-gap);
+  }
+  .wd .rp-dl {
+    display: grid;
+    grid-template-columns: minmax(var(--wd-dl-label-min), auto) minmax(0, 1fr);
+    gap: var(--wd-dl-gap-y) var(--space-4);
+    margin: 0;
+    font-size: var(--wd-fs);
+  }
+  .wd .rp-dl dt {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .wd .rp-dl dd {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .wd .rp-dl dd.rp-wrap {
+    white-space: normal;
+  }
+  .wd-people {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .wd-people li {
+    max-width: 100%;
+  }
+  .wd .rp-linkbtn {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .wd .rp-linkbtn:disabled {
+    cursor: default;
+  }
+  .wd .rp-dslink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    font-size: inherit;
+  }
+  .wd .rp-dslink .t-icon {
+    width: var(--wd-link-icon);
+    height: var(--wd-link-icon);
+    opacity: 0.7;
+  }
+
+  /* İlerleme çizgisi (`rp-timeline`) */
+  .wd-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .wd .rp-timeline {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .wd .rp-timeline li {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--wd-tl-dot) minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    padding-bottom: var(--space-4);
+  }
+  .wd .rp-timeline li::before {
+    content: '';
+    position: absolute;
+    top: var(--wd-tl-line-top);
+    bottom: 0;
+    left: var(--wd-tl-line-left);
+    width: var(--ui-hairline);
+    background: var(--border-strong);
+  }
+  .wd .rp-timeline li:last-child {
+    padding-bottom: 0;
+  }
+  .wd .rp-timeline li:last-child::before {
+    display: none;
+  }
+  .wd .rp-tl-dot {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--wd-tl-dot);
+    height: var(--wd-tl-dot);
+    border: var(--ui-hairline) solid var(--border-strong);
+    border-radius: var(--radius-full);
+    background: var(--bg-raised);
+    box-sizing: border-box;
+  }
+  .wd .rp-tl-dot .rp-dot {
+    width: var(--wd-tl-inner);
+    height: var(--wd-tl-inner);
+  }
+  .wd .rp-tl-dot--alert {
+    border-color: var(--danger);
+  }
+  .wd-tl-text {
+    font-size: var(--wd-fs);
+  }
+  .wd-tl-text--alert {
+    font-weight: 600;
+  }
+  .wd .wd-tl-when {
+    color: var(--ink-faint);
+  }
+
+  /* Eylem satırı (`rp-iconrow--icons`) */
+  .wd-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .wd-actions .t-iconbtn {
+    width: var(--control-md);
+    height: var(--control-md);
+    border-radius: var(--radius-md);
+  }
+  .wd-actions .wd-upbtn {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--accent-top), var(--accent));
+    color: var(--accent-ink);
+  }
+  .wd-actions .wd-upbtn:hover:not(:disabled) {
+    filter: brightness(1.06);
+    color: var(--accent-ink);
+  }
+
+  /* Yükleniyor iskeleti (03 README satır dışı: panel iskeleti) */
+  .wd-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .wd-skeleton__line {
+    display: block;
+    height: var(--wd-skeleton-h);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+  .wd-skeleton__line:nth-child(2n) {
+    width: 70%;
+  }
+}

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { TASKS_QUERY_KEYS, TASKS_SORT_FIELDS, TASKS_STATUS_FILTERS } from '@/modules/work/public'
+
 import {
   activeMenuKey,
   CURRENT_PHASE,
@@ -48,8 +50,11 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F0', () => {
-    expect(CURRENT_PHASE).toBe('F0')
+  it('etkin faz F1 (O2b: Görevler canlı; W42 faz geçişi)', () => {
+    expect(CURRENT_PHASE).toBe('F1')
+    expect(visibilityOf('work.tasks')).toBe('canli')
+    expect(visibilityOf('home')).toBe('canli')
+    expect(liveRouteNames()).toEqual(['home', 'identity.session', 'work.tasks'])
   })
 
   it('faz görünürlüğü ortak-kurallar §5 matrisiyle birebir', () => {
@@ -127,6 +132,27 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
+  it('etkin faz (F1): Ana sayfa ve Görevler canlı; diğerleri gizli', () => {
+    expect(menuEntries()).toEqual([
+      {
+        name: 'home',
+        title: 'Ana sayfa',
+        group: 'takip',
+        key: 'home',
+        visibility: 'canli',
+        phase: 'F0',
+      },
+      {
+        name: 'work.tasks',
+        title: 'Görevler',
+        group: 'takip',
+        key: 'tasks',
+        visibility: 'canli',
+        phase: 'F1',
+      },
+    ])
+  })
+
   it('F0: Ana sayfa canlı, Görevler devre dışı (F1’de); gizliler yok', () => {
     expect(menuEntries('F0')).toEqual([
       {
@@ -177,7 +203,26 @@ describe('konum üretme ve süzgeç okuma', () => {
   })
 
   it('canlı olmayan rotaya bağlantı üretilmez', () => {
-    expect(() => routeLocation('work.tasks', {})).toThrow(/canlı değil/)
+    expect(() => routeLocation('work.tasks', {}, {}, 'F0')).toThrow(/canlı değil/)
+    expect(() => routeLocation('work.timeline', {})).toThrow(/canlı değil/)
+    expect(() => routeLocation('organization.users', {})).toThrow(/canlı değil/)
+  })
+
+  it('etkin fazda Görevler bağlantısı üretilir (sekme, talep, panel)', () => {
+    expect(
+      routeLocation('work.tasks', {}, { durum: 'geciken', talep: true, gorev: 'w-1' }),
+    ).toEqual({
+      name: 'work.tasks',
+      params: {},
+      query: { durum: 'geciken', talep: '1', gorev: 'w-1' },
+    })
+  })
+
+  it('Görevler süzgeçleri modülün URL okuyucusuyla aynı küme (work/routes.ts)', () => {
+    const spec = routeSpec('work.tasks')
+    expect(Object.keys(spec.query)).toEqual([...TASKS_QUERY_KEYS])
+    expect(spec.query.durum).toEqual({ kind: 'enum', values: [...TASKS_STATUS_FILTERS] })
+    expect(spec.query.sirala).toEqual({ kind: 'sort', fields: [...TASKS_SORT_FIELDS] })
   })
 
   it('ileri fazda süzgeçler kodlanır (bool → 1/0, sıralama alan:yön)', () => {
