@@ -4,6 +4,10 @@ import { authSession } from '@/shared/http'
 import { isValidIdempotencyKey } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
+import { useConfirm } from '@/shared/ui/confirm'
+
+import { formsHarness, resetForms } from '../components/forms/__tests__/forms-harness'
+import DeleteTaskAction from '../components/forms/DeleteTaskAction.vue'
 
 import {
   ADMIN_SCOPE,
@@ -31,6 +35,7 @@ import {
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
+  resetForms()
   resetHarness()
   if (authSession.snapshot.accountId) authSession.clear()
 })
@@ -241,6 +246,51 @@ describe('CX-F1-E-03 — bileşik işlem ilk eylemin bağlamında (gerçek hook 
     expect(assign!.body).toEqual({ account_ids: ['acc-2'] })
     expect(assign!.headers.get('X-Nizamio-Department')).toBe('d2')
     expect(staleA()).toEqual([true, true])
+  })
+})
+
+describe('CX-F1-E-02 — gerçek DeleteTaskAction + ortak onay katmanı (tüketici değişmeden)', () => {
+  function render() {
+    let deletes = 0
+    server.use(
+      http.delete(`${ORIGIN}/v1/work-items/w1`, () => {
+        deletes += 1
+        return json({ status: 'deleted' })
+      }),
+    )
+    const h = formsHarness(ADMIN_SCOPE, { companyAdmin: true })
+    const wrapper = h.mount(DeleteTaskAction, { item: workItem() })
+    document.querySelector<HTMLElement>('[data-testid="wf-delete"]')!.click()
+    return { h, wrapper, deletes: () => deletes }
+  }
+
+  it('A’da silme onayı açık → kapsam B: onay kapanır, DELETE 0', async () => {
+    const { h, wrapper, deletes } = render()
+    await h.flush()
+    const id = useConfirm().current.value!.id
+    h.store.commit(SCOPE_B)
+    await h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    await useConfirm().accept(id)
+    await h.flush()
+    expect(deletes()).toBe(0)
+    expect(wrapper.emitted('deleted')).toBeUndefined()
+  })
+
+  it('bileşen sökülünce onay iptal, DELETE 0; değişmeyen kapsamda kabul → DELETE 1', async () => {
+    const first = render()
+    await first.h.flush()
+    first.wrapper.unmount()
+    await first.h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    expect(first.deletes()).toBe(0)
+
+    const second = render()
+    await second.h.flush()
+    await useConfirm().accept(useConfirm().current.value!.id)
+    await second.h.flush()
+    expect(second.deletes()).toBe(1)
+    expect(second.wrapper.emitted('deleted')).toEqual([['w1']])
   })
 })
 
