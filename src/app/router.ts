@@ -20,6 +20,7 @@ import { homeRoutes } from '@/modules/home/public'
 import { identityRoutes } from '@/modules/identity/public'
 import { organizationRoutes } from '@/modules/organization/public'
 import { programRoutes } from '@/modules/program/public'
+import { timelineRoutes } from '@/modules/timeline/public'
 import { workRoutes } from '@/modules/work/public'
 
 // Router'ın tek kaynağı rota kataloğudur (K10): yol, ad, kapsam ve faz katalogdan gelir;
@@ -40,6 +41,7 @@ export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...workRoutes,
   ...organizationRoutes,
   ...programRoutes,
+  ...timelineRoutes,
 ]
 
 function moduleViews(records: readonly RouteRecordRaw[]): Map<RouteName, ViewLoader> {

@@ -11,6 +11,7 @@ import { errorText, i18n, mergeTrees } from './index'
 import { trHome } from './tr/home'
 import { trOrganization } from './tr/organization'
 import { trProgram } from './tr/program'
+import { trTimeline } from './tr/timeline'
 import { trSide, trTopbar } from './tr/shell'
 import { trStates } from './tr/states'
 import { trErrors } from './tr/errors'
@@ -125,6 +126,7 @@ describe('TR hata metinleri', () => {
       trWorkFiles,
       trOrganization,
       trProgram,
+      trTimeline,
     ]
     const entries = trees.flatMap((tree) => walk(tree, ''))
     expect(entries.length).toBeGreaterThan(300)

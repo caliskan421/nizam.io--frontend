@@ -11,9 +11,9 @@ const admin = { ready: true, companyAdmin: true }
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F2 (W71 faz geçişi)', () => {
+describe('etkin faz F3 (W91 faz geçişi; menü F2 ile aynı — Zaman çizelgesi segment rotasıdır)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
-    expect(CURRENT_PHASE).toBe('F2')
+    expect(CURRENT_PHASE).toBe('F3')
     const groups = sideMenuGroups(menuEntries(), admin)
     expect(groups.map((g) => g.group)).toEqual(['takip', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
