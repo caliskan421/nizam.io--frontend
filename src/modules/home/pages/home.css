@@ -1,0 +1,302 @@
+/*
+ * Ana sayfa görünümü — Main.dc.html (`rp-head`, KPI kartları, "Hızlı işlemler", "Son işlemler")
+ * ve theme.css `rp-head`, `rp-cardbtn`, `rp-ichip`, `rp-num`, `rp-bar`, `rp-cap`, `rp-kicker`,
+ * `rp-cardhead`, `rp-cardtitle`, `rp-link`, `rp-linkbtn`, `rp-clamp2` birebir karşılığı. Kural:
+ * yalnız token; px yalnız home-metrics.css'te (medya koşulu hariç: değer `--rp-narrow-max` ile
+ * aynı). Açık tema farkı yalnız token ve `t-card` gölgesidir (shared/ui). Sınıflar `.home-page`
+ * altında kapsanır.
+ */
+@import './home-metrics.css';
+
+@layer components {
+  .home-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık (E-01-01) */
+  .home-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--home-head-pad-top) var(--space-8) 0;
+  }
+  .home-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .home-page .home-greeting {
+    margin: 0;
+    font: var(--home-greet);
+    letter-spacing: -0.02em;
+  }
+
+  /* Gövde */
+  .home-page .home-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+    padding: var(--space-8) var(--space-8) var(--space-16);
+  }
+  .home-page .home-kpis {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .home-page .home-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--home-kpi-min), 1fr));
+    gap: var(--space-4);
+  }
+  .home-page .home-pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--home-pair-min), 1fr));
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  /* Ortak yardımcılar (theme.css) */
+  .home-page .rp-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .home-page .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .home-page .rp-ichip {
+    width: var(--home-chip);
+    height: var(--home-chip);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    color: var(--ink-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+  }
+  .home-page .rp-bar {
+    display: flex;
+    gap: var(--ui-gap-2xs);
+    height: var(--home-bar-h);
+    border-radius: var(--radius-full);
+    background: var(--bg-overlay);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .home-page .rp-bar > span {
+    display: block;
+    height: 100%;
+    flex: none;
+  }
+  .home-page .rp-cardbtn {
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    text-decoration: none;
+  }
+  .home-page .rp-cardbtn:hover {
+    border-color: var(--border-strong);
+  }
+  .home-page .rp-cardbtn:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .home-page .rp-clamp2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .home-page .rp-cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    min-width: 0;
+  }
+  .home-page .rp-cardtitle {
+    margin: 0;
+    font: var(--home-card-title);
+  }
+  .home-page .home-card {
+    padding: var(--home-card-pad);
+  }
+  .home-page .home-card > .rp-cardtitle {
+    margin-bottom: var(--space-4);
+  }
+
+  /* KPI kartı (E-01-03…07) */
+  .home-page .home-kpi {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-5);
+    min-height: var(--home-kpi-h);
+    color: var(--ink);
+  }
+  .home-page .home-kpi__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+  }
+  .home-page .home-kpi__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .home-page .home-kpi__label {
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .home-page .home-kpi__go {
+    color: var(--ink-faint);
+  }
+  .home-page .home-kpi__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+  }
+  .home-page .home-kpi__value {
+    font: var(--text-display-xl);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .home-page .home-kpi__value--danger {
+    color: var(--danger);
+  }
+  .home-page .home-kpi__fill {
+    width: var(--home-kpi-fill, 0%);
+    background: var(--home-kpi-tone);
+  }
+  .home-page .home-kpi--accent {
+    --home-kpi-tone: var(--accent-text);
+  }
+  .home-page .home-kpi--violet {
+    --home-kpi-tone: var(--violet);
+  }
+  .home-page .home-kpi--danger {
+    --home-kpi-tone: var(--danger);
+  }
+  .home-page .home-kpi--gold {
+    --home-kpi-tone: var(--gold);
+  }
+  .home-page .home-kpi .rp-ichip {
+    color: var(--home-kpi-tone);
+  }
+
+  /* Yükleniyor: bölge başına iskelet */
+  .home-page .home-skel {
+    display: block;
+    height: var(--home-skel-line);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+  .home-page .home-skel--num {
+    height: var(--home-skel-num);
+    width: 40%;
+  }
+  .home-page .home-skel--greet {
+    height: var(--home-skel-num);
+    width: 50%;
+  }
+
+  /* Hızlı işlemler (E-01-08…11) */
+  .home-page .home-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ui-gap-sm);
+  }
+  .home-page .home-tile {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: var(--home-tile-gap);
+    height: var(--home-tile-h);
+    padding: var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    color: var(--ink);
+    min-width: 0;
+  }
+  .home-page .home-tile__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--ink-muted);
+  }
+  .home-page .home-tile__label {
+    align-self: end;
+    font: var(--home-tile-label);
+  }
+  .home-page .home-tile[aria-disabled='true'] {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .home-page .home-tile[aria-disabled='true']:hover {
+    border-color: var(--border-subtle);
+  }
+  .home-page .home-tile__phase {
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-faint);
+  }
+
+  /* Son işlemler (E-01-13/14) */
+  .home-page .rp-link {
+    color: var(--ink-muted);
+    text-decoration: none;
+    font: var(--text-caption);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    white-space: nowrap;
+    flex: none;
+    margin-left: auto;
+  }
+  .home-page .rp-linkbtn {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .home-page .rp-link[aria-disabled='true'] {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .home-page .rp-link .t-icon {
+    width: var(--home-link-icon);
+    height: var(--home-link-icon);
+  }
+
+  @media (max-width: 900px) {
+    .home-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .home-page .home-body {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .home-page .home-pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

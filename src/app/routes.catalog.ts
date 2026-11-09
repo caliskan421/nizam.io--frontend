@@ -86,8 +86,9 @@ export const ROUTES = {
   home: {
     path: '/',
     title: 'Ana sayfa',
-    // F0'da kabuk + kapsam. F1 notu: 01 sade ana sayfa (O3, W51) S2/S3 uçlarını sayfa içinden
-    // okur; rota kapsamı S1 kalır (kapsam kabukta seçilir, sayfa kapsamsızken açık durum).
+    // Sayfa `modules/home` (01 sade, W51): S2 uçlarını (pano / görev listesi) sayfa içinden
+    // yalnız kapsam tamken okur; rota kapsamı S1 kalır (kapsam kabukta seçilir; K7 açık durumlar
+    // kabukta, kapsam eksikken KPI bölgesinde seçim notu).
     scope: 'S1',
     phase: 'F0',
     menu: { group: 'takip', key: 'home', order: 1 },

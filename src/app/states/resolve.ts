@@ -15,7 +15,7 @@
  *    durum gösterilir — kapsamsız istek atılmaz (`client.scope_missing`); S0/S1 içerik çizilir.
  *  - S0 rotaları (açık kimlik sayfaları, ör. `/oturum`) kapsamdan bağımsızdır: açık durum onların
  *    yerine geçmez (kurulum provası ilk programdan önce de giriş/oturum sayfasını görür). S1+
- *    her rotada geçerlidir (F0 ana sayfası `HomePlaceholder`, S1).
+ *    her rotada geçerlidir (01 ana sayfası `modules/home`, S1).
  * "Güncelleme gerekli" kabuktan önce, uygulama kökünde ele alınır (`UpdateRequired.vue`).
  */
 import type { OpenStateName, RouteName } from '@/app/routes.catalog'

@@ -1,7 +1,7 @@
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-router'
 import { describe, expect, it } from 'vitest'
 
-import { APP_ROUTES, buildRoutes, createAppRouter, MODULE_ROUTES } from './router'
+import { buildRoutes, createAppRouter, MODULE_ROUTES } from './router'
 import { liveRouteNames, routeSpec } from './routes.catalog'
 
 const view = { render: () => null }
@@ -27,18 +27,16 @@ describe('router — katalog tek kaynak', () => {
     expect(session?.meta).toEqual({ scope: 'S0', title: 'Oturum', menuKey: undefined })
   })
 
-  it('F0 ana sayfa gerçek sayfaya bağlı (geçici yönlendirme yok): kabuk içi yer tutucu', async () => {
+  it('ana sayfa 01 modül sayfasına bağlı (home/public homeRoutes; yönlendirme yok)', async () => {
     const router = memoryRouter(buildRoutes('F0'))
     await router.push('/')
     const current = router.currentRoute.value
     expect(current.name).toBe('home')
     expect(current.redirectedFrom).toBeUndefined()
     expect(current.meta).toEqual({ scope: 'S1', title: 'Ana sayfa', menuKey: 'home' })
-    expect(APP_ROUTES.map((r) => r.name)).toEqual(['home'])
+    expect(MODULE_ROUTES.find((r) => r.name === 'home')?.path).toBe('/')
     // Gezinme tembel yükleyiciyi çözer; kayıt gerçek sayfa bileşenini taşır.
-    expect(current.matched[0]?.components?.default).toMatchObject({
-      __name: 'HomePlaceholder',
-    })
+    expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'HomePage' })
   })
 
   it('gizli rotanın yolu kayıtlı değildir; bilinmeyen yol gibi ana sayfaya düşer', async () => {

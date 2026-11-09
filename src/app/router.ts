@@ -16,6 +16,7 @@ import {
   type RouteName,
   routeSpec,
 } from '@/app/routes.catalog'
+import { homeRoutes } from '@/modules/home/public'
 import { identityRoutes } from '@/modules/identity/public'
 import { workRoutes } from '@/modules/work/public'
 
@@ -28,21 +29,11 @@ import { workRoutes } from '@/modules/work/public'
 type ViewLoader = RouteComponent | (() => Promise<RouteComponent>)
 
 /**
- * Uygulamanın kendi verdiği sayfalar. Ana sayfa (`home`) kabuk içinde nötr yer tutucudur (F1
- * açılışında da); 01 grubu (`modules/home`, O3) bağlanınca bu kayıt kalkar, modül kaydı gelir.
+ * Sayfa kayıtları (ad → bileşen). Yeni modül buraya `public.ts`'iyle eklenir. Ana sayfa (`home`)
+ * 01 modülünün sayfasıdır (`modules/home`, W51; F0 yer tutucusunun yerine).
  */
-export const APP_ROUTES: readonly RouteRecordRaw[] = [
-  {
-    path: '/',
-    name: 'home',
-    component: () => import('@/app/pages/HomePlaceholder.vue'),
-    meta: { scope: 'S1' },
-  },
-]
-
-/** Sayfa kayıtları (ad → bileşen). Yeni modül buraya `public.ts`'iyle eklenir. */
 export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
-  ...APP_ROUTES,
+  ...homeRoutes,
   ...identityRoutes,
   ...workRoutes,
 ]
