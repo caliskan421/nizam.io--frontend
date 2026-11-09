@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import './panel.css'
 
-import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import type { TeamRole } from '@/shared/scope/standing-facts'
 import { UiIcon, UiMenu, UiMenuItem } from '@/shared/ui'
@@ -14,6 +14,8 @@ import { ROLE_TEXT } from './user-rows'
  * E-05-32 — tek koordinatörlük çipi = (birim, rol). Rol seçici yalnız `canChangeRole` (ŞY,
  * hedef ≠ çağıran); değilse rol salt metin. X yalnız `canRemove` (kendi satırında gizli). İşlem
  * sürerken düğmeler kapalı (çift gönderim yok). Menü dışarı tık, Esc ve Tab ile kapanır.
+ * Odak dönüşü (W82a): işlem sürerken açılan onay penceresi kapanınca odağı kapalı düğmeye
+ * veremez ve gövdeye düşer; işlem bitince (düğme yeniden açık) odak başlatan düğmeye döner.
  */
 const props = defineProps<{
   name: string
@@ -29,6 +31,22 @@ const current = computed(() => new Set<TeamRole>([props.role]))
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 const trigger = ref<HTMLButtonElement | null>(null)
+const removeButton = ref<HTMLButtonElement | null>(null)
+/** İşlemi başlatan düğme: işlem bitince odak gövdeye düştüyse buna döner. */
+let origin: HTMLButtonElement | null = null
+
+watch(
+  () => props.busy,
+  (busy) => {
+    if (busy || !origin) return
+    const target = origin
+    origin = null
+    void nextTick(() => {
+      const lost = document.activeElement === null || document.activeElement === document.body
+      if (lost && target.isConnected) target.focus()
+    })
+  },
+)
 
 function onDocumentClick(event: MouseEvent): void {
   if (!root.value?.contains(event.target as Node)) close(false)
@@ -49,7 +67,14 @@ function toggle(): void {
 
 function pick(option: TeamRole): void {
   close(true)
-  if (!current.value.has(option)) emit('changeRole', option)
+  if (current.value.has(option)) return
+  origin = trigger.value
+  emit('changeRole', option)
+}
+
+function remove(): void {
+  origin = removeButton.value
+  emit('remove')
 }
 
 onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, true))
@@ -78,12 +103,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     </span>
     <button
       v-if="canRemove"
+      ref="removeButton"
       class="t-chip__x"
       type="button"
       :aria-label="usersText('users.panel.chips.remove', { name })"
       :disabled="busy"
       data-testid="chip-remove"
-      @click="emit('remove')"
+      @click="remove"
     >
       <UiIcon name="close" size="sm" />
     </button>
