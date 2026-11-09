@@ -1,15 +1,351 @@
-// Organizasyon modülü ekran metinleri — statik TR ağacı. Her O2b uygulayıcısı yalnız kendi
-// ekranının alt ağacını ekler (mevcut satırların yeri değişmez). Erişim yardımcıları kaynak
-// bileşen dizinindeki `messages.ts` dosyalarındadır. Sunucu `message` alanı kullanılmaz.
+// Organizasyon modülü metinleri — TEK statik TR ağacı (`organization.*`), `src/shared/i18n/index.ts`
+// `mergeTrees`'e bir kez kayıtlı; çalışma anında ağaca ekleme yok. Ekran başına alt ağaç:
+// `coordinatorships` (W72, 08), `coordinatorship` (W73, 08b), `forms` (W74), `users` (W75, 05),
+// `tracking` (W76, 05b). Sunucu `message` alanı kullanılmaz; kişi adı, sayı ve tarih yalnız gerçek
+// veriden gelir (ortak-kurallar §4). `{…}` yer tutucuları vue-i18n biçimindedir.
 
-/**
- * Modülün tek ağacı: kök `organization`, her ekran kendi alt ağacında. `users` = 05 · Kullanıcılar
- * (`organization.users.*`; W75, E-05-01…38 + satır dışı hesap eylemleri). Kaynak:
- * `docs/ekranlar/05-kullanicilar/README.md` kabul tablosu ve `Kullanicilar.dc.html`.
- * "Yüklenen kayıtlar içinde" etiketi imleç bitmemişken her sayacın yanında (ortak-kurallar §10).
- */
 export const trOrganization = {
   organization: {
+    /**
+     * 08 Koordinatörlükler liste (`organization.coordinatorships.*`; 08 `ozellikler.md` §2.1–§2.7, README kabul
+     * tablosu E-08-01…45). Tasarımdaki "Dosya yüklenmemiş" / "Henüz dosya yüklenmedi" metinleri
+     * yazılmaz: `last_activity_at` görev hareketidir (E-08-11, E-08-37).
+     */
+    coordinatorships: {
+      head: {
+        title: 'Koordinatörlükler',
+        count: '{n} koordinatörlük',
+        countTruncated: '{n} koordinatörlük (sınıra ulaşmış olabilir)',
+        people: '{n} kişi',
+        peopleHint: 'Program ekibi ve şirket yöneticileri dahil',
+        season: '{year} sezonu',
+        editStructure: 'Yapıyı düzenle',
+        create: 'Yeni koordinatörlük',
+        more: 'Diğer işlemler',
+        copySeason: 'Sezona kopyala',
+        copySeasonNote: 'Yapı kopyası henüz yok; görev aktarımı Teknofest ve sezon ekranında.',
+      },
+      health: {
+        region: 'Yapı sağlığı',
+        noLead: 'koordinatörsüz birim',
+        noMembers: 'üyesi olmayan',
+        noMembersNote: 'Üye rolünde kimse yok',
+        noTasks: 'bu sezon görevsiz',
+        quiet: '30+ gündür sessiz',
+        quietNote: 'Görev hareketi yok ya da 30 günden eski',
+        error: 'Yapı sağlığı yüklenemedi',
+      },
+      toolbar: {
+        view: 'Görünüm',
+        list: 'Liste',
+        tree: 'Yapı',
+        search: 'Koordinatörlük, kod veya koordinatör ara',
+        searchPlaceholder: 'Koordinatörlük, kod veya koordinatör ara…',
+        sort: 'Sırala: Ada göre',
+        sortMenu: 'Sıralama',
+        asc: 'Ada göre (A → Z)',
+        desc: 'Ada göre (Z → A)',
+      },
+      card: {
+        grid: 'Koordinatörlük kartları',
+        actions: '{name} işlemleri',
+        assign: 'Koordinatör ata',
+        leadMore: '{name} +{n}',
+        members: 'üye',
+        tasks: 'görev',
+        archive: 'arşiv',
+        archivePhase: 'Arşiv F5’te açılacak',
+        membersLink: '{name} üyeleri: {n}',
+        tasksLink: '{name} görevleri: {n}',
+        noLead: 'Koordinatör atanmamış',
+        active: 'Son görev hareketi {when}',
+        quiet: 'Sessiz · son görev hareketi {when}',
+        never: 'Sessiz · görev hareketi yok',
+        noStats: 'Sayılar alınamadı',
+        today: 'bugün',
+        yesterday: 'dün',
+        daysAgo: '{n} gün önce',
+        open: 'Sayfasını aç',
+        settings: 'Ayarları düzenle',
+        createTask: 'Görev ata',
+        parent: 'Üst birimi değiştir',
+        deactivate: 'Pasifleştir',
+      },
+      empty: {
+        filteredTitle: 'Bu filtrelerle eşleşen koordinatörlük yok.',
+        clear: 'Süzgeçleri temizle',
+        noneTitle: 'Programa departman katılmamış',
+        noneText:
+          'Bu programa henüz koordinatörlük bağlanmadı. Yeni koordinatörlük oluştur; aynı adla bir departman zaten varsa form mevcut departmanı bu programa eklemeyi önerir.',
+      },
+      footer: {
+        hint: 'Karttaki sayılara tıklayarak birimin üyelerine, görevlerine veya arşivine geç',
+        count: '{shown} / {total} koordinatörlük gösteriliyor',
+      },
+      loading: 'Koordinatörlükler yükleniyor',
+      error: 'Koordinatörlükler yüklenemedi',
+    },
+    /** W74 organizasyon formları (`organization.forms.*`; P3 — tasarımda çizilmemiş). */
+    forms: {
+      common: {
+        cancel: 'Vazgeç',
+        close: 'Kapat',
+        saving: 'Kaydediliyor…',
+      },
+      kind: {
+        koordinatorluk: 'Koordinatörlük',
+        calisma_grubu: 'Çalışma grubu',
+      },
+      role: {
+        coordinator: 'Koordinatör',
+        member: 'Üye',
+      },
+      department: {
+        createTitle: 'Yeni koordinatörlük',
+        createDescription: 'Birim şirket kataloğuna eklenir ve seçili programa bağlanır.',
+        editTitle: 'Koordinatörlüğü düzenle',
+        field: {
+          name: 'Ad',
+          kind: 'Tür',
+          code: 'Kod',
+          codeHint: '2–10 büyük harf ya da rakam (isteğe bağlı).',
+          description: 'Açıklama',
+          displayName: 'Bu programdaki ad',
+          displayNameHint: 'Boş bırakılırsa katalog adı kullanılır.',
+        },
+        error: {
+          name: 'Ad gerekli.',
+          code: 'Kod yalnız A–Z ve 0–9 içeren 2–10 karakter olmalı.',
+          codeRequired: 'Mevcut kod boşaltılamaz.',
+          displayName: 'Programdaki ad 2–120 karakter olmalı.',
+        },
+        submitCreate: 'Oluştur',
+        submitEdit: 'Kaydet',
+        created: 'Koordinatörlük oluşturuldu ve programa eklendi.',
+        partial:
+          'Departman kataloğa eklendi ancak programa bağlanamadı. Programa eklemeyi yeniden deneyin.',
+        exists: {
+          title: 'Bu adla bir departman zaten var.',
+          searching: 'Mevcut departman aranıyor…',
+          found: 'Mevcut "{name}" departmanını bu programa ekleyebilirsiniz.',
+          linked: '"{name}" bu programda zaten var.',
+          deleted: '"{name}" silinmiş bir departman; önce geri yüklenmesi gerekir.',
+          notFound: 'Eşleşen departman listede bulunamadı.',
+        },
+        link: {
+          submit: 'Bu programa ekle',
+          done: 'Departman bu programa eklendi.',
+        },
+        edit: {
+          loading: 'Kayıt okunuyor…',
+          missing: 'Bu koordinatörlük seçili programda bulunamadı.',
+          catalogTitle: 'Katalog bilgileri',
+          catalogWarning: 'Bu değişiklik tüm sezonlarda geçerlidir.',
+          nameDone: 'Programdaki ad güncellendi.',
+          catalogDone: 'Katalog bilgileri güncellendi.',
+          nameFailed: 'Programdaki ad güncellenemedi.',
+          catalogFailed: 'Katalog bilgileri güncellenemedi.',
+          noChange: 'Değişiklik yok.',
+        },
+      },
+      picker: {
+        placeholder: 'Ad ile arayın',
+        loading: 'Aranıyor…',
+        failed: 'Kişi listesi okunamadı.',
+        retry: 'Yeniden dene',
+        empty: 'Eşleşen kişi yok.',
+        more: 'Daha fazla yükle',
+        truncated: 'Liste eksik olabilir; aramayı daraltın.',
+        clear: 'Seçimi kaldır',
+        results: 'Kişiler',
+        selected: 'Seçili: {name}',
+      },
+      coordinator: {
+        title: 'Koordinatör ata',
+        field: 'Kişi',
+        submit: 'Ata',
+        done: 'Koordinatör atandı.',
+        required: 'Bir kişi seçin.',
+      },
+      member: {
+        title: 'Üye ekle',
+        field: 'Kişi',
+        role: 'Rol',
+        submit: 'Ekle',
+        done: 'Üye eklendi.',
+        required: 'Bir kişi seçin.',
+      },
+      user: {
+        title: 'Kullanıcı oluştur',
+        description: 'Hesap açılır ve seçili programdaki birime eklenir.',
+        field: {
+          email: 'E-posta',
+          fullName: 'Ad soyad',
+          department: 'Koordinatörlük',
+          departmentPlaceholder: 'Koordinatörlük seçin',
+          role: 'Rol',
+        },
+        error: {
+          email: 'Geçerli bir e-posta adresi yazın.',
+          department: 'Koordinatörlük seçin.',
+        },
+        noDepartment: 'Seçili programda henüz koordinatörlük yok; önce bir koordinatörlük ekleyin.',
+        submit: 'Oluştur',
+        done: 'Kullanıcı oluşturuldu. Geçici parolasını belirleyebilirsiniz.',
+        exists: 'Bu e-posta ile kayıtlı bir hesap var; liste yenilendi.',
+        transfer: {
+          title: 'Bu e-posta başka bir hesapta kayıtlı.',
+          body: 'Mevcut hesabı bu koordinatörlüğe aktarmak şu an mümkün değil: aktarılacak hesabın kimliği sunucudan gelmiyor.',
+          action: 'Mevcut hesabı bu birime ekle',
+        },
+      },
+      password: {
+        title: 'Geçici parola belirle',
+        description:
+          'Kullanıcı ilk girişte parolasını değiştirmek zorunda kalır. Parolayı kullanıcıya siz iletirsiniz.',
+        field: 'Geçici parola',
+        required: 'Parola gerekli.',
+        submit: 'Belirle',
+        done: 'Geçici parola belirlendi.',
+        doneRevoked: 'Geçici parola belirlendi; {count} oturum kapatıldı.',
+      },
+    },
+    /** 08b Koordinatörlük detayı (`organization.coordinatorship.*`; E-08-50…90; W73). */
+    coordinatorship: {
+      page: {
+        loading: 'Koordinatörlük yükleniyor',
+        error: 'Koordinatörlük yüklenemedi',
+        missingTitle: 'Bu koordinatörlük seçili programda yok',
+        missingText: 'Koordinatörlük başka bir programa ait olabilir ya da programdan çıkarılmış.',
+        truncated: 'Koordinatörlük listesi sınıra ulaşmış olabilir; liste eksik olabilir.',
+        back: 'Koordinatörlüklere dön',
+      },
+      head: {
+        people: '{n} kişi',
+        peopleUnknown: 'Kişi sayısı okunamadı',
+        message: 'Ekibe mesaj',
+        assign: 'Görev ata',
+        more: 'Diğer işlemler: düzenle, birleştir, pasifleştir',
+        edit: 'Düzenle',
+        merge: 'Birleştir',
+        deactivate: 'Pasifleştir',
+      },
+      phase: {
+        f3: 'F3’te',
+        f4: 'F4’te',
+        f5: 'F5’te',
+        f7: 'F7’de',
+      },
+      tabs: {
+        label: 'Koordinatörlük',
+        genel: 'Genel bakış',
+        uyeler: 'Üyeler',
+        gorevler: 'Görevler',
+        arsiv: 'Arşiv',
+        toplantilar: 'Toplantılar',
+        ayarlar: 'Ayarlar',
+      },
+      kpi: {
+        region: 'Özet',
+        open: 'açık görev',
+        openNote: '{total} görevin {done}{suffix} bitti',
+        overdue: 'geciken',
+        overdueNote: 'En uzunu {days} gün',
+        overdueNone: 'Geciken görev yok',
+        completion: 'tamamlanma',
+        completionValue: '%{p}',
+        completionNote: 'Sezon ortalaması %{p}',
+        dateRequest: 'tarih talebi',
+        dateRequestNone: 'Bekleyen talep yok',
+        archive: 'arşiv',
+        loaded: 'yüklenen kayıtlar içinde',
+        error: 'Özet yüklenemedi',
+        empty: '—',
+      },
+      about: {
+        title: 'Hakkında',
+        edit: 'Düzenle',
+        founded: 'Kuruluş',
+        archive: 'Arşiv klasörü',
+        visibility: 'Görünürlük',
+        none: '—',
+      },
+      team: {
+        title: 'Ekip',
+        add: 'Üye ekle',
+        all: 'Tüm üyeler',
+        coordinator: 'Koordinatör',
+        open: '{n} açık iş',
+        loaded: 'Açık iş sayıları yüklenen kayıtlar içinde',
+        empty: 'Bu koordinatörlükte henüz kimse yok',
+        error: 'Ekip yüklenemedi',
+        truncated: 'Ekip listesi eksik olabilir',
+      },
+      attention: {
+        title: 'Dikkat gerektirenler',
+        all: 'Tümü',
+        code: '{code}-—',
+        dateRequest: 'tarih talebi var',
+        late: '{days} gün gecikti',
+        empty: 'Geciken görev yok',
+        loaded: 'Yüklenen kayıtlar içinde',
+        error: 'Görevler yüklenemedi',
+      },
+      shortcuts: {
+        title: 'Kısayollar',
+        tasks: 'Görevlerde aç',
+        timeline: 'Zaman çizelgesinde gör',
+        archive: 'Arşiv klasörü',
+        meeting: 'Toplantı planla',
+      },
+      activity: {
+        title: 'Son etkinlik',
+        empty: 'Etkinlik akışı henüz yok',
+      },
+      members: {
+        label: 'Üyeler',
+        add: 'Üye ekle',
+        coordinator: 'Koordinatör',
+        member: 'Üye',
+        deleted: 'silinmiş',
+        menu: '{name} işlemleri',
+        makeCoordinator: 'Koordinatör yap',
+        makeMember: 'Üye yap',
+        remove: 'Ekipten çıkar',
+        empty: 'Bu koordinatörlükte henüz kimse yok',
+        error: 'Üyeler yüklenemedi',
+        truncated: 'Üye listesi eksik olabilir',
+        roleTitle: 'Rolü değiştir',
+        roleText: '{name} kişisinin bu koordinatörlükteki rolü değişecek.',
+        roleConfirm: 'Rolü değiştir',
+        removeTitle: 'Ekipten çıkar',
+        removeText: '{name} bu koordinatörlüğün ekibinden çıkarılacak.',
+        removeConfirm: 'Çıkar',
+        changed: 'Rol güncellendi',
+        removed: 'Ekipten çıkarıldı',
+      },
+      tasks: {
+        label: 'Görev özeti',
+        total: 'Toplam görev',
+        completed: 'Tamamlanan',
+        open: 'Açık',
+        overdue: 'Geciken',
+        open03: 'Görevlerde aç',
+        none: '—',
+      },
+      settings: {
+        label: 'Ayarlar',
+        name: 'Programdaki ad',
+        code: 'Kod',
+        description: 'Açıklama',
+        edit: 'Düzenle',
+        none: '—',
+      },
+    },
+    /**
+     * 05 Kullanıcılar (`organization.users.*`; W75, E-05-01…38 + satır dışı hesap eylemleri).
+     * "Yüklenen kayıtlar içinde" etiketi imleç bitmemişken her sayacın yanında (ortak-kurallar §10).
+     */
     users: {
       title: 'Kullanıcılar',
       summary: {
