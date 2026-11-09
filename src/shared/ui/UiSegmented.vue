@@ -10,7 +10,9 @@ import UiIcon from './UiIcon.vue'
 
 /**
  * Segment denetimi (`rp-seg`, `role="group"`, düğmelerde `aria-pressed`). Tek seçim; `allowEmpty`
- * iken basılı düğmeye yeniden basmak seçimi kaldırır (tekli aç/kapa süzgeci). Sayaç parantezli.
+ * iken basılı düğmeye yeniden basmak seçimi kaldırır (tekli aç/kapa süzgeci). Sayaç biçimi
+ * tasarım kaynağına göre: varsayılan parantezli (`Gorevler-Liste.dc.html` "Tümü (263)"),
+ * `parens=false` ile parantezsiz (`Kullanicilar.dc.html` / `Koordinatorlukler.dc.html` "Tümü 185").
  * Klavye: ←/→, Home/End odağı taşır; Enter/Boşluk seçer (yerel düğme).
  */
 const props = withDefaults(
@@ -19,8 +21,9 @@ const props = withDefaults(
     label: string
     allowEmpty?: boolean
     disabled?: boolean
+    parens?: boolean
   }>(),
-  { allowEmpty: false, disabled: false },
+  { allowEmpty: false, disabled: false, parens: true },
 )
 const model = defineModel<V | null>({ default: null })
 const root = ref<HTMLElement | null>(null)
@@ -47,7 +50,7 @@ function onKeydown(event: KeyboardEvent): void {
     >
       <UiIcon v-if="option.icon" :name="option.icon" size="sm" />
       {{ option.label }}
-      <UiCount v-if="option.count !== undefined" :value="option.count" parens />
+      <UiCount v-if="option.count !== undefined" :value="option.count" :parens="parens" />
     </button>
   </div>
 </template>

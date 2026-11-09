@@ -83,7 +83,13 @@ onBeforeUnmount(cancel)
 <template>
   <div class="rp-toolbar users-toolbar">
     <div class="rp-tgroup users-tabs">
-      <UiSegmented v-model="tabModel" :options="options" :label="usersText('users.tabs.label')" />
+      <!-- Sayaç parantezsiz: Kullanicilar.dc.html "Tümü 185" (F2 görsel doğrulaması K-4). -->
+      <UiSegmented
+        v-model="tabModel"
+        :options="options"
+        :label="usersText('users.tabs.label')"
+        :parens="false"
+      />
       <span v-if="!complete" class="rp-cap" data-testid="tabs-partial">
         {{ usersText('users.partial') }}
       </span>
