@@ -10,6 +10,8 @@ export const trUserTracking = {
   userTracking: {
     documentTitle: 'RoketPortal — {name}',
     unknownPerson: 'Bilinmeyen kişi',
+    aside: 'Takvim ve özet',
+    retry: 'Yeniden dene',
     head: {
       unassigned: 'Atanmamış',
       moreUnits: '{first} +{n}',
@@ -79,7 +81,7 @@ export const trUserTracking = {
     table: {
       label: '{name} görevleri',
       task: 'görev',
-      status: 'durum',
+      statusHeader: 'durum',
       due: 'bitiş',
       evidence: 'kanıt',
       open: '{title} görevini aç',
