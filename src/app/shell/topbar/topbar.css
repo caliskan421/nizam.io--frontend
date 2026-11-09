@@ -27,6 +27,18 @@
     .rp-topbar .rp-navtoggle {
       display: inline-flex;
     }
+    /* 390 px'te tarih konum izini sıfıra ezip zili ekran dışına itiyordu; dar ekranda gizli. */
+    .rp-topbar .rp-kicker {
+      display: none;
+    }
+    /* Konum izi bağlantıları da üç noktayla kesilir; önce bağlantı daralır, son parça korunur.
+       Özgüllük artırıldı: derleyici medya kuralını temel `.rp-crumbs a`'nın önüne taşıyabiliyor. */
+    .rp-topbar .rp-crumbs a {
+      flex: 0 100 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   /* Geri / İleri */

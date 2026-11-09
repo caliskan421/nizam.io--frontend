@@ -17,6 +17,17 @@ describe('üst çubuk — dar ekran', () => {
     expect(css.slice(media)).toMatch(/\.rp-topbar \.rp-navtoggle \{\s*display: inline-flex;/)
   })
 
+  it('dar ekranda tarih gizli (konum izi ve zil sığar)', () => {
+    expect(css.slice(media)).toMatch(/\.rp-topbar \.rp-kicker \{\s*display: none;/)
+  })
+
+  it('dar ekranda konum izi bağlantısı önce daralır, üç noktalı kesilir', () => {
+    const rule = /\.rp-topbar \.rp-crumbs a \{([^}]*)\}/.exec(css.slice(media))?.[1] ?? ''
+    expect(rule).toContain('flex: 0 100 auto')
+    expect(rule).toContain('min-width: 0')
+    expect(rule).toContain('text-overflow: ellipsis')
+  })
+
   it('konum izi son parçası üç noktalı kesilir', () => {
     const rule = /\.rp-crumbs strong \{([^}]*)\}/.exec(css)?.[1] ?? ''
     for (const decl of [
