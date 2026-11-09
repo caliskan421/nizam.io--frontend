@@ -11,4 +11,6 @@ export {
   type ConfirmOptions,
   type ConfirmRequest,
   type ConfirmTone,
+  type ConfirmWriteOptions,
+  type StartWrite,
 } from './use-confirm'

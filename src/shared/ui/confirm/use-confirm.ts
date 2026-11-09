@@ -24,7 +24,7 @@ import { getActivePinia } from 'pinia'
 import { computed, getCurrentScope, onScopeDispose, shallowRef } from 'vue'
 
 import { authSession } from '@/shared/http'
-import { sameScope, type MutationOutcome } from '@/shared/http/mutation'
+import { sameScope, type ActionContext, type MutationOutcome } from '@/shared/http/mutation'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -110,10 +110,10 @@ function bindWatchers(): void {
   }
 }
 
-function enqueue(entry: NewEntry): number {
+function enqueue(entry: NewEntry, context: ConfirmContext = captureContext()): number {
   const { options, items, onAccept, onCancel } = entry
   const request: ConfirmRequest = { id: nextId++, options, items, busy: false }
-  queue.value = [...queue.value, { request, context: captureContext(), onAccept, onCancel }]
+  queue.value = [...queue.value, { request, context, onAccept, onCancel }]
   bindWatchers()
   return request.id
 }
@@ -138,7 +138,7 @@ async function accept(id: number): Promise<void> {
   // Savunma derinliği: dinleyici kaçırsa da bayat bağlamda kabul = vazgeç.
   if (!isCurrent(entry.context)) return cancel(id)
   setBusy(id, true)
-  let settle: (() => void) | undefined
+  let settle: () => void = entry.onCancel
   try {
     settle = await entry.onAccept()
   } finally {
@@ -174,6 +174,54 @@ function confirm(options: ConfirmOptions, track: Track | null): Promise<boolean>
     if (!owner) return resolve(false)
     const onAccept = () => Promise.resolve(() => resolve(true))
     owner(enqueue({ options, items: [], onAccept, onCancel: () => resolve(false) }))
+  })
+}
+
+/** Kabulde yazmayı başlatır: onayın yakaladığı bağlam (`submit(vars, { context })`) verilir. */
+export type StartWrite<T> = (context: ActionContext) => Promise<T>
+
+export interface ConfirmWriteOptions {
+  /**
+   * Onayı doğuran İLK eylemin bağlamı (ör. `MutationFailed.context`). Verilirse onay bu
+   * bağlamla açılır; açılış anında zaten bayatsa onay hiç açılmaz (sessiz vazgeç, `null`).
+   */
+  context?: ActionContext
+}
+
+/** Onayın bağlamı: verilen ilk eylem bağlamı (güncel değilse `null`) ya da şimdiki an. */
+function openContext(given: ActionContext | undefined): ConfirmContext | null {
+  const now = captureContext()
+  if (!given) return now
+  const candidate: ConfirmContext = {
+    scope: given.scope ? { ...given.scope } : null,
+    generation: given.generation ?? now.generation,
+    accountId: now.accountId,
+  }
+  return isCurrent(candidate) ? candidate : null
+}
+
+/**
+ * Yazma başlatan onay (CX-F1-E-02): kabulde `start(context)` aynı anda (kabul denetiminin
+ * hemen ardından, araya `await` girmeden) çağrılır; yazma onayın yakaladığı bağlamla kurulur ve
+ * motor kapısı gönderimden hemen önce bağlamı güncel değerle karşılaştırır — onay ile yazma
+ * başlangıcı arasında kapsam/oturum değişse de yeni bağlamda yazma başlamaz. Pencere yazma
+ * bitene dek açık (meşgul) kalır. Vazgeç/iptal → `null`; kabul → `start`'ın sonucu.
+ */
+function confirmWrite<T>(
+  options: ConfirmOptions,
+  start: StartWrite<T>,
+  opts: ConfirmWriteOptions,
+  track: Track | null,
+): Promise<T | null> {
+  const owner = requireOwner(track)
+  return new Promise((resolve) => {
+    const context = owner ? openContext(opts.context) : null
+    if (!owner || !context) return resolve(null)
+    const onAccept = async () => {
+      const value = await start({ scope: context.scope, generation: context.generation })
+      return () => resolve(value)
+    }
+    owner(enqueue({ options, items: [], onAccept, onCancel: () => resolve(null) }, context))
   })
 }
 
@@ -235,6 +283,11 @@ export function useConfirm() {
     /** Gösterilen istek (kuyruğun başı). */
     current: computed(() => queue.value[0]?.request ?? null),
     confirm: (options: ConfirmOptions) => confirm(options, track),
+    confirmWrite: <T>(
+      options: ConfirmOptions,
+      start: StartWrite<T>,
+      opts: ConfirmWriteOptions = {},
+    ) => confirmWrite(options, start, opts, track),
     confirmImpact: <V, D, S>(outcome: ConfirmationRequired<V, D, S>, options: ConfirmOptions) =>
       confirmImpact(outcome, options, track),
     accept,

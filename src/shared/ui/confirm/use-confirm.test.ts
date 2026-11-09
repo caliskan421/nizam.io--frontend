@@ -5,7 +5,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, effectScope, type EffectScope } from 'vue'
 
 import { api as appApi, authSession } from '@/shared/http'
@@ -345,5 +345,51 @@ describe('onay yaşam döngüsü (CX-F1-E-02) — sıfır yazma kanıtı', () =>
     expect(await pending).toBeNull()
     expect(calls).toBe(1)
     stop()
+  })
+})
+
+describe('confirmWrite — yazma onayın bağlamıyla başlar (CX-F1-E-02)', () => {
+  const A = { programId: 'p1', lens: 'coordinator', departmentId: 'd1' } as const
+  const B = { programId: 'p2', lens: 'coordinator', departmentId: 'd3' } as const
+
+  function scoped() {
+    setActivePinia(createPinia())
+    const store = useScopeStore()
+    store.commit(A)
+    return store
+  }
+
+  it('verilen ilk eylem bağlamı açılışta bayatsa onay hiç açılmaz (null), start çağrılmaz', async () => {
+    const store = scoped()
+    const first = { scope: { ...store.snapshot }, generation: authSession.generation }
+    store.commit(B)
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    const result = ownedConfirm().confirmWrite(OPTIONS, start, { context: first })
+    expect(useConfirm().current.value).toBeNull()
+    expect(await result).toBeNull()
+    expect(start).not.toHaveBeenCalled()
+  })
+
+  it('kabul → start onayın yakaladığı bağlamla, kabulle AYNI anda çağrılır; sonuç döner', async () => {
+    const store = scoped()
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    const result = ownedConfirm().confirmWrite(OPTIONS, start)
+    const accepting = useConfirm().accept(useConfirm().current.value!.id)
+    // `accept` ile `start` arasında araya giren iş yok: kabul döner dönmez yazma başlamış.
+    expect(start).toHaveBeenCalledWith({
+      scope: { ...store.snapshot },
+      generation: authSession.generation,
+    })
+    await accepting
+    expect(await result).toBe('yazıldı')
+  })
+
+  it('vazgeç → null, start çağrılmaz', async () => {
+    scoped()
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    const result = ownedConfirm().confirmWrite(OPTIONS, start)
+    useConfirm().cancel(useConfirm().current.value!.id)
+    expect(await result).toBeNull()
+    expect(start).not.toHaveBeenCalled()
   })
 })

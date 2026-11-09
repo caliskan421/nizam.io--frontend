@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, type PropType } from 'vue'
 
+import { authSession } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useToast } from '@/shared/ui'
 import { useConfirm } from '@/shared/ui/confirm'
@@ -21,7 +22,10 @@ import { formsHarness, ME, resetForms, type WhoSeed } from './__tests__/forms-ha
 import { useStatusTransition } from './use-status-transition'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
-afterEach(() => resetForms())
+afterEach(() => {
+  resetForms()
+  if (authSession.snapshot.accountId) authSession.clear()
+})
 afterAll(() => server.close())
 
 const PATH = '/v1/work-items/w1/transitions'
@@ -199,5 +203,82 @@ describe('subtasks_open onayı — yaşam döngüsü (CX-F1-E-02)', () => {
     await dialog.accept(id)
     await h.flush()
     expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+  /** Elle bırakılan yanıt kapısı (gerçek süre beklemesi yok). */
+  function hold() {
+    let arrive!: () => void
+    let release!: () => void
+    const arrived = new Promise<void>((r) => (arrive = r))
+    const released = new Promise<void>((r) => (release = r))
+    return { arrived, release, wait: () => (arrive(), released) }
+  }
+
+  /** İlk geçiş yanıtı (409 subtasks_open) elle bırakılır; ikinci gönderim sayılır. */
+  function delayedSubtasksOpen() {
+    const gate = hold()
+    server.use(
+      http.post(`${ORIGIN}${PATH}`, async () => {
+        await gate.wait()
+        return errorEnvelope('work.subtasks_open', 409)
+      }),
+    )
+    return gate
+  }
+
+  const login = (accountId: string) => ({
+    token: `tok-${accountId}`,
+    account_id: accountId,
+    expires_at: Math.floor(Date.now() / 1000) + 900,
+    force_password_change: false,
+  })
+
+  it('(b) ilk geçiş beklerken kapsam A→B → geç 409: onay açılmaz, ikinci POST 0', async () => {
+    const gate = delayedSubtasksOpen()
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    gate.release()
+    await done
+    await h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+
+  it('(b) ilk geçiş beklerken çıkış → başka hesapla giriş → geç 409: onay açılmaz, ikinci POST 0', async () => {
+    authSession.establish(login('acc-x'))
+    const gate = delayedSubtasksOpen()
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    authSession.clear()
+    authSession.establish(login('acc-y'))
+    gate.release()
+    await done
+    await h.flush()
+    expect(useConfirm().current.value).toBeNull()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }])
+  })
+
+  it('(d) değişmeyen bağlamda geç 409 → onay → ikinci POST ilk geçişin bağlamıyla gider', async () => {
+    let calls = 0
+    const gate = hold()
+    server.use(
+      http.post(`${ORIGIN}${PATH}`, async () => {
+        if (++calls > 1) return json(result('tamamlandi'))
+        await gate.wait()
+        return errorEnvelope('work.subtasks_open', 409)
+      }),
+    )
+    const { h, api } = mountProbe()
+    const done = api.choose('tamamlandi')
+    await gate.arrived
+    gate.release()
+    await vi.waitFor(() => expect(useConfirm().current.value).not.toBeNull())
+    await useConfirm().accept(useConfirm().current.value!.id)
+    await done
+    await h.flush()
+    expect(bodies()).toEqual([{ to: 'tamamlandi' }, { to: 'tamamlandi', close_subtasks: true }])
+    expect(sent('POST', PATH)[1]!.headers.get('X-Nizamio-Department')).toBe('d2')
   })
 })
