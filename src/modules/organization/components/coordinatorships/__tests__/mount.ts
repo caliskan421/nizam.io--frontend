@@ -4,7 +4,7 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import type { Component } from 'vue'
+import { defineComponent, type Component, type VNode } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import type { ScopeSelection } from '@/shared/scope/resolve'
@@ -76,6 +76,24 @@ export function dashboard(stats: CoordinatorshipStat[], totalUsers = 12) {
     total_tasks: 0,
     total_users: totalUsers,
   }
+}
+
+/**
+ * Komşu W bileşeninin sözleşme adlı taslağı (TASLAK; O4 entegrasyon turu girdisi). Prop'lar
+ * tipsiz kabul edilir; render yalnız gözlem öznitelikleri basar.
+ */
+export function stubComponent(
+  name: string,
+  props: string[],
+  emits: string[],
+  render: (p: Record<string, unknown>) => VNode,
+) {
+  return defineComponent({
+    name,
+    props: Object.fromEntries(props.map((p) => [p, { type: null }])),
+    emits,
+    setup: (p) => () => render(p),
+  })
 }
 
 const mounted: VueWrapper[] = []

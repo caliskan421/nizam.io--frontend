@@ -22,7 +22,9 @@ export const DEFAULT_COORDS_STATE: CoordsUrlState = { search: '', direction: 'ar
 const TEXT_MAX = 200
 
 function first(raw: unknown): string | undefined {
-  const value = Array.isArray(raw) ? (raw as unknown[]).find((v) => typeof v === 'string') : raw
+  const value = Array.isArray(raw)
+    ? (raw as unknown[]).find((v) => typeof v === 'string' && v !== '')
+    : raw
   return typeof value === 'string' && value !== '' ? value : undefined
 }
 
