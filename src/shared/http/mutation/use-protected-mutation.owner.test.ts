@@ -118,7 +118,7 @@ describe('useProtectedMutation — sahip yaşamı (CX-F1-E-05)', () => {
     expect(outcome).toMatchObject({ kind: 'owner_disposed', draft: body })
     expect(calls).toEqual([])
     // Metin anahtarı i18n'de vardır; bildirim üretilmez (notify.test.ts).
-    expect(outcomeMessage(outcome).key).toBe('mutation.outcome.unknown')
+    expect(outcomeMessage(outcome).key).toBe('mutation.outcome.owner_disposed')
   })
 
   it('sonuç bilinmiyor → sökülme → retry HTTP göndermez (owner_disposed, aynı anahtar)', async () => {

@@ -171,9 +171,8 @@ export function outcomeMessage(outcome: MutationOutcome<unknown, unknown>): Outc
     case 'scope_changed':
       return { key: 'mutation.outcome.scope_changed' }
     case 'owner_disposed':
-      // Gösterilmez (dinleyen ekran yok; `outcomeToast` null). Metin gerekirse en temkinli
-      // protokol metni: istek gönderilmedi, taslak korunur, yeniden gönderilebilir.
-      return { key: 'mutation.outcome.unknown' }
+      // Gösterilmez (dinleyen ekran yok; `outcomeToast` null); anahtar yine eksiksizdir.
+      return { key: 'mutation.outcome.owner_disposed' }
     case 'failed':
       return { key: outcome.error.messageKey }
   }
