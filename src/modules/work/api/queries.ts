@@ -9,8 +9,6 @@
 import {
   useInfiniteQuery,
   useQuery,
-  useQueryClient,
-  type InfiniteData,
   type QueryFunctionContext,
   type QueryKey,
 } from '@tanstack/vue-query'
@@ -18,9 +16,10 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { queryKeys } from '@/shared/http/query-keys'
 import { fetchMyDepartments } from '@/shared/scope/standing'
+import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { resolveTarget } from '../model/target'
+import { listDepartmentFilter, resolveTarget } from '../model/target'
 import type { WorkItem, WorkItemList, WorkItemResource, WorkTarget } from '../model/types'
 import {
   fetchFiles,
@@ -40,24 +39,25 @@ const STALE_MS = 30_000
  * süzgeç; fan-out değil, §9). `complete` imleç bittiğinde `true`: yalnız o zaman sayaçlar
  * kesindir; aksi "yüklenen kayıtlar içinde" (§10, P4). İmleç URL'de taşınmaz.
  */
+/** Liste sorgusunun seçenekleri: `useWorkItemList` ve `useWorkItemTarget` AYNI anahtarı paylaşır. */
+function listOptions(scope: ScopeSnapshot, departmentId: string | null, fetchEnabled: boolean) {
+  const programId = scope.programId
+  return {
+    queryKey: queryKeys.workItems.list(scope, { department: departmentId }),
+    queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
+      fetchWorkItemPage({ programId: programId ?? '' }, departmentId, pageParam, signal),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last: WorkItemList) => last.next_cursor || undefined,
+    enabled: fetchEnabled && programId !== null,
+    retry: retryTransient,
+    staleTime: STALE_MS,
+  }
+}
+
 export function useWorkItemList(department: MaybeRefOrGetter<string | null>) {
   const store = useScopeStore()
   const query = useInfiniteQuery(
-    computed(() => {
-      const scope = store.snapshot
-      const departmentId = toValue(department)
-      const programId = scope.programId
-      return {
-        queryKey: queryKeys.workItems.list(scope, { department: departmentId }),
-        queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-          fetchWorkItemPage({ programId: programId ?? '' }, departmentId, pageParam, signal),
-        initialPageParam: undefined as string | undefined,
-        getNextPageParam: (last: WorkItemList) => last.next_cursor || undefined,
-        enabled: programId !== null,
-        retry: retryTransient,
-        staleTime: STALE_MS,
-      }
-    }),
+    computed(() => listOptions(store.snapshot, toValue(department), true)),
   )
   const items = computed<WorkItem[]>(
     () => query.data.value?.pages.flatMap((page) => page.items) ?? [],
@@ -125,23 +125,32 @@ export function useWorkItemNotes(
 }
 
 /**
- * Yalnız kimlik bilinirken (derin bağlantı `?gorev=`) hedef: yüklenmiş liste sayfalarındaki
- * satır → görevin kendi kapsamı; yoksa K/Ü merceğinde seçili birim; Admin merceğinde `null`.
+ * Yalnız kimlik bilinirken (derin bağlantı `?gorev=`) hedef: liste sorgusundaki satır → görevin
+ * kendi kapsamı; yoksa K/Ü merceğinde seçili birim; Admin merceğinde `null`.
+ *
+ * Liste verisine REAKTİFTİR: aynı anahtarla, kendisi istek atmayan (`enabled: false`) bir
+ * gözlemci kurulur; liste sonradan yüklenince (ya da "daha fazla yükle" ile satır gelince) hedef
+ * yeniden hesaplanır, kapsam değişince anahtar değişir ve sıfırlanır. `listDepartment` listenin
+ * kullandığı `department_id`'dir; verilmezse `listDepartmentFilter(kapsam, null)` (Admin'de
+ * süzgeçsiz liste, K/Ü'de seçili birim). Admin koordinatörlük süzgeci açıksa çağıran onu verir.
  */
-export function useWorkItemTarget(workItemId: MaybeRefOrGetter<string | null>) {
+export function useWorkItemTarget(
+  workItemId: MaybeRefOrGetter<string | null>,
+  listDepartment?: MaybeRefOrGetter<string | null | undefined>,
+) {
   const store = useScopeStore()
-  const client = useQueryClient()
+  const list = useInfiniteQuery(
+    computed(() => {
+      const scope = store.snapshot
+      const department = toValue(listDepartment) ?? listDepartmentFilter(scope, null)
+      return listOptions(scope, department, false)
+    }),
+  )
   return computed<WorkTarget | null>(() => {
     const id = toValue(workItemId)
     if (id === null) return null
-    const scope = store.snapshot
-    const lists = client.getQueriesData<InfiniteData<WorkItemList>>({
-      queryKey: queryKeys.workItems.all(scope),
-    })
-    const listed = lists.flatMap(([, data]) =>
-      data && 'pages' in data ? data.pages.flatMap((page) => page.items) : [],
-    )
-    return resolveTarget(id, scope, listed)
+    const listed = list.data.value?.pages.flatMap((page) => page.items) ?? []
+    return resolveTarget(id, store.snapshot, listed)
   })
 }
 

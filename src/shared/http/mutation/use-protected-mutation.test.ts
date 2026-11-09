@@ -2,7 +2,7 @@ import { QueryClient } from '@tanstack/vue-query'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { effectScope } from 'vue'
+import { effectScope, isProxy, reactive, ref } from 'vue'
 
 import type { components } from '@/shared/api/schema'
 import type { ApiError } from '@/shared/errors/api-error'
@@ -14,7 +14,11 @@ import { BASE, noopCoordination } from '../../../../tests/support/fake-backend'
 import { createApiClient } from '../client'
 import { queryKeys } from '../query-keys'
 import type { MutationOutcome } from './outcome'
-import { useProtectedMutation, type ProtectedMutationOptions } from './use-protected-mutation'
+import {
+  toPlainVars,
+  useProtectedMutation,
+  type ProtectedMutationOptions,
+} from './use-protected-mutation'
 
 type CreateBody = components['schemas']['CreateWorkItemRequest']
 
@@ -377,5 +381,52 @@ describe('useProtectedMutation', () => {
     })
     expect(calls).toBe(1)
     stop()
+  })
+})
+
+describe('Vue vekili taşıyan değişkenler (toPlainVars)', () => {
+  it('reactive + iç içe ref: gönderim başarılı, gövde dondurulmuş düz kopya', async () => {
+    const bodies: unknown[] = []
+    server.use(
+      http.post(`${BASE}/v1/work-items`, async ({ request }) => {
+        bodies.push(await request.json())
+        return HttpResponse.json({ id: 'w1' }, { status: 201 })
+      }),
+    )
+    let seen: unknown
+    const { mutation, stop } = setup<CreateBody, unknown>({
+      operation: 'createWorkItem',
+      send: (vars, ctx) => {
+        seen = vars
+        return api.POST('/v1/work-items', { params: { header: ctx.headers }, body: vars })
+      },
+    })
+    const form = reactive({ ...body, title: ref('Taslak') })
+    const outcome = await mutation.submit(form)
+    expect(outcome.kind).toBe('success')
+    expect(isProxy(seen)).toBe(false)
+    expect(seen).toEqual({ ...body, title: 'Taslak' })
+    expect(bodies).toEqual([{ ...body, title: 'Taslak' }])
+    // Gönderimden sonra formu değiştirmek dondurulmuş gövdeyi etkilemez.
+    ;(form as { title: string }).title = 'Değişti'
+    expect(seen).toEqual({ ...body, title: 'Taslak' })
+    stop()
+  })
+
+  it('File/Blob/FormData/Date aynen korunur; diziler ve döngüler açılır', () => {
+    const file = new File(['abc'], 'a.txt')
+    const form = new FormData()
+    const date = new Date(0)
+    const node: Record<string, unknown> = { name: 'kök' }
+    node.self = node
+    const input = reactive({ file, form, date, list: [ref(1), reactive({ x: 2 })], node })
+    const plain = toPlainVars(input)
+    expect(isProxy(plain)).toBe(false)
+    expect(plain.file).toBe(file)
+    expect(plain.form).toBe(form)
+    expect(plain.date).toBe(date)
+    expect(plain.list).toEqual([1, { x: 2 }])
+    expect(isProxy(plain.list[1])).toBe(false)
+    expect(plain.node.self).toBe(plain.node)
   })
 })

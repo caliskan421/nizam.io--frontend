@@ -1,0 +1,107 @@
+/*
+ * W45 görev formları — durum etiketi/seçici `Gorevler-Liste.dc.html` (`rp-status`, `rp-dot--*`,
+ * `rp-selbtn`; theme.css "Durum") birebir; yeni görev ve gerekçe pencereleri çizilmemiş (P3:
+ * `shared/ui` + en sade yerleşim). Kural: yalnız token; ölçek dışı değerler `--ui-*`
+ * (`shared/ui/styles/metrics.css`). Açık tema token'larla (`--rp-done-fill`).
+ */
+@layer components {
+  .wf-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .wf-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .wf-extra {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .wf-extra legend {
+    padding: 0;
+    margin-bottom: var(--space-2);
+  }
+  .wf-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+    color: var(--ink);
+    font: var(--text-body);
+    cursor: pointer;
+  }
+  .wf-textarea {
+    height: auto;
+    min-height: calc(var(--control-md) * 2);
+    padding: var(--space-3) var(--space-4);
+    resize: vertical;
+  }
+
+  /* Durum (E-03-23/44) */
+  .wf-status {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .wf-status__pop {
+    top: calc(100% + var(--space-1));
+    left: 0;
+    min-width: 100%;
+  }
+  .rp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--ui-text-sm-medium);
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .rp-dot {
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--space-2);
+    height: var(--space-2);
+    border-radius: var(--radius-full);
+  }
+  .rp-dot--todo {
+    border: var(--ui-check-border) solid var(--ink-faint);
+  }
+  .rp-dot--doing {
+    background: var(--violet);
+  }
+  .rp-dot--review {
+    background: var(--gold);
+  }
+  .rp-dot--back,
+  .rp-dot--late {
+    background: var(--danger);
+  }
+  .rp-dot--done {
+    background: var(--rp-done-fill);
+  }
+  .rp-selbtn {
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+    gap: var(--ui-gap-xs);
+    padding: 0 var(--ui-gap-sm) 0 var(--space-3);
+    font-size: var(--ui-fs-sm);
+  }
+  .rp-selbtn > span {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .rp-selbtn > .t-icon {
+    flex: none;
+    margin-right: var(--ui-gap-2xs);
+  }
+}

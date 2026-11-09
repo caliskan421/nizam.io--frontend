@@ -1,0 +1,126 @@
+/*
+ * Alt görev görünümü — `Gorevler-Liste.dc.html` artboard stilleri: satır içi blok (`rp-subs`,
+ * `rp-stask`, `rp-subslot`, `rp-strike`, `rp-stask--add`) ve panel sekmesi (`rp-dsubs`,
+ * `rp-dsub`, `rp-dsubs__bar`), tarih açılırı (`rp-dr`), menü başlığı (`rp-thpop__title`).
+ * Kural: yalnız token (`var(--…)`); ham renk yok, px yalnız subtasks-metrics.css'te (medya
+ * koşulu hariç: değer `--rp-narrow-max` ile aynı). Açık tema yalnız token değişimiyle; tarih
+ * girişinin `color-scheme`'i temaya göre. Eksik vurgusu (`data-miss`) ve "*" yok (P5, BE-006).
+ */
+@import './subtasks-metrics.css';
+@import './subtasks-parts.css';
+
+@layer components {
+  /* Satır içi blok (E-03-30…37) */
+  .rp-subs {
+    padding: var(--sub-pad-top) var(--space-4) var(--space-3) var(--sub-indent);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-raised) 55%, transparent);
+  }
+  .rp-subs__cell,
+  .rp-dsubs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sub-gap-2xs);
+    min-width: 0;
+  }
+  .rp-subs__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--sub-gap-2xs) 0 var(--space-2);
+    flex-wrap: wrap;
+  }
+  .rp-subs .rp-kicker,
+  .rp-dsubs .rp-kicker {
+    margin: 0;
+    font: var(--m-kicker);
+    letter-spacing: var(--m-kicker-tracking);
+    color: var(--ink-muted);
+  }
+  .rp-subs .rp-cap,
+  .rp-dsubs .rp-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+
+  .rp-stask {
+    display: grid;
+    grid-template-columns:
+      var(--sub-check) minmax(0, 1fr) var(--sub-col-person) var(--sub-col-date)
+      var(--sub-col-file) var(--sub-col-menu);
+    gap: var(--sub-gap-sm);
+    align-items: center;
+    min-height: var(--space-10);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-xs);
+  }
+  .rp-stask:hover {
+    background: var(--bg-raised);
+  }
+  .rp-stask--add {
+    grid-template-columns: var(--sub-check) minmax(0, 1fr) auto;
+  }
+  .rp-stask--add:hover {
+    background: none;
+  }
+  .sub-slots {
+    display: contents;
+  }
+  .sub-cell {
+    position: relative;
+    min-width: 0;
+  }
+  .sub-check {
+    width: var(--sub-check);
+    height: var(--sub-check);
+  }
+  .rp-subs .t-check,
+  .rp-dsubs .t-check {
+    width: 100%;
+    height: 100%;
+  }
+  .sub-check[data-pending='true'] {
+    opacity: 0.5;
+    cursor: progress;
+  }
+
+  .rp-stask__title,
+  .rp-dsub__t {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--sub-fs-sm);
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  button.rp-stask__title {
+    cursor: pointer;
+  }
+  .rp-strike {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 58%;
+    background-size: 0% var(--sub-strike);
+    transition: background-size 0.2s ease;
+  }
+  [data-done='true'] > .rp-stask__title,
+  [data-done='true'] > .rp-dsub__t {
+    color: var(--ink-muted);
+  }
+  [data-done='true'] .rp-strike {
+    background-size: 100% var(--sub-strike);
+    color: var(--ink-muted);
+  }
+  .rp-stask[data-done='true'],
+  .rp-dsub[data-done='true'] {
+    opacity: 0.62;
+  }
+}

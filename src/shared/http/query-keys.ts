@@ -58,7 +58,12 @@ export const queryKeys = {
     all: () => ['users'] as const,
     list: (filters: QueryFilters) => ['users', filters] as const,
   },
-  departments: { all: (s: ScopeSnapshot) => scoped(s, ['departments']) },
+  departments: {
+    all: (s: ScopeSnapshot) => scoped(s, ['departments']),
+    /** `listMembers` — departmanın seçili programdaki ekibi (görev atama adayları). */
+    members: (s: ScopeSnapshot, departmentId: string) =>
+      scoped(s, ['departments', departmentId, 'members']),
+  },
   workItems: {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['work-items', filters]),
@@ -106,6 +111,7 @@ export type QueryResource =
   | 'programs'
   | 'me'
   | 'departments'
+  | 'departments.members'
   | 'workItems.list'
   | 'workItems.item'
   | 'workItems.subtasks'
@@ -210,6 +216,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'restoreDepartment',
     'permanentDeleteDepartment',
   ],
+  // Ekip satırı ve hesap durumu (`status: deleted`) değiştiren uçlar.
+  'departments.members': unique(MEMBERSHIP_WRITES, [
+    'deleteAccount',
+    'restoreAccount',
+    'permanentDeleteAccount',
+    'deleteUser',
+  ]),
   'workItems.list': unique(WORK_ITEM_WRITES, DATE_WRITES, SUBTASK_WRITES),
   'workItems.item': unique(WORK_ITEM_WRITES, DATE_WRITES, SUBTASK_WRITES, ['attachFile']),
   'workItems.subtasks': unique(SUBTASK_WRITES, ['transitionWorkItem', 'removeAssignment']),
@@ -319,6 +332,10 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   me: prefix(() => queryKeys.me.root()),
   users: prefix(() => queryKeys.users.all()),
   departments: prefix(queryKeys.departments.all),
+  'departments.members': (scope) => ({
+    queryKey: queryKeys.departments.all(scope),
+    predicate: ({ queryKey }) => queryKey.length === 5 && queryKey[4] === 'members',
+  }),
   'workItems.list': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),

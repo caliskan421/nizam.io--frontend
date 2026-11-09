@@ -1,0 +1,105 @@
+/*
+ * Notlar sekmesi görünümü — tasarım `rp-note` (satır), `rp-composer` (yazma alanı) birebir
+ * karşılığı (Toplanti-Detay.dc.html; görev notları çizilmedi, P3: aynı dil). Kural: yalnız
+ * token; px yalnız notes-metrics.css'te. Açık tema yalnız token değişimiyle.
+ */
+@import './notes-metrics.css';
+
+@layer components {
+  .wk-notes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .wk-notes__status {
+    margin: 0;
+    color: var(--ink-faint);
+    font: var(--text-body);
+  }
+  .wk-notes__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Yazma alanı (`rp-composer`) */
+  .wk-composer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-sm);
+    padding: var(--notes-composer-pad);
+    border: var(--ui-hairline) solid var(--border-control);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+  }
+  .wk-composer:focus-within {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+  .wk-composer__input {
+    min-height: var(--notes-input-min);
+    padding: 0;
+    border: 0;
+    background: none;
+    resize: vertical;
+    color: var(--ink);
+    font: var(--text-body);
+    line-height: var(--notes-body-lh);
+    outline: none;
+  }
+  .wk-composer__input::placeholder {
+    color: var(--ink-faint);
+  }
+  .wk-composer__foot {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Not satırı (`rp-note`) */
+  .wk-note {
+    display: grid;
+    grid-template-columns: var(--ui-av-md) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-4) 0;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .wk-note__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-xs);
+    min-width: 0;
+  }
+  .wk-note__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .wk-note__author {
+    color: var(--ink);
+    font: var(--ui-text-sm-strong);
+  }
+  .wk-note__cap {
+    color: var(--ink-faint);
+    font: var(--text-caption);
+  }
+  .wk-note__body {
+    margin: 0;
+    color: var(--ink);
+    font: var(--text-body);
+    line-height: var(--notes-body-lh);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .wk-note__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+}

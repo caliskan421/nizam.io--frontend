@@ -1,5 +1,5 @@
 // work modülünün dışa açık yüzü. Diğer modüller (ör. 01 ana sayfa) ve `app/` yalnız bu dosyayı
-// içe aktarır. Sayfa kaydı (`workRoutes`) W42 sayfasıyla eklenecek (bkz. `routes.ts`).
+// içe aktarır. Sayfa kaydı `workRoutes` (`app/router.ts` `MODULE_ROUTES`).
 export * from './api'
 export {
   canCreateWorkItem,
@@ -15,4 +15,12 @@ export { departmentTarget, listDepartmentFilter, resolveTarget, targetOf } from 
 export { transitionTargets } from './model/transitions'
 export type { WorkItem, WorkItemDetail, WorkItemStatus, WorkTarget } from './model/types'
 export { WORK_ITEM_STATUSES } from './model/types'
-export { taskLink, TASKS_ROUTE, tasksQueryAfterScopeChange } from './routes'
+export {
+  taskLink,
+  TASKS_QUERY_KEYS,
+  TASKS_ROUTE,
+  TASKS_SORT_FIELDS,
+  TASKS_STATUS_FILTERS,
+  tasksQueryAfterScopeChange,
+  workRoutes,
+} from './routes'

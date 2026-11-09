@@ -17,7 +17,7 @@ export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F0'
+export const CURRENT_PHASE: Phase = 'F1'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -86,8 +86,9 @@ export const ROUTES = {
   home: {
     path: '/',
     title: 'Ana sayfa',
-    // F0'da kabuk + kapsam. F1 notu: 01 sade ana sayfa (O3, W51) S2/S3 uçlarını sayfa içinden
-    // okur; rota kapsamı S1 kalır (kapsam kabukta seçilir, sayfa kapsamsızken açık durum).
+    // Sayfa `modules/home` (01 sade, W51): S2 uçlarını (pano / görev listesi) sayfa içinden
+    // yalnız kapsam tamken okur; rota kapsamı S1 kalır (kapsam kabukta seçilir; K7 açık durumlar
+    // kabukta, kapsam eksikken KPI bölgesinde seçim notu).
     scope: 'S1',
     phase: 'F0',
     menu: { group: 'takip', key: 'home', order: 1 },
@@ -112,9 +113,17 @@ export const ROUTES = {
     menu: { group: 'takip', key: 'tasks', order: 2 },
     params: {},
     // 03 README satır dışı varsayımlar (kabul): `kisi` F1'de yok (E-03-11 statik, BE-038);
-    // sayfa/imleç URL'de taşınmaz (E-03-39); panel sekmesi bellekte (E-03-45).
+    // sayfa/imleç URL'de taşınmaz (E-03-39); panel sekmesi bellekte (E-03-45). `durum`: beş
+    // durum (P5) + türetilmiş "Geciken" sekmesi (`is_overdue`; E-03-07); "Tümü" parametresiz.
     query: {
-      durum: oneOf(['baslanmadi', 'devam_ediyor', 'onaya_sunuldu', 'iade_edildi', 'tamamlandi']),
+      durum: oneOf([
+        'baslanmadi',
+        'devam_ediyor',
+        'onaya_sunuldu',
+        'iade_edildi',
+        'tamamlandi',
+        'geciken',
+      ]),
       talep: bool,
       q: text,
       koordinatorluk: id,

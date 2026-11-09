@@ -1,5 +1,5 @@
 // Kabuk + açık durumlar, GERÇEK uygulama kökü (App.vue), GERÇEK üretim router'ı
-// (`createAppRouter`; F0 ana sayfa yer tutucusu dahil) ve GERÇEK kapsam yaşam döngüsüyle, sahte
+// (`createAppRouter`; 01 ana sayfa modül sayfası dahil) ve GERÇEK kapsam yaşam döngüsüyle, sahte
 // backend (MSW) karşısında: her K7 tetikleyicisi ve çıkış hatası (ortak-kurallar §8).
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -39,9 +39,22 @@ afterAll(() => backend.server.close())
 const unread = http.get('http://localhost/v1/notifications/unread-count', () =>
   HttpResponse.json({ count: 0 }),
 )
+// 01 ana sayfanın kapsamlı okumaları (Admin: pano; K/Ü: görev listesi) — boş yanıt.
+const homeData = [
+  http.get('http://localhost/v1/reports/dashboard', () =>
+    HttpResponse.json({
+      total_tasks: 0,
+      completed_tasks: 0,
+      active_tasks: 0,
+      overdue_tasks: 0,
+      pending_approvals: 0,
+    }),
+  ),
+  http.get('http://localhost/v1/program/work-items', () => HttpResponse.json({ items: [] })),
+]
 
 async function bootApp(fixture: StandingFixture, path = '/') {
-  backend.server.use(...standingHandlers(backend, fixture), unread)
+  backend.server.use(...standingHandlers(backend, fixture), unread, ...homeData)
   const m = await freshModules()
   const { default: App } = await import('@/app/App.vue')
   const { createAppRouter } = await import('@/app/router')
@@ -121,7 +134,7 @@ describe('kabuk açık durumları (sahte backend)', () => {
     expect(backend.state.requests.some((r) => /^\/v1\/programs\/./.test(r.path))).toBe(false)
   })
 
-  it('kapsam hazır → `/` kabuk içinde F0 ana sayfa yer tutucusu (yönlendirme yok)', async () => {
+  it('kapsam hazır → `/` kabuk içinde 01 ana sayfa (yönlendirme yok)', async () => {
     const { wrapper, router } = await bootApp({
       companyAdmin: false,
       rows: [row('p1', 'd1', 'uye')],
@@ -130,7 +143,9 @@ describe('kabuk açık durumları (sahte backend)', () => {
     await vi.waitFor(() => expect(wrapper.find('[data-testid="home-page"]').exists()).toBe(true))
     expect(router.currentRoute.value.name).toBe('home')
     expect(wrapper.find('[data-testid="shell-state"]').exists()).toBe(false)
-    expect(wrapper.get('[data-testid="home-page"]').text()).toContain('F1’de')
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="home-page"]').text()).toContain('Merhaba Deneme Kişi'),
+    )
     expect(crumbText(wrapper)).toMatch(/Bir\s*\/\s*Ana sayfa/)
   })
 
