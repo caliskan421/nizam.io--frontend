@@ -47,14 +47,10 @@ const [editDescription] = edit.form.defineField('description')
 
 const kindOptions = KINDS.map((k) => ({ value: k, label: kindLabel(k) }))
 const title = computed(() =>
-  orgText(
-    editing.value
-      ? 'organization.forms.department.editTitle'
-      : 'organization.forms.department.createTitle',
-  ),
+  orgText(editing.value ? 'forms.department.editTitle' : 'forms.department.createTitle'),
 )
 const subtitle = computed(() =>
-  editing.value ? undefined : orgText('organization.forms.department.createDescription'),
+  editing.value ? undefined : orgText('forms.department.createDescription'),
 )
 const exists = create.exists
 
@@ -78,50 +74,45 @@ function submitMain(): void {
     <!-- Düzenleme (E-08-63/70) -->
     <template v-if="editing">
       <UiHint v-if="edit.load.value === 'loading'" data-testid="of-edit-loading">
-        {{ orgText('organization.forms.department.edit.loading') }}
+        {{ orgText('forms.department.edit.loading') }}
       </UiHint>
       <UiHint v-else-if="edit.load.value === 'missing'" error data-testid="of-edit-missing">
-        {{ orgText('organization.forms.department.edit.missing') }}
+        {{ orgText('forms.department.edit.missing') }}
       </UiHint>
       <div v-else-if="edit.load.value === 'error'" class="of-note" role="alert">
-        <p>{{ orgText('organization.forms.picker.failed') }}</p>
+        <p>{{ orgText('forms.picker.failed') }}</p>
         <div class="of-note__actions">
-          <UiButton size="sm" @click="edit.retry()">{{
-            orgText('organization.forms.picker.retry')
-          }}</UiButton>
+          <UiButton size="sm" @click="edit.retry()">{{ orgText('forms.picker.retry') }}</UiButton>
         </div>
       </div>
       <form v-else id="of-department" class="of-form" novalidate @submit.prevent="submitMain">
         <UiField
-          :label="orgText('organization.forms.department.field.displayName')"
+          :label="orgText('forms.department.field.displayName')"
           :error="editErrors.displayName"
         >
           <UiInput v-model="editName" name="displayName" autocomplete="off" />
         </UiField>
         <fieldset v-if="!edit.catalogMissing.value" class="of-section" data-testid="of-catalog">
           <legend class="t-label">
-            {{ orgText('organization.forms.department.edit.catalogTitle') }}
+            {{ orgText('forms.department.edit.catalogTitle') }}
           </legend>
           <UiHint data-testid="of-catalog-warning">
-            {{ orgText('organization.forms.department.edit.catalogWarning') }}
+            {{ orgText('forms.department.edit.catalogWarning') }}
           </UiHint>
           <div class="of-row">
-            <UiField
-              :label="orgText('organization.forms.department.field.kind')"
-              :error="editErrors.kind"
-            >
+            <UiField :label="orgText('forms.department.field.kind')" :error="editErrors.kind">
               <UiSelect v-model="editKind" name="kind" :options="kindOptions" />
             </UiField>
             <UiField
-              :label="orgText('organization.forms.department.field.code')"
-              :hint="orgText('organization.forms.department.field.codeHint')"
+              :label="orgText('forms.department.field.code')"
+              :hint="orgText('forms.department.field.codeHint')"
               :error="editErrors.code"
             >
               <UiInput v-model="editCode" name="code" autocomplete="off" />
             </UiField>
           </div>
           <UiField
-            :label="orgText('organization.forms.department.field.description')"
+            :label="orgText('forms.department.field.description')"
             :error="editErrors.description"
           >
             <FieldTextarea v-model="editDescription" name="description" />
@@ -138,17 +129,11 @@ function submitMain(): void {
 
     <!-- Oluşturma (E-08-05) -->
     <form v-else id="of-department" class="of-form" novalidate @submit.prevent="submitMain">
-      <UiField
-        :label="orgText('organization.forms.department.field.name')"
-        :error="createErrors.name"
-      >
+      <UiField :label="orgText('forms.department.field.name')" :error="createErrors.name">
         <UiInput v-model="name" name="name" autocomplete="off" :disabled="create.partial.value" />
       </UiField>
       <div class="of-row">
-        <UiField
-          :label="orgText('organization.forms.department.field.kind')"
-          :error="createErrors.kind"
-        >
+        <UiField :label="orgText('forms.department.field.kind')" :error="createErrors.kind">
           <UiSelect
             v-model="kind"
             name="kind"
@@ -157,43 +142,43 @@ function submitMain(): void {
           />
         </UiField>
         <UiField
-          :label="orgText('organization.forms.department.field.code')"
-          :hint="orgText('organization.forms.department.field.codeHint')"
+          :label="orgText('forms.department.field.code')"
+          :hint="orgText('forms.department.field.codeHint')"
           :error="createErrors.code"
         >
           <UiInput v-model="code" name="code" autocomplete="off" :disabled="create.partial.value" />
         </UiField>
       </div>
       <UiField
-        :label="orgText('organization.forms.department.field.description')"
+        :label="orgText('forms.department.field.description')"
         :error="createErrors.description"
       >
         <FieldTextarea v-model="description" name="description" :disabled="create.partial.value" />
       </UiField>
 
       <div v-if="create.partial.value" class="of-note" role="alert" data-testid="of-partial">
-        <p>{{ orgText('organization.forms.department.partial') }}</p>
+        <p>{{ orgText('forms.department.partial') }}</p>
       </div>
       <div v-if="exists" class="of-note" role="alert" data-testid="of-exists">
-        <p class="of-note__title">{{ orgText('organization.forms.department.exists.title') }}</p>
+        <p class="of-note__title">{{ orgText('forms.department.exists.title') }}</p>
         <p v-if="exists.kind === 'searching'">
-          {{ orgText('organization.forms.department.exists.searching') }}
+          {{ orgText('forms.department.exists.searching') }}
         </p>
         <p v-else-if="exists.kind === 'found'">
-          {{ orgText('organization.forms.department.exists.found', { name: exists.target.name }) }}
+          {{ orgText('forms.department.exists.found', { name: exists.target.name }) }}
         </p>
         <p v-else-if="exists.kind === 'linked'">
-          {{ orgText('organization.forms.department.exists.linked', { name: exists.name }) }}
+          {{ orgText('forms.department.exists.linked', { name: exists.name }) }}
         </p>
         <p v-else-if="exists.kind === 'deleted'">
-          {{ orgText('organization.forms.department.exists.deleted', { name: exists.name }) }}
+          {{ orgText('forms.department.exists.deleted', { name: exists.name }) }}
         </p>
-        <p v-else>{{ orgText('organization.forms.department.exists.notFound') }}</p>
+        <p v-else>{{ orgText('forms.department.exists.notFound') }}</p>
       </div>
       <fieldset v-if="link.target.value" class="of-section" data-testid="of-link">
         <UiField
-          :label="orgText('organization.forms.department.field.displayName')"
-          :hint="orgText('organization.forms.department.field.displayNameHint')"
+          :label="orgText('forms.department.field.displayName')"
+          :hint="orgText('forms.department.field.displayNameHint')"
           :error="linkErrors.displayName"
         >
           <UiInput
@@ -205,7 +190,7 @@ function submitMain(): void {
         </UiField>
         <div class="of-note__actions">
           <UiButton :disabled="pending" data-testid="of-link-submit" @click="link.submit()">
-            {{ orgText('organization.forms.department.link.submit') }}
+            {{ orgText('forms.department.link.submit') }}
           </UiButton>
         </div>
       </fieldset>
@@ -214,13 +199,7 @@ function submitMain(): void {
 
     <template #footer>
       <UiButton variant="ghost" :disabled="pending" @click="setOpen(false)">
-        {{
-          orgText(
-            create.partial.value
-              ? 'organization.forms.common.close'
-              : 'organization.forms.common.cancel',
-          )
-        }}
+        {{ orgText(create.partial.value ? 'forms.common.close' : 'forms.common.cancel') }}
       </UiButton>
       <UiButton
         v-if="editing ? edit.load.value === 'ready' : !create.partial.value"
@@ -230,13 +209,7 @@ function submitMain(): void {
         :disabled="pending"
         data-testid="of-submit"
       >
-        {{
-          orgText(
-            editing
-              ? 'organization.forms.department.submitEdit'
-              : 'organization.forms.department.submitCreate',
-          )
-        }}
+        {{ orgText(editing ? 'forms.department.submitEdit' : 'forms.department.submitCreate') }}
       </UiButton>
     </template>
   </UiModal>

@@ -45,15 +45,12 @@ function codeField() {
   return z
     .string()
     .trim()
-    .refine(
-      (v) => v === '' || CODE_INPUT.test(v),
-      orgText('organization.forms.department.error.code'),
-    )
+    .refine((v) => v === '' || CODE_INPUT.test(v), orgText('forms.department.error.code'))
 }
 
 export function createSchema() {
   return z.object({
-    name: z.string().trim().min(1, orgText('organization.forms.department.error.name')),
+    name: z.string().trim().min(1, orgText('forms.department.error.name')),
     kind: z.enum(KINDS),
     code: codeField(),
     description: z.string(),
@@ -71,10 +68,7 @@ export function displayNameField() {
   return z
     .string()
     .trim()
-    .refine(
-      (v) => v.length >= 2 && v.length <= 120,
-      orgText('organization.forms.department.error.displayName'),
-    )
+    .refine((v) => v.length >= 2 && v.length <= 120, orgText('forms.department.error.displayName'))
 }
 
 /** Düzenleme şeması; `hadCode`: katalogda kod vardı → boşaltılamaz. */
@@ -84,7 +78,7 @@ export function editSchema(hadCode: () => boolean) {
     kind: z.enum(KINDS),
     code: codeField().refine(
       (v) => !(hadCode() && v === ''),
-      orgText('organization.forms.department.error.codeRequired'),
+      orgText('forms.department.error.codeRequired'),
     ),
     description: z.string(),
   })
@@ -98,7 +92,7 @@ export function linkSchema() {
       .trim()
       .refine(
         (v) => v === '' || (v.length >= 2 && v.length <= 120),
-        orgText('organization.forms.department.error.displayName'),
+        orgText('forms.department.error.displayName'),
       ),
   })
 }

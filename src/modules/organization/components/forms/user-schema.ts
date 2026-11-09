@@ -28,9 +28,9 @@ export function emptyUser(departmentId: string | null | undefined): UserValues {
 
 export function userSchema() {
   return z.object({
-    email: z.string().trim().regex(EMAIL, orgText('organization.forms.user.error.email')),
+    email: z.string().trim().regex(EMAIL, orgText('forms.user.error.email')),
     fullName: z.string().trim(),
-    departmentId: z.string().min(1, orgText('organization.forms.user.error.department')),
+    departmentId: z.string().min(1, orgText('forms.user.error.department')),
     role: z.enum(USER_ROLES),
   })
 }

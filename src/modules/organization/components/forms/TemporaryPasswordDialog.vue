@@ -31,7 +31,7 @@ const EMPTY: Values = { password: '' }
 const mutation = useSetTemporaryPassword()
 const form = useForm<Values>({
   validationSchema: toTypedSchema<Values, Values>(
-    z.object({ password: z.string().min(1, orgText('organization.forms.password.required')) }),
+    z.object({ password: z.string().min(1, orgText('forms.password.required')) }),
   ),
   initialValues: EMPTY,
 })
@@ -74,8 +74,8 @@ const handle = form.handleSubmit(async (values) => {
     useToast().push({
       message:
         count > 0
-          ? orgText('organization.forms.password.doneRevoked', { count })
-          : orgText('organization.forms.password.done'),
+          ? orgText('forms.password.doneRevoked', { count })
+          : orgText('forms.password.done'),
     })
     emit('done')
     close()
@@ -100,20 +100,20 @@ function submit(): void {
 <template>
   <UiModal
     :open="open"
-    :title="orgText('organization.forms.password.title')"
-    :description="orgText('organization.forms.password.description')"
+    :title="orgText('forms.password.title')"
+    :description="orgText('forms.password.description')"
     :dismissible="!pending"
     @update:open="setOpen"
   >
     <form id="of-temp-password" class="of-form" novalidate @submit.prevent="submit">
-      <UiField :label="orgText('organization.forms.password.field')" :error="errors.password">
+      <UiField :label="orgText('forms.password.field')" :error="errors.password">
         <UiInput v-model="password" type="password" name="password" autocomplete="new-password" />
       </UiField>
       <UiOutcomeNotice :outcome="notice" />
     </form>
     <template #footer>
       <UiButton variant="ghost" :disabled="pending" @click="setOpen(false)">
-        {{ orgText('organization.forms.common.cancel') }}
+        {{ orgText('forms.common.cancel') }}
       </UiButton>
       <UiButton
         variant="primary"
@@ -122,7 +122,7 @@ function submit(): void {
         :disabled="pending"
         data-testid="of-submit"
       >
-        {{ orgText('organization.forms.password.submit') }}
+        {{ orgText('forms.password.submit') }}
       </UiButton>
     </template>
   </UiModal>

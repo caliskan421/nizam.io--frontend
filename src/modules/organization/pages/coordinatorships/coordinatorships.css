@@ -1,0 +1,228 @@
+/*
+ * 08 Koordinatörlükler sayfa görünümü — theme.css `rp-head`, `rp-h1`, `rp-sub`, `rp-actions`,
+ * `rp-body`, `rp-toolbar`, `rp-tgroup`, `rp-ichip`, `rp-num`, `rp-cap` ve Koordinatorlukler.dc.html
+ * `rp-health` + satır içi yerleşim (şerit/araç çubuğu bloğu `gap: 16px`, ızgara bloğu `gap: 20px`)
+ * birebir karşılığı. Kural: yalnız token; px yok — ölçek dışı ölçüler `--coords-*` (medya koşulu
+ * hariç: değer `--rp-narrow-max` ile aynı). Sınıflar `.coords-page` altında kapsanır.
+ */
+@layer components {
+  .coords-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık */
+  .coords-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .coords-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .coords-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .coords-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .coords-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .coords-page .t-btn .rp-trunc:has(> .t-icon) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .coords-page .coords-more,
+  .coords-page .coords-sort {
+    position: relative;
+    display: inline-flex;
+  }
+  .coords-page .coords-more__pop {
+    top: calc(100% + var(--space-1));
+    right: 0;
+    width: var(--coords-menu-w);
+  }
+  .coords-page .coords-more__note {
+    margin: var(--space-1) var(--ui-gap-sm) var(--ui-gap-xs);
+    white-space: normal;
+  }
+  .coords-page .coords-sort__pop {
+    top: calc(100% + var(--space-1));
+    right: 0;
+    width: var(--coords-menu-w);
+  }
+
+  /* Gövde */
+  .coords-page .rp-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    align-items: flex-start;
+  }
+  .coords-page .coords-tools {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .coords-page .coords-list {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--coords-group-gap);
+  }
+  .coords-page .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .coords-page .rp-trunc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .coords-page .rp-nowrap {
+    white-space: nowrap;
+  }
+
+  /* Yapı sağlığı (E-08-07…11) */
+  .coords-page .coords-health {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--coords-health-min), 100%), 1fr));
+    gap: var(--space-3);
+  }
+  .coords-page .rp-health {
+    display: grid;
+    grid-template-columns: var(--coords-health-cols);
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--coords-health-pad);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--ink);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .coords-page .rp-ichip {
+    width: var(--coords-chip);
+    height: var(--coords-chip);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    color: var(--ink-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+  }
+  .coords-page .coords-health--gold .rp-ichip {
+    color: var(--gold);
+  }
+  .coords-page .coords-health--danger .rp-ichip,
+  .coords-page .coords-health--danger .rp-num {
+    color: var(--danger);
+  }
+  .coords-page .coords-health__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .coords-page .coords-health__line {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .coords-page .rp-num {
+    font: var(--coords-health-num);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .coords-page .coords-health__label {
+    font: var(--ui-text-sm-medium);
+  }
+  .coords-page .coords-health__chev {
+    display: inline-flex;
+    color: var(--ink-faint);
+  }
+
+  /* Araç çubuğu (E-08-12…16) */
+  .coords-page .rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+  }
+  .coords-page .rp-tgroup {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .coords-page .rp-tgroup--grow {
+    flex: 1 1 var(--coords-grow-basis);
+  }
+  .coords-page .coords-search {
+    flex: 1 1 var(--coords-search-basis);
+    min-width: 0;
+  }
+  .coords-page .rp-seg .ui-stub {
+    display: inline-flex;
+  }
+
+  /* Yükleniyor */
+  .coords-page .coords-skel {
+    min-height: var(--coords-chip);
+    background: var(--bg-raised);
+  }
+  .coords-page .coords-skel--card {
+    display: block;
+    height: var(--coords-skel-h);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-raised);
+  }
+
+  /* Liste altı (E-08-44, E-08-45) */
+  .coords-page .coords-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    .coords-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .coords-page .rp-body {
+      padding: var(--space-5);
+    }
+  }
+}

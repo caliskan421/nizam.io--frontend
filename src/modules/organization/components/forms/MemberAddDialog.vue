@@ -54,7 +54,7 @@ interface Values {
 const EMPTY: Values = { person: null, role: 'member' }
 const form = useForm<Values>({
   validationSchema: toTypedSchema<Values, Values>(
-    personSchema(orgText('organization.forms.member.required')).extend({ role: z.enum(ROLES) }),
+    personSchema(orgText('forms.member.required')).extend({ role: z.enum(ROLES) }),
   ),
   initialValues: { ...EMPTY },
 })
@@ -96,7 +96,7 @@ const handle = form.handleSubmit(async (values) => {
   })
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
-    useToast().push({ message: orgText('organization.forms.member.done') })
+    useToast().push({ message: orgText('forms.member.done') })
     emit('added', chosen.accountId)
     close()
     return
@@ -124,30 +124,26 @@ function submit(): void {
 <template>
   <UiModal
     :open="open"
-    :title="orgText('organization.forms.member.title')"
+    :title="orgText('forms.member.title')"
     :dismissible="!pending"
     @update:open="setOpen"
   >
     <form id="of-add-member" class="of-form" novalidate @submit.prevent="submit">
-      <UiField :label="orgText('organization.forms.member.field')" :error="errors.person">
+      <UiField :label="orgText('forms.member.field')" :error="errors.person">
         <PersonPicker
           v-model="person"
-          :label="orgText('organization.forms.member.field')"
+          :label="orgText('forms.member.field')"
           :exclude-account-ids="exclude"
         />
       </UiField>
-      <UiField
-        v-if="chooseRole"
-        :label="orgText('organization.forms.member.role')"
-        :error="errors.role"
-      >
+      <UiField v-if="chooseRole" :label="orgText('forms.member.role')" :error="errors.role">
         <UiSelect v-model="role" name="role" :options="roleOptions" />
       </UiField>
       <UiOutcomeNotice :outcome="notice" />
     </form>
     <template #footer>
       <UiButton variant="ghost" :disabled="pending" @click="setOpen(false)">
-        {{ orgText('organization.forms.common.cancel') }}
+        {{ orgText('forms.common.cancel') }}
       </UiButton>
       <UiButton
         variant="primary"
@@ -156,7 +152,7 @@ function submit(): void {
         :disabled="pending"
         data-testid="of-submit"
       >
-        {{ orgText('organization.forms.member.submit') }}
+        {{ orgText('forms.member.submit') }}
       </UiButton>
     </template>
   </UiModal>

@@ -33,7 +33,7 @@ interface Values {
 }
 const form = useForm<Values>({
   validationSchema: toTypedSchema<Values, Values>(
-    personSchema(orgText('organization.forms.coordinator.required')),
+    personSchema(orgText('forms.coordinator.required')),
   ),
   initialValues: { person: null },
 })
@@ -71,7 +71,7 @@ const handle = form.handleSubmit(async ({ person: chosen }) => {
   })
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
-    useToast().push({ message: orgText('organization.forms.coordinator.done') })
+    useToast().push({ message: orgText('forms.coordinator.done') })
     emit('assigned', chosen.accountId)
     close()
     return
@@ -99,19 +99,19 @@ function submit(): void {
 <template>
   <UiModal
     :open="open"
-    :title="orgText('organization.forms.coordinator.title')"
+    :title="orgText('forms.coordinator.title')"
     :dismissible="!pending"
     @update:open="setOpen"
   >
     <form id="of-assign-coordinator" class="of-form" novalidate @submit.prevent="submit">
-      <UiField :label="orgText('organization.forms.coordinator.field')" :error="errors.person">
-        <PersonPicker v-model="person" :label="orgText('organization.forms.coordinator.field')" />
+      <UiField :label="orgText('forms.coordinator.field')" :error="errors.person">
+        <PersonPicker v-model="person" :label="orgText('forms.coordinator.field')" />
       </UiField>
       <UiOutcomeNotice :outcome="notice" />
     </form>
     <template #footer>
       <UiButton variant="ghost" :disabled="pending" @click="setOpen(false)">
-        {{ orgText('organization.forms.common.cancel') }}
+        {{ orgText('forms.common.cancel') }}
       </UiButton>
       <UiButton
         variant="primary"
@@ -120,7 +120,7 @@ function submit(): void {
         :disabled="pending"
         data-testid="of-submit"
       >
-        {{ orgText('organization.forms.coordinator.submit') }}
+        {{ orgText('forms.coordinator.submit') }}
       </UiButton>
     </template>
   </UiModal>

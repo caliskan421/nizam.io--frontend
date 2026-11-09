@@ -324,6 +324,40 @@
         { "name": "home-skel-line", "value": "16px" },
         { "name": "home-skel-num", "value": "52px" }
       ]
+    },
+    "coords": {
+      "$description": "modules/organization 08 Koordinatörlükler liste ölçüleri — Koordinatorlukler.dc.html artboard yerel stilleri (rp-health, rp-ccard, rp-ccard__stats, rp-code, rp-tip) ve satır içi ölçek DIŞI değerler (W72).",
+      "tokens": [
+        { "name": "coords-health-min", "value": "220px" },
+        { "name": "coords-health-cols", "value": "36px minmax(0, 1fr) 16px" },
+        { "name": "coords-health-pad", "value": "14px 16px" },
+        { "name": "coords-health-num", "value": "600 22px/26px {font-display}" },
+        { "name": "coords-chip", "value": "36px" },
+        { "name": "coords-grow-basis", "value": "280px" },
+        { "name": "coords-search-basis", "value": "200px" },
+        { "name": "coords-card-min", "value": "280px" },
+        { "name": "coords-gap", "value": "14px" },
+        { "name": "coords-card-pad", "value": "18px" },
+        { "name": "coords-code-min", "value": "44px" },
+        { "name": "coords-code-h", "value": "24px" },
+        { "name": "coords-code-offset", "value": "2px" },
+        { "name": "coords-title", "value": "600 15px/20px {font-sans}" },
+        { "name": "coords-lead-h", "value": "28px" },
+        { "name": "coords-av-overlap", "value": "-3px" },
+        { "name": "coords-av-ring", "value": "2px" },
+        { "name": "coords-stat-h", "value": "56px" },
+        { "name": "coords-stat-num", "value": "600 20px/24px {font-display}" },
+        { "name": "coords-dot", "value": "8px" },
+        { "name": "coords-menu-btn", "value": "32px" },
+        { "name": "coords-menu-w", "value": "220px" },
+        { "name": "coords-tip-offset", "value": "8px" },
+        { "name": "coords-tip-pad", "value": "4px 8px" },
+        { "name": "coords-tip-radius", "value": "7px" },
+        { "name": "coords-tip-font", "value": "500 11px/14px {font-sans}" },
+        { "name": "coords-tip-shift", "value": "3px" },
+        { "name": "coords-skel-h", "value": "212px" },
+        { "name": "coords-group-gap", "value": "20px" }
+      ]
     }
   }
 }

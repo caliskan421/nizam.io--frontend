@@ -1,56 +1,38 @@
 /**
- * W74 form bileşenlerinin ekran metinleri (`organization.forms.*`; kaynak `shared/i18n/tr/organization.ts`).
- * Sunucu `message` alanı gösterilmez; hata metni kod → `errors.*` (`shared/i18n` `errorText`).
- *
- * Ağaç uygulama i18n'ine kayıtlıysa (`shared/i18n/index.ts` — koordinatörün birleştirme işi)
- * vue-i18n'den okunur; değilse aynı statik ağaçtan doğrudan çözülür (çalışma anında ileti
- * birleştirme YOK — statik ağaç tek kaynak). İki yol aynı metni verir (test).
+ * W74 form bileşenlerinin ekran metinleri (`organization.forms.*`; tek statik ağaç
+ * `shared/i18n/tr/organization.ts`, `shared/i18n/index.ts`'e kayıtlı). Sunucu `message` alanı
+ * gösterilmez; hata metni kod → `errors.*` (`shared/i18n` `errorText`).
  */
 import { i18n } from '@/shared/i18n'
-import { trOrganizationForms } from '@/shared/i18n/tr/organization'
-
-import type { DepartmentKind } from '../../model/types'
+import { trOrganization } from '@/shared/i18n/tr/organization'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
-export { trOrganizationForms }
+import type { DepartmentKind } from '../../model/types'
+
+export { trOrganization }
 
 type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
 }[keyof T & string]
 
-export type OrgFormsTextKey = Leaves<typeof trOrganizationForms>
-
-type Node = string | { readonly [key: string]: Node }
-
-function lookup(key: string): string {
-  let node: Node = trOrganizationForms
-  for (const part of key.split('.')) {
-    if (typeof node === 'string') return key
-    const next: Node | undefined = node[part]
-    if (next === undefined) return key
-    node = next
-  }
-  return typeof node === 'string' ? node : key
-}
-
-function interpolate(text: string, params: Record<string, string | number>): string {
-  return text.replace(/\{(\w+)\}/g, (all, name: string) =>
-    name in params ? String(params[name]) : all,
-  )
-}
+/** Form anahtarları (`organization.` öneki olmadan: `forms.*`). */
+export type OrgFormsTextKey = Extract<
+  Leaves<(typeof trOrganization)['organization']>,
+  `forms.${string}`
+>
 
 /** `organization.forms.*` metni (TR). */
-export function orgText(key: OrgFormsTextKey, params?: Record<string, string | number>): string {
-  const g = i18n.global
-  if (g.te(key)) return params ? g.t(key, params) : g.t(key)
-  const text = lookup(key)
-  return params ? interpolate(text, params) : text
+export function orgText(
+  key: OrgFormsTextKey,
+  params: Record<string, string | number> = {},
+): string {
+  return i18n.global.t(`organization.${key}`, params)
 }
 
 export function kindLabel(kind: DepartmentKind): string {
-  return orgText(`organization.forms.kind.${kind}`)
+  return orgText(`forms.kind.${kind}`)
 }
 
 export function roleLabel(role: TeamRole): string {
-  return orgText(`organization.forms.role.${role}`)
+  return orgText(`forms.role.${role}`)
 }

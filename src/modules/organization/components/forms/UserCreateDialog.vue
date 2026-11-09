@@ -135,7 +135,7 @@ const handle = form.handleSubmit(async (values) => {
   })
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
-    useToast().push({ message: orgText('organization.forms.user.done') })
+    useToast().push({ message: orgText('forms.user.done') })
     emit('created', outcome.data.account_id)
     close()
     return
@@ -163,44 +163,37 @@ function submit(): void {
 <template>
   <UiModal
     :open="open"
-    :title="orgText('organization.forms.user.title')"
-    :description="orgText('organization.forms.user.description')"
+    :title="orgText('forms.user.title')"
+    :description="orgText('forms.user.description')"
     :dismissible="!pending"
     @update:open="setOpen"
   >
     <form id="of-create-user" class="of-form" novalidate @submit.prevent="submit">
       <UiHint v-if="noDepartment" data-testid="of-no-department">
-        {{ orgText('organization.forms.user.noDepartment') }}
+        {{ orgText('forms.user.noDepartment') }}
       </UiHint>
-      <UiField :label="orgText('organization.forms.user.field.email')" :error="errors.email">
+      <UiField :label="orgText('forms.user.field.email')" :error="errors.email">
         <UiInput v-model="email" type="email" name="email" autocomplete="off" />
       </UiField>
-      <UiField :label="orgText('organization.forms.user.field.fullName')" :error="errors.fullName">
+      <UiField :label="orgText('forms.user.field.fullName')" :error="errors.fullName">
         <UiInput v-model="fullName" name="fullName" autocomplete="off" />
       </UiField>
       <div class="of-row">
-        <UiField
-          :label="orgText('organization.forms.user.field.department')"
-          :error="errors.departmentId"
-        >
+        <UiField :label="orgText('forms.user.field.department')" :error="errors.departmentId">
           <UiSelect
             v-model="department"
             name="departmentId"
             :options="departmentOptions"
-            :placeholder="orgText('organization.forms.user.field.departmentPlaceholder')"
+            :placeholder="orgText('forms.user.field.departmentPlaceholder')"
           />
         </UiField>
-        <UiField
-          v-if="chooseRole"
-          :label="orgText('organization.forms.user.field.role')"
-          :error="errors.role"
-        >
+        <UiField v-if="chooseRole" :label="orgText('forms.user.field.role')" :error="errors.role">
           <UiSelect v-model="role" name="role" :options="roleOptions" />
         </UiField>
       </div>
       <div v-if="transferOffered" class="of-note" role="alert" data-testid="of-transfer">
-        <p class="of-note__title">{{ orgText('organization.forms.user.transfer.title') }}</p>
-        <p>{{ orgText('organization.forms.user.transfer.body') }}</p>
+        <p class="of-note__title">{{ orgText('forms.user.transfer.title') }}</p>
+        <p>{{ orgText('forms.user.transfer.body') }}</p>
         <div class="of-note__actions">
           <DesignStub id="BE-107">
             <UiButton
@@ -208,7 +201,7 @@ function submit(): void {
               :disabled="transferAccountId === null"
               data-testid="of-transfer-action"
             >
-              {{ orgText('organization.forms.user.transfer.action') }}
+              {{ orgText('forms.user.transfer.action') }}
             </UiButton>
           </DesignStub>
         </div>
@@ -217,7 +210,7 @@ function submit(): void {
     </form>
     <template #footer>
       <UiButton variant="ghost" :disabled="pending" @click="setOpen(false)">
-        {{ orgText('organization.forms.common.cancel') }}
+        {{ orgText('forms.common.cancel') }}
       </UiButton>
       <UiButton
         variant="primary"
@@ -226,7 +219,7 @@ function submit(): void {
         :disabled="pending || noDepartment"
         data-testid="of-submit"
       >
-        {{ orgText('organization.forms.user.submit') }}
+        {{ orgText('forms.user.submit') }}
       </UiButton>
     </template>
   </UiModal>
