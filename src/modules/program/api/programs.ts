@@ -22,6 +22,7 @@ import { api, unwrap } from '@/shared/http'
 import type { MutationOutcome, SendResult, SubmitOptions } from '@/shared/http/mutation'
 import { isScopedQueryKey, type OperationId, queryKeys } from '@/shared/http/query-keys'
 import { fetchPrograms, invalidateStanding } from '@/shared/scope/standing'
+import { sessionBound } from '@/shared/session/query-session'
 
 import type {
   CreateProgramInput,
@@ -36,7 +37,8 @@ import { PROGRAM_STALE_MS, programHeader, retryTransient } from './http'
 export function useProgramList() {
   const query = useQuery({
     queryKey: queryKeys.programs.all(),
-    queryFn: fetchPrograms,
+    // Okuyucu kapısı (CX-F1-Ö-08): başka oturumda başlamış okuma bu oturuma yazılmaz (W82c).
+    queryFn: sessionBound(fetchPrograms),
     retry: retryTransient,
     staleTime: PROGRAM_STALE_MS,
     refetchOnWindowFocus: false,

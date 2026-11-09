@@ -57,6 +57,15 @@ describe('05 Kullanıcılar görünüm kuralları', () => {
     )
   })
 
+  it('dar ekran (K-3): kaydırma yok, roller sütunu içerik kadar, koordinatörlük ikinci satırda', () => {
+    expect(TOKENS['users-cols-narrow'].dark).toBe('20px minmax(0, 1fr) auto 36px')
+    const css = read(join(here, 'users.css'))
+    const narrow = css.slice(css.indexOf('@media (max-width: 900px)'))
+    expect(narrow).toMatch(/\.users-grid \{\s*min-width: 0;/)
+    expect(narrow).toMatch(/grid-template-columns: var\(--users-cols-narrow\)/)
+    expect(narrow).toMatch(/:nth-child\(4\) \{\s*grid-column: 2 \/ 4;\s*grid-row: 2;/)
+  })
+
   it('kullanılan her --users-* ölçüsü üretilmiş token', () => {
     const used = new Set(
       files.flatMap((p) => [...read(p).matchAll(/var\(--(users-[a-z0-9-]+)/g)].map((m) => m[1]!)),

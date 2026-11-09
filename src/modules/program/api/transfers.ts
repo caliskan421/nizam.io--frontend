@@ -26,6 +26,7 @@ import { useProtectedMutation } from '@/shared/http/mutation'
 import { isScopedQueryKey, queryKeys } from '@/shared/http/query-keys'
 import { unwrapList } from '@/shared/http/truncation'
 import { invalidateStanding } from '@/shared/scope/standing'
+import { sessionBound } from '@/shared/session/query-session'
 
 import type {
   TransferHistory,
@@ -88,15 +89,18 @@ export function useTransferWorkItems() {
 export function useTransferHistory() {
   const query = useInfiniteQuery({
     queryKey: TRANSFER_HISTORY_KEY,
-    queryFn: ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-      unwrapList(
-        api.GET('/v1/program-transfers', {
-          params: {
-            query: { limit: TRANSFER_PAGE_LIMIT, ...(pageParam ? { cursor: pageParam } : {}) },
-          },
-          signal,
-        }),
-      ),
+    // Okuyucu kapısı (CX-F1-Ö-08, W82c).
+    queryFn: sessionBound(
+      ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
+        unwrapList(
+          api.GET('/v1/program-transfers', {
+            params: {
+              query: { limit: TRANSFER_PAGE_LIMIT, ...(pageParam ? { cursor: pageParam } : {}) },
+            },
+            signal,
+          }),
+        ),
+    ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last: TransferHistory) => last.next_cursor || undefined,
     retry: retryTransient,

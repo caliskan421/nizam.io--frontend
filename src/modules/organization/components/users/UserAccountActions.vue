@@ -4,6 +4,7 @@ import './panel.css'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 
+import { reachesOwner } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { errorText } from '@/shared/i18n'
 import { useStanding } from '@/shared/scope/standing'
@@ -36,6 +37,8 @@ const { confirmWrite } = useConfirm()
 const remove = useDeleteUser()
 const unlock = useUnlockAccount()
 const queryClient = useQueryClient()
+// Kurulumda (eşzamanlı) alınır: sökülmüş ekranın geç sonucu bildirim üretmez (Ö-07, W82c).
+const toast = useToast()
 
 const facts = computed(() =>
   organizationFacts(standing.value, store.programId, { accountId: props.accountId }),
@@ -45,15 +48,16 @@ const passwordOpen = ref(false)
 async function onUnlock(): Promise<void> {
   if (unlock.isPending.value) return
   const outcome = await unlock.submit({ accountId: props.accountId })
+  if (!reachesOwner(outcome)) return
   if (outcome.kind === 'failed' && outcome.error.code === 'identity.account_not_locked') {
-    useToast().push({ message: errorText(outcome.error) })
+    toast.push({ message: errorText(outcome.error) })
     return
   }
   // Hesap yok (silinmiş olabilir): ileti + liste yeniden okunur (05 backend §2 E-05-35).
   if (outcome.kind === 'failed' && outcome.error.code === 'identity.account_not_found') {
     void queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
   }
-  reportOutcome(outcome, 'users.panel.account.unlocked')
+  reportOutcome(toast, outcome, 'users.panel.account.unlocked')
 }
 
 async function onDelete(): Promise<void> {
@@ -69,12 +73,12 @@ async function onDelete(): Promise<void> {
   const outcome = await confirmWrite(options, (context) =>
     remove.submit({ accountId }, { context }),
   )
-  if (outcome === null || outcome.kind === 'owner_disposed') return
+  if (outcome === null || !reachesOwner(outcome)) return
   if (outcome.kind !== 'success') {
     notifyOutcome(outcome)
     return
   }
-  useToast().push({ message: usersText('users.panel.account.deleted') })
+  toast.push({ message: usersText('users.panel.account.deleted') })
   emit('deleted', accountId)
 }
 </script>

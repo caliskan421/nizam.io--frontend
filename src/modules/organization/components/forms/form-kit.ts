@@ -9,15 +9,18 @@
  *      · tek uçuş: anahtarsız uçta çift gönderim yok (doğrulama `await`'inden ÖNCE kilitlenir;
  *        düğme istek sürerken kilitli);
  *      · kapsam (program/departman) değişince açık pencere kapanır;
- *      · sahip söküldükten sonra gelen geç yanıtta bildirim/emit/yeni yazma yok (`alive()`).
+ *      · sahip söküldükten sonra gelen geç yanıtta bildirim/emit/yeni yazma yok (`alive()`);
+ *      · gönderim bitince (istemci doğrulaması ya da sunucu alan hatası) odak penceredeki ilk
+ *        hatalı alana gider (`focusFirstInvalid`; F2 görsel doğrulaması K-2, W83).
  */
 import type { TypedSchema, TypedSchemaError } from 'vee-validate'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { z } from 'zod'
 
 import type { ApiError } from '@/shared/errors/api-error'
 import { errorText } from '@/shared/i18n'
 import { useScopeStore } from '@/shared/scope/store'
+import { focusFirstInvalid } from '@/shared/ui'
 
 z.config({ jitless: true })
 
@@ -98,6 +101,8 @@ export function useFormDialog(hooks: FormDialogHooks) {
     } finally {
       busy.value = false
     }
+    await nextTick()
+    if (!disposed) focusFirstInvalid()
   }
 
   return { busy, once, alive: () => !disposed }

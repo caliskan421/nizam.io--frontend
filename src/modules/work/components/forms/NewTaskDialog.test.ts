@@ -99,6 +99,20 @@ describe('NewTaskDialog (E-03-57, P3)', () => {
     expect(sent('POST', '/v1/work-items')).toHaveLength(0)
   })
 
+  it('K-2: geçersiz gönderimde odak ilk hatalı alana (başlık)', async () => {
+    await open()
+    await vi.waitFor(() =>
+      expect($('[role="dialog"]')!.contains(document.activeElement)).toBe(true),
+    )
+    const description = $('[name="description"]')!
+    description.focus()
+    expect(document.activeElement).toBe(description)
+    $('#wf-new-task')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await vi.waitFor(() => expect(document.activeElement).toBe($('[name="title"]')))
+    expect(document.activeElement?.getAttribute('aria-invalid')).toBe('true')
+    expect(sent('POST', '/v1/work-items')).toHaveLength(0)
+  })
+
   it('gönderim sürerken pencere kapatılamaz', async () => {
     let release: () => void = () => {}
     const gate = new Promise<void>((resolve) => (release = resolve))

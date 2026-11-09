@@ -2,7 +2,9 @@
 // silme/sıfırlama parolası önbellekte/sonuçta kalmaz (KESİN 7); başarıda standing + kapsam.
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { authSession } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
+import { SessionChangedError } from '@/shared/session/query-session'
 
 import {
   ADMIN_SCOPE,
@@ -137,5 +139,31 @@ describe('program yazmaları', () => {
       expect(unknown.draft.password).toBe('')
       expect(unknown.retry).toBeNull()
     }
+  })
+})
+
+describe('W82c okuyucu kapısı', () => {
+  it('program listesi okunurken oturum değişirse yanıt `["programs"]` önbelleğine yazılmaz', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}/v1/programs`, async () => {
+        await gate
+        return json({ programs: [{ program_id: 'p9', name: 'Eski oturum' }] })
+      }),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const list = h.run(() => useProgramList()).result
+    const before = h.queryClient.getQueryData(queryKeys.programs.all())
+    void h.queryClient.invalidateQueries({ queryKey: queryKeys.programs.all() })
+    await vi.waitFor(() => expect(sent('GET', '/v1/programs')).toHaveLength(1))
+    authSession.clear()
+    release()
+    await vi.waitFor(() => expect(list.query.isFetching.value).toBe(false))
+    expect(h.queryClient.getQueryData(queryKeys.programs.all())).toEqual(before)
+    expect(list.programs.value.map((p) => p.programId)).not.toContain('p9')
+    expect(h.queryClient.getQueryState(queryKeys.programs.all())?.error).toBeInstanceOf(
+      SessionChangedError,
+    )
   })
 })

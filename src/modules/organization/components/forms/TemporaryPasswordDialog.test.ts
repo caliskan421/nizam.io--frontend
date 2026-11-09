@@ -51,6 +51,23 @@ describe('TemporaryPasswordDialog (05 satır dışı "Geçici parola belirle"; P
     expect(input.getAttribute('autocomplete')).toBe('new-password')
   })
 
+  it('K-2: geçersiz gönderimde odak ilk hatalı alana; Esc pencereyi kapatır', async () => {
+    const { wrapper } = await openDialog()
+    const submit = $('[data-testid="of-submit"]') as HTMLButtonElement
+    submit.focus()
+    click('[data-testid="of-submit"]')
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Parola gerekli.'))
+    const input = $('[name="password"]') as HTMLInputElement
+    await vi.waitFor(() => expect(document.activeElement).toBe(input))
+    expect(input.getAttribute('aria-invalid')).toBe('true')
+    input.blur()
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+    expect(wrapper.emitted('update:open')?.at(-1)).toEqual([false])
+  })
+
   it('boş parola → alan hatası, istek yok', async () => {
     await openDialog()
     click('[data-testid="of-submit"]')

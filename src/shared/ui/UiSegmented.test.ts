@@ -34,6 +34,12 @@ describe('UiSegmented', () => {
     expect(buttons[0]!.text()).toBe('Tümü (263)')
   })
 
+  it('parens=false: tasarımdaki parantezsiz sayaç ("Tümü 185")', async () => {
+    const wrapper = mountSeg()
+    await wrapper.setProps({ parens: false })
+    expect(wrapper.findAll('button')[0]!.text().replace(/\s+/g, ' ')).toBe('Tümü 263')
+  })
+
   it('tıklama seçer; allowEmpty iken basılıya basmak seçimi kaldırır', async () => {
     const wrapper = mountSeg()
     await wrapper.findAll('button')[1]!.trigger('click')

@@ -29,6 +29,7 @@ export { default as UiToast } from './UiToast.vue'
 
 export { focusableIn, useFocusTrap } from './focus-trap'
 export { ICONS, type IconName } from './icons'
+export { firstInvalidIn, focusFirstInvalid, useModalLayer } from './modal-layer'
 export { uiText, type UiTextKey } from './messages'
 export type { UiChoiceOption, UiSelectOption } from './types'
 export { pushAppNotice, useToast, type Toast, type ToastInput, type ToastTone } from './use-toast'

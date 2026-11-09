@@ -17,7 +17,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
 import { api } from '@/shared/http'
-import type { MutationOutcome } from '@/shared/http/mutation'
+import { isDetached, markDetached, type MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import { serverRoleOf } from '../model/capabilities'
@@ -206,7 +206,9 @@ export function redactDraft(
   outcome: MutationOutcome<TemporaryPasswordInput, AccountResult, unknown>,
 ): MutationOutcome<TemporaryPasswordInput, AccountResult, unknown> {
   if (!('draft' in outcome)) return outcome
-  return { ...outcome, draft: { accountId: outcome.draft.accountId, password: '' } }
+  const redacted = { ...outcome, draft: { accountId: outcome.draft.accountId, password: '' } }
+  // Sahibi sökülmüş (geç) sonuç işareti korunur (CX-F1-Ö-07, W82c).
+  return isDetached(outcome) ? markDetached(redacted) : redacted
 }
 
 /**

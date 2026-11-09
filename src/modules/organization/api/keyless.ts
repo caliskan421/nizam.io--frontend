@@ -20,6 +20,8 @@ import { getActivePinia } from 'pinia'
 
 import type { ApiError } from '@/shared/errors/api-error'
 import {
+  isDetached,
+  markDetached,
   useProtectedMutation,
   type MutationOutcome,
   type ProtectedMutation,
@@ -38,6 +40,14 @@ export const ALREADY_APPLIED_CODES: ReadonlySet<string> = new Set([
 
 export function isAlreadyApplied(error: ApiError): boolean {
   return ALREADY_APPLIED_CODES.has(error.code)
+}
+
+/**
+ * Sarılan sonuç yeni nesnedir: sahibi sökülmüş (geç) sonuç işareti korunur (CX-F1-Ö-07, W82c) —
+ * yoksa ortak bildirim ve `reachesOwner` sökülmüş ekranın sonucunu canlı sanır.
+ */
+function keepDetached<T extends object>(from: object, to: T): T {
+  return isDetached(from) ? markDetached(to) : to
 }
 
 const NO_SCOPE: ScopeSnapshot = { programId: null, departmentId: null }
@@ -61,14 +71,17 @@ export function useKeylessMutation<V, D>(
   ): Promise<MutationOutcome<V, D, unknown>> {
     if (outcome.kind === 'unknown_outcome') {
       await reread(scope)
-      return { ...outcome, retry: null }
+      return keepDetached(outcome, { ...outcome, retry: null })
     }
     if (outcome.kind === 'failed' && isAlreadyApplied(outcome.error)) {
       await reread(scope)
       return outcome
     }
     if (outcome.kind === 'confirmation_required') {
-      return { ...outcome, confirm: async () => harden(await outcome.confirm(), scope) }
+      return keepDetached(outcome, {
+        ...outcome,
+        confirm: async () => harden(await outcome.confirm(), scope),
+      })
     }
     return outcome
   }

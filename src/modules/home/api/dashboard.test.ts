@@ -1,14 +1,20 @@
 import { defineComponent, h, ref, type Ref } from 'vue'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+
+import { authSession } from '@/shared/http'
 
 import { queryKeys } from '@/shared/http/query-keys'
+import { SessionChangedError } from '@/shared/session/query-session'
 
 import {
   ADMIN_SCOPE,
   dashboard,
   dashboardHandler,
   DASHBOARD,
+  http,
+  json,
   mountWith,
+  ORIGIN,
   resetAll,
   sent,
   server,
@@ -54,6 +60,27 @@ describe('useDashboard (reportDashboard, S2)', () => {
     expect(sent(DASHBOARD)).toHaveLength(0)
     off.value = true
     await settle()
+    expect(sent(DASHBOARD)).toHaveLength(1)
+  })
+
+  it('W82c okuyucu kapısı: istek uçuştayken oturum değişirse yanıt önbelleğe yazılmaz', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}${DASHBOARD}`, async () => {
+        await gate
+        return json(dashboard({ total_tasks: 7 }))
+      }),
+    )
+    const pending = mountWith(probe(ref(true)), ADMIN_SCOPE)
+    await vi.waitFor(() => expect(sent(DASHBOARD)).toHaveLength(1))
+    authSession.clear()
+    release()
+    const { queryClient, store } = await pending
+    await settle()
+    const cached = queryClient.getQueryState(queryKeys.report.dashboard(store.snapshot))
+    expect(cached?.data).toBeUndefined()
+    expect(cached?.error).toBeInstanceOf(SessionChangedError)
     expect(sent(DASHBOARD)).toHaveLength(1)
   })
 })

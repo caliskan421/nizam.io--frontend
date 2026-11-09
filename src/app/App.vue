@@ -3,6 +3,9 @@ import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppShell from '@/app/layouts/AppShell.vue'
+import ForcePasswordChange from '@/app/password/ForcePasswordChange.vue'
+import PasswordChangedNotice from '@/app/password/PasswordChangedNotice.vue'
+import { passwordChanged } from '@/app/password/password-flow'
 import { routeLocation } from '@/app/routes.catalog'
 import { sessionGate } from '@/app/session-gate'
 import { LogoutUnverifiedNotice } from '@/app/states/public'
@@ -18,6 +21,15 @@ const router = useRouter()
 // Kabuk yalnız açık oturumda; parola değişimi gerekiyorsa kabuk gösterilmez (00-ortak
 // `backend.md` §6: `identity.force_password_change_required` → parola ekranı).
 const shell = computed(() => session.isAuthenticated && !session.forcePasswordChange)
+// Zorunlu parola değişimi: hangi rota olursa olsun yalnız parola formu çizilir (P14; W83 K-1).
+const mustChangePassword = computed(() => session.isAuthenticated && session.forcePasswordChange)
+
+// Parola değişiminden sonraki açık giriş: bildirim kalkar, kullanıcı ana sayfaya döner.
+watch(shell, (open) => {
+  if (!open || !passwordChanged.value) return
+  passwordChanged.value = false
+  void router.replace(routeLocation('home', {}))
+})
 
 // Oturum açık değilken S0 dışı rota (ör. `/`) içerik göstermez; oturum sayfasına gider.
 const gate = computed(() =>
@@ -47,8 +59,12 @@ onMounted(async () => {
   <AppShell v-else-if="shell">
     <RouterView />
   </AppShell>
+  <main v-else-if="mustChangePassword">
+    <ForcePasswordChange />
+  </main>
   <main v-else>
     <LogoutUnverifiedNotice />
+    <PasswordChangedNotice />
     <RouterView v-if="gate === 'render'" />
   </main>
 </template>

@@ -15,7 +15,7 @@ import { computed, ref, watch, type Ref } from 'vue'
 
 import type { CompositeOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
-import { useToast } from '@/shared/ui'
+import { pushAppNotice, type ToastInput } from '@/shared/ui'
 
 import { useCatalogDepartments, useCreateCoordinatorship, useDeletedDepartments } from '../../api'
 import type { CreateDepartmentInput, Department } from '../../model/types'
@@ -67,6 +67,11 @@ function toDepartmentInput(values: CreateValues): CreateDepartmentInput {
   }
 }
 
+const partialNotice = (): ToastInput => ({
+  message: orgText('forms.department.partial'),
+  tone: 'danger',
+})
+
 type CreateResult = CompositeOutcome<unknown, Department, unknown>
 
 interface CreateSettle {
@@ -86,9 +91,7 @@ function settleCreate(result: CreateResult, name: string, s: CreateSettle): void
     s.onPartial()
     s.ctx.hooks.saved(created.department_id)
     // Pencere kapsam değişiminde kapandıysa kısmi sonuç yine söylenir (KESİN 20).
-    if (!s.ctx.hooks.open()) {
-      useToast().push({ message: orgText('forms.department.partial'), tone: 'danger' })
-    }
+    if (!s.ctx.hooks.open()) s.ctx.toast.push(partialNotice())
     s.link.offer({ departmentId: created.department_id, name: created.name })
     return
   }
@@ -140,7 +143,13 @@ export function useCreateMode(ctx: DepartmentFormContext, link: ReturnType<typeo
     link.reset()
     const department = toDepartmentInput(values)
     const result = await mutation.submit({ programId, department })
-    if (!ctx.dialog.alive()) return
+    if (!ctx.dialog.alive()) {
+      // Form söküldü: tam başarı ve hatalar sessiz; KISMİ sonuç (katalog kaydı var, bağ yok)
+      // gerçek sunucu durumudur → uygulama düzeyi bildirim, eylemin oturum neslinde (W82c).
+      if (result.kind === 'partial')
+        pushAppNotice(partialNotice(), result.primary.context?.generation)
+      return
+    }
     settleCreate(result, department.name, {
       ctx,
       link,

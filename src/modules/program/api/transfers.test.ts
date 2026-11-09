@@ -1,9 +1,12 @@
 // Aktarım uçları: ön izleme anahtarsız; yürütme eylem başına Idempotency-Key + parmak izi;
 // 409 preview_stale çağırana döner (otomatik tekrar yok); geçmiş `['programs']` önekinde.
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+
+import { authSession } from '@/shared/http'
 
 import { isValidIdempotencyKey } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
+import { SessionChangedError } from '@/shared/session/query-session'
 
 import {
   ADMIN_SCOPE,
@@ -131,5 +134,26 @@ describe('aktarım uçları', () => {
     expect(history.transfers.value.map((t) => t.transfer_id)).toEqual(['t1', 't2'])
     expect(sent('GET', '/v1/program-transfers')[0]!.query.get('limit')).toBe('50')
     expect(page).toBe(2)
+  })
+
+  it('W82c okuyucu kapısı: geçmiş okunurken oturum değişirse yanıt önbelleğe yazılmaz', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}/v1/program-transfers`, async () => {
+        await gate
+        return json({ transfers: [{ transfer_id: 't1' }] })
+      }),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const history = h.run(() => useTransferHistory()).result
+    await vi.waitFor(() => expect(sent('GET', '/v1/program-transfers')).toHaveLength(1))
+    authSession.clear()
+    release()
+    await vi.waitFor(() => expect(history.query.isFetching.value).toBe(false))
+    expect(history.transfers.value).toEqual([])
+    expect(h.queryClient.getQueryState(TRANSFER_HISTORY_KEY)?.error).toBeInstanceOf(
+      SessionChangedError,
+    )
   })
 })
