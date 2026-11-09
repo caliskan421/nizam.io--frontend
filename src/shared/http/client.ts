@@ -90,6 +90,51 @@ function applyScopeHeaders(
   if (withDepartment && scope.departmentId) headers.set(DEPARTMENT_HEADER, scope.departmentId)
 }
 
+/** Gönderim anındaki istek kopyası ve kimlik (tekrar yalnız aynı kimlikle gider). */
+interface PendingRequest {
+  /** Ara katmanlardan geçmiş isteğin gövdesi tüketilmeden alınmış klonu. */
+  clone: Request
+  token: string | null
+  meta: OperationMeta
+  /** Gönderim anındaki oturum nesli (`AuthSession.generation`) ve hesap. */
+  generation: number
+  accountId: string | null
+}
+
+/**
+ * 401 sonrası taşıyıcı tekrarı — sözleşme (CX-F1-E-05 devamı, koordinatör kararı W67).
+ * Tekrar YENİ bir yazma kararı değildir: sunucunun kimlik nedeniyle İŞLEMEDİĞİ, kullanıcının
+ * başlattığı AYNI isteğin tamamlanmasıdır ("uçuştaki istek geriye dönük iptal edilmez" sınırı).
+ *  1. Aynı istek: özgün `Request` klonu — yöntem, URL, gövde (JSON/multipart), IK, CSRF ve
+ *     kapsam başlıkları aynen; yalnız `Authorization` yenilenir. Ara katmanlardan YENİDEN
+ *     geçmez: kapsam tekrar anındaki depodan üretilmez.
+ *  2. En fazla bir kez: tekrar doğrudan `fetch`'le gider; ikinci 401 olduğu gibi döner.
+ *     Eşzamanlı 401'ler tek refresh'i paylaşır (`AuthSession.refresh`).
+ *  3. Aynı kimlik: refresh sonrası oturum nesli ve hesap gönderim anındakiyle aynı değilse
+ *     (çıkış, başka hesapla giriş, aynı hesapla yeniden giriş) tekrar GÖNDERİLMEZ, özgün 401
+ *     döner — başka kimliğin belirteciyle özgün yazma asla gitmez.
+ *  4. `NO_REFRESH` uçları (giriş/refresh/çıkış) tekrarlanmaz (çağıran denetler).
+ *  5. Sahip (bileşen) sökülmesi tekrarı ENGELLEMEZ (bilinçli): engellemek, belirteç tam o
+ *     anda dolduysa kullanıcının kaydet/sil komutunu bildirim alacak kimse kalmadan sessizce
+ *     düşürürdü. Sökülmüş sahip YENİ yazma başlatamaz (`mutation/owner.ts`, motor kapısı).
+ */
+async function retryAfterRefresh(
+  entry: PendingRequest,
+  response: Response,
+  session: AuthSession,
+  doFetch: (input: Request) => Promise<Response>,
+): Promise<Response> {
+  const outcome = await session.refresh(entry.token)
+  const token = session.token
+  if (outcome !== 'ok' || !token) return response
+  const sameIdentity =
+    session.generation === entry.generation && session.snapshot.accountId === entry.accountId
+  if (!sameIdentity) return response
+  const retry = new Request(entry.clone)
+  retry.headers.set('Authorization', `Bearer ${token}`)
+  return doFetch(retry)
+}
+
 export function operationMeta(method: string, schemaPath: string): OperationMeta | undefined {
   const key = `${method.toUpperCase()} ${schemaPath}`
   return Object.hasOwn(OPERATIONS, key) ? OPERATIONS[key as OperationKey] : undefined
@@ -103,14 +148,14 @@ export function operationMeta(method: string, schemaPath: string): OperationMeta
  *     istek gönderilmez (client.scope_missing). Çağıranın verdiği isteğe özel kapsam depo
  *     kapsamının önüne geçer (`applyScopeHeaders`). S0/S1'de yalnız açıkça verilen başlık.
  *  4. Kimlik: `Authorization: Bearer <bellekteki belirteç>` (S0 uçlarda gönderilmez).
- *  5. 401 → tek uçuş refresh → orijinal istek BİR kez tekrarlanır. Refresh/login/logout
- *     uçlarında refresh denenmez.
+ *  5. 401 → tek uçuş refresh → orijinal istek BİR kez tekrarlanır (`retryAfterRefresh`;
+ *     sözleşme orada). Refresh/login/logout uçlarında refresh denenmez.
  *  6. 403 `identity.force_password_change_required` → oturumda zorunlu parola değişimi bayrağı.
  */
 export function createApiClient(deps: ApiClientDeps): ApiClient {
   const doFetch = deps.fetch ?? ((input: Request) => globalThis.fetch(input))
   /** Tekrar için isteğin gönderilmeden önceki kopyası (gövde akışı tüketilmeden). */
-  const pending = new Map<string, { clone: Request; token: string | null; meta: OperationMeta }>()
+  const pending = new Map<string, PendingRequest>()
 
   const middleware: Middleware = {
     onRequest({ request, schemaPath, id }) {
@@ -128,7 +173,9 @@ export function createApiClient(deps: ApiClientDeps): ApiClient {
       if (token) headers.set('Authorization', `Bearer ${token}`)
       else headers.delete('Authorization')
 
-      pending.set(id, { clone: request.clone(), token, meta })
+      const { generation, snapshot } = deps.session
+      const accountId = snapshot.accountId
+      pending.set(id, { clone: request.clone(), token, meta, generation, accountId })
       return request
     },
 
@@ -148,13 +195,7 @@ export function createApiClient(deps: ApiClientDeps): ApiClient {
         return response
       }
 
-      const outcome = await deps.session.refresh(entry.token)
-      if (outcome !== 'ok' || !deps.session.token) return response
-
-      // Orijinal istek yeni belirteçle bir kez tekrarlanır; ikinci 401 olduğu gibi döner.
-      const retry = new Request(entry.clone)
-      retry.headers.set('Authorization', `Bearer ${deps.session.token}`)
-      return doFetch(retry)
+      return retryAfterRefresh(entry, response, deps.session, doFetch)
     },
 
     onError({ error, id }) {
