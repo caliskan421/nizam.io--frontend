@@ -215,6 +215,8 @@ describe('zorunlu parola değişimi (K-1; P14)', () => {
     expect(app.session.status).toBe('anonymous')
     expect(form()).toBeNull()
     await until(() => $('[data-testid="login-form"]'), 'giriş formu')
+    // Bitmiş mutasyon `gcTime: 0` ile bir sonraki görevde önbellekten düşer (W74 kalıbı).
+    await vi.waitFor(() => expect(app.queryClient.getMutationCache().getAll()).toHaveLength(0))
     expect(leaks(app.queryClient, [PASSWORD, NEW_PASSWORD])).toEqual([])
 
     // Yeni parolayla giriş → bayrak kalkık → kabuk + ana sayfa.
@@ -266,6 +268,7 @@ describe('zorunlu parola değişimi (K-1; P14)', () => {
     expect(app.session.status).toBe('authenticated')
     expect(form()).not.toBeNull()
 
+    await vi.waitFor(() => expect(app.queryClient.getMutationCache().getAll()).toHaveLength(0))
     expect(leaks(app.queryClient, [PASSWORD, 'kisa', 'yanlis-parola', NEW_PASSWORD])).toEqual([])
   })
 
