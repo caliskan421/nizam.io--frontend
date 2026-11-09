@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-// Ana sayfa görünüm kuralları (KESİN 5): ham renk yok, px yalnız home-metrics.css'te (medya
-// koşulu hariç), statik satır içi stil yok (tek dinamik bağ `--home-*` özel özelliği), .vue ≤ 250
+// Ana sayfa görünüm kuralları (KESİN 5): ham renk yok, px yok (medya koşulu hariç;
+// `--home-*` ölçüleri üretilmiş token'da, CX-F0-Ö-02), statik satır içi stil yok (tek dinamik bağ `--home-*` özel özelliği), .vue ≤ 250
 // satır. Açık/koyu tema yalnız token'la: renk adı token değişkeni dışında yazılmaz.
 const root = fileURLToPath(new URL('..', import.meta.url))
 
@@ -32,12 +32,7 @@ describe('ana sayfa görünüm kuralları', () => {
   it('dosyalar bulundu (sayfa, bileşenler, stiller)', () => {
     const names = files.map((f) => f.name)
     expect(names).toEqual(
-      expect.arrayContaining([
-        'pages/HomePage.vue',
-        'pages/home.css',
-        'pages/home-metrics.css',
-        'components/KpiCard.vue',
-      ]),
+      expect.arrayContaining(['pages/HomePage.vue', 'pages/home.css', 'components/KpiCard.vue']),
     )
   })
 
@@ -47,14 +42,11 @@ describe('ana sayfa görünüm kuralları', () => {
     }
   })
 
-  it('px yalnız home-metrics.css içinde (medya koşulu hariç); metrics yalnız --home-*', () => {
+  it('px yok (medya koşulu hariç); ayrı ölçü dosyası yok', () => {
+    expect(files.filter((f) => f.name.includes('metrics'))).toEqual([])
     for (const { name, text } of files) {
-      if (name.endsWith('home-metrics.css')) continue
       expect(stripMedia(stripComments(text)).match(PX)?.[0], name).toBeUndefined()
     }
-    const metrics = files.find((f) => f.name.endsWith('home-metrics.css'))!
-    for (const decl of stripComments(metrics.text).match(/[\w-]+\s*:/g) ?? [])
-      expect(decl).toMatch(/^--home-[\w-]+\s*:$/)
   })
 
   it('medya koşulu dar ekran eşiğiyle (--rp-narrow-max = 900px) aynı', () => {

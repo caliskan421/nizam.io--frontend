@@ -1,11 +1,9 @@
 /*
  * Görev listesi sayfa görünümü — theme.css `rp-head`, `rp-h1`, `rp-sub`, `rp-actions`, `rp-body`,
  * `rp-col`, `rp-aside`, `rp-toolbar`, `rp-tgroup` ve Gorevler-Liste.dc.html `rp-reqbar`,
- * `rp-btn-ok` birebir karşılığı. Kural: yalnız token; px yalnız tasks-metrics.css'te (medya
+ * `rp-btn-ok` birebir karşılığı. Kural: yalnız token; px yok — `--tasks-*` üretilmiş token (medya
  * koşulu hariç: değer `--rp-narrow-max` ile aynı). Sınıflar `.tasks-page` altında kapsanır.
  */
-@import './tasks-metrics.css';
-
 @layer components {
   .tasks-page {
     display: flex;

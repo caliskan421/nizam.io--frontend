@@ -1,14 +1,9 @@
 /*
  * Dosyalar bileşenleri (W46). Renk, boşluk, yarıçap ve yazı yalnız token'dan; açık tema token
- * katmanından gelir. Ölçek dışı iki ölçü (alt görev yuvası `rp-subslot`, Gorevler-Liste.dc.html)
- * yalnız aşağıdaki metrik bloğundadır.
+ * katmanından gelir. Ölçek dışı iki ölçü (alt görev yuvası `rp-subslot`, Gorevler-Liste.dc.html;
+ * `--wf-slot-*`) design/web-tokens.json `work` grubundan üretilir.
  */
 @layer components {
-  :root {
-    --wf-slot-h: 30px;
-    --wf-slot-icon: 14px;
-  }
-
   /* Alt görev kanıt yuvası (`rp-subslot` birebir) */
   .wf-subslot {
     display: inline-flex;

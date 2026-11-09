@@ -2,12 +2,10 @@
  * Ana sayfa görünümü — Main.dc.html (`rp-head`, KPI kartları, "Hızlı işlemler", "Son işlemler")
  * ve theme.css `rp-head`, `rp-cardbtn`, `rp-ichip`, `rp-num`, `rp-bar`, `rp-cap`, `rp-kicker`,
  * `rp-cardhead`, `rp-cardtitle`, `rp-link`, `rp-linkbtn`, `rp-clamp2` birebir karşılığı. Kural:
- * yalnız token; px yalnız home-metrics.css'te (medya koşulu hariç: değer `--rp-narrow-max` ile
- * aynı). Açık tema farkı yalnız token ve `t-card` gölgesidir (shared/ui). Sınıflar `.home-page`
+ * yalnız token; px yok — ölçek dışı `--home-*` ölçüleri design/web-tokens.json `home` grubundan
+ * üretilir (medya koşulu hariç: değer `--rp-narrow-max` ile aynı). Açık tema farkı yalnız token ve `t-card` gölgesidir (shared/ui). Sınıflar `.home-page`
  * altında kapsanır.
  */
-@import './home-metrics.css';
-
 @layer components {
   .home-page {
     display: flex;

@@ -3,11 +3,9 @@
  * `rp-dl`, `rp-status`, `rp-dot--*`, `rp-timeline`, `rp-tl-dot`, `rp-iconrow`, `rp-linkbtn` ve
  * Gorevler-Liste.dc.html panel stillerinin (`.rp-sheet .rp-tabs`, `rp-dslink`,
  * `rp-iconrow--icons .rp-upbtn`) birebir karşılığı; seçiciler `.wd` altında (başka ekranın
- * `rp-*` tanımıyla çakışmaz). Kural: yalnız token; px yalnız detail-metrics.css'te. Açık tema
+ * `rp-*` tanımıyla çakışmaz). Kural: yalnız token; px yok (`--wd-*` üretilmiş token). Açık tema
  * yalnız token değişimiyle (`--rp-done-fill` açıkta ayrı değer).
  */
-@import './detail-metrics.css';
-
 @layer components {
   .wd {
     display: flex;

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // Tasarım birebir kuralı (KESİN 5): renk, boşluk, yarıçap yalnız token; ham renk ve px yok,
-// satır içi stil yok (ölçek dışı değerler `shared/ui/styles/metrics.css` `--ui-*`).
+// satır içi stil yok (ölçek dışı `--ui-*` değerleri üretilmiş token'da).
 const dir = fileURLToPath(new URL('.', import.meta.url))
 const files = readdirSync(dir).filter((n) => n.endsWith('.vue') || n.endsWith('.css'))
 const RAW_COLOR =

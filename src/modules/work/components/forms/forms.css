@@ -2,7 +2,7 @@
  * W45 görev formları — durum etiketi/seçici `Gorevler-Liste.dc.html` (`rp-status`, `rp-dot--*`,
  * `rp-selbtn`; theme.css "Durum") birebir; yeni görev ve gerekçe pencereleri çizilmemiş (P3:
  * `shared/ui` + en sade yerleşim). Kural: yalnız token; ölçek dışı değerler `--ui-*`
- * (`shared/ui/styles/metrics.css`). Açık tema token'larla (`--rp-done-fill`).
+ * (üretilmiş token, design/web-tokens.json `ui`). Açık tema token'larla (`--rp-done-fill`).
  */
 @layer components {
   .wf-form {

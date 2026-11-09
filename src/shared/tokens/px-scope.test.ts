@@ -43,13 +43,23 @@ describe('px yalnız üretilmiş token dosyasında', () => {
     expect(files.filter((f) => /metrics\.css$/.test(f.name)).map((f) => f.name)).toEqual([])
   })
 
-  it('kullanılan her --ui-*, --side-*, --topbar-* değişkeni üretilmiş token', () => {
+  it('kullanılan her bileşen ölçüsü (--ui/side/topbar/list/wd/sub/notes/tasks/wf/home-*) üretilmiş token', () => {
     const used = new Set(
       files.flatMap((f) =>
-        [...f.text.matchAll(/var\(--((?:ui|side|topbar)-[a-z0-9-]+)/g)].map((m) => m[1] as string),
+        [
+          ...f.text.matchAll(
+            /var\(--((?:ui|side|topbar|list|wd|sub|notes|tasks|wf|home)-[a-z0-9-]+)/g,
+          ),
+        ].map((m) => m[1] as string),
       ),
     )
-    expect(used.size).toBeGreaterThan(40)
-    expect([...used].filter((name) => !(name in TOKENS))).toEqual([])
+    // Yerinde tanımlananlar (durum başına ton, `:style` ile verilen dinamik doluluk) ölçü değildir.
+    const local = new Set(
+      files.flatMap((f) =>
+        [...f.text.matchAll(/(?:^|[{;\s'"])--([a-z0-9-]+)['"]?\s*:/g)].map((m) => m[1] as string),
+      ),
+    )
+    expect(used.size).toBeGreaterThan(100)
+    expect([...used].filter((name) => !(name in TOKENS) && !local.has(name))).toEqual([])
   })
 })
