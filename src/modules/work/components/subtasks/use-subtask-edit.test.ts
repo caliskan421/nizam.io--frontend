@@ -17,11 +17,34 @@ import {
   workItem,
 } from '../../model/__tests__/harness'
 import { targetOf } from '../../model/target'
+import type * as ApiModule from '../../api'
 import { deferred } from './__tests__/subtask-harness'
 import { useSubtaskEdit } from './use-subtask-edit'
 
+// Silme `submit` argümanları kaydedilir (gerçek hook sarılır): onay bağlamının AÇIKÇA geçtiğinin
+// tanığı (senkron başlatmada bağlamsız submit de A'yı yakalar; argüman denetimi farkı görür).
+const deletes = vi.hoisted(() => ({ calls: [] as unknown[][] }))
+
+vi.mock('../../api', async (original) => {
+  const api = await original<typeof ApiModule>()
+  return {
+    ...api,
+    useDeleteSubtask: () => {
+      const real = api.useDeleteSubtask()
+      return {
+        ...real,
+        submit: (...args: Parameters<typeof real.submit>) => {
+          deletes.calls.push(args)
+          return real.submit(...args)
+        },
+      }
+    },
+  }
+})
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
+  deletes.calls.length = 0
   useConfirm().clear()
   useToast().clear()
   resetHarness()
@@ -173,10 +196,16 @@ describe('alt görev düzenleme', () => {
   it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0 (yazma onayın bağlamıyla)', async () => {
     server.use(http.delete(`${ORIGIN}${PATH}/s1`, () => json({ status: 'deleted' })))
     const { h, edit } = setup()
+    const scopeA = { ...h.store.snapshot }
     const confirm = useConfirm()
     const run = edit.remove(subtask())
     await h.flush()
     const accepting = confirm.accept(confirm.current.value!.id)
+    // Yazma onayın yakaladığı A bağlamıyla başladı: `submit(vars, { context })` açıkça.
+    expect(deletes.calls).toHaveLength(1)
+    expect(deletes.calls[0]![1]).toEqual({
+      context: { scope: scopeA, generation: expect.any(Number) },
+    })
     h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
     await accepting
     await run

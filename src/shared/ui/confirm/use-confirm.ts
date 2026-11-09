@@ -159,15 +159,23 @@ function cancel(id: number): void {
   entry.onCancel()
 }
 
-/** Açılan onayın kimliğini sahibine bildirir (bileşen sökülünce iptal için). */
-type Track = (id: number) => void
+/**
+ * Onayı açan sahip (etki kapsamı): açtığı onayların kimliklerini tutar (sökülünce iptal) ve
+ * yaşayıp yaşamadığını bilir — sökülmüş sahip yeni onay AÇAMAZ (CX-F1-E-02 tur 3: geç yanıt
+ * sökülmeden sonra gelirse onay doğmaz).
+ */
+interface Owner {
+  alive: boolean
+  track: (id: number) => void
+}
 
 /**
  * Onayı açan bir sahip (etki kapsamı) şarttır: sahipsiz onay bileşen sökülünce kapanmaz
  * (CX-F1-E-02). Geliştirme/testte açık hata; üretimde onay hiç açılmaz (yazma başlamaz).
+ * Sökülmüş sahip hata değildir (geç yanıt olağandır): açıcı sessizce `null` döner.
  */
-function requireOwner(track: Track | null): Track | null {
-  if (track || !import.meta.env.DEV) return track
+function requireOwner(owner: Owner | null): Owner | null {
+  if (owner || !import.meta.env.DEV) return owner
   throw new Error(
     'useConfirm(): etki kapsamı dışında alındı — onay sahipsiz kalır; kurulumda (setup) çağırın.',
   )
@@ -207,17 +215,18 @@ function confirmWrite<T>(
   options: ConfirmOptions,
   start: StartWrite<T>,
   opts: ConfirmWriteOptions,
-  track: Track | null,
+  opener: Owner | null,
 ): Promise<T | null> {
-  const owner = requireOwner(track)
+  const owner = requireOwner(opener)
   return new Promise((resolve) => {
-    const context = owner ? openContext(opts.context) : null
+    // Sahip açılış anında yaşıyor olmalı (sökülmüş bileşen yeni onay açamaz).
+    const context = owner?.alive ? openContext(opts.context) : null
     if (!owner || !context) return resolve(null)
     const onAccept = async () => {
       const value = await start({ scope: context.scope, generation: context.generation })
       return () => resolve(value)
     }
-    owner(enqueue({ options, items: [], onAccept, onCancel: () => resolve(null) }, context))
+    owner.track(enqueue({ options, items: [], onAccept, onCancel: () => resolve(null) }, context))
   })
 }
 
@@ -236,11 +245,11 @@ export function unassignedTasks(data: unknown): number {
 function confirmImpact<V, D, S>(
   outcome: ConfirmationRequired<V, D, S>,
   options: ConfirmOptions,
-  track: Track | null,
+  opener: Owner | null,
 ): Promise<MutationOutcome<V, D, S> | null> {
-  const owner = requireOwner(track)
+  const owner = requireOwner(opener)
   return new Promise((resolve) => {
-    if (!owner) return resolve(null)
+    if (!owner?.alive) return resolve(null)
     const onAccept = async () => {
       const result = await outcome.confirm()
       const n = result.kind === 'success' ? unassignedTasks(result.data) : 0
@@ -255,7 +264,7 @@ function confirmImpact<V, D, S>(
       onAccept,
       onCancel: () => resolve(null),
     })
-    owner(id)
+    owner.track(id)
   })
 }
 
@@ -264,17 +273,20 @@ function confirmImpact<V, D, S>(
  * (bileşen sökülünce) vazgeçle kapanır. Kapsam dışında alınan örnek onay AÇAMAZ
  * (`requireOwner`); yalnız kuyruğu okur/yönetir (kabuk yuvası, testler).
  */
-function ownedOpeners(): { track: Track | null } {
-  if (!getCurrentScope()) return { track: null }
+function ownedOpeners(): Owner | null {
+  if (!getCurrentScope()) return null
   const owned = new Set<number>()
+  const owner: Owner = { alive: true, track: (id) => void owned.add(id) }
   onScopeDispose(() => {
+    // Ölüm kaydedilir: sonradan (geç yanıtla) gelen açılış da reddedilir, yalnız mevcutlar değil.
+    owner.alive = false
     for (const id of owned) cancel(id)
   })
-  return { track: (id: number) => void owned.add(id) }
+  return owner
 }
 
 export function useConfirm() {
-  const { track } = ownedOpeners()
+  const owner = ownedOpeners()
   return {
     /** Gösterilen istek (kuyruğun başı). */
     current: computed(() => queue.value[0]?.request ?? null),
@@ -282,9 +294,9 @@ export function useConfirm() {
       options: ConfirmOptions,
       start: StartWrite<T>,
       opts: ConfirmWriteOptions = {},
-    ) => confirmWrite(options, start, opts, track),
+    ) => confirmWrite(options, start, opts, owner),
     confirmImpact: <V, D, S>(outcome: ConfirmationRequired<V, D, S>, options: ConfirmOptions) =>
-      confirmImpact(outcome, options, track),
+      confirmImpact(outcome, options, owner),
     accept,
     cancel,
     /** Testler ve oturum sonu için: bekleyen bütün istekleri vazgeçle kapatır. */
