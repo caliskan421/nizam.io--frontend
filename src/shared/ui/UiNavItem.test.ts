@@ -2,6 +2,8 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
+import { until } from '@/shared/http/__tests__/settle'
+
 import UiNavItem from './UiNavItem.vue'
 
 async function routerAt(path: string) {
@@ -48,8 +50,11 @@ describe('UiNavItem', () => {
     ;(link.element as HTMLElement).focus()
     expect(document.activeElement).toBe(link.element)
     await link.trigger('click')
-    await router.isReady()
-    await new Promise((r) => setTimeout(r))
+    // Koşul tabanlı: gezinme tamamlanınca (rota sonrası kancası) hedefte.
+    await until(
+      () => router.currentRoute.value.name === 'tasks',
+      (notify) => router.afterEach(notify),
+    )
     expect(router.currentRoute.value.name).toBe('tasks')
   })
 

@@ -46,9 +46,14 @@ describe('useTasksUrl', () => {
     expect(router.currentRoute.value.query).toEqual({ durum: 'geciken', q: 'rapor', gorev: 'w1' })
     expect(url.href({ open: 'w2' })).toBe('/gorevler?durum=geciken&q=rapor&gorev=w2')
     // Geri: panel kapanır (push), arama kalır (replace geçmiş kaydı eklemedi).
+    const back = new Promise<void>((resolve) => {
+      const off = router.afterEach(() => {
+        off()
+        resolve()
+      })
+    })
     router.back()
-    await flushPromises()
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await back // koşul tabanlı: geri gezinmesi tamamlandı
     expect(router.currentRoute.value.query).toEqual({ durum: 'geciken', q: 'rapor' })
   })
 

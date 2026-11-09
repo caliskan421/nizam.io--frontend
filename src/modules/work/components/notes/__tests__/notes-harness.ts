@@ -1,10 +1,11 @@
 // Notlar sekmesi testleri: modülün ortak harness'ı (GERÇEK API istemcisi + MSW, gerçek Pinia
 // kapsam deposu, TanStack Query) üstüne standing tohumu ve bileşen bağlama.
 import { VueQueryPlugin, type QueryClient } from '@tanstack/vue-query'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { getActivePinia } from 'pinia'
 import type { Component } from 'vue'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useConfirm } from '@/shared/ui/confirm'
 import { useToast } from '@/shared/ui'
@@ -39,10 +40,12 @@ export function seedStanding(client: QueryClient, seed: StandingSeed = {}): void
 }
 
 const wrappers: VueWrapper[] = []
+const clients: QueryClient[] = []
 
 export function notesHarness(seed: StandingSeed = {}) {
   const h = harness(COORD_SCOPE)
   seedStanding(h.queryClient, seed)
+  clients.push(h.queryClient)
   function mountWith(component: Component, props: Record<string, unknown>) {
     const wrapper = mount(component, {
       props,
@@ -58,15 +61,19 @@ export function notesHarness(seed: StandingSeed = {}) {
 /** Her test sonunda: bileşenler, onay/bildirim kuyrukları ve harness sıfırlanır. */
 export function resetNotes(): void {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount()
+  clients.length = 0
   useConfirm().clear()
   useToast().clear()
   resetHarness()
   document.body.innerHTML = ''
 }
 
-/** Ağ + sorgu zinciri yerleşene dek (gerçek bekleme yok; mikro görev boşaltma). */
-export async function settleAll(): Promise<void> {
-  for (let i = 0; i < 5; i += 1) await flushPromises()
+/**
+ * Ağ + sorgu zinciri yerleşene dek: koşul/olay tabanlı (önbellek olayı + boş durum gözlemi;
+ * sabit tur ya da süre tahmini yok — `@/shared/http/__tests__/settle`).
+ */
+export function settleAll(): Promise<void> {
+  return settleQueries(clients)
 }
 
 export const toastMessages = () => useToast().queue.value.map((t) => t.message)

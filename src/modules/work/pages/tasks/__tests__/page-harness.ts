@@ -2,11 +2,12 @@
 // istek kaydı), gerçek Pinia kapsam deposu, TanStack Query ve bellek router'ı. O2b kardeş
 // bileşenleri (panel, yeni görev, alt görev bloğu) sözleşme adlarıyla taslaklanır.
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, type Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import { settleQueries, type HeldQuery } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -84,6 +85,7 @@ export const STUBS = {
 }
 
 const mounted: VueWrapper[] = []
+const clients: QueryClient[] = []
 
 export interface PageContext {
   wrapper: VueWrapper
@@ -92,11 +94,22 @@ export interface PageContext {
   queryClient: QueryClient
 }
 
-/** Sayfayı `path` üzerinde, `selection` kapsamıyla bağlar ve ilk okumaları bekler. */
+/** Görev listesi sorgusu: `scoped(s, ['work-items', filters])`. */
+export const isListQuery: HeldQuery = (query) => {
+  const key = query.queryKey
+  const at = key.indexOf('work-items')
+  return at >= 0 && typeof key[at + 1] === 'object' && key[at + 1] !== null
+}
+
+/**
+ * Sayfayı `path` üzerinde, `selection` kapsamıyla bağlar ve ilk okumaları bekler (`held`:
+ * testin bilerek beklettiği sorgular uçuşta kalabilir).
+ */
 export async function mountPage(
   page: Component,
   selection: ScopeSelection,
   path = '/gorevler',
+  held?: HeldQuery,
 ): Promise<PageContext> {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -122,19 +135,21 @@ export async function mountPage(
     attachTo: document.body,
   })
   mounted.push(wrapper)
-  await settle()
+  clients.push(queryClient)
+  await settle(held)
   return { wrapper, router, store, queryClient }
 }
 
-/** Ağ + render turlarını boşaltır. */
-export async function settle(): Promise<void> {
-  for (let i = 0; i < 4; i += 1) {
-    await flushPromises()
-    await new Promise((resolve) => setTimeout(resolve, 0))
-  }
+/**
+ * Bağlı bütün istemcilerde sorgu/yazma yerleşene dek (koşul/olay tabanlı; sabit tur ya da
+ * süre tahmini yok — `@/shared/http/__tests__/settle`).
+ */
+export function settle(held?: HeldQuery): Promise<void> {
+  return settleQueries(clients, { held })
 }
 
 export function unmountPages(): void {
   for (const wrapper of mounted.splice(0)) wrapper.unmount()
+  clients.length = 0
   document.body.innerHTML = ''
 }

@@ -2,10 +2,11 @@
 // istemcisi + MSW, gerçek Pinia kapsam deposu, TanStack Query) üstüne standing tohumu ve
 // bileşen bağlama. Standing sorguları oturum açık değilken istek atmaz; tohum önbellekten okunur.
 import { VueQueryPlugin, type QueryClient } from '@tanstack/vue-query'
-import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
+import { DOMWrapper, mount } from '@vue/test-utils'
 import { vi } from 'vitest'
 import type { Component } from 'vue'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { STANDING_KEYS } from '@/shared/scope/standing'
 
@@ -114,20 +115,11 @@ export function captureLinkClicks(): { hrefs: string[]; downloads: string[] } {
 }
 
 /**
- * Sorgu ve yazmalar yerleşene dek olay döngüsünü sınırlı sayıda döndürür (gerçek bekleme /
- * zamanlayıcı yok): MSW yanıtı birkaç mikro/makro görev sürer; art arda birkaç boş tur
- * beklenir (yazma sonucu → bileşen tepkisi zinciri).
+ * Sorgu ve yazmalar yerleşene dek bekler: koşul/olay tabanlı (önbellek olayı + boş durum
+ * gözlemi; sabit tur ya da süre tahmini yok) — `@/shared/http/__tests__/settle`.
  */
-const IDLE_TURNS = 3
-
-export async function settle(client: QueryClient, turns = 50): Promise<void> {
-  let idle = 0
-  for (let i = 0; i < turns; i += 1) {
-    await flushPromises()
-    idle = client.isFetching() === 0 && client.isMutating() === 0 ? idle + 1 : 0
-    if (idle >= IDLE_TURNS) return
-  }
-  throw new Error('sorgular yerleşmedi')
+export function settle(client: QueryClient): Promise<void> {
+  return settleQueries(client)
 }
 
 /** Belge gövdesi (ışınlanan pencere içeriği dahil). */

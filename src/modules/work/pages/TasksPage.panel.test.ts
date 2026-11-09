@@ -12,6 +12,7 @@ import {
 import type { WorkItem } from '../model/types'
 import {
   ADMIN,
+  isListQuery,
   LIST,
   listHandler,
   listRequests,
@@ -47,7 +48,8 @@ describe('Görevler › Liste — ayrıntı paneli (URL gorev)', () => {
         return json({ items: ROWS })
       }),
     )
-    const ctx = await mountPage(TasksPage, ADMIN_SCOPE, '/gorevler?gorev=w2')
+    // Liste yanıtı elle salınana dek uçuşta kalır; diğer okumalar yerleşir.
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE, '/gorevler?gorev=w2', isListQuery)
     // Admin merceğinde hedef kapsam yalnız yüklenen satırlardan çözülür (useWorkItemTarget).
     expect(ctx.wrapper.find('[data-panel]').exists()).toBe(false)
     expect(ctx.wrapper.findAll('[data-skeleton]')).toHaveLength(10)

@@ -2,10 +2,11 @@
 // `useScopeLifecycle()` bir kez kurulur ve `SCOPE_LIFECYCLE_KEY` ile sağlanır.
 import { isCancelledError, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount } from '@vue/test-utils'
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, provide } from 'vue'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { defineComponent, h, provide, watch, type Ref } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
+import { until } from '@/shared/http/__tests__/settle'
 import { isScopedQueryKey } from '@/shared/http/query-keys'
 import {
   createTarget,
@@ -77,8 +78,12 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
   return { m, wrapper, queryClient, scope: lifecycle!, store: m.store.useScopeStore() }
 }
 
-async function settle(scope: { status: { value: string } }, expected: string) {
-  await vi.waitFor(() => expect(scope.status.value).toBe(expected))
+/** Olay tabanlı: kapsam durumu `expected` olana dek (durum izleyicisi; süre/yoklama yok). */
+async function settle(scope: { status: Readonly<Ref<string>> }, expected: string) {
+  await until(
+    () => scope.status.value === expected,
+    (notify) => watch(scope.status, notify, { flush: 'sync' }),
+  )
   await flushPromises()
 }
 
