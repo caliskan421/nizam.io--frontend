@@ -110,9 +110,11 @@ function viewStatus(
         ? toApiError(list.query.error.value)
         : null,
     ),
-    /** İmleç bitti / tek birim okundu: sayılar kesin (§10). */
+    /** İmleç bitti / tek birim okundu ve sunucu kesmedi: sayılar kesin (§10; CX-F2-K-03). */
     complete: computed(() =>
-      rosterMode.value ? roster.query.data.value !== undefined : list.complete.value,
+      rosterMode.value
+        ? roster.query.data.value !== undefined && !roster.truncated.value
+        : list.complete.value,
     ),
     truncated: computed(() => (rosterMode.value ? roster.truncated.value : list.truncated.value)),
     hasMore: computed(() => !rosterMode.value && list.query.hasNextPage.value === true),

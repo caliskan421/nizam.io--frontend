@@ -76,4 +76,32 @@ describe('useUsersView', () => {
     expect(view.hasMore.value).toBe(false)
     expect(sent('GET', '/v1/admin/users')).toHaveLength(0)
   })
+
+  it.each(['liste', 'tek birim'] as const)(
+    '%s kipi: sunucu kestiyse küme "tam" sayılmaz (CX-F2-K-03)',
+    async (mode) => {
+      const truncated = { 'X-Result-Truncated': 'true' }
+      server.use(
+        DEPARTMENTS,
+        http.get(`${ORIGIN}/v1/admin/users`, () =>
+          json({ users: [knownUser('a', 'Ayşe', ['p1:d1:uye'])] }, 200, truncated),
+        ),
+        http.get(`${ORIGIN}/v1/departments/d1/members`, () =>
+          json({ members: [rosterMember('a', 'Ayşe', 'uye')] }, 200, truncated),
+        ),
+      )
+      const input = reactive<UsersViewInput>({
+        roleTab: 'tumu',
+        search: '',
+        departmentId: mode === 'liste' ? null : 'd1',
+      })
+      const h = harness(ADMIN_SCOPE)
+      const view = h.run(() => useUsersView(input))
+      await vi.waitFor(() => expect(view.loading.value).toBe(false))
+      expect(view.source.value).toHaveLength(1)
+      expect(view.hasMore.value).toBe(false)
+      expect(view.truncated.value).toBe(true)
+      expect(view.complete.value).toBe(false)
+    },
+  )
 })

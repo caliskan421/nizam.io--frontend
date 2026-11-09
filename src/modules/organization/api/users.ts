@@ -88,8 +88,8 @@ export async function fetchUserPage(
 
 /**
  * Şirket geneli kullanıcı listesi (E-05-03, E-05-13, E-05-23). "Daha fazla yükle" =
- * `fetchNextPage()`. `complete` imleç bitince `true` (yalnız o zaman "Toplam N"; §10);
- * `truncated` herhangi bir sayfada sunucu kestiyse.
+ * `fetchNextPage()`. `complete` imleç bitince VE hiçbir sayfa kesilmemişse `true` (yalnız o zaman
+ * "Toplam N"; §10; CX-F2-K-03); `truncated` herhangi bir sayfada sunucu kestiyse.
  */
 export function useUserList(
   filters: MaybeRefOrGetter<UserListFilters>,
@@ -120,11 +120,15 @@ export function useUserList(
   const users = computed<KnownUser[]>(
     () => query.data.value?.pages.flatMap((p) => p.page.users ?? []) ?? [],
   )
+  const truncated = computed(() => query.data.value?.pages.some((p) => p.truncated) === true)
   return {
     query,
     users,
-    complete: computed(() => query.data.value !== undefined && query.hasNextPage.value === false),
-    truncated: computed(() => query.data.value?.pages.some((p) => p.truncated) === true),
+    // Kesilmiş küme tam değildir: "yüklenen kayıtlar içinde" etiketi kalkmaz (CX-F2-K-03).
+    complete: computed(
+      () => query.data.value !== undefined && query.hasNextPage.value === false && !truncated.value,
+    ),
+    truncated,
   }
 }
 

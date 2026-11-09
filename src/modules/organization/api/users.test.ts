@@ -85,6 +85,9 @@ describe('useUserList (listUsers, S1, imleçli)', () => {
     const r = h.run(() => useUserList(ASC))
     await vi.waitFor(() => expect(r.query.isSuccess.value).toBe(true))
     expect(r.truncated.value).toBe(true)
+    // İmleç bitti ama sunucu kesti: küme tam değil (CX-F2-K-03).
+    expect(r.query.hasNextPage.value).toBe(false)
+    expect(r.complete.value).toBe(false)
   })
 
   it('arama kırpılır; yön değişimi yeni sorgu, eski imleç kullanılmaz (E-05-10)', async () => {
