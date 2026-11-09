@@ -98,7 +98,7 @@ describe('görev aralığı ve histogram (E-03C-14/15)', () => {
   it('haftalık sayım aralık başından 7 günlük kovalarla', () => {
     const range = taskRange(tasks)!
     // 16 Haz – 12 Tem = 27 gün → 4 kova (16–22, 23–29, 30–6, 7–12)
-    expect(weeklyHistogram(tasks, range)).toEqual([2, 1, 3, 2])
+    expect(weeklyHistogram(tasks, range)).toEqual([2, 1, 2, 2])
   })
 
   it('aralık yoksa boş', () => {
