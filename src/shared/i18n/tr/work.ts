@@ -30,7 +30,6 @@ export const trTasksPage = {
       label: 'Görünüm',
       list: 'Liste',
       timeline: 'Zaman çizelgesi',
-      timelineSoon: 'Zaman çizelgesi — F3’te açılacak',
     },
     create: 'Yeni görev',
     tabs: {
