@@ -104,6 +104,19 @@ describe('yönetici — Koordinatör merceği (P1: mercek ≠ yetki)', () => {
     expect(app.scope.departmentId).toBe('d1')
   })
 
+  it('08b ve 05b "Görev ata" → yeni görev formu hedef birimle; mercek değişmez', async () => {
+    const app = await boot({ ...ADMIN_AS_COORD, path: '/koordinatorlukler/d2' })
+    await click('[data-action="assign"]')
+    expect(await newTaskTarget(app)).toBe('d2')
+    await app.router.push(`/kullanicilar/${PEOPLE.second.account_id}`)
+    await click('[data-assign]:not([disabled])')
+    expect(await newTaskTarget(app)).toBe('d2')
+    const assignee = $('[role="dialog"] [name="assignee"]') as HTMLSelectElement
+    expect(assignee.value).toBe(PEOPLE.second.account_id)
+    expect(app.scope.lens).toBe('coordinator')
+    expect(app.scope.departmentId).toBe('d1')
+  })
+
   it('05 listesi açılır (listUsers 403 değil)', async () => {
     await boot({ ...ADMIN_AS_COORD, path: '/kullanicilar' })
     await until(() => $('[role="row"][data-account="acc-member"]'), '05 listesi')

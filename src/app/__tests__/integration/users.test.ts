@@ -81,6 +81,32 @@ describe('05 çip kaldır → onay → görev listeleri (senaryo 2)', () => {
   })
 })
 
+describe('08b rol değiştir → onay → görev listesi (atama devri zinciri)', () => {
+  it('koordinatör "Üye yap" → confirmation_required (gövdede confirm) → kabul → /gorevler yenilenir', async () => {
+    const app = await boot({ ...ADMIN, path: '/gorevler' })
+    await until(() => assignedTo('w2', PEOPLE.coord.full_name), 'görev listesi')
+    await app.router.push('/koordinatorlukler/d1?sekme=uyeler')
+    await click(`[data-member="${PEOPLE.coord.account_id}"] [data-action="row-menu"]`)
+    await click(`[data-member="${PEOPLE.coord.account_id}"] [data-action="role"]`)
+    const dialog = await until(() => $('[data-testid="confirm-dialog"]'), 'onay')
+    expect($('[data-testid="confirm-items"]', dialog)?.textContent).toContain('Şasi çizimi')
+    await click('[data-testid="confirm-accept"]')
+    await until(() => !$('[data-testid="confirm-dialog"]'), 'onay kapanır')
+    const patches = () =>
+      backend.sent('PATCH', `/v1/departments/d1/memberships/${PEOPLE.coord.account_id}`)
+    await until(() => patches()[1]?.body, 'onaylı istek')
+    expect(patches()).toHaveLength(2)
+    expect(patches()[1]!.body).toEqual({ role: 'uye', confirm: true })
+    await until(
+      () =>
+        $(`[data-member="${PEOPLE.coord.account_id}"] [data-role]`)?.textContent?.trim() === 'Üye',
+      'rozet güncellendi',
+    )
+    await nav('Görevler')
+    await until(() => assignedTo('w2', PEOPLE.admin.full_name), 'devredilen görev')
+  })
+})
+
 describe('05 kullanıcı oluştur (gerçek UserCreateDialog + TemporaryPasswordDialog)', () => {
   async function create(name: string, email: string) {
     await click(() => byText('.users-page button', 'Kullanıcı oluştur'))
