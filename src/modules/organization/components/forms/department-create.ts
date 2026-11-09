@@ -15,6 +15,7 @@ import { computed, ref, watch, type Ref } from 'vue'
 
 import type { CompositeOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
+import { useToast } from '@/shared/ui'
 
 import { useCatalogDepartments, useCreateCoordinatorship, useDeletedDepartments } from '../../api'
 import type { CreateDepartmentInput, Department } from '../../model/types'
@@ -84,6 +85,10 @@ function settleCreate(result: CreateResult, name: string, s: CreateSettle): void
     const created = result.primary.data
     s.onPartial()
     s.ctx.hooks.saved(created.department_id)
+    // Pencere kapsam değişiminde kapandıysa kısmi sonuç yine söylenir (KESİN 20).
+    if (!s.ctx.hooks.open()) {
+      useToast().push({ message: orgText('orgForms.department.partial'), tone: 'danger' })
+    }
     s.link.offer({ departmentId: created.department_id, name: created.name })
     return
   }
