@@ -128,7 +128,7 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   const update = useUpdateSubtask()
   const del = useDeleteSubtask()
   const { conflict, resolve } = useConflictFlow(deps.item)
-  const { confirm } = useConfirm()
+  const { confirmWrite } = useConfirm()
   const pending = usePendingRows()
 
   function report(outcome: AnyOutcome | null): void {
@@ -164,19 +164,23 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
     return patch(subtask, { done: !subtask.done })
   }
 
-  /** E-03-36/64: onay → `deleteWorkItemSubtask`. */
+  /**
+   * E-03-36/64: onay → `deleteWorkItemSubtask`; silme onayın yakaladığı bağlamla başlar
+   * (CX-F1-E-02: kabul ile gönderim arasında kapsam/oturum değişirse gönderilmez).
+   */
   async function remove(subtask: WorkItemSubtask): Promise<void> {
-    const accepted = await confirm({
+    const options = {
       title: subtaskText('subtasks.confirm.title'),
       body: [subtaskText('subtasks.confirm.body', { title: subtask.title })],
       confirmLabel: subtaskText('subtasks.confirm.ok'),
-      tone: 'danger',
+      tone: 'danger' as const,
+    }
+    await confirmWrite(options, (context) => {
+      const ref = { target: { ...deps.target() }, workItemId: deps.item().work_item_id }
+      return pending.run(subtask.subtask_id, async () =>
+        report(await del.submit({ ...ref, subtaskId: subtask.subtask_id }, { context })),
+      )
     })
-    if (!accepted) return
-    const ref = { target: { ...deps.target() }, workItemId: deps.item().work_item_id }
-    await pending.run(subtask.subtask_id, async () =>
-      report(await del.submit({ ...ref, subtaskId: subtask.subtask_id })),
-    )
   }
 
   return { isPending: pending.has, patch, toggle, remove, conflict }

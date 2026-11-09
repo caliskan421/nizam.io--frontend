@@ -14,7 +14,7 @@
 import { useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
-import type { MutationOutcome } from '@/shared/http/mutation'
+import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { invalidationFilters } from '@/shared/http/query-keys'
 import { useStanding } from '@/shared/scope/standing'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
@@ -53,20 +53,39 @@ function needsReread(o: Outcome): boolean {
   return o.kind === 'failed' && o.error.status === 409
 }
 
-function confirmCloseSubtasks(): Promise<boolean> {
-  return useConfirm().confirm({
-    title: formsText('workForms.transition.subtasks.title'),
-    body: [formsText('workForms.transition.subtasks.body')],
-    confirmLabel: formsText('workForms.transition.subtasks.confirm'),
-    tone: 'primary',
-  })
-}
+const CLOSE_SUBTASKS_CONFIRM = () => ({
+  title: formsText('workForms.transition.subtasks.title'),
+  body: [formsText('workForms.transition.subtasks.body')],
+  confirmLabel: formsText('workForms.transition.subtasks.confirm'),
+  tone: 'primary' as const,
+})
 
-/** 409 / sonuç bilinmiyor sonrası: görev ve liste yeniden okunur (geçişin geçersizleme kümesi). */
-function reread(client: QueryClient, scope: ScopeSnapshot, workItemId: string): void {
-  for (const filter of invalidationFilters('transitionWorkItem', scope, { workItemId })) {
+/**
+ * 409 / sonuç bilinmiyor sonrası: görev ve liste yeniden okunur (geçişin geçersizleme kümesi),
+ * eylemin KENDİ kapsamında (sonradan seçilen kapsama dokunulmaz).
+ */
+function rereadAfter(client: QueryClient, o: Outcome, fallback: ScopeSnapshot, id: string): void {
+  if (!needsReread(o)) return
+  const scope = (o.kind === 'failed' && o.context?.scope) || fallback
+  for (const filter of invalidationFilters('transitionWorkItem', scope, { workItemId: id })) {
     void client.invalidateQueries(filter)
   }
+}
+
+type ConfirmWrite = ReturnType<typeof useConfirm>['confirmWrite']
+
+/**
+ * `work.subtasks_open` onayı İLK geçişin bağlamıyla (CX-F1-E-02): geç gelen 409'da bağlam
+ * bayatsa onay hiç açılmaz; kabulde `close_subtasks: true` tekrarı bu bağlamla gönderilir
+ * (motor kapısı gönderimden hemen önce denetler). Vazgeç/iptal → `null`.
+ */
+function confirmCloseSubtasks(
+  confirmWrite: ConfirmWrite,
+  o: Outcome,
+  resend: (context: ActionContext) => Promise<Outcome>,
+): Promise<Outcome | null> {
+  const first = o.kind === 'failed' ? o.context : undefined
+  return confirmWrite(CLOSE_SUBTASKS_CONFIRM(), (context) => resend(context), { context: first })
 }
 
 export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: TransitionHooks) {
@@ -74,6 +93,8 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   const { standing } = useStanding()
   const queryClient = useQueryClient()
   const transition = useTransitionWorkItem()
+  // Kurulumda alınır: onay bu bileşenin etki kapsamına aittir, sökülünce iptal (CX-F1-E-02).
+  const { confirmWrite } = useConfirm()
 
   const facts = computed(() => workActorFacts(standing.value, store.programId, toValue(item)))
   const targets = computed<WorkItemStatus[]>(() =>
@@ -89,7 +110,10 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
     }
     const code = codeOf(o)
     if (code === 'work.subtasks_open' && canCloseSubtasks(body.to) && !body.close_subtasks) {
-      if (await confirmCloseSubtasks()) return send(current, { ...body, close_subtasks: true })
+      const again = await confirmCloseSubtasks(confirmWrite, o, (context) =>
+        send(current, { ...body, close_subtasks: true }, context),
+      )
+      if (again) return again
     } else if (code === 'work.attachment_required') {
       useToast().push({ message: formsText('workForms.transition.evidence'), tone: 'danger' })
       hooks.requestEvidence()
@@ -100,17 +124,16 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
     } else {
       notifyOutcome(o)
     }
-    if (needsReread(o)) reread(queryClient, store.snapshot, current.work_item_id)
+    rereadAfter(queryClient, o, store.snapshot, current.work_item_id)
     return o
   }
 
   /** Her çağrı yeni kullanıcı eylemidir (onaylı `close_subtasks` tekrarı dahil). */
-  async function send(current: WorkItem, body: TransitionBody): Promise<Outcome> {
-    const outcome = await transition.submit({
-      target: targetOf(current),
-      workItemId: current.work_item_id,
-      body,
-    })
+  async function send(current: WorkItem, body: TransitionBody, context?: ActionContext) {
+    const outcome = await transition.submit(
+      { target: targetOf(current), workItemId: current.work_item_id, body },
+      { context },
+    )
     return settle(current, body, outcome)
   }
 

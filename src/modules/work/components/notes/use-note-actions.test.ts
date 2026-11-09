@@ -186,4 +186,17 @@ describe('useNoteActions — silme', () => {
     expect(await pending).toBe(false)
     expect(toastMessages()).toEqual(['Bu not size ait değil.'])
   })
+
+  it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0 (yazma onayın bağlamıyla)', async () => {
+    server.use(http.delete(`${URL}/n1`, () => json({ status: 'deleted' })))
+    const { h, actions } = setup()
+    const confirm = useConfirm()
+    const run = actions.deleteNote(base)
+    await h.flush()
+    const accepting = confirm.accept(confirm.current.value!.id)
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    await accepting
+    expect(await run).toBe(false)
+    expect(sent('DELETE', `${NOTES_PATH}/n1`)).toHaveLength(0)
+  })
 })

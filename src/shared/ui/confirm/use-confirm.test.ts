@@ -5,8 +5,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { defineComponent, effectScope } from 'vue'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { defineComponent, effectScope, type EffectScope } from 'vue'
 
 import { api as appApi, authSession } from '@/shared/http'
 import { createApiClient } from '@/shared/http/client'
@@ -22,7 +22,16 @@ import { unassignedTasks, useConfirm } from './use-confirm'
 
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+/** Onay açan örnek bir etki kapsamına aittir (sahipsiz onay yasak). */
+const owners: EffectScope[] = []
+function ownedConfirm() {
+  const owner = effectScope()
+  owners.push(owner)
+  return owner.run(() => useConfirm())!
+}
+
 afterEach(() => {
+  for (const owner of owners.splice(0)) owner.stop()
   server.resetHandlers()
   if (authSession.snapshot.accountId) authSession.clear()
   useConfirm().clear()
@@ -95,7 +104,7 @@ describe('etkili işlem onayı (iki aşama)', () => {
     const first = await mutation.submit({ id: 'dep1', accountId: 'acc1' })
     if (first.kind !== 'confirmation_required') throw new Error(first.kind)
 
-    const pending = useConfirm().confirmImpact(first, OPTIONS)
+    const pending = ownedConfirm().confirmImpact(first, OPTIONS)
     await flushPromises()
     const dialog = document.querySelector('[data-testid="confirm-dialog"]')!
     expect(dialog.getAttribute('role')).toBe('alertdialog')
@@ -138,7 +147,7 @@ describe('etkili işlem onayı (iki aşama)', () => {
     const { mutation, stop } = removeMember()
     const first = await mutation.submit({ id: 'dep1', accountId: 'acc1' })
     if (first.kind !== 'confirmation_required') throw new Error(first.kind)
-    const pending = useConfirm().confirmImpact(first, OPTIONS)
+    const pending = ownedConfirm().confirmImpact(first, OPTIONS)
     await flushPromises()
     const dialog = document.querySelector('[data-testid="confirm-dialog"]') as HTMLElement
     dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
@@ -150,28 +159,40 @@ describe('etkili işlem onayı (iki aşama)', () => {
 })
 
 describe('genel istemci onayı', () => {
-  it('kabul → true; vazgeç → false; kuyruk sırayla gösterir', async () => {
+  it('kabul → start sonucu; vazgeç → null; kuyruk sırayla gösterir', async () => {
     const host = mount(ConfirmHost, { attachTo: document.body })
-    const confirm = useConfirm()
-    const first = confirm.confirm({
-      title: 'Görev silinsin mi?',
-      body: ['Görev listeden kalkar.'],
-      confirmLabel: 'Sil',
-    })
-    const second = confirm.confirm({ title: 'İkinci', confirmLabel: 'Tamam', tone: 'primary' })
+    const confirm = ownedConfirm()
+    const start = () => Promise.resolve('yazıldı')
+    const first = confirm.confirmWrite(
+      { title: 'Görev silinsin mi?', body: ['Görev listeden kalkar.'], confirmLabel: 'Sil' },
+      start,
+    )
+    const second = confirm.confirmWrite(
+      { title: 'İkinci', confirmLabel: 'Tamam', tone: 'primary' },
+      start,
+    )
     await flushPromises()
     expect(document.body.textContent).toContain('Görev silinsin mi?')
     expect(document.body.textContent).toContain('Görev listeden kalkar.')
     const accept = () => document.querySelector('[data-testid="confirm-accept"]') as HTMLElement
     expect(accept().className).toContain('t-btn--danger')
     accept().click()
-    expect(await first).toBe(true)
+    expect(await first).toBe('yazıldı')
     await flushPromises()
     expect(document.body.textContent).toContain('İkinci')
     expect(accept().className).toContain('t-btn--primary')
     confirm.cancel(confirm.current.value!.id)
-    expect(await second).toBe(false)
+    expect(await second).toBeNull()
     host.unmount()
+  })
+
+  it('sahipsiz onay yasak: etki kapsamı dışında alınan örnek onay açamaz (geliştirme/test hatası)', () => {
+    const outside = useConfirm()
+    const start = () => Promise.resolve('x')
+    expect(() => outside.confirmWrite({ title: 'x', confirmLabel: 'y' }, start)).toThrow(
+      /etki kapsamı dışında/,
+    )
+    expect(outside.current.value).toBeNull()
   })
 
   it('unassignedTasks yalnız pozitif sayı', () => {
@@ -198,7 +219,7 @@ describe('onay yaşam döngüsü (CX-F1-E-02) — sıfır yazma kanıtı', () =>
   const Consumer = defineComponent({
     props: { queryClient: { type: QueryClient, required: true } },
     setup(props) {
-      const { confirm } = useConfirm()
+      const { confirmWrite } = useConfirm()
       const remove = useProtectedMutation<{ id: string }, unknown>({
         operation: 'deleteWorkItem',
         queryClient: props.queryClient,
@@ -211,9 +232,11 @@ describe('onay yaşam döngüsü (CX-F1-E-02) — sıfır yazma kanıtı', () =>
           }),
       })
       async function onDelete(): Promise<boolean> {
-        const ok = await confirm({ title: 'Görev silinsin mi?', confirmLabel: 'Sil' })
-        if (ok) await remove.submit({ id: 'w1' })
-        return ok
+        const outcome = await confirmWrite(
+          { title: 'Görev silinsin mi?', confirmLabel: 'Sil' },
+          (context) => remove.submit({ id: 'w1' }, { context }),
+        )
+        return outcome !== null
       }
       return { onDelete }
     },
@@ -325,10 +348,56 @@ describe('onay yaşam döngüsü (CX-F1-E-02) — sıfır yazma kanıtı', () =>
     const { mutation, stop } = removeMember()
     const first = await mutation.submit({ id: 'dep1', accountId: 'acc1' })
     if (first.kind !== 'confirmation_required') throw new Error(first.kind)
-    const pending = useConfirm().confirmImpact(first, OPTIONS)
+    const pending = ownedConfirm().confirmImpact(first, OPTIONS)
     useScopeStore().commit(B)
     expect(await pending).toBeNull()
     expect(calls).toBe(1)
     stop()
+  })
+})
+
+describe('confirmWrite — yazma onayın bağlamıyla başlar (CX-F1-E-02)', () => {
+  const A = { programId: 'p1', lens: 'coordinator', departmentId: 'd1' } as const
+  const B = { programId: 'p2', lens: 'coordinator', departmentId: 'd3' } as const
+
+  function scoped() {
+    setActivePinia(createPinia())
+    const store = useScopeStore()
+    store.commit(A)
+    return store
+  }
+
+  it('verilen ilk eylem bağlamı açılışta bayatsa onay hiç açılmaz (null), start çağrılmaz', async () => {
+    const store = scoped()
+    const first = { scope: { ...store.snapshot }, generation: authSession.generation }
+    store.commit(B)
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    const result = ownedConfirm().confirmWrite(OPTIONS, start, { context: first })
+    expect(useConfirm().current.value).toBeNull()
+    expect(await result).toBeNull()
+    expect(start).not.toHaveBeenCalled()
+  })
+
+  it('kabul → start onayın yakaladığı bağlamla, kabulle AYNI anda çağrılır; sonuç döner', async () => {
+    const store = scoped()
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    const result = ownedConfirm().confirmWrite(OPTIONS, start)
+    const accepting = useConfirm().accept(useConfirm().current.value!.id)
+    // `accept` ile `start` arasında araya giren iş yok: kabul döner dönmez yazma başlamış.
+    expect(start).toHaveBeenCalledWith({
+      scope: { ...store.snapshot },
+      generation: authSession.generation,
+    })
+    await accepting
+    expect(await result).toBe('yazıldı')
+  })
+
+  it('vazgeç → null, start çağrılmaz', async () => {
+    scoped()
+    const start = vi.fn(() => Promise.resolve('yazıldı'))
+    const result = ownedConfirm().confirmWrite(OPTIONS, start)
+    useConfirm().cancel(useConfirm().current.value!.id)
+    expect(await result).toBeNull()
+    expect(start).not.toHaveBeenCalled()
   })
 })

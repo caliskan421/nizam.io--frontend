@@ -147,4 +147,17 @@ describe('dosya eylemleri (W46 · E-03-61)', () => {
     expect(outcome.kind === 'failed' && outcome.error.code).toBe('records.name_taken')
     expect(sent('PATCH', '/v1/files/f1/name')[0]!.body).toEqual({ display_name: 'yeni.pdf' })
   })
+
+  it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0 (yazma onayın bağlamıyla)', async () => {
+    server.use(http.delete(`${ORIGIN}/v1/files/f1`, () => new Response(null, { status: 204 })))
+    const { h, actions } = setup()
+    const confirm = useConfirm()
+    const run = actions.remove()
+    await h.flush()
+    const accepting = confirm.accept(confirm.current.value!.id)
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    await accepting
+    expect(await run).toBe(false)
+    expect(sent('DELETE', '/v1/files/f1')).toHaveLength(0)
+  })
 })

@@ -45,9 +45,11 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
 
   // Üretim CSP'sinde BÜTÜN ihlaller 0 (CX-F1-Ö-03; yazı tipi CX-F0-Ö-05 dahil): kendi barındırılan
-  // yazı tipleri `font-src 'self'` ile yüklendi; ayrıntı hata iletisinde.
+  // yazı tipleri `font-src 'self'` ile yüklendi; ayrıntı hata iletisinde. Giriş sonrası belge
+  // kimlik sayfasıdır (`/oturum`; anonim `/` oraya yönlenir) — gerçek ana sayfa / dolu KPI
+  // tanığı değildir (CX-F1-Ö-06; F2 borcu).
   const violations = await cspViolations(page)
-  expect(violations, describeViolations('/', violations)).toEqual([])
+  expect(violations, describeViolations('/oturum', violations)).toEqual([])
   expect(await loadedFontFamilies(page)).toEqual(expect.arrayContaining(['Inter', 'Poppins']))
 
   // Katman sırası (W61b): kabuk yüklendi; components katmanı Tailwind base/preflight'ın üstünde.
