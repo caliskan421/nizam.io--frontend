@@ -17,7 +17,7 @@ const emit = defineEmits<{ edit: [] }>()
   <section class="t-card cd-card" aria-labelledby="cd-about-title" data-card="about">
     <div class="rp-cardhead cd-cardhead">
       <h2 id="cd-about-title" class="rp-cardtitle">
-        {{ detailText('organization.coordinatorship.about.title') }}
+        {{ detailText('coordinatorship.about.title') }}
       </h2>
       <button
         v-if="canEdit"
@@ -26,33 +26,33 @@ const emit = defineEmits<{ edit: [] }>()
         data-action="about-edit"
         @click="emit('edit')"
       >
-        {{ detailText('organization.coordinatorship.about.edit') }}
+        {{ detailText('coordinatorship.about.edit') }}
       </button>
     </div>
     <p v-if="description" class="cd-about" data-testid="cd-description">{{ description }}</p>
     <dl class="rp-dl cd-dl">
-      <dt>{{ detailText('organization.coordinatorship.about.founded') }}</dt>
+      <dt>{{ detailText('coordinatorship.about.founded') }}</dt>
       <dd class="rp-mono">
         <DesignStub id="BE-018" data-field="founded">
-          {{ detailText('organization.coordinatorship.about.none') }}
+          {{ detailText('coordinatorship.about.none') }}
         </DesignStub>
       </dd>
-      <dt>{{ detailText('organization.coordinatorship.about.archive') }}</dt>
+      <dt>{{ detailText('coordinatorship.about.archive') }}</dt>
       <dd>
         <span
           class="rp-link cd-disabled-link"
           role="link"
           aria-disabled="true"
-          :title="detailText('organization.coordinatorship.phase.f5')"
+          :title="detailText('coordinatorship.phase.f5')"
           data-field="archive"
         >
-          {{ detailText('organization.coordinatorship.phase.f5') }}
+          {{ detailText('coordinatorship.phase.f5') }}
         </span>
       </dd>
-      <dt>{{ detailText('organization.coordinatorship.about.visibility') }}</dt>
+      <dt>{{ detailText('coordinatorship.about.visibility') }}</dt>
       <dd>
         <DesignStub id="BE-018" data-field="visibility">
-          {{ detailText('organization.coordinatorship.about.none') }}
+          {{ detailText('coordinatorship.about.none') }}
         </DesignStub>
       </dd>
     </dl>

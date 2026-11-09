@@ -50,7 +50,7 @@ function factsFor(member: RosterMember) {
   <section class="t-card cd-card cd-members" aria-labelledby="cd-members-title" data-card="members">
     <div class="rp-cardhead cd-cardhead">
       <h2 id="cd-members-title" class="rp-cardtitle">
-        {{ detailText('organization.coordinatorship.members.label') }}
+        {{ detailText('coordinatorship.members.label') }}
         <UiCount v-if="ready" :value="roster.active.value.length" />
       </h2>
       <UiButton
@@ -60,19 +60,19 @@ function factsFor(member: RosterMember) {
         data-action="members-add"
         @click="emit('addMember')"
       >
-        {{ detailText('organization.coordinatorship.members.add') }}
+        {{ detailText('coordinatorship.members.add') }}
       </UiButton>
     </div>
     <UiErrorState
       v-if="error"
       :error="error"
-      :title="detailText('organization.coordinatorship.members.error')"
+      :title="detailText('coordinatorship.members.error')"
       retryable
       :retrying="roster.query.isFetching.value"
       @retry="roster.query.refetch()"
     />
     <p v-else-if="ready && members.length === 0" class="rp-cap" data-testid="cd-members-empty">
-      {{ detailText('organization.coordinatorship.members.empty') }}
+      {{ detailText('coordinatorship.members.empty') }}
     </p>
     <ul v-else class="cd-memberlist" :aria-busy="ready ? undefined : 'true'">
       <MemberRow
@@ -87,7 +87,7 @@ function factsFor(member: RosterMember) {
       />
     </ul>
     <p v-if="roster.truncated.value" class="rp-cap" data-members-truncated>
-      {{ detailText('organization.coordinatorship.members.truncated') }}
+      {{ detailText('coordinatorship.members.truncated') }}
     </p>
   </section>
 </template>

@@ -287,6 +287,36 @@
   --home-link-icon: 14px;
   --home-skel-line: 16px;
   --home-skel-num: 52px;
+  /* web · coords */
+  --coords-health-min: 220px;
+  --coords-health-cols: 36px minmax(0, 1fr) 16px;
+  --coords-health-pad: 14px 16px;
+  --coords-health-num: 600 22px/26px var(--font-display);
+  --coords-chip: 36px;
+  --coords-grow-basis: 280px;
+  --coords-search-basis: 200px;
+  --coords-card-min: 280px;
+  --coords-gap: 14px;
+  --coords-card-pad: 18px;
+  --coords-code-min: 44px;
+  --coords-code-h: 24px;
+  --coords-code-offset: 2px;
+  --coords-title: 600 15px/20px var(--font-sans);
+  --coords-lead-h: 28px;
+  --coords-av-overlap: -3px;
+  --coords-av-ring: 2px;
+  --coords-stat-h: 56px;
+  --coords-stat-num: 600 20px/24px var(--font-display);
+  --coords-dot: 8px;
+  --coords-menu-btn: 32px;
+  --coords-menu-w: 220px;
+  --coords-tip-offset: 8px;
+  --coords-tip-pad: 4px 8px;
+  --coords-tip-radius: 7px;
+  --coords-tip-font: 500 11px/14px var(--font-sans);
+  --coords-tip-shift: 3px;
+  --coords-skel-h: 212px;
+  --coords-group-gap: 20px;
   /* web · coordinatorship */
   --cd-head-gap: 18px;
   --cd-code-lg: 56px;

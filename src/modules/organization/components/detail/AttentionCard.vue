@@ -40,14 +40,14 @@ const open = (workItemId: string) => ({
   >
     <div class="rp-cardhead cd-cardhead">
       <h2 id="cd-attn-title" class="rp-cardtitle">
-        {{ detailText('organization.coordinatorship.attention.title') }}
+        {{ detailText('coordinatorship.attention.title') }}
       </h2>
       <RouterLink class="rp-link" :to="all" data-action="attention-all">
-        {{ detailText('organization.coordinatorship.attention.all') }}
+        {{ detailText('coordinatorship.attention.all') }}
       </RouterLink>
     </div>
     <p v-if="error" class="rp-cap" role="status">
-      {{ detailText('organization.coordinatorship.attention.error') }}
+      {{ detailText('coordinatorship.attention.error') }}
     </p>
     <template v-else>
       <div v-for="row in rows" :key="row.workItemId" class="cd-attn" data-attention>
@@ -61,10 +61,10 @@ const open = (workItemId: string) => ({
         <span class="rp-mono rp-nowrap rp-danger-text cd-attn__late">{{ row.late }}</span>
       </div>
       <p v-if="!loading && work.complete && rows.length === 0" class="rp-cap" data-attention-empty>
-        {{ detailText('organization.coordinatorship.attention.empty') }}
+        {{ detailText('coordinatorship.attention.empty') }}
       </p>
       <p v-if="!work.complete && rows.length > 0" class="rp-cap" data-attention-partial>
-        {{ detailText('organization.coordinatorship.attention.loaded') }}
+        {{ detailText('coordinatorship.attention.loaded') }}
       </p>
     </template>
   </section>

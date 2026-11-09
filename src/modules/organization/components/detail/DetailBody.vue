@@ -62,36 +62,36 @@ watch(
 
 const rosterReady = computed(() => roster.query.data.value !== undefined)
 const tabs = computed<DetailTabItem[]>(() => [
-  { value: 'genel', label: detailText('organization.coordinatorship.tabs.genel') },
+  { value: 'genel', label: detailText('coordinatorship.tabs.genel') },
   ...(viewTeam.value
     ? [
         {
           value: 'uyeler' as const,
-          label: detailText('organization.coordinatorship.tabs.uyeler'),
+          label: detailText('coordinatorship.tabs.uyeler'),
           count: rosterReady.value ? roster.active.value.length : undefined,
         },
       ]
     : []),
   {
     value: 'gorevler',
-    label: detailText('organization.coordinatorship.tabs.gorevler'),
+    label: detailText('coordinatorship.tabs.gorevler'),
     count: props.view.stat?.total_tasks,
   },
   {
     value: 'arsiv',
-    label: detailText('organization.coordinatorship.tabs.arsiv'),
-    phase: detailText('organization.coordinatorship.phase.f5'),
+    label: detailText('coordinatorship.tabs.arsiv'),
+    phase: detailText('coordinatorship.phase.f5'),
   },
   {
     value: 'toplantilar',
-    label: detailText('organization.coordinatorship.tabs.toplantilar'),
-    phase: detailText('organization.coordinatorship.phase.f4'),
+    label: detailText('coordinatorship.tabs.toplantilar'),
+    phase: detailText('coordinatorship.phase.f4'),
   },
   ...(canEdit.value
     ? [
         {
           value: 'ayarlar' as const,
-          label: detailText('organization.coordinatorship.tabs.ayarlar'),
+          label: detailText('coordinatorship.tabs.ayarlar'),
         },
       ]
     : []),

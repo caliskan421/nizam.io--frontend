@@ -16,10 +16,10 @@ import { detailText } from './messages'
     data-card="activity"
   >
     <h2 id="cd-feed-title" class="rp-cardtitle cd-feed__title">
-      {{ detailText('organization.coordinatorship.activity.title') }}
+      {{ detailText('coordinatorship.activity.title') }}
     </h2>
     <DesignStub id="BE-018" as="div" data-testid="cd-activity">
-      <UiPlaceholder :text="detailText('organization.coordinatorship.activity.empty')" />
+      <UiPlaceholder :text="detailText('coordinatorship.activity.empty')" />
     </DesignStub>
   </section>
 </template>

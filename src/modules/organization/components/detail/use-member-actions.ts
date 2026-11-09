@@ -37,15 +37,13 @@ export function useMemberActions(departmentId: MaybeRefOrGetter<string>) {
     const outcome = await changeRole.submit(
       { programId, departmentId: toValue(departmentId), accountId: member.account_id, role },
       {
-        title: detailText('organization.coordinatorship.members.roleTitle'),
-        body: [
-          detailText('organization.coordinatorship.members.roleText', { name: member.full_name }),
-        ],
-        confirmLabel: detailText('organization.coordinatorship.members.roleConfirm'),
+        title: detailText('coordinatorship.members.roleTitle'),
+        body: [detailText('coordinatorship.members.roleText', { name: member.full_name })],
+        confirmLabel: detailText('coordinatorship.members.roleConfirm'),
         tone: 'primary',
       },
     )
-    report(outcome, 'organization.coordinatorship.members.changed')
+    report(outcome, 'coordinatorship.members.changed')
   }
 
   async function removeMember(member: RosterMember): Promise<void> {
@@ -54,15 +52,13 @@ export function useMemberActions(departmentId: MaybeRefOrGetter<string>) {
     const outcome = await remove.submit(
       { programId, departmentId: toValue(departmentId), accountId: member.account_id },
       {
-        title: detailText('organization.coordinatorship.members.removeTitle'),
-        body: [
-          detailText('organization.coordinatorship.members.removeText', { name: member.full_name }),
-        ],
-        confirmLabel: detailText('organization.coordinatorship.members.removeConfirm'),
+        title: detailText('coordinatorship.members.removeTitle'),
+        body: [detailText('coordinatorship.members.removeText', { name: member.full_name })],
+        confirmLabel: detailText('coordinatorship.members.removeConfirm'),
         tone: 'danger',
       },
     )
-    report(outcome, 'organization.coordinatorship.members.removed')
+    report(outcome, 'coordinatorship.members.removed')
   }
 
   return {

@@ -63,7 +63,7 @@ function retry(): void {
         v-if="data.departments.isPending.value"
         class="cd-skeleton"
         role="status"
-        :aria-label="detailText('organization.coordinatorship.page.loading')"
+        :aria-label="detailText('coordinatorship.page.loading')"
         data-state="loading"
       >
         <span class="cd-skel cd-skel--code" />
@@ -72,7 +72,7 @@ function retry(): void {
       <UiErrorState
         v-else-if="listError"
         :error="listError"
-        :title="detailText('organization.coordinatorship.page.error')"
+        :title="detailText('coordinatorship.page.error')"
         retryable
         :retrying="data.departments.isFetching.value"
         data-state="error"
@@ -81,17 +81,17 @@ function retry(): void {
       <UiEmptyState
         v-else
         icon="coords"
-        :title="detailText('organization.coordinatorship.page.missingTitle')"
+        :title="detailText('coordinatorship.page.missingTitle')"
         :text="
           data.departmentsTruncated.value
-            ? detailText('organization.coordinatorship.page.truncated')
-            : detailText('organization.coordinatorship.page.missingText')
+            ? detailText('coordinatorship.page.truncated')
+            : detailText('coordinatorship.page.missingText')
         "
         data-state="missing"
       >
         <template #action>
           <RouterLink class="t-btn t-btn--secondary t-btn--sm" :to="back" data-action="back">
-            {{ detailText('organization.coordinatorship.page.back') }}
+            {{ detailText('coordinatorship.page.back') }}
           </RouterLink>
         </template>
       </UiEmptyState>

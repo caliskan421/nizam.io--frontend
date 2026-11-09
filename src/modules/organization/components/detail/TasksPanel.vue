@@ -15,28 +15,28 @@ import { detailText } from './messages'
  */
 const props = defineProps<{ view: CoordinatorshipView }>()
 
-const none = () => detailText('organization.coordinatorship.tasks.none')
+const none = () => detailText('coordinatorship.tasks.none')
 const rows = computed(() => {
   const s = props.view.stat
   return [
     {
       key: 'total',
-      label: detailText('organization.coordinatorship.tasks.total'),
+      label: detailText('coordinatorship.tasks.total'),
       value: s?.total_tasks,
     },
     {
       key: 'completed',
-      label: detailText('organization.coordinatorship.tasks.completed'),
+      label: detailText('coordinatorship.tasks.completed'),
       value: s?.completed_tasks,
     },
     {
       key: 'open',
-      label: detailText('organization.coordinatorship.tasks.open'),
+      label: detailText('coordinatorship.tasks.open'),
       value: s ? s.total_tasks - s.completed_tasks : undefined,
     },
     {
       key: 'overdue',
-      label: detailText('organization.coordinatorship.tasks.overdue'),
+      label: detailText('coordinatorship.tasks.overdue'),
       value: s?.overdue_tasks,
     },
   ]
@@ -50,7 +50,7 @@ const tasks = computed(() => ({
 <template>
   <section class="t-card cd-card cd-narrow" aria-labelledby="cd-tasks-title" data-card="tasks">
     <h2 id="cd-tasks-title" class="rp-cardtitle">
-      {{ detailText('organization.coordinatorship.tasks.label') }}
+      {{ detailText('coordinatorship.tasks.label') }}
     </h2>
     <dl class="rp-dl cd-dl">
       <template v-for="row in rows" :key="row.key">
@@ -64,7 +64,7 @@ const tasks = computed(() => ({
       data-action="open-tasks"
     >
       <UiIcon name="tasks" size="sm" />
-      {{ detailText('organization.coordinatorship.tasks.open03') }}
+      {{ detailText('coordinatorship.tasks.open03') }}
     </RouterLink>
   </section>
 </template>

@@ -44,7 +44,7 @@ function onKeydown(event: KeyboardEvent): void {
     ref="list"
     class="rp-tabs cd-tabs"
     role="tablist"
-    :aria-label="detailText('organization.coordinatorship.tabs.label')"
+    :aria-label="detailText('coordinatorship.tabs.label')"
     @keydown="onKeydown"
   >
     <button

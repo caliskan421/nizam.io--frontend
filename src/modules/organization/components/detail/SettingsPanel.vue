@@ -22,22 +22,22 @@ const emit = defineEmits<{ edit: [] }>()
   >
     <div class="rp-cardhead cd-cardhead">
       <h2 id="cd-settings-title" class="rp-cardtitle">
-        {{ detailText('organization.coordinatorship.settings.label') }}
+        {{ detailText('coordinatorship.settings.label') }}
       </h2>
       <UiButton size="sm" data-action="settings-edit" @click="emit('edit')">
-        {{ detailText('organization.coordinatorship.settings.edit') }}
+        {{ detailText('coordinatorship.settings.edit') }}
       </UiButton>
     </div>
     <dl class="rp-dl cd-dl">
-      <dt>{{ detailText('organization.coordinatorship.settings.name') }}</dt>
+      <dt>{{ detailText('coordinatorship.settings.name') }}</dt>
       <dd data-setting="name">{{ view.displayName }}</dd>
-      <dt>{{ detailText('organization.coordinatorship.settings.code') }}</dt>
+      <dt>{{ detailText('coordinatorship.settings.code') }}</dt>
       <dd class="rp-mono" data-setting="code">
-        {{ view.code ?? detailText('organization.coordinatorship.settings.none') }}
+        {{ view.code ?? detailText('coordinatorship.settings.none') }}
       </dd>
-      <dt>{{ detailText('organization.coordinatorship.settings.description') }}</dt>
+      <dt>{{ detailText('coordinatorship.settings.description') }}</dt>
       <dd class="cd-wrap" data-setting="description">
-        {{ view.stat?.description || detailText('organization.coordinatorship.settings.none') }}
+        {{ view.stat?.description || detailText('coordinatorship.settings.none') }}
       </dd>
     </dl>
   </section>

@@ -29,7 +29,7 @@ const lead = computed(() => isCoordinator(props.member))
 const deleted = computed(() => props.member.status === 'deleted')
 const hasMenu = computed(() => !deleted.value && (props.canChangeRole || props.canRemove))
 const menuLabel = computed(() =>
-  detailText('organization.coordinatorship.members.menu', { name: props.member.full_name }),
+  detailText('coordinatorship.members.menu', { name: props.member.full_name }),
 )
 
 function close(reason: 'escape' | 'tab'): void {
@@ -65,14 +65,14 @@ function choose(action: 'role' | 'remove'): void {
         {{ member.full_name }}
       </RouterLink>
       <span v-if="deleted" class="rp-cap" data-deleted>
-        {{ detailText('organization.coordinatorship.members.deleted') }}
+        {{ detailText('coordinatorship.members.deleted') }}
       </span>
     </span>
     <span class="t-badge cd-badge" :class="{ 'cd-badge--lead': lead }" data-role>
       {{
         lead
-          ? detailText('organization.coordinatorship.members.coordinator')
-          : detailText('organization.coordinatorship.members.member')
+          ? detailText('coordinatorship.members.coordinator')
+          : detailText('coordinatorship.members.member')
       }}
     </span>
     <span class="cd-member__menu">
@@ -90,12 +90,12 @@ function choose(action: 'role' | 'remove'): void {
           <UiMenuItem v-if="canChangeRole" data-action="role" @select="choose('role')">
             {{
               lead
-                ? detailText('organization.coordinatorship.members.makeMember')
-                : detailText('organization.coordinatorship.members.makeCoordinator')
+                ? detailText('coordinatorship.members.makeMember')
+                : detailText('coordinatorship.members.makeCoordinator')
             }}
           </UiMenuItem>
           <UiMenuItem v-if="canRemove" danger data-action="remove" @select="choose('remove')">
-            {{ detailText('organization.coordinatorship.members.remove') }}
+            {{ detailText('coordinatorship.members.remove') }}
           </UiMenuItem>
         </UiMenu>
       </template>

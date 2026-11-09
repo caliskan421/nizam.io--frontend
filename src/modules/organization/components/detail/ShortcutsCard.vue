@@ -28,20 +28,20 @@ const LATER: ReadonlyArray<{
   {
     key: 'timeline',
     icon: 'gantt',
-    label: 'organization.coordinatorship.shortcuts.timeline',
-    phase: 'organization.coordinatorship.phase.f3',
+    label: 'coordinatorship.shortcuts.timeline',
+    phase: 'coordinatorship.phase.f3',
   },
   {
     key: 'archive',
     icon: 'archive',
-    label: 'organization.coordinatorship.shortcuts.archive',
-    phase: 'organization.coordinatorship.phase.f5',
+    label: 'coordinatorship.shortcuts.archive',
+    phase: 'coordinatorship.phase.f5',
   },
   {
     key: 'meeting',
     icon: 'meetings',
-    label: 'organization.coordinatorship.shortcuts.meeting',
-    phase: 'organization.coordinatorship.phase.f4',
+    label: 'coordinatorship.shortcuts.meeting',
+    phase: 'coordinatorship.phase.f4',
   },
 ]
 </script>
@@ -53,11 +53,11 @@ const LATER: ReadonlyArray<{
     data-card="shortcuts"
   >
     <h2 id="cd-links-title" class="rp-cardtitle cd-shortcuts__title">
-      {{ detailText('organization.coordinatorship.shortcuts.title') }}
+      {{ detailText('coordinatorship.shortcuts.title') }}
     </h2>
     <RouterLink class="rp-menuitem cd-shortcut" :to="tasks" data-shortcut="tasks">
       <UiIcon name="tasks" size="sm" class="cd-shortcut__icon" />
-      <span class="rp-trunc">{{ detailText('organization.coordinatorship.shortcuts.tasks') }}</span>
+      <span class="rp-trunc">{{ detailText('coordinatorship.shortcuts.tasks') }}</span>
       <UiIcon name="chevron-right" size="sm" class="cd-shortcut__go" />
     </RouterLink>
     <span
