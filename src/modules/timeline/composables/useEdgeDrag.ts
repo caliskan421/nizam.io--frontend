@@ -31,6 +31,12 @@ export interface EdgeDragOptions {
   onDrag: (drag: GanttEdgeDrag) => void
 }
 
+export interface ActiveDrag {
+  workItemId: string
+  edge: GanttEdge
+  day: string
+}
+
 interface Session extends EdgeDragStart {
   pointerId: number
   startX: number
@@ -38,50 +44,90 @@ interface Session extends EdgeDragStart {
   target: Element | null
 }
 
+/** İşaretçinin `clientX`'indeki güne yapışmış tarih (kısıtlı). */
+function dayAt(s: Session, px: number, clientX: number): string {
+  const steps = px > 0 ? Math.round((clientX - s.startX) / px) : 0
+  const raw = addDays(s.day, steps)
+  if (raw === null) return s.current
+  const range =
+    s.edge === 'start' ? { start: s.day, end: s.opposite } : { start: s.opposite, end: s.day }
+  const clamped = applyEdge(range, s.edge, raw)
+  return clamped === null ? s.current : s.edge === 'start' ? clamped.start : clamped.end
+}
+
+const dragOf = (phase: GanttEdgeDrag['phase'], s: Session, day: string): GanttEdgeDrag => ({
+  workItemId: s.workItemId,
+  edge: s.edge,
+  phase,
+  day,
+})
+
+const ownerOf = (s: Session | null, e: PointerEvent): Session | null =>
+  s && e.pointerId === s.pointerId ? s : null
+
+function setCapture(target: Element | null, pointerId: number, on: boolean): void {
+  const method = on ? 'setPointerCapture' : 'releasePointerCapture'
+  // jsdom'da yakalama API'si yok; gerçek tarayıcıda zaten bırakılmış olabilir.
+  if (!target || typeof target[method] !== 'function') return
+  try {
+    target[method](pointerId)
+  } catch {
+    // Yakalanamayan / zaten bırakılmış işaretçi: pencere dinleyicileri yeter.
+  }
+}
+
+interface Handlers {
+  move: (e: PointerEvent) => void
+  up: (e: PointerEvent) => void
+  cancel: () => void
+  key: (e: KeyboardEvent) => void
+}
+
+/** Pencere dinleyicilerini kurar; kaldıran işlev döner. */
+function listen(h: Handlers): () => void {
+  window.addEventListener('pointermove', h.move)
+  window.addEventListener('pointerup', h.up)
+  window.addEventListener('pointercancel', h.cancel)
+  window.addEventListener('keydown', h.key, true)
+  return () => {
+    window.removeEventListener('pointermove', h.move)
+    window.removeEventListener('pointerup', h.up)
+    window.removeEventListener('pointercancel', h.cancel)
+    window.removeEventListener('keydown', h.key, true)
+  }
+}
+
 export function useEdgeDrag(options: EdgeDragOptions): {
   /** Sürükleme sürerken `{ workItemId, edge, day }`, aksi `null`. */
-  active: Readonly<Ref<(Pick<Session, 'workItemId' | 'edge'> & { day: string }) | null>>
+  active: Readonly<Ref<ActiveDrag | null>>
   begin: (event: PointerEvent, start: EdgeDragStart) => void
   cancel: () => void
 } {
-  const active = shallowRef<(Pick<Session, 'workItemId' | 'edge'> & { day: string }) | null>(null)
+  const active = shallowRef<ActiveDrag | null>(null)
   let session: Session | null = null
+  let unlisten = (): void => {}
 
-  const emit = (phase: GanttEdgeDrag['phase'], s: Session): void =>
-    options.onDrag({ workItemId: s.workItemId, edge: s.edge, phase, day: s.current })
+  const emit = (phase: GanttEdgeDrag['phase'], s: Session, day = s.current): void =>
+    options.onDrag(dragOf(phase, s, day))
 
-  function dayAt(s: Session, clientX: number): string {
-    const px = options.pxPerDay()
-    const steps = px > 0 ? Math.round((clientX - s.startX) / px) : 0
-    const raw = addDays(s.day, steps)
-    if (raw === null) return s.current
-    const range =
-      s.edge === 'start' ? { start: s.day, end: s.opposite } : { start: s.opposite, end: s.day }
-    const clamped = applyEdge(range, s.edge, raw)
-    return clamped === null ? s.current : s.edge === 'start' ? clamped.start : clamped.end
-  }
-
-  function detach(): void {
-    window.removeEventListener('pointermove', onMove)
-    window.removeEventListener('pointerup', onUp)
-    window.removeEventListener('pointercancel', onCancel)
-    window.removeEventListener('keydown', onKey, true)
+  function detach(): Session | null {
     const s = session
-    if (s?.target && 'releasePointerCapture' in s.target) {
-      try {
-        s.target.releasePointerCapture(s.pointerId)
-      } catch {
-        // Yakalama zaten bırakılmış olabilir.
-      }
-    }
+    unlisten()
+    if (s) setCapture(s.target, s.pointerId, false)
     session = null
     active.value = null
+    return s
+  }
+
+  function cancel(): void {
+    const s = detach()
+    if (s) emit('cancel', s, s.day)
   }
 
   function onMove(event: PointerEvent): void {
-    const s = session
-    if (!s || event.pointerId !== s.pointerId) return
-    const next = dayAt(s, event.clientX)
+    const s = ownerOf(session, event)
+    if (!s) return
+    const next = dayAt(s, options.pxPerDay(), event.clientX)
     if (next === s.current) return
     s.current = next
     active.value = { workItemId: s.workItemId, edge: s.edge, day: next }
@@ -89,16 +135,11 @@ export function useEdgeDrag(options: EdgeDragOptions): {
   }
 
   function onUp(event: PointerEvent): void {
-    const s = session
-    if (!s || event.pointerId !== s.pointerId) return
-    s.current = dayAt(s, event.clientX)
-    const changed = s.current !== s.day
+    const s = ownerOf(session, event)
+    if (!s) return
+    const day = dayAt(s, options.pxPerDay(), event.clientX)
     detach()
-    emit(changed ? 'drop' : 'cancel', changed ? s : { ...s, current: s.day })
-  }
-
-  function onCancel(event: PointerEvent): void {
-    if (session && event.pointerId === session.pointerId) cancel()
+    emit(day === s.day ? 'cancel' : 'drop', s, day)
   }
 
   function onKey(event: KeyboardEvent): void {
@@ -107,41 +148,19 @@ export function useEdgeDrag(options: EdgeDragOptions): {
     cancel()
   }
 
-  function cancel(): void {
-    const s = session
-    if (!s) return
-    detach()
-    emit('cancel', { ...s, current: s.day })
-  }
-
   function begin(event: PointerEvent, start: EdgeDragStart): void {
     if (session) cancel()
     if (event.button !== 0 || event.isPrimary === false) return
     event.preventDefault()
     const target = event.currentTarget instanceof Element ? event.currentTarget : null
-    session = {
-      ...start,
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      current: start.day,
-      target,
-    }
-    if (target && 'setPointerCapture' in target) {
-      try {
-        target.setPointerCapture(event.pointerId)
-      } catch {
-        // Yakalanamayan işaretçi (ör. sentetik olay): pencere dinleyicileri yeter.
-      }
-    }
+    const [pointerId, startX] = [event.pointerId, event.clientX]
+    session = { ...start, pointerId, startX, current: start.day, target }
+    setCapture(target, pointerId, true)
     active.value = { workItemId: start.workItemId, edge: start.edge, day: start.day }
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-    window.addEventListener('pointercancel', onCancel)
-    window.addEventListener('keydown', onKey, true)
+    unlisten = listen({ move: onMove, up: onUp, cancel, key: onKey })
   }
 
-  // Sahip söküldü: dinleyiciler kalkar, olay yayılmaz.
-  if (getCurrentScope()) onScopeDispose(detach)
+  if (getCurrentScope()) onScopeDispose(() => void detach())
 
   return { active, begin, cancel }
 }

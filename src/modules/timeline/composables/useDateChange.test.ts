@@ -19,7 +19,6 @@ import {
   server,
   workItem,
 } from '../__tests__/harness'
-import type { TimelineActorFacts } from '../model/capabilities'
 import type { GanttFace, GanttTask } from '../model/types'
 import { DELAYED_SEND_MS } from './useDelayedSend'
 import { useDateChange } from './useDateChange'
@@ -53,13 +52,12 @@ function setup(who: Who, task: Partial<GanttTask> = {}) {
     useDateChange({
       taskOf: (id) => (id === t.work_item_id ? t : undefined),
       face: () => FACTS[who].face,
-      actorFacts: (face) =>
-        ({
-          face,
-          companyAdmin: FACTS[who].companyAdmin,
-          coordinator: FACTS[who].coordinator,
-          member: who === 'member',
-        }) as unknown as TimelineActorFacts,
+      actorFacts: (face) => ({
+        face,
+        companyAdmin: FACTS[who].companyAdmin,
+        coordinator: FACTS[who].coordinator,
+        member: who === 'member',
+      }),
     }),
   )
   return { h, api, task: t }
@@ -150,6 +148,18 @@ describe('P8 politikası — yüze göre yazma yolu', () => {
     expect(useToast().queue.value[0]?.message).toContain('bu arada değişti')
   })
 
+  it('Admin: taze görev okunamazsa YAZILMAZ, hata kodu → i18n bildirimi', async () => {
+    server.use(http.get(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.item_not_found', 404)))
+    const { api } = setup('admin')
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    await elapse()
+    expect(sent('GET', ITEM)).toHaveLength(1)
+    expect(sent('PATCH', ITEM)).toHaveLength(0)
+    const [toast] = useToast().queue.value
+    expect(toast?.tone).toBe('danger')
+    expect(toast?.message).not.toContain('sunucu iletisi')
+  })
+
   it('Koordinatör: iki uç da gönderilen talep (requestDateChange); bildirim "talep gönderiliyor"', async () => {
     server.use(
       http.post(`${ORIGIN}${REQUEST}`, () =>
@@ -182,7 +192,7 @@ describe('P8 politikası — yüze göre yazma yolu', () => {
     expect(allWrites()).toEqual([])
   })
 
-  it('tamamlanmış görevde tutamaç ve klavye adımı yok', async () => {
+  it('tamamlanmış görevde tutamaç ve klavye adımı yok', () => {
     const { api, task } = setup('admin', { status: 'tamamlandi', completed_on: '2026-11-09' })
     expect(api.draggableIds([task]).size).toBe(0)
     expect(api.nudge('w1', 'end', 1)).toBe(false)
@@ -360,7 +370,7 @@ describe('varsayılan olgu kaynağı — standing (rol dizesi yok, olgudan)', ()
     return { api, task: t }
   }
 
-  it('görevin departmanındaki koordinatör satırı → tutamaç + talep; satırsız üye → yok', async () => {
+  it('görevin departmanındaki koordinatör satırı → tutamaç + talep; satırsız üye → yok', () => {
     const c = seeded({
       companyAdmin: false,
       role: 'koordinator',

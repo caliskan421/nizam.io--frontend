@@ -59,7 +59,30 @@ function sameScope(a: ScopeSnapshot | null, b: ScopeSnapshot): boolean {
   )
 }
 
-export function useDelayedSend<P>(options: DelayedSendOptions<P>): {
+/** Süre sayaçlarını kurar: `delayMs` sonra `fire`, her `TICK_MS`'de `onTick`. */
+function arm<P>(
+  [key, payload, context]: [string, P, ActionContext],
+  delayMs: number,
+  hooks: { fire: () => void; onTick: (slot: Slot<P>) => void },
+): Slot<P> {
+  const slot: Slot<P> = {
+    key,
+    payload,
+    context,
+    remainingMs: delayMs,
+    totalMs: delayMs,
+    visible: true,
+    deadline: Date.now() + delayMs,
+    timer: setTimeout(hooks.fire, delayMs),
+    tick: setInterval(() => {
+      slot.remainingMs = Math.max(0, slot.deadline - Date.now())
+      hooks.onTick(slot)
+    }, TICK_MS),
+  }
+  return slot
+}
+
+export interface DelayedSend<P> {
   pending: Readonly<Ref<PendingSend<P> | null>>
   schedule: (key: string, payload: P) => void
   /** "İptal et": bekleyen gönderimi düşürür; bekleyen varsa `true`. */
@@ -68,73 +91,48 @@ export function useDelayedSend<P>(options: DelayedSendOptions<P>): {
   dismiss: () => void
   /** Bekleyeni hemen gönderir (bağlam bayatsa düşürür). */
   flush: () => Promise<void>
-} {
+}
+
+export function useDelayedSend<P>(options: DelayedSendOptions<P>): DelayedSend<P> {
   const delayMs = options.delayMs ?? DELAYED_SEND_MS
   const store = options.readScope ? null : useScopeStore()
   const readScope = options.readScope ?? (() => store!.snapshot)
   const readGeneration = options.readGeneration ?? (() => authSession.generation)
   const state = shallowRef<PendingSend<P> | null>(null)
   let slot: Slot<P> | null = null
-
-  function stopTimers(s: Slot<P>): void {
-    clearTimeout(s.timer)
-    clearInterval(s.tick)
-  }
+  const owner = ownerLife(() => void drop())
 
   function drop(): Slot<P> | null {
     const s = slot
     if (!s) return null
-    stopTimers(s)
+    clearTimeout(s.timer)
+    clearInterval(s.tick)
     slot = null
     state.value = null
     return s
   }
 
-  function contextValid(s: Slot<P>): boolean {
-    return sameScope(s.context.scope, readScope()) && s.context.generation === readGeneration()
-  }
+  const valid = (s: Slot<P>): boolean =>
+    sameScope(s.context.scope, readScope()) && s.context.generation === readGeneration()
 
   async function fire(): Promise<void> {
     const s = drop()
-    if (!s) return
-    if (!owner.alive() || !contextValid(s)) return
-    await options.send(s.payload, s.context)
+    if (s && owner.alive() && valid(s)) await options.send(s.payload, s.context)
   }
-
-  const owner = ownerLife(() => {
-    drop()
-  })
 
   function schedule(key: string, payload: P): void {
     if (!owner.alive()) return
     if (slot && slot.key !== key) void fire()
-    else if (slot) drop()
-    const context: ActionContext = {
-      scope: { ...readScope() },
-      generation: readGeneration(),
-    }
-    const deadline = Date.now() + delayMs
-    const next: Slot<P> = {
-      key,
-      payload,
-      remainingMs: delayMs,
-      totalMs: delayMs,
-      visible: true,
-      deadline,
-      context,
-      timer: setTimeout(() => void fire(), delayMs),
-      tick: setInterval(() => {
-        if (slot !== next) return
-        next.remainingMs = Math.max(0, next.deadline - Date.now())
-        state.value = { ...next }
-      }, TICK_MS),
-    }
+    else drop()
+    const context: ActionContext = { scope: { ...readScope() }, generation: readGeneration() }
+    const next = arm([key, payload, context], delayMs, {
+      fire: () => void fire(),
+      onTick: (s) => {
+        if (slot === s) state.value = { ...s }
+      },
+    })
     slot = next
     state.value = { ...next }
-  }
-
-  function cancel(): boolean {
-    return drop() !== null
   }
 
   function dismiss(): void {
@@ -144,22 +142,14 @@ export function useDelayedSend<P>(options: DelayedSendOptions<P>): {
   }
 
   // Kapsam ve oturum değişimi: bekleyen gönderim iptal (istek gitmez).
-  const offScope = store ? store.onChange(() => void drop()) : undefined
-  const offSession = authSession.subscribe(() => {
-    if (slot && !contextValid(slot)) drop()
-  })
-  if (getCurrentScope()) {
-    onScopeDispose(() => {
-      offScope?.()
-      offSession()
-    })
-  }
+  const offs = [
+    store?.onChange(() => void drop()),
+    authSession.subscribe(() => {
+      if (slot && !valid(slot)) drop()
+    }),
+  ]
+  if (getCurrentScope()) onScopeDispose(() => offs.forEach((off) => off?.()))
 
-  return {
-    pending: readonly(state) as Readonly<Ref<PendingSend<P> | null>>,
-    schedule,
-    cancel,
-    dismiss,
-    flush: fire,
-  }
+  const pending = readonly(state) as Readonly<Ref<PendingSend<P> | null>>
+  return { pending, schedule, cancel: () => drop() !== null, dismiss, flush: fire }
 }

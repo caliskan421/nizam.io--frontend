@@ -4,6 +4,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
 import { authSession } from '@/shared/http'
+import type { ActionContext } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 
 import { ADMIN_SCOPE } from '../__tests__/harness'
@@ -19,7 +20,9 @@ afterEach(() => {
   if (authSession.snapshot.accountId) authSession.clear()
 })
 
-function setup(send = vi.fn(async () => {})) {
+type Send = (payload: string, context: ActionContext) => Promise<void>
+
+function setup(send = vi.fn<Send>(() => Promise.resolve())) {
   let api!: ReturnType<typeof useDelayedSend<string>>
   const wrapper = mount(
     defineComponent({
