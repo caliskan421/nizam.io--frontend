@@ -14,16 +14,18 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
+let reset = vi.fn()
+let url: ReturnType<typeof useUsersUrl> | undefined
+const probe = defineComponent({
+  setup() {
+    url = useUsersUrl(reset)
+    return () => h('div')
+  },
+})
+
 describe('useUsersUrl', () => {
   it('süzgeç replace, panel push; kapsam değişince q/rol korunur, diğerleri düşer + onReset', async () => {
-    const reset = vi.fn()
-    let url: ReturnType<typeof useUsersUrl> | undefined
-    const probe = defineComponent({
-      setup() {
-        url = useUsersUrl(reset)
-        return () => h('div')
-      },
-    })
+    reset = vi.fn()
     const { router, store } = await mountWith(
       probe,
       {},
@@ -50,13 +52,7 @@ describe('useUsersUrl', () => {
   })
 
   it('kapsamın ilk çözümü (program yok → program) değişim sayılmaz: derin bağlantı korunur', async () => {
-    const reset = vi.fn()
-    const probe = defineComponent({
-      setup() {
-        useUsersUrl(reset)
-        return () => h('div')
-      },
-    })
+    reset = vi.fn()
     const { router, store } = await mountWith(
       probe,
       {},
