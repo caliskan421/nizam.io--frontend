@@ -68,7 +68,14 @@ function useRecordLoader(form: ProgramForm, opts: ProgramFormOptions) {
     if (id && opts.open()) void read(id)
   }
 
-  watch(() => [opts.open(), opts.programId()] as const, prepare, { immediate: true })
+  // İlk açılışta form zaten boş değerlerle kurulu (sıfırlama yok: henüz kayıtlı olmayan alanları
+  // sıfırlamak ilk gönderimin doğrulama hatalarını gizler); sonraki açılış/kayıt değişiminde.
+  watch(() => [opts.open(), opts.programId()] as const, prepare)
+  const initial = opts.programId()
+  if (initial) {
+    load.value = 'loading'
+    if (opts.open()) void read(initial)
+  }
   onBeforeUnmount(() => abort?.abort())
 
   return {
