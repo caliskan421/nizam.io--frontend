@@ -15,13 +15,43 @@ import {
   sent,
   server,
 } from '../../model/__tests__/harness'
+import type * as ApiModule from '../../api'
+import type * as DownloadModule from './download'
 import { captureLinkClicks, fileItem, item } from './__tests__/support'
 import { useFileActions } from './use-file-actions'
 
 const TICKET = 'T'.repeat(43)
 
+const spies = vi.hoisted(() => ({ resets: [] as Array<() => void>, throwOnRedeem: false }))
+
+// Bilet sıfırlaması gözlenir (gerçek mutasyon sarmalanır); tarayıcıya verme istenirse istisna atar.
+vi.mock('../../api', async (original) => {
+  const api = await original<typeof ApiModule>()
+  return {
+    ...api,
+    useDownloadTicket: () => {
+      const ticket = api.useDownloadTicket()
+      const reset = vi.fn(() => ticket.reset())
+      spies.resets.push(reset)
+      return { ...ticket, reset }
+    },
+  }
+})
+vi.mock('./download', async (original) => {
+  const real = await original<typeof DownloadModule>()
+  return {
+    ...real,
+    redeemDownload: (url: string, name: string) => {
+      if (spies.throwOnRedeem) throw new Error('tarayıcı reddetti')
+      return real.redeemDownload(url, name)
+    },
+  }
+})
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
+  spies.resets.length = 0
+  spies.throwOnRedeem = false
   resetHarness()
   useToast().clear()
   useConfirm().clear()
@@ -51,6 +81,17 @@ describe('dosya eylemleri (W46 · E-03-61)', () => {
     expect(document.body.innerHTML).not.toContain(TICKET)
     expect(stored).not.toHaveBeenCalled()
     expect(window.location.href).not.toContain(TICKET)
+  })
+
+  it('indirme: tarayıcıya verme istisna atsa da bilet sıfırlanır (finally, CX-F1-K-04)', async () => {
+    const ticket = { ticket: TICKET, url: `/v1/downloads/${TICKET}`, expires_at: 'x' }
+    server.use(http.post(`${ORIGIN}/v1/download-tickets`, () => json(ticket, 201)))
+    spies.throwOnRedeem = true
+    const { actions } = setup()
+    await expect(actions.download()).rejects.toThrow('tarayıcı reddetti')
+    expect(spies.resets).toHaveLength(1)
+    expect(spies.resets[0]).toHaveBeenCalledTimes(1)
+    expect(document.body.innerHTML).not.toContain(TICKET)
   })
 
   it('indirme hatası ve geçersiz yol bildirimle; hiçbir şey açılmaz', async () => {

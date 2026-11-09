@@ -5,7 +5,7 @@
  * 03/03c/06 ortak `files` anahtarı). Sonuç metinleri i18n'den (`shared/ui/confirm`).
  *
  *  - İndirme: `issueDownloadTicket` → yanıt `url` hemen tarayıcıya verilir → mutasyon sonucu
- *    sıfırlanır (bilet bellekte tutulmaz).
+ *    sıfırlanır (`finally`; bilet bellekte tutulmaz, hata yolunda da).
  *  - Sil: kalıcı → istemci onayı (`useConfirm().confirm`, §7; `confirmation_required` yok).
  *  - Ad değiştir: sonuç çağırana döner (409 `records.name_taken` alanın altında gösterilir).
  */
@@ -46,8 +46,13 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
       notifyOutcome(outcome)
       return
     }
-    const opened = redeemDownload(outcome.data.url, name)
-    ticket.reset()
+    let opened: boolean
+    try {
+      opened = redeemDownload(outcome.data.url, name)
+    } finally {
+      // Bilet bellekte kalmaz: tarayıcıya verme istisna atsa da sonuç sıfırlanır (CX-F1-K-04).
+      ticket.reset()
+    }
     if (!opened) {
       useToast().push({ message: filesText('workFiles.row.downloadInvalid'), tone: 'danger' })
     }
