@@ -3,8 +3,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { authSession } from '@/shared/http'
+import { isDetached, reachesOwner } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { SessionChangedError } from '@/shared/session/query-session'
+import { notifyOutcome, outcomeToast } from '@/shared/ui/confirm'
 
 import {
   ADMIN_SCOPE,
@@ -18,6 +20,7 @@ import {
   resetHarness,
   sent,
   server,
+  toasts,
 } from '../__tests__/harness'
 import {
   fetchProgram,
@@ -139,6 +142,36 @@ describe('program yazmaları', () => {
       expect(unknown.draft.password).toBe('')
       expect(unknown.retry).toBeNull()
     }
+  })
+})
+
+describe('CX-F2-Ö-02 sahibi sökülmüş sonuç redaksiyonu', () => {
+  it('geç sonuç parolasız döner, sökülmüş-sahip işareti korunur: reachesOwner=false, bildirim yok', async () => {
+    const h = harness(ADMIN_SCOPE)
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.post(`${ORIGIN}/v1/programs/p1/reset`, async () => {
+        await gate
+        return HttpResponse.error()
+      }),
+      http.get(`${ORIGIN}/v1/programs`, () => json({ programs: [] })),
+    )
+    const { result: reset, app } = h.run(() => useResetProgram())
+    const pending = reset.submit({ programId: 'p1', password: 'gizli-parola' })
+    await vi.waitFor(() => expect(sent('POST', '/v1/programs/p1/reset')).toHaveLength(1))
+    app.unmount() // sahip (ekran) istek uçuştayken söküldü
+    release()
+    const late = await pending
+
+    expect(late.kind).toBe('unknown_outcome')
+    expect(late.kind === 'unknown_outcome' && late.draft.password).toBe('')
+    expect(isDetached(late)).toBe(true)
+    expect(reachesOwner(late)).toBe(false)
+    expect(outcomeToast(late)).toBeNull()
+    expect(h.run(() => notifyOutcome(late)).result).toBe(false)
+    await h.flush()
+    expect(toasts()).toEqual([])
   })
 })
 
