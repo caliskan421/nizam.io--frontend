@@ -309,6 +309,13 @@ describe('query-keys — kapsam ve hedef', () => {
     expect(hits('renameFile', keys)).toEqual([keys[0], keys[1], keys[3]])
   })
 
+  it("['programs'] öneki aktarım geçmişini kapsar (aktarım sonrası geçmiş yenilenir)", () => {
+    expect(queryKeys.programs.transfers()).toEqual(['programs', 'transfers'])
+    const keys = [queryKeys.programs.all(), queryKeys.programs.transfers(), queryKeys.me.root()]
+    expect(hits('transferWorkItems', keys)).toEqual([keys[0], keys[1]])
+    expect(hits('deleteProgram', keys)).toEqual([keys[0], keys[1]])
+  })
+
   it("['me'] öneki departmanlarımı da kapsar", () => {
     const keys = [queryKeys.me.root(), queryKeys.me.departments(), queryKeys.programs.all()]
     expect(hits('removeCoordinator', keys)).toEqual([keys[0], keys[1]])

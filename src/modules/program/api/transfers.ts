@@ -10,9 +10,8 @@
  *  - Başarıda motor §6 listesini yeniden okur (`['programs']`, görev listeleri); aktarım ekip
  *    satırı ve departman bağı da ekleyebildiği için (PROGRAM-K28, K42) standing ve kapsamlı
  *    sorgular tazelenir (K2).
- *  - Geçmiş anahtarı `['programs', 'transfers']`: `['programs']` önekinin altında — aktarım ve
- *    program yazmalarının §6 geçersizlemesi geçmişi de yeniden okutur (ortak fabrikada ayrı
- *    anahtar yok; rapor: SAHİPLİK-DIŞI İHTİYAÇ).
+ *  - Geçmiş anahtarı `queryKeys.programs.transfers()` (`['programs', 'transfers']`): `['programs']`
+ *    önekinin altında — aktarım ve program yazmalarının §6 geçersizlemesi geçmişi de yeniden okutur.
  */
 import {
   useInfiniteQuery,
@@ -37,7 +36,7 @@ import type {
 } from '../model/types'
 import { PROGRAM_STALE_MS, retryTransient, TRANSFER_PAGE_LIMIT } from './http'
 
-export const TRANSFER_HISTORY_KEY = [...queryKeys.programs.all(), 'transfers'] as const
+export const TRANSFER_HISTORY_KEY = queryKeys.programs.transfers()
 
 function selectionBody(vars: TransferSelection) {
   return {
