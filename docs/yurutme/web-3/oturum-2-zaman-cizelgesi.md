@@ -10,7 +10,7 @@ WEB-3 O2 oturumunu koordinatör olarak yürüt.
 Oku: docs/yurutme/web-3/README.md → ortak-sozlesme.md → oturum-2-zaman-cizelgesi.md → ilerleme.md
 → docs/ekranlar/ortak-kurallar.md (tamamı, §12 — P8) → docs/ekranlar/03c-zaman-cizelgesi/ (README kabul tablosu → mekanizma → backend → eksikler → ozellikler)
 → docs/architecture/gantt-secimi.md (§1, §7, §8) → docs/ekranlar/03-gorevler-liste/README.md (E-03-05/14/54/63) → docs/backend-eksikleri/rapor-F2.md §2.
-Giriş: WEB-2 kapalı (W82a/b/c main'de, WEB-2-codex hükmü), CI yeşil; 03c kabul tablosu ürün cevabıyla güncel (yoksa geçici kabul + ilerleme.md notu).
+Giriş: WEB-2 kapalı (W82a/b/c main'de, WEB-2-codex hükmü), CI yeşil; 03c kabul tablosu ürün cevabıyla güncel (Codex §6 #11–#12 2026-11-10'da onaylandı → P18–P19; F3 açık).
 O2a: W91'i başlat (bileşen iskeleti dahil); dönüşte kapı, PR, birleştir. Sonra O2b: W92–W96 paralel (paylaşılan dosyalar için ilk işçi kuralı ve dal zinciri, KESİN 23/25).
 Kod yazma. Dönüşte kapıları worktree'de koş, YENİ-EKSİK'e BE kimliği ver ve kayit.md'ye işle, TASLAK satırlarını ilerleme.md'ye (W97 girdisi),
 her W için ayrı PR, CI yeşilse birleştir (O2b sırası: W92 → W93 → W94 → W95 → W96). Ürün sahibine soru sorma. Kapanışta ilerleme.md.
