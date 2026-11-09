@@ -3,7 +3,9 @@
  * görünürlüğü ortak-kurallar §5 orada); burada yalnız grup kapısı ve başlık:
  *
  *  - Yönetim grubu `company_admin` OLGUSUNA bağlıdır, mercek girdi değildir (ortak-kurallar §1,
- *    P1): yönetici Koordinatör/Üye merceğine geçince grup kaybolmaz.
+ *    P1): yönetici Koordinatör/Üye merceğine geçince grup kaybolmaz. Karar organizasyon
+ *    modülünün capability dosyasındadır (`canSeeAdministration`; K-03 / CX-F0-K-03 devri, W71):
+ *    rotaların yönetim kapısıyla aynı fonksiyon.
  *  - Standing (`me` + `me/departments`) gelmeden Yönetim gösterilmez (E-00-11).
  *  - Görünür öğesi kalmayan grubun başlığı da gizlenir (E-00-11, P2).
  *
@@ -22,6 +24,7 @@ import {
   type MenuGroup,
   type Phase,
 } from '@/app/routes.catalog'
+import { canSeeAdministration } from '@/modules/organization/public'
 import { ICONS, type IconName } from '@/shared/ui'
 
 import { sideText } from './messages'
@@ -40,11 +43,11 @@ export interface SideMenuGroup {
   entries: MenuEntry[]
 }
 
-/** Grup kapıları. Yönetim: şirket yöneticisi (ORGANIZATION ekranları, F2). */
+/** Grup kapıları. Yönetim: organizasyon capability'si (şirket yöneticisi; P1, E-00-23/24). */
 const GROUP_GATES: Readonly<Record<MenuGroup, (a: MenuAuthority) => boolean>> = {
   takip: () => true,
   icerik: () => true,
-  yonetim: (a) => a.ready && a.companyAdmin,
+  yonetim: canSeeAdministration,
 }
 
 export function sideMenuGroups(

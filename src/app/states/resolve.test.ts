@@ -59,7 +59,7 @@ describe('kabuk içeriği (K7)', () => {
     expect(resolveShellContent({ ...base, routeScope: 'S1' }).kind).toBe('content')
   })
 
-  it('boş neden departman boşluğundan önce gelir; F0 muafiyet listesi boş (F2 yönetim)', () => {
+  it('boş neden departman boşluğundan önce gelir (muaf rotada da)', () => {
     expect(
       resolveShellContent({
         status: 'empty',
@@ -68,6 +68,39 @@ describe('kabuk içeriği (K7)', () => {
         departmentGap: 'empty',
       }),
     ).toEqual({ kind: 'open-state', name: 'state.no-program' })
-    expect(NO_DEPARTMENT_EXEMPT_ROUTES.size).toBe(0)
+    expect(
+      resolveShellContent({
+        status: 'empty',
+        emptyReason: 'no_program',
+        routeScope: 'S2',
+        routeName: 'organization.coordinatorships',
+        departmentGap: 'empty',
+      }),
+    ).toEqual({ kind: 'open-state', name: 'state.no-program' })
+  })
+
+  it('F2 yönetim rotaları "programa departman katılmamış" durumundan muaf (W22 devri)', () => {
+    expect([...NO_DEPARTMENT_EXEMPT_ROUTES].sort()).toEqual([
+      'organization.coordinatorship',
+      'organization.coordinatorships',
+      'organization.user',
+      'organization.users',
+    ])
+    const base = { status: 'ready', emptyReason: null } as const
+    for (const routeName of NO_DEPARTMENT_EXEMPT_ROUTES) {
+      // Muaf rota içeriği çizilir (boşluk kontrol edilirken de: yükleniyor değil).
+      for (const departmentGap of ['empty', 'checking'] as const) {
+        expect(
+          resolveShellContent({ ...base, routeScope: 'S2', routeName, departmentGap }),
+          `${routeName} ${departmentGap}`,
+        ).toEqual({ kind: 'content' })
+      }
+    }
+    // Muaf olmayan rotalar durum ekranını görür.
+    for (const routeName of ['home', 'work.tasks'] as const) {
+      expect(
+        resolveShellContent({ ...base, routeScope: 'S2', routeName, departmentGap: 'empty' }),
+      ).toEqual({ kind: 'open-state', name: 'state.no-department' })
+    }
   })
 })

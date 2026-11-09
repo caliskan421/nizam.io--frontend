@@ -11,15 +11,21 @@ const admin = { ready: true, companyAdmin: true }
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F1 (W42 faz geçişi)', () => {
-  it('Görevler menü öğesi canlı (devre dışı değil, faz notu yok)', () => {
-    expect(CURRENT_PHASE).toBe('F1')
+describe('etkin faz F2 (W71 faz geçişi)', () => {
+  it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
+    expect(CURRENT_PHASE).toBe('F2')
     const groups = sideMenuGroups(menuEntries(), admin)
-    expect(groups.map((g) => g.group)).toEqual(['takip'])
+    expect(groups.map((g) => g.group)).toEqual(['takip', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['home', 'canli'],
       ['tasks', 'canli'],
     ])
+    expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
+      ['users', 'canli'],
+      ['coords', 'canli'],
+    ])
+    const nonAdmin = sideMenuGroups(menuEntries(), { ready: true, companyAdmin: false })
+    expect(nonAdmin.map((g) => g.group)).toEqual(['takip'])
   })
 
   it('/gorevler rotasında etkin öğe tasks', async () => {
