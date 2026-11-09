@@ -16,7 +16,6 @@ export {
   useUpdateWorkItemDates,
 } from './mutations'
 export {
-  dependenciesKey,
   useDateChangeRequests,
   useDependencies,
   useGantt,

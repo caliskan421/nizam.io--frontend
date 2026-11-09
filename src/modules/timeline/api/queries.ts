@@ -12,8 +12,7 @@ import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import type { WorkTarget } from '@/modules/work/public'
-import { queryKeys, scoped } from '@/shared/http/query-keys'
-import type { ScopeSnapshot } from '@/shared/scope/scope'
+import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
@@ -118,14 +117,9 @@ export function useMyDateChangeRequests(
 
 /**
  * Seçili görevin `listDependencies` okuması (yalnız koordinatör/yönetici; üye yüzünde çağrılmaz —
- * çağıran `enabled` verir). Anahtar `scoped(['work-items', id, 'dependencies'])`: ortak §6
- * tablosunda satırı yok (SAHİPLİK-DIŞI İHTİYAÇ: `query-keys.ts`); eklemeyi ve yazma sonrası
- * yeniden okumayı `mutations.ts` yapar.
+ * çağıran `enabled` verir). Anahtar ortak `queryKeys.workItems.dependencies` (03 ile aynı);
+ * bağımlılık yazmaları motorun §6 listesiyle yeniden okutur.
  */
-export function dependenciesKey(scope: ScopeSnapshot, id: string) {
-  return scoped(scope, ['work-items', id, 'dependencies'])
-}
-
 export function useDependencies(
   workItemId: MaybeRefOrGetter<string | null>,
   target: MaybeRefOrGetter<WorkTarget | null>,
@@ -137,7 +131,7 @@ export function useDependencies(
       const id = toValue(workItemId)
       const resolved = toValue(target)
       return {
-        queryKey: dependenciesKey(store.snapshot, id ?? ''),
+        queryKey: queryKeys.workItems.dependencies(store.snapshot, id ?? ''),
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchDependencies(resolved!, id!, signal),
         ),

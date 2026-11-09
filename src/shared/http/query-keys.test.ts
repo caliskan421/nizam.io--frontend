@@ -148,6 +148,12 @@ const TABLE: Array<{
     mustInvalidate: ['attachFile', 'renameFile', 'deleteFile'],
   },
   {
+    resource: 'workItems.dependencies',
+    key: queryKeys.workItems.dependencies(S, 'w1'),
+    expected: [...root(S), 'work-items', 'w1', 'dependencies'],
+    mustInvalidate: ['addDependency', 'removeDependency'],
+  },
+  {
     resource: 'gantt',
     key: queryKeys.gantt.face(S, 'program'),
     expected: [...root(S), 'gantt', 'program'],

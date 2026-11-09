@@ -69,6 +69,7 @@ Tek anahtar fabrikası `shared/http/query-keys.ts` (F0, `scopedKey()` üzerine).
 | alt görevler | `scoped(['work-items', id, 'subtasks'])` | alt görev uçları |
 | notlar | `scoped(['work-items', id, 'notes'])` | not uçları |
 | **görev dosyaları** | `scoped(['work-items', id, 'files'])` — 03, 03c, 06 **aynı anahtarı** kullanır | attachFile, renameFile, deleteFile |
+| **görev bağımlılıkları** | `scoped(['work-items', id, 'dependencies'])` — 03 ve 03c **aynı anahtarı** kullanır | addDependency, removeDependency |
 | Gantt | `scoped(['gantt', face])` | tarih uçları, bağımlılık uçları |
 | tarih talepleri | `scoped(['date-requests', filters])` | requestDateChange, reviewDateChangeRequest, deleteDateChangeRequest |
 | pano | `scoped(['report','dashboard'])`, `scoped(['report','dashboard','coordinatorships'])` | **görev (work) yazmaları geçersizlemez** (odakta tazele); **organizasyon yazmaları** (üyelik, koordinatör, departman oluştur/bağla/ad, kullanıcı) eylemin program kapsamındaki panoyu geçersizler — ayrım notu aşağıda |

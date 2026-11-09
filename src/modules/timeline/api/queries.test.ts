@@ -21,7 +21,6 @@ import {
   server,
 } from '../__tests__/harness'
 import {
-  dependenciesKey,
   useDateChangeRequests,
   useDependencies,
   useGantt,
@@ -231,7 +230,9 @@ describe('useDependencies — görevin kendi kapsamı', () => {
     const [req] = sent('GET', '/v1/work-items/w1/dependencies')
     expect(req!.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
-    expect(h.queryClient.getQueryData(dependenciesKey(h.store.snapshot, 'w1'))).toBeDefined()
+    expect(
+      h.queryClient.getQueryData(queryKeys.workItems.dependencies(h.store.snapshot, 'w1')),
+    ).toBeDefined()
 
     const off = h.run(() => useDependencies('w2', target, false))
     await h.flush()

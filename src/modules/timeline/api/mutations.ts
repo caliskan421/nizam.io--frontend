@@ -44,12 +44,10 @@ import type {
   RequestDateChangeInput,
   ReviewInput,
   ReviewResult,
-  TimelineMutation,
   UpdateDatesInput,
   WorkItemIdOf,
 } from '../model/types'
 import { scopeHeaders } from './http'
-import { dependenciesKey } from './queries'
 
 import type { WorkItem } from '@/modules/work/public'
 
@@ -72,7 +70,10 @@ async function rereadAll(
       queryKey: queryKeys.workItems.item(scope, workItemId),
       exact: true,
     }),
-    client.invalidateQueries({ queryKey: dependenciesKey(scope, workItemId), exact: true }),
+    client.invalidateQueries({
+      queryKey: queryKeys.workItems.dependencies(scope, workItemId),
+      exact: true,
+    }),
   ])
 }
 
@@ -195,11 +196,10 @@ export function useReviewDateChangeRequest() {
 /**
  * `addDependency` (Admin + Koordinatör; S3, BAĞIMLI görevin kapsamı) — gövde
  * `depends_on_work_item_id` (ön görev). 409 `work.dependency_cycle` / `work.dependency_duplicate`.
- * Başarıda Gantt (motor) + görevin bağımlılık listesi yeniden okunur.
+ * Başarıda Gantt + görevin bağımlılık listesi (ortak anahtar, motor) yeniden okunur.
  */
 export function useAddDependency() {
-  const client = useQueryClient()
-  const mutation = useTimelineMutation<AddDependencyInput, DependencyEdge>(
+  return useTimelineMutation<AddDependencyInput, DependencyEdge>(
     {
       operation: 'addDependency',
       send: (vars, ctx) =>
@@ -212,13 +212,11 @@ export function useAddDependency() {
     },
     (vars) => vars.workItemId,
   )
-  return withDependencyReread(client, mutation)
 }
 
 /** `removeDependency` — `depId` = `GanttLink.dependency_id`. */
 export function useRemoveDependency() {
-  const client = useQueryClient()
-  const mutation = useTimelineMutation<RemoveDependencyInput, unknown>(
+  return useTimelineMutation<RemoveDependencyInput, unknown>(
     {
       operation: 'removeDependency',
       send: (vars, ctx) =>
@@ -233,29 +231,4 @@ export function useRemoveDependency() {
     },
     (vars) => vars.workItemId,
   )
-  return withDependencyReread(client, mutation)
-}
-
-/**
- * Bağımlılık yazması başarılıysa görevin bağımlılık listesi de yeniden okunur (§6 tablosunda
- * satırı yok; motor yalnız Gantt'ı geçersizler). Eylemin yakalanmış kapsamıyla; sahip sökülse de
- * ortak önbellek uzlaştırması sürer.
- */
-function withDependencyReread<V extends WorkItemIdOf, D>(
-  client: QueryClient,
-  mutation: TimelineMutation<V, D>,
-): TimelineMutation<V, D> {
-  const readScope = (): ScopeSnapshot => (getActivePinia() ? useScopeStore().snapshot : NO_SCOPE)
-  async function submit(vars: V, opts?: SubmitOptions) {
-    const scope = { ...(opts?.context?.scope ?? readScope()) }
-    const outcome = await mutation.submit(vars, opts)
-    if (outcome.kind === 'success') {
-      await client.invalidateQueries({
-        queryKey: dependenciesKey(scope, vars.workItemId),
-        exact: true,
-      })
-    }
-    return outcome
-  }
-  return { submit, isPending: mutation.isPending }
 }

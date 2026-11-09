@@ -21,7 +21,6 @@ import {
   server,
   workItem,
 } from '../__tests__/harness'
-import { dependenciesKey } from './queries'
 import {
   useAddDependency,
   useExtendWorkItem,
@@ -51,7 +50,7 @@ function seed(h: ReturnType<typeof harness>) {
     otherItem: queryKeys.workItems.item(scope, 'w2'),
     list: queryKeys.workItems.list(scope, { department: null }),
     requests: queryKeys.dateRequests.list(scope, { status: 'pending' }),
-    deps: dependenciesKey(scope, 'w1'),
+    deps: queryKeys.workItems.dependencies(scope, 'w1'),
   }
   for (const key of Object.values(keys)) h.queryClient.setQueryData(key, { seeded: true })
   const stale = (key: readonly unknown[]) => h.queryClient.getQueryState(key)?.isInvalidated
