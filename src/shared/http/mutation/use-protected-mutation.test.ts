@@ -384,6 +384,41 @@ describe('useProtectedMutation', () => {
   })
 })
 
+describe('submit(vars, { context }) — bileşik işlemde ilk eylemin bağlamı (CX-F1-E-03)', () => {
+  it('başarı bağlamı taşır; aynı bağlam güncelken gider, B’de / nesil değişince gönderilmez', async () => {
+    server.use(
+      http.post(`${BASE}/v1/work-items`, ({ request }) => {
+        keys.push(request.headers.get('Idempotency-Key'))
+        return HttpResponse.json({ id: 'w1' }, { status: 201 })
+      }),
+    )
+    const { mutation, queryClient, stop } = setup<CreateBody, unknown>({
+      ...createWorkItem,
+      invalidation: () => ({ workItemId: 'w1' }),
+    })
+    const first = await mutation.submit(body)
+    if (first.kind !== 'success') throw new Error(first.kind)
+    const context = first.context!
+    expect(context).toEqual({ scope, generation: session.generation })
+    expect((await mutation.submit(body, { context })).kind).toBe('success')
+    expect(keys).toHaveLength(2)
+
+    current = scopeB
+    const listB = queryKeys.workItems.list(scopeB, {})
+    queryClient.setQueryData(listB, { seeded: true })
+    expect(await mutation.submit(body, { context })).toMatchObject({ kind: 'scope_changed', scope })
+    current = scope
+    session.clear()
+    expect(await mutation.submit(body, { context })).toMatchObject({
+      kind: 'failed',
+      error: { code: 'client.session_ended' },
+    })
+    expect(keys).toHaveLength(2)
+    expect(queryClient.getQueryState(listB)?.isInvalidated).toBe(false)
+    stop()
+  })
+})
+
 describe('Vue vekili taşıyan değişkenler (toPlainVars)', () => {
   it('reactive + iç içe ref: gönderim başarılı, gövde dondurulmuş düz kopya', async () => {
     const bodies: unknown[] = []

@@ -66,6 +66,9 @@ export function useAddAssignments() {
  * (görevin KENDİ kapsamıyla). İkinci adım başarısız olsa da görev ve ilk atanan korunur;
  * sonuç `partial` döner ("görev oluşturuldu, ek atama yapılamadı" — `createOutcomeText`).
  * Ana atanan ek listede tekrar edilmez (409 `work.assignment_duplicate` önlenir).
+ * Bütün işlem tek eylem bağlamındadır (CX-F1-E-03): ek atama oluşturmanın kapsam + oturum
+ * nesliyle gönderilir; arada kapsam/oturum değiştiyse gönderilmez → `partial`, geçersizleme
+ * yalnız ilk eylemin kapsamında.
  */
 export function useCreateWorkItemWithAssignees() {
   const create = useCreateWorkItem()
@@ -76,18 +79,17 @@ export function useCreateWorkItemWithAssignees() {
     const extra = [...new Set(input.extraAssignees)].filter((id) => id !== primaryAssignee)
     return runWithFollowUps(
       () => create.submit({ target: input.target, body: input.body }),
-      (item) =>
+      (item, context) =>
         extra.length === 0
           ? []
           : [
               {
                 name: 'assignments',
                 run: () =>
-                  assign.submit({
-                    target: targetOf(item),
-                    workItemId: item.work_item_id,
-                    accountIds: extra,
-                  }),
+                  assign.submit(
+                    { target: targetOf(item), workItemId: item.work_item_id, accountIds: extra },
+                    { context },
+                  ),
               },
             ],
     )
