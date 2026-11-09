@@ -1,0 +1,266 @@
+/*
+ * 08 kart ızgarası ve kartı — Koordinatorlukler.dc.html yerel stilleri `rp-ccard`,
+ * `rp-ccard__stats`, `rp-code`, `rp-linkbtn`, `rp-tip` ve theme.css `rp-av`, `rp-avstack`,
+ * `rp-status`, `rp-dot`, `rp-kicker`, `rp-num`, `rp-cap`, `rp-trunc`, `rp-menudiv` birebir
+ * karşılığı. Kural: yalnız token; px yok — ölçek dışı ölçüler `--coords-*` (design/web-tokens.json
+ * `coords` grubu). Sınıflar `.coords-grid` / `.rp-ccard` altında kapsanır.
+ */
+@layer components {
+  .coords-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--coords-card-min), 100%), 1fr));
+    gap: var(--coords-gap);
+  }
+
+  /* Kart */
+  .rp-ccard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--coords-gap);
+    padding: var(--coords-card-pad);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--surface-top), var(--bg-surface));
+    box-shadow: inset 0 var(--ui-hairline) 0 var(--edge-light);
+    min-width: 0;
+    box-sizing: border-box;
+    color: var(--ink);
+  }
+  .rp-ccard .coords-card__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+  }
+  .rp-ccard .coords-card__name {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .rp-ccard .rp-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--coords-code-min);
+    height: var(--coords-code-h);
+    margin-top: var(--coords-code-offset);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-xs);
+    background: var(--bg-overlay);
+    color: var(--ink);
+    font: var(--text-label);
+    box-sizing: border-box;
+    flex: none;
+  }
+  .rp-ccard .rp-linkbtn {
+    display: block;
+    border: 0;
+    background: none;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .rp-ccard .rp-title {
+    font: var(--coords-title);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .rp-ccard .rp-title:hover {
+    text-decoration: underline;
+    text-underline-offset: var(--coords-tip-shift);
+  }
+  .rp-ccard .rp-trunc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .rp-ccard .rp-cap {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+
+  /* Koordinatör yığını (E-08-32) / "Koordinatör ata" (E-08-33) */
+  .rp-ccard .coords-card__leads {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--coords-lead-h);
+    min-width: 0;
+  }
+  .rp-ccard .rp-avstack {
+    display: inline-flex;
+    flex: none;
+  }
+  .rp-ccard .rp-av {
+    width: var(--ui-av-sm);
+    height: var(--ui-av-sm);
+    border-radius: var(--radius-full);
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-overlay);
+    color: var(--ink);
+    font-size: var(--ui-av-fs-sm);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    box-sizing: border-box;
+    box-shadow: 0 0 0 var(--coords-av-ring) var(--bg-surface);
+  }
+  .rp-ccard .rp-av + .rp-av {
+    margin-left: var(--coords-av-overlap);
+  }
+  .rp-ccard .rp-tip {
+    position: relative;
+    cursor: default;
+  }
+  .rp-ccard .rp-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + var(--coords-tip-offset));
+    right: 0;
+    padding: var(--coords-tip-pad);
+    border-radius: var(--coords-tip-radius);
+    background: var(--ink);
+    color: var(--bg-base);
+    font: var(--coords-tip-font);
+    letter-spacing: 0;
+    white-space: nowrap;
+    box-shadow: var(--shadow-card);
+    opacity: 0;
+    transform: translateY(var(--coords-tip-shift));
+    transition:
+      opacity 0.12s,
+      transform 0.12s;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .rp-ccard .rp-tip:hover,
+  .rp-ccard .rp-tip:focus-visible {
+    z-index: 3;
+  }
+  .rp-ccard .rp-tip:hover::after,
+  .rp-ccard .rp-tip:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .rp-ccard .coords-assign {
+    height: var(--coords-lead-h);
+    padding: 0 var(--ui-gap-sm);
+    border-radius: var(--radius-xs);
+    border-style: dashed;
+    color: var(--gold);
+  }
+
+  /* Sayılar (E-08-34…36) */
+  .rp-ccard .rp-ccard__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ui-hairline);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--border-subtle);
+    border: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .rp-ccard .coords-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ui-gap-2xs);
+    min-height: var(--coords-stat-h);
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .rp-ccard .coords-stat:hover {
+    background: var(--bg-overlay);
+  }
+  .rp-ccard .coords-stat:focus-visible {
+    outline: var(--ui-focus-width) solid var(--accent-text);
+    outline-offset: calc(var(--ui-focus-width) * -1);
+  }
+  .rp-ccard .coords-stat--off,
+  .rp-ccard .coords-stat--off:hover {
+    cursor: not-allowed;
+    background: var(--bg-raised);
+    color: var(--ink-faint);
+  }
+  .rp-ccard .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .rp-ccard .rp-num {
+    font: var(--coords-stat-num);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Durum bayrağı (E-08-37) + menü (E-08-38) */
+  .rp-ccard .coords-card__foot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  .rp-ccard .rp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--text-caption);
+    font-weight: 500;
+  }
+  .rp-ccard .rp-status.rp-trunc {
+    display: block;
+  }
+  .rp-ccard .rp-dot {
+    display: inline-block;
+    width: var(--coords-dot);
+    height: var(--coords-dot);
+    margin-right: var(--space-2);
+    border-radius: var(--radius-full);
+    background: currentColor;
+    vertical-align: middle;
+  }
+  .rp-ccard .coords-flag--gold {
+    color: var(--gold);
+  }
+  .rp-ccard .coords-flag--danger {
+    color: var(--danger);
+  }
+  .rp-ccard .coords-flag--muted {
+    color: var(--ink-muted);
+  }
+  .rp-ccard .coords-menu {
+    position: relative;
+    display: inline-flex;
+  }
+  .rp-ccard .coords-menu__btn {
+    width: var(--coords-menu-btn);
+    height: var(--coords-menu-btn);
+  }
+  .rp-ccard .coords-menu__pop {
+    bottom: calc(100% + var(--space-1));
+    right: 0;
+    width: var(--coords-menu-w);
+  }
+  .rp-ccard .rp-menudiv {
+    height: var(--ui-hairline);
+    margin: var(--ui-gap-xs) var(--space-1);
+    background: var(--border-subtle);
+  }
+}

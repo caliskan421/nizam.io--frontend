@@ -3,13 +3,17 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { isRouteName, type OpenStateName } from '@/app/routes.catalog'
+import { pageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 
 import { injectScopeLifecycle } from '../side/public'
 import { buildCrumbs } from './crumbs'
 import { topbarText } from './messages'
 
-/** Konum izi (E-00-35): program adı kabuğun `['programs']` verisinden, sayfa adı katalogdan. */
+/**
+ * Konum izi (E-00-35): program adı kabuğun `['programs']` verisinden, sayfa adı katalogdan ya da
+ * sayfanın verdiği kayıt etiketinden (`usePageCrumb`).
+ */
 const props = defineProps<{ openState: OpenStateName | null }>()
 
 const lifecycle = injectScopeLifecycle()
@@ -24,6 +28,7 @@ const crumbs = computed(() =>
     routeName: isRouteName(route.name) ? route.name : null,
     programName: programName.value,
     openState: props.openState,
+    pageLabel: pageCrumb.value,
   }),
 )
 </script>

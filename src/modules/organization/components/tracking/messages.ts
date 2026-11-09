@@ -1,8 +1,9 @@
 /**
- * 05b metin erişimi (`organization.tracking.*`, `src/shared/i18n/tr/organization.ts`). Ağaç statik TR
- * kaynağıdır; burada yalnız yaprak okunur ve `{ad}` yer tutucuları doldurulur (sunucu metni yok).
- * Anahtar tipi ağaçtan türetilir: olmayan anahtar derlenmez.
+ * 05b metin erişimi (`organization.tracking.*`; statik TR ağacı `shared/i18n/tr/organization.ts`,
+ * `i18n/index.ts`'e kayıtlı). Anahtar `organization.` öneki olmadan verilir (`tracking.*`); tipi
+ * ağaçtan türetilir: olmayan anahtar derlenmez. Sunucu metni kullanılmaz.
  */
+import { i18n } from '@/shared/i18n'
 import { trOrganization } from '@/shared/i18n/tr/organization'
 
 export { trOrganization }
@@ -11,25 +12,16 @@ type Leaves<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>
 }[keyof T & string]
 
-export type TrackingTextKey = Leaves<typeof trOrganization>
+/** 05b anahtarları (`organization.` öneki olmadan: `tracking.*`). */
+export type TrackingTextKey = Extract<
+  Leaves<(typeof trOrganization)['organization']>,
+  `tracking.${string}`
+>
 
-type Node = string | { readonly [key: string]: Node }
-
-function leaf(key: string): string {
-  let node: Node = trOrganization
-  for (const part of key.split('.')) {
-    if (typeof node === 'string') return key
-    node = node[part] ?? key
-  }
-  return typeof node === 'string' ? node : key
-}
-
-/** `organization.tracking.*` metni; `{ad}` yer tutucuları `params`'tan (eksik parametre olduğu gibi kalır). */
+/** `organization.tracking.*` metni (TR). */
 export function trackingText(
   key: TrackingTextKey,
-  params: Readonly<Record<string, string | number>> = {},
+  params: Record<string, string | number> = {},
 ): string {
-  return leaf(key).replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  )
+  return i18n.global.t(`organization.${key}`, params)
 }

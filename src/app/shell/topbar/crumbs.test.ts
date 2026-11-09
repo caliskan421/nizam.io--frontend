@@ -52,6 +52,23 @@ describe('konum izi (E-00-35)', () => {
     expect(crumbs).toEqual({ links: [], current: 'Departman ataması bekleniyor' })
   })
 
+  it('sayfa etiketi son parçanın yerini alır; açık durumda yok sayılır', () => {
+    const base = {
+      routeName: 'organization.coordinatorship',
+      programName: 'P',
+      phase: 'F2',
+    } as const
+    const named = buildCrumbs({ ...base, openState: null, pageLabel: 'Altyapı ve tesisat' })
+    expect(named.current).toBe('Altyapı ve tesisat')
+    expect(named.links.map((l) => l.label)).toEqual(['P', 'Koordinatörlükler'])
+    expect(buildCrumbs({ ...base, openState: null, pageLabel: null }).current).toBe(
+      'Koordinatörlük',
+    )
+    expect(
+      buildCrumbs({ ...base, openState: 'state.membership-pending', pageLabel: 'X' }).current,
+    ).toBe('Departman ataması bekleniyor')
+  })
+
   it('rota adı yoksa yalnız program', () => {
     expect(buildCrumbs({ routeName: null, programName: 'P', openState: null }).current).toBeNull()
   })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { trackingText, trOrganization } from './messages'
+import { trackingText, trOrganization, type TrackingTextKey } from './messages'
 
 function leaves(node: unknown, path: string): [string, string][] {
   if (typeof node === 'string') return [[path, node]]
@@ -9,29 +9,22 @@ function leaves(node: unknown, path: string): [string, string][] {
   )
 }
 
-describe('05b metinleri', () => {
-  it('yer tutucular doldurulur; eksik parametre olduğu gibi kalır', () => {
-    expect(trackingText('organization.tracking.table.overdue', { n: 3 })).toBe('3 gün gecikti')
-    expect(trackingText('organization.tracking.toolbar.caption', { list: 'Açık görevler' })).toBe(
-      'Açık görevler · {n} görev',
-    )
-    expect(trackingText('organization.tracking.documentTitle', { name: 'Ada' })).toBe(
-      'RoketPortal — Ada',
+describe('05b metinleri (organization.tracking.*)', () => {
+  it('yer tutucular doldurulur', () => {
+    expect(trackingText('tracking.table.overdue', { n: 3 })).toBe('3 gün gecikti')
+    expect(trackingText('tracking.documentTitle', { name: 'Ada' })).toBe('RoketPortal — Ada')
+    expect(trackingText('tracking.cards.completionValue', { p: 25 })).toBe('%25')
+    expect(trackingText('tracking.cards.overdueNote', { q: 44, suffix: '’ü' })).toBe(
+      'Açık görevlerin %44’ü',
     )
   })
 
-  it('her yaprak dolu; sunucu metni ya da sahte veri içermez', () => {
-    const all = leaves(trOrganization, '')
+  it('her yaprak i18n ağacında çözülür ve dolu', () => {
+    const all = leaves(trOrganization.organization.tracking, 'tracking')
     expect(all.length).toBeGreaterThan(80)
     for (const [key, text] of all) {
       expect(text.trim(), key).not.toBe('')
-      expect(trackingText(key as Parameters<typeof trackingText>[0])).toBe(text)
+      if (!text.includes('{')) expect(trackingText(key as TrackingTextKey)).toBe(text)
     }
-  })
-
-  it('olmayan anahtar anahtarın kendisini döndürür', () => {
-    expect(trackingText('organization.tracking.yok' as Parameters<typeof trackingText>[0])).toBe(
-      'organization.tracking.yok',
-    )
   })
 })

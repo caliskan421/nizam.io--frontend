@@ -37,24 +37,24 @@ const shown = computed(() => dist.value.slices.filter((s) => s.count > 0))
 </script>
 
 <template>
-  <aside class="rp-aside" :aria-label="trackingText('organization.tracking.aside')">
+  <aside class="rp-aside" :aria-label="trackingText('tracking.aside')">
     <section class="t-card pt-card-box" data-calendar>
       <div class="rp-cardhead">
         <h2 class="rp-cardtitle" data-calendar-title>
-          {{ trackingText('organization.tracking.calendar.title', { month: name }) }}
+          {{ trackingText('tracking.calendar.title', { month: name }) }}
         </h2>
         <div class="rp-actions">
           <UiIconButton
             class="pt-calnav"
             icon="chevron-left"
-            :label="trackingText('organization.tracking.calendar.prev')"
+            :label="trackingText('tracking.calendar.prev')"
             data-month-prev
             @click="emit('update:month', shiftMonth(month, -1))"
           />
           <UiIconButton
             class="pt-calnav"
             icon="chevron-right"
-            :label="trackingText('organization.tracking.calendar.next')"
+            :label="trackingText('tracking.calendar.next')"
             data-month-next
             @click="emit('update:month', shiftMonth(month, 1))"
           />
@@ -64,7 +64,7 @@ const shown = computed(() => dist.value.slices.filter((s) => s.count > 0))
         role="grid"
         class="pt-cal"
         :aria-label="
-          trackingText('organization.tracking.calendar.grid', {
+          trackingText('tracking.calendar.grid', {
             month: name,
             year: month.slice(0, 4),
           })
@@ -72,7 +72,7 @@ const shown = computed(() => dist.value.slices.filter((s) => s.count > 0))
       >
         <div role="row" class="pt-cal__row">
           <span v-for="d in DOW" :key="d" role="columnheader" class="rp-kicker pt-cal__dow">{{
-            trackingText(`organization.tracking.calendar.dow.${d}`)
+            trackingText(`tracking.calendar.dow.${d}`)
           }}</span>
         </div>
         <div v-for="(week, w) in weeks" :key="w" role="row" class="pt-cal__row">
@@ -101,12 +101,12 @@ const shown = computed(() => dist.value.slices.filter((s) => s.count > 0))
       <div class="pt-legend rp-cap">
         <span class="rp-status"
           ><span class="rp-dot rp-dot--late pt-dot-sm" />{{
-            trackingText('organization.tracking.calendar.legendLate')
+            trackingText('tracking.calendar.legendLate')
           }}</span
         >
         <span class="rp-status"
           ><span class="rp-dot rp-dot--soon pt-dot-sm" />{{
-            trackingText('organization.tracking.calendar.legendSoon')
+            trackingText('tracking.calendar.legendSoon')
           }}</span
         >
       </div>
@@ -114,7 +114,7 @@ const shown = computed(() => dist.value.slices.filter((s) => s.count > 0))
 
     <section class="t-card pt-card-box" data-distribution>
       <h2 class="rp-cardtitle pt-dist-title">
-        {{ trackingText('organization.tracking.distribution.title') }}
+        {{ trackingText('tracking.distribution.title') }}
       </h2>
       <div class="rp-bar pt-dist" role="img" :aria-label="dist.label" data-dist-bar>
         <span
@@ -130,7 +130,7 @@ const shown = computed(() => dist.value.slices.filter((s) => s.count > 0))
           <dt>
             <span class="rp-status"
               ><span class="rp-dot" :class="`rp-dot--${STATUS_DOT[slice.status]}`" />{{
-                trackingText(`organization.tracking.distribution.label.${slice.status}`)
+                trackingText(`tracking.distribution.label.${slice.status}`)
               }}</span
             >
           </dt>

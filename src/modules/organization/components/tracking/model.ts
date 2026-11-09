@@ -100,9 +100,7 @@ export function shiftMonth(month: string, delta: number): string {
 
 export function monthName(month: string): string {
   const m = Number(month.slice(5, 7))
-  return trackingText(
-    `organization.tracking.calendar.months.m${m}` as 'organization.tracking.calendar.months.m1',
-  )
+  return trackingText(`tracking.calendar.months.m${m}` as 'tracking.calendar.months.m1')
 }
 
 // --- Sayım ve kartlar (E-05-49…52) -------------------------------------------------------------
@@ -177,12 +175,12 @@ function completionCard(c: TrackingCounts): CardView {
   const done = percent(c.completed, c.total)
   return {
     key: 'tamamlanan',
-    label: t('organization.tracking.cards.completion'),
-    value: t('organization.tracking.cards.completionValue', { p: done }),
+    label: t('tracking.cards.completion'),
+    value: t('tracking.cards.completionValue', { p: done }),
     note:
       c.total === 0
-        ? t('organization.tracking.cards.noTasks')
-        : t('organization.tracking.cards.completionNote', {
+        ? t('tracking.cards.noTasks')
+        : t('tracking.cards.completionNote', {
             total: fmt(c.total),
             done: fmt(c.completed),
             suffix: possessiveSuffix(c.completed),
@@ -191,24 +189,24 @@ function completionCard(c: TrackingCounts): CardView {
     tone: 'accent',
     icon: 'check',
     danger: false,
-    title: t('organization.tracking.cards.title.tamamlanan'),
+    title: t('tracking.cards.title.tamamlanan'),
   }
 }
 
 function openCard(c: TrackingCounts): CardView {
   return {
     key: 'acik',
-    label: t('organization.tracking.cards.open'),
+    label: t('tracking.cards.open'),
     value: fmt(c.open),
     note:
       c.total === 0
-        ? t('organization.tracking.cards.noTasks')
-        : t('organization.tracking.cards.openNote', { n: fmt(Math.max(0, c.open - c.overdue)) }),
+        ? t('tracking.cards.noTasks')
+        : t('tracking.cards.openNote', { n: fmt(Math.max(0, c.open - c.overdue)) }),
     bar: percent(c.open, c.total),
     tone: 'violet',
     icon: 'bolt',
     danger: false,
-    title: t('organization.tracking.cards.title.acik'),
+    title: t('tracking.cards.title.acik'),
   }
 }
 
@@ -216,21 +214,17 @@ function overdueCard(c: TrackingCounts): CardView {
   const late = percent(c.overdue, c.open)
   return {
     key: 'geciken',
-    label: t('organization.tracking.cards.overdue'),
+    label: t('tracking.cards.overdue'),
     value: fmt(c.overdue),
     note:
       c.open === 0
-        ? t(
-            c.total === 0
-              ? 'organization.tracking.cards.noTasks'
-              : 'organization.tracking.cards.noOpen',
-          )
-        : t('organization.tracking.cards.overdueNote', { q: late, suffix: possessiveSuffix(late) }),
+        ? t(c.total === 0 ? 'tracking.cards.noTasks' : 'tracking.cards.noOpen')
+        : t('tracking.cards.overdueNote', { q: late, suffix: possessiveSuffix(late) }),
     bar: late,
     tone: 'danger',
     icon: 'alert',
     danger: true,
-    title: t('organization.tracking.cards.title.geciken'),
+    title: t('tracking.cards.title.geciken'),
   }
 }
 
@@ -238,14 +232,14 @@ function overdueCard(c: TrackingCounts): CardView {
 function pendingCard(c: TrackingCounts): CardView {
   return {
     key: 'onayda',
-    label: t('organization.tracking.cards.pending'),
+    label: t('tracking.cards.pending'),
     value: fmt(c.pending),
     note: null,
     bar: percent(c.pending, c.open),
     tone: 'gold',
     icon: 'clock',
     danger: false,
-    title: t('organization.tracking.cards.title.onayda'),
+    title: t('tracking.cards.title.onayda'),
   }
 }
 
@@ -266,7 +260,7 @@ export const STATUS_DOT: Readonly<Record<WorkItemStatus, string>> = {
 }
 
 export function statusLabel(status: WorkItemStatus): string {
-  return trackingText(`organization.tracking.table.status.${status}`)
+  return trackingText(`tracking.table.status.${status}`)
 }
 
 export interface DueNote {
@@ -279,13 +273,13 @@ export function dueNote(item: TrackingItem, today: string): DueNote | null {
   if (!isOpen(item)) return null
   if (item.is_overdue) {
     return {
-      text: trackingText('organization.tracking.table.overdue', { n: item.days_overdue }),
+      text: trackingText('tracking.table.overdue', { n: item.days_overdue }),
       tone: 'danger',
     }
   }
   const left = daysBetween(today, item.end_on)
   if (left === null || left < 0) return null
-  return { text: trackingText('organization.tracking.table.remaining', { n: left }), tone: 'faint' }
+  return { text: trackingText('tracking.table.remaining', { n: left }), tone: 'faint' }
 }
 
 export type GroupTone = 'danger' | 'ink' | 'muted'
@@ -324,19 +318,19 @@ export function groupRows<T extends TrackingItem>(
   const groups: RowGroup<T>[] = [
     {
       key: 'overdue',
-      name: trackingText('organization.tracking.table.group.overdue'),
+      name: trackingText('tracking.table.group.overdue'),
       tone: 'danger',
       rows: [],
     },
     {
       key: 'thisWeek',
-      name: trackingText('organization.tracking.table.group.thisWeek'),
+      name: trackingText('tracking.table.group.thisWeek'),
       tone: 'ink',
       rows: [],
     },
     {
       key: 'later',
-      name: trackingText('organization.tracking.table.group.later'),
+      name: trackingText('tracking.table.group.later'),
       tone: 'muted',
       rows: [],
     },
@@ -390,13 +384,13 @@ export function calendarWeeks(
   for (let day = 1; day <= days; day += 1) {
     const iso = `${month}-${String(day).padStart(2, '0')}`
     const kind = kinds.get(day) ?? null
-    const suffix = kind === null ? '' : trackingText(`organization.tracking.calendar.${kind}`)
+    const suffix = kind === null ? '' : trackingText(`tracking.calendar.${kind}`)
     cells.push({
       day,
       kind,
       today: iso === today,
       past: iso < today,
-      label: trackingText('organization.tracking.calendar.day', { day, month: name }) + suffix,
+      label: trackingText('tracking.calendar.day', { day, month: name }) + suffix,
     })
   }
   while (cells.length % 7 !== 0) cells.push(blank())
@@ -436,12 +430,12 @@ export function distribution(items: readonly TrackingItem[]): {
     return { status, count, share: percent(count, total) }
   })
   const parts = slices
-    .map((s) => trackingText(`organization.tracking.distribution.part.${s.status}`, { n: s.count }))
+    .map((s) => trackingText(`tracking.distribution.part.${s.status}`, { n: s.count }))
     .join(', ')
   return {
     total,
     slices,
-    label: trackingText('organization.tracking.distribution.aria', { n: total, parts }),
+    label: trackingText('tracking.distribution.aria', { n: total, parts }),
   }
 }
 

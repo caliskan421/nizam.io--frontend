@@ -67,6 +67,19 @@ export const ICONS = {
   close: 'M6 6l12 12M18 6 6 18',
   copy: 'M8 8h12v12H8zM4 16V4h12',
   trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  /** Düzenle (Koordinatorluk-Detay.dc.html "Hakkında › Düzenle"). */
+  edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+  /** İndir (Kullanicilar.dc.html "Dışa aktar"). */
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  /** Zarf (Kullanicilar.dc.html "Şifre sıfırlama bağlantısı"). */
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
+  /** Kilit (Kullanicilar.dc.html "Hesabı kilitle"). */
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
+  /**
+   * Açık kilit ("Giriş kilidini kaldır", 05 satır dışı eylem; tasarımda çizilmedi, P3): `lock`
+   * gövdesi + sağ kolu açık halka.
+   */
+  unlock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 7.5-2',
 } as const
 
 export type IconName = keyof typeof ICONS
