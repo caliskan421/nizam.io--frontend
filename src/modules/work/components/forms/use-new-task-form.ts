@@ -16,7 +16,7 @@
  *    hiçbir ekrandan öğrenemez; uygulama düzeyi bildirim (`pushAppNotice`, aynı oturum neslinde).
  */
 import { useForm } from 'vee-validate'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 
 import {
   ownerLife,
@@ -27,7 +27,7 @@ import {
 } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome } from '@/shared/ui/confirm'
-import { pushAppNotice, useToast } from '@/shared/ui'
+import { focusFirstInvalid, pushAppNotice, useToast } from '@/shared/ui'
 
 import { useAddAssignments, useCreateWorkItemWithAssignees } from '../../api'
 import { useDepartmentMembers } from '../../api/members'
@@ -236,7 +236,7 @@ function useNewTaskSubmit(
     notifyOutcome(outcome)
   }
 
-  const submit = form.handleSubmit(async (values) => {
+  const handle = form.handleSubmit(async (values) => {
     const target = departmentTarget(store.snapshot, values.departmentId)
     if (!target) return
     notice.value = null
@@ -250,6 +250,16 @@ function useNewTaskSubmit(
     if (result.kind === 'primary_failed') return fail(result.primary)
     finish(result.primary, createPartialText(result))
   })
+
+  /**
+   * Gönderim; bitince (istemci doğrulaması ya da 422 alan hatası) odak penceredeki ilk hatalı
+   * alana gider (F2 görsel doğrulaması K-2; W83 ortak kalıbı `focusFirstInvalid`).
+   */
+  async function submit(event?: Event): Promise<void> {
+    await handle(event)
+    await nextTick()
+    if (owner.alive()) focusFirstInvalid()
+  }
 
   /**
    * "Yeniden gönder" sonucu (aynı anahtar). Başarıda ek atama adımı şimdi koşar — tekrar edilen
