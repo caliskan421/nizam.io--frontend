@@ -156,3 +156,25 @@ describe('yeni koordinatörlük oluştur + bağla (senaryo 3)', () => {
     expect(assign!.body).toEqual({ account_id: PEOPLE.second.account_id })
   })
 })
+
+describe('08b düzenle (gerçek DepartmentForm düzenleme kipi — W73 TASLAK)', () => {
+  it('programdaki ad değişir → başlık, kırıntı ve 08 kartı yeni adla', async () => {
+    const app = await boot({ ...ADMIN, path: '/koordinatorlukler/d1' })
+    await click('[data-action="more"]')
+    await click('[data-action="edit"]')
+    await until(
+      () => ($('[role="dialog"] [name="displayName"]') as HTMLInputElement | null)?.value,
+      'düzenleme formu yüklendi',
+    )
+    await fill('[role="dialog"] [name="displayName"]', 'Mekanik Takımı')
+    await click('[role="dialog"] [data-testid="of-submit"]')
+    await until(() => !$('[role="dialog"]'), 'form kapanır')
+    await until(() => $('[data-testid="cd-title"]')?.textContent === 'Mekanik Takımı', 'başlık')
+    expect($('[data-testid="topbar-crumbs"]')?.textContent).toContain('Mekanik Takımı')
+    const [rename] = backend.sent('PATCH', '/v1/program/departments/d1')
+    expect(rename!.body).toEqual({ display_name: 'Mekanik Takımı' })
+    await nav('Koordinatörlükler')
+    await until(() => byText('a', 'Mekanik Takımı', card('d1')!), '08 kartı yeni adla')
+    await idle(app.queryClient)
+  })
+})

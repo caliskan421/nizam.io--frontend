@@ -153,3 +153,28 @@ describe('05b gömülü gerçek UserPanel ve "Görev ata"', () => {
     expect(app.router.currentRoute.value.query.atanan).toBeUndefined()
   })
 })
+
+describe('05 panel → "Geçici parola belirle" (gerçek TemporaryPasswordDialog — W75 TASLAK)', () => {
+  it('parola gönderilir, pencere kapanır; parola DOM’da ve önbellekte kalmaz', async () => {
+    const app = await boot({ ...ADMIN, path: `/kullanicilar?secili=${PEOPLE.second.account_id}` })
+    await click('[data-testid="user-panel"] [data-testid="account-password"]')
+    await fill('[role="dialog"] [name="password"]', 'Gecici-Parola-2')
+    await click('[role="dialog"] [data-testid="of-submit"]')
+    await until(() => !$('[role="dialog"]'), 'pencere kapanır')
+    const [patch] = backend.sent('PATCH', `/v1/admin/accounts/${PEOPLE.second.account_id}`)
+    expect(patch!.body).toEqual({ password: 'Gecici-Parola-2', force_password_change: true })
+    await idle(app.queryClient)
+    expect(document.body.innerHTML).not.toContain('Gecici-Parola-2')
+    const cache = [
+      ...app.queryClient
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.state),
+      ...app.queryClient
+        .getMutationCache()
+        .getAll()
+        .map((m) => m.state),
+    ]
+    expect(JSON.stringify(cache)).not.toContain('Gecici-Parola-2')
+  })
+})

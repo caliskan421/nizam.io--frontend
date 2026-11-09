@@ -322,6 +322,27 @@ function catalogHandlers(db: OrgDb) {
   ]
 }
 
+function catalogEdits(db: OrgDb) {
+  const admin = (request: Request) => o.actorOf(db, request)?.admin === true
+  return [
+    http.patch(`${ORIGIN}/v1/program/departments/:departmentId`, async ({ request, params }) => {
+      const link = o.linkOf(db, o.programOf(request), String(params.departmentId))
+      if (!admin(request)) return o.forbidden('program')
+      if (!link) return envelope('program.department_not_found', 404)
+      const body = (await request.json()) as { display_name: string }
+      link.display_name = body.display_name
+      return json({ ...link, copied_member_count: 0 })
+    }),
+    http.patch(`${ORIGIN}/v1/departments/:id`, async ({ request, params }) => {
+      const found = db.catalog.find((c) => c.department_id === params.id)
+      if (!admin(request)) return o.forbidden('organization')
+      if (!found) return envelope('organization.department_not_found', 404)
+      Object.assign(found, await request.json())
+      return json(found)
+    }),
+  ]
+}
+
 export function teamHandlers(db: OrgDb) {
   return [
     ...rosterHandlers(db),
@@ -329,6 +350,7 @@ export function teamHandlers(db: OrgDb) {
     ...coordinatorWrites(db),
     ...userHandlers(db),
     ...catalogHandlers(db),
+    ...catalogEdits(db),
     http.post(`${ORIGIN}/v1/admin/accounts/:id/unlock`, () =>
       envelope('identity.account_not_locked', 409),
     ),
