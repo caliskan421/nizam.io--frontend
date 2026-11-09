@@ -13,6 +13,7 @@
 | Durumu değişen satır | **0** — `backend'de`ye geçen yok (pin değişmedi), `bağlandı` yok |
 | Kodda kullanılan stub kimlikleri | **BE-001** (kabuk program avatarı) · **BE-003** (sayaçlar, "yüklenen kayıtlar içinde", K/Ü rozetleri) · **BE-004** (arama istemcide) · **BE-005** (kısa kod "‹KOD›-—") · **BE-006** (alt görev zorunluluk kutuları) · **BE-007** (ilerleme çizgisi nötr kısmı) · **BE-008** (Hatırlat) · **BE-010** (Son işlemler) · **BE-038** (kişi süzgeci) · **BE-040** (sıralama istemcide) · **BE-091** (yönetici dışı etkinlik) |
 | CI denetimi | `tests/lint/design-stub.test.ts` kod ↔ kayıt tutarlı (her kimlik `açık`); main `050ca8e` CI yeşil |
+| O5 düzeltme turu (W62 #45, W63 #44) | BE satırı eklenmedi; `listProgramWorkItems`'ta atanan süzgeci yok → Üye merceği süzmesi istemcide (`work/model/assignment.ts`) — BE-038 (BE-003 ailesi) kapsamındaki sunucu süzme ihtiyacına not |
 
 F1 rapor-F0'daki "hiçbir yeni uç beklemeden" varsayımını doğruladı: 03 ve 01 ekranları dürüst sınırlı gösterimle (yüklenen kümede sayım/arama/sıralama, "Daha fazla yükle", kapsam etiketi — P4, ortak-kurallar §10) canlıya çıktı. Rapor-F0 §2 sırası (BE-003 → BE-036 → BE-038 → BE-040 → BE-004 → BE-001 → BE-051) **geçerliliğini korur**; F1 ekranlarını iyileştirmek için hâlâ doğru sıradır.
 
