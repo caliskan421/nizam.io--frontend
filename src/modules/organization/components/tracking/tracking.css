@@ -194,10 +194,12 @@
     outline: var(--focus-ring-width) solid var(--focus-ring);
     outline-offset: var(--focus-ring-offset);
   }
+  /* Gövde üstten hizalanır: not satırı olmayan "Onay bekleyen" kartında (E-05-52) değer ve çubuk
+     öbür kartlarla aynı satırda kalır (01 W63 kalıbı). */
   .pt-page .pt-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--space-5);
     min-height: var(--pt-kpi-h);
     color: var(--ink);
