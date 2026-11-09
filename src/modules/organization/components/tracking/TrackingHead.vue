@@ -88,7 +88,7 @@ function assign(): void {
   const units = props.units ?? []
   if (units.length === 0) return
   if (units.length === 1) {
-    void router.push(newTaskLocation(units[0]!.departmentId))
+    void router.push(newTaskLocation(units[0]!.departmentId, props.accountId))
     return
   }
   chosen.value = ''
@@ -102,7 +102,7 @@ function confirmPick(): void {
     return
   }
   picking.value = false
-  void router.push(newTaskLocation(chosen.value))
+  void router.push(newTaskLocation(chosen.value, props.accountId))
 }
 
 onScopeDispose(store.onChange(() => (picking.value = false)))

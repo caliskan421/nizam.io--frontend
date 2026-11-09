@@ -5,7 +5,7 @@
  *
  * "Görev ata" (P15): hedef koordinatörlük AÇIK seçilir — kişinin birimleri; tekse doğrudan.
  * Görev formu work modülünün `NewTaskDialog`'udur ve modül sınırı gereği yalnız kendi girişinden
- * açılır: `/gorevler?yeni=1&koordinatorluk=<birim>` (`TASKS_NEW_TASK_QUERY`, W48 girişi).
+ * açılır: `/gorevler?yeni=1&koordinatorluk=<birim>&atanan=<hesap>` (`TASKS_NEW_TASK_QUERY`).
  */
 import { TASKS_NEW_TASK_QUERY, TASKS_ROUTE } from '@/modules/work/public'
 
@@ -40,11 +40,11 @@ export function personUnits(
   return [...seen.values()].sort((a, b) => collator.compare(a.name, b.name))
 }
 
-/** Görevler ekranındaki yeni görev girişi, hedef birim ön seçili. */
-export function newTaskLocation(departmentId: string) {
+/** Görevler ekranındaki yeni görev girişi: hedef birim ön seçili, atanan = bu kişi (E-05-48). */
+export function newTaskLocation(departmentId: string, accountId: string) {
   return {
     name: TASKS_ROUTE.name,
-    query: { ...TASKS_NEW_TASK_QUERY, koordinatorluk: departmentId },
+    query: { ...TASKS_NEW_TASK_QUERY, koordinatorluk: departmentId, atanan: accountId },
   }
 }
 

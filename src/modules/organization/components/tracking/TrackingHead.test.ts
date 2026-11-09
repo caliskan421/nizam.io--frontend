@@ -79,7 +79,11 @@ describe('Görev ata (E-05-48, P15)', () => {
     await wrapper.find('[data-assign]').trigger('click')
     await settle()
     expect(router.currentRoute.value.name).toBe('work.tasks')
-    expect(router.currentRoute.value.query).toEqual({ yeni: '1', koordinatorluk: 'd1' })
+    expect(router.currentRoute.value.query).toEqual({
+      yeni: '1',
+      koordinatorluk: 'd1',
+      atanan: 'u1',
+    })
   })
 
   it('çok birimli kişide seçim zorunlu', async () => {
@@ -100,7 +104,11 @@ describe('Görev ata (E-05-48, P15)', () => {
     select.dispatchEvent(new Event('change'))
     form.requestSubmit()
     await settle()
-    expect(router.currentRoute.value.query).toEqual({ yeni: '1', koordinatorluk: 'd2' })
+    expect(router.currentRoute.value.query).toEqual({
+      yeni: '1',
+      koordinatorluk: 'd2',
+      atanan: 'u1',
+    })
   })
 
   it('kapsam değişince açık seçici kapanır', async () => {

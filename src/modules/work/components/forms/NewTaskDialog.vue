@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import './forms.css'
 
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 
 import { UiOutcomeNotice } from '@/shared/ui/confirm'
 import { UiButton, UiCheck, UiField, UiHint, UiInput, UiModal, UiSelect } from '@/shared/ui'
@@ -9,6 +9,7 @@ import { UiButton, UiCheck, UiField, UiHint, UiInput, UiModal, UiSelect } from '
 import type { NewTaskDialogEmits, NewTaskDialogProps } from '../index'
 import FieldNative from './FieldNative.vue'
 import { formsText, priorityLabel } from './messages'
+import { NEW_TASK_PRESET } from './new-task-preset'
 import { PRIORITIES } from './new-task-schema'
 import { useNewTaskForm } from './use-new-task-form'
 
@@ -20,9 +21,14 @@ import { useNewTaskForm } from './use-new-task-form'
 const props = withDefaults(defineProps<NewTaskDialogProps>(), { departmentId: null })
 const emit = defineEmits<NewTaskDialogEmits>()
 
+/** URL girişinin doğrulanmış ön değerleri (Görevler sayfası sağlar; yoksa `null`). */
+const preset = inject(NEW_TASK_PRESET, null)
+
 const model = useNewTaskForm({
   open: () => props.open,
   departmentId: () => props.departmentId,
+  presetDepartment: () => preset?.value?.departmentId ?? null,
+  assignee: () => preset?.value?.assignee ?? null,
   created: (item) => emit('created', item),
   close: () => emit('update:open', false),
 })

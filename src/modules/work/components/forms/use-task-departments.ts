@@ -46,5 +46,8 @@ export function useTaskDepartments(selected: MaybeRefOrGetter<string>) {
     return id !== '' && canManageAssignments(facts(id))
   })
 
-  return { options, canAssignExtra }
+  /** Program departman listesi yanıtlandı mı (seçenekler son hâlinde; W76 URL hedefi bekler). */
+  const settled = computed(() => !query.isPending.value)
+
+  return { options, canAssignExtra, settled }
 }

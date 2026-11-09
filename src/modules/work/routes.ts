@@ -8,7 +8,9 @@
  *    (`gorev`) sıfırlanır (03 README satır dışı varsayım, kabul — K2 yalnız `scoped` sorguları
  *    düşürür). İmleç URL'de yoktur (E-03-39), sonsuz sorgu anahtarıyla zaten düşer.
  *  - Görev bağlantısı (E-03-55 "Kopyala", P7): `/gorevler?gorev=<id>`.
- *  - Yeni görev girişi (E-03-06, W48): `/gorevler?yeni=1` (`TASKS_NEW_TASK_QUERY`).
+ *  - Yeni görev girişi (E-03-06, W48): `/gorevler?yeni=1` (`TASKS_NEW_TASK_QUERY`); isteğe bağlı
+ *    `koordinatorluk` (yetkili birimse formun hedefi, mercekten bağımsız) ve `atanan` (ön atanan;
+ *    W76, E-05-48) — ikisi de `pages/tasks/use-new-task-entry.ts` içinde doğrulanır.
  *
  * Sayfa kaydı `workRoutes` (W42): `work.tasks` → `pages/TasksPage.vue`. Router yol/kapsam
  * uyuşmazlığını reddeder; süzgeç adları ve değer kümeleri katalogla aynıdır
@@ -28,6 +30,7 @@ export const TASKS_QUERY_KEYS = [
   'sirala',
   'gorev',
   'yeni',
+  'atanan',
 ] as const
 
 /**

@@ -29,9 +29,9 @@ describe('kişinin birimleri (E-05-44, E-05-48)', () => {
   })
 
   it('yeni görev girişi ve görev bağlantısı', () => {
-    expect(newTaskLocation('d1')).toEqual({
+    expect(newTaskLocation('d1', 'u1')).toEqual({
       name: 'work.tasks',
-      query: { yeni: '1', koordinatorluk: 'd1' },
+      query: { yeni: '1', koordinatorluk: 'd1', atanan: 'u1' },
     })
     expect(taskLocation('w1')).toEqual({ name: 'work.tasks', query: { gorev: 'w1' } })
   })
