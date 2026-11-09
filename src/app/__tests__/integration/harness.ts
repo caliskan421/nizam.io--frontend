@@ -300,6 +300,17 @@ export async function pickPerson(accountId: string, root = '[role="dialog"]'): P
   await click(() => $(`${root} [data-account="${accountId}"]`))
 }
 
+/** Kenar menüsü kapsam kartı → menü öğesi (gerçek kabuk seçicisi; `kind` kartın erişilebilir adı). */
+export async function switchScope(kind: 'Program' | 'Rol' | 'Departman', option: string) {
+  await click(() => $(`aside button.side-card[aria-label^="${kind}:"]`))
+  await click(
+    () =>
+      $$('[role="menuitem"], [role="menuitemradio"]').find((el) =>
+        el.textContent?.includes(option),
+      ) ?? null,
+  )
+}
+
 /** Kabuk bildirimleri (UiToast) metni. */
 export function toasts(): string {
   return $$('.rp-toast')
