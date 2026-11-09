@@ -9,9 +9,11 @@
  *  - `edit_conflict` → kalıcı bildirim; alan listesi yerinde, alan alan seçim F1'de.
  *  - `confirmation_required` → bildirim değil, `useConfirm().confirmImpact` penceresi.
  *  - `owner_disposed` → bildirim yok: sahip (ekran) söküldü, istek gönderilmedi (CX-F1-E-05).
+ *  - Sahibi sökülmüş (geç gelen) sonuç → bildirim yok (`isDetached`; CX-F1-Ö-07): istek ekran
+ *    yaşarken gitti, sonuç ekran söküldükten sonra geldi.
  */
 import type { MutationOutcome } from '@/shared/http/mutation'
-import { outcomeMessage } from '@/shared/http/mutation'
+import { isDetached, outcomeMessage } from '@/shared/http/mutation'
 import { errorText } from '@/shared/i18n'
 
 import { useToast, type ToastInput } from '../use-toast'
@@ -28,6 +30,7 @@ export function outcomeText(outcome: AnyOutcome): string {
 
 /** Sonucun bildirimi; bildirilecek bir şey yoksa `null`. */
 export function outcomeToast(outcome: AnyOutcome): ToastInput | null {
+  if (isDetached(outcome)) return null
   switch (outcome.kind) {
     case 'success':
     case 'confirmation_required':

@@ -20,7 +20,9 @@
  *  - Sahip yaşamı (CX-F1-E-05): hook kurulduğu etki kapsamının sökülmesini izler (`ownerLife`).
  *    Sökülmeden sonra bu hook üzerinden YENİ HTTP yazması başlamaz — yeni `submit`, `retry`,
  *    `confirm` devamı ve `conflict_retry` otomatik tekrarı motor kapısında `owner_disposed` ile
- *    döner (istek yok, bildirim yok, söz asılı kalmaz). Uçuştaki istek iptal edilmez. Etki
+ *    döner (istek yok, bildirim yok, söz asılı kalmaz). Uçuştaki istek iptal edilmez; sonucu
+ *    sökülmeden sonra gelirse `markDetached` ile işaretlenir (CX-F1-Ö-07): ortak bildirim onu
+ *    yok sayar, tüketici `reachesOwner(outcome)` ile yeniden okuma/UI akışını atlar. Etki
  *    kapsamı DIŞINDA kurulan hook (uygulama düzeyi) sahipsizdir: her zaman canlı sayılır.
  *  - Değişkenler motora verilmeden önce Vue vekillerinden derin açılır (`toPlainVars`):
  *    `reactive`/`ref` taşıyan form durumu doğrudan gönderilebilir; motor Vue'dan bağımsız kalır.
@@ -37,7 +39,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { authSession } from '../index'
 import { invalidationFilters, type InvalidationContext } from '../query-keys'
 import { newAction, runAction, type EngineOptions, type MutationAction, type Rerun } from './engine'
-import type { ActionContext, MutationOutcome } from './outcome'
+import { markDetached, type ActionContext, type MutationOutcome } from './outcome'
 import { ownerLife } from './owner'
 
 export interface ProtectedMutationOptions<V, D, S> extends Omit<EngineOptions<V, D, S>, 'alive'> {
@@ -142,7 +144,12 @@ export function useProtectedMutation<V, D, S = unknown>(
 
   const mutation = useMutation<MutationOutcome<V, D, S>, never, MutationAction<V>>(
     {
-      mutationFn: (action) => runAction(action, engine, rerun),
+      // Sahip uçuş sırasında söküldüyse sonuç "sahipsiz" işaretlenir (CX-F1-Ö-07): geçersizleme
+      // yine yapılır, ekran bildirim/yeniden okuma üretmez (`reachesOwner`, `notifyOutcome`).
+      mutationFn: async (action) => {
+        const outcome = await runAction(action, engine, rerun)
+        return owner.alive() ? outcome : markDetached(outcome)
+      },
       // Otomatik tekrar yalnız motorun içinde (conflict_retry, bir kez).
       retry: false,
       ...(options.gcTime !== undefined ? { gcTime: options.gcTime } : {}),

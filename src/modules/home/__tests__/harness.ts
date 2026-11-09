@@ -2,13 +2,14 @@
 // gerçek Pinia kapsam deposu, TanStack Query ve bellek router'ı (03 rotası adıyla). Oturum
 // deposu test dosyasında taklit edilir (`useStanding` yalnız oturum açıkken okur).
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { http, HttpResponse, type JsonBodyType } from 'msw'
 import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -164,6 +165,7 @@ export const listHandler = (first: ReturnType<typeof row>[], nextCursor?: string
 // --- Bağlama ------------------------------------------------------------------------------
 
 const mounted: VueWrapper[] = []
+const clients: QueryClient[] = []
 
 export interface Mounted {
   wrapper: VueWrapper
@@ -198,20 +200,22 @@ export async function mountWith(
     attachTo: document.body,
   })
   mounted.push(wrapper)
+  clients.push(queryClient)
   await settle()
   return { wrapper, router, store, queryClient }
 }
 
-/** MSW yanıtları ve sorgu güncellemeleri yerleşene dek. */
-export async function settle(rounds = 4): Promise<void> {
-  for (let i = 0; i < rounds; i += 1) {
-    await flushPromises()
-    await new Promise((resolve) => setTimeout(resolve, 0))
-  }
+/**
+ * Bağlı bütün istemcilerde sorgu/yazma yerleşene dek (koşul/olay tabanlı; sabit tur ya da
+ * süre tahmini yok — `@/shared/http/__tests__/settle`).
+ */
+export function settle(): Promise<void> {
+  return settleQueries(clients)
 }
 
 export function resetAll(): void {
   for (const wrapper of mounted.splice(0)) wrapper.unmount()
+  clients.length = 0
   requests.length = 0
   server.resetHandlers()
   document.body.innerHTML = ''

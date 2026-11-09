@@ -20,7 +20,8 @@ import { ConfirmHost } from '@/shared/ui/confirm'
  * ve kapsam bekleme durumları rota içeriği yerine yerinde gösterilir (URL'siz). Bildirim ve onay
  * yuvaları (`UiToast`, `ConfirmHost`) burada bir kez yerleşir. Yöneticinin "programa departman
  * katılmamış" durumu Admin merceğinde program departman listesinden saptanır (yalnız içerik alanı).
- * Dar ekranda (≤ 900 px) kenar menüsü varsayılan kapalı, perdeli kaplama (`narrow-nav.ts`).
+ * Dar ekranda (≤ 900 px) kenar menüsü varsayılan kapalı, perdeli kaplama (`narrow-nav.ts`): kaplama
+ * açıkken `rp-main` `inert` (arka içerik klavye/ekran okuyucu için etkisiz), kaydırma kilitli.
  */
 const lifecycle = useScopeLifecycle()
 provide(SCOPE_LIFECYCLE_KEY, lifecycle)
@@ -28,7 +29,10 @@ const departmentGap = useProgramDepartmentGap(() => lifecycle.status.value === '
 
 const collapsed = ref(false)
 const route = useRoute()
-const nav = useNarrowNav(() => route.fullPath)
+const nav = useNarrowNav(() => route.fullPath, {
+  side: () => document.getElementById('app-side'),
+  trigger: () => document.querySelector<HTMLElement>('[aria-controls="app-side"]'),
+})
 
 const content = computed<ShellContent>(() =>
   resolveShellContent({
@@ -44,7 +48,7 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
 </script>
 
 <template>
-  <div class="rp-page" data-testid="app-shell" @keydown.esc="nav.close()">
+  <div class="rp-page" data-testid="app-shell">
     <AppSide v-model:collapsed="collapsed" :narrow-open="nav.open.value" @reveal="nav.reveal()" />
     <div
       v-if="nav.open.value"
@@ -53,7 +57,8 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
       data-testid="narrow-scrim"
       @click="nav.close()"
     />
-    <main class="rp-main">
+    <!-- `|| undefined`: kapalıyken öznitelik hiç yazılmaz (DOM özelliği olmayan ortamda "false" kalmasın). -->
+    <main class="rp-main" :inert="nav.overlay.value || undefined">
       <AppTopbar :open-state="openState" :nav-open="nav.open.value" @toggle-nav="nav.toggle()" />
       <ShellState v-if="stateContent" :content="stateContent" />
       <slot v-else />
@@ -80,10 +85,15 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
     display: flex;
     flex-direction: column;
   }
+  /* Dar ekran kaplaması açıkken belge kaydırması kilitli (`narrow-nav.ts`). */
+  .rp-scroll-lock {
+    overflow: hidden;
+  }
   /* Dar ekran kaplamasının perdesi; geniş ekranda hiç görünmez. */
   .rp-narrow-scrim {
     display: none;
   }
+  /* Eşik = `--rp-narrow-max` (medya koşulunda var() çalışmaz; eşitlik media-thresholds.test.ts). */
   @media (max-width: 900px) {
     .rp-narrow-scrim {
       display: block;

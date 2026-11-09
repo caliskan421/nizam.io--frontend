@@ -137,7 +137,7 @@ function loadMore(): void {
           :tab="state.tab"
           :counts="list.counts.value"
           :requests="state.requests"
-          :request-count="list.requestCount.value"
+          :request-count="list.counts.value ? list.requestCount.value : null"
           :show-requests="showRequests"
           :complete="list.complete.value"
           @update:tab="url.update({ tab: $event })"

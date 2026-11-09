@@ -25,6 +25,8 @@ const store = useScopeStore()
 const { standing } = useStanding()
 const remove = useDeleteWorkItem()
 const { confirmWrite } = useConfirm()
+// Kurulumda alınır: bileşen silme beklerken sökülürse bildirim düşer (CX-F1-Ö-07).
+const toast = useToast()
 
 const allowed = computed(() =>
   canManageWorkItem(workActorFacts(standing.value, store.programId, props.item)),
@@ -48,7 +50,7 @@ async function onDelete(): Promise<void> {
     notifyOutcome(outcome)
     return
   }
-  useToast().push({ message: formsText('workForms.remove.done') })
+  toast.push({ message: formsText('workForms.remove.done') })
   emit('deleted', item.work_item_id)
 }
 </script>

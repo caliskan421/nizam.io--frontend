@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { until } from '@/shared/http/__tests__/settle'
+
 import { kpiCards } from '../model/kpi'
 import { mountWith, resetAll } from '../__tests__/harness'
 import KpiCard from './KpiCard.vue'
@@ -25,8 +27,11 @@ describe('KPI kartı (E-01-03…07)', () => {
     expect(wrapper.get('[data-kpi-bar]').attributes('style')).toContain('--home-kpi-fill: 49%')
     expect(link.classes()).toContain('home-kpi--accent')
     await link.trigger('click')
-    await router.isReady()
-    await new Promise((r) => setTimeout(r, 0))
+    // Koşul tabanlı: gezinme tamamlanınca (rota sonrası kancası) hedefte.
+    await until(
+      () => router.currentRoute.value.fullPath !== '/',
+      (notify) => router.afterEach(notify),
+    )
     expect(router.currentRoute.value.fullPath).toBe('/gorevler?durum=tamamlandi')
   })
 

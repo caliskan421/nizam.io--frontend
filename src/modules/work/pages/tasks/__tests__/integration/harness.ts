@@ -6,12 +6,13 @@
 // geçmişi + GERÇEK Teleport + uygulama yuvaları (`UiToast`, `ConfirmHost`). Ağ: görev
 // harness'ının MSW sunucusu üstünde durumlu sahte görev backend'i (istekler kaydedilir).
 import { QueryClient, useQueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { DOMWrapper, flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { DOMWrapper, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, onScopeDispose } from 'vue'
 import { createMemoryHistory, createRouter, RouterView, type Router } from 'vue-router'
 
 import { homeRoutes } from '@/modules/home/public'
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import { purgeScopedQueries } from '@/shared/scope/lifecycle'
 import { parseStanding } from '@/shared/scope/standing-facts'
 import type { ScopeSelection } from '@/shared/scope/resolve'
@@ -206,18 +207,11 @@ export async function mountApp(selection: ScopeSelection, path = '/gorevler'): P
 }
 
 /**
- * Sorgu ve yazmalar yerleşene dek olay döngüsünü sınırlı sayıda döndürür (gerçek zamanlayıcı
- * yok): art arda birkaç boş tur beklenir (yazma sonucu → bileşen tepkisi → yeniden okuma).
+ * Sorgu ve yazmalar yerleşene dek bekler: koşul/olay tabanlı (önbellek olayı + boş durum
+ * gözlemi; sabit tur ya da süre tahmini yok) — `@/shared/http/__tests__/settle`.
  */
-export async function settle(client: QueryClient, turns = 80): Promise<void> {
-  let idle = 0
-  for (let i = 0; i < turns; i += 1) {
-    await flushPromises()
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    idle = client.isFetching() === 0 && client.isMutating() === 0 ? idle + 1 : 0
-    if (idle >= 3) return
-  }
-  throw new Error('sorgular yerleşmedi')
+export function settle(client: QueryClient): Promise<void> {
+  return settleQueries(client)
 }
 
 /** Belge gövdesi (ışınlanan pencere içeriği dahil). */

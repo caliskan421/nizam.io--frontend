@@ -16,7 +16,7 @@
  */
 import { shallowRef } from 'vue'
 
-import { ownerLife, type MutationOutcome } from '@/shared/http/mutation'
+import { ownerLife, reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 
@@ -136,8 +136,9 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   const owner = ownerLife()
 
   function report(outcome: AnyOutcome | null): void {
-    // `owner_disposed`: ekran söküldü, istek gönderilmedi — bildirim ve yeniden okuma yok.
-    if (outcome === null || outcome.kind === 'success' || outcome.kind === 'owner_disposed') return
+    // Sahibi sökülmüş (`owner_disposed` ya da sökülmeden sonra gelen geç sonuç; CX-F1-Ö-07):
+    // bildirim ve yeniden okuma yok.
+    if (outcome === null || outcome.kind === 'success' || !reachesOwner(outcome)) return
     notifyOutcome(outcome)
     void deps.reload()
   }

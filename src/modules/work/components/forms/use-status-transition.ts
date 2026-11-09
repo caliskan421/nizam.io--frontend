@@ -14,7 +14,7 @@
 import { useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, getCurrentScope, onScopeDispose, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
-import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
+import { reachesOwner, type ActionContext, type MutationOutcome } from '@/shared/http/mutation'
 import { invalidationFilters } from '@/shared/http/query-keys'
 import { useStanding } from '@/shared/scope/standing'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
@@ -110,7 +110,7 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   const transition = useTransitionWorkItem()
   // Kurulumda alınır: onay bu bileşenin etki kapsamına aittir, sökülünce iptal (CX-F1-E-02).
   const { confirmWrite } = useConfirm()
-  const life = trackLife()
+  const [life, toast] = [trackLife(), useToast()] // Ö-07: sahip sökülünce bildirim düşer
 
   const facts = computed(() => workActorFacts(standing.value, store.programId, toValue(item)))
   const targets = computed<WorkItemStatus[]>(() =>
@@ -131,7 +131,7 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
       )
       if (again) return again
     } else if (code === 'work.attachment_required') {
-      useToast().push({ message: formsText('workForms.transition.evidence'), tone: 'danger' })
+      toast.push({ message: formsText('workForms.transition.evidence'), tone: 'danger' })
       hooks.requestEvidence()
       return o
     } else if (code === 'work.revert_reason_required') {
@@ -150,7 +150,8 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
       { target: targetOf(current), workItemId: current.work_item_id, body },
       { context },
     )
-    return settle(current, body, outcome)
+    // Sahibi sökülmüş sonuç: kanca/onay/bildirim/yeniden okuma yok (CX-F1-Ö-07).
+    return reachesOwner(outcome) ? settle(current, body, outcome) : outcome
   }
 
   /** Menüden hedef seçimi: geri almada önce gerekçe penceresi. */

@@ -3,7 +3,8 @@
  * theme.css (`rp-side`, `rp-rail`, `rp-raillogo`, `rp-navgroups`) birebir karşılığı. Kural: yalnız
  * token (`var(--…)`); ham renk ve px yok — ölçek dışı `--side-*` ölçüleri design/web-tokens.json
  * `side` grubundan üretilir (medya sorgusu koşulu hariç: CSS değişkeni medya koşulunda
- * kullanılamaz; değer `--rp-narrow-max` ile aynıdır).
+ * kullanılamaz; değer `--rp-narrow-max` ile aynıdır;
+ * eşitlik `src/shared/tokens/media-thresholds.test.ts` ile sabit).
  * Açık tema yalnız token değişimiyle (rol renkleri iki temada aynı).
  */
 @layer components {

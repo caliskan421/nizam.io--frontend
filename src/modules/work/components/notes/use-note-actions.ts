@@ -16,7 +16,7 @@
  * Diğer sonuçlar ortak bildirim (`notifyOutcome`; metin hata kodundan, i18n).
  */
 import { ApiError } from '@/shared/errors/api-error'
-import { ownerLife, type MutationOutcome } from '@/shared/http/mutation'
+import { ownerLife, reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
@@ -53,6 +53,8 @@ export async function settle(
   refetch: () => Promise<unknown>,
 ): Promise<SettleResult> {
   if (outcome.kind === 'success') return { done: true, notice: null }
+  // Sahibi sökülmüş sonuç (CX-F1-Ö-07): bildirim ve yeniden okuma yok.
+  if (!reachesOwner(outcome)) return { done: false, notice: null }
   if (outcome.kind === 'unknown_outcome') return { done: false, notice: outcome }
   notifyOutcome(outcome)
   if (outcome.kind === 'failed' && outcome.error.code === NOTE_GONE) {
@@ -171,6 +173,7 @@ export function useNoteActions(item: () => WorkItem, refetch: () => Promise<unkn
     )
     if (outcome === null) return false
     if (outcome.kind === 'success') return true
+    if (!reachesOwner(outcome)) return false
     notifyOutcome(outcome)
     if (outcome.kind === 'unknown_outcome' || outcome.kind === 'failed') await refetch()
     return false

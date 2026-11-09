@@ -11,14 +11,23 @@
  *  - Başarı: liste/görev geçersizlemesi veri katmanında; `created` → çağıran paneli açar.
  *    Kısmi başarı (ek atama başarısız) gerçek durumu söyler (ortak-kurallar §7, CX-S-03).
  *  - 422 alan hataları ilgili alana (kod → i18n); diğer hatalar ortak bildirim.
+ *  - Form gönderim beklerken söküldüyse (CX-F1-Ö-07): bildirim, `created`/`close` ve hata akışı
+ *    yok — tek istisna KISMİ sonuç (görev oluşturuldu, ek atama yapılamadı): kullanıcı bunu başka
+ *    hiçbir ekrandan öğrenemez; uygulama düzeyi bildirim (`pushAppNotice`, aynı oturum neslinde).
  */
 import { useForm } from 'vee-validate'
 import { computed, ref, shallowRef, watch } from 'vue'
 
-import { runWithFollowUps, type ActionContext, type MutationOutcome } from '@/shared/http/mutation'
+import {
+  ownerLife,
+  runWithFollowUps,
+  type ActionContext,
+  type MutationOutcome,
+  type MutationSuccess,
+} from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome } from '@/shared/ui/confirm'
-import { useToast } from '@/shared/ui'
+import { pushAppNotice, useToast } from '@/shared/ui'
 
 import { useAddAssignments, useCreateWorkItemWithAssignees } from '../../api'
 import { useDepartmentMembers } from '../../api/members'
@@ -175,6 +184,31 @@ function assignmentSteps(assign: ReturnType<typeof useAddAssignments>, extra: re
         ]
 }
 
+/**
+ * Oluşturma sonucu (CX-F1-Ö-07): form canlıysa bildirim + `created` + `close`; söküldüyse yalnız
+ * KISMİ sonuç uygulama düzeyinde bildirilir (ilk yazma gerçek, ardıl adım yapılamadı).
+ */
+function useCreateFinish(hooks: NewTaskFormHooks) {
+  const toast = useToast() // kurulumda alınır: form sökülünce bildirim düşer
+  const owner = ownerLife()
+
+  function finish(primary: MutationSuccess<WorkItem>, partial: string | null): void {
+    if (!owner.alive()) {
+      if (partial) pushAppNotice({ message: partial, tone: 'danger' }, primary.context?.generation)
+      return
+    }
+    toast.push(
+      partial
+        ? { message: partial, tone: 'danger' }
+        : { message: formsText('workForms.create.done') },
+    )
+    hooks.created(primary.data)
+    hooks.close()
+  }
+
+  return { owner, finish }
+}
+
 function useNewTaskSubmit(
   form: ReturnType<typeof useForm<NewTaskValues>>,
   canAssignExtra: { value: boolean },
@@ -187,17 +221,10 @@ function useNewTaskSubmit(
   /** Son gönderimin ek atananları (ana atanan hariç) — "Yeniden gönder" başarısında koşar. */
   let pendingExtra: string[] = []
 
-  function finish(item: WorkItem, partial: string | null): void {
-    useToast().push(
-      partial
-        ? { message: partial, tone: 'danger' }
-        : { message: formsText('workForms.create.done') },
-    )
-    hooks.created(item)
-    hooks.close()
-  }
+  const { owner, finish } = useCreateFinish(hooks)
 
   function fail(outcome: CreateOutcome): void {
+    if (!owner.alive()) return
     if (outcome.kind === 'failed') {
       const errors = fieldErrorsOf(outcome.error)
       if (Object.keys(errors).length > 0) return form.setErrors(errors)
@@ -221,7 +248,7 @@ function useNewTaskSubmit(
       extraAssignees: extra,
     })
     if (result.kind === 'primary_failed') return fail(result.primary)
-    finish(result.primary.data, createPartialText(result))
+    finish(result.primary, createPartialText(result))
   })
 
   /**
@@ -238,7 +265,7 @@ function useNewTaskSubmit(
       assignmentSteps(assign, pendingExtra),
     )
     if (composite.kind === 'primary_failed') return fail(composite.primary)
-    finish(composite.primary.data, createPartialText(composite))
+    finish(composite.primary, createPartialText(composite))
   }
 
   const isPending = computed(() => create.isPending.value || assign.isPending.value)

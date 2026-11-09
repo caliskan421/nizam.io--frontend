@@ -54,6 +54,24 @@ describe('durum sekmeleri (E-03-07…09)', () => {
     expect(bar.emitted('update:requests')).toEqual([[false]])
   })
 
+  it('veri yokken (counts/requestCount null) sekmeler sayısız; "(0)" yazılmaz', () => {
+    const bar = mountBar({ counts: null, requestCount: null })
+    const tabs = bar.get('[aria-label="Kayıtlı görünümler"]').findAll('button')
+    expect(tabs.map((t) => t.text())).toEqual([
+      'Tümü',
+      'Başlamadı',
+      'Devam ediyor',
+      'Geciken',
+      'Onay bekleyen',
+      'Geri gönderildi',
+      'Tamamlanan',
+    ])
+    expect(bar.get('[aria-label="Tarih talebi filtresi"]').get('button').text()).toBe(
+      'Tarih talebi',
+    )
+    expect(bar.text()).not.toContain('(0)')
+  })
+
   it('talep süzgeci verisi olmayanda (üye) gizli', () => {
     expect(
       mountBar({ showRequests: false }).find('[aria-label="Tarih talebi filtresi"]').exists(),

@@ -16,6 +16,7 @@ import {
   T,
   type CookieJar,
 } from '../../../tests/support/fake-backend'
+import { until } from './__tests__/settle'
 import { createApiClient } from './client'
 import { unwrap } from './unwrap'
 
@@ -61,7 +62,12 @@ function loggedInTab(coordination?: RefreshCoordination, scope?: ScopeSnapshot, 
   return login(createTab(coordination, scope, jar))
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+/** Koşul tabanlı: kardeş sekmenin oturumu giriş yayınını alana dek (süre tahmini yok). */
+const loginDelivered = (tab: ReturnType<typeof createTab>) =>
+  until(
+    () => tab.session.token === T(1),
+    (notify) => tab.session.subscribe(notify),
+  )
 
 describe('401 → refresh → tekrar', () => {
   it('erişim belirteci düşünce tek refresh yapılır ve istek yeni belirteçle bir kez tekrarlanır', async () => {
@@ -120,7 +126,7 @@ describe('401 → refresh → tekrar', () => {
       const jar = createJar()
       const tabB = createTab(browser.tab(), undefined, jar)
       const tabA = await loggedInTab(browser.tab(), undefined, jar)
-      await sleep(0) // giriş yayını B'ye ulaşsın
+      await loginDelivered(tabB) // giriş yayını B'ye ulaşsın
       expect(tabB.session.token).toBe(T(1))
       backend.expireAccess()
 
@@ -143,7 +149,7 @@ describe('401 → refresh → tekrar', () => {
     const jar = createJar()
     const tabB = createTab(browser.tab(), undefined, jar)
     const tabA = await loggedInTab(browser.tab(), undefined, jar)
-    await sleep(30)
+    await loginDelivered(tabB)
     expect(tabB.session.token).toBe(T(1))
     backend.expireAccess()
 
@@ -164,7 +170,7 @@ describe('401 → refresh → tekrar', () => {
     const jar = createJar()
     const tabB = createTab(browser.tab(), undefined, jar)
     const tabA = await loggedInTab(browser.tab(), undefined, jar)
-    await sleep(20)
+    await loginDelivered(tabB)
     backend.expireAccess()
     backend.state.refreshBarrier = 2
 

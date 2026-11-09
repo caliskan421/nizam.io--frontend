@@ -32,6 +32,8 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
   const remove = useDeleteFile()
   const { confirmWrite } = useConfirm()
   const owner = ownerLife()
+  // Kurulumda alınır: sahip sökülünce bildirim düşer (CX-F1-Ö-07).
+  const toast = useToast()
 
   function ref(): FileRef {
     const current = toValue(item)
@@ -60,7 +62,7 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
       ticket.reset()
     }
     if (!opened) {
-      useToast().push({ message: filesText('workFiles.row.downloadInvalid'), tone: 'danger' })
+      toast.push({ message: filesText('workFiles.row.downloadInvalid'), tone: 'danger' })
     }
   }
 
