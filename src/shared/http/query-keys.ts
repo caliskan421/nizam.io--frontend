@@ -211,16 +211,6 @@ const ACCOUNT_LIFECYCLE_WRITES = [
   'deleteUser',
 ] as const satisfies readonly OperationId[]
 
-// Atama devri (ORGANIZATION-K17/K18/K29): ekipten çıkarma, rol düşürme, koordinatörlük
-// kaldırma ve kullanıcı silme açık görev atamalarını işlemi yapana devreder → görev listeleri.
-const ASSIGNMENT_HANDOVER_WRITES = [
-  'updateMembershipRole',
-  'removeMember',
-  'removeCoordinator',
-  'deleteUser',
-  'deleteAccount',
-] as const satisfies readonly OperationId[]
-
 // Departman kataloğunu değiştiren uçlar (S1; 08 `backend.md` §5).
 const CATALOG_DEPARTMENT_WRITES = [
   'createDepartment',
@@ -272,19 +262,8 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'departments.assignable': unique(MEMBERSHIP_WRITES, ACCOUNT_LIFECYCLE_WRITES, ['createUser']),
   'catalog.departments': CATALOG_DEPARTMENT_WRITES,
   deletedDepartments: ['deleteDepartment', 'restoreDepartment', 'permanentDeleteDepartment'],
-  'workItems.list': unique(
-    WORK_ITEM_WRITES,
-    DATE_WRITES,
-    SUBTASK_WRITES,
-    ASSIGNMENT_HANDOVER_WRITES,
-  ),
-  'workItems.item': unique(
-    WORK_ITEM_WRITES,
-    DATE_WRITES,
-    SUBTASK_WRITES,
-    ['attachFile'],
-    ASSIGNMENT_HANDOVER_WRITES,
-  ),
+  'workItems.list': unique(WORK_ITEM_WRITES, DATE_WRITES, SUBTASK_WRITES),
+  'workItems.item': unique(WORK_ITEM_WRITES, DATE_WRITES, SUBTASK_WRITES, ['attachFile']),
   'workItems.subtasks': unique(SUBTASK_WRITES, ['transitionWorkItem', 'removeAssignment']),
   'workItems.notes': NOTE_WRITES,
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
