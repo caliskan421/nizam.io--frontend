@@ -16,7 +16,7 @@ Analist varsayımlarıyla çelişip denetçi/Codex tarafından sözleşmeden do�
 |---|---|---|---|
 | G1 | Kapsam başlıkları `X-Nizamio-Program` / `X-Nizamio-Department`; sınıflar S0–S3 | `istemci-akislari.md` §2 | hepsi |
 | G2 | Görev durumu **5** değer, `iade_edildi` ayrı; tasarım 4 çiziyor | `WorkItem.status` | 01, 03, 03c, 05 |
-| G3 | "Geciken" sunucudan: `lateness.is_overdue`, `days_overdue`; tanımı openapi'de yok (BE-036 belge). Admin Gantt `overdue` parametresi tamamlanmış geç görevi de döndürür (GAP-053) → istemcide süz | `WorkItem.lateness` | 01, 03, 03c, 05, 08 |
+| G3 | "Geciken" sunucudan: görev listesinde/ayrıntıda doğrudan `WorkItem.is_overdue`, `days_overdue` (iç içe `lateness` nesnesi yalnız Gantt yanıtında: `GanttTask.lateness` → `Lateness`); tanımı openapi'de yok (BE-036 belge). Admin Gantt `overdue` parametresi tamamlanmış geç görevi de döndürür (GAP-053) → istemcide süz | `WorkItem.is_overdue` / `days_overdue` (pinli `v0.11.0-api` `openapi.yaml` s.2262, 2264); 03c: `GanttTask.lateness` (s.2719, `Lateness` s.2721) — Codex CX-F1-K-02 | 01, 03, 03c, 05, 08 |
 | G4 | Görev çok atananlı (`assignees[]`); `createWorkItem` tek atanan + `addAssignments` (yalnız koordinatör, §4 s.140 → yönetici formunda tek atama alanı); ek atama başarısızsa ilk atanan korunur | openapi | 03, 03c, 09 |
 | G5 | `WorkItem.priority` zorunlu `dusuk/orta/yuksek/acil` | openapi | 01, 03 |
 | G6 | `listProgramWorkItems` yanıtında `subtask_counts`, `pending_date_request` var (satır başına ek istek yok). Yok: durum süzgeci, toplam, sıralama, atanan süzgeci, arama (BE-003, BE-004, BE-038, BE-040) | openapi | 03, 05, 01 |
@@ -154,3 +154,5 @@ Tutarsızlıklar: tür adları/renkleri 01 ≠ 01b; sabit hex (rol renkleri, "Me
 **Durum (2026-11-08):** WEB-0 O2–O4 tamamlandı (O2 #19–#23, O3 #24–#25, O4 #26 karar belgesi); O5 kapanış açık (Codex kapısı, ekran görüntüsü doğrulaması) — `../yurutme/web-0/ilerleme.md`.
 
 **F0 kapandı** (Codex KOŞULLU UYGUN, 3. koşum; PR `#31`) — `../reviews/WEB-0-codex.md`; sonraki WEB-1 (`../yurutme/web-1/`).
+
+**F1: O2/O3 tamam (2026-11-09)**, entegrasyon (W48) + temizlik (W61) + Codex kapısı sürüyor — `../yurutme/web-1/ilerleme.md`; F2 kabul tabloları (05, 08) **geçici kabul** (ürün soruları #13–#18 bekliyor), yürütme seti `../yurutme/web-2/`.

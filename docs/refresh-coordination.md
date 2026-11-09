@@ -126,3 +126,5 @@ biri döndürür, diğeri pay içinde 401 alır, toplu iptal olmaz, iki oturum d
   refresh 401 ise durum `anonymous`. Refresh 429/5xx/ağ hatası oturum hakkında hüküm
   sayılmaz: belirteç kalır, orijinal hata çağırana döner. Açılıştaki sessiz refresh
   ağ/5xx ile biterse durum `unavailable`'dır (yeniden denenebilir; `ended` değil).
+
+- **Aynı kimlik (WEB-1 W67).** 401 sonrası tekrar yalnız istek gönderildiği andaki oturum nesli ve hesap, refresh sonrasındakiyle aynıysa yapılır (`shared/http/client.ts` `retryAfterRefresh`); arada çıkış, hesap değişimi ya da yeniden giriş olduysa özgün 401 olduğu gibi döner — başka bir oturumun belirteciyle özgün istek gönderilmez. Tekrar özgün isteğin klonudur (gövde, `Idempotency-Key`, kapsam başlıkları aynen; yalnız `Authorization` yenilenir) ve en fazla bir kezdir; sahip (bileşen) sökülmesi bu tekrarı engellemez (`docs/ekranlar/ortak-kurallar.md` §7).
