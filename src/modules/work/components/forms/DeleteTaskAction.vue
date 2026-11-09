@@ -24,7 +24,7 @@ const emit = defineEmits<DeleteTaskActionEmits>()
 const store = useScopeStore()
 const { standing } = useStanding()
 const remove = useDeleteWorkItem()
-const { confirm } = useConfirm()
+const { confirmWrite } = useConfirm()
 
 const allowed = computed(() =>
   canManageWorkItem(workActorFacts(standing.value, store.programId, props.item)),
@@ -33,14 +33,19 @@ const allowed = computed(() =>
 async function onDelete(): Promise<void> {
   if (remove.isPending.value) return
   const item = props.item
-  const ok = await confirm({
+  const options = {
     title: formsText('workForms.remove.title'),
     body: [formsText('workForms.remove.body', { title: item.title })],
     confirmLabel: formsText('workForms.remove.confirm'),
-    tone: 'danger',
-  })
-  if (!ok) return
-  const outcome = await remove.submit({ target: targetOf(item), workItemId: item.work_item_id })
+    tone: 'danger' as const,
+  }
+  // Silme kabulle AYNI anda (araya `await` girmeden) başlar; vazgeç/iptal → null, istek yok
+  // (CX-F1-E-02). `useDeleteWorkItem().submit` henüz bağlam parametresi geçirmiyor (api/items.ts
+  // sahiplik dışı): eylem bağlamı kabul anında doğrulanan bağlamla aynı anda yakalanır.
+  const outcome = await confirmWrite(options, () =>
+    remove.submit({ target: targetOf(item), workItemId: item.work_item_id }),
+  )
+  if (outcome === null) return
   if (outcome.kind !== 'success') {
     notifyOutcome(outcome)
     return

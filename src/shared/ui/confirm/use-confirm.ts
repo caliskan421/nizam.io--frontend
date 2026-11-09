@@ -2,9 +2,12 @@
  * Onay diyalogları (K5, ortak-kurallar §7). Uygulama geneli tek kuyruk; kabukta bir kez
  * `<ConfirmHost />` yerleşir ve kuyruğun başını gösterir.
  *
- *  - `confirm(options)` — **genel istemci onayı**: sunucunun onay istemediği etkili eylemler
- *    (görev silme, tarih uçları, nottan görev, `assignMembership`, koordinatör atama…). Kabul →
- *    `true`, vazgeç → `false`; isteği çağıran gönderir.
+ *  - `confirmWrite(options, start, { context? })` — **yazma başlatan istemci onayı**: sunucunun
+ *    onay istemediği etkili eylemler (görev/alt görev/dosya/not silme, `subtasks_open`…).
+ *    Kabulde `start(context)` kabulle AYNI anda çağrılır; yazma onayın yakaladığı bağlamla
+ *    (`submit(vars, { context })`) başlar, pencere yazma bitene dek meşgul kalır. Vazgeç/iptal
+ *    → `null`. Boolean dönen (bağlamı tüketiciye bırakan) bir yol YOKTUR: onay → yazma
+ *    arasında bağlam atlanamaz (CX-F1-E-02; `confirm-context.test.ts` mimari denetimi).
  *  - `confirmImpact(outcome, options)` — **etkili işlem onayı** (iki aşama): yalnız
  *    organizasyon uçlarının 409 `organization.confirmation_required` sonucu
  *    (`removeCoordinator`, `removeMember`, `updateMembershipRole`). 1) `fields[]` görev
@@ -15,10 +18,12 @@
  * Yaşam döngüsü (CX-F1-E-02): onay açılırken kapsam (program/departman/mercek), oturum nesli
  * (`AuthSession.generation`) ve hesap yakalanır. Kapsam değişimi, çıkış/oturum sonu/hesap
  * değişimi ve onayı açan bileşenin sökülmesi (`useConfirm()` çağıran kapsamın `onScopeDispose`'u)
- * bekleyen onayı **vazgeç** olarak kapatır (`false` / `null`; yazma başlamaz). Onay açan
+ * bekleyen onayı **vazgeç** olarak kapatır (`null`; yazma başlamaz). Onay açan
  * `useConfirm()` kurulumda (etki kapsamında) alınmalıdır; dışarıda alınan örnek onay açamaz
  * (geliştirme/testte hata). Savunma derinliği:
- * kabul anında yakalanan bağlam güncel değilse kabul de vazgeç sayılır. Tüketici ek kod yazmaz.
+ * kabul anında yakalanan bağlam güncel değilse kabul de vazgeç sayılır. Başlamış HTTP isteği
+ * geriye dönük iptal edilmez; meşgul (yazma süren) girdi süpürmeden muaftır — o istek zaten
+ * onayın bağlamını taşır ve motor kapısı gönderimden hemen önce denetler.
  */
 import { getActivePinia } from 'pinia'
 import { computed, getCurrentScope, onScopeDispose, shallowRef } from 'vue'
@@ -168,15 +173,6 @@ function requireOwner(track: Track | null): Track | null {
   )
 }
 
-function confirm(options: ConfirmOptions, track: Track | null): Promise<boolean> {
-  const owner = requireOwner(track)
-  return new Promise((resolve) => {
-    if (!owner) return resolve(false)
-    const onAccept = () => Promise.resolve(() => resolve(true))
-    owner(enqueue({ options, items: [], onAccept, onCancel: () => resolve(false) }))
-  })
-}
-
 /** Kabulde yazmayı başlatır: onayın yakaladığı bağlam (`submit(vars, { context })`) verilir. */
 export type StartWrite<T> = (context: ActionContext) => Promise<T>
 
@@ -282,7 +278,6 @@ export function useConfirm() {
   return {
     /** Gösterilen istek (kuyruğun başı). */
     current: computed(() => queue.value[0]?.request ?? null),
-    confirm: (options: ConfirmOptions) => confirm(options, track),
     confirmWrite: <T>(
       options: ConfirmOptions,
       start: StartWrite<T>,

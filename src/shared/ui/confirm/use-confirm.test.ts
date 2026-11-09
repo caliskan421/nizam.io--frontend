@@ -159,33 +159,39 @@ describe('etkili işlem onayı (iki aşama)', () => {
 })
 
 describe('genel istemci onayı', () => {
-  it('kabul → true; vazgeç → false; kuyruk sırayla gösterir', async () => {
+  it('kabul → start sonucu; vazgeç → null; kuyruk sırayla gösterir', async () => {
     const host = mount(ConfirmHost, { attachTo: document.body })
     const confirm = ownedConfirm()
-    const first = confirm.confirm({
-      title: 'Görev silinsin mi?',
-      body: ['Görev listeden kalkar.'],
-      confirmLabel: 'Sil',
-    })
-    const second = confirm.confirm({ title: 'İkinci', confirmLabel: 'Tamam', tone: 'primary' })
+    const start = () => Promise.resolve('yazıldı')
+    const first = confirm.confirmWrite(
+      { title: 'Görev silinsin mi?', body: ['Görev listeden kalkar.'], confirmLabel: 'Sil' },
+      start,
+    )
+    const second = confirm.confirmWrite(
+      { title: 'İkinci', confirmLabel: 'Tamam', tone: 'primary' },
+      start,
+    )
     await flushPromises()
     expect(document.body.textContent).toContain('Görev silinsin mi?')
     expect(document.body.textContent).toContain('Görev listeden kalkar.')
     const accept = () => document.querySelector('[data-testid="confirm-accept"]') as HTMLElement
     expect(accept().className).toContain('t-btn--danger')
     accept().click()
-    expect(await first).toBe(true)
+    expect(await first).toBe('yazıldı')
     await flushPromises()
     expect(document.body.textContent).toContain('İkinci')
     expect(accept().className).toContain('t-btn--primary')
     confirm.cancel(confirm.current.value!.id)
-    expect(await second).toBe(false)
+    expect(await second).toBeNull()
     host.unmount()
   })
 
   it('sahipsiz onay yasak: etki kapsamı dışında alınan örnek onay açamaz (geliştirme/test hatası)', () => {
     const outside = useConfirm()
-    expect(() => outside.confirm({ title: 'x', confirmLabel: 'y' })).toThrow(/etki kapsamı dışında/)
+    const start = () => Promise.resolve('x')
+    expect(() => outside.confirmWrite({ title: 'x', confirmLabel: 'y' }, start)).toThrow(
+      /etki kapsamı dışında/,
+    )
     expect(outside.current.value).toBeNull()
   })
 
@@ -213,7 +219,7 @@ describe('onay yaşam döngüsü (CX-F1-E-02) — sıfır yazma kanıtı', () =>
   const Consumer = defineComponent({
     props: { queryClient: { type: QueryClient, required: true } },
     setup(props) {
-      const { confirm } = useConfirm()
+      const { confirmWrite } = useConfirm()
       const remove = useProtectedMutation<{ id: string }, unknown>({
         operation: 'deleteWorkItem',
         queryClient: props.queryClient,
@@ -226,9 +232,11 @@ describe('onay yaşam döngüsü (CX-F1-E-02) — sıfır yazma kanıtı', () =>
           }),
       })
       async function onDelete(): Promise<boolean> {
-        const ok = await confirm({ title: 'Görev silinsin mi?', confirmLabel: 'Sil' })
-        if (ok) await remove.submit({ id: 'w1' })
-        return ok
+        const outcome = await confirmWrite(
+          { title: 'Görev silinsin mi?', confirmLabel: 'Sil' },
+          (context) => remove.submit({ id: 'w1' }, { context }),
+        )
+        return outcome !== null
       }
       return { onDelete }
     },

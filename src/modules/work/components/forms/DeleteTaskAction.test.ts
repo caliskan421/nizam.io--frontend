@@ -92,4 +92,19 @@ describe('DeleteTaskAction (E-03-56, E-03-64)', () => {
     )
     expect(wrapper.emitted('deleted')).toBeUndefined()
   })
+
+  it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0', async () => {
+    server.use(http.delete(`${ORIGIN}${PATH}`, () => json({ status: 'deleted' })))
+    const { h, wrapper } = render()
+    const dialog = await openConfirm()
+    const accepting = dialog.accept(dialog.current.value!.id)
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    await accepting
+    // Yazma sonucu bildirimle görünür (scope_changed ya da başarı): sonuç gelene dek beklenir.
+    await vi.waitFor(() => expect(useToast().queue.value).not.toHaveLength(0))
+    await h.flush()
+    expect(sent('DELETE', PATH)).toHaveLength(0)
+    expect(wrapper.emitted('deleted')).toBeUndefined()
+    expect(useToast().queue.value.map((t) => t.message)).not.toContain('Görev silindi.')
+  })
 })

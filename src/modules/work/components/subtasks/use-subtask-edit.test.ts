@@ -169,4 +169,17 @@ describe('alt görev düzenleme', () => {
     expect(useToast().current.value?.message).toBe('Görev zaten tamamlandı.')
     expect(reload).toHaveBeenCalledTimes(1)
   })
+
+  it('CX-F1-E-02 (c): kabulün hemen ardından kapsam A→B → DELETE 0 (yazma onayın bağlamıyla)', async () => {
+    server.use(http.delete(`${ORIGIN}${PATH}/s1`, () => json({ status: 'deleted' })))
+    const { h, edit } = setup()
+    const confirm = useConfirm()
+    const run = edit.remove(subtask())
+    await h.flush()
+    const accepting = confirm.accept(confirm.current.value!.id)
+    h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd3' })
+    await accepting
+    await run
+    expect(sent('DELETE', `${PATH}/s1`)).toHaveLength(0)
+  })
 })
