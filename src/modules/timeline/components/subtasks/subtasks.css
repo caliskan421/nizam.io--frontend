@@ -1,0 +1,203 @@
+/*
+ * 03d alt görev görünümü — `Gorevler-AltGorev.dc.html` (`sg-*`) artboard'ının token karşılığı:
+ * açılmış satırlar (`tl-sub*`), açma düğmesi (`tl-subtog`), ilerleme çizgisi (`tl-subprog`),
+ * sayaç çipi (`tl-subchip`). Kural: yalnız token (`var(--…)`); ham renk ve px yok; satır içi
+ * stil yok (CSP). Gantt'a özgü ölçü tokenı henüz yok (W92 sahibi): etiket/iz sütunları üst
+ * ızgaradan `--tl-label-col` / `--tl-track-col` ile gelir, yoksa varsayılan. Tasarım 30 px
+ * yüksekliği `--space-8` (32), 12.5 px yazıyı `--ui-fs-sm` (13) ile en yakın token'a yuvarlar
+ * (bilinçli karar).
+ */
+@layer components {
+  .tl-subs {
+    display: grid;
+    grid-template-columns: var(--tl-label-col, minmax(0, 1fr)) var(--tl-track-col, minmax(0, 3fr));
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .tl-sub {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+    min-height: var(--space-8);
+    border-bottom: var(--ui-hairline) dashed
+      color-mix(in srgb, var(--border-subtle) 70%, transparent);
+    background: color-mix(in srgb, var(--ink) 2%, transparent);
+  }
+  .tl-sub__label {
+    display: grid;
+    grid-template-columns: var(--space-8) var(--sub-check) minmax(0, 1fr);
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+    padding-inline-start: var(--space-6);
+    padding-inline-end: var(--space-4);
+  }
+  .tl-sub__label--span {
+    grid-column: 1 / -1;
+    display: block;
+    padding-block: var(--space-1);
+  }
+  .tl-sub__note {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+
+  /* Ağaç çizgisi (E-03C-48): dikey gövde + yatay kol; son çocukta yarıda biter. */
+  .tl-sub__tree {
+    position: relative;
+    align-self: stretch;
+  }
+  .tl-sub__tree::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: var(--ui-gap-sm);
+    inset-block: calc(-1 * var(--ui-hairline));
+    border-inline-start: var(--ui-hairline) solid var(--border-strong);
+  }
+  .tl-sub__tree::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: var(--ui-gap-sm);
+    inset-block-start: 50%;
+    width: calc(var(--space-3) + var(--ui-gap-2xs));
+    border-block-start: var(--ui-hairline) solid var(--border-strong);
+  }
+  .tl-sub__tree--last::before {
+    inset-block-end: 50%;
+  }
+
+  /* Durum dairesi (E-03C-49): açık boş kenarlı, biten dolu + onay. */
+  .tl-sub__state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    box-sizing: border-box;
+    border: var(--ui-check-border) solid var(--border-strong);
+    border-radius: var(--radius-full);
+    flex: none;
+  }
+  .tl-sub__state--done {
+    border-color: var(--accent-text);
+    background: var(--accent-text);
+    color: var(--bg-base);
+  }
+  .tl-sub__state .t-icon {
+    width: calc(var(--icon-sm) - var(--space-1));
+    height: calc(var(--icon-sm) - var(--space-1));
+  }
+
+  .tl-sub__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--ui-fs-sm);
+    color: var(--ink);
+  }
+  .tl-sub__title--done {
+    color: var(--ink-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--border-strong);
+  }
+
+  .tl-sub__track {
+    position: relative;
+    min-width: 0;
+    padding-inline-start: var(--space-2);
+  }
+  .tl-sub__date {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .tl-sub__nodate {
+    font-size: var(--list-fs-2xs);
+    font-style: italic;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* Açma düğmesi (E-03C-33). */
+  .tl-subtog {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    height: var(--ui-pill-h);
+    padding-block: 0;
+    padding-inline: var(--list-tog-pad-start) var(--ui-gap-xs);
+    justify-self: start;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    background: var(--bg-base);
+    color: var(--ink-muted);
+    font: var(--m-mono-sm);
+    cursor: pointer;
+  }
+  .tl-subtog:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+  }
+  .tl-subtog[aria-expanded='true'] {
+    color: var(--ink);
+    border-color: var(--border-strong);
+    background: var(--bg-raised);
+  }
+  .tl-subtog:focus-visible {
+    outline: var(--focus-ring-width) solid var(--accent-text);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .tl-subtog .t-icon {
+    width: var(--list-tog-icon);
+    height: var(--list-tog-icon);
+  }
+  .tl-subtog[aria-expanded='true'] .t-icon {
+    transform: rotate(90deg);
+  }
+
+  /* İlerleme çizgisi (E-03C-44): çubuk dibinde, biten/toplam. */
+  .tl-subprog {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    width: 100%;
+    height: calc(var(--list-sel-bar) * 2);
+    appearance: none;
+    border: 0;
+    background: color-mix(in srgb, var(--gp-ink) 16%, transparent);
+    color: var(--gp-ink);
+  }
+  .tl-subprog::-webkit-progress-bar {
+    background: color-mix(in srgb, var(--gp-ink) 16%, transparent);
+  }
+  .tl-subprog::-webkit-progress-value {
+    background: var(--gp-ink);
+  }
+  .tl-subprog::-moz-progress-bar {
+    background: var(--gp-ink);
+  }
+
+  /* Sayaç çipi (E-03C-46). */
+  .tl-subchip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--list-gap-3xs);
+    height: var(--list-pill-h);
+    padding-inline: var(--list-pill-pad);
+    border-radius: var(--list-pill-radius);
+    background: var(--bg-overlay);
+    color: var(--ink-muted);
+    font: var(--m-mono-sm);
+    white-space: nowrap;
+  }
+  .tl-subchip--all {
+    color: var(--accent-text);
+    background: color-mix(in srgb, var(--accent-text) 14%, transparent);
+  }
+  .tl-subchip .t-icon {
+    width: var(--list-tag-icon);
+    height: var(--list-tag-icon);
+  }
+}
