@@ -136,10 +136,14 @@
   }
 
   /* KPI kartı (E-01-03…07) */
+  /*
+   * Gövde üstten hizalanır: not satırı olmayan kartta (E-01-07 "Onay bekleyen") `space-between`
+   * değeri ~28 px aşağı itiyordu; değer ve çubuk bütün kartlarda aynı satırda (W63).
+   */
   .home-page .home-kpi {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--space-5);
     min-height: var(--home-kpi-h);
     color: var(--ink);
