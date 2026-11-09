@@ -24,6 +24,11 @@
  * kabul anında yakalanan bağlam güncel değilse kabul de vazgeç sayılır. Başlamış HTTP isteği
  * geriye dönük iptal edilmez; meşgul (yazma süren) girdi süpürmeden muaftır — o istek zaten
  * onayın bağlamını taşır ve motor kapısı gönderimden hemen önce denetler.
+ *
+ * Ortak yardımcı istisnası (CX-F2-K-01): `confirmImpact` etki bildirimini sonuç geldikten sonra
+ * `useToast()` ile ekler ("`useToast` yalnız kurulumda" kuralının istisnası). Sahip yaşamı ÖNCEDEN
+ * denetlenir (`owner.alive`): onayı açan sahip söküldüyse bildirim yok; kuyruk modül düzeyinde
+ * tekildir (`use-toast.ts`), bileşen örneğine bağlı değildir.
  */
 import { getActivePinia } from 'pinia'
 import { computed, getCurrentScope, onScopeDispose, shallowRef } from 'vue'

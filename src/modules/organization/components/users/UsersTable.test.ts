@@ -151,7 +151,10 @@ describe('UsersTable — tek koordinatörlük (listMembers)', () => {
       'u1',
     ])
     expect(wrapper.find('[data-testid="users-truncated"]').exists()).toBe(true)
-    expect(wrapper.get('[data-testid="users-caption"]').text()).toBe('1 kullanıcı')
+    // Kesilmiş küme "tam" sayılmaz: "Toplam" yerine yüklenen sayı + etiket (CX-F2-K-03).
+    expect(wrapper.get('[data-testid="users-caption"]').text()).toBe(
+      '1 kullanıcı yüklendi · yüklenen kayıtlar içinde',
+    )
   })
 })
 

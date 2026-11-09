@@ -11,6 +11,12 @@
  *  - `owner_disposed` → bildirim yok: sahip (ekran) söküldü, istek gönderilmedi (CX-F1-E-05).
  *  - Sahibi sökülmüş (geç gelen) sonuç → bildirim yok (`isDetached`; CX-F1-Ö-07): istek ekran
  *    yaşarken gitti, sonuç ekran söküldükten sonra geldi.
+ *
+ * Ortak yardımcı istisnası (CX-F2-K-01): "`useToast` yalnız kurulumda" kuralına karşın
+ * `notifyOutcome` bildiriciyi sonuç geldikten sonra alır. Güvenlidir, çünkü detached sonuç / sahip
+ * yaşamı ÖNCEDEN denetlenir (`outcomeToast` → `isDetached`, `owner_disposed`): sökülmüş ekranın
+ * sonucu `useToast()`'a hiç ulaşmaz; bildirim kuyruğu modül düzeyinde tekildir (`use-toast.ts`),
+ * bileşen örneğine bağlı değildir. Davranış değişmedi; yalnız istisna belgelendi.
  */
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { isDetached, outcomeMessage } from '@/shared/http/mutation'

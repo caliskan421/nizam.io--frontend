@@ -19,7 +19,13 @@ import { computed } from 'vue'
 
 import { useKeylessMutation } from '@/modules/organization/public'
 import { api, unwrap } from '@/shared/http'
-import type { MutationOutcome, SendResult, SubmitOptions } from '@/shared/http/mutation'
+import {
+  isDetached,
+  markDetached,
+  type MutationOutcome,
+  type SendResult,
+  type SubmitOptions,
+} from '@/shared/http/mutation'
 import { isScopedQueryKey, type OperationId, queryKeys } from '@/shared/http/query-keys'
 import { fetchPrograms, invalidateStanding } from '@/shared/scope/standing'
 import { sessionBound } from '@/shared/session/query-session'
@@ -100,12 +106,17 @@ export function useUpdateProgram() {
   return { submit: mutation.submit, isPending: mutation.isPending }
 }
 
-/** Sonuçtaki taslaktan parolayı siler (KESİN 7). */
+/**
+ * Sonuçtaki taslaktan parolayı siler (KESİN 7). Yeni nesne üretildiği için sahibi sökülmüş (geç)
+ * sonuç işareti açıkça taşınır (CX-F2-Ö-02; organizasyon `redactDraft` kalıbı): işaret `WeakSet`
+ * içindedir, nesne yayılınca kopyalanmaz.
+ */
 export function redactPassword<D>(
   outcome: MutationOutcome<PasswordConfirmedInput, D, unknown>,
 ): MutationOutcome<PasswordConfirmedInput, D, unknown> {
   if (!('draft' in outcome)) return outcome
-  return { ...outcome, draft: { programId: outcome.draft.programId, password: '' } }
+  const redacted = { ...outcome, draft: { programId: outcome.draft.programId, password: '' } }
+  return isDetached(outcome) ? markDetached(redacted) : redacted
 }
 
 function usePasswordConfirmed<D>(

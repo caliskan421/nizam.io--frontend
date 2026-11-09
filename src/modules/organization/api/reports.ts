@@ -2,8 +2,10 @@
  * Rapor tabanlı okuma (08 `backend.md` ana karar; REPORTING-K01 — yalnız şirket yöneticisi).
  *
  *  - `reportDashboard` (S2): ana sayfa (01) ile AYNI anahtar (`queryKeys.report.dashboard`) ve
- *    ham `DashboardReport` şekli — pano paylaşılır, ikinci istek yok. Yazma sonrası geçersizleme
- *    yok, odakta tazelenir (ortak-kurallar §6).
+ *    ham `DashboardReport` şekli — pano paylaşılır, ikinci istek yok. Organizasyon yazmaları
+ *    (üyelik, koordinatörlük, birim, kullanıcı) başarıda eylemin programının panosunu geçersizler
+ *    (koordinatör kararı W82a; `query-keys.ts` `REPORT_ORGANIZATION_WRITES` / `reportOfProgram`);
+ *    görev yazmaları geçersizlemez, odakta tazelenir (ortak-kurallar §6).
  *  - `useCoordinatorships`: 08 kart ızgarası = `listProgramDepartments` ⋈
  *    `coordinatorship_stats[]` — ŞY'de TEK `listProgramDepartments` + TEK `reportDashboard`;
  *    birim başına istek yok (K3). 08b tek birim seçimi aynı kümeden (`findCoordinatorship`).
@@ -14,6 +16,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 import { joinCoordinatorships } from '../model/coordinatorships'
 import { useProgramDepartmentIndex } from './departments'
@@ -35,8 +38,10 @@ export function useOrganizationDashboard(enabled: MaybeRefOrGetter<boolean>) {
       const scope = store.snapshot
       return {
         queryKey: queryKeys.report.dashboard(scope),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        // Okuyucu kapısı (CX-F2-Ö-01): başka oturumda başlamış okuma bu oturuma yazılmaz.
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchDashboard(scope.programId ?? '', signal),
+        ),
         enabled: toValue(enabled) && scope.programId !== null,
         retry: retryTransient,
         staleTime: DASHBOARD_STALE_MS,
