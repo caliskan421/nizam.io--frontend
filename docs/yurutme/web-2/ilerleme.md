@@ -6,8 +6,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 | Oturum | Durum | main hash |
 |---|---|---|
-| O1 — F2 kabul tabloları | Tamamlandı (WEB-1 O5 adım 2; **geçici kabul**, ürün soruları #13–#18 bekliyor) | — |
-| O2a — Organizasyon veri katmanı (W71) | Bekliyor (WEB-1 kapandı — Codex tur 6 KOŞULLU UYGUN; ön koşul: ürün soruları #13–#18 cevabı) | — |
+| O1 — F2 kabul tabloları | Tamamlandı — ürün sahibi 2026-11-09'da #13–#18'i önerilen varsayılanlarla cevapladı; 05/08 tabloları **kabul** (ortak-kurallar §12 P12–P17) | — |
+| O2a — Organizasyon veri katmanı (W71) | Açıldı 2026-11-09 (WEB-1 kapandı — Codex tur 6 KOŞULLU UYGUN; ürün cevapları alındı) | — |
 | O2b — 08, 08b, formlar, 05, 05b (W72–W76) | Bekliyor | — |
 | O3 — Program yönetimi (W81) | Bekliyor | — |
 | O4 — Entegrasyon turu (W82) | Bekliyor | — |

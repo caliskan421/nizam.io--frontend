@@ -102,7 +102,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -118,6 +118,12 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P9 | Marka satırı | **Sabit "RoketPortal"** (tasarım metni); `instanceProfile.display_name` kullanılmaz. |
 | P10 | Kenar menüsü daraltma | **Yalnız oturum belleği**; K2 izinli anahtar listesi genişlemez (Y9 düşer). |
 | P11 | Tek mercekli kullanıcıda Rol kartı | **Salt gösterim** (kart görünür, menü açılmaz). Dar menüde kapsam simgeleri (E-00-40) tıklanınca kapsam seçicisini açar (koordinatör kararı). |
+| P12 | 05 rol düzenleme ve Kaydet (2026-11-09, #13) | **Çip başına anında.** Şirket Admin anahtarı ayrı; program/koordinatörlük çipinde tek üyelik rolü; her çip işlemi kendi onayı ve sonucuyla hemen uygulanır. Toplu atomik Kaydet yok. |
+| P13 | 05 liste kapsamı (2026-11-09, #14) | **Yalnız yönetici.** Yöneticiye şirket listesi, seçili program üyelikleri etiketli. Koordinatöre yönetim ekranı açılmaz; kişisel takip yalnız yetkili görev kümesini gösterir. |
+| P14 | Kullanıcı ekleme / kilit / silinenler (2026-11-09, #15) | **"Kullanıcı oluştur" + yöneticinin belirlediği geçici parola** (ilk girişte değiştirilir). Kilit durumu okunamıyorsa kilitle/aç anahtarı gösterilmez. Silinenler F2'de yok (ayrı akış). |
+| P15 | 05b eylemleri ve "Dosyalar" (2026-11-09, #16) | **Sade.** Görev atamada hedef koordinatörlük açık seçilir; profil düzenleme yönetim paneline gider; Mesaj/Rapor/Etkinlik kendi fazına kadar açıklamalı devre dışı; "Dosyalar" sayı göstermez. |
+| P16 | 08 erişim ve yerleşim (2026-11-09, #17) | **Yalnız yönetici, düz ızgara.** Sahte üst birim başlığı yok. Koordinatörün kendi birim görünümü ayrı ekran olarak sonra tanımlanır (F2'de kurulmaz); üyeye ekip yönetimi yok. |
+| P17 | 08 eksik formlar ve "sezona kopyala" (2026-11-09, #18) | **Formlar ortak bileşenlerle (P3); kopyala yalnız yapıyı kopyalar**, görev taşımaz. Görev aktarımı ayrı eylemdir. |
 | P8 | Gantt sürükleme (F3) | **Koordinatörde talep, adminde doğrudan.** Koordinatör sürüklemesi `requestDateChange` açar ("değişiklik onaya gider" metni kalır); admin sürüklemesi `updateWorkItem`/`extendWorkItem`; üye sürükleyemez. "İptal et" = gönderim öncesi 5 sn gecikme. Sözleşme koordinatöre doğrudan izin verir; bu ürün tercihidir ve `capabilities.ts`'te kodlanır. |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
