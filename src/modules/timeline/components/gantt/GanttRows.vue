@@ -129,7 +129,11 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
       :aria-level="row.level"
       :aria-expanded="row.kind === 'group' ? row.open : undefined"
       :aria-selected="row.kind === 'task' ? row.key === selectedId : undefined"
-      :aria-label="row.kind === 'group' ? groupLabel(row) : undefined"
+      :aria-label="
+        row.kind === 'group'
+          ? groupLabel(row)
+          : rowSummary(row.task, layout.dependentIds.has(row.key))
+      "
       :tabindex="row.key === tabStop ? 0 : -1"
       @keydown="keyboard.onKeydown($event, index)"
       @focus="focusKey = row.key"

@@ -383,6 +383,7 @@
   --pt-skel-num: 52px;
   /* web · gantt */
   --gantt-label-w: 300px;
+  --gantt-label-max: 62cqw;
   --gantt-view-h: 780px;
   --gantt-axis-month-h: 34px;
   --gantt-axis-day-h: 28px;

@@ -45,13 +45,20 @@ const FALLBACK = { width: 1200, height: 800 }
 
 const scroller = ref<HTMLElement | null>(null)
 const collapsed = ref<ReadonlySet<string>>(new Set())
-const viewport = reactive({ left: 0, top: 0, width: FALLBACK.width, height: FALLBACK.height })
+const viewport = reactive({
+  left: 0,
+  top: 0,
+  width: FALLBACK.width,
+  height: FALLBACK.height,
+  /** Ölçülen sol sütun genişliği (dar ekranda token değerinden küçük olabilir). */
+  label: GEOMETRY.labelW,
+})
 const announcement = ref('')
 const hover = ref<string | null>(null)
 provide(GANTT_HOVER, hover)
 
 const dayW = computed(() => DAY_WIDTH[props.scale])
-const plotViewW = computed(() => Math.max(viewport.width - GEOMETRY.labelW, dayW.value))
+const plotViewW = computed(() => Math.max(viewport.width - viewport.label, dayW.value))
 const layout = computed(() =>
   buildLayout({
     tasks: props.tasks,
@@ -92,6 +99,7 @@ function measure(): void {
   if (!el) return
   viewport.width = el.clientWidth || FALLBACK.width
   viewport.height = el.clientHeight || FALLBACK.height
+  viewport.label = el.querySelector<HTMLElement>('.gantt__corner')?.offsetWidth || GEOMETRY.labelW
   emitView()
 }
 
@@ -172,7 +180,7 @@ defineExpose({ scrollToDay })
 <template>
   <div class="gantt" :data-scale="scale">
     <div ref="scroller" class="gantt__scroller" @scroll.passive="onScroll">
-      <div class="gantt__canvas" :style="{ width: `${GEOMETRY.labelW + plotW}px` }">
+      <div class="gantt__canvas" :style="{ width: `calc(var(--gantt-label) + ${plotW}px)` }">
         <div class="gantt__head">
           <div class="gantt__corner">
             <span class="gantt-kicker">{{ ganttText('timeline.gantt.corner') }}</span>

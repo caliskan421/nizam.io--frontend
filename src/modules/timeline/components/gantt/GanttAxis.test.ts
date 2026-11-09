@@ -30,11 +30,12 @@ describe('eksen başlığı (E-03C-23…25, 27)', () => {
   it('ay ölçeği: üst satır yıl, alt satır kısa ay; Ocak yeni yılı belirtir', () => {
     const axis = mountAxis('ay', '2026-12-10', { start: '2026-11-30', end: '2027-02-10' })
     expect(texts(axis, '.gantt-axis__month')).toEqual(['2026', '2027'])
-    expect(texts(axis, '.gantt-axis__tick')).toEqual(['Kas', 'Ara', 'Oca', 'Şub'])
+    // aralık kenarındaki kırpık parçalar (30 Kas: 2 px, Şub: 20 px) etiketsiz
+    expect(texts(axis, '.gantt-axis__tick')).toEqual(['Ara', 'Oca'])
   })
 
   it('ocak ayı başlığında yıl yazılır (ilk hücre hariç)', () => {
-    const axis = mountAxis('hafta', '2026-12-10', { start: '2026-12-28', end: '2027-01-20' })
+    const axis = mountAxis('hafta', '2026-12-10', { start: '2026-12-14', end: '2027-01-20' })
     expect(texts(axis, '.gantt-axis__month')).toEqual(['Aralık', 'Ocak 2027'])
   })
 

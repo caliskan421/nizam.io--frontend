@@ -2600,6 +2600,12 @@ export const TOKENS = {
     "dark": "300px",
     "light": "300px"
   },
+  "gantt-label-max": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "62cqw",
+    "light": "62cqw"
+  },
   "gantt-view-h": {
     "group": "gantt",
     "origin": "web",

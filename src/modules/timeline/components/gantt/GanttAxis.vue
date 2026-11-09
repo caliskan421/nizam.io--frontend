@@ -3,7 +3,7 @@ import './gantt.css'
 
 import { computed } from 'vue'
 
-import { axisModel, GEOMETRY, type AxisCell } from '../../model/timeline'
+import { axisModel, GEOMETRY, TEXT_CHAR_PX, type AxisCell } from '../../model/timeline'
 import type { GanttAxisProps } from '../index'
 import { ganttText, monthName } from './messages'
 
@@ -17,13 +17,18 @@ const props = defineProps<GanttAxisProps>()
 
 const axis = computed(() => axisModel(props.scale, props.range, props.today))
 
+/** En az üç karakterin sığdığı hücre etiketlenir; aralık kenarındaki kırpık parça boş kalır. */
+const MIN_LABEL_W = 3 * TEXT_CHAR_PX + GEOMETRY.barPad
+
 const topLabel = (cell: AxisCell, index: number): string => {
+  if (cell.width < MIN_LABEL_W) return ''
   if (cell.kind === 'year') return String(cell.year)
   const name = monthName(cell.month)
   return cell.month === 0 && index > 0 ? `${name} ${cell.year}` : name
 }
 
 const bottomLabel = (cell: AxisCell): string => {
+  if (cell.width < MIN_LABEL_W) return ''
   if (cell.kind === 'week') return String(cell.day)
   if (cell.kind === 'day') return `${cell.day} ${monthName(cell.month, 'short')}`
   return monthName(cell.month, cell.width >= 100 ? 'long' : 'short')
@@ -53,7 +58,12 @@ const pill = computed(() => {
       :height="GEOMETRY.axisMonthH"
     >
       <line class="gantt-axis__sep" x1="0" x2="0" y1="0" :y2="GEOMETRY.axisMonthH" />
-      <text class="gantt-axis__month" :x="GEOMETRY.barPad + 2" :y="GEOMETRY.axisMonthH / 2">
+      <text
+        v-if="topLabel(cell, index)"
+        class="gantt-axis__month"
+        :x="GEOMETRY.barPad + 2"
+        :y="GEOMETRY.axisMonthH / 2"
+      >
         {{ topLabel(cell, index) }}
       </text>
     </svg>
@@ -82,6 +92,7 @@ const pill = computed(() => {
         :y2="GEOMETRY.axisDayH"
       />
       <text
+        v-if="bottomLabel(cell)"
         class="gantt-axis__tick"
         :class="{ 'is-current': cell.current }"
         :x="scale === 'hafta' ? cell.width / 2 : GEOMETRY.barPad"

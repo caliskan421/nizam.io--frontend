@@ -16,9 +16,12 @@
     box-shadow: var(--shadow-card);
   }
   .gantt__scroller {
+    /* Sol sütun dar ekranda kabın en çok %62'si (cqw: kap ölçüsü); geniş ekranda token ölçüsü. */
+    --gantt-label: min(var(--gantt-label-w), var(--gantt-label-max));
     position: relative;
     overflow: auto;
     max-height: var(--gantt-view-h);
+    container-type: inline-size;
   }
   .gantt__canvas {
     position: relative;
@@ -40,7 +43,7 @@
     z-index: 4;
     flex: none;
     box-sizing: border-box;
-    width: var(--gantt-label-w);
+    width: var(--gantt-label);
     display: flex;
     align-items: flex-end;
     padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
@@ -91,7 +94,7 @@
   .gantt__plot {
     position: absolute;
     top: 0;
-    left: var(--gantt-label-w);
+    left: var(--gantt-label);
   }
   .gantt__layer {
     position: absolute;
@@ -251,7 +254,7 @@
     z-index: 2;
     flex: none;
     box-sizing: border-box;
-    width: var(--gantt-label-w);
+    width: var(--gantt-label);
     display: grid;
     align-items: center;
     padding: 0 var(--space-4);

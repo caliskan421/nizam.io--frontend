@@ -107,6 +107,9 @@ describe('sol sütun treegrid (E-03C-21, 28, 30…32, 35)', () => {
       expect.arrayContaining(['gantt-dot--doing', 'gantt-dot--late']),
     )
     expect(a.get('.gantt-dot').attributes('aria-hidden')).toBe('true')
+    expect(a.attributes('aria-label')).toBe(
+      'Hidrofor, Devam ediyor, 4 Kas – 20 Kas, 41 gün gecikmede',
+    )
     expect(a.get('[role="gridcell"]').text()).toBe(
       'Hidrofor, Devam ediyor, 4 Kas – 20 Kas, 41 gün gecikmede',
     )
