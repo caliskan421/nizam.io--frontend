@@ -11,6 +11,7 @@ import { retryTransient } from '@/modules/work/public'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import { sessionBound } from '@/shared/session/query-session'
 
 export const DASHBOARD_STALE_MS = 60_000
 
@@ -31,8 +32,10 @@ export function useDashboard(enabled: MaybeRefOrGetter<boolean>) {
       const scope = store.snapshot
       return {
         queryKey: queryKeys.report.dashboard(scope),
-        queryFn: ({ signal }: QueryFunctionContext) =>
+        // Okuyucu kapısı (CX-F1-Ö-08, W82c): oturum değiştiyse tekrar/geç yanıt önbelleğe yazılmaz.
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchDashboard(scope.programId ?? '', signal),
+        ),
         enabled: toValue(enabled) && scope.programId !== null,
         retry: retryTransient,
         staleTime: DASHBOARD_STALE_MS,

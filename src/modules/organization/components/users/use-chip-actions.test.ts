@@ -1,5 +1,6 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { markDetached } from '@/shared/http/mutation'
 import { useToast } from '@/shared/ui'
 
 import {
@@ -49,21 +50,39 @@ describe('useChipActions', () => {
     expect(sent('POST', '/v1/departments/d3/memberships')).toHaveLength(0)
   })
 
-  it('reportOutcome: vazgeç ve sökülmüş sahip sessiz; başarı bildirimi', () => {
-    expect(reportOutcome(null, 'users.panel.chips.added')).toBe(false)
+  it('reportOutcome: vazgeç, owner_disposed ve sökülmüş sahibin geç sonucu sessiz; başarı bildirimi', () => {
+    type Outcome = Parameters<typeof reportOutcome>[1] & object
+    const toast = useToast()
+    expect(reportOutcome(toast, null, 'users.panel.chips.added')).toBe(false)
     expect(
-      reportOutcome(
-        { kind: 'owner_disposed' } as Parameters<typeof reportOutcome>[0] & object,
-        'users.panel.chips.added',
-      ),
+      reportOutcome(toast, { kind: 'owner_disposed' } as Outcome, 'users.panel.chips.added'),
     ).toBe(false)
+    const late = markDetached({ kind: 'success', data: {} } as Outcome)
+    expect(reportOutcome(toast, late, 'users.panel.chips.added')).toBe(false)
     expect(useToast().queue.value).toHaveLength(0)
     expect(
-      reportOutcome(
-        { kind: 'success', data: {} } as Parameters<typeof reportOutcome>[0] & object,
-        'users.panel.chips.added',
-      ),
+      reportOutcome(toast, { kind: 'success', data: {} } as Outcome, 'users.panel.chips.added'),
     ).toBe(true)
     expect(useToast().queue.value.map((t) => t.message)).toEqual(['Koordinatörlüğe eklendi.'])
+  })
+
+  it('W82c geç yanıt: istek gider → panel (sahip) sökülür → yanıt gelir → bildirim 0', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.post(`${ORIGIN}/v1/departments/d3/memberships`, async () => {
+        await gate
+        return json(MEMBERSHIP, 201)
+      }),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const { result: actions, app } = h.mount(() => useChipActions(() => 'u1'))
+    const pending = actions.add('d3', 'member')
+    await vi.waitFor(() => expect(sent('POST', '/v1/departments/d3/memberships')).toHaveLength(1))
+    app.unmount()
+    release()
+    expect(await pending).toBe(false)
+    await h.flush()
+    expect(useToast().queue.value).toHaveLength(0)
   })
 })

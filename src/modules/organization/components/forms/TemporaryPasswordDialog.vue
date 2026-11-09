@@ -40,6 +40,8 @@ const errors = form.errors
 const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 
 const dialog = useFormDialog({ open: () => props.open, close })
+// Kurulumda (eşzamanlı) alınır: sökülmüş ekranın geç sonucu bildirim üretmez (Ö-07, W82c).
+const toast = useToast()
 const pending = computed(() => dialog.busy.value || mutation.isPending.value)
 
 function wipe(): void {
@@ -71,7 +73,7 @@ const handle = form.handleSubmit(async (values) => {
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
     const count = outcome.data.revoked_sessions ?? 0
-    useToast().push({
+    toast.push({
       message:
         count > 0
           ? orgText('forms.password.doneRevoked', { count })

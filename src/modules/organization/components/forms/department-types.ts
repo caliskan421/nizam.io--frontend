@@ -3,6 +3,7 @@ import type { MutationOutcome } from '@/shared/http/mutation'
 
 import type { useProgramDepartmentIndex } from '../../api'
 import type { useFormDialog } from './form-kit'
+import type { useToast } from '@/shared/ui'
 
 export type AnyOutcome = MutationOutcome<unknown, unknown, unknown>
 
@@ -22,6 +23,8 @@ export interface DepartmentFormContext {
   /** Alan hatasına eşlenmeyen sonuç: "sonuç bilinmiyor" yerinde, diğerleri ortak bildirim. */
   report: (outcome: AnyOutcome) => void
   clearNotice: () => void
+  /** Kurulumda alınmış bildirim (sahip yaşamını bilir; CX-F1-Ö-07, W82c). */
+  toast: ReturnType<typeof useToast>
 }
 
 /** "Mevcut departmanı ekle" hedefi (kısmi başarı ya da `department_exists` eşleşmesi). */

@@ -65,6 +65,8 @@ const roleOptions = ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
 const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 
 const dialog = useFormDialog({ open: () => props.open, close })
+// Kurulumda (eşzamanlı) alınır: sökülmüş ekranın geç sonucu bildirim üretmez (Ö-07, W82c).
+const toast = useToast()
 const pending = computed(() => dialog.busy.value || assign.isPending.value)
 
 watch(
@@ -96,7 +98,7 @@ const handle = form.handleSubmit(async (values) => {
   })
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
-    useToast().push({ message: orgText('forms.member.done') })
+    toast.push({ message: orgText('forms.member.done') })
     emit('added', chosen.accountId)
     close()
     return
