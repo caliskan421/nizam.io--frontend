@@ -10,7 +10,15 @@ import type { WorkItem } from '../../model/types'
 import { SubtaskBlock } from '../index'
 import { formatDay } from './dates'
 import { taskListText } from './messages'
-import { dueNote, personName, requestTag, STATUS_DOT, statusLabel, subtaskToggle } from './row-view'
+import {
+  avatarStack,
+  dueNote,
+  personName,
+  requestTag,
+  STATUS_DOT,
+  statusLabel,
+  subtaskToggle,
+} from './row-view'
 
 /**
  * Görev satırı (E-03-18…29). Seçim kutusu gizli, sütunu boş kalır (P7, E-03-18); öncelik
@@ -37,8 +45,10 @@ const shortCode = computed(() => (props.code ? `${props.code}-${designStub('BE-0
 const subtasks = computed(() => subtaskToggle(props.item.subtask_counts))
 const note = computed(() => dueNote(props.item, props.today))
 const request = computed(() => requestTag(props.item))
-const people = computed(() =>
-  props.item.assignees.map((a) => ({ id: a.account_id, name: personName(a.full_name) })),
+const stack = computed(() =>
+  avatarStack(
+    props.item.assignees.map((a) => ({ id: a.account_id, name: personName(a.full_name) })),
+  ),
 )
 
 const INTERACTIVE = 'a, button, input, select, label, textarea, [tabindex]'
@@ -98,7 +108,7 @@ function onRowClick(event: MouseEvent): void {
     <span role="cell">
       <span class="rp-avstack">
         <span
-          v-for="person in people"
+          v-for="person in stack.shown"
           :key="person.id"
           class="rp-tip task-row__person"
           role="img"
@@ -107,6 +117,16 @@ function onRowClick(event: MouseEvent): void {
           :data-tip="person.name"
         >
           <UiAvatar :name="person.name" size="sm" />
+        </span>
+        <span
+          v-if="stack.more"
+          class="rp-tip task-row__person task-row__more"
+          role="img"
+          tabindex="0"
+          :aria-label="stack.more.label"
+          :data-tip="stack.more.label"
+        >
+          <span class="rp-av rp-av--sm" aria-hidden="true">{{ stack.more.text }}</span>
         </span>
       </span>
     </span>

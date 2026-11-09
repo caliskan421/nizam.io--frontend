@@ -5,8 +5,8 @@
  *    sunucu sayaçları — `total_tasks`, `completed_tasks`, `active_tasks` (total − completed;
  *    `onaya_sunuldu` + `iade_edildi` dahil), `overdue_tasks`, `pending_approvals` (GAP-075).
  *  - **Koordinatör / Üye**: `listProgramWorkItems` yüklenen satırlarında istemci sayımı (BE-003,
- *    BE-009); Üye merceğinde önce "bana atananlar" (`assignee_account_ids ∋ me`, birleşik rolde
- *    zorunlu, salt üyede etkisiz). Gecikme sunucudan (`is_overdue`); tamamlanmış görev
+ *    BE-009); Üye merceğinde önce "bana atananlar" (`isAssignedTo`, work modülünde tek yüklem;
+ *    görev listesiyle aynı küme). Gecikme sunucudan (`is_overdue`); tamamlanmış görev
  *    gecikmeye sayılmaz (G3). İmleç bitmemişse çağıran "yüklenen kayıtlar içinde" der (§10).
  *
  * Türetme (backend.md §4): Tamamlanma % = biten/toplam; açık = toplam − biten; zamanında =
@@ -14,6 +14,7 @@
  * yuvarlanır; payda 0 iken nötr not ("0 görevin 0’ı" yazılmaz, §4). "Onay bekleyen" notu
  * öneri olduğundan boştur (E-01-07).
  */
+import { isAssignedTo } from '@/modules/work/public'
 import type { IconName } from '@/shared/ui'
 
 import { homeText } from './messages'
@@ -67,7 +68,7 @@ export function countsFromItems(
 ): KpiCounts {
   const counts: KpiCounts = { total: 0, completed: 0, open: 0, overdue: 0, pending: 0 }
   for (const item of items) {
-    if (assignee !== null && !item.assignee_account_ids.includes(assignee)) continue
+    if (assignee !== null && !isAssignedTo(item, assignee)) continue
     counts.total += 1
     if (item.status === 'tamamlandi') {
       counts.completed += 1

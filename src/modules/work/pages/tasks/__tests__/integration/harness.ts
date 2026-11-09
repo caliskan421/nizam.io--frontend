@@ -1,6 +1,8 @@
 // O2 entegrasyon testleri (W48): GERÇEK `TasksPage` + GERÇEK alt bileşenler (panel, yeni görev,
-// durum menüsü, alt görev bloğu, dosyalar, notlar) + modülün ÜRETİM rota kaydı (`workRoutes`,
-// `createAppRouter`'ın tükettiği kayıt; `app/` içe aktarımı sınır kuralıyla yasak) + bellek
+// durum menüsü, alt görev bloğu, dosyalar, notlar) + modüllerin ÜRETİM rota kayıtları
+// (`homeRoutes` + `workRoutes`, `createAppRouter`'ın `MODULE_ROUTES` ile tükettiği kayıtlar;
+// `createAppRouter`/`AppShell` kullanılamaz: `app/` içe aktarımı sınır kuralıyla yasak —
+// `boundaries/dependencies`, modül → yalnız shared + başka modülün public.ts'i; F2 borcu) + bellek
 // geçmişi + GERÇEK Teleport + uygulama yuvaları (`UiToast`, `ConfirmHost`). Ağ: görev
 // harness'ının MSW sunucusu üstünde durumlu sahte görev backend'i (istekler kaydedilir).
 import { QueryClient, useQueryClient, VueQueryPlugin } from '@tanstack/vue-query'
@@ -9,7 +11,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, onScopeDispose } from 'vue'
 import { createMemoryHistory, createRouter, RouterView, type Router } from 'vue-router'
 
+import { homeRoutes } from '@/modules/home/public'
 import { purgeScopedQueries } from '@/shared/scope/lifecycle'
+import { parseStanding } from '@/shared/scope/standing-facts'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiToast, useToast } from '@/shared/ui'
@@ -23,6 +27,7 @@ import {
   resetHarness,
   workItem,
 } from '../../../../model/__tests__/harness'
+import { workActorFacts } from '../../../../model/capabilities'
 import type { WorkItemDetail, WorkItemFile, WorkItemSubtask } from '../../../../model/types'
 import { workRoutes } from '../../../../routes'
 import { standingHandlers, type StandingFixture } from '../page-harness'
@@ -44,24 +49,69 @@ export function fakeWork(items: WorkItemDetail[], members: unknown[] = []): Fake
 
 const notFound = () => errorEnvelope('work.item_not_found', 404)
 
-function readHandlers(db: FakeWork) {
+/**
+ * Sunucu görünürlüğü (pinli `listProgramWorkItems` açıklaması; `istemci-akislari.md` s.162):
+ * yönetici programın bütün görevlerini, koordinatör kendi departmanının görevlerini, üye
+ * yalnız kendisine atananları görür; birleşik rol birleşimi görür. Görünmeyen görevin
+ * ayrıntısı: departmanda üye satırı varsa 403 `work.not_assigned`, yoksa 404.
+ */
+function serverAccess(fixture: StandingFixture) {
+  const standing = parseStanding(
+    {
+      account_id: ME,
+      company_admin: fixture.companyAdmin,
+      email: 'kisi@example.test',
+      full_name: 'Deneme Kişi',
+    },
+    {
+      departments: fixture.rows.map((r) => ({
+        ...r,
+        program_id: 'p1',
+        program_name: 'Program Bir',
+        display_name: r.department_id,
+      })),
+    },
+  )
+  const facts = (item: WorkItemDetail) => workActorFacts(standing, 'p1', item)
+  const visible = (item: WorkItemDetail) => {
+    const f = facts(item)
+    return f.companyAdmin || f.coordinator || (f.member && f.assigned)
+  }
+  const denied = (item: WorkItemDetail) =>
+    facts(item).member ? errorEnvelope('work.not_assigned', 403) : notFound()
+  return { visible, denied }
+}
+
+function readHandlers(db: FakeWork, standing: StandingFixture) {
+  const access = serverAccess(standing)
   const find = (id: unknown) => db.items.find((i) => i.work_item_id === id)
+  /** Görünür görevde `ok`, görünmeyende 403/404, yoksa 404. */
+  const guarded = (id: unknown, ok: (item: WorkItemDetail) => Response) => {
+    const item = find(id)
+    if (!item) return notFound()
+    return access.visible(item) ? ok(item) : access.denied(item)
+  }
   return [
     http.get(`${ORIGIN}/v1/program/work-items`, ({ request }) => {
       const department = new URL(request.url).searchParams.get('department_id')
-      return json({ items: db.items.filter((i) => !department || i.department_id === department) })
+      return json({
+        items: db.items.filter(
+          (i) => access.visible(i) && (!department || i.department_id === department),
+        ),
+      })
     }),
-    http.get(`${ORIGIN}/v1/work-items/:id`, ({ params }) => {
-      const item = find(params.id)
-      return item ? json(item) : notFound()
-    }),
+    http.get(`${ORIGIN}/v1/work-items/:id`, ({ params }) =>
+      guarded(params.id, (item) => json(item)),
+    ),
     http.get(`${ORIGIN}/v1/work-items/:id/files`, ({ params }) =>
-      find(params.id) ? json({ files: db.files.get(String(params.id)) ?? [] }) : notFound(),
+      guarded(params.id, () => json({ files: db.files.get(String(params.id)) ?? [] })),
     ),
     http.get(`${ORIGIN}/v1/work-items/:id/subtasks`, ({ params }) =>
-      json({ subtasks: db.subtasks.get(String(params.id)) ?? [] }),
+      guarded(params.id, () => json({ subtasks: db.subtasks.get(String(params.id)) ?? [] })),
     ),
-    http.get(`${ORIGIN}/v1/work-items/:id/notes`, () => json({ notes: [], total: 0 })),
+    http.get(`${ORIGIN}/v1/work-items/:id/notes`, ({ params }) =>
+      guarded(params.id, () => json({ notes: [], total: 0 })),
+    ),
     http.get(`${ORIGIN}/v1/departments/:id/members`, () => json({ members: db.members } as never)),
   ]
 }
@@ -105,9 +155,9 @@ function writeHandlers(db: FakeWork) {
   ]
 }
 
-/** Standing (S1) + program departmanları + sahte görev backend'i. */
+/** Standing (S1) + program departmanları + sahte görev backend'i (sunucu görünürlüğüyle). */
 export function backendHandlers(standing: StandingFixture, db: FakeWork) {
-  return [...standingHandlers(standing), ...readHandlers(db), ...writeHandlers(db)]
+  return [...standingHandlers(standing), ...readHandlers(db, standing), ...writeHandlers(db)]
 }
 
 export interface AppContext {
@@ -143,7 +193,7 @@ export async function mountApp(selection: ScopeSelection, path = '/gorevler'): P
   })
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/', name: 'home', component: { render: () => null } }, ...workRoutes],
+    routes: [...homeRoutes, ...workRoutes],
   })
   await router.push(path)
   const wrapper = mount(Root, {

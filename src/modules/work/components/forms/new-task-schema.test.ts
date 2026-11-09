@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
 
 import { ApiError } from '@/shared/errors/api-error'
 
@@ -112,5 +113,19 @@ describe('sunucu alan hataları', () => {
 
   it('eşlenemeyen hata boş döner', () => {
     expect(fieldErrorsOf(apiError('work.not_authorized'))).toEqual({})
+  })
+})
+
+describe('CSP: zod JIT kapalı (eval yoklaması yok)', () => {
+  it('jitless açık; ayrıştırma Function kurucusunu çağırmaz', () => {
+    expect(z.config().jitless).toBe(true)
+    const spy = vi.spyOn(globalThis, 'Function')
+    try {
+      expect(newTaskSchema().safeParse(valid).success).toBe(true)
+      expect(newTaskSchema().safeParse({ ...valid, title: '' }).success).toBe(false)
+      expect(spy).not.toHaveBeenCalled()
+    } finally {
+      spy.mockRestore()
+    }
   })
 })

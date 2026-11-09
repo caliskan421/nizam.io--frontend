@@ -102,6 +102,8 @@ export const trTaskList = {
     request: 'Talep · {day}',
     requestTitle: 'Bitiş {from} → {to} talep edildi',
     unknownPerson: 'Bilinmeyen kişi',
+    morePeople: '+{n}',
+    morePeopleLabel: '{n} kişi daha: {names}',
     subtasks: 'Alt görevler',
     subtasksNone: '+ alt',
     loading: 'Görevler yükleniyor',

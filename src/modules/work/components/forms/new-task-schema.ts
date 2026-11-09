@@ -19,6 +19,11 @@ import { errorText } from '@/shared/i18n'
 import type { CreateWorkItemBody, WorkItemPriority } from '../../model/types'
 import { formsText } from './messages'
 
+// CSP (`script-src` eval yok): zod v4'ün JIT yoklaması (`new Function('')`) yakalansa da üretim
+// CSP'sinde `securitypolicyviolation` raporlar. JIT kapalı; ilk şema/ayrıştırmadan önce (K11:
+// zod yalnız bu form katmanında). O5 görsel doğrulama, W63.
+z.config({ jitless: true })
+
 /** Sözleşme sırası (`CreateWorkItemRequest.priority` enum). */
 export const PRIORITIES = [
   'dusuk',
