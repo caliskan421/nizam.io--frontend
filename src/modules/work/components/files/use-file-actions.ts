@@ -5,14 +5,15 @@
  * 03/03c/06 ortak `files` anahtarı). Sonuç metinleri i18n'den (`shared/ui/confirm`).
  *
  *  - İndirme: `issueDownloadTicket` → yanıt `url` hemen tarayıcıya verilir → mutasyon sonucu
- *    sıfırlanır (`finally`; bilet bellekte tutulmaz, hata yolunda da).
+ *    sıfırlanır (`finally`; bilet bellekte tutulmaz, hata yolunda da). Bilet yanıtı bileşen
+ *    söküldükten sonra gelirse bilet TÜKETİLMEZ (indirme açılmaz), sonuç yine sıfırlanır.
  *  - Sil: kalıcı → istemci onayı (`confirmWrite`, §7; `confirmation_required` yok); silme
  *    onayın yakaladığı bağlamla başlar (CX-F1-E-02).
  *  - Ad değiştir: sonuç çağırana döner (409 `records.name_taken` alanın altında gösterilir).
  */
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-import type { MutationOutcome } from '@/shared/http/mutation'
+import { ownerLife, type MutationOutcome } from '@/shared/http/mutation'
 import { useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 
@@ -30,6 +31,7 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
   const rename = useRenameFile()
   const remove = useDeleteFile()
   const { confirmWrite } = useConfirm()
+  const owner = ownerLife()
 
   function ref(): FileRef {
     const current = toValue(item)
@@ -43,15 +45,18 @@ export function useFileActions(item: MaybeRefOrGetter<WorkItem>, file: MaybeRefO
   async function download(): Promise<void> {
     const name = toValue(file).display_name
     const outcome = await ticket.submit(ref())
-    if (outcome.kind !== 'success') {
+    const alive = owner.alive()
+    if (outcome.kind !== 'success' && alive) {
       notifyOutcome(outcome)
       return
     }
-    let opened: boolean
+    let opened = true
     try {
-      opened = redeemDownload(outcome.data.url, name)
+      // Sökülmüş sahip (geç bilet yanıtı): bilet tüketilmez, indirme açılmaz (CX-F1-E-05 sınıfı).
+      if (alive && outcome.kind === 'success') opened = redeemDownload(outcome.data.url, name)
     } finally {
-      // Bilet bellekte kalmaz: tarayıcıya verme istisna atsa da sonuç sıfırlanır (CX-F1-K-04).
+      // Bilet bellekte kalmaz: tarayıcıya verme istisna atsa da, sahip sökülmüş olsa da sonuç
+      // sıfırlanır (CX-F1-K-04).
       ticket.reset()
     }
     if (!opened) {
