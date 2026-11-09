@@ -6,9 +6,27 @@ import { api, authSession } from '@/shared/http'
 import { unwrap } from '@/shared/http/unwrap'
 import type { components } from '@/shared/api/schema'
 import { signOut, type SignOutOutcome } from '@/shared/scope/sign-out'
+import { useScopeStore } from '@/shared/scope/store'
 
 type LoginRequest = components['schemas']['LoginRequest']
 type MeResponse = components['schemas']['MeResponse']
+
+/**
+ * Parola değişimi başarılı (`changePassword` 200): sunucu bu hesabın BÜTÜN oturumlarını düşürdü
+ * ve yenileme çerezini temizledi (IDENTITY-K15/K16) — doğrulanmış çıkışla aynı sonuç. Çıkış
+ * isteği atılmaz (oturum zaten yok); bellek, sorgu önbelleği ve kapsam çıkıştaki gibi temizlenir,
+ * kardeş sekmelere bildirilir. Kullanıcı yeni parolasıyla açıkça giriş yapar (W83 K-1).
+ */
+function endLocally(queryClient: QueryClient | null): void {
+  authSession.clear()
+  if (queryClient) {
+    void queryClient.cancelQueries()
+    queryClient.clear()
+  }
+  const scope = useScopeStore()
+  scope.reset()
+  scope.forgetRemembered()
+}
 
 /**
  * Oturum deposu (Pinia setup store). Belirteç bu depoda DEĞİLDİR (devtools/serileştirme
@@ -75,6 +93,12 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
+  /** Parola değişimi başarılı: `endLocally` (aşağıda); `me` de boşaltılır. */
+  function endAfterPasswordChange(queryClient: QueryClient | null = null): void {
+    endLocally(queryClient)
+    me.value = null
+  }
+
   return {
     status,
     accountId,
@@ -86,5 +110,6 @@ export const useSessionStore = defineStore('session', () => {
     login,
     loadMe,
     logout,
+    endAfterPasswordChange,
   }
 })

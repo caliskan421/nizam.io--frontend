@@ -32,5 +32,20 @@ export const trStates = {
     loading: 'Kapsam yükleniyor',
     error: 'Kapsam bilgisi alınamadı',
     phase: { F2: '{action} F2’de açılacak.' },
+    // P14 + 00-ortak `backend.md` §6: geçici parolayla ilk giriş → zorunlu parola değişimi
+    // (`changePassword`). Tasarımda çizilmemiş; P3 en sade form.
+    password: {
+      title: 'Parolanızı değiştirin',
+      intro: 'Hesabınıza geçici bir parola verildi. Devam etmek için yeni bir parola belirleyin.',
+      current: 'Mevcut (geçici) parola',
+      next: 'Yeni parola',
+      repeat: 'Yeni parola (tekrar)',
+      submit: 'Parolayı değiştir',
+      logout: 'Çıkış',
+      required: 'Bu alan boş olamaz.',
+      mismatch: 'Parolalar eşleşmiyor.',
+      currentInvalid: 'Mevcut parola hatalı.',
+      done: 'Parolanız değiştirildi. Yeni parolanızla giriş yapın.',
+    },
   },
 } as const
