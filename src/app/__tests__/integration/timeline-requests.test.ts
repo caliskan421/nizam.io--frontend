@@ -23,6 +23,8 @@ import {
   ganttReady,
   GANTT_ADMIN,
   GANTT_COORD,
+  MEMBER,
+  panel,
   REQUESTS,
   selectRow,
   tp,
@@ -183,6 +185,46 @@ describe('(3) Admin: bekleyen talebi onayla / reddet', () => {
     await until(() => tp('tp-error') ?? !tp('tp-approve'), 'sonuç')
     await idle(app.queryClient)
     expect(backend.sent('POST', `${REQUESTS}/dr-seed/review`)).toHaveLength(1)
+  })
+})
+
+const extension = () => $$('[data-request]').map((e) => (e as HTMLElement).dataset.request)
+
+describe('E-03C-42 (K-2): bekleyen talep çubukta kesik uzantı', () => {
+  it('Admin: yalnız SEÇİLİ görevde sağ uzantı; seçim yokken ve başka satırda yok; yeni istek yok', async () => {
+    seedPending()
+    const app = await boot({ ...ADMIN_ADMIN, path: '/zaman-cizelgesi' })
+    await ganttReady(2)
+    expect(extension()).toEqual([])
+    await selectRow('w2')
+    await until(() => extension().length > 0, 'uzantı')
+    expect(extension()).toEqual(['end'])
+    expect(document.querySelectorAll('[data-work-item="w2"] [data-request]')).toHaveLength(1)
+    await idle(app.queryClient)
+    expect(backend.sent('GET', '/v1/work-items/w2')).toHaveLength(1)
+    await selectRow('w1')
+    await until(() => extension().length === 0, 'başka satırda uzantı yok')
+  })
+
+  it('Koordinatör kendi biriminde görür; Üye hiç görmez', async () => {
+    seedPending()
+    await boot({ ...COORD, path: '/zaman-cizelgesi?secili=w2' })
+    await ganttReady(2)
+    await until(() => extension().length > 0, 'koordinatör uzantısı')
+    expect(extension()).toEqual(['end'])
+    teardown()
+    // Üye kendi görevinde (w1) seçili; sunucu bekleyen talebi yine de dönse bile çizilmez.
+    const w1 = backend.db.items.find((i) => i.work_item_id === 'w1')!
+    w1.pending_date_request = {
+      request_id: 'dr-w1',
+      new_start_on: w1.start_on,
+      new_end_on: '2027-01-15',
+    }
+    await boot({ ...MEMBER, path: '/zaman-cizelgesi?secili=w1' })
+    await ganttReady(1)
+    await until(() => panel(), 'panel')
+    await until(() => tp('tp-status'), 'taze görev')
+    expect(extension()).toEqual([])
   })
 })
 

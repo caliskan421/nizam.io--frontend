@@ -24,6 +24,7 @@ import { useDateChange } from '../composables/useDateChange'
 import { atCeiling } from '../model/ceiling'
 import { clearedFilters } from './timeline/url-state'
 import { useFullscreen } from './timeline/use-fullscreen'
+import { useSelectedDateRequest } from './timeline/use-selected-request'
 import { useTimelinePage } from './timeline/use-timeline-page'
 
 /**
@@ -66,6 +67,7 @@ const filteredEmpty = computed(
 )
 const showGantt = computed(() => page.ready.value && page.tasks.value.length > 0)
 const panelTask = computed(() => (showGantt.value ? page.selected.value : null))
+const dateRequest = useSelectedDateRequest(panelTask, page.face)
 const ceiling = computed(() => page.ready.value && atCeiling(page.allTasks.value.length))
 
 /** Sayfa içi diyalog (W97a, 03'ün aynı formu); önseçili birim: Admin süzgeci, yoksa kapsam. */
@@ -210,6 +212,7 @@ function openInList(workItemId: string): void {
             :department-codes="page.adminFace.value ? page.departmentCodes.value : undefined"
             :selected-id="state.selected"
             :draggable-ids="draggableIds"
+            :date-request="dateRequest"
             :date-key-handler="dateKeyHandler"
             @edge-drag="dateChange.onEdgeDrag"
             @select="select"

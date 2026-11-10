@@ -210,6 +210,7 @@ defineExpose({ scrollToDay })
               :today="today"
               :selected-id="selectedId"
               :draggable-ids="draggableIds"
+              :date-request="dateRequest"
               :open-subtasks="subtasks.open.value"
               :layout="layout"
               :window="win"

@@ -173,6 +173,13 @@
     stroke-width: var(--gantt-late-border);
     stroke-dasharray: var(--gantt-dash);
   }
+  .gantt-bar__request {
+    fill: color-mix(in srgb, var(--accent-text) 12%, transparent);
+    stroke: var(--accent-text);
+    stroke-width: var(--gantt-late-border);
+    stroke-dasharray: var(--gantt-dash);
+    pointer-events: none;
+  }
   .gantt-bar__ring {
     fill: none;
     stroke: var(--ink);
