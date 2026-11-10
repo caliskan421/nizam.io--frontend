@@ -14,6 +14,7 @@ import {
   resetHarness,
   sent,
   server,
+  workItem,
 } from '../__tests__/harness'
 import type { GanttTask } from '../model/types'
 import {
@@ -34,6 +35,13 @@ import TimelinePage from './TimelinePage.vue'
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+// Gerçek W94 paneli açılışta taze görev + dosya listesini okur (görev kimliğine göre).
+const panelHandlers = () => [
+  http.get(`${ORIGIN}/v1/work-items/:id`, ({ params }) =>
+    json(workItem({ work_item_id: String(params.id) })),
+  ),
+  http.get(`${ORIGIN}/v1/work-items/:id/files`, () => json({ files: [] })),
+]
 beforeEach(() => vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-21T09:00:00Z') }))
 afterEach(() => {
   vi.useRealTimers()
@@ -89,7 +97,11 @@ const query = (ctx: Awaited<ReturnType<typeof mountPage>>) => ctx.router.current
 
 describe('Zaman çizelgesi — kapsam ve yüz', () => {
   it('Admin: TEK adminGantt isteği (yalnız program başlığı); sayaçlar ve yönetici eylemleri', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const [request, ...rest] = sent('GET', ADMIN_GANTT)
     expect(rest).toHaveLength(0)
@@ -130,7 +142,11 @@ describe('Zaman çizelgesi — kapsam ve yüz', () => {
   })
 
   it('Gantt kabına sözleşmeli prop’lar gider: ölçek varsayılanı hafta, bugün kurulum gününden', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const view = ctx.wrapper.findComponent({ name: 'GanttView' })
     expect(view.props('scale')).toBe('hafta')
@@ -142,7 +158,11 @@ describe('Zaman çizelgesi — kapsam ve yüz', () => {
 
 describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
   it('durum süzgeci URL’den: Geciken yalnız lateness.is_overdue; tamamlanmış geç görev değil', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE, '/zaman-cizelgesi?durum=geciken')
     expect(rows(ctx)).toEqual(['w2'])
     // Sayaçlar süzgeçten bağımsız (yüklü yanıt)
@@ -150,7 +170,11 @@ describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
   })
 
   it('araç çubuğundan durum seçimi URL’ye yazılır (varsayılan yazılmaz)', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const buttons = ctx.wrapper.get('[role="group"][aria-label="Durum"]').findAll('button')
     await buttons[3]!.trigger('click')
@@ -164,7 +188,11 @@ describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
   })
 
   it('Admin: tek departman süzgeci (departman=…); K/Ü yüzünde ve bilinmeyen kimlikte yok sayılır', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const admin = await mountPage(TimelinePage, ADMIN_SCOPE, '/zaman-cizelgesi?departman=d2')
     expect(rows(admin)).toEqual(['w2'])
     expect(admin.wrapper.get('[data-testid="timeline-department-filter"]').text()).toBe(
@@ -181,7 +209,11 @@ describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
   })
 
   it('ölçek ±: URL olcek; sınırda tık etkisiz', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     await ctx.wrapper.get('[data-action="zoom-in"]').trigger('click')
     await flushPromises()
@@ -199,7 +231,11 @@ describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
   })
 
   it('kapsam değişince departman ve seçim sıfırlanır; ölçek ve durum korunur', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(
       TimelinePage,
       ADMIN_SCOPE,
@@ -213,60 +249,77 @@ describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
 
 describe('Zaman çizelgesi — seçim ve panel', () => {
   it('satır seçimi URL secili yazar ve paneli açar; kapat seçimi kaldırır, odak satıra döner', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const row = ctx.wrapper.get('[data-row-key="w2"]')
     ;(row.element as HTMLElement).focus()
     await row.trigger('click')
     await flushPromises()
     expect(query(ctx)).toEqual({ secili: 'w2' })
-    const panel = ctx.wrapper.get('[data-panel="w2"]')
+    const panel = ctx.wrapper.get('[data-testid="timeline-panel"]')
     expect(panel.attributes('data-face')).toBe('admin')
-    expect(panel.get('[data-dept]').attributes('data-dept')).toBe('İdari işler')
+    expect(panel.get('[data-testid="tp-title"]').text()).toBe('İzmir planı')
+    expect(panel.get('[data-testid="tp-kicker"]').text()).toContain('İdari işler')
     expect(ctx.wrapper.find('.gantt').exists()).toBe(true)
 
-    await panel.get('[data-close]').trigger('click')
+    await panel.get('[data-testid="tp-close"]').trigger('click')
     await flushPromises()
     expect(query(ctx)).toEqual({})
-    expect(ctx.wrapper.find('[data-panel]').exists()).toBe(false)
+    expect(ctx.wrapper.find('[data-testid="timeline-panel"]').exists()).toBe(false)
     expect(document.activeElement).toBe(row.element)
   })
 
   it('odak izi yoksa (fare ile seçim) panel kapanınca odak Gantt kabına döner, gövdeye düşmez', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     ;(document.activeElement as HTMLElement | null)?.blur()
     await ctx.wrapper.get('[data-work-item="w1"]').trigger('click')
     await flushPromises()
-    await ctx.wrapper.get('[data-close]').trigger('click')
+    await ctx.wrapper.get('[data-testid="tp-close"]').trigger('click')
     await flushPromises()
     expect(document.activeElement).toBe(ctx.wrapper.get('[data-testid="timeline-board"]').element)
   })
 
   it('Liste görünümünde aç: /gorevler?gorev=‹id›', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE, '/zaman-cizelgesi?secili=w1')
-    await ctx.wrapper.get('[data-open-list]').trigger('click')
+    await ctx.wrapper.get('[data-testid="tp-open-list"]').trigger('click')
     await flushPromises()
     expect(ctx.router.currentRoute.value.fullPath).toBe('/gorevler?gorev=w1')
   })
 
   it('yanıtta olmayan ya da süzgeç dışına düşen seçim URL’den düşer (panel kapanır)', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const missing = await mountPage(TimelinePage, ADMIN_SCOPE, '/zaman-cizelgesi?secili=yok')
     await flushPromises()
     expect(query(missing)).toEqual({})
-    expect(missing.wrapper.find('[data-panel]').exists()).toBe(false)
+    expect(missing.wrapper.find('[data-testid="timeline-panel"]').exists()).toBe(false)
 
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE, '/zaman-cizelgesi?secili=w1')
-    expect(ctx.wrapper.find('[data-panel="w1"]').exists()).toBe(true)
+    expect(ctx.wrapper.find('[data-testid="timeline-panel"]').exists()).toBe(true)
     await ctx.wrapper
       .get('[role="group"][aria-label="Durum"]')
       .findAll('button')[3]!
       .trigger('click')
     await flushPromises()
     expect(query(ctx)).toEqual({ durum: 'biten' })
-    expect(ctx.wrapper.find('[data-panel]').exists()).toBe(false)
+    expect(ctx.wrapper.find('[data-testid="timeline-panel"]').exists()).toBe(false)
   })
 })
 
@@ -277,7 +330,11 @@ describe('Zaman çizelgesi — tutamaç görünürlüğü (P8, yalnız çağıra
     ].sort()
 
   it('Admin: tamamlanmamış görevlerin hepsi; tamamlanmış değil', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     expect(draggable(await mountPage(TimelinePage, ADMIN_SCOPE))).toEqual(['w1', 'w2'])
   })
 
@@ -383,7 +440,11 @@ describe('Zaman çizelgesi — tavan, boş, yükleniyor, hata (E-03C-82, 83)', (
 
 describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
   it('Liste: /gorevler (süzgeç taşınmaz); Yeni görev: /gorevler?yeni=1 + koordinatörlük', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(
       TimelinePage,
       ADMIN_SCOPE,
@@ -407,7 +468,11 @@ describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
   })
 
   it('şerit: görev aralığı + program yılı; Gantt kaydırması görünen aralığı yansıtır; tık Gantt’ı kaydırır', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     expect(ctx.wrapper.get('[data-testid="timeline-strip-kicker"]').text()).toBe(
       'görev aralığı 2026',
@@ -428,7 +493,11 @@ describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
   })
 
   it('dışa aktarım devre dışı: tık istek atmaz', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const before = sent('GET', ADMIN_GANTT).length
     await ctx.wrapper.get('[data-action="export-pdf"]').trigger('click')
@@ -441,7 +510,11 @@ describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
 
 describe('Zaman çizelgesi — tam ekran (E-03C-12)', () => {
   it('giriş: Fullscreen API çağrılır, kap tam ekran kipine geçer; düğmeyle çıkış odağı düğmeye döndürür', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const request = vi.fn(() => Promise.resolve())
     const stage = ctx.wrapper.get('[data-testid="timeline-stage"]')
@@ -460,7 +533,11 @@ describe('Zaman çizelgesi — tam ekran (E-03C-12)', () => {
   })
 
   it('API yoksa CSS kipi; Esc çıkar ve odak düğmeye döner', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     const stage = ctx.wrapper.get('[data-testid="timeline-stage"]')
     const button = ctx.wrapper.get('[data-action="fullscreen"]')
@@ -473,7 +550,11 @@ describe('Zaman çizelgesi — tam ekran (E-03C-12)', () => {
   })
 
   it('sayfa sökülünce dinleyici kalmaz (sonraki Esc etkisiz)', async () => {
-    server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
+    server.use(
+      ...standingHandlers(ADMIN),
+      ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
+      ...panelHandlers(),
+    )
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     await ctx.wrapper.get('[data-action="fullscreen"]').trigger('click')
     const remove = vi.spyOn(window, 'removeEventListener')
