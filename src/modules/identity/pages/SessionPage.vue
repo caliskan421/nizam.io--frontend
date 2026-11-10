@@ -4,20 +4,38 @@
 // (O4 görsel borç). Sayfa http/oturum katmanının gerçek yığından geçtiğini e2e ile de kanıtlar
 // (`input[name]`, "Giriş" düğmesi, `data-testid`'ler e2e sözleşmesidir).
 import { useQueryClient } from '@tanstack/vue-query'
-import { onMounted, ref, watch } from 'vue'
+import { useForm } from 'vee-validate'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
 import { toApiError, type ApiError } from '@/shared/errors/api-error'
 import { errorText } from '@/shared/i18n'
 import { useSessionStore } from '@/shared/session/store'
-import { UiButton, UiCard, UiField, UiInput } from '@/shared/ui'
+import { firstInvalidIn, UiButton, UiCard, UiField, UiInput } from '@/shared/ui'
 
 const session = useSessionStore()
 const queryClient = useQueryClient()
 const { t } = useI18n()
-const email = ref('')
-const password = ref('')
+// İstemci doğrulaması (K11, F2 K-7): boş e-posta/parola sunucuya gitmez, alan hatası formda.
+// Biçim ve doğruluk sunucudadır (`identity.credentials_invalid`); parola asla kırpılmaz.
+interface Values {
+  email: string
+  password: string
+}
+const form = useForm<Values>({
+  validationSchema: {
+    email: (value: unknown) =>
+      (typeof value === 'string' && value.trim() !== '') || t('terms.session.emailRequired'),
+    password: (value: unknown) =>
+      (typeof value === 'string' && value !== '') || t('terms.session.passwordRequired'),
+  },
+  initialValues: { email: '', password: '' },
+})
+const [email] = form.defineField('email')
+const [password] = form.defineField('password')
+const errors = form.errors
+const root = ref<HTMLFormElement | null>(null)
 const error = ref<ApiError | null>(null)
 const busy = ref(false)
 
@@ -30,17 +48,33 @@ async function loadMe(): Promise<void> {
   }
 }
 
-async function submit(): Promise<void> {
-  busy.value = true
-  error.value = null
-  try {
-    await session.login({ email: email.value, password: password.value })
-    password.value = ''
-  } catch (e) {
-    error.value = toApiError(e)
-  } finally {
-    busy.value = false
-  }
+async function focusInvalid(): Promise<void> {
+  await nextTick()
+  if (root.value) firstInvalidIn(root.value)?.focus()
+}
+
+const handle = form.handleSubmit(
+  async (values) => {
+    if (busy.value) return
+    busy.value = true
+    error.value = null
+    try {
+      await session.login({ email: values.email.trim(), password: values.password })
+      form.resetField('password', { value: '' })
+    } catch (e) {
+      error.value = toApiError(e)
+    } finally {
+      busy.value = false
+    }
+  },
+  () => {
+    error.value = null
+    void focusInvalid()
+  },
+)
+
+function submit(): void {
+  void handle()
 }
 
 // Çıkış sorgu önbelleğini de boşaltır (W13 notu); doğrulanamayan çıkışın uyarısı uygulama
@@ -79,13 +113,15 @@ onMounted(() => {
       <form
         v-if="session.status === 'anonymous' || session.status === 'ended'"
         class="session-form"
+        ref="root"
         data-testid="login-form"
+        novalidate
         @submit.prevent="submit"
       >
-        <UiField label="E-posta">
+        <UiField label="E-posta" :error="errors.email">
           <UiInput v-model="email" name="email" type="email" autocomplete="username" />
         </UiField>
-        <UiField label="Parola">
+        <UiField label="Parola" :error="errors.password">
           <UiInput
             v-model="password"
             name="password"

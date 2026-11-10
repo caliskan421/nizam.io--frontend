@@ -13,6 +13,8 @@ export const trTerms = {
       authenticated: 'Oturum açık',
       ended: 'Oturum sonlandı',
       unavailable: 'Sunucuya ulaşılamadı; yeniden deneyin',
+      emailRequired: 'E-posta gerekli.',
+      passwordRequired: 'Parola gerekli.',
     },
     action: {
       retry: 'Yeniden dene',
