@@ -2593,6 +2593,198 @@ export const TOKENS = {
     "origin": "web",
     "dark": "52px",
     "light": "52px"
+  },
+  "gantt-label-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "300px",
+    "light": "300px"
+  },
+  "gantt-label-max": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "62cqw",
+    "light": "62cqw"
+  },
+  "gantt-view-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "780px",
+    "light": "780px"
+  },
+  "gantt-axis-month-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "34px",
+    "light": "34px"
+  },
+  "gantt-axis-day-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "28px",
+    "light": "28px"
+  },
+  "gantt-group-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "40px",
+    "light": "40px"
+  },
+  "gantt-row-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "44px",
+    "light": "44px"
+  },
+  "gantt-bar-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "24px",
+    "light": "24px"
+  },
+  "gantt-bar-radius": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "8px",
+    "light": "8px"
+  },
+  "gantt-handle-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "gantt-handle-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "16px",
+    "light": "16px"
+  },
+  "gantt-handle-r": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "3px",
+    "light": "3px"
+  },
+  "gantt-day-w-gun": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "21px",
+    "light": "21px"
+  },
+  "gantt-day-w-hafta": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "gantt-day-w-ay": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "2px",
+    "light": "2px"
+  },
+  "gantt-today-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "2px",
+    "light": "2px"
+  },
+  "gantt-today-pill-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "52px",
+    "light": "52px"
+  },
+  "gantt-today-pill-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "20px",
+    "light": "20px"
+  },
+  "gantt-today-pill-r": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "gantt-ring-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "2px",
+    "light": "2px"
+  },
+  "gantt-split-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "2px",
+    "light": "2px"
+  },
+  "gantt-hit-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "12px",
+    "light": "12px"
+  },
+  "gantt-link-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "1.5px",
+    "light": "1.5px"
+  },
+  "gantt-dash": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "4 3",
+    "light": "4 3"
+  },
+  "gantt-late-border": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "1.5px",
+    "light": "1.5px"
+  },
+  "gantt-summary-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "8px",
+    "light": "8px"
+  },
+  "gantt-dep-icon": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "12px",
+    "light": "12px"
+  },
+  "gantt-code-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "48px",
+    "light": "48px"
+  },
+  "gantt-dot": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "8px",
+    "light": "8px"
+  },
+  "gantt-chevron": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "16px",
+    "light": "16px"
+  },
+  "gantt-label-cols": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "48px 8px minmax(0, 1fr)",
+    "light": "48px 8px minmax(0, 1fr)"
+  },
+  "gantt-group-cols": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "16px minmax(0, 1fr) auto",
+    "light": "16px minmax(0, 1fr) auto"
   }
 } as const
 

@@ -42,29 +42,6 @@ export function shiftEdge(range: DayRange, edge: GanttEdge, delta: number): DayR
   return moved === null ? null : applyEdge(range, edge, moved)
 }
 
-export interface KeyLike {
-  key: string
-  shiftKey: boolean
-  altKey: boolean
-  ctrlKey?: boolean
-  metaKey?: boolean
-}
-
-export interface DateKeyStep {
-  edge: GanttEdge
-  delta: 1 | -1
-}
-
-/**
- * Klavye tarih adımı (gantt-secimi §7): Shift+→/← bitiş ±1 gün, Alt+Shift+→/← başlangıç ±1
- * gün. Ctrl/Meta ile birleşim ve Shift'siz oklar (gezinme/aç-kapa) `null`.
- */
-export function dateKeyStep(e: KeyLike): DateKeyStep | null {
-  if (!e.shiftKey || e.ctrlKey || e.metaKey) return null
-  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return null
-  return { edge: e.altKey ? 'start' : 'end', delta: e.key === 'ArrowRight' ? 1 : -1 }
-}
-
 export interface RangeDelta {
   /** `after - before` gün; pozitif = ileri. */
   start: number

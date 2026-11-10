@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  addDays,
-  applyEdge,
-  dateKeyStep,
-  dayAndMonth,
-  rangeDelta,
-  sameRange,
-  shiftEdge,
-} from './date-change'
+import { addDays, applyEdge, dayAndMonth, rangeDelta, sameRange, shiftEdge } from './date-change'
 
 const R = { start: '2026-06-22', end: '2026-09-10' }
 
@@ -62,36 +54,5 @@ describe('shiftEdge / rangeDelta / sameRange', () => {
   it('gün/ay ayrıştırma', () => {
     expect(dayAndMonth('2026-06-22')).toEqual([22, 6])
     expect(dayAndMonth('2026-13-01')).toBeNull()
-  })
-})
-
-describe('dateKeyStep — gantt-secimi §7', () => {
-  const key = (
-    k: string,
-    mods: Partial<Record<'shiftKey' | 'altKey' | 'ctrlKey' | 'metaKey', boolean>>,
-  ) => ({
-    key: k,
-    shiftKey: false,
-    altKey: false,
-    ...mods,
-  })
-  it('Shift+→/← bitiş, Alt+Shift+→/← başlangıç', () => {
-    expect(dateKeyStep(key('ArrowRight', { shiftKey: true }))).toEqual({ edge: 'end', delta: 1 })
-    expect(dateKeyStep(key('ArrowLeft', { shiftKey: true }))).toEqual({ edge: 'end', delta: -1 })
-    expect(dateKeyStep(key('ArrowRight', { shiftKey: true, altKey: true }))).toEqual({
-      edge: 'start',
-      delta: 1,
-    })
-    expect(dateKeyStep(key('ArrowLeft', { shiftKey: true, altKey: true }))).toEqual({
-      edge: 'start',
-      delta: -1,
-    })
-  })
-  it('gezinme okları, Alt tek başına, Ctrl/Meta birleşimi ve diğer tuşlar tarih adımı değildir', () => {
-    expect(dateKeyStep(key('ArrowRight', {}))).toBeNull()
-    expect(dateKeyStep(key('ArrowRight', { altKey: true }))).toBeNull()
-    expect(dateKeyStep(key('ArrowRight', { shiftKey: true, ctrlKey: true }))).toBeNull()
-    expect(dateKeyStep(key('ArrowRight', { shiftKey: true, metaKey: true }))).toBeNull()
-    expect(dateKeyStep(key('ArrowUp', { shiftKey: true }))).toBeNull()
   })
 })
