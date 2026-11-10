@@ -20,7 +20,7 @@ import {
   type QueryFunctionContext,
   type QueryKey,
 } from '@tanstack/vue-query'
-import { computed, toValue, watchEffect, type MaybeRefOrGetter } from 'vue'
+import { computed, ref, toValue, watch, watchEffect, type MaybeRefOrGetter } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
@@ -232,6 +232,11 @@ export function useUser(
   accountId: MaybeRefOrGetter<string | null>,
   enabled: MaybeRefOrGetter<boolean> = true,
 ) {
+  // Yapışkan etkinlik (WP3): `enabled` çoğu çağıranda "kişi henüz önbellekte değil"dir; okuma
+  // önbelleğe düşünce çağıran onu kapatırdı. Pasif gözlemci geçersizlemede yeniden okunmaz
+  // (hesap kapat/aç, rol, çip yazmaları sonrası 05b/05 paneli bayat kalıyordu). Veri geldiği an
+  // gözlemci o kimlik için etkin kalır.
+  const loadedFor = ref<string | null>(null)
   const query = useQuery(
     computed(() => {
       const id = toValue(accountId)
@@ -240,11 +245,18 @@ export function useUser(
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           unwrap(api.GET('/v1/admin/users/{id}', { params: { path: { id: id ?? '' } }, signal })),
         ),
-        enabled: toValue(enabled) && id !== null && id !== '',
+        enabled: (toValue(enabled) || (id !== null && loadedFor.value === id)) && !!id,
         retry: retryTransient,
         staleTime: ORGANIZATION_STALE_MS,
       }
     }),
+  )
+  watch(
+    () => query.data.value,
+    (data) => {
+      if (data !== undefined) loadedFor.value = toValue(accountId)
+    },
+    { immediate: true },
   )
   return {
     query,

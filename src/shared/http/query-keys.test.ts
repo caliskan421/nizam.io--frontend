@@ -291,7 +291,7 @@ describe('query-keys — §6 tablosu', () => {
       'createWorkItem',
       'extendWorkItem',
       'requestDateChange',
-    ]) {
+    ] as const) {
       expect(hits(op, [shell, counts]), op).toEqual([shell, counts])
     }
     expect(hits('addWorkItemNote', [shell], { workItemId: 'w1' })).toEqual([])
