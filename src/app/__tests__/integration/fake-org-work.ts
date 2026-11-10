@@ -135,7 +135,8 @@ async function transition(
   found.status = body.to
   found.edit_revision = Number(found.edit_revision) + 1
   const team = o.teamIn(db, me.account_id, found.program_id, found.department_id)
-  const actor = own ? 'uye' : team === 'coordinator' || me.admin ? 'koordinator' : 'uye'
+  const actor =
+    own || (team !== 'coordinator' && !me.admin) ? db.roles.member : db.roles.coordinator
   return json({ work_item_id: found.work_item_id, from, to: body.to, actor })
 }
 
