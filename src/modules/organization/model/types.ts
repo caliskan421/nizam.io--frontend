@@ -101,6 +101,12 @@ export interface AccountRef {
   accountId: string
 }
 
+/** 409 `department_exists` zarfındaki mevcut departman (BE-050). */
+export interface ExistingDepartment {
+  departmentId: string
+  deleted: boolean
+}
+
 export interface CreateDepartmentInput {
   name: string
   kind: DepartmentKind

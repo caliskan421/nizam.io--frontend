@@ -126,11 +126,9 @@ export const trOrganization = {
           'Departman kataloğa eklendi ancak programa bağlanamadı. Programa eklemeyi yeniden deneyin.',
         exists: {
           title: 'Bu adla bir departman zaten var.',
-          searching: 'Mevcut departman aranıyor…',
           found: 'Mevcut "{name}" departmanını bu programa ekleyebilirsiniz.',
           linked: '"{name}" bu programda zaten var.',
           deleted: '"{name}" silinmiş bir departman; önce geri yüklenmesi gerekir.',
-          notFound: 'Eşleşen departman listede bulunamadı.',
         },
         link: {
           submit: 'Bu programa ekle',

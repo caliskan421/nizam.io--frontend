@@ -7,6 +7,7 @@ export {
   useCreateCoordinatorship,
   useCreateDepartment,
   useDeletedDepartments,
+  existingDepartment,
   useLinkDepartment,
   useProgramDepartmentIndex,
   useRenameDepartmentLink,

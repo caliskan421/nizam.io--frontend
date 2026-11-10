@@ -1,23 +1,25 @@
 /**
  * Yeni koordinatörlük (E-08-05): `useCreateCoordinatorship` = `createDepartment` →
  * `linkDepartment` (iki adım, atomik değil; ardıl adım ilk eylemin bağlamıyla — veri katmanı).
+ * Her iki adım isteğe bağlı `Idempotency-Key` taşır (BE-050, kullanıcı eylemi başına).
  *  - `complete` → bildirim + `saved` + kapanış;
  *  - `partial` (katalog kaydı kaldı, bağ kurulamadı) → kısmi başarı metni, `saved` (katalog kaydı
  *    oluştu) ve "Bu programa ekle" adımı aynı pencerede;
- *  - 409 `organization.department_exists` → mevcut departman ad eşleşmesiyle aranır
- *    (`listDepartments` / `listDeletedDepartments`, `tr` katlama; zarf kimlik taşımaz — BE-050):
- *    katalogda varsa "Bu programa ekle", bu programda zaten varsa bilgi, silinmişse geri yükleme
- *    gerektiği söylenir (geri yükleme bu formun işi değil);
- *  - alan hataları forma; sonuç bilinmiyorsa kör tekrar yok (veri katmanı listeyi yeniden okur).
+ *  - 409 `organization.department_exists` → mevcut departman zarftan okunur
+ *    (`fields[department_id]`, `fields[deleted]`; BE-050): bu programda varsa bilgi, katalogda
+ *    varsa "Bu programa ekle", silinmişse geri yükleme gerektiği söylenir (geri yükleme bu
+ *    formun işi değil); ad eşleşmesiyle arama yok;
+ *  - alan hataları forma; sonuç bilinmiyorsa AYNI anahtar + gövdeyle tek tekrar ("Yeniden
+ *    gönder", `UiOutcomeNotice`); tekrar çözülünce bağ adımı ilk eylemin bağlamıyla sürer.
  */
 import { useForm } from 'vee-validate'
 import { computed, ref, watch, type Ref } from 'vue'
 
-import type { CompositeOutcome } from '@/shared/http/mutation'
+import type { CompositeOutcome, MutationOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { pushAppNotice, type ToastInput } from '@/shared/ui'
 
-import { useCatalogDepartments, useCreateCoordinatorship, useDeletedDepartments } from '../../api'
+import { existingDepartment, useCreateCoordinatorship } from '../../api'
 import type { CreateDepartmentInput, Department } from '../../model/types'
 import {
   CATALOG_CODES,
@@ -28,31 +30,27 @@ import {
   normalizeCode,
   type CreateValues,
 } from './department-schema'
-import type { DepartmentFormContext, ExistsState } from './department-types'
+import type { AnyOutcome, DepartmentFormContext, ExistsState } from './department-types'
 import { serverFieldErrors, toTypedSchema } from './form-kit'
 import type { useLinkStep } from './department-link'
 import { orgText } from './messages'
 
-/** `department_exists` eşleşme araması (yalnız hata alındıktan sonra açılır). */
-function useExistsLookup(ctx: DepartmentFormContext, existsName: Ref<string | null>) {
-  const enabled = () => ctx.hooks.open() && existsName.value !== null
-  const catalog = useCatalogDepartments(enabled)
-  const deleted = useDeletedDepartments(enabled)
+interface ExistingRef {
+  departmentId: string
+  deleted: boolean
+  /** Kullanıcının yazdığı ad (ad büyük/küçük harf duyarsız tekildir; gösterim için yeter). */
+  name: string
+}
 
+/** `department_exists` durumu (zarftan; ek istek yok). */
+function useExistsState(ctx: DepartmentFormContext, existing: Ref<ExistingRef | null>) {
   return computed<ExistsState | null>(() => {
-    const name = existsName.value
-    if (name === null) return null
-    const key = foldName(name)
-    const match = catalog.departments.value.find((d) => foldName(d.name) === key)
-    if (match) {
-      const linked = ctx.index.byId.value.get(match.department_id)
-      if (linked) return { kind: 'linked', name: linked.display_name }
-      return { kind: 'found', target: { departmentId: match.department_id, name: match.name } }
-    }
-    const gone = deleted.departments.value.find((d) => foldName(d.name) === key)
-    if (gone) return { kind: 'deleted', name: gone.name }
-    const settled = catalog.query.isFetched.value && deleted.query.isFetched.value
-    return settled ? { kind: 'not_found' } : { kind: 'searching' }
+    const found = existing.value
+    if (found === null) return null
+    if (found.deleted) return { kind: 'deleted', name: found.name }
+    const linked = ctx.index.byId.value.get(found.departmentId)
+    if (linked) return { kind: 'linked', name: linked.display_name }
+    return { kind: 'found', target: { departmentId: found.departmentId, name: found.name } }
   })
 }
 
@@ -73,13 +71,16 @@ const partialNotice = (): ToastInput => ({
 })
 
 type CreateResult = CompositeOutcome<unknown, Department, unknown>
+type CreateInput = Parameters<ReturnType<typeof useCreateCoordinatorship>['submit']>[0]
 
 interface CreateSettle {
   ctx: DepartmentFormContext
   link: ReturnType<typeof useLinkStep>
   onPartial: () => void
-  onExists: (name: string) => void
+  onExists: (existing: ExistingRef) => void
   setErrors: (errors: Partial<Record<keyof CreateValues, string>>) => void
+  /** "Sonuç bilinmiyor" çözülünce (aynı anahtarla tekrar) akışın devamı. */
+  resume: (outcome: AnyOutcome) => void
 }
 
 function settleCreate(result: CreateResult, name: string, s: CreateSettle): void {
@@ -98,11 +99,36 @@ function settleCreate(result: CreateResult, name: string, s: CreateSettle): void
   const failed = result.primary
   if (failed.kind === 'owner_disposed') return
   if (failed.kind === 'failed') {
-    if (failed.error.code === 'organization.department_exists') return s.onExists(name)
+    const existing =
+      failed.error.code === 'organization.department_exists'
+        ? existingDepartment(failed.error)
+        : null
+    if (existing) return s.onExists({ ...existing, name })
     const found = serverFieldErrors(failed.error, CREATE_FIELDS, CATALOG_CODES)
     if (Object.keys(found).length > 0) return s.setErrors(found)
   }
-  s.ctx.report(failed)
+  s.ctx.report(failed, s.resume)
+}
+
+/** Mevcut departman teklifi: bağ hedefini sunar; ad değişince teklif düşer. */
+function watchExisting(
+  values: { name: string },
+  existing: Ref<ExistingRef | null>,
+  exists: Ref<ExistsState | null>,
+  link: ReturnType<typeof useLinkStep>,
+): void {
+  watch(exists, (state) => {
+    if (state?.kind === 'found') link.offer(state.target)
+  })
+  watch(
+    () => values.name,
+    (name) => {
+      const current = existing.value
+      if (current === null || foldName(name) === foldName(current.name)) return
+      existing.value = null
+      link.reset()
+    },
+  )
 }
 
 export function useCreateMode(ctx: DepartmentFormContext, link: ReturnType<typeof useLinkStep>) {
@@ -113,36 +139,19 @@ export function useCreateMode(ctx: DepartmentFormContext, link: ReturnType<typeo
     initialValues: emptyCreate(),
   })
   const partial = ref(false)
-  const existsName = ref<string | null>(null)
-  const exists = useExistsLookup(ctx, existsName)
+  const existing = ref<ExistingRef | null>(null)
+  const exists = useExistsState(ctx, existing)
 
-  watch(exists, (state) => {
-    if (state?.kind === 'found') link.offer(state.target)
-  })
-  watch(
-    () => form.values.name,
-    (name) => {
-      if (existsName.value === null || foldName(name) === foldName(existsName.value)) return
-      existsName.value = null
-      link.reset()
-    },
-  )
+  watchExisting(form.values, existing, exists, link)
 
   function reset(): void {
     form.resetForm({ values: emptyCreate() })
     partial.value = false
-    existsName.value = null
+    existing.value = null
   }
 
-  const handle = form.handleSubmit(async (values) => {
-    const programId = store.snapshot.programId
-    if (!programId) return
-    ctx.clearNotice()
-    existsName.value = null
-    partial.value = false
-    link.reset()
-    const department = toDepartmentInput(values)
-    const result = await mutation.submit({ programId, department })
+  /** Sonuç işleme (ilk gönderim ve "Yeniden gönder" sonrası ortak). */
+  function finish(result: CreateResult, input: CreateInput): void {
     if (!ctx.dialog.alive()) {
       // Form söküldü: tam başarı ve hatalar sessiz; KISMİ sonuç (katalog kaydı var, bağ yok)
       // gerçek sunucu durumudur → uygulama düzeyi bildirim, eylemin oturum neslinde (W82c).
@@ -150,13 +159,29 @@ export function useCreateMode(ctx: DepartmentFormContext, link: ReturnType<typeo
         pushAppNotice(partialNotice(), result.primary.context?.generation)
       return
     }
-    settleCreate(result, department.name, {
+    settleCreate(result, input.department.name, {
       ctx,
       link,
       onPartial: () => (partial.value = true),
-      onExists: (name) => (existsName.value = name),
+      onExists: (found) => (existing.value = found),
       setErrors: (errors) => form.setErrors(errors),
+      resume: (outcome) => {
+        void mutation
+          .resume(input, outcome as MutationOutcome<CreateDepartmentInput, Department, unknown>)
+          .then((next) => finish(next, input))
+      },
     })
+  }
+
+  const handle = form.handleSubmit(async (values) => {
+    const programId = store.snapshot.programId
+    if (!programId) return
+    ctx.clearNotice()
+    existing.value = null
+    partial.value = false
+    link.reset()
+    const input: CreateInput = { programId, department: toDepartmentInput(values) }
+    finish(await mutation.submit(input), input)
   })
 
   return {

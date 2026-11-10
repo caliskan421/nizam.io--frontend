@@ -17,6 +17,7 @@ import {
   server,
 } from '../__tests__/harness'
 import {
+  existingDepartment,
   useCatalogDepartments,
   useCreateCoordinatorship,
   useDeletedDepartments,
@@ -128,7 +129,7 @@ describe('X-Result-Truncated: paylaşılan anahtar, okuyucudan bağımsız (shar
 })
 
 describe('yeni koordinatörlük: oluştur → bağla (bileşik, ilk eylemin bağlamı)', () => {
-  it('complete: bağ oluşturulan kimlikle ve eylemin programıyla; kod büyük harf; IK yok', async () => {
+  it('complete: bağ oluşturulan kimlikle ve eylemin programıyla; kod büyük harf; her adım kendi anahtarıyla (BE-050)', async () => {
     server.use(
       http.post(`${ORIGIN}/v1/departments`, () => json(DEPARTMENT, 201)),
       http.post(`${ORIGIN}/v1/program/departments`, () => json(LINK, 201)),
@@ -144,7 +145,55 @@ describe('yeni koordinatörlük: oluştur → bağla (bileşik, ilk eylemin bağ
     expect(create!.headers.get('X-Nizamio-Program')).toBeNull()
     expect(link!.body).toEqual({ department_id: 'nd' })
     expect(link!.headers.get('X-Nizamio-Program')).toBe('p1')
-    for (const req of [create!, link!]) expect(req.headers.get('Idempotency-Key')).toBeNull()
+    const keys = [create!, link!].map((req) => req.headers.get('Idempotency-Key'))
+    for (const key of keys) expect(key).toMatch(/^[A-Za-z0-9_-]{22}$/)
+    expect(keys[0]).not.toBe(keys[1])
+  })
+
+  it('409 department_exists → existingDepartment: fields[department_id] + fields[deleted] (BE-050)', async () => {
+    server.use(
+      http.post(`${ORIGIN}/v1/departments`, () =>
+        errorEnvelope('organization.department_exists', 409, [
+          { field: 'department_id', code: 'organization.existing_department', message: 'd-old' },
+          { field: 'deleted', code: 'organization.existing_department', message: 'true' },
+        ]),
+      ),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const out = await h.run(() => useCreateCoordinatorship()).submit(INPUT)
+    expect(out.kind).toBe('primary_failed')
+    const error =
+      out.kind === 'primary_failed' && out.primary.kind === 'failed' && out.primary.error
+    expect(error && existingDepartment(error)).toEqual({ departmentId: 'd-old', deleted: true })
+    expect(sent('POST', '/v1/program/departments')).toHaveLength(0)
+  })
+
+  it('oluşturma: sonuç bilinmiyor → retry aynı anahtar + gövde; çözülünce resume bağ adımını koşar', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}/v1/departments`, () =>
+        ++calls === 1 ? HttpResponse.error() : json(DEPARTMENT, 200),
+      ),
+      http.post(`${ORIGIN}/v1/program/departments`, () => json(LINK, 201)),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const m = h.run(() => useCreateCoordinatorship())
+    const first = await m.submit(INPUT)
+    expect(first.kind).toBe('primary_failed')
+    const unknown = first.kind === 'primary_failed' ? first.primary : null
+    expect(unknown?.kind).toBe('unknown_outcome')
+    if (unknown?.kind !== 'unknown_outcome' || !unknown.retry) throw new Error('retry yok')
+    const again = await unknown.retry()
+    expect(again.kind).toBe('success')
+    const done = await m.resume(INPUT, again)
+    expect(done.kind).toBe('complete')
+    const creates = sent('POST', '/v1/departments')
+    expect(creates).toHaveLength(2)
+    expect(creates[1]!.headers.get('Idempotency-Key')).toBe(
+      creates[0]!.headers.get('Idempotency-Key'),
+    )
+    expect(creates[1]!.body).toEqual(creates[0]!.body)
+    expect(sent('POST', '/v1/program/departments')).toHaveLength(1)
   })
 
   it('partial: bağ başarısız → katalog kaydı korunur, adım adı link', async () => {
@@ -194,25 +243,23 @@ describe('yeni koordinatörlük: oluştur → bağla (bileşik, ilk eylemin bağ
     expect(sent('POST', '/v1/program/departments')).toHaveLength(0)
   })
 
-  it('bağ adımında sonuç bilinmiyor → kör tekrar yok, departman listesi yeniden okunur', async () => {
-    let lists = 0
+  it('bağ adımında sonuç bilinmiyor → partial; retry aynı anahtarla tek tekrar (BE-050)', async () => {
+    let links = 0
     server.use(
-      http.get(`${ORIGIN}/v1/program/departments`, () => {
-        lists += 1
-        return json({ departments: [] })
-      }),
       http.post(`${ORIGIN}/v1/departments`, () => json(DEPARTMENT, 201)),
-      http.post(`${ORIGIN}/v1/program/departments`, () => HttpResponse.error()),
+      http.post(`${ORIGIN}/v1/program/departments`, () =>
+        ++links === 1 ? HttpResponse.error() : json(LINK, 200),
+      ),
     )
     const h = harness(ADMIN_SCOPE)
-    const index = h.run(() => useProgramDepartmentIndex())
-    await vi.waitFor(() => expect(index.query.isSuccess.value).toBe(true))
     const out = await h.run(() => useCreateCoordinatorship()).submit(INPUT)
     expect(out.kind).toBe('partial')
     const link = out.kind === 'partial' ? out.steps[0]!.outcome : null
-    expect(link?.kind === 'unknown_outcome' && link.retry).toBeNull()
-    expect(sent('POST', '/v1/program/departments')).toHaveLength(1)
-    await vi.waitFor(() => expect(lists).toBe(2))
+    if (link?.kind !== 'unknown_outcome' || !link.retry) throw new Error('retry yok')
+    expect((await link.retry()).kind).toBe('success')
+    const posts = sent('POST', '/v1/program/departments')
+    expect(posts).toHaveLength(2)
+    expect(posts[1]!.headers.get('Idempotency-Key')).toBe(posts[0]!.headers.get('Idempotency-Key'))
   })
 })
 

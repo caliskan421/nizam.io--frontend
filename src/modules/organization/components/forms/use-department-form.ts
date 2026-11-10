@@ -20,6 +20,8 @@ export function useDepartmentForm(hooks: DepartmentFormHooks) {
   const dialog = useFormDialog({ open: hooks.open, close: hooks.close })
   const editing = computed(() => Boolean(hooks.departmentId()))
   const notice = shallowRef<AnyOutcome | null>(null)
+  // "Yeniden gönder" çözülünce çalışacak devam (aynı anahtar + aynı gövde; K5).
+  let pendingResume: ((outcome: AnyOutcome) => void) | null = null
   const index = useProgramDepartmentIndex(hooks.open)
   // Kurulumda (eşzamanlı) alınır: form sökülünce geç sonucun bildirimi düşer (W82c).
   const toast = useToast()
@@ -36,15 +38,23 @@ export function useDepartmentForm(hooks: DepartmentFormHooks) {
       hooks.saved(departmentId)
       if (hooks.open()) hooks.close()
     },
-    report(outcome) {
+    report(outcome, resume) {
       if (outcome.kind === 'unknown_outcome') {
         notice.value = outcome
+        pendingResume = resume ?? null
         return
       }
       notifyOutcome(outcome)
     },
     clearNotice() {
       notice.value = null
+      pendingResume = null
+    },
+    resolved(outcome) {
+      const run = pendingResume
+      notice.value = null
+      pendingResume = null
+      run?.(outcome)
     },
   }
 
@@ -54,6 +64,7 @@ export function useDepartmentForm(hooks: DepartmentFormHooks) {
 
   watch(hooks.open, () => {
     notice.value = null
+    pendingResume = null
     link.reset()
     create.reset()
   })
@@ -62,5 +73,5 @@ export function useDepartmentForm(hooks: DepartmentFormHooks) {
     () => dialog.busy.value || create.pending.value || link.pending.value || edit.pending.value,
   )
 
-  return { editing, notice, pending, create, link, edit }
+  return { editing, notice, resolved: ctx.resolved, pending, create, link, edit }
 }
