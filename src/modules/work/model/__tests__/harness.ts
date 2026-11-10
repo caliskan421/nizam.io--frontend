@@ -66,7 +66,7 @@ const apps: App[] = []
 /** Pinia + kapsam + QueryClient; `run` composable'ı bir bileşen bağlamında koşturur. */
 export function harness(selection: ScopeSelection) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    defaultOptions: { queries: { retryDelay: 0, retry: false }, mutations: { retry: false } },
   })
   const pinia = createPinia()
   setActivePinia(pinia)

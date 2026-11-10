@@ -17,7 +17,7 @@ import { reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
-import { notifyOutcome, type ConfirmOptions } from '@/shared/ui/confirm'
+import { notifyOutcome, withTransferNote, type ConfirmOptions } from '@/shared/ui/confirm'
 
 import { useAssignMembership, useRemoveMember, useUpdateMembershipRole } from '../../api'
 import { usersText, type UsersTextKey } from './messages'
@@ -37,7 +37,7 @@ export function reportOutcome(
 ): boolean {
   if (outcome === null || !reachesOwner(outcome)) return false
   if (outcome.kind === 'success') {
-    toast.push({ message: usersText(success) })
+    toast.push({ message: withTransferNote(usersText(success), outcome.data) })
     return true
   }
   notifyOutcome(outcome)
@@ -53,6 +53,7 @@ function impact(kind: 'role' | 'remove'): ConfirmOptions {
       isRole ? 'users.panel.impact.roleConfirm' : 'users.panel.impact.removeConfirm',
     ),
     tone: isRole ? 'primary' : 'danger',
+    impactNotice: 'caller',
   }
 }
 

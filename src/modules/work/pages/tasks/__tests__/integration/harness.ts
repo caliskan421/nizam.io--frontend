@@ -190,7 +190,10 @@ export async function mountApp(selection: ScopeSelection, path = '/gorevler'): P
   const store = useScopeStore()
   store.commit(selection)
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
+    defaultOptions: {
+      queries: { retryDelay: 0, retry: false, gcTime: Infinity },
+      mutations: { retry: false },
+    },
   })
   const router = createRouter({
     history: createMemoryHistory(),

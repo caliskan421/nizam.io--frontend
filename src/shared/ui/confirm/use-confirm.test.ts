@@ -18,7 +18,7 @@ import { AuthSession } from '@/shared/session/auth-session'
 import { BASE, noopCoordination } from '../../../../tests/support/fake-backend'
 import { useToast } from '../use-toast'
 import ConfirmHost from './ConfirmHost.vue'
-import { unassignedTasks, useConfirm } from './use-confirm'
+import { unassignedTasks, useConfirm, withTransferNote } from './use-confirm'
 
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
@@ -123,6 +123,58 @@ describe('etkili işlem onayı (iki aşama)', () => {
     expect(useToast().current.value?.message).toBe(
       'İşlem tamamlandı; 2 görevdeki atama devredildi.',
     )
+    host.unmount()
+    stop()
+  })
+
+  it('impactNotice: caller → ortak devir bildirimi eklenmez; çağıran withTransferNote ile tek iletide birleştirir', async () => {
+    const confirms: Array<string | null> = []
+    server.use(
+      http.delete(`${BASE}/v1/departments/dep1/memberships/acc1`, ({ request }) => {
+        const confirm = new URL(request.url).searchParams.get('confirm')
+        confirms.push(confirm)
+        return confirm === 'true'
+          ? HttpResponse.json({ membership_id: 'm1', unassigned_tasks: 2, warning: true })
+          : HttpResponse.json(
+              {
+                code: 'organization.confirmation_required',
+                message: 'sunucu metni gösterilmez',
+                request_id: 'r',
+                fields: [
+                  { field: 'work_item', code: 'organization.task_title', message: 'Rapor' },
+                  { field: 'work_item', code: 'organization.task_title', message: 'Sunum' },
+                ],
+              },
+              { status: 409 },
+            )
+      }),
+    )
+    const host = mount(ConfirmHost, { attachTo: document.body })
+    const { mutation, stop } = removeMember()
+    const first = await mutation.submit({ id: 'dep1', accountId: 'acc1' })
+    if (first.kind !== 'confirmation_required') throw new Error(first.kind)
+
+    const pending = ownedConfirm().confirmImpact(first, { ...OPTIONS, impactNotice: 'caller' })
+    await flushPromises()
+    const dialog = document.querySelector('[data-testid="confirm-dialog"]')!
+    expect(dialog.getAttribute('role')).toBe('alertdialog')
+    expect(dialog.textContent).toContain('Üye kaldırılsın mı?')
+    expect(dialog.textContent).not.toContain('sunucu metni gösterilmez')
+    const items = [...document.querySelectorAll('[data-testid="confirm-items"] li')]
+    expect(items.map((li) => li.textContent?.trim())).toEqual(['Rapor', 'Sunum'])
+    expect(confirms).toEqual([null])
+
+    ;(document.querySelector('[data-testid="confirm-accept"]') as HTMLButtonElement).click()
+    await flushPromises()
+    const result = await pending
+    expect(result?.kind).toBe('success')
+    expect(confirms).toEqual([null, 'true'])
+    expect(document.querySelector('[data-testid="confirm-dialog"]')).toBeNull()
+    expect(useToast().current.value).toBeNull()
+    expect(withTransferNote('Çıkarıldı.', result?.kind === 'success' ? result.data : null)).toBe(
+      'Çıkarıldı. 2 görevdeki atama devredildi.',
+    )
+    expect(withTransferNote('Çıkarıldı.', { unassigned_tasks: 0 })).toBe('Çıkarıldı.')
     host.unmount()
     stop()
   })

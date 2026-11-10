@@ -53,12 +53,32 @@ describe('oturum sayfası (giriş formu)', () => {
     expect(submit.text()).toBe('Giriş')
   })
 
+  it('boş gönderim: sunucuya istek gitmez, alan hataları formda, odak ilk hatalı alanda (K-7)', async () => {
+    const { wrapper } = await mountPage()
+    const form = wrapper.get('[data-testid="login-form"]')
+    await form.trigger('submit')
+    await vi.waitFor(() => expect(form.text()).toContain('E-posta gerekli.'))
+    expect(backend.count('/v1/auth/login')).toBe(0)
+    expect(form.text()).toContain('Parola gerekli.')
+    expect(form.get('input[name="email"]').attributes('aria-invalid')).toBe('true')
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(form.get('input[name="email"]').element),
+    )
+    expect(wrapper.find('[data-testid="error"]').exists()).toBe(false)
+    // Yalnız parola boş: e-posta hatası yok.
+    await form.get('input[name="email"]').setValue('yonetici@example.test')
+    await form.trigger('submit')
+    await vi.waitFor(() => expect(form.text()).not.toContain('E-posta gerekli.'))
+    expect(form.text()).toContain('Parola gerekli.')
+    expect(backend.count('/v1/auth/login')).toBe(0)
+  })
+
   it('yanlış parola: hata kodu metni (sunucu mesajı değil), alert rolüyle', async () => {
     const { wrapper } = await mountPage()
     await wrapper.get('input[name="email"]').setValue('yonetici@example.test')
     await wrapper.get('input[name="password"]').setValue('yanlis')
     await wrapper.get('[data-testid="login-form"]').trigger('submit')
-    await flushPromises()
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="error"]').exists()).toBe(true))
     const alert = wrapper.get('[data-testid="error"]')
     expect(alert.attributes('role')).toBe('alert')
     expect(alert.get('[data-code]').attributes('data-code')).toBe('identity.credentials_invalid')
@@ -70,8 +90,7 @@ describe('oturum sayfası (giriş formu)', () => {
     await wrapper.get('input[name="email"]').setValue('yonetici@example.test')
     await wrapper.get('input[name="password"]').setValue('dogru-parola')
     await wrapper.get('[data-testid="login-form"]').trigger('submit')
-    await flushPromises()
-    await flushPromises()
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="me-email"]').exists()).toBe(true))
     expect(wrapper.get('[data-testid="me-email"]').text()).toBe('yonetici@example.test')
     expect(wrapper.find('[data-testid="login-form"]').exists()).toBe(false)
     expect(wrapper.get('[data-testid="logout"]').classes()).toContain('t-btn')

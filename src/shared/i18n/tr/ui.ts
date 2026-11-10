@@ -27,6 +27,7 @@ export const trConfirm = {
     impact: {
       items: 'Atamadan düşecek görevler',
       // MembershipChange: `unassigned_tasks` devredilen aktif atama sayısı (ORGANIZATION-K18).
+      transferred: '{n} görevdeki atama devredildi.',
       result: 'İşlem tamamlandı; {n} görevdeki atama devredildi.',
     },
     conflict: {

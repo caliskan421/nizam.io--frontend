@@ -29,10 +29,12 @@ export function useDepartmentForm(hooks: DepartmentFormHooks) {
     dialog,
     index,
     toast,
+    // Kapsam değişiminde pencere zaten kapandıysa (sayfa bağlı): yazma gerçekleşti, bildirim ve
+    // `saved` yine gelir (kısmi sonuçla aynı kural); ikinci bir kapanış yayılmaz (W97b, CX-F2-Ö-03).
     done(message, departmentId) {
       toast.push({ message })
       hooks.saved(departmentId)
-      hooks.close()
+      if (hooks.open()) hooks.close()
     },
     report(outcome) {
       if (outcome.kind === 'unknown_outcome') {
