@@ -164,8 +164,7 @@ function leaks(queryClient: QueryClient, secrets: string[]): string[] {
   return secrets.filter((s) => surfaces.some((text) => text.includes(s)))
 }
 
-beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
-beforeEach(() => {
+function freshWorld(): void {
   backend.reset()
   seedWorld(backend.db)
   auth = {
@@ -175,10 +174,27 @@ beforeEach(() => {
     cookie: null,
   }
   backend.server.use(...authOverrides())
-})
-afterEach(() => {
+}
+
+beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+// Isınma (W81 kalıbı): `bootWithLogin` her testte modül grafiğini tazeler; soğuk dönüşüm (uygulama
+// kökü, router, tembel sayfalar) ilk testin 5 sn bütçesinde ödenirse yük altında test zaman aşar
+// ve gövdesi sonraki testin DOM'unu sürmeye devam eder (sızan `fill`/`click` → çift POST, refresh).
+// Maliyet burada, kanca zaman aşımıyla ödenir.
+beforeAll(async () => {
+  freshWorld()
+  await bootWithLogin('/oturum')
+  await until(form, 'ısınma')
+  teardown()
+}, 30_000)
+beforeEach(freshWorld)
+afterEach(async () => {
   for (const wrapper of mounted.splice(0)) wrapper.unmount()
   teardown()
+  // Sökülen uygulamanın uçuştaki / ardıl istekleri (GET /v1/me → 401 → refresh) bitmeden sonraki
+  // testin `backend.reset()`'i çalışmasın: geç kalan istek yeni testin kaydına ve belirteç
+  // tablosuna sızıp sahte 401 → refresh üretiyordu.
+  await backend.settled()
 })
 afterAll(() => backend.server.close())
 

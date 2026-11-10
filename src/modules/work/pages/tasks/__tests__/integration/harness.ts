@@ -21,6 +21,8 @@ import { UiToast, useToast } from '@/shared/ui'
 import { ConfirmHost, useConfirm } from '@/shared/ui/confirm'
 
 import {
+  applyListFilter,
+  countsHandler,
   errorEnvelope,
   http,
   json,
@@ -93,14 +95,11 @@ function readHandlers(db: FakeWork, standing: StandingFixture) {
     return access.visible(item) ? ok(item) : access.denied(item)
   }
   return [
-    http.get(`${ORIGIN}/v1/program/work-items`, ({ request }) => {
-      const department = new URL(request.url).searchParams.get('department_id')
-      return json({
-        items: db.items.filter(
-          (i) => access.visible(i) && (!department || i.department_id === department),
-        ),
-      })
-    }),
+    // Liste ve sayaç AYNI görünürlük + süzgeçle (`department_id`, tekrarlı `assignee_account_id`).
+    http.get(`${ORIGIN}/v1/program/work-items`, ({ request }) =>
+      json({ items: applyListFilter(db.items.filter(access.visible), request) }),
+    ),
+    countsHandler(() => db.items.filter(access.visible)),
     http.get(`${ORIGIN}/v1/work-items/:id`, ({ params }) =>
       guarded(params.id, (item) => json(item)),
     ),

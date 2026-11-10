@@ -7,6 +7,7 @@ import { useToast } from '@/shared/ui'
 import {
   confirmationRequired,
   errorEnvelope,
+  byAssigneeQuery,
   http,
   json,
   MEMBERSHIP_CHANGE,
@@ -54,17 +55,20 @@ const toasts = () => useToast().queue.value.map((t) => t.message)
 const MEMBERSHIP = (d: string) => `/v1/departments/${d}/memberships/u1`
 
 describe('UserPanel — başlık, özet, roller', () => {
-  it('ad, alt satır (ilk birim +n · rol), kapat; görev özeti tek uçtan kişiye süzülür', async () => {
+  it('ad, alt satır (ilk birim +n · rol), kapat; görev özeti tek uçtan kişiye sunucuda süzülür', async () => {
     server.use(
-      http.get(`${ORIGIN}/v1/program/work-items`, () =>
+      http.get(`${ORIGIN}/v1/program/work-items`, ({ request }) =>
         json({
-          items: [
-            task('w1', 'u1', 'devam_ediyor', true),
-            task('w2', 'u1', 'iade_edildi'),
-            task('w3', 'u1', 'onaya_sunuldu'),
-            task('w4', 'u1', 'tamamlandi', true),
-            task('w5', 'u2', 'baslanmadi', true),
-          ],
+          items: byAssigneeQuery(
+            [
+              task('w1', 'u1', 'devam_ediyor', true),
+              task('w2', 'u1', 'iade_edildi'),
+              task('w3', 'u1', 'onaya_sunuldu'),
+              task('w4', 'u1', 'tamamlandi', true),
+              task('w5', 'u2', 'baslanmadi', true),
+            ],
+            request,
+          ),
         }),
       ),
       ...baseHandlers(),
@@ -81,6 +85,9 @@ describe('UserPanel — başlık, özet, roller', () => {
       '/kullanicilar/u1?kart=acik',
     )
     expect(sent('GET', '/v1/program/work-items')[0]!.query.get('department_id')).toBeNull()
+    expect(sent('GET', '/v1/program/work-items')[0]!.query.getAll('assignee_account_id')).toEqual([
+      'u1',
+    ])
     expect(wrapper.get('[data-testid="panel-profile"]').attributes('href')).toBe('/kullanicilar/u1')
     expect(wrapper.text()).not.toContain('Kaydet')
     expect(wrapper.text()).not.toContain('Vazgeç')

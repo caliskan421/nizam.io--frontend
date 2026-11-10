@@ -3,23 +3,32 @@ import './tasks.css'
 
 import { computed } from 'vue'
 
-import { designStub } from '@/shared/design-stub'
 import { UiButton } from '@/shared/ui'
 
 import { tasksText } from './messages'
 
 /**
- * Sayfalayıcı satırı (E-03-38…40, P4). Numaralı sayfalayıcı ve "sayfa başına" gizli; "‹ilk›–
- * ‹son› / ‹toplam›" kurulmaz (BE-003: toplam yok). Sol: yüklenen sayı — imleç bittiyse kesin
- * toplam, bitmediyse "daha fazlası var" + "yüklenen kayıtlar içinde"; orta: "Daha fazla yükle"
+ * Sayfalayıcı satırı (E-03-38…40, P4). Numaralı sayfalayıcı ve "sayfa başına" gizli (imleçli
+ * uç: sayfa numarası yok); "‹ilk›–‹son› / ‹toplam›" kurulmaz. Sol: imleç bittiyse kesin toplam;
+ * bitmediyse sunucu toplamı biliniyorsa "‹n› / ‹toplam› görev yüklendi" (`countProgramWorkItems`,
+ * BE-003), bilinmiyorsa "daha fazlası var" + "yüklenen kayıtlar içinde"; orta: "Daha fazla yükle"
  * (aynı uç, aynı süzgeç, `next_cursor`; fan-out değil §9), imleç bitince gizli.
  */
-const props = defineProps<{ loaded: number; hasMore: boolean; loadingMore: boolean }>()
+const props = defineProps<{
+  loaded: number
+  hasMore: boolean
+  loadingMore: boolean
+  /** Sunucu toplamı (sayaç ucu); bilinmiyorsa `null`/verilmez. */
+  total?: number | null
+}>()
 const emit = defineEmits<{ more: [] }>()
 
 const caption = computed(() => {
   if (!props.hasMore) return tasksText('tasksPage.pager.complete', { n: props.loaded })
-  const loaded = designStub('BE-003', tasksText('tasksPage.pager.partial', { n: props.loaded }))
+  if (props.total != null) {
+    return tasksText('tasksPage.pager.loadedOfTotal', { n: props.loaded, total: props.total })
+  }
+  const loaded = tasksText('tasksPage.pager.partial', { n: props.loaded })
   return `${loaded} · ${tasksText('tasksPage.partial')}`
 })
 </script>

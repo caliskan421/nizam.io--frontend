@@ -22,6 +22,7 @@ describe('görev listesi URL durumu (K10)', () => {
       talep: '1',
       q: 'İstanbul rapor',
       koordinatorluk: 'd-2',
+      kisi: 'acc-1,acc-2',
       sirala: 'bitis:azalan',
       gorev: 'w_9',
     }
@@ -31,6 +32,7 @@ describe('görev listesi URL durumu (K10)', () => {
       requests: true,
       search: 'İstanbul rapor',
       department: 'd-2',
+      people: ['acc-1', 'acc-2'],
       sort: { field: 'bitis', direction: 'azalan' },
       open: 'w_9',
     })
@@ -41,7 +43,7 @@ describe('görev listesi URL durumu (K10)', () => {
     expect(parseTasksQuery({ durum: 'iade_edildi' }).tab).toBe('iade_edildi')
   })
 
-  it('geçersiz değer sessizce düşer; kisi ve imleç taşınmaz', () => {
+  it('geçersiz değer sessizce düşer; imleç taşınmaz', () => {
     expect(
       parseTasksQuery({
         durum: 'yok',
@@ -50,12 +52,19 @@ describe('görev listesi URL durumu (K10)', () => {
         koordinatorluk: 'a/b',
         sirala: 'kisi:artan',
         gorev: [null, 'w1'],
-        kisi: 'acc-1',
+        kisi: 'a/b,,x y',
         cursor: 'c1',
       }),
     ).toEqual({ ...DEFAULT_TASKS_STATE, open: 'w1' })
     expect(parseTasksQuery({ sirala: 'gorev:yukari' }).sort).toBeNull()
     expect(parseTasksQuery({ q: 'x'.repeat(300) }).search).toHaveLength(200)
+  })
+
+  it('kisi: virgüllü kimlikler; geçersiz parça düşer, tekrarsız, en çok 50 (BE-038)', () => {
+    expect(parseTasksQuery({ kisi: 'a,b,a,c d,e/f' }).people).toEqual(['a', 'b'])
+    const many = Array.from({ length: 60 }, (_, i) => `p${i}`).join(',')
+    expect(parseTasksQuery({ kisi: many }).people).toHaveLength(50)
+    expect(tasksQuery({ ...DEFAULT_TASKS_STATE, people: ['a', 'b', 'a'] })).toEqual({ kisi: 'a,b' })
   })
 
   it('sıralama döngüsü: artan → azalan → varsayılan; başka sütun artandan başlar', () => {
@@ -73,6 +82,7 @@ describe('görev listesi URL durumu (K10)', () => {
       talep: '1',
       q: 'a',
       koordinatorluk: 'd1',
+      kisi: 'a1',
       sirala: 'durum:artan',
       gorev: 'w1',
     })

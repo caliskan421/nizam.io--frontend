@@ -66,7 +66,9 @@ function useTrackedTarget(workItemId: () => string) {
   }))
   const listDepartment = () =>
     store.lens === 'admin' && route ? parseTasksQuery(route.query).department : undefined
-  const target = useWorkItemTarget(workItemId, listDepartment)
+  const listPeople = () =>
+    store.lens !== 'member' && route ? parseTasksQuery(route.query).people : undefined
+  const target = useWorkItemTarget(workItemId, listDepartment, listPeople)
   return { target, listFetching }
 }
 

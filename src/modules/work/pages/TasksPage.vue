@@ -30,8 +30,8 @@ import { useTaskList } from './tasks/use-task-list'
 import { useTasksUrl } from './tasks/use-tasks-url'
 
 /**
- * 03 · Görevler › Liste (`/gorevler`, S2; W42). Tek uç `listProgramWorkItems` + istemci
- * sekme/arama/sıralama (K3, P4); URL durumu katalogdaki süzgeçler (K10). Eylem görünürlüğü
+ * 03 · Görevler › Liste (`/gorevler`, S2; W42). Tek uç `listProgramWorkItems` + sayaç ucu
+ * `countProgramWorkItems` (BE-003) + istemci sekme/arama/sıralama (K3, P4); URL durumu katalogdaki süzgeçler (K10). Eylem görünürlüğü
  * yalnız sunucu olgularından (`capabilities.ts`, P1); mercek yalnız içerik kapsamını seçer
  * (koordinatörlük süzgeci yalnız Admin merceğinde). Panel `gorev` ile (W43), yeni görev W45
  * (`?yeni=1` girişi ve sonucu `useNewTaskEntry`, W48). Kapsam değişince bellekteki durum
@@ -61,6 +61,8 @@ const state = computed(() => ({
   ...url.state.value,
   requests: showRequests.value && url.state.value.requests,
   department: adminLens.value ? url.state.value.department : null,
+  // Üye merceğinde küme zaten "ben" (sunucu süzgeci); kişi seçimi etkisiz.
+  people: store.lens === 'member' ? [] : url.state.value.people,
 }))
 
 const list = useTaskList(state, showRequests)
@@ -125,12 +127,7 @@ function loadMore(): void {
 
 <template>
   <section class="tasks-page" data-testid="tasks-page">
-    <TasksHead
-      :summary="list.summary.value"
-      :complete="list.complete.value"
-      :can-create="canCreate"
-      @create="creating = true"
-    />
+    <TasksHead :summary="list.summary.value" :can-create="canCreate" @create="creating = true" />
     <div class="rp-body">
       <div class="tasks-tools">
         <TasksStatusBar
@@ -139,7 +136,7 @@ function loadMore(): void {
           :requests="state.requests"
           :request-count="list.counts.value ? list.requestCount.value : null"
           :show-requests="showRequests"
-          :complete="list.complete.value"
+          :complete="list.countsExact.value"
           @update:tab="url.update({ tab: $event })"
           @update:requests="url.update({ requests: $event })"
         />
@@ -148,7 +145,11 @@ function loadMore(): void {
           :department="state.department"
           :departments="departments"
           :show-department="adminLens"
+          :people="state.people"
+          :candidates="list.items.value"
+          :person-locked="store.lens === 'member'"
           @update:search="url.update({ search: $event })"
+          @update:people="url.update({ people: $event })"
           @update:department="url.update({ department: $event })"
         />
         <RequestBand
@@ -210,6 +211,7 @@ function loadMore(): void {
           v-if="showPager"
           :loaded="list.items.value.length"
           :has-more="list.query.hasNextPage.value"
+          :total="list.total.value"
           :loading-more="list.query.isFetchingNextPage.value"
           @more="loadMore"
         />

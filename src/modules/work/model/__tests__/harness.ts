@@ -170,3 +170,59 @@ export function note(over: Partial<WorkItemNote> = {}): WorkItemNote {
     ...over,
   }
 }
+
+// --- WP2a (pin v0.15.0-api): sunucu atanan süzgeci (BE-038) ve sayaç ucu (BE-003) -------------
+// Sahte backend'ler listeyi/sayacı AYNI süzgeçle üretir (spec: görünürlük ve süzgeçler listeyle
+// aynıdır); süzgeçler görünürlükle KESİŞİR, yetki genişlemez.
+
+/** İstekteki `department_id` ve tekrarlı `assignee_account_id` (boş değer yok sayılır). */
+export function listFilterOf(request: Request): { department: string; assignees: string[] } {
+  const query = new URL(request.url).searchParams
+  return {
+    department: (query.get('department_id') ?? '').trim(),
+    assignees: [...new Set(query.getAll('assignee_account_id').filter((id) => id !== ''))],
+  }
+}
+
+/** Görünür satırlara istek süzgecini uygular (`department_id` VE; atananlar VEYA). */
+export function applyListFilter<
+  T extends { department_id: string; assignee_account_ids: readonly string[] },
+>(visible: readonly T[], request: Request): T[] {
+  const { department, assignees } = listFilterOf(request)
+  return visible.filter(
+    (i) =>
+      (department === '' || i.department_id === department) &&
+      (assignees.length === 0 || assignees.some((id) => i.assignee_account_ids.includes(id))),
+  )
+}
+
+/** `countProgramWorkItems` gövdesi: toplam, beş durum, geciken (tamamlanmış hariç), talepli. */
+export function fakeCounts(
+  items: readonly Pick<WorkItemDetail, 'status' | 'is_overdue' | 'pending_date_request'>[],
+) {
+  const by_status = {
+    baslanmadi: 0,
+    devam_ediyor: 0,
+    onaya_sunuldu: 0,
+    iade_edildi: 0,
+    tamamlandi: 0,
+  }
+  let overdue = 0
+  let pending = 0
+  for (const item of items) {
+    by_status[item.status] += 1
+    if (item.is_overdue && item.status !== 'tamamlandi') overdue += 1
+    if (item.pending_date_request != null) pending += 1
+  }
+  return { total: items.length, by_status, overdue, pending_date_requests: pending }
+}
+
+/** `GET /v1/program/work-items/counts` işleyicisi: `visible(request)` görünür satırları verir. */
+export function countsHandler(
+  visible: (request: Request) => readonly WorkItemDetail[],
+  path = `${ORIGIN}/v1/program/work-items/counts`,
+) {
+  return http.get(path, ({ request }) =>
+    json(fakeCounts(applyListFilter(visible(request) as WorkItemDetail[], request))),
+  )
+}
