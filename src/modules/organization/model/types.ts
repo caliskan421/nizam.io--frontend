@@ -6,12 +6,16 @@
 import type { components } from '@/shared/api/schema'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
+import type { UserRoleFilter } from './capabilities'
+
 type Schemas = components['schemas']
 
 export type KnownUser = Schemas['KnownUser']
 export type UserList = Schemas['UserList']
+export type UserRoleCounts = Schemas['UserRoleCounts']
 export type UserResult = Schemas['UserResult']
 export type AccountResult = Schemas['AccountResult']
+export type AccountStatusResult = Schemas['AccountStatusResult']
 export type RosterList = Schemas['RosterList']
 export type RosterMember = Schemas['RosterMember']
 export type AssignableList = Schemas['AssignableList']
@@ -171,12 +175,22 @@ export interface ListCompleteness {
   truncated: boolean
 }
 
-/** `listUsers` süzgeçleri (S1; anahtar `['users', filters]`). Rol süzgeci sunucuya GİTMEZ (ret). */
+/**
+ * `listUsers` süzgeçleri (S1; anahtar `['users', filters]`). v0.14: `role` (sekme), `program_id` /
+ * `department_id` (koordinatörlük süzgeci) sunucudadır; yanıt `total` + `role_counts` taşır.
+ * Boş/`null` alan anahtara girmez (varsayılan süzgeç anahtarı değişmez).
+ */
 export interface UserListFilters {
-  /** Sunucu `search` (yalnız ad, Türkçe katlamalı; E-05-07); boş/`null` → gönderilmez. */
+  /** Sunucu `search`: görünen ad (Türkçe katlamalı) ya da e-posta (BE-041); boş/`null` → gönderilmez. */
   search: string | null
   /** `sort_by=name` açıkça; yön (E-05-10). */
   sortOrder: SortOrder
+  /** Rol sekmesi (`company_admin` / "herhangi bir programda" K/Ü); `null` → süzgeçsiz. */
+  role?: UserRoleFilter | null
+  /** Koordinatörlük süzgeci için program (departman verilmişse o programda). */
+  programId?: string | null
+  /** Tek koordinatörlük (canlı departmanda ekip satırı olan hesaplar). */
+  departmentId?: string | null
 }
 
 export type SortOrder = 'asc' | 'desc'

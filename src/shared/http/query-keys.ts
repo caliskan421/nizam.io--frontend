@@ -64,6 +64,8 @@ export const queryKeys = {
   users: {
     all: () => ['users'] as const,
     list: (filters: QueryFilters) => ['users', filters] as const,
+    /** `readUser` — tek kullanıcı (BE-043, v0.14); `users` önekinde: kullanıcı yazmaları yeniler. */
+    detail: (accountId: string) => ['users', 'detail', accountId] as const,
   },
   departments: {
     all: (s: ScopeSnapshot) => scoped(s, ['departments']),
@@ -378,6 +380,8 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
       'updateAccount',
       'deleteAccount',
       'unlockAccount',
+      'disableAccount',
+      'enableAccount',
       'restoreAccount',
       'permanentDeleteAccount',
       'resetLockouts',

@@ -1,25 +1,23 @@
 /**
- * 05b kişi bilgisi (E-05-40…44). Tekil kullanıcı okuma ucu yok (BE-043); kaynak sırası:
+ * 05b kişi bilgisi (E-05-40…44). Kaynak sırası (BE-043, v0.14):
  *
- *  1. 05 liste önbelleği (`['users', …]` anahtarlı her sonsuz sorgu; ek istek yok).
- *  2. Önbellekte yoksa TEK `listUsers` sayfası: kişinin görevlerinden ad biliniyorsa o adla
- *     `search` (yalnız ad aranır, E-05-07), bilinmiyorsa varsayılan liste (05 ile aynı anahtar).
- *     Görev çekimi bitmeden (`settled`) başlatılmaz: ad önce görevlerden gelebilir.
+ *  1. Kullanıcı önbelleği (`['users', …]`: yüklenmiş liste sayfaları ve `readUser` sonuçları).
+ *  2. Önbellekte yoksa `readUser` (tek istek; ek `listUsers` taraması / ad ile arama yok).
  *  3. Ad için son çare görevlerin `assignees[].full_name`'i; o da yoksa "Bilinmeyen kişi".
  *
  * Roller ve birimler yalnız `memberships` etiketlerinden (seçili program; E-05-43/44); kişi
- * bulunamazsa `user = null` (rozet ve birim satırı çizilmez, "Görev ata" seçeneği okunamaz).
+ * bulunamazsa (404 `organization.account_not_found`) `user = null`.
  */
-import { useQueryClient, type InfiniteData } from '@tanstack/vue-query'
+import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
 
 import type { WorkItem } from '@/modules/work/public'
-import { queryKeys } from '@/shared/http/query-keys'
 import { useStanding } from '@/shared/scope/standing'
 
-import { useUserList } from '../../api'
+import { useUser } from '../../api'
 import { administrationFacts, canSeeAdministration } from '../../model/capabilities'
-import type { KnownUser, UserPage } from '../../model/types'
+import type { KnownUser } from '../../model/types'
+import { collectCachedUsers } from '../users/use-user-cache'
 
 type PersonItem = Pick<WorkItem, 'assignees'>
 
@@ -42,18 +40,7 @@ export function usePersonProfile(
   const queryClient = useQueryClient()
   const { standing } = useStanding()
 
-  function findCached(id: string): KnownUser | null {
-    const entries = queryClient.getQueriesData<InfiniteData<UserPage>>({
-      queryKey: queryKeys.users.all(),
-    })
-    for (const [, data] of entries) {
-      for (const page of data?.pages ?? []) {
-        const hit = page.page.users?.find((u) => u.account_id === id)
-        if (hit) return hit
-      }
-    }
-    return null
-  }
+  const findCached = (id: string) => collectCachedUsers(queryClient).get(id) ?? null
 
   const cached = shallowRef<KnownUser | null>(findCached(toValue(accountId)))
   const unsubscribe = queryClient.getQueryCache().subscribe(() => {
@@ -64,20 +51,14 @@ export function usePersonProfile(
 
   const itemName = computed(() => nameFromItems(toValue(items), toValue(accountId)))
   const allowed = computed(() => canSeeAdministration(administrationFacts(standing.value)))
-  const lookup = useUserList(
-    () => ({ search: itemName.value, sortOrder: 'asc' }),
-    () => allowed.value && cached.value === null && toValue(settled),
-  )
+  const lookup = useUser(accountId, () => allowed.value && cached.value === null)
   const looked = computed(
     () =>
       lookup.query.isError.value ||
       (lookup.query.isFetched.value && !lookup.query.isFetching.value),
   )
 
-  const user = computed(
-    () =>
-      cached.value ?? lookup.users.value.find((u) => u.account_id === toValue(accountId)) ?? null,
-  )
+  const user = computed(() => cached.value ?? lookup.user.value)
   const name = computed(() => user.value?.full_name.trim() || itemName.value || null)
   /** Ad/üyelik kaynakları tükendi mi (yükleniyor iskeletinden "Bilinmeyen kişi"ye geçiş). */
   const resolved = computed(

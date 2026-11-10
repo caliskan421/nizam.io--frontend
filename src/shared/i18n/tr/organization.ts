@@ -348,10 +348,8 @@ export const trOrganization = {
       title: 'Kullanıcılar',
       summary: {
         complete: '{n} kullanıcı · roller ve koordinatörlük atamaları',
-        partial: '{n}+ kullanıcı · yüklenen kayıtlar içinde',
         loading: 'Kullanıcılar yükleniyor…',
       },
-      partial: 'yüklenen kayıtlar içinde',
       export: 'Dışa aktar',
       create: 'Kullanıcı oluştur',
       tabs: {
@@ -363,7 +361,7 @@ export const trOrganization = {
       },
       search: {
         label: 'Kullanıcı ara',
-        placeholder: 'Ad…',
+        placeholder: 'Ad, e-posta…',
       },
       department: {
         label: 'Koordinatörlük',
@@ -387,25 +385,24 @@ export const trOrganization = {
         loading: 'Kullanıcılar yükleniyor',
         error: 'Kullanıcılar yüklenemedi.',
         truncated: 'Liste eksik olabilir: sunucu sonucu sınırladı.',
-        noTeam: 'Ekibi olmayan hesaplar listelenmez.',
       },
       pager: {
-        complete: '{n} kullanıcı',
-        partial: '{n} kullanıcı yüklendi',
+        range: '1–{to} / {total} kullanıcı',
         more: 'Daha fazla yükle',
         loadingMore: 'Yükleniyor…',
       },
       empty: {
         title: 'Kullanıcı yok',
-        text: 'Ekibi olan kullanıcı bulunamadı.',
+        text: 'Henüz kullanıcı yok.',
         filteredTitle: 'Sonuç yok',
         filteredText: 'Süzgeçlere uyan kullanıcı yok.',
         clear: 'Süzgeçleri temizle',
       },
       deepLink: {
-        missing: 'Seçili kullanıcı yüklenen listede yok; panel açılmadı.',
+        missing: 'Seçili kullanıcı bulunamadı; panel açılmadı.',
       },
       roles: {
+        admin: 'Admin',
         coordinator: 'Koordinatör',
         member: 'Üye',
       },
@@ -413,7 +410,7 @@ export const trOrganization = {
         label: 'Seçili kullanıcı',
         close: 'Paneli kapat',
         noTeam: 'Bu programda ekibi yok',
-        missing: 'Kullanıcı bilgisi yüklenen listede bulunamadı.',
+        missing: 'Kullanıcı bulunamadı.',
         summary: {
           label: 'Görev özeti',
           open: 'açık',
@@ -427,11 +424,20 @@ export const trOrganization = {
         role: {
           admin: 'Admin',
           adminDesc: 'Tüm koordinatörlükleri, kullanıcıları ve sezonu yönetir.',
-          adminUnknown: 'Mevcut değer okunamıyor.',
           coordinator: 'Koordinatör',
           coordinatorDesc: 'Koordinatörlüğünde görev atar, dosyaları onaylar.',
           member: 'Üye',
           memberDesc: 'Atanan görevleri yürütür, kanıt dosyası yükler.',
+        },
+        adminConfirm: {
+          grantTitle: 'Admin yetkisi ver',
+          grantBody: 'Kişi tüm koordinatörlükleri, kullanıcıları ve sezonu yönetebilir.',
+          grant: 'Yetki ver',
+          granted: 'Admin yetkisi verildi.',
+          revokeTitle: 'Admin yetkisini kaldır',
+          revokeBody: 'Kişi yönetim ekranlarına erişemez.',
+          revoke: 'Yetkiyi kaldır',
+          revoked: 'Admin yetkisi kaldırıldı.',
         },
         chips: {
           title: 'koordinatörlük',
@@ -462,6 +468,15 @@ export const trOrganization = {
         account: {
           resetLink: 'Şifre sıfırlama bağlantısı',
           lock: 'Hesabı kilitle',
+          lockTitle: 'Hesabı kilitle',
+          lockBody:
+            '{name} girişi kapatılır ve açık oturumları düşürülür. Görevleri yerinde kalır.',
+          lockConfirm: 'Kilitle',
+          locked: 'Hesap kilitlendi.',
+          enable: 'Hesabı etkinleştir',
+          enabled: 'Hesap etkinleştirildi.',
+          statusDisabled: 'Hesap kilitli (giriş kapalı)',
+          statusLocked: 'Giriş kilidi var (çok sayıda başarısız deneme)',
           temporaryPassword: 'Geçici parola belirle',
           unlock: 'Giriş kilidini kaldır',
           unlocked: 'Giriş kilidi kaldırıldı.',
@@ -486,7 +501,7 @@ export const trOrganization = {
         unassigned: 'Atanmamış',
         moreUnits: '{first} +{n}',
         moreRoles: '+{n}',
-        role: { coordinator: 'Koordinatör', member: 'Üye' },
+        role: { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' },
         editProfile: 'Profili düzenle',
         message: 'Mesaj',
         report: 'Kişisel rapor',

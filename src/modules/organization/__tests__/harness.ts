@@ -13,6 +13,8 @@ import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 import { useConfirm } from '@/shared/ui/confirm'
 
+import { isCompanyAdmin, serverRoleOf, userRoleFilterOf } from '../model/capabilities'
+
 export const ORIGIN = 'http://localhost'
 
 export interface Recorded {
@@ -124,8 +126,95 @@ export function rosterMember(id: string, name: string, role: string, status = 'a
   return { account_id: id, full_name: name, membership_id: `m-${id}`, role, status }
 }
 
-export function knownUser(id: string, name: string, memberships: string[] | null = []) {
-  return { account_id: id, full_name: name, memberships }
+/** v0.14 `KnownUser` (e-posta, yönetici, hesap/kilit durumu, yapısal ekipler). */
+export function knownUser(
+  id: string,
+  name: string,
+  memberships: string[] | null = [],
+  extra: Partial<{
+    email: string
+    company_admin: boolean
+    account_status: 'active' | 'disabled'
+    login_locked: boolean
+  }> = {},
+) {
+  const teams = (memberships ?? []).map((label) => {
+    const [program_id = '', department_id = '', role = ''] = label.split(':')
+    return {
+      program_id,
+      program_name: program_id,
+      department_id,
+      display_name: department_id,
+      role,
+    }
+  })
+  return {
+    account_id: id,
+    full_name: name,
+    email: `${id}@ornek.test`,
+    company_admin: false,
+    account_status: 'active' as const,
+    login_locked: false,
+    memberships,
+    teams,
+    ...extra,
+  }
+}
+
+type FakeUser = ReturnType<typeof knownUser>
+
+const ADMIN_FILTER = userRoleFilterOf('admin')
+const COORDINATOR = serverRoleOf('coordinator')
+const MEMBER = serverRoleOf('member')
+
+const foldText = (text: string) => text.toLocaleLowerCase('tr-TR').replace(/ı/g, 'i').trim()
+
+/**
+ * Sözleşmeye sadık `listUsers` (v0.14): `search` (ad ya da e-posta), `role` (`company_admin` /
+ * herhangi bir programda `koordinatorluk`…; program/departman verilirse o kapsamda),
+ * `program_id` / `department_id`, imleç (`next_cursor` = başlangıç sırası), `total` ve
+ * `role_counts` (rol hariç süzgeçlerle). Süzgeçsiz liste bütün hesaplardır (BE-045).
+ */
+export function userListHandler(users: readonly FakeUser[], options: { pageSize?: number } = {}) {
+  return http.get(`${ORIGIN}/v1/admin/users`, ({ request }) => {
+    const q = new URL(request.url).searchParams
+    const programId = q.get('program_id')
+    const departmentId = q.get('department_id')
+    const needle = foldText(q.get('search') ?? '')
+    const rolesOf = (u: FakeUser) =>
+      (u.teams ?? [])
+        .filter(
+          (t) =>
+            (!programId || t.program_id === programId) &&
+            (!departmentId || t.department_id === departmentId),
+        )
+        .map((t) => t.role)
+    const base = users.filter(
+      (u) =>
+        (!programId && !departmentId ? true : rolesOf(u).length > 0) &&
+        (needle === '' || foldText(u.full_name).includes(needle) || u.email.includes(needle)),
+    )
+    const hasRole = (u: FakeUser, role: string) => rolesOf(u).includes(role)
+    const wanted = q.get('role')
+    const filtered = !wanted
+      ? base
+      : base.filter((u) => (wanted === ADMIN_FILTER ? isCompanyAdmin(u) : hasRole(u, wanted)))
+    const start = Number(q.get('cursor') ?? 0)
+    const size = options.pageSize ?? 200
+    const page = filtered.slice(start, start + size)
+    const next = start + size < filtered.length ? String(start + size) : undefined
+    return json({
+      users: page,
+      ...(next ? { next_cursor: next } : {}),
+      total: filtered.length,
+      role_counts: {
+        all: base.length,
+        company_admin: base.filter((u) => isCompanyAdmin(u)).length,
+        koordinator: base.filter((u) => hasRole(u, COORDINATOR)).length,
+        uye: base.filter((u) => hasRole(u, MEMBER)).length,
+      },
+    })
+  })
 }
 
 export const MEMBERSHIP_CHANGE = { membership_id: 'm-1', unassigned_tasks: 0, warning: false }

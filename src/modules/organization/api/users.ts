@@ -4,19 +4,26 @@
  * verir.
  *
  *  - `listUsers` imleçli sonsuz sorgu: `limit` 200, `sort_by=name` + `sort_order` AÇIKÇA
- *    (E-05-10), `search` yalnız ad (E-05-07). Rol süzgeci sunucuya gönderilmez (ret: "herhangi bir
- *    programda" anlamı, G16) — sekmeler yüklenen kümede istemcide. Anahtar `['users', filters]`
- *    (ortak-kurallar §6); süzgeç/yön değişince yeni anahtar → eski imleç kullanılmaz. 422
- *    `organization.invalid_sort` → varsayılan sırayla bir kez yeniden okunur (E-05-10).
+ *    (E-05-10), `search` ad VEYA e-posta (BE-041), `role` / `program_id` / `department_id`
+ *    sunucuda (BE-011, v0.14); yanıt `total` + `role_counts` (sekme sayaçları ve liste toplamı
+ *    sunucudan, istemci sayımı yok). Süzgeçsiz liste ("Tümü") şirketteki bütün canlı hesaplardır
+ *    (ekip satırsız hesaplar dahil; BE-045). Anahtar `['users', filters]` (ortak-kurallar §6);
+ *    süzgeç/yön değişince yeni anahtar → eski imleç kullanılmaz. 422 `organization.invalid_sort`
+ *    → varsayılan sırayla bir kez yeniden okunur (E-05-10).
  *  - Yazmalar anahtarsız (`useKeylessMutation`). Geçici parola (`updateAccount`) YALNIZ form
  *    belleğinde kalır: mutasyon önbellekte tutulmaz (`gcTime: 0` + `reset()`), dönen sonuçta
  *    taslak yoktur (`redactDraft`), geçersizleme parolayı görmez (KESİN 7; P14).
  */
-import { useInfiniteQuery, type QueryFunctionContext, type QueryKey } from '@tanstack/vue-query'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+import {
+  useInfiniteQuery,
+  useQuery,
+  type QueryFunctionContext,
+  type QueryKey,
+} from '@tanstack/vue-query'
+import { computed, toValue, watchEffect, type MaybeRefOrGetter } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
-import { api } from '@/shared/http'
+import { api, unwrap } from '@/shared/http'
 import { isDetached, markDetached, type MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { sessionBound } from '@/shared/session/query-session'
@@ -25,6 +32,7 @@ import { serverRoleOf } from '../model/capabilities'
 import type {
   AccountRef,
   AccountResult,
+  AccountStatusResult,
   CreateUserInput,
   KnownUser,
   TemporaryPasswordInput,
@@ -64,6 +72,9 @@ function readUsers(
           limit: USER_PAGE_LIMIT,
           ...(sorted ? { sort_by: 'name', sort_order: filters.sortOrder } : {}),
           ...(search ? { search } : {}),
+          ...(filters.role ? { role: filters.role } : {}),
+          ...(filters.programId ? { program_id: filters.programId } : {}),
+          ...(filters.departmentId ? { department_id: filters.departmentId } : {}),
           ...(cursor ? { cursor } : {}),
         },
       },
@@ -103,6 +114,9 @@ export function useUserList(
       const key: QueryKey = queryKeys.users.list({
         search: current.search?.trim() || null,
         sortOrder: current.sortOrder,
+        ...(current.role ? { role: current.role } : {}),
+        ...(current.programId ? { programId: current.programId } : {}),
+        ...(current.departmentId ? { departmentId: current.departmentId } : {}),
       })
       return {
         queryKey: key,
@@ -123,14 +137,62 @@ export function useUserList(
     () => query.data.value?.pages.flatMap((p) => p.page.users ?? []) ?? [],
   )
   const truncated = computed(() => query.data.value?.pages.some((p) => p.truncated) === true)
+  const latest = computed(() => query.data.value?.pages.at(-1)?.page ?? null)
+  // Süzgeçli sayfa `limit`ten kısa (boş bile) dönüp `next_cursor` taşıyabilir: boş sayfada istemci
+  // `next_cursor` boşalana dek ilerler (satır atlanmaz; BE-011, istemci-akislari §3).
+  watchEffect(() => {
+    const page = latest.value
+    if (!toValue(enabled) || page === null || (page.users?.length ?? 0) > 0) return
+    if (query.hasNextPage.value && !query.isFetchingNextPage.value) void query.fetchNextPage()
+  })
   return {
     query,
     users,
+    /** Süzgeçlere uyan toplam hesap (`total`; imleç zincirinin tamamı) — sayfa sayısı değil. */
+    total: computed(() => latest.value?.total ?? null),
+    /** Rol dışındaki süzgeçlere uyan sekme sayıları (`role_counts`). */
+    roleCounts: computed(() => latest.value?.role_counts ?? null),
     // Kesilmiş küme tam değildir: "yüklenen kayıtlar içinde" etiketi kalkmaz (CX-F2-K-03).
     complete: computed(
       () => query.data.value !== undefined && query.hasNextPage.value === false && !truncated.value,
     ),
     truncated,
+  }
+}
+
+/**
+ * `readUser` (S1, yalnız ŞY; BE-043, v0.14): liste satırıyla aynı alanlar + bütün programlardaki
+ * ekip satırları. Derin bağlantı ve 05b başlığı liste yüklenmeden kişiyi buradan okur (liste
+ * önbelleği/ek `listUsers` taraması yok). Silinmiş/olmayan hesap 404
+ * `organization.account_not_found` (`notFound`).
+ */
+export function useUser(
+  accountId: MaybeRefOrGetter<string | null>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
+  const query = useQuery(
+    computed(() => {
+      const id = toValue(accountId)
+      return {
+        queryKey: queryKeys.users.detail(id ?? ''),
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+          unwrap(api.GET('/v1/admin/users/{id}', { params: { path: { id: id ?? '' } }, signal })),
+        ),
+        enabled: toValue(enabled) && id !== null && id !== '',
+        retry: retryTransient,
+        staleTime: ORGANIZATION_STALE_MS,
+      }
+    }),
+  )
+  return {
+    query,
+    user: computed<KnownUser | null>(() => query.data.value ?? null),
+    notFound: computed(
+      () =>
+        query.isError.value &&
+        query.error.value instanceof ApiError &&
+        query.error.value.code === 'organization.account_not_found',
+    ),
   }
 }
 
@@ -208,6 +270,34 @@ export function useUnlockAccount() {
     operation: 'unlockAccount',
     send: (vars, ctx) =>
       api.POST('/v1/admin/accounts/{id}/unlock', {
+        params: { path: { id: vars.accountId } },
+        signal: ctx.signal,
+      }),
+  })
+}
+
+/**
+ * `disableAccount` (BE-012, yalnız ŞY): girişi kapatır, oturumları düşürür (`revoked_sessions`);
+ * idempotent (`changed`). Atamalar devredilmez. Anahtarsız uç: sonuç bilinmiyorsa kör tekrar yok,
+ * liste yeniden okunur (satırdaki `account_status` gerçeği söyler).
+ */
+export function useDisableAccount() {
+  return useKeylessMutation<AccountRef, AccountStatusResult>({
+    operation: 'disableAccount',
+    send: (vars, ctx) =>
+      api.POST('/v1/admin/accounts/{id}/disable', {
+        params: { path: { id: vars.accountId } },
+        signal: ctx.signal,
+      }),
+  })
+}
+
+/** `enableAccount` (BE-012, yalnız ŞY): kapatılmış hesabı açar (yetki geri gelir); idempotent. */
+export function useEnableAccount() {
+  return useKeylessMutation<AccountRef, AccountStatusResult>({
+    operation: 'enableAccount',
+    send: (vars, ctx) =>
+      api.POST('/v1/admin/accounts/{id}/enable', {
         params: { path: { id: vars.accountId } },
         signal: ctx.signal,
       }),

@@ -12,9 +12,10 @@ import { usersText } from './messages'
 import { departmentNames, roleBadges, ROLE_TEXT, type UserRow } from './user-rows'
 
 /**
- * Kullanıcı satırı (E-05-13…21). Seçim kutusu gizli, sütun boş kalır (E-05-14, P7); e-posta
- * satırı çizilmez (E-05-17, BE-041). Ad → 05b; satır ve "Ayrıntı" düğmesi yan paneli açar.
- * Rozetler yalnız gösterim (K1): ilk rol + "+n" (`title` kalan roller); Admin rozeti yok.
+ * Kullanıcı satırı (E-05-13…21). Seçim kutusu gizli, sütun boş kalır (E-05-14, P7); adın altında
+ * e-posta (`KnownUser.email`, E-05-17, BE-041). Ad → 05b; satır ve "Ayrıntı" düğmesi yan paneli
+ * açar. Rozetler yalnız gösterim (K1): ilk rol + "+n" (`title` kalan roller); şirket yöneticisi
+ * ilk rozet olarak çerçeveli "Admin" (E-05-18, BE-042).
  */
 const props = defineProps<{
   row: UserRow
@@ -50,10 +51,16 @@ const restTitle = computed(() => badges.value.rest.map((r) => usersText(ROLE_TEX
         >
           {{ row.fullName }}
         </RouterLink>
+        <span class="rp-cap rp-trunc" data-testid="user-email">{{ row.email }}</span>
       </span>
     </span>
     <span role="cell" class="users-row__roles">
-      <span v-if="badges.first" class="t-badge users-badge" data-testid="role-first">
+      <span
+        v-if="badges.first"
+        class="t-badge users-badge"
+        :class="{ 'users-badge--admin': badges.first === 'admin' }"
+        data-testid="role-first"
+      >
         {{ usersText(ROLE_TEXT[badges.first]) }}
       </span>
       <span

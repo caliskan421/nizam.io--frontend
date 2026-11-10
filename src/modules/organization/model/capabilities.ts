@@ -34,20 +34,41 @@ export function serverRoleOf(role: TeamRole): 'koordinator' | 'uye' {
 
 /**
  * 05 rol sekmesi (E-05-06) URL değerleri — `rol` süzgecinin değer kümesi (rota kataloğu buradan
- * okur; K1 lint: rol dizesi yalnız capability dosyasında). "Admin" sekmesi devre dışı
- * (`designStub('BE-042')`); değer yine kümededir (URL elle yazılabilir, sekme devre dışı kalır).
+ * okur; K1 lint: rol dizesi yalnız capability dosyasında).
  */
 export const USER_ROLE_TABS = ['tumu', 'admin', 'koordinator', 'uye'] as const
 export type UserRoleTab = (typeof USER_ROLE_TABS)[number]
 
+/** `listUsers.role` değer kümesi (v0.14): şirket yöneticisi ya da "herhangi bir programda" rol. */
+export type UserRoleFilter = 'company_admin' | ReturnType<typeof serverRoleOf>
+
 /**
- * Seçili programdaki rollerin bir sekmeye uyup uymadığı (istemci süzmesi, yüklenen küme içinde;
- * E-05-06). "Admin" okunamaz (BE-042) → hiçbir satır eşleşmez.
+ * Sekmenin sunucu `role` süzgeci (BE-042/BE-011): "Tümü" süzgeçsizdir; "Admin" şirket olgusu
+ * (`company_admin`); Koordinatör/Üye "herhangi bir programda bu rol" (ADR-0023 k.18). Sayaçlar
+ * aynı yanıtın `role_counts`'undan (`countsByTab`), istemci süzmesi yoktur.
  */
-export function matchesRoleTab(tab: UserRoleTab, roles: ReadonlySet<TeamRole>): boolean {
-  if (tab === 'tumu') return true
+export function userRoleFilterOf(tab: UserRoleTab): UserRoleFilter | null {
+  if (tab === 'admin') return 'company_admin'
   const role = teamRoleOf(tab)
-  return role !== null && roles.has(role)
+  return role === null ? null : serverRoleOf(role)
+}
+
+/** Hesap şirket yöneticisi mi (`KnownUser.company_admin`; okuma yalnız burada, K1). */
+export const isCompanyAdmin = (user: { company_admin: boolean }): boolean => user.company_admin
+
+/** `UserList.role_counts` → sekme sayaçları. */
+export function countsByTab(counts: {
+  all: number
+  company_admin: number
+  koordinator: number
+  uye: number
+}): Record<UserRoleTab, number> {
+  return {
+    tumu: counts.all,
+    admin: counts.company_admin,
+    koordinator: counts.koordinator,
+    uye: counts.uye,
+  }
 }
 
 // --- Olgular ---------------------------------------------------------------------------------
@@ -109,6 +130,7 @@ export type OrganizationCapability =
   | 'createUser'
   | 'setTemporaryPassword'
   | 'unlockAccount'
+  | 'changeAccountStatus'
   | 'deleteUser'
   | 'changeCompanyAdmin'
   | 'assignMembership'
@@ -129,7 +151,9 @@ export const ORGANIZATION_CAPABILITY_SOURCES: Readonly<Record<OrganizationCapabi
   setTemporaryPassword:
     '05 backend §3 E-05-05 ek — updateAccount {password}: yalnız ŞY (ORGANIZATION-K36); P14',
   unlockAccount:
-    '05 backend §3 E-05-35 — unlockAccount: yalnız ŞY; durum okunamaz, her zaman görünür (P14, BE-044)',
+    '05 backend §3 E-05-35 — unlockAccount: yalnız ŞY; koşul satırdaki `login_locked` (BE-044, v0.14)',
+  changeAccountStatus:
+    '05 backend §3 E-05-35 — disableAccount / enableAccount: yalnız ŞY (BE-012, v0.14); hedef ≠ çağıran (kendini kapatma kilitlenme)',
   deleteUser:
     '05 backend §3 E-05-36 — deleteUser: ŞY ∨ K (K koşulu istemcide hesaplanamaz → 403 ile karşılanır, ORGANIZATION-K26/K27); hedef ≠ çağıran (K20)',
   changeCompanyAdmin:
@@ -168,6 +192,7 @@ export const ORGANIZATION_CAPABILITIES: Readonly<
   createUser: (f) => f.companyAdmin || f.coordinator,
   setTemporaryPassword: (f) => f.companyAdmin,
   unlockAccount: (f) => f.companyAdmin,
+  changeAccountStatus: (f) => f.companyAdmin && notSelf(f),
   deleteUser: (f) => (f.companyAdmin || f.coordinatesAny) && notSelf(f),
   changeCompanyAdmin: (f) => f.companyAdmin && notSelf(f),
   assignMembership: (f) => f.companyAdmin || f.coordinator,

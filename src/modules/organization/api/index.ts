@@ -36,9 +36,12 @@ export {
   transferOffer,
   useCreateUser,
   useDeleteUser,
+  useDisableAccount,
+  useEnableAccount,
   useSetTemporaryPassword,
   useUnlockAccount,
   useUpdateUser,
+  useUser,
   useUserList,
 } from './users'
 export { useAllWorkItemPages, useDepartmentWorkItems, usePersonWorkItems } from './work'

@@ -12,7 +12,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { DesignStub, UiIcon, useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 
-import { useDeleteUser, useUnlockAccount } from '../../api'
+import { useDeleteUser, useDisableAccount, useEnableAccount, useUnlockAccount } from '../../api'
 import { can, organizationFacts } from '../../model/capabilities'
 import TemporaryPasswordDialog from '../forms/TemporaryPasswordDialog.vue'
 import { usersText } from './messages'
@@ -22,13 +22,20 @@ import { reportOutcome } from './use-chip-actions'
  * E-05-34…36 + satır dışı hesap eylemleri (P14, #15). Görünürlük `capabilities.ts`; kendi
  * hesabında yıkıcı eylem (sil) gizli (ORGANIZATION-K20).
  *  - Şifre sıfırlama bağlantısı: devre dışı `designStub('BE-013')` (bağlantı yok).
- *  - Hesabı kilitle: devre dışı `designStub('BE-012')`; kilit durumu okunamaz, gösterge yok.
+ *  - Hesabı kilitle / etkinleştir (BE-012, v0.14): `account_status`'a göre `disableAccount` (oturumları
+ *    düşürür → istemci onayı) ya da `enableAccount`; yalnız ŞY, kendi hesabında gizli.
  *  - Geçici parola belirle (ŞY): W74 `TemporaryPasswordDialog` (parola yalnız form belleğinde).
- *  - Giriş kilidini kaldır (ŞY): her zaman görünür; 409 `account_not_locked` → bilgi.
+ *  - Giriş kilidini kaldır (ŞY): yalnız satırdaki `login_locked` doğruyken (BE-044); yarışta 409
+ *    `account_not_locked` → bilgi.
  *  - Kullanıcıyı sil: `deleteUser` onay kapısı yok → istemci yıkıcı onayı (`confirmWrite`,
  *    "açık görevleri size devredilir"); vazgeçte istek yok; başarıda `deleted`.
  */
-const props = defineProps<{ accountId: string; name: string }>()
+const props = defineProps<{
+  accountId: string
+  name: string
+  accountStatus: 'active' | 'disabled'
+  loginLocked: boolean
+}>()
 const emit = defineEmits<{ deleted: [accountId: string] }>()
 
 const store = useScopeStore()
@@ -36,6 +43,8 @@ const { standing } = useStanding()
 const { confirmWrite } = useConfirm()
 const remove = useDeleteUser()
 const unlock = useUnlockAccount()
+const disable = useDisableAccount()
+const enable = useEnableAccount()
 const queryClient = useQueryClient()
 // Kurulumda (eşzamanlı) alınır: sökülmüş ekranın geç sonucu bildirim üretmez (Ö-07, W82c).
 const toast = useToast()
@@ -58,6 +67,30 @@ async function onUnlock(): Promise<void> {
     void queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
   }
   reportOutcome(toast, outcome, 'users.panel.account.unlocked')
+}
+
+async function onDisable(): Promise<void> {
+  if (disable.isPending.value) return
+  const accountId = props.accountId
+  const outcome = await confirmWrite(
+    {
+      title: usersText('users.panel.account.lockTitle'),
+      body: [usersText('users.panel.account.lockBody', { name: props.name })],
+      confirmLabel: usersText('users.panel.account.lockConfirm'),
+      tone: 'danger' as const,
+    },
+    (context) => disable.submit({ accountId }, { context }),
+  )
+  reportOutcome(toast, outcome, 'users.panel.account.locked')
+}
+
+async function onEnable(): Promise<void> {
+  if (enable.isPending.value) return
+  reportOutcome(
+    toast,
+    await enable.submit({ accountId: props.accountId }),
+    'users.panel.account.enabled',
+  )
 }
 
 async function onDelete(): Promise<void> {
@@ -93,14 +126,25 @@ async function onDelete(): Promise<void> {
         </span>
       </button>
     </DesignStub>
-    <DesignStub id="BE-012" as="div">
-      <button class="rp-menuitem" type="button" disabled data-testid="account-lock">
-        <UiIcon name="lock" size="sm" />
-        <span class="rp-menuitem__label rp-trunc">
-          {{ usersText('users.panel.account.lock') }}
-        </span>
-      </button>
-    </DesignStub>
+    <button
+      v-if="can('changeAccountStatus', facts)"
+      class="rp-menuitem"
+      type="button"
+      :disabled="disable.isPending.value || enable.isPending.value"
+      :data-testid="accountStatus === 'disabled' ? 'account-enable' : 'account-lock'"
+      @click="accountStatus === 'disabled' ? onEnable() : onDisable()"
+    >
+      <UiIcon :name="accountStatus === 'disabled' ? 'unlock' : 'lock'" size="sm" />
+      <span class="rp-menuitem__label rp-trunc">
+        {{
+          usersText(
+            accountStatus === 'disabled'
+              ? 'users.panel.account.enable'
+              : 'users.panel.account.lock',
+          )
+        }}
+      </span>
+    </button>
     <button
       v-if="can('setTemporaryPassword', facts)"
       class="rp-menuitem"
@@ -114,7 +158,7 @@ async function onDelete(): Promise<void> {
       </span>
     </button>
     <button
-      v-if="can('unlockAccount', facts)"
+      v-if="can('unlockAccount', facts) && loginLocked"
       class="rp-menuitem"
       type="button"
       :disabled="unlock.isPending.value"

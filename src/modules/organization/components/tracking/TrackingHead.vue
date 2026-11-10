@@ -13,9 +13,9 @@ import { newTaskLocation, type PersonUnit } from './assign'
 import { trackingText } from './messages'
 
 /**
- * E-05-41…48 — profil başlığı. Ad E-05-40 kaynağından (yüklenirken iskelet); rol rozeti seçili
- * programdaki roller (ilk + "+n", Admin yok; K1 yalnız gösterim); alt satır birim adları, e-posta
- * yok (BE-041). Eylemler: "Profili düzenle" → 05 yan paneli (`?secili=`, P15); "Mesaj" (F7) ve
+ * E-05-41…48 — profil başlığı. Ad E-05-40 kaynağından (yüklenirken iskelet); rol rozeti Admin (varsa) +
+ * seçili programdaki roller (ilk + "+n"; K1 yalnız gösterim); alt satır birim adları · e-posta (BE-041);
+ * Admin ilk rozet (BE-042). Eylemler: "Profili düzenle" → 05 yan paneli (`?secili=`, P15); "Mesaj" (F7) ve
  * "Kişisel rapor" (F6) açıklamalı devre dışı (P2, stub yok); "Görev ata" work
  * `canCreateWorkItem` ile görünür, hedef koordinatörlük AÇIK seçilir (kişinin birimleri; tekse
  * doğrudan) ve Görevler ekranının yeni görev girişine gider. Kapsam değişince seçici kapanır.
@@ -25,6 +25,10 @@ const props = defineProps<{
   name: string | null
   resolved: boolean
   roles: readonly TeamRole[]
+  /** Şirket yöneticisi (ilk rozet Admin; BE-042). */
+  companyAdmin?: boolean
+  /** `KnownUser.email` (BE-041); okunamadıysa `null`. */
+  email?: string | null
   /** Seçili programdaki birimler; kişi okunamadıysa `null`. */
   units: readonly PersonUnit[] | null
 }>()
@@ -36,9 +40,10 @@ const { standing } = useStanding()
 const displayName = computed(
   () => props.name ?? (props.resolved ? trackingText('tracking.unknownPerson') : null),
 )
-const roleLabels = computed(() =>
-  props.roles.map((role) => trackingText(`tracking.head.role.${role}`)),
-)
+const roleLabels = computed(() => [
+  ...(props.companyAdmin ? [trackingText('tracking.head.role.admin')] : []),
+  ...props.roles.map((role) => trackingText(`tracking.head.role.${role}`)),
+])
 const subtitle = computed(() => {
   const units = props.units
   if (units === null) return null
@@ -130,7 +135,12 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
             }}</UiBadge
           >
         </div>
-        <p v-if="subtitle" class="rp-sub rp-trunc" data-units>{{ subtitle }}</p>
+        <p v-if="subtitle" class="rp-sub rp-trunc" data-units>
+          {{ subtitle
+          }}<template v-if="email">
+            · <span data-email>{{ email }}</span></template
+          >
+        </p>
       </div>
     </div>
     <div class="rp-actions">

@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
-
 import {
   ADMIN_SCOPE,
+  errorEnvelope,
   harness,
   http,
   json,
+  knownUser,
   ORIGIN,
   requests,
   resetHarness,
@@ -58,7 +58,7 @@ describe('kişi bilgisi kaynağı (E-05-40, BE-043)', () => {
     h.queryClient.setQueryData(queryKeys.users.list({ search: null, sortOrder: 'asc' }), {
       pages: [
         {
-          page: { users: [{ account_id: 'u1', full_name: 'Ada', memberships: [] }] },
+          page: { users: [knownUser('u1', 'Ada', [])] },
           truncated: false,
         },
       ],
@@ -71,24 +71,33 @@ describe('kişi bilgisi kaynağı (E-05-40, BE-043)', () => {
     expect(users()).toHaveLength(0)
   })
 
-  it('görev çekimi bitmeden arama yok; bitince adla TEK arama', async () => {
+  it('önbellekte yoksa readUser ile TEK istek; listUsers taraması / ad ile arama yok (BE-043)', async () => {
     standing()
     server.use(
-      http.get(`${ORIGIN}/v1/admin/users`, () =>
-        json({ users: [{ account_id: 'u1', full_name: 'Ada Kaya', memberships: ['p1:d1:uye'] }] }),
+      http.get(`${ORIGIN}/v1/admin/users/u1`, () =>
+        json(knownUser('u1', 'Ada Kaya', ['p1:d1:uye'], { email: 'ada@ornek.test' })),
       ),
     )
     const h = harness(ADMIN_SCOPE)
-    const settled = ref(false)
-    const r = h.run(() => usePersonProfile('u1', [item([['u1', 'Ada Kaya']])], settled))
-    await h.flush()
-    expect(users()).toHaveLength(0)
-    expect(r.name.value).toBe('Ada Kaya')
-    expect(r.user.value).toBeNull()
-    settled.value = true
+    const r = h.run(() => usePersonProfile('u1', [item([['u1', 'Ada Kaya']])], false))
     await vi.waitFor(() => expect(r.user.value?.memberships).toEqual(['p1:d1:uye']))
-    expect(users()).toHaveLength(1)
-    expect(users()[0]!.query.get('search')).toBe('Ada Kaya')
+    expect(r.user.value?.email).toBe('ada@ornek.test')
+    expect(requests.filter((q) => q.path === '/v1/admin/users/u1')).toHaveLength(1)
+    expect(users()).toHaveLength(0)
+  })
+
+  it('readUser 404 → kişi null; ad görevlerden, çözüldü', async () => {
+    standing()
+    server.use(
+      http.get(`${ORIGIN}/v1/admin/users/u1`, () =>
+        errorEnvelope('organization.account_not_found', 404),
+      ),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const r = h.run(() => usePersonProfile('u1', [item([['u1', 'Ada Kaya']])], true))
+    await vi.waitFor(() => expect(r.resolved.value).toBe(true))
+    expect(r.user.value).toBeNull()
+    expect(r.name.value).toBe('Ada Kaya')
   })
 
   it('hiçbir kaynakta yoksa ad null, çözüldü; yönetici değilse liste okunmaz', async () => {

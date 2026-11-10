@@ -1,8 +1,18 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { http, json, knownUser, ORIGIN, resetHarness, sent, server } from '../../__tests__/harness'
+import {
+  http,
+  HttpResponse,
+  knownUser,
+  ORIGIN,
+  resetHarness,
+  sent,
+  server,
+  userListHandler,
+} from '../../__tests__/harness'
 import {
   baseHandlers,
+  USERS,
   mountWith,
   settle,
   unmountAll,
@@ -24,13 +34,13 @@ const rowOf = (w: Awaited<ReturnType<typeof mountWith>>['wrapper'], id: string) 
   w.find(`[data-account="${id}"]`)
 
 describe('UsersTable — liste (listUsers)', () => {
-  it('satırlar: ad → 05b, seçim kutusu ve e-posta yok, rozetler, koordinatörlük hücresi', async () => {
+  it('satırlar: ad → 05b, adın altında e-posta (BE-041), seçim kutusu yok, rozetler, koordinatörlük hücresi', async () => {
     server.use(...baseHandlers(), usersHandler())
     const { wrapper } = await mountWith(UsersTable, PROPS)
 
     expect(wrapper.findAll('[role="row"][data-account]')).toHaveLength(3)
     expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(0)
-    expect(wrapper.text()).not.toContain('@')
+    expect(rowOf(wrapper, 'u1').get('[data-testid="user-email"]').text()).toBe('u1@ornek.test')
     const ayse = rowOf(wrapper, 'u1')
     expect(ayse.get('[data-testid="user-name"]').attributes('href')).toBe('/kullanicilar/u1')
     expect(ayse.get('[data-testid="role-first"]').text()).toBe('Koordinatör')
@@ -41,10 +51,12 @@ describe('UsersTable — liste (listUsers)', () => {
     const cem = rowOf(wrapper, 'u3')
     expect(cem.get('[data-testid="user-coord"]').text()).toBe('Atanmamış')
     expect(cem.find('[data-testid="role-first"]').exists()).toBe(false)
-    expect(wrapper.find('[data-testid="users-no-team"]').exists()).toBe(true)
+    // "Tümü" ekip satırsız hesapları da içerir (BE-045): "listelenmez" notu yok.
+    expect(wrapper.find('[data-testid="users-no-team"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('listelenmez')
   })
 
-  it('next_cursor dolu → yüklenen sayı + etiket, "Daha fazla yükle"; bitince düğme gizli, toplam yok', async () => {
+  it('next_cursor dolu → "1–‹yüklenen› / ‹sunucu toplamı›", "Daha fazla yükle"; bitince düğme gizli (BE-011)', async () => {
     server.use(
       ...baseHandlers(),
       usersHandler(USERS_FIRST, 'c1', [knownUser('u9', 'Zeki Öz', ['p1:d3:uye'])]),
@@ -52,14 +64,13 @@ describe('UsersTable — liste (listUsers)', () => {
     const { wrapper } = await mountWith(UsersTable, PROPS)
 
     const caption = () => wrapper.get('[data-testid="users-caption"]').text()
-    expect(caption()).toBe('1 kullanıcı yüklendi · yüklenen kayıtlar içinde')
+    expect(caption()).toBe('1–1 / 2 kullanıcı')
     await wrapper.get('[data-testid="users-more"]').trigger('click')
     await settle()
 
     expect(sent('GET', '/v1/admin/users')[1]!.query.get('cursor')).toBe('c1')
-    expect(caption()).toBe('2 kullanıcı')
+    expect(caption()).toBe('1–2 / 2 kullanıcı')
     expect(wrapper.find('[data-testid="users-more"]').exists()).toBe(false)
-    expect(wrapper.text()).not.toMatch(/\d+–\d+ \//)
   })
 
   it('sıralama: yön değişimi yeni sorgu (sort_order=desc, imleçsiz) ve aria-sort', async () => {
@@ -91,12 +102,14 @@ describe('UsersTable — liste (listUsers)', () => {
     expect(table.emitted('select')).toEqual([['u2'], ['u1']])
   })
 
-  it('rol sekmesi seçili programın etiketlerine göre süzer', async () => {
-    server.use(...baseHandlers(), usersHandler())
+  it('rol sekmesi sunucuda süzülür (role=uye); istemci süzmesi yok', async () => {
+    server.use(...baseHandlers(), userListHandler(USERS))
     const { wrapper } = await mountWith(UsersTable, { ...PROPS, roleTab: 'uye' })
+    expect(sent('GET', '/v1/admin/users')[0]!.query.get('role')).toBe('uye')
     expect(wrapper.findAll('[data-account]').map((r) => r.attributes('data-account'))).toEqual([
       'u1',
       'u2',
+      'u3',
     ])
   })
 
@@ -111,50 +124,32 @@ describe('UsersTable — liste (listUsers)', () => {
   })
 })
 
-describe('UsersTable — tek koordinatörlük (listMembers)', () => {
-  it('tek istek, listUsers yok; silinmiş satır gizli; kesme → "liste eksik olabilir"', async () => {
+describe('UsersTable — tek koordinatörlük (listUsers department_id)', () => {
+  it('tek uç: listUsers program_id + department_id; listMembers yok; kesme → "liste eksik olabilir"', async () => {
     server.use(
       ...baseHandlers(),
-      http.get(`${ORIGIN}/v1/departments/d1/members`, () =>
-        json(
+      http.get(`${ORIGIN}/v1/admin/users`, () =>
+        HttpResponse.json(
           {
-            members: [
-              {
-                account_id: 'u1',
-                full_name: 'Ayşe Demir',
-                membership_id: 'm1',
-                role: 'koordinator',
-                status: 'active',
-              },
-              {
-                account_id: 'u7',
-                full_name: 'Eski Kişi',
-                membership_id: 'm7',
-                role: 'uye',
-                status: 'deleted',
-              },
-            ],
+            users: [knownUser('u1', 'Ayşe Demir', ['p1:d1:koordinator'])],
+            total: 3,
+            role_counts: { all: 3, company_admin: 0, koordinator: 1, uye: 2 },
           },
-          200,
-          { 'X-Result-Truncated': 'true' },
+          { headers: { 'X-Result-Truncated': 'true' } },
         ),
       ),
     )
     const { wrapper } = await mountWith(UsersTable, { ...PROPS, departmentId: 'd1' })
 
-    expect(sent('GET', '/v1/departments/d1/members')).toHaveLength(1)
-    expect(sent('GET', '/v1/admin/users')).toHaveLength(0)
-    const [req] = sent('GET', '/v1/departments/d1/members')
-    expect(req!.headers.get('X-Nizamio-Program')).toBe('p1')
-    expect(req!.headers.get('X-Nizamio-Department')).toBeNull()
+    const [req] = sent('GET', '/v1/admin/users')
+    expect(req!.query.get('department_id')).toBe('d1')
+    expect(req!.query.get('program_id')).toBe('p1')
+    expect(sent('GET', '/v1/departments/d1/members')).toHaveLength(0)
     expect(wrapper.findAll('[data-account]').map((r) => r.attributes('data-account'))).toEqual([
       'u1',
     ])
     expect(wrapper.find('[data-testid="users-truncated"]').exists()).toBe(true)
-    // Kesilmiş küme "tam" sayılmaz: "Toplam" yerine yüklenen sayı + etiket (CX-F2-K-03).
-    expect(wrapper.get('[data-testid="users-caption"]').text()).toBe(
-      '1 kullanıcı yüklendi · yüklenen kayıtlar içinde',
-    )
+    expect(wrapper.get('[data-testid="users-caption"]').text()).toBe('1–1 / 3 kullanıcı')
   })
 })
 

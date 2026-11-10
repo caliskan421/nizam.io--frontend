@@ -2,17 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { KnownUser, ProgramDepartment } from '../../model/types'
 import { usersText } from './messages'
-import {
-  departmentNames,
-  filterByTab,
-  panelSubline,
-  roleBadges,
-  rowFromRoster,
-  rowFromUser,
-  searchRows,
-  sortRows,
-  tabCounts,
-} from './user-rows'
+import { departmentNames, panelSubline, roleBadges, rowFromUser } from './user-rows'
 
 const user = (id: string, name: string, memberships: string[] | null): KnownUser => ({
   account_id: id,
@@ -44,7 +34,7 @@ describe('satır modeli (seçili program etiketleri)', () => {
     expect(rowFromUser(user('a', 'Ayşe', ['p1:d1:uye']), null).labels).toEqual([])
   })
 
-  it('birleşik rol: aynı programda K + Ü → ilk rozet Koordinatör, +1 Üye (Admin yok)', () => {
+  it('birleşik rol: aynı programda K + Ü → ilk rozet Koordinatör, +1 Üye (yönetici değilse Admin yok)', () => {
     const row = rowFromUser(user('a', 'Ayşe', ['p1:d2:uye', 'p1:d1:koordinator']), 'p1')
     expect(roleBadges(row)).toEqual({ first: 'coordinator', rest: ['member'] })
     expect(roleBadges(rowFromUser(user('b', 'Berk', []), 'p1'))).toEqual({ first: null, rest: [] })
@@ -63,51 +53,41 @@ describe('satır modeli (seçili program etiketleri)', () => {
     expect(panelSubline(rowFromUser(user('b', 'B', []), 'p1'), DEPTS)).toBeNull()
   })
 
-  it('ekip satırından: önbellek varsa bütün etiketler, yoksa yalnız bu birim', () => {
-    const member = {
-      account_id: 'a',
-      full_name: 'Ayşe',
-      membership_id: 'm',
-      role: 'uye',
-      status: 'active' as const,
-    }
-    expect(rowFromRoster(member, 'p1', 'd1').labels).toEqual([
-      { programId: 'p1', departmentId: 'd1', role: 'member' },
-    ])
-    const known = user('a', 'Ayşe', ['p1:d2:koordinator', 'p1:d1:uye'])
-    expect(rowFromRoster(member, 'p1', 'd1', known).labels).toHaveLength(2)
-  })
-})
-
-describe('sekmeler, arama, sıralama', () => {
-  const rows = [
-    rowFromUser(user('a', 'Işık Ünal', ['p1:d1:koordinator']), 'p1'),
-    rowFromUser(user('b', 'ayşe kaya', ['p1:d2:uye']), 'p1'),
-    rowFromUser(user('c', 'Cem', ['p2:d1:uye']), 'p1'),
-  ]
-
-  it('sekme süzmesi ve sayaçlar yüklenen kümede; Admin hiçbir satırla eşleşmez (BE-042)', () => {
-    expect(filterByTab(rows, 'koordinator').map((r) => r.accountId)).toEqual(['a'])
-    expect(filterByTab(rows, 'uye').map((r) => r.accountId)).toEqual(['b'])
-    expect(filterByTab(rows, 'admin')).toEqual([])
-    expect(tabCounts(rows)).toEqual({ tumu: 3, admin: 0, koordinator: 1, uye: 1 })
+  it('hesap olguları sunucudan: e-posta, company_admin, account_status, login_locked (BE-041/042/044)', () => {
+    const row = rowFromUser(
+      {
+        ...user('a', 'Ayşe', ['p1:d1:uye']),
+        company_admin: true,
+        account_status: 'disabled',
+        login_locked: true,
+      },
+      'p1',
+    )
+    expect(row).toMatchObject({
+      email: 'a@example.test',
+      companyAdmin: true,
+      accountStatus: 'disabled',
+      loginLocked: true,
+    })
   })
 
-  it('arama yalnız ad, Türkçe katlamalı (I/ı)', () => {
-    expect(searchRows(rows, 'ışık').map((r) => r.accountId)).toEqual(['a'])
-    expect(searchRows(rows, 'AYŞE').map((r) => r.accountId)).toEqual(['b'])
-    expect(searchRows(rows, '  ')).toHaveLength(3)
-  })
-
-  it('ad sıralaması Türkçe, iki yön', () => {
-    expect(sortRows(rows, 'asc').map((r) => r.accountId)).toEqual(['b', 'c', 'a'])
-    expect(sortRows(rows, 'desc').map((r) => r.accountId)).toEqual(['a', 'c', 'b'])
+  it('şirket yöneticisi ilk rozet (Admin), ekip rolleri ardından (BE-042)', () => {
+    const admin = { ...user('a', 'Ayşe', ['p1:d1:uye', 'p1:d2:koordinator']), company_admin: true }
+    expect(roleBadges(rowFromUser(admin, 'p1'))).toEqual({
+      first: 'admin',
+      rest: ['coordinator', 'member'],
+    })
+    // Ekibi olmayan yönetici de Admin rozetiyle görünür (BE-045).
+    expect(roleBadges(rowFromUser({ ...user('b', 'B', []), company_admin: true }, 'p1'))).toEqual({
+      first: 'admin',
+      rest: [],
+    })
   })
 })
 
 describe('metinler', () => {
   it('yer tutucular doldurulur; ağaçta olmayan parça boş döner', () => {
-    expect(usersText('users.pager.complete', { n: 3 })).toBe('3 kullanıcı')
+    expect(usersText('users.pager.range', { to: 3, total: 185 })).toBe('1–3 / 185 kullanıcı')
     expect(usersText('users.table.open', { name: 'Ayşe' })).toBe('Ayşe ayrıntısını aç')
   })
 })
