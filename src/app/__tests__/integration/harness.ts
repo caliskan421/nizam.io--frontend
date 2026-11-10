@@ -116,10 +116,33 @@ export type Backend = ReturnType<typeof createBackend>
 
 export { PEOPLE, seedTimeline, seedWorld } from './world'
 
+/** Sahte `BroadcastChannel`: kardeş sekmenin iletisi oturumun gerçek abonesine ulaşır. */
+export class SiblingChannel {
+  static live: SiblingChannel[] = []
+  readonly listeners: Array<(event: { data: unknown }) => void> = []
+  constructor(readonly name: string) {
+    SiblingChannel.live.push(this)
+  }
+  postMessage(): void {}
+  addEventListener(_type: string, fn: (event: { data: unknown }) => void): void {
+    this.listeners.push(fn)
+  }
+}
+
+/** Kardeş sekme `data` iletisini yayınlar (yalnız `siblingChannel: true` açılışta dinleyen olur). */
+export function siblingSays(data: unknown): void {
+  for (const channel of SiblingChannel.live) for (const fn of channel.listeners) fn({ data })
+}
+
 export interface BootOptions {
   /** Giriş yapacak hesabın e-postası (sahte backend `accounts`). */
   email: string
   path: string
+  /**
+   * Gerçek kardeş ileti kanalı: `BroadcastChannel` yerine `SiblingChannel` (oturumun gerçek
+   * aboneliği); `siblingSays` kardeş sekmenin iletisini ulaştırır. Varsayılan kapalı (`undefined`).
+   */
+  siblingChannel?: boolean
   /** Hatırlanan kapsam (K2 tercih anahtarları); verilmezse kabuk kendisi çözer. */
   scope?: { programId: string; lens: ScopeLens; departmentId?: string }
 }
@@ -128,7 +151,8 @@ const mounted: VueWrapper[] = []
 
 /** Taze modül grafiği + açık giriş + üretim router'ı + `App.vue`; kabuk görünene dek bekler. */
 export async function boot(options: BootOptions) {
-  vi.stubGlobal('BroadcastChannel', undefined)
+  SiblingChannel.live = []
+  vi.stubGlobal('BroadcastChannel', options.siblingChannel ? SiblingChannel : undefined)
   vi.resetModules()
   const pinia = createPinia()
   setActivePinia(pinia)

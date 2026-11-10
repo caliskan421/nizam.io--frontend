@@ -14,6 +14,7 @@ import {
   idle,
   PEOPLE,
   seedTimeline,
+  siblingSays,
   switchScope,
   teardown,
   toasts,
@@ -218,5 +219,32 @@ describe('(10) kardeş sekme çıkışı sırasında geciktirilmiş Gantt GET’
         .filter((q) => String(q.queryKey).includes('gantt') && q.state.data !== undefined),
     ).toHaveLength(0)
     expect($('[data-testid="timeline-page"]')).toBeNull()
+  })
+})
+
+describe('(10b) GERÇEK kardeş ileti kanalı: çıkış → başka hesapla giriş TAMAMLANIR → geç Gantt yanıtı', () => {
+  it('kardeş sekme çıkışı + yeni hesapla tamamlanmış giriş sonrası gelen eski yanıt yeni önbelleğe yazılmaz', async () => {
+    const held = backend.hold('GET', GANTT_ADMIN)
+    const app = await boot({ ...ADMIN_ADMIN, path: '/zaman-cizelgesi', siblingChannel: true })
+    await held.arrived
+    const { SESSION_MESSAGE_VERSION } = await import('@/shared/session/messages')
+    // Kardeş sekme çıkışı: bu sekmede oturum KENDİLİĞİNDEN kapanır (yerel çıkış düğmesi yok).
+    siblingSays({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId: PEOPLE.admin.account_id })
+    await until(() => $('[data-testid="login-form"]'), 'giriş formu')
+    expect(app.session.accountId).toBeNull()
+    // Başka hesapla giriş TAMAMLANIR.
+    await fill('[data-testid="login-form"] [name="email"]', PEOPLE.member.email)
+    await fill('[data-testid="login-form"] [name="password"]', 'dogru-parola')
+    await click(() => byText('[data-testid="login-form"] button', 'Giriş'))
+    await until(() => app.session.accountId === PEOPLE.member.account_id, 'yeni oturum')
+    // Eski oturumun yanıtı ancak şimdi gelir.
+    held.release()
+    await idle(app.queryClient)
+    const withData = app.queryClient
+      .getQueryCache()
+      .getAll()
+      .filter((q) => String(q.queryKey).includes('gantt') && q.state.data !== undefined)
+    expect(withData.map((q) => JSON.stringify(q.state.data)).join('')).not.toContain('Motor testi')
+    expect(withData.filter((q) => JSON.stringify(q.queryKey).includes('admin'))).toHaveLength(0)
   })
 })
