@@ -8,8 +8,8 @@ import { subtaskText } from './messages'
 import { useSubtaskSummary } from './use-subtask-summary'
 
 /**
- * Çubuğun yanındaki "b/t" sayaç çipi (E-03C-46). YALNIZ açılmış satırda ve liste yüklendikten
- * sonra; hepsi bittiyse ✓ vurgusu. Konumu üst (çubuk satırı) belirler.
+ * Çubuğun yanındaki "b/t" sayaç çipi (E-03C-46). YALNIZ açılmış satırda; sayı satırın `subtask_counts`'ından (BE-051), liste
+ * yüklenince canlı listeden; hepsi bittiyse ✓ vurgusu. Konumu üst (çubuk satırı) belirler.
  */
 const props = defineProps<SubtaskRowsProps>()
 

@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { defineComponent } from 'vue'
 
 import { authSession } from '@/shared/http'
+import { isValidIdempotencyKey } from '@/shared/http/mutation/idempotency-key'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import {
@@ -153,31 +154,61 @@ describe('updateWorkItem — yalnız tarih alanları + expected_dates_revision',
 })
 
 describe('extendWorkItem', () => {
-  it('POST /extend {days}; ne sürüm ne IK; ExtendResult sonuçta (cascade_count sonradan bildirilir)', async () => {
+  it('POST /extend {days, expected_dates_revision?}; eylem başına Idempotency-Key; ExtendResult sonuçta (cascade_count sonradan bildirilir)', async () => {
     server.use(
       http.post(`${ORIGIN}/v1/work-items/w1/extend`, () =>
-        json({ cascade_count: 2, new_end_on: '2026-11-13' }),
+        json({ cascade_count: 2, new_end_on: '2026-11-13', dates_revision: 5, replayed: false }),
       ),
     )
     const h = harness(ADMIN_SCOPE)
     const { keys, stale } = seed(h)
     const extend = h.run(() => useExtendWorkItem())
-    const outcome = await extend.submit({ ...ref, days: 3 })
+    const outcome = await extend.submit({ ...ref, days: 3, expectedDatesRevision: 4 })
 
     expect(outcome.kind === 'success' && outcome.data).toEqual({
       cascade_count: 2,
       new_end_on: '2026-11-13',
+      dates_revision: 5,
+      replayed: false,
     })
     const [req] = sent('POST', '/v1/work-items/w1/extend')
-    expect(req!.body).toEqual({ days: 3 })
-    expect(req!.headers.get('Idempotency-Key')).toBeNull()
+    expect(req!.body).toEqual({ days: 3, expected_dates_revision: 4 })
+    expect(isValidIdempotencyKey(req!.headers.get('Idempotency-Key') ?? '')).toBe(true)
+    // Yeni kullanıcı eylemi yeni anahtar.
+    await extend.submit({ ...ref, days: 3, expectedDatesRevision: 4 })
+    const [first, second] = sent('POST', '/v1/work-items/w1/extend')
+    expect(second!.headers.get('Idempotency-Key')).not.toBe(first!.headers.get('Idempotency-Key'))
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
     // Zincir başka departmanı kaydırabilir: Gantt'ın bütün yüzleri.
     expect(stale(keys.ganttAdmin)).toBe(true)
     expect(stale(keys.ganttCoord)).toBe(true)
   })
 
-  it('sonuç bilinmiyor: ÇİFT UZATMA yok — tek istek, retry null, Gantt yeniden okunur', async () => {
+  it('sonuç bilinmiyor: AYNI anahtarla TEK tekrar; tekrar replayed:true başarıdır (çift uzatma yok)', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/w1/extend`, () => {
+        calls += 1
+        return calls === 1
+          ? new HttpResponse(null, { status: 503 })
+          : json({ cascade_count: 0, new_end_on: '2026-11-13', dates_revision: 7, replayed: true })
+      }),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const extend = h.run(() => useExtendWorkItem())
+    const outcome = await extend.submit({ ...ref, days: 3 })
+    expect(outcome.kind).toBe('success')
+    // `dates_revision` ilk sonucun sürümüdür; başarı olarak döner.
+    expect(outcome.kind === 'success' && outcome.data.replayed).toBe(true)
+    const requests = sent('POST', '/v1/work-items/w1/extend')
+    expect(requests).toHaveLength(2)
+    expect(requests[1]!.headers.get('Idempotency-Key')).toBe(
+      requests[0]!.headers.get('Idempotency-Key'),
+    )
+    expect(requests[1]!.body).toEqual(requests[0]!.body)
+  })
+
+  it('tekrar da bilinmiyorsa: iki istek, kör tekrar biter (retry null), Gantt + görev yeniden okunur', async () => {
     server.use(
       http.post(`${ORIGIN}/v1/work-items/w1/extend`, () => new HttpResponse(null, { status: 503 })),
     )
@@ -187,9 +218,29 @@ describe('extendWorkItem', () => {
     const outcome = await extend.submit({ ...ref, days: 3 })
     expect(outcome.kind).toBe('unknown_outcome')
     expect(outcome.kind === 'unknown_outcome' && outcome.retry).toBeNull()
-    expect(sent('POST', '/v1/work-items/w1/extend')).toHaveLength(1)
+    expect(sent('POST', '/v1/work-items/w1/extend')).toHaveLength(2)
     expect(stale(keys.ganttAdmin)).toBe(true)
     expect(stale(keys.item)).toBe(true)
+  })
+
+  it('409 work.edit_conflict (bayat expected_dates_revision) ve 409 idempotency_key_reused ayrı sonuç türleridir; tekrar yok', async () => {
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/w1/extend`, () =>
+        errorEnvelope('work.edit_conflict', 409, [{ field: 'expected_dates_revision' }]),
+      ),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const extend = h.run(() => useExtendWorkItem())
+    const outcome = await extend.submit({ ...ref, days: 3, expectedDatesRevision: 1 })
+    expect(outcome.kind).toBe('edit_conflict')
+    expect(sent('POST', '/v1/work-items/w1/extend')).toHaveLength(1)
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/w1/extend`, () =>
+        errorEnvelope('work.idempotency_key_reused', 409),
+      ),
+    )
+    const reused = await extend.submit({ ...ref, days: 4 })
+    expect(reused.kind).toBe('idempotency_key_reused')
   })
 
   it('409 work.item_completed ve 422 extend_days_out_of_range failed döner', async () => {
@@ -230,6 +281,7 @@ describe('requestDateChange', () => {
       ...ref,
       newStartOn: '2026-11-02',
       newEndOn: '2026-11-12',
+      expectedDatesRevision: 3,
     })
 
     expect(outcome.kind).toBe('success')
@@ -238,8 +290,9 @@ describe('requestDateChange', () => {
       work_item_id: 'w1',
       new_start_on: '2026-11-02',
       new_end_on: '2026-11-12',
+      expected_dates_revision: 3,
     })
-    expect(req!.headers.get('Idempotency-Key')).toBeNull()
+    expect(isValidIdempotencyKey(req!.headers.get('Idempotency-Key') ?? '')).toBe(true)
     expect(req!.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
     for (const key of [keys.requests, keys.ganttCoord, keys.item, keys.list]) {
@@ -277,7 +330,30 @@ describe('requestDateChange', () => {
     expect(sent('POST', '/v1/date-change-requests')).toHaveLength(1)
   })
 
-  it('sonuç bilinmiyor: çift talep yok; talep listesi yeniden okunur', async () => {
+  it('sonuç bilinmiyor: AYNI anahtarla tek tekrar (ağ hatası); tekrar başarılıysa çift talep yok', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}/v1/date-change-requests`, () => {
+        calls += 1
+        return calls === 1 ? HttpResponse.error() : json({ request_id: 'r1' }, 200)
+      }),
+    )
+    const h = harness(COORD_SCOPE)
+    const request = h.run(() => useRequestDateChange())
+    const outcome = await request.submit({
+      ...ref,
+      newStartOn: '2026-11-02',
+      newEndOn: '2026-11-12',
+    })
+    expect(outcome.kind).toBe('success')
+    const requests = sent('POST', '/v1/date-change-requests')
+    expect(requests).toHaveLength(2)
+    expect(requests[1]!.headers.get('Idempotency-Key')).toBe(
+      requests[0]!.headers.get('Idempotency-Key'),
+    )
+  })
+
+  it('tekrar da bilinmiyorsa: iki istek, retry null; talep listesi ve görev yeniden okunur', async () => {
     server.use(http.post(`${ORIGIN}/v1/date-change-requests`, () => HttpResponse.error()))
     const h = harness(COORD_SCOPE)
     const { keys, stale } = seed(h)
@@ -288,7 +364,7 @@ describe('requestDateChange', () => {
       newEndOn: '2026-11-12',
     })
     expect(outcome.kind === 'unknown_outcome' && outcome.retry).toBeNull()
-    expect(sent('POST', '/v1/date-change-requests')).toHaveLength(1)
+    expect(sent('POST', '/v1/date-change-requests')).toHaveLength(2)
     expect(stale(keys.requests)).toBe(true)
     expect(stale(keys.item)).toBe(true)
   })

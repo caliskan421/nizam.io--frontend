@@ -1,7 +1,7 @@
 /**
  * Sayfa çerçevesi hesapları (saf): sayaçlar, istemci süzgeçleri, görev aralığı, haftalık
  * yoğunluk ve ölçek adımı. Hepsi YÜKLÜ Gantt yanıtından (ilk 200 kalem) türer; tavan
- * ayrıca `model/ceiling.ts` ile işaretlenir (E-03C-02, 15, 82).
+ * ayrıca `X-Result-Truncated` ile işaretlenir (BE-019) (E-03C-02, 15, 82).
  */
 import type { GanttScale, GanttStatusFilter } from '../../components'
 import { dayDiff, dayNumber, plannedEnd } from '../../model/dates'

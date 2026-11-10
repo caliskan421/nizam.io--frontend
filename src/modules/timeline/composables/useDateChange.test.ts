@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { authSession } from '@/shared/http'
+import { isValidIdempotencyKey } from '@/shared/http/mutation/idempotency-key'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useToast } from '@/shared/ui'
 
@@ -92,7 +93,9 @@ function allWrites(): string[] {
 describe('P8 politikası — yüze göre yazma yolu', () => {
   it('Admin: yalnız bitiş ileri → extendWorkItem (görevin kendi kapsamı), 5 sn sonra TEK istek', async () => {
     server.use(
-      http.post(`${ORIGIN}${EXTEND}`, () => json({ cascade_count: 2, new_end_on: '2026-11-15' })),
+      http.post(`${ORIGIN}${EXTEND}`, () =>
+        json({ cascade_count: 2, new_end_on: '2026-11-15', dates_revision: 2, replayed: false }),
+      ),
     )
     const { api } = setup('admin')
     api.onEdgeDrag(drop('end', '2026-11-15'))
@@ -107,58 +110,58 @@ describe('P8 politikası — yüze göre yazma yolu', () => {
     await elapse(1)
     const [req] = sent('POST', EXTEND)
     expect(sent('POST', EXTEND)).toHaveLength(1)
-    expect(req?.body).toEqual({ days: 5 })
+    // Sürüm: sürüklemenin başladığı anda Gantt satırının `dates_revision`'ı (BE-053).
+    expect(req?.body).toEqual({ days: 5, expected_dates_revision: 1 })
     expect(req?.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(req?.headers.get('X-Nizamio-Department')).toBe('d2')
     expect(req?.headers.get('X-Requested-With')).toBe('XMLHttpRequest')
-    expect(req?.headers.get('idempotency-key')).toBeNull()
+    expect(isValidIdempotencyKey(req?.headers.get('idempotency-key') ?? '')).toBe(true)
     expect(api.snack.value).toBeNull()
     expect(useToast().queue.value.map((q) => q.message)).toEqual([
       'Rapor süresi 5 gün uzatıldı; 2 bağımlı görev de kaydı.',
     ])
   })
 
-  it('Admin: başlangıç kayması / kısaltma → önce taze getWorkItem, sonra updateWorkItem + expected_dates_revision', async () => {
-    server.use(
-      http.get(`${ORIGIN}${ITEM}`, () => json(workItem())),
-      http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())),
-    )
-    const { api } = setup('admin')
+  it('Admin: başlangıç kayması / kısaltma → ön okuma YOK, updateWorkItem + satırın expected_dates_revision değeri', async () => {
+    server.use(http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())))
+    const { api } = setup('admin', { dates_revision: 4 })
     api.onEdgeDrag(drop('start', '2026-11-03'))
     expect(api.snack.value?.props.face).toBe('admin')
     await elapse()
-    expect(sent('GET', ITEM)).toHaveLength(1)
+    expect(sent('GET', ITEM)).toHaveLength(0)
     const [patch] = sent('PATCH', ITEM)
     expect(sent('PATCH', ITEM)).toHaveLength(1)
     expect(patch?.body).toEqual({
       start_on: '2026-11-03',
       end_on: '2026-11-10',
-      expected_dates_revision: 7,
+      expected_dates_revision: 4,
     })
+    // `updateWorkItem` anahtarsızdır (sürüm korur).
+    expect(patch?.headers.get('idempotency-key')).toBeNull()
     expect(sent('POST', EXTEND)).toHaveLength(0)
     expect(useToast().queue.value[0]?.message).toBe('Rapor tarihleri güncellendi.')
   })
 
-  it('Admin: görevin tarihleri bu arada değiştiyse YAZILMAZ, kullanıcı bilgilendirilir', async () => {
-    server.use(http.get(`${ORIGIN}${ITEM}`, () => json(workItem({ end_on: '2026-11-20' }))))
+  it('birleşen bırakmalarda sürüm İLK sürüklemedeki satır sürümüdür', async () => {
+    server.use(http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())))
+    const { api, task } = setup('admin', { dates_revision: 4 })
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    task.dates_revision = 9 // arada Gantt yenilendi; kullanıcının gördüğü ilk sürüm korunur
+    api.onEdgeDrag(drop('start', '2026-11-04'))
+    await elapse()
+    expect(sent('PATCH', ITEM)[0]?.body).toMatchObject({ expected_dates_revision: 4 })
+  })
+
+  it('Admin: tarihler bu arada değiştiyse sunucu 409 verir; çakışan alan adıyla bildirilir, tekrar yok', async () => {
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => json(workItem({ end_on: '2026-11-20' }))),
+      http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
+    )
     const { api } = setup('admin')
     api.onEdgeDrag(drop('end', '2026-11-05'))
     await elapse()
-    expect(sent('GET', ITEM)).toHaveLength(1)
-    expect(sent('PATCH', ITEM)).toHaveLength(0)
-    expect(useToast().queue.value[0]?.message).toContain('bu arada değişti')
-  })
-
-  it('Admin: taze görev okunamazsa YAZILMAZ, hata kodu → i18n bildirimi', async () => {
-    server.use(http.get(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.item_not_found', 404)))
-    const { api } = setup('admin')
-    api.onEdgeDrag(drop('start', '2026-11-03'))
-    await elapse()
-    expect(sent('GET', ITEM)).toHaveLength(1)
-    expect(sent('PATCH', ITEM)).toHaveLength(0)
-    const [toast] = useToast().queue.value
-    expect(toast?.tone).toBe('danger')
-    expect(toast?.message).not.toContain('sunucu iletisi')
+    expect(sent('PATCH', ITEM)).toHaveLength(1)
+    expect(useToast().queue.value[0]?.message).toContain('bitiş')
   })
 
   it('Koordinatör: iki uç da gönderilen talep (requestDateChange); bildirim "talep gönderiliyor"', async () => {
@@ -177,7 +180,9 @@ describe('P8 politikası — yüze göre yazma yolu', () => {
       work_item_id: 'w1',
       new_start_on: '2026-11-01',
       new_end_on: '2026-11-15',
+      expected_dates_revision: 1,
     })
+    expect(isValidIdempotencyKey(req?.headers.get('idempotency-key') ?? '')).toBe(true)
     expect(sent('POST', EXTEND)).toHaveLength(0)
     expect(sent('PATCH', ITEM)).toHaveLength(0)
     expect(useToast().queue.value[0]?.message).toContain('Değişiklik onaya gider')
@@ -317,6 +322,9 @@ describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal pe
   })
 
   it('klavye adımı da aynı yol: B adımı A penceresini kesmez; B için geri adım yalnız B’yi düşürür', async () => {
+    server.use(
+      http.post(`${ORIGIN}${EXTEND}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+    )
     const { api } = two()
     expect(api.nudge('w1', 'end', 1)).toBe(true)
     await vi.advanceTimersByTimeAsync(1000)
@@ -331,85 +339,26 @@ describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal pe
   })
 
   it('A bekleyenken A’da yeni adım A’yı birleştirir (B’ye dokunmaz)', async () => {
+    server.use(
+      http.post(`${ORIGIN}${EXTEND}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+      http.post(`${ORIGIN}${EXTEND2}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+    )
     const { api } = two()
     api.nudge('w1', 'end', 1)
     api.nudge('w2', 'end', 1)
     api.nudge('w1', 'end', 1)
     await elapse()
-    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 2 })
+    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 2, expected_dates_revision: 1 })
     expect(sent('POST', EXTEND2)).toHaveLength(1)
   })
 })
 
 describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
-  /** Taze görev okuması bir kapıya takılır; sahip bu sırada sökülür. */
-  async function detachedDuring(read: () => Response | Promise<Response>) {
-    let release!: () => void
-    const gate = new Promise<void>((resolve) => (release = resolve))
-    server.use(
-      http.get(`${ORIGIN}${ITEM}`, async () => {
-        await gate
-        return read()
-      }),
-      http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())),
-    )
-    const { h, api } = setup('admin')
-    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
-    api.onEdgeDrag(drop('start', '2026-11-03'))
-    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
-    expect(sent('GET', ITEM)).toHaveLength(1)
-    resetHarness() // sahip (sayfa) sökülür; okuma uçuşta
-    release()
-    await vi.advanceTimersByTimeAsync(100)
-    return spy
-  }
-
-  it('sahibi sökülmüş sürükleme: tarih uyuşmazlığı ek geçersizleme ve bildirim üretmez', async () => {
-    const spy = await detachedDuring(() => json(workItem({ end_on: '2026-11-20' })))
-    expect(spy).not.toHaveBeenCalled()
-    expect(useToast().queue.value).toEqual([])
-    expect(sent('PATCH', ITEM)).toHaveLength(0)
-  })
-
-  it('ön okuma beklerken kapsam A→B, sahip bağlı, farklı tarihli yanıt: PATCH/bildirim/ek geçersizleme sıfır (Ö-04)', async () => {
-    let release!: () => void
-    const gate = new Promise<void>((resolve) => (release = resolve))
-    server.use(
-      http.get(`${ORIGIN}${ITEM}`, async () => {
-        await gate
-        return json(workItem({ end_on: '2026-11-20' }))
-      }),
-      http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())),
-    )
-    const { h, api } = setup('admin')
-    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
-    api.onEdgeDrag(drop('start', '2026-11-03'))
-    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
-    expect(sent('GET', ITEM)).toHaveLength(1)
-    h.store.setLens('coordinator') // kapsam A→B; sahip (sayfa) hâlâ bağlı
-    release()
-    await vi.advanceTimersByTimeAsync(100)
-    expect(sent('PATCH', ITEM)).toHaveLength(0)
-    expect(useToast().queue.value).toEqual([])
-    expect(spy).not.toHaveBeenCalled()
-  })
-
-  it('sahibi sökülmüş sürükleme: okuma hatası bildirim üretmez, yazma başlamaz', async () => {
-    const spy = await detachedDuring(() => errorEnvelope('work.item_not_found', 404))
-    expect(spy).not.toHaveBeenCalled()
-    expect(useToast().queue.value).toEqual([])
-    expect(sent('PATCH', ITEM)).toHaveLength(0)
-  })
-
   it('sahibi sökülmüş sürükleme: 409 sonrası yeniden okuma/bildirim yok (detached)', async () => {
-    let reads = 0
     server.use(
-      http.get(`${ORIGIN}${ITEM}`, () => {
-        reads += 1
-        return json(
-          reads === 1 ? workItem() : workItem({ end_on: '2026-11-20', dates_revision: 8 }),
-        )
-      }),
+      http.get(`${ORIGIN}${ITEM}`, () =>
+        json(workItem({ end_on: '2026-11-20', dates_revision: 8 })),
+      ),
       http.patch(`${ORIGIN}${ITEM}`, () => {
         resetHarness() // yazma uçuştayken sahip söküldü
         return errorEnvelope('work.edit_conflict', 409)
@@ -423,16 +372,29 @@ describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
     expect(useToast().queue.value).toEqual([])
   })
 
-  it('yarışta oluşan work.edit_conflict: çakışan ALANLAR adıyla bildirilir, görev yeniden okunur', async () => {
-    let reads = 0
+  it('sahibi sökülmüş sürükleme: extend sonucu bilinmiyorsa TEKRAR başlamaz, bildirim yok', async () => {
+    let calls = 0
     server.use(
-      http.get(`${ORIGIN}${ITEM}`, () => {
-        reads += 1
-        // 1: ön okuma (tarihler uyumlu). Sonrası: arada başkası bitişi değiştirdi.
-        return json(
-          reads === 1 ? workItem() : workItem({ end_on: '2026-11-20', dates_revision: 8 }),
-        )
+      http.post(`${ORIGIN}${EXTEND}`, () => {
+        calls += 1
+        resetHarness() // istek uçuştayken sahip söküldü
+        return new Response(null, { status: 503 })
       }),
+    )
+    const { api } = setup('admin')
+    api.onEdgeDrag(drop('end', '2026-11-15'))
+    await elapse()
+    await elapse(10_000)
+    expect(calls).toBe(1) // tekrar yok (sahip söküldü: owner_disposed)
+    expect(useToast().queue.value).toEqual([])
+  })
+
+  it('yarışta oluşan work.edit_conflict: çakışan ALANLAR adıyla bildirilir, görev yeniden okunur', async () => {
+    server.use(
+      // Arada başkası bitişi değiştirdi: 409 sonrası sunucunun güncel görevi okunur.
+      http.get(`${ORIGIN}${ITEM}`, () =>
+        json(workItem({ end_on: '2026-11-20', dates_revision: 8 })),
+      ),
       http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
     )
     const { h, api } = setup('admin')
@@ -449,12 +411,8 @@ describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
   })
 
   it('çakışan alan yoksa (yalnız sürüm ilerledi) ortak çakışma bildirimi', async () => {
-    let reads = 0
     server.use(
-      http.get(`${ORIGIN}${ITEM}`, () => {
-        reads += 1
-        return json(reads === 1 ? workItem() : workItem({ dates_revision: 8 }))
-      }),
+      http.get(`${ORIGIN}${ITEM}`, () => json(workItem({ dates_revision: 8 }))),
       http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
     )
     const { api } = setup('admin')
@@ -483,7 +441,7 @@ describe('klavyeyle tarih değişimi — bırakmayla aynı yol', () => {
     expect(sent('POST', EXTEND)).toHaveLength(0)
     await elapse(2000)
     expect(sent('POST', EXTEND)).toHaveLength(1)
-    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 3 })
+    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 3, expected_dates_revision: 1 })
   })
 
   it('Alt+Shift (başlangıç) koordinatörde talebe gider; adım geri alınınca bekleyen düşer', async () => {
@@ -515,14 +473,35 @@ describe('sonuçlar', () => {
     expect(spy).toHaveBeenCalled()
   })
 
-  it('sonuç bilinmiyor (5xx) → kör tekrar yok, tek istek', async () => {
+  it('sonuç bilinmiyor (5xx) → AYNI anahtarla tek tekrar; ikisi de bilinmiyorsa kör tekrar biter', async () => {
     server.use(http.post(`${ORIGIN}${EXTEND}`, () => errorEnvelope('platform.internal', 500)))
     const { api } = setup('admin')
     api.onEdgeDrag(drop('end', '2026-11-15'))
     await elapse()
     await elapse(10_000)
-    expect(sent('POST', EXTEND)).toHaveLength(1)
+    const attempts = sent('POST', EXTEND)
+    expect(attempts).toHaveLength(2)
+    expect(attempts[1]?.headers.get('idempotency-key')).toBe(
+      attempts[0]?.headers.get('idempotency-key'),
+    )
     expect(useToast().queue.value[0]?.tone).toBe('danger')
+  })
+
+  it('sonuç bilinmiyor, tekrar replayed:true → başarı bildirimi (çift uzatma yok)', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}${EXTEND}`, () => {
+        calls += 1
+        return calls === 1
+          ? errorEnvelope('platform.internal', 500)
+          : json({ cascade_count: 0, new_end_on: '2026-11-15', dates_revision: 2, replayed: true })
+      }),
+    )
+    const { api } = setup('admin')
+    api.onEdgeDrag(drop('end', '2026-11-15'))
+    await elapse()
+    expect(sent('POST', EXTEND)).toHaveLength(2)
+    expect(useToast().queue.value.map((q) => q.message)).toEqual(['Rapor süresi 5 gün uzatıldı.'])
   })
 })
 

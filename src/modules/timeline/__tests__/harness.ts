@@ -48,8 +48,8 @@ export function sent(method: string, path: string): Recorded[] {
   return requests.filter((r) => r.method === method && r.path === path)
 }
 
-export function json(body: JsonBodyType, status = 200) {
-  return HttpResponse.json(body, { status })
+export function json(body: JsonBodyType, status = 200, headers: Record<string, string> = {}) {
+  return HttpResponse.json(body, { status, headers })
 }
 
 export function errorEnvelope(code: string, status: number, fields: unknown[] = []) {

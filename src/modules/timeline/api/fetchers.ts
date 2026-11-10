@@ -4,6 +4,7 @@
  * (`Gantt{tasks, links}`); yüz kapsamdan türetilir (`model/face.ts`).
  */
 import { api, unwrap } from '@/shared/http'
+import { unwrapList } from '@/shared/http/truncation'
 
 import type { WorkTarget } from '@/modules/work/public'
 
@@ -20,10 +21,12 @@ function workTarget(target: GanttTarget): WorkTarget {
  * `adminGantt` (S2) / `coordinatorGantt` (S3) / `memberGantt` (S3). `overdue` parametresi
  * KULLANILMAZ: uç yalnız bitiş gününe bakar, tamamlanmış geç görevi de döndürür (GAP-053);
  * "Geciken" süzgeci istemcide `lateness.is_overdue` ile yapılır. İlk 200 kalem; imleç yok.
+ * Kesilme `X-Result-Truncated: true` başlığından okunur (BE-019): kesildiyse veride `truncated`
+ * bayrağı vardır; tam 200 kalem başlıksızsa kesilme YOKTUR.
  */
 export function fetchGantt(face: GanttFace, target: GanttTarget, signal?: AbortSignal) {
   if (face === 'admin') {
-    return unwrap(
+    return unwrapList(
       api.GET('/v1/work-items/gantt/admin', {
         params: { header: programHeaders(target) },
         signal,
@@ -32,9 +35,9 @@ export function fetchGantt(face: GanttFace, target: GanttTarget, signal?: AbortS
   }
   const header = scopeHeaders(workTarget(target))
   if (face === 'coordinator') {
-    return unwrap(api.GET('/v1/work-items/gantt', { params: { header }, signal }))
+    return unwrapList(api.GET('/v1/work-items/gantt', { params: { header }, signal }))
   }
-  return unwrap(api.GET('/v1/work-items/gantt/mine', { params: { header }, signal }))
+  return unwrapList(api.GET('/v1/work-items/gantt/mine', { params: { header }, signal }))
 }
 
 /**

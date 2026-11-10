@@ -90,7 +90,7 @@ describe('Zaman çizelgesi — tarih sürükleme bağlantısı (W95)', () => {
     expect(sent('POST', EXTEND)).toHaveLength(0)
     await elapse(1100)
     expect(sent('POST', EXTEND)).toHaveLength(1)
-    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 4 })
+    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 4, expected_dates_revision: 1 })
   })
 
   it('İptal et → istek 0, bildirim kalkar', async () => {
@@ -116,6 +116,7 @@ describe('Zaman çizelgesi — tarih sürükleme bağlantısı (W95)', () => {
       work_item_id: 'w1',
       new_start_on: '2026-06-16',
       new_end_on: '2026-09-04',
+      expected_dates_revision: 1,
     })
     expect(sent('POST', EXTEND)).toHaveLength(0)
   })

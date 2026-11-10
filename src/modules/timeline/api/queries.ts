@@ -13,10 +13,10 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import type { WorkTarget } from '@/modules/work/public'
 import { queryKeys } from '@/shared/http/query-keys'
+import { isListTruncated } from '@/shared/http/truncation'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
-import { atCeiling } from '../model/ceiling'
 import { ganttFace, ganttTarget } from '../model/face'
 import type { DateRequestFilters, GanttLink, GanttTask } from '../model/types'
 import {
@@ -34,7 +34,8 @@ const NO_LINKS: readonly GanttLink[] = []
  * Seçili yüzün Gantt'ı (`adminGantt` / `coordinatorGantt` / `memberGantt`). Yüz kapsam
  * merceğinden türetilir; kapsam eksikse (mercek/birim yok) istek yok. Anahtar
  * `scoped(['gantt', yüz])` — kapsam değişince düşer, Gantt yazmaları öneki geçersizler.
- * `ceiling` tam 200 kalemde `true` (BE-019: kesilme sinyali yok → "sınıra ulaşmış olabilir").
+ * `ceiling` sunucunun kesilme bildirimidir (BE-019): `X-Result-Truncated: true` → `true`; tam 200
+ * kalem başlıksızsa `false` ("tam 200 ise uyar" sezgisi yoktur).
  */
 export function useGantt() {
   const store = useScopeStore()
@@ -58,7 +59,7 @@ export function useGantt() {
   const tasks = computed<readonly GanttTask[]>(() => query.data.value?.tasks ?? NO_TASKS)
   const links = computed<readonly GanttLink[]>(() => query.data.value?.links ?? NO_LINKS)
   const face = computed(() => ganttFace(store.snapshot))
-  const ceiling = computed(() => atCeiling(tasks.value.length))
+  const ceiling = computed(() => isListTruncated(query.data.value))
   return { query, tasks, links, face, ceiling }
 }
 

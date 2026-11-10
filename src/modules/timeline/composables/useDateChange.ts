@@ -101,6 +101,7 @@ function plan(
       write,
       before,
       after,
+      datesRevision: held?.datesRevision ?? task.dates_revision,
       target,
     },
   }
