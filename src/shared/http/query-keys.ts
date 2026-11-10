@@ -266,7 +266,9 @@ const CATALOG_DEPARTMENT_WRITES = [
 
 // Panoyu (rapor) geçersizleyen organizasyon yazmaları (koordinatör kararı, W82a): üyelik,
 // koordinatörlük, birim ve kullanıcı yazmaları seyrek ve pano sayıları (üye/koordinatör sayısı,
-// birim kümesi) doğrudan onlara bağlı. Görev yazmaları panoyu geçersizlemez (§6: odakta tazele).
+// birim kümesi) doğrudan onlara bağlı. Görev ve tarih yazmaları da panoyu geçersizler: Admin
+// merceği kenar menüsü rozetleri (geciken, bekleyen talep) pano sayaçlarından gelir ve 03 sunucu
+// sayaçlarıyla AYNI yazmadan sonra birlikte yenilenmelidir (WP3 entegrasyonu).
 const REPORT_ORGANIZATION_WRITES = [
   ...MEMBERSHIP_WRITES,
   'createDepartment',
@@ -351,8 +353,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'workItems.dependencies': DEPENDENCY_WRITES,
   gantt: unique(DATE_WRITES, DEPENDENCY_WRITES, ['createWorkItem', 'deleteWorkItem']),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
-  // Görev yazmalarıyla geçersizleme yok (odakta tazele); organizasyon yazmaları geçersizler (W82a).
-  report: REPORT_ORGANIZATION_WRITES,
+  // Organizasyon yazmaları (W82a) ve rozetleri besleyen görev/tarih yazmaları geçersizler (WP3).
+  report: unique(
+    REPORT_ORGANIZATION_WRITES,
+    WORK_ITEM_WRITES,
+    DATE_WRITES,
+    ASSIGNMENT_HANDOVER_WRITES,
+  ),
   archive: FILE_WRITES,
   meetings: [
     'createMeeting',
@@ -498,7 +505,11 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'workItems.counts': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) =>
-      queryKey.length === 5 && queryKey[3] === 'counts' && isFiltersPart(queryKey[4]),
+      queryKey.length === 5 &&
+      // `counts` (03) ve `shell-counts` (kenar menüsü K/Ü rozeti) aynı sunucu sayacını okur;
+      // aynı yazmayla birlikte yenilenir (WP3: rozet bayat kalıyordu).
+      (queryKey[3] === 'counts' || queryKey[3] === 'shell-counts') &&
+      isFiltersPart(queryKey[4]),
   }),
   'workItems.subtasks': (scope, ctx) => workItemChild(scope, 'subtasks', ctx.workItemId),
   'workItems.notes': (scope, ctx) => workItemChild(scope, 'notes', ctx.workItemId),

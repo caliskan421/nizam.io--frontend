@@ -248,11 +248,13 @@ describe('query-keys — §6 tablosu', () => {
     },
   )
 
-  it('kurulum profili hiçbir yazmayla geçersizlenmez; pano görev yazmalarıyla geçersizlenmez', () => {
+  it('kurulum profili hiçbir yazmayla geçersizlenmez; pano görev/tarih yazmalarıyla geçersizlenir (WP3: Admin rozeti)', () => {
     expect(INVALIDATED_BY['instance.profile']).toEqual([])
     for (const op of ['createWorkItem', 'updateWorkItem', 'transitionWorkItem', 'deleteWorkItem']) {
-      expect(INVALIDATED_BY.report, op).not.toContain(op)
+      expect(INVALIDATED_BY.report, op).toContain(op)
     }
+    // Görev notu/dosyası panoda sayılmaz: geçersizleme yok.
+    expect(INVALIDATED_BY.report).not.toContain('addWorkItemNote')
   })
 
   it('W82a: organizasyon yazması yalnız eylemin programının panosunu vurur (mercek/birimden bağımsız)', () => {
@@ -264,7 +266,7 @@ describe('query-keys — §6 tablosu', () => {
       adminLens,
       coordLens,
     ])
-    expect(hits('createWorkItem', [adminLens])).toEqual([])
+    expect(hits('createWorkItem', [adminLens, other])).toEqual([adminLens])
   })
 
   it('WP2a: sayaç anahtarı görev yazmasıyla yenilenir; alt kaynak (not) yazması ona dokunmaz', () => {
@@ -279,6 +281,20 @@ describe('query-keys — §6 tablosu', () => {
       item,
     ])
     expect(hits('addWorkItemNote', [counts, list, subtasks], { workItemId: 'w1' })).toEqual([])
+  })
+
+  it('WP3: kenar menüsü K/Ü rozet sayacı (shell-counts) 03 sayacıyla AYNI yazmada yenilenir', () => {
+    const shell = queryKeys.shellBadges.counts(S, { departmentId: 'd1', assignee: null })
+    const counts = queryKeys.workItems.counts(S, { department: 'd1' })
+    for (const op of [
+      'transitionWorkItem',
+      'createWorkItem',
+      'extendWorkItem',
+      'requestDateChange',
+    ]) {
+      expect(hits(op, [shell, counts]), op).toEqual([shell, counts])
+    }
+    expect(hits('addWorkItemNote', [shell], { workItemId: 'w1' })).toEqual([])
   })
 
   it('her operationId sözleşmede var ve yazma ucudur', () => {

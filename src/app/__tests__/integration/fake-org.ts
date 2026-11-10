@@ -57,6 +57,9 @@ export interface ProgramRow {
   program_id: string
   name: string
   year?: number
+  /** v0.13 (PROGRAM-K46): kısa ad ve palet anahtarı; verilmemişse `null`. */
+  short_name?: string | null
+  color?: string | null
 }
 
 /** Görev (sözleşme `WorkItem` şekli; yalnız testin değiştirdiği alanlar tipli). */
@@ -110,6 +113,8 @@ export interface OrgDb {
   /** `true` ise sonraki `linkDepartment` 409 `program.department_link_name_exists` (bir kez). */
   failNextLink: boolean
   seq: number
+  /** Sunucunun "bugün" günü (YYYY-MM-DD; geciken kuralı). */
+  today: string
 }
 
 export function createDb(roles: ServerRoles, seed: Partial<OrgDb> = {}): OrgDb {
@@ -128,6 +133,7 @@ export function createDb(roles: ServerRoles, seed: Partial<OrgDb> = {}): OrgDb {
     tokens: new Map(),
     failNextLink: false,
     seq: 0,
+    today: '2026-11-10',
     ...seed,
   }
 }
@@ -290,10 +296,12 @@ function standingHandlers(db: OrgDb) {
     http.get(`${ORIGIN}/v1/programs`, ({ request }) => {
       const me = actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)
-      if (me.admin) return json({ programs: db.programs })
+      if (me.admin) return json({ programs: db.programs.map(programShape) })
       const mine = new Set(rowsOf(db, me.account_id).map((m) => m.program_id))
       if (mine.size === 0) return envelope('organization.membership_required', 403)
-      return json({ programs: db.programs.filter((p) => mine.has(p.program_id)) })
+      return json({
+        programs: db.programs.filter((p) => mine.has(p.program_id)).map(programShape),
+      })
     }),
     http.get(`${ORIGIN}/v1/program/departments`, ({ request }) => {
       const me = actorOf(db, request)
@@ -304,6 +312,11 @@ function standingHandlers(db: OrgDb) {
       return json({ departments: programDepartments(db, program) })
     }),
   ]
+}
+
+/** Program yanıtı: `short_name` ve `color` her cevapta bulunur (verilmemişse `null`). */
+function programShape(p: ProgramRow): ProgramRow {
+  return { ...p, short_name: p.short_name ?? null, color: p.color ?? null }
 }
 
 function linkOf(db: OrgDb, programId: string, departmentId: string): Link | undefined {

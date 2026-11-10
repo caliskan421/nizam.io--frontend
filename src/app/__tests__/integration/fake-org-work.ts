@@ -31,10 +31,51 @@ function denied(db: OrgDb, me: Account, i: Item | undefined) {
   return envelope('work.item_not_found', 404)
 }
 
+/** `is_overdue`: tamamlanmamış ve `end_on` bugünden önce (satır ve sayaç aynı kural; v0.13). */
+function lateness(db: OrgDb, i: Item): Item {
+  const late = i.status !== 'tamamlandi' && String(i.end_on) < db.today
+  return late ? { ...i, is_overdue: true } : { ...i, is_overdue: false }
+}
+
 /** Bekleyen talep ayrıntısı yalnız yöneticiye ve görevin koordinatörüne dolar; üyede `null` (WORK-K82). */
 function maskedItem(db: OrgDb, me: Account, i: Item): Item {
   const team = o.teamIn(db, me.account_id, i.program_id, i.department_id)
-  return me.admin || team === 'coordinator' ? i : { ...i, pending_date_request: null }
+  const shaped = lateness(db, i)
+  return me.admin || team === 'coordinator' ? shaped : { ...shaped, pending_date_request: null }
+}
+
+/** `department_id` (VE) ve tekrarlı `assignee_account_id` (VEYA) süzgeci; liste ve sayaç aynı. */
+function filtered(db: OrgDb, request: Request, me: Account): Item[] {
+  const query = new URL(request.url).searchParams
+  const department = query.get('department_id')
+  const assignees = query.getAll('assignee_account_id').filter((id) => id !== '')
+  return db.items
+    .filter(
+      (i) =>
+        i.program_id === o.programOf(request) &&
+        (!department || i.department_id === department) &&
+        (assignees.length === 0 || assignees.some((id) => i.assignee_account_ids.includes(id))) &&
+        visible(db, me, i),
+    )
+    .map((i) => maskedItem(db, me, i))
+}
+
+/** `countProgramWorkItems` gövdesi (WORK-K87): toplam, beş durum, geciken, talepli. */
+function countsOf(rows: Item[]) {
+  const by_status = {
+    baslanmadi: 0,
+    devam_ediyor: 0,
+    onaya_sunuldu: 0,
+    iade_edildi: 0,
+    tamamlandi: 0,
+  }
+  for (const i of rows) by_status[i.status as keyof typeof by_status] += 1
+  return {
+    total: rows.length,
+    by_status,
+    overdue: rows.filter((i) => i.is_overdue).length,
+    pending_date_requests: rows.filter((i) => i.pending_date_request).length,
+  }
 }
 
 function guardedItem(
@@ -54,17 +95,12 @@ function workReads(db: OrgDb) {
     http.get(`${ORIGIN}/v1/program/work-items`, ({ request }) => {
       const me = o.actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)
-      const program = o.programOf(request)
-      const department = new URL(request.url).searchParams.get('department_id')
-      const items = db.items
-        .filter(
-          (i) =>
-            i.program_id === program &&
-            (!department || i.department_id === department) &&
-            visible(db, me, i),
-        )
-        .map((i) => maskedItem(db, me, i))
-      return json({ items })
+      return json({ items: filtered(db, request, me) })
+    }),
+    http.get(`${ORIGIN}/v1/program/work-items/counts`, ({ request }) => {
+      const me = o.actorOf(db, request)
+      if (!me) return envelope('platform.unauthenticated', 401)
+      return json(countsOf(filtered(db, request, me)))
     }),
     http.get(`${ORIGIN}/v1/work-items/:id`, ({ request, params }) =>
       guardedItem(db, request, params.id, (i) => json(maskedItem(db, o.actorOf(db, request)!, i))),
@@ -84,6 +120,25 @@ function workReads(db: OrgDb) {
   ]
 }
 
+/** `transitionWorkItem` / `ownStatusWorkItem`: yönetici, birim koordinatörü ya da atanan üye. */
+async function transition(
+  db: OrgDb,
+  { request, params }: { request: Request; params: Record<string, unknown> },
+  own: boolean,
+) {
+  const me = o.actorOf(db, request)
+  if (!me) return envelope('platform.unauthenticated', 401)
+  const found = db.items.find((i) => i.work_item_id === params.id)
+  if (!found || !visible(db, me, found)) return denied(db, me, found)
+  const body = (await request.json()) as { to: string }
+  const from = found.status
+  found.status = body.to
+  found.edit_revision = Number(found.edit_revision) + 1
+  const team = o.teamIn(db, me.account_id, found.program_id, found.department_id)
+  const actor = own ? 'uye' : team === 'coordinator' || me.admin ? 'koordinator' : 'uye'
+  return json({ work_item_id: found.work_item_id, from, to: body.to, actor })
+}
+
 function workWrites(db: OrgDb) {
   return [
     http.post(`${ORIGIN}/v1/work-items`, async ({ request }) => {
@@ -100,6 +155,8 @@ function workWrites(db: OrgDb) {
       db.items.push(created)
       return json(created, 201)
     }),
+    http.post(`${ORIGIN}/v1/work-items/:id/transitions`, (ctx) => transition(db, ctx, false)),
+    http.patch(`${ORIGIN}/v1/work-items/:id/own-status`, (ctx) => transition(db, ctx, true)),
     http.post(`${ORIGIN}/v1/work-items/:id/assignments`, async ({ request, params }) => {
       const found = db.items.find((i) => i.work_item_id === params.id)
       if (!found) return envelope('work.item_not_found', 404)
@@ -155,7 +212,7 @@ function dashboard(db: OrgDb, programId: string) {
     total_tasks: items.length,
     completed_tasks: items.filter((i) => !o.isOpen(i)).length,
     active_tasks: items.filter(o.isOpen).length,
-    overdue_tasks: 0,
+    overdue_tasks: items.filter((i) => lateness(db, i).is_overdue).length,
     overdue_tasks_list: [],
     pending_approvals: 0,
     pending_date_changes: items.filter((i) => i.pending_date_request).length,
