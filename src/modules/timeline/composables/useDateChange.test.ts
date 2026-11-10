@@ -45,12 +45,13 @@ const FACTS: Record<Who, { face: GanttFace; companyAdmin: boolean; coordinator: 
 }
 const SCOPES = { admin: ADMIN_SCOPE, coordinator: COORD_SCOPE, member: MEMBER_SCOPE }
 
-function setup(who: Who, task: Partial<GanttTask> = {}) {
+function setup(who: Who, task: Partial<GanttTask> = {}, extra: GanttTask[] = []) {
   const h = harness(SCOPES[who])
   const t = ganttTask(task)
+  const all = [t, ...extra]
   const api = h.run(() =>
     useDateChange({
-      taskOf: (id) => (id === t.work_item_id ? t : undefined),
+      taskOf: (id) => all.find((x) => x.work_item_id === id),
       face: () => FACTS[who].face,
       actorFacts: (face) => ({
         face,
@@ -273,6 +274,70 @@ describe('gecikmeli gönderim — iptal ve yaşam döngüsü', () => {
     expect(api.preview.value).toBeNull()
     await elapse(10_000)
     expect(allWrites()).toEqual([])
+  })
+})
+
+const EXTEND2 = '/v1/work-items/w2/extend'
+
+describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal penceresi korunur', () => {
+  const two = () => setup('admin', {}, [ganttTask({ work_item_id: 'w2', title: 'Plan' })])
+  const dropW2 = (day: string) => ({ ...drop('end', day), workItemId: 'w2' })
+
+  it('A sonra B değişince A hemen gitmez; her görev kendi süresinde TEK istekle gider', async () => {
+    server.use(
+      http.post(`${ORIGIN}${EXTEND}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+      http.post(`${ORIGIN}${EXTEND2}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+    )
+    const { api } = two()
+    api.onEdgeDrag(drop('end', '2026-11-15'))
+    await vi.advanceTimersByTimeAsync(1000)
+    api.onEdgeDrag(dropW2('2026-11-15'))
+    await vi.advanceTimersByTimeAsync(3900)
+    expect(sent('POST', EXTEND)).toHaveLength(0)
+    await elapse(100)
+    expect(sent('POST', EXTEND)).toHaveLength(1)
+    expect(sent('POST', EXTEND2)).toHaveLength(0)
+    await elapse(1000)
+    expect(sent('POST', EXTEND2)).toHaveLength(1)
+    expect(sent('POST', EXTEND)).toHaveLength(1)
+  })
+
+  it('iki görevde de süre dolmadan iptal → sıfır yazma (bildirim en sonuncuyu, sonra öncekini gösterir)', async () => {
+    const { api } = two()
+    api.onEdgeDrag(drop('end', '2026-11-15'))
+    await vi.advanceTimersByTimeAsync(1000)
+    api.onEdgeDrag(dropW2('2026-11-15'))
+    expect(api.snack.value?.props.title).toBe('Plan')
+    api.cancel()
+    expect(api.snack.value?.props.title).toBe('Rapor')
+    api.cancel()
+    expect(api.snack.value).toBeNull()
+    await elapse(10_000)
+    expect(allWrites()).toEqual([])
+  })
+
+  it('klavye adımı da aynı yol: B adımı A penceresini kesmez; B için geri adım yalnız B’yi düşürür', async () => {
+    const { api } = two()
+    expect(api.nudge('w1', 'end', 1)).toBe(true)
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(api.nudge('w2', 'end', 1)).toBe(true)
+    expect(api.nudge('w2', 'end', -1)).toBe(true) // B geri alındı
+    expect(api.snack.value?.props.title).toBe('Rapor')
+    await vi.advanceTimersByTimeAsync(3900)
+    expect(allWrites()).toEqual([])
+    await elapse(100)
+    expect(sent('POST', EXTEND)).toHaveLength(1)
+    expect(sent('POST', EXTEND2)).toHaveLength(0)
+  })
+
+  it('A bekleyenken A’da yeni adım A’yı birleştirir (B’ye dokunmaz)', async () => {
+    const { api } = two()
+    api.nudge('w1', 'end', 1)
+    api.nudge('w2', 'end', 1)
+    api.nudge('w1', 'end', 1)
+    await elapse()
+    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 2 })
+    expect(sent('POST', EXTEND2)).toHaveLength(1)
   })
 })
 
