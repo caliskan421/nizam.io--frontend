@@ -24,6 +24,6 @@ describe('ayrıntı paneli metinleri', () => {
     expect(detailText('workDetail.timeline.overdue', { n: 88 })).toBe('88 gündür gecikmede')
     expect(detailText('workDetail.status.iade_edildi')).toBe('Geri gönderildi')
     expect(detailText('workDetail.summary.archiveLater')).toContain('F5')
-    expect(detailText('workDetail.actions.dateRequest')).toContain('F3')
+    expect(detailText('workDetail.actions.dateRequest')).toBe('Tarih değişikliği iste')
   })
 })

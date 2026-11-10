@@ -80,6 +80,10 @@ export const ICONS = {
    * gövdesi + sağ kolu açık halka.
    */
   unlock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 7.5-2',
+  // Zaman çizelgesi (Gorevler-Zaman.dc.html): uzaklaştır, tam ekran, tarih değişimi bildirimi
+  minus: 'M5 12h14',
+  expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
+  'step-forward': 'M4 12h12M12 8l4 4-4 4M20 5v14',
 } as const
 
 export type IconName = keyof typeof ICONS

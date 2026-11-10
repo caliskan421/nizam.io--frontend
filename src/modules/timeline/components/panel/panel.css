@@ -86,6 +86,10 @@
     font: var(--text-caption);
     color: var(--danger);
   }
+  .tp-date__note {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
 
   /* Özet satırları (`rp-dl`) */
   .tp-dl {

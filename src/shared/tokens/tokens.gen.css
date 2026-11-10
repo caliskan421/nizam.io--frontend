@@ -490,6 +490,7 @@
   --m-sh-thumb: 0 1px 2px rgba(0,0,0,0.25);
   /* web · color */
   --rp-done-fill: var(--accent-text);
+  --rp-blue: #5b8def;
   /* web · shadow */
   --shadow-card: 0 12px 32px rgba(0,0,0,0.5);
   --shadow-sheet: var(--m-sh-sheet);
@@ -572,6 +573,7 @@
   --m-sh-thumb: 0 1px 2px rgba(22,22,21,0.12);
   /* web · color */
   --rp-done-fill: #7fb800;
+  --rp-blue: #2563eb;
   /* web · shadow */
   --shadow-card: 0 1px 2px rgba(22,22,21,0.05), 0 6px 20px rgba(22,22,21,0.06);
   --shadow-sheet: var(--m-sh-sheet);

@@ -9,6 +9,11 @@
           "name": "rp-done-fill",
           "value": { "dark": "{accent-text}", "light": "#7fb800" },
           "usage": "Tamamlandı noktası ve yığılmış çubuk dilimi (rp-dot--done, rp-seg-done); açık temada zeytin yerine dolgu yeşili."
+        },
+        {
+          "name": "rp-blue",
+          "value": { "dark": "#5b8def", "light": "#2563eb" },
+          "usage": "Zaman çizelgesi \"baktığın yer\" işareti (Gorevler-Zaman.dc.html: şerit penceresi çizgisi ve gösterge)."
         }
       ]
     },

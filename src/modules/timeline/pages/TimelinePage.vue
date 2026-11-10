@@ -4,7 +4,7 @@ import './timeline/timeline.css'
 import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { canCreateWorkItem, TASKS_NEW_TASK_QUERY, TASKS_ROUTE } from '@/modules/work/public'
+import { canCreateWorkItem, NewTaskDialog, TASKS_ROUTE } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import { UiButton, UiEmptyState, UiErrorState, UiIcon } from '@/shared/ui'
 
@@ -39,9 +39,11 @@ const ganttView = ref<{ scrollToDay?: (day: string) => void } | null>(null)
 const view = ref<GanttDayRange | null>(null)
 let trigger: HTMLElement | null = null
 
+const creating = ref(false)
 const page = useTimelinePage(() => {
   view.value = null
   trigger = null
+  creating.value = false // kapsam değişince açık form kapanır (eski kapsamın seçimiyle gönderim yok)
 })
 const fullscreen = useFullscreen(stage)
 // W95: sürükleme / klavye tarih değişimi (P8; 5 sn gecikmeli gönderim, İptal et).
@@ -66,12 +68,10 @@ const showGantt = computed(() => page.ready.value && page.tasks.value.length > 0
 const panelTask = computed(() => (showGantt.value ? page.selected.value : null))
 const ceiling = computed(() => page.ready.value && atCeiling(page.allTasks.value.length))
 
+/** Sayfa içi diyalog (W97a, 03'ün aynı formu); önseçili birim: Admin süzgeci, yoksa kapsam. */
+const newTaskDepartment = computed(() => state.value.department ?? page.store.departmentId)
 function newTask(): void {
-  const department = state.value.department ?? page.store.departmentId
-  void router.push({
-    name: TASKS_ROUTE.name,
-    query: { ...(department ? { koordinatorluk: department } : {}), ...TASKS_NEW_TASK_QUERY },
-  })
+  creating.value = true
 }
 
 function select(id: string | null): void {
@@ -228,6 +228,7 @@ function openInList(workItemId: string): void {
         </template>
       </div>
     </div>
+    <NewTaskDialog v-if="canCreate" v-model:open="creating" :department-id="newTaskDepartment" />
     <p class="rp-sr" role="status" aria-live="polite" data-testid="timeline-date-announce">
       {{ dateChange.announcement.value }}
     </p>

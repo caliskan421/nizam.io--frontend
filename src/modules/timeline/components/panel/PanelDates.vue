@@ -9,6 +9,8 @@ import { panelText } from './messages'
  * (Üye); gecikmedeki görevde bitiş kenarı `--danger` (durum göstergesi, doğrulama hatası değil).
  */
 defineProps<{
+  /** İlk plan bitişi (`planned_end_on` ≠ `end_on`); salt okunur bilgi, yazılmaz. */
+  plannedEnd?: string | null
   editable: boolean
   late: boolean
   startError: DateInputError | null
@@ -60,6 +62,9 @@ const uid = useId()
       />
       <p v-if="endError" :id="`${uid}-end-err`" class="tp-date__error" role="alert">
         {{ panelText(`errors.${endError}`) }}
+      </p>
+      <p v-if="plannedEnd" class="tp-date__note" data-testid="tp-planned-end">
+        {{ panelText('plannedEnd', { date: plannedEnd }) }}
       </p>
     </div>
   </div>

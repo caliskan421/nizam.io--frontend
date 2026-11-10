@@ -776,6 +776,12 @@ export const TOKENS = {
     "dark": "var(--accent-text)",
     "light": "#7fb800"
   },
+  "rp-blue": {
+    "group": "color",
+    "origin": "web",
+    "dark": "#5b8def",
+    "light": "#2563eb"
+  },
   "shadow-card": {
     "group": "shadow",
     "origin": "web",

@@ -88,9 +88,7 @@ onBeforeUnmount(() => {
     @keydown="onKeydown"
   >
     <span class="rp-snack__ic" aria-hidden="true">
-      <svg class="t-icon t-icon--sm" viewBox="0 0 24 24">
-        <path d="M4 12h12M12 8l4 4-4 4M20 5v14" />
-      </svg>
+      <UiIcon name="step-forward" size="sm" />
     </span>
     <span class="rp-snack__body">
       <span class="rp-trunc rp-snack__title">{{ title }}</span>

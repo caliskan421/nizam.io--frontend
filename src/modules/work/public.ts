@@ -1,3 +1,5 @@
+import { defineAsyncComponent } from 'vue'
+
 // work modülünün dışa açık yüzü. Diğer modüller (ör. 01 ana sayfa) ve `app/` yalnız bu dosyayı
 // içe aktarır. Sayfa kaydı `workRoutes` (`app/router.ts` `MODULE_ROUTES`).
 export * from './api'
@@ -11,6 +13,11 @@ export {
   type WorkActorFacts,
   type WorkCapability,
 } from './model/capabilities'
+// 03c "Yeni görev" sayfa içi diyaloğu (W97a): 03'ün aynı formu; `?yeni=1` yolu diğer girişlerde kalır.
+export const NewTaskDialog = defineAsyncComponent(
+  () => import('./components/forms/NewTaskDialog.vue'),
+)
+export type { NewTaskDialogEmits, NewTaskDialogProps } from './components'
 export { createPartialText } from './model/messages'
 export { departmentTarget, listDepartmentFilter, resolveTarget, targetOf } from './model/target'
 export { transitionTargets } from './model/transitions'

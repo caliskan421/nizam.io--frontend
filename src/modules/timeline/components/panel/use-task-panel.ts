@@ -78,7 +78,7 @@ function useDateDrafts(task: ComputedRef<GanttTask>, item: ComputedRef<WorkItem 
   function seed(): void {
     const source: DateSource = item.value ?? task.value
     start.value = formatInputDay(source.start_on)
-    end.value = formatInputDay(plannedEndOf(source))
+    end.value = formatInputDay(source.end_on)
   }
   watch(
     () => task.value.work_item_id,
@@ -137,10 +137,18 @@ export function useTaskPanel(input: () => PanelInput) {
     return raw && !item.value ? toApiError(raw) : null
   })
 
+  // Girdi ve Kaydet tek kaynaktan (`end_on`); `planned_end_on` yalnız salt okunur bilgi (ilk plan).
+  const plannedNote = computed(() => {
+    const source: DateSource = item.value ?? task.value
+    const planned = source.planned_end_on ?? ''
+    return planned !== '' && planned !== source.end_on ? formatInputDay(planned) : null
+  })
+
   return {
     task,
     target,
     item,
+    plannedNote,
     files: computed(() => filesQuery.data.value?.files.length ?? null),
     error,
     policy,
