@@ -167,6 +167,64 @@ describe('UserCreateDialog (E-05-05 "Kullanıcı oluştur"; P14)', () => {
     expect($('[data-testid="of-transfer"]')).toBeNull()
   })
 
+  describe('aktarım teklifi ilk gövde ve bağlama bağlı (CX-P-Ö-02, BE-107)', () => {
+    const offerTransfer = () =>
+      server.use(
+        http.post(USERS, async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>
+          if (body.transfer_account_id) return json({ account_id: 'acc-old' }, 201)
+          return errorEnvelope('identity.account_exists', 409, [
+            { field: 'account_id', code: 'organization.transfer_available', message: 'acc-old' },
+          ])
+        }),
+      )
+
+    async function offered() {
+      offerTransfer()
+      const opened = await openDialog()
+      await fill()
+      click('[data-testid="of-submit"]')
+      await vi.waitFor(() => expect($('[data-testid="of-transfer"]')).not.toBeNull())
+      return opened
+    }
+
+    it.each([
+      ['ad', '[name="fullName"]', 'Başka Ad'],
+      ['departman', '[name="departmentId"]', 'd1'],
+      ['rol', '[name="role"]', 'coordinator'],
+    ])('%s değişince teklif düşer; ikinci POST yok', async (_label, selector, value) => {
+      await offered()
+      setValue(selector, value)
+      await nextTick()
+      expect($('[data-testid="of-transfer"]')).toBeNull()
+      expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
+    })
+
+    it('kapsam (program) değişince teklif düşer; ikinci POST sıfır', async () => {
+      const { h } = await offered()
+      h.store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+      await h.flush()
+      expect($('[data-testid="of-transfer"]')).toBeNull()
+      expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
+    })
+
+    it('mercek (departman) değişince teklif düşer; ikinci POST sıfır', async () => {
+      const { h } = await offered()
+      h.store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
+      await h.flush()
+      expect($('[data-testid="of-transfer"]')).toBeNull()
+      expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
+    })
+
+    it('değişmeyen teklif: aktarım ilk gövdeyi aynen taşır', async () => {
+      await offered()
+      ;($('[data-testid="of-transfer-action"]') as HTMLButtonElement).click()
+      await vi.waitFor(() => expect(sent('POST', '/v1/admin/users')).toHaveLength(2))
+      const [first, second] = sent('POST', '/v1/admin/users')
+      expect(second!.body).toEqual({ ...(first!.body as object), transfer_account_id: 'acc-old' })
+    })
+  })
+
   it('409 account_exists (aktarımsız) → e-posta alanında; liste yeniden okunur', async () => {
     server.use(http.post(USERS, () => errorEnvelope('identity.account_exists', 409)))
     const { h } = await openDialog()

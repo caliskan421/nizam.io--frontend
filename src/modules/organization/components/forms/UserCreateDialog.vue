@@ -4,14 +4,14 @@ import './forms.css'
 import { useForm } from 'vee-validate'
 import { computed, ref, shallowRef, watch } from 'vue'
 
-import type { MutationOutcome } from '@/shared/http/mutation'
+import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 import { UiButton, UiField, UiHint, UiInput, UiModal, UiSelect, useToast } from '@/shared/ui'
 
 import { transferOffer, useCreateUser, useProgramDepartmentIndex } from '../../api'
-import type { TransferOffer } from '../../model/types'
+import type { CreateUserInput, TransferOffer } from '../../model/types'
 import { can, organizationFacts } from '../../model/capabilities'
 import type { UserCreateDialogEmits, UserCreateDialogProps } from '../index'
 import { serverFieldErrors, toTypedSchema, useFormDialog } from './form-kit'
@@ -75,8 +75,18 @@ const chooseRole = computed(() =>
 )
 const roleOptions = USER_ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
 
-/** Aktarım teklifi (409 `organization.transfer_available`); yoksa `null`. */
-const offer = ref<TransferOffer | null>(null)
+/**
+ * Aktarım teklifi (409 `organization.transfer_available`); yoksa `null`. Teklif ilk eylemin
+ * normalize gövdesine ve bağlamına (kapsam + oturum nesli) bağlıdır (CX-P-Ö-02, BE-107: "aynı
+ * gövde"): aktarım bu gövdeyle ve `failed.context` ile gider; gövde ya da bağlam değişirse düşer.
+ */
+interface BoundOffer {
+  offer: TransferOffer
+  body: CreateUserInput
+  context: ActionContext | undefined
+}
+const bound = shallowRef<BoundOffer | null>(null)
+const offer = computed(() => bound.value?.offer ?? null)
 const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 
 const dialog = useFormDialog({ open: () => props.open, close })
@@ -88,7 +98,7 @@ watch(
   () => props.open,
   () => {
     form.resetForm({ values: empty() })
-    offer.value = null
+    bound.value = null
     notice.value = null
   },
 )
@@ -101,9 +111,61 @@ watch(
   },
   { immediate: true },
 )
+
+/** Formdaki güncel değerlerden normalize gövde (aktarım alanı olmadan). */
+function bodyOf(values: UserValues, programId: string): CreateUserInput {
+  const name = values.fullName.trim()
+  return {
+    email: values.email.trim(),
+    programId,
+    departmentId: values.departmentId,
+    role: chooseRole.value ? values.role : 'member',
+    ...(name ? { fullName: name } : {}),
+  }
+}
+
+function sameBody(a: CreateUserInput, b: CreateUserInput): boolean {
+  return (
+    a.email === b.email &&
+    a.programId === b.programId &&
+    a.departmentId === b.departmentId &&
+    a.role === b.role &&
+    (a.fullName ?? '') === (b.fullName ?? '')
+  )
+}
+
+function sameScope(
+  a: ActionContext | undefined,
+  now: { programId: string | null; departmentId: string | null },
+) {
+  const scope = a?.scope
+  return !scope || (scope.programId === now.programId && scope.departmentId === now.departmentId)
+}
+
+// Teklif yalnız ilk gövde + bağlam sürdükçe geçerlidir: e-posta/ad/departman/rol ya da kapsam
+// (program, departman merceği) ve oturum nesli değişince düşer.
 watch(
-  () => form.values.email,
-  () => (offer.value = null),
+  [
+    () => form.values.email,
+    () => form.values.fullName,
+    () => form.values.departmentId,
+    () => form.values.role,
+    chooseRole,
+    () => store.snapshot.programId,
+    () => store.snapshot.departmentId,
+  ],
+  () => {
+    const current = bound.value
+    if (!current) return
+    const programId = store.snapshot.programId
+    if (
+      !programId ||
+      !sameScope(current.context, store.snapshot) ||
+      !sameBody(current.body, bodyOf(form.values as UserValues, programId))
+    ) {
+      bound.value = null
+    }
+  },
 )
 
 function close(): void {
@@ -116,21 +178,21 @@ function setOpen(value: boolean): void {
 
 type CreateOutcome = Awaited<ReturnType<typeof create.submit>>
 
-/** Oluştur / aktar: her ikisi de ayrı kullanıcı eylemidir (anahtarsız uç, yeni gövde). */
-async function send(values: UserValues, transfer: TransferOffer | null): Promise<void> {
+/**
+ * Oluştur / aktar: her ikisi de ayrı kullanıcı eylemidir (anahtarsız uç). Aktarım teklifin
+ * SAKLANAN gövdesini ve bağlamını kullanır (güncel form değil): kapsam değiştiyse motor isteği
+ * göndermez (`scope_changed`).
+ */
+async function send(values: UserValues, transfer: BoundOffer | null): Promise<void> {
   const programId = store.snapshot.programId
   if (!programId) return
   notice.value = null
-  offer.value = null
-  const name = values.fullName.trim()
-  const outcome = await create.submit({
-    email: values.email.trim(),
-    programId,
-    departmentId: values.departmentId,
-    role: chooseRole.value ? values.role : 'member',
-    ...(name ? { fullName: name } : {}),
-    ...(transfer ? { transferAccountId: transfer.accountId } : {}),
-  })
+  bound.value = null
+  const body = transfer ? transfer.body : bodyOf(values, programId)
+  const outcome = await create.submit(
+    transfer ? { ...body, transferAccountId: transfer.offer.accountId } : body,
+    transfer ? { context: transfer.context } : undefined,
+  )
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
     toast.push({ message: orgText('forms.user.done') })
@@ -138,18 +200,19 @@ async function send(values: UserValues, transfer: TransferOffer | null): Promise
     close()
     return
   }
-  settleFailure(outcome, transfer !== null)
+  settleFailure(outcome, transfer !== null, body)
 }
 
 /** Alan hatası / aktarım teklifi / sonuç bilinmiyor / ortak bildirim. */
 function settleFailure(
   outcome: Exclude<CreateOutcome, { kind: 'success' }>,
   transferring: boolean,
+  body: CreateUserInput,
 ) {
   if (outcome.kind === 'failed') {
     const found = transferring ? null : transferOffer(outcome.error)
     if (found) {
-      offer.value = found
+      bound.value = { offer: found, body, context: outcome.context }
       return
     }
     const fields = serverFieldErrors(outcome.error, USER_FIELDS, USER_CODES)
@@ -163,14 +226,14 @@ function settleFailure(
 }
 
 const handle = form.handleSubmit((values) => send(values, null))
-const handleTransfer = form.handleSubmit((values) => send(values, offer.value))
+const handleTransfer = form.handleSubmit((values) => send(values, bound.value))
 
 function submit(): void {
   void dialog.once(() => handle())
 }
 
 function transfer(): void {
-  if (offer.value) void dialog.once(() => handleTransfer())
+  if (bound.value) void dialog.once(() => handleTransfer())
 }
 </script>
 
