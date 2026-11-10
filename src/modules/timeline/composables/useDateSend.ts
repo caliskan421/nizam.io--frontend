@@ -24,7 +24,7 @@
 import { useQueryClient, type QueryClient } from '@tanstack/vue-query'
 
 import { authSession } from '@/shared/http'
-import { ownerLife, reachesOwner, type OwnerLife } from '@/shared/http/mutation'
+import { ownerLife, reachesOwner, sameScope, type OwnerLife } from '@/shared/http/mutation'
 import { conflictRows } from '@/shared/ui/conflict'
 
 import { fetchWorkItem } from '@/modules/work/public'
@@ -33,6 +33,7 @@ import { errorText } from '@/shared/i18n'
 import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
+import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
 import { notifyOutcome } from '@/shared/ui/confirm'
 
@@ -64,6 +65,8 @@ interface Deps {
   extend: ReturnType<typeof useExtendWorkItem>
   update: ReturnType<typeof useUpdateWorkItemDates>
   owner: OwnerLife
+  /** Güncel etki kapsamı (eylemin yakalanmış kapsamıyla karşılaştırılır; Ö-04). */
+  readScope: () => ScopeSnapshot
 }
 
 function reread(client: QueryClient, scope: ScopeSnapshot, workItemId: string): void {
@@ -83,10 +86,15 @@ function successText({ write, title }: DateChange, data: unknown): string {
   return dragText(key, { title, days: write.days, count })
 }
 
-/** Ek okuma/bildirim yalnız sahip yaşıyorsa ve eylemin oturumu sürüyorsa (Ö-07). */
+/**
+ * Ek okuma/bildirim yalnız sahip yaşıyorsa, eylemin oturumu sürüyorsa VE kapsam eylemin
+ * yakalanmış kapsamıyla aynıysa (Ö-07, CX-F3-Ö-04): ön okuma sırasında kapsam A→B olduysa
+ * sahip bağlı kalsa da eski kapsam adına yazma/bildirim/okuma başlamaz.
+ */
 const live = (deps: Deps, context: ActionContext): boolean =>
   deps.owner.alive() &&
-  (context.generation === null || context.generation === authSession.generation)
+  (context.generation === null || context.generation === authSession.generation) &&
+  (!context.scope || sameScope(context.scope, deps.readScope()))
 
 /** Güncel görev elde ise çakışan alan adları (yoksa boş). */
 function conflictFieldNames(change: DateChange, server: unknown): string[] {
@@ -123,7 +131,8 @@ function settle(deps: Deps, change: DateChange, context: ActionContext, outcome:
   } else {
     notifyOutcome(outcome)
   }
-  if (needsReread(outcome) && context.scope) reread(deps.client, context.scope, change.workItemId)
+  if (needsReread(outcome) && context.scope && live(deps, context))
+    reread(deps.client, context.scope, change.workItemId)
 }
 
 /** `updateWorkItem` yolu: taze görev → tarih uyumu → sürümlü yazma. */
@@ -171,6 +180,7 @@ async function dispatch(deps: Deps, change: DateChange, context: ActionContext):
 }
 
 export function useDateSend(): (change: DateChange, context: ActionContext) => Promise<void> {
+  const scopeStore = useScopeStore()
   const deps: Deps = {
     client: useQueryClient(),
     toast: useToast(),
@@ -178,6 +188,7 @@ export function useDateSend(): (change: DateChange, context: ActionContext) => P
     extend: useExtendWorkItem(),
     update: useUpdateWorkItemDates(),
     owner: ownerLife(),
+    readScope: () => scopeStore.snapshot,
   }
   return (change, context) => dispatch(deps, change, context)
 }

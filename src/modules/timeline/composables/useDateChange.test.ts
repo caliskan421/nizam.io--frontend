@@ -371,6 +371,29 @@ describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
     expect(sent('PATCH', ITEM)).toHaveLength(0)
   })
 
+  it('ön okuma beklerken kapsam A→B, sahip bağlı, farklı tarihli yanıt: PATCH/bildirim/ek geçersizleme sıfır (Ö-04)', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, async () => {
+        await gate
+        return json(workItem({ end_on: '2026-11-20' }))
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
+    expect(sent('GET', ITEM)).toHaveLength(1)
+    h.store.setLens('coordinator') // kapsam A→B; sahip (sayfa) hâlâ bağlı
+    release()
+    await vi.advanceTimersByTimeAsync(100)
+    expect(sent('PATCH', ITEM)).toHaveLength(0)
+    expect(useToast().queue.value).toEqual([])
+    expect(spy).not.toHaveBeenCalled()
+  })
+
   it('sahibi sökülmüş sürükleme: okuma hatası bildirim üretmez, yazma başlamaz', async () => {
     const spy = await detachedDuring(() => errorEnvelope('work.item_not_found', 404))
     expect(spy).not.toHaveBeenCalled()

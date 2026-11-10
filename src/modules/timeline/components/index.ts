@@ -229,6 +229,11 @@ export interface SubtaskRowsProps {
   target: { programId: string; departmentId: string }
   /** Yalnız `true` iken okunur (kapalı satırda istek 0; "Tümünü aç" yok — K3). */
   open: boolean
+  /**
+   * Bloğun ilk satırının mutlak `aria-rowindex` değeri (sahibi görev satırının indeksi + 1;
+   * CX-F3-Ö-03). Verilmezse satırlara indeks yazılmaz (tek başına kullanım).
+   */
+  rowIndexStart?: number
 }
 
 // --- Bileşenler (gövdeler O2b'de) -----------------------------------------------------------
