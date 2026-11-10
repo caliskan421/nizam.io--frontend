@@ -31,7 +31,7 @@ function setup(position: 'absolute' | 'static', panelRect: DOMRect, barRect: DOM
     if (arm) reveal.arm()
     selected.value = id
     await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 80))
+    await new Promise((resolve) => setTimeout(resolve, 250))
   }
   return { board, panel, scrollIntoView, ganttScrollBy, select }
 }
@@ -103,5 +103,12 @@ describe('CX-P-Ö-05: kaydırma sonrası tutamaç panelin altına girmez', () =>
     ref2.dispatchEvent(new Event('scroll'))
     await new Promise((resolve) => setTimeout(resolve, 260))
     expect(t.ganttScrollBy).not.toHaveBeenCalled()
+  })
+
+  it('derin bağlantıda yüzen panel çubuğu örtüyorsa çubuk dışarı alınır (odak çalınmaz)', async () => {
+    const t = setup('absolute', rect(1059, 585, 1399, 884), rect(900, 700, 1200, 724))
+    await t.select('w1', false)
+    expect(scrollBy).toHaveBeenCalled()
+    expect(document.activeElement).not.toBe(t.panel)
   })
 })

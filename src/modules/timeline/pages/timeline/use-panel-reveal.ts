@@ -134,8 +134,9 @@ export function useSelectionReveal(
       if (!root || !panel || panel.getBoundingClientRect().height === 0) return // ölçüm yok (jsdom)
       const floating = getComputedStyle(panel).position === 'absolute'
       if (floating) release = guardOnScroll(root, panel, id)
-      // Derin bağlantıyla açılışta ilk kaydırma ve odak çalma yok (yalnız kullanıcı seçimi).
-      if (!armed) return
+      // Derin bağlantıyla açılışta panele kaydırma ve odak çalma yok (yalnız kullanıcı seçimi);
+      // yüzen panel çubuğu/tutamaçları örtüyorsa yine de dışarı alınır (CX-P-Ö-05).
+      if (!armed && !floating) return
       await settled(panel)
       if (!floating) return revealStacked(panel)
       revealFloating(panel, root, id)
