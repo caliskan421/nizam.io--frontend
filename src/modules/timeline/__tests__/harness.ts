@@ -123,6 +123,9 @@ export function ganttTask(over: Partial<GanttTask> = {}): GanttTask {
     planned_end_on: '',
     completed_on: '',
     assignee_account_ids: ['acc-1'],
+    dates_revision: 1,
+    pending_date_request: null,
+    subtask_counts: { total: 0, done: 0 },
     lateness: {
       is_overdue: false,
       days_overdue: 0,

@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.11.0-api (4d0bbd0605ade5adfc0599e9586944ed8dab7bcb) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
+// Kaynak: nizam.io--backend etiket v0.15.0-api (b8f6479a7971fa7056823acada47a7db4d9052de) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
 
 export const API_VERSION = "v1" as const
 
@@ -10,6 +10,8 @@ export const OPERATIONS = {
   "POST /v1/admin/accounts": {"operationId":"openAccount","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "PATCH /v1/admin/accounts/{id}": {"operationId":"updateAccount","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "DELETE /v1/admin/accounts/{id}": {"operationId":"deleteAccount","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
+  "POST /v1/admin/accounts/{id}/disable": {"operationId":"disableAccount","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
+  "POST /v1/admin/accounts/{id}/enable": {"operationId":"enableAccount","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/admin/accounts/{id}/unlock": {"operationId":"unlockAccount","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/admin/deleted/accounts": {"operationId":"listDeletedAccounts","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/admin/deleted/departments": {"operationId":"listDeletedDepartments","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
@@ -26,6 +28,7 @@ export const OPERATIONS = {
   "POST /v1/admin/security/reset-lockouts": {"operationId":"resetLockouts","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/admin/users": {"operationId":"listUsers","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/admin/users": {"operationId":"createUser","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
+  "GET /v1/admin/users/{id}": {"operationId":"readUser","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "PATCH /v1/admin/users/{id}": {"operationId":"updateUser","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "DELETE /v1/admin/users/{id}": {"operationId":"deleteUser","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/assistant/chat": {"operationId":"assistantChat","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
@@ -129,9 +132,11 @@ export const OPERATIONS = {
   "GET /v1/program-transfers/{id}": {"operationId":"readTransfer","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/program/departments": {"operationId":"listProgramDepartments","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "POST /v1/program/departments": {"operationId":"linkDepartment","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
+  "GET /v1/program/departments/{departmentId}": {"operationId":"readProgramDepartment","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "PATCH /v1/program/departments/{departmentId}": {"operationId":"renameDepartmentLink","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "DELETE /v1/program/departments/{departmentId}": {"operationId":"unlinkDepartment","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/program/work-items": {"operationId":"listProgramWorkItems","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
+  "GET /v1/program/work-items/counts": {"operationId":"countProgramWorkItems","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/programs": {"operationId":"listPrograms","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/programs": {"operationId":"createProgram","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "PATCH /v1/programs/{id}": {"operationId":"updateProgram","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},

@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.11.0-api (4d0bbd0605ade5adfc0599e9586944ed8dab7bcb) — docs/api/error-codes.json
+// Kaynak: nizam.io--backend etiket v0.15.0-api (b8f6479a7971fa7056823acada47a7db4d9052de) — docs/api/error-codes.json
 
 export const ERROR_CATALOG_VERSION = 1 as const
 
@@ -29,7 +29,6 @@ export const ERROR_CODES = {
   "collaboration.not_authorized": { status: [403], fields: [], messageKey: "errors.collaboration.not_authorized" },
   "collaboration.not_deleted": { status: [409], fields: [], messageKey: "errors.collaboration.not_deleted" },
   "collaboration.note_converted": { status: [409], fields: [], messageKey: "errors.collaboration.note_converted" },
-  "collaboration.note_deleted": { status: [409], fields: [], messageKey: "errors.collaboration.note_deleted" },
   "collaboration.note_immutable": { status: [409], fields: [], messageKey: "errors.collaboration.note_immutable" },
   "collaboration.note_not_found": { status: [404], fields: [], messageKey: "errors.collaboration.note_not_found" },
   "collaboration.participant_invalid": { status: [422], fields: ["collaboration.participant_invalid"], messageKey: "errors.collaboration.participant_invalid" },
@@ -87,11 +86,13 @@ export const ERROR_CODES = {
   "organization.company_not_found": { status: [404], fields: [], messageKey: "errors.organization.company_not_found" },
   "organization.confirmation_required": { status: [409], fields: ["organization.task_title"], messageKey: "errors.organization.confirmation_required" },
   "organization.department_code_conflict": { status: [409], fields: [], messageKey: "errors.organization.department_code_conflict" },
-  "organization.department_exists": { status: [409], fields: [], messageKey: "errors.organization.department_exists" },
+  "organization.department_exists": { status: [409], fields: ["organization.existing_department"], messageKey: "errors.organization.department_exists" },
   "organization.department_in_use": { status: [409], fields: [], messageKey: "errors.organization.department_in_use" },
   "organization.department_not_found": { status: [404], fields: [], messageKey: "errors.organization.department_not_found" },
   "organization.department_not_linked": { status: [422], fields: [], messageKey: "errors.organization.department_not_linked" },
-  "organization.input_invalid": { status: [422], fields: ["organization.invalid_code","organization.invalid_kind","organization.invalid_name","organization.invalid_role","organization.invalid_sort","organization.program_required"], messageKey: "errors.organization.input_invalid" },
+  "organization.existing_department": { status: [409], fields: [], messageKey: "errors.organization.existing_department" },
+  "organization.idempotency_key_reused": { status: [409], fields: [], messageKey: "errors.organization.idempotency_key_reused" },
+  "organization.input_invalid": { status: [422], fields: ["organization.invalid_code","organization.invalid_kind","organization.invalid_name","organization.invalid_request_key","organization.invalid_role","organization.invalid_sort","organization.program_required"], messageKey: "errors.organization.input_invalid" },
   "organization.last_admin": { status: [409], fields: [], messageKey: "errors.organization.last_admin" },
   "organization.membership_exists": { status: [409], fields: [], messageKey: "errors.organization.membership_exists" },
   "organization.membership_not_found": { status: [404], fields: [], messageKey: "errors.organization.membership_not_found" },
@@ -120,7 +121,7 @@ export const ERROR_CODES = {
   "program.department_link_name_exists": { status: [409], fields: [], messageKey: "errors.program.department_link_name_exists" },
   "program.department_not_found": { status: [404], fields: [], messageKey: "errors.program.department_not_found" },
   "program.idempotency_key_reused": { status: [409], fields: [], messageKey: "errors.program.idempotency_key_reused" },
-  "program.input_invalid": { status: [422], fields: ["program.invalid_copy_source","program.invalid_description","program.invalid_limit","program.invalid_name","program.invalid_year","program.password_required"], messageKey: "errors.program.input_invalid" },
+  "program.input_invalid": { status: [422], fields: ["program.invalid_color","program.invalid_copy_source","program.invalid_description","program.invalid_limit","program.invalid_name","program.invalid_request_key","program.invalid_short_name","program.invalid_year","program.password_required"], messageKey: "errors.program.input_invalid" },
   "program.invalid_cursor": { status: [422], fields: ["program.invalid_cursor"], messageKey: "errors.program.invalid_cursor" },
   "program.not_authorized": { status: [403], fields: [], messageKey: "errors.program.not_authorized" },
   "program.not_found": { status: [404], fields: [], messageKey: "errors.program.not_found" },
