@@ -1,10 +1,63 @@
 // Sahte backend: ekip (üyelik, koordinatör), kullanıcı/hesap ve departman kataloğu uçları.
 // Ayrıntı ve sözleşme notları `fake-org.ts` başlığında.
-import { http } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
 import { envelope, fakeOrg as o, json, ORIGIN, type Account, type OrgDb } from './fake-org'
+
+// --- Idempotency-Key (v0.15: createDepartment, linkDepartment — İSTEĞE BAĞLI anahtar) ----------
+interface Stored {
+  fingerprint: string
+  status: number
+  body: Record<string, unknown>
+}
+const KEYS = new WeakMap<OrgDb, Map<string, Stored>>()
+const DROP_NEXT = new WeakMap<OrgDb, number>()
+
+/** Sonraki `count` anahtarlı oluşturma yanıtını düşürür (istek UYGULANIR; sonuç bilinmiyor). */
+export function dropNextCreateResponses(db: OrgDb, count = 1): void {
+  DROP_NEXT.set(db, count)
+}
+
+/**
+ * Aktör kapsamlı anahtar: aynı anahtar + aynı istek 200 + ilk kaynak; farklı istek 409
+ * `<mod>.idempotency_key_reused`; 22–200 bayt dışı 422 `<mod>.input_invalid` (alan
+ * `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtarsız istek doğrudan uygulanır.
+ */
+function keyedCreate(
+  db: OrgDb,
+  request: Request,
+  mod: 'organization' | 'program',
+  fingerprint: string,
+  apply: () => Response | Stored,
+): Response {
+  const key = request.headers.get('Idempotency-Key')?.trim() ?? null
+  if (key !== null && !/^.{22,200}$/.test(key)) {
+    return envelope(`${mod}.input_invalid`, 422, [
+      { field: 'idempotency_key', code: `${mod}.invalid_request_key` },
+    ])
+  }
+  const store = KEYS.get(db) ?? new Map<string, Stored>()
+  KEYS.set(db, store)
+  const actor = o.actorOf(db, request)?.account_id ?? ''
+  const slot = key === null ? null : `${actor}:${new URL(request.url).pathname}:${key}`
+  const seen = slot === null ? undefined : store.get(slot)
+  if (seen) {
+    return seen.fingerprint === fingerprint
+      ? json(seen.body)
+      : envelope(`${mod}.idempotency_key_reused`, 409)
+  }
+  const result = apply()
+  if (result instanceof Response) return result
+  if (slot !== null) store.set(slot, { ...result, fingerprint })
+  const left = DROP_NEXT.get(db) ?? 0
+  if (left > 0 && slot !== null) {
+    DROP_NEXT.set(db, left - 1)
+    return HttpResponse.error()
+  }
+  return json(result.body, result.status)
+}
 
 /** Ekip yazması yetkisi: yönetici her birimde; koordinatör yalnız kendi biriminde. */
 function canManageTeam(db: OrgDb, me: Account | null, program: string, department: string) {
@@ -286,6 +339,7 @@ interface CreateUserBody {
   program_id: string
   department_id: string
   role?: string
+  transfer_account_id?: string
 }
 
 /** `disableAccount` / `enableAccount`: idempotent (`changed`), kapatmada oturumlar düşer. */
@@ -323,10 +377,47 @@ function userHandlers(db: OrgDb) {
       statusChange(db, request, String(params.id), false),
     ),
     http.post(`${ORIGIN}/v1/admin/users`, async ({ request }) => {
-      if (!admin(request)) return o.forbidden('organization')
+      const me = o.actorOf(db, request)
+      if (!me?.admin) return o.forbidden('organization')
       const body = (await request.json()) as CreateUserBody
-      if (db.accounts.some((a) => a.email === body.email)) {
-        return envelope('identity.account_exists', 409)
+      if (!o.linkOf(db, body.program_id, body.department_id)) {
+        return envelope('organization.input_invalid', 422, [
+          { field: 'department_id', code: 'organization.department_not_linked' },
+        ])
+      }
+      const team = o.teamOf(db, body.role) ?? 'member'
+      const clash = db.accounts.find((a) => a.email === body.email && !a.deleted)
+      // BE-107: var olan hesabı aynı gövdeyle `transfer_account_id` ile hedef ekibe aktarma.
+      if (body.transfer_account_id !== undefined) {
+        if (!clash || clash.account_id !== body.transfer_account_id) {
+          return envelope('organization.account_not_found', 404)
+        }
+        if (o.teamIn(db, clash.account_id, body.program_id, body.department_id) !== null) {
+          return envelope('organization.membership_exists', 409)
+        }
+        setTeam(db, body.program_id, body.department_id, clash.account_id, team)
+        const row = db.memberships.at(-1)!.membership_id
+        return json({ account_id: clash.account_id, membership_id: row, created: false }, 201)
+      }
+      if (clash) {
+        const inTeam = o.teamIn(db, clash.account_id, body.program_id, body.department_id) !== null
+        // Teklif yalnız yöneticiye ve hesap hedef ekipte yokken (ORGANIZATION-K22).
+        const offer = inTeam
+          ? []
+          : [
+              { field: 'email', code: 'organization.transfer_available', message: 'Aktarılabilir' },
+              {
+                field: 'account_id',
+                code: 'organization.transfer_available',
+                message: clash.account_id,
+              },
+              {
+                field: 'user_full_name',
+                code: 'organization.transfer_available',
+                message: clash.full_name,
+              },
+            ]
+        return envelope('identity.account_exists', 409, offer)
       }
       const account: Account = {
         account_id: o.next(db, 'u-yeni'),
@@ -335,7 +426,6 @@ function userHandlers(db: OrgDb) {
         admin: false,
       }
       db.accounts.push(account)
-      const team = o.teamOf(db, body.role) ?? 'member'
       setTeam(db, body.program_id, body.department_id, account.account_id, team)
       const membership = db.memberships.at(-1)!.membership_id
       return json({ account_id: account.account_id, membership_id: membership, created: true }, 201)
@@ -374,24 +464,26 @@ function catalogHandlers(db: OrgDb) {
         a !== undefined &&
         b !== undefined &&
         a.toLocaleLowerCase('tr') === b.toLocaleLowerCase('tr')
-      const clash = db.catalog.find((c) => same(c.name, body.name))
-      if (clash) {
-        // v0.15 (BE-050): mevcut departman zarfta (kimlik + silinmişlik).
-        return envelope('organization.department_exists', 409, [
-          {
-            field: 'department_id',
-            code: 'organization.existing_department',
-            message: clash.department_id,
-          },
-          { field: 'deleted', code: 'organization.existing_department', message: 'false' },
-        ])
-      }
-      if (db.catalog.some((c) => same(c.code, body.code))) {
-        return envelope('organization.department_code_conflict', 409)
-      }
-      const created = { department_id: o.next(db, 'd-yeni'), ...body }
-      db.catalog.push(created)
-      return json(created, 201)
+      return keyedCreate(db, request, 'organization', JSON.stringify(body), () => {
+        const clash = db.catalog.find((c) => same(c.name, body.name))
+        if (clash) {
+          // v0.15 (BE-050): mevcut departman zarfta (kimlik + silinmişlik).
+          return envelope('organization.department_exists', 409, [
+            {
+              field: 'department_id',
+              code: 'organization.existing_department',
+              message: clash.department_id,
+            },
+            { field: 'deleted', code: 'organization.existing_department', message: 'false' },
+          ])
+        }
+        if (db.catalog.some((c) => same(c.code, body.code))) {
+          return envelope('organization.department_code_conflict', 409)
+        }
+        const created = { department_id: o.next(db, 'd-yeni'), ...body }
+        db.catalog.push(created)
+        return { fingerprint: '', status: 201, body: created }
+      })
     }),
     http.post(`${ORIGIN}/v1/program/departments`, async ({ request }) => {
       if (!admin(request)) return o.forbidden('program')
@@ -401,12 +493,18 @@ function catalogHandlers(db: OrgDb) {
       }
       const program = o.programOf(request)
       const body = (await request.json()) as { department_id: string; display_name?: string }
-      const name = db.catalog.find((c) => c.department_id === body.department_id)?.name ?? ''
-      const link = { program_id: program, department_id: body.department_id }
-      const existing = o.linkOf(db, program, body.department_id)
-      const display = existing?.display_name ?? body.display_name ?? name
-      if (!existing) db.links.push({ ...link, display_name: display })
-      return json({ ...link, display_name: display, copied_member_count: 0 }, 201)
+      return keyedCreate(db, request, 'program', JSON.stringify([program, body]), () => {
+        const name = db.catalog.find((c) => c.department_id === body.department_id)?.name ?? ''
+        const link = { program_id: program, department_id: body.department_id }
+        const existing = o.linkOf(db, program, body.department_id)
+        const display = existing?.display_name ?? body.display_name ?? name
+        if (!existing) db.links.push({ ...link, display_name: display })
+        return {
+          fingerprint: '',
+          status: 201,
+          body: { ...link, display_name: display, copied_member_count: 0 },
+        }
+      })
     }),
   ]
 }
