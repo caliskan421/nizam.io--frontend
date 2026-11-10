@@ -53,6 +53,10 @@ export function userRoleFilterOf(tab: UserRoleTab): UserRoleFilter | null {
   return role === null ? null : serverRoleOf(role)
 }
 
+/** K/Ü sekmeleri seçili programın rolleridir (`program_id` ile daralır, G16); Tümü/Admin şirket geneli. */
+export const isProgramScopedTab = (tab: UserRoleTab): boolean =>
+  tab === 'koordinator' || tab === 'uye'
+
 /** Hesap şirket yöneticisi mi (`KnownUser.company_admin`; okuma yalnız burada, K1). */
 export const isCompanyAdmin = (user: { company_admin: boolean }): boolean => user.company_admin
 

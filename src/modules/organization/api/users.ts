@@ -37,6 +37,7 @@ import type {
   KnownUser,
   TemporaryPasswordInput,
   TransferOffer,
+  UserCountFilters,
   UpdateUserInput,
   UserListFilters,
   UserPage,
@@ -52,6 +53,8 @@ import {
 import { useKeylessMutation } from './keyless'
 
 const INVALID_SORT = 'organization.invalid_sort'
+/** Ardışık boş sayfada otomatik ilerlemenin üst sınırı. */
+const MAX_EMPTY_PAGES = 20
 const TRANSFER_CODE = 'organization.transfer_available'
 
 function isInvalidSort(error: unknown): boolean {
@@ -63,13 +66,14 @@ function readUsers(
   cursor: string | undefined,
   sorted: boolean,
   signal?: AbortSignal,
+  limit: number = USER_PAGE_LIMIT,
 ) {
   const search = filters.search?.trim()
   return unwrapList(
     api.GET('/v1/admin/users', {
       params: {
         query: {
-          limit: USER_PAGE_LIMIT,
+          limit,
           ...(sorted ? { sort_by: 'name', sort_order: filters.sortOrder } : {}),
           ...(search ? { search } : {}),
           ...(filters.role ? { role: filters.role } : {}),
@@ -97,6 +101,62 @@ export async function fetchUserPage(
     page = await readUsers(filters, undefined, false, signal)
   }
   return { page, truncated: isTruncated(page) }
+}
+
+/**
+ * Sekme sayaçları (BE-011): `role_counts` rol dışı süzgeçlerle (`search`, `program_id`,
+ * `department_id`) hesaplanır; `program_id` verilince ekip satırsız hesaplar ve rol sayıları o
+ * programa daralır. Sekmeler iki kapsamda çalıştığından (Tümü/Admin şirket geneli, K/Ü seçili
+ * program — G16, BE-045) sayaçlar iki `limit=1` okumadan birleştirilir:
+ * Tümü/Admin ← kapsamsız yanıt, Koordinatör/Üye ← `program_id`'li yanıt. Koordinatörlük süzgeci
+ * seçiliyken tek (program+departman kapsamlı) okuma yeter.
+ */
+export function useUserCounts(filters: MaybeRefOrGetter<UserCountFilters>) {
+  function counts(scoped: boolean) {
+    return useQuery(
+      computed(() => {
+        const f = toValue(filters)
+        const withProgram = scoped || f.departmentId ? (f.programId ?? null) : null
+        const key = queryKeys.users.list({
+          counts: scoped ? 'scoped' : 'all',
+          search: f.search?.trim() || null,
+          ...(withProgram ? { programId: withProgram } : {}),
+          ...(f.departmentId ? { departmentId: f.departmentId } : {}),
+        })
+        return {
+          queryKey: key,
+          queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+            readUsers(
+              {
+                search: f.search,
+                sortOrder: 'asc',
+                programId: withProgram,
+                departmentId: f.departmentId,
+              },
+              undefined,
+              false,
+              signal,
+              1,
+            ),
+          ),
+          enabled: !scoped || (f.programId ?? null) !== null,
+          retry: retryTransient,
+          staleTime: ORGANIZATION_STALE_MS,
+        }
+      }),
+    )
+  }
+  const company = counts(false)
+  const program = counts(true)
+  return {
+    /** Tümü/Admin ve (program yoksa) K/Ü için kapsamsız; program varken K/Ü programlı. */
+    counts: computed(() => {
+      const all = company.data.value?.role_counts
+      const scoped = program.data.value?.role_counts ?? all
+      if (!all || !scoped) return null
+      return { ...all, koordinator: scoped.koordinator, uye: scoped.uye }
+    }),
+  }
 }
 
 /**
@@ -143,6 +203,8 @@ export function useUserList(
   watchEffect(() => {
     const page = latest.value
     if (!toValue(enabled) || page === null || (page.users?.length ?? 0) > 0) return
+    // Sınır: sunucu hiç satır vermeden imleç sürerse sonsuz döngü olmasın.
+    if ((query.data.value?.pages.length ?? 0) >= MAX_EMPTY_PAGES) return
     if (query.hasNextPage.value && !query.isFetchingNextPage.value) void query.fetchNextPage()
   })
   return {

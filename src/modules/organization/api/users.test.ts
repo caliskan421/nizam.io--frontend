@@ -91,8 +91,19 @@ describe('useUserList (listUsers, S1, imleçli)', () => {
     expect(r.complete.value).toBe(false)
   })
 
+  it('boş sayfa + next_cursor → istemci ilerler; sınırsız boş zincirde durur (BE-011)', async () => {
+    server.use(http.get(USERS, () => json({ users: [], next_cursor: 'c-more' })))
+    const h = harness(ADMIN_SCOPE)
+    const r = h.run(() => useUserList(ASC))
+    await vi.waitFor(() => expect(sent('GET', '/v1/admin/users').length).toBeGreaterThan(5))
+    await vi.waitFor(() => expect(sent('GET', '/v1/admin/users')).toHaveLength(20))
+    expect(r.users.value).toEqual([])
+  })
+
   it('arama kırpılır; yön değişimi yeni sorgu, eski imleç kullanılmaz (E-05-10)', async () => {
-    server.use(http.get(USERS, () => json({ users: [], next_cursor: 'c-asc' })))
+    server.use(
+      http.get(USERS, () => json({ users: [knownUser('a', 'Ali')], next_cursor: 'c-asc' })),
+    )
     const h = harness(ADMIN_SCOPE)
     const filters = ref<UserListFilters>({ search: '  ali ', sortOrder: 'asc' })
     const r = h.run(() => useUserList(filters))

@@ -29,6 +29,9 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
+/** Liste istekleri (sayaç okumaları `limit=1`). */
+const lists = () => sent('GET', '/v1/admin/users').filter((r) => r.query.get('limit') !== '1')
+
 const PROPS = { roleTab: 'tumu', search: '', departmentId: null, selectedAccountId: null }
 const rowOf = (w: Awaited<ReturnType<typeof mountWith>>['wrapper'], id: string) =>
   w.find(`[data-account="${id}"]`)
@@ -68,7 +71,7 @@ describe('UsersTable — liste (listUsers)', () => {
     await wrapper.get('[data-testid="users-more"]').trigger('click')
     await settle()
 
-    expect(sent('GET', '/v1/admin/users')[1]!.query.get('cursor')).toBe('c1')
+    expect(lists()[1]!.query.get('cursor')).toBe('c1')
     expect(caption()).toBe('1–2 / 2 kullanıcı')
     expect(wrapper.find('[data-testid="users-more"]').exists()).toBe(false)
   })
@@ -82,7 +85,7 @@ describe('UsersTable — liste (listUsers)', () => {
     await wrapper.get('[data-testid="users-sort"]').trigger('click')
     await settle()
 
-    const calls = sent('GET', '/v1/admin/users')
+    const calls = lists()
     expect(calls).toHaveLength(2)
     expect(calls[1]!.query.get('sort_by')).toBe('name')
     expect(calls[1]!.query.get('sort_order')).toBe('desc')
@@ -105,11 +108,12 @@ describe('UsersTable — liste (listUsers)', () => {
   it('rol sekmesi sunucuda süzülür (role=uye); istemci süzmesi yok', async () => {
     server.use(...baseHandlers(), userListHandler(USERS))
     const { wrapper } = await mountWith(UsersTable, { ...PROPS, roleTab: 'uye' })
-    expect(sent('GET', '/v1/admin/users')[0]!.query.get('role')).toBe('uye')
+    expect(lists()[0]!.query.get('role')).toBe('uye')
+    // K/Ü sekmesi seçili programla daralır (G16): u3 yalnız p2'de üye.
+    expect(lists()[0]!.query.get('program_id')).toBe('p1')
     expect(wrapper.findAll('[data-account]').map((r) => r.attributes('data-account'))).toEqual([
       'u1',
       'u2',
-      'u3',
     ])
   })
 
@@ -141,7 +145,7 @@ describe('UsersTable — tek koordinatörlük (listUsers department_id)', () => 
     )
     const { wrapper } = await mountWith(UsersTable, { ...PROPS, departmentId: 'd1' })
 
-    const [req] = sent('GET', '/v1/admin/users')
+    const [req] = lists()
     expect(req!.query.get('department_id')).toBe('d1')
     expect(req!.query.get('program_id')).toBe('p1')
     expect(sent('GET', '/v1/departments/d1/members')).toHaveLength(0)

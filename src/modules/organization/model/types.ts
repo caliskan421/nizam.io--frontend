@@ -193,6 +193,9 @@ export interface UserListFilters {
   departmentId?: string | null
 }
 
+/** Sekme sayaçlarını belirleyen süzgeçler (rol hariç). */
+export type UserCountFilters = Pick<UserListFilters, 'search' | 'programId' | 'departmentId'>
+
 export type SortOrder = 'asc' | 'desc'
 
 /** Sayfa + sunucu kesme bayrağı (`X-Result-Truncated`). */

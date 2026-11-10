@@ -23,6 +23,8 @@ const DEPARTMENTS = http.get(`${ORIGIN}/v1/program/departments`, () =>
   json({ departments: [{ department_id: 'd1', display_name: 'Mekanik' }] }),
 )
 
+const lists = () => sent('GET', '/v1/admin/users').filter((r) => r.query.get('limit') !== '1')
+
 describe('useUsersView', () => {
   const USERS = [
     knownUser('a', 'Ayşe', ['p1:d1:koordinator'], { email: 'ayse@ornek.test' }),
@@ -40,18 +42,21 @@ describe('useUsersView', () => {
     expect(view.rows.value.map((r) => r.accountId)).toEqual(['b'])
     expect(view.total.value).toBe(1)
     // Sayaçlar rol dışı süzgeçlerle sunucudan: Tümü hesapların hepsi (ekibi olmayan yönetici dahil).
-    expect(view.counts.value).toEqual({ tumu: 3, admin: 1, koordinator: 2, uye: 1 })
-    expect(sent('GET', '/v1/admin/users').at(-1)!.query.get('role')).toBe('uye')
-    expect(sent('GET', '/v1/admin/users').at(-1)!.query.get('program_id')).toBeNull()
+    // Tümü/Admin şirket geneli; K/Ü seçili programa daralmış (program_id'li okuma).
+    expect(view.counts.value).toEqual({ tumu: 3, admin: 1, koordinator: 1, uye: 1 })
+    expect(lists().at(-1)!.query.get('role')).toBe('uye')
+    expect(lists().at(-1)!.query.get('program_id')).toBe('p1')
 
     input.roleTab = 'admin'
+    // Admin şirket olgusu: program_id gönderilmez.
     await vi.waitFor(() => expect(view.rows.value.map((r) => r.accountId)).toEqual(['c']))
-    expect(sent('GET', '/v1/admin/users').at(-1)!.query.get('role')).toBe('company_admin')
+    expect(lists().at(-1)!.query.get('role')).toBe('company_admin')
+    expect(lists().at(-1)!.query.get('program_id')).toBeNull()
 
     input.roleTab = 'tumu'
     input.search = 'AYSE@'
     await vi.waitFor(() => expect(view.rows.value.map((r) => r.accountId)).toEqual(['a']))
-    expect(sent('GET', '/v1/admin/users').at(-1)!.query.get('search')).toBe('AYSE@')
+    expect(lists().at(-1)!.query.get('search')).toBe('AYSE@')
     expect(view.rowFor('a')?.email).toBe('ayse@ornek.test')
     expect(view.rowFor('zz')).toBeNull()
   })
@@ -84,7 +89,7 @@ describe('useUsersView', () => {
     const h = harness(ADMIN_SCOPE)
     const view = h.run(() => useUsersView(input))
     await vi.waitFor(() => expect(view.loading.value).toBe(false))
-    const [req] = sent('GET', '/v1/admin/users')
+    const [req] = lists()
     expect(req!.query.get('department_id')).toBe('d1')
     expect(req!.query.get('program_id')).toBe('p1')
     expect(view.rows.value.map((r) => r.accountId)).toEqual(['a', 'b'])
@@ -119,7 +124,7 @@ describe('useUsersView', () => {
     const h = harness(ADMIN_SCOPE)
     const view = h.run(() => useUsersView(input))
     await vi.waitFor(() => expect(view.rows.value.map((r) => r.accountId)).toEqual(['a']))
-    expect(sent('GET', '/v1/admin/users').map((r) => r.query.get('cursor'))).toEqual([null, 'c2'])
+    expect(lists().map((r) => r.query.get('cursor'))).toEqual([null, 'c2'])
     expect(view.hasMore.value).toBe(false)
   })
 

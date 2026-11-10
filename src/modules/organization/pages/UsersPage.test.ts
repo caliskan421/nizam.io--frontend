@@ -65,6 +65,9 @@ const TemporaryPasswordDialog = stub('TemporaryPasswordDialog', ['open', 'accoun
 )
 const STUBS = { UserCreateDialog, TemporaryPasswordDialog }
 
+/** Liste istekleri (sayaç okumaları `limit=1`). */
+const lists = () => sent('GET', '/v1/admin/users').filter((r) => r.query.get('limit') !== '1')
+
 function mountPage(path = '/kullanicilar') {
   server.use(...baseHandlers(), usersHandler())
   return mountWith(UsersPage, {}, { path, stubs: STUBS })
@@ -102,11 +105,12 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
     await wrapper.findAll('.rp-seg button')[2]!.trigger('click')
     await settle()
     expect(router.currentRoute.value.query).toEqual({ rol: 'koordinator' })
-    expect(sent('GET', '/v1/admin/users').at(-1)!.query.get('role')).toBe('koordinator')
-    // "Herhangi bir programda" koordinatör (ADR-0023 k.18): u2 başka programda koordinatör.
+    expect(lists().at(-1)!.query.get('role')).toBe('koordinator')
+    // K/Ü sekmesi seçili programla daralır (program_id → rol süzgeci o programın rolleri; G16):
+    // u2 başka programda koordinatör olduğundan listelenmez.
+    expect(lists().at(-1)!.query.get('program_id')).toBe('p1')
     expect(wrapper.findAll('[data-account]').map((r) => r.attributes('data-account'))).toEqual([
       'u1',
-      'u2',
     ])
   })
 
@@ -122,7 +126,7 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
     await settle()
 
     expect(router.currentRoute.value.query.q).toBe('ay')
-    const last = sent('GET', '/v1/admin/users').at(-1)!
+    const last = lists().at(-1)!
     expect(last.query.get('search')).toBe('ay')
     expect(last.query.get('cursor')).toBeNull()
   })
@@ -134,7 +138,7 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
     await wrapper.get('[data-department="d2"]').trigger('click')
     await settle()
     expect(router.currentRoute.value.query).toEqual({ koordinatorluk: 'd2' })
-    const last = sent('GET', '/v1/admin/users').at(-1)!
+    const last = lists().at(-1)!
     expect(last.query.get('department_id')).toBe('d2')
     expect(last.query.get('program_id')).toBe('p1')
     expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(0)

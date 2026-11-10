@@ -7,9 +7,9 @@
  *    (`role`), arama (`search`: ad ya da e-posta), koordinatörlük süzgeci (`program_id` +
  *    `department_id`) ve sıralama SUNUCUDA (BE-011/041/042, v0.14); tek birim için ayrı
  *    `listMembers` yoktur. Süzgeçsiz "Tümü" ekip satırsız hesapları da içerir (BE-045).
- *  - Sayılar sunucudan: liste toplamı `total`, sekme sayaçları `role_counts` (aynı süzgeçlerle,
- *    rol hariç); yüklenen satır sayılmaz. Sekme değişince yeni sorgu yüklenirken son bilinen
- *    sayaçlar korunur (rozet titremez).
+ *  - Sayılar sunucudan: liste toplamı `total`, sekme sayaçları `role_counts` (ayrı `limit=1`
+ *    okumalar, bkz. `useUserCounts`); yüklenen satır sayılmaz. K/Ü sekmeleri seçili programa
+ *    daralır (`program_id`), Tümü/Admin şirket geneli kalır.
  *  - Sıralama "kullanıcı ↑/↓" sunucuda; yön değişince yeni anahtar → eski imleç kullanılmaz.
  */
 import {
@@ -18,7 +18,6 @@ import {
   provide,
   ref,
   toValue,
-  watch,
   type InjectionKey,
   type MaybeRefOrGetter,
 } from 'vue'
@@ -26,9 +25,14 @@ import {
 import { toApiError } from '@/shared/errors/api-error'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { useProgramDepartmentIndex, useUserList } from '../../api'
-import { countsByTab, userRoleFilterOf, type UserRoleTab } from '../../model/capabilities'
-import type { SortOrder, UserRoleCounts } from '../../model/types'
+import { useProgramDepartmentIndex, useUserCounts, useUserList } from '../../api'
+import {
+  countsByTab,
+  isProgramScopedTab,
+  userRoleFilterOf,
+  type UserRoleTab,
+} from '../../model/capabilities'
+import type { SortOrder } from '../../model/types'
 import { rowFromUser, type UserRow } from './user-rows'
 
 export interface UsersViewInput {
@@ -47,24 +51,30 @@ export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
     store.programId === null ? null : toValue(input).departmentId,
   )
 
+  const tab = computed(() => toValue(input).roleTab)
+  // Tümü/Admin şirket geneli (ekip satırsız hesaplar dahil — BE-045; Admin şirket olgusu);
+  // Koordinatör/Üye seçili programın rolleri (`program_id` rol süzgecini o programa daraltır —
+  // G16): satırdaki etiketlerle aynı kapsam. Koordinatörlük süzgeci her zaman program+departman.
+  const scopedTab = computed(() => isProgramScopedTab(tab.value))
+  const programId = computed(() =>
+    departmentId.value !== null || scopedTab.value ? store.programId : null,
+  )
+
   const list = useUserList(() => ({
     search: search.value || null,
     sortOrder: sortOrder.value,
-    role: userRoleFilterOf(toValue(input).roleTab),
-    programId: departmentId.value === null ? null : store.programId,
+    role: userRoleFilterOf(tab.value),
+    programId: programId.value,
     departmentId: departmentId.value,
   }))
   const departments = useProgramDepartmentIndex()
 
-  // Sekme değişiminde yeni sorgu yüklenirken son bilinen sayaçlar kalır (rozet titremez).
-  const lastCounts = ref<UserRoleCounts | null>(null)
-  watch(
-    list.roleCounts,
-    (next) => {
-      if (next) lastCounts.value = next
-    },
-    { immediate: true },
-  )
+  // Sayaçlar sekmeden bağımsız ayrı okumalardan: sekme değişince titremez (`useUserCounts`).
+  const tabCounts = useUserCounts(() => ({
+    search: search.value || null,
+    programId: store.programId,
+    departmentId: departmentId.value,
+  }))
 
   const source = computed<UserRow[]>(() =>
     list.users.value.map((user) => rowFromUser(user, store.programId)),
@@ -78,7 +88,9 @@ export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
     rows: source,
     /** Süzgeçlere uyan toplam hesap (sunucu `total`); yüklenmediyse `null`. */
     total: list.total,
-    counts: computed(() => (lastCounts.value ? countsByTab(lastCounts.value) : NO_COUNTS)),
+    counts: computed(() =>
+      tabCounts.counts.value ? countsByTab(tabCounts.counts.value) : NO_COUNTS,
+    ),
     loadMore: () => void list.query.fetchNextPage(),
     toggleSort: () => {
       sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
