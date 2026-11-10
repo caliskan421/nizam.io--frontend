@@ -72,6 +72,7 @@ const help = computed(() =>
   <section
     ref="root"
     class="tp"
+    tabindex="-1"
     :aria-labelledby="titleId"
     :aria-busy="!panel.item.value && !panel.error.value ? 'true' : undefined"
     :data-face="face"

@@ -36,8 +36,15 @@ describe('zaman çizelgesi sayfa görünüm kuralları', () => {
   it('tam ekran kipi ve panel konumu token’lı', () => {
     expect(css).toMatch(/\.timeline-stage--full \{[^}]*position: fixed[^}]*inset: 0/)
     expect(css).toMatch(
-      /\.timeline-panel \{[^}]*right: var\(--space-4\)[^}]*bottom: var\(--space-4\)/,
+      /\.timeline-dock \.timeline-panel \{[^}]*right: var\(--space-4\)[^}]*bottom: var\(--space-4\)/,
     )
-    expect(css).toMatch(/\.timeline-panel \{[^}]*width: var\(--rp-aside-basis\)/)
+    expect(css).toMatch(/\.timeline-dock \.timeline-panel \{[^}]*width: var\(--rp-aside-basis\)/)
+  })
+
+  it('K-1: panel görünür alana yapışır (sticky kenet) ve yüksekliği pencereyle sınırlı', () => {
+    expect(css).toMatch(/\.timeline-dock \{[^}]*position: sticky[^}]*bottom: 0[^}]*height: 0/)
+    expect(css).toMatch(/\.timeline-dock \.timeline-panel \{[^}]*max-height: calc\(100dvh/)
+    // dar ekranda kenet akışa döner (panel Gantt altında)
+    expect(css).toMatch(/@media[^{]*\{[\s\S]*\.timeline-dock \{[^}]*position: static/)
   })
 })

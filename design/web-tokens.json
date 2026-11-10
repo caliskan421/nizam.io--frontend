@@ -444,7 +444,7 @@
       "$description": "modules/timeline 03c Zaman çizelgesi — kendi SVG Gantt çekirdeği ölçüleri (W92): Gorevler-Zaman.dc.html artboard ve gantt-secimi.md §7 (gün 21 px; satır 40/44; çubuk 24; sol sütun 300). model/{timeline,rows,links}.ts bu değerleri TOKENS'tan okur; CSS aynı değişkenleri kullanır (tek kaynak).",
       "tokens": [
         { "name": "gantt-label-w", "value": "300px" },
-        { "name": "gantt-label-max", "value": "62cqw" },
+        { "name": "gantt-label-max", "value": "50cqw" },
         { "name": "gantt-view-h", "value": "780px" },
         { "name": "gantt-axis-month-h", "value": "34px" },
         { "name": "gantt-axis-day-h", "value": "28px" },
@@ -476,6 +476,7 @@
         { "name": "gantt-dot", "value": "8px" },
         { "name": "gantt-chevron", "value": "16px" },
         { "name": "gantt-label-cols", "value": "48px 8px minmax(0, 1fr) auto" },
+        { "name": "gantt-label-cols-bare", "value": "8px minmax(0, 1fr) auto" },
         { "name": "gantt-group-cols", "value": "16px minmax(0, 1fr) auto" }
       ]
     }

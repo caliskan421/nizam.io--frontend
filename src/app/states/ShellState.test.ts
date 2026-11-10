@@ -31,14 +31,14 @@ async function mountState(
 }
 
 describe('kabuk durum alanı', () => {
-  it('departman yok (no_lens): yönetici "departman ekle" devre dışı, faz notu bağlı', async () => {
+  it('departman yok (no_lens): yönetici "Departman ekle" /programlar bağlantısı, faz notu yok (K-6)', async () => {
     const { wrapper } = await mountState({ kind: 'open-state', name: 'state.no-department' })
     const state = wrapper.get('[data-open-state="state.no-department"]')
     expect(state.text()).toContain('Programa departman katılmamış')
-    const button = state.get('button')
-    expect(button.attributes('disabled')).toBeDefined()
-    const note = state.get(`#${button.attributes('aria-describedby')}`)
-    expect(note.text()).toBe('Departman ekle F2’de açılacak.')
+    const link = state.get('[data-testid="open-state-action"]')
+    expect(link.text()).toBe('Departman ekle')
+    expect(state.find('button').exists()).toBe(false)
+    expect(state.text()).not.toContain('F2’de açılacak')
   })
 
   it('yönetici olmayan: eylem düğmesi yok', async () => {

@@ -4,6 +4,7 @@ import './gantt.css'
 import { computed } from 'vue'
 
 import type { GanttLayout, GanttRow, RowWindow } from '../../model/rows'
+import { requestExtensions } from '../../model/request-extension'
 import { barGeometry, rangeWidth, type BarDates } from '../../model/timeline'
 import type { GanttTask } from '../../model/types'
 import type { GanttBarsEmits, GanttBarsProps, GanttEdge } from '../index'
@@ -53,6 +54,13 @@ function datesOf(task: GanttTask): BarDates {
 
 function geometry(task: GanttTask) {
   return barGeometry(datesOf(task), { range: props.range, scale: props.scale, today: props.today })
+}
+
+/** Bekleyen talep uzantıları: yalnız talebin ait olduğu (seçili) görevin çubuğunda (E-03C-42). */
+function extensionsOf(task: GanttTask) {
+  const request = props.dateRequest
+  if (!request || request.workItemId !== task.work_item_id) return []
+  return requestExtensions(task, request, props.range, props.scale)
 }
 
 function startDrag(event: PointerEvent, task: GanttTask, edge: GanttEdge, edgeX: number) {
@@ -106,6 +114,7 @@ function onBackground(row: GanttRow): void {
         :draggable="draggableIds.has(row.key)"
         :dependent="layout.dependentIds.has(row.key)"
         :subtasks-open="openSubtasks?.has(row.key) === true"
+        :request-extensions="extensionsOf(row.task)"
         @select="emit('select', row.task.work_item_id)"
         @handle="(e, edge, x) => startDrag(e, row.task, edge, x)"
       />
