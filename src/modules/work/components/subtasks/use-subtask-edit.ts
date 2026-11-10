@@ -16,7 +16,13 @@
  */
 import { shallowRef } from 'vue'
 
-import { ownerLife, reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
+import {
+  ownerLife,
+  reachesOwner,
+  useActionContext,
+  type ActionContext,
+  type MutationOutcome,
+} from '@/shared/http/mutation'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 
@@ -134,6 +140,7 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   const { confirmWrite } = useConfirm()
   const pending = usePendingRows()
   const owner = ownerLife()
+  const captureContext = useActionContext()
 
   function report(outcome: AnyOutcome | null): void {
     // Sahibi sökülmüş (`owner_disposed` ya da sökülmeden sonra gelen geç sonuç; CX-F1-Ö-07):
@@ -146,12 +153,14 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
   async function send(
     base: WorkItemSubtask,
     changes: UpdateSubtaskBody,
+    context: ActionContext,
     autoRetried = false,
   ): Promise<UpdateOutcome | null> {
     const workItemId = deps.item().work_item_id
     // Yazma değişkeni dondurulur (`structuredClone`): sorgu/props vekilleri düz kopyaya çevrilir.
     const vars = { target: { ...deps.target() }, workItemId, base: { ...base }, changes }
-    const outcome = await update.submit(vars)
+    // `context`: İLK eylemin bağlamı (§7); çakışma sonrası yeniden gönderim yeni bağlam yakalamaz.
+    const outcome = await update.submit(vars, { context })
     if (outcome.kind !== 'edit_conflict' || outcome.server === null) return outcome
     // Geç yanıt sökülmeden sonra geldi: çakışma akışı (diyalog/yeniden gönderim) yok.
     if (!owner.alive()) return null
@@ -159,12 +168,14 @@ export function useSubtaskEdit(deps: SubtaskEditDeps) {
     if (outcome.server.edit_revision === base.edit_revision) return outcome
     const step = await resolve(base, changes, outcome.server, autoRetried)
     if (step.stop) return outcome
-    return step.next === null ? null : send(outcome.server, step.next, step.automatic)
+    return step.next === null ? null : send(outcome.server, step.next, context, step.automatic)
   }
 
   /** Kişi / tarih / başlık / `done` yazması; satır istek boyunca beklemede. */
   function patch(subtask: WorkItemSubtask, changes: UpdateSubtaskBody): Promise<void> {
-    return pending.run(subtask.subtask_id, async () => report(await send(subtask, changes)))
+    return pending.run(subtask.subtask_id, async () =>
+      report(await send(subtask, changes, captureContext())),
+    )
   }
 
   /** E-03-31: kapat / yeniden aç (iyimser değil). */

@@ -108,6 +108,22 @@ describe('useNoteActions — düzenleme ve çakışma', () => {
     expect(refetch).toHaveBeenCalledOnce()
   })
 
+  it('çakışma diyaloğu açıkken kapsam değişirse "Benimki" sonrası yeni yazma GİTMEZ (ilk bağlam, §7)', async () => {
+    server.use(
+      http.patch(`${URL}/n1`, conflict409),
+      http.get(URL, () =>
+        json({ notes: [{ ...base, content: 'Onun', edit_revision: 3 }], total: 1 }),
+      ),
+    )
+    const { h, actions } = setup()
+    const pending = actions.saveNote(base, 'Benim')
+    await vi.waitFor(() => expect(actions.conflict.open.value).toBe(true))
+    h.store.setLens('admin')
+    actions.conflict.choose({ content: 'mine' })
+    await pending
+    expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(1)
+  })
+
   // Döngü koruması (O5 görsel kusur): sürekli 409 dönen sunucuda istek sayısı sınırlı (≤ 2).
   it('sürekli 409, sunucu kaydı tabanla aynı (sürüm ilerlemedi) → tek PATCH, çakışma bildirimi', async () => {
     server.use(

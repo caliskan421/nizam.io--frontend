@@ -118,6 +118,28 @@ describe('alt görev düzenleme', () => {
     expect(second!.body).toEqual({ assignee_account_id: 'acc-2', expected_revision: 6 })
   })
 
+  it('çakışma diyaloğu açıkken kapsam değişirse seçim sonrası yeni yazma GİTMEZ (ilk bağlam, §7)', async () => {
+    server.use(
+      http.patch(`${ORIGIN}${PATH}/s1`, () =>
+        errorEnvelope('work.edit_conflict', 409, [{ field: 'expected_revision', code: 'x' }]),
+      ),
+      http.get(`${ORIGIN}${PATH}`, () =>
+        json({
+          subtasks: [subtask({ assignee_account_id: 'acc-1', edit_revision: 6 })],
+          total: 1,
+        }),
+      ),
+    )
+    const { h, edit } = setup()
+    const run = edit.patch(subtask(), { assignee_account_id: 'acc-2' })
+    await vi.waitFor(() => expect(edit.conflict.open.value).toBe(true))
+    h.store.setLens('coordinator')
+    edit.conflict.choose({ assignee_account_id: 'mine' })
+    await run
+    await h.flush()
+    expect(sent('PATCH', `${PATH}/s1`)).toHaveLength(1)
+  })
+
   it('çakışmada vazgeç: ikinci istek yok', async () => {
     server.use(
       http.patch(`${ORIGIN}${PATH}/s1`, () =>

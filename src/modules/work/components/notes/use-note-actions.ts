@@ -16,7 +16,13 @@
  * Diğer sonuçlar ortak bildirim (`notifyOutcome`; metin hata kodundan, i18n).
  */
 import { ApiError } from '@/shared/errors/api-error'
-import { ownerLife, reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
+import {
+  ownerLife,
+  reachesOwner,
+  useActionContext,
+  type ActionContext,
+  type MutationOutcome,
+} from '@/shared/http/mutation'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
@@ -75,11 +81,12 @@ const DELETE_CONFIRM = (): ConfirmOptions => ({
 
 type NoteRef = () => { target: WorkTarget; workItemId: string }
 
-/** Not düzenleme + çakışma akışı (döngü korumalı). */
+/** Not düzenleme + çakışma akışı (döngü korumalı); yeniden gönderim İLK eylemin bağlamını taşır (§7). */
 function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
   const update = useUpdateNote()
   const conflict = useConflictResolver()
   const owner = ownerLife()
+  const captureContext = useActionContext()
 
   /** Döngü koruması: çakışma bildirilir, düzenleyici açık kalır (taslak korunur). */
   function stopConflict(outcome: AnyOutcome): SettleResult {
@@ -96,7 +103,7 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
     base: WorkItemNote,
     content: string,
     server: WorkItemNote | null,
-    autoRetried: boolean,
+    flow: { context: ActionContext; autoRetried: boolean },
   ): Promise<SettleResult> {
     if (!server) {
       // Düzenleme sırasında not silinmiş (güncel listede yok): 404 ile aynı sonuç.
@@ -112,7 +119,7 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
       labels: { content: notesText('field') },
     }
     const automatic = conflictRows(input).length === 0
-    if (automatic && autoRetried) return stopConflict(outcome)
+    if (automatic && flow.autoRetried) return stopConflict(outcome)
     const choices = await conflict.resolve(input)
     if (!choices) return { done: false, notice: null }
     const changes = resolveDraft({ content }, { content: server.content }, choices)
@@ -121,30 +128,33 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
       return { done: true, notice: null }
     }
     // Diyalogla seçilen gönderim kullanıcı eylemidir (sayaç sıfırlanır); diyalogsuz olan sayılır.
-    return send(server, changes.content, automatic)
+    return send(server, changes.content, { context: flow.context, autoRetried: automatic })
   }
 
   async function send(
     reactiveBase: WorkItemNote,
     content: string,
-    autoRetried: boolean,
+    flow: { context: ActionContext; autoRetried: boolean },
   ): Promise<SettleResult> {
     // Gövde eylemle dondurulur (structuredClone): sorgu verisinin vekili değil, düz kopya.
     const base: WorkItemNote = { ...reactiveBase }
     // Değişiklik yoksa istek yok (çakışmada taslak = yalnız kullanıcının değiştirdiği içerik).
     if (content === base.content) return { done: true, notice: null }
-    const outcome = await update.submit({ ...ref(), noteId: base.note_id, base, content })
+    const outcome = await update.submit(
+      { ...ref(), noteId: base.note_id, base, content },
+      { context: flow.context },
+    )
     if (outcome.kind === 'edit_conflict') {
       // Geç yanıt sökülmeden sonra geldi: çakışma akışı (diyalog/yeniden gönderim) yok.
       if (!owner.alive()) return { done: false, notice: null }
-      return resolveConflict(outcome, base, content, outcome.server, autoRetried)
+      return resolveConflict(outcome, base, content, outcome.server, flow)
     }
     return settle(outcome, refetch)
   }
 
   /** Kendi notunu düzenle: taban = düzenleyicinin açıldığı not (`edit_revision`). */
   function saveNote(reactiveBase: WorkItemNote, content: string): Promise<SettleResult> {
-    return send(reactiveBase, content, false)
+    return send(reactiveBase, content, { context: captureContext(), autoRetried: false })
   }
 
   return { saveNote, conflict, saving: update.isPending }
