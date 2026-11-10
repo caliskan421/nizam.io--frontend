@@ -85,14 +85,14 @@ describe('W48 · erişilebilirlik ağacı (gerçek bileşenler)', () => {
 })
 
 describe('W48 · faz görünürlüğü (§5)', () => {
-  it('Zaman çizelgesi canlı (F3); tarih talebi düğmeleri devre dışı "F3’te"; Arşiv bağlantısı "F5’te"', async () => {
+  it('Zaman çizelgesi canlı (F3); tarih talebi formu düğmesi devre dışı "F3’te"; Arşiv bağlantısı "F5’te"', async () => {
     const ctx = await openWithSubtasks()
     const timeline = body().find('[data-testid="tasks-view-timeline"]')
     expect(timeline.attributes('disabled')).toBeUndefined()
     expect(timeline.attributes('data-phase')).toBeUndefined()
-    const review = body().findAll('[data-phase="F3"]')
-    expect(review.length).toBeGreaterThan(0)
-    for (const button of review) expect(button.attributes('disabled')).toBeDefined()
+    for (const button of body().findAll('[data-testid="request-review"]')) {
+      expect(button.attributes('disabled')).toBeUndefined()
+    }
 
     const dateRequest = body().find('[data-action="date-request"]')
     expect(dateRequest.attributes('disabled')).toBeDefined()

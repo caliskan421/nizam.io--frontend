@@ -7,7 +7,7 @@
 - **Giriş:** kenar menüsü "Görevler" (E-03-01, `00-ortak`); üst çubuk kırıntısı; derin bağlantı `/gorevler?...`; Görünüm seçicide "Liste" (03c'den dönüş, E-03-05); **Varsayım:** ana sayfa (01) kartlarından süzgeç önceden kurulmuş bağlantı ("Geciken", "Onay bekleyen" gibi) gelir (doğrulanacak: tasarım tuvali `Main.dc.html` — `01-ana-sayfa` grubu).
 - **Çıkışlar:**
   - E-03-05 "Zaman çizelgesi" → `/zaman-cizelgesi` (grup `03c-zaman-cizelgesi`). **Varsayım:** kapsam aynen korunur; liste süzgeçleri taşınmaz (03c'nin kendi süzgeçleri var); geri dönüşte liste URL'si tarayıcı geçmişinden gelir (doğrulanacak: `03c-zaman-cizelgesi/mekanizma.md` §1 + rota kataloğu, K10).
-  - E-03-14 "Talepleri incele" → hedef çizilmemiş. **Varsayım:** tarih talebi onay akışı F3'te (`03c`); F1'de ya E-03-09 süzgecini açar ya statik/devre dışı (K13) (doğrulanacak: ürün sahibi sorusu / koordinatör faz kararı, K4).
+  - E-03-14 "Talepleri incele" → hedef çizilmemiş. **Karar (P20, ürün sahibi 2026-11-10):** E-03-09 tarih talebi süzgecini (`talep=1`) açar; zaman çizelgesine gitmez, yeni uç yok.
   - E-03-19 görev başlığı → aynı sayfada ayrıntı paneli (URL `gorev=‹id›`), satır `rp-sel` olur.
   - E-03-32 alt görev başlığı → "Görev detayında aç"; **Varsayım:** üst görevin panelini "Alt görevler" sekmesinde açar (doğrulanacak: ürün sahibi sorusu, `ozellikler.md` §7-17).
   - E-03-42 "Tam sayfada aç" → görev tam sayfa rotası — **Varsayım:** `/gorevler/:id` (doğrulanacak: rota kataloğu K10 + ürün sahibi sorusu, `ozellikler.md` §7-10); tasarım yok — v1'de gizlenebilir ya da panel içeriğini tam genişlikte gösteren rota.
@@ -101,7 +101,7 @@ Tasarımda hiçbiri yok — K7 varsayılanları:
 | E-03-11 | Kişi süzgeci | tık → seçim | URL `kisi`, istemci süzme | §2, §5 |
 | E-03-12 | Koordinatörlük süzgeci | tık → seçim | URL `koordinatorluk`, sunucu `department_id` | §2, K3 |
 | E-03-13 | Talep bandı | yükleme | sayı > 0 ise görünür | §5 |
-| E-03-14 | Talepleri incele | tık | hedef belirsiz (F3 / süzgeç / devre dışı) | §1 |
+| E-03-14 | Talepleri incele | tık | E-03-09 süzgecini açar (P20) | §1 |
 | E-03-15 | Tümünü seç | değişim | görünen satırları seç | §4-15 |
 | E-03-16 | Sıralama | tık | URL `sirala` döngüsü | §3, §5 |
 | E-03-18 | Satır seçimi | değişim | seçim kümesi | §4-15 |
