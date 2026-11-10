@@ -2,6 +2,7 @@
 // istek) / bekleme sırasında kapsam değişimi, çıkış → başka hesapla giriş, sayfa sökülmesi (istek
 // 0, bildirim yok — Ö-07/Ö-08); kardeş sekme çıkışı sırasında geciktirilmiş Gantt GET’i yeni
 // oturumun önbelleğine yazılmaz. Gerçek uygulama kökü, sahte saat (`Date`/`setTimeout`).
+import { QueryObserver } from '@tanstack/vue-query'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -14,6 +15,7 @@ import {
   idle,
   PEOPLE,
   seedTimeline,
+  siblingSays,
   switchScope,
   teardown,
   toasts,
@@ -218,5 +220,46 @@ describe('(10) kardeş sekme çıkışı sırasında geciktirilmiş Gantt GET’
         .filter((q) => String(q.queryKey).includes('gantt') && q.state.data !== undefined),
     ).toHaveLength(0)
     expect($('[data-testid="timeline-page"]')).toBeNull()
+  })
+})
+
+describe('(10b) GERÇEK kardeş ileti kanalı: çıkış → başka hesapla giriş TAMAMLANIR → geç Gantt yanıtı', () => {
+  it('kardeş sekme çıkışı + yeni hesapla tamamlanmış giriş sonrası gelen eski yanıt yeni önbelleğe yazılmaz', async () => {
+    const held = backend.hold('GET', GANTT_ADMIN)
+    const app = await boot({ ...ADMIN_ADMIN, path: '/zaman-cizelgesi', siblingChannel: true })
+    await held.arrived
+    // Sayfa söküldüğünde TanStack, tek gözlemcisi giden sorgunun isteğini zaten iptal eder; bu,
+    // oturum korumasını ÖRTER. Başka bir gözlemci istek uçuştayken sorguyu canlı tutar: yanıtın
+    // yazılmaması yalnız oturum korumasına (iptal + boşaltma, `sessionBound`) bağlıdır.
+    const stale = app.queryClient
+      .getQueryCache()
+      .getAll()
+      .find((q) => String(q.queryKey).includes('gantt'))!
+    const keeper = new QueryObserver(app.queryClient, {
+      queryKey: stale.queryKey,
+      queryFn: stale.options.queryFn,
+      retry: false,
+    })
+    const unsubscribe = keeper.subscribe(() => undefined)
+    const { SESSION_MESSAGE_VERSION } = await import('@/shared/session/messages')
+    // Kardeş sekme çıkışı: bu sekmede oturum KENDİLİĞİNDEN kapanır (yerel çıkış düğmesi yok).
+    siblingSays({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId: PEOPLE.admin.account_id })
+    await until(() => $('[data-testid="login-form"]'), 'giriş formu')
+    expect(app.session.accountId).toBeNull()
+    // Başka hesapla giriş TAMAMLANIR.
+    await fill('[data-testid="login-form"] [name="email"]', PEOPLE.member.email)
+    await fill('[data-testid="login-form"] [name="password"]', 'dogru-parola')
+    await click(() => byText('[data-testid="login-form"] button', 'Giriş'))
+    await until(() => app.session.accountId === PEOPLE.member.account_id, 'yeni oturum')
+    // Eski oturumun yanıtı ancak şimdi gelir.
+    held.release()
+    await idle(app.queryClient)
+    unsubscribe()
+    const withData = app.queryClient
+      .getQueryCache()
+      .getAll()
+      .filter((q) => String(q.queryKey).includes('gantt') && q.state.data !== undefined)
+    expect(withData.map((q) => JSON.stringify(q.state.data)).join('')).not.toContain('Motor testi')
+    expect(withData.filter((q) => JSON.stringify(q.queryKey).includes('admin'))).toHaveLength(0)
   })
 })

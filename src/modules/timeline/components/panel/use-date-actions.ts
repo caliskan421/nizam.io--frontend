@@ -10,7 +10,13 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 
 import type { WorkItem } from '@/modules/work/public'
-import { ownerLife, reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
+import { authSession } from '@/shared/http'
+import {
+  ownerLife,
+  reachesOwner,
+  type ActionContext,
+  type MutationOutcome,
+} from '@/shared/http/mutation'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { conflictRows, resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 import { useToast } from '@/shared/ui'
@@ -25,11 +31,11 @@ import type { TaskPanel } from './use-task-panel'
 type Outcome = MutationOutcome<unknown, unknown, unknown>
 
 /** Çakışma satırlarının alanları (gövde anahtarları) ve tarih biçimi. */
-function conflictLabels(): Record<string, string> {
+export function conflictLabels(): Record<string, string> {
   const end = panelText('end')
   return { start_on: panelText('start'), end_on: end, planned_end_on: end }
 }
-const conflictFormat = (_field: string, value: unknown) =>
+export const conflictFormat = (_field: string, value: unknown) =>
   typeof value === 'string' ? formatInputDay(value) : ''
 
 /**
@@ -44,7 +50,7 @@ export function changedDates(base: WorkItem, value: { startOn: string; endOn: st
 }
 
 /** Çakışma yanıtındaki sunucu kaydı (`readCurrent`; tür `unknown` taşınır): görev değilse `null`. */
-function serverItem(value: unknown): WorkItem | null {
+export function serverItem(value: unknown): WorkItem | null {
   const candidate = value as Partial<WorkItem> | null
   const ok = typeof candidate === 'object' && typeof candidate?.dates_revision === 'number'
   return ok ? (candidate as WorkItem) : null
@@ -86,13 +92,26 @@ function useSave(panel: TaskPanel, state: ActionState) {
   const conflict = useConflictResolver()
   const owner = ownerLife()
 
-  async function send(base: WorkItem, dates: DatePatch, autoRetried = false): Promise<void> {
-    const outcome = await update.submit({
-      target: { ...panel.target.value },
-      workItemId: base.work_item_id,
-      base: { dates_revision: base.dates_revision },
-      dates: { ...dates },
-    })
+  /**
+   * `context`: İLK eylemin bağlamı (§7 "yeni yazma kararı" ≠ "aynı isteğin tamamlanması"). Çakışma
+   * çözümünden sonraki yeniden gönderim aynı bağlamı taşır; kapsam/oturum bu arada değiştiyse
+   * motor yazmayı göndermez (detached) — yeni bağlam yakalanmaz.
+   */
+  async function send(
+    base: WorkItem,
+    dates: DatePatch,
+    context: ActionContext,
+    autoRetried = false,
+  ): Promise<void> {
+    const outcome = await update.submit(
+      {
+        target: { ...panel.target.value },
+        workItemId: base.work_item_id,
+        base: { dates_revision: base.dates_revision },
+        dates: { ...dates },
+      },
+      { context },
+    )
     if (!reachesOwner(outcome)) return
     if (outcome.kind === 'success') {
       toast.push({ message: panelText('done.saved') })
@@ -115,7 +134,7 @@ function useSave(panel: TaskPanel, state: ActionState) {
     const choices = await conflict.resolve(input)
     if (choices === null || !owner.alive()) return
     const next = resolveDraft(dates, server, choices)
-    if (Object.keys(next).length > 0) await send(server, next, automatic)
+    if (Object.keys(next).length > 0) await send(server, next, context, automatic)
     else panel.dirty.value = false
   }
 
@@ -132,7 +151,7 @@ function useSave(panel: TaskPanel, state: ActionState) {
       state.formError.value = panelText('errors.unchanged')
       return
     }
-    await send(base, dates)
+    await send(base, dates, { scope: { ...panel.scope() }, generation: authSession.generation })
   }
 
   return { save, conflict, pending: update.isPending }

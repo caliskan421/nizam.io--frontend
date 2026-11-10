@@ -355,6 +355,59 @@ describe('Admin "Kaydet" (updateWorkItem + expected_dates_revision; E-03C-58/59,
   })
 })
 
+describe('çakışma çözümü sonrası yeniden gönderim ilk eylemin bağlamını taşır (CX-F3-K-03, §7)', () => {
+  async function openConflict() {
+    let calls = 0
+    server.use(
+      http.patch(`${ORIGIN}${ITEM}`, () => {
+        calls += 1
+        return calls === 1
+          ? errorEnvelope('work.edit_conflict', 409, [
+              { field: 'expected_dates_revision', code: 'work.edit_conflict' },
+            ])
+          : json(workItem({ end_on: '2026-11-15', dates_revision: 9 }))
+      }),
+    )
+    const r = render({ who: 'admin', face: 'admin' })
+    await settleQueries(r.h.queryClient)
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () =>
+        json(workItem({ end_on: '2026-11-12', dates_revision: 8 })),
+      ),
+    )
+    setValue('[data-testid="tp-end"]', '15.11.2026')
+    click('tp-save')
+    await settleQueries(r.h.queryClient)
+    expect($('[role="dialog"]')).not.toBeNull()
+    return r
+  }
+  const chooseMine = async () => {
+    document.querySelectorAll<HTMLElement>('.rp-seg')[0]!.querySelectorAll('button')[0]!.click()
+    await flushPromises()
+    document.querySelector<HTMLButtonElement>('[data-testid="conflict-submit"]')!.click()
+    await flushPromises()
+  }
+
+  it('diyalog açıkken kapsam değişirse seçim sonrası yeni yazma GİTMEZ (yeni bağlam yakalanmaz)', async () => {
+    const { h } = await openConflict()
+    h.store.setLens('coordinator')
+    await chooseMine()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', ITEM)).toHaveLength(1)
+  })
+
+  it('bağlam değişmediyse seçim sonrası tek ikinci istek gider (yeni tabanla)', async () => {
+    const { h } = await openConflict()
+    await chooseMine()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', ITEM)).toHaveLength(2)
+    expect(sent('PATCH', ITEM)[1]?.body).toMatchObject({
+      end_on: '2026-11-15',
+      expected_dates_revision: 8,
+    })
+  })
+})
+
 describe('Kaydet bitiş alanı: yazma her zaman end_on (planned_end_on yazılmaz)', () => {
   it('planned_end_on dolu görevde de PATCH yalnız end_on gönderir', async () => {
     server.use(http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())))
