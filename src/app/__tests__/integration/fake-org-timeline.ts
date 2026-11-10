@@ -8,8 +8,11 @@
 //    Uzatma (`extend`) sürüm taşımaz. Bağımlıları zincirle öteler (`cascade_count`).
 //  - Tarih talebi yalnız birimin KOORDİNATÖRÜNDEN açılır (yönetici tek başına 403); görevde
 //    bekleyen talep varsa 409 `work.date_request_pending_exists`; onay/red yalnız yönetici.
+//  - Uzatma `days` tamsayı 1–90; dışı 422 `work.input_invalid` (alan kodu `work.extend_days_out_of_range`).
+//    Bağımlılık ekleme: bağımlı başlangıç < ön görev bitişi → 422 `work.input_invalid` (alan kodu
+//    `work.dependency_date_order`); silme 200 `StatusResult` (pin v0.11.0-api).
 //  - Anahtar (`Idempotency-Key`) hiçbir tarih/talep/bağımlılık ucunda yoktur.
-import { http, HttpResponse } from 'msw'
+import { http } from 'msw'
 
 import {
   envelope,
@@ -23,6 +26,8 @@ import {
 } from './fake-org'
 
 const GANTT_CAP = 200
+const EXTEND_MIN = 1
+const EXTEND_MAX = 90
 const DAY_MS = 86_400_000
 
 export function addDays(iso: string, days: number): string {
@@ -189,8 +194,18 @@ function dateWrites(db: OrgDb) {
       if (!found) return envelope('work.item_not_found', 404)
       if (!manages(db, me, found)) return envelope('work.not_authorized', 403)
       if (found.status === 'tamamlandi') return envelope('work.item_completed', 409)
-      const { days } = (await request.json()) as { days: number }
-      found.end_on = addDays(found.end_on as string, days)
+      const { days } = (await request.json()) as { days: unknown }
+      // Pin (ExtendRequest): tamsayı 1–90; aksi 422 `work.input_invalid` + alan kodu.
+      if (
+        !Number.isInteger(days) ||
+        (days as number) < EXTEND_MIN ||
+        (days as number) > EXTEND_MAX
+      ) {
+        return envelope('work.input_invalid', 422, [
+          { field: 'days', code: 'work.extend_days_out_of_range' },
+        ])
+      }
+      found.end_on = addDays(found.end_on as string, days as number)
       bump(found)
       return json({ cascade_count: cascade(db, found), new_end_on: found.end_on })
     }),
@@ -315,6 +330,13 @@ function dependencyHandlers(db: OrgDb) {
       )
       if (duplicate) return envelope('work.dependency_duplicate', 409)
       if (reaches(found.work_item_id, pre)) return envelope('work.dependency_cycle', 409)
+      // Pin (domain `ValidateDependencyDate`): bağımlı görev, ön görevin bitişinden ÖNCE başlayamaz.
+      // Sıra: kendine bağ/tekrar/döngü sonra tarih önkoşulu → 422 `work.input_invalid` + alan kodu.
+      if (String(found.start_on) < String(itemOf(db, pre)!.end_on)) {
+        return envelope('work.input_invalid', 422, [
+          { field: 'start_on', code: 'work.dependency_date_order' },
+        ])
+      }
       const edge = {
         dependency_id: o.next(db, 'dep'),
         work_item_id: found.work_item_id,
@@ -330,7 +352,8 @@ function dependencyHandlers(db: OrgDb) {
       if (!found) return envelope('work.item_not_found', 404)
       if (!manages(db, me, found)) return envelope('work.not_authorized', 403)
       db.dependencies = db.dependencies.filter((d) => d.dependency_id !== params.depId)
-      return new HttpResponse(null, { status: 204 })
+      // Pin (removeDependency): 200 `StatusResult` (204 değil).
+      return json({ status: 'removed' })
     }),
   ]
 }
