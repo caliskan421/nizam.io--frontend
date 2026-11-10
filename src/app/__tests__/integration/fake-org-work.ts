@@ -229,6 +229,25 @@ function dashboard(db: OrgDb, programId: string) {
   }
 }
 
+const PALETTE = ['violet', 'gold', 'blue', 'teal', 'green', 'orange', 'red', 'slate']
+
+/** PROGRAM-K46: kısa ad kırpılmış 1–4 harf/rakam; boş dizge temizleme DEĞİL (yalnız `null`). */
+function invalidProgramField(body: Record<string, unknown>) {
+  const short = body.short_name
+  if (typeof short === 'string' && !/^[\p{L}\p{N}]{1,4}$/u.test(short.trim())) {
+    return envelope('program.input_invalid', 422, [
+      { field: 'short_name', code: 'program.invalid_short_name' },
+    ])
+  }
+  const color = body.color
+  if (typeof color === 'string' && !PALETTE.includes(color)) {
+    return envelope('program.input_invalid', 422, [
+      { field: 'color', code: 'program.invalid_color' },
+    ])
+  }
+  return null
+}
+
 function programWrites(db: OrgDb) {
   const admin = (request: Request) => o.actorOf(db, request)?.admin === true
   return [
@@ -239,11 +258,21 @@ function programWrites(db: OrgDb) {
       db.programs.push(created)
       return json({ ...created, created: true }, 201)
     }),
+    http.get(`${ORIGIN}/v1/program`, ({ request }) => {
+      const me = o.actorOf(db, request)
+      if (!me) return envelope('platform.unauthenticated', 401)
+      const found = db.programs.find((p) => p.program_id === o.programOf(request))
+      if (!found) return envelope('work.program_scope_invalid', 404)
+      return json({ ...found, short_name: found.short_name ?? null, color: found.color ?? null })
+    }),
     http.patch(`${ORIGIN}/v1/programs/:id`, async ({ request, params }) => {
       const found = db.programs.find((p) => p.program_id === params.id)
       if (!admin(request) || !found) return o.forbidden('program')
-      Object.assign(found, await request.json())
-      return json(found)
+      const body = (await request.json()) as Record<string, unknown>
+      const bad = invalidProgramField(body)
+      if (bad) return bad
+      Object.assign(found, body) // üç hâlli: alan yoksa değişmez, `null` temizler
+      return json({ ...found, short_name: found.short_name ?? null, color: found.color ?? null })
     }),
     http.delete(`${ORIGIN}/v1/programs/:id`, async ({ request, params }) => {
       if (!admin(request)) return o.forbidden('program')
