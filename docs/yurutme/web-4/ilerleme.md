@@ -44,7 +44,7 @@ Pin: `api-pin.json` **`v0.15.0-api`** (`gen:api`: 194 hata kodu, 189 operasyon).
 | #85 | `4413119` | WP4b (Codex tur 1): Ö-03 geçersizleme haritası, Ö-05 panel örtmesi, K-01 §6 belge, K-02 kanıt/yorum, K-03 tek sayaç okuması |
 | #86 | `1bd80b6` | WP4a (Codex tur 1): E-01 retry/confirm sahip yaşamı, Ö-01 BE-050 tek tekrar, Ö-02 aktarım bağlam/gövde, Ö-04 `useDateSend` kapı sırası |
 
-**Bağlanan BE'ler:** koordinatör kaydına göre 19 bağlandı; `kayit.md`'de `bağlandı` durumlu 18 satır var (BE-001, 003, 011, 012, 019, 038, 041, 042, 043, 044, 045, 049, 050, 051, 052, 053, 056, 107) — 19. kalemin kimliği kayıtta ayrıca doğrulanmalı (F4 açılışı). **BE-036 kısmen** (belge paketi; madde 7 toplantı kuralları hâlâ açık, kayıtta `açık`). Satır satır web adımları: `../../backend-eksikleri/rapor-F3.md` §2.
+**Bağlanan BE'ler:** 18 bağlandı (BE-001, 003, 011, 012, 019, 038, 041, 042, 043, 044, 045, 049, 050, 051, 052, 053, 056, 107; BE-003 WP2a çekirdek sayaçlar + WP2d rozetler ortak satır — koordinatör ara kaydındaki "19" BE-003'ün iki grupta sayılmasından doğan sayım hatasıydı). **BE-036 kısmen** (belge paketi; madde 7 toplantı kuralları hâlâ açık, kayıtta `açık`). Satır satır web adımları: `../../backend-eksikleri/rapor-F3.md` §2.
 
 **WP3 entegrasyon + gerçek imaj:** `dogrulama-pin.md` — tam kapı iki koşuda 414 dosya / 3020 test, kararsız test yok; 26 `pin-*` senaryo; H-1 (kenar menüsü `shell-counts` geçersizleme), H-2 (Admin rozeti görev/tarih yazmasında yenilenir; ortak-kurallar §6'ya istisna yazıldı), H-3 (`useUser` yapışkan `enabled`), H-4 (`listUsers` boş sayfa döngüsü). Gerçek imaj (v0.15 backend + web imajı, 192 ölçüm = 4 kişi × 8 ekran × 3 genişlik × 2 tema): taşma 0, CSP 0, `pageerror` 0, API ≥ 400 0; 20 gerçek yazma akışı.
 
