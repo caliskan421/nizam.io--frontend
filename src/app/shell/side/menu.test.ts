@@ -37,7 +37,7 @@ describe('etkin faz F3 (W91 faz geçişi; Zaman çizelgesi menüde canlı)', () 
     expect(menu.activeKey.value).toBe('tasks')
   })
 
-  it('Admin rozetleri faz parametresi olmadan reportDashboard’dan gelir; K/Ü BE-003 statik', async () => {
+  it('Admin rozetleri faz parametresi olmadan reportDashboard’dan gelir; K/Ü sayaç ucundan (BE-003)', async () => {
     const fetcher = vi.fn(() => Promise.resolve({ overdue_tasks: 4, pending_date_changes: 1 }))
     const ctx = await sideContext()
     const { lifecycle, store } = createFakeLifecycle()
@@ -53,10 +53,14 @@ describe('etkin faz F3 (W91 faz geçişi; Zaman çizelgesi menüde canlı)', () 
     })
     coord.store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
     const idle = vi.fn(() => Promise.resolve({ overdue_tasks: 9, pending_date_changes: 9 }))
-    const other = setupWithScope(coordCtx, coord.lifecycle, () => useTaskBadges(undefined, idle))
+    const counts = vi.fn(() => Promise.resolve({ overdue: 3, pending_date_requests: 2 }))
+    const other = setupWithScope(coordCtx, coord.lifecycle, () =>
+      useTaskBadges(undefined, idle, counts),
+    )
     await flushPromises()
     expect(idle).not.toHaveBeenCalled()
-    expect(other.badges.value).toEqual({ overdue: null, pendingDates: null })
+    expect(counts).toHaveBeenCalledTimes(1)
+    expect(other.badges.value).toEqual({ overdue: 3, pendingDates: 2 })
   })
 })
 
