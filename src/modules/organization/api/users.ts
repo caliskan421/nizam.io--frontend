@@ -228,7 +228,7 @@ export function useUserList(
 }
 
 /** Satır listesi boş mu (alan yok = boş). */
-const noRows = (users: readonly unknown[] | undefined): boolean => (users?.length ?? 0) === 0
+const noRows = (users: readonly unknown[] | null | undefined): boolean => (users?.length ?? 0) === 0
 
 /** Sondaki ardışık boş sayfa sayısı (otomatik ilerlemenin üst sınırı bununla ölçülür). */
 function trailingEmptyPages(pages: readonly UserPage[]): number {
