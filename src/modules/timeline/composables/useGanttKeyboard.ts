@@ -3,7 +3,8 @@
  * doldurur — dal zinciri, KESİN 25). WAI-ARIA `treegrid` modeli (`gantt-secimi.md` §7):
  *  - ↑ ↓ bir satır, PageUp/PageDown bir sayfa, Home/End ilk/son satır;
  *  - → kapalı grubu açar, açık grupta ilk görevine geçer; ← açık grubu kapatır, görevde üst
- *    grubuna geçer;
+ *    grubuna geçer; görev satırında → alt görevleri açar, ← açıksa kapatır (satırdaki aç/kapa
+ *    düğmesi sekme durağı değildir: satır tek durak, düğme işlevi klavyede →/←; CX-F3-Ö-03);
  *  - Enter/Boşluk görevi seçer, grup satırında açıp kapatır.
  * Shift+→/← (bitiş) ve Alt+Shift+→/← (başlangıç) tarih kısayoludur: YALNIZ `onDateKey` verilmişse
  * ve görev satırındaysa işlenir; verilmemişse hiçbir şey yapılmaz (olay tarayıcıya kalır). Hangi
@@ -29,6 +30,9 @@ export interface GanttKeyboardOptions {
   focusRow: (index: number) => void
   setGroupOpen: (groupKey: string, open: boolean) => void
   select: (workItemId: string) => void
+  /** Görevin alt görev satırları açık mı / aç-kapa (verilmezse → ← yalnız gezinir). */
+  subtasksOpen?: (workItemId: string) => boolean
+  toggleSubtasks?: (workItemId: string) => void
   /** W95 uzantı noktası: `false` döndürürse olay işlenmemiş sayılır. */
   onDateKey?: (request: DateKeyRequest) => boolean | void
 }
@@ -52,6 +56,14 @@ function dateKey(options: GanttKeyboardOptions, event: KeyboardEvent, row: KeyRo
   return result !== false
 }
 
+/** Görev satırında → kapalı alt görevleri açar, ← açıkları kapatır (CX-F3-Ö-03). */
+function toggleSubtasks(options: GanttKeyboardOptions, key: string, right: boolean): boolean {
+  const open = options.subtasksOpen?.(key) === true
+  if (!options.toggleSubtasks || right === open) return false
+  options.toggleSubtasks(key)
+  return true
+}
+
 function horizontal(
   options: GanttKeyboardOptions,
   event: KeyboardEvent,
@@ -67,6 +79,7 @@ function horizontal(
     else return false
     return true
   }
+  if (toggleSubtasks(options, row.key, right)) return true
   if (right) return false
   const parent = rows.findIndex((r) => r.key === row.groupKey)
   if (parent < 0) return false

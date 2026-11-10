@@ -90,6 +90,40 @@ describe('Bağımlılık ekle (addDependency; E-03C-66)', () => {
     expect(sent('POST', DEPS)).toHaveLength(1)
     expect(wrapper.emitted('update:open')).toBeUndefined()
   })
+
+  it('K-5: 422 work.input_invalid + fields[].code=work.dependency_date_order özgün iletiyle gösterilir', async () => {
+    server.use(
+      http.post(`${ORIGIN}${DEPS}`, () =>
+        errorEnvelope('work.input_invalid', 422, [
+          { field: 'depends_on_work_item_id', code: 'work.dependency_date_order' },
+        ]),
+      ),
+    )
+    const { h } = render('add')
+    await settleQueries(h.queryClient)
+    const select = $('select[name="predecessor"]') as HTMLSelectElement
+    select.value = 'w2'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    ;($('[data-testid="tp-dep-submit"]') as HTMLButtonElement).click()
+    await settleQueries(h.queryClient)
+    expect($('[data-testid="tp-dep-error"]')!.textContent).toBe(
+      'Bağımlılık tarih sırasıyla çelişiyor.',
+    )
+  })
+
+  it('K-5: alan kodu bilinmiyorsa kodun kendi metni', async () => {
+    server.use(http.post(`${ORIGIN}${DEPS}`, () => errorEnvelope('work.input_invalid', 422, [])))
+    const { h } = render('add')
+    await settleQueries(h.queryClient)
+    const select = $('select[name="predecessor"]') as HTMLSelectElement
+    select.value = 'w2'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    ;($('[data-testid="tp-dep-submit"]') as HTMLButtonElement).click()
+    await settleQueries(h.queryClient)
+    expect($('[data-testid="tp-dep-error"]')!.textContent).toBe('Girilen bilgiler geçersiz.')
+  })
 })
 
 describe('Bağımlılığı kaldır (removeDependency; E-03C-66)', () => {

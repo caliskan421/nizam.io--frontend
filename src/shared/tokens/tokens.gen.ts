@@ -2609,8 +2609,8 @@ export const TOKENS = {
   "gantt-label-max": {
     "group": "gantt",
     "origin": "web",
-    "dark": "62cqw",
-    "light": "62cqw"
+    "dark": "50cqw",
+    "light": "50cqw"
   },
   "gantt-view-h": {
     "group": "gantt",
@@ -2797,6 +2797,12 @@ export const TOKENS = {
     "origin": "web",
     "dark": "48px 8px minmax(0, 1fr) auto",
     "light": "48px 8px minmax(0, 1fr) auto"
+  },
+  "gantt-label-cols-bare": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "8px minmax(0, 1fr) auto",
+    "light": "8px minmax(0, 1fr) auto"
   },
   "gantt-group-cols": {
     "group": "gantt",

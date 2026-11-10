@@ -6,7 +6,7 @@ describe('açık durum içeriği', () => {
   it('program yok: yönetici "program oluştur" → /programlar bağlantısı (W81); diğerleri bilgilendirme', () => {
     const admin = openStateCopy('state.no-program', true)!
     expect(admin.title).toBe('Program yok')
-    expect(admin.action).toEqual({ label: 'Program oluştur', note: null, to: 'program.programs' })
+    expect(admin.action).toEqual({ label: 'Program oluştur', to: 'program.programs' })
     const other = openStateCopy('state.no-program', false)!
     expect(other.action).toBeNull()
     expect(other.text).not.toBe(admin.text)
@@ -19,11 +19,10 @@ describe('açık durum içeriği', () => {
     )
   })
 
-  it('departman yok: yönetici "departman ekle" devre dışı', () => {
+  it('departman yok: yönetici "Departman ekle" program yönetimine bağlanır (K-6; faz notu yok)', () => {
     expect(openStateCopy('state.no-department', true)?.action).toEqual({
       label: 'Departman ekle',
-      note: 'Departman ekle F2’de açılacak.',
-      to: null,
+      to: 'program.programs',
     })
     expect(openStateCopy('state.no-department', false)?.action).toBeNull()
   })

@@ -13,6 +13,7 @@ import {
   truncateLabel,
   type BarGeometry,
 } from '../../model/timeline'
+import type { RequestExtension } from '../../model/request-extension'
 import type { GanttTask } from '../../model/types'
 import type { GanttEdge, GanttScale } from '../index'
 import SubtaskChip from '../subtasks/SubtaskChip.vue'
@@ -35,6 +36,8 @@ const props = defineProps<{
   dependent: boolean
   /** Alt görev satırları bu görevde açık: ilerleme çizgisi + sayaç çipi (03d E-03C-44/46). */
   subtasksOpen?: boolean
+  /** Bekleyen tarih talebinin kesik uzantıları (E-03C-42; yalnız seçili görevde dolu). */
+  requestExtensions?: readonly RequestExtension[]
 }>()
 const emit = defineEmits<{
   select: []
@@ -77,6 +80,17 @@ const duration = computed(() => {
   return `${value} ${ganttText(`timeline.gantt.unit.${unit}`)}`
 })
 
+/** Kesik uzantı: çubuğa bakan kenar açık, dış uç yuvarlak (açıklamadaki "Tarih talebi" işareti). */
+function extensionPath(ext: RequestExtension): string {
+  const r = Math.min(GEOMETRY.barR, ext.w, GEOMETRY.barH / 2)
+  const bottom = top + GEOMETRY.barH
+  if (ext.side === 'end') {
+    const right = ext.x + ext.w
+    return `M${ext.x} ${top}H${right - r}a${r} ${r} 0 0 1 ${r} ${r}V${bottom - r}a${r} ${r} 0 0 1 ${-r} ${r}H${ext.x}`
+  }
+  return `M${ext.x + ext.w} ${top}H${ext.x + r}a${r} ${r} 0 0 0 ${-r} ${r}V${bottom - r}a${r} ${r} 0 0 0 ${r} ${r}H${ext.x + ext.w}`
+}
+
 const iconSize = GEOMETRY.depIcon
 const textX = computed(
   () => props.bar.x + GEOMETRY.barPad + (props.dependent ? iconSize + GEOMETRY.barPad / 2 : 0),
@@ -112,6 +126,13 @@ const midY = top + GEOMETRY.barH / 2
         :y2="top + GEOMETRY.barH + 1"
       />
     </template>
+    <path
+      v-for="ext in requestExtensions"
+      :key="ext.side"
+      class="gantt-bar__request"
+      :d="extensionPath(ext)"
+      :data-request="ext.side"
+    />
     <path v-if="lateKind" class="gantt-bar__late" :d="outline(0)" />
     <path v-if="selected" class="gantt-bar__ring" :d="outline(GEOMETRY.ringW / 2)" />
     <path
