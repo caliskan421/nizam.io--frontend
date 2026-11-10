@@ -37,7 +37,7 @@ function lensName(): string {
     >
       <span
         class="side-pav side-pav--lg"
-        :class="scope.avatar.value ? `side-pav--t${scope.avatar.value.tone}` : 'side-pav--empty'"
+        :class="scope.avatar.value ? `side-pav--${scope.avatar.value.tone}` : 'side-pav--empty'"
         aria-hidden="true"
         >{{ scope.avatar.value?.initials }}</span
       >

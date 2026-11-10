@@ -13,7 +13,7 @@ function mountStub() {
       components: { DesignStub },
       setup: () => ({ clicks }),
       template:
-        '<DesignStub id="BE-001" as="div"><button @click="clicks++">Hatırlat</button></DesignStub>',
+        '<DesignStub id="BE-040" as="div"><button @click="clicks++">Hatırlat</button></DesignStub>',
     }),
     { attachTo: document.body },
   )
@@ -24,7 +24,7 @@ describe('DesignStub', () => {
   it('kimliği işaretler; geliştirmede kesikli çerçeve sınıfı', () => {
     const { wrapper } = mountStub()
     const stub = wrapper.get('[data-design-stub]')
-    expect(stub.attributes('data-design-stub')).toBe('BE-001')
+    expect(stub.attributes('data-design-stub')).toBe('BE-040')
     expect(stub.element.tagName).toBe('DIV')
     expect(stub.classes()).toContain('ui-stub--dev')
     expect(stub.attributes('title')).toBe('Yakında: sunucu desteği bekleniyor')
