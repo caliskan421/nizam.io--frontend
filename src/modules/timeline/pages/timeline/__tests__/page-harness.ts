@@ -1,11 +1,10 @@
 // Zaman çizelgesi sayfa testleri: GERÇEK API istemcisi + MSW (timeline harness'ının sunucusu ve
-// istek kaydı), gerçek Pinia kapsam deposu, TanStack Query ve bellek router'ı. O2b kardeş
-// bileşenleri (GanttView — W92, SelectedTaskPanel — W94) sözleşme adlarıyla TASLAKLANIR; rapor
-// `TASLAK:` satırı. Fikstürler örnek veridir, gerçek veri DEĞİLDİR.
+// istek kaydı), gerçek Pinia kapsam deposu, TanStack Query ve bellek router'ı. Kardeş
+// bileşenler (W92 Gantt, W94 panel) GERÇEK bağlanır (taslak yok). Fikstürler örnek veridir, gerçek veri DEĞİLDİR.
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { defineComponent, h, type Component, type VNode } from 'vue'
+import type { Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import { settleQueries, type HeldQuery } from '@/shared/http/__tests__/settle'
@@ -74,44 +73,6 @@ export function manyTasks(n: number, over: Partial<GanttTask> = {}): Gantt {
   })
 }
 
-/** Taslak bileşen üretici: sözleşme adlı, yalnız verilen prop/emit'leri olan sahte bileşen. */
-const stub = (
-  name: string,
-  props: Record<string, unknown>,
-  emits: string[],
-  render: (p: Record<string, unknown>, emit: (event: string, ...args: unknown[]) => void) => VNode,
-  expose?: Record<string, unknown>,
-) =>
-  defineComponent({
-    name,
-    props: props as never,
-    emits,
-    setup(p, { emit, expose: exposeFn }) {
-      if (expose) exposeFn(expose)
-      return () => render(p, emit as never)
-    },
-  })
-
-/** TASLAK: W94 `SelectedTaskPanel`. */
-export const SelectedTaskPanelStub = stub(
-  'SelectedTaskPanel',
-  {
-    task: { type: Object, default: null },
-    face: { type: String, default: '' },
-    departmentName: { type: String, default: '' },
-  },
-  ['close', 'openInList'],
-  (p, emit) =>
-    h('section', { 'data-panel': (p.task as GanttTask).work_item_id, 'data-face': p.face }, [
-      h('span', { 'data-dept': p.departmentName }),
-      h('button', { 'data-close': '', onClick: () => emit('close') }),
-      h('button', {
-        'data-open-list': '',
-        onClick: () => emit('openInList', (p.task as GanttTask).work_item_id),
-      }),
-    ]),
-)
-
 const mounted: VueWrapper[] = []
 const clients: QueryClient[] = []
 
@@ -149,7 +110,6 @@ export async function mountPage(
   const wrapper = mount(page, {
     global: {
       plugins: [pinia, [VueQueryPlugin, { queryClient }], router],
-      stubs: { SelectedTaskPanel: SelectedTaskPanelStub },
     },
     attachTo: document.body,
   })

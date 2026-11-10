@@ -1,9 +1,11 @@
 // timeline modülünün dışa açık yüzü (03c Zaman çizelgesi; WEB-3 W91). `app/` ve diğer
 // modüller (03 görev paneli → `DateRequestForm`, 08 kısayolu) yalnız bu dosyayı içe aktarır.
 // Sayfa kaydı `timelineRoutes` (`app/router.ts` `MODULE_ROUTES`). Bileşenler bilinçli olarak
-// burada YOK (stil yan etkili SFC'ler ana pakete girmez); `DateRequestForm` dışa açımı W94
-// isteminde (modül sınırı).
+// burada YOK (stil yan etkili SFC'ler ana pakete girmez); tek istisna `DateRequestForm` (W94):
+// 03 görev paneli (E-03-54/63) aynı formu modül sınırı üzerinden açar.
 export * from './api'
+export { default as DateRequestForm } from './components/panel/DateRequestForm.vue'
+export { panelText } from './components/panel/messages'
 export { atCeiling, GANTT_CEILING } from './model/ceiling'
 export {
   canDirectDateWrite,
