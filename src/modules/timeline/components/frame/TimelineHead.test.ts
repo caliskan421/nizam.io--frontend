@@ -21,7 +21,7 @@ describe('zaman çizelgesi başlığı (E-03C-02…04)', () => {
     expect(head.get('[data-part="overdue"]').classes()).toContain('tl-head__danger')
   })
 
-  it('tam 200 kalemde "N+" ve "yüklenen kayıtlar içinde" (E-03C-02, 82)', () => {
+  it('sunucu kesilme bildirince (approximate) "N+" ve "yüklenen kayıtlar içinde" (E-03C-02, 82)', () => {
     const head = mount(TimelineHead, {
       props: { ...base, taskCount: 200, doneCount: 120, overdueCount: 30, approximate: true },
     })

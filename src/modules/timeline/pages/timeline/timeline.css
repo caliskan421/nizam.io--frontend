@@ -32,7 +32,7 @@
     background: var(--bg-base);
   }
 
-  /* Tavan uyarısı (E-03C-82): tam 200 kalem */
+  /* Tavan uyarısı (E-03C-82): sunucu kesilme başlığı (BE-019) */
   .timeline-ceiling {
     display: flex;
     align-items: center;

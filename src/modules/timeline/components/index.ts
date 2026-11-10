@@ -111,7 +111,7 @@ export interface TimelineHeadProps {
   taskCount: number
   doneCount: number
   overdueCount: number
-  /** Tam 200 kalem: sayaçlar "yüklenen kayıtlar içinde" (E-03C-02, 82). */
+  /** Sunucu `X-Result-Truncated: true` bildirdi (BE-019; kalem sayısından çıkarım yok): sayaçlar "yüklenen kayıtlar içinde" (E-03C-02, 82). */
   approximate: boolean
   canCreateTask: boolean
 }

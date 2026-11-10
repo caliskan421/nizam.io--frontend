@@ -14,7 +14,7 @@
 //    bekleyen talep varsa 409 `work.date_request_pending_exists`; onay/red yalnız yönetici.
 //  - Uzatma `days` tamsayı 1–90; dışı 422 `work.input_invalid` (alan kodu `work.extend_days_out_of_range`).
 //    Bağımlılık ekleme: bağımlı başlangıç < ön görev bitişi → 422 `work.input_invalid` (alan kodu
-//    `work.dependency_date_order`); silme 200 `StatusResult` (pin v0.11.0-api).
+//    `work.dependency_date_order`); silme 200 `StatusResult` (pin v0.15.0-api).
 //  - `Idempotency-Key` yalnız `extend` ve `requestDateChange`'de (isteğe bağlı, 22–200 bayt; geçersiz
 //    422 `work.input_invalid` alan `idempotency_key` kodu `work.request_key_invalid`): aynı anahtar +
 //    aynı istek 200 + ilk sonuç (`replayed:true`), farklı istek 409 `work.idempotency_key_reused`.
