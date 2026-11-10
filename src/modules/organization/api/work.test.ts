@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 
 import {
   ADMIN_SCOPE,
+  byAssigneeQuery,
   harness,
   http,
   json,
@@ -46,10 +47,12 @@ function twoPages(gate: Promise<void> = Promise.resolve()) {
   server.use(
     http.get(`${ORIGIN}/v1/program/work-items`, async ({ request }) => {
       if (new URL(request.url).searchParams.get('cursor') !== 'c1') {
-        return json({ items: [item('w1', ['u1'])], next_cursor: 'c1' })
+        return json({ items: byAssigneeQuery([item('w1', ['u1'])], request), next_cursor: 'c1' })
       }
       await gate
-      return json({ items: [item('w2', ['u2']), item('w3', ['u1', 'u2'])] })
+      return json({
+        items: byAssigneeQuery([item('w2', ['u2']), item('w3', ['u1', 'u2'])], request),
+      })
     }),
   )
 }
@@ -72,7 +75,7 @@ describe('organizasyon görev okuması (work sorgusu yeniden kullanımı; §9, �
     }
   })
 
-  it('kişi (05/05b): program geneli tek liste (department_id yok) ∩ atanan; çekim sürerken complete false', async () => {
+  it('kişi (05/05b): program geneli tek liste (department_id yok), sunucu assignee_account_id; çekim sürerken complete false', async () => {
     let release!: () => void
     twoPages(new Promise<void>((resolve) => (release = resolve)))
     const h = harness(ADMIN_SCOPE)
@@ -85,6 +88,7 @@ describe('organizasyon görev okuması (work sorgusu yeniden kullanımı; §9, �
     expect(r.items.value.map((i) => i.work_item_id)).toEqual(['w1', 'w3'])
     for (const req of sent('GET', '/v1/program/work-items')) {
       expect(req.query.has('department_id')).toBe(false)
+      expect(req.query.getAll('assignee_account_id')).toEqual(['u1'])
     }
   })
 
@@ -92,7 +96,7 @@ describe('organizasyon görev okuması (work sorgusu yeniden kullanımı; §9, �
     twoPages()
     const h = harness(ADMIN_SCOPE)
     const a = h.run(() => usePersonWorkItems('u1'))
-    h.run(() => usePersonWorkItems('u2'))
+    h.run(() => usePersonWorkItems('u1'))
     await vi.waitFor(() => expect(a.complete.value).toBe(true))
     await h.flush()
     expect(sent('GET', '/v1/program/work-items')).toHaveLength(2)

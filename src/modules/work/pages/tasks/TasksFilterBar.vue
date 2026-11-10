@@ -3,16 +3,17 @@ import './tasks.css'
 
 import { onBeforeUnmount, ref, watch } from 'vue'
 
-import { DesignStub, UiButton, UiInput } from '@/shared/ui'
+import { UiInput } from '@/shared/ui'
 
-import type { ProgramDepartment } from '../../model/types'
+import type { ProgramDepartment, WorkItem } from '../../model/types'
 import DepartmentFilter from './DepartmentFilter.vue'
 import { tasksText } from './messages'
+import PersonFilter from './PersonFilter.vue'
 
 /**
  * Arama ve süzgeç satırı (E-03-10…12). Arama yüklenen kümede, URL'ye ~300 ms gecikmeyle yazılır
- * (koordinatör kararı; tek sabit). Kişi süzgeci statik (BE-038/039: sunucu süzgeci ve aday
- * dizini yok; P4) — görünür, açılmaz. Koordinatörlük süzgeci tek seçim, yalnız Admin merceğinde
+ * (koordinatör kararı; tek sabit). Kişi süzgeci çoklu seçim, sunucu `assignee_account_id` (BE-038;
+ * aday dizini BE-039 yok → görülen atananlar). Koordinatörlük süzgeci tek seçim, yalnız Admin merceğinde
  * (K3, P4); K/Ü merceğinde kapsam zaten tek birim.
  */
 const props = defineProps<{
@@ -20,10 +21,17 @@ const props = defineProps<{
   department: string | null
   departments: readonly ProgramDepartment[]
   showDepartment: boolean
+  /** Seçili atananlar (sunucu süzgeci, BE-038). */
+  people: readonly string[]
+  /** Aday kişiler: yüklenen satırların `assignees[]`'ı (aday dizini yok, BE-039). */
+  candidates: readonly Pick<WorkItem, 'assignees'>[]
+  /** Üye merceğinde kilitli. */
+  personLocked: boolean
 }>()
 const emit = defineEmits<{
   'update:search': [value: string]
   'update:department': [value: string | null]
+  'update:people': [value: string[]]
 }>()
 
 /** Arama URL yazım gecikmesi (E-03-10; kalibre edilebilir tek sabit). */
@@ -74,17 +82,12 @@ onBeforeUnmount(cancel)
       </div>
     </div>
     <div class="rp-tgroup">
-      <DesignStub id="BE-038">
-        <UiButton
-          size="sm"
-          icon-end="chevron-down"
-          disabled
-          data-testid="person-filter"
-          :title="tasksText('tasksPage.person.stub')"
-        >
-          {{ tasksText('tasksPage.person.label') }}
-        </UiButton>
-      </DesignStub>
+      <PersonFilter
+        :people="people"
+        :candidates="candidates"
+        :locked="personLocked"
+        @update:people="emit('update:people', $event)"
+      />
       <DepartmentFilter
         v-if="showDepartment"
         :model-value="department"

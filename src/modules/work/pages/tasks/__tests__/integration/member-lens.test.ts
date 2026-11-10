@@ -1,8 +1,9 @@
 // CX-F1-E-01 — Üye merceği "bana atananlar" (K3, P1/P3) uçtan uca: GERÇEK ana sayfa + görev
-// sayfası + panel, sunucu görünürlüğünü uygulayan sahte backend. Pinli `listProgramWorkItems`
-// atanan süzgeci almaz (yalnız `department_id`/`limit`/`cursor`), daraltma istemcidedir: liste,
-// sekme sayaçları, talep sayısı, özet ve boş durum aynı daraltılmış kümeden. Mercek yetki
-// değildir: derin bağlantıyla açılan atanmamış görevin paneli (yetki sunucuda) değişmez.
+// sayfası + panel, sunucu görünürlüğünü uygulayan sahte backend. Pin v0.15.0-api'de
+// `listProgramWorkItems` ve `countProgramWorkItems` `assignee_account_id` süzgeci alır (BE-038):
+// daraltma SUNUCUDADIR (Üye merceğinde istek "ben" ile gider); liste, sekme sayaçları, talep
+// sayısı, özet ve boş durum aynı süzgeçle okunan uçlardan. Mercek yetki değildir: derin
+// bağlantıyla açılan atanmamış görevin paneli (yetki sunucuda) değişmez.
 // Rol dizeleri yalnız burada (K1 lint).
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -114,9 +115,13 @@ async function switchLens(
 describe('CX-F1-E-01 · Üye merceği "bana atananlar" (liste, sayaçlar, boş durum)', () => {
   it('yönetici + Üye merceği: sunucu tüm d1 görevlerini döndürür, liste yalnız benimkiler', async () => {
     await app(ADMIN_MEMBER, 'member', 'd1')
-    // Sunucu süzgeci yok: istek yalnız `department_id` taşır (uç uydurulmaz).
+    // Sunucu süzgeci (BE-038): liste ve sayaç AYNI süzgeçle ("ben" + seçili birim) okunur.
     const query = sent('GET', '/v1/program/work-items')[0]!.query
-    expect([...query.keys()].sort()).toEqual(['department_id', 'limit'])
+    expect([...query.keys()].sort()).toEqual(['assignee_account_id', 'department_id', 'limit'])
+    expect(query.getAll('assignee_account_id')).toEqual([ME])
+    const counts = sent('GET', '/v1/program/work-items/counts')[0]!.query
+    expect([...counts.keys()].sort()).toEqual(['assignee_account_id', 'department_id'])
+    expect(counts.getAll('assignee_account_id')).toEqual([ME])
     expect(listed()).toEqual(['m1', 'm2'])
     expect(tabs()).toEqual({ tumu: 2, devam: 1, onay: 1, tamam: 0 })
     expect(summary()).toContain('2 görev')

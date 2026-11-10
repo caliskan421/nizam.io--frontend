@@ -25,7 +25,7 @@ import { quickActions } from '../model/quick-actions'
  * yüzden kapsamlı (S2) okumalar yalnız kapsam tamken bağlanır (kapsamsız istek yok).
  *
  * KPI veri kaynağı (01 backend.md "Mercek → veri kaynağı"): Admin merceği + şirket yöneticisi →
- * `reportDashboard`; Koordinatör → seçili birim listesi; Üye → aynı liste, "bana atananlar".
+ * `reportDashboard`; Koordinatör → seçili birim sayaçları (`countProgramWorkItems`); Üye → aynı sayaç, "bana atananlar" (sunucu süzgeci).
  * Eylem görünürlüğü yetkiden (P1), mercekten değil.
  */
 type KpiSource = 'dashboard' | 'team' | 'select' | 'loading' | 'error'
@@ -55,7 +55,7 @@ const kpiSource = computed<KpiSource>(() => {
 const standingError = computed(() =>
   kpiSource.value === 'error' ? toApiError(standing.error.value) : null,
 )
-/** Üye merceğinde "bana atananlar" (birleşik rolde zorunlu, salt üyede etkisiz). */
+/** Üye merceğinde "bana atananlar" (sunucu `assignee_account_id`; birleşik rolde zorunlu). */
 const assignee = computed(() => lensAssignee(store.lens, facts.value?.accountId))
 const actions = computed(() => quickActions(facts.value, store.programId))
 

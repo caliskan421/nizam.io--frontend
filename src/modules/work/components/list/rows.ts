@@ -1,9 +1,12 @@
 /**
  * Görev listesinin istemci hesapları (03 `backend.md` §4). Hepsi YÜKLENMİŞ satırlar üzerindedir;
  * imleç bitmemişse sonuç "yüklenen kayıtlar içinde"dir (ortak-kurallar §10, P4). Sunucu durum
- * süzgeci, arama ve sıralama yok (BE-003, BE-004, BE-040): sekme, arama ve sıralama burada.
+ * süzgeci, arama ve sıralama yok (BE-004, BE-040): sekme, arama ve sıralama burada. Süzgeçsiz
+ * (arama ve talep kapalı) sekme sayaçları sunucudandır (`countProgramWorkItems`, BE-003:
+ * `countsFromServer`); istemci sayımı (`tabCounts`) yalnız arama/talep daraltmasında ve sayaç
+ * ucu yokken yedektir.
  */
-import type { WorkItem, WorkItemStatus } from '../../model/types'
+import type { WorkItem, WorkItemCounts, WorkItemStatus } from '../../model/types'
 import { WORK_ITEM_STATUSES } from '../../model/types'
 
 /** Sekme süzgeci: "Tümü", beş durum ya da "Geciken" (`is_overdue`, durumla kesişir). */
@@ -52,6 +55,11 @@ export function tabCounts(items: readonly WorkItem[]): Record<RowTab, number> {
     if (item.is_overdue) counts.geciken += 1
   }
   return counts
+}
+
+/** Sunucu sayaçlarından sekme sayaçları (kesin; `geciken` = `overdue`, tamamlanmış sayılmaz). */
+export function countsFromServer(counts: WorkItemCounts): Record<RowTab, number> {
+  return { tumu: counts.total, geciken: counts.overdue, ...counts.by_status }
 }
 
 const STATUS_RANK = new Map<WorkItemStatus, number>(WORK_ITEM_STATUSES.map((s, i) => [s, i]))

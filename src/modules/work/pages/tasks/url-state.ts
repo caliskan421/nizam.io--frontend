@@ -8,7 +8,8 @@
  *    `alan:yön` (yoksa sunucu sırası), `gorev`: açık panel.
  *  - `yeni`: "Yeni görev" girişi (`newTaskRequested`); durumda taşınmaz, yazılmaz (sayfa okuyunca
  *    düşer, W48).
- *  - `kisi` F1'de yok (E-03-11 statik, BE-038); imleç ve panel sekmesi URL'de taşınmaz.
+ *  - `kisi`: virgülle ayrılmış atanan kimlikleri (E-03-11, BE-038; sunucu süzgeci, en çok 50,
+ *    Üye merceğinde yok sayılır — küme zaten "ben"); imleç ve panel sekmesi URL'de taşınmaz.
  *  - Geçersiz değer sessizce düşer (URL elle bozulabilir); bilinmeyen anahtar yazılmaz.
  */
 import { TASKS_SORT_FIELDS, TASKS_STATUS_FILTERS } from '../../routes'
@@ -29,6 +30,8 @@ export interface TasksUrlState {
   requests: boolean
   search: string
   department: string | null
+  /** Seçili atananlar (VEYA; sunucu `assignee_account_id`). */
+  people: string[]
   sort: TaskSort | null
   open: string | null
 }
@@ -38,12 +41,14 @@ export const DEFAULT_TASKS_STATE: TasksUrlState = {
   requests: false,
   search: '',
   department: null,
+  people: [],
   sort: null,
   open: null,
 }
 
 const ID_VALUE = /^[A-Za-z0-9_-]{1,128}$/
 const TEXT_MAX = 200
+const PEOPLE_MAX = 50
 
 function first(raw: unknown): string | undefined {
   const value = Array.isArray(raw) ? (raw as unknown[]).find((v) => typeof v === 'string') : raw
@@ -60,6 +65,14 @@ function tabValue(raw: unknown): TaskTab {
   return (TASKS_STATUS_FILTERS as readonly string[]).includes(value ?? '')
     ? (value as StatusFilter)
     : 'tumu'
+}
+
+/** Virgülle ayrılmış kimlikler: geçersiz parça sessizce düşer, tekrarsız, en çok 50. */
+function idsValue(raw: unknown): string[] {
+  const value = first(raw)
+  if (value === undefined) return []
+  const ids = value.split(',').filter((part) => ID_VALUE.test(part))
+  return [...new Set(ids)].slice(0, PEOPLE_MAX)
 }
 
 function sortValue(raw: unknown): TaskSort | null {
@@ -81,6 +94,7 @@ export function parseTasksQuery(query: Readonly<Record<string, unknown>>): Tasks
     requests: first(query.talep) === '1',
     search: textValue(query.q),
     department: idValue(query.koordinatorluk),
+    people: idsValue(query.kisi),
     sort: sortValue(query.sirala),
     open: idValue(query.gorev),
   }
@@ -99,6 +113,8 @@ export function tasksQuery(state: TasksUrlState): Record<string, string> {
   const search = state.search.trim() === '' ? '' : state.search.slice(0, TEXT_MAX)
   if (search) query.q = search
   if (state.department && ID_VALUE.test(state.department)) query.koordinatorluk = state.department
+  const people = [...new Set(state.people.filter((id) => ID_VALUE.test(id)))].slice(0, PEOPLE_MAX)
+  if (people.length > 0) query.kisi = people.join(',')
   if (state.sort) query.sirala = `${state.sort.field}:${state.sort.direction}`
   if (state.open && ID_VALUE.test(state.open)) query.gorev = state.open
   return query
@@ -112,10 +128,16 @@ export function nextSort(current: TaskSort | null, field: SortField): TaskSort |
 
 /** "Süzgeçleri temizle": sekme, talep, arama ve koordinatörlük sıfırlanır; sıralama/panel kalır. */
 export function clearedFilters(state: TasksUrlState): TasksUrlState {
-  return { ...state, tab: 'tumu', requests: false, search: '', department: null }
+  return { ...state, tab: 'tumu', requests: false, search: '', department: null, people: [] }
 }
 
 /** İstemci süzgeci etkin mi (boş sonuç "süzgeç sonucu boş" mu, "liste boş" mu). */
 export function hasActiveFilters(state: TasksUrlState): boolean {
-  return state.tab !== 'tumu' || state.requests || state.search !== '' || state.department !== null
+  return (
+    state.tab !== 'tumu' ||
+    state.requests ||
+    state.search !== '' ||
+    state.department !== null ||
+    state.people.length > 0
+  )
 }

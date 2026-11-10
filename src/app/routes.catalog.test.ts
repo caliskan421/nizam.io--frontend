@@ -365,6 +365,11 @@ describe('konum üretme ve süzgeç okuma', () => {
     )
   })
 
+  it('Görevler kisi: virgüllü atanan kimlikleri üretilir ve okunur (BE-038)', () => {
+    expect(routeLocation('work.tasks', {}, { kisi: 'a1,a2' }).query).toEqual({ kisi: 'a1,a2' })
+    expect(parseRouteQuery('work.tasks', { kisi: 'a1,a2' })).toEqual({ kisi: 'a1,a2' })
+  })
+
   it('geçersiz süzgeç değeri hatadır (üretimde), okumada düşer', () => {
     expect(() => routeLocation('work.tasks', {}, { durum: 'yok' as 'tamamlandi' }, 'F1')).toThrow(
       /geçersiz/,
@@ -375,7 +380,7 @@ describe('konum üretme ve süzgeç okuma', () => {
         talep: '1',
         sirala: 'bitis:yukari',
         koordinatorluk: ['abc-1', null],
-        kisi: 'abc-2',
+        kisi: 'abc-2,a/b',
         q: '   ',
         bilinmeyen: 'x',
       }),
@@ -389,6 +394,10 @@ describe('konum üretme ve süzgeç okuma', () => {
     [{ kind: 'bool' } as const, 'true', undefined],
     [{ kind: 'text' } as const, 'x'.repeat(300), 'x'.repeat(200)],
     [{ kind: 'id' } as const, '', undefined],
+    [{ kind: 'ids' } as const, 'a-1,b_2', 'a-1,b_2'],
+    [{ kind: 'ids' } as const, 'a,,b', undefined],
+    [{ kind: 'ids' } as const, 'a,b c', undefined],
+    [{ kind: 'ids' } as const, Array.from({ length: 51 }, (_, i) => `p${i}`).join(','), undefined],
     [{ kind: 'enum', values: ['a'] } as const, 'a', 'a'],
     [{ kind: 'sort', fields: ['gorev'] } as const, 'gorev:artan', 'gorev:artan'],
   ])('decodeParam(%o, %s)', (spec, raw, expected) => {

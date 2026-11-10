@@ -18,6 +18,7 @@ import type { DashboardReport, KpiItem } from '../model/types'
 export const ORIGIN = 'http://localhost'
 export const LIST = '/v1/program/work-items'
 export const DASHBOARD = '/v1/reports/dashboard'
+export const COUNTS = '/v1/program/work-items/counts'
 
 export interface Recorded {
   method: string
@@ -158,9 +159,32 @@ export function row(status: KpiItem['status'], over: Partial<KpiItem> = {}) {
   }
 }
 
-/** Liste ucu: imleçsiz istek `first` + `nextCursor`. */
-export const listHandler = (first: ReturnType<typeof row>[], nextCursor?: string) =>
-  http.get(`${ORIGIN}${LIST}`, () => json({ items: first, next_cursor: nextCursor }))
+/**
+ * Sayaç ucu (`countProgramWorkItems`, BE-003): `rows` görünür kümedir; sunucu atanan süzgeci
+ * (`assignee_account_id`, VEYA; BE-038) uygulanır, `department_id` bu sahtede süzülmez.
+ */
+export function countsHandler(rows: ReturnType<typeof row>[]) {
+  return http.get(`${ORIGIN}${COUNTS}`, ({ request }) => {
+    const ids = new URL(request.url).searchParams.getAll('assignee_account_id')
+    const kept = rows.filter(
+      (r) => ids.length === 0 || ids.some((id) => r.assignee_account_ids.includes(id)),
+    )
+    const by_status = {
+      baslanmadi: 0,
+      devam_ediyor: 0,
+      onaya_sunuldu: 0,
+      iade_edildi: 0,
+      tamamlandi: 0,
+    }
+    for (const r of kept) by_status[r.status] += 1
+    return json({
+      total: kept.length,
+      by_status,
+      overdue: kept.filter((r) => r.is_overdue && r.status !== 'tamamlandi').length,
+      pending_date_requests: 0,
+    })
+  })
+}
 
 // --- Bağlama ------------------------------------------------------------------------------
 

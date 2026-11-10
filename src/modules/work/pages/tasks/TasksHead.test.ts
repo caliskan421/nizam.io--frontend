@@ -15,40 +15,56 @@ const makeRouter = () =>
   })
 
 function mountHead(props: {
-  summary: { tasks: number; departments: number; people: number } | null
-  complete: boolean
+  summary: {
+    tasks: number
+    tasksExact: boolean
+    departments: number
+    people: number
+    peopleExact: boolean
+  } | null
   canCreate: boolean
 }): VueWrapper {
   return mount(TasksHead, { props, global: { plugins: [makeRouter()] } })
 }
 
-const summary = { tasks: 200, departments: 21, people: 185 }
+const summary = { tasks: 200, tasksExact: true, departments: 21, people: 185, peopleExact: true }
 
 describe('sayfa başlığı (E-03-03…06)', () => {
   it('küme tamsa kesin sayılar, etiket yok', () => {
-    const head = mountHead({ summary, complete: true, canCreate: true })
+    const head = mountHead({ summary, canCreate: true })
     expect(head.get('h1').text()).toBe('Görevler')
     expect(head.get('[data-testid="tasks-summary"]').text()).toBe(
       '200 görev · 21 koordinatörlük · 185 kişi',
     )
   })
 
-  it('imleç bitmediyse "n+" ve "yüklenen kayıtlar içinde" (E-03-04, P4)', () => {
-    const head = mountHead({ summary, complete: false, canCreate: false })
+  it('sayaç ucu yokken imleç bitmediyse "n+" ve "yüklenen kayıtlar içinde" (E-03-04, P4)', () => {
+    const partial = { ...summary, tasksExact: false, peopleExact: false }
+    const head = mountHead({ summary: partial, canCreate: false })
     expect(head.get('[data-testid="tasks-summary"]').text()).toBe(
-      '200+ görev · 21 koordinatörlük · 185 kişi · yüklenen kayıtlar içinde',
+      '200+ görev · 21 koordinatörlük · 185+ kişi · yüklenen kayıtlar içinde',
+    )
+  })
+
+  it('sunucu toplamı kesin, kişi yüklenen kümeden "n+" (BE-003)', () => {
+    const head = mountHead({
+      summary: { ...summary, tasks: 263, peopleExact: false },
+      canCreate: false,
+    })
+    expect(head.get('[data-testid="tasks-summary"]').text()).toBe(
+      '263 görev · 21 koordinatörlük · 185+ kişi',
     )
   })
 
   it('veri yokken (yükleniyor / hata) alt satır ve sayı yok', () => {
-    const head = mountHead({ summary: null, complete: false, canCreate: true })
+    const head = mountHead({ summary: null, canCreate: true })
     expect(head.find('[data-testid="tasks-summary"]').exists()).toBe(false)
     expect(head.text()).not.toMatch(/\d/)
     expect(head.text()).not.toContain('yüklenen kayıtlar içinde')
   })
 
   it('görünüm seçici: Liste basılı, Zaman çizelgesi canlı (E-03-05, F3)', () => {
-    const head = mountHead({ summary, complete: true, canCreate: false })
+    const head = mountHead({ summary, canCreate: false })
     const [list, timeline] = head.get('[role="group"][aria-label="Görünüm"]').findAll('button')
     expect(list!.attributes('aria-pressed')).toBe('true')
     expect(timeline!.attributes('aria-pressed')).toBe('false')
@@ -62,7 +78,7 @@ describe('sayfa başlığı (E-03-03…06)', () => {
     const router = makeRouter()
     await router.push('/gorevler?durum=geciken&ara=x')
     const head = mount(TasksHead, {
-      props: { summary, complete: true, canCreate: false },
+      props: { summary, canCreate: false },
       global: { plugins: [router] },
     })
     await head.get('[data-testid="tasks-view-timeline"]').trigger('click')
@@ -71,9 +87,9 @@ describe('sayfa başlığı (E-03-03…06)', () => {
   })
 
   it('Yeni görev yalnız capability ile; tık create yayar (E-03-06)', async () => {
-    const hidden = mountHead({ summary, complete: true, canCreate: false })
+    const hidden = mountHead({ summary, canCreate: false })
     expect(hidden.text()).not.toContain('Yeni görev')
-    const head = mountHead({ summary, complete: true, canCreate: true })
+    const head = mountHead({ summary, canCreate: true })
     const button = head.findAll('button').find((b) => b.text() === 'Yeni görev')!
     await button.trigger('click')
     expect(head.emitted('create')).toHaveLength(1)
