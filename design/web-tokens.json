@@ -434,6 +434,43 @@
         { "name": "pt-skel-line", "value": "16px" },
         { "name": "pt-skel-num", "value": "52px" }
       ]
+    },
+    "gantt": {
+      "$description": "modules/timeline 03c Zaman çizelgesi — kendi SVG Gantt çekirdeği ölçüleri (W92): Gorevler-Zaman.dc.html artboard ve gantt-secimi.md §7 (gün 21 px; satır 40/44; çubuk 24; sol sütun 300). model/{timeline,rows,links}.ts bu değerleri TOKENS'tan okur; CSS aynı değişkenleri kullanır (tek kaynak).",
+      "tokens": [
+        { "name": "gantt-label-w", "value": "300px" },
+        { "name": "gantt-label-max", "value": "62cqw" },
+        { "name": "gantt-view-h", "value": "780px" },
+        { "name": "gantt-axis-month-h", "value": "34px" },
+        { "name": "gantt-axis-day-h", "value": "28px" },
+        { "name": "gantt-group-h", "value": "40px" },
+        { "name": "gantt-row-h", "value": "44px" },
+        { "name": "gantt-bar-h", "value": "24px" },
+        { "name": "gantt-bar-radius", "value": "8px" },
+        { "name": "gantt-handle-w", "value": "6px" },
+        { "name": "gantt-handle-h", "value": "16px" },
+        { "name": "gantt-handle-r", "value": "3px" },
+        { "name": "gantt-day-w-gun", "value": "21px" },
+        { "name": "gantt-day-w-hafta", "value": "6px" },
+        { "name": "gantt-day-w-ay", "value": "2px" },
+        { "name": "gantt-today-w", "value": "2px" },
+        { "name": "gantt-today-pill-w", "value": "52px" },
+        { "name": "gantt-today-pill-h", "value": "20px" },
+        { "name": "gantt-today-pill-r", "value": "6px" },
+        { "name": "gantt-ring-w", "value": "2px" },
+        { "name": "gantt-split-w", "value": "2px" },
+        { "name": "gantt-hit-w", "value": "12px" },
+        { "name": "gantt-link-w", "value": "1.5px" },
+        { "name": "gantt-dash", "value": "4 3" },
+        { "name": "gantt-late-border", "value": "1.5px" },
+        { "name": "gantt-summary-h", "value": "8px" },
+        { "name": "gantt-dep-icon", "value": "12px" },
+        { "name": "gantt-code-w", "value": "48px" },
+        { "name": "gantt-dot", "value": "8px" },
+        { "name": "gantt-chevron", "value": "16px" },
+        { "name": "gantt-label-cols", "value": "48px 8px minmax(0, 1fr)" },
+        { "name": "gantt-group-cols", "value": "16px minmax(0, 1fr) auto" }
+      ]
     }
   }
 }
