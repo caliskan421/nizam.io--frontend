@@ -44,9 +44,9 @@ describe('standing olguları', () => {
   it("yönetici programları listPrograms'tan, diğerleri satırlardan; ad sırası tr-TR", () => {
     const programs = parsePrograms({
       programs: [
-        { program_id: 'p2', name: 'Zafer' },
-        { program_id: 'p1', name: 'Çelik', year: 2026 },
-        { program_id: 'p3', name: 'İnci' },
+        { program_id: 'p2', name: 'Zafer', short_name: null, color: null },
+        { program_id: 'p1', name: 'Çelik', year: 2026, short_name: null, color: null },
+        { program_id: 'p3', name: 'İnci', short_name: null, color: null },
       ],
     })
     const admin = parseStanding(me(true), { departments: [] })

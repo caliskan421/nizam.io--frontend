@@ -41,54 +41,49 @@ git -C "$backend_dir" archive "refs/tags/$tag" | tar -x -C "$state/src"
 # İmaja gömülen digest (backend Makefile IMAGE_DIGEST sözleşmesi): etiketin commit'i.
 # `setup --expected-digest` bunu imajın NIZAMIO_IMAGE_DIGEST'inden okuyup doğrular.
 image_digest="$(git -C "$backend_dir" rev-parse "refs/tags/$tag^{commit}")"
-# GO_VERSION backend Makefile ile aynı kaynaktan: etiketteki go.mod'un `go` satırı (tam değer).
-go_version="$(awk '/^go /{print $2}' "$state/src/go.mod")"
 
-# TABAN İMAJ PİNLERİ (CX-Ö-04, CX-r2-Ö-01). Etiketin build/Dockerfile'ı tabanları yalnız
-# etiketle anar (`golang:${GO_VERSION}-bookworm`, `gcr.io/distroless/static-debian12:nonroot`).
-# Backend deposuna yazılmaz; yalnız `$state/src` altındaki GEÇİCİ kopyanın FROM satırları
-# digest'li referanslara yeniden yazılır. Dockerfile frontend'i BUILDKIT_SYNTAX ile digest'e
-# sabittir. Digest'ler registry Docker-Content-Digest başlığından çözülmüştür. Kalıcı çözüm
-# backend Dockerfile'ında digest pinidir (F23).
+# TABAN İMAJ PİNLERİ (CX-Ö-04, CX-r2-Ö-01). Backend v0.15.0-api'den itibaren build/Dockerfile
+# tabanlarını KENDİSİ digest'e sabitler (golang:<go.mod toolchain>-bookworm@sha256, distroless
+# nonroot@sha256); bu betik artık Dockerfile'ı yeniden YAZMAZ, yalnız DENETLER: tam bir
+# `FROM golang:...@sha256:<64 hex> AS build` satırı ve tam olarak aşağıdaki distroless pinli
+# `AS runtime` satırı beklenir (sayı != 1 ya da digest'siz = hata; kural gevşetilmez).
+# Dockerfile frontend'i BUILDKIT_SYNTAX ile digest'e sabittir. Digest'ler registry
+# Docker-Content-Digest başlığından çözülmüştür.
 # PAYLAŞILAN DAEMON KURALI: bu betik `docker tag`/`docker rmi` KULLANMAZ; hiçbir genel
 # (NIZAM.IO adı taşımayan) etiket oluşturulmaz veya değiştirilmez. Yalnız nizamio-web-e2e/*
 # imajları `docker build -t` ile üretilir. CI bunu grep ile denetler.
-golang_pin() { # go sürümü → golang:<sürüm>-bookworm digest'i
-  case "$1" in
-    1.26.0) echo "sha256:2a0ba12e116687098780d3ce700f9ce3cb340783779646aafbabed748fa6677c" ;;
-    *) echo "" ;;
-  esac
-}
 distroless_ref="gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab"
 syntax_ref="docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e"
-golang_digest="$(golang_pin "$go_version")"
-if [[ -z "$golang_digest" ]]; then
-  echo "HATA: go.mod Go $go_version için taban imaj pini yok; e2e/backend/up.sh golang_pin güncellenmeli" >&2
-  exit 1
-fi
-golang_ref="golang:${go_version}-bookworm@${golang_digest}"
 
 dockerfile="$state/src/build/Dockerfile"
-pin_from() { # beklenen-satır yeni-satır
-  local expected="$1" replacement="$2" count
-  count="$(grep -cxF "$expected" "$dockerfile" || true)"
+# Tek eşleşme denetimi: kalıba uyan satır tam 1 olmalı; satırın kendisini döndürür.
+single_from() { # ere-kalıbı açıklama
+  local pattern="$1" what="$2" count
+  count="$(grep -cE "$pattern" "$dockerfile" || true)"
   if [[ "$count" != "1" ]]; then
-    echo "HATA: geçici Dockerfile'da beklenen satır $count kez bulundu (1 beklenir): $expected" >&2
+    echo "HATA: geçici Dockerfile'da $what satırı $count kez bulundu (1 beklenir): $pattern" >&2
     exit 1
   fi
-  awk -v e="$expected" -v r="$replacement" '$0 == e { print r; next } { print }' "$dockerfile" \
-    >"$dockerfile.pinned"
-  mv "$dockerfile.pinned" "$dockerfile"
-  echo "== taban: $replacement"
+  grep -E "$pattern" "$dockerfile"
 }
-pin_from 'FROM golang:${GO_VERSION}-bookworm AS build' "FROM $golang_ref AS build"
-pin_from 'FROM gcr.io/distroless/static-debian12:nonroot AS runtime' "FROM $distroless_ref AS runtime"
+build_from="$(single_from '^FROM golang:[^@ ]+-bookworm@sha256:[0-9a-f]{64} AS build$' 'digest'"'"'li golang build FROM')"
+runtime_from="$(single_from '^FROM gcr\.io/distroless/static-debian12:nonroot@sha256:[0-9a-f]{64} AS runtime$' 'digest'"'"'li distroless runtime FROM')"
+if [[ "$runtime_from" != "FROM $distroless_ref AS runtime" ]]; then
+  echo "HATA: runtime tabanı beklenen pin değil: $runtime_from (beklenen: $distroless_ref); up.sh distroless_ref güncellenmeli" >&2
+  exit 1
+fi
+golang_ref="${build_from#FROM }"
+golang_ref="${golang_ref% AS build}"
+go_version="${golang_ref#golang:}"
+go_version="${go_version%%-bookworm*}"
+echo "== taban: $golang_ref"
+echo "== taban: $distroless_ref"
 
 image="nizamio-web-e2e/backend:$tag"
 build_log="$state/backend-build.log"
-echo "== imaj: $image (etiketin build/Dockerfile'ı, geçici kopyada digest'li FROM, Go $go_version)"
+echo "== imaj: $image (etiketin build/Dockerfile'ı, digest'li FROM satırları denetlendi, Go $go_version)"
 docker build --progress=plain \
-  --build-arg "BUILDKIT_SYNTAX=$syntax_ref" --build-arg "GO_VERSION=$go_version" \
+  --build-arg "BUILDKIT_SYNTAX=$syntax_ref" \
   --build-arg "IMAGE_DIGEST=$image_digest" \
   -f "$dockerfile" -t "$image" "$state/src" >"$build_log" 2>&1 ||
   { cat "$build_log" >&2; exit 1; }
