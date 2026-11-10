@@ -111,7 +111,7 @@ export function harness(
   opts: { companyAdmin?: boolean; programs?: ProgramSeed[] } = {},
 ) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    defaultOptions: { queries: { retryDelay: 0, retry: false }, mutations: { retry: false } },
   })
   const pinia = createPinia()
   setActivePinia(pinia)

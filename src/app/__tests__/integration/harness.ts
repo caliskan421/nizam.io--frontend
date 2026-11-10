@@ -149,7 +149,7 @@ export async function boot(options: BootOptions) {
   const { i18n } = await import('@/shared/i18n')
   const { useScopeStore } = await import('@/shared/scope/store')
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { gcTime: Infinity, retryDelay: 0 } },
+    defaultOptions: { queries: { retryDelay: 0, gcTime: Infinity } },
   })
   const router: Router = createAppRouter(createMemoryHistory())
   await router.push(options.path)

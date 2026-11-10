@@ -7,6 +7,7 @@ export { confirmText, trConfirm, type ConfirmTextKey } from './messages'
 export { notifyOutcome, outcomeText, outcomeToast } from './notify'
 export {
   unassignedTasks,
+  withTransferNote,
   useConfirm,
   type ConfirmOptions,
   type ConfirmRequest,

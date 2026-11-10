@@ -57,7 +57,11 @@ describe('05 çip kaldır → onay → görev listeleri (senaryo 2)', () => {
     await click('[data-testid="confirm-accept"]')
     await until(() => !$('[data-testid="confirm-dialog"]'), 'onay kapanır')
     // Ortak etkili işlem sonucu: devir bildirimi (sunucunun `unassigned_tasks` değeri).
-    await until(() => toasts().includes('1 görevdeki atama devredildi'), 'devir bildirimi')
+    await until(
+      () => toasts().includes('Koordinatörlükten çıkarıldı. 1 görevdeki atama devredildi.'),
+      'tek birleşik bildirim',
+    )
+    expect(toasts()).not.toContain('İşlem tamamlandı')
     const sent = backend.sent('DELETE', '/v1/departments/d1/memberships/acc-member')
     expect(sent).toHaveLength(2)
     expect(sent[1]!.query.get('confirm')).toBe('true')

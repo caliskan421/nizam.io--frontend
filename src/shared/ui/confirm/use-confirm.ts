@@ -51,6 +51,12 @@ export interface ConfirmOptions {
   confirmLabel: string
   cancelLabel?: string
   tone?: ConfirmTone
+  /**
+   * Etkili işlem sonucundaki devir bildirimi: `toast` (varsayılan) ortak bildirimi ekler;
+   * `caller` çağıranın TEK bildirimde birleştirmesi içindir (`withTransferNote`; çip kaldırmada
+   * iki ardışık bildirim olmaz — CX-F2-Ö-03).
+   */
+  impactNotice?: 'toast' | 'caller'
 }
 
 export interface ConfirmRequest {
@@ -247,6 +253,12 @@ export function unassignedTasks(data: unknown): number {
   return typeof value === 'number' && value > 0 ? value : 0
 }
 
+/** Başarı iletisine devir cümlesini ekler (`impactNotice: 'caller'` kullanan çağıran için). */
+export function withTransferNote(message: string, data: unknown): string {
+  const n = unassignedTasks(data)
+  return n > 0 ? `${message} ${confirmText('confirm.impact.transferred', { n })}` : message
+}
+
 function confirmImpact<V, D, S>(
   outcome: ConfirmationRequired<V, D, S>,
   options: ConfirmOptions,
@@ -260,7 +272,7 @@ function confirmImpact<V, D, S>(
       const n = result.kind === 'success' ? unassignedTasks(result.data) : 0
       return () => {
         // Onayı açan sahip söküldüyse etki bildirimi yok (CX-F1-Ö-07).
-        if (n > 0 && owner.alive) {
+        if (n > 0 && owner.alive && options.impactNotice !== 'caller') {
           useToast().push({ message: confirmText('confirm.impact.result', { n }) })
         }
         resolve(result)

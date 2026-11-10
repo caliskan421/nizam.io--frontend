@@ -13,6 +13,7 @@ import { provideUsersView } from '../components/users/use-users-view'
 import UserPanel from '../components/users/UserPanel.vue'
 import UsersTable from '../components/users/UsersTable.vue'
 import { can, organizationFacts } from '../model/capabilities'
+import { usePanelReveal } from './users/use-panel-reveal'
 import { useUsersUrl } from './users/use-users-url'
 import UsersHead from './users/UsersHead.vue'
 import UsersToolbar from './users/UsersToolbar.vue'
@@ -28,6 +29,8 @@ const store = useScopeStore()
 const { standing } = useStanding()
 const creating = ref(false)
 const passwordFor = ref<string | null>(null)
+const aside = ref<HTMLElement | null>(null)
+const { reveal } = usePanelReveal(aside)
 
 const url = useUsersUrl(() => {
   creating.value = false
@@ -57,7 +60,7 @@ const selectedMissing = computed(
 )
 
 function select(accountId: string): void {
-  void url.update({ selected: accountId }, 'push')
+  void url.update({ selected: accountId }, 'push').then(() => reveal())
 }
 
 function closePanel(): void {
@@ -100,7 +103,13 @@ function onCreated(accountId: string): void {
           @select="select"
         />
       </div>
-      <aside v-if="panelId" class="rp-aside" :aria-label="usersText('users.panel.label')">
+      <aside
+        v-if="panelId"
+        ref="aside"
+        class="rp-aside"
+        tabindex="-1"
+        :aria-label="usersText('users.panel.label')"
+      >
         <UserPanel :key="panelId" :account-id="panelId" @close="closePanel" @deleted="closePanel" />
       </aside>
     </div>
