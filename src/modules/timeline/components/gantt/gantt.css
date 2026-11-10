@@ -16,7 +16,7 @@
     box-shadow: var(--shadow-card);
   }
   .gantt__scroller {
-    /* Sol sütun dar ekranda kabın en çok %62'si (cqw: kap ölçüsü); geniş ekranda token ölçüsü. */
+    /* Sol sütun dar ekranda kabın en çok yarısı (çizim alanı ≥ %50, K-7; cqw: kap ölçüsü); geniş ekranda token ölçüsü. */
     --gantt-label: min(var(--gantt-label-w), var(--gantt-label-max));
     position: relative;
     overflow: auto;
@@ -282,6 +282,10 @@
   .gantt-row--task .gantt-row__label {
     grid-template-columns: var(--gantt-label-cols);
     column-gap: var(--m-gap-md);
+  }
+  /* Kod sütunu olmayan yüz (Koordinatör/Üye): boş 48 px sütun çizim alanından yer yemez. */
+  .gantt-row--task .gantt-row__label--bare {
+    grid-template-columns: var(--gantt-label-cols-bare);
   }
   /* Açılmış alt görev blokları (03d): etiket sütunu solda yapışık, tarih yazısı zaman alanında. */
   .gantt-subs {

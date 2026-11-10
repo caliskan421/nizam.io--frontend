@@ -3,7 +3,8 @@
  * doldurur — dal zinciri, KESİN 25). WAI-ARIA `treegrid` modeli (`gantt-secimi.md` §7):
  *  - ↑ ↓ bir satır, PageUp/PageDown bir sayfa, Home/End ilk/son satır;
  *  - → kapalı grubu açar, açık grupta ilk görevine geçer; ← açık grubu kapatır, görevde üst
- *    grubuna geçer;
+ *    grubuna geçer; görev satırında → alt görevleri açar, ← açıksa kapatır (satırdaki aç/kapa
+ *    düğmesi sekme durağı değildir: satır tek durak, düğme işlevi klavyede →/←; CX-F3-Ö-03);
  *  - Enter/Boşluk görevi seçer, grup satırında açıp kapatır.
  * Shift+→/← (bitiş) ve Alt+Shift+→/← (başlangıç) tarih kısayoludur: YALNIZ `onDateKey` verilmişse
  * ve görev satırındaysa işlenir; verilmemişse hiçbir şey yapılmaz (olay tarayıcıya kalır). Hangi
@@ -29,6 +30,9 @@ export interface GanttKeyboardOptions {
   focusRow: (index: number) => void
   setGroupOpen: (groupKey: string, open: boolean) => void
   select: (workItemId: string) => void
+  /** Görevin alt görev satırları açık mı / aç-kapa (verilmezse → ← yalnız gezinir). */
+  subtasksOpen?: (workItemId: string) => boolean
+  toggleSubtasks?: (workItemId: string) => void
   /** W95 uzantı noktası: `false` döndürürse olay işlenmemiş sayılır. */
   onDateKey?: (request: DateKeyRequest) => boolean | void
 }
@@ -65,6 +69,11 @@ function horizontal(
     else if (right && rows[index + 1]?.kind === 'task') options.focusRow(index + 1)
     else if (!right && row.open) options.setGroupOpen(row.key, false)
     else return false
+    return true
+  }
+  const open = options.subtasksOpen?.(row.key) === true
+  if (options.toggleSubtasks && right !== open) {
+    options.toggleSubtasks(row.key)
     return true
   }
   if (right) return false

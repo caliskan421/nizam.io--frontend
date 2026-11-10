@@ -17,7 +17,7 @@ import { useSubtaskSummary } from './use-subtask-summary'
  * kapsamıyla): ağaç çizgisi (48), durum dairesi (49, salt okuma), başlık (50; biten üstü çizili),
  * tarih yazısı (52) ya da "Tarih yok" (53). Tarihli alt görev için ince çubuk/elmas ÇİZİLMEZ
  * (E-03C-45/51; ADR-0024: Gantt yanıtında yok, §4 sahte çubuk yok). Satırlar üst `treegrid`in
- * `aria-level=2` çocuklarıdır; iki sütun (etiket + iz) üst ızgaradan `--tl-label-col` /
+ * `aria-level=3` çocuklarıdır (görev satırı 2, grup 1); iki sütun (etiket + iz) üst ızgaradan `--tl-label-col` /
  * `--tl-track-col` ile gelir, yoksa makul varsayılan.
  */
 const props = defineProps<SubtaskRowsProps>()
@@ -43,12 +43,12 @@ watch(rowCount, (count) => emit('rows', count), { immediate: true })
     :aria-busy="query.isPending.value ? 'true' : 'false'"
     data-testid="subtask-rows"
   >
-    <div v-if="query.isPending.value" class="tl-sub" role="row" aria-level="2">
+    <div v-if="query.isPending.value" class="tl-sub" role="row" aria-level="3">
       <div class="tl-sub__label tl-sub__label--span" role="gridcell" aria-colspan="2">
         <span class="tl-sub__note" role="status">{{ subtaskText('loading') }}</span>
       </div>
     </div>
-    <div v-else-if="query.isError.value" class="tl-sub" role="row" aria-level="2">
+    <div v-else-if="query.isError.value" class="tl-sub" role="row" aria-level="3">
       <div class="tl-sub__label tl-sub__label--span" role="gridcell" aria-colspan="2">
         <UiErrorState
           :error="toApiError(query.error.value)"
@@ -58,7 +58,7 @@ watch(rowCount, (count) => emit('rows', count), { immediate: true })
         />
       </div>
     </div>
-    <div v-else-if="subtasks.length === 0" class="tl-sub" role="row" aria-level="2">
+    <div v-else-if="subtasks.length === 0" class="tl-sub" role="row" aria-level="3">
       <div class="tl-sub__label tl-sub__label--span" role="gridcell" aria-colspan="2">
         <span class="tl-sub__note" data-testid="subtask-empty">{{ subtaskText('empty') }}</span>
       </div>
@@ -69,7 +69,7 @@ watch(rowCount, (count) => emit('rows', count), { immediate: true })
         :key="subtask.subtask_id"
         class="tl-sub"
         role="row"
-        aria-level="2"
+        aria-level="3"
         data-testid="subtask-row"
       >
         <div class="tl-sub__label" role="gridcell">
