@@ -126,7 +126,7 @@
     fill: transparent;
   }
   .gantt-bg.is-hover {
-    fill: var(--bg-raised);
+    fill: color-mix(in srgb, var(--bg-raised) 60%, transparent);
   }
   .gantt-bg.is-selected {
     fill: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -201,6 +201,7 @@
   }
   .gantt-handle {
     fill: var(--ink);
+    touch-action: none;
   }
   .gantt-handle__hit {
     fill: transparent;

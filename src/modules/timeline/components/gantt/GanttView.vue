@@ -197,6 +197,14 @@ defineExpose({ scrollToDay })
               :layout="layout"
               :window="win"
             />
+            <GanttLinks
+              :links="links"
+              :tasks="tasks"
+              :scale="scale"
+              :range="range"
+              :layout="layout"
+              :window="win"
+            />
             <GanttBars
               :tasks="tasks"
               :scale="scale"
@@ -208,14 +216,6 @@ defineExpose({ scrollToDay })
               :window="win"
               @select="onSelect"
               @edge-drag="emit('edge-drag', $event)"
-            />
-            <GanttLinks
-              :links="links"
-              :tasks="tasks"
-              :scale="scale"
-              :range="range"
-              :layout="layout"
-              :window="win"
             />
             <GanttGrid
               layer="today"

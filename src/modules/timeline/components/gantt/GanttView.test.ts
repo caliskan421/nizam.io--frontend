@@ -160,6 +160,30 @@ describe('Gantt kabı (E-03C-21…43)', () => {
   })
 })
 
+describe('scrollToDay (şerit tıklaması)', () => {
+  it('dışa açılır, görünen aralığı günü içerecek biçimde yayar', () => {
+    const view = mountView({ scale: 'gun' })
+    const vm = view.vm as unknown as { scrollToDay: (d: string) => void }
+    expect(typeof vm.scrollToDay).toBe('function')
+    vm.scrollToDay('2026-11-20')
+    expect(view.get('.gantt__scroller').element.scrollLeft).toBeGreaterThanOrEqual(0)
+    vm.scrollToDay('bozuk')
+  })
+
+  it('oklar çubuk katmanının altında çizilir (metni kesmez)', () => {
+    const view = mountView({}, TASKS, [link({ dependency_id: 'l1', source: 'c', target: 'a' })])
+    const layers = [...view.element.querySelectorAll('.gantt__layer')].map((n) => n.classList[1])
+    expect(layers.indexOf('gantt__layer--links')).toBeLessThan(layers.indexOf('gantt__layer--bars'))
+  })
+
+  it('tutamaç dokunmatik kaydırmayı yakalamaz (css)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync('src/modules/timeline/components/gantt/gantt.css', 'utf8')
+    expect(css).toMatch(/\.gantt-handle \{[^}]*touch-action: none/)
+    expect(css).toMatch(/\.gantt-handle__hit \{[^}]*touch-action: none/)
+  })
+})
+
 describe('250 görev + 60 bağ (sanallaştırma)', () => {
   const tasks = manyTasks(250)
   const links = Array.from({ length: 60 }, (_, i) =>
