@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import type { UserListFilters } from '../model/types'
@@ -27,6 +28,7 @@ import {
   useSetTemporaryPassword,
   useUnlockAccount,
   useUpdateUser,
+  useUserCounts,
   useUserList,
 } from './users'
 
@@ -115,9 +117,17 @@ describe('useUserList (listUsers, S1, imleçli)', () => {
     const h = harness(ADMIN_SCOPE)
     const r = h.run(() => useUserList(ASC))
     await vi.waitFor(() => expect(calls).toBeGreaterThanOrEqual(2))
-    await new Promise((resolve) => setTimeout(resolve, 150))
-    // Sınırlı: ilk sayfa + devam denemesi (hata sonrası kendiliğinden tekrar yok).
-    expect(calls).toBeLessThanOrEqual(3)
+    // Olay tabanlı yerleşme (süre beklemesi yok): sorgu önbelleği boşalana dek beklenir; sonsuz
+    // yeniden deneme olsaydı `settleQueries` olay sınırında patlardı.
+    await settleQueries(h.queryClient)
+    const settled = calls
+    // Durmuş durum doğrudan ölçülür: tam iki okuma (ilk sayfa + tek devam denemesi), uçuşta
+    // sorgu yok, devam hatası kayıtlı; ikinci yerleşmeden sonra yeni istek yok.
+    expect(settled).toBe(2)
+    expect(h.queryClient.isFetching()).toBe(0)
+    expect(r.query.isFetchNextPageError.value).toBe(true)
+    await settleQueries(h.queryClient)
+    expect(calls).toBe(settled)
     expect(r.users.value).toEqual([])
   })
 
@@ -159,6 +169,34 @@ describe('useUserList (listUsers, S1, imleçli)', () => {
     h.run(() => useUserList(ASC, false))
     await h.flush()
     expect(sent('GET', '/v1/admin/users')).toHaveLength(0)
+  })
+})
+
+describe('useUserCounts (role_counts, BE-011)', () => {
+  const COUNTS = { all: 5, company_admin: 1, koordinator: 2, uye: 3 }
+  const countsReply = () => json({ users: [], total: 5, role_counts: COUNTS })
+
+  it('koordinatörlük süzgeci seçiliyken aynı parametreli tek okuma (CX-P-K-03)', async () => {
+    server.use(http.get(USERS, countsReply))
+    const h = harness(ADMIN_SCOPE)
+    const r = h.run(() => useUserCounts({ search: null, programId: 'p1', departmentId: 'd1' }))
+    await settleQueries(h.queryClient)
+    const reads = sent('GET', '/v1/admin/users')
+    expect(reads).toHaveLength(1)
+    expect(reads[0]!.query.get('program_id')).toBe('p1')
+    expect(reads[0]!.query.get('department_id')).toBe('d1')
+    expect(reads[0]!.query.get('limit')).toBe('1')
+    expect(r.counts.value).toEqual(COUNTS)
+  })
+
+  it('süzgeç yokken iki kapsam: kapsamsız + programlı okuma', async () => {
+    server.use(http.get(USERS, countsReply))
+    const h = harness(ADMIN_SCOPE)
+    const r = h.run(() => useUserCounts({ search: null, programId: 'p1', departmentId: null }))
+    await settleQueries(h.queryClient)
+    const reads = sent('GET', '/v1/admin/users')
+    expect(reads.map((q) => q.query.get('program_id')).sort()).toEqual([null, 'p1'])
+    expect(r.counts.value).toEqual(COUNTS)
   })
 })
 
