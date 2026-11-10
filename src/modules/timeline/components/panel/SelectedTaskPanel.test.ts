@@ -354,6 +354,26 @@ describe('Admin "Kaydet" (updateWorkItem + expected_dates_revision; E-03C-58/59,
   })
 })
 
+describe('Kaydet bitiş alanı: yazma her zaman end_on (planned_end_on yazılmaz)', () => {
+  it('planned_end_on dolu görevde de PATCH yalnız end_on gönderir', async () => {
+    server.use(http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())))
+    const { h } = render({
+      who: 'admin',
+      face: 'admin',
+      task: { planned_end_on: '2026-11-08' },
+      item: { planned_end_on: '2026-11-08', end_on: '2026-11-12' },
+    })
+    await settleQueries(h.queryClient)
+    setValue('[data-testid="tp-end"]', '09.11.2026')
+    click('tp-save')
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', ITEM)[0]!.body).toEqual({
+      end_on: '2026-11-09',
+      expected_dates_revision: 7,
+    })
+  })
+})
+
 describe('Onayla / Reddet (reviewDateChangeRequest; E-03C-64, P5)', () => {
   const REVIEW = '/v1/date-change-requests/r7/review'
 

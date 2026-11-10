@@ -32,12 +32,16 @@ function conflictLabels(): Record<string, string> {
 const conflictFormat = (_field: string, value: unknown) =>
   typeof value === 'string' ? formatInputDay(value) : ''
 
-/** Girdi ile görevdeki tarih farkı (yalnız değişen alanlar); bitiş alanı planlanan bitişe göre. */
+/**
+ * Girdi ile görevdeki tarih farkı (yalnız değişen alanlar). Gösterilen bitiş planlanan bitiştir
+ * (`planned_end_on` boşsa `end_on`), ama yazma HER ZAMAN `end_on`'a gider; `planned_end_on`
+ * yazılmaz (W95 kararı: backend yalnız geç tamamlamada doldurur).
+ */
 export function changedDates(base: WorkItem, value: { startOn: string; endOn: string }): DatePatch {
   const patch: DatePatch = {}
   if (value.startOn !== base.start_on) patch.start_on = value.startOn
   if (value.endOn !== plannedEndOf(base)) {
-    patch[base.planned_end_on ? 'planned_end_on' : 'end_on'] = value.endOn
+    patch.end_on = value.endOn
   }
   return patch
 }
