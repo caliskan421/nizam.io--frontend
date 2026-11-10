@@ -102,8 +102,16 @@
     .timeline-stage {
       padding: var(--space-4) var(--space-5) var(--space-8);
     }
+    /*
+     * Dar ekranda panel Gantt'ın ÜSTÜNE binmez, altında akar (W97a 390 px dumanı: yüzen panel
+     * seçili satırın tutamaçlarını örtüyordu, sürükleme imkânsızdı). P3 en dar çözüm.
+     */
+    .timeline-board--panel {
+      min-height: 0;
+    }
     .timeline-panel {
-      left: var(--space-4);
+      position: static;
+      margin: var(--space-4);
       width: auto;
       max-width: none;
     }
