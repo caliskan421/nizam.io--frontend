@@ -100,20 +100,15 @@ export interface DelayedSend<P> {
   flush: () => Promise<void>
 }
 
-export function useDelayedSend<P>(options: DelayedSendOptions<P>): DelayedSend<P> {
-  const delayMs = options.delayMs ?? DELAYED_SEND_MS
-  const store = options.readScope ? null : useScopeStore()
-  const readScope = options.readScope ?? (() => store!.snapshot)
-  const readGeneration = options.readGeneration ?? (() => authSession.generation)
-  const state = shallowRef<PendingSend<P> | null>(null)
+/** Anahtar başına bekleyenler ve bildirimde gösterilen tek yuva (bkz. dosya başı). */
+function slotBook<P>(state: Ref<PendingSend<P> | null>) {
   /** Ekleme sırası = son değişiklik sırası (yeniden zamanlama sona taşır). */
   const slots = new Map<string, Slot<P>>()
-  const owner = ownerLife(() => dropAll())
 
   /** Görünür olanlar arasında en son değişen; hiçbiri görünür değilse en son değişen. */
   function shown(): Slot<P> | null {
-    const all = [...slots.values()]
-    return all.reverse().find((s) => s.visible) ?? all[0] ?? null
+    const all = [...slots.values()].reverse()
+    return all.find((s) => s.visible) ?? all[0] ?? null
   }
 
   function refresh(): void {
@@ -134,6 +129,18 @@ export function useDelayedSend<P>(options: DelayedSendOptions<P>): DelayedSend<P
   function dropAll(): void {
     for (const key of [...slots.keys()]) drop(key)
   }
+
+  return { slots, shown, refresh, drop, dropAll }
+}
+
+export function useDelayedSend<P>(options: DelayedSendOptions<P>): DelayedSend<P> {
+  const delayMs = options.delayMs ?? DELAYED_SEND_MS
+  const store = options.readScope ? null : useScopeStore()
+  const readScope = options.readScope ?? (() => store!.snapshot)
+  const readGeneration = options.readGeneration ?? (() => authSession.generation)
+  const state = shallowRef<PendingSend<P> | null>(null)
+  const { slots, shown, refresh, drop, dropAll } = slotBook<P>(state)
+  const owner = ownerLife(() => dropAll())
 
   const valid = (s: Slot<P>): boolean =>
     sameScope(s.context.scope, readScope()) && s.context.generation === readGeneration()

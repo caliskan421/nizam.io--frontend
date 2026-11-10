@@ -341,6 +341,108 @@ describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal pe
   })
 })
 
+describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
+  /** Taze görev okuması bir kapıya takılır; sahip bu sırada sökülür. */
+  async function detachedDuring(read: () => Response | Promise<Response>) {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, async () => {
+        await gate
+        return read()
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
+    expect(sent('GET', ITEM)).toHaveLength(1)
+    resetHarness() // sahip (sayfa) sökülür; okuma uçuşta
+    release()
+    await vi.advanceTimersByTimeAsync(100)
+    return spy
+  }
+
+  it('sahibi sökülmüş sürükleme: tarih uyuşmazlığı ek geçersizleme ve bildirim üretmez', async () => {
+    const spy = await detachedDuring(() => json(workItem({ end_on: '2026-11-20' })))
+    expect(spy).not.toHaveBeenCalled()
+    expect(useToast().queue.value).toEqual([])
+    expect(sent('PATCH', ITEM)).toHaveLength(0)
+  })
+
+  it('sahibi sökülmüş sürükleme: okuma hatası bildirim üretmez, yazma başlamaz', async () => {
+    const spy = await detachedDuring(() => errorEnvelope('work.item_not_found', 404))
+    expect(spy).not.toHaveBeenCalled()
+    expect(useToast().queue.value).toEqual([])
+    expect(sent('PATCH', ITEM)).toHaveLength(0)
+  })
+
+  it('sahibi sökülmüş sürükleme: 409 sonrası yeniden okuma/bildirim yok (detached)', async () => {
+    let reads = 0
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => {
+        reads += 1
+        return json(
+          reads === 1 ? workItem() : workItem({ end_on: '2026-11-20', dates_revision: 8 }),
+        )
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => {
+        resetHarness() // yazma uçuştayken sahip söküldü
+        return errorEnvelope('work.edit_conflict', 409)
+      }),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    await elapse()
+    expect(spy).not.toHaveBeenCalled()
+    expect(useToast().queue.value).toEqual([])
+  })
+
+  it('yarışta oluşan work.edit_conflict: çakışan ALANLAR adıyla bildirilir, görev yeniden okunur', async () => {
+    let reads = 0
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => {
+        reads += 1
+        // 1: ön okuma (tarihler uyumlu). Sonrası: arada başkası bitişi değiştirdi.
+        return json(
+          reads === 1 ? workItem() : workItem({ end_on: '2026-11-20', dates_revision: 8 }),
+        )
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('end', '2026-11-05'))
+    await elapse()
+    expect(sent('PATCH', ITEM)).toHaveLength(1) // kör tekrar/otomatik yeniden gönderim yok
+    const [toast] = useToast().queue.value
+    expect(toast?.tone).toBe('danger')
+    expect(toast?.message).toContain('bitiş')
+    expect(toast?.message).toContain('Rapor')
+    expect(toast?.message).not.toContain('sunucu iletisi')
+    expect(spy).toHaveBeenCalled()
+  })
+
+  it('çakışan alan yoksa (yalnız sürüm ilerledi) ortak çakışma bildirimi', async () => {
+    let reads = 0
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => {
+        reads += 1
+        return json(reads === 1 ? workItem() : workItem({ dates_revision: 8 }))
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
+    )
+    const { api } = setup('admin')
+    api.onEdgeDrag(drop('end', '2026-11-05'))
+    await elapse()
+    const [toast] = useToast().queue.value
+    expect(toast?.tone).toBe('danger')
+    expect(toast?.message).not.toContain('bitiş')
+  })
+})
+
 describe('klavyeyle tarih değişimi — bırakmayla aynı yol', () => {
   it('art arda Shift+→ adımları tek istek olarak birleşir (extend days:3), süre yeniden başlar', async () => {
     server.use(

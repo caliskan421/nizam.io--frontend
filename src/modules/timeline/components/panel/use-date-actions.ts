@@ -25,11 +25,11 @@ import type { TaskPanel } from './use-task-panel'
 type Outcome = MutationOutcome<unknown, unknown, unknown>
 
 /** Çakışma satırlarının alanları (gövde anahtarları) ve tarih biçimi. */
-function conflictLabels(): Record<string, string> {
+export function conflictLabels(): Record<string, string> {
   const end = panelText('end')
   return { start_on: panelText('start'), end_on: end, planned_end_on: end }
 }
-const conflictFormat = (_field: string, value: unknown) =>
+export const conflictFormat = (_field: string, value: unknown) =>
   typeof value === 'string' ? formatInputDay(value) : ''
 
 /**
@@ -44,7 +44,7 @@ export function changedDates(base: WorkItem, value: { startOn: string; endOn: st
 }
 
 /** Çakışma yanıtındaki sunucu kaydı (`readCurrent`; tür `unknown` taşınır): görev değilse `null`. */
-function serverItem(value: unknown): WorkItem | null {
+export function serverItem(value: unknown): WorkItem | null {
   const candidate = value as Partial<WorkItem> | null
   const ok = typeof candidate === 'object' && typeof candidate?.dates_revision === 'number'
   return ok ? (candidate as WorkItem) : null

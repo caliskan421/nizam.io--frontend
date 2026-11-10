@@ -135,7 +135,7 @@ describe('useDelayedSend — 5 sn gecikmeli gönderim', () => {
     expect(send.mock.calls.map((c) => c[0])).toEqual(['b'])
   })
 
-  it('✕ yalnız gösterilen bildirimi gizler; önceki görevin bildirimi görünür kalır', async () => {
+  it('✕ yalnız gösterilen bildirimi gizler; önceki görevin bildirimi görünür kalır', () => {
     const { api } = setup()
     api.schedule('w1', 'a')
     api.schedule('w2', 'b')
