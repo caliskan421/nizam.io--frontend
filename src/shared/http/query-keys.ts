@@ -104,6 +104,15 @@ export const queryKeys = {
     all: (s: ScopeSnapshot) => scoped(s, ['date-requests']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['date-requests', filters]),
   },
+  /**
+   * Kenar menüsü Görevler rozetleri (K/Ü merceği, `countProgramWorkItems`; BE-003 rozet kısmı).
+   * `work-items` önekinin altında: görev ve tarih yazmalarının §6 geçersizlemesi (`workItems.list`)
+   * rozetleri de yeniden okutur; süzgeç (birim, atanan) anahtardadır.
+   */
+  shellBadges: {
+    counts: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['work-items', 'shell-counts', filters]),
+  },
   report: {
     dashboard: (s: ScopeSnapshot) => scoped(s, ['report', 'dashboard']),
     coordinatorships: (s: ScopeSnapshot) => scoped(s, ['report', 'dashboard', 'coordinatorships']),

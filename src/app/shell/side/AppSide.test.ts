@@ -20,8 +20,8 @@ afterEach(() => {
 
 const MULTI: Partial<FakeScopeState> = {
   programs: [
-    { programId: 'p1', name: 'Program Bir', year: 2026 },
-    { programId: 'p2', name: 'Program İki', year: null },
+    { programId: 'p1', name: 'Program Bir', year: 2026, shortName: null, color: null },
+    { programId: 'p2', name: 'Program İki', year: null, shortName: null, color: null },
   ],
   lenses: [
     { lens: 'admin', departmentCount: 0 },
@@ -95,6 +95,26 @@ describe('AppSide — geniş menü', () => {
     expect(wrapper.text()).not.toContain('Yardım')
     expect(wrapper.text()).toContain('Deneme Kişi')
     expect(wrapper.text()).toContain('kisi@example.test')
+  })
+
+  it('BE-001: program kartı ve dar menü simgesi sunucunun kısa adı + rengiyle', async () => {
+    const programs = [
+      {
+        programId: 'p1',
+        name: 'Program Bir',
+        year: 2026,
+        shortName: 'ŞT26',
+        color: 'teal' as const,
+      },
+    ]
+    const wide = await boot({ programs })
+    const pav = wide.wrapper.get(card('Program')).get('.side-pav')
+    expect(pav.text()).toBe('ŞT26')
+    expect(pav.classes()).toContain('side-pav--teal')
+    const narrow = await boot({ programs }, true)
+    const rail = narrow.wrapper.get('[data-testid="rail-scope"] .side-pav')
+    expect(rail.text()).toBe('ŞT26')
+    expect(rail.classes()).toContain('side-pav--teal')
   })
 
   it('yükleniyorken kartlar ve oturum kartı yok', async () => {
@@ -179,7 +199,9 @@ describe('AppSide — geniş menü', () => {
 
   it('272 px: metinler kırpılır, kart ızgarası taşmaz (yapı)', async () => {
     const long = 'Çok uzun program adı '.repeat(8).trim()
-    const { wrapper } = await boot({ programs: [{ programId: 'p1', name: long, year: 2026 }] })
+    const { wrapper } = await boot({
+      programs: [{ programId: 'p1', name: long, year: 2026, shortName: null, color: null }],
+    })
     const value = wrapper.get(card('Program')).get('.side-card__v .rp-trunc')
     expect(value.text()).toBe(long)
     expect(wrapper.find('.side-pair').exists()).toBe(true)

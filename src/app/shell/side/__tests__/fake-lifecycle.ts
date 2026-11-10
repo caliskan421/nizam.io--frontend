@@ -45,7 +45,7 @@ export const STANDING: Standing = {
 export function defaultState(): FakeScopeState {
   return {
     status: 'ready',
-    programs: [{ programId: 'p1', name: 'Program Bir', year: 2026 }],
+    programs: [{ programId: 'p1', name: 'Program Bir', year: 2026, shortName: null, color: null }],
     lenses: [{ lens: 'admin', departmentCount: 0 }],
     departments: [],
     facts: { companyAdmin: true, coordinator: false, member: false },
