@@ -20,7 +20,7 @@ import {
   type QueryFunctionContext,
   type QueryKey,
 } from '@tanstack/vue-query'
-import { computed, toValue, watchEffect, type MaybeRefOrGetter } from 'vue'
+import { computed, ref, toValue, watch, watchEffect, type MaybeRefOrGetter } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
@@ -199,12 +199,17 @@ export function useUserList(
   const truncated = computed(() => query.data.value?.pages.some((p) => p.truncated) === true)
   const latest = computed(() => query.data.value?.pages.at(-1)?.page ?? null)
   // Süzgeçli sayfa `limit`ten kısa (boş bile) dönüp `next_cursor` taşıyabilir: boş sayfada istemci
-  // `next_cursor` boşalana dek ilerler (satır atlanmaz; BE-011, istemci-akislari §3).
+  // `next_cursor` boşalana dek ilerler (satır atlanmaz; BE-011, istemci-akislari §3). Sunucuda
+  // imleç her sayfada ilerler (sayfa başına tarama bütçesi sonludur), yani sonsuz döngünün kaynağı
+  // sunucu değil istemcidir: devam okuması HATA verince efekt `isFetchingNextPage` düşünce yeniden
+  // tetiklenip aynı isteği sonsuza dek yineliyordu (WP3). Hata durumunda otomatik ilerleme durur;
+  // kullanıcı "Daha fazla yükle" ile bilinçli sürdürür. Üst sınır SON ardışık boş sayfalarla
+  // ölçülür (toplam sayfa sayısıyla değil): dolu sayfalarla biriken uzun liste sınıra takılmaz.
   watchEffect(() => {
-    const page = latest.value
-    if (!toValue(enabled) || page === null || (page.users?.length ?? 0) > 0) return
-    // Sınır: sunucu hiç satır vermeden imleç sürerse sonsuz döngü olmasın.
-    if ((query.data.value?.pages.length ?? 0) >= MAX_EMPTY_PAGES) return
+    if (!toValue(enabled) || latest.value === null || !noRows(latest.value.users)) return
+    const failed = query.isError.value || query.isFetchNextPageError.value
+    const exhausted = trailingEmptyPages(query.data.value?.pages ?? []) >= MAX_EMPTY_PAGES
+    if (failed || exhausted) return
     if (query.hasNextPage.value && !query.isFetchingNextPage.value) void query.fetchNextPage()
   })
   return {
@@ -222,6 +227,18 @@ export function useUserList(
   }
 }
 
+/** Satır listesi boş mu (alan yok = boş). */
+const noRows = (users: readonly unknown[] | null | undefined): boolean => (users?.length ?? 0) === 0
+
+/** Sondaki ardışık boş sayfa sayısı (otomatik ilerlemenin üst sınırı bununla ölçülür). */
+function trailingEmptyPages(pages: readonly UserPage[]): number {
+  let count = 0
+  while (count < pages.length && noRows(pages[pages.length - 1 - count]?.page.users)) {
+    count += 1
+  }
+  return count
+}
+
 /**
  * `readUser` (S1, yalnız ŞY; BE-043, v0.14): liste satırıyla aynı alanlar + bütün programlardaki
  * ekip satırları. Derin bağlantı ve 05b başlığı liste yüklenmeden kişiyi buradan okur (liste
@@ -232,6 +249,11 @@ export function useUser(
   accountId: MaybeRefOrGetter<string | null>,
   enabled: MaybeRefOrGetter<boolean> = true,
 ) {
+  // Yapışkan etkinlik (WP3): `enabled` çoğu çağıranda "kişi henüz önbellekte değil"dir; okuma
+  // önbelleğe düşünce çağıran onu kapatırdı. Pasif gözlemci geçersizlemede yeniden okunmaz
+  // (hesap kapat/aç, rol, çip yazmaları sonrası 05b/05 paneli bayat kalıyordu). Veri geldiği an
+  // gözlemci o kimlik için etkin kalır.
+  const loadedFor = ref<string | null>(null)
   const query = useQuery(
     computed(() => {
       const id = toValue(accountId)
@@ -240,11 +262,18 @@ export function useUser(
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           unwrap(api.GET('/v1/admin/users/{id}', { params: { path: { id: id ?? '' } }, signal })),
         ),
-        enabled: toValue(enabled) && id !== null && id !== '',
+        enabled: (toValue(enabled) || (id !== null && loadedFor.value === id)) && !!id,
         retry: retryTransient,
         staleTime: ORGANIZATION_STALE_MS,
       }
     }),
+  )
+  watch(
+    () => query.data.value,
+    (data) => {
+      if (data !== undefined) loadedFor.value = toValue(accountId)
+    },
+    { immediate: true },
   )
   return {
     query,

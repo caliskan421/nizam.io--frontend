@@ -100,6 +100,27 @@ describe('useUserList (listUsers, S1, imleçli)', () => {
     expect(r.users.value).toEqual([])
   })
 
+  it('WP3: boş sayfa sonrası devam okuması HATA verirse otomatik ilerleme durur (istek fırtınası yok)', async () => {
+    let calls = 0
+    server.use(
+      http.get(USERS, () => {
+        calls += 1
+        // İlk sayfa boş + imleç; devam okuması kalıcı 400 (yeniden denenmez, dönüştürülmez).
+        if (calls > 40) return json({ users: [] }) // test güvenliği: döngü sonlansın
+        return calls === 1
+          ? json({ users: [], next_cursor: 'c-more' })
+          : errorEnvelope('organization.input_invalid', 422)
+      }),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const r = h.run(() => useUserList(ASC))
+    await vi.waitFor(() => expect(calls).toBeGreaterThanOrEqual(2))
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    // Sınırlı: ilk sayfa + devam denemesi (hata sonrası kendiliğinden tekrar yok).
+    expect(calls).toBeLessThanOrEqual(3)
+    expect(r.users.value).toEqual([])
+  })
+
   it('arama kırpılır; yön değişimi yeni sorgu, eski imleç kullanılmaz (E-05-10)', async () => {
     server.use(
       http.get(USERS, () => json({ users: [knownUser('a', 'Ali')], next_cursor: 'c-asc' })),
