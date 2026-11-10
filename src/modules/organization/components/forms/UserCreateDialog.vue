@@ -4,23 +4,14 @@ import './forms.css'
 import { useForm } from 'vee-validate'
 import { computed, ref, shallowRef, watch } from 'vue'
 
-import { designStub } from '@/shared/design-stub'
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
-import {
-  DesignStub,
-  UiButton,
-  UiField,
-  UiHint,
-  UiInput,
-  UiModal,
-  UiSelect,
-  useToast,
-} from '@/shared/ui'
+import { UiButton, UiField, UiHint, UiInput, UiModal, UiSelect, useToast } from '@/shared/ui'
 
-import { isTransferAvailable, useCreateUser, useProgramDepartmentIndex } from '../../api'
+import { transferOffer, useCreateUser, useProgramDepartmentIndex } from '../../api'
+import type { TransferOffer } from '../../model/types'
 import { can, organizationFacts } from '../../model/capabilities'
 import type { UserCreateDialogEmits, UserCreateDialogProps } from '../index'
 import { serverFieldErrors, toTypedSchema, useFormDialog } from './form-kit'
@@ -41,9 +32,11 @@ import {
  * `createUser` (S1, anahtarsız) parola göndermez ve yanıtta parola beklemez; ikinci adım
  * "Geçici parola belirle" çağıranda (`created` → `TemporaryPasswordDialog`).
  *
- * 409 `identity.account_exists` + `organization.transfer_available` → teklif tanınır, ama
- * aktarılacak hesabın kimliği sözleşmede yok (BE-107): "mevcut hesabı bu birime ekle" devre dışı
- * + açıklamalı. Alan hataları (`identity.invalid_email`, `identity.invalid_full_name`,
+ * 409 `identity.account_exists` + `organization.transfer_available` → aktarım teklifi: hesap
+ * kimliği `fields[field=account_id]` girdisinin değerindedir (BE-107, v0.15); "Mevcut hesabı bu
+ * birime ekle" AYNI gövdeyi `transfer_account_id` ile yeni bir kullanıcı eylemi olarak gönderir
+ * (201; yeni hesap açılmaz). Girdiler yoksa (koordinatör / hesap ekipte zaten var) teklif
+ * çizilmez, olağan hata gösterilir (ORGANIZATION-K22). Alan hataları (`identity.invalid_email`, `identity.invalid_full_name`,
  * `identity.account_email_deleted`, `department_not_linked`) forma; sonuç bilinmiyorsa kör tekrar
  * yok (veri katmanı listeyi yeniden okur).
  */
@@ -82,9 +75,8 @@ const chooseRole = computed(() =>
 )
 const roleOptions = USER_ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
 
-/** BE-107: aktarılacak hesabın kimliği sözleşmede yok → aktarım kurulamaz. */
-const transferAccountId = designStub('BE-107', null as string | null)
-const transferOffered = ref(false)
+/** Aktarım teklifi (409 `organization.transfer_available`); yoksa `null`. */
+const offer = ref<TransferOffer | null>(null)
 const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 
 const dialog = useFormDialog({ open: () => props.open, close })
@@ -96,7 +88,7 @@ watch(
   () => props.open,
   () => {
     form.resetForm({ values: empty() })
-    transferOffered.value = false
+    offer.value = null
     notice.value = null
   },
 )
@@ -111,7 +103,7 @@ watch(
 )
 watch(
   () => form.values.email,
-  () => (transferOffered.value = false),
+  () => (offer.value = null),
 )
 
 function close(): void {
@@ -122,11 +114,14 @@ function setOpen(value: boolean): void {
   if (!value && !pending.value) close()
 }
 
-const handle = form.handleSubmit(async (values) => {
+type CreateOutcome = Awaited<ReturnType<typeof create.submit>>
+
+/** Oluştur / aktar: her ikisi de ayrı kullanıcı eylemidir (anahtarsız uç, yeni gövde). */
+async function send(values: UserValues, transfer: TransferOffer | null): Promise<void> {
   const programId = store.snapshot.programId
   if (!programId) return
   notice.value = null
-  transferOffered.value = false
+  offer.value = null
   const name = values.fullName.trim()
   const outcome = await create.submit({
     email: values.email.trim(),
@@ -134,6 +129,7 @@ const handle = form.handleSubmit(async (values) => {
     departmentId: values.departmentId,
     role: chooseRole.value ? values.role : 'member',
     ...(name ? { fullName: name } : {}),
+    ...(transfer ? { transferAccountId: transfer.accountId } : {}),
   })
   if (!dialog.alive() || outcome.kind === 'owner_disposed') return
   if (outcome.kind === 'success') {
@@ -142,23 +138,39 @@ const handle = form.handleSubmit(async (values) => {
     close()
     return
   }
+  settleFailure(outcome, transfer !== null)
+}
+
+/** Alan hatası / aktarım teklifi / sonuç bilinmiyor / ortak bildirim. */
+function settleFailure(
+  outcome: Exclude<CreateOutcome, { kind: 'success' }>,
+  transferring: boolean,
+) {
   if (outcome.kind === 'failed') {
-    if (isTransferAvailable(outcome.error)) {
-      transferOffered.value = true
+    const found = transferring ? null : transferOffer(outcome.error)
+    if (found) {
+      offer.value = found
       return
     }
-    const found = serverFieldErrors(outcome.error, USER_FIELDS, USER_CODES)
-    if (Object.keys(found).length > 0) return form.setErrors(found)
+    const fields = serverFieldErrors(outcome.error, USER_FIELDS, USER_CODES)
+    if (Object.keys(fields).length > 0) return form.setErrors(fields)
   }
   if (outcome.kind === 'unknown_outcome') {
     notice.value = outcome
     return
   }
   notifyOutcome(outcome)
-})
+}
+
+const handle = form.handleSubmit((values) => send(values, null))
+const handleTransfer = form.handleSubmit((values) => send(values, offer.value))
 
 function submit(): void {
   void dialog.once(() => handle())
+}
+
+function transfer(): void {
+  if (offer.value) void dialog.once(() => handleTransfer())
 }
 </script>
 
@@ -193,19 +205,24 @@ function submit(): void {
           <UiSelect v-model="role" name="role" :options="roleOptions" />
         </UiField>
       </div>
-      <div v-if="transferOffered" class="of-note" role="alert" data-testid="of-transfer">
-        <p class="of-note__title">{{ orgText('forms.user.transfer.title') }}</p>
+      <div v-if="offer" class="of-note" role="alert" data-testid="of-transfer">
+        <p class="of-note__title">
+          {{
+            offer.fullName
+              ? orgText('forms.user.transfer.titleNamed', { name: offer.fullName })
+              : orgText('forms.user.transfer.title')
+          }}
+        </p>
         <p>{{ orgText('forms.user.transfer.body') }}</p>
         <div class="of-note__actions">
-          <DesignStub id="BE-107">
-            <UiButton
-              size="sm"
-              :disabled="transferAccountId === null"
-              data-testid="of-transfer-action"
-            >
-              {{ orgText('forms.user.transfer.action') }}
-            </UiButton>
-          </DesignStub>
+          <UiButton
+            size="sm"
+            :disabled="pending"
+            data-testid="of-transfer-action"
+            @click="transfer"
+          >
+            {{ orgText('forms.user.transfer.action') }}
+          </UiButton>
         </div>
       </div>
       <UiOutcomeNotice :outcome="notice" />

@@ -30,6 +30,7 @@ export {
   fetchUserPage,
   isTransferAvailable,
   redactDraft,
+  transferOffer,
   useCreateUser,
   useDeleteUser,
   useSetTemporaryPassword,

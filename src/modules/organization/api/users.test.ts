@@ -21,6 +21,7 @@ import {
 } from '../__tests__/harness'
 import {
   isTransferAvailable,
+  transferOffer,
   useCreateUser,
   useDeleteUser,
   useSetTemporaryPassword,
@@ -163,6 +164,12 @@ describe('kullanıcı yazmaları (anahtarsız, S1)', () => {
           ? json({ account_id: 'old', transferred: true }, 201)
           : errorEnvelope('identity.account_exists', 409, [
               { field: 'email', code: 'organization.transfer_available', message: 'x' },
+              { field: 'account_id', code: 'organization.transfer_available', message: 'old' },
+              {
+                field: 'user_full_name',
+                code: 'organization.transfer_available',
+                message: 'Eski Kişi',
+              },
             ])
       }),
     )
@@ -176,6 +183,10 @@ describe('kullanıcı yazmaları (anahtarsız, S1)', () => {
     }
     const first = await m.submit(input)
     expect(first.kind === 'failed' && isTransferAvailable(first.error)).toBe(true)
+    expect(first.kind === 'failed' && transferOffer(first.error)).toEqual({
+      accountId: 'old',
+      fullName: 'Eski Kişi',
+    })
     const again = await m.submit({ ...input, transferAccountId: 'old' })
     expect(again.kind).toBe('success')
     await vi.waitFor(() => expect(sent('POST', '/v1/admin/users')[1]!.body).toBeDefined())

@@ -195,7 +195,8 @@ export const trOrganization = {
         exists: 'Bu e-posta ile kayıtlı bir hesap var; liste yenilendi.',
         transfer: {
           title: 'Bu e-posta başka bir hesapta kayıtlı.',
-          body: 'Mevcut hesabı bu koordinatörlüğe aktarmak şu an mümkün değil: aktarılacak hesabın kimliği sunucudan gelmiyor.',
+          titleNamed: 'Bu e-posta {name} kişisine ait.',
+          body: 'Yeni hesap açılmaz; mevcut hesap seçili koordinatörlüğün ekibine eklenir. Aktarılsın mı?',
           action: 'Mevcut hesabı bu birime ekle',
         },
       },

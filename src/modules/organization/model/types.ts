@@ -76,6 +76,12 @@ export interface CreateUserInput {
   transferAccountId?: string
 }
 
+/** Aktarım teklifi (409 `organization.transfer_available`): hesap kimliği + ad (varsa). */
+export interface TransferOffer {
+  accountId: string
+  fullName: string | null
+}
+
 export interface UpdateUserInput {
   accountId: string
   changes: {

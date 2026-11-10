@@ -28,6 +28,7 @@ import type {
   CreateUserInput,
   KnownUser,
   TemporaryPasswordInput,
+  TransferOffer,
   UpdateUserInput,
   UserListFilters,
   UserPage,
@@ -43,6 +44,7 @@ import {
 import { useKeylessMutation } from './keyless'
 
 const INVALID_SORT = 'organization.invalid_sort'
+const TRANSFER_CODE = 'organization.transfer_available'
 
 function isInvalidSort(error: unknown): boolean {
   return error instanceof ApiError && error.fields.some((f) => f.code === INVALID_SORT)
@@ -133,12 +135,19 @@ export function useUserList(
 }
 
 /**
- * 409 `identity.account_exists` + alan `organization.transfer_available` (E-05-05). Aktarılacak
- * hesabın kimliği sözleşmede yok (BE-107): teklif tanınır, `transfer_account_id` istemcide
- * bilinemez — aktarım eylemi BE-107 kapanana dek kurulmaz.
+ * 409 `identity.account_exists` + alan `organization.transfer_available` (E-05-05). Teklif
+ * `fields[]`'ta üç girdidir (`email`, `account_id`, `user_full_name`; değer `message`'tadır, ApiError
+ * `value`). Koordinatörde ve hesap hedef ekipte zaten varken girdiler gelmez (K22).
  */
 export function isTransferAvailable(error: ApiError): boolean {
-  return error.fields.some((f) => f.code === 'organization.transfer_available')
+  return error.fields.some((f) => f.code === TRANSFER_CODE)
+}
+
+export function transferOffer(error: ApiError): TransferOffer | null {
+  const value = (field: string) =>
+    error.fields.find((f) => f.code === TRANSFER_CODE && f.field === field)?.value?.trim() || null
+  const accountId = value('account_id')
+  return accountId ? { accountId, fullName: value('user_full_name') } : null
 }
 
 // --- Yazmalar ------------------------------------------------------------------------------

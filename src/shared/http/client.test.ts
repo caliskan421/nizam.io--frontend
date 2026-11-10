@@ -348,6 +348,34 @@ describe('429 ve hata zarfı', () => {
     expect(JSON.stringify(error)).not.toContain('sunucu metni')
   })
 
+  it('veri taşıyan alan kodlarında (transfer_available, existing_department) message değer olarak taşınır', async () => {
+    const tab = await loggedInTab()
+    backend.server.use(
+      http.post(`${BASE}/v1/programs`, () =>
+        HttpResponse.json(
+          {
+            code: 'identity.account_exists',
+            message: 'sunucu metni',
+            fields: [
+              { field: 'account_id', code: 'organization.transfer_available', message: 'acc-9' },
+              { field: 'deleted', code: 'organization.existing_department', message: 'true' },
+              { field: 'name', code: 'program.input_invalid', message: 'gösterilmez' },
+            ],
+          },
+          { status: 409 },
+        ),
+      ),
+    )
+
+    const error = (await unwrap(tab.client.POST('/v1/programs', { body: { name: '' } })).catch(
+      (e: unknown) => e,
+    )) as ApiError
+
+    expect(error.fields.map((f) => f.value)).toEqual(['acc-9', 'true', undefined])
+    expect(error.message).not.toContain('sunucu metni')
+    expect(JSON.stringify(error)).not.toContain('gösterilmez')
+  })
+
   it('gövdede request_id yoksa X-Request-Id kullanılır', async () => {
     const tab = await loggedInTab()
     backend.server.use(
