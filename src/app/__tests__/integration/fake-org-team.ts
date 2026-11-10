@@ -33,16 +33,16 @@ function keyedCreate(
   apply: () => Response | Stored,
 ): Response {
   const key = request.headers.get('Idempotency-Key')?.trim() ?? null
-  if (key !== null && !/^.{22,200}$/.test(key)) {
+  if (key === null) return respond(apply())
+  if (!/^.{22,200}$/.test(key)) {
     return envelope(`${mod}.input_invalid`, 422, [
       { field: 'idempotency_key', code: `${mod}.invalid_request_key` },
     ])
   }
   const store = KEYS.get(db) ?? new Map<string, Stored>()
   KEYS.set(db, store)
-  const actor = o.actorOf(db, request)?.account_id ?? ''
-  const slot = key === null ? null : `${actor}:${new URL(request.url).pathname}:${key}`
-  const seen = slot === null ? undefined : store.get(slot)
+  const slot = `${o.actorOf(db, request)?.account_id ?? ''}:${new URL(request.url).pathname}:${key}`
+  const seen = store.get(slot)
   if (seen) {
     return seen.fingerprint === fingerprint
       ? json(seen.body)
@@ -50,13 +50,18 @@ function keyedCreate(
   }
   const result = apply()
   if (result instanceof Response) return result
-  if (slot !== null) store.set(slot, { ...result, fingerprint })
+  store.set(slot, { ...result, fingerprint })
+  return lostResponse(db) ? HttpResponse.error() : respond(result)
+}
+
+const respond = (result: Response | Stored): Response =>
+  result instanceof Response ? result : json(result.body, result.status)
+
+/** Bekleyen düşürme hakkını harcar (anahtarlı istek uygulandı, yanıt kayboldu). */
+function lostResponse(db: OrgDb): boolean {
   const left = DROP_NEXT.get(db) ?? 0
-  if (left > 0 && slot !== null) {
-    DROP_NEXT.set(db, left - 1)
-    return HttpResponse.error()
-  }
-  return json(result.body, result.status)
+  if (left > 0) DROP_NEXT.set(db, left - 1)
+  return left > 0
 }
 
 /** Ekip yazması yetkisi: yönetici her birimde; koordinatör yalnız kendi biriminde. */
@@ -357,6 +362,64 @@ function statusChange(db: OrgDb, request: Request, id: string, disable: boolean)
   })
 }
 
+/** `createUser`: hesap açar ya da (BE-107) `transfer_account_id` ile mevcut hesabı aktarır. */
+async function createUser(db: OrgDb, request: Request): Promise<Response> {
+  const me = o.actorOf(db, request)
+  if (!me?.admin) return o.forbidden('organization')
+  const body = (await request.json()) as CreateUserBody
+  if (!o.linkOf(db, body.program_id, body.department_id)) {
+    return envelope('organization.input_invalid', 422, [
+      { field: 'department_id', code: 'organization.department_not_linked' },
+    ])
+  }
+  const team = o.teamOf(db, body.role) ?? 'member'
+  const clash = db.accounts.find((a) => a.email === body.email && !a.deleted)
+  if (body.transfer_account_id !== undefined) return transferAccount(db, body, clash, team)
+  if (clash) return accountExists(db, body, clash)
+  const account: Account = {
+    account_id: o.next(db, 'u-yeni'),
+    full_name: body.full_name ?? body.email,
+    email: body.email,
+    admin: false,
+  }
+  db.accounts.push(account)
+  setTeam(db, body.program_id, body.department_id, account.account_id, team)
+  const membership = db.memberships.at(-1)!.membership_id
+  return json({ account_id: account.account_id, membership_id: membership, created: true }, 201)
+}
+
+/** Aynı gövde + `transfer_account_id`: yeni hesap açılmaz, hesap hedef ekibe eklenir (201). */
+function transferAccount(
+  db: OrgDb,
+  body: CreateUserBody,
+  clash: Account | undefined,
+  team: TeamRole,
+) {
+  if (!clash || clash.account_id !== body.transfer_account_id) {
+    return envelope('organization.account_not_found', 404)
+  }
+  if (o.teamIn(db, clash.account_id, body.program_id, body.department_id) !== null) {
+    return envelope('organization.membership_exists', 409)
+  }
+  setTeam(db, body.program_id, body.department_id, clash.account_id, team)
+  const row = db.memberships.at(-1)!.membership_id
+  return json({ account_id: clash.account_id, membership_id: row, created: false }, 201)
+}
+
+/** 409 `identity.account_exists`; aktarım teklifi yalnız hesap hedef ekipte yokken (K22). */
+function accountExists(db: OrgDb, body: CreateUserBody, clash: Account) {
+  const inTeam = o.teamIn(db, clash.account_id, body.program_id, body.department_id) !== null
+  const code = 'organization.transfer_available'
+  const offer = inTeam
+    ? []
+    : [
+        { field: 'email', code, message: 'Aktarılabilir' },
+        { field: 'account_id', code, message: clash.account_id },
+        { field: 'user_full_name', code, message: clash.full_name },
+      ]
+  return envelope('identity.account_exists', 409, offer)
+}
+
 function userHandlers(db: OrgDb) {
   const admin = (request: Request) => o.actorOf(db, request)?.admin === true
   return [
@@ -376,60 +439,7 @@ function userHandlers(db: OrgDb) {
     http.post(`${ORIGIN}/v1/admin/accounts/:id/enable`, ({ request, params }) =>
       statusChange(db, request, String(params.id), false),
     ),
-    http.post(`${ORIGIN}/v1/admin/users`, async ({ request }) => {
-      const me = o.actorOf(db, request)
-      if (!me?.admin) return o.forbidden('organization')
-      const body = (await request.json()) as CreateUserBody
-      if (!o.linkOf(db, body.program_id, body.department_id)) {
-        return envelope('organization.input_invalid', 422, [
-          { field: 'department_id', code: 'organization.department_not_linked' },
-        ])
-      }
-      const team = o.teamOf(db, body.role) ?? 'member'
-      const clash = db.accounts.find((a) => a.email === body.email && !a.deleted)
-      // BE-107: var olan hesabı aynı gövdeyle `transfer_account_id` ile hedef ekibe aktarma.
-      if (body.transfer_account_id !== undefined) {
-        if (!clash || clash.account_id !== body.transfer_account_id) {
-          return envelope('organization.account_not_found', 404)
-        }
-        if (o.teamIn(db, clash.account_id, body.program_id, body.department_id) !== null) {
-          return envelope('organization.membership_exists', 409)
-        }
-        setTeam(db, body.program_id, body.department_id, clash.account_id, team)
-        const row = db.memberships.at(-1)!.membership_id
-        return json({ account_id: clash.account_id, membership_id: row, created: false }, 201)
-      }
-      if (clash) {
-        const inTeam = o.teamIn(db, clash.account_id, body.program_id, body.department_id) !== null
-        // Teklif yalnız yöneticiye ve hesap hedef ekipte yokken (ORGANIZATION-K22).
-        const offer = inTeam
-          ? []
-          : [
-              { field: 'email', code: 'organization.transfer_available', message: 'Aktarılabilir' },
-              {
-                field: 'account_id',
-                code: 'organization.transfer_available',
-                message: clash.account_id,
-              },
-              {
-                field: 'user_full_name',
-                code: 'organization.transfer_available',
-                message: clash.full_name,
-              },
-            ]
-        return envelope('identity.account_exists', 409, offer)
-      }
-      const account: Account = {
-        account_id: o.next(db, 'u-yeni'),
-        full_name: body.full_name ?? body.email,
-        email: body.email,
-        admin: false,
-      }
-      db.accounts.push(account)
-      setTeam(db, body.program_id, body.department_id, account.account_id, team)
-      const membership = db.memberships.at(-1)!.membership_id
-      return json({ account_id: account.account_id, membership_id: membership, created: true }, 201)
-    }),
+    http.post(`${ORIGIN}/v1/admin/users`, ({ request }) => createUser(db, request)),
     http.delete(`${ORIGIN}/v1/admin/users/:id`, ({ request, params }) => {
       const me = o.actorOf(db, request)
       if (!me?.admin) return o.forbidden('organization')
