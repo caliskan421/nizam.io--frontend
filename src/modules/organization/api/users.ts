@@ -206,7 +206,7 @@ export function useUserList(
   // kullanıcı "Daha fazla yükle" ile bilinçli sürdürür. Üst sınır SON ardışık boş sayfalarla
   // ölçülür (toplam sayfa sayısıyla değil): dolu sayfalarla biriken uzun liste sınıra takılmaz.
   watchEffect(() => {
-    if (!toValue(enabled) || !isEmptyPage(latest.value)) return
+    if (!toValue(enabled) || latest.value === null || !noRows(latest.value.users)) return
     const failed = query.isError.value || query.isFetchNextPageError.value
     const exhausted = trailingEmptyPages(query.data.value?.pages ?? []) >= MAX_EMPTY_PAGES
     if (failed || exhausted) return
@@ -227,15 +227,13 @@ export function useUserList(
   }
 }
 
-/** Sayfa var ve satırsız mı. */
-function isEmptyPage(page: UserPage['page'] | null): boolean {
-  return page !== null && (page.users?.length ?? 0) === 0
-}
+/** Satır listesi boş mu (alan yok = boş). */
+const noRows = (users: readonly unknown[] | undefined): boolean => (users?.length ?? 0) === 0
 
 /** Sondaki ardışık boş sayfa sayısı (otomatik ilerlemenin üst sınırı bununla ölçülür). */
 function trailingEmptyPages(pages: readonly UserPage[]): number {
   let count = 0
-  while (count < pages.length && (pages[pages.length - 1 - count]?.page.users?.length ?? 0) === 0) {
+  while (count < pages.length && noRows(pages[pages.length - 1 - count]?.page.users)) {
     count += 1
   }
   return count
