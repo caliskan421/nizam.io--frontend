@@ -82,7 +82,11 @@ export function useKeylessMutation<V, D>(
     if (outcome.kind === 'confirmation_required') {
       return keepDetached(outcome, {
         ...outcome,
-        confirm: async () => harden(await outcome.confirm(), scope),
+        confirm: async () => {
+          const next = await harden(await outcome.confirm(), scope)
+          // CX-P-E-01: onay devamında da son yaşam denetimi.
+          return owner.alive() ? next : markDetached(next)
+        },
       })
     }
     return outcome

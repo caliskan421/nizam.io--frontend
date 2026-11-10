@@ -163,7 +163,12 @@ export function useProtectedMutation<V, D, S = unknown>(
     queryClient,
   )
 
-  const rerun: Rerun<V, D, S> = (action) => mutation.mutateAsync(action)
+  // CX-P-E-01: `retry`/`confirm` devamları da sonucu tüketiciye vermeden sahip yaşamını yeniden
+  // denetler (başarı geçersizlemesi beklenirken sökülme).
+  const rerun: Rerun<V, D, S> = async (action) => {
+    const outcome = await mutation.mutateAsync(action)
+    return owner.alive() ? outcome : markDetached(outcome)
+  }
 
   return {
     submit: async (vars, opts) => {

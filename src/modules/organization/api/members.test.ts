@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
+import { reachesOwner } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import type { ConfirmOptions } from '@/shared/ui/confirm'
 
@@ -177,6 +178,36 @@ describe('confirmation_required — iki biçim (sorgu / gövde), ortak onay', ()
     const reqs = sent('DELETE', '/v1/departments/d2/memberships/u1')
     expect(reqs.map((r) => r.query.get('confirm'))).toEqual([null, 'true'])
     for (const req of reqs) s2Only(req)
+  })
+
+  it('removeMember: onay devamı başarı → geçersizleme bekler → sahip söküldü: reachesOwner=false (CX-P-E-01)', async () => {
+    server.use(
+      http.delete(`${DEPT}/memberships/:accountId`, ({ request }) =>
+        new URL(request.url).searchParams.get('confirm') === 'true'
+          ? json({ ...MEMBERSHIP_CHANGE, unassigned_tasks: 2 })
+          : confirmationRequired(['Rapor']),
+      ),
+    )
+    const h = harness(ADMIN_SCOPE)
+    let release!: () => void
+    const held = new Promise<void>((resolve) => (release = resolve))
+    let started!: () => void
+    const startedP = new Promise<void>((resolve) => (started = resolve))
+    h.queryClient.invalidateQueries = async () => {
+      started()
+      await held
+    }
+    const { result: m, app } = h.mount(() => useRemoveMember())
+    const pending = m.submit({ programId: 'p1', departmentId: 'd2', accountId: 'u1' }, ASK)
+    await vi.waitFor(() => expect(h.confirmQueue.current.value).not.toBeNull())
+    const accepted = h.confirmQueue.accept(h.confirmQueue.current.value!.id)
+    await startedP
+    app.unmount()
+    release()
+    const out = await pending
+    await accepted
+    expect(out?.kind).toBe('success')
+    expect(reachesOwner(out!)).toBe(false)
   })
 
   it('removeCoordinator: aynı sorgu biçimi', async () => {

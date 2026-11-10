@@ -193,3 +193,87 @@ describe('useProtectedMutation — başarı geçersizlemesi beklenirken sökülm
     stop()
   })
 })
+
+describe('useProtectedMutation — retry/confirm devamında sökülme (CX-P-E-01)', () => {
+  /** Geçersizleme GET'ini tutan istemci; `hold()` sonrası `release` bırakır. */
+  function heldInvalidation(queryClient: QueryClient) {
+    let release!: () => void
+    const held = new Promise<void>((resolve) => (release = resolve))
+    let started!: () => void
+    const startedP = new Promise<void>((resolve) => (started = resolve))
+    const state = { completed: 0 }
+    queryClient.invalidateQueries = async () => {
+      started()
+      await held
+      state.completed += 1
+    }
+    return { release, started: startedP, state }
+  }
+
+  it('retry: başarı → geçersizleme bekler → sök → bırak: reachesOwner=false, bildirim yok', async () => {
+    let calls = 0
+    server.use(
+      http.post(`${BASE}/v1/work-items`, () => {
+        calls += 1
+        return calls === 1 ? HttpResponse.error() : HttpResponse.json({ work_item_id: 'w1' }, { status: 201 })
+      }),
+    )
+    const { mutation, queryClient, stop } = setup()
+    const first = await mutation.submit(body)
+    if (first.kind !== 'unknown_outcome' || !first.retry) throw new Error(first.kind)
+    const inv = heldInvalidation(queryClient)
+    const pending = first.retry()
+    await inv.started
+    stop()
+    inv.release()
+    const outcome = await pending
+    expect(outcome.kind).toBe('success')
+    expect(inv.state.completed).toBeGreaterThan(0)
+    expect(reachesOwner(outcome)).toBe(false)
+    expect(notifyOutcome(outcome)).toBe(false)
+    expect(useToast().queue.value).toHaveLength(0)
+  })
+
+  it('confirm: başarı → geçersizleme bekler → sök → bırak: reachesOwner=false, bildirim yok', async () => {
+    server.use(
+      http.delete(`${BASE}/v1/departments/dep1/memberships/acc1`, ({ request }) =>
+        new URL(request.url).searchParams.get('confirm') === 'true'
+          ? HttpResponse.json({ membership_id: 'm1', unassigned_tasks: 0, warning: '' })
+          : HttpResponse.json(
+              { code: 'organization.confirmation_required', message: 'x', request_id: 'r' },
+              { status: 409 },
+            ),
+      ),
+    )
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const effect = effectScope()
+    const mutation = effect.run(() =>
+      useProtectedMutation<{ id: string; accountId: string }, unknown>({
+        operation: 'removeMember',
+        scope: () => scope,
+        queryClient,
+        send: (vars, ctx) =>
+          api.DELETE('/v1/departments/{id}/memberships/{accountId}', {
+            params: {
+              path: vars,
+              query: ctx.confirm ? { confirm: 'true' } : {},
+              header: ctx.headers,
+            },
+          }),
+      }),
+    )!
+    const first = await mutation.submit({ id: 'dep1', accountId: 'acc1' })
+    if (first.kind !== 'confirmation_required') throw new Error(first.kind)
+    const inv = heldInvalidation(queryClient)
+    const pending = first.confirm()
+    await inv.started
+    effect.stop()
+    inv.release()
+    const outcome = await pending
+    expect(outcome.kind).toBe('success')
+    expect(inv.state.completed).toBeGreaterThan(0)
+    expect(reachesOwner(outcome)).toBe(false)
+    expect(notifyOutcome(outcome)).toBe(false)
+    expect(useToast().queue.value).toHaveLength(0)
+  })
+})
