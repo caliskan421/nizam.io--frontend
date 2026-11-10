@@ -381,6 +381,39 @@
   --pt-dl-gap: 10px 16px;
   --pt-skel-line: 16px;
   --pt-skel-num: 52px;
+  /* web · gantt */
+  --gantt-label-w: 300px;
+  --gantt-label-max: 62cqw;
+  --gantt-view-h: 780px;
+  --gantt-axis-month-h: 34px;
+  --gantt-axis-day-h: 28px;
+  --gantt-group-h: 40px;
+  --gantt-row-h: 44px;
+  --gantt-bar-h: 24px;
+  --gantt-bar-radius: 8px;
+  --gantt-handle-w: 6px;
+  --gantt-handle-h: 16px;
+  --gantt-handle-r: 3px;
+  --gantt-day-w-gun: 21px;
+  --gantt-day-w-hafta: 6px;
+  --gantt-day-w-ay: 2px;
+  --gantt-today-w: 2px;
+  --gantt-today-pill-w: 52px;
+  --gantt-today-pill-h: 20px;
+  --gantt-today-pill-r: 6px;
+  --gantt-ring-w: 2px;
+  --gantt-split-w: 2px;
+  --gantt-hit-w: 12px;
+  --gantt-link-w: 1.5px;
+  --gantt-dash: 4 3;
+  --gantt-late-border: 1.5px;
+  --gantt-summary-h: 8px;
+  --gantt-dep-icon: 12px;
+  --gantt-code-w: 48px;
+  --gantt-dot: 8px;
+  --gantt-chevron: 16px;
+  --gantt-label-cols: 48px 8px minmax(0, 1fr);
+  --gantt-group-cols: 16px minmax(0, 1fr) auto;
 }
 
 :root,

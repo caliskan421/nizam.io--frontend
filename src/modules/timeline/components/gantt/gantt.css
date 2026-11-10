@@ -1,0 +1,354 @@
+/*
+ * Gantt çekirdeği görünümü — Gorevler-Zaman.dc.html artboard'ı (rp-dtable, rp-glabel, rp-dot,
+ * çubuk/taşma/tutamaç işaretlemesi) ve `--gp-*` çubuk paleti birebir karşılığı. Kural: yalnız
+ * token; ölçüler `gantt-*` (design/web-tokens.json), px yok. Çizim kendi SVG'dir: konum
+ * öznitelik / CSSOM ile verilir, satır içi `<style>` yoktur (üretim CSP'si). Açık tema token'la.
+ */
+@layer components {
+  .gantt {
+    position: relative;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  [data-theme='light'] .gantt {
+    box-shadow: var(--shadow-card);
+  }
+  .gantt__scroller {
+    /* Sol sütun dar ekranda kabın en çok %62'si (cqw: kap ölçüsü); geniş ekranda token ölçüsü. */
+    --gantt-label: min(var(--gantt-label-w), var(--gantt-label-max));
+    position: relative;
+    overflow: auto;
+    max-height: var(--gantt-view-h);
+    container-type: inline-size;
+  }
+  .gantt__canvas {
+    position: relative;
+  }
+
+  /* Başlık: yapışkan üst şerit; sol köşe hem üste hem sola yapışır. */
+  .gantt__head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    height: calc(var(--gantt-axis-month-h) + var(--gantt-axis-day-h));
+    background: var(--bg-surface);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .gantt__corner {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--gantt-label);
+    display: flex;
+    align-items: flex-end;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    background: var(--bg-surface);
+    border-right: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .gantt-kicker {
+    font: var(--m-kicker);
+    letter-spacing: var(--m-kicker-tracking);
+    color: var(--ink-muted);
+  }
+  .gantt-axis {
+    display: block;
+    flex: none;
+  }
+  .gantt-axis__month {
+    font: var(--ui-text-sm-strong);
+    fill: var(--ink);
+    dominant-baseline: central;
+  }
+  .gantt-axis__tick {
+    font: var(--m-kicker);
+    fill: var(--ink-faint);
+    dominant-baseline: central;
+  }
+  .gantt-axis__tick.is-current {
+    fill: var(--ink);
+  }
+  .gantt-axis__sep {
+    stroke: var(--border-subtle);
+    stroke-width: var(--ui-hairline);
+    shape-rendering: crispEdges;
+  }
+  .gantt-axis__pill {
+    fill: var(--accent);
+  }
+  .gantt-axis__pill-text {
+    font: var(--m-kicker);
+    fill: var(--accent-ink);
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  /* Gövde: sol etiket sütunu (HTML treegrid) + sağdaki zaman katmanı (SVG). */
+  .gantt__body {
+    position: relative;
+  }
+  .gantt__plot {
+    position: absolute;
+    top: 0;
+    left: var(--gantt-label);
+  }
+  .gantt__layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+  }
+  .gantt__layer--static {
+    pointer-events: none;
+  }
+  .gantt-grid__line {
+    stroke: var(--border-subtle);
+    stroke-width: var(--ui-hairline);
+    shape-rendering: crispEdges;
+  }
+  .gantt-grid__weekend {
+    fill: color-mix(in srgb, var(--ink) 3%, transparent);
+  }
+  .gantt-grid__group {
+    fill: var(--bg-base);
+  }
+  .gantt-grid__today {
+    stroke: var(--accent-text);
+    stroke-width: var(--gantt-today-w);
+  }
+
+  /* Satır arka planı (hover + seçili), çubuk katmanında. */
+  .gantt-bg {
+    fill: transparent;
+  }
+  .gantt-bg.is-hover {
+    fill: color-mix(in srgb, var(--bg-raised) 60%, transparent);
+  }
+  .gantt-bg.is-selected {
+    fill: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+
+  /* Çubuk: durum tonu → dolgu (`--gp-*`) ve kenar. */
+  .gantt-bar {
+    --gantt-bar-c: var(--gp-todo);
+    --gantt-bar-edge: var(--ink-faint);
+    cursor: pointer;
+  }
+  .gantt-bar--doing {
+    --gantt-bar-c: var(--gp-doing);
+    --gantt-bar-edge: var(--violet);
+  }
+  .gantt-bar--review {
+    --gantt-bar-c: var(--gp-review);
+    --gantt-bar-edge: var(--gold);
+  }
+  .gantt-bar--back {
+    --gantt-bar-c: var(--gp-back);
+    --gantt-bar-edge: var(--danger);
+  }
+  .gantt-bar--done {
+    --gantt-bar-c: var(--gp-done);
+    --gantt-bar-edge: var(--accent-text);
+  }
+  .gantt-bar__plan {
+    fill: var(--gantt-bar-c);
+    stroke: color-mix(in srgb, var(--gantt-bar-edge) 70%, transparent);
+    stroke-width: var(--ui-hairline);
+  }
+  .gantt-bar__over {
+    fill: var(--gp-late);
+  }
+  .gantt-bar__split {
+    stroke: var(--gp-ink);
+    stroke-width: var(--gantt-split-w);
+    opacity: 0.45;
+  }
+  .gantt-bar__late {
+    fill: none;
+    stroke: var(--danger);
+    stroke-width: var(--gantt-late-border);
+    stroke-dasharray: var(--gantt-dash);
+  }
+  .gantt-bar__ring {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: var(--gantt-ring-w);
+  }
+  .gantt-bar__text {
+    font: var(--ui-text-xs-strong);
+    fill: var(--gp-ink);
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+  .gantt-bar__dur {
+    font: var(--m-mono-sm);
+    fill: var(--gp-ink-muted);
+    text-anchor: end;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+  .gantt-bar__dep {
+    fill: none;
+    stroke: var(--gp-ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .gantt-handle {
+    fill: var(--ink);
+    touch-action: none;
+  }
+  .gantt-handle__hit {
+    fill: transparent;
+    cursor: ew-resize;
+    touch-action: none;
+  }
+
+  /* Grup özet izi. */
+  .gantt-trace__track {
+    fill: var(--bg-overlay);
+  }
+  .gantt-trace__done {
+    fill: var(--gp-done);
+  }
+  .gantt-trace__late {
+    fill: var(--gp-late);
+    opacity: 0.7;
+  }
+
+  /* Bağımlılık okları. */
+  .gantt-link {
+    fill: none;
+    stroke: var(--ink-muted);
+    stroke-width: var(--gantt-link-w);
+  }
+  .gantt-link--cross {
+    stroke-dasharray: var(--gantt-dash);
+  }
+  .gantt-link__head {
+    fill: var(--ink-muted);
+  }
+
+  /* Sol sütun: HTML treegrid satırları. */
+  .gantt-rows {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .gantt-row {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    outline: none;
+  }
+  .gantt-row__label {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--gantt-label);
+    display: grid;
+    align-items: center;
+    padding: 0 var(--space-4);
+    background: var(--bg-surface);
+    border-right: var(--ui-hairline) solid var(--border-subtle);
+    overflow: hidden;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .gantt-row--group .gantt-row__label {
+    grid-template-columns: var(--gantt-group-cols);
+    column-gap: var(--space-2);
+    background: var(--bg-base);
+    font: var(--ui-text-sm-strong);
+    color: var(--ink);
+  }
+  .gantt-row--task .gantt-row__label {
+    grid-template-columns: var(--gantt-label-cols);
+    column-gap: var(--m-gap-md);
+  }
+  .gantt-row.is-hover .gantt-row__label {
+    background: var(--bg-raised);
+  }
+  .gantt-row.is-selected .gantt-row__label {
+    background: color-mix(in srgb, var(--ink) 5%, var(--bg-surface));
+  }
+  .gantt-row:focus-visible .gantt-row__label {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  .gantt-row__name,
+  .gantt-row__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .gantt-row__title {
+    font: var(--ui-text-sm-medium);
+    color: var(--ink);
+  }
+  .gantt-row__code {
+    font: var(--m-kicker);
+    letter-spacing: var(--m-kicker-tracking);
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+  .gantt-row__count {
+    font: var(--m-mono-sm);
+    color: var(--ink-muted);
+  }
+  .gantt-row__chevron {
+    transition: transform 0.12s ease-out;
+  }
+  .gantt-row--group.is-closed .gantt-row__chevron {
+    transform: rotate(-90deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gantt-row__chevron {
+      transition: none;
+    }
+  }
+
+  /* Durum noktası: renk + yarım `--danger` (gecikme / geç bitiş). */
+  .gantt-dot {
+    --gantt-dot-c: var(--ink-faint);
+    width: var(--gantt-dot);
+    height: var(--gantt-dot);
+    border-radius: var(--radius-full);
+    background: var(--gantt-dot-c);
+  }
+  .gantt-dot--doing {
+    --gantt-dot-c: var(--violet);
+  }
+  .gantt-dot--review {
+    --gantt-dot-c: var(--gold);
+  }
+  .gantt-dot--back {
+    --gantt-dot-c: var(--danger);
+  }
+  .gantt-dot--done {
+    --gantt-dot-c: var(--accent-text);
+  }
+  .gantt-dot--late {
+    background: linear-gradient(90deg, var(--gantt-dot-c) 50%, var(--danger) 50%);
+  }
+
+  /* Yalnız ekran okuyucu: satırın tam özeti ve canlı bölge. */
+  .gantt-sr {
+    position: absolute;
+    width: var(--ui-hairline);
+    height: var(--ui-hairline);
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
