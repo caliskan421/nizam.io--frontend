@@ -24,6 +24,7 @@ export const trTasksPage = {
       tasksPartial: '{n}+ görev',
       departments: '{n} koordinatörlük',
       people: '{n} kişi',
+      peoplePartial: '{n}+ kişi',
     },
     partial: 'yüklenen kayıtlar içinde',
     view: {
@@ -65,6 +66,7 @@ export const trTasksPage = {
     pager: {
       complete: '{n} görev',
       partial: '{n} görev yüklendi · daha fazlası var',
+      loadedOfTotal: '{n} / {total} görev yüklendi',
       more: 'Daha fazla yükle',
       loadingMore: 'Yükleniyor…',
     },

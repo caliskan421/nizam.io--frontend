@@ -11,10 +11,19 @@ import { settleQueries, type HeldQuery } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { http, json, ORIGIN, sent } from '../../../model/__tests__/harness'
+import {
+  fakeCounts,
+  http,
+  json,
+  listFilterOf,
+  ORIGIN,
+  sent,
+  server,
+} from '../../../model/__tests__/harness'
 import type { WorkItem } from '../../../model/types'
 
 export const LIST = '/v1/program/work-items'
+export const COUNTS = '/v1/program/work-items/counts'
 export const DEPARTMENTS = [
   { department_id: 'd1', display_name: 'Mekanik', code: 'MEK' },
   { department_id: 'd2', display_name: 'İdari işler' },
@@ -56,13 +65,35 @@ export function standingHandlers(fixture: StandingFixture) {
   ]
 }
 
-/** Liste ucu: imleçsiz istek `first`, imleçli istek `next` sayfasını alır. */
+/** Sunucu atanan süzgeci (`assignee_account_id`, VEYA); `department_id` bu sahtede süzülmez. */
+function byAssignee(items: readonly WorkItem[], request: Request): WorkItem[] {
+  const { assignees } = listFilterOf(request)
+  return items.filter(
+    (i) => assignees.length === 0 || assignees.some((id) => i.assignee_account_ids.includes(id)),
+  )
+}
+
+/**
+ * Liste ucu: imleçsiz istek `first`, imleçli istek `next` sayfasını alır. Atanan süzgeci
+ * (BE-038) uygulanır. Aynı çağrı sayaç ucunu (BE-003) da kurar: sayaç TÜM sayfaların toplamıdır
+ * (imleç bitmeden de kesin), aynı süzgeçle; testin kendi sayaç işleyicisi sonra `server.use` ile
+ * önüne geçebilir.
+ */
 export function listHandler(first: WorkItem[], nextCursor?: string, next: WorkItem[] = []) {
+  server.use(
+    http.get(`${ORIGIN}${COUNTS}`, ({ request }) =>
+      json(fakeCounts(byAssignee([...first, ...next], request))),
+    ),
+  )
   return http.get(`${ORIGIN}${LIST}`, ({ request }) => {
     const cursor = new URL(request.url).searchParams.get('cursor')
-    return cursor ? json({ items: next }) : json({ items: first, next_cursor: nextCursor })
+    return cursor
+      ? json({ items: byAssignee(next, request) })
+      : json({ items: byAssignee(first, request), next_cursor: nextCursor })
   })
 }
+
+export const countRequests = () => sent('GET', COUNTS)
 
 export const listRequests = () => sent('GET', LIST)
 

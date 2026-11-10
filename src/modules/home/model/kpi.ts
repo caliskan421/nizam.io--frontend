@@ -4,22 +4,22 @@
  *  - **Admin** (yalnız şirket yöneticisi + Admin merceği, REPORTING-K01): `reportDashboard`
  *    sunucu sayaçları — `total_tasks`, `completed_tasks`, `active_tasks` (total − completed;
  *    `onaya_sunuldu` + `iade_edildi` dahil), `overdue_tasks`, `pending_approvals` (GAP-075).
- *  - **Koordinatör / Üye**: `listProgramWorkItems` yüklenen satırlarında istemci sayımı (BE-003,
- *    BE-009); Üye merceğinde önce "bana atananlar" (`isAssignedTo`, work modülünde tek yüklem;
- *    görev listesiyle aynı küme). Gecikme sunucudan (`is_overdue`); tamamlanmış görev
- *    gecikmeye sayılmaz (G3). İmleç bitmemişse çağıran "yüklenen kayıtlar içinde" der (§10).
+ *  - **Koordinatör / Üye**: `countProgramWorkItems` sunucu sayaçları (BE-003, BE-009; pin
+ *    v0.15.0-api) — seçili birim, Üye merceğinde `assignee_account_id` = ben (BE-038; görev
+ *    listesiyle AYNI süzgeç ve görünürlük). Kesin sayılar: istemci sayımı ve "yüklenen kayıtlar
+ *    içinde" etiketi yok. `overdue` sunucuda tamamlanmamış + `end_on` < bugün (G3).
  *
  * Türetme (backend.md §4): Tamamlanma % = biten/toplam; açık = toplam − biten; zamanında =
  * açık − geciken; Gecikmede % = geciken/açık; Onay çubuğu = onayda/açık. Yüzdeler tam sayıya
  * yuvarlanır; payda 0 iken nötr not ("0 görevin 0’ı" yazılmaz, §4). "Onay bekleyen" notu
  * öneri olduğundan boştur (E-01-07).
  */
-import { isAssignedTo } from '@/modules/work/public'
+import type { WorkItemCounts } from '@/modules/work/public'
 import type { IconName } from '@/shared/ui'
 
 import { homeText } from './messages'
 import { possessiveSuffix } from './turkish'
-import type { DashboardReport, KpiItem } from './types'
+import type { DashboardReport } from './types'
 
 export interface KpiCounts {
   total: number
@@ -61,24 +61,19 @@ export function countsFromDashboard(report: DashboardReport): KpiCounts {
   }
 }
 
-/** K/Ü: yüklenen satırlardan sayım; `assignee` verilirse yalnız ona atananlar. */
-export function countsFromItems(
-  items: readonly KpiItem[],
-  assignee: string | null = null,
-): KpiCounts {
-  const counts: KpiCounts = { total: 0, completed: 0, open: 0, overdue: 0, pending: 0 }
-  for (const item of items) {
-    if (assignee !== null && !isAssignedTo(item, assignee)) continue
-    counts.total += 1
-    if (item.status === 'tamamlandi') {
-      counts.completed += 1
-      continue
-    }
-    counts.open += 1
-    if (item.is_overdue) counts.overdue += 1
-    if (item.status === 'onaya_sunuldu') counts.pending += 1
+/**
+ * K/Ü: `countProgramWorkItems` sayaçları. Açık = toplam − tamamlanan (`onaya_sunuldu` +
+ * `iade_edildi` dahil); onayda = `onaya_sunuldu`; geciken sunucunun `overdue`'su.
+ */
+export function countsFromWorkCounts(counts: WorkItemCounts): KpiCounts {
+  const completed = counts.by_status.tamamlandi
+  return {
+    total: counts.total,
+    completed,
+    open: counts.total - completed,
+    overdue: counts.overdue,
+    pending: counts.by_status.onaya_sunuldu,
   }
-  return counts
 }
 
 /** Yuvarlanmış yüzde; payda 0 → 0. */

@@ -5,8 +5,9 @@ import {
   COORD_SCOPE,
   dashboardHandler,
   DASHBOARD,
+  COUNTS,
+  countsHandler,
   LIST,
-  listHandler,
   MEMBER_SCOPE,
   mountWith,
   resetAll,
@@ -74,27 +75,29 @@ describe('01 Ana sayfa — F1 sade', () => {
     expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite'])
   })
 
-  it('Koordinatör merceği: KPI seçili birim listesinden; pano ÇAĞRILMAZ', async () => {
-    server.use(...standingHandlers(COORDINATOR), listHandler(ROWS))
+  it('Koordinatör merceği: KPI seçili birim sayaçlarından; pano ve liste ÇAĞRILMAZ', async () => {
+    server.use(...standingHandlers(COORDINATOR), countsHandler(ROWS))
     const page = await mountWith(HomePage, COORD_SCOPE)
-    expect(page.wrapper.find('[data-kpi-source="work-items"]').exists()).toBe(true)
+    expect(page.wrapper.find('[data-kpi-source="work-counts"]').exists()).toBe(true)
     expect(sent(DASHBOARD)).toHaveLength(0)
-    expect(sent(LIST)[0]!.query.get('department_id')).toBe('d1')
+    expect(sent(LIST)).toHaveLength(0)
+    expect(sent(COUNTS)[0]!.query.get('department_id')).toBe('d1')
     expect(kpiValues(page)).toEqual(['%33', '2', '0', '1'])
     expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite'])
   })
 
   it('Yönetici Üye merceğinde: pano yok, "bana atananlar"; yönetici eylemleri korunur (P1)', async () => {
-    server.use(...standingHandlers(ADMIN_MEMBER), listHandler(ROWS), dashboardHandler())
+    server.use(...standingHandlers(ADMIN_MEMBER), countsHandler(ROWS), dashboardHandler())
     const page = await mountWith(HomePage, MEMBER_SCOPE)
     expect(sent(DASHBOARD)).toHaveLength(0)
-    // acc-1'e atanan iki görev (biri bitti); başkasına atanan onaydaki görev sayılmaz.
+    // Sunucu süzgeci (assignee_account_id=ben): acc-1'e atanan iki görev (biri bitti); başkasına
+    // atanan onaydaki görev sayılmaz.
     expect(kpiValues(page)).toEqual(['%50', '1', '0', '0'])
     expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite'])
   })
 
   it('salt üye: hızlı işlemler kartı ve "Yeni görev" DOM’da yok', async () => {
-    server.use(...standingHandlers(MEMBER), listHandler(ROWS))
+    server.use(...standingHandlers(MEMBER), countsHandler(ROWS))
     const page = await mountWith(HomePage, MEMBER_SCOPE)
     expect(page.wrapper.find('[data-region="quick"]').exists()).toBe(false)
     expect(page.wrapper.text()).not.toContain('Yeni görev')
@@ -102,14 +105,14 @@ describe('01 Ana sayfa — F1 sade', () => {
   })
 
   it('kapsam eksik (birim seçilmedi): seçim notu; kapsamlı istek yok', async () => {
-    server.use(...standingHandlers(COORDINATOR), listHandler(ROWS), dashboardHandler())
+    server.use(...standingHandlers(COORDINATOR), countsHandler(ROWS), dashboardHandler())
     const page = await mountWith(HomePage, {
       programId: 'p1',
       lens: 'coordinator',
       departmentId: null,
     })
     expect(page.wrapper.text()).toContain('Kapsam seçin')
-    expect(sent(LIST)).toHaveLength(0)
+    expect(sent(COUNTS)).toHaveLength(0)
     expect(sent(DASHBOARD)).toHaveLength(0)
     expect(page.wrapper.get('[data-testid="home-greeting"]').text()).toBe('Merhaba Ayşe Nur Yılmaz')
   })

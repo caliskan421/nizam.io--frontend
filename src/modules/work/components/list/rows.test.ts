@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { workItem } from '../../model/__tests__/harness'
 import type { WorkItem } from '../../model/types'
 import {
+  countsFromServer,
   foldTr,
   hasDateRequest,
   inTab,
@@ -145,5 +146,32 @@ describe('istemci sıralaması (E-03-16, BE-040)', () => {
       'w3',
       'w2',
     ])
+  })
+})
+
+describe('sunucu sayaçlarından sekme sayaçları (BE-003)', () => {
+  it('tümü = total, geciken = overdue, beş durum aynen', () => {
+    expect(
+      countsFromServer({
+        total: 263,
+        by_status: {
+          baslanmadi: 100,
+          devam_ediyor: 60,
+          onaya_sunuldu: 3,
+          iade_edildi: 1,
+          tamamlandi: 99,
+        },
+        overdue: 12,
+        pending_date_requests: 4,
+      }),
+    ).toEqual({
+      tumu: 263,
+      geciken: 12,
+      baslanmadi: 100,
+      devam_ediyor: 60,
+      onaya_sunuldu: 3,
+      iade_edildi: 1,
+      tamamlandi: 99,
+    })
   })
 })
