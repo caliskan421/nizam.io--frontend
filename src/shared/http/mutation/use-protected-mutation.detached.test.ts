@@ -153,3 +153,43 @@ describe('useProtectedMutation — sökülmüş sahibin geç sonucu (CX-F1-Ö-07
     expect(reachesOwner(await pending)).toBe(true)
   })
 })
+
+describe('useProtectedMutation — başarı geçersizlemesi beklenirken sökülme (CX-F3-Ö-08)', () => {
+  it('başarı → geçersizleme GET bekler → sök → bırak: reachesOwner=false, bildirim yok, uzlaştırma tamam', async () => {
+    const g = heldEndpoint(() => HttpResponse.json({ work_item_id: 'w1' }, { status: 201 }))
+    const { mutation, queryClient, stop } = setup()
+    let releaseInvalidation!: () => void
+    const invalidationHeld = new Promise<void>((resolve) => (releaseInvalidation = resolve))
+    let invalidationStarted!: () => void
+    const started = new Promise<void>((resolve) => (invalidationStarted = resolve))
+    let completed = 0
+    queryClient.invalidateQueries = async () => {
+      invalidationStarted()
+      await invalidationHeld
+      completed += 1
+    }
+    const pending = mutation.submit(body)
+    await g.reached
+    g.release()
+    await started
+    stop()
+    releaseInvalidation()
+    const outcome = await pending
+    expect(outcome.kind).toBe('success')
+    expect(completed).toBeGreaterThan(0)
+    expect(isDetached(outcome)).toBe(true)
+    expect(reachesOwner(outcome)).toBe(false)
+    expect(notifyOutcome(outcome)).toBe(false)
+  })
+
+  it('geçersizleme beklenirken sahip canlı kalırsa sonuç işaretsiz', async () => {
+    const g = heldEndpoint(() => HttpResponse.json({ work_item_id: 'w1' }, { status: 201 }))
+    const { mutation, queryClient, stop } = setup()
+    queryClient.invalidateQueries = () => Promise.resolve()
+    const pending = mutation.submit(body)
+    await g.reached
+    g.release()
+    expect(reachesOwner(await pending)).toBe(true)
+    stop()
+  })
+})

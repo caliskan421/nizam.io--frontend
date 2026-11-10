@@ -104,13 +104,19 @@ function onClick(row: GanttRow): void {
   else emit('select', row.task.work_item_id)
 }
 
-/** Açık alt görev bloğu olan görev satırları (pencereden bağımsız: sayı düzlemi belirler). */
-const openTaskRows = computed(() =>
-  props.layout.rows.filter(
-    (row): row is Extract<GanttRow, { kind: 'task' }> =>
-      row.kind === 'task' && props.openSubtasks?.has(row.key) === true,
-  ),
-)
+/** Satırın mutlak `aria-rowindex` değeri (önceki açık alt görev satırları dahil). */
+function rowIndexOf(index: number): number {
+  return index + 1 + (subBefore.value.before[index] ?? 0)
+}
+
+/**
+ * Açık alt görev bloğu olan görev satırı (CX-F3-Ö-03). Blok, sahibi görev satırının HEMEN
+ * ardında (mantıksal sıra) ve yalnız o satır pencerede iken çizilir: pencere her zaman görünür
+ * bölgeyi içeren satırı kapsar (`rowAt`), kısmen görünen blok sahipsiz kalmaz.
+ */
+function blockOf(row: GanttRow): Extract<GanttRow, { kind: 'task' }> | null {
+  return row.kind === 'task' && props.openSubtasks?.has(row.key) === true ? row : null
+}
 
 function groupName(row: Extract<GanttRow, { kind: 'group' }>): string {
   return row.name ?? ganttText('timeline.gantt.unknownGroup')
@@ -138,91 +144,97 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
     :aria-label="ganttText('timeline.gantt.label')"
     :aria-rowcount="layout.rows.length + subBefore.total"
   >
-    <div
-      v-for="{ row, index } in visible"
-      :key="row.key"
-      role="row"
-      class="gantt-row"
-      :class="[
-        `gantt-row--${row.kind}`,
-        {
-          'is-hover': hover === row.key,
-          'is-selected': row.kind === 'task' && row.key === selectedId,
-          'is-closed': row.kind === 'group' && !row.open,
-        },
-      ]"
-      :style="{ top: `${row.y}px`, height: `${row.height}px` }"
-      :data-row-key="row.key"
-      :aria-rowindex="index + 1 + (subBefore.before[index] ?? 0)"
-      :aria-level="row.level"
-      :aria-expanded="row.kind === 'group' ? row.open : undefined"
-      :aria-selected="row.kind === 'task' ? row.key === selectedId : undefined"
-      :aria-label="
-        row.kind === 'group'
-          ? groupLabel(row)
-          : rowSummary(row.task, layout.dependentIds.has(row.key))
-      "
-      :tabindex="row.key === tabStop ? 0 : -1"
-      @keydown="keyboard.onKeydown($event, index)"
-      @focus="focusKey = row.key"
-      @click="onClick(row)"
-      @pointerenter="hover = row.key"
-      @pointerleave="hover = null"
-    >
-      <template v-if="row.kind === 'group'">
-        <div role="rowheader" class="gantt-row__label">
-          <UiIcon name="chevron-down" size="sm" class="gantt-row__chevron" />
-          <span class="gantt-row__name">{{ groupName(row) }}</span>
-          <span class="gantt-row__count">
-            {{ ganttText('timeline.gantt.groupCount', { done: row.done, total: row.total }) }}
-          </span>
-        </div>
-      </template>
-      <template v-else>
-        <div
-          role="rowheader"
-          class="gantt-row__label"
-          :class="{ 'gantt-row__label--bare': !departmentCodes }"
-        >
-          <span v-if="departmentCodes" class="gantt-row__code">{{ codeOf(row) }}</span>
-          <span
-            class="gantt-dot"
-            :class="[
-              `gantt-dot--${statusTone(row.task.status)}`,
-              { 'gantt-dot--late': isLate(row.task) },
-            ]"
-            :title="dotTitle(row.task)"
-            aria-hidden="true"
-          />
-          <span class="gantt-row__title">{{ row.task.title }}</span>
-          <SubtaskToggle
-            :work-item-id="row.task.work_item_id"
-            :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
-            :open="openSubtasks?.has(row.key) === true"
-            :label="codeOf(row) || row.task.title"
-            tabindex="-1"
-            @click.stop
-            @keydown.stop
-            @toggle="emit('subtasks', row.task.work_item_id)"
-          />
-        </div>
-        <div role="gridcell" class="gantt-sr">
-          {{ rowSummary(row.task, layout.dependentIds.has(row.key)) }}
-        </div>
-      </template>
-    </div>
-    <div
-      v-for="row in openTaskRows"
-      :key="`sub:${row.key}`"
-      class="gantt-subs"
-      :style="{ top: `${row.subY}px`, height: `${row.subRows * GEOMETRY.subH}px` }"
-    >
-      <SubtaskRows
-        :work-item-id="row.task.work_item_id"
-        :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
-        open
-        @rows="(count) => emit('subtaskRows', row.task.work_item_id, count)"
-      />
-    </div>
+    <template v-for="{ row, index } in visible" :key="row.key">
+      <div
+        role="row"
+        class="gantt-row"
+        :class="[
+          `gantt-row--${row.kind}`,
+          {
+            'is-hover': hover === row.key,
+            'is-selected': row.kind === 'task' && row.key === selectedId,
+            'is-closed': row.kind === 'group' && !row.open,
+          },
+        ]"
+        :style="{ top: `${row.y}px`, height: `${row.height}px` }"
+        :data-row-key="row.key"
+        :aria-rowindex="rowIndexOf(index)"
+        :aria-level="row.level"
+        :aria-expanded="row.kind === 'group' ? row.open : undefined"
+        :aria-selected="row.kind === 'task' ? row.key === selectedId : undefined"
+        :aria-label="
+          row.kind === 'group'
+            ? groupLabel(row)
+            : rowSummary(row.task, layout.dependentIds.has(row.key))
+        "
+        :tabindex="row.key === tabStop ? 0 : -1"
+        @keydown="keyboard.onKeydown($event, index)"
+        @focus="focusKey = row.key"
+        @click="onClick(row)"
+        @pointerenter="hover = row.key"
+        @pointerleave="hover = null"
+      >
+        <template v-if="row.kind === 'group'">
+          <div role="rowheader" class="gantt-row__label">
+            <UiIcon name="chevron-down" size="sm" class="gantt-row__chevron" />
+            <span class="gantt-row__name">{{ groupName(row) }}</span>
+            <span class="gantt-row__count">
+              {{ ganttText('timeline.gantt.groupCount', { done: row.done, total: row.total }) }}
+            </span>
+          </div>
+        </template>
+        <template v-else>
+          <div
+            role="rowheader"
+            class="gantt-row__label"
+            :class="{ 'gantt-row__label--bare': !departmentCodes }"
+          >
+            <span v-if="departmentCodes" class="gantt-row__code">{{ codeOf(row) }}</span>
+            <span
+              class="gantt-dot"
+              :class="[
+                `gantt-dot--${statusTone(row.task.status)}`,
+                { 'gantt-dot--late': isLate(row.task) },
+              ]"
+              :title="dotTitle(row.task)"
+              aria-hidden="true"
+            />
+            <span class="gantt-row__title">{{ row.task.title }}</span>
+            <SubtaskToggle
+              :work-item-id="row.task.work_item_id"
+              :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
+              :open="openSubtasks?.has(row.key) === true"
+              :label="codeOf(row) || row.task.title"
+              tabindex="-1"
+              @click.stop
+              @keydown.stop
+              @toggle="emit('subtasks', row.task.work_item_id)"
+            />
+          </div>
+          <div role="gridcell" class="gantt-sr">
+            {{ rowSummary(row.task, layout.dependentIds.has(row.key)) }}
+          </div>
+        </template>
+      </div>
+      <div
+        v-if="blockOf(row)"
+        class="gantt-subs"
+        :style="{
+          top: `${blockOf(row)!.subY}px`,
+          height: `${blockOf(row)!.subRows * GEOMETRY.subH}px`,
+        }"
+      >
+        <SubtaskRows
+          :work-item-id="blockOf(row)!.task.work_item_id"
+          :target="{
+            programId: blockOf(row)!.task.program_id,
+            departmentId: blockOf(row)!.task.department_id,
+          }"
+          open
+          :row-index-start="rowIndexOf(index) + 1"
+          @rows="(count) => emit('subtaskRows', blockOf(row)!.task.work_item_id, count)"
+        />
+      </div>
+    </template>
   </div>
 </template>
