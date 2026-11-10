@@ -228,7 +228,7 @@ export function useUserList(
 }
 
 /** Sayfa var ve satırsız mı. */
-function isEmptyPage(page: { users?: unknown[] } | null): boolean {
+function isEmptyPage(page: UserPage['page'] | null): boolean {
   return page !== null && (page.users?.length ?? 0) === 0
 }
 
