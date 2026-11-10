@@ -12,7 +12,9 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a — Zaman çizelgesi veri katmanı (W91) | **Tamam** (2026-11-10) | #66 `61c8420` |
 | O2b — Gantt çekirdeği, çerçeve, panel, sürükleme, 03d (W92–W96) | **Tamam** (2026-11-10; birleştirme sırası W92 → W93 → W94 → W96 → W95) | #67 `b83e2c6`, #68 `846b2d5`, #69 `cebc8a7`, #70 `cc16afb`, #71 `ee6de60` |
 | O3 — Entegrasyon turu (W97a + W97b devri) | **Tamam** (2026-11-10; senaryolar 1–10, devir (11)–(15)) | #72 `be4b8a5`, #73 `dc3f84f` |
-| O4 — Kapanış | **Belgeler ve doğrulama (`dogrulama-F3.md`) tamam; Codex tur 1 KOŞULLU UYGUN (2026-11-10); düzeltmeler W98 (#74 `90cf838`) + W99 (#75, CI'da/birleşiyor); Codex tur 2 + kapanış PR bekliyor** | #74 `90cf838`, #75 |
+| O4 — Kapanış | **Belgeler ve doğrulama (`dogrulama-F3.md`) tamam; Codex tur 1 KOŞULLU UYGUN; düzeltmeler W98 (#74 `90cf838`) + W99 (#75 `7f8740e`); Codex tur 2 KOŞULLU UYGUN (HEAD `768f22b`) — F3 KAPANDI 2026-11-10** | #74 `90cf838`, #75 `7f8740e` |
+
+**F3 KAPANDI 2026-11-10, Codex KOŞULLU UYGUN** (tur 2, HEAD `768f22b`; hüküm `../../reviews/WEB-3-codex.md`). Koşullar aşağıda "Kapanış kaydı" ve "Bekleyen" bölümünde devredildi.
 
 ## Devralınan (WEB-2 O5)
 
@@ -25,7 +27,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 ## Bekleyen (O4 sonrası, koordinatör)
 
-- **Codex tur 2 + kapanış PR:** tur 1 hükmü KOŞULLU UYGUN (Ö-01…Ö-07, K-01…K-05; engelleyici yok). Düzeltmeler: W98 #74 (doğrulama K-1…K-7, Ö-02, Ö-03, Ö-05; K-8 bilinçli kabul) ve W99 #75 (Ö-01, Ö-04, K-03, Ö-06). Belge düzeltmeleri bu PR'da (K-01 pano istisnası, K-02 kayıtlar). Tur 2 `codex exec -s read-only`; hüküm `docs/reviews/WEB-3-codex.md` (dosya henüz yok). UYGUN gelene dek F3 "kapandı" denmez.
+- **Codex kapısı tamam:** tur 1 KOŞULLU UYGUN (HEAD `8e582d6`; düzeltmeler W98 #74 + W99 #75), tur 2 KOŞULLU UYGUN (HEAD `768f22b`); hüküm ve tam metinler `../../reviews/WEB-3-codex.md`. Koşullar için bkz. "Kapanış kaydı".
 - **Doğrulama birleşimi işlendi:** `dogrulama-F3.md` (207 PNG, gerçek imaj tanığı) kusur tablosu K-1…K-8 → K-1…K-7 PR #74 ile kapandı, K-8 bilinçli kabul. 03c: E-03C-63/68 `kabul (ürün sahibi 2026-11-10)`; E-03C-19 kabul; **E-03C-27 ve 41 AÇIK** (piksel yan yana tur yapılamadı; ürün sahibi görsel onayı).
 - **Pin aşaması (F3'ten sonra, F4'ten önce):** Backend `v0.13.0-api`, `v0.14.0-api`, `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı (2026-11-10): F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** (F0–F3 modüllerine dokunur, kendi Codex kapısı vardır). Backend notları: kesilme satır sayısından değil `X-Result-Truncated` başlığından okunur (tam 200'de başlık yok); uzatma tekrarında `replayed:true` ve `dates_revision` ilk sonucun sürümüdür; aktarım kimliği `fields[field=account_id]` eşleşmesinin `message` değerinden alınır. Bu aşama için `docs/yurutme/` altında yeni klasör açılmaz; ön koşul `../web-4/README.md`'de ve `rapor-F3.md` §2'de kayıtlıdır.
 - **Yönetim deposu:** `program/DURUM.md` tek satır + `gunluk/` satırı koordinatörde (bu depodan yazılmaz).
@@ -72,6 +74,14 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 - **Hüküm:** KOŞULLU UYGUN (HEAD `8e582d6`). **W98 (#74 `90cf838`):** doğrulama K-1…K-7 + Codex Ö-02 (uzantı SVG'de), Ö-03 (tek sekme durağı, alt görev `aria-level` 3, `aria-rowcount`), Ö-05 (panel görünür alanda; dar ekranda kaydırma + odak); K-8 bilinçli kabul. **W99 (#75):** Ö-01 görev başına zamanlayıcı, Ö-04 `useDateSend` sahip/oturum kapıları, K-03 ilk bağlam (`useActionContext`; work `use-subtask-edit.ts` / `use-note-actions.ts` aynı sınıf), Ö-06 sahte sunucu pin hizası + gerçek kardeş kanal senaryosu (mutasyonla doğrulandı).
 - **Ürün sahibi kararları:** E-03C-63 ve E-03C-68 kodlandığı haliyle onaylandı. Pin kararı yukarıda ("Bekleyen").
+
+### Kapanış kaydı — 2026-11-10 (F3 KAPANDI, Codex tur 2 KOŞULLU UYGUN)
+
+- **Hüküm:** tur 2 KOŞULLU UYGUN (HEAD `768f22b`, main `7f8740e`); yeni engelleyici yok. Tur 1'den Ö-01, Ö-02, Ö-05, Ö-06, K-01, K-03, K-05 kapandı; Ö-03/Ö-04 kısmen; Ö-07/K-04 açık; K-02 kalanları bu PR'da düzeltildi (#75 birleşti `7f8740e`, `rapor-F3.md` yayın çelişkisi, 03c E-03C-27/41 satırları).
+- **Koşulların devri (koordinatör kararı):**
+  - **Pin aşamasının ilk işi (F4'ten önce):** Codex tur 2 devri — **Ö-03** (açık alt görev satırlarına mutlak `aria-rowindex`, ana satırların mantıksal sırası; iki açık blok + pencere ortasından sanallaştırma ile bütün render edilmiş satır indeks/sıra ölçümü), **Ö-04** (sürükleme ön GET beklerken kapsam A→B + farklı tarihli yanıt → PATCH, ekran bildirimi ve ek geçersizleme sıfır), **Ö-08** (ortak `useProtectedMutation`: başarı yanıtı → geçersizleme GET'i beklet → sahibi sök → GET'i bırak; uzlaştırma tamamlanır, dönen sonuç `reachesOwner=false`, ekran kancaları çalışmaz; sonuç tüketiciye verilmeden sahip yeniden denetlenir — `use-protected-mutation.ts:149–176`, `outcome.ts:202–217`; ortak katmana dokunduğu için F4'ten önce).
+  - **F4 borcu:** Ö-07 (gerçek ekran okuyucu), K-04 (05 panel kapanışında odak dönüşü), E-03C-27/41 görsel nihai kabul (ürün sahibi onayı).
+  - Pin aşaması ve ürün sahibinin F4 onayı ön koşul olarak korunur (`../web-4/README.md`).
 
 ### Bilinen borçlar (F3 kapanışında)
 

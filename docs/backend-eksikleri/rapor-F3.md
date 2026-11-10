@@ -1,6 +1,6 @@
 # Backend devir raporu — F3 kapanışı (WEB-3), 2026-11-10
 
-**Tür:** faz kapanış devri (`rapor-F<N>.md` kalıbı). **Pin:** `v0.11.0-api` (F3 boyunca değişmedi; backend F2 paketi — BE-052/051/053/019/056/107 — ayrı depoda hazır ama **yayımlanmadı**, bu yüzden web hâlâ "Şimdilik" yollarını kullanıyor).
+**Tür:** faz kapanış devri (`rapor-F<N>.md` kalıbı). **Pin:** `v0.11.0-api` (F3 boyunca değişmedi; backend F2 paketi — BE-052/051/053/019/056/107 — ayrı depoda hazır ve **yayımlandı** — `v0.13.0-api`/`v0.14.0-api`/`v0.15.0-api`; pin bilerek `v0.11.0-api`'de kaldı (ürün kararı, F3 bu pinle kapanır), bu yüzden web hâlâ "Şimdilik" yollarını kullanıyor).
 **Önceki raporlar:** [`rapor-F2.md`](rapor-F2.md) (F3 öncelik sırası, §2) · [`rapor-F1.md`](rapor-F1.md) · [`rapor-F0.md`](rapor-F0.md) · [`rapor-tespit-2026-11-08.md`](rapor-tespit-2026-11-08.md) (paketlerin uç/alan önerileri ve kabul ölçütleri; burada paket numarasıyla anılır, tam metin oradadır).
 **Kaynak:** [`kayit.md`](kayit.md) · PR #65–#73 gövdeleri · [`../yurutme/web-3/ilerleme.md`](../yurutme/web-3/ilerleme.md) · [`../ekranlar/03c-zaman-cizelgesi/README.md`](../ekranlar/03c-zaman-cizelgesi/README.md) (kabul kanıtları) · [`../ekranlar/09-toplantilar/eksikler.md`](../ekranlar/09-toplantilar/eksikler.md) ve [`backend.md`](../ekranlar/09-toplantilar/backend.md) (F4 ihtiyaçları).
 **Not:** Uç/alan adları **öneridir**; backend onayı ve sözleşme etiketi gelene kadar web uydurmaz.
@@ -20,7 +20,9 @@ F3, rapor-F2 §2'deki "yeni uç beklemeden açılabilir" varsayımını doğrula
 
 ## 2. Pin yükseldiğinde web tarafında yapılacaklar
 
-**Durum ve karar (2026-11-10).** Backend `v0.13.0-api`, `v0.14.0-api` ve `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı: F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** — F0–F3 modüllerine dokunur ve kendi Codex kapısı vardır. **F4 ön koşulu: pin aşaması kapandı.** Aşağıdaki tablo o aşamanın iş listesidir (ayrı bir `docs/yurutme/` klasörü açılmaz).
+**Durum ve karar (2026-11-10).** Backend `v0.13.0-api`, `v0.14.0-api` ve `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı: F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** — F0–F3 modüllerine dokunur ve kendi Codex kapısı vardır. **F4 ön koşulu: pin aşaması kapanmış olmalı (şu an açık).** Aşağıdaki tablo o aşamanın iş listesidir (ayrı bir `docs/yurutme/` klasörü açılmaz).
+
+**Pin aşamasının ilk işi — Codex WEB-3 tur 2 devri (F3 KAPANDI 2026-11-10, KOŞULLU UYGUN; F4'ten önce):** **Ö-03** (açık alt görev satırlarına mutlak `aria-rowindex`, ana satırların mantıksal sırası; iki açık blok + pencere ortasından sanallaştırma ile bütün render edilmiş satır indeks/sıra ölçümü), **Ö-04** (sürükleme ön GET beklerken kapsam A→B + farklı tarihli yanıt → PATCH, ekran bildirimi ve ek geçersizleme sıfır), **Ö-08** (ortak `useProtectedMutation`: başarı yanıtı → geçersizleme GET'i beklet → sahibi sök → GET'i bırak; uzlaştırma tamamlanır, dönen sonuç `reachesOwner=false`, ekran kancaları çalışmaz; sonuç tüketiciye verilmeden sahip yeniden denetlenir — `use-protected-mutation.ts:149–176`, `outcome.ts:202–217`; ortak katmana dokunduğu için F4'ten önce). Ö-07/K-04/E-03C-27/41 F4 borcudur.
 
 Backend notları (pin aşamasına): kesilme satır sayısından değil `X-Result-Truncated` başlığından okunur (tam 200'de başlık yok, "tam 200 ise uyarı" sezgisi kalkar); uzatma tekrarında `replayed:true` döner ve `dates_revision` **ilk sonucun** sürümüdür; aktarım kimliği `fields[field=account_id]` eşleşmesinin `message` değerinden alınır.
 
