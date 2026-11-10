@@ -240,5 +240,24 @@ export const trTimeline = {
         cancel: 'Kapat',
       },
     },
+    // W96 — 03d alt görev (E-03C-13, 33, 44…53, 73)
+    subtasks: {
+      mode: {
+        label: 'Alt görev gösterimi',
+        closed: 'Kapalı',
+        all: 'Tümünü aç',
+      },
+      show: '{label} alt görevlerini göster',
+      hide: '{label} alt görevlerini gizle',
+      group: '{label} alt görevleri',
+      loading: 'Alt görevler yükleniyor',
+      empty: 'Alt görev yok',
+      noDate: 'Tarih yok',
+      statusOpen: 'Açık',
+      statusDone: 'Tamamlandı',
+      progress: 'Biten alt görev oranı',
+      count: '{done}/{total}',
+      countLabel: '{done} / {total} alt görev bitti',
+    },
   },
 } as const
