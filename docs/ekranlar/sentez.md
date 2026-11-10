@@ -1,6 +1,6 @@
 # Ekran tespitleri — koordinatör sentezi
 
-**Durum:** tamamlandı (tespit) · **Tarih:** 2026-11-08 · **Kapsam:** 11 grup, 66 dosya + ortak kurallar, ~7.700 satır · **Pin:** `v0.11.0-api`
+**Durum:** tamamlandı (tespit) · **Tarih:** 2026-11-08 · **Kapsam:** 11 grup, 66 dosya + ortak kurallar, ~7.700 satır · **Pin:** `v0.11.0-api` (tespit anı) · **Güncel durum (2026-11-10):** F0–F3 kapandı; pin aşaması KAPANDI (`v0.15.0-api`, WEB-P #77–#86, Codex KOŞULLU UYGUN — `../reviews/WEB-P-codex.md`); 09 F4-S1…S10 ürün sahibince cevaplandı (`ortak-kurallar.md` §12 P21–P30), sırada F4
 **Üretim:** tasarım analisti (Opus) → backend analisti (Opus) → bağımsız denetçi (Sonnet) → **Codex kapısı** (`gpt-6-astra`, salt okunur; hüküm **KOŞULLU UYGUN**, [`../reviews/EKRANLAR-codex.md`](../reviews/EKRANLAR-codex.md)) → Codex kararlarının grup dosyalarına işlenmesi (§7).
 **Çıktılar:** grup dosyaları (`denetlendi`), [`ortak-kurallar.md`](ortak-kurallar.md), eksik kaydı `../backend-eksikleri/kayit.md` (BE-001…035 düzeltildi, **BE-036…BE-106** eklendi), backend devir raporu [`../backend-eksikleri/rapor-tespit-2026-11-08.md`](../backend-eksikleri/rapor-tespit-2026-11-08.md), yürütme sözleşmesi `../yurutme/web-0/ortak-sozlesme.md` adım 2a.
 

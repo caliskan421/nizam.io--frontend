@@ -116,7 +116,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -141,6 +141,17 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P18 | 03c tarih düzenleme, talep ve geri alma (2026-11-10, Codex §6 #11) | **Önerilen varsayılan.** Mevcut yetkisi olan doğrudan tarih düzenler (Admin "Kaydet" + bekleyen talepte "Onayla/Reddet"); Koordinatör ayrı "Tarih talebi gönder" düğmesiyle talep açar; Üye düzenlemez. "İptal et" yalnız gönderim öncesi 5 sn; gönderilmiş zincir değişikliğine otomatik "geri al" yok. Sürükleme ayrıca P8. |
 | P19 | 03c oklar, şerit ve dışa aktarım (2026-11-10, Codex §6 #12) | **Önerilen varsayılan.** Oklar yalnız iki ucu da görünür görevler arasında; bağımlılık ekle/kaldır Admin + Koordinatör, üye salt görür; şerit "görev aralığı ‹tarih› – ‹tarih›" (sezon değil); PDF/görsel dışa aktarım istemcide SVG'den pilotla doğrulanır, hazır değilse devre dışı "yakında". |
 | P20 | 03 E-03-14 "Talepleri incele" (2026-11-10) | **Ürün sahibi kararı.** Yalnız yönetici; Görevler listesinde mevcut tarih talebi süzgecini (E-03-09, URL `talep`) açar; zaman çizelgesine gitmez, yeni uç yok. Faz notu/devre dışı metni kalkar. |
+| P21 | 09 F4-S1 video şeridi, Canlı/Bekliyor, 09d/09e, "konferans kapanır" (2026-11-10) | **Ürün sahibi kararı: gizli.** Konferans şeridi, sahte Canlı/Bekliyor, silme cümlesindeki "konferans kapanır" ve görüşme rotaları (09d/09e) F4'te çizilmez; gerçek sağlayıcı durumu W7'de bağlanır (KR-26). |
+| P22 | 09 F4-S2 sağlayıcı adı (2026-11-10) | **Ürün sahibi kararı: gösterilmez.** Bilgi kartında sağlayıcı adı ("LiveKit" vb.) ve "Konferans" satırı kurulmaz. |
+| P23 | 09 F4-S3 kişi seçici (2026-11-10) | **Ürün sahibi kararı: tasarımdaki özel kişi seçici** (öneri ortak `shared/ui` seçiciydi; ürün sahibi farklı seçti). Katılımcı ekleme ve yeni toplantıdaki seçici tasarımdaki biçimle kurulur; aday kuralı K21 (K için kendi departmanlarının üyeleri, ŞY seçemez) değişmez. |
+| P24 | 09 F4-S4 "Kişiler" davet modu (2026-11-10) | **Ürün sahibi kararı: KURULUR** (öneri hayırdı; ürün sahibi farklı seçti). Backend `invite_mode` (`coordinatorship`/`person`) `v0.15.0-api` pininde var (v0.12+); `person` kipinde `members_included: true` ve `department_ids` 422, davet kipi sonradan değişmez. **F4 açılışında yeterlilik doğrulanır** (aday kaynağı BE-067, görünürlük ve koordinatör mesajı davranışı). |
+| P25 | 09 F4-S5 düzenle formu (2026-11-10) | **Ürün sahibi kararı: oluşturma alanlarıyla aynı** (başlık, tarih+saat, "Üyeler dahil"); koordinatörlük kümesini yalnız yönetici değiştirir, K'ya gizli. |
+| P26 | 09 F4-S6 toplantı dosyası (2026-11-10) | **Ürün sahibi kararı: F4 kapsamı dışı.** Toplantıya dosya eklenmez. |
+| P27 | 09 F4-S7 tarih kuralı metni (2026-11-10) | **Ürün sahibi kararı: düzeltilir.** Metin "Bugünden önceki günlere toplantı açılamaz."; "tarih yalnız ileri alınabilir" kalkar, istemci ek kural koymaz. |
+| P28 | 09 F4-S8 not sınırı (2026-11-10) | **Ürün sahibi kararı: sayaç "N / 5000"** (sözleşme esas; tasarımdaki 2000 değil). |
+| P29 | 09 F4-S9 liste tarih süzgeci (2026-11-10) | **Ürün sahibi kararı: BAĞLANIR** (öneri hayırdı; güncellendi). `listMeetings` `from`/`to` (`YYYY-MM-DD`, kurulum saat dilimi, v0.12+; `v0.15.0-api` pininde var) kullanılır. |
+| P30 | 09 F4-S10 yetki kaynağı (2026-11-10) | **Ürün sahibi kararı: evet.** Toplantı eylem görünürlüğü meetings README §3/§4 kurallarından kodlanır (`capabilities.ts`); yol haritasına bu istisna yazılır (BE-036 madde 7 belge paketi gelince kaynak değişir). |
+| P31 | Program avatar renkleri (2026-11-10) | **Ürün sahibi kararı: onaylandı.** `avatar-6/7/8` = `#4fd1c5`, `#ff6b6b`, `#94a3b8` kalır. |
 | P8 | Gantt sürükleme (F3) | **Koordinatörde talep, adminde doğrudan.** Koordinatör sürüklemesi `requestDateChange` açar ("değişiklik onaya gider" metni kalır); admin sürüklemesi `updateWorkItem`/`extendWorkItem`; üye sürükleyemez. "İptal et" = gönderim öncesi 5 sn gecikme. Sözleşme koordinatöre doğrudan izin verir; bu ürün tercihidir ve `capabilities.ts`'te kodlanır. |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
