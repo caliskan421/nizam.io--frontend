@@ -11,7 +11,9 @@
  *    ✕ yalnız bildirimi gizler. Sahip sökülünce, kapsam ya da oturum değişince bekleyen gönderim
  *    iptal (`useDelayedSend`).
  *  - Aynı görevde art arda bırakma/klavye adımı tek bekleyen değişiklikte birleşir (`before`
- *    ilk durumdur). İyimser güncelleme yok: çubuk sunucu yanıtı + yeniden okumayla değişir.
+ *    ilk durumdur). Başka görevdeki değişiklik önceki görevin 5 sn penceresini KESMEZ
+ *    (CX-F3-Ö-01): görev başına ayrı süre/iptal; bildirim en son değişeni gösterir ve "İptal et"
+ *    onu iptal eder (`useDelayedSend`). İyimser güncelleme yok: çubuk sunucu yanıtı + yeniden okumayla değişir.
  */
 import { computed, shallowRef, type ComputedRef, type Ref } from 'vue'
 
@@ -157,14 +159,14 @@ export function useDateChange(options: DateChangeOptions): DateChangeApi {
     edge: GanttEdge,
     pick: (base: DayRange) => DayRange | null,
   ): boolean {
-    const current = delayed.pending.value
-    const held = current?.key === task.work_item_id ? current.payload : null
+    // Bekleyen, gösterilen değil ANAHTARIN bekleyenidir (başka görevin bildirimi öndeyken de).
+    const held = delayed.peek(task.work_item_id)?.payload ?? null
     const result = plan(task, factsOf(face, task), held, pick)
     if (result.kind === 'schedule') {
       delayed.schedule(task.work_item_id, result.change)
       announcement.value = announce(result.change, edge)
     } else if (result.kind === 'revert') {
-      delayed.cancel()
+      delayed.cancel(task.work_item_id)
       announcement.value = dragText('timeline.drag.announce.cancelled', { title: task.title })
     }
     return result.kind !== 'refuse'

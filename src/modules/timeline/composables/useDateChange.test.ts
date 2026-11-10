@@ -45,12 +45,13 @@ const FACTS: Record<Who, { face: GanttFace; companyAdmin: boolean; coordinator: 
 }
 const SCOPES = { admin: ADMIN_SCOPE, coordinator: COORD_SCOPE, member: MEMBER_SCOPE }
 
-function setup(who: Who, task: Partial<GanttTask> = {}) {
+function setup(who: Who, task: Partial<GanttTask> = {}, extra: GanttTask[] = []) {
   const h = harness(SCOPES[who])
   const t = ganttTask(task)
+  const all = [t, ...extra]
   const api = h.run(() =>
     useDateChange({
-      taskOf: (id) => (id === t.work_item_id ? t : undefined),
+      taskOf: (id) => all.find((x) => x.work_item_id === id),
       face: () => FACTS[who].face,
       actorFacts: (face) => ({
         face,
@@ -273,6 +274,172 @@ describe('gecikmeli gönderim — iptal ve yaşam döngüsü', () => {
     expect(api.preview.value).toBeNull()
     await elapse(10_000)
     expect(allWrites()).toEqual([])
+  })
+})
+
+const EXTEND2 = '/v1/work-items/w2/extend'
+
+describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal penceresi korunur', () => {
+  const two = () => setup('admin', {}, [ganttTask({ work_item_id: 'w2', title: 'Plan' })])
+  const dropW2 = (day: string) => ({ ...drop('end', day), workItemId: 'w2' })
+
+  it('A sonra B değişince A hemen gitmez; her görev kendi süresinde TEK istekle gider', async () => {
+    server.use(
+      http.post(`${ORIGIN}${EXTEND}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+      http.post(`${ORIGIN}${EXTEND2}`, () => json({ cascade_count: 0, new_end_on: '2026-11-15' })),
+    )
+    const { api } = two()
+    api.onEdgeDrag(drop('end', '2026-11-15'))
+    await vi.advanceTimersByTimeAsync(1000)
+    api.onEdgeDrag(dropW2('2026-11-15'))
+    await vi.advanceTimersByTimeAsync(3900)
+    expect(sent('POST', EXTEND)).toHaveLength(0)
+    await elapse(100)
+    expect(sent('POST', EXTEND)).toHaveLength(1)
+    expect(sent('POST', EXTEND2)).toHaveLength(0)
+    await elapse(1000)
+    expect(sent('POST', EXTEND2)).toHaveLength(1)
+    expect(sent('POST', EXTEND)).toHaveLength(1)
+  })
+
+  it('iki görevde de süre dolmadan iptal → sıfır yazma (bildirim en sonuncuyu, sonra öncekini gösterir)', async () => {
+    const { api } = two()
+    api.onEdgeDrag(drop('end', '2026-11-15'))
+    await vi.advanceTimersByTimeAsync(1000)
+    api.onEdgeDrag(dropW2('2026-11-15'))
+    expect(api.snack.value?.props.title).toBe('Plan')
+    api.cancel()
+    expect(api.snack.value?.props.title).toBe('Rapor')
+    api.cancel()
+    expect(api.snack.value).toBeNull()
+    await elapse(10_000)
+    expect(allWrites()).toEqual([])
+  })
+
+  it('klavye adımı da aynı yol: B adımı A penceresini kesmez; B için geri adım yalnız B’yi düşürür', async () => {
+    const { api } = two()
+    expect(api.nudge('w1', 'end', 1)).toBe(true)
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(api.nudge('w2', 'end', 1)).toBe(true)
+    expect(api.nudge('w2', 'end', -1)).toBe(true) // B geri alındı
+    expect(api.snack.value?.props.title).toBe('Rapor')
+    await vi.advanceTimersByTimeAsync(3900)
+    expect(allWrites()).toEqual([])
+    await elapse(100)
+    expect(sent('POST', EXTEND)).toHaveLength(1)
+    expect(sent('POST', EXTEND2)).toHaveLength(0)
+  })
+
+  it('A bekleyenken A’da yeni adım A’yı birleştirir (B’ye dokunmaz)', async () => {
+    const { api } = two()
+    api.nudge('w1', 'end', 1)
+    api.nudge('w2', 'end', 1)
+    api.nudge('w1', 'end', 1)
+    await elapse()
+    expect(sent('POST', EXTEND)[0]?.body).toEqual({ days: 2 })
+    expect(sent('POST', EXTEND2)).toHaveLength(1)
+  })
+})
+
+describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
+  /** Taze görev okuması bir kapıya takılır; sahip bu sırada sökülür. */
+  async function detachedDuring(read: () => Response | Promise<Response>) {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, async () => {
+        await gate
+        return read()
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => json(workItem())),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
+    expect(sent('GET', ITEM)).toHaveLength(1)
+    resetHarness() // sahip (sayfa) sökülür; okuma uçuşta
+    release()
+    await vi.advanceTimersByTimeAsync(100)
+    return spy
+  }
+
+  it('sahibi sökülmüş sürükleme: tarih uyuşmazlığı ek geçersizleme ve bildirim üretmez', async () => {
+    const spy = await detachedDuring(() => json(workItem({ end_on: '2026-11-20' })))
+    expect(spy).not.toHaveBeenCalled()
+    expect(useToast().queue.value).toEqual([])
+    expect(sent('PATCH', ITEM)).toHaveLength(0)
+  })
+
+  it('sahibi sökülmüş sürükleme: okuma hatası bildirim üretmez, yazma başlamaz', async () => {
+    const spy = await detachedDuring(() => errorEnvelope('work.item_not_found', 404))
+    expect(spy).not.toHaveBeenCalled()
+    expect(useToast().queue.value).toEqual([])
+    expect(sent('PATCH', ITEM)).toHaveLength(0)
+  })
+
+  it('sahibi sökülmüş sürükleme: 409 sonrası yeniden okuma/bildirim yok (detached)', async () => {
+    let reads = 0
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => {
+        reads += 1
+        return json(
+          reads === 1 ? workItem() : workItem({ end_on: '2026-11-20', dates_revision: 8 }),
+        )
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => {
+        resetHarness() // yazma uçuştayken sahip söküldü
+        return errorEnvelope('work.edit_conflict', 409)
+      }),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('start', '2026-11-03'))
+    await elapse()
+    expect(spy).not.toHaveBeenCalled()
+    expect(useToast().queue.value).toEqual([])
+  })
+
+  it('yarışta oluşan work.edit_conflict: çakışan ALANLAR adıyla bildirilir, görev yeniden okunur', async () => {
+    let reads = 0
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => {
+        reads += 1
+        // 1: ön okuma (tarihler uyumlu). Sonrası: arada başkası bitişi değiştirdi.
+        return json(
+          reads === 1 ? workItem() : workItem({ end_on: '2026-11-20', dates_revision: 8 }),
+        )
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
+    )
+    const { h, api } = setup('admin')
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    api.onEdgeDrag(drop('end', '2026-11-05'))
+    await elapse()
+    expect(sent('PATCH', ITEM)).toHaveLength(1) // kör tekrar/otomatik yeniden gönderim yok
+    const [toast] = useToast().queue.value
+    expect(toast?.tone).toBe('danger')
+    expect(toast?.message).toContain('bitiş')
+    expect(toast?.message).toContain('Rapor')
+    expect(toast?.message).not.toContain('sunucu iletisi')
+    expect(spy).toHaveBeenCalled()
+  })
+
+  it('çakışan alan yoksa (yalnız sürüm ilerledi) ortak çakışma bildirimi', async () => {
+    let reads = 0
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, () => {
+        reads += 1
+        return json(reads === 1 ? workItem() : workItem({ dates_revision: 8 }))
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
+    )
+    const { api } = setup('admin')
+    api.onEdgeDrag(drop('end', '2026-11-05'))
+    await elapse()
+    const [toast] = useToast().queue.value
+    expect(toast?.tone).toBe('danger')
+    expect(toast?.message).not.toContain('bitiş')
   })
 })
 

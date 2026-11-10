@@ -146,6 +146,8 @@ export const trTimeline = {
       },
       datesChanged:
         'Görevin tarihleri bu arada değişti; değişiklik gönderilmedi. Güncel tarihleri görüp yeniden deneyin.',
+      editConflict:
+        '{title}: {fields} bu arada başkası tarafından değiştirildi; değişiklik gönderilmedi. Görev panelinden güncel değerlere göre yeniden kaydedin.',
     },
     // W92 — kendi SVG Gantt çekirdeği (E-03C-21…43). Yalnız bu alt dalı W92 ekler.
     gantt: {

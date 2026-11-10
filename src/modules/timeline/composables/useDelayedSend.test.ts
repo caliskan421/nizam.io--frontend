@@ -94,15 +94,64 @@ describe('useDelayedSend — 5 sn gecikmeli gönderim', () => {
     expect(send.mock.calls[0]?.[0]).toBe('b')
   })
 
-  it('başka anahtar öncekini HEMEN gönderir (sessizce düşmez)', async () => {
+  it('başka anahtar öncekinin iptal penceresini KESMEZ: her görev kendi süresinde, tek istekle gider', async () => {
+    const { api, send } = setup()
+    api.schedule('w1', 'a')
+    await vi.advanceTimersByTimeAsync(1000)
+    api.schedule('w2', 'b')
+    await vi.advanceTimersByTimeAsync(3999)
+    expect(send).not.toHaveBeenCalled() // w1: 4999 ms geçti, pencere sürüyor
+    await vi.advanceTimersByTimeAsync(1)
+    expect(send.mock.calls.map((c) => c[0])).toEqual(['a'])
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(send.mock.calls.map((c) => c[0])).toEqual(['a', 'b'])
+    await vi.advanceTimersByTimeAsync(20_000)
+    expect(send).toHaveBeenCalledTimes(2)
+  })
+
+  it('iki görevde de süre dolmadan iptal → sıfır yazma; her biri ayrı iptal edilir', async () => {
+    const { api, send } = setup()
+    api.schedule('w1', 'a')
+    await vi.advanceTimersByTimeAsync(1000)
+    api.schedule('w2', 'b')
+    expect(api.pending.value?.key).toBe('w2') // bildirim en son değişikliği gösterir
+    expect(api.cancel()).toBe(true) // "İptal et" gösterileni iptal eder
+    expect(api.pending.value?.key).toBe('w1') // önceki hâlâ iptal edilebilir
+    expect(api.cancel()).toBe(true)
+    expect(api.pending.value).toBeNull()
+    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS * 2)
+    expect(send).not.toHaveBeenCalled()
+  })
+
+  it('anahtarla iptal ve bekleyeni anahtarla görme', async () => {
     const { api, send } = setup()
     api.schedule('w1', 'a')
     api.schedule('w2', 'b')
-    await vi.advanceTimersByTimeAsync(0)
-    expect(send).toHaveBeenCalledTimes(1)
-    expect(send.mock.calls[0]?.[0]).toBe('a')
+    expect(api.peek('w1')?.payload).toBe('a')
+    expect(api.cancel('w1')).toBe(true)
+    expect(api.peek('w1')).toBeNull()
+    expect(api.cancel('w1')).toBe(false)
     await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
-    expect(send.mock.calls.map((c) => c[0])).toEqual(['a', 'b'])
+    expect(send.mock.calls.map((c) => c[0])).toEqual(['b'])
+  })
+
+  it('✕ yalnız gösterilen bildirimi gizler; önceki görevin bildirimi görünür kalır', () => {
+    const { api } = setup()
+    api.schedule('w1', 'a')
+    api.schedule('w2', 'b')
+    api.dismiss()
+    expect(api.pending.value).toMatchObject({ key: 'w1', visible: true })
+  })
+
+  it('kapsam değişimi tüm bekleyenleri iptal eder', async () => {
+    const { api, send } = setup()
+    api.schedule('w1', 'a')
+    api.schedule('w2', 'b')
+    useScopeStore().setLens('coordinator')
+    await nextTick()
+    expect(api.pending.value).toBeNull()
+    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS * 2)
+    expect(send).not.toHaveBeenCalled()
   })
 
   it('kapsam değişimi bekleyen gönderimi iptal eder', async () => {
