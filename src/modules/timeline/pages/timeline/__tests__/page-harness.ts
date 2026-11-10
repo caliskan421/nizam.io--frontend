@@ -7,7 +7,6 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, type Component, type VNode } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
-import { vi } from 'vitest'
 
 import { settleQueries, type HeldQuery } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
