@@ -12,7 +12,7 @@ export const trTimeline = {
       stage: 'Zaman çizelgesi alanı',
       loading: 'Zaman çizelgesi yükleniyor',
       loadError: 'Zaman çizelgesi yüklenemedi',
-      ceiling: 'Liste sınıra ulaşmış olabilir; süzgeçle daraltın.',
+      ceiling: 'Liste kesildi: tüm görevler gösterilemiyor. Süzgeçle daraltın.',
       empty: {
         title: 'Zaman çizelgesinde gösterilecek görev yok',
         text: 'Bu kapsamda henüz görev yok. Görev eklendiğinde tarihleriyle burada görünür.',
@@ -144,8 +144,6 @@ export const trTimeline = {
         changed: '{title} tarihleri güncellendi.',
         requested: '{title} için tarih talebi gönderildi. Değişiklik onaya gider.',
       },
-      datesChanged:
-        'Görevin tarihleri bu arada değişti; değişiklik gönderilmedi. Güncel tarihleri görüp yeniden deneyin.',
       editConflict:
         '{title}: {fields} bu arada başkası tarafından değiştirildi; değişiklik gönderilmedi. Görev panelinden güncel değerlere göre yeniden kaydedin.',
     },

@@ -348,17 +348,25 @@ describe('Zaman çizelgesi — tutamaç görünürlüğü (P8, yalnız çağıra
 })
 
 describe('Zaman çizelgesi — tavan, boş, yükleniyor, hata (E-03C-82, 83)', () => {
-  it('199 kalemde uyarı yok; tam 200’de uyarı ve "N+" sayaçlar', async () => {
+  it('kesilme yalnız X-Result-Truncated başlığıyla: 199 ve başlıksız tam 200’de uyarı yok; başlıklı 200’de uyarı ve "N+" sayaçlar', async () => {
     server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, manyTasks(199)))
     const below = await mountPage(TimelinePage, ADMIN_SCOPE)
     expect(below.wrapper.find('[data-testid="timeline-ceiling"]').exists()).toBe(false)
     expect(below.wrapper.get('[data-testid="timeline-summary"]').text()).toContain('199 görev')
     unmountPages()
 
+    // Tam 200 kalem ama başlık yok → kesilme yok (sezgi kalktı).
     server.use(ganttHandler(ADMIN_GANTT, manyTasks(200)))
+    const exact = await mountPage(TimelinePage, ADMIN_SCOPE)
+    expect(exact.wrapper.find('[data-testid="timeline-ceiling"]').exists()).toBe(false)
+    expect(exact.wrapper.get('[data-testid="timeline-summary"]').text()).toContain('200 görev')
+    expect(exact.wrapper.get('[data-testid="timeline-summary"]').text()).not.toContain('200+')
+    unmountPages()
+
+    server.use(ganttHandler(ADMIN_GANTT, manyTasks(200), true))
     const full = await mountPage(TimelinePage, ADMIN_SCOPE)
     expect(full.wrapper.get('[data-testid="timeline-ceiling"]').text()).toBe(
-      'Liste sınıra ulaşmış olabilir; süzgeçle daraltın.',
+      'Liste kesildi: tüm görevler gösterilemiyor. Süzgeçle daraltın.',
     )
     expect(full.wrapper.get('[data-testid="timeline-summary"]').text()).toContain('200+ görev')
     expect(full.wrapper.get('[data-testid="timeline-summary"]').text()).toContain(
