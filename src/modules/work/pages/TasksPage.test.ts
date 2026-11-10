@@ -81,7 +81,7 @@ describe('Görevler › Liste — kapsam ve görünürlük', () => {
     expect(ctx.wrapper.find('[aria-label="Tarih talebi filtresi"]').exists()).toBe(true)
     const band = ctx.wrapper.get('[role="region"]')
     expect(band.text()).toContain('1 tarih değişikliği talebi onay bekliyor · İdari işler')
-    expect(band.get('[data-phase="F3"]').attributes('disabled')).toBeDefined()
+    expect(band.get('[data-testid="request-review"]').attributes('disabled')).toBeUndefined()
   })
 
   it('Admin koordinatörlük süzgeci: tek değer sunucuya, istek sayısı = 1 (K3, fan-out yok)', async () => {
@@ -106,7 +106,9 @@ describe('Görevler › Liste — kapsam ve görünürlük', () => {
     expect(ctx.wrapper.find('[data-testid="department-filter"]').exists()).toBe(false)
     expect(ctx.wrapper.find('[aria-label="Tarih talebi filtresi"]').exists()).toBe(true)
     // Talepleri incele yalnız yöneticide (s.152).
-    expect(ctx.wrapper.get('[role="region"]').find('[data-phase="F3"]').exists()).toBe(false)
+    expect(ctx.wrapper.get('[role="region"]').find('[data-testid="request-review"]').exists()).toBe(
+      false,
+    )
     expect(ctx.wrapper.get('[data-new-task]').attributes('data-dept')).toBe('d1')
     expect(ctx.wrapper.text()).toContain('1 koordinatörlük')
   })

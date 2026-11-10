@@ -2,7 +2,9 @@
 import './tasks.css'
 
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
+import { TIMELINE_ROUTE } from '@/modules/timeline/public'
 import { UiButton, UiIcon } from '@/shared/ui'
 
 import { tasksText } from './messages'
@@ -10,7 +12,8 @@ import { tasksText } from './messages'
 /**
  * Sayfa başlığı (`rp-head`, E-03-03…06). Alt satır yüklenen kümeden; imleç bitmediyse görev
  * sayısı "‹n›+" ve "yüklenen kayıtlar içinde" etiketi (E-03-04, P4, §10). Görünüm seçicide
- * "Zaman çizelgesi" F3'e kadar devre dışı + faz notu (§5; stub yok). "Yeni görev" yalnız
+ * "Zaman çizelgesi" canlı (F3, E-03-05 / E-03C-03): `/zaman-cizelgesi`ye geçer; kapsam (program /
+ * mercek / birim) korunur, liste süzgeçleri taşınmaz. "Yeni görev" yalnız
  * capability s.139 olgusuyla (yetkisizde gizli, P1). Veri yokken (yükleniyor / hata) `summary`
  * `null`: sayı yazılmaz ("0+ görev · 0 kişi" yanıltıcıydı — O5 görsel kusur, W63).
  */
@@ -20,6 +23,7 @@ const props = defineProps<{
   canCreate: boolean
 }>()
 const emit = defineEmits<{ create: [] }>()
+const router = useRouter()
 
 const summaryText = computed(() => {
   const summary = props.summary
@@ -51,9 +55,8 @@ const summaryText = computed(() => {
         <button
           type="button"
           aria-pressed="false"
-          disabled
-          data-phase="F3"
-          :title="tasksText('tasksPage.view.timelineSoon')"
+          data-testid="tasks-view-timeline"
+          @click="router.push({ name: TIMELINE_ROUTE.name })"
         >
           <UiIcon name="gantt" size="sm" />{{ tasksText('tasksPage.view.timeline') }}
         </button>
