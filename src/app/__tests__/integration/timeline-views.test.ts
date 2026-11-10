@@ -2,18 +2,7 @@
 // taşınmaz) ve derin bağlantılar (`secili`, `durum`, `olcek`, `departman`; 08 E-08-86; 03 E-03-54).
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-import {
-  $,
-  $$,
-  boot,
-  click,
-  createBackend,
-  idle,
-  PEOPLE,
-  seedTimeline,
-  teardown,
-  until,
-} from './harness'
+import { $, $$, boot, click, createBackend, idle, seedTimeline, teardown, until } from './harness'
 import {
   ADMIN_ADMIN,
   COORD,

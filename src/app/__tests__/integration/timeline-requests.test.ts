@@ -23,7 +23,6 @@ import {
   ganttReady,
   GANTT_ADMIN,
   GANTT_COORD,
-  panel,
   REQUESTS,
   selectRow,
   tp,

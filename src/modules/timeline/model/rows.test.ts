@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import { link, manyTasks, task } from './__tests__/gantt-fixtures'
-import { buildLayout, groupKey, revealScrollTop, rowAt, rowWindow, type LayoutInput } from './rows'
+import {
+  buildLayout,
+  groupKey,
+  revealScrollTop,
+  rowAt,
+  rowWindow,
+  type LayoutInput,
+  type TaskRow,
+} from './rows'
 
 const NAMES = new Map([
   ['d1', 'Mekanik sistemler'],
@@ -35,7 +43,8 @@ describe('satır düzlemi (grup → görev)', () => {
   it('açık alt görev bloğu: görevin altına n × 32 yer açılır, sonraki satırlar kayar (03d)', () => {
     const closed = buildLayout(input())
     const open = buildLayout(input({ subtaskRows: new Map([['c', 3]]) }))
-    const at = (layout: typeof open, key: string) => layout.rows[layout.indexByKey.get(key)!]!
+    const at = (layout: typeof open, key: string) =>
+      layout.rows[layout.indexByKey.get(key)!] as TaskRow
     expect(at(open, 'c')).toMatchObject({ y: 124, height: 44, subRows: 3, subY: 168 })
     expect(at(open, 'a').y).toBe(at(closed, 'a').y + 3 * 32)
     expect(at(open, 'b').y).toBe(at(closed, 'b').y)

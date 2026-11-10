@@ -27,6 +27,7 @@ import {
   selectRow,
   taskRows,
   tp,
+  type Who,
 } from './timeline-support'
 
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
@@ -60,7 +61,7 @@ interface Expected {
   readonly: boolean
 }
 
-async function check(who: typeof ADMIN_ADMIN, row: string, e: Expected): Promise<void> {
+async function check(who: Who, row: string, e: Expected): Promise<void> {
   const app = await boot({ ...who, path: '/zaman-cizelgesi' })
   await ganttReady(2)
   expect(backend.sent('GET', e.gantt)).toHaveLength(1)

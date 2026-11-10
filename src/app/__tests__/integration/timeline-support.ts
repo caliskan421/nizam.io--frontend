@@ -1,23 +1,26 @@
 // W97a · zaman çizelgesi entegrasyon yardımcıları: kişi/kapsam sabitleri, satır ve panel
 // seçicileri. Hepsi GERÇEK uygulama kökü üstünde (taslak bileşen yok).
-import { PEOPLE, $, $$, click, until } from './harness'
+import { PEOPLE, $, $$, click, until, type BootOptions } from './harness'
 
-export const ADMIN_ADMIN = {
+/** Kişi + hatırlanan kapsam (açılış seçenekleri, yol hariç). */
+export type Who = Pick<BootOptions, 'email' | 'scope'>
+
+export const ADMIN_ADMIN: Who = {
   email: PEOPLE.admin.email,
-  scope: { programId: 'p1', lens: 'admin' as const },
+  scope: { programId: 'p1', lens: 'admin' },
 }
 /** Yönetici, Koordinatör merceğinde (aynı zamanda Mekanik koordinatörü; yetki mercekten bağımsız). */
-export const ADMIN_COORD = {
+export const ADMIN_COORD: Who = {
   email: PEOPLE.admin.email,
-  scope: { programId: 'p1', lens: 'coordinator' as const, departmentId: 'd1' },
+  scope: { programId: 'p1', lens: 'coordinator', departmentId: 'd1' },
 }
-export const COORD = {
+export const COORD: Who = {
   email: PEOPLE.coord.email,
-  scope: { programId: 'p1', lens: 'coordinator' as const, departmentId: 'd1' },
+  scope: { programId: 'p1', lens: 'coordinator', departmentId: 'd1' },
 }
-export const MEMBER = {
+export const MEMBER: Who = {
   email: PEOPLE.member.email,
-  scope: { programId: 'p1', lens: 'member' as const, departmentId: 'd1' },
+  scope: { programId: 'p1', lens: 'member', departmentId: 'd1' },
 }
 
 export const GANTT_ADMIN = '/v1/work-items/gantt/admin'

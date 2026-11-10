@@ -199,8 +199,7 @@ function dateWrites(db: OrgDb) {
 
 /** Talep satırı → sözleşme `DateChangeRequest` (istemci olmayan `requester` düşer). */
 function requestShape(row: DateRequestRow) {
-  const { requester: _requester, ...contract } = row
-  return contract
+  return Object.fromEntries(Object.entries(row).filter(([field]) => field !== 'requester'))
 }
 
 function requestHandlers(db: OrgDb) {
@@ -254,27 +253,30 @@ function requestHandlers(db: OrgDb) {
       const rows = db.dateRequests.filter((r) => r.requester === me.account_id)
       return json({ requests: rows.map(requestShape), total: rows.length })
     }),
-    http.post(`${ORIGIN}/v1/date-change-requests/:id/review`, async ({ request, params }) => {
-      const me = o.actorOf(db, request)
-      if (!me) return envelope('platform.unauthenticated', 401)
-      if (!me.admin) return envelope('work.not_authorized', 403)
-      const row = db.dateRequests.find((r) => r.request_id === params.id)
-      if (!row) return envelope('work.item_not_found', 404)
-      if (row.status !== 'pending') return envelope('work.date_request_already_reviewed', 409)
-      const { decision } = (await request.json()) as { decision: 'approved' | 'rejected' }
-      const found = itemOf(db, row.work_item_id)!
-      row.status = decision
-      found.pending_date_request = null
-      let affected = 0
-      if (decision === 'approved') {
-        found.start_on = row.new_start_on
-        found.end_on = row.new_end_on
-        bump(found)
-        affected = cascade(db, found)
-      }
-      return json({ affected_tasks_count: affected })
-    }),
   ]
+}
+
+function reviewHandler(db: OrgDb) {
+  return http.post(`${ORIGIN}/v1/date-change-requests/:id/review`, async ({ request, params }) => {
+    const me = o.actorOf(db, request)
+    if (!me) return envelope('platform.unauthenticated', 401)
+    if (!me.admin) return envelope('work.not_authorized', 403)
+    const row = db.dateRequests.find((r) => r.request_id === params.id)
+    if (!row) return envelope('work.item_not_found', 404)
+    if (row.status !== 'pending') return envelope('work.date_request_already_reviewed', 409)
+    const { decision } = (await request.json()) as { decision: 'approved' | 'rejected' }
+    const found = itemOf(db, row.work_item_id)!
+    row.status = decision
+    found.pending_date_request = null
+    let affected = 0
+    if (decision === 'approved') {
+      found.start_on = row.new_start_on
+      found.end_on = row.new_end_on
+      bump(found)
+      affected = cascade(db, found)
+    }
+    return json({ affected_tasks_count: affected })
+  })
 }
 
 function dependencyHandlers(db: OrgDb) {
@@ -334,5 +336,11 @@ function dependencyHandlers(db: OrgDb) {
 }
 
 export function timelineHandlers(db: OrgDb) {
-  return [...ganttReads(db), ...dateWrites(db), ...requestHandlers(db), ...dependencyHandlers(db)]
+  return [
+    ...ganttReads(db),
+    ...dateWrites(db),
+    ...requestHandlers(db),
+    reviewHandler(db),
+    ...dependencyHandlers(db),
+  ]
 }
