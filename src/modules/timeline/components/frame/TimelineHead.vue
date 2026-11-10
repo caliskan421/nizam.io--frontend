@@ -10,7 +10,7 @@ import { frameText } from './messages'
 
 /**
  * Sayfa başlığı (E-03C-02…04): "Görevler" + "N görev · N bitti · N gecikmede" (yüklü Gantt
- * yanıtından; tam 200 kalemde "N+" ve "yüklenen kayıtlar içinde"), görünüm segmenti ("Liste" ↔
+ * yanıtından; sunucu kesilme başlığı (`X-Result-Truncated`, BE-019) bildirdiyse "N+" ve "yüklenen kayıtlar içinde"), görünüm segmenti ("Liste" ↔
  * "Zaman çizelgesi", iki rota arası geçiş — kapsam korunur, süzgeç taşınmaz) ve "Yeni görev"
  * (yalnız `canCreateTask`; üye yüzünde yok). `pending` (sözleşme dışı, isteğe bağlı): veri
  * yokken (yükleniyor / hata) sayaç satırı çizilmez — "0 görev" yanıltıcıdır (O5 dersi).

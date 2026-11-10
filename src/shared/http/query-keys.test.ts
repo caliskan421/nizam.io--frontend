@@ -257,6 +257,20 @@ describe('query-keys — §6 tablosu', () => {
     expect(INVALIDATED_BY.report).not.toContain('addWorkItemNote')
   })
 
+  it('CX-P-Ö-03: alt görev yazmaları Gantt satır sayacını, updateUser pano total_admins değerini geçersizler', () => {
+    for (const op of [
+      'createWorkItemSubtask',
+      'updateWorkItemSubtask',
+      'deleteWorkItemSubtask',
+    ] as const) {
+      expect(INVALIDATED_BY.gantt, op).toContain(op)
+      expect(hits(op, [queryKeys.gantt.face(S, 'program')], { workItemId: 'w1' }), op).toEqual([
+        queryKeys.gantt.face(S, 'program'),
+      ])
+    }
+    expect(INVALIDATED_BY.report).toContain('updateUser')
+  })
+
   it('W82a: organizasyon yazması yalnız eylemin programının panosunu vurur (mercek/birimden bağımsız)', () => {
     const adminLens = queryKeys.report.dashboard({ programId: S.programId, departmentId: null })
     const coordLens = queryKeys.report.dashboard({ programId: S.programId, departmentId: 'd9' })

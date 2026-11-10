@@ -139,7 +139,7 @@ Tasarımda hiçbiri yok — K7 ve ortak varsayılanlar:
 | E-05-32 | Çip X | tık | taslaktan kaldır | §4-4 |
 | E-05-33 | Ekle | tık | departman seçici (tasarımda yok) | §4-3 |
 | E-05-34 | Şifre sıfırlama bağlantısı | tık | devre dışı + `designStub('BE-013')` | §4-5 |
-| E-05-35 | Hesabı kilitle | tık | devre dışı + `designStub('BE-012')` | §4-6 |
+| E-05-35 | Hesabı kilitle | tık | canlı — `disableAccount` / `enableAccount` (BE-012, pin v0.15.0-api; istemci onayı) | §4-6 |
 | E-05-36 | Kullanıcıyı sil | tık | onay → silme | §4-7 |
 | E-05-37 | Vazgeç | tık | taslağı at | §4-8 |
 | E-05-38 | Kaydet | tık | taslağı yaz (K5) | §4-2…4 |

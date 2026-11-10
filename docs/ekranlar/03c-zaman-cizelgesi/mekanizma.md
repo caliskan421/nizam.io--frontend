@@ -98,7 +98,7 @@ Yakınlaştır/Uzaklaştır (E-03C-08/09) ölçeği gün ↔ hafta ↔ ay arası
 
 ## 5. Liste davranışı
 
-- **Sayfalama yok.** Üç yüz de ilk 200 kalemi döndürür, imleç ve kesilme bildirimi yoktur (GAP-053). Yanıt tam 200 kalemse "sınıra ulaşmış olabilir" uyarısı (E-03C-82, K4) gösterilir; BE-019 kapanana dek uyarı tek önlemdir.
+- **Sayfalama yok.** Üç yüz de ilk 200 kalemi döndürür, imleç yoktur; kesilme sunucu başlığıyla bildirilir: `X-Result-Truncated: true` (BE-019, pin v0.15.0-api) → tavan uyarısı (E-03C-82). Tam 200 kalem başlıksızsa kesilme YOKTUR, uyarı çıkmaz (kalem sayısından çıkarım yapılmaz).
 - **Sıralama:** tasarım grupta görev kodu sırası izlenimi veriyor (örnekte sıra kod numarasına göre); kesin kural bilinmiyor. **Varsayım:** grup içinde başlangıç günü, eşitlikte kod (doğrulanacak: ürün sahibi sorusu; openapi Gantt yanıt sırası).
 - **Süzme istemcide** (`adminGantt?overdue=true` kullanılmaz: tamamlanmış geç görevi de döndürür, GAP-053; "Geciken" = `lateness.is_overdue`, `backend.md` §4). Süzme 200 kalemlik kümenin içinde yapılır; tavan uyarısı süzgeçten bağımsız ham yanıt sayısına bakar.
 - **Sayaçlar:** alt satır (E-03C-02), grup sayaçları (E-03C-28), sezon histogramı (E-03C-15) yüklenmiş kalemden istemcide hesaplanır (**Varsayım:** (doğrulanacak: openapi `Gantt.tasks`, ürün sahibi sorusu — 200 tavanında doğru sayı kaynağı)). 200 tavanında eksik sayım riski vardır (`ozellikler.md` §7-9).

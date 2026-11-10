@@ -139,7 +139,9 @@ export function useUserCounts(filters: MaybeRefOrGetter<UserCountFilters>) {
               1,
             ),
           ),
-          enabled: !scoped || (f.programId ?? null) !== null,
+          // Koordinatörlük süzgeci seçiliyken iki kapsam AYNI (program+departman) isteğe iner:
+          // programlı okuma kapalı kalır, sayaçlar tek okumadan gelir (CX-P-K-03).
+          enabled: scoped ? !f.departmentId && (f.programId ?? null) !== null : true,
           retry: retryTransient,
           staleTime: ORGANIZATION_STALE_MS,
         }

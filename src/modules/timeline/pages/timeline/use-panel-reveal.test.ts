@@ -31,7 +31,7 @@ function setup(position: 'absolute' | 'static', panelRect: DOMRect, barRect: DOM
     if (arm) reveal.arm()
     selected.value = id
     await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 80))
+    await new Promise((resolve) => setTimeout(resolve, 250))
   }
   return { board, panel, scrollIntoView, ganttScrollBy, select }
 }
@@ -76,5 +76,39 @@ describe('seçimde panel görünür alana getirilir (K-1, K-3)', () => {
     await clear.select('w1', true)
     expect(scrollBy).not.toHaveBeenCalled()
     expect(clear.ganttScrollBy).not.toHaveBeenCalled()
+  })
+})
+
+describe('CX-P-Ö-05: kaydırma sonrası tutamaç panelin altına girmez', () => {
+  it('derin bağlantıyla açılan seçimde kullanıcı çubuğu panelin altına kaydırırsa durunca çubuk dışarı alınır', async () => {
+    const bar = rect(100, 300, 400, 324)
+    const t = setup('absolute', rect(1059, 585, 1399, 884), bar)
+    await t.select('w1', false)
+    expect(t.ganttScrollBy).not.toHaveBeenCalled()
+    // Kullanıcı Gantt'ı kaydırdı: bitiş tutamacı artık panelin altında.
+    t.board.querySelector('.gantt-bar')!.getBoundingClientRect = () => rect(900, 700, 1200, 724)
+    t.board.querySelector('.gantt__scroller')!.dispatchEvent(new Event('scroll'))
+    await new Promise((resolve) => setTimeout(resolve, 260))
+    // Çubuk panelin üstünde kaldığından en küçük hareket sayfa kaydırmasıdır.
+    expect(scrollBy).toHaveBeenCalled()
+    expect(t.ganttScrollBy).not.toHaveBeenCalled()
+  })
+
+  it('seçim kalkınca dinleyiciler bırakılır (kaydırma artık ölçmez)', async () => {
+    const t = setup('absolute', rect(1059, 585, 1399, 884), rect(100, 300, 400, 324))
+    await t.select('w1', false)
+    const ref2 = t.board.querySelector('.gantt__scroller')!
+    t.board.querySelector('.gantt-bar')!.getBoundingClientRect = () => rect(900, 700, 1200, 724)
+    ;(t as unknown as { board: HTMLElement }).board.remove()
+    ref2.dispatchEvent(new Event('scroll'))
+    await new Promise((resolve) => setTimeout(resolve, 260))
+    expect(t.ganttScrollBy).not.toHaveBeenCalled()
+  })
+
+  it('derin bağlantıda yüzen panel çubuğu örtüyorsa çubuk dışarı alınır (odak çalınmaz)', async () => {
+    const t = setup('absolute', rect(1059, 585, 1399, 884), rect(900, 700, 1200, 724))
+    await t.select('w1', false)
+    expect(scrollBy).toHaveBeenCalled()
+    expect(document.activeElement).not.toBe(t.panel)
   })
 })
