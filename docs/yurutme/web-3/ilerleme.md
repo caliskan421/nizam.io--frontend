@@ -12,7 +12,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a — Zaman çizelgesi veri katmanı (W91) | **Tamam** (2026-11-10) | #66 `61c8420` |
 | O2b — Gantt çekirdeği, çerçeve, panel, sürükleme, 03d (W92–W96) | **Tamam** (2026-11-10; birleştirme sırası W92 → W93 → W94 → W96 → W95) | #67 `b83e2c6`, #68 `846b2d5`, #69 `cebc8a7`, #70 `cc16afb`, #71 `ee6de60` |
 | O3 — Entegrasyon turu (W97a + W97b devri) | **Tamam** (2026-11-10; senaryolar 1–10, devir (11)–(15)) | #72 `be4b8a5`, #73 `dc3f84f` |
-| O4 — Kapanış | **Belgeler tamam** (rapor-F3, kabul tabloları, F4 kabul tablosu, `web-4/` iskeleti); **doğrulama (`dogrulama-F3.md`) ve Codex kapısı bekliyor** | bu PR |
+| O4 — Kapanış | **Belgeler ve doğrulama (`dogrulama-F3.md`) tamam; Codex tur 1 KOŞULLU UYGUN (2026-11-10); düzeltmeler W98 (#74 `90cf838`) + W99 (#75, CI'da/birleşiyor); Codex tur 2 + kapanış PR bekliyor** | #74 `90cf838`, #75 |
 
 ## Devralınan (WEB-2 O5)
 
@@ -25,8 +25,9 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 ## Bekleyen (O4 sonrası, koordinatör)
 
-- **O4 Codex kapısı bekliyor:** `codex exec -s read-only` tek koşum henüz koşmadı; hüküm `docs/reviews/WEB-3-codex.md` (dosya henüz yok). Koşulları kapatılana dek F3 "kapandı" denmez.
-- **Doğrulama:** `dogrulama-F3.md` (paralel işçi, ayrı dal) — tam kapı, iki tema × 390/1024/1440 görsel tur, Admin/Koordinatör/Üye turu, sürükleme + gecikmeli gönderim, 250+ görev kaydırma ölçümü, gerçek imaj tanığı. 03c açık 5 "geçici kabul" satırı (E-03C-19, 27, 41 görsel; E-03C-63, 68 metin) bu sonuçla kapanır.
+- **Codex tur 2 + kapanış PR:** tur 1 hükmü KOŞULLU UYGUN (Ö-01…Ö-07, K-01…K-05; engelleyici yok). Düzeltmeler: W98 #74 (doğrulama K-1…K-7, Ö-02, Ö-03, Ö-05; K-8 bilinçli kabul) ve W99 #75 (Ö-01, Ö-04, K-03, Ö-06). Belge düzeltmeleri bu PR'da (K-01 pano istisnası, K-02 kayıtlar). Tur 2 `codex exec -s read-only`; hüküm `docs/reviews/WEB-3-codex.md` (dosya henüz yok). UYGUN gelene dek F3 "kapandı" denmez.
+- **Doğrulama birleşimi işlendi:** `dogrulama-F3.md` (207 PNG, gerçek imaj tanığı) kusur tablosu K-1…K-8 → K-1…K-7 PR #74 ile kapandı, K-8 bilinçli kabul. 03c: E-03C-63/68 `kabul (ürün sahibi 2026-11-10)`; E-03C-19 kabul; **E-03C-27 ve 41 AÇIK** (piksel yan yana tur yapılamadı; ürün sahibi görsel onayı).
+- **Pin aşaması (F3'ten sonra, F4'ten önce):** Backend `v0.13.0-api`, `v0.14.0-api`, `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı (2026-11-10): F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** (F0–F3 modüllerine dokunur, kendi Codex kapısı vardır). Backend notları: kesilme satır sayısından değil `X-Result-Truncated` başlığından okunur (tam 200'de başlık yok); uzatma tekrarında `replayed:true` ve `dates_revision` ilk sonucun sürümüdür; aktarım kimliği `fields[field=account_id]` eşleşmesinin `message` değerinden alınır. Bu aşama için `docs/yurutme/` altında yeni klasör açılmaz; ön koşul `../web-4/README.md`'de ve `rapor-F3.md` §2'de kayıtlıdır.
 - **Yönetim deposu:** `program/DURUM.md` tek satır + `gunluk/` satırı koordinatörde (bu depodan yazılmaz).
 - **F4 ürün sahibi sorusu:** 09 kabul tablosundaki F4-S1…S10 (cevapsız → geçici kabul; `../../ekranlar/09-toplantilar/README.md`). F4 ürün sahibinin uyarısı/onayı olmadan açılmaz.
 
@@ -67,6 +68,11 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 - **Geçici kabul yeniden değerlendirme (03c):** 20 "geçici kabul (koordinatör)" hücresi (19 tablo satırı + 1 satır dışı varsayım) → **15'i `kabul (koordinatör, F3 kapanışı)`** (kodlandığı haliyle, test adlarıyla); **5'i AÇIK:** E-03C-19, 27, 41 (tasarım artboard farkı → görsel yan yana tur, `dogrulama-F3.md`), E-03C-63, 68 (Admin/Koordinatör bildirim ve yardım metinleri → ürün sahibi metin onayı). Düzeltme: E-03C-56 hedefi `/gorevler?gorev=‹id›` (03'ün gerçek parametresi; belgede `secili` yazıyordu).
 - **Kod değişikliği yok** (yalnız `docs/**`). Codex kapısı henüz koşmadı → **O4 Codex kapısı bekliyor**; `docs/reviews/WEB-3-codex.md` bu çalışmada oluşturulmadı.
 
+### O4 Codex tur 1 sonrası — 2026-11-10 (koordinatör kaydı)
+
+- **Hüküm:** KOŞULLU UYGUN (HEAD `8e582d6`). **W98 (#74 `90cf838`):** doğrulama K-1…K-7 + Codex Ö-02 (uzantı SVG'de), Ö-03 (tek sekme durağı, alt görev `aria-level` 3, `aria-rowcount`), Ö-05 (panel görünür alanda; dar ekranda kaydırma + odak); K-8 bilinçli kabul. **W99 (#75):** Ö-01 görev başına zamanlayıcı, Ö-04 `useDateSend` sahip/oturum kapıları, K-03 ilk bağlam (`useActionContext`; work `use-subtask-edit.ts` / `use-note-actions.ts` aynı sınıf), Ö-06 sahte sunucu pin hizası + gerçek kardeş kanal senaryosu (mutasyonla doğrulandı).
+- **Ürün sahibi kararları:** E-03C-63 ve E-03C-68 kodlandığı haliyle onaylandı. Pin kararı yukarıda ("Bekleyen").
+
 ### Bilinen borçlar (F3 kapanışında)
 
 1. **05 panel kapanışında odak satıra dönmez** (05 kullanıcı satırı odaklanabilir değil).
@@ -75,4 +81,9 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 4. **03d alt görev bloğu satır sayısı** liste gelene kadar 1'dir (kısa kayma); BE-051 (`subtask_counts`) bağlanınca sayıdan hesaplanır (`rapor-F3.md` §2).
 5. **W97b (12) kararı:** `DepartmentForm`'da kapsam değişiminde sayfada bağlı kalınınca başarı bildirimi + `saved` davranışı; ürün sahibi aksini söylerse güncellenir.
 6. **Yeni dersler → F4 sözleşmesi:** bkz. `../web-4/ortak-sozlesme.md` KESİN 28–32.
+7. **Ö-07 gerçek ekran okuyucu** (VoiceOver + Safari / NVDA + Firefox, özellikle açık alt görevler ve sanallaştırma) F3'te yapılmadı → F4/pin aşaması borcu; ürün sahibine VoiceOver turu önerildi, cevap bekleniyor.
+8. **05 panel kapanışında odak dönüşü (Codex K-04)** F4 ortak odak işinde kapanır.
+9. **Gantt iç kaydırıcıda panel örtmesi denenmedi** (W98 sonrası) ve **tam ekranda ölçülmedi** (başsız Chromium'da `Esc`/tema düğmesi; `dogrulama-F3.md` §7). Çok gruplu 250 görev kaydırma da ölçülmedi.
+10. **`password.test.ts` bir kez kırmızı** koştu (olası kararsız test; yeniden üretilmedi) — izlenir, tekrarında ayrı iş.
+11. **03c E-03C-27 / 41** piksel düzeyinde yan yana görsel onayı (ürün sahibi).
 

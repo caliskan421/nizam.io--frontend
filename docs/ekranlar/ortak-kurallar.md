@@ -72,13 +72,15 @@ Tek anahtar fabrikası `shared/http/query-keys.ts` (F0, `scopedKey()` üzerine).
 | **görev bağımlılıkları** | `scoped(['work-items', id, 'dependencies'])` — 03 ve 03c **aynı anahtarı** kullanır | addDependency, removeDependency |
 | Gantt | `scoped(['gantt', face])` | tarih uçları, bağımlılık uçları |
 | tarih talepleri | `scoped(['date-requests', filters])` | requestDateChange, reviewDateChangeRequest, deleteDateChangeRequest |
-| pano | `scoped(['report','dashboard'])`, `scoped(['report','dashboard','coordinatorships'])` | **görev (work) yazmaları geçersizlemez** (odakta tazele); **organizasyon yazmaları** (üyelik, koordinatör, departman oluştur/bağla/ad, kullanıcı) eylemin program kapsamındaki panoyu geçersizler — ayrım notu aşağıda |
+| pano | `scoped(['report','dashboard'])`, `scoped(['report','dashboard','coordinatorships'])` | **görev (work) yazmaları geçersizlemez** (odakta tazele; **tek istisna** `requestDateChange` / `reviewDateChangeRequest`: rozet, aşağıdaki «Açık istisna»); **organizasyon yazmaları** (üyelik, koordinatör, departman oluştur/bağla/ad, kullanıcı) eylemin program kapsamındaki panoyu geçersizler — ayrım notu aşağıda |
 | arşiv | `scoped(['archive', 'folders'|'tasks'|'attachments'|'uploaders', filters])` | dosya uçları |
 | toplantı | `scoped(['meetings', filters])`, `scoped(['meetings', id])`, `…'agenda'`, `…'notes'` | toplantı/gündem/not/katılımcı uçları |
 | sohbet | `scoped(['chats'])`, `scoped(['chats', id, 'messages'])` | sohbet uçları + SSE uzlaştırma |
 | kullanıcılar | `['users', filters]` (S1) | kullanıcı/hesap/üyelik uçları |
 
 **Pano geçersizlemesi ayrımı (koordinatör kararı 2026-11-09, WEB-2 W82a #59).** "Pano yazmayla geçersizlenmez" kuralı yalnız görev (work) yazmaları için geçerlidir: sık ve çok sayıdadırlar, pano odakta tazelenir. Organizasyon yazmaları (13 uç: üyelik, koordinatör ata/kaldır, departman oluştur/bağla/ad değiştir/güncelle, kullanıcı oluştur/güncelle/sil vb.) seyrektir ve pano sayıları (ör. `member_count`, `total_users`) doğrudan onlara bağlıdır; pano `staleTime` 60 sn'dir ama bu **periyodik yenileme değildir** — odak/yeniden okuma olmadan sayı 60 sn'den çok daha uzun eski kalabilir, yöneticinin kendi yazmasından sonra eski sayı görmesi kabul edilemez → bu yazmalar **eylemin program kapsamındaki** `report.dashboard` anahtarlarını geçersizler (o anki seçili program değil, eylemin yakaladığı kapsam). Ekran içinde ayrıca el ile yeniden okuma yapılmaz (08'deki kaldırıldı).
+
+**Açık istisna (WEB-3 O4, Codex CX-F3-K-01; koordinatör 2026-11-10).** `requestDateChange` ve `reviewDateChangeRequest` görev (work) yazmasıdır, yine de `report` anahtarlarını geçersizler: kenar menüsündeki `pending_date_changes` rozeti talep açılıp incelenince bayat kalıyordu (W97a #73 entegrasyon hatası (a)). Gerekçe: rozet panodaki türev sayaçtır, talep akışı seyrektir ve yöneticinin kendi eyleminden sonra eski rozet kabul edilemez. İstisna yalnız bu iki uçtur (`query-keys.ts` `report` listesi); diğer görev yazmaları (tarih uçları, bağımlılık, durum geçişi vb.) pano anahtarlarını geçersizlemez. Yeni istisna bu bölümün güncellenmesini gerektirir.
 
 Kapsam (program/departman) değişince `scoped(...)` ile başlayan **tüm** sorgular iptal edilir ve önbellekten düşer (K2). Program adı kabukta `['programs']`'tan okunur; 01b/03c gibi gruplar ayrı `readProgram` çağırmaz (CX-T-02).
 

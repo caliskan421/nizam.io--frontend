@@ -20,6 +20,10 @@ F3, rapor-F2 §2'deki "yeni uç beklemeden açılabilir" varsayımını doğrula
 
 ## 2. Pin yükseldiğinde web tarafında yapılacaklar
 
+**Durum ve karar (2026-11-10).** Backend `v0.13.0-api`, `v0.14.0-api` ve `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı: F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** — F0–F3 modüllerine dokunur ve kendi Codex kapısı vardır. **F4 ön koşulu: pin aşaması kapandı.** Aşağıdaki tablo o aşamanın iş listesidir (ayrı bir `docs/yurutme/` klasörü açılmaz).
+
+Backend notları (pin aşamasına): kesilme satır sayısından değil `X-Result-Truncated` başlığından okunur (tam 200'de başlık yok, "tam 200 ise uyarı" sezgisi kalkar); uzatma tekrarında `replayed:true` döner ve `dates_revision` **ilk sonucun** sürümüdür; aktarım kimliği `fields[field=account_id]` eşleşmesinin `message` değerinden alınır.
+
 Backend F2 paketi yayımlanıp `api-pin.json` yükseltildiğinde (her adım: `pnpm gen:api` → `pnpm gen:check` → ilgili test güncellemesi → satır `bağlandı`, `designStub` varsa kaldır):
 
 | Paket / BE | Web değişikliği | Dokunulan yerler |
@@ -31,7 +35,7 @@ Backend F2 paketi yayımlanıp `api-pin.json` yükseltildiğinde (her adım: `pn
 | **3.1 · BE-056** (`Idempotency-Key` + `expected_dates_revision`) | `extendWorkItem`/`requestDateChange` anahtarla gönderilir; "sonuç bilinmiyor" için **aynı anahtarla tek tekrar** (K5) açılır — bugünkü "kör tekrar yok, yeniden oku" kuralı gevşer; `mutations.test` «sonuç bilinmiyor: ÇİFT UZATMA yok» yeni sözleşmeye göre yeniden yazılır | E-03C-47/64 · `api/mutations.ts`, `DateRequestForm`, 03 E-03-54/63 |
 | **BE-107** (F2 kalemi, aynı paket) | 05 `transfer_available` aktarım eylemi açılır (`transfer_account_id` yapılandırılmış alanda) | `rapor-F2.md` §3 sıra 2 · `designStub('BE-107')` kaldırılır |
 
-Pin yükseltmesi F4'ün başlangıcıyla çakışırsa ayrı küçük bir "pin yükseltme" işçisi (tek PR; dosya sahipliği yukarıdaki tablo) açılması önerilir; F4 uygulayıcıları 03c koduna dokunmaz.
+Pin yükseltmesi artık F4'ten önce ayrı aşamadır (yukarıdaki karar); F4 uygulayıcıları 03c koduna dokunmaz. F4 kabul tablosunun (09) "Şimdilik" yolları pin aşaması kapandıktan sonra yeniden okunur.
 
 ## 3. F3'ün kapanmayan / artık gerekmeyen satırları
 
