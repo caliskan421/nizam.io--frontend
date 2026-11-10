@@ -8,6 +8,8 @@ import type { components } from '@/shared/api/schema'
 type Schemas = components['schemas']
 
 export type Program = Schemas['Program']
+/** Palet anahtarı (`Program.color`; 8 anahtar, PROGRAM-K46). */
+export type ProgramColor = NonNullable<Program['color']>
 export type ProgramResetResult = Schemas['ProgramResetResult']
 export type TransferPreview = Schemas['TransferPreview']
 export type TransferResult = Schemas['TransferResult']
@@ -20,6 +22,8 @@ export interface CreateProgramInput {
   name: string
   year?: number
   description?: string
+  short_name?: string
+  color?: ProgramColor
 }
 
 /** `updateProgram`: yalnız değişen alanlar gönderilir (gönderilmeyen alan sunucuda değişmez). */
@@ -29,6 +33,9 @@ export interface UpdateProgramInput {
     name?: string
     year?: number | null
     description?: string | null
+    /** Üç hâlli (PROGRAM-K46): yok = değişmez, dizge = yaz, `null` = temizle. */
+    short_name?: string | null
+    color?: ProgramColor | null
   }
 }
 

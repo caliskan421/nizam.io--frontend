@@ -22,6 +22,7 @@ import type { ApiError } from '@/shared/errors/api-error'
 import {
   isDetached,
   markDetached,
+  ownerLife,
   useProtectedMutation,
   type MutationOutcome,
   type ProtectedMutation,
@@ -59,6 +60,7 @@ export function useKeylessMutation<V, D>(
   const readScope =
     options.scope ?? (() => (getActivePinia() ? useScopeStore().snapshot : NO_SCOPE))
   const mutation = useProtectedMutation<V, D, unknown>({ ...options, queryClient })
+  const owner = ownerLife()
 
   async function reread(scope: ScopeSnapshot): Promise<void> {
     const filters = invalidationFilters(options.operation, scope)
@@ -88,7 +90,9 @@ export function useKeylessMutation<V, D>(
 
   async function submit(vars: V, opts?: SubmitOptions) {
     const scope = { ...(opts?.context?.scope ?? readScope()) }
-    return harden(await mutation.submit(vars, opts), scope)
+    // CX-F3-Ö-08: yeniden okuma beklenirken sahip sökülmüş olabilir; sonuç verilmeden yeniden denetle.
+    const outcome = await harden(await mutation.submit(vars, opts), scope)
+    return owner.alive() ? outcome : markDetached(outcome)
   }
 
   return { ...mutation, submit }

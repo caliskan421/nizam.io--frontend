@@ -179,7 +179,7 @@
     font: var(--side-value-font);
   }
 
-  /* Program avatarı (BE-001: renk kimlikten türetilir, palet token) ve rol noktası */
+  /* Program avatarı (BE-001: sunucu paleti `Program.color`; yoksa kimlikten türetilir, palet token) ve rol noktası */
   .side-pav {
     width: var(--side-pav);
     height: var(--side-pav);
@@ -199,24 +199,36 @@
     border-radius: var(--radius-xs);
     font-size: var(--side-pav-lg-fs);
   }
-  .side-pav--t1 {
-    background: var(--avatar-1);
-    color: var(--on-avatar);
-  }
-  .side-pav--t2 {
+  .side-pav--violet {
     background: var(--avatar-2);
     color: var(--on-avatar);
   }
-  .side-pav--t3 {
+  .side-pav--gold {
     background: var(--avatar-3);
     color: var(--on-avatar);
   }
-  .side-pav--t4 {
+  .side-pav--blue {
     background: var(--avatar-4);
     color: var(--on-avatar);
   }
-  .side-pav--t5 {
+  .side-pav--teal {
+    background: var(--avatar-6);
+    color: var(--on-avatar);
+  }
+  .side-pav--green {
+    background: var(--avatar-1);
+    color: var(--on-avatar);
+  }
+  .side-pav--orange {
     background: var(--avatar-5);
+    color: var(--on-avatar);
+  }
+  .side-pav--red {
+    background: var(--avatar-7);
+    color: var(--on-avatar);
+  }
+  .side-pav--slate {
+    background: var(--avatar-8);
     color: var(--on-avatar);
   }
   .side-pav--empty {

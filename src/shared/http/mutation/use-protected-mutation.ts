@@ -20,7 +20,7 @@
  *  - Sahip yaşamı (CX-F1-E-05): hook kurulduğu etki kapsamının sökülmesini izler (`ownerLife`).
  *    Sökülmeden sonra bu hook üzerinden YENİ HTTP yazması başlamaz — yeni `submit`, `retry`,
  *    `confirm` devamı ve `conflict_retry` otomatik tekrarı motor kapısında `owner_disposed` ile
- *    döner (istek yok, bildirim yok, söz asılı kalmaz). Uçuştaki istek iptal edilmez; sonucu
+ *    döner (istek yok, bildirim yok, söz asılı kalmaz). Uçuştaki istek iptal edilmez; başarı geçersizlemeleri beklenirken sökülme de aynı işaretlenir (CX-F3-Ö-08: `submit` dönüşünde yeniden denetim); sonucu
  *    sökülmeden sonra gelirse `markDetached` ile işaretlenir (CX-F1-Ö-07): ortak bildirim onu
  *    yok sayar, tüketici `reachesOwner(outcome)` ile yeniden okuma/UI akışını atlar. Etki
  *    kapsamı DIŞINDA kurulan hook (uygulama düzeyi) sahipsizdir: her zaman canlı sayılır.
@@ -166,14 +166,18 @@ export function useProtectedMutation<V, D, S = unknown>(
   const rerun: Rerun<V, D, S> = (action) => mutation.mutateAsync(action)
 
   return {
-    submit: (vars, opts) =>
-      mutation.mutateAsync(
+    submit: async (vars, opts) => {
+      const outcome = await mutation.mutateAsync(
         newAction(toPlainVars(vars), {
           now: options.now,
           scope: opts?.context ? opts.context.scope : readScope(),
           generation: opts?.context ? opts.context.generation : readGeneration(),
         }),
-      ),
+      )
+      // CX-F3-Ö-08: `onSuccess` geçersizlemeyi beklerken sahip sökülmüş olabilir (`mutationFn`
+      // işaretlemesi bundan önce). Sonuç tüketiciye verilmeden sahip yaşamı yeniden denetlenir.
+      return owner.alive() ? outcome : markDetached(outcome)
+    },
     isPending: mutation.isPending,
     outcome: mutation.data,
     reset: mutation.reset,

@@ -14,6 +14,21 @@
           "name": "rp-blue",
           "value": { "dark": "#5b8def", "light": "#2563eb" },
           "usage": "Zaman çizelgesi \"baktığın yer\" işareti (Gorevler-Zaman.dc.html: şerit penceresi çizgisi ve gösterge)."
+        },
+        {
+          "name": "avatar-6",
+          "value": "#4fd1c5",
+          "usage": "Program avatarı, palet anahtarı `teal` (BE-001; kaynakta 5 ton var, sözleşme paleti 8 anahtar)."
+        },
+        {
+          "name": "avatar-7",
+          "value": "#ff6b6b",
+          "usage": "Program avatarı, palet anahtarı `red` (BE-001)."
+        },
+        {
+          "name": "avatar-8",
+          "value": "#94a3b8",
+          "usage": "Program avatarı, palet anahtarı `slate` (BE-001)."
         }
       ]
     },

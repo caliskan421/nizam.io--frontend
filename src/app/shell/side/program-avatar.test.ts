@@ -9,7 +9,7 @@ import {
   toneOf,
 } from './program-avatar'
 
-describe('program avatarı (BE-001 türetme)', () => {
+describe('program avatarı (BE-001: sunucu alanı, yoksa türetme)', () => {
   it('baş harfler: ilk iki sözcük, tr-TR büyük harf', () => {
     expect(initialsOf('şanlıurfa teknofest')).toBe('ŞT')
     expect(initialsOf('izmir  teknofest 2026')).toBe('İT')
@@ -59,14 +59,45 @@ describe('program avatarı (BE-001 türetme)', () => {
     expect(forward.get('a')!.initials).toBe('TT')
   })
 
-  it('beş programa kadar her ton farklı; fazlasında tonlar dengeli dağılır', () => {
-    const five = ['k1', 'k2', 'k3', 'k4', 'k5'].map((id) => ({ programId: id, name: 'Aynı Ad' }))
-    const tones = [...programAvatars(five).values()].map((v) => v.tone)
-    expect(new Set(tones).size).toBe(5)
-    const ten = Array.from({ length: 10 }, (_, i) => ({ programId: `x${i}`, name: `P ${i}` }))
-    const counts = new Map<number, number>()
-    for (const v of programAvatars(ten).values()) counts.set(v.tone, (counts.get(v.tone) ?? 0) + 1)
-    expect([...counts.values()]).toEqual([2, 2, 2, 2, 2])
+  it('sekiz programa kadar her ton farklı; fazlasında tonlar dengeli dağılır', () => {
+    const eight = Array.from({ length: 8 }, (_, i) => ({ programId: `k${i}`, name: 'Aynı Ad' }))
+    const tones = [...programAvatars(eight).values()].map((v) => v.tone)
+    expect(new Set(tones).size).toBe(8)
+    const sixteen = Array.from({ length: 16 }, (_, i) => ({ programId: `x${i}`, name: `P ${i}` }))
+    const counts = new Map<string, number>()
+    for (const v of programAvatars(sixteen).values())
+      counts.set(v.tone, (counts.get(v.tone) ?? 0) + 1)
+    expect([...counts.values()]).toEqual([2, 2, 2, 2, 2, 2, 2, 2])
+  })
+
+  it('sunucu kısa adı ve rengi olduğu gibi gösterilir (türetme yok)', () => {
+    const p = { programId: 'p1', name: 'Program Bir', shortName: 'tf26', color: 'red' as const }
+    expect(programAvatar(p)).toEqual({ initials: 'tf26', tone: 'red' })
+  })
+
+  it('alanlar bağımsızdır: yalnız kısa ad ya da yalnız renk verilince diğeri türetilir', () => {
+    const onlyName = programAvatar({ programId: 'p1', name: 'Program Bir', shortName: 'XY' })
+    expect(onlyName).toEqual({ initials: 'XY', tone: toneOf('p1') })
+    const onlyColor = programAvatar({ programId: 'p1', name: 'Program Bir', color: 'slate' })
+    expect(onlyColor).toEqual({ initials: 'PB', tone: 'slate' })
+  })
+
+  it('açık değerler çakışma kümesine girer: türetilen harf ve ton onlarla çakışmaz', () => {
+    const programs = [
+      { programId: 'a', name: 'Teknofest Bir', shortName: 'TB', color: 'violet' as const },
+      { programId: 'b', name: 'Takım Bir' },
+    ]
+    const out = programAvatars(programs)
+    expect(out.get('a')).toEqual({ initials: 'TB', tone: 'violet' })
+    expect(out.get('b')!.initials).not.toBe('TB')
+    expect(out.get('b')!.tone).not.toBe('violet')
+  })
+
+  it('liste içeriği (kısa ad/renk) değişince bayat sonuç dönmez', () => {
+    const base = { programId: 'p1', name: 'Program Bir' }
+    expect(programAvatar(base).initials).toBe('PB')
+    expect(programAvatar({ ...base, shortName: 'ZZ' }).initials).toBe('ZZ')
+    expect(programAvatar({ ...base, color: 'gold' }).tone).toBe('gold')
   })
 
   it('tek program: liste verilmezse kendi kimlik tonu; liste programı içermezse eklenir', () => {

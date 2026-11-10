@@ -782,6 +782,24 @@ export const TOKENS = {
     "dark": "#5b8def",
     "light": "#2563eb"
   },
+  "avatar-6": {
+    "group": "color",
+    "origin": "web",
+    "dark": "#4fd1c5",
+    "light": "#4fd1c5"
+  },
+  "avatar-7": {
+    "group": "color",
+    "origin": "web",
+    "dark": "#ff6b6b",
+    "light": "#ff6b6b"
+  },
+  "avatar-8": {
+    "group": "color",
+    "origin": "web",
+    "dark": "#94a3b8",
+    "light": "#94a3b8"
+  },
   "shadow-card": {
     "group": "shadow",
     "origin": "web",
