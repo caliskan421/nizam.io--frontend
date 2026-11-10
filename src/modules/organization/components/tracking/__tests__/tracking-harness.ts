@@ -151,7 +151,10 @@ export async function mountAt(
   const queryClient =
     options.queryClient ??
     new QueryClient({
-      defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retryDelay: 0, retry: false, gcTime: Infinity },
+        mutations: { retry: false },
+      },
     })
   const router = createTestRouter()
   await router.push(path)

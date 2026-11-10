@@ -114,7 +114,10 @@ export async function mountWith(
   const store = useScopeStore()
   store.commit(options.selection ?? { programId: 'p1', lens: 'admin', departmentId: null })
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
+    defaultOptions: {
+      queries: { retryDelay: 0, retry: false, gcTime: Infinity },
+      mutations: { retry: false },
+    },
   })
   options.seed?.(queryClient)
   const router = makeRouter()

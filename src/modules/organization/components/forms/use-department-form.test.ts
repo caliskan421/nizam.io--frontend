@@ -65,7 +65,12 @@ describe('DepartmentForm yaşamı', () => {
     server.use(
       http.post(`${ORIGIN}/v1/program/departments`, () =>
         json(
-          { department_id: 'dn', display_name: 'Yazılım', program_id: 'p1', copied_member_count: 0 },
+          {
+            department_id: 'dn',
+            display_name: 'Yazılım',
+            program_id: 'p1',
+            copied_member_count: 0,
+          },
           201,
         ),
       ),

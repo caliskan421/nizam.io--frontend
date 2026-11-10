@@ -112,8 +112,8 @@ onMounted(() => {
 
       <form
         v-if="session.status === 'anonymous' || session.status === 'ended'"
-        class="session-form"
         ref="root"
+        class="session-form"
         data-testid="login-form"
         novalidate
         @submit.prevent="submit"

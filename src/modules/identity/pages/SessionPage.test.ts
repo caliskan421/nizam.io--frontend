@@ -61,7 +61,9 @@ describe('oturum sayfası (giriş formu)', () => {
     expect(backend.count('/v1/auth/login')).toBe(0)
     expect(form.text()).toContain('Parola gerekli.')
     expect(form.get('input[name="email"]').attributes('aria-invalid')).toBe('true')
-    await vi.waitFor(() => expect(document.activeElement).toBe(form.get('input[name="email"]').element))
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(form.get('input[name="email"]').element),
+    )
     expect(wrapper.find('[data-testid="error"]').exists()).toBe(false)
     // Yalnız parola boş: e-posta hatası yok.
     await form.get('input[name="email"]').setValue('yonetici@example.test')

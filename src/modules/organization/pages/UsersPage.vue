@@ -107,7 +107,8 @@ function onCreated(accountId: string): void {
         v-if="panelId"
         ref="aside"
         class="rp-aside"
-        tabindex="-1" :aria-label="usersText('users.panel.label')"
+        tabindex="-1"
+        :aria-label="usersText('users.panel.label')"
       >
         <UserPanel :key="panelId" :account-id="panelId" @close="closePanel" @deleted="closePanel" />
       </aside>

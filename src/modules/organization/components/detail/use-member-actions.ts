@@ -27,7 +27,8 @@ export function useMemberActions(departmentId: MaybeRefOrGetter<string>) {
 
   function report<V, D>(outcome: MutationOutcome<V, D, unknown> | null, done: DetailTextKey): void {
     if (outcome === null) return
-    if (outcome.kind === 'success') toast.push({ message: withTransferNote(detailText(done), outcome.data) })
+    if (outcome.kind === 'success')
+      toast.push({ message: withTransferNote(detailText(done), outcome.data) })
     else notifyOutcome(outcome)
   }
 
