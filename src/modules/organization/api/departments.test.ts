@@ -261,6 +261,36 @@ describe('yeni koordinatörlük: oluştur → bağla (bileşik, ilk eylemin bağ
     expect(posts).toHaveLength(2)
     expect(posts[1]!.headers.get('Idempotency-Key')).toBe(posts[0]!.headers.get('Idempotency-Key'))
   })
+
+  it('bağ tekrarı da belirsiz → yeniden okuma, retry:null, aynı anahtar, en fazla iki POST (CX-P-Ö-01)', async () => {
+    server.use(
+      http.post(`${ORIGIN}/v1/departments`, () => json(DEPARTMENT, 201)),
+      http.post(`${ORIGIN}/v1/program/departments`, () => HttpResponse.error()),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const invalidate = vi.spyOn(h.queryClient, 'invalidateQueries')
+    const out = await h.run(() => useCreateCoordinatorship()).submit(INPUT)
+    const link = out.kind === 'partial' ? out.steps[0]!.outcome : null
+    if (link?.kind !== 'unknown_outcome' || !link.retry) throw new Error('retry yok')
+    const before = invalidate.mock.calls.length
+    const second = await link.retry()
+    expect(second).toMatchObject({ kind: 'unknown_outcome', retry: null })
+    expect(invalidate.mock.calls.length).toBeGreaterThan(before)
+    const posts = sent('POST', '/v1/program/departments')
+    expect(posts).toHaveLength(2)
+    expect(posts[1]!.headers.get('Idempotency-Key')).toBe(posts[0]!.headers.get('Idempotency-Key'))
+  })
+
+  it('oluşturma tekrarı da belirsiz → retry:null ve yeniden okuma (CX-P-Ö-01)', async () => {
+    server.use(http.post(`${ORIGIN}/v1/departments`, () => HttpResponse.error()))
+    const h = harness(ADMIN_SCOPE)
+    const first = await h.run(() => useCreateCoordinatorship()).submit(INPUT)
+    const unknown = first.kind === 'primary_failed' ? first.primary : null
+    if (unknown?.kind !== 'unknown_outcome' || !unknown.retry) throw new Error('retry yok')
+    const second = await unknown.retry()
+    expect(second).toMatchObject({ kind: 'unknown_outcome', retry: null })
+    expect(sent('POST', '/v1/departments')).toHaveLength(2)
+  })
 })
 
 describe('düzenleme: iki ayrı uç (G17)', () => {

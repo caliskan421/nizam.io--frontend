@@ -25,7 +25,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
-import { runWithFollowUps, useProtectedMutation } from '@/shared/http/mutation'
+import { runWithFollowUps } from '@/shared/http/mutation'
 import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
@@ -51,7 +51,7 @@ import {
   retryTransient,
   unwrapList,
 } from './http'
-import { useKeylessMutation } from './keyless'
+import { useKeyedOrgMutation, useKeylessMutation } from './keyless'
 
 /**
  * Seçili programın departmanları (ad/kod sözlüğü; 05 E-05-08/20/33, 08 E-08-03/27…29/52).
@@ -215,7 +215,7 @@ export function existingDepartment(error: ApiError): ExistingDepartment | null {
  * hâli.
  */
 export function useCreateDepartment() {
-  return useProtectedMutation<CreateDepartmentInput, Department>({
+  return useKeyedOrgMutation<CreateDepartmentInput, Department>({
     operation: 'createDepartment',
     send: (vars, ctx) =>
       api.POST('/v1/departments', {
@@ -236,7 +236,7 @@ export function useCreateDepartment() {
  * `Idempotency-Key` kullanıcı eylemi başına gönderilir (BE-050).
  */
 export function useLinkDepartment() {
-  return useProtectedMutation<LinkDepartmentInput, ProgramDepartmentLink>({
+  return useKeyedOrgMutation<LinkDepartmentInput, ProgramDepartmentLink>({
     operation: 'linkDepartment',
     send: (vars, ctx) =>
       api.POST('/v1/program/departments', {

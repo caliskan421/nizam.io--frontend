@@ -54,7 +54,18 @@ export function useLinkStep(ctx: DepartmentFormContext) {
       )
       if (found.displayName) return form.setErrors(found)
     }
-    ctx.report(outcome, (next) => settle(next, chosen))
+    ctx.report(outcome, (next) => continueFrom(next, chosen))
+  }
+
+  /**
+   * Bileşik oluştur → bağla akışında bağ adımının sonucundan devam (CX-P-Ö-01): belirsiz sonuç
+   * (yanıt kayıp) AYNI anahtarlı eylemin `retry`'ıyla çözülür; çözülene dek yeni bağ teklifi
+   * (yeni anahtar) sunulmaz. Çözüm/tekrar sınırı sonrası teklif sunulur (bağ sunucuda idempotent).
+   */
+  function continueFrom(outcome: AnyOutcome, chosen: LinkTarget): void {
+    settle(outcome, chosen)
+    if (outcome.kind === 'unknown_outcome' && outcome.retry) return
+    if (outcome.kind !== 'success') offer(chosen)
   }
 
   const handle = form.handleSubmit(async (values) => {
@@ -79,6 +90,7 @@ export function useLinkStep(ctx: DepartmentFormContext) {
     form,
     offer,
     reset,
+    continueFrom,
     submit: () => ctx.dialog.once(() => handle()),
     pending: mutation.isPending,
   }

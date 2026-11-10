@@ -215,7 +215,9 @@ describe('useProtectedMutation — retry/confirm devamında sökülme (CX-P-E-01
     server.use(
       http.post(`${BASE}/v1/work-items`, () => {
         calls += 1
-        return calls === 1 ? HttpResponse.error() : HttpResponse.json({ work_item_id: 'w1' }, { status: 201 })
+        return calls === 1
+          ? HttpResponse.error()
+          : HttpResponse.json({ work_item_id: 'w1' }, { status: 201 })
       }),
     )
     const { mutation, queryClient, stop } = setup()
