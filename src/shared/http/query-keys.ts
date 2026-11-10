@@ -279,6 +279,8 @@ const REPORT_ORGANIZATION_WRITES = [
   'createUser',
   'deleteUser',
   'deleteAccount',
+  // Pano `total_admins` şirket yöneticiliğine bağlı: Admin yetkisi değişimi (CX-P-Ö-03).
+  'updateUser',
   // Kenar menüsü "bekleyen tarih talebi" rozeti pano sayacından gelir (W97a: talep açma/karar
   // sonrası rozet bayat kalıyordu).
   'requestDateChange',
@@ -351,7 +353,11 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'workItems.notes': NOTE_WRITES,
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
   'workItems.dependencies': DEPENDENCY_WRITES,
-  gantt: unique(DATE_WRITES, DEPENDENCY_WRITES, ['createWorkItem', 'deleteWorkItem']),
+  // Satırın `subtask_counts` alanı alt görev yazmalarıyla değişir (kapalı satır sayacı; CX-P-Ö-03).
+  gantt: unique(DATE_WRITES, DEPENDENCY_WRITES, SUBTASK_WRITES, [
+    'createWorkItem',
+    'deleteWorkItem',
+  ]),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
   // Organizasyon yazmaları (W82a) ve rozetleri besleyen görev/tarih yazmaları geçersizler (WP3).
   report: unique(

@@ -1,6 +1,6 @@
 // Sahte zaman çizelgesi sunucusunun sözleşme sadakati (CX-F3-Ö-06; WP2b: pin v0.15.0-api — satır
 // `dates_revision`/`pending_date_request`/`subtask_counts`, `X-Result-Truncated`, extend/talep
-// `Idempotency-Key` + `expected_dates_revision` + `replayed`). Pin v0.11.0-api —
+// `Idempotency-Key` + `expected_dates_revision` + `replayed`). Pin v0.15.0-api —
 // bağımlılık silme 200 `StatusResult`, uzatma 1–90 sınırı (dışı 422 `work.input_invalid` +
 // alan kodu `work.extend_days_out_of_range`), bağımlılık ekleme tarih sırası (422 alan kodu
 // `work.dependency_date_order`; sıra: tekrar 409, döngü 409, sonra tarih).

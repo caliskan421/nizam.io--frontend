@@ -176,7 +176,7 @@ Bu kart görev ayrıntı panelinin (03 grubu) alt görev bölümünü gösterir;
 ### 2.14 Tasarımda olmayan, karar gereği eklenecek öğeler
 | Kimlik | Öğe | Tür | Metin / biçim | Durumlar | Gösterilen veri (şekil) | Not |
 |---|---|---|---|---|---|---|
-| E-03C-82 | Tavan uyarısı | uyarı şeridi | **tasarımda yok** — K4: "sınıra ulaşmış olabilir" (tam metin bilinmiyor) | yalnız yanıt tam 200 kalemse | kalem sayısı | K4, GAP-053, BE-019. **Varsayım:** araç çubuğu ile Gantt tablosu arasında, `t-*` uyarı biçiminde (doğrulanacak: ürün sahibi sorusu, tasarım tuvali) |
+| E-03C-82 | Tavan uyarısı | uyarı şeridi | **tasarımda yok** — K4: "sınıra ulaşmış olabilir" (tam metin bilinmiyor) | yalnız sunucu `X-Result-Truncated: true` bildirdiyse (BE-019, pin v0.15.0-api; tam 200 başlıksız → yok) | yanıt başlığı | K4, GAP-053, BE-019. **Varsayım:** araç çubuğu ile Gantt tablosu arasında, `t-*` uyarı biçiminde (doğrulanacak: ürün sahibi sorusu, tasarım tuvali) |
 | E-03C-83 | Boş / yükleniyor / hata durumları | durum alanı | **tasarımda yok** — K7 varsayılanı | — | — | `mekanizma.md` §6 |
 
 ## 3. Pencereler, menüler, açılır paneller

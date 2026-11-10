@@ -5,12 +5,14 @@
  * (05'in `use-panel-reveal.ts`'i yan yana/alt alta yerleşimi ayırır; burada yüzen panel de var,
  * bu yüzden ayrı tutuldu.)
  */
-import { nextTick, watch, type Ref } from 'vue'
+import { nextTick, onScopeDispose, watch, type Ref } from 'vue'
 
 import { GEOMETRY } from '../../model/timeline'
 import { revealMove, type Box } from './panel-reveal'
 
 const ARM_MS = 2000
+/** Kaydırma durduktan sonra çakışma yeniden denetlenir (CX-P-Ö-05). */
+const IDLE_MS = 160
 
 const box = (el: Element): Box => {
   const r = el.getBoundingClientRect()
@@ -82,27 +84,66 @@ function watchGrowth(panel: HTMLElement, again: () => void): void {
   setTimeout(() => observer.disconnect(), ARM_MS)
 }
 
+/**
+ * CX-P-Ö-05 (G-3): seçim sonrası kullanıcı kaydırınca seçili çubuğun tutamaçları yüzen panelin
+ * altına girebilir. Kaydırma durunca (sayfa, kap ya da Gantt) çakışma yeniden ölçülür ve çubuk
+ * aynı en küçük hareketle panelin dışına alınır; çakışma yoksa hareket sıfırdır (döngü yok).
+ */
+function guardOnScroll(root: HTMLElement, panel: HTMLElement, id: string): () => void {
+  const gantt = root.querySelector<HTMLElement>('.gantt__scroller')
+  const parent = scrollParentOf(root)
+  const targets: EventTarget[] = [window]
+  if (gantt) targets.push(gantt)
+  if (parent) targets.push(parent)
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const onScroll = () => {
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      if (!panel.isConnected || panel.getBoundingClientRect().height === 0) return
+      if (getComputedStyle(panel).position === 'absolute') revealFloating(panel, root, id)
+    }, IDLE_MS)
+  }
+  for (const t of targets) t.addEventListener('scroll', onScroll, { passive: true })
+  return () => {
+    clearTimeout(timer)
+    for (const t of targets) t.removeEventListener('scroll', onScroll)
+  }
+}
+
 export function useSelectionReveal(
   board: Ref<HTMLElement | null>,
   selectedId: () => string | null,
 ) {
   let armedAt = -Infinity
+  let release: (() => void) | null = null
+  const drop = () => {
+    release?.()
+    release = null
+  }
   watch(
     selectedId,
-    async (id) => {
-      if (id === null || performance.now() - armedAt > ARM_MS) return
+    async (id, _previous, onCleanup) => {
+      drop()
+      onCleanup(drop)
+      if (id === null) return
+      const armed = performance.now() - armedAt <= ARM_MS
       armedAt = -Infinity
       await nextTick()
       const root = board.value
       const panel = root?.querySelector<HTMLElement>('[data-testid="timeline-panel"]')
       if (!root || !panel || panel.getBoundingClientRect().height === 0) return // ölçüm yok (jsdom)
-      await settled(panel)
       const floating = getComputedStyle(panel).position === 'absolute'
+      if (floating) release = guardOnScroll(root, panel, id)
+      // Derin bağlantıyla açılışta panele kaydırma ve odak çalma yok (yalnız kullanıcı seçimi);
+      // yüzen panel çubuğu/tutamaçları örtüyorsa yine de dışarı alınır (CX-P-Ö-05).
+      if (!armed && !floating) return
+      await settled(panel)
       if (!floating) return revealStacked(panel)
       revealFloating(panel, root, id)
       watchGrowth(panel, () => revealFloating(panel, root, id))
     },
     { flush: 'post' },
   )
+  onScopeDispose(drop)
   return { arm: () => void (armedAt = performance.now()) }
 }

@@ -37,7 +37,7 @@ Tailwind · vue-i18n · vitest + Testing Library + MSW · Playwright.
 ## Backend ile ilişki
 
 - Sözleşme: `../nizam.io--backend/docs/api/openapi.yaml` + `error-codes.json`, backend
-  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.11.0-api`).
+  etiketinden. **Pin tek yerdedir:** `api-pin.json` (`backendTag`, bugün `v0.15.0-api`).
   `pnpm gen:api` spec'i `git show <etiket>:docs/api/...` ile okur; çalışma ağacı veya
   etiketsiz `main` okunmaz. Üretilen dosyalar commit'lenir; CI backend etiketini salt
   okunur deploy key ile getirir, yeniden üretir ve diff = 0 ister.
@@ -116,11 +116,14 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   ve ikinci önizleme (`4174`) koşar; normal akışlar `4173 → 18080` (15 dk) üzerindedir.
 - **Tedarik zinciri:** CI eylemleri commit SHA'sına, Postgres imajı ve backend imajının tabanları
   digest'e sabitlidir. Backend imajı etiketin kendi `build/Dockerfile`'ıyla derlenir;
-  `up.sh` yalnız etiketten çıkarılan GEÇİCİ kopyadaki FROM satırlarını digest'li
-  referanslara yeniden yazar, `BUILDKIT_SYNTAX` (digest'li) ile derler ve
-  `check-base-pins.sh` ile denetler (FROM digest'li, BuildKit pinli referansı çözdü, çalışma
-  imajı pinli distroless katmanlarıyla başlıyor). Kalıcı çözüm backend `build/Dockerfile`'ında
-  digest pinidir (F23'e devir).
+  `up.sh` Dockerfile'ı **yeniden yazmaz, denetler**: etiketten çıkarılan geçici kopyada
+  digest'li `golang:…-bookworm@sha256 AS build` ve beklenen pinli distroless `runtime` FROM
+  satırlarının her biri tam bir kez bulunmalı (aksi hâlde durur; Go sürümü bu satırdan okunur),
+  sonra `BUILDKIT_SYNTAX` (digest'li) ile derler ve `check-base-pins.sh` ile imajı denetler
+  (FROM digest'li, BuildKit pinli referansı çözdü, çalışma imajı pinli distroless katmanlarıyla
+  başlıyor, runtime digest eşit). Tabanlar backend etiketinin kendi `build/Dockerfile`'ında
+  digest'le sabitlidir (kayan etikete dönüş yoktur); backend yeni etiket çıkarınca `up.sh`
+  içindeki beklenen distroless referansı birlikte güncellenir.
 - **Paylaşılan Docker daemon:** e2e betikleri `docker tag`/`docker rmi` kullanmaz; yerelde de
   hiçbir genel (NIZAM.IO adı taşımayan) etiket oluşturulmaz veya değiştirilmez. Yalnız
   `nizamio-web-e2e/*` imajları, `nizamio_web_e2e*` konteynerleri ve `nizamio_web_e2e` Compose
