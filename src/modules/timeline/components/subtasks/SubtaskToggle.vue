@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import './subtasks.css'
 
-import { computed } from 'vue'
-
 import { UiIcon } from '@/shared/ui'
 
 import type { SubtaskToggleEmits, SubtaskToggleProps } from './types'
@@ -18,13 +16,7 @@ import { useSubtaskSummary } from './use-subtask-summary'
 const props = defineProps<SubtaskToggleProps>()
 const emit = defineEmits<SubtaskToggleEmits>()
 
-const { counts: listed } = useSubtaskSummary(() => props)
-/** Açıkken liste sayacı (canlı); kapalıyken satırın `subtask_counts`'ı, alt görevi yoksa yok. */
-const counts = computed(() => {
-  if (listed.value) return listed.value
-  const row = props.rowCounts
-  return row && row.total > 0 ? row : null
-})
+const { counts } = useSubtaskSummary(() => props)
 </script>
 
 <template>

@@ -225,6 +225,11 @@ export interface SubtaskRowsProps {
    * CX-F3-Ö-03). Verilmezse satırlara indeks yazılmaz (tek başına kullanım).
    */
   rowIndexStart?: number
+  /**
+   * Gantt satırının `subtask_counts` değeri (BE-051): liste okuması yüklenene dek (ya da kapalı
+   * satırda hiç) sayaç/çizgi/çip buradan beslenir; liste yüklenince canlı sayaç onun yerini alır.
+   */
+  rowCounts?: { done: number; total: number } | null
 }
 
 // --- Bileşenler (gövdeler O2b'de) -----------------------------------------------------------

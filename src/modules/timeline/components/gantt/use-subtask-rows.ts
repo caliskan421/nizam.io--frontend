@@ -5,9 +5,14 @@
  */
 import { computed, ref } from 'vue'
 
-export function useSubtaskRows(
-  known: (workItemId: string) => number | undefined = () => undefined,
-) {
+interface CountedTask {
+  work_item_id: string
+  subtask_counts: { total: number }
+}
+
+export function useSubtaskRows(tasks: () => readonly CountedTask[] = () => []) {
+  const known = (id: string): number | undefined =>
+    tasks().find((t) => t.work_item_id === id)?.subtask_counts.total
   const open = ref<ReadonlySet<string>>(new Set())
   const counts = ref<ReadonlyMap<string, number>>(new Map())
 

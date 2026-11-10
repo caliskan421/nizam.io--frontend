@@ -157,6 +157,7 @@ const midY = top + GEOMETRY.barH / 2
           <SubtaskProgress
             :work-item-id="task.work_item_id"
             :target="{ programId: task.program_id, departmentId: task.department_id }"
+            :row-counts="task.subtask_counts"
             open
           />
         </div>
@@ -172,6 +173,7 @@ const midY = top + GEOMETRY.barH / 2
           <SubtaskChip
             :work-item-id="task.work_item_id"
             :target="{ programId: task.program_id, departmentId: task.department_id }"
+            :row-counts="task.subtask_counts"
             open
           />
         </div>

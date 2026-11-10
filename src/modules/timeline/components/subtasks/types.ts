@@ -5,11 +5,6 @@ import type { SubtaskRowsProps } from '../index'
 export interface SubtaskToggleProps extends SubtaskRowsProps {
   /** Erişim adında geçen görev kodu (yoksa başlık). */
   label: string
-  /**
-   * Gantt satırının `subtask_counts` değeri (BE-051): kapalı satırda da sayaç buradan gelir,
-   * açıldığında liste okumasının sayacı onun yerini alır (aynı değer, canlı).
-   */
-  rowCounts?: { done: number; total: number } | null
 }
 export interface SubtaskToggleEmits {
   toggle: []

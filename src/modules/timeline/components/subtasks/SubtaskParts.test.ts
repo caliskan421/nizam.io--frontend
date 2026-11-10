@@ -46,6 +46,25 @@ describe('SubtaskToggle (E-03C-33)', () => {
     expect(wrapper.emitted('toggle')).toHaveLength(1)
   })
 
+  it('kapalı satır: sayaç satırın subtask_counts değerinden (BE-051), istek yok; alt görevsizde yok', async () => {
+    serve([subtask()])
+    const withCounts = mountSubtask(
+      SubtaskToggle,
+      { ...base, open: false, label: 'İDA-5', rowCounts: { done: 1, total: 3 } },
+      COORD_SCOPE,
+    )
+    await flushPromises()
+    expect(withCounts.wrapper.get('[data-testid="subtask-toggle-count"]').text()).toBe('1/3')
+    expect(sent('GET', SUBTASKS_PATH)).toHaveLength(0)
+    const none = mountSubtask(
+      SubtaskToggle,
+      { ...base, open: false, label: 'İDA-5', rowCounts: { done: 0, total: 0 } },
+      COORD_SCOPE,
+    )
+    await flushPromises()
+    expect(none.wrapper.find('[data-testid="subtask-toggle-count"]').exists()).toBe(false)
+  })
+
   it('açık: "gizle" adı; liste yüklenince "b/t" sayacı', async () => {
     serve([subtask({ done: true }), subtask({ subtask_id: 's2' }), subtask({ subtask_id: 's3' })])
     const { wrapper } = mountSubtask(
@@ -80,6 +99,25 @@ describe('SubtaskProgress / SubtaskChip (E-03C-44, 46)', () => {
     const bar = progress.wrapper.get<HTMLProgressElement>('progress')
     expect([bar.element.value, bar.element.max]).toEqual([1, 2])
     expect(bar.attributes('style')).toBeUndefined()
+  })
+
+  it('açık satır: liste gelmeden çip ve çizgi satırın subtask_counts değerini gösterir (BE-051)', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${ORIGIN}${SUBTASKS_PATH}`, async () => {
+        await gate
+        return json({ subtasks: [], total: 0 })
+      }),
+    )
+    const props = { ...base, open: true, rowCounts: { done: 1, total: 4 } }
+    const chip = mountSubtask(SubtaskChip, props, COORD_SCOPE)
+    const progress = mountSubtask(SubtaskProgress, props, COORD_SCOPE)
+    await flushPromises()
+    expect(chip.wrapper.get('[data-testid="subtask-chip"]').text()).toBe('1/4')
+    const bar = progress.wrapper.get<HTMLProgressElement>('progress')
+    expect([bar.element.value, bar.element.max]).toEqual([1, 4])
+    release()
   })
 
   it('çip: hepsi bitince ✓ vurgusu; hiç alt görev yoksa çip ve çizgi yok', async () => {
