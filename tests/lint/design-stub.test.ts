@@ -60,7 +60,8 @@ describe('kayıt ayrıştırma', () => {
 
   it('gerçek kayıtta belge paketi (BE-036) ve v1 dışı satırlar stub kabul etmez', () => {
     const rows = parseRegistry(readFileSync(REGISTRY_PATH, 'utf8'))
-    expect(stubRejection(rows.get('BE-036'))).toMatch(/belge/)
+    // BE-036 belge paketi: stub hiçbir durumda kabul edilmez (WP2a'da kısmen `bağlandı`, pin v0.15).
+    expect(stubRejection(rows.get('BE-036'))).toMatch(/bağlandı|belge/)
     expect(stubRejection(rows.get('BE-031'))).toMatch(/v1 dışı/)
     expect(stubRejection(rows.get('BE-002'))).toMatch(/vazgeçildi/)
     expect(stubRejection(rows.get('BE-001'))).toBeNull()

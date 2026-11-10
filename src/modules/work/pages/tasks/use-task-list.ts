@@ -39,7 +39,10 @@ export function useTaskList(state: Ref<TasksUrlState>, showRequests: Ref<boolean
   const department = computed(() => listDepartmentFilter(store.snapshot, state.value.department))
   /** Sunucu atanan süzgeci: Üye merceğinde yalnız "ben" (BE-038). */
   const assignee = computed(() => lensAssignee(store.lens, standing.value?.accountId))
-  const assigneeIds = computed(() => (assignee.value === null ? [] : [assignee.value]))
+  /** Üye merceğinde "ben"; diğerlerinde URL `kisi` seçimi (sunucu VEYA süzgeci). */
+  const assigneeIds = computed(() =>
+    assignee.value === null ? state.value.people : [assignee.value],
+  )
   /** Üye merceğinde hesap kimliği bilinmeden süzgeçsiz (başkalarının satırlarını da içeren) okuma yok. */
   const ready = computed(() => store.lens !== 'member' || assignee.value !== null)
   const list = useWorkItemList(department, assigneeIds, ready)

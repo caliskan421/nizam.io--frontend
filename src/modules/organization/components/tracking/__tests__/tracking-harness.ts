@@ -11,7 +11,7 @@ import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
-import { http, json, ORIGIN, sent, server } from '../../../__tests__/harness'
+import { byAssigneeQuery, http, json, ORIGIN, sent, server } from '../../../__tests__/harness'
 import { UserPanelStub } from './user-panel-stub'
 
 export const LIST = '/v1/program/work-items'
@@ -85,7 +85,10 @@ export function workItem(id: string, assignees: [string, string | null][], patch
 
 type Item = ReturnType<typeof workItem>
 
-/** Liste ucu: imleçsiz istek `first` (+ `next_cursor`), imleçli istek `next` (gate'i bekler). */
+/**
+ * Liste ucu: imleçsiz istek `first` (+ `next_cursor`), imleçli istek `next` (gate'i bekler);
+ * sunucu atanan süzgeci (`assignee_account_id`, BE-038) uygulanır.
+ */
 export function listHandler(
   first: Item[],
   next: Item[] | null = null,
@@ -93,10 +96,13 @@ export function listHandler(
 ) {
   return http.get(`${ORIGIN}${LIST}`, async ({ request }) => {
     if (!new URL(request.url).searchParams.get('cursor')) {
-      return json({ items: first, ...(next ? { next_cursor: 'c1' } : {}) })
+      return json({
+        items: byAssigneeQuery(first, request),
+        ...(next ? { next_cursor: 'c1' } : {}),
+      })
     }
     await gate
-    return json({ items: next ?? [] })
+    return json({ items: byAssigneeQuery(next ?? [], request) })
   })
 }
 

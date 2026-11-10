@@ -133,6 +133,52 @@ describe('Görevler › Liste — kapsam ve görünürlük', () => {
   })
 })
 
+describe('Görevler › Liste — kişi süzgeci (sunucu, BE-038)', () => {
+  const withPeople = [
+    item({
+      work_item_id: 'p1',
+      title: 'Ayşe işi',
+      assignees: [{ account_id: 'acc-1', full_name: 'Ayşe' }],
+      assignee_account_ids: ['acc-1'],
+    }),
+    item({
+      work_item_id: 'p2',
+      title: 'Can işi',
+      assignees: [{ account_id: 'acc-2', full_name: 'Can' }],
+      assignee_account_ids: ['acc-2'],
+    }),
+  ]
+
+  it('URL kisi: liste ve sayaç assignee_account_id ile okunur; Üye merceğinde yok sayılır', async () => {
+    server.use(...standingHandlers(ADMIN), listHandler(withPeople))
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE, '/gorevler?kisi=acc-2')
+    expect(listRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-2'])
+    expect(countRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-2'])
+    expect(titles(ctx)).toEqual(['Can işi'])
+    expect(ctx.wrapper.get('[data-testid="person-filter"]').text()).toContain('1')
+  })
+
+  it('menüden seçim URL kisi yazar ve yeni sunucu okuması başlatır (fan-out yok)', async () => {
+    server.use(...standingHandlers(ADMIN), listHandler(withPeople))
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE)
+    await ctx.wrapper.get('[data-testid="person-filter"]').trigger('click')
+    const boxes = ctx.wrapper.findAll('[role="menuitemcheckbox"]')
+    await boxes.find((b) => b.text() === 'Ayşe')!.trigger('click')
+    await settle()
+    expect(ctx.router.currentRoute.value.query).toEqual({ kisi: 'acc-1' })
+    expect(titles(ctx)).toEqual(['Ayşe işi'])
+    expect(listRequests()).toHaveLength(2)
+    expect(countRequests()).toHaveLength(2)
+  })
+
+  it('Üye merceği: kisi etkisiz (yalnız ben), süzgeç kilitli', async () => {
+    server.use(...standingHandlers(MEMBER), listHandler(withPeople))
+    const ctx = await mountPage(TasksPage, MEMBER_SCOPE, '/gorevler?kisi=acc-2')
+    expect(listRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-1'])
+    expect(ctx.wrapper.get('[data-testid="person-filter"]').attributes('disabled')).toBeDefined()
+  })
+})
+
 describe('Görevler › Liste — süzme, arama, sıralama (istemci)', () => {
   it('sekme + talep VE; Geri gönderildi kendi sekmesinde', async () => {
     server.use(...standingHandlers(ADMIN), listHandler(ROWS))

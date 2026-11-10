@@ -1,7 +1,8 @@
 /**
- * Üye merceği "bana atananlar" (K3, P1/P3; CX-F1-E-01) — TEK kaynak. Pinli sözleşmede
- * `listProgramWorkItems` atanan süzgeci almaz (`department_id`, `limit`, `cursor`), bu yüzden
- * daraltma istemcide, yüklenen satırlarda yapılır. Mercek yetkiyi değiştirmez; yalnız içeriği
+ * Üye merceği "bana atananlar" (K3, P1/P3; CX-F1-E-01). Pin v0.15.0-api'den beri daraltma
+ * SUNUCUDADIR (`assignee_account_id`, BE-038; `lensAssignee` süzgeç girdisini verir). Buradaki
+ * `isAssignedTo`/`assignedSubset` yüklemleri yüklenmiş satırlar üzerindeki istemci hesapları
+ * (ör. 08b birim özeti) içindir. Mercek yetkiyi değiştirmez; yalnız içeriği
  * daraltır: sunucunun yetkiyle döndürdüğü başkasına ait satırlar Üye merceğinde listelenmez
  * (birleşik rolde zorunlu, salt üyede sunucu zaten yalnız atananları döndürdüğü için etkisiz).
  * Görev listesi (03) ve ana sayfa KPI'sı (01, `public.ts` üzerinden) aynı yüklemi kullanır.

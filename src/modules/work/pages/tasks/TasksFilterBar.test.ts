@@ -10,7 +10,16 @@ const departments = [
 
 function mountBar(props: Record<string, unknown> = {}) {
   return mount(TasksFilterBar, {
-    props: { search: '', department: null, departments, showDepartment: true, ...props },
+    props: {
+      search: '',
+      department: null,
+      departments,
+      showDepartment: true,
+      people: [],
+      candidates: [],
+      personLocked: false,
+      ...props,
+    },
     attachTo: document.body,
   })
 }
@@ -49,14 +58,13 @@ describe('arama ve süzgeç satırı (E-03-10…12)', () => {
     expect(bar.emitted('update:search')).toBeUndefined()
   })
 
-  it('kişi süzgeci statik: BE-038 işareti, devre dışı, açılmaz (E-03-11)', async () => {
-    const bar = mountBar()
-    const stub = bar.get('[data-design-stub="BE-038"]')
-    const button = stub.get('[data-testid="person-filter"]')
-    expect(button.attributes('disabled')).toBeDefined()
-    expect(button.attributes('title')).toBe('Kişi süzgeci henüz kullanılamıyor')
-    await button.trigger('click')
-    expect(bar.find('[role="menu"]').exists()).toBe(false)
+  it('kişi süzgeci canlı: stub işareti yok, yayılan seçim üst bileşene gider (E-03-11, BE-038)', async () => {
+    const bar = mountBar({ candidates: [{ assignees: [{ account_id: 'a1', full_name: 'Ayşe' }] }] })
+    expect(bar.find('[data-design-stub]').exists()).toBe(false)
+    await bar.get('[data-testid="person-filter"]').trigger('click')
+    const items = bar.findAll('[role="menuitemcheckbox"]')
+    await items[0]!.trigger('click')
+    expect(bar.emitted('update:people')).toEqual([[['a1']]])
   })
 
   it('koordinatörlük süzgeci yalnız istendiğinde (Admin merceği)', () => {

@@ -27,6 +27,7 @@ export const TASKS_QUERY_KEYS = [
   'talep',
   'q',
   'koordinatorluk',
+  'kisi',
   'sirala',
   'gorev',
   'yeni',

@@ -61,6 +61,8 @@ const state = computed(() => ({
   ...url.state.value,
   requests: showRequests.value && url.state.value.requests,
   department: adminLens.value ? url.state.value.department : null,
+  // Üye merceğinde küme zaten "ben" (sunucu süzgeci); kişi seçimi etkisiz.
+  people: store.lens === 'member' ? [] : url.state.value.people,
 }))
 
 const list = useTaskList(state, showRequests)
@@ -143,7 +145,11 @@ function loadMore(): void {
           :department="state.department"
           :departments="departments"
           :show-department="adminLens"
+          :people="state.people"
+          :candidates="list.items.value"
+          :person-locked="store.lens === 'member'"
           @update:search="url.update({ search: $event })"
+          @update:people="url.update({ people: $event })"
           @update:department="url.update({ department: $event })"
         />
         <RequestBand

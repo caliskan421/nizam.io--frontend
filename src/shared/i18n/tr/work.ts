@@ -56,7 +56,10 @@ export const trTasksPage = {
     },
     person: {
       label: 'Kişi',
-      stub: 'Kişi süzgeci henüz kullanılamıyor',
+      menu: 'Kişi seç',
+      all: 'Tüm kişiler',
+      unknown: 'Bilinmeyen kişi',
+      memberLens: 'Üye merceğinde yalnız size atanan görevler listelenir',
     },
     department: {
       label: 'Koordinatörlük',
