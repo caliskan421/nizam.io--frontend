@@ -410,6 +410,32 @@ describe('gönderim yaşam döngüsü (CX-F3-Ö-04)', () => {
     expect(spy).toHaveBeenCalled()
   })
 
+  it("CX-P-Ö-04: bekletilmiş çakışma GET'i sırasında kapsam A→B: ekran bildirimi sıfır, B'de ek okuma yok", async () => {
+    let release!: () => void
+    const held = new Promise<void>((resolve) => (release = resolve))
+    let reached!: () => void
+    const arrived = new Promise<void>((resolve) => (reached = resolve))
+    server.use(
+      http.get(`${ORIGIN}${ITEM}`, async () => {
+        reached()
+        await held
+        return json(workItem({ end_on: '2026-11-20', dates_revision: 8 }))
+      }),
+      http.patch(`${ORIGIN}${ITEM}`, () => errorEnvelope('work.edit_conflict', 409)),
+    )
+    const { h, api } = setup('admin')
+    api.onEdgeDrag(drop('end', '2026-11-05'))
+    await vi.advanceTimersByTimeAsync(DELAYED_SEND_MS)
+    await arrived
+    const spy = vi.spyOn(h.queryClient, 'invalidateQueries')
+    h.store.setLens('coordinator') // sahip bağlı, kapsam A→B
+    release()
+    await elapse()
+    expect(sent('PATCH', ITEM)).toHaveLength(1)
+    expect(useToast().queue.value).toEqual([])
+    expect(spy).not.toHaveBeenCalled()
+  })
+
   it('çakışan alan yoksa (yalnız sürüm ilerledi) ortak çakışma bildirimi', async () => {
     server.use(
       http.get(`${ORIGIN}${ITEM}`, () => json(workItem({ dates_revision: 8 }))),
