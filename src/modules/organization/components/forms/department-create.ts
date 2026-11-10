@@ -99,7 +99,7 @@ function settleCreate(result: CreateResult, name: string, s: CreateSettle): void
     const linkStep = result.steps.find((step) => step.name === 'link')
     if (linkStep?.outcome.kind === 'unknown_outcome') {
       s.link.reset()
-      s.link.continueFrom(linkStep.outcome, target)
+      s.link.settle(linkStep.outcome, target)
       return
     }
     s.link.offer(target)

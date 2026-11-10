@@ -48,14 +48,17 @@ function keyedCreate(
   KEYS.set(db, store)
   const slot = `${o.actorOf(db, request)?.account_id ?? ''}:${new URL(request.url).pathname}:${key}`
   const seen = store.get(slot)
-  if (seen) {
-    if (seen.fingerprint !== fingerprint) return envelope(`${mod}.idempotency_key_reused`, 409)
-    return lostResponse(db) ? HttpResponse.error() : json(seen.body)
-  }
+  if (seen) return replay(db, mod, seen, fingerprint)
   const result = apply()
   if (result instanceof Response) return result
   store.set(slot, { ...result, fingerprint })
   return lostResponse(db) ? HttpResponse.error() : respond(result)
+}
+
+/** Aynı anahtarın tekrarı: ilk kaynak (düşürme hakkı varsa yanıt yine kaybolur). */
+function replay(db: OrgDb, mod: string, seen: Stored, fingerprint: string): Response {
+  if (seen.fingerprint !== fingerprint) return envelope(`${mod}.idempotency_key_reused`, 409)
+  return lostResponse(db) ? HttpResponse.error() : json(seen.body)
 }
 
 const respond = (result: Response | Stored): Response =>

@@ -2,19 +2,20 @@
 import './forms.css'
 
 import { useForm } from 'vee-validate'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 
-import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
+import type { MutationOutcome } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 import { UiButton, UiField, UiHint, UiInput, UiModal, UiSelect, useToast } from '@/shared/ui'
 
 import { transferOffer, useCreateUser, useProgramDepartmentIndex } from '../../api'
-import type { CreateUserInput, TransferOffer } from '../../model/types'
+import type { CreateUserInput } from '../../model/types'
 import { can, organizationFacts } from '../../model/capabilities'
 import type { UserCreateDialogEmits, UserCreateDialogProps } from '../index'
 import { serverFieldErrors, toTypedSchema, useFormDialog } from './form-kit'
+import { useTransferOffer, userBody, type BoundOffer } from './use-transfer-offer'
 import { orgText, roleLabel } from './messages'
 import {
   emptyUser,
@@ -75,17 +76,8 @@ const chooseRole = computed(() =>
 )
 const roleOptions = USER_ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
 
-/**
- * Aktarım teklifi (409 `organization.transfer_available`); yoksa `null`. Teklif ilk eylemin
- * normalize gövdesine ve bağlamına (kapsam + oturum nesli) bağlıdır (CX-P-Ö-02, BE-107: "aynı
- * gövde"): aktarım bu gövdeyle ve `failed.context` ile gider; gövde ya da bağlam değişirse düşer.
- */
-interface BoundOffer {
-  offer: TransferOffer
-  body: CreateUserInput
-  context: ActionContext | undefined
-}
-const bound = shallowRef<BoundOffer | null>(null)
+/** Aktarım teklifi (409 `organization.transfer_available`); ilk gövde + bağlama bağlı (Ö-02). */
+const bound = useTransferOffer(() => form.values, chooseRole)
 const offer = computed(() => bound.value?.offer ?? null)
 const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 
@@ -112,62 +104,6 @@ watch(
   { immediate: true },
 )
 
-/** Formdaki güncel değerlerden normalize gövde (aktarım alanı olmadan). */
-function bodyOf(values: UserValues, programId: string): CreateUserInput {
-  const name = values.fullName.trim()
-  return {
-    email: values.email.trim(),
-    programId,
-    departmentId: values.departmentId,
-    role: chooseRole.value ? values.role : 'member',
-    ...(name ? { fullName: name } : {}),
-  }
-}
-
-function sameBody(a: CreateUserInput, b: CreateUserInput): boolean {
-  return (
-    a.email === b.email &&
-    a.programId === b.programId &&
-    a.departmentId === b.departmentId &&
-    a.role === b.role &&
-    (a.fullName ?? '') === (b.fullName ?? '')
-  )
-}
-
-function sameScope(
-  a: ActionContext | undefined,
-  now: { programId: string | null; departmentId: string | null },
-) {
-  const scope = a?.scope
-  return !scope || (scope.programId === now.programId && scope.departmentId === now.departmentId)
-}
-
-// Teklif yalnız ilk gövde + bağlam sürdükçe geçerlidir: e-posta/ad/departman/rol ya da kapsam
-// (program, departman merceği) ve oturum nesli değişince düşer.
-watch(
-  [
-    () => form.values.email,
-    () => form.values.fullName,
-    () => form.values.departmentId,
-    () => form.values.role,
-    chooseRole,
-    () => store.snapshot.programId,
-    () => store.snapshot.departmentId,
-  ],
-  () => {
-    const current = bound.value
-    if (!current) return
-    const programId = store.snapshot.programId
-    if (
-      !programId ||
-      !sameScope(current.context, store.snapshot) ||
-      !sameBody(current.body, bodyOf(form.values as UserValues, programId))
-    ) {
-      bound.value = null
-    }
-  },
-)
-
 function close(): void {
   emit('update:open', false)
 }
@@ -188,7 +124,7 @@ async function send(values: UserValues, transfer: BoundOffer | null): Promise<vo
   if (!programId) return
   notice.value = null
   bound.value = null
-  const body = transfer ? transfer.body : bodyOf(values, programId)
+  const body = transfer ? transfer.body : userBody(values, programId, chooseRole.value)
   const outcome = await create.submit(
     transfer ? { ...body, transferAccountId: transfer.offer.accountId } : body,
     transfer ? { context: transfer.context } : undefined,

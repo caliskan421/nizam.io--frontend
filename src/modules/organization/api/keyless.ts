@@ -121,6 +121,13 @@ export function useKeylessMutation<V, D>(
     await Promise.all(filters.map((filter) => queryClient.invalidateQueries(filter)))
   }
 
+  async function finish(
+    next: Promise<MutationOutcome<V, D, unknown>>,
+  ): Promise<MutationOutcome<V, D, unknown>> {
+    const outcome = await next
+    return owner.alive() ? outcome : markDetached(outcome)
+  }
+
   async function harden(
     outcome: MutationOutcome<V, D, unknown>,
     scope: ScopeSnapshot,
@@ -136,11 +143,8 @@ export function useKeylessMutation<V, D>(
     if (outcome.kind === 'confirmation_required') {
       return keepDetached(outcome, {
         ...outcome,
-        confirm: async () => {
-          const next = await harden(await outcome.confirm(), scope)
-          // CX-P-E-01: onay devamında da son yaşam denetimi.
-          return owner.alive() ? next : markDetached(next)
-        },
+        // CX-P-E-01: onay devamında da son yaşam denetimi (`finish`).
+        confirm: async () => finish(harden(await outcome.confirm(), scope)),
       })
     }
     return outcome
