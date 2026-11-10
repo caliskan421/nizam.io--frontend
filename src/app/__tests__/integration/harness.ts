@@ -40,6 +40,36 @@ interface Hold {
   arrived: () => void
 }
 
+/**
+ * Uçuştaki istek izleyici: bir testin sökülen uygulamasından geç kalan istek sonraki testin
+ * `reset()`'inden sonra sunucuya düşmesin diye `settled()` onları bekler. Uçuştaki bütün istekler
+ * (ve onların tetiklediği ardıl istekler: 401 → refresh → tekrar) bitene dek bekler; koşul
+ * tabanlı, saat yok. Yanıt işlenip yeni istek çıkana dek söz kuyruğu boşaltılır; sayaç iki
+ * ardışık turda sıfırsa yerleşilmiştir.
+ */
+function trackInflight(server: ReturnType<typeof setupServer>): () => Promise<void> {
+  const inflight = new Set<string>()
+  const drains: Array<() => void> = []
+  const finish = (requestId: string) => {
+    inflight.delete(requestId)
+    if (inflight.size === 0) for (const wake of drains.splice(0)) wake()
+  }
+  server.events.on('request:start', ({ requestId }) => inflight.add(requestId))
+  server.events.on('request:end', ({ requestId }) => finish(requestId))
+  server.events.on('request:unhandled', ({ requestId }) => finish(requestId))
+  return async () => {
+    for (let calm = 0; calm < 2;) {
+      if (inflight.size > 0) {
+        await new Promise<void>((resolve) => drains.push(resolve))
+        calm = 0
+      }
+      await flushPromises()
+      await vi.dynamicImportSettled()
+      calm = inflight.size === 0 ? calm + 1 : 0
+    }
+  }
+}
+
 /** Sahte backend + MSW sunucusu + istek kaydı + bekletme kapıları. */
 export function createBackend(roles: ServerRoles) {
   const db: OrgDb = createDb(roles)
@@ -65,6 +95,8 @@ export function createBackend(roles: ServerRoles) {
     ...workHandlers(db),
   ]
   const server = setupServer(...handlers())
+
+  const settled = trackInflight(server)
 
   server.events.on('request:start', ({ request }) => {
     const url = new URL(request.url)
@@ -109,7 +141,7 @@ export function createBackend(roles: ServerRoles) {
     server.resetHandlers(...handlers())
   }
 
-  return { db, server, requests, sent, hold, reset }
+  return { db, server, requests, sent, hold, reset, settled }
 }
 
 export type Backend = ReturnType<typeof createBackend>
