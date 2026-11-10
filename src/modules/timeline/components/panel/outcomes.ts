@@ -7,7 +7,7 @@ import type { QueryClient } from '@tanstack/vue-query'
 
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
-import { errorText } from '@/shared/i18n'
+import { errorText, i18n } from '@/shared/i18n'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 
 type AnyOutcome = MutationOutcome<unknown, unknown, unknown>
@@ -20,6 +20,17 @@ export function failedCode(outcome: AnyOutcome): string | null {
 /** Satır içi gösterilecek hata metni (yalnız `failed`); diğer sınıflar ortak bildirimden gider. */
 export function failedText(outcome: AnyOutcome): string | null {
   return outcome.kind === 'failed' ? errorText(outcome.error) : null
+}
+
+/**
+ * `422 work.input_invalid` yanıtının `fields[].code` özgün iletisi (ör. `work.dependency_date_order`);
+ * `error-codes.json` kataloğundaki alan kodlarından biri ve i18n'de metni varsa o, yoksa kodun
+ * kendi metni. Sunucu `message` alanı kullanılmaz.
+ */
+export function failedFieldText(outcome: AnyOutcome): string | null {
+  if (outcome.kind !== 'failed') return null
+  const own = outcome.error.fields.find((f) => i18n.global.te(`errors.${f.code}`))
+  return own ? i18n.global.t(`errors.${own.code}`) : failedText(outcome)
 }
 
 /** 409 ailesi (ya da `conflict_retry`): görev bayat olabilir → yeniden okunmalı. */

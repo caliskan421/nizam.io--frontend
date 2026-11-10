@@ -28,7 +28,28 @@ const key = (el: Element, k: string, init: KeyboardEventInit = {}) =>
   )
 const rowTabStops = () => $$('.gantt-rows [role="row"][tabindex="0"]')
 
+/** Sekmeyle ulaşılabilen her öğe (yalnız role=row değil): tabindex>=0 ya da doğal odaklanabilir. */
+const tabbable = (root: Element) =>
+  [...root.querySelectorAll<HTMLElement>('a[href],button,input,select,textarea,[tabindex]')].filter(
+    (el) => el.tabIndex >= 0 && !el.hasAttribute('disabled'),
+  )
+
 describe('(8) treegrid rolleri ve klavye', () => {
+  it('CX-F3-Ö-03: Gantt satırlarında TEK sekme durağı (aç/kapa düğmesi dahil sayılır)', async () => {
+    await boot({ ...ADMIN_ADMIN, path: '/zaman-cizelgesi' })
+    await ganttReady()
+    expect(tabbable($('.gantt-rows')!)).toHaveLength(1)
+    expect($$('[data-testid="subtask-toggle"]').every((b) => b.tabIndex === -1)).toBe(true)
+    // klavye erişimi korunur: görev satırında → alt görevleri açar, ← kapatır
+    const row = rowEl('w1')!
+    row.focus()
+    key(row, 'ArrowRight')
+    await until(() => $$('[data-testid="subtask-row"]').length > 0, 'klavyeyle açıldı')
+    expect(tabbable($('.gantt-rows')!)).toHaveLength(1)
+    key(rowEl('w1')!, 'ArrowLeft')
+    await until(() => $$('[data-testid="subtask-row"]').length === 0, 'klavyeyle kapandı')
+  })
+
   it('roller: treegrid, grup seviye 1 + aria-expanded, görev seviye 2, tek sekme durağı', async () => {
     await boot({ ...ADMIN_ADMIN, path: '/zaman-cizelgesi?secili=w3' })
     await ganttReady()
@@ -160,9 +181,15 @@ describe('(9) 03d alt görev: tek satır açma → tek istek', () => {
     expect($('[data-testid="subtask-toggle-count"]')?.textContent?.trim()).toBe('1/3')
     expect(
       $$('[data-testid="subtask-rows"] [role="row"]').every(
-        (r) => r.getAttribute('aria-level') === '2',
+        (r) => r.getAttribute('aria-level') === '3',
       ),
     ).toBe(true)
+    // CX-F3-Ö-03: açık alt görev satırları sayıya girer (satır sayısı + 3; w2 indeksi 3 kayar)
+    const rowcount = Number($('.gantt-rows')!.getAttribute('aria-rowcount'))
+    expect(rowcount).toBe($$('.gantt-rows > [role="row"]').length + 3)
+    expect(Number(rowEl('w2')!.getAttribute('aria-rowindex'))).toBe(
+      Number(rowEl('w1')!.getAttribute('aria-rowindex')) + 1 + 3,
+    )
     expect($$('[data-testid="subtask-nodate"]')).toHaveLength(3) // tarihsiz → “Tarih yok”, sahte elmas yok
 
     // Kapat: satırlar kalkar, kayma geri alınır, yeni istek yok.

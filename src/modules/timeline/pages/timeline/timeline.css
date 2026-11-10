@@ -61,6 +61,8 @@
   }
   .timeline-board--panel {
     min-height: calc(var(--space-12) * 10);
+    /* Yüzen panel kabın üstüne taşabilir (görünür alana sabit; kısa pencerede kırpılmaz). */
+    overflow: visible;
   }
   .timeline-board--state {
     padding: var(--space-6);
@@ -68,14 +70,27 @@
     background: transparent;
   }
 
-  /* Seçili görev paneli: sağ alt (tasarım: right/bottom = 16 px, genişlik rp-aside tabanı) */
-  .timeline-panel {
+  /*
+   * Seçili görev paneli: sağ alt (tasarım: right/bottom = 16 px, genişlik rp-aside tabanı).
+   * W98 K-1: panel GÖRÜNÜR ALANA sabit — sıfır yükseklikli yapışkan kenet kabın altında durur,
+   * sayfa kaydıkça pencerenin altına yapışır; kap görünür alandan kısaysa doğal konumunda
+   * (kabın sağ altı) kalır. Yükseklik pencereye göre sınırlı, taşarsa kendi içinde kayar.
+   */
+  .timeline-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    height: 0;
+    /* Panelin doğal duraklama yeri Gantt'ın ALTINDA: satırlar panelin altında kalmaz. */
+    margin-top: calc(var(--space-12) * 10);
+  }
+  .timeline-dock .timeline-panel {
     position: absolute;
     right: var(--space-4);
     bottom: var(--space-4);
-    z-index: 5;
     width: var(--rp-aside-basis);
     max-width: calc(100% - var(--space-8));
+    max-height: calc(100dvh - var(--space-8));
   }
 
   /* Yükleniyor iskeleti (E-03C-83): başlık, araç çubuğu ve şerit görünür kalır */
@@ -109,11 +124,17 @@
     .timeline-board--panel {
       min-height: 0;
     }
-    .timeline-panel {
+    .timeline-dock {
+      position: static;
+      height: auto;
+      margin-top: 0;
+    }
+    .timeline-dock .timeline-panel {
       position: static;
       margin: var(--space-4);
       width: auto;
       max-width: none;
+      max-height: none;
     }
   }
 }

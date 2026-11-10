@@ -1,9 +1,9 @@
 /**
  * K7 açık durumlarının içeriği (00-ortak `mekanizma.md` §6; yol haritası K7). Başlık rota
  * kataloğundan (`OPEN_STATES`); metin ve eylem yetki olgusuna göre (mercekten bağımsız, P1).
- * Yönetici eylemleri hedef ekranı gelene dek **devre dışı + faz notu** gösterilir
- * (ortak-kurallar §5; tıklanabilir ama işlevsiz kontrol yok). Hedefi canlı olan eylem rota
- * bağlantısıdır: "program yok" → "Program oluştur" → `/programlar` (E-00-25, W81).
+ * Yönetici eylemleri rota bağlantısıdır (tıklanabilir ama işlevsiz kontrol yok,
+ * ortak-kurallar §5): "program yok" → "Program oluştur" ve "departman yok" → "Departman ekle",
+ * ikisi de `/programlar` (E-00-25, W81; departman bağlama program yönetiminde, W98 K-6).
  */
 import { OPEN_STATES, type OpenStateName, type RouteName } from '@/app/routes.catalog'
 import type { IconName } from '@/shared/ui'
@@ -14,11 +14,8 @@ export interface OpenStateCopy {
   title: string
   icon: IconName
   text: string
-  /**
-   * Yönetici eylemi; yoksa `null`. `to` doluysa hedef rotaya bağlantıdır (not yok); boşsa devre
-   * dışı düğme + faz notu.
-   */
-  action: { label: string; note: string | null; to: RouteName | null } | null
+  /** Yönetici eylemi (hedef rotaya bağlantı); yoksa `null`. */
+  action: { label: string; to: RouteName } | null
 }
 
 interface CopySpec {
@@ -26,7 +23,7 @@ interface CopySpec {
   admin?: StatesTextKey
   other: StatesTextKey
   action?: StatesTextKey
-  /** Eylemin canlı hedefi (rota adı); yoksa devre dışı + faz notu. */
+  /** Eylemin canlı hedefi (rota adı). */
   to?: RouteName
 }
 
@@ -44,13 +41,9 @@ const SPECS: Partial<Record<OpenStateName, CopySpec>> = {
     admin: 'states.noDepartment.admin',
     other: 'states.noDepartment.other',
     action: 'states.noDepartment.action',
+    to: 'program.programs',
   },
   'state.logout-unverified': { icon: 'alert', other: 'states.logoutUnverified' },
-}
-
-function actionOf(label: string, to: RouteName | null): NonNullable<OpenStateCopy['action']> {
-  if (to) return { label, note: null, to }
-  return { label, note: statesText('states.phase.F2', { action: label }), to: null }
 }
 
 /** Açık durumun görünür içeriği; kabukta çizilmeyen durumda (güncelleme gerekli) `null`. */
@@ -63,6 +56,6 @@ export function openStateCopy(name: OpenStateName, admin: boolean): OpenStateCop
     title: OPEN_STATES[name].title,
     icon: spec.icon,
     text: statesText(useAdmin && spec.admin ? spec.admin : spec.other),
-    action: label ? actionOf(label, spec.to ?? null) : null,
+    action: label && spec.to ? { label, to: spec.to } : null,
   }
 }

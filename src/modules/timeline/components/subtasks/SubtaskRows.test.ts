@@ -117,11 +117,11 @@ describe('SubtaskRows — açılmış satırlar (E-03C-48…53)', () => {
     expect(w.find('progress').exists()).toBe(false)
   })
 
-  it('satırlar treegrid düzeyi 2, hücreleri gridcell', async () => {
+  it('satırlar treegrid düzeyi 3 (görev satırı 2), hücreleri gridcell', async () => {
     const w = await opened()
     const row = w.get('[data-testid="subtask-row"]')
     expect(row.attributes('role')).toBe('row')
-    expect(row.attributes('aria-level')).toBe('2')
+    expect(row.attributes('aria-level')).toBe('3')
     expect(row.findAll('[role="gridcell"]')).toHaveLength(2)
   })
 })

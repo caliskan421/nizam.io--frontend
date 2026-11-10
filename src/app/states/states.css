@@ -9,11 +9,6 @@
     gap: var(--space-4);
     padding: var(--space-8);
   }
-  .shell-state__note {
-    margin: 0;
-    font: var(--text-caption);
-    color: var(--ink-faint);
-  }
   .shell-notice {
     display: flex;
     align-items: center;

@@ -24,6 +24,8 @@ import { useDateChange } from '../composables/useDateChange'
 import { atCeiling } from '../model/ceiling'
 import { clearedFilters } from './timeline/url-state'
 import { useFullscreen } from './timeline/use-fullscreen'
+import { useSelectionReveal } from './timeline/use-panel-reveal'
+import { useSelectedDateRequest } from './timeline/use-selected-request'
 import { useTimelinePage } from './timeline/use-timeline-page'
 
 /**
@@ -66,6 +68,8 @@ const filteredEmpty = computed(
 )
 const showGantt = computed(() => page.ready.value && page.tasks.value.length > 0)
 const panelTask = computed(() => (showGantt.value ? page.selected.value : null))
+const dateRequest = useSelectedDateRequest(panelTask, page.face)
+const reveal = useSelectionReveal(board, () => panelTask.value?.work_item_id ?? null)
 const ceiling = computed(() => page.ready.value && atCeiling(page.allTasks.value.length))
 
 /** Sayfa içi diyalog (W97a, 03'ün aynı formu); önseçili birim: Admin süzgeci, yoksa kapsam. */
@@ -76,6 +80,7 @@ function newTask(): void {
 
 function select(id: string | null): void {
   if (id !== null) {
+    reveal.arm()
     const active = document.activeElement
     trigger = active instanceof HTMLElement && active !== document.body ? active : null
   }
@@ -210,21 +215,23 @@ function openInList(workItemId: string): void {
             :department-codes="page.adminFace.value ? page.departmentCodes.value : undefined"
             :selected-id="state.selected"
             :draggable-ids="draggableIds"
+            :date-request="dateRequest"
             :date-key-handler="dateKeyHandler"
             @edge-drag="dateChange.onEdgeDrag"
             @select="select"
             @scroll="view = $event"
           />
-          <SelectedTaskPanel
-            v-if="panelTask && page.face.value"
-            :key="panelTask.work_item_id"
-            class="timeline-panel"
-            :task="panelTask"
-            :face="page.face.value"
-            :department-name="page.departmentNames.value.get(panelTask.department_id) ?? null"
-            @close="closePanel"
-            @open-in-list="openInList"
-          />
+          <div v-if="panelTask && page.face.value" class="timeline-dock">
+            <SelectedTaskPanel
+              :key="panelTask.work_item_id"
+              class="timeline-panel"
+              :task="panelTask"
+              :face="page.face.value"
+              :department-name="page.departmentNames.value.get(panelTask.department_id) ?? null"
+              @close="closePanel"
+              @open-in-list="openInList"
+            />
+          </div>
         </template>
       </div>
     </div>

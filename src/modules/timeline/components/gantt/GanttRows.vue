@@ -49,6 +49,17 @@ const hover = useGanttHover()
 const root = useTemplateRef<HTMLElement>('root')
 const focusKey = ref<string | null>(null)
 
+/** Her satırdan ÖNCEKİ açık alt görev satırı sayısı: `aria-rowindex`/`aria-rowcount` bunları sayar. */
+const subBefore = computed(() => {
+  let acc = 0
+  const before = props.layout.rows.map((row) => {
+    const value = acc
+    if (row.kind === 'task') acc += row.subRows
+    return value
+  })
+  return { before, total: acc }
+})
+
 const visible = computed(() =>
   props.layout.rows
     .slice(props.window.first, props.window.last + 1)
@@ -82,6 +93,8 @@ const keyboard = useGanttKeyboard({
   focusRow: (index) => void focusRow(index),
   setGroupOpen: (key, open) => emit('toggle', key, open),
   select: (id) => emit('select', id),
+  subtasksOpen: (id) => props.openSubtasks?.has(id) === true,
+  toggleSubtasks: (id) => emit('subtasks', id),
   onDateKey: (request) => (props.dateKeyHandler ? props.dateKeyHandler(request) : false),
 })
 
@@ -123,7 +136,7 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
     class="gantt-rows"
     role="treegrid"
     :aria-label="ganttText('timeline.gantt.label')"
-    :aria-rowcount="layout.rows.length"
+    :aria-rowcount="layout.rows.length + subBefore.total"
   >
     <div
       v-for="{ row, index } in visible"
@@ -140,7 +153,7 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
       ]"
       :style="{ top: `${row.y}px`, height: `${row.height}px` }"
       :data-row-key="row.key"
-      :aria-rowindex="index + 1"
+      :aria-rowindex="index + 1 + (subBefore.before[index] ?? 0)"
       :aria-level="row.level"
       :aria-expanded="row.kind === 'group' ? row.open : undefined"
       :aria-selected="row.kind === 'task' ? row.key === selectedId : undefined"
@@ -166,8 +179,12 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
         </div>
       </template>
       <template v-else>
-        <div role="rowheader" class="gantt-row__label">
-          <span class="gantt-row__code">{{ codeOf(row) }}</span>
+        <div
+          role="rowheader"
+          class="gantt-row__label"
+          :class="{ 'gantt-row__label--bare': !departmentCodes }"
+        >
+          <span v-if="departmentCodes" class="gantt-row__code">{{ codeOf(row) }}</span>
           <span
             class="gantt-dot"
             :class="[
@@ -183,7 +200,7 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
             :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
             :open="openSubtasks?.has(row.key) === true"
             :label="codeOf(row) || row.task.title"
-            :tabindex="row.key === tabStop ? 0 : -1"
+            tabindex="-1"
             @click.stop
             @keydown.stop
             @toggle="emit('subtasks', row.task.work_item_id)"

@@ -31,7 +31,6 @@ export const trStates = {
     },
     loading: 'Kapsam yükleniyor',
     error: 'Kapsam bilgisi alınamadı',
-    phase: { F2: '{action} F2’de açılacak.' },
     // P14 + 00-ortak `backend.md` §6: geçici parolayla ilk giriş → zorunlu parola değişimi
     // (`changePassword`). Tasarımda çizilmemiş; P3 en sade form.
     password: {
