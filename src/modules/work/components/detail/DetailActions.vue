@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import './detail.css'
 
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
+import { DateRequestForm, panelText } from '@/modules/timeline/public'
 import { DesignStub, UiIconButton, useToast } from '@/shared/ui'
 
 import {
@@ -11,6 +12,7 @@ import {
   canUploadFile,
   type WorkActorFacts,
 } from '../../model/capabilities'
+import { targetOf } from '../../model/target'
 import type { WorkItem } from '../../model/types'
 import { taskLink } from '../../routes'
 import DeleteTaskAction from '../forms/DeleteTaskAction.vue'
@@ -21,8 +23,9 @@ import { detailText } from './messages'
  * `capabilities.ts`); BE kaynaklı eksik eylem devre dışı + stub.
  *  - Kanıt yükle (s.148; yönetici gizli) → `upload` (çağıran `FileUploadDialog`'u açar).
  *  - Hatırlat: uç yok → devre dışı, `BE-008`.
- *  - Tarih değişikliği iste (s.151; bekleyen talep varken gizli): F3'e kadar devre dışı, faz
- *    notu (stub değil, P5).
+ *  - Tarih değişikliği iste (s.151; bekleyen talep varken gizli; E-03-54/63): canlı — zaman
+ *    çizelgesinin `DateRequestForm`'unu (`timeline/public.ts`; 03c ile AYNI form) açar. Yetki
+ *    ve gizleme `canRequestDateChange` (koordinatör; P8/P18: Admin tek başına talep açmaz).
  *  - Kopyala (P7): görev bağlantısı panoya + bildirim; yazma isteği yok.
  *  - Görevi sil (s.139): `DeleteTaskAction` (W45; istemci onayı).
  */
@@ -33,6 +36,7 @@ const t = detailText
 const toast = useToast()
 const canUpload = computed(() => canUploadFile(props.facts))
 const canManage = computed(() => canManageWorkItem(props.facts))
+const dateRequestOpen = ref(false)
 const canDateRequest = computed(() =>
   canRequestDateChange({
     ...props.facts,
@@ -76,8 +80,8 @@ async function copyLink(): Promise<void> {
       icon="calendar"
       size="md"
       data-action="date-request"
-      :label="t('workDetail.actions.dateRequest')"
-      disabled
+      :label="panelText('actions.openRequest')"
+      @click="dateRequestOpen = true"
     />
     <UiIconButton
       icon="copy"
@@ -87,5 +91,13 @@ async function copyLink(): Promise<void> {
       @click="copyLink"
     />
     <DeleteTaskAction v-if="canManage" :item="item" @deleted="(id) => emit('deleted', id)" />
+    <DateRequestForm
+      v-if="canDateRequest"
+      v-model:open="dateRequestOpen"
+      :work-item-id="item.work_item_id"
+      :target="targetOf(item)"
+      :start-on="item.start_on"
+      :end-on="item.end_on"
+    />
   </div>
 </template>

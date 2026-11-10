@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import './tasks.css'
 
+import { useRoute, useRouter } from 'vue-router'
+
 import { UiButton, UiIcon } from '@/shared/ui'
+
+import { TASKS_ROUTE } from '../../routes'
 
 import { tasksText } from './messages'
 
@@ -9,7 +13,7 @@ import { tasksText } from './messages'
  * Bekleyen tarih talepleri bandı (E-03-13, okuma; P5/§5 F1'de canlı). Sayı ve koordinatörlük
  * adları yüklenen kümeden (`pending_date_request`; talep uçlarıyla birleştirme yok). Çağıran
  * yalnız sayı > 0 iken gösterir (boş içerik üretilmez, §4). "Talepleri incele" (E-03-14) yalnız
- * yöneticiye (s.152), F3'e kadar devre dışı + faz notu (stub yok, §3). İmleç bitmediyse
+ * yöneticiye (s.152), canlı (P20, 2026-11-10): E-03-09 tarih talebi süzgecini (`talep=1`) açar. İmleç bitmediyse
  * (`complete` false) sayı kısmi kümedendir → yanında "yüklenen kayıtlar içinde" (§10, P4).
  */
 defineProps<{
@@ -18,6 +22,12 @@ defineProps<{
   canReview: boolean
   complete: boolean
 }>()
+const route = useRoute()
+const router = useRouter()
+
+function review(): void {
+  void router.push({ name: TASKS_ROUTE.name, query: { ...route.query, talep: '1' } })
+}
 </script>
 
 <template>
@@ -35,9 +45,8 @@ defineProps<{
       size="sm"
       class="rp-btn-ok"
       icon-end="arrow-right"
-      disabled
-      data-phase="F3"
-      :title="tasksText('tasksPage.requests.reviewSoon')"
+      data-testid="request-review"
+      @click="review"
     >
       {{ tasksText('tasksPage.requests.review') }}
     </UiButton>

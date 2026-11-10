@@ -30,7 +30,6 @@ export const trTasksPage = {
       label: 'Görünüm',
       list: 'Liste',
       timeline: 'Zaman çizelgesi',
-      timelineSoon: 'Zaman çizelgesi — F3’te açılacak',
     },
     create: 'Yeni görev',
     tabs: {
@@ -49,7 +48,6 @@ export const trTasksPage = {
       band: 'Bekleyen tarih değişikliği talepleri',
       bandTitle: '{n} tarih değişikliği talebi onay bekliyor',
       review: 'Talepleri incele',
-      reviewSoon: 'Talepleri incele — F3’te açılacak',
     },
     search: {
       label: 'Görev ara',
