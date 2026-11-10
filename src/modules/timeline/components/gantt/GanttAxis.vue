@@ -38,6 +38,22 @@ const pill = computed(() => {
   const x = axis.value.todayX
   return x === null ? null : { x: x - GEOMETRY.pillW / 2 }
 })
+
+/**
+ * Ay etiketinin hücre içi x'i. "bugün" hapı etiketin üstüne düşerse (bugün ay başına yakın)
+ * etiket hapın sağına kayar (K-4: "Kasım" yerine "Kas·bugün" görünüyordu); sağda yer yoksa
+ * etiket kendi yerinde kalır (hap yine çizilir, bir sonraki ay etiketi okunur).
+ */
+const monthLabelX = (cell: AxisCell, label: string): number => {
+  const home = GEOMETRY.barPad + 2
+  const hap = pill.value
+  if (!hap) return home
+  const from = cell.x + home
+  const to = from + label.length * TEXT_CHAR_PX
+  if (hap.x >= to || hap.x + GEOMETRY.pillW <= from) return home
+  const shifted = hap.x + GEOMETRY.pillW + GEOMETRY.barPad - cell.x
+  return shifted + label.length * TEXT_CHAR_PX <= cell.width ? shifted : home
+}
 </script>
 
 <template>
@@ -61,7 +77,7 @@ const pill = computed(() => {
       <text
         v-if="topLabel(cell, index)"
         class="gantt-axis__month"
-        :x="GEOMETRY.barPad + 2"
+        :x="monthLabelX(cell, topLabel(cell, index))"
         :y="GEOMETRY.axisMonthH / 2"
       >
         {{ topLabel(cell, index) }}

@@ -48,6 +48,18 @@ describe('eksen başlığı (E-03C-23…25, 27)', () => {
     expect(mountAxis('hafta', '2027-05-05').find('[data-gantt="today-pill"]').exists()).toBe(false)
   })
 
+  it('K-4: bugün ay başına yakınken ay etiketi hapın altında kalmaz, sağına kayar', () => {
+    // 9 Kas, hafta ölçeği: hap x 25…77, "Kasım" 5 karakter → varsayılan x (10) ile çakışır.
+    const axis = mountAxis('hafta')
+    const month = axis.findAll('.gantt-axis__month')[0]!
+    const pill = axis.get('.gantt-axis__pill')
+    const pillRight = Number(pill.attributes('x')) + Number(pill.attributes('width'))
+    expect(Number(month.attributes('x'))).toBeGreaterThanOrEqual(pillRight)
+    // hap etiketten uzaktaysa etiket yerinde kalır
+    const far = mountAxis('hafta', '2026-11-27')
+    expect(Number(far.findAll('.gantt-axis__month')[0]!.attributes('x'))).toBe(10)
+  })
+
   it('süs katmanı: erişilebilirlik ağacından gizli, genişlik = gün sayısı × gün genişliği', () => {
     const axis = mountAxis('gun')
     expect(axis.attributes('aria-hidden')).toBe('true')
