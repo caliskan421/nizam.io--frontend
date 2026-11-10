@@ -1,5 +1,7 @@
 # Backend devir raporu — F3 kapanışı (WEB-3), 2026-11-10
 
+**Durum (2026-11-10): pin aşaması KAPANDI** — `api-pin.json` `v0.15.0-api`, WEB-P #77–#86, Codex tur 2 KOŞULLU UYGUN (`../reviews/WEB-P-codex.md`); §2 tablosundaki satırlar bağlandı. Aşağıdaki "pin `v0.11.0-api`" ifadeleri F3 kapanış anının tarihsel kaydıdır.
+
 **Tür:** faz kapanış devri (`rapor-F<N>.md` kalıbı). **Pin:** `v0.11.0-api` (F3 boyunca değişmedi; backend F2 paketi — BE-052/051/053/019/056/107 — ayrı depoda hazır ve **yayımlandı** — `v0.13.0-api`/`v0.14.0-api`/`v0.15.0-api`; pin bilerek `v0.11.0-api`'de kaldı (ürün kararı, F3 bu pinle kapanır), bu yüzden web hâlâ "Şimdilik" yollarını kullanıyor).
 **Önceki raporlar:** [`rapor-F2.md`](rapor-F2.md) (F3 öncelik sırası, §2) · [`rapor-F1.md`](rapor-F1.md) · [`rapor-F0.md`](rapor-F0.md) · [`rapor-tespit-2026-11-08.md`](rapor-tespit-2026-11-08.md) (paketlerin uç/alan önerileri ve kabul ölçütleri; burada paket numarasıyla anılır, tam metin oradadır).
 **Kaynak:** [`kayit.md`](kayit.md) · PR #65–#73 gövdeleri · [`../yurutme/web-3/ilerleme.md`](../yurutme/web-3/ilerleme.md) · [`../ekranlar/03c-zaman-cizelgesi/README.md`](../ekranlar/03c-zaman-cizelgesi/README.md) (kabul kanıtları) · [`../ekranlar/09-toplantilar/eksikler.md`](../ekranlar/09-toplantilar/eksikler.md) ve [`backend.md`](../ekranlar/09-toplantilar/backend.md) (F4 ihtiyaçları).
@@ -20,7 +22,7 @@ F3, rapor-F2 §2'deki "yeni uç beklemeden açılabilir" varsayımını doğrula
 
 ## 2. Pin yükseldiğinde web tarafında yapılacaklar
 
-**Durum ve karar (2026-11-10).** Backend `v0.13.0-api`, `v0.14.0-api` ve `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı: F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** — F0–F3 modüllerine dokunur ve kendi Codex kapısı vardır. **F4 ön koşulu: pin aşaması kapanmış olmalı (şu an açık).** Aşağıdaki tablo o aşamanın iş listesidir (ayrı bir `docs/yurutme/` klasörü açılmaz).
+**Durum ve karar (2026-11-10).** Backend `v0.13.0-api`, `v0.14.0-api` ve `v0.15.0-api` yayımlandı (F0/F1/F2 paketleri: BE-003/038/001/036, BE-041…045/011/012/049/050, BE-052/051/053/019/056/107). **Ürün sahibi kararı: F3 `v0.11.0-api` ile kapanır; pin yükseltmesi F3 kapandıktan sonra, F4'ten ÖNCE ayrı bir aşamadır** — F0–F3 modüllerine dokunur ve kendi Codex kapısı vardır. **F4 ön koşulu: pin aşaması kapanmış olmalı — KARŞILANDI (PİN AŞAMASI KAPANDI 2026-11-10).** Aşağıdaki tablo o aşamanın iş listesidir (ayrı bir `docs/yurutme/` klasörü açılmaz).
 
 **Pin aşamasının ilk işi — Codex WEB-3 tur 2 devri (F3 KAPANDI 2026-11-10, KOŞULLU UYGUN; F4'ten önce):** **Ö-03** (açık alt görev satırlarına mutlak `aria-rowindex`, ana satırların mantıksal sırası; iki açık blok + pencere ortasından sanallaştırma ile bütün render edilmiş satır indeks/sıra ölçümü), **Ö-04** (sürükleme ön GET beklerken kapsam A→B + farklı tarihli yanıt → PATCH, ekran bildirimi ve ek geçersizleme sıfır), **Ö-08** (ortak `useProtectedMutation`: başarı yanıtı → geçersizleme GET'i beklet → sahibi sök → GET'i bırak; uzlaştırma tamamlanır, dönen sonuç `reachesOwner=false`, ekran kancaları çalışmaz; sonuç tüketiciye verilmeden sahip yeniden denetlenir — `use-protected-mutation.ts:149–176`, `outcome.ts:202–217`; ortak katmana dokunduğu için F4'ten önce). Ö-07/K-04/E-03C-27/41 F4 borcudur.
 
@@ -28,16 +30,20 @@ Backend notları (pin aşamasına): kesilme satır sayısından değil `X-Result
 
 Backend F2 paketi yayımlanıp `api-pin.json` yükseltildiğinde (her adım: `pnpm gen:api` → `pnpm gen:check` → ilgili test güncellemesi → satır `bağlandı`, `designStub` varsa kaldır):
 
-| Paket / BE | Web değişikliği | Dokunulan yerler |
-|---|---|---|
-| **0.4 · BE-052** (`GanttTask.pending_date_request`) | Bekleyen talep uzantısı **her satırda** çizilir (bugün yalnız seçili görev); "uzantı yalnız seçili görevde" kuralı kalkar; panel açılışı yine taze `getWorkItem` okur (kabul: Gantt ↔ `getWorkItem` tutarlı) | E-03C-42 · `GanttBars`, `task-view`, `SelectedTaskPanel.test` «uzantı yalnız seçili görevde» güncellenir |
-| **0.4 · BE-051** (`GanttTask.subtask_counts`) | Kapalı satırda da sayaç/ilerleme çipi; açık alt görev bloğu yüksekliği liste gelmeden **sayıdan** hesaplanır — bugünkü "açılınca 1 satır ayır, liste gelince kes" kısa kayması biter; liste okuması yalnız satır içeriği için | E-03C-33/44/46 · `use-subtask-rows`, `rows.ts`, `SubtaskRows` |
-| **0.4 · BE-053** (`GanttTask.dates_revision`) | Admin `updateWorkItem` yolunda Gantt'tan gelen sürüm kullanılır; sürükleme bırakılırken ek `getWorkItem` okuması kalkar (409 uzlaştırma korunur) | E-03C-47/58/59 · `useDateChange`, `SelectedTaskPanel` |
-| **0.4 · BE-019** (kesilme sinyali) | "Tam 200 ise uyarı" sezgisi yerine sinyal (`X-Result-Truncated` ya da imleç) okunur; okunamayan kalemin sessizce düşmesi sona erer | E-03C-02/15/82 · `model/ceiling.ts`, `ceiling.test` |
-| **3.1 · BE-056** (`Idempotency-Key` + `expected_dates_revision`) | `extendWorkItem`/`requestDateChange` anahtarla gönderilir; "sonuç bilinmiyor" için **aynı anahtarla tek tekrar** (K5) açılır — bugünkü "kör tekrar yok, yeniden oku" kuralı gevşer; `mutations.test` «sonuç bilinmiyor: ÇİFT UZATMA yok» yeni sözleşmeye göre yeniden yazılır | E-03C-47/64 · `api/mutations.ts`, `DateRequestForm`, 03 E-03-54/63 |
-| **BE-107** (F2 kalemi, aynı paket) | 05 `transfer_available` aktarım eylemi açılır (`transfer_account_id` yapılandırılmış alanda) | `rapor-F2.md` §3 sıra 2 · `designStub('BE-107')` kaldırılır |
+| Paket / BE | Web değişikliği | Dokunulan yerler | Durum |
+|---|---|---|---|
+| **0.4 · BE-052** (`GanttTask.pending_date_request`) | Bekleyen talep uzantısı **her satırda** çizilir (bugün yalnız seçili görev); "uzantı yalnız seçili görevde" kuralı kalkar; panel açılışı yine taze `getWorkItem` okur (kabul: Gantt ↔ `getWorkItem` tutarlı) | E-03C-42 · `GanttBars`, `task-view`, `SelectedTaskPanel.test` «uzantı yalnız seçili görevde» güncellenir | **bağlandı (pin v0.15.0-api, WEB-P WP2b, PR #82)** |
+| **0.4 · BE-051** (`GanttTask.subtask_counts`) | Kapalı satırda da sayaç/ilerleme çipi; açık alt görev bloğu yüksekliği liste gelmeden **sayıdan** hesaplanır — bugünkü "açılınca 1 satır ayır, liste gelince kes" kısa kayması biter; liste okuması yalnız satır içeriği için | E-03C-33/44/46 · `use-subtask-rows`, `rows.ts`, `SubtaskRows` | **bağlandı (pin v0.15.0-api, WEB-P WP2b, PR #82)** |
+| **0.4 · BE-053** (`GanttTask.dates_revision`) | Admin `updateWorkItem` yolunda Gantt'tan gelen sürüm kullanılır; sürükleme bırakılırken ek `getWorkItem` okuması kalkar (409 uzlaştırma korunur) | E-03C-47/58/59 · `useDateChange`, `SelectedTaskPanel` | **bağlandı (pin v0.15.0-api, WEB-P WP2b, PR #82)** |
+| **0.4 · BE-019** (kesilme sinyali) | "Tam 200 ise uyarı" sezgisi yerine sinyal (`X-Result-Truncated` ya da imleç) okunur; okunamayan kalemin sessizce düşmesi sona erer | E-03C-02/15/82 · `model/ceiling.ts`, `ceiling.test` | **bağlandı (pin v0.15.0-api, WEB-P WP2b, PR #82)** |
+| **3.1 · BE-056** (`Idempotency-Key` + `expected_dates_revision`) | `extendWorkItem`/`requestDateChange` anahtarla gönderilir; "sonuç bilinmiyor" için **aynı anahtarla tek tekrar** (K5) açılır — bugünkü "kör tekrar yok, yeniden oku" kuralı gevşer; `mutations.test` «sonuç bilinmiyor: ÇİFT UZATMA yok» yeni sözleşmeye göre yeniden yazılır | E-03C-47/64 · `api/mutations.ts`, `DateRequestForm`, 03 E-03-54/63 | **bağlandı (pin v0.15.0-api, WEB-P WP2b, PR #82)** |
+| **BE-107** (F2 kalemi, aynı paket) | 05 `transfer_available` aktarım eylemi açılır (`transfer_account_id` yapılandırılmış alanda) | `rapor-F2.md` §3 sıra 2 · `designStub('BE-107')` kaldırılır | **bağlandı (pin v0.15.0-api, WEB-P WP2c, PR #83)** |
 
 Pin yükseltmesi artık F4'ten önce ayrı aşamadır (yukarıdaki karar); F4 uygulayıcıları 03c koduna dokunmaz. F4 kabul tablosunun (09) "Şimdilik" yolları pin aşaması kapandıktan sonra yeniden okunur.
+
+## 2a. Pin aşaması kapanış notu (WEB-P, 2026-11-10)
+
+Bağlanan kalemler: `kayit.md`'de `bağlandı` durumlu satırlar (BE-001, 003, 011, 012, 019, 038, 041–045, 049–053, 056, 107); **BE-036 kısmen** (belge paketi, madde 7 hâlâ açık). Bunlar §3'teki "açık — önceliği koru" satırlarını da kapatır: BE-019/051/052/053/056 artık `bağlandı`. Kayıt: `../yurutme/web-4/ilerleme.md` "Pin aşaması".
 
 ## 3. F3'ün kapanmayan / artık gerekmeyen satırları
 
@@ -51,6 +57,8 @@ Pin yükseltmesi artık F4'ten önce ayrı aşamadır (yukarıdaki karar); F4 uy
 | BE-005, BE-008 | `açık` (F1/F2'den) | F3'te iki stub daha doğdu (Gantt kod sütunu, panel Hatırlat); BE-005'in kapanışı ayrıca 05b/03/09 görev kodlarını açar |
 
 ## 4. F4'ün ihtiyaç duyacakları — önce bunlar
+
+**Pin kontrolü (2026-11-10, `git show v0.15.0-api:docs/api/openapi.yaml`):** ürün sahibi F4 kararları (`../ekranlar/ortak-kurallar.md` §12 P21–P30) için iki alan pinde VAR — **S4 ("Kişiler" daveti):** `invite_mode` (`coordinatorship`/`person`, `CreateMeetingRequest` ve `Meeting`; sonradan değişmez, `UpdateMeetingRequest`'te 422; `person` kipinde `members_included: true` ve `department_ids` 422) — F4 açılışında yeterlilik (aday kaynağı BE-067, `person` kipinde görünürlük/yetki davranışı) doğrulanır; **S9 (liste tarih süzgeci):** `listMeetings` `department_id`, `from`, `to` (`YYYY-MM-DD`, kurulum saat dilimi; `to` < `from` 422) — BE-021'in süzgeç kısmını karşılar; yaklaşan/geçmiş sekme toplamı, `meeting_date` sırası ve sayaç alanı pinde yok (BE-021 kalanı açık). Yeni eksik saptanmadı.
 
 F4 (09 Toplantılar: liste, detay, gündem, notlar, nottan görev, silinenler; 09d/09e video **statik**, KR-26/W7) yeni uç beklemeden açılabilir: sayaçlar yüklenen kayıtlardan hesaplanır, satır sayaçları ve konferans durumu statik/gizli, kör tekrar yok (kabul tablosu `../ekranlar/09-toplantilar/README.md`). Ancak aşağıdaki paketler liste ekranının doğruluğunu ve yazma güvenliğini doğrudan belirler. Sıra = 09 `eksikler.md` §5 önerisi (1 → 5 → 2 → 3 → 4 → 6) ve tespit raporu Paket 4 ile uyumlu. Kabul ölçütünün tam metni tespit raporu Paket 4'tedir.
 
