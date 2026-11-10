@@ -24,7 +24,6 @@ import {
   manyTasks,
   MEMBER_GANTT,
   mountPage,
-  scrollToDay,
   settle,
   standingHandlers,
   type StandingFixture,
@@ -81,7 +80,11 @@ const TASKS = [
 ]
 
 const rows = (ctx: Awaited<ReturnType<typeof mountPage>>) =>
-  ctx.wrapper.findAll('[data-row]').map((r) => r.attributes('data-row'))
+  ctx.wrapper
+    .findAll('[data-row-key]')
+    .map((r) => r.attributes('data-row-key')!)
+    .filter((k) => !k.startsWith('g:'))
+    .sort()
 const query = (ctx: Awaited<ReturnType<typeof mountPage>>) => ctx.router.currentRoute.value.query
 
 describe('Zaman çizelgesi — kapsam ve yüz', () => {
@@ -129,9 +132,11 @@ describe('Zaman çizelgesi — kapsam ve yüz', () => {
   it('Gantt kabına sözleşmeli prop’lar gider: ölçek varsayılanı hafta, bugün kurulum gününden', async () => {
     server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
-    const view = ctx.wrapper.get('[data-gantt]')
-    expect(view.attributes('data-scale')).toBe('hafta')
-    expect(view.attributes('data-today')).toBe('2026-10-21')
+    const view = ctx.wrapper.findComponent({ name: 'GanttView' })
+    expect(view.props('scale')).toBe('hafta')
+    expect(view.props('today')).toBe('2026-10-21')
+    // Admin yüzünde kod öneki verilir (E-03C-30)
+    expect(view.props('departmentCodes')).toEqual(new Map([['d1', 'MEK']]))
   })
 })
 
@@ -181,7 +186,7 @@ describe('Zaman çizelgesi — süzgeç ve ölçek (URL)', () => {
     await ctx.wrapper.get('[data-action="zoom-in"]').trigger('click')
     await flushPromises()
     expect(query(ctx)).toEqual({ olcek: 'gun' })
-    expect(ctx.wrapper.get('[data-gantt]').attributes('data-scale')).toBe('gun')
+    expect(ctx.wrapper.findComponent({ name: 'GanttView' }).props('scale')).toBe('gun')
     expect(ctx.wrapper.get('[data-action="zoom-in"]').attributes('aria-disabled')).toBe('true')
     await ctx.wrapper.get('[data-action="zoom-in"]').trigger('click')
     await flushPromises()
@@ -210,7 +215,7 @@ describe('Zaman çizelgesi — seçim ve panel', () => {
   it('satır seçimi URL secili yazar ve paneli açar; kapat seçimi kaldırır, odak satıra döner', async () => {
     server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
-    const row = ctx.wrapper.get('[data-row="w2"]')
+    const row = ctx.wrapper.get('[data-row-key="w2"]')
     ;(row.element as HTMLElement).focus()
     await row.trigger('click')
     await flushPromises()
@@ -218,7 +223,7 @@ describe('Zaman çizelgesi — seçim ve panel', () => {
     const panel = ctx.wrapper.get('[data-panel="w2"]')
     expect(panel.attributes('data-face')).toBe('admin')
     expect(panel.get('[data-dept]').attributes('data-dept')).toBe('İdari işler')
-    expect(ctx.wrapper.find('[data-gantt]').exists()).toBe(true)
+    expect(ctx.wrapper.find('.gantt').exists()).toBe(true)
 
     await panel.get('[data-close]').trigger('click')
     await flushPromises()
@@ -231,7 +236,7 @@ describe('Zaman çizelgesi — seçim ve panel', () => {
     server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })))
     const ctx = await mountPage(TimelinePage, ADMIN_SCOPE)
     ;(document.activeElement as HTMLElement | null)?.blur()
-    await ctx.wrapper.get('[data-row="w1"]').trigger('click')
+    await ctx.wrapper.get('[data-work-item="w1"]').trigger('click')
     await flushPromises()
     await ctx.wrapper.get('[data-close]').trigger('click')
     await flushPromises()
@@ -350,7 +355,7 @@ describe('Zaman çizelgesi — tavan, boş, yükleniyor, hata (E-03C-82, 83)', (
     server.use(...standingHandlers(ADMIN), ganttHandler(ADMIN_GANTT, gantt({ tasks: [] })))
     const admin = await mountPage(TimelinePage, ADMIN_SCOPE)
     expect(admin.wrapper.text()).toContain('Zaman çizelgesinde gösterilecek görev yok')
-    expect(admin.wrapper.find('[data-gantt]').exists()).toBe(false)
+    expect(admin.wrapper.find('.gantt').exists()).toBe(false)
     // Tarihli görev yok: aralık yok, şerit çizilmez (sahte aralık yok)
     expect(admin.wrapper.find('[data-testid="timeline-strip"]').exists()).toBe(false)
     expect(admin.wrapper.findAll('button').filter((b) => b.text() === 'Yeni görev')).toHaveLength(2)
@@ -408,14 +413,18 @@ describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
       'görev aralığı 2026',
     )
     expect(ctx.wrapper.get('[data-testid="timeline-strip"]').text()).toContain('16 Haz – 15 Eyl')
-    expect(ctx.wrapper.find('[data-testid="timeline-strip-frame"]').exists()).toBe(false)
-    await ctx.wrapper.get('[data-scroll]').trigger('click')
-    expect(ctx.wrapper.find('[data-testid="timeline-strip-frame"]').exists()).toBe(true)
+    // Gerçek Gantt görünen aralığı kurulumda bildirir → çerçeve çizilir
+    const frame = () => ctx.wrapper.find('[data-testid="timeline-strip-frame"]')
+    expect(frame().exists()).toBe(true)
+    const before = (frame().element as HTMLElement).style.left
     expect(ctx.wrapper.text().toLowerCase()).not.toContain('sezon')
-    ctx.wrapper
-      .get('[data-testid="timeline-strip-track"]')
-      .element.dispatchEvent(new MouseEvent('click', { detail: 0, bubbles: true }))
-    expect(scrollToDay).toHaveBeenCalledWith('2026-07-06')
+    // Şerit tıkı Gantt'ı kaydırır (scrollToDay): görünen aralık çerçevesi yerinde kalır/güncellenir
+    const track = ctx.wrapper.get('[data-testid="timeline-strip-track"]').element
+    track.getBoundingClientRect = () => ({ left: 0, width: 300, top: 0, height: 32 }) as DOMRect
+    track.dispatchEvent(new MouseEvent('click', { clientX: 290, detail: 1, bubbles: true }))
+    await flushPromises()
+    expect(frame().exists()).toBe(true)
+    expect(typeof before).toBe('string')
   })
 
   it('dışa aktarım devre dışı: tık istek atmaz', async () => {

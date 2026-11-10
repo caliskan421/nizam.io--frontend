@@ -93,37 +93,6 @@ const stub = (
     },
   })
 
-/** TASLAK: W92 `GanttView` — sözleşme prop/emit adları, `scrollToDay` ifşası. */
-export const scrollToDay = vi.fn<(day: string) => void>()
-export const GanttViewStub = stub(
-  'GanttView',
-  {
-    tasks: { type: Array, default: () => [] },
-    links: { type: Array, default: () => [] },
-    scale: { type: String, default: '' },
-    today: { type: String, default: '' },
-    departmentNames: { type: Object, default: () => new Map() },
-    selectedId: { type: String, default: null },
-    draggableIds: { type: Object, default: () => new Set() },
-  },
-  ['select', 'edge-drag', 'scroll'],
-  (p, emit) =>
-    h('div', { 'data-gantt': '', 'data-scale': p.scale, 'data-today': p.today }, [
-      ...(p.tasks as GanttTask[]).map((t) =>
-        h(
-          'button',
-          { 'data-row': t.work_item_id, onClick: () => emit('select', t.work_item_id) },
-          t.title,
-        ),
-      ),
-      h('button', {
-        'data-scroll': '',
-        onClick: () => emit('scroll', { start: '2026-07-06', end: '2026-07-12' }),
-      }),
-    ]),
-  { scrollToDay },
-)
-
 /** TASLAK: W94 `SelectedTaskPanel`. */
 export const SelectedTaskPanelStub = stub(
   'SelectedTaskPanel',
@@ -181,7 +150,7 @@ export async function mountPage(
   const wrapper = mount(page, {
     global: {
       plugins: [pinia, [VueQueryPlugin, { queryClient }], router],
-      stubs: { GanttView: GanttViewStub, SelectedTaskPanel: SelectedTaskPanelStub },
+      stubs: { SelectedTaskPanel: SelectedTaskPanelStub },
     },
     attachTo: document.body,
   })
@@ -198,6 +167,5 @@ export function settle(held?: HeldQuery): Promise<void> {
 export function unmountPages(): void {
   for (const wrapper of mounted.splice(0)) wrapper.unmount()
   clients.length = 0
-  scrollToDay.mockReset()
   document.body.innerHTML = ''
 }
