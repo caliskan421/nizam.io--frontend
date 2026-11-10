@@ -149,9 +149,10 @@ describe('05 kullanıcı oluştur (gerçek UserCreateDialog + TemporaryPasswordD
     await click(() => byText('[role="dialog"] button', 'Vazgeç'))
     await until(() => $('[data-testid="user-panel"]'), 'readUser ile açılan panel')
     expect($('[data-testid="users-selected-missing"]')).toBeNull()
-    expect(
-      backend.sent('GET', `/v1/admin/users/${app.router.currentRoute.value.query.secili}`),
-    ).toHaveLength(1)
+    const selected = app.router.currentRoute.value.query.secili
+    expect(typeof selected).toBe('string')
+    if (typeof selected !== 'string') return
+    expect(backend.sent('GET', `/v1/admin/users/${selected}`)).toHaveLength(1)
   })
 })
 
