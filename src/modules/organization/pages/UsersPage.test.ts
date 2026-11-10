@@ -123,6 +123,23 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
   })
 })
 
+/** jsdom'da yerleşim yok: panel (aside) listenin altında (`true`) ya da yanında (`false`). */
+function stackedLayout(stacked: boolean): void {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    const top = this.tagName === 'ASIDE' && stacked ? 900 : 0
+    return {
+      top,
+      bottom: top + 10,
+      left: 0,
+      right: 0,
+      width: 0,
+      height: 10,
+      x: 0,
+      y: top,
+    } as DOMRect
+  })
+}
+
 describe('UsersPage — yan panel ve yaşam döngüsü', () => {
   it('derin bağlantı: yüklü kişi → panel açık; kapat → `secili` silinir', async () => {
     const { wrapper, router } = await mountPage('/kullanicilar?secili=u2')
@@ -149,10 +166,10 @@ describe('UsersPage — yan panel ve yaşam döngüsü', () => {
     expect(wrapper.find('[data-testid="user-panel"]').exists()).toBe(true)
   })
 
-  it('dar yerleşim (K-8): satır seçimi panele kaydırır ve odağı taşır; derin bağlantıda odak çalınmaz', async () => {
+  it('panel listenin altına sardığında (K-8): satır seçimi panele kaydırır ve odağı taşır; derin bağlantıda odak çalınmaz', async () => {
     const scroll = vi.fn()
     Element.prototype.scrollIntoView = scroll
-    vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('max-width'), media: q }))
+    stackedLayout(true)
     const { wrapper } = await mountPage('/kullanicilar?secili=u2')
     await settle()
     expect(scroll).not.toHaveBeenCalled()
@@ -164,10 +181,10 @@ describe('UsersPage — yan panel ve yaşam döngüsü', () => {
     expect(wrapper.get('aside.rp-aside').attributes('tabindex')).toBe('-1')
   })
 
-  it('geniş yerleşim: panel yan sütunda; kaydırma ve odak taşıma yok', async () => {
+  it('panel yan sütunda:  kaydırma ve odak taşıma yok', async () => {
     const scroll = vi.fn()
     Element.prototype.scrollIntoView = scroll
-    vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q }))
+    stackedLayout(false)
     const { wrapper } = await mountPage()
     await wrapper.get('[data-account="u1"][role="row"]').trigger('click')
     await settle()
