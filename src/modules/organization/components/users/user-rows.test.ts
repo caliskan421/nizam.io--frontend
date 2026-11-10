@@ -18,6 +18,11 @@ const user = (id: string, name: string, memberships: string[] | null): KnownUser
   account_id: id,
   full_name: name,
   memberships,
+  account_status: 'active',
+  company_admin: false,
+  email: `${id}@example.test`,
+  login_locked: false,
+  teams: [],
 })
 
 const DEPTS = new Map<string, ProgramDepartment>([

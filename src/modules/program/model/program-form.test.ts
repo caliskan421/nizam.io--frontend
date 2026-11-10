@@ -13,7 +13,14 @@ import {
 } from './program-form'
 import type { Program } from './types'
 
-const program: Program = { program_id: 'p1', name: 'Teknofest', year: 2026, description: 'Eski' }
+const program: Program = {
+  program_id: 'p1',
+  name: 'Teknofest',
+  year: 2026,
+  description: 'Eski',
+  short_name: null,
+  color: null,
+}
 
 describe('program formu', () => {
   it('ad zorunlu (boşluk kırpılır); yıl dört hane ya da boş', async () => {

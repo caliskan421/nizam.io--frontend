@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.11.0-api (4d0bbd0605ade5adfc0599e9586944ed8dab7bcb) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.15.0-api (b8f6479a7971fa7056823acada47a7db4d9052de) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -91,6 +91,55 @@ export interface paths {
         head?: never;
         /** Yönetici hesap güncelleme; parola atanırsa hedefin oturumları düşer. */
         patch: operations["updateAccount"];
+        trace?: never;
+    };
+    "/v1/admin/accounts/{id}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hesabın girişini kapatır.
+         * @description Yalnız şirket yöneticisi. Durum `disabled` olur, hesabın bütün
+         *     oturumları (web ve mobil, erişim ve yenileme) aynı transaction'da
+         *     iptal edilir ve audit yazılır. Kendini kapatma 403; son aktif şirket
+         *     yöneticisini kapatma 409 `organization.last_admin` (kapatılmış
+         *     yönetici aktif sayılmaz). Kapatılmış hesap giriş ve yenileme
+         *     yapamaz; ekip satırları ve yöneticilik ataması değişmez.
+         */
+        post: operations["disableAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/accounts/{id}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kapatılmış hesabı açar.
+         * @description Yalnız şirket yöneticisi; kendini açma 403 (kapatılmış hesap
+         *     yetkisizdir). Durum `active` olur ve audit yazılır;
+         *     kapatmada iptal edilen oturumlar geri gelmez (kullanıcı yeniden
+         *     giriş yapar). Silinmiş hesap canlanmaz (404; geri yükleme ayrı
+         *     uçtadır).
+         */
+        post: operations["enableAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/accounts/{id}/unlock": {
@@ -339,10 +388,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Bilinen kullanıcı listesi (imleçli).
-         * @description `memberships` her ekip satırını `program:departman:rol` etiketiyle
-         *     taşır. `role` süzgeci "herhangi bir programda bu rol" demektir
-         *     (ADR-0023 kural 18).
+         * Kullanıcı listesi (imleçli, sayaçlı).
+         * @description Yalnız şirket yöneticisi. Süzgeçsiz liste ("Tümü") şirketteki bütün
+         *     canlı hesaplardır: ekip satırı olmayan yönetici, üyeliksiz hesap ve
+         *     yalnız silinmiş departmanda ekip satırı olan hesap dahil; silinmiş
+         *     hesap yoktur. `memberships` her canlı ekip satırını
+         *     `program:departman:rol` etiketiyle taşır. `role` süzgeci (`uye`,
+         *     `koordinator`) "herhangi bir programda bu rol" demektir (ADR-0023
+         *     kural 18); `program_id`/`department_id` verilirse o kapsamdaki rol.
+         *     `total` ve `role_counts` her istekte aynı süzgeçlerle hesaplanır.
          */
         get: operations["listUsers"];
         put?: never;
@@ -353,6 +407,22 @@ export interface paths {
          *     zorunludur ve departman bu programa bağlı olmalıdır
          *     (`422 organization.department_not_linked`). Koordinatör yalnız bu
          *     programda koordine ettiği departmana `uye` ekler (ADR-0023 kural 18).
+         *
+         *     **Aktarım teklifi (ORGANIZATION-K22).** E-posta başka bir hesaba aitse cevap 409
+         *     `identity.account_exists`'tir (kod ve zarf biçimi her çağırana aynı). Çağıran şirket
+         *     yöneticisiyse ve çakışan hesap hedef `(program_id, department_id)` ekibinde zaten yoksa
+         *     zarfın `fields[]` dizisi aktarım teklifini taşır; üç girdinin hepsinin `code` değeri
+         *     `organization.transfer_available`'dır ve `field` anlamı, `message` değeri taşır:
+         *
+         *     - `{field: "email", message: <sabit açıklama metni>}` — teklifin varlığı;
+         *     - `{field: "account_id", message: <çakışan hesabın kimliği>}`;
+         *     - `{field: "user_full_name", message: <çakışan hesabın görünen adı>}` (ad boşsa girdi yoktur).
+         *
+         *     İstemci kullanıcıya "bu e-posta <ad> kişisine ait; aktarılsın mı?" diye sorar ve onayda
+         *     AYNI uca aynı gövdeyi `transfer_account_id: <account_id girdisinin message'ı>` ile yeniden
+         *     gönderir (201; yeni hesap açılmaz, hesap hedef ekibe eklenir). Koordinatöre ve hesap hedef
+         *     ekipte zaten varken teklif girdileri gelmez (`fields` boş); `details` yapılandırılmış veri
+         *     taşımaz, teklif yalnız `fields[]`'tadır.
          */
         post: operations["createUser"];
         delete?: never;
@@ -368,7 +438,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Tek kullanıcının yönetim görünümü.
+         * @description Yalnız şirket yöneticisi. Yetki kaynağa dokunmadan önce verilir:
+         *     yönetici olmayan çağıran var olan ve olmayan kimlik için aynı 403'ü
+         *     alır. Cevap liste satırının alanları ve bütün programlardaki ekip
+         *     satırları (`teams`). Bulunmayan ya da silinmiş hesap 404
+         *     `organization.account_not_found`.
+         */
+        get: operations["readUser"];
         put?: never;
         post?: never;
         /**
@@ -1071,7 +1149,23 @@ export interface paths {
         /** Tarih talepleri (yönetici inceleme yüzü). */
         get: operations["listDateChangeRequests"];
         put?: never;
-        /** Tarih değişikliği talebi açar (görev başına tek bekleyen). */
+        /**
+         * Tarih değişikliği talebi açar (görev başına tek bekleyen).
+         * @description WORK-K38. İsteğe bağlı `Idempotency-Key` (WORK-K89): başlıksız istek mevcut davranıştır.
+         *     Verilmiş ama boş ya da sınır dışı anahtar 422 `work.input_invalid` (alan `idempotency_key`,
+         *     kod `work.request_key_invalid`). Anahtar aktör kapsamlıdır ve talep satırında yaşar. Yeni
+         *     talep 201; aynı anahtar + aynı istek (kapsam, görev, günler, kırpılmış gerekçe,
+         *     `expected_dates_revision`) 200 + talebin BUGÜNKÜ hâli (arada onaylanmış ya da reddedilmişse
+         *     o durumla); farklı istek 409 `work.idempotency_key_reused`. Anahtar kararı her doğrulamadan
+         *     (sürümün biçimi dahil) ve her business reddinden önce verilir; bekleyen talep, bağımlılık
+         *     ve sürüm denetimleri görev kilidinden ve anahtarın yeniden sınıflanmasından sonradır. Tekrar okumadır: talep çağıranın
+         *     kendi talebidir (`/mine` ile de görünür), oluşturma yetkisi yeniden sorulmaz; koordinatörlüğü
+         *     sonradan kaldırılmış talepçi de 200 alır. Yönetici incelenmiş talebi silerse anahtar da gider:
+         *     aynı anahtar yeni talep açar (201). Aynı anahtarlı eşzamanlı iki istek görev kilidinde
+         *     serileşir: tek talep, ikincisi 200 (409 `work.date_request_pending_exists` değil); farklı
+         *     anahtarlı iki istekten biri 409 `work.date_request_pending_exists` alır. "Sonuç bilinmiyor"
+         *     durumunda istemci AYNI anahtar ve gövdeyle yeniden dener.
+         */
         post: operations["requestDateChange"];
         delete?: never;
         options?: never;
@@ -1140,7 +1234,19 @@ export interface paths {
         /** Departman listesi. */
         get: operations["listDepartments"];
         put?: never;
-        /** Departman oluşturur. */
+        /**
+         * Departman oluşturur.
+         * @description Ad şirkette büyük/küçük harf duyarsız tekildir (silinmiş departmanlar
+         *     dahil). Çakışmada 409 `organization.department_exists` zarfı adı taşıyan
+         *     mevcut departmanı alan girdileriyle taşır: `fields[]` içinde
+         *     `{field: department_id, code: organization.existing_department, message: <kimlik>}`
+         *     ve `{field: deleted, code: organization.existing_department, message: "true"|"false"}`
+         *     (silinmişse geri yükleme ucuyla döndürülebilir). İsteğe bağlı
+         *     `Idempotency-Key` (aktör kapsamlı; parmak izi normalize ad, tür, kod,
+         *     açıklama): tekrar 200 + departmanın bugünkü hâli, tekrarlanan departman
+         *     silinmişse 404 `organization.department_not_found`, farklı istek 409
+         *     `organization.idempotency_key_reused`.
+         */
         post: operations["createDepartment"];
         delete?: never;
         options?: never;
@@ -1391,7 +1497,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Dosyayı siler (metadata + nesne). Yalnız dosyanın `(program, departman)` ekibinde satırı olan yükleyen siler (aksi 403 `records.not_authorized`); ikinci silme 404 `records.file_not_found` alır. */
+        /** Dosyayı siler (metadata + nesne). Yalnız yükleyen siler: dosyanın `(program, departman)` ekibinde satırı olan yükleyen ya da yükleyen şirket yöneticisi (aksi 403 `records.not_authorized`); ikinci silme 404 `records.file_not_found` alır. */
         delete: operations["deleteFile"];
         options?: never;
         head?: never;
@@ -1539,7 +1645,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Notu yumuşak siler (sahiplik matrisi). */
+        /**
+         * Notu kalıcı siler (sahiplik matrisi).
+         * @description Satır silinir, iz audit'te kalır (COLLABORATION-K75); geri yükleme yoktur, "geri al" istemcide silme gönderilmeden önce yapılır. İkinci silme 404 `collaboration.note_not_found` alır. Notun işlem anahtarı satırla gider: aynı anahtarla tekrar ekleme yeni not açar (201; ADR-0027 Ek F63). Dönüşmüş notun görevi etkilenmez.
+         */
         delete: operations["deleteMeetingNote"];
         options?: never;
         head?: never;
@@ -1571,7 +1680,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Görünür toplantılar (imleçli). */
+        /**
+         * Görünür toplantılar (imleçli), satır özetiyle.
+         * @description Satır başına `summary` (COLLABORATION-K70) sayfa başına sabit sayıda sorguyla okunur. Süzgeçler (COLLABORATION-K71) görünürlük kuralına (COLLABORATION-K19) eklenir: yalnız daraltır, görünmeyen toplantıyı açmaz; görünmeyen ya da olmayan departman boş sayfa döner. Sıra ve imleç süzgeçsiz listeyle aynıdır (`created_at`, `id`; en yeni önce); imleç aynı süzgeçlerle kullanılır.
+         */
         get: operations["listMeetings"];
         put?: never;
         /** Toplantı açar; ilk gündem aynı transaction, katılımcılar en iyi çabayla. */
@@ -1628,7 +1740,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Toplantıya bağlı görüntülü konferansı başlatır (yönetici ve bağlı departmanın koordinatörü). Aktif konferans varsa yeni satır açılmaz ve 200 döner. */
+        /** Toplantıya bağlı görüntülü konferansı başlatır (yönetici; `coordinatorship` kipinde bağlı departmanın koordinatörü, `person` kipinde sahip departmanı hâlâ koordine eden oluşturan). Aktif konferans varsa yeni satır açılmaz ve 200 döner. */
         post: operations["startConference"];
         /** Konferansı bitirir. Aktif konferans yoksa ya da sağlayıcı odayı kapatamazsa da 204 döner. */
         delete: operations["endConference"];
@@ -1960,7 +2072,11 @@ export interface paths {
          * @description Ad verilmezse katalog adı kopyalanır. `copy_members_from_program_id`
          *     verilirse kaynak programdaki aynı departmanın ekibi rolleriyle
          *     kopyalanır (silinmiş hesaplar hariç). Bağ zaten varsa 201 ve var olan
-         *     bağ döner; ekip yeniden kopyalanmaz (ADR-0023).
+         *     bağ döner; ekip yeniden kopyalanmaz (ADR-0023). İsteğe bağlı
+         *     `Idempotency-Key` (aktör kapsamlı; parmak izi program, departman,
+         *     programdaki ad, kopya kaynağı): anahtar bağ bu istekle kurulsa da zaten
+         *     var olsa da kaydedilir; bağ yaşadıkça tekrar 200 + bağın bugünkü hâli
+         *     (`copied_member_count` 0), farklı istek 409 `program.idempotency_key_reused`.
          */
         post: operations["linkDepartment"];
         delete?: never;
@@ -1976,7 +2092,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Kapsamdaki programa bağlı tek departman; programdaki ad ve katalog nitelikleri.
+         * @description Görünürlük `listProgramDepartments` ile aynıdır (PROGRAM-K44): şirket
+         *     yöneticisi ya da bu programda ekip satırı olan hesap; başka programda ekip
+         *     satırı olan hesap ve olmayan program `404 program.not_found`, hiç ekip satırı
+         *     olmayan hesap `403 organization.membership_required`. Görünür programda
+         *     bağsız, başka programa bağlı, yumuşak silinmiş ya da var olmayan departman
+         *     `404 program.department_not_found`.
+         */
+        get: operations["readProgramDepartment"];
         put?: never;
         post?: never;
         /**
@@ -2008,7 +2133,8 @@ export interface paths {
          * Seçili programın görünür görevleri (imleçli; departman başlığı yok).
          * @description Görev listesinin program bağlamındaki ucudur (WORK-K81). Satır biçimi
          *     `listWorkItems` ile aynıdır (`WorkItemList`: tarihler, adlı atananlar, gecikme
-         *     etiketleri, `subtask_counts`, `pending_date_request`); toplam ya da sayaç eklenmez.
+         *     etiketleri, `subtask_counts`, `pending_date_request`); toplam ya da sayaç eklenmez
+         *     (sayaçlar aynı süzgeçlerle `countProgramWorkItems` ucundadır).
          *     Bekleyen tarih talebi satır başına yetkiyle dolar (yönetici her satırda,
          *     koordinatör kendi departmanının satırında; üye satırında `null`; kural tekil
          *     görev uçlarıyla aynıdır) ve listeyle aynı sorguda okunur; departman başına ek
@@ -2027,6 +2153,14 @@ export interface paths {
          *     boşluktan oluşan `department_id` süzgeç verilmemiş sayılır (`limit` ve `cursor`
          *     boş değerleriyle aynı gelenek).
          *
+         *     `assignee_account_id` (tekrarlanabilir) verilirse görev verilen hesaplardan en az
+         *     birine atanmışsa kalır (VEYA); süzgeç görünürlükle ve `department_id` ile
+         *     **kesişir**, yetkiyi genişletmez (üye başkasının kimliğiyle süzerse yalnız zaten
+         *     görebildiği görevler döner). En çok 50 değer; tekrar eden değer tek sayılır, boş
+         *     değer yok sayılır. 50'den çok değer ya da biçimsiz kimlik `422 work.input_invalid`
+         *     (`fields[].field` = `assignee_account_id`). Sonraki sayfa isteği aynı süzgeçleri
+         *     tekrar gönderir.
+         *
          *     Hiçbir programda ekip satırı olmayan ve yönetici olmayan hesap `403
          *     organization.membership_required`; bu programda ekip satırı olmayan ve yönetici
          *     olmayan hesap, var olmayan programla aynı `404 work.program_scope_invalid` alır
@@ -2035,6 +2169,44 @@ export interface paths {
          *     `program_id` ve `department_id` başlıklarıyla gider.
          */
         get: operations["listProgramWorkItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/program/work-items/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seçili programın görünür görevlerinin sayaçları (listeyle aynı görünürlük ve süzgeçler).
+         * @description Program görev listesinin (`listProgramWorkItems`) sayaç ucudur (WORK-K87). Görünürlük,
+         *     `department_id` ve `assignee_account_id` süzgeçleri, redler (403/404/422) ve
+         *     sıraları listeyle **aynıdır**; aynı süzgeçlerle `total`, listenin sayfalanarak
+         *     okunan satır sayısına eşittir (iki ayrı istek aynı anı görmeyebilir). Liste
+         *     cevabına sayaç eklenmez; sayaç bu uçtan alınır. `limit` ve `cursor` yok sayılır.
+         *
+         *     - `by_status`: beş durumun her biri (sıfır dahil); toplamı `total`'dir.
+         *     - `overdue`: durumu `tamamlandi` olmayan ve `end_on` günü bugünden önce olan görev
+         *       sayısı. Bugün kurulumun saat dilimindeki takvim günüdür; bitiş günü bugün olan
+         *       görev gecikmiş değildir, tamamlanmış görev (geç tamamlansa da) sayılmaz. Satırdaki
+         *       `is_overdue` ile aynı kuraldır.
+         *     - `pending_date_requests`: bekleyen (`pending`) tarih talebi olan görünür görev
+         *       sayısı; satırdaki `pending_date_request` kuralıyla (WORK-K82): şirket yöneticisine
+         *       her görevde, koordinatöre yalnız **bu programda** koordinatörü olduğu departmanın
+         *       görevinde sayılır, üyeye 0.
+         *
+         *     Silinmiş görev sayılmaz. Şirket yöneticisinin süzgeçsiz sayacı, listede olduğu gibi
+         *     silinmiş departmandaki canlı görevleri de kapsar; `reportDashboard` sayaçları ise
+         *     yalnız canlı katılan departmanları sayar (fark için `reportDashboard` açıklaması).
+         */
+        get: operations["countProgramWorkItems"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2228,7 +2400,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Yönetici dashboard özeti (seçili program). */
+        /**
+         * Yönetici dashboard özeti (seçili program).
+         * @description Yalnız şirket yöneticisi. Değerler istek anında hesaplanır (REPORTING-K02); alan
+         *     anlamları `DashboardReport` ve `CoordinatorshipStat` şemalarındadır.
+         *
+         *     Bu özet cevap `X-Result-Truncated` başlığını KOYMAZ ve gömülü `coordinatorship_stats`
+         *     ile `overdue_tasks_list` dizilerini kesmez: diziler tam döner. 200 satır kesmesi
+         *     yalnız ayrı alt liste uçlarındadır (`reportDashboardCoordinatorships`,
+         *     `reportDashboardTasks`, `reportDashboardMeetings`; REPORTING-K03).
+         */
         get: operations["reportDashboard"];
         put?: never;
         post?: never;
@@ -2571,7 +2752,24 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Bitişi gün sayısı kadar uzatır (bağımlılara yayılır). */
+        /**
+         * Bitişi gün sayısı kadar uzatır (bağımlılara yayılır).
+         * @description WORK-K40. İsteğe bağlı `Idempotency-Key` (WORK-K89): başlıksız istek mevcut davranıştır.
+         *     Verilmiş ama boş ya da sınır dışı anahtar 422 `work.input_invalid` (alan `idempotency_key`,
+         *     kod `work.request_key_invalid`). Anahtar aktör kapsamlıdır; makbuzda ilk uzatmanın sonucu
+         *     saklanır ve görev kalıcı silinene kadar yaşar. Aynı anahtar + aynı istek (kapsam, görev,
+         *     `days`, `expected_dates_revision`) uzatmayı ikinci kez UYGULAMAZ: 200 + ilk sonuç +
+         *     `replayed: true` (audit ve olay yazılmaz; başarı zaten 200 olduğundan tekrar durum koduyla
+         *     değil bu alanla ayırt edilir). Anahtar kararı her doğrulamadan (sürümün biçimi dahil) ve her business reddinden önce
+         *     verilir, görev kilidinden sonra yeniden verilir: kendi uzatmasıyla artmış sürüm, arada
+         *     tamamlanan görev ya da farklı gövdedeki geçersiz sürüm (409 `work.idempotency_key_reused`)
+         *     tekrarı ya da çakışmayı gölgelemez.
+         *     Tekrar uzatma yetkisini yeniden sormaz, görevin güncel görme yetkisini ister (yetkisi düşen
+         *     403, kapsamı değişen 404). Farklı istek 409 `work.idempotency_key_reused`; görev soft
+         *     silinmişse 409 `work.item_deleted`. Aynı anahtarlı eşzamanlı iki istek görev kilidinde
+         *     serileşir: tek uzatma, ikincisi tekrar. "Sonuç bilinmiyor" (zaman aşımı, bağlantı kopması)
+         *     durumunda istemci AYNI anahtar ve gövdeyle yeniden dener.
+         */
         post: operations["extendWorkItem"];
         delete?: never;
         options?: never;
@@ -2589,7 +2787,7 @@ export interface paths {
         /** Görevin dosyaları. */
         get: operations["listWorkItemFiles"];
         put?: never;
-        /** Göreve dosya yükler (multipart `file` parçası; akışla). CSRF başlığı istenmez (taşıyıcı yalnız Bearer). */
+        /** Göreve dosya yükler (multipart `file` parçası; akışla): şirket yöneticisi, koordinatör, atanmış üye. CSRF başlığı istenmez (taşıyıcı yalnız Bearer). */
         post: operations["attachFile"];
         delete?: never;
         options?: never;
@@ -2716,7 +2914,7 @@ export interface paths {
         delete: operations["deleteWorkItemSubtask"];
         options?: never;
         head?: never;
-        /** Alt görevi değiştirir: başlık/atama/tarih (koordinatör, şirket yöneticisi), `done` (atanan ya da koordinatör). */
+        /** Alt görevi değiştirir: başlık/atama/tarih (koordinatör, şirket yöneticisi), `done` (atanan, koordinatör ya da şirket yöneticisi). */
         patch: operations["updateWorkItemSubtask"];
         trace?: never;
     };
@@ -2744,7 +2942,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Departman Gantt görünümü. */
+        /**
+         * Departman Gantt görünümü.
+         * @description En çok 200 görev döner; imleç yoktur. Yüzün kapsamında 200'den fazla görev varsa
+         *     ilk 200 döner ve cevap `X-Result-Truncated: true` taşır (tam 200 görevde başlık yoktur). Tarih, atama, alt
+         *     görev sayacı ya da bağ okuması başarısızsa kısmi Gantt dönmez, cevap 500
+         *     `platform.internal`'dır. Liste ile tarih okuması arasında silinen ya da aktarılan
+         *     görev satırı düşer (hata değildir). Bağ yalnız iki ucu da listelenen görevler
+         *     arasında döner (WORK-K36); satır alanları WORK-K88
+         *     ([GAP-053](../known-gaps.md#gap-053)).
+         */
         get: operations["coordinatorGantt"];
         put?: never;
         post?: never;
@@ -2761,7 +2968,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Programın bütün departmanları için Gantt görünümü. */
+        /**
+         * Programın bütün departmanları için Gantt görünümü.
+         * @description En çok 200 görev döner; imleç yoktur. Yüzün kapsamında 200'den fazla görev varsa
+         *     ilk 200 döner ve cevap `X-Result-Truncated: true` taşır (tam 200 görevde başlık yoktur). Tarih, atama, alt
+         *     görev sayacı ya da bağ okuması başarısızsa kısmi Gantt dönmez, cevap 500
+         *     `platform.internal`'dır. Liste ile tarih okuması arasında silinen ya da aktarılan
+         *     görev satırı düşer (hata değildir). Bağ yalnız iki ucu da listelenen görevler
+         *     arasında döner (WORK-K36); satır alanları WORK-K88
+         *     ([GAP-053](../known-gaps.md#gap-053)).
+         *
+         *     `overdue=true` süzgeci taranan ilk 200 görevin üzerinde bellekte uygulanır: başlık
+         *     taranan kümenin kesildiğini söyler; süzme sonrası 200'den az satırla da gelebilir.
+         */
         get: operations["adminGantt"];
         put?: never;
         post?: never;
@@ -2778,7 +2997,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Çağıranın atandığı görevlerin Gantt görünümü. */
+        /**
+         * Çağıranın atandığı görevlerin Gantt görünümü.
+         * @description En çok 200 görev döner; imleç yoktur. Yüzün kapsamında 200'den fazla görev varsa
+         *     ilk 200 döner ve cevap `X-Result-Truncated: true` taşır (tam 200 görevde başlık yoktur). Tarih, atama, alt
+         *     görev sayacı ya da bağ okuması başarısızsa kısmi Gantt dönmez, cevap 500
+         *     `platform.internal`'dır. Liste ile tarih okuması arasında silinen ya da aktarılan
+         *     görev satırı düşer (hata değildir). Bağ yalnız iki ucu da listelenen görevler
+         *     arasında döner (WORK-K36); satır alanları WORK-K88
+         *     ([GAP-053](../known-gaps.md#gap-053)).
+         */
         get: operations["memberGantt"];
         put?: never;
         post?: never;
@@ -2818,6 +3046,15 @@ export interface components {
             account_id: string;
             /** @description Düşürülen oturum sayısı; sıfırsa alan yoktur. */
             revoked_sessions?: number;
+        };
+        AccountStatusResult: {
+            account_id: string;
+            /** @enum {string} */
+            account_status: "active" | "disabled";
+            /** @description Durum bu istekle değişti mi; zaten hedef durumdaysa `false` (idempotent tekrar). */
+            changed: boolean;
+            /** @description Kapatmada düşürülen oturum sayısı (açmada 0). */
+            revoked_sessions: number;
         };
         AddChatMembersRequest: {
             account_ids: string[];
@@ -3230,6 +3467,7 @@ export interface components {
         };
         /** @description Toplantıya bağlı görüntülü konferansın istemci görünümü (ADR-0015 Ek B §3.1). */
         Conference: {
+            connected: components["schemas"]["ConferenceConnected"];
             id: string;
             /** Format: date-time */
             started_at: string;
@@ -3239,6 +3477,14 @@ export interface components {
              * @enum {string}
              */
             status: "starting" | "live" | "ending";
+        };
+        /** @description Bağlı kişiler (COLLABORATION-K78): uzlaştırma turunun son gözlediği, toplantıya erişimi geçerli bağlı hesaplar. Anlık görüntüdür, yetki kararı değildir. Tazelik `NIZAMIO_VIDEO_RECONCILE_INTERVAL` (varsayılan 1 dk) içindedir; sağlayıcı okunamazsa önceki görüntü kalır ve `observed_at` eskir. Hiç gözlenmediyse `count` 0, `observed_at` null. Oda adı ve token taşınmaz. */
+        ConferenceConnected: {
+            /** @description Sıralı ve tekil hesap kimlikleri. */
+            account_ids: string[];
+            count: number;
+            /** Format: date-time */
+            observed_at: string | null;
         };
         /** @description Gövde boştur; gövdesiz istek de kabul edilir. Bilinmeyen alan 422 alır. */
         ConferenceEmptyRequest: Record<string, never>;
@@ -3250,7 +3496,7 @@ export interface components {
             /** Format: date-time */
             expires_at: string;
             /**
-             * @description host: yönetici ve toplantıya bağlı departmanın koordinatörü; speaker: toplantıyı gören üye.
+             * @description host: yönetici; `coordinatorship` kipinde toplantıya bağlı departmanın koordinatörü, `person` kipinde sahip departmanı hâlâ koordine eden oluşturan. speaker: toplantıyı gören üye ve katılımcı (koordinatörlüğü düşmüş katılımcı oluşturan dahil).
              * @enum {string}
              */
             role: "host" | "speaker";
@@ -3289,21 +3535,36 @@ export interface components {
             membership_id: string;
             role: string;
         };
+        /**
+         * @description Programa katılan canlı bir departmanın (arayüzde "koordinatörlük") istatistiği. Görev
+         *     sayaçları programın silinmemiş görevlerindendir; departman adı programdaki addır.
+         */
         CoordinatorshipStat: {
             completed_tasks: number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description `completed_tasks / total_tasks × 100`; görev yoksa 0.
+             */
             completion_rate: number;
+            /** @description Departmanın bu programdaki koordinatörleri; silinmiş hesap listelenmez. */
             coordinators: components["schemas"]["ReportPerson"][];
             department_id: string;
             description?: string;
+            /** @description Durumu `devam_ediyor` olan görev sayısı (`onaya_sunuldu` ve `iade_edildi` bu üç sayaçtan hiçbirine girmez). */
             in_progress_tasks: number;
             kind: string;
+            /** @description Departmanın silinmemiş görevlerinin en son güncellenme anı (`updated_at` en büyüğü, UTC); görevi yoksa `null`. Toplantı, not ve mesaj etkinliği girmez. */
             last_activity_at: string | null;
+            /** @description `reportDashboard` ve `reportDashboardCoordinatorships` yanıtlarında doldurulmaz, her zaman 0'dır; departman başına toplantı sayısı yalnız dönem raporunda (`reportSeason`) hesaplanır ([GAP-221](../known-gaps.md#gap-221)). */
             meeting_count: number;
+            /** @description Departmanın bu programdaki ekibinde `uye` rolündeki canlı hesap sayısı; koordinatörler DAHİL DEĞİLDİR (koordinatörler `coordinators` dizisindedir). */
             member_count: number;
             name: string;
+            /** @description Durumu `baslanmadi` olan görev sayısı. */
             not_started_tasks: number;
+            /** @description Tamamlanmamış ve `end_on` günü bugünden (kurulum saat dilimi) önce olan görev sayısı. */
             overdue_tasks: number;
+            /** @description Departmanın silinmemiş görev sayısı. */
             total_tasks: number;
         };
         CoordinatorshipStatList: {
@@ -3313,6 +3574,7 @@ export interface components {
             count: number;
         };
         CreateDepartmentRequest: {
+            /** @description İsteğe bağlı kısa kod. Sunucu baş/son boşluğu kırpar ve büyük harfe çevirir; sonuç `^[A-Z0-9]{2,10}$` biçiminde olmalıdır (ORGANIZATION-K10), aksi 422 `organization.input_invalid` (alan kodu `organization.invalid_code`). Kod şirkette tekildir (silinmiş departmanlar dahil): 409 `organization.department_code_conflict`. */
             code?: string;
             description?: string;
             /** @enum {string} */
@@ -3330,19 +3592,35 @@ export interface components {
         };
         CreateMeetingRequest: {
             agenda_items?: string[];
-            /** @description En az bir departman; ilki sahip departmandır. Hepsi seçili programa katılmış olmalıdır. */
+            /** @description En az bir departman; ilki sahip departmandır. Hepsi seçili programa katılmış olmalıdır. `person` kipinde tam bir eleman (aksi 422 `collaboration.input_invalid`, alan `department_ids`). */
             department_ids: string[];
+            /**
+             * @description Davet kipi (COLLABORATION-K73); sonradan değişmez. `person` kipinde koordinatör mesajı gönderilmez.
+             * @default coordinatorship
+             * @enum {string}
+             */
+            invite_mode: "coordinatorship" | "person";
             /** @description `true` ise koordinatörlere toplantı mesajı gönderilmez. */
             is_instant?: boolean;
             /** @description Tarih-saat; saat dilimi yoksa kurulum saat diliminde yorumlanır. Kurulum saat dilimindeki bugünden önceki bir gün olamaz (422 `collaboration.input_invalid`). */
             meeting_date: string;
+            /** @description `person` kipinde `true` 422 `collaboration.input_invalid` (alan `members_included`). */
             members_included?: boolean;
             participant_ids?: string[];
+            /** @description İsteğe bağlı yer (COLLABORATION-K76): düz metne indirilir ve kırpılır; boş sonuç yer yok demektir. Kontrol karakteri ya da 200 karakterden uzun değer 422 `collaboration.input_invalid` (alan `place`). */
+            place?: string | null;
             title: string;
         };
         CreateProgramRequest: {
+            /**
+             * @description İsteğe bağlı palet anahtarı (birebir). Yok ya da `null` = verilmemiş; başka değer `422 program.input_invalid` (`program.invalid_color`).
+             * @enum {string|null}
+             */
+            color?: "violet" | "gold" | "blue" | "teal" | "green" | "orange" | "red" | "slate" | null;
             description?: string;
             name: string;
+            /** @description İsteğe bağlı kısa ad (PROGRAM-K46): baştaki/sondaki boşluk kırpıldıktan SONRA 1–4 Unicode harf ya da rakam olmalıdır (ham değerin uzunluğu sınırlanmaz; ör. `" ABCD "` geçerlidir ve `ABCD` yazılır); harf büyüklüğü korunur. Yok ya da `null` = verilmemiş. Kural dışı değer `422 program.input_invalid` (`program.invalid_short_name`). */
+            short_name?: string | null;
             year?: number;
         };
         CreateSubtaskRequest: {
@@ -3398,16 +3676,33 @@ export interface components {
             start_on: string;
             title: string;
         };
+        /**
+         * @description Seçili programın yönetici özeti (REPORTING-K02). Görev sayaçları ve dağılımlar
+         *     programın silinmemiş görevlerinden, YALNIZ programa katılan canlı (silinmemiş)
+         *     departmanlarınkinden sayılır; silinmiş departmandaki canlı görev sayılmaz (bu yüzden
+         *     `countProgramWorkItems`'ın yönetici sayaçlarından farklı olabilir).
+         */
         DashboardReport: {
+            /** @description `total_tasks − completed_tasks` (tamamlanmamış her durum). */
             active_tasks: number;
+            /** @description Durumu `tamamlandi` olan görev sayısı. */
             completed_tasks: number;
+            /** @description Canlı katılan her departman için bir satır; departmanın programdaki adına göre büyük/küçük harf duyarsız bayt sırasıyla (Türkçe alfabe sırası uygulanmaz). Kesilmez. */
             coordinatorship_stats: components["schemas"]["CoordinatorshipStat"][];
+            /** @description Toplam: programın silinmiş görevleri + programın silinmiş toplantıları + programa bağlı silinmiş departmanlar + ŞİRKET GENELİNDEKİ silinmiş hesaplar (hesaplar programa bağlı değildir). */
             deleted_records: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Değerlerin hesaplandığı an (UTC); önbellek yoktur.
+             */
             generated_at: string;
+            /** @description Tamamlanmamış ve `end_on` günü bugünden (kurulum saat dilimi) önce olan görev sayısı; `overdue_tasks_list` ile aynı kümedir. */
             overdue_tasks: number;
+            /** @description Geciken görevlerin tamamı (canlı katılan departmanlar), en yeni oluşturulan önce; atananlarda silinmiş hesap listelenmez. Kesilmez. */
             overdue_tasks_list: components["schemas"]["OverdueTask"][];
+            /** @description Durumu `onaya_sunuldu` olan görev sayısı. */
             pending_approvals: number;
+            /** @description Canlı katılan departmanlardaki silinmemiş görevlerin bekleyen (`pending`) tarih talebi sayısı; diğer görev sayaçlarıyla aynı kapsam (silinmiş departmanda kalan canlı görevin talebi sayılmaz, `countProgramWorkItems` ise sayar). */
             pending_date_changes: number;
             priority_distribution: {
                 [key: string]: number;
@@ -3417,11 +3712,17 @@ export interface components {
             task_status_distribution: {
                 [key: string]: number;
             };
+            /** @description Şirket geneli yönetici sayısı (programa bağlı değildir); silinmiş hesap sayılmaz. */
             total_admins: number;
+            /** @description Bu programda en az bir canlı departmanda koordinatör olan tekil hesap sayısı. */
             total_coordinators: number;
+            /** @description Programa katılan canlı departman sayısı. */
             total_coordinatorships: number;
+            /** @description Bu programda en az bir canlı departmanda `uye` olan tekil hesap sayısı. Rol sayaçları örtüşebilir: bir departmanda koordinatör, başka birinde üye olan hesap iki sayaçta da, ekipteki yönetici hem `total_admins`'ta hem rol sayacında sayılır; tekil toplam `total_users`'tır. */
             total_members: number;
+            /** @description Canlı katılan departmanlardaki silinmemiş görev sayısı. */
             total_tasks: number;
+            /** @description Tekil hesap sayısı: canlı katılan departmanların bu programdaki ekibi + şirket geneli yöneticiler; silinmiş hesap sayılmaz. */
             total_users: number;
         };
         DateChangeRequest: {
@@ -3440,6 +3741,11 @@ export interface components {
             work_item_id: string;
         };
         DateChangeRequestCreate: {
+            /**
+             * Format: int64
+             * @description İsteğe bağlı: istemcinin gördüğü tarih sürümü (`dates_revision`; WORK-K89). Verilirse görev kilidi altında okunan güncel sürümle karşılaştırılır; farklıysa 409 `work.edit_conflict` (`fields[0].field = expected_dates_revision`), talep açılmaz. Pozitif değilse 422 `work.input_invalid` (alan kodu `work.revision_invalid`).
+             */
+            expected_dates_revision?: number;
             /** Format: date */
             new_end_on: string;
             /** Format: date */
@@ -3492,6 +3798,7 @@ export interface components {
             password: string;
         };
         Department: {
+            /** @description Kısa kod (büyük harf); kod verilmemişse alan yoktur. */
             code?: string;
             department_id: string;
             description?: string;
@@ -3559,11 +3866,23 @@ export interface components {
         ExtendRequest: {
             /** @description Ek gün sayısı, 1–90 (aksi 422 `work.input_invalid`). */
             days: number;
+            /**
+             * Format: int64
+             * @description İsteğe bağlı: istemcinin gördüğü tarih sürümü (`dates_revision`; WORK-K89). Verilirse kilit altındaki güncel sürümle karşılaştırılır; farklıysa 409 `work.edit_conflict` (`fields[0].field = expected_dates_revision`), uzatma uygulanmaz. Pozitif değilse 422 `work.input_invalid` (alan kodu `work.revision_invalid`). Uzatma göreli olduğundan ADR-0027'nin "istenen değer zaten güncelse 200" kuralı yoktur.
+             */
+            expected_dates_revision?: number;
         };
         ExtendResult: {
             cascade_count: number;
+            /**
+             * Format: int64
+             * @description Uzatmanın yazdığı tarih sürümü; sonraki tarih yazımı bunu `expected_dates_revision` olarak okuma yapmadan gönderebilir. Tekrarda ilk uzatmanın değeridir (görevin bugünkü sürümü değil).
+             */
+            dates_revision: number;
             /** Format: date */
             new_end_on: string;
+            /** @description `true`: aynı `Idempotency-Key` + aynı istek; uzatma ikinci kez uygulanmadı, alanlar ilk uzatmanın sonucudur (WORK-K89). */
+            replayed: boolean;
         };
         FieldError: {
             code: string;
@@ -3613,9 +3932,31 @@ export interface components {
             assignee_account_ids: string[];
             /** @description Boşsa tamamlanmamış. */
             completed_on: string;
+            /**
+             * Format: int64
+             * @description Tarih grubunun düzenleme sürümü (ADR-0027; WORK-K88); `WorkItem.dates_revision` ile aynı değer. Gantt'tan sürükleyerek tarih yazan istemci bu değeri `updateWorkItem` gövdesinde `expected_dates_revision` olarak gönderir; arada tarih değiştiyse 409 `work.edit_conflict` alır ve Gantt'ı yeniden okur.
+             */
+            dates_revision: number;
             department_id: string;
             end_on: string;
             lateness: components["schemas"]["Lateness"];
+            /**
+             * @description Görevin bekleyen tarih talebi (WORK-K82, WORK-K88); `WorkItem.pending_date_request` ile
+             *     aynı alan ve aynı kural. Her satırda bulunur; `null` "bekleyen talep yok ya da çağıran
+             *     görmeye yetkili değil" demektir. Yönetici ve koordinatör yüzünde her satırda doludur
+             *     (talep varsa); üye yüzünde (`memberGantt`) yalnız çağıran şirket yöneticisi ya da bu
+             *     departmanın koordinatörüyse dolar, yalnız üyede her satır `null`'dur. Değer aynı
+             *     çağıranın `getWorkItem` cevabındakiyle aynıdır. Onaylanmış ya da reddedilmiş talep
+             *     görünmez.
+             */
+            pending_date_request: {
+                /** Format: date */
+                new_end_on: string;
+                /** Format: date */
+                new_start_on: string;
+                /** @description Talep kimliği (`reviewDateChangeRequest` yolundaki `id`). */
+                request_id: string;
+            } | null;
             /** @description Boşsa planlanan bitiş `end_on`'dur. */
             planned_end_on: string;
             /** @enum {string} */
@@ -3623,6 +3964,8 @@ export interface components {
             program_id: string;
             start_on: string;
             status: string;
+            /** @description Alt görev sayaçları (WORK-K88); görev listeleri ve `getWorkItem` ile aynı değer. Alt görevi olmayan görevde `{total: 0, done: 0}`. */
+            subtask_counts: components["schemas"]["SubtaskCounts"];
             title: string;
             work_item_id: string;
         };
@@ -3645,16 +3988,50 @@ export interface components {
         };
         KnownUser: {
             account_id: string;
+            /**
+             * @description Hesap durumu; `disabled` girişi kapatılmış hesaptır (silinmiş hesap listede yoktur).
+             * @enum {string}
+             */
+            account_status: "active" | "disabled";
+            /** @description Hesap şirket yöneticisi mi (ekip satırlarından bağımsız). */
+            company_admin: boolean;
+            /** @description Hesabın e-postası. Yalnız şirket yöneticisinin kullanıcı yönetim uçlarında döner; üye listesi, havuz ve diğer okuma yüzleri e-posta taşımaz. */
+            email: string;
             full_name: string;
+            /** @description Hesapta şu an süren başarısız giriş kilidi var mı (IDENTITY-K19). Süresi geçmiş kilit ve kilide varmamış sayaç `false`tur; yöneticinin kilit açma ucu ikisini de temizler. Hesabı kapatma (`account_status`) değildir. */
+            login_locked: boolean;
             /** @description Ekip satırı etiketleri, `program:departman:rol` biçiminde. */
             memberships: string[] | null;
+            /** @description Aynı ekip satırlarının yapısal hâli (bütün programlar; canlı departmanlar). Ekipsiz hesapta boş dizi. */
+            teams: components["schemas"]["UserTeam"][];
+        };
+        /** @description Biten (sağlayıcıda kapandığı gözlenen) konferans; dış oda adı taşınmaz. */
+        LastConference: {
+            /** @enum {string} */
+            end_reason: "ended_by_user" | "meeting_deleted" | "provider_start_failed" | "provider_finished" | "reconciled_missing";
+            /**
+             * Format: date-time
+             * @description Kapanma isteğinin (kullanıcı, toplantı silme) ya da sistem kapanışının anı.
+             */
+            ended_at: string;
+            id: string;
+            /** Format: date-time */
+            started_at: string;
         };
         Lateness: {
             days_early: number;
             days_late: number;
+            /** @description Açık görevde `bugün − end_on` gün farkı (gecikmiyorsa 0); tamamlanmış görevde her zaman 0. Gün sınırı kurulumun saat dilimidir. */
             days_overdue: number;
             is_completed_early: boolean;
             is_completed_late: boolean;
+            /**
+             * @description Açık görevin gecikmesi (WORK-K37): durum `tamamlandi` değilken bugün `end_on`'dan
+             *     sonraysa `true`. Bitiş günü boyunca gecikmiş değildir; gecikme ertesi günden
+             *     başlar. Gün sınırı kurulumun saat dilimidir (`GET /v1/instance/profile`
+             *     `timezone`), istemcinin yerel saati değil. Tamamlanmış görevde her zaman `false`
+             *     (geç tamamlama `is_completed_late`/`days_late` ile taşınır).
+             */
             is_overdue: boolean;
         };
         LinkDepartmentRequest: {
@@ -3708,13 +4085,24 @@ export interface components {
             created_by_role: "admin" | "coordinator";
             /** Format: date-time */
             deleted_at?: string;
+            /** @description Yalnız silinenler listelerinde (`GET /v1/meetings/deleted`, `GET /v1/admin/deleted/meetings`) vardır ve orada her zaman bulunur: toplantıyı yumuşak silen hesap ve adı (COLLABORATION-K77). Silen bilinmiyorsa (alan eklenmeden önce silinmiş toplantı) null. */
+            deleted_by?: components["schemas"]["MeetingDeletedBy"] | null;
             departments: components["schemas"]["MeetingDepartment"][];
+            /**
+             * @description Davet kipi (COLLABORATION-K73, K74). `coordinatorship`: bağlı departmanların koordinatörleri ve `members_included` ise üyeleri erişir. `person`: departman bağı erişim vermez; yönetici ve sahip departmanı hâlâ koordine eden oluşturan yönetir (koordinatörlüğü düşen oluşturan katılımcıysa üye düzeyindedir, değilse toplantıyı görmez). İki kipte de katılımcı üye düzeyinde görür. Kuruluşta seçilir, değişmez.
+             * @enum {string}
+             */
+            invite_mode: "coordinatorship" | "person";
             /** Format: date-time */
             meeting_date: string;
             meeting_id: string;
             members_included: boolean;
             owner_department_id: string;
+            /** @description Toplantı yeri (düz metin, en çok 200 karakter); belirtilmemişse null (COLLABORATION-K76). */
+            place: string | null;
             program_id: string;
+            /** @description Yalnız `GET /v1/meetings` satırlarında vardır ve orada her zaman doludur (COLLABORATION-K70); kuruluş, güncelleme, detay ve silinenler listesi taşımaz. */
+            summary?: components["schemas"]["MeetingSummary"];
             title: string;
             /** Format: date-time */
             updated_at: string;
@@ -3724,6 +4112,11 @@ export interface components {
             failed_participants: string[] | null;
             meeting: components["schemas"]["Meeting"];
             side_effects: components["schemas"]["MeetingSideEffects"];
+        };
+        MeetingDeletedBy: {
+            account_id: string;
+            /** @description Hesabın bugünkü görünen adı; hesap bulunamazsa boş. */
+            full_name: string;
         };
         MeetingDepartment: {
             department_id: string;
@@ -3736,9 +4129,14 @@ export interface components {
             conference: components["schemas"]["Conference"] | null;
             /** @description Bağlı video sağlayıcısı oda açabiliyor mu (`none` iken false). İstemci başlat düğmesini buna göre gösterir. */
             conference_available: boolean;
+            /** @description En yeni biten konferans (COLLABORATION-K70); yoksa null. `conference` ile ikisi de null ise toplantıda hiç konferans açılmamıştır. Süreyi istemci `ended_at − started_at` olarak hesaplar; boş oda 5 dk sonra kapandığından sistem kapanışında (`provider_finished`, `reconciled_missing`) süre bu payı içerir. */
+            last_conference: components["schemas"]["LastConference"] | null;
             notes: components["schemas"]["MeetingNoteList"];
             participants: components["schemas"]["Participant"][];
-            /** @enum {string} */
+            /**
+             * @description Çağıranın erişimi (COLLABORATION-K74): `coordinator` yönetimdir (`person` kipinde sahip departmanı hâlâ koordine eden oluşturan); `member` salt okuma ve not (katılımcı ve koordinatörlüğü düşmüş katılımcı oluşturan dahil).
+             * @enum {string}
+             */
             viewer_role: "admin" | "coordinator" | "member";
         };
         MeetingLifecycleResult: {
@@ -3783,6 +4181,25 @@ export interface components {
         MeetingSideEffects: {
             event_failed: boolean;
             failed_messages: number;
+        };
+        /** @description Liste satırının özeti (COLLABORATION-K70). Konferans alanları detaydaki `conference`'ın, o yoksa `last_conference`'ın aynı değerleridir (zaman alanları detayla aynı). `conference_status`: `none` hiç konferans açılmadı (iki zaman da null); `starting`/`live`/`ending` detaydaki `conference.status`; `ended` açık konferans yok, son konferans bitti. Süreyi istemci hesaplar; sistem kapanışında (boş oda) süre 5 dk boş oda payını içerir. */
+        MeetingSummary: {
+            agenda_checked: number;
+            agenda_total: number;
+            /**
+             * Format: date-time
+             * @description `starting`/`live` iken null; `ending`/`ended` iken kapanma isteğinin ya da sistem kapanışının anı.
+             */
+            conference_ended_at: string | null;
+            /** Format: date-time */
+            conference_started_at: string | null;
+            /** @enum {string} */
+            conference_status: "none" | "starting" | "live" | "ending" | "ended";
+            /** @description Detaydaki `conference.connected.count` ile aynı (COLLABORATION-K78); `none`/`ended` iken 0. */
+            connected_count: number;
+            /** @description Not sayısı (silinen not kalıcı silinir ve sayılmaz). */
+            note_count: number;
+            participant_count: number;
         };
         Membership: {
             account_id: string;
@@ -3839,6 +4256,7 @@ export interface components {
             work_item_id: string;
         };
         NoteRequest: {
+            /** @description Not içeriği. Sunucu düz metne indirir; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 5000 karakterdir (Unicode kod noktası/rune, düz metne indirildikten sonra ölçülür); aksi 422 `collaboration.input_invalid` (alan `content`). */
             content: string;
         };
         Notification: {
@@ -3881,6 +4299,13 @@ export interface components {
         Participant: {
             account_id: string;
             full_name: string;
+            /** @description Katılımcının toplantının programındaki ekip satırları (COLLABORATION-K72): departman, programdaki adı ve oradaki rolü. Ekip satırı olmayan (yalnız şirket yöneticisi) katılımcıda boştur. Görüntüdür; erişim kararı değildir. */
+            teams: {
+                department_id: string;
+                department_name: string;
+                /** @enum {string} */
+                role: "coordinator" | "member";
+            }[];
         };
         ParticipantRequest: {
             user_id: string;
@@ -3890,11 +4315,18 @@ export interface components {
             user_id: string;
         };
         Program: {
+            /**
+             * @description Dönem rozetinin palet anahtarı (PROGRAM-K46). Verilmemişse `null`; alan her cevapta bulunur.
+             * @enum {string|null}
+             */
+            color: "violet" | "gold" | "blue" | "teal" | "green" | "orange" | "red" | "slate" | null;
             /** @description Yalnız oluşturma yanıtında; yeni kayıt açıldıysa `true`. */
             created?: boolean;
             description?: string;
             name: string;
             program_id: string;
+            /** @description Dönemin kısa adı (PROGRAM-K46): 1–4 Unicode harf ya da rakam, kırpılmış, harf büyüklüğü korunur. Verilmemişse `null`; alan her cevapta bulunur. */
+            short_name: string | null;
             year?: number;
         };
         ProgramDepartment: {
@@ -3903,6 +4335,17 @@ export interface components {
             department_id: string;
             /** @description Departmanın bu programdaki adı. */
             display_name: string;
+        };
+        ProgramDepartmentDetail: {
+            /** @description Katalog kodu; kod verilmemişse alan yoktur. */
+            code?: string;
+            department_id: string;
+            /** @description Katalog açıklaması; boşsa alan yoktur. */
+            description?: string;
+            /** @description Departmanın bu programdaki adı. */
+            display_name: string;
+            /** @enum {string} */
+            kind: "koordinatorluk" | "calisma_grubu";
         };
         ProgramDepartmentLink: {
             /** @description Bağ kurulurken kopyalanan ekip satırı sayısı (bağ zaten varsa, kopya istenmediyse ya da ad değiştirmede 0). */
@@ -3926,6 +4369,21 @@ export interface components {
             messages: number;
             program_id: string;
             tasks: number;
+        };
+        ProgramWorkItemCounts: {
+            by_status: {
+                baslanmadi: number;
+                devam_ediyor: number;
+                iade_edildi: number;
+                onaya_sunuldu: number;
+                tamamlandi: number;
+            };
+            /** @description Tamamlanmamış ve `end_on` < bugün (kurulum saat dilimi) olan görev sayısı. */
+            overdue: number;
+            /** @description Bekleyen tarih talebi olan görünür görev sayısı (WORK-K82 satır kuralı; üyede 0). */
+            pending_date_requests: number;
+            /** @description Görünür canlı görev sayısı (süzgeçlerle). */
+            total: number;
         };
         PushPublicKey: {
             enabled: boolean;
@@ -4042,6 +4500,7 @@ export interface components {
             has_pending_dependency: boolean;
             is_completed_early: boolean;
             is_completed_late: boolean;
+            /** @description `Lateness.is_overdue` ile aynı kural (WORK-K37): durum `tamamlandi` değilken bugün (kurulum saat dilimi) `end_on`'dan sonraysa `true`; tamamlanmış görevde her zaman `false`. */
             is_overdue: boolean;
             note_count: number;
             /** Format: date */
@@ -4090,6 +4549,7 @@ export interface components {
             affected_tasks_count: number;
         };
         ReviseMeetingNoteRequest: {
+            /** @description Not içeriği. Sunucu düz metne indirir; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 5000 karakterdir (Unicode kod noktası/rune, düz metne indirildikten sonra ölçülür); aksi 422 `collaboration.input_invalid` (alan `content`). */
             content: string;
             /**
              * Format: int64
@@ -4333,6 +4793,7 @@ export interface components {
             source_department_id?: string;
         };
         UpdateDepartmentRequest: {
+            /** @description Verilmezse kod değişmez. Verilirse kırpılır ve büyük harfe çevrilir; sonuç `^[A-Z0-9]{2,10}$` olmalıdır (422 `organization.invalid_code`). Mevcut kod boş dizeyle boşaltılamaz (ORGANIZATION-K10). */
             code?: string | null;
             description?: string | null;
             /**
@@ -4342,16 +4803,26 @@ export interface components {
             kind?: "koordinatorluk" | "calisma_grubu" | null;
             name?: string | null;
         };
+        /** @description Davet kipi değişmez: `invite_mode` alanı her değerde 422 `collaboration.input_invalid` (alan `invite_mode`). `person` kipinde `department_ids` ve `members_included: true` da 422'dir (COLLABORATION-K73). */
         UpdateMeetingRequest: {
             department_ids?: string[] | null;
             /** @description Verilirse kuruluştaki kuralla aynı: geçmiş gün olamaz. */
             meeting_date?: string | null;
             members_included?: boolean | null;
+            /** @description Alan yoksa yer değişmez; `null` ya da boş dizge yeri kaldırır; değer kuruluştaki kuralla doğrulanır (COLLABORATION-K76). */
+            place?: string | null;
             title?: string | null;
         };
         UpdateProgramRequest: {
+            /**
+             * @description Üç hâlli (PROGRAM-K46): alan yoksa değişmez; palet anahtarı (`violet`, `gold`, `blue`, `teal`, `green`, `orange`, `red`, `slate`) yazılır; açık `null` rengi temizler. Başka değer `422 program.input_invalid` (`program.invalid_color`).
+             * @enum {string|null}
+             */
+            color?: "violet" | "gold" | "blue" | "teal" | "green" | "orange" | "red" | "slate" | null;
             description?: string | null;
             name?: string | null;
+            /** @description Üç hâlli (PROGRAM-K46): alan yoksa değişmez; dizge verilirse kırpılıp doğrulanır (kırpılmış hâli 1–4 Unicode harf ya da rakam; ham uzunluk sınırlanmaz) ve yazılır; açık `null` kısa adı temizler. Boş dizge temizleme değildir: `422 program.input_invalid` (`program.invalid_short_name`). */
+            short_name?: string | null;
             year?: number | null;
         };
         /** @description Verilmeyen alan değişmez. `assignee_account_id`, `start_on`, `end_on` boş dizgeyle kaldırılır (tarihler birlikte). */
@@ -4404,6 +4875,7 @@ export interface components {
             title?: string | null;
         };
         UpdateWorkNoteRequest: {
+            /** @description Not içeriği. Sunucu baş/son boşluğu kırpar; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 10000 karakterdir (Unicode kod noktası/rune, kırpmadan sonra ölçülür); aksi 422 `work.input_invalid` (alan `content`). */
             content: string;
             /**
              * Format: int64
@@ -4412,7 +4884,11 @@ export interface components {
             expected_revision: number;
         };
         UserList: {
+            /** @description Devam eden listede dolu. Süzgeçli listede sayfa `limit`ten az satırla (boş da olabilir) ve dolu `next_cursor` ile dönebilir (istek başına tarama bütçesi); istemci `next_cursor` boşalana dek devam eder, satır atlanmaz ve tekrar etmez. */
             next_cursor?: string;
+            role_counts: components["schemas"]["UserRoleCounts"];
+            /** @description Bütün süzgeçlere (rol dahil) uyan hesap sayısı; imleç zincirinin toplam satır sayısıdır. */
+            total: number;
             users: components["schemas"]["KnownUser"][] | null;
         };
         UserResult: {
@@ -4422,6 +4898,22 @@ export interface components {
             membership_id?: string;
             revoked_sessions?: number;
             transferred?: boolean;
+        };
+        /** @description Rol dışındaki süzgeçlere (`search`, `program_id`, `department_id`) uyan hesapların rol sekmesi sayıları. Bir hesap birden çok rolde sayılabilir (ör. bir programda koordinatör, başka programda üye, aynı zamanda şirket yöneticisi); `all` rolden bağımsız toplamdır, rol sayılarının toplamı değildir. */
+        UserRoleCounts: {
+            all: number;
+            company_admin: number;
+            koordinator: number;
+            uye: number;
+        };
+        UserTeam: {
+            department_id: string;
+            /** @description Departmanın bu programdaki adı. */
+            display_name: string;
+            program_id: string;
+            program_name: string;
+            /** @enum {string} */
+            role: "uye" | "koordinator";
         };
         VoteChatPollRequest: {
             option_indexes: number[];
@@ -4452,6 +4944,7 @@ export interface components {
             dates_revision: number;
             days_early: number;
             days_late: number;
+            /** @description Açık görevde `bugün − end_on` gün farkı (gecikmiyorsa 0); tamamlanmış görevde her zaman 0. Gün sınırı kurulumun saat dilimidir. */
             days_overdue: number;
             department_id: string;
             /**
@@ -4466,6 +4959,13 @@ export interface components {
             end_on: string;
             is_completed_early: boolean;
             is_completed_late: boolean;
+            /**
+             * @description Açık görevin gecikmesi (WORK-K37): durum `tamamlandi` değilken bugün `end_on`'dan
+             *     sonraysa `true`. Bitiş günü boyunca gecikmiş değildir; gecikme ertesi günden
+             *     başlar. Gün sınırı kurulumun saat dilimidir (`GET /v1/instance/profile`
+             *     `timezone`), istemcinin yerel saati değil. Tamamlanmış görevde her zaman `false`
+             *     (geç tamamlama `is_completed_late`/`days_late` ile taşınır).
+             */
             is_overdue: boolean;
             /**
              * @description Görevin bekleyen tarih talebi (WORK-K82). Her cevapta bulunur; `null` "bekleyen talep
@@ -4650,6 +5150,7 @@ export interface components {
             work_item_id: string;
         };
         WorkNoteRequest: {
+            /** @description Not içeriği. Sunucu baş/son boşluğu kırpar; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 10000 karakterdir (Unicode kod noktası/rune, kırpmadan sonra ölçülür); aksi 422 `work.input_invalid` (alan `content`). */
             content: string;
         };
         WorkNoteUpdated: {
@@ -4678,6 +5179,8 @@ export interface components {
         IdempotencyKey: string;
         /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
         Limit: number;
+        /** @description İsteğe bağlı işlem anahtarı (ADR-0027 kalıbı). Verilmezse uç anahtarsız davranır (mevcut davranış). Verilirse (boş ya da yalnız boşluk dahil) kırpılmış uzunluk 22–200 bayttır, aksi 422 `<mod>.input_invalid` (alan `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtar aktör + uç tablosu kapsamındadır ve kaynak satırında yaşar. Aynı anahtar + aynı normalize istek ilk kaynağın bugünkü temsilini 200 ile döndürür; farklı istek 409 `<mod>.idempotency_key_reused`; aynı anahtarlı eşzamanlı istek ilk isteğin bitişini bekler ve tekrar olarak döner. */
+        OptionalIdempotencyKey: string;
         PathAccountID: string;
         PathChatID: string;
         PathDepartmentID: string;
@@ -4689,9 +5192,36 @@ export interface components {
         PathUserID: string;
         /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
         ProgramScope: string;
+        /**
+         * @description İsteğe bağlı, tekrarlanabilir atanan süzgeci (WORK-K81): görev verilen hesaplardan en
+         *     az birine atanmışsa kalır. Görünürlükle ve `department_id` ile kesişir, yetkiyi
+         *     genişletmez. En çok 50 değer; tekrar eden değer tek sayılır, boş değer yok sayılır;
+         *     kimlik harf, rakam, `-` ve `_` dışında karakter taşıyamaz ve en çok 64 bayttır.
+         */
+        ProgramWorkItemAssigneeFilter: string[];
+        /** @description Verilirse yalnız bu departmanda (program verilmişse o programda) ekip satırı olan hesaplar. Biçim `program_id` ile aynıdır. */
+        UserDepartmentFilter: string;
+        /** @description Verilirse yalnız bu programda (canlı departmanda) ekip satırı olan hesaplar; rol süzgeci de bu programın rollerine daralır. Kimlik harf, rakam, `-` ve `_` taşır, en çok 64 bayttır (aksi 422 `organization.input_invalid`). */
+        UserProgramFilter: string;
+        /** @description `uye` / `koordinator`: herhangi bir programda bu ekip rolü; `company_admin`: şirket yöneticisi. Küme dışı değer 422 `organization.input_invalid`. */
         UserRole: string;
+        /** @description Görünen adda (Türkçe büyük/küçük harf duyarsız) ya da e-postada (küçük harf) geçen metin; `%` ve `_` joker değil metindir. */
         UserSearch: string;
+        /**
+         * @description Sıralama alanı (ORGANIZATION-K33); değer kümesi `name` | `created_at`. Boş ya da
+         *     verilmemiş değer `created_at`'tir; baştaki/sondaki boşluk kırpılır. `name` görünen adın
+         *     küçük harfe ve Türkçe harf katlamasıyla (ç→c, ğ→g, ı→i, ö→o, ş→s, ü→u) normalize
+         *     hâline göre, `created_at` hesabın oluşturulma zamanına göre sıralar; eşitlikte hesap
+         *     kimliği ikincil anahtardır (imleç kararlı). Küme dışı değer 422 `organization.input_invalid`
+         *     (alan `sort_by`, kod `organization.invalid_sort`); sessizce varsayılana düşmez. Değer kümesi
+         *     `enum` olarak yazılmaz (eklemek sözleşmede kırıcıdır); kümeyi bu açıklama tanımlar.
+         */
         UserSortBy: string;
+        /**
+         * @description Sıralama yönü (ORGANIZATION-K33); değer kümesi `asc` | `desc`. Boş ya da verilmemiş
+         *     değer `asc`'tir; baştaki/sondaki boşluk kırpılır. Küme dışı değer 422
+         *     `organization.input_invalid` (alan `sort_order`, kod `organization.invalid_sort`).
+         */
         UserSortOrder: string;
         /** @description Web yenileme belirteci (gövdede `refresh_token` yoksa okunur). */
         WebRefreshCookie: string;
@@ -5142,6 +5672,184 @@ export interface operations {
             503: {
                 headers: {
                     "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    disableAccount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (durum zaten hedefteyse de; `changed` false) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountStatusResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bulunamadı (silinmiş hesap dahil) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    enableAccount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (durum zaten hedefteyse de; `changed` false) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountStatusResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bulunamadı (silinmiş hesap dahil) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
                     [name: string]: unknown;
                 };
                 content: {
@@ -6449,11 +7157,31 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
+                /** @description Verilirse yalnız bu departmanda (program verilmişse o programda) ekip satırı olan hesaplar. Biçim `program_id` ile aynıdır. */
+                department_id?: components["parameters"]["UserDepartmentFilter"];
                 /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
+                /** @description Verilirse yalnız bu programda (canlı departmanda) ekip satırı olan hesaplar; rol süzgeci de bu programın rollerine daralır. Kimlik harf, rakam, `-` ve `_` taşır, en çok 64 bayttır (aksi 422 `organization.input_invalid`). */
+                program_id?: components["parameters"]["UserProgramFilter"];
+                /** @description `uye` / `koordinator`: herhangi bir programda bu ekip rolü; `company_admin`: şirket yöneticisi. Küme dışı değer 422 `organization.input_invalid`. */
                 role?: components["parameters"]["UserRole"];
+                /** @description Görünen adda (Türkçe büyük/küçük harf duyarsız) ya da e-postada (küçük harf) geçen metin; `%` ve `_` joker değil metindir. */
                 search?: components["parameters"]["UserSearch"];
+                /**
+                 * @description Sıralama alanı (ORGANIZATION-K33); değer kümesi `name` | `created_at`. Boş ya da
+                 *     verilmemiş değer `created_at`'tir; baştaki/sondaki boşluk kırpılır. `name` görünen adın
+                 *     küçük harfe ve Türkçe harf katlamasıyla (ç→c, ğ→g, ı→i, ö→o, ş→s, ü→u) normalize
+                 *     hâline göre, `created_at` hesabın oluşturulma zamanına göre sıralar; eşitlikte hesap
+                 *     kimliği ikincil anahtardır (imleç kararlı). Küme dışı değer 422 `organization.input_invalid`
+                 *     (alan `sort_by`, kod `organization.invalid_sort`); sessizce varsayılana düşmez. Değer kümesi
+                 *     `enum` olarak yazılmaz (eklemek sözleşmede kırıcıdır); kümeyi bu açıklama tanımlar.
+                 */
                 sort_by?: components["parameters"]["UserSortBy"];
+                /**
+                 * @description Sıralama yönü (ORGANIZATION-K33); değer kümesi `asc` | `desc`. Boş ya da verilmemiş
+                 *     değer `asc`'tir; baştaki/sondaki boşluk kırpılır. Küme dışı değer 422
+                 *     `organization.input_invalid` (alan `sort_order`, kod `organization.invalid_sort`).
+                 */
                 sort_order?: components["parameters"]["UserSortOrder"];
             };
             header?: never;
@@ -6631,6 +7359,83 @@ export interface operations {
             503: {
                 headers: {
                     "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnownUser"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
                     [name: string]: unknown;
                 };
                 content: {
@@ -11009,6 +11814,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İsteğe bağlı işlem anahtarı (ADR-0027 kalıbı). Verilmezse uç anahtarsız davranır (mevcut davranış). Verilirse (boş ya da yalnız boşluk dahil) kırpılmış uzunluk 22–200 bayttır, aksi 422 `<mod>.input_invalid` (alan `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtar aktör + uç tablosu kapsamındadır ve kaynak satırında yaşar. Aynı anahtar + aynı normalize istek ilk kaynağın bugünkü temsilini 200 ile döndürür; farklı istek 409 `<mod>.idempotency_key_reused`; aynı anahtarlı eşzamanlı istek ilk isteğin bitişini bekler ve tekrar olarak döner. */
+                "Idempotency-Key"?: components["parameters"]["OptionalIdempotencyKey"];
                 /** @description Departman kapsamı (S3 uçlarda zorunlu). */
                 "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -11025,6 +11832,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Aynı işlem anahtarının tekrarı; talebin bugünkü hâli (WORK-K89) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DateChangeRequest"];
+                };
+            };
             /** @description Başarılı */
             201: {
                 headers: {
@@ -11478,6 +12294,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İsteğe bağlı işlem anahtarı (ADR-0027 kalıbı). Verilmezse uç anahtarsız davranır (mevcut davranış). Verilirse (boş ya da yalnız boşluk dahil) kırpılmış uzunluk 22–200 bayttır, aksi 422 `<mod>.input_invalid` (alan `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtar aktör + uç tablosu kapsamındadır ve kaynak satırında yaşar. Aynı anahtar + aynı normalize istek ilk kaynağın bugünkü temsilini 200 ile döndürür; farklı istek 409 `<mod>.idempotency_key_reused`; aynı anahtarlı eşzamanlı istek ilk isteğin bitişini bekler ve tekrar olarak döner. */
+                "Idempotency-Key"?: components["parameters"]["OptionalIdempotencyKey"];
                 /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
                 "X-Requested-With": components["parameters"]["CsrfHeader"];
             };
@@ -11490,6 +12308,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Aynı işlem anahtarının tekrarı (ilk departmanın bugünkü hâli) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Department"];
+                };
+            };
             /** @description Oluşturuldu */
             201: {
                 headers: {
@@ -13851,8 +14678,14 @@ export interface operations {
             query?: {
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
+                /** @description Toplantının sahip ya da bağlı departmanı. Boş ya da yalnız boşluk değer süzgeç yok sayılır. */
+                department_id?: string;
+                /** @description Toplantı günü alt sınırı (dahil), `YYYY-MM-DD`, kurulum saat diliminin takvim günü (COLLABORATION-K17 kuralı). Başka biçim 422 `collaboration.input_invalid` (alan `from`). */
+                from?: string;
                 /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
+                /** @description Toplantı günü üst sınırı (dahil), `YYYY-MM-DD`, kurulum saat dilimi. Başka biçim ya da `from`'dan önceki gün 422 `collaboration.input_invalid` (alan `to`). */
+                to?: string;
             };
             header: {
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -14992,7 +15825,7 @@ export interface operations {
                     "application/json": components["schemas"]["MeetingNote"];
                 };
             };
-            /** @description Başarılı */
+            /** @description Başarılı. İlk notu silinmiş anahtarla tekrar da yeni not açar: anahtar kalıcı silinen satırla gider (ADR-0027 Ek F63). */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -16509,6 +17342,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İsteğe bağlı işlem anahtarı (ADR-0027 kalıbı). Verilmezse uç anahtarsız davranır (mevcut davranış). Verilirse (boş ya da yalnız boşluk dahil) kırpılmış uzunluk 22–200 bayttır, aksi 422 `<mod>.input_invalid` (alan `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtar aktör + uç tablosu kapsamındadır ve kaynak satırında yaşar. Aynı anahtar + aynı normalize istek ilk kaynağın bugünkü temsilini 200 ile döndürür; farklı istek 409 `<mod>.idempotency_key_reused`; aynı anahtarlı eşzamanlı istek ilk isteğin bitişini bekler ve tekrar olarak döner. */
+                "Idempotency-Key"?: components["parameters"]["OptionalIdempotencyKey"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
                 "X-Nizamio-Program": components["parameters"]["ProgramScope"];
                 /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
@@ -16523,6 +17358,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Aynı işlem anahtarının tekrarı (bağın bugünkü hâli) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramDepartmentLink"];
+                };
+            };
             /** @description Oluşturuldu */
             201: {
                 headers: {
@@ -16570,6 +17414,95 @@ export interface operations {
             };
             /** @description Gövde sınırı aşıldı */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readProgramDepartment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                departmentId: components["parameters"]["PathDepartmentID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramDepartmentDetail"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16830,6 +17763,13 @@ export interface operations {
     listProgramWorkItems: {
         parameters: {
             query?: {
+                /**
+                 * @description İsteğe bağlı, tekrarlanabilir atanan süzgeci (WORK-K81): görev verilen hesaplardan en
+                 *     az birine atanmışsa kalır. Görünürlükle ve `department_id` ile kesişir, yetkiyi
+                 *     genişletmez. En çok 50 değer; tekrar eden değer tek sayılır, boş değer yok sayılır;
+                 *     kimlik harf, rakam, `-` ve `_` dışında karakter taşıyamaz ve en çok 64 bayttır.
+                 */
+                assignee_account_id?: components["parameters"]["ProgramWorkItemAssigneeFilter"];
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
                 /** @description İsteğe bağlı departman süzgeci; görünürlükle kesişir. Boş ya da yalnız boşluk değer süzgeç yok sayılır. */
@@ -16853,6 +17793,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkItemList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    countProgramWorkItems: {
+        parameters: {
+            query?: {
+                /**
+                 * @description İsteğe bağlı, tekrarlanabilir atanan süzgeci (WORK-K81): görev verilen hesaplardan en
+                 *     az birine atanmışsa kalır. Görünürlükle ve `department_id` ile kesişir, yetkiyi
+                 *     genişletmez. En çok 50 değer; tekrar eden değer tek sayılır, boş değer yok sayılır;
+                 *     kimlik harf, rakam, `-` ve `_` dışında karakter taşıyamaz ve en çok 64 bayttır.
+                 */
+                assignee_account_id?: components["parameters"]["ProgramWorkItemAssigneeFilter"];
+                /** @description İsteğe bağlı departman süzgeci; listeyle aynı kural. */
+                department_id?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramWorkItemCounts"];
                 };
             };
             /** @description Kimlik doğrulanmamış */
@@ -20503,6 +21540,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description İsteğe bağlı işlem anahtarı (ADR-0027 kalıbı). Verilmezse uç anahtarsız davranır (mevcut davranış). Verilirse (boş ya da yalnız boşluk dahil) kırpılmış uzunluk 22–200 bayttır, aksi 422 `<mod>.input_invalid` (alan `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtar aktör + uç tablosu kapsamındadır ve kaynak satırında yaşar. Aynı anahtar + aynı normalize istek ilk kaynağın bugünkü temsilini 200 ile döndürür; farklı istek 409 `<mod>.idempotency_key_reused`; aynı anahtarlı eşzamanlı istek ilk isteğin bitişini bekler ve tekrar olarak döner. */
+                "Idempotency-Key"?: components["parameters"]["OptionalIdempotencyKey"];
                 /** @description Departman kapsamı (S3 uçlarda zorunlu). */
                 "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -22173,6 +23212,7 @@ export interface operations {
             /** @description Başarılı */
             200: {
                 headers: {
+                    "X-Result-Truncated": components["headers"]["ResultTruncated"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -22239,7 +23279,7 @@ export interface operations {
     adminGantt: {
         parameters: {
             query?: {
-                /** @description `true` ise yalnız gecikenler. */
+                /** @description `true` ise yalnız bitiş günü bugünden (kurulum saat dilimi) önce olan görevler. Süzgeç görev durumuna bakmaz: bitişi geçmiş TAMAMLANMIŞ görev de listelenir; satırdaki `is_overdue` ise tamamlanmış görevde `false`'tur ([GAP-053](../known-gaps.md#gap-053)). */
                 overdue?: string;
             };
             header: {
@@ -22254,6 +23294,7 @@ export interface operations {
             /** @description Başarılı */
             200: {
                 headers: {
+                    "X-Result-Truncated": components["headers"]["ResultTruncated"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -22334,6 +23375,7 @@ export interface operations {
             /** @description Başarılı */
             200: {
                 headers: {
+                    "X-Result-Truncated": components["headers"]["ResultTruncated"];
                     [name: string]: unknown;
                 };
                 content: {
