@@ -12,7 +12,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import type { MutationOutcome } from '@/shared/http/mutation'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 import { useScopeStore } from '@/shared/scope/store'
-import { notifyOutcome } from '@/shared/ui/confirm'
+import { notifyOutcome, withTransferNote } from '@/shared/ui/confirm'
 import { useToast } from '@/shared/ui'
 
 import { useRemoveMember, useUpdateMembershipRole } from '../../api'
@@ -27,7 +27,7 @@ export function useMemberActions(departmentId: MaybeRefOrGetter<string>) {
 
   function report<V, D>(outcome: MutationOutcome<V, D, unknown> | null, done: DetailTextKey): void {
     if (outcome === null) return
-    if (outcome.kind === 'success') toast.push({ message: detailText(done) })
+    if (outcome.kind === 'success') toast.push({ message: withTransferNote(detailText(done), outcome.data) })
     else notifyOutcome(outcome)
   }
 
@@ -41,6 +41,7 @@ export function useMemberActions(departmentId: MaybeRefOrGetter<string>) {
         body: [detailText('coordinatorship.members.roleText', { name: member.full_name })],
         confirmLabel: detailText('coordinatorship.members.roleConfirm'),
         tone: 'primary',
+        impactNotice: 'caller',
       },
     )
     report(outcome, 'coordinatorship.members.changed')
@@ -56,6 +57,7 @@ export function useMemberActions(departmentId: MaybeRefOrGetter<string>) {
         body: [detailText('coordinatorship.members.removeText', { name: member.full_name })],
         confirmLabel: detailText('coordinatorship.members.removeConfirm'),
         tone: 'danger',
+        impactNotice: 'caller',
       },
     )
     report(outcome, 'coordinatorship.members.removed')
