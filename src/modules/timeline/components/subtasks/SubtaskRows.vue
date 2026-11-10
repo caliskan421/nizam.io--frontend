@@ -32,6 +32,10 @@ const rowCount = computed(() => {
   const listed = query.isSuccess.value ? subtasks.value.length : 0
   return Math.max(1, listed)
 })
+/** Bloktaki `offset`. satırın mutlak `aria-rowindex` değeri (başlangıç verilmediyse yok). */
+function rowIndex(offset: number): number | undefined {
+  return props.rowIndexStart === undefined ? undefined : props.rowIndexStart + offset
+}
 watch(rowCount, (count) => emit('rows', count), { immediate: true })
 </script>
 
@@ -43,12 +47,24 @@ watch(rowCount, (count) => emit('rows', count), { immediate: true })
     :aria-busy="query.isPending.value ? 'true' : 'false'"
     data-testid="subtask-rows"
   >
-    <div v-if="query.isPending.value" class="tl-sub" role="row" aria-level="3">
+    <div
+      v-if="query.isPending.value"
+      class="tl-sub"
+      role="row"
+      aria-level="3"
+      :aria-rowindex="rowIndex(0)"
+    >
       <div class="tl-sub__label tl-sub__label--span" role="gridcell" aria-colspan="2">
         <span class="tl-sub__note" role="status">{{ subtaskText('loading') }}</span>
       </div>
     </div>
-    <div v-else-if="query.isError.value" class="tl-sub" role="row" aria-level="3">
+    <div
+      v-else-if="query.isError.value"
+      class="tl-sub"
+      role="row"
+      aria-level="3"
+      :aria-rowindex="rowIndex(0)"
+    >
       <div class="tl-sub__label tl-sub__label--span" role="gridcell" aria-colspan="2">
         <UiErrorState
           :error="toApiError(query.error.value)"
@@ -58,7 +74,13 @@ watch(rowCount, (count) => emit('rows', count), { immediate: true })
         />
       </div>
     </div>
-    <div v-else-if="subtasks.length === 0" class="tl-sub" role="row" aria-level="3">
+    <div
+      v-else-if="subtasks.length === 0"
+      class="tl-sub"
+      role="row"
+      aria-level="3"
+      :aria-rowindex="rowIndex(0)"
+    >
       <div class="tl-sub__label tl-sub__label--span" role="gridcell" aria-colspan="2">
         <span class="tl-sub__note" data-testid="subtask-empty">{{ subtaskText('empty') }}</span>
       </div>
@@ -70,6 +92,7 @@ watch(rowCount, (count) => emit('rows', count), { immediate: true })
         class="tl-sub"
         role="row"
         aria-level="3"
+        :aria-rowindex="rowIndex(index)"
         data-testid="subtask-row"
       >
         <div class="tl-sub__label" role="gridcell">
