@@ -26,6 +26,9 @@ export interface Account {
   email: string
   admin: boolean
   deleted?: boolean
+  /** v0.14: hesap kapatılmış (`disableAccount`) / süren giriş kilidi. */
+  disabled?: boolean
+  locked?: boolean
 }
 
 export interface Membership {

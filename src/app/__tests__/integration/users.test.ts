@@ -1,6 +1,6 @@
 // W82a · senaryo (2) ve 05 açık uçları: çip kaldır → `confirmation_required` → ortak onay →
 // görev listeleri yenilenir (atama devri, W71b); kullanıcı oluştur (gerçek UserCreateDialog +
-// TemporaryPasswordDialog) → panel ya da BE-043 bilgi notu; 05b gömülü gerçek UserPanel (sil →
+// TemporaryPasswordDialog) → panel (süzülmüş kümede yoksa BE-043 readUser); 05b gömülü gerçek UserPanel (sil →
 // devir → liste); 05b "Görev ata" → gerçek TasksPage + NewTaskDialog ön dolu.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
@@ -141,14 +141,17 @@ describe('05 kullanıcı oluştur (gerçek UserCreateDialog + TemporaryPasswordD
     expect(document.body.innerHTML).not.toContain('Gecici-Parola-1')
   })
 
-  it('BE-043: yeni kişi yüklü (süzülmüş) kümede değil → panel açılmaz, bilgi notu görünür', async () => {
+  it('BE-043: yeni kişi yüklü (süzülmüş) kümede değil → readUser ile panel açılır, bilgi notu yok', async () => {
     const app = await boot({ ...ADMIN, path: '/kullanicilar?q=Ayşe' })
     await until(() => row(PEOPLE.member.account_id), 'süzülmüş liste')
     await create('Zeynep Ak', 'zeynep@example.test')
     await until(() => app.router.currentRoute.value.query.secili, 'seçili kişi URL’de')
     await click(() => byText('[role="dialog"] button', 'Vazgeç'))
-    await until(() => $('[data-testid="users-selected-missing"]'), 'bilgi notu')
-    expect($('[data-testid="user-panel"]')).toBeNull()
+    await until(() => $('[data-testid="user-panel"]'), 'readUser ile açılan panel')
+    expect($('[data-testid="users-selected-missing"]')).toBeNull()
+    expect(
+      backend.sent('GET', `/v1/admin/users/${app.router.currentRoute.value.query.secili}`),
+    ).toHaveLength(1)
   })
 })
 
