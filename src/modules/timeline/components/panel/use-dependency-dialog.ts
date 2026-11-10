@@ -15,7 +15,7 @@ import { useToast } from '@/shared/ui'
 import { useAddDependency, useDependencies, useGantt, useRemoveDependency } from '../../api'
 import type { GanttTask } from '../../model/types'
 import { panelText } from './messages'
-import { failedText } from './outcomes'
+import { failedFieldText } from './outcomes'
 
 export interface DependencyRow {
   dependencyId: string
@@ -57,8 +57,8 @@ export function useDependencyDialog(task: () => GanttTask, close: () => void) {
   const busy = computed(() => add.isPending.value || remove.isPending.value)
 
   /** Başarısızlıkta satır içi kod metni; metni olmayan sınıflar ortak bildirimden gider. */
-  function fail(outcome: Parameters<typeof failedText>[0]): void {
-    error.value = failedText(outcome)
+  function fail(outcome: Parameters<typeof failedFieldText>[0]): void {
+    error.value = failedFieldText(outcome)
     if (error.value === null) notifyOutcome(outcome)
   }
 
