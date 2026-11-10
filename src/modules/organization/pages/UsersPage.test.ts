@@ -18,6 +18,7 @@ vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthentic
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   vi.useRealTimers()
+  vi.unstubAllGlobals()
   unmountAll()
   resetHarness()
 })
@@ -146,6 +147,32 @@ describe('UsersPage — yan panel ve yaşam döngüsü', () => {
     await settle()
     expect(router.currentRoute.value.query).toEqual({ secili: 'u1' })
     expect(wrapper.find('[data-testid="user-panel"]').exists()).toBe(true)
+  })
+
+  it('dar yerleşim (K-8): satır seçimi panele kaydırır ve odağı taşır; derin bağlantıda odak çalınmaz', async () => {
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('max-width'), media: q }))
+    const { wrapper } = await mountPage('/kullanicilar?secili=u2')
+    await settle()
+    expect(scroll).not.toHaveBeenCalled()
+    await wrapper.get('[data-account="u1"][role="row"]').trigger('click')
+    await settle()
+    expect(scroll).toHaveBeenCalledTimes(1)
+    expect(scroll.mock.contexts[0]).toBe(wrapper.get('aside.rp-aside').element)
+    expect(document.activeElement).toBe(wrapper.get('aside.rp-aside').element)
+    expect(wrapper.get('aside.rp-aside').attributes('tabindex')).toBe('-1')
+  })
+
+  it('geniş yerleşim: panel yan sütunda; kaydırma ve odak taşıma yok', async () => {
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q }))
+    const { wrapper } = await mountPage()
+    await wrapper.get('[data-account="u1"][role="row"]').trigger('click')
+    await settle()
+    expect(scroll).not.toHaveBeenCalled()
+    expect(document.activeElement).not.toBe(wrapper.get('aside.rp-aside').element)
   })
 
   it('kapsam değişimi: arama ve sekme korunur; koordinatörlük, `secili` ve açık diyalog düşer', async () => {
