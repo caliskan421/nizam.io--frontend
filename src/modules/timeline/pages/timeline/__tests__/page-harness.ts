@@ -95,7 +95,7 @@ export async function mountPage(
   const store = useScopeStore()
   store.commit(selection)
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
+    defaultOptions: { queries: { retry: false, retryDelay: 0, gcTime: Infinity }, mutations: { retry: false } },
   })
   const empty = { render: () => null }
   const router = createRouter({
