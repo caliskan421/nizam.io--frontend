@@ -60,6 +60,28 @@ describe('DepartmentForm yaşamı', () => {
     )
   })
 
+  it('kapsam değişiminde pencere kapandı, sayfa bağlı: tam başarı bildirimi + saved gelir, ikinci kapanış yayılmaz', async () => {
+    const release = gatedCreate()
+    server.use(
+      http.post(`${ORIGIN}/v1/program/departments`, () =>
+        json(
+          { department_id: 'dn', display_name: 'Yazılım', program_id: 'p1', copied_member_count: 0 },
+          201,
+        ),
+      ),
+    )
+    const { h, wrapper } = await submitting()
+    h.store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    await nextTick()
+    await wrapper.setProps({ open: false })
+    expect(wrapper.emitted('update:open')).toEqual([[false]])
+    release()
+    await h.flush()
+    await vi.waitFor(() => expect(wrapper.emitted('saved')).toEqual([['dn']]))
+    expect(wrapper.emitted('update:open')).toEqual([[false]])
+    expect(toasts().length).toBe(1)
+  })
+
   it('sökülmüş bileşen: bağ adımı gönderilmez; kısmi sonuç yalnız uygulama düzeyinde (W82c)', async () => {
     const release = gatedCreate()
     const { h, wrapper } = await submitting()
