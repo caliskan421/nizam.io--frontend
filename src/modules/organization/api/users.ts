@@ -199,12 +199,17 @@ export function useUserList(
   const truncated = computed(() => query.data.value?.pages.some((p) => p.truncated) === true)
   const latest = computed(() => query.data.value?.pages.at(-1)?.page ?? null)
   // Süzgeçli sayfa `limit`ten kısa (boş bile) dönüp `next_cursor` taşıyabilir: boş sayfada istemci
-  // `next_cursor` boşalana dek ilerler (satır atlanmaz; BE-011, istemci-akislari §3).
+  // `next_cursor` boşalana dek ilerler (satır atlanmaz; BE-011, istemci-akislari §3). Sunucuda
+  // imleç her sayfada ilerler (sayfa başına tarama bütçesi sonludur), yani sonsuz döngünün kaynağı
+  // sunucu değil istemcidir: devam okuması HATA verince efekt `isFetchingNextPage` düşünce yeniden
+  // tetiklenip aynı isteği sonsuza dek yineliyordu (WP3). Hata durumunda otomatik ilerleme durur;
+  // kullanıcı "Daha fazla yükle" ile bilinçli sürdürür. Üst sınır SON ardışık boş sayfalarla
+  // ölçülür (toplam sayfa sayısıyla değil): dolu sayfalarla biriken uzun liste sınıra takılmaz.
   watchEffect(() => {
     const page = latest.value
     if (!toValue(enabled) || page === null || (page.users?.length ?? 0) > 0) return
-    // Sınır: sunucu hiç satır vermeden imleç sürerse sonsuz döngü olmasın.
-    if ((query.data.value?.pages.length ?? 0) >= MAX_EMPTY_PAGES) return
+    if (query.isError.value || query.isFetchNextPageError.value) return
+    if (trailingEmptyPages(query.data.value?.pages ?? []) >= MAX_EMPTY_PAGES) return
     if (query.hasNextPage.value && !query.isFetchingNextPage.value) void query.fetchNextPage()
   })
   return {
@@ -220,6 +225,15 @@ export function useUserList(
     ),
     truncated,
   }
+}
+
+/** Sondaki ardışık boş sayfa sayısı (otomatik ilerlemenin üst sınırı bununla ölçülür). */
+function trailingEmptyPages(pages: readonly UserPage[]): number {
+  let count = 0
+  while (count < pages.length && (pages[pages.length - 1 - count]?.page.users?.length ?? 0) === 0) {
+    count += 1
+  }
+  return count
 }
 
 /**
