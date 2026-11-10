@@ -107,7 +107,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -131,6 +131,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P17 | 08 eksik formlar ve "sezona kopyala" (2026-11-09, #18) | **Formlar ortak bileşenlerle (P3); kopyala yalnız yapıyı kopyalar**, görev taşımaz. Görev aktarımı ayrı eylemdir. |
 | P18 | 03c tarih düzenleme, talep ve geri alma (2026-11-10, Codex §6 #11) | **Önerilen varsayılan.** Mevcut yetkisi olan doğrudan tarih düzenler (Admin "Kaydet" + bekleyen talepte "Onayla/Reddet"); Koordinatör ayrı "Tarih talebi gönder" düğmesiyle talep açar; Üye düzenlemez. "İptal et" yalnız gönderim öncesi 5 sn; gönderilmiş zincir değişikliğine otomatik "geri al" yok. Sürükleme ayrıca P8. |
 | P19 | 03c oklar, şerit ve dışa aktarım (2026-11-10, Codex §6 #12) | **Önerilen varsayılan.** Oklar yalnız iki ucu da görünür görevler arasında; bağımlılık ekle/kaldır Admin + Koordinatör, üye salt görür; şerit "görev aralığı ‹tarih› – ‹tarih›" (sezon değil); PDF/görsel dışa aktarım istemcide SVG'den pilotla doğrulanır, hazır değilse devre dışı "yakında". |
+| P20 | 03 E-03-14 "Talepleri incele" (2026-11-10) | **Ürün sahibi kararı.** Yalnız yönetici; Görevler listesinde mevcut tarih talebi süzgecini (E-03-09, URL `talep`) açar; zaman çizelgesine gitmez, yeni uç yok. Faz notu/devre dışı metni kalkar. |
 | P8 | Gantt sürükleme (F3) | **Koordinatörde talep, adminde doğrudan.** Koordinatör sürüklemesi `requestDateChange` açar ("değişiklik onaya gider" metni kalır); admin sürüklemesi `updateWorkItem`/`extendWorkItem`; üye sürükleyemez. "İptal et" = gönderim öncesi 5 sn gecikme. Sözleşme koordinatöre doğrudan izin verir; bu ürün tercihidir ve `capabilities.ts`'te kodlanır. |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)

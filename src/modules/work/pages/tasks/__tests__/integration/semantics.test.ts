@@ -85,16 +85,14 @@ describe('W48 · erişilebilirlik ağacı (gerçek bileşenler)', () => {
 })
 
 describe('W48 · faz görünürlüğü (§5)', () => {
-  it('Zaman çizelgesi ve talepleri incele düğmeleri devre dışı "F3’te"; tarih talebi canlı; Arşiv bağlantısı "F5’te"', async () => {
+  it('Zaman çizelgesi ve talepleri incele canlı (F3); tarih talebi düğmesi canlı (W94); Arşiv bağlantısı "F5’te"', async () => {
     const ctx = await openWithSubtasks()
-    const timeline = body().find('[data-phase="F3"][aria-pressed="false"]')
-    expect(timeline.attributes('disabled')).toBeDefined()
-    expect(timeline.attributes('title')).toContain('F3’te')
-    const review = body()
-      .findAll('[data-phase="F3"]')
-      .filter((b) => b.element !== timeline.element)
-    expect(review.length).toBeGreaterThan(0)
-    for (const button of review) expect(button.attributes('disabled')).toBeDefined()
+    const timeline = body().find('[data-testid="tasks-view-timeline"]')
+    expect(timeline.attributes('disabled')).toBeUndefined()
+    expect(timeline.attributes('data-phase')).toBeUndefined()
+    for (const button of body().findAll('[data-testid="request-review"]')) {
+      expect(button.attributes('disabled')).toBeUndefined()
+    }
 
     const dateRequest = body().find('[data-action="date-request"]')
     // WEB-3 W94: "Tarih değişikliği iste" F3'te canlı (timeline DateRequestForm; E-03-54).

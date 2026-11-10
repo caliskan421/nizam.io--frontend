@@ -1,0 +1,111 @@
+/*
+ * Zaman çizelgesi sayfa yerleşimi — Gorevler-Zaman.dc.html gövde sarmalayıcısı (`padding: 16px
+ * 24px 32px; gap: 12px`), tablo kabı (`rp-dtable`: kenarlık, yarıçap, yüzey) ve sağ alt panel
+ * konumu. Kural: yalnız token; px yok (medya koşulu hariç: değer `--rp-narrow-max` ile aynı).
+ * Gantt çizimi W92'nin (`components/gantt`); burada yalnız kabın durumları (iskelet, hata, boş),
+ * tavan uyarısı ve tam ekran kipi vardır.
+ */
+@layer components {
+  .timeline-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Gantt alanı: araç çubuğu + şerit + açıklama + tablo (tam ekrana alınan kap) */
+  .timeline-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-4) var(--space-6) var(--space-8);
+  }
+  .timeline-stage--full {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    overflow: auto;
+    background: var(--bg-base);
+  }
+  .timeline-stage:fullscreen {
+    overflow: auto;
+    background: var(--bg-base);
+  }
+
+  /* Tavan uyarısı (E-03C-82): tam 200 kalem */
+  .timeline-ceiling {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border: var(--ui-hairline) solid color-mix(in srgb, var(--gold) 55%, var(--border-subtle));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--gold) 10%, var(--bg-surface));
+    color: var(--ink);
+    font: var(--text-caption);
+  }
+  .timeline-ceiling svg {
+    flex: none;
+    color: var(--gold);
+  }
+
+  /* Tablo kabı (rp-dtable) */
+  .timeline-board {
+    position: relative;
+    min-width: 0;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: clip;
+  }
+  .timeline-board--panel {
+    min-height: calc(var(--space-12) * 10);
+  }
+  .timeline-board--state {
+    padding: var(--space-6);
+    border-style: none;
+    background: transparent;
+  }
+
+  /* Seçili görev paneli: sağ alt (tasarım: right/bottom = 16 px, genişlik rp-aside tabanı) */
+  .timeline-panel {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 5;
+    width: var(--rp-aside-basis);
+    max-width: calc(100% - var(--space-8));
+  }
+
+  /* Yükleniyor iskeleti (E-03C-83): başlık, araç çubuğu ve şerit görünür kalır */
+  .timeline-skeleton {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+  .timeline-skeleton__row {
+    display: grid;
+    grid-template-columns: minmax(0, calc(var(--space-12) * 2)) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: center;
+  }
+  .timeline-skeleton__label,
+  .timeline-skeleton__bar {
+    display: block;
+    height: var(--list-skel-h);
+    border-radius: var(--list-pill-radius);
+    background: var(--bg-raised);
+  }
+
+  @media (max-width: 900px) {
+    .timeline-stage {
+      padding: var(--space-4) var(--space-5) var(--space-8);
+    }
+    .timeline-panel {
+      left: var(--space-4);
+      width: auto;
+      max-width: none;
+    }
+  }
+}

@@ -231,7 +231,6 @@ export const trOrganization = {
         deactivate: 'Pasifleştir',
       },
       phase: {
-        f3: 'F3’te',
         f4: 'F4’te',
         f5: 'F5’te',
         f7: 'F7’de',
