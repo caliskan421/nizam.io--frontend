@@ -36,7 +36,7 @@ const emit = defineEmits<{ select: [programId: string]; close: [reason: 'escape'
       <span class="side-it__lead">
         <span
           class="side-pav side-pav--lg"
-          :class="`side-pav--t${programAvatar(p, programs).tone}`"
+          :class="`side-pav--${programAvatar(p, programs).tone}`"
           aria-hidden="true"
           >{{ programAvatar(p, programs).initials }}</span
         >

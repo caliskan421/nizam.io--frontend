@@ -64,7 +64,7 @@ describe('kayıt ayrıştırma', () => {
     expect(stubRejection(rows.get('BE-036'))).toMatch(/bağlandı|belge/)
     expect(stubRejection(rows.get('BE-031'))).toMatch(/v1 dışı/)
     expect(stubRejection(rows.get('BE-002'))).toMatch(/vazgeçildi/)
-    expect(stubRejection(rows.get('BE-001'))).toBeNull()
+    expect(stubRejection(rows.get('BE-040'))).toBeNull()
   })
 })
 

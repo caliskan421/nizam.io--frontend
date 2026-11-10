@@ -3,16 +3,15 @@ import './program.css'
 
 import { computed } from 'vue'
 
-import { DesignStub, UiButton, UiField, UiHint, UiInput, UiModal, UiSelect } from '@/shared/ui'
+import { UiButton, UiField, UiHint, UiInput, UiModal, UiSelect } from '@/shared/ui'
 
 import { programText } from '../model/messages'
-import { yearOptions } from '../model/program-form'
+import { PROGRAM_COLORS, yearOptions } from '../model/program-form'
 import { useProgramForm } from './use-program-form'
 
 /**
  * Program oluştur / düzenle penceresi (E-00-25; P3 — tuvalde çizilmedi, `shared/ui` ile en sade).
- * Alanlar sözleşmeden: ad, yıl, açıklama. Kısa ad + renk backend'de yok (BE-001): statik, devre
- * dışı; sahte alan gönderilmez. `programId` verilirse düzenleme.
+ * Alanlar sözleşmeden: ad, yıl, açıklama, kısa ad, renk (BE-001; `PROGRAM-K46`). `programId` verilirse düzenleme.
  */
 const props = withDefaults(defineProps<{ open: boolean; programId?: string | null }>(), {
   programId: null,
@@ -31,6 +30,8 @@ const ctl = useProgramForm({
 const [name] = ctl.form.defineField('name')
 const [year] = ctl.form.defineField('year')
 const [description] = ctl.form.defineField('description')
+const [shortName] = ctl.form.defineField('shortName')
+const [color] = ctl.form.defineField('color')
 const errors = ctl.form.errors
 
 const editing = computed(() => props.programId !== null)
@@ -41,6 +42,11 @@ const years = computed(() => [
     value: String(y),
     label: String(y),
   })),
+])
+
+const colors = computed(() => [
+  { value: '', label: programText('form.colorNone') },
+  ...PROGRAM_COLORS.map((c) => ({ value: c, label: programText(`form.colors.${c}`) })),
 ])
 
 function setOpen(value: boolean): void {
@@ -96,11 +102,25 @@ function setOpen(value: boolean): void {
           />
         </template>
       </UiField>
-      <DesignStub id="BE-001" as="div" class="pg-stub">
-        <UiField :label="programText('form.shortName')" :hint="programText('form.shortNameHint')">
-          <UiInput name="short-name" disabled data-testid="pg-short-name" />
-        </UiField>
-      </DesignStub>
+      <UiField
+        :label="programText('form.shortName')"
+        :hint="programText('form.shortNameHint')"
+        :error="errors.shortName"
+      >
+        <UiInput
+          v-model="shortName"
+          name="short-name"
+          autocomplete="off"
+          data-testid="pg-short-name"
+        />
+      </UiField>
+      <UiField
+        :label="programText('form.color')"
+        :hint="programText('form.colorHint')"
+        :error="errors.color"
+      >
+        <UiSelect v-model="color" name="color" :options="colors" data-testid="pg-color" />
+      </UiField>
     </form>
     <template #footer>
       <UiButton :disabled="ctl.busy.value" @click="setOpen(false)">

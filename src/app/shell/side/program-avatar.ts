@@ -1,18 +1,30 @@
 /**
- * Program avatarı ve birim kodu (E-00-04, E-00-07, E-00-40). Programda kısa ad / renk alanı
- * yoktur (BE-001): harfler adın baş harflerinden, renk kimlikten türetilir ve `designStub`
- * ile işaretlenir. Renk paleti token'dır (`--avatar-1…5` + `--on-avatar`), sabit hex yok.
+ * Program avatarı ve birim kodu (E-00-04, E-00-07, E-00-40). Harfler `Program.short_name`,
+ * renk `Program.color` palet anahtarıdır (BE-001, PROGRAM-K46). Alan verilmemişse (`null`)
+ * gösterim türetilir: harfler adın baş harflerinden, renk kimlikten. Renk paleti token'dır
+ * (`--avatar-1…8` + `--on-avatar`), sabit hex yok.
  *
- * Ayırt edicilik (O4 görsel borç: iki program aynı "T2" + aynı renk): avatar program LİSTESİ
- * içinde türetilir. Kimlik sırasıyla (girdi sırasından bağımsız, kararlı) her programa önce
- * kimlik özetinden ton verilir; ton listede alınmışsa en az kullanılan sıradaki ton seçilir
- * (≤ 5 programda hepsi farklı). Baş harf çakışmasında ilk program (kimlik sırası) standart
- * harfleri korur, diğerleri ikinci harfi değiştirir: önce adın son karakteri ("Teknofest 2026"
- * → "T6"), sonra adın sıradaki harfleri.
+ * Ayırt edicilik (O4 görsel borç: iki program aynı "T2" + aynı renk): türetilen değerler program
+ * LİSTESİ içinde ayrışır. Açık (sunucudan gelen) değerler olduğu gibi gösterilir ve çakışma
+ * sayılır; kimlik sırasıyla (girdi sırasından bağımsız, kararlı) her türetilen renk için önce
+ * kimlik özetinden ton verilir, en az kullanılan sıradaki ton seçilir (≤ 8 programda hepsi
+ * farklı). Baş harf çakışmasında ilk program (kimlik sırası) standart harfleri korur, diğerleri
+ * ikinci harfi değiştirir: önce adın son karakteri ("Teknofest 2026" → "T6"), sonra adın
+ * sıradaki harfleri.
  */
-import { designStub } from '@/shared/design-stub'
+import type { ProgramColor } from '@/shared/scope/standing-facts'
 
-export const AVATAR_TONES = [1, 2, 3, 4, 5] as const
+/** Sözleşme paleti (`Program.color` sıralı enum'u); gösterim tokenı `side.css`'te eşlenir. */
+export const AVATAR_TONES = [
+  'violet',
+  'gold',
+  'blue',
+  'teal',
+  'green',
+  'orange',
+  'red',
+  'slate',
+] as const satisfies readonly ProgramColor[]
 export type AvatarTone = (typeof AVATAR_TONES)[number]
 
 export interface ProgramAvatar {
@@ -48,20 +60,32 @@ function alternativeInitials(name: string): string[] {
   return [...new Set(seconds.map((c) => `${first}${c}`))]
 }
 
-type ProgramLike = { programId: string; name: string }
+type ProgramLike = {
+  programId: string
+  name: string
+  shortName?: string | null
+  color?: ProgramColor | null
+}
 
 function assignInitials(sorted: readonly ProgramLike[]): Map<string, string> {
-  const standard = new Map(sorted.map((p) => [p.programId, initialsOf(p.name)]))
   const out = new Map<string, string>()
   const used = new Set<string>()
-  // Önce her standart harf grubunun ilk programı (kimlik sırası) standardı alır.
+  // Sunucudan gelen kısa ad olduğu gibi gösterilir ve çakışma kümesine girer.
   for (const p of sorted) {
+    if (!p.shortName) continue
+    out.set(p.programId, p.shortName)
+    used.add(p.shortName)
+  }
+  const derived = sorted.filter((p) => !out.has(p.programId))
+  const standard = new Map(derived.map((p) => [p.programId, initialsOf(p.name)]))
+  // Önce her standart harf grubunun ilk programı (kimlik sırası) standardı alır.
+  for (const p of derived) {
     const std = standard.get(p.programId)!
     if (used.has(std)) continue
     used.add(std)
     out.set(p.programId, std)
   }
-  for (const p of sorted) {
+  for (const p of derived) {
     if (out.has(p.programId)) continue
     const std = standard.get(p.programId)!
     const pick = alternativeInitials(p.name).find((c) => !used.has(c)) ?? std
@@ -75,6 +99,12 @@ function assignTones(sorted: readonly ProgramLike[]): Map<string, AvatarTone> {
   const count = new Map<AvatarTone, number>(AVATAR_TONES.map((t) => [t, 0]))
   const out = new Map<string, AvatarTone>()
   for (const p of sorted) {
+    if (!p.color) continue
+    out.set(p.programId, p.color)
+    count.set(p.color, count.get(p.color)! + 1)
+  }
+  for (const p of sorted) {
+    if (out.has(p.programId)) continue
     const base = AVATAR_TONES.indexOf(toneOf(p.programId))
     const ring = AVATAR_TONES.map((_, i) => AVATAR_TONES[(base + i) % AVATAR_TONES.length]!)
     const least = Math.min(...ring.map((t) => count.get(t)!))
@@ -91,7 +121,9 @@ let last: { key: string; value: Map<string, ProgramAvatar> } | null = null
 
 /** Liste içindeki avatarlar (kimlik → avatar). */
 export function programAvatars(programs: readonly ProgramLike[]): Map<string, ProgramAvatar> {
-  const key = programs.map((p) => `${p.programId}\u0000${p.name}`).join('\u0001')
+  const key = programs
+    .map((p) => `${p.programId}\u0000${p.name}\u0000${p.shortName ?? ''}\u0000${p.color ?? ''}`)
+    .join('\u0001')
   if (last?.key === key) return last.value
   const sorted = [...programs].sort((a, b) =>
     a.programId < b.programId ? -1 : a.programId > b.programId ? 1 : 0,
@@ -101,7 +133,7 @@ export function programAvatars(programs: readonly ProgramLike[]): Map<string, Pr
   const out = new Map(
     sorted.map((p) => [
       p.programId,
-      designStub('BE-001', { initials: initials.get(p.programId)!, tone: tones.get(p.programId)! }),
+      { initials: initials.get(p.programId)!, tone: tones.get(p.programId)! },
     ]),
   )
   last = { key, value: out }
