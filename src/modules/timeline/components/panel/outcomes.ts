@@ -10,8 +10,6 @@ import { queryKeys } from '@/shared/http/query-keys'
 import { errorText, i18n } from '@/shared/i18n'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 
-const { t, te } = i18n.global
-
 type AnyOutcome = MutationOutcome<unknown, unknown, unknown>
 
 /** Başarısız sonucun hata kodu; başarısızlık değilse `null`. */
@@ -31,8 +29,8 @@ export function failedText(outcome: AnyOutcome): string | null {
  */
 export function failedFieldText(outcome: AnyOutcome): string | null {
   if (outcome.kind !== 'failed') return null
-  const own = outcome.error.fields.find((f) => te(`errors.${f.code}`))
-  return own ? t(`errors.${own.code}`) : failedText(outcome)
+  const own = outcome.error.fields.find((f) => i18n.global.te(`errors.${f.code}`))
+  return own ? i18n.global.t(`errors.${own.code}`) : failedText(outcome)
 }
 
 /** 409 ailesi (ya da `conflict_retry`): görev bayat olabilir → yeniden okunmalı. */

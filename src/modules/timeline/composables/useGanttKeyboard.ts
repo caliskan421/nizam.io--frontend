@@ -56,6 +56,14 @@ function dateKey(options: GanttKeyboardOptions, event: KeyboardEvent, row: KeyRo
   return result !== false
 }
 
+/** Görev satırında → kapalı alt görevleri açar, ← açıkları kapatır (CX-F3-Ö-03). */
+function toggleSubtasks(options: GanttKeyboardOptions, key: string, right: boolean): boolean {
+  const open = options.subtasksOpen?.(key) === true
+  if (!options.toggleSubtasks || right === open) return false
+  options.toggleSubtasks(key)
+  return true
+}
+
 function horizontal(
   options: GanttKeyboardOptions,
   event: KeyboardEvent,
@@ -71,11 +79,7 @@ function horizontal(
     else return false
     return true
   }
-  const open = options.subtasksOpen?.(row.key) === true
-  if (options.toggleSubtasks && right !== open) {
-    options.toggleSubtasks(row.key)
-    return true
-  }
+  if (toggleSubtasks(options, row.key, right)) return true
   if (right) return false
   const parent = rows.findIndex((r) => r.key === row.groupKey)
   if (parent < 0) return false

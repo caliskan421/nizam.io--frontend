@@ -82,7 +82,7 @@
     z-index: 5;
     height: 0;
     /* Panelin doğal duraklama yeri Gantt'ın ALTINDA: satırlar panelin altında kalmaz. */
-    margin-top: calc(var(--space-12) * 7);
+    margin-top: calc(var(--space-12) * 10);
   }
   .timeline-dock .timeline-panel {
     position: absolute;

@@ -44,10 +44,16 @@ function revealFloating(panel: HTMLElement, board: HTMLElement, id: string): voi
   const frame = parent ? box(parent) : { left: 0, top: 0, right: 0, bottom: 0 }
   const scrolling = parent ?? document.scrollingElement
   const room = scrolling ? scrolling.scrollHeight - scrolling.clientHeight - scrolling.scrollTop : 0
+  // Panel görünür alanın altına `bottom` kadar içeriden yapışır (kenet sticky bottom:0).
+  const inset = parseFloat(getComputedStyle(panel).bottom) || 0
+  const height = panel.getBoundingClientRect().height
+  const viewBottom = parent ? Math.min(frame.bottom, innerHeight) : innerHeight
   const move = revealMove(box(bar), box(panel), {
     gap: GEOMETRY.hitW / 2,
     room,
     top: frame.top + GEOMETRY.rowH,
+    stickyTop: viewBottom - inset - height,
+    natTop: board.getBoundingClientRect().bottom - inset - height,
   })
   const behavior = reduced() ? 'auto' : 'smooth'
   if (move.scrollY !== 0) {
@@ -63,6 +69,17 @@ async function settled(panel: HTMLElement): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 50))
   }
   await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+}
+
+/**
+ * Panel açıldıktan sonra içerik gelince (dosya sayısı, bekleyen talep kutusu) yüksekliği büyür ve
+ * üstü yukarı kayar; kısa bir pencerede her boyut değişiminde çubuk yeniden korunur.
+ */
+function watchGrowth(panel: HTMLElement, again: () => void): void {
+  if (typeof ResizeObserver === 'undefined') return
+  const observer = new ResizeObserver(again)
+  observer.observe(panel)
+  setTimeout(() => observer.disconnect(), ARM_MS)
 }
 
 export function useSelectionReveal(
@@ -81,8 +98,9 @@ export function useSelectionReveal(
       if (!root || !panel || panel.getBoundingClientRect().height === 0) return // ölçüm yok (jsdom)
       await settled(panel)
       const floating = getComputedStyle(panel).position === 'absolute'
-      if (floating) revealFloating(panel, root, id)
-      else revealStacked(panel)
+      if (!floating) return revealStacked(panel)
+      revealFloating(panel, root, id)
+      watchGrowth(panel, () => revealFloating(panel, root, id))
     },
     { flush: 'post' },
   )

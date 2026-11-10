@@ -188,7 +188,7 @@ describe('(3) Admin: bekleyen talebi onayla / reddet', () => {
   })
 })
 
-const extension = () => $$('[data-request]').map((e) => (e as HTMLElement).dataset.request)
+const extension = () => $$('[data-request]').map((e) => e.dataset.request)
 
 describe('E-03C-42 (K-2): bekleyen talep çubukta kesik uzantı', () => {
   it('Admin: yalnız SEÇİLİ görevde sağ uzantı; seçim yokken ve başka satırda yok; yeni istek yok', async () => {

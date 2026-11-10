@@ -31,21 +31,25 @@ export interface RevealMove {
 }
 
 /**
- * Çubuğu panelden kurtaran en küçük hareket. `room`: sayfanın aşağı kayabileceği en çok miktar;
- * `top`: çubuğun üst sınırı (görünür alanın üstü). Çakışma yoksa hareket yok.
+ * Çubuğu panelden kurtaran en küçük hareket. Panel görünür alana YAPIŞIK olduğundan sayfa
+ * kayınca panelin konumu da değişir: kaydırma sonrası panel üstü = min(doğal üst − s, yapışık üst);
+ * çubuk da s kadar yukarı çıkar. Bu yüzden gereken kaydırma `bar.bottom + gap − stickyTop`
+ * (yalnız çubuk doğal panel üstünün de üstündeyse mümkün). Olmuyorsa (sayfa daha kayamıyor ya da
+ * çubuk üst sınırı aşar) Gantt yatay kaydırılır: çubuk panelin soluna alınır.
+ *
+ *  - `room`: sayfanın aşağı kayabileceği en çok miktar; `top`: çubuğun üst sınırı
+ *  - `stickyTop`: panelin görünür alana yapışıkken üst kenarı; `natTop`: yapışmasız (kap altı) üst kenarı
  */
 export function revealMove(
   bar: Box,
   panel: Box,
-  options: { gap: number; room: number; top: number },
+  options: { gap: number; room: number; top: number; stickyTop: number; natTop: number },
 ): RevealMove {
-  const { gap, room, top } = options
+  const { gap, room, top, stickyTop, natTop } = options
   if (!intersects(bar, panel, gap)) return { scrollY: 0, scrollX: 0 }
-  const dy = Math.ceil(bar.bottom + gap - panel.top)
-  if (dy <= room && bar.top - dy >= top) return { scrollY: dy, scrollX: 0 }
-  // Dikey yetmiyor: olabildiğince kaydır, kalanını yatayda çöz (çubuk panelin soluna).
-  const scrollY = Math.max(0, Math.min(dy, room, bar.top - top))
-  const moved: Box = { ...bar, top: bar.top - scrollY, bottom: bar.bottom - scrollY }
-  const scrollX = intersects(moved, panel, gap) ? Math.ceil(bar.right + gap - panel.left) : 0
-  return { scrollY, scrollX }
+  const need = Math.max(0, Math.ceil(bar.bottom + gap - stickyTop))
+  if (bar.bottom + gap <= natTop && need <= room && bar.top - need >= top) {
+    return { scrollY: need, scrollX: 0 }
+  }
+  return { scrollY: 0, scrollX: Math.max(0, Math.ceil(bar.right + gap - panel.left)) }
 }
