@@ -140,6 +140,72 @@ describe('(d) sonuç bilinmiyor: AYNI anahtarla tek tekrar (BE-050)', () => {
   })
 })
 
+describe('(d) BE-050 tek tekrar sınırı ve bileşik bağ kaybı (CX-P-Ö-01)', () => {
+  it('oluştur başarılı → bağ yanıtı kayıp: bağ anahtarı korunur, yeni teklif yok, tek tekrar, tek bağ', async () => {
+    const app = await boot({ ...ADMIN_ADMIN, path: '/koordinatorlukler' })
+    await until(() => card('d1'), '08 ızgarası')
+    dropNextCreateResponses(backend.db, 1, 1) // oluştur sağlam, bağ yanıtı düşer
+    await click(headCreate)
+    await fillDepartment('Hidrolik', 'hid')
+    await until(() => $('[data-testid="outcome-retry"]'), 'bağ adımı “Yeniden gönder”')
+    // Bağ uygulandı ama istemci bilmiyor; yeni anahtarlı “Bu programa ekle” teklifi sunulmaz.
+    expect($('[data-testid="of-link-submit"]')).toBeNull()
+    const created = backend.db.catalog.find((c) => c.name === 'Hidrolik')!
+    expect(backend.db.links.filter((l) => l.department_id === created.department_id)).toHaveLength(
+      1,
+    )
+    await click('[data-testid="outcome-retry"]')
+    await until(() => card(created.department_id), 'bağlanan kart')
+    await idle(app.queryClient)
+    const links = backend.sent('POST', LINKS)
+    expect(links).toHaveLength(2)
+    expect(links[1]!.headers.get('Idempotency-Key')).toBe(links[0]!.headers.get('Idempotency-Key'))
+    expect(backend.sent('POST', DEPARTMENTS)).toHaveLength(1)
+    expect(backend.db.links.filter((l) => l.department_id === created.department_id)).toHaveLength(
+      1,
+    )
+  })
+
+  it('bağ tekrarı da belirsiz: üçüncü kör gönderim yok (retry düşer), bağ yine tek', async () => {
+    const app = await boot({ ...ADMIN_ADMIN, path: '/koordinatorlukler' })
+    await until(() => card('d1'), '08 ızgarası')
+    dropNextCreateResponses(backend.db, 2, 1) // oluştur sağlam, bağ + bağ tekrarı düşer
+    await click(headCreate)
+    await fillDepartment('Pnömatik', 'pnm')
+    await until(() => $('[data-testid="outcome-retry"]'), 'bağ adımı “Yeniden gönder”')
+    await click('[data-testid="outcome-retry"]')
+    await until(
+      () => $('[data-testid="outcome-notice"]') && !$('[data-testid="outcome-retry"]'),
+      'tekrar sınırı',
+    )
+    await idle(app.queryClient)
+    expect(backend.sent('POST', LINKS)).toHaveLength(2)
+    const created = backend.db.catalog.find((c) => c.name === 'Pnömatik')!
+    expect(backend.db.links.filter((l) => l.department_id === created.department_id)).toHaveLength(
+      1,
+    )
+  })
+
+  it('oluşturma tekrarı da belirsiz: ikinci “Yeniden gönder” yok, anahtar aynı, tek katalog kaydı', async () => {
+    const app = await boot({ ...ADMIN_ADMIN, path: '/koordinatorlukler' })
+    await until(() => card('d1'), '08 ızgarası')
+    dropNextCreateResponses(backend.db, 2)
+    await click(headCreate)
+    await fillDepartment('Optik', 'opt')
+    await until(() => $('[data-testid="outcome-retry"]'), '“Yeniden gönder”')
+    await click('[data-testid="outcome-retry"]')
+    await until(
+      () => !$('[data-testid="outcome-retry"]') && $('[data-testid="outcome-notice"]'),
+      'tekrar sınırı',
+    )
+    await idle(app.queryClient)
+    const sent = backend.sent('POST', DEPARTMENTS)
+    expect(sent).toHaveLength(2)
+    expect(sent[1]!.headers.get('Idempotency-Key')).toBe(sent[0]!.headers.get('Idempotency-Key'))
+    expect(backend.db.catalog.filter((c) => c.name === 'Optik')).toHaveLength(1)
+  })
+})
+
 describe('(d) 05 kullanıcı oluştur: aktarım teklifi (BE-107)', () => {
   const BORA = PEOPLE.free
 

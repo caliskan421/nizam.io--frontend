@@ -93,7 +93,16 @@ function settleCreate(result: CreateResult, name: string, s: CreateSettle): void
     s.ctx.hooks.saved(created.department_id)
     // Pencere kapsam değişiminde kapandıysa kısmi sonuç yine söylenir (KESİN 20).
     if (!s.ctx.hooks.open()) s.ctx.toast.push(partialNotice())
-    s.link.offer({ departmentId: created.department_id, name: created.name })
+    const target = { departmentId: created.department_id, name: created.name }
+    // Bağ yanıtı kayıpsa o adımın anahtarı/sonucu korunur: yeni teklif (yeni anahtar) değil,
+    // aynı anahtarla tek tekrar (CX-P-Ö-01).
+    const linkStep = result.steps.find((step) => step.name === 'link')
+    if (linkStep?.outcome.kind === 'unknown_outcome') {
+      s.link.reset()
+      s.link.settle(linkStep.outcome, target)
+      return
+    }
+    s.link.offer(target)
     return
   }
   const failed = result.primary

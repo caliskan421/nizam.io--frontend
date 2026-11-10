@@ -51,6 +51,60 @@ function keepDetached<T extends object>(from: object, to: T): T {
   return isDetached(from) ? markDetached(to) : to
 }
 
+/**
+ * Anahtarlı tek-tekrar protokolü (BE-050; CX-P-Ö-01): sonuç bilinmiyorsa kullanıcıya AYNI anahtar
+ * ve gövdeyle EN FAZLA bir tekrar sunulur; tekrar da belirsizse ortak yeniden okuma yapılır ve
+ * sonuçtaki `retry` düşürülür (üçüncü kör gönderim yok). Tekrar sonucunun anahtarı/gövdesi
+ * motorda korunur (`retry` aynı eylemi yeniden koşar).
+ */
+export function limitUnknownRetry<V, D>(
+  outcome: MutationOutcome<V, D, unknown>,
+  reread: () => Promise<void>,
+  alive: () => boolean,
+): MutationOutcome<V, D, unknown> {
+  if (outcome.kind !== 'unknown_outcome' || !outcome.retry) return outcome
+  const once = outcome.retry
+  return keepDetached(outcome, {
+    ...outcome,
+    retry: async () => {
+      const next = await once()
+      if (next.kind !== 'unknown_outcome') return next
+      await reread()
+      const closed = keepDetached(next, { ...next, retry: null })
+      return alive() ? closed : markDetached(closed)
+    },
+  })
+}
+
+/**
+ * Anahtarlı organizasyon yazması (`createDepartment`, `linkDepartment`): `useProtectedMutation` +
+ * tek-tekrar sınırı. `submit` sonucu `limitUnknownRetry`'dan geçer.
+ */
+export function useKeyedOrgMutation<V, D>(
+  options: ProtectedMutationOptions<V, D, unknown>,
+): ProtectedMutation<V, D, unknown> {
+  const queryClient = options.queryClient ?? useQueryClient()
+  const readScope =
+    options.scope ?? (() => (getActivePinia() ? useScopeStore().snapshot : NO_SCOPE))
+  const mutation = useProtectedMutation<V, D, unknown>({ ...options, queryClient })
+  const owner = ownerLife()
+
+  async function submit(vars: V, opts?: SubmitOptions) {
+    const scope = { ...(opts?.context?.scope ?? readScope()) }
+    const outcome = await mutation.submit(vars, opts)
+    return limitUnknownRetry(
+      outcome,
+      async () => {
+        const filters = invalidationFilters(options.operation, scope)
+        await Promise.all(filters.map((filter) => queryClient.invalidateQueries(filter)))
+      },
+      owner.alive,
+    )
+  }
+
+  return { ...mutation, submit }
+}
+
 const NO_SCOPE: ScopeSnapshot = { programId: null, departmentId: null }
 
 export function useKeylessMutation<V, D>(
@@ -65,6 +119,13 @@ export function useKeylessMutation<V, D>(
   async function reread(scope: ScopeSnapshot): Promise<void> {
     const filters = invalidationFilters(options.operation, scope)
     await Promise.all(filters.map((filter) => queryClient.invalidateQueries(filter)))
+  }
+
+  async function finish(
+    next: Promise<MutationOutcome<V, D, unknown>>,
+  ): Promise<MutationOutcome<V, D, unknown>> {
+    const outcome = await next
+    return owner.alive() ? outcome : markDetached(outcome)
   }
 
   async function harden(
@@ -82,7 +143,8 @@ export function useKeylessMutation<V, D>(
     if (outcome.kind === 'confirmation_required') {
       return keepDetached(outcome, {
         ...outcome,
-        confirm: async () => harden(await outcome.confirm(), scope),
+        // CX-P-E-01: onay devamında da son yaşam denetimi (`finish`).
+        confirm: async () => finish(harden(await outcome.confirm(), scope)),
       })
     }
     return outcome

@@ -117,7 +117,10 @@ const needsReread = (o: Outcome): boolean =>
   (o.kind === 'failed' && o.error.status === 409)
 
 function settle(deps: Deps, change: DateChange, context: ActionContext, outcome: Outcome): void {
-  if (!reachesOwner(outcome)) return
+  // CX-P-Ö-04: ekran sonucu (başarı/çakışma bildirimi, alan adları) tüketilmeden ÖNCE bağlam
+  // (sahip, oturum nesli, kapsam) denetlenir: bekleyen çakışma GET'i sırasında A→B olduysa eski
+  // görevin bildirimi yeni kapsamda çıkmaz. Ortak uzlaştırma (geçersizleme) motorda tamamdır.
+  if (!reachesOwner(outcome) || !live(deps, context)) return
   if (outcome.kind === 'success') {
     deps.toast.push({ message: successText(change, outcome.data) })
     return
@@ -132,8 +135,7 @@ function settle(deps: Deps, change: DateChange, context: ActionContext, outcome:
   } else {
     notifyOutcome(outcome)
   }
-  if (needsReread(outcome) && context.scope && live(deps, context))
-    reread(deps.client, context.scope, change.workItemId)
+  if (needsReread(outcome) && context.scope) reread(deps.client, context.scope, change.workItemId)
 }
 
 /** `updateWorkItem` yolu: sürümlü yazma (sürüm = kullanıcının gördüğü Gantt satırı sürümü). */

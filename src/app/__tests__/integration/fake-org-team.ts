@@ -14,10 +14,15 @@ interface Stored {
 }
 const KEYS = new WeakMap<OrgDb, Map<string, Stored>>()
 const DROP_NEXT = new WeakMap<OrgDb, number>()
+const SKIP_FIRST = new WeakMap<OrgDb, number>()
 
-/** Sonraki `count` anahtarlı oluşturma yanıtını düşürür (istek UYGULANIR; sonuç bilinmiyor). */
-export function dropNextCreateResponses(db: OrgDb, count = 1): void {
+/**
+ * Sonraki `count` anahtarlı oluşturma yanıtını düşürür (istek UYGULANIR; sonuç bilinmiyor).
+ * `skip`: önce bu kadar anahtarlı yanıt olduğu gibi geçer (bileşik: oluştur sağlam, bağ düşer).
+ */
+export function dropNextCreateResponses(db: OrgDb, count = 1, skip = 0): void {
   DROP_NEXT.set(db, count)
+  SKIP_FIRST.set(db, skip)
 }
 
 /**
@@ -43,15 +48,17 @@ function keyedCreate(
   KEYS.set(db, store)
   const slot = `${o.actorOf(db, request)?.account_id ?? ''}:${new URL(request.url).pathname}:${key}`
   const seen = store.get(slot)
-  if (seen) {
-    return seen.fingerprint === fingerprint
-      ? json(seen.body)
-      : envelope(`${mod}.idempotency_key_reused`, 409)
-  }
+  if (seen) return replay(db, mod, seen, fingerprint)
   const result = apply()
   if (result instanceof Response) return result
   store.set(slot, { ...result, fingerprint })
   return lostResponse(db) ? HttpResponse.error() : respond(result)
+}
+
+/** Aynı anahtarın tekrarı: ilk kaynak (düşürme hakkı varsa yanıt yine kaybolur). */
+function replay(db: OrgDb, mod: string, seen: Stored, fingerprint: string): Response {
+  if (seen.fingerprint !== fingerprint) return envelope(`${mod}.idempotency_key_reused`, 409)
+  return lostResponse(db) ? HttpResponse.error() : json(seen.body)
 }
 
 const respond = (result: Response | Stored): Response =>
@@ -59,6 +66,11 @@ const respond = (result: Response | Stored): Response =>
 
 /** Bekleyen düşürme hakkını harcar (anahtarlı istek uygulandı, yanıt kayboldu). */
 function lostResponse(db: OrgDb): boolean {
+  const skip = SKIP_FIRST.get(db) ?? 0
+  if (skip > 0) {
+    SKIP_FIRST.set(db, skip - 1)
+    return false
+  }
   const left = DROP_NEXT.get(db) ?? 0
   if (left > 0) DROP_NEXT.set(db, left - 1)
   return left > 0

@@ -55,6 +55,9 @@ export function useLinkStep(ctx: DepartmentFormContext) {
       if (found.displayName) return form.setErrors(found)
     }
     ctx.report(outcome, (next) => settle(next, chosen))
+    // Bileşik akışta belirsiz bağ sonucu AYNI anahtarlı tekrarla çözülür (yeni teklif/anahtar
+    // yok); tekrar yoksa (sınır/süre) teklif sunulur — bağ sunucuda idempotent (CX-P-Ö-01).
+    if (outcome.kind !== 'unknown_outcome' || !outcome.retry) offer(chosen)
   }
 
   const handle = form.handleSubmit(async (values) => {
@@ -79,6 +82,7 @@ export function useLinkStep(ctx: DepartmentFormContext) {
     form,
     offer,
     reset,
+    settle,
     submit: () => ctx.dialog.once(() => handle()),
     pending: mutation.isPending,
   }
