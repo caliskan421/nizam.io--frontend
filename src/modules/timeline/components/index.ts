@@ -56,14 +56,6 @@ export interface GanttViewProps {
   selectedId: string | null
   /** Seçili satırda tutamaç çizilecek görevler (P8; `capabilities.ts`'ten çağıran hesaplar). */
   draggableIds: ReadonlySet<string>
-  /** Seçili görevin bekleyen tarih talebi (E-03C-42; yalnız görmeye yetkili yüzde verilir). */
-  dateRequest?: GanttDateRequest | null
-}
-/** Çubukta kesik uzantı olarak çizilecek bekleyen talep (yalnız seçili görev). */
-export interface GanttDateRequest {
-  workItemId: string
-  newStartOn: string
-  newEndOn: string
 }
 export interface GanttViewEmits {
   /** Satır/çubuk seçimi (URL `secili`); `null` seçimi kaldırır. */
@@ -98,7 +90,6 @@ export interface GanttBarsProps {
   today: string
   selectedId: string | null
   draggableIds: ReadonlySet<string>
-  dateRequest?: GanttDateRequest | null
 }
 export interface GanttBarsEmits {
   select: [workItemId: string]

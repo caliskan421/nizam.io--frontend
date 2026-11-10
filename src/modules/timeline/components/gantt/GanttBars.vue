@@ -56,11 +56,19 @@ function geometry(task: GanttTask) {
   return barGeometry(datesOf(task), { range: props.range, scale: props.scale, today: props.today })
 }
 
-/** Bekleyen talep uzantıları: yalnız talebin ait olduğu (seçili) görevin çubuğunda (E-03C-42). */
+/**
+ * Bekleyen talep uzantıları (E-03C-42, BE-052): her satırın `pending_date_request` alanından.
+ * Görünürlüğü sunucu belirler (`null` = talep yok ya da çağıran görmeye yetkili değil).
+ */
 function extensionsOf(task: GanttTask) {
-  const request = props.dateRequest
-  if (!request || request.workItemId !== task.work_item_id) return []
-  return requestExtensions(task, request, props.range, props.scale)
+  const request = task.pending_date_request
+  if (!request) return []
+  return requestExtensions(
+    task,
+    { newStartOn: request.new_start_on, newEndOn: request.new_end_on },
+    props.range,
+    props.scale,
+  )
 }
 
 function startDrag(event: PointerEvent, task: GanttTask, edge: GanttEdge, edgeX: number) {

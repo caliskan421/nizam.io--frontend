@@ -3,6 +3,7 @@
 // ve kenar menüsü rozeti güncellenir. P20: 03 bandında "Talepleri incele" talep süzgecini açar.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
+import { isValidIdempotencyKey } from '@/shared/http/mutation/idempotency-key'
 import {
   $,
   $$,
@@ -98,8 +99,9 @@ describe('(2) Koordinatör: Tarih talebi gönder', () => {
       new_start_on: '2026-11-23',
       new_end_on: '2026-12-11',
       reason: 'Tedarik gecikti',
+      expected_dates_revision: expect.any(Number),
     })
-    expect(post!.headers.get('Idempotency-Key')).toBeNull()
+    expect(isValidIdempotencyKey(post!.headers.get('Idempotency-Key') ?? '')).toBe(true)
     expect(post!.headers.get('X-Nizamio-Department')).toBe('d1')
     expect(backend.sent('GET', GANTT_COORD).length).toBeGreaterThan(ganttBefore)
     expect(backend.sent('GET', '/v1/work-items/w2').length).toBeGreaterThan(itemBefore)
@@ -191,19 +193,19 @@ describe('(3) Admin: bekleyen talebi onayla / reddet', () => {
 const extension = () => $$('[data-request]').map((e) => e.dataset.request)
 
 describe('E-03C-42 (K-2): bekleyen talep çubukta kesik uzantı', () => {
-  it('Admin: yalnız SEÇİLİ görevde sağ uzantı; seçim yokken ve başka satırda yok; yeni istek yok', async () => {
+  it('Admin: bekleyen talepli HER satırda (seçim gerekmez) uzantı; ek görev okuması yok (BE-052)', async () => {
     seedPending()
     const app = await boot({ ...ADMIN_ADMIN, path: '/zaman-cizelgesi' })
     await ganttReady(2)
-    expect(extension()).toEqual([])
-    await selectRow('w2')
     await until(() => extension().length > 0, 'uzantı')
     expect(extension()).toEqual(['end'])
     expect(document.querySelectorAll('[data-work-item="w2"] [data-request]')).toHaveLength(1)
     await idle(app.queryClient)
-    expect(backend.sent('GET', '/v1/work-items/w2')).toHaveLength(1)
+    expect(backend.sent('GET', '/v1/work-items/w2')).toHaveLength(0)
+    // Başka satırı seçmek uzantıyı kaldırmaz: uzantı satırın alanındandır.
     await selectRow('w1')
-    await until(() => extension().length === 0, 'başka satırda uzantı yok')
+    await idle(app.queryClient)
+    expect(extension()).toEqual(['end'])
   })
 
   it('Koordinatör kendi biriminde görür; Üye hiç görmez', async () => {
@@ -213,7 +215,8 @@ describe('E-03C-42 (K-2): bekleyen talep çubukta kesik uzantı', () => {
     await until(() => extension().length > 0, 'koordinatör uzantısı')
     expect(extension()).toEqual(['end'])
     teardown()
-    // Üye kendi görevinde (w1) seçili; sunucu bekleyen talebi yine de dönse bile çizilmez.
+    // Üye yüzünde sunucu `pending_date_request`'i yalnız yönetici/koordinatöre doldurur (null):
+    // uzantı çizilmez.
     const w1 = backend.db.items.find((i) => i.work_item_id === 'w1')!
     w1.pending_date_request = {
       request_id: 'dr-w1',
