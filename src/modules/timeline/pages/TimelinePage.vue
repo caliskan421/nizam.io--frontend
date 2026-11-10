@@ -9,6 +9,7 @@ import { toApiError } from '@/shared/errors/api-error'
 import { UiButton, UiEmptyState, UiErrorState, UiIcon } from '@/shared/ui'
 
 import {
+  DateChangeSnack,
   GanttView,
   RangeStrip,
   SelectedTaskPanel,
@@ -18,6 +19,8 @@ import {
   type GanttDayRange,
 } from '../components'
 import { frameText } from '../components/frame/messages'
+import { dateKeyBinding } from '../composables/useGanttKeyboard'
+import { useDateChange } from '../composables/useDateChange'
 import { atCeiling } from '../model/ceiling'
 import { clearedFilters } from './timeline/url-state'
 import { useFullscreen } from './timeline/use-fullscreen'
@@ -41,6 +44,13 @@ const page = useTimelinePage(() => {
   trigger = null
 })
 const fullscreen = useFullscreen(stage)
+// W95: sürükleme / klavye tarih değişimi (P8; 5 sn gecikmeli gönderim, İptal et).
+const dateChange = useDateChange({
+  taskOf: (id) => page.allTasks.value.find((t) => t.work_item_id === id),
+  face: () => page.face.value,
+})
+const draggableIds = computed(() => dateChange.draggableIds(page.tasks.value))
+const dateKeyHandler = dateKeyBinding(dateChange.nudge)
 const { state, url, gantt } = page
 
 const canCreate = computed(() => canCreateWorkItem(page.standing.value, page.store.programId))
@@ -199,7 +209,9 @@ function openInList(workItemId: string): void {
             :department-names="page.departmentNames.value"
             :department-codes="page.adminFace.value ? page.departmentCodes.value : undefined"
             :selected-id="state.selected"
-            :draggable-ids="page.draggableIds.value"
+            :draggable-ids="draggableIds"
+            :date-key-handler="dateKeyHandler"
+            @edge-drag="dateChange.onEdgeDrag"
             @select="select"
             @scroll="view = $event"
           />
@@ -216,5 +228,14 @@ function openInList(workItemId: string): void {
         </template>
       </div>
     </div>
+    <p class="rp-sr" role="status" aria-live="polite" data-testid="timeline-date-announce">
+      {{ dateChange.announcement.value }}
+    </p>
+    <DateChangeSnack
+      v-if="dateChange.snack.value?.visible"
+      v-bind="dateChange.snack.value.props"
+      @cancel="dateChange.cancel"
+      @dismiss="dateChange.dismiss"
+    />
   </section>
 </template>

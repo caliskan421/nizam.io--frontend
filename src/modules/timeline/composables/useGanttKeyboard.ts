@@ -126,3 +126,14 @@ export function useGanttKeyboard(options: GanttKeyboardOptions): GanttKeyboard {
 
   return { onKeydown }
 }
+
+/**
+ * Tarih kısayolu bağlayıcısı (W95): `onDateKey` → `useDateChange().nudge`. `nudge` `false`
+ * dönerse (üye, tamamlanmış görev, yüz yok) olay işlenmemiş sayılır ve tarayıcıya kalır;
+ * aksi halde bırakmayla aynı yoldan 5 sn gecikmeli gönderime girer.
+ */
+export function dateKeyBinding(
+  nudge: (workItemId: string, edge: GanttEdge, days: 1 | -1) => boolean,
+): (request: DateKeyRequest) => boolean {
+  return (request) => nudge(request.workItemId, request.edge, request.days)
+}
