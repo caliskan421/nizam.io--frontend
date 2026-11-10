@@ -82,7 +82,7 @@ function pickDepartment(id: string): void {
         <span
           v-if="scope.avatar.value"
           class="side-pav"
-          :class="`side-pav--t${scope.avatar.value.tone}`"
+          :class="`side-pav--${scope.avatar.value.tone}`"
           aria-hidden="true"
           >{{ scope.avatar.value.initials }}</span
         >

@@ -1,5 +1,5 @@
 // Program formu (ProgramFormDialog + useProgramForm): oluştur / mevcut ad / düzenle (yalnız
-// değişen alan) / alan hatası / okuma hatası; BE-001 kısa ad statik ve devre dışı.
+// değişen alan) / alan hatası / okuma hatası; BE-001 kısa ad + renk gerçek alan (üç hâlli yazma).
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -50,7 +50,7 @@ describe('program formu — oluşturma', () => {
     expect(document.activeElement?.getAttribute('aria-invalid')).toBe('true')
   })
 
-  it('oluşturur; yıl seçilebilir; kısa ad/renk statik (BE-001) ve gönderilmez', async () => {
+  it('oluşturur; yıl, kısa ad ve renk gövdeye girer (BE-001)', async () => {
     server.use(
       refetch,
       http.post(`${ORIGIN}/v1/programs`, () =>
@@ -59,15 +59,22 @@ describe('program formu — oluşturma', () => {
     )
     const h = harness(ADMIN_SCOPE)
     const wrapper = h.mount(ProgramFormDialog, { open: true })
-    expect($('[data-design-stub="BE-001"] [data-testid="pg-short-name"]')).not.toBeNull()
-    expect($('[data-testid="pg-short-name"]')?.hasAttribute('disabled')).toBe(true)
+    expect($('[data-design-stub="BE-001"]')).toBeNull()
+    expect($('[data-testid="pg-short-name"]')?.hasAttribute('disabled')).toBe(false)
     const year = String(new Date().getFullYear() + 1)
     await setValue('[name="name"]', ' Yeni ')
     await setValue('[name="year"]', year)
+    await setValue('[name="short-name"]', ' ŞT26 ')
+    await setValue('[name="color"]', 'teal')
     click('[data-testid="pg-form-submit"]')
     await vi.waitFor(() => expect(wrapper.emitted('saved')).toEqual([['p9']]))
     await vi.waitFor(() =>
-      expect(bodyOf(sent('POST', '/v1/programs')[0])).toEqual({ name: 'Yeni', year: Number(year) }),
+      expect(bodyOf(sent('POST', '/v1/programs')[0])).toEqual({
+        name: 'Yeni',
+        year: Number(year),
+        short_name: 'ŞT26',
+        color: 'teal',
+      }),
     )
     expect(toasts()).toContain('Program oluşturuldu.')
     expect(wrapper.emitted('update:open')?.at(-1)).toEqual([false])
@@ -86,6 +93,31 @@ describe('program formu — oluşturma', () => {
     click('[data-testid="pg-form-submit"]')
     await vi.waitFor(() =>
       expect(toasts()).toContain('Bu adla bir program zaten vardı; mevcut program gösteriliyor.'),
+    )
+  })
+
+  it('kısa ad 4 karakterden uzunsa istek yok (istemci); sunucu invalid_short_name alanda', async () => {
+    server.use(
+      http.post(`${ORIGIN}/v1/programs`, () =>
+        errorEnvelope('program.input_invalid', 422, [
+          { field: 'short_name', code: 'program.invalid_short_name', message: 'x' },
+        ]),
+      ),
+    )
+    const h = harness(ADMIN_SCOPE)
+    h.mount(ProgramFormDialog, { open: true })
+    await setValue('[name="name"]', 'Yeni')
+    await setValue('[name="short-name"]', 'BEŞKR')
+    click('[data-testid="pg-form-submit"]')
+    await vi.waitFor(() =>
+      expect(document.body.textContent).toContain('Kısa ad 1–4 harf ya da rakamdan oluşmalı.'),
+    )
+    expect(sent('POST', '/v1/programs')).toHaveLength(0)
+    // Sunucu kuralı istemciden farklı yorumlarsa (ör. simge) yine alana düşer.
+    await setValue('[name="short-name"]', 'AB')
+    click('[data-testid="pg-form-submit"]')
+    await vi.waitFor(() =>
+      expect($('[name="short-name"]')?.getAttribute('aria-invalid')).toBe('true'),
     )
   })
 
@@ -128,6 +160,32 @@ describe('program formu — düzenleme', () => {
     await vi.waitFor(() =>
       expect(bodyOf(sent('PATCH', '/v1/programs/p1')[0])).toEqual({
         description: 'Yeni açıklama',
+      }),
+    )
+  })
+
+  it('kısa ad değişir, renk temizlenir → PATCH üç hâlli (short_name yazılır, color null)', async () => {
+    server.use(
+      refetch,
+      http.get(`${ORIGIN}/v1/program`, () =>
+        json({ program_id: 'p1', name: 'A', short_name: 'TF', color: 'blue' }),
+      ),
+      http.patch(`${ORIGIN}/v1/programs/p1`, () => json({ program_id: 'p1', name: 'A' })),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const wrapper = h.mount(ProgramFormDialog, { open: true, programId: 'p1' })
+    await vi.waitFor(() =>
+      expect(($('[name="short-name"]') as HTMLInputElement | null)?.value).toBe('TF'),
+    )
+    expect(($('[name="color"]') as HTMLSelectElement).value).toBe('blue')
+    await setValue('[name="short-name"]', 'T26')
+    await setValue('[name="color"]', '')
+    click('[data-testid="pg-form-submit"]')
+    await vi.waitFor(() => expect(wrapper.emitted('saved')).toEqual([['p1']]))
+    await vi.waitFor(() =>
+      expect(bodyOf(sent('PATCH', '/v1/programs/p1')[0])).toEqual({
+        short_name: 'T26',
+        color: null,
       }),
     )
   })

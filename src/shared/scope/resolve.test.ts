@@ -39,7 +39,13 @@ function input(
   }
 }
 
-const P = (id: string, name = id): ProgramOption => ({ programId: id, name, year: null })
+const P = (id: string, name = id): ProgramOption => ({
+  programId: id,
+  name,
+  year: null,
+  shortName: null,
+  color: null,
+})
 
 describe('resolveScope', () => {
   it('membership_required → K7 "departman ataması bekleniyor", seçim yok', () => {
