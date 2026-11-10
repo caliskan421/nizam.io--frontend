@@ -67,6 +67,9 @@ export const queryKeys = {
   },
   departments: {
     all: (s: ScopeSnapshot) => scoped(s, ['departments']),
+    /** `readProgramDepartment` — tek departman (08b başlığı/Hakkında; BE-049, v0.14). */
+    detail: (s: ScopeSnapshot, departmentId: string) =>
+      scoped(s, ['departments', departmentId, 'detail']),
     /** `listMembers` — departmanın seçili programdaki ekibi (görev atama adayları). */
     members: (s: ScopeSnapshot, departmentId: string) =>
       scoped(s, ['departments', departmentId, 'members']),

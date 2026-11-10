@@ -19,6 +19,7 @@ export function joinCoordinatorships(
       departmentId: d.department_id,
       displayName: d.display_name,
       code: d.code ?? null,
+      description: byId.get(d.department_id)?.description ?? null,
       stat: byId.get(d.department_id) ?? null,
     }))
     .sort((a, b) => collator.compare(a.displayName, b.displayName))

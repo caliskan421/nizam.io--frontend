@@ -297,8 +297,20 @@ function catalogHandlers(db: OrgDb) {
         a !== undefined &&
         b !== undefined &&
         a.toLocaleLowerCase('tr') === b.toLocaleLowerCase('tr')
-      if (db.catalog.some((c) => same(c.name, body.name) || same(c.code, body.code))) {
-        return envelope('organization.department_exists', 409)
+      const clash = db.catalog.find((c) => same(c.name, body.name))
+      if (clash) {
+        // v0.15 (BE-050): mevcut departman zarfta (kimlik + silinmişlik).
+        return envelope('organization.department_exists', 409, [
+          {
+            field: 'department_id',
+            code: 'organization.existing_department',
+            message: clash.department_id,
+          },
+          { field: 'deleted', code: 'organization.existing_department', message: 'false' },
+        ])
+      }
+      if (db.catalog.some((c) => same(c.code, body.code))) {
+        return envelope('organization.department_code_conflict', 409)
       }
       const created = { department_id: o.next(db, 'd-yeni'), ...body }
       db.catalog.push(created)
@@ -325,6 +337,24 @@ function catalogHandlers(db: OrgDb) {
 function catalogEdits(db: OrgDb) {
   const admin = (request: Request) => o.actorOf(db, request)?.admin === true
   return [
+    // readProgramDepartment (v0.14, BE-049): görünürlük listProgramDepartments ile aynı; bağsız → 404.
+    http.get(`${ORIGIN}/v1/program/departments/:departmentId`, ({ request, params }) => {
+      const me = o.actorOf(db, request)
+      const program = o.programOf(request)
+      if (!me || (!me.admin && o.rowsOf(db, me.account_id, program).length === 0)) {
+        return o.forbidden('organization')
+      }
+      const link = o.linkOf(db, program, String(params.departmentId))
+      if (!link) return envelope('program.department_not_found', 404)
+      const catalog = db.catalog.find((c) => c.department_id === link.department_id)
+      return json({
+        department_id: link.department_id,
+        display_name: link.display_name,
+        kind: catalog?.kind ?? 'koordinatorluk',
+        ...(catalog?.code && { code: catalog.code }),
+        ...(catalog?.description && { description: catalog.description }),
+      })
+    }),
     http.patch(`${ORIGIN}/v1/program/departments/:departmentId`, async ({ request, params }) => {
       const link = o.linkOf(db, o.programOf(request), String(params.departmentId))
       if (!admin(request)) return o.forbidden('program')

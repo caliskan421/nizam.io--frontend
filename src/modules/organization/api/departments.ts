@@ -23,10 +23,10 @@ import {
 } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { api } from '@/shared/http'
+import { ApiError } from '@/shared/errors/api-error'
+import { api, unwrap } from '@/shared/http'
 import { runWithFollowUps, useProtectedMutation } from '@/shared/http/mutation'
 import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
-import type { ApiError } from '@/shared/errors/api-error'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
@@ -80,6 +80,58 @@ export function useProgramDepartmentIndex(enabled: MaybeRefOrGetter<boolean> = t
     departments,
     byId: computed(() => new Map(departments.value.map((d) => [d.department_id, d]))),
     truncated: computed(() => isTruncated(query.data.value)),
+  }
+}
+
+/**
+ * `readProgramDepartment` (S2, BE-049): tek departman — programdaki ad, kod, açıklama, tür.
+ * 08b başlığı ve Hakkında bunu okur (derin bağlantı listeye bağlı değil; `listProgramDepartments`
+ * 200 tavanına takılmaz). Bağsız/silinmiş/başka programın departmanı 404
+ * `program.department_not_found`. Kapsam değişince anahtar değişir (yeni programda yeniden okunur).
+ */
+export function fetchProgramDepartment(
+  programId: string,
+  departmentId: string,
+  signal?: AbortSignal,
+) {
+  return unwrap(
+    api.GET('/v1/program/departments/{departmentId}', {
+      params: { header: programHeader(programId), path: { departmentId } },
+      signal,
+    }),
+  )
+}
+
+export function useProgramDepartment(
+  departmentId: MaybeRefOrGetter<string>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
+  const store = useScopeStore()
+  const query = useQuery(
+    computed(() => {
+      const scope = store.snapshot
+      const id = toValue(departmentId)
+      return {
+        queryKey: queryKeys.departments.detail(scope, id),
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+          fetchProgramDepartment(scope.programId ?? '', id, signal),
+        ),
+        enabled: toValue(enabled) && scope.programId !== null && id !== '',
+        retry: retryTransient,
+        staleTime: ORGANIZATION_STALE_MS,
+      }
+    }),
+  )
+  return {
+    query,
+    department: computed(() => query.data.value ?? null),
+    /** 404 `program.department_not_found`: seçili programda yok (bağsız / silinmiş). */
+    missing: computed(
+      () =>
+        query.isError.value &&
+        query.error.value instanceof ApiError &&
+        query.error.value.code === 'program.department_not_found',
+    ),
   }
 }
 

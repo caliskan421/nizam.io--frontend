@@ -3,12 +3,14 @@
 // tüketiciler `../public.ts` üzerinden.
 export { useImpactConfirmedWrite } from './confirm'
 export {
+  fetchProgramDepartment,
   useCatalogDepartments,
   useCreateCoordinatorship,
   useCreateDepartment,
   useDeletedDepartments,
   existingDepartment,
   useLinkDepartment,
+  useProgramDepartment,
   useProgramDepartmentIndex,
   useRenameDepartmentLink,
   useUpdateDepartment,

@@ -33,10 +33,11 @@ const dataPaths = () =>
     .filter((p) => !['/v1/me', '/v1/me/departments', '/v1/programs'].includes(p))
 
 describe('08b veri kaynağı (K3; tek birim, fan-out yok)', () => {
-  it('ŞY: tek departman listesi + tek rapor + yalnız bu birimin ekibi ve görevleri', async () => {
+  it('ŞY: tek departman okuması (readProgramDepartment) + tek rapor + yalnız bu birimin ekibi ve görevleri', async () => {
     server.use(...serverHandlers())
     await mountDetail()
-    expect(sent('GET', '/v1/program/departments')).toHaveLength(1)
+    expect(sent('GET', '/v1/program/departments/d1')).toHaveLength(1)
+    expect(sent('GET', '/v1/program/departments')).toHaveLength(0)
     expect(sent('GET', '/v1/reports/dashboard')).toHaveLength(1)
     expect(sent('GET', '/v1/departments/d1/members')).toHaveLength(1)
     expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(0)
@@ -58,6 +59,14 @@ describe('08b veri kaynağı (K3; tek birim, fan-out yok)', () => {
 })
 
 describe('E-08-52 derin bağlantı / seçili programda yok', () => {
+  it('açıklama readProgramDepartment alanından (BE-049); derin bağlantı liste yüklemeden açılır', async () => {
+    server.use(...serverHandlers())
+    const { wrapper } = await mountDetail()
+    expect(wrapper.get('[data-testid="cd-description"]').text()).toBe(
+      'Temiz su ve atıksu altyapısını kurar.',
+    )
+  })
+
   it('listede olan birim: başlık, kod rozeti, "‹N› kişi" (etkin satırlar)', async () => {
     server.use(...serverHandlers())
     const { wrapper } = await mountDetail()
@@ -80,14 +89,14 @@ describe('E-08-52 derin bağlantı / seçili programda yok', () => {
     expect(wrapper.get('[data-testid="cd-badge"]').text()).toBe('İİ')
   })
 
-  it('listede yoksa ileti + 08 bağlantısı; ekip/görev isteği yok', async () => {
+  it('404 program.department_not_found → ileti + 08 bağlantısı; ekip/görev isteği yok', async () => {
     server.use(...serverHandlers())
     const { wrapper } = await mountDetail({ departmentId: 'd9' })
     expect(wrapper.get('[data-state="missing"]').text()).toContain(
       'Bu koordinatörlük seçili programda yok',
     )
     expect(wrapper.get('[data-action="back"]').attributes('href')).toBe('/koordinatorlukler')
-    expect(dataPaths().sort()).toEqual(['/v1/program/departments', '/v1/reports/dashboard'])
+    expect(dataPaths().sort()).toEqual(['/v1/program/departments/d9', '/v1/reports/dashboard'])
     expect(pageCrumb.value).toBeNull()
   })
 
@@ -102,11 +111,11 @@ describe('E-08-52 derin bağlantı / seçili programda yok', () => {
     expect(wrapper.find('[data-state="missing"]').exists()).toBe(true)
   })
 
-  it('departman listesi okunamazsa bölge içi hata + Yeniden dene', async () => {
+  it('departman okunamazsa (403) bölge içi hata + Yeniden dene', async () => {
     server.use(...serverHandlers())
     const { http, json, ORIGIN } = await import('../../__tests__/harness')
     server.use(
-      http.get(`${ORIGIN}/v1/program/departments`, () =>
+      http.get(`${ORIGIN}/v1/program/departments/:id`, () =>
         json({ code: 'program.not_authorized', message: 'x', request_id: 'r', fields: [] }, 403),
       ),
     )

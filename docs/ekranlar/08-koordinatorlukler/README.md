@@ -74,7 +74,7 @@ Karar tarihi 2026-11-09 (WEB-1 O5 adım 2). Kaynaklar: `../ortak-kurallar.md` §
 | E-08-46 Rol/yetki özeti (`perms`) | — | uygulanmaz | ret — tasarımda çizilmiyor | — | — | — |
 | E-08-50 Kırıntı | F2 | canlı — "‹program› / Koordinatörlükler / ‹birim›" | kabul — K10 | — | W73 | gezinme · **W73 (#54)** |
 | E-08-51 Büyük kod rozeti | F2 | canlı (E-08-28 kuralı) | kabul — G17 | — | W73 | render · **W73 (#54)** |
-| E-08-52 Başlık | F2 | canlı — `listProgramDepartments`'tan seçim; listede yoksa "Bu koordinatörlük seçili programda yok" | kabul — BE-049 Şimdilik | BE-049 | W73 | derin bağlantı + yok testi · **W73 (#54)** |
+| E-08-52 Başlık | F2 | canlı — `readProgramDepartment` (BE-049 bağlandı, pin v0.15.0-api, WEB-P WP2c; tek istek, liste yüklemesinden bağımsız); 404 `program.department_not_found` → "Bu koordinatörlük seçili programda yok" | kabul — BE-049 | BE-049 | W73 | derin bağlantı + yok testi · **W73 (#54)** |
 | E-08-53 Alt satır | F2 | "‹N› kişi" canlı (`listMembers`, `status = active`); üst/alt birim ve "Aktif" çizilmez | kabul — K14; **kabul (ürün sahibi 2026-11-09)** — #17 | BE-016, BE-017 | W73 | kişi sayısı testi · **W73 (#54)** |
 | E-08-54 Ekibe mesaj | F7 | devre dışı "F7'de" | kabul — P2, §5 (ekran içi faz dışı), stub yok | — | 10 grubu | `aria-disabled` + faz notu · **W73 (#54)** |
 | E-08-55 Görev ata | F2 | canlı — W45 `NewTaskDialog`, departman ön seçili; görünürlük work `canCreateWorkItem` | kabul — P1, P3 | — | W45, W73 | form departmanı testi · **W73 (#54)** |
@@ -93,7 +93,7 @@ Karar tarihi 2026-11-09 (WEB-1 O5 adım 2). Kaynaklar: `../ortak-kurallar.md` §
 | E-08-68 Tarih talebi | F2 | canlı — `pending_date_request != null` sayısı (E-08-66 ile aynı sorgu); not = ilk görev başlığı | kabul — P5 (okuma göstergesi canlı) | BE-003 | W73 | sayım testi · **W73 (#54)** |
 | E-08-69 Arşiv KPI | F5 | devre dışı hücre "—" + "F5'te" | kabul — P2 | BE-025 | 06 (F5) | `aria-disabled` · **W73 (#54)** |
 | E-08-70 Hakkında + Düzenle | F2 | canlı — "Düzenle" E-08-63 formunu açar | **kabul (ürün sahibi 2026-11-09)** — #18 | — | W74 | gezinme · **W73 (#54)** + **W74 (#55)** form |
-| E-08-71 Açıklama | F2 | canlı (ŞY, `description`); boşsa satır çizilmez | kabul — BE-049 Şimdilik (yalnız ŞY okur) | BE-049 | W73 | boş açıklama testi · **W73 (#54)** |
+| E-08-71 Açıklama | F2 | canlı — `readProgramDepartment.description` (BE-049 bağlandı); boşsa satır çizilmez | kabul — BE-049 (08b yalnız ŞY, P16) | BE-049 | W73 | boş açıklama testi · **W73 (#54)** |
 | E-08-72 Üst birim | F2 | gizli | kabul — K14; **kabul (ürün sahibi 2026-11-09)** — #17 | BE-016 | — | DOM'da yok · **W73 (#54)** |
 | E-08-73 Kuruluş | F2 | statik "—" — `designStub('BE-018')` | kabul — §3, §4 (sahte tarih yok) | BE-018 | W15 | stub lint · **W73 (#54)** |
 | E-08-74 Arşiv klasörü | F5 | devre dışı bağlantı "F5'te" | kabul — P2 | BE-025 | 07 (F5) | tıklanamaz + faz notu · **W73 (#54)** |

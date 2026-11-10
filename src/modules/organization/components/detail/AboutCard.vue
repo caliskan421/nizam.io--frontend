@@ -5,7 +5,7 @@ import { detailText } from './messages'
 
 /**
  * Hakkında (E-08-70…75): "Düzenle" W74 düzenleme formunu açar (yalnız `editDepartment`).
- * Açıklama katalog alanı (`CoordinatorshipStat.description`, ŞY); boşsa paragraf çizilmez.
+ * Açıklama katalog alanı (`readProgramDepartment.description`, BE-049); boşsa paragraf çizilmez.
  * Üst birim çizilmez (K14, P16). Kuruluş ve Görünürlük alanı yok → "—" + `BE-018` (sahte tarih
  * yok, §4). Arşiv klasörü F5'e dek tıklanamaz + faz notu.
  */

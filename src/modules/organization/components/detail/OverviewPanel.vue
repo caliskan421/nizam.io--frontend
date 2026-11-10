@@ -49,11 +49,7 @@ const cells = computed(() =>
 <template>
   <KpiStrip :cells="cells" :loading="reportLoading" :error="dashboardError" />
   <div class="rp-col cd-col">
-    <AboutCard
-      :description="view.stat?.description ?? null"
-      :can-edit="canEdit"
-      @edit="emit('edit')"
-    />
+    <AboutCard :description="view.description" :can-edit="canEdit" @edit="emit('edit')" />
     <TeamCard
       v-if="viewTeam"
       :roster="roster"

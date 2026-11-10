@@ -157,6 +157,8 @@ export interface CoordinatorshipView {
   displayName: string
   /** `code` yoksa `null` (rozet baş harflerden, E-08-28). */
   code: string | null
+  /** Katalog açıklaması (`readProgramDepartment`; yoksa `null`). */
+  description: string | null
   /** Raporda olmayan birim (yarış) → `null`; sayılar "—" (08 backend §4). */
   stat: CoordinatorshipStat | null
 }
