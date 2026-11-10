@@ -208,8 +208,9 @@ export function useUserList(
   watchEffect(() => {
     const page = latest.value
     if (!toValue(enabled) || page === null || (page.users?.length ?? 0) > 0) return
-    if (query.isError.value || query.isFetchNextPageError.value) return
-    if (trailingEmptyPages(query.data.value?.pages ?? []) >= MAX_EMPTY_PAGES) return
+    const failed = query.isError.value || query.isFetchNextPageError.value
+    const exhausted = trailingEmptyPages(query.data.value?.pages ?? []) >= MAX_EMPTY_PAGES
+    if (failed || exhausted) return
     if (query.hasNextPage.value && !query.isFetchingNextPage.value) void query.fetchNextPage()
   })
   return {
