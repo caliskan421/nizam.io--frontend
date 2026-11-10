@@ -55,8 +55,8 @@ export interface TimelineItemRef {
 }
 
 /**
- * `updateWorkItem` tarih yazımı: `base` panel açılışında okunan görevin `dates_revision`'ı
- * (`GanttTask`'ta sürüm yok, eksikler yeni-2; BE-053).
+ * `updateWorkItem` tarih yazımı: `base` kullanıcının GÖRDÜĞÜ `dates_revision` (Gantt satırı —
+ * BE-053 —, panelde açık görev). Bayatsa 409 `work.edit_conflict`.
  */
 export interface UpdateDatesInput extends TimelineItemRef {
   base: { dates_revision: number }
@@ -66,12 +66,16 @@ export interface UpdateDatesInput extends TimelineItemRef {
 export interface ExtendInput extends TimelineItemRef {
   /** 1–90 (aksi 422 `work.extend_days_out_of_range`). */
   days: number
+  /** Kullanıcının gördüğü `dates_revision` (isteğe bağlı; BE-053/056). */
+  expectedDatesRevision?: number
 }
 
 export interface RequestDateChangeInput extends TimelineItemRef {
   newStartOn: string
   newEndOn: string
   reason?: string
+  /** Kullanıcının gördüğü `dates_revision` (isteğe bağlı; BE-053/056). */
+  expectedDatesRevision?: number
 }
 
 /** `reviewDateChangeRequest` S1'dir (başlıksız); `workItemId` yalnız yeniden okuma hedefidir. */

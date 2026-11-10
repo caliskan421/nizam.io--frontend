@@ -205,6 +205,7 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
               :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
               :open="openSubtasks?.has(row.key) === true"
               :label="codeOf(row) || row.task.title"
+              :row-counts="row.task.subtask_counts"
               tabindex="-1"
               @click.stop
               @keydown.stop

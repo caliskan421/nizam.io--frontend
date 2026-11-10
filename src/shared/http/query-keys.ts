@@ -94,6 +94,13 @@ export const queryKeys = {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['work-items', filters]),
     item: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id]),
+    /**
+     * `countProgramWorkItems` (S2; BE-003, WP2a): görünür görev sayaçları. Süzgeç nesnesi
+     * (`department`, `assignees`) listeyle aynıdır; beşli anahtar liste (4) ve ayrıntı uçlarıyla
+     * karışmaz (`workItems.counts` filtresi).
+     */
+    counts: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['work-items', 'counts', filters]),
     subtasks: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'subtasks']),
     notes: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'notes']),
     /** 03, 03c ve 06 AYNI anahtarı kullanır. */
@@ -108,6 +115,15 @@ export const queryKeys = {
   dateRequests: {
     all: (s: ScopeSnapshot) => scoped(s, ['date-requests']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['date-requests', filters]),
+  },
+  /**
+   * Kenar menüsü Görevler rozetleri (K/Ü merceği, `countProgramWorkItems`; BE-003 rozet kısmı).
+   * `work-items` önekinin altında: görev ve tarih yazmalarının §6 geçersizlemesi (`workItems.list`)
+   * rozetleri de yeniden okutur; süzgeç (birim, atanan) anahtardadır.
+   */
+  shellBadges: {
+    counts: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['work-items', 'shell-counts', filters]),
   },
   report: {
     dashboard: (s: ScopeSnapshot) => scoped(s, ['report', 'dashboard']),
@@ -145,6 +161,7 @@ export type QueryResource =
   | 'deletedDepartments'
   | 'workItems.list'
   | 'workItems.item'
+  | 'workItems.counts'
   | 'workItems.subtasks'
   | 'workItems.notes'
   | 'workItems.files'
@@ -321,6 +338,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     ['attachFile'],
     ASSIGNMENT_HANDOVER_WRITES,
   ),
+  // Sayaçlar liste ile aynı görünürlük ve aynı yazmalarla değişir (durum, atama, tarih, devir).
+  'workItems.counts': unique(
+    WORK_ITEM_WRITES,
+    DATE_WRITES,
+    SUBTASK_WRITES,
+    ASSIGNMENT_HANDOVER_WRITES,
+  ),
   'workItems.subtasks': unique(SUBTASK_WRITES, ['transitionWorkItem', 'removeAssignment']),
   'workItems.notes': NOTE_WRITES,
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
@@ -471,6 +495,11 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
           queryKey: queryKeys.workItems.all(scope),
           predicate: ({ queryKey }) => queryKey.length === 4 && typeof queryKey[3] === 'string',
         },
+  'workItems.counts': (scope) => ({
+    queryKey: queryKeys.workItems.all(scope),
+    predicate: ({ queryKey }) =>
+      queryKey.length === 5 && queryKey[3] === 'counts' && isFiltersPart(queryKey[4]),
+  }),
   'workItems.subtasks': (scope, ctx) => workItemChild(scope, 'subtasks', ctx.workItemId),
   'workItems.notes': (scope, ctx) => workItemChild(scope, 'notes', ctx.workItemId),
   'workItems.files': (scope, ctx) => workItemChild(scope, 'files', ctx.workItemId),

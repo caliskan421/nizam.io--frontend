@@ -59,9 +59,11 @@ export function standingHandlers(fixture: StandingFixture, year: number | null =
   ]
 }
 
-/** Gantt ucu: verilen yol için sabit yanıt. */
-export function ganttHandler(path: string, body: Gantt) {
-  return http.get(`${ORIGIN}${path}`, () => json(body))
+/** Gantt ucu: verilen yol için sabit yanıt; `truncated` ise `X-Result-Truncated: true` (BE-019). */
+export function ganttHandler(path: string, body: Gantt, truncated = false) {
+  return http.get(`${ORIGIN}${path}`, () =>
+    json(body, 200, truncated ? { 'X-Result-Truncated': 'true' } : {}),
+  )
 }
 
 /** `n` görevli Gantt (sıra numarasıyla kimlik). */

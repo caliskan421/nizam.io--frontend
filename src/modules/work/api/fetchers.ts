@@ -8,15 +8,34 @@ import { fetchProgramDepartments as fetchSharedProgramDepartments } from '@/shar
 import type { ProgramTarget, WorkTarget } from '../model/types'
 import { programHeaders, scopeHeaders, WORK_ITEM_PAGE_LIMIT } from './http'
 
+/** Sunucu atanan süzgecinin üst sınırı (`assignee_account_id`, en çok 50 değer; BE-038). */
+export const ASSIGNEE_FILTER_MAX = 50
+
+/** Tekrarsız, sıralı, üst sınırlı atanan kimlikleri (kararlı sorgu anahtarı ve istek). */
+export function normalizeAssignees(ids: readonly string[] | undefined): string[] {
+  return [...new Set((ids ?? []).filter((id) => id !== ''))].sort().slice(0, ASSIGNEE_FILTER_MAX)
+}
+
+/** Liste ve sayaç uçlarının ortak sorgu süzgeci (tek `department_id`, çoklu atanan; VEYA). */
+function filterQuery(departmentId: string | null, assigneeIds: readonly string[] | undefined) {
+  const assignees = normalizeAssignees(assigneeIds)
+  return {
+    ...(departmentId ? { department_id: departmentId } : {}),
+    ...(assignees.length > 0 ? { assignee_account_id: assignees } : {}),
+  }
+}
+
 /**
  * `listProgramWorkItems` (S2) bir sayfa: `limit` 200 (sayfa boyu), isteğe bağlı TEK
- * `department_id`, imleç. Sunucu sırası `(created_at, id)`; toplam/sayaç yok (BE-003).
+ * `department_id`, isteğe bağlı çoklu `assignee_account_id` (BE-038; görünürlükle kesişir),
+ * imleç. Sunucu sırası `(created_at, id)`; toplam/sayaç bu uçta yok (`fetchWorkItemCounts`).
  */
 export function fetchWorkItemPage(
   target: ProgramTarget,
   departmentId: string | null,
   cursor: string | undefined,
   signal?: AbortSignal,
+  assigneeIds?: readonly string[],
 ) {
   return unwrap(
     api.GET('/v1/program/work-items', {
@@ -24,9 +43,31 @@ export function fetchWorkItemPage(
         header: programHeaders(target),
         query: {
           limit: WORK_ITEM_PAGE_LIMIT,
-          ...(departmentId ? { department_id: departmentId } : {}),
+          ...filterQuery(departmentId, assigneeIds),
           ...(cursor ? { cursor } : {}),
         },
+      },
+      signal,
+    }),
+  )
+}
+
+/**
+ * `countProgramWorkItems` (S2; BE-003): görünür görev toplamı, beş durum, `overdue` ve
+ * `pending_date_requests`. Görünürlük ve süzgeçler (`department_id`, `assignee_account_id`)
+ * listeyle AYNIDIR; `limit`/`cursor` yok. Sayaçlar kesindir (imleç tamlığından bağımsız).
+ */
+export function fetchWorkItemCounts(
+  target: ProgramTarget,
+  departmentId: string | null,
+  assigneeIds?: readonly string[],
+  signal?: AbortSignal,
+) {
+  return unwrap(
+    api.GET('/v1/program/work-items/counts', {
+      params: {
+        header: programHeaders(target),
+        query: filterQuery(departmentId, assigneeIds),
       },
       signal,
     }),

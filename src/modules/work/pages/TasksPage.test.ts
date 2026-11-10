@@ -13,6 +13,8 @@ import {
 import type { WorkItem } from '../model/types'
 import {
   ADMIN,
+  COUNTS,
+  countRequests,
   LIST,
   listHandler,
   listRequests,
@@ -131,6 +133,52 @@ describe('Görevler › Liste — kapsam ve görünürlük', () => {
   })
 })
 
+describe('Görevler › Liste — kişi süzgeci (sunucu, BE-038)', () => {
+  const withPeople = [
+    item({
+      work_item_id: 'p1',
+      title: 'Ayşe işi',
+      assignees: [{ account_id: 'acc-1', full_name: 'Ayşe' }],
+      assignee_account_ids: ['acc-1'],
+    }),
+    item({
+      work_item_id: 'p2',
+      title: 'Can işi',
+      assignees: [{ account_id: 'acc-2', full_name: 'Can' }],
+      assignee_account_ids: ['acc-2'],
+    }),
+  ]
+
+  it('URL kisi: liste ve sayaç assignee_account_id ile okunur; Üye merceğinde yok sayılır', async () => {
+    server.use(...standingHandlers(ADMIN), listHandler(withPeople))
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE, '/gorevler?kisi=acc-2')
+    expect(listRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-2'])
+    expect(countRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-2'])
+    expect(titles(ctx)).toEqual(['Can işi'])
+    expect(ctx.wrapper.get('[data-testid="person-filter"]').text()).toContain('1')
+  })
+
+  it('menüden seçim URL kisi yazar ve yeni sunucu okuması başlatır (fan-out yok)', async () => {
+    server.use(...standingHandlers(ADMIN), listHandler(withPeople))
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE)
+    await ctx.wrapper.get('[data-testid="person-filter"]').trigger('click')
+    const boxes = ctx.wrapper.findAll('[role="menuitemcheckbox"]')
+    await boxes.find((b) => b.text() === 'Ayşe')!.trigger('click')
+    await settle()
+    expect(ctx.router.currentRoute.value.query).toEqual({ kisi: 'acc-1' })
+    expect(titles(ctx)).toEqual(['Ayşe işi'])
+    expect(listRequests()).toHaveLength(2)
+    expect(countRequests()).toHaveLength(2)
+  })
+
+  it('Üye merceği: kisi etkisiz (yalnız ben), süzgeç kilitli', async () => {
+    server.use(...standingHandlers(MEMBER), listHandler(withPeople))
+    const ctx = await mountPage(TasksPage, MEMBER_SCOPE, '/gorevler?kisi=acc-2')
+    expect(listRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-1'])
+    expect(ctx.wrapper.get('[data-testid="person-filter"]').attributes('disabled')).toBeDefined()
+  })
+})
+
 describe('Görevler › Liste — süzme, arama, sıralama (istemci)', () => {
   it('sekme + talep VE; Geri gönderildi kendi sekmesinde', async () => {
     server.use(...standingHandlers(ADMIN), listHandler(ROWS))
@@ -177,13 +225,18 @@ describe('Görevler › Liste — süzme, arama, sıralama (istemci)', () => {
 })
 
 describe('Görevler › Liste — sayfalama ve durumlar', () => {
-  it('next_cursor dolu: "yüklenen kayıtlar içinde" etiketleri; Daha fazla yükle → aynı uç + imleç', async () => {
+  it('next_cursor dolu: sunucu sayaçları kesin (etiket yok); Daha fazla yükle → aynı uç + imleç (BE-003)', async () => {
     server.use(...standingHandlers(ADMIN), listHandler([ROWS[0]!], 'c1', [ROWS[1]!]))
     const ctx = await mountPage(TasksPage, ADMIN_SCOPE)
-    expect(ctx.wrapper.get('[data-testid="tasks-summary"]').text()).toContain(
-      '1+ görev · 2 koordinatörlük · 1 kişi · yüklenen kayıtlar içinde',
+    // Görev toplamı ve sekme sayaçları `countProgramWorkItems`'tan (2), kişi yüklenen kümeden.
+    expect(ctx.wrapper.get('[data-testid="tasks-summary"]').text()).toBe(
+      '2 görev · 2 koordinatörlük · 1+ kişi',
     )
-    expect(ctx.wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(true)
+    expect(ctx.wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(false)
+    const tabs = ctx.wrapper.get('[aria-label="Kayıtlı görünümler"]').findAll('button')
+    expect(tabs.map((t) => t.text())).toContain('Tümü (2)')
+    expect(tabs.map((t) => t.text())).toContain('Geri gönderildi (1)')
+    expect(ctx.wrapper.get('[data-testid="pager-caption"]').text()).toBe('1 / 2 görev yüklendi')
     await ctx.wrapper.get('[data-testid="load-more"]').trigger('click')
     await settle()
     const requests = listRequests()
@@ -194,6 +247,47 @@ describe('Görevler › Liste — sayfalama ve durumlar', () => {
     expect(ctx.wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(false)
     expect(ctx.wrapper.get('[data-testid="pager-caption"]').text()).toBe('2 görev')
     expect(ctx.router.currentRoute.value.query).toEqual({})
+    // İmleç ilerlemesi sayaç ucunu yeniden çağırmaz.
+    expect(countRequests()).toHaveLength(1)
+  })
+
+  it('sayaç ucu tek istek, listeyle aynı süzgeç; talep sayısı sunucudan (BE-003)', async () => {
+    server.use(...standingHandlers(COORDINATOR), listHandler(ROWS))
+    await mountPage(TasksPage, COORD_SCOPE)
+    const [counts, ...rest] = countRequests()
+    expect(rest).toHaveLength(0)
+    expect(counts!.query.get('department_id')).toBe('d1')
+    expect(counts!.headers.get('X-Nizamio-Program')).toBe('p1')
+  })
+
+  it('arama açıkken sekme sayaçları yüklenen kümeden ve imleç bitmediyse etiketli', async () => {
+    server.use(...standingHandlers(ADMIN), listHandler([ROWS[0]!, ROWS[2]!], 'c1', [ROWS[1]!]))
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE, '/gorevler?q=asfalt')
+    const tabs = ctx.wrapper.get('[aria-label="Kayıtlı görünümler"]').findAll('button')
+    // Sunucu "3" derdi; arama sunucuda yok → yalnız yüklenen eşleşme (1) ve etiket.
+    expect(tabs.map((t) => t.text())[0]).toBe('Tümü (1)')
+    expect(ctx.wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(true)
+  })
+
+  it('sayaç ucu hatalıysa yüklenen kümeye düşer: "n+" ve "yüklenen kayıtlar içinde"', async () => {
+    server.use(...standingHandlers(ADMIN), listHandler([ROWS[0]!], 'c1', [ROWS[1]!]))
+    // Sonra kaydedilen işleyici öncelikli: sayaç ucu düşer, liste çalışır.
+    server.use(http.get(`${ORIGIN}${COUNTS}`, () => errorEnvelope('platform.rate_limited', 429)))
+    const ctx = await mountPage(TasksPage, ADMIN_SCOPE)
+    expect(ctx.wrapper.get('[data-testid="tasks-summary"]').text()).toContain(
+      '1+ görev · 2 koordinatörlük · 1+ kişi · yüklenen kayıtlar içinde',
+    )
+    expect(ctx.wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(true)
+    expect(ctx.wrapper.get('[data-testid="pager-caption"]').text()).toBe(
+      '1 görev yüklendi · daha fazlası var · yüklenen kayıtlar içinde',
+    )
+  })
+
+  it('Üye merceği: liste ve sayaç sunucuya assignee_account_id=ben ile gider (BE-038)', async () => {
+    server.use(...standingHandlers(MEMBER), listHandler(ROWS))
+    await mountPage(TasksPage, MEMBER_SCOPE)
+    expect(listRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-1'])
+    expect(countRequests()[0]!.query.getAll('assignee_account_id')).toEqual(['acc-1'])
   })
 
   it('liste boş: boş durum + (yetkiliyse) Yeni görev', async () => {

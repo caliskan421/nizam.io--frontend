@@ -44,7 +44,7 @@ describe('standing olguları', () => {
   it("yönetici programları listPrograms'tan, diğerleri satırlardan; ad sırası tr-TR", () => {
     const programs = parsePrograms({
       programs: [
-        { program_id: 'p2', name: 'Zafer', short_name: null, color: null },
+        { program_id: 'p2', name: 'Zafer', short_name: 'ZF', color: 'teal' },
         { program_id: 'p1', name: 'Çelik', year: 2026, short_name: null, color: null },
         { program_id: 'p3', name: 'İnci', short_name: null, color: null },
       ],
@@ -52,11 +52,17 @@ describe('standing olguları', () => {
     const admin = parseStanding(me(true), { departments: [] })
     expect(programOptions(admin, programs).map((p) => p.name)).toEqual(['Çelik', 'İnci', 'Zafer'])
     expect(programOptions(admin, programs)[0]?.year).toBe(2026)
+    // BE-001: kısa ad ve renk listPrograms'tan taşınır; verilmemiş alan null.
+    expect(programOptions(admin, programs).map((p) => [p.shortName, p.color])).toEqual([
+      [null, null],
+      [null, null],
+      ['ZF', 'teal'],
+    ])
 
     const member = parseStanding(me(false), { departments: [row('p1', 'd1', 'uye')] })
     expect(programOptions(member, programs).map((p) => p.programId)).toEqual(['p1'])
     expect(programOptions(member, null)).toEqual([
-      { programId: 'p1', name: 'Program p1', year: null },
+      { programId: 'p1', name: 'Program p1', year: null, shortName: null, color: null },
     ])
   })
 

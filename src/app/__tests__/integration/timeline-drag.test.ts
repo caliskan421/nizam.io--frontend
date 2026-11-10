@@ -5,6 +5,7 @@
 import { QueryObserver } from '@tanstack/vue-query'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { isValidIdempotencyKey } from '@/shared/http/mutation/idempotency-key'
 import {
   $,
   boot,
@@ -21,7 +22,7 @@ import {
   toasts,
   until,
 } from './harness'
-import { addDays } from './fake-org-timeline'
+import { addDays, dropNextResponses } from './fake-org-timeline'
 import {
   ADMIN_ADMIN,
   COORD,
@@ -94,13 +95,33 @@ describe('(5) sürükleme → 5 sn gecikme', () => {
     expect(backend.sent('POST', EXTEND)).toHaveLength(1)
     const days = (post!.body as { days: number }).days
     expect(days).toBeGreaterThan(0)
-    expect(post!.headers.get('Idempotency-Key')).toBeNull()
+    expect(isValidIdempotencyKey(post!.headers.get('Idempotency-Key') ?? '')).toBe(true)
+    expect((post!.body as { expected_dates_revision: number }).expected_dates_revision).toBe(1)
     expect(backend.db.items.find((i) => i.work_item_id === 'w1')!.end_on).toBe(
       addDays(before, days),
     )
     expect(backend.sent('GET', GANTT_ADMIN).length).toBeGreaterThan(1) // yeniden okundu
     await elapse(10_000)
     expect(backend.sent('POST', EXTEND)).toHaveLength(1)
+  })
+
+  it('sonuç bilinmiyor (yanıt kayıp, istek uygulandı): AYNI anahtarla tek tekrar, sunucuda TEK uzatma (BE-056)', async () => {
+    const app = await admin()
+    const before = backend.db.items.find((i) => i.work_item_id === 'w1')!.end_on as string
+    dropNextResponses(backend.db)
+    dragEnd('w1', 200)
+    await elapse(10)
+    await elapse(5100)
+    await idle(app.queryClient)
+    const posts = backend.sent('POST', EXTEND)
+    expect(posts).toHaveLength(2)
+    expect(posts[1]!.headers.get('Idempotency-Key')).toBe(posts[0]!.headers.get('Idempotency-Key'))
+    const days = (posts[0]!.body as { days: number }).days
+    expect(backend.db.items.find((i) => i.work_item_id === 'w1')!.end_on).toBe(
+      addDays(before, days),
+    )
+    await elapse(10_000)
+    expect(backend.sent('POST', EXTEND)).toHaveLength(2)
   })
 
   it('“İptal et”: istek hiç gönderilmez, bildirim kalkar', async () => {

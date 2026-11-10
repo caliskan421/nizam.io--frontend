@@ -45,6 +45,7 @@ describe('görev rotası davranışı', () => {
       'talep',
       'q',
       'koordinatorluk',
+      'kisi',
       'sirala',
       'gorev',
       'yeni',

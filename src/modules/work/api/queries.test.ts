@@ -20,6 +20,7 @@ import {
   useMyProgramDepartments,
   useProgramDepartments,
   useWorkItem,
+  useWorkItemCounts,
   useWorkItemFiles,
   useWorkItemList,
   useWorkItemNotes,
@@ -107,6 +108,114 @@ describe('useWorkItemList — listProgramWorkItems (imleçli sonsuz sorgu)', () 
     await list.query.suspense().catch(() => undefined)
     expect(list.query.error.value).toMatchObject({ code: 'organization.membership_required' })
     expect(sent('GET', LIST)).toHaveLength(1)
+  })
+})
+
+describe('useWorkItemList — sunucu atanan süzgeci (BE-038)', () => {
+  it('assignee_account_id tekrarlı ve tekrarsız/sıralı gider; anahtar süzgeçle ayrışır', async () => {
+    server.use(http.get(`${ORIGIN}${LIST}`, () => json({ items: [] })))
+    const h = harness(ADMIN_SCOPE)
+    const list = h.run(() => useWorkItemList(null, ['acc-2', 'acc-1', 'acc-2', '']))
+    await list.query.suspense()
+    const [call] = sent('GET', LIST)
+    expect(call!.query.getAll('assignee_account_id')).toEqual(['acc-1', 'acc-2'])
+    const key = queryKeys.workItems.list(h.store.snapshot, {
+      department: null,
+      assignees: ['acc-1', 'acc-2'],
+    })
+    expect(h.queryClient.getQueryData(key)).toBeDefined()
+    // Süzgeçsiz anahtar etkilenmez (boş liste anahtara girmez).
+    expect(
+      h.queryClient.getQueryData(queryKeys.workItems.list(h.store.snapshot, { department: null })),
+    ).toBeUndefined()
+  })
+
+  it('sonraki sayfa aynı süzgeçleri tekrar gönderir', async () => {
+    server.use(
+      http.get(`${ORIGIN}${LIST}`, ({ request }) =>
+        new URL(request.url).searchParams.get('cursor')
+          ? json({ items: [] })
+          : json({ items: [workItem()], next_cursor: 'c1' }),
+      ),
+    )
+    const h = harness(COORD_SCOPE)
+    const list = h.run(() => useWorkItemList('d1', ['acc-1']))
+    await list.query.suspense()
+    await list.query.fetchNextPage()
+    const pages = sent('GET', LIST)
+    expect(pages.map((p) => p.query.getAll('assignee_account_id'))).toEqual([['acc-1'], ['acc-1']])
+    expect(pages.map((p) => p.query.get('department_id'))).toEqual(['d1', 'd1'])
+  })
+
+  it('en çok 50 kimlik gider (sözleşme sınırı)', async () => {
+    server.use(http.get(`${ORIGIN}${LIST}`, () => json({ items: [] })))
+    const h = harness(ADMIN_SCOPE)
+    const ids = Array.from({ length: 60 }, (_, i) => `a${String(i).padStart(2, '0')}`)
+    const list = h.run(() => useWorkItemList(null, ids))
+    await list.query.suspense()
+    expect(sent('GET', LIST)[0]!.query.getAll('assignee_account_id')).toHaveLength(50)
+  })
+})
+
+describe('useWorkItemCounts — countProgramWorkItems (BE-003)', () => {
+  const COUNTS = '/v1/program/work-items/counts'
+  const body = {
+    total: 263,
+    by_status: {
+      baslanmadi: 100,
+      devam_ediyor: 60,
+      onaya_sunuldu: 3,
+      iade_edildi: 1,
+      tamamlandi: 99,
+    },
+    overdue: 12,
+    pending_date_requests: 4,
+  }
+
+  it('tek istek: S2 başlığı, limit/cursor yok; departman + atanan süzgeci listeyle aynı', async () => {
+    server.use(http.get(`${ORIGIN}${COUNTS}`, () => json(body)))
+    const h = harness(COORD_SCOPE)
+    const counts = h.run(() => useWorkItemCounts('d1', ['acc-1']))
+    await counts.suspense()
+    const calls = sent('GET', COUNTS)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(calls[0]!.headers.get('X-Nizamio-Department')).toBeNull()
+    expect(calls[0]!.query.get('department_id')).toBe('d1')
+    expect(calls[0]!.query.getAll('assignee_account_id')).toEqual(['acc-1'])
+    expect(calls[0]!.query.has('limit')).toBe(false)
+    expect(calls[0]!.query.has('cursor')).toBe(false)
+    expect(counts.data.value).toEqual(body)
+    const key = queryKeys.workItems.counts(h.store.snapshot, {
+      department: 'd1',
+      assignees: ['acc-1'],
+    })
+    expect(h.queryClient.getQueryData(key)).toEqual(body)
+  })
+
+  it('süzgeçsiz Admin: ek parametre yok; program yokken ve kapalıyken istek yok', async () => {
+    server.use(http.get(`${ORIGIN}${COUNTS}`, () => json(body)))
+    const h = harness(ADMIN_SCOPE)
+    const counts = h.run(() => useWorkItemCounts(null))
+    await counts.suspense()
+    expect([...sent('GET', COUNTS)[0]!.query.keys()]).toEqual([])
+    const off = harness({ programId: null, lens: null, departmentId: null })
+    off.run(() => useWorkItemCounts(null))
+    const closed = harness(ADMIN_SCOPE)
+    closed.run(() => useWorkItemCounts(null, undefined, false))
+    await closed.flush()
+    expect(sent('GET', COUNTS)).toHaveLength(1)
+  })
+
+  it('403 membership_required tekrar edilmez (hüküm)', async () => {
+    server.use(
+      http.get(`${ORIGIN}${COUNTS}`, () => errorEnvelope('organization.membership_required', 403)),
+    )
+    const h = harness(COORD_SCOPE)
+    const counts = h.run(() => useWorkItemCounts('d1'))
+    await counts.suspense().catch(() => undefined)
+    expect(counts.error.value).toMatchObject({ code: 'organization.membership_required' })
+    expect(sent('GET', COUNTS)).toHaveLength(1)
   })
 })
 

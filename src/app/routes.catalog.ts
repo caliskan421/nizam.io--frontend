@@ -30,6 +30,7 @@ export type SortDirection = 'artan' | 'azalan'
 
 export type ParamSpec =
   | { readonly kind: 'id' }
+  | { readonly kind: 'ids' }
   | { readonly kind: 'text' }
   | { readonly kind: 'bool' }
   | { readonly kind: 'month' }
@@ -37,6 +38,7 @@ export type ParamSpec =
   | { readonly kind: 'sort'; readonly fields: readonly string[] }
 
 const id = { kind: 'id' } as const
+const ids = { kind: 'ids' } as const
 const text = { kind: 'text' } as const
 const bool = { kind: 'bool' } as const
 const month = { kind: 'month' } as const
@@ -113,8 +115,8 @@ export const ROUTES = {
     before: 'devre_disi',
     menu: { group: 'takip', key: 'tasks', order: 2 },
     params: {},
-    // 03 README satır dışı varsayımlar (kabul): `kisi` F1'de yok (E-03-11 statik, BE-038);
-    // sayfa/imleç URL'de taşınmaz (E-03-39); panel sekmesi bellekte (E-03-45). `durum`: beş
+    // 03 README satır dışı varsayımlar (kabul): `kisi` virgülle ayrılmış atanan kimlikleri
+    // (E-03-11, BE-038; sunucu `assignee_account_id`, en çok 50); sayfa/imleç URL'de taşınmaz (E-03-39); panel sekmesi bellekte (E-03-45). `durum`: beş
     // durum (P5) + türetilmiş "Geciken" sekmesi (`is_overdue`; E-03-07); "Tümü" parametresiz.
     query: {
       durum: oneOf([
@@ -128,6 +130,7 @@ export const ROUTES = {
       talep: bool,
       q: text,
       koordinatorluk: id,
+      kisi: ids,
       sirala: sortBy(['gorev', 'durum', 'bitis']),
       gorev: id,
       // "Yeni görev" girişi (E-03-06; 01 hızlı işlemi, W48): formu açar, sayfa okuyunca düşer.
@@ -336,6 +339,8 @@ export function activeMenuKey(name: RouteName): string | undefined {
 const ID_VALUE = /^[A-Za-z0-9_-]{1,128}$/
 const MONTH_VALUE = /^\d{4}-(0[1-9]|1[0-2])$/
 const TEXT_MAX = 200
+/** `ids` değeri: virgülle ayrılmış kimlikler, en çok 50 (sunucu atanan süzgeci sınırı). */
+const IDS_MAX = 50
 
 type Scalar = string | boolean
 
@@ -349,6 +354,10 @@ const BOOL_VALUES: Readonly<Record<string, boolean>> = { '1': true, '0': false }
 
 const decoders: { [K in ParamSpec['kind']]: (spec: never, value: string) => Scalar | undefined } = {
   id: (_spec, value) => (ID_VALUE.test(value) ? value : undefined),
+  ids: (_spec, value) => {
+    const parts = value.split(',')
+    return parts.length <= IDS_MAX && parts.every((part) => ID_VALUE.test(part)) ? value : undefined
+  },
   text: (_spec, value) => (value.trim() === '' ? undefined : value.slice(0, TEXT_MAX)),
   bool: (_spec, value) => BOOL_VALUES[value],
   month: (_spec, value) => (MONTH_VALUE.test(value) ? value : undefined),

@@ -13,6 +13,16 @@ describe('sayfalayıcı satırı (E-03-38…40, P4)', () => {
     expect(pager.emitted('more')).toHaveLength(1)
   })
 
+  it('imleç sürüyor + sunucu toplamı biliniyor: "‹n› / ‹toplam› görev yüklendi", etiket yok (BE-003)', () => {
+    const pager = mount(TasksPager, {
+      props: { loaded: 200, hasMore: true, loadingMore: false, total: 263 },
+    })
+    const caption = pager.get('[data-testid="pager-caption"]').text()
+    expect(caption).toBe('200 / 263 görev yüklendi')
+    expect(caption).not.toContain('yüklenen kayıtlar içinde')
+    expect(pager.find('[data-design-stub]').exists()).toBe(false)
+  })
+
   it('imleç bitti: kesin toplam, düğme gizli', () => {
     const pager = mount(TasksPager, { props: { loaded: 263, hasMore: false, loadingMore: false } })
     expect(pager.get('[data-testid="pager-caption"]').text()).toBe('263 görev')

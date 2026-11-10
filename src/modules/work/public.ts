@@ -21,7 +21,13 @@ export type { NewTaskDialogEmits, NewTaskDialogProps } from './components'
 export { createPartialText } from './model/messages'
 export { departmentTarget, listDepartmentFilter, resolveTarget, targetOf } from './model/target'
 export { transitionTargets } from './model/transitions'
-export type { WorkItem, WorkItemDetail, WorkItemStatus, WorkTarget } from './model/types'
+export type {
+  WorkItem,
+  WorkItemCounts,
+  WorkItemDetail,
+  WorkItemStatus,
+  WorkTarget,
+} from './model/types'
 export { WORK_ITEM_STATUSES } from './model/types'
 export {
   taskLink,

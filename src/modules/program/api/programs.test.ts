@@ -45,14 +45,20 @@ describe('program okumaları', () => {
     expect(sent('GET', '/v1/programs')).toHaveLength(0)
     server.use(
       http.get(`${ORIGIN}/v1/programs`, () =>
-        json({ programs: [{ program_id: 'p3', name: 'Yeni' }] }, 200, {
-          'X-Result-Truncated': 'true',
-        }),
+        json(
+          { programs: [{ program_id: 'p3', name: 'Yeni', short_name: 'YN', color: 'red' }] },
+          200,
+          {
+            'X-Result-Truncated': 'true',
+          },
+        ),
       ),
     )
     await h.queryClient.invalidateQueries({ queryKey: queryKeys.programs.all() })
     await h.flush()
-    expect(list.programs.value).toEqual([{ programId: 'p3', name: 'Yeni', year: null }])
+    expect(list.programs.value).toEqual([
+      { programId: 'p3', name: 'Yeni', year: null, shortName: 'YN', color: 'red' },
+    ])
     expect(list.truncated.value).toBe(true)
   })
 

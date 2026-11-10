@@ -42,7 +42,7 @@ const emit = defineEmits<GanttViewEmits>()
 
 const scroller = ref<HTMLElement | null>(null)
 const collapsed = ref<ReadonlySet<string>>(new Set())
-const subtasks = useSubtaskRows()
+const subtasks = useSubtaskRows(() => props.tasks)
 const viewport = reactive({
   left: 0,
   top: 0,
@@ -210,7 +210,6 @@ defineExpose({ scrollToDay })
               :today="today"
               :selected-id="selectedId"
               :draggable-ids="draggableIds"
-              :date-request="dateRequest"
               :open-subtasks="subtasks.open.value"
               :layout="layout"
               :window="win"

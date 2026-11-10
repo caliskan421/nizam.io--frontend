@@ -130,6 +130,22 @@ const TABLE: Array<{
     mustInvalidate: ['createWorkItem', 'updateWorkItem', 'deleteWorkItem', 'transitionWorkItem'],
   },
   {
+    resource: 'workItems.counts',
+    key: queryKeys.workItems.counts(S, f),
+    expected: [...root(S), 'work-items', 'counts', f],
+    mustInvalidate: [
+      'createWorkItem',
+      'deleteWorkItem',
+      'transitionWorkItem',
+      'addAssignments',
+      'removeAssignment',
+      'extendWorkItem',
+      'requestDateChange',
+      'removeMember',
+      'deleteUser',
+    ],
+  },
+  {
     resource: 'workItems.subtasks',
     key: queryKeys.workItems.subtasks(S, 'w1'),
     expected: [...root(S), 'work-items', 'w1', 'subtasks'],
@@ -249,6 +265,20 @@ describe('query-keys — §6 tablosu', () => {
       coordLens,
     ])
     expect(hits('createWorkItem', [adminLens])).toEqual([])
+  })
+
+  it('WP2a: sayaç anahtarı görev yazmasıyla yenilenir; alt kaynak (not) yazması ona dokunmaz', () => {
+    const counts = queryKeys.workItems.counts(S, { department: null })
+    const list = queryKeys.workItems.list(S, { department: null })
+    const item = queryKeys.workItems.item(S, 'w1')
+    const subtasks = queryKeys.workItems.subtasks(S, 'w1')
+    // Sayaç, görev yazmasıyla yeniden okunur; ayrıntı alt kaynakları (not) ona dokunmaz.
+    expect(hits('transitionWorkItem', [counts, list, item], { workItemId: 'w1' })).toEqual([
+      counts,
+      list,
+      item,
+    ])
+    expect(hits('addWorkItemNote', [counts, list, subtasks], { workItemId: 'w1' })).toEqual([])
   })
 
   it('her operationId sözleşmede var ve yazma ucudur', () => {

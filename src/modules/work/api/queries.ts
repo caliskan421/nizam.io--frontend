@@ -30,26 +30,40 @@ import {
   fetchProgramDepartments,
   fetchSubtasks,
   fetchWorkItem,
+  fetchWorkItemCounts,
   fetchWorkItemPage,
+  normalizeAssignees,
 } from './fetchers'
 import { retryTransient } from './http'
 
 const STALE_MS = 30_000
 
-/**
- * Görev listesi — `listProgramWorkItems` imleçli sonsuz sorgu (`limit` 200). `department` tek
- * değerdir (`listDepartmentFilter`; K3). "Daha fazla yükle" = `fetchNextPage()` (aynı uç, aynı
- * süzgeç; fan-out değil, §9). `complete` imleç bittiğinde `true`: yalnız o zaman sayaçlar
- * kesindir; aksi "yüklenen kayıtlar içinde" (§10, P4). İmleç URL'de taşınmaz.
- */
+/** Liste/sayaç süzgeç nesnesi: boş atanan listesi anahtara girmez (süzgeçsiz anahtar sabit kalır). */
+function filterKey(departmentId: string | null, assigneeIds: readonly string[] | undefined) {
+  const assignees = normalizeAssignees(assigneeIds)
+  return { department: departmentId, ...(assignees.length > 0 ? { assignees } : {}) }
+}
+
 /** Liste sorgusunun seçenekleri: `useWorkItemList` ve `useWorkItemTarget` AYNI anahtarı paylaşır. */
-function listOptions(scope: ScopeSnapshot, departmentId: string | null, fetchEnabled: boolean) {
+function listOptions(
+  scope: ScopeSnapshot,
+  departmentId: string | null,
+  assigneeIds: readonly string[] | undefined,
+  fetchEnabled: boolean,
+) {
   const programId = scope.programId
+  const assignees = normalizeAssignees(assigneeIds)
   return {
-    queryKey: queryKeys.workItems.list(scope, { department: departmentId }),
+    queryKey: queryKeys.workItems.list(scope, filterKey(departmentId, assignees)),
     queryFn: sessionBound(
       ({ pageParam, signal }: QueryFunctionContext<QueryKey, string | undefined>) =>
-        fetchWorkItemPage({ programId: programId ?? '' }, departmentId, pageParam, signal),
+        fetchWorkItemPage(
+          { programId: programId ?? '' },
+          departmentId,
+          pageParam,
+          signal,
+          assignees,
+        ),
     ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last: WorkItemList) => last.next_cursor || undefined,
@@ -59,10 +73,26 @@ function listOptions(scope: ScopeSnapshot, departmentId: string | null, fetchEna
   }
 }
 
-export function useWorkItemList(department: MaybeRefOrGetter<string | null>) {
+/**
+ * Görev listesi — `listProgramWorkItems` imleçli sonsuz sorgu (`limit` 200). `department` tek
+ * değerdir (`listDepartmentFilter`; K3). `assignees` sunucu atanan süzgecidir
+ * (`assignee_account_id`, çoklu, VEYA; BE-038): Üye merceğinde "ben", kişi süzgecinde seçilenler.
+ * "Daha fazla yükle" = `fetchNextPage()` (aynı uç, aynı süzgeç; fan-out değil, §9). `complete`
+ * imleç bittiğinde `true`: yüklenen kümenin tam olduğu anlamına gelir (satır düzeyi süzgeç ve
+ * arama sayaçları için); kesin toplam/sayaçlar `useWorkItemCounts`'tadır. İmleç URL'de
+ * taşınmaz. `enabled` kapalıyken istek yok (süzgeç girdisi — ör. Üye merceğinde hesap kimliği —
+ * henüz bilinmiyorsa süzgeçsiz istek atılmaz).
+ */
+export function useWorkItemList(
+  department: MaybeRefOrGetter<string | null>,
+  assignees?: MaybeRefOrGetter<readonly string[] | undefined>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   const store = useScopeStore()
   const query = useInfiniteQuery(
-    computed(() => listOptions(store.snapshot, toValue(department), true)),
+    computed(() =>
+      listOptions(store.snapshot, toValue(department), toValue(assignees), toValue(enabled)),
+    ),
   )
   const items = computed<WorkItem[]>(
     () => query.data.value?.pages.flatMap((page) => page.items) ?? [],
@@ -71,6 +101,40 @@ export function useWorkItemList(department: MaybeRefOrGetter<string | null>) {
     () => query.data.value !== undefined && query.hasNextPage.value === false,
   )
   return { query, items, complete }
+}
+
+/**
+ * `countProgramWorkItems` — görünür görev sayaçları (BE-003). Süzgeçler listeyle aynıdır
+ * (`department_id`, `assignee_account_id`); görünürlük sunucuda. Okuyucu `sessionBound` ve
+ * `signal` iletir (Ö-08). `enabled` kapalıyken istek yok.
+ */
+export function useWorkItemCounts(
+  department: MaybeRefOrGetter<string | null>,
+  assignees?: MaybeRefOrGetter<readonly string[] | undefined>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
+  const store = useScopeStore()
+  return useQuery(
+    computed(() => {
+      const scope = store.snapshot
+      const departmentId = toValue(department)
+      const assigneeIds = normalizeAssignees(toValue(assignees))
+      return {
+        queryKey: queryKeys.workItems.counts(scope, filterKey(departmentId, assigneeIds)),
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+          fetchWorkItemCounts(
+            { programId: scope.programId ?? '' },
+            departmentId,
+            assigneeIds,
+            signal,
+          ),
+        ),
+        enabled: toValue(enabled) && scope.programId !== null,
+        retry: retryTransient,
+        staleTime: STALE_MS,
+      }
+    }),
+  )
 }
 
 function itemQuery<D>(
@@ -143,13 +207,14 @@ export function useWorkItemNotes(
 export function useWorkItemTarget(
   workItemId: MaybeRefOrGetter<string | null>,
   listDepartment?: MaybeRefOrGetter<string | null | undefined>,
+  listAssignees?: MaybeRefOrGetter<readonly string[] | undefined>,
 ) {
   const store = useScopeStore()
   const list = useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
       const department = toValue(listDepartment) ?? listDepartmentFilter(scope, null)
-      return listOptions(scope, department, false)
+      return listOptions(scope, department, toValue(listAssignees), false)
     }),
   )
   return computed<WorkTarget | null>(() => {

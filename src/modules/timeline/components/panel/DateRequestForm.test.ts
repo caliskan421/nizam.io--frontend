@@ -2,6 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { settleQueries } from '@/shared/http/__tests__/settle'
+import { isValidIdempotencyKey } from '@/shared/http/mutation/idempotency-key'
 import { useToast } from '@/shared/ui'
 
 import {
@@ -24,6 +25,8 @@ afterAll(() => server.close())
 
 const ITEM = '/v1/work-items/w1'
 const REQUESTS = '/v1/date-change-requests'
+/** Harness görevinin `dates_revision` değeri (kullanıcının gördüğü sürüm). */
+const REVISION = 7
 const created = { request_id: 'r1', work_item_id: 'w1', status: 'pending' }
 
 const props = {
@@ -97,11 +100,12 @@ describe('DateRequestForm (E-03C-64; 03 E-03-54/63 ile aynı form)', () => {
       new_start_on: '2026-11-01',
       new_end_on: '2026-11-15',
       reason: 'malzeme gecikti',
+      expected_dates_revision: REVISION,
     })
     expect(req!.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
     expect(req!.headers.get('X-Requested-With')).not.toBeNull()
-    expect(req!.headers.get('Idempotency-Key')).toBeNull()
+    expect(isValidIdempotencyKey(req!.headers.get('Idempotency-Key') ?? '')).toBe(true)
     expect(wrapper.emitted('sent')).toEqual([['r1']])
     expect(wrapper.emitted('update:open')).toEqual([[false]])
     expect(useToast().current.value?.message).toBe('Tarih talebi gönderildi.')
@@ -171,13 +175,17 @@ describe('DateRequestForm (E-03C-64; 03 E-03-54/63 ile aynı form)', () => {
     expect(document.body.textContent).not.toContain('sunucu iletisi')
   })
 
-  it('sonuç bilinmiyor (ağ hatası): kör tekrar yok, taslak ve pencere korunur, kalıcı bildirim', async () => {
+  it('sonuç bilinmiyor (ağ hatası): aynı anahtarla TEK tekrar; o da bilinmiyorsa taslak ve pencere korunur, kalıcı bildirim', async () => {
     server.use(http.post(`${ORIGIN}${REQUESTS}`, () => HttpResponse.error()))
     const { h, wrapper } = render()
     await settleQueries(h.queryClient)
     setValue('input[name="end"]', '15.11.2026')
     await submit(h)
-    expect(sent('POST', REQUESTS)).toHaveLength(1)
+    const attempts = sent('POST', REQUESTS)
+    expect(attempts).toHaveLength(2)
+    expect(attempts[1]!.headers.get('Idempotency-Key')).toBe(
+      attempts[0]!.headers.get('Idempotency-Key'),
+    )
     expect(($('input[name="end"]') as HTMLInputElement).value).toBe('15.11.2026')
     expect(wrapper.emitted('sent')).toBeUndefined()
     expect(useToast().current.value?.tone).toBe('danger')

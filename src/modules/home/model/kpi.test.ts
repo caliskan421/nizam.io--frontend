@@ -1,33 +1,23 @@
 import { describe, expect, it } from 'vitest'
 
-import { TASKS_STATUS_FILTERS } from '@/modules/work/public'
+import { TASKS_STATUS_FILTERS, type WorkItemCounts } from '@/modules/work/public'
 
-import { countsFromDashboard, countsFromItems, kpiCards, percent } from './kpi'
-import type { DashboardReport, KpiItem } from './types'
-
-const item = (status: KpiItem['status'], over: Partial<KpiItem> = {}): KpiItem => ({
-  status,
-  is_overdue: false,
-  assignee_account_ids: ['acc-1'],
-  ...over,
-})
+import { countsFromDashboard, countsFromWorkCounts, kpiCards, percent } from './kpi'
+import type { DashboardReport } from './types'
 
 const byKey = (cards: ReturnType<typeof kpiCards>) =>
   Object.fromEntries(cards.map((c) => [c.key, c]))
 
-describe('KPI sayımı — K/Ü (istemci, E-01-04…07)', () => {
-  const items = [
-    item('baslanmadi'),
-    item('devam_ediyor', { is_overdue: true }),
-    item('onaya_sunuldu'),
-    item('iade_edildi', { is_overdue: true }),
-    item('tamamlandi'),
-    // Tamamlanmış geç görev gecikmeye sayılmaz (E-01-06).
-    item('tamamlandi', { is_overdue: true }),
-  ]
+describe('KPI sayımı — K/Ü (sunucu sayaçları, E-01-04…07)', () => {
+  const counts: WorkItemCounts = {
+    total: 6,
+    by_status: { baslanmadi: 1, devam_ediyor: 1, onaya_sunuldu: 1, iade_edildi: 1, tamamlandi: 2 },
+    overdue: 2,
+    pending_date_requests: 0,
+  }
 
-  it('5 durum: iade açık sayılır, onayda değil; tamamlanmış geç görev gecikmede değil', () => {
-    expect(countsFromItems(items)).toEqual({
+  it('5 durum: iade açık sayılır, onayda değil; geciken sunucunun overdue değeri', () => {
+    expect(countsFromWorkCounts(counts)).toEqual({
       total: 6,
       completed: 2,
       open: 4,
@@ -36,20 +26,21 @@ describe('KPI sayımı — K/Ü (istemci, E-01-04…07)', () => {
     })
   })
 
-  it('"bana atananlar": yalnız assignee_account_ids ∋ me', () => {
-    const mixed = [
-      item('devam_ediyor', { assignee_account_ids: ['acc-2'] }),
-      item('onaya_sunuldu', { assignee_account_ids: ['acc-2', 'acc-1'] }),
-      item('tamamlandi', { assignee_account_ids: [] }),
-    ]
-    expect(countsFromItems(mixed, 'acc-1')).toEqual({
-      total: 1,
-      completed: 0,
-      open: 1,
+  it('boş küme sıfırlarla kart üretir (payda 0 koruması kartlarda)', () => {
+    const zero = countsFromWorkCounts({
+      ...counts,
+      total: 0,
+      by_status: {
+        baslanmadi: 0,
+        devam_ediyor: 0,
+        onaya_sunuldu: 0,
+        iade_edildi: 0,
+        tamamlandi: 0,
+      },
       overdue: 0,
-      pending: 1,
     })
-    expect(countsFromItems(mixed).total).toBe(3)
+    expect(zero).toEqual({ total: 0, completed: 0, open: 0, overdue: 0, pending: 0 })
+    expect(kpiCards(zero).map((c) => c.value)).toEqual(['%0', '0', '0', '0'])
   })
 })
 

@@ -113,19 +113,41 @@ describe('useGantt — üç yüz, kapsamdan türetilir', () => {
     expect(sent('GET', COORD_GANTT)).toHaveLength(0)
   })
 
-  it('tam 200 kalem: tavan uyarısı; 199: yok', async () => {
+  it('kesilme yalnız X-Result-Truncated: true başlığından okunur; tam 200 kalem başlıksızsa uyarı yok', async () => {
     const tasks = (n: number) =>
       Array.from({ length: n }, (_, i) => ganttTask({ work_item_id: `w${i}` }))
-    server.use(http.get(`${ORIGIN}${ADMIN_GANTT}`, () => json(gantt({ tasks: tasks(200) }))))
+    server.use(
+      http.get(`${ORIGIN}${ADMIN_GANTT}`, () =>
+        json(gantt({ tasks: tasks(200) }), 200, { 'X-Result-Truncated': 'true' }),
+      ),
+    )
     const h = harness(ADMIN_SCOPE)
     const g = h.run(() => useGantt())
     await g.query.suspense()
     expect(g.tasks.value).toHaveLength(200)
     expect(g.ceiling.value).toBe(true)
 
-    server.use(http.get(`${ORIGIN}${ADMIN_GANTT}`, () => json(gantt({ tasks: tasks(199) }))))
+    // Tam 200 kalem, başlık YOK → kesilme yok (eski "200 ise uyar" sezgisi kalktı).
+    server.use(http.get(`${ORIGIN}${ADMIN_GANTT}`, () => json(gantt({ tasks: tasks(200) }))))
     await g.query.refetch()
+    expect(g.tasks.value).toHaveLength(200)
     expect(g.ceiling.value).toBe(false)
+  })
+
+  it('üç yüzde de kesilme başlığı okunur; "false" değeri kesilme sayılmaz', async () => {
+    const header = (value: string) => ({ 'X-Result-Truncated': value })
+    server.use(
+      http.get(`${ORIGIN}${COORD_GANTT}`, () => json(gantt(), 200, header('true'))),
+      http.get(`${ORIGIN}${MEMBER_GANTT}`, () => json(gantt(), 200, header('false'))),
+    )
+    const coord = harness(COORD_SCOPE)
+    const c = coord.run(() => useGantt())
+    await c.query.suspense()
+    expect(c.ceiling.value).toBe(true)
+    const member = harness(MEMBER_SCOPE)
+    const m = member.run(() => useGantt())
+    await m.query.suspense()
+    expect(m.ceiling.value).toBe(false)
   })
 
   it('403 work.not_authorized bir hükümdür: tekrar edilmez', async () => {

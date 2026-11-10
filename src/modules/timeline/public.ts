@@ -6,7 +6,6 @@
 export * from './api'
 export { default as DateRequestForm } from './components/panel/DateRequestForm.vue'
 export { panelText } from './components/panel/messages'
-export { atCeiling, GANTT_CEILING } from './model/ceiling'
 export {
   canDirectDateWrite,
   canDragHandles,

@@ -231,3 +231,15 @@ export function confirmationRequired(titles: string[]) {
     })),
   )
 }
+
+// --- WP2a (pin v0.15.0-api, BE-038): sunucu atanan süzgeci -------------------------------------
+/** Sahte `listProgramWorkItems`: tekrarlı `assignee_account_id` (VEYA) ile satırları süzer. */
+export function byAssigneeQuery<T extends { assignee_account_ids: readonly string[] }>(
+  items: readonly T[],
+  request: Request,
+): T[] {
+  const ids = new URL(request.url).searchParams.getAll('assignee_account_id').filter(Boolean)
+  return items.filter(
+    (item) => ids.length === 0 || ids.some((id) => item.assignee_account_ids.includes(id)),
+  )
+}

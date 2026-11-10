@@ -35,10 +35,17 @@ export interface Standing {
   rows: readonly StandingRow[]
 }
 
+/** Dönem rozetinin palet anahtarı (`Program.color`, PROGRAM-K46; 8 anahtar). */
+export type ProgramColor = NonNullable<components['schemas']['Program']['color']>
+
 export interface ProgramOption {
   programId: string
   name: string
   year: number | null
+  /** Kısa ad (BE-001): 1–4 harf/rakam; verilmemişse `null` (avatar baş harflerden türetilir). */
+  shortName: string | null
+  /** Palet anahtarı (BE-001); verilmemişse `null` (avatar rengi kimlikten türetilir). */
+  color: ProgramColor | null
 }
 
 export interface LensOption {
@@ -92,7 +99,13 @@ export function parseStanding(me: MeResponse, list: MyDepartmentList | null): St
 }
 
 export function parsePrograms(list: ProgramList): ProgramOption[] {
-  return list.programs.map((p) => ({ programId: p.program_id, name: p.name, year: p.year ?? null }))
+  return list.programs.map((p) => ({
+    programId: p.program_id,
+    name: p.name,
+    year: p.year ?? null,
+    shortName: p.short_name ?? null,
+    color: p.color ?? null,
+  }))
 }
 
 /**
@@ -114,7 +127,13 @@ export function programOptions(
       if (seen.has(row.programId)) continue
       seen.set(
         row.programId,
-        byId.get(row.programId) ?? { programId: row.programId, name: row.programName, year: null },
+        byId.get(row.programId) ?? {
+          programId: row.programId,
+          name: row.programName,
+          year: null,
+          shortName: null,
+          color: null,
+        },
       )
     }
     options = [...seen.values()]
