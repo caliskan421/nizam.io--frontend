@@ -105,26 +105,63 @@ describe('UserCreateDialog (E-05-05 "Kullanıcı oluştur"; P14)', () => {
     expect($('[name="email"]')?.getAttribute('aria-invalid')).toBe('true')
   })
 
-  it('409 transfer_available → teklif tanınır; aktarım düğmesi devre dışı + BE-107; ikinci istek yok', async () => {
+  it('409 transfer_available → teklif (ad + kimlik); "Mevcut hesabı ekle" aynı gövdeyi transfer_account_id ile gönderir (BE-107)', async () => {
     server.use(
-      http.post(USERS, () =>
-        errorEnvelope('identity.account_exists', 409, [
-          { field: 'email', code: 'organization.transfer_available', message: 'x' },
-        ]),
-      ),
+      http.post(USERS, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>
+        if (body.transfer_account_id) return json({ account_id: 'acc-old' }, 201)
+        return errorEnvelope('identity.account_exists', 409, [
+          { field: 'email', code: 'organization.transfer_available', message: 'sabit metin' },
+          { field: 'account_id', code: 'organization.transfer_available', message: 'acc-old' },
+          {
+            field: 'user_full_name',
+            code: 'organization.transfer_available',
+            message: 'Ayşe Kaya',
+          },
+        ])
+      }),
     )
     const { wrapper } = await openDialog()
     await fill()
     click('[data-testid="of-submit"]')
     await vi.waitFor(() => expect($('[data-testid="of-transfer"]')).not.toBeNull())
+    expect($('[data-testid="of-transfer"]')?.textContent).toContain('Ayşe Kaya')
+    expect($('[data-testid="of-transfer"]')?.textContent).not.toContain('sabit metin')
     const action = $('[data-testid="of-transfer-action"]') as HTMLButtonElement
-    expect(action.disabled).toBe(true)
-    expect(action.closest('[data-design-stub]')?.getAttribute('data-design-stub')).toBe('BE-107')
+    expect(action.disabled).toBe(false)
+    expect(action.closest('[data-design-stub]')).toBeNull()
     action.click()
-    await nextTick()
-    expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
-    expect(wrapper.emitted('created')).toBeUndefined()
-    // E-posta değişince teklif kalkar.
+    await vi.waitFor(() => expect(wrapper.emitted('created')).toEqual([['acc-old']]))
+    const posts = sent('POST', '/v1/admin/users')
+    expect(posts).toHaveLength(2)
+    expect(posts[0]!.body).not.toHaveProperty('transfer_account_id')
+    expect(posts[1]!.body).toMatchObject({
+      email: (posts[0]!.body as { email: string }).email,
+      transfer_account_id: 'acc-old',
+    })
+  })
+
+  it('409 account_exists, teklif girdisi olmadan (koordinatör / hesap ekipte) → aktarım çizilmez', async () => {
+    server.use(http.post(USERS, () => errorEnvelope('identity.account_exists', 409, [])))
+    await openDialog()
+    await fill()
+    click('[data-testid="of-submit"]')
+    await vi.waitFor(() => expect($('[name="email"]')?.getAttribute('aria-invalid')).toBe('true'))
+    expect($('[data-testid="of-transfer"]')).toBeNull()
+  })
+
+  it('aktarım teklifi e-posta değişince kalkar', async () => {
+    server.use(
+      http.post(USERS, () =>
+        errorEnvelope('identity.account_exists', 409, [
+          { field: 'account_id', code: 'organization.transfer_available', message: 'acc-old' },
+        ]),
+      ),
+    )
+    await openDialog()
+    await fill()
+    click('[data-testid="of-submit"]')
+    await vi.waitFor(() => expect($('[data-testid="of-transfer"]')).not.toBeNull())
     setValue('[name="email"]', 'baska@ornek.test')
     await nextTick()
     expect($('[data-testid="of-transfer"]')).toBeNull()

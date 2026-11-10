@@ -11,7 +11,15 @@ import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
-import { byAssigneeQuery, http, json, ORIGIN, sent, server } from '../../../__tests__/harness'
+import {
+  byAssigneeQuery,
+  http,
+  json,
+  knownUser,
+  ORIGIN,
+  sent,
+  server,
+} from '../../../__tests__/harness'
 import { UserPanelStub } from './user-panel-stub'
 
 export const LIST = '/v1/program/work-items'
@@ -106,10 +114,26 @@ export function listHandler(
   })
 }
 
+/**
+ * `listUsers` (`/v1/admin/users`) ve `readUser` (`/v1/admin/users/{id}`, BE-043): tek işleyici;
+ * tekil okuma listede olmayan kimlik için 404 `organization.account_not_found` döner. Gövde v0.14
+ * `KnownUser` şeklidir (e-posta, yönetici, hesap/kilit durumu, yapısal ekipler).
+ */
 export function usersHandler(
   users: { account_id: string; full_name: string; memberships: string[] | null }[],
 ) {
-  return http.get(`${ORIGIN}${USERS}`, () => json({ users }))
+  const full = users.map((u) => knownUser(u.account_id, u.full_name, u.memberships))
+  return http.get(new RegExp(`${ORIGIN}${USERS}(/[^/]+)?$`), ({ request }) => {
+    const id = new URL(request.url).pathname.split('/')[4]
+    if (id === undefined) return json({ users: full, total: full.length })
+    const hit = full.find((u) => u.account_id === id)
+    return hit
+      ? json(hit)
+      : json(
+          { code: 'organization.account_not_found', message: 'x', request_id: 'r', fields: [] },
+          404,
+        )
+  })
 }
 
 export const listRequests = () => sent('GET', LIST)

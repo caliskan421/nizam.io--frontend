@@ -216,17 +216,68 @@ function userLabels(db: OrgDb, accountId: string): string[] {
     .map((m) => `${m.program_id}:${m.department_id}:${db.roles[m.team]}`)
 }
 
+function knownUser(db: OrgDb, a: Account) {
+  const labels = userLabels(db, a.account_id)
+  return {
+    account_id: a.account_id,
+    full_name: a.full_name,
+    email: a.email,
+    company_admin: a.admin,
+    account_status: a.disabled ? 'disabled' : 'active',
+    login_locked: a.locked === true,
+    memberships: labels,
+    teams: o.rowsOf(db, a.account_id).map((m) => ({
+      program_id: m.program_id,
+      program_name: db.programs.find((p) => p.program_id === m.program_id)?.name ?? '',
+      department_id: m.department_id,
+      display_name: o.linkOf(db, m.program_id, m.department_id)?.display_name ?? '',
+      role: db.roles[m.team],
+    })),
+  }
+}
+
+/** v0.14 `listUsers`: ad ya da e-posta araması, rol/program/departman süzgeci, total + role_counts. */
 function listUsers(db: OrgDb, url: URL) {
-  const search = url.searchParams.get('search')?.toLocaleLowerCase('tr-TR') ?? ''
-  const order = url.searchParams.get('sort_order') === 'desc' ? -1 : 1
-  return db.accounts
-    .filter((a) => !a.deleted && a.full_name.toLocaleLowerCase('tr-TR').includes(search))
+  const q = url.searchParams
+  const search = q.get('search')?.toLocaleLowerCase('tr-TR') ?? ''
+  const order = q.get('sort_order') === 'desc' ? -1 : 1
+  const program = q.get('program_id')
+  const department = q.get('department_id')
+  const rows = (a: Account) =>
+    o
+      .rowsOf(db, a.account_id)
+      .filter(
+        (m) =>
+          (!program || m.program_id === program) && (!department || m.department_id === department),
+      )
+  const base = db.accounts
+    .filter(
+      (a) =>
+        !a.deleted &&
+        (a.full_name.toLocaleLowerCase('tr-TR').includes(search) ||
+          a.email.toLowerCase().includes(search)) &&
+        (!program && !department ? true : rows(a).length > 0),
+    )
     .sort((a, b) => order * a.full_name.localeCompare(b.full_name, 'tr'))
-    .map((a) => ({
-      account_id: a.account_id,
-      full_name: a.full_name,
-      memberships: userLabels(db, a.account_id),
-    }))
+  const has = (a: Account, team: 'coordinator' | 'member') => rows(a).some((m) => m.team === team)
+  const wanted = q.get('role')
+  const users = !wanted
+    ? base
+    : base.filter((a) =>
+        wanted === 'company_admin'
+          ? a.admin
+          : has(a, wanted === db.roles.coordinator ? 'coordinator' : 'member'),
+      )
+  return {
+    users: users.map((a) => knownUser(db, a)),
+    total: users.length,
+    role_counts: {
+      all: base.length,
+      company_admin: base.filter((a) => a.admin).length,
+      koordinator: base.filter((a) => has(a, 'coordinator')).length,
+      uye: base.filter((a) => has(a, 'member')).length,
+    },
+  }
 }
 
 interface CreateUserBody {
@@ -237,13 +288,39 @@ interface CreateUserBody {
   role?: string
 }
 
+/** `disableAccount` / `enableAccount`: idempotent (`changed`), kapatmada oturumlar düşer. */
+function statusChange(db: OrgDb, request: Request, id: string, disable: boolean) {
+  if (o.actorOf(db, request)?.admin !== true) return o.forbidden('organization')
+  const account = db.accounts.find((a) => a.account_id === id && !a.deleted)
+  if (!account) return envelope('identity.account_not_found', 404)
+  const changed = (account.disabled === true) !== disable
+  account.disabled = disable
+  return json({
+    account_id: id,
+    account_status: disable ? 'disabled' : 'active',
+    changed,
+    revoked_sessions: disable && changed ? 1 : 0,
+  })
+}
+
 function userHandlers(db: OrgDb) {
   const admin = (request: Request) => o.actorOf(db, request)?.admin === true
   return [
     http.get(`${ORIGIN}/v1/admin/users`, ({ request }) =>
-      admin(request)
-        ? json({ users: listUsers(db, new URL(request.url)) })
-        : o.forbidden('organization'),
+      admin(request) ? json(listUsers(db, new URL(request.url))) : o.forbidden('organization'),
+    ),
+    http.get(`${ORIGIN}/v1/admin/users/:id`, ({ request, params }) => {
+      if (!admin(request)) return o.forbidden('organization')
+      const account = db.accounts.find((a) => a.account_id === params.id && !a.deleted)
+      return account
+        ? json(knownUser(db, account))
+        : envelope('organization.account_not_found', 404)
+    }),
+    http.post(`${ORIGIN}/v1/admin/accounts/:id/disable`, ({ request, params }) =>
+      statusChange(db, request, String(params.id), true),
+    ),
+    http.post(`${ORIGIN}/v1/admin/accounts/:id/enable`, ({ request, params }) =>
+      statusChange(db, request, String(params.id), false),
     ),
     http.post(`${ORIGIN}/v1/admin/users`, async ({ request }) => {
       if (!admin(request)) return o.forbidden('organization')
@@ -297,8 +374,20 @@ function catalogHandlers(db: OrgDb) {
         a !== undefined &&
         b !== undefined &&
         a.toLocaleLowerCase('tr') === b.toLocaleLowerCase('tr')
-      if (db.catalog.some((c) => same(c.name, body.name) || same(c.code, body.code))) {
-        return envelope('organization.department_exists', 409)
+      const clash = db.catalog.find((c) => same(c.name, body.name))
+      if (clash) {
+        // v0.15 (BE-050): mevcut departman zarfta (kimlik + silinmişlik).
+        return envelope('organization.department_exists', 409, [
+          {
+            field: 'department_id',
+            code: 'organization.existing_department',
+            message: clash.department_id,
+          },
+          { field: 'deleted', code: 'organization.existing_department', message: 'false' },
+        ])
+      }
+      if (db.catalog.some((c) => same(c.code, body.code))) {
+        return envelope('organization.department_code_conflict', 409)
       }
       const created = { department_id: o.next(db, 'd-yeni'), ...body }
       db.catalog.push(created)
@@ -325,6 +414,24 @@ function catalogHandlers(db: OrgDb) {
 function catalogEdits(db: OrgDb) {
   const admin = (request: Request) => o.actorOf(db, request)?.admin === true
   return [
+    // readProgramDepartment (v0.14, BE-049): görünürlük listProgramDepartments ile aynı; bağsız → 404.
+    http.get(`${ORIGIN}/v1/program/departments/:departmentId`, ({ request, params }) => {
+      const me = o.actorOf(db, request)
+      const program = o.programOf(request)
+      if (!me || (!me.admin && o.rowsOf(db, me.account_id, program).length === 0)) {
+        return o.forbidden('organization')
+      }
+      const link = o.linkOf(db, program, String(params.departmentId))
+      if (!link) return envelope('program.department_not_found', 404)
+      const catalog = db.catalog.find((c) => c.department_id === link.department_id)
+      return json({
+        department_id: link.department_id,
+        display_name: link.display_name,
+        kind: catalog?.kind ?? 'koordinatorluk',
+        ...(catalog?.code && { code: catalog.code }),
+        ...(catalog?.description && { description: catalog.description }),
+      })
+    }),
     http.patch(`${ORIGIN}/v1/program/departments/:departmentId`, async ({ request, params }) => {
       const link = o.linkOf(db, o.programOf(request), String(params.departmentId))
       if (!admin(request)) return o.forbidden('program')
@@ -351,9 +458,12 @@ export function teamHandlers(db: OrgDb) {
     ...userHandlers(db),
     ...catalogHandlers(db),
     ...catalogEdits(db),
-    http.post(`${ORIGIN}/v1/admin/accounts/:id/unlock`, () =>
-      envelope('identity.account_not_locked', 409),
-    ),
+    http.post(`${ORIGIN}/v1/admin/accounts/:id/unlock`, ({ params }) => {
+      const account = db.accounts.find((a) => a.account_id === params.id)
+      if (!account?.locked) return envelope('identity.account_not_locked', 409)
+      account.locked = false
+      return json({ account_id: String(params.id) })
+    }),
     http.patch(`${ORIGIN}/v1/admin/users/:id`, ({ params }) =>
       json({ account_id: String(params.id), changed_fields: [] }),
     ),

@@ -4,7 +4,6 @@ import './users.css'
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { designStub } from '@/shared/design-stub'
 import { UiButton, UiEmptyState, UiErrorState } from '@/shared/ui'
 
 import { USERS_ROUTE } from '../../routes'
@@ -17,8 +16,10 @@ import UserRow from './UserRow.vue'
  * W75 · E-05-09…24 — kullanıcı tablosu (`rp-dtable`). Veri sayfanın görünümünden (yoksa kendi
  * örneği): `listUsers` ya da tek birimin `listMembers`'ı. Sıralama yalnız ada göre ↑/↓
  * (`aria-sort`; yön değişince yeni sorgu, eski imleç kullanılmaz — E-05-10). Tümünü seç ve satır
- * kutuları gizli (P7). Numaralı sayfalayıcı, "‹a›–‹b› / ‹N›" ve sayfa boyutu yok (BE-011, P4):
- * yüklenen sayı + "Daha fazla yükle" (imleç bitince gizli). Yükleniyor → iskelet satırlar.
+ * kutuları gizli (P7). Numaralı sayfalayıcı ve sayfa boyutu yok (P4): alt satır "1–‹yüklenen› /
+ * ‹toplam›" — toplam sunucu `total`'ı (BE-011, E-05-22) — ve "Daha fazla yükle" (imleç bitince
+ * gizli). "Tümü" ekip satırsız hesapları da içerir (BE-045): "listelenmez" notu yoktur.
+ * Yükleniyor → iskelet satırlar.
  */
 const props = defineProps<UsersTableProps>()
 const emit = defineEmits<UsersTableEmits>()
@@ -47,12 +48,12 @@ const isEmpty = computed(
 const showPager = computed(
   () => !view.loading.value && !view.loadError.value && view.source.value.length > 0,
 )
-const caption = computed(() => {
-  const n = view.source.value.length
-  if (view.complete.value) return usersText('users.pager.complete', { n })
-  const loaded = designStub('BE-011', usersText('users.pager.partial', { n }))
-  return `${loaded} · ${usersText('users.partial')}`
-})
+const caption = computed(() =>
+  usersText('users.pager.range', {
+    to: view.source.value.length,
+    total: view.total.value ?? view.source.value.length,
+  }),
+)
 </script>
 
 <template>
@@ -151,9 +152,6 @@ const caption = computed(() => {
     </div>
     <p v-if="view.truncated.value" class="rp-cap users-note--warn" data-testid="users-truncated">
       {{ usersText('users.table.truncated') }}
-    </p>
-    <p v-if="!view.rosterMode.value" class="rp-cap users-note" data-testid="users-no-team">
-      {{ usersText('users.table.noTeam') }}
     </p>
   </div>
 </template>

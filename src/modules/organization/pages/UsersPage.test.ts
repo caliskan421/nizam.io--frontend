@@ -3,12 +3,23 @@ import { defineComponent, h } from 'vue'
 
 import { flushPromises } from '@vue/test-utils'
 
-import { http, json, ORIGIN, resetHarness, sent, server } from '../__tests__/harness'
+import {
+  errorEnvelope,
+  http,
+  json,
+  knownUser,
+  ORIGIN,
+  resetHarness,
+  sent,
+  server,
+  userListHandler,
+} from '../__tests__/harness'
 import {
   baseHandlers,
   mountWith,
   settle,
   unmountAll,
+  USERS,
   usersHandler,
 } from '../components/users/__tests__/users-harness'
 import UsersPage from './UsersPage.vue'
@@ -54,13 +65,16 @@ const TemporaryPasswordDialog = stub('TemporaryPasswordDialog', ['open', 'accoun
 )
 const STUBS = { UserCreateDialog, TemporaryPasswordDialog }
 
+/** Liste istekleri (sayaç okumaları `limit=1`). */
+const lists = () => sent('GET', '/v1/admin/users').filter((r) => r.query.get('limit') !== '1')
+
 function mountPage(path = '/kullanicilar') {
   server.use(...baseHandlers(), usersHandler())
   return mountWith(UsersPage, {}, { path, stubs: STUBS })
 }
 
 describe('UsersPage — başlık ve araç çubuğu', () => {
-  it('alt başlık yüklenen sayı; Dışa aktar stub (istek yok); Admin sekmesi devre dışı; sayaçlar', async () => {
+  it('alt başlık sunucu toplamı; Dışa aktar stub (istek yok); Admin sekmesi canlı; sunucu sayaçları', async () => {
     const { wrapper } = await mountPage()
     expect(wrapper.get('[data-testid="users-summary"]').text()).toBe(
       '3 kullanıcı · roller ve koordinatörlük atamaları',
@@ -74,22 +88,27 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
     const tabs = wrapper.findAll('.rp-seg button')
     expect(tabs.map((t) => t.text().replace(/\s+/g, ' '))).toEqual([
       'Tümü 3',
-      'Admin',
-      'Koordinatör 1',
-      'Üye 2',
+      'Admin 0',
+      'Koordinatör 2',
+      'Üye 3',
     ])
-    expect(tabs[1]!.attributes('disabled')).toBeDefined()
+    expect(tabs[1]!.attributes('disabled')).toBeUndefined()
     expect(wrapper.find('[data-testid="tabs-partial"]').exists()).toBe(false)
-    expect(wrapper.get('[data-testid="users-search"]').attributes('placeholder')).toBe('Ad…')
+    expect(wrapper.get('[data-testid="users-search"]').attributes('placeholder')).toBe(
+      'Ad, e-posta…',
+    )
   })
 
-  it('rol sekmesi URL `rol`; istek atmaz (istemci süzmesi)', async () => {
+  it('rol sekmesi URL `rol`; yeni sorgu role=koordinatör (sunucu süzmesi)', async () => {
     const { wrapper, router } = await mountPage()
-    const before = sent('GET', '/v1/admin/users').length
+    server.use(userListHandler(USERS))
     await wrapper.findAll('.rp-seg button')[2]!.trigger('click')
     await settle()
     expect(router.currentRoute.value.query).toEqual({ rol: 'koordinator' })
-    expect(sent('GET', '/v1/admin/users')).toHaveLength(before)
+    expect(lists().at(-1)!.query.get('role')).toBe('koordinator')
+    // K/Ü sekmesi seçili programla daralır (program_id → rol süzgeci o programın rolleri; G16):
+    // u2 başka programda koordinatör olduğundan listelenmez.
+    expect(lists().at(-1)!.query.get('program_id')).toBe('p1')
     expect(wrapper.findAll('[data-account]').map((r) => r.attributes('data-account'))).toEqual([
       'u1',
     ])
@@ -107,19 +126,22 @@ describe('UsersPage — başlık ve araç çubuğu', () => {
     await settle()
 
     expect(router.currentRoute.value.query.q).toBe('ay')
-    const last = sent('GET', '/v1/admin/users').at(-1)!
+    const last = lists().at(-1)!
     expect(last.query.get('search')).toBe('ay')
     expect(last.query.get('cursor')).toBeNull()
   })
 
-  it('koordinatörlük süzgeci: URL `koordinatorluk` → tek listMembers isteği', async () => {
-    server.use(http.get(`${ORIGIN}/v1/departments/d2/members`, () => json({ members: [] })))
+  it('koordinatörlük süzgeci: URL `koordinatorluk` → listUsers department_id (listMembers yok)', async () => {
     const { wrapper, router } = await mountPage()
+    server.use(userListHandler(USERS))
     await wrapper.get('[data-testid="department-filter"]').trigger('click')
     await wrapper.get('[data-department="d2"]').trigger('click')
     await settle()
     expect(router.currentRoute.value.query).toEqual({ koordinatorluk: 'd2' })
-    expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(1)
+    const last = lists().at(-1)!
+    expect(last.query.get('department_id')).toBe('d2')
+    expect(last.query.get('program_id')).toBe('p1')
+    expect(sent('GET', '/v1/departments/d2/members')).toHaveLength(0)
   })
 })
 
@@ -152,8 +174,27 @@ describe('UsersPage — yan panel ve yaşam döngüsü', () => {
     expect(wrapper.find('[data-testid="user-panel"]').exists()).toBe(false)
   })
 
-  it('derin bağlantı: yüklü sayfada olmayan kişi → panel kapalı + bilgi', async () => {
+  it('derin bağlantı: listede olmayan kişi → readUser ile panel açılır (BE-043)', async () => {
+    server.use(
+      http.get(`${ORIGIN}/v1/admin/users/zz`, () =>
+        json(knownUser('zz', 'Zeki Öz', ['p1:d3:uye'], { email: 'zeki@ornek.test' })),
+      ),
+    )
     const { wrapper } = await mountPage('/kullanicilar?secili=zz')
+    await settle()
+    expect(sent('GET', '/v1/admin/users/zz')).toHaveLength(1)
+    expect(wrapper.get('[data-testid="user-panel"]').attributes('data-account')).toBe('zz')
+    expect(wrapper.find('[data-testid="users-selected-missing"]').exists()).toBe(false)
+  })
+
+  it('derin bağlantı: readUser 404 → panel kapalı + bilgi', async () => {
+    server.use(
+      http.get(`${ORIGIN}/v1/admin/users/zz`, () =>
+        errorEnvelope('organization.account_not_found', 404),
+      ),
+    )
+    const { wrapper } = await mountPage('/kullanicilar?secili=zz')
+    await settle()
     expect(wrapper.find('[data-testid="user-panel"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="users-selected-missing"]').exists()).toBe(true)
   })

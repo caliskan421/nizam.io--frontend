@@ -153,6 +153,23 @@ export function serverHandlers(f: ServerFixture = {}) {
     http.get(`${ORIGIN}/v1/program/departments`, () =>
       json({ departments: f.departments ?? DEPARTMENTS }),
     ),
+    // readProgramDepartment (BE-049): tek birim; listede olmayan → 404 program.department_not_found.
+    http.get(`${ORIGIN}/v1/program/departments/:id`, ({ params }) => {
+      const found = ((f.departments ?? DEPARTMENTS) as { department_id: string }[]).find(
+        (d) => d.department_id === params.id,
+      )
+      const stats = (f.stats ?? [stat('d1'), stat('d2', { description: undefined })]) as {
+        department_id: string
+        description?: string
+      }[]
+      const description = stats.find((s) => s.department_id === params.id)?.description
+      return found
+        ? json({ kind: 'koordinatorluk', ...found, ...(description ? { description } : {}) })
+        : json(
+            { code: 'program.department_not_found', message: 'x', request_id: 'r', fields: [] },
+            404,
+          )
+    }),
     http.get(`${ORIGIN}/v1/reports/dashboard`, () =>
       json(dashboard(f.stats ?? [stat('d1'), stat('d2', { description: undefined })])),
     ),

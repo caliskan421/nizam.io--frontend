@@ -3,7 +3,6 @@ import './users-page.css'
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
-import { designStub } from '@/shared/design-stub'
 import { UiInput, UiSegmented, type UiChoiceOption } from '@/shared/ui'
 
 import { usersText } from '../../components/users/messages'
@@ -12,15 +11,14 @@ import type { ProgramDepartment } from '../../model/types'
 import CoordinatorshipFilter from './CoordinatorshipFilter.vue'
 
 /**
- * Araç çubuğu (E-05-06…08). Rol sekmeleri yüklenen kümede, seçili programın etiketlerine göre
- * (sayaçlar imleç bitmediyse "yüklenen kayıtlar içinde"); "Admin" sekmesi devre dışı
- * `designStub('BE-042')`. Arama sunucu `search` (yalnız ad; yer tutucu "Ad…" — BE-041), URL'ye
- * ~300 ms gecikmeyle yazılır (03 E-03-10 sabiti). Koordinatörlük süzgeci tek seçim.
+ * Araç çubuğu (E-05-06…08). Rol sekmeleri sunucu `role` süzgeciyle, sayaçlar aynı yanıtın
+ * `role_counts`'undan (BE-011); "Admin" sekmesi `company_admin` (BE-042). Arama sunucu `search`
+ * (ad ya da e-posta; yer tutucu "Ad, e-posta…" — BE-041), URL'ye ~300 ms gecikmeyle yazılır
+ * (03 E-03-10 sabiti). Koordinatörlük süzgeci tek seçim (sunucu `department_id`).
  */
 const props = defineProps<{
   tab: UserRoleTab
   counts: Readonly<Record<UserRoleTab, number>>
-  complete: boolean
   search: string
   department: string | null
   departments: readonly ProgramDepartment[]
@@ -37,11 +35,11 @@ const emit = defineEmits<{
 const SEARCH_DEBOUNCE_MS = 300
 
 const options = computed<UiChoiceOption<UserRoleTab>[]>(() =>
-  USER_ROLE_TABS.map((tab) => {
-    const label = usersText(`users.tabs.${tab}`)
-    if (tab === 'admin') return designStub('BE-042', { value: tab, label, disabled: true })
-    return { value: tab, label, count: props.counts[tab] }
-  }),
+  USER_ROLE_TABS.map((tab) => ({
+    value: tab,
+    label: usersText(`users.tabs.${tab}`),
+    count: props.counts[tab],
+  })),
 )
 const tabModel = computed({
   get: () => props.tab,
@@ -90,9 +88,6 @@ onBeforeUnmount(cancel)
         :label="usersText('users.tabs.label')"
         :parens="false"
       />
-      <span v-if="!complete" class="rp-cap" data-testid="tabs-partial">
-        {{ usersText('users.partial') }}
-      </span>
     </div>
     <div class="rp-tgroup rp-tgroup--grow">
       <UiInput

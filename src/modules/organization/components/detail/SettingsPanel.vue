@@ -37,7 +37,7 @@ const emit = defineEmits<{ edit: [] }>()
       </dd>
       <dt>{{ detailText('coordinatorship.settings.description') }}</dt>
       <dd class="cd-wrap" data-setting="description">
-        {{ view.stat?.description || detailText('coordinatorship.settings.none') }}
+        {{ view.description || detailText('coordinatorship.settings.none') }}
       </dd>
     </dl>
   </section>

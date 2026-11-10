@@ -8,6 +8,7 @@ import { useScopeStore } from '@/shared/scope/store'
 
 import TemporaryPasswordDialog from '../components/forms/TemporaryPasswordDialog.vue'
 import UserCreateDialog from '../components/forms/UserCreateDialog.vue'
+import { useUser } from '../api'
 import { usersText } from '../components/users/messages'
 import { provideUsersView } from '../components/users/use-users-view'
 import UserPanel from '../components/users/UserPanel.vue'
@@ -20,8 +21,8 @@ import UsersToolbar from './users/UsersToolbar.vue'
 
 /**
  * 05 · Kullanıcılar (`/kullanicilar`, S1; W75). Yalnız yöneticide açılır (rota kapısı, P13).
- * Liste şirket geneli (`listUsers`), koordinatörlük hücresi/çipler/rol sekmeleri seçili
- * programdan (#14). URL: `rol`, `q`, `koordinatorluk`, `secili` (K10). Yan panel yalnız seçili
+ * Liste şirket geneli (`listUsers`; sayılar, rol sekmesi, arama ve koordinatörlük süzgeci
+ * sunucuda — BE-011), koordinatörlük hücresi/çipler seçili programdan (#14). URL: `rol`, `q`, `koordinatorluk`, `secili` (K10). Yan panel yalnız seçili
  * kişi yüklenen kümedeyse açılır; değilse bilgi (E-05-21, BE-043). Kapsam değişince süzgeç,
  * panel ve açık diyaloglar kapanır; arama ve sekme korunur.
  */
@@ -46,17 +47,28 @@ const view = provideUsersView(() => ({
 
 const facts = computed(() => organizationFacts(standing.value, store.programId))
 const canCreate = computed(() => store.programId !== null && can('createUser', facts.value))
+// Alt başlık sayısı sunucu `total`'ıdır (süzgeçlere uyan hesaplar), yüklenen satır sayısı değil.
 const summary = computed(() => {
-  if (view.loading.value) return usersText('users.summary.loading')
-  const n = view.source.value.length
-  return usersText(view.complete.value ? 'users.summary.complete' : 'users.summary.partial', {
-    n,
-  })
+  const n = view.total.value
+  if (view.loading.value || n === null) return usersText('users.summary.loading')
+  return usersText('users.summary.complete', { n })
 })
-const selected = computed(() => (state.value.selected ? view.rowFor(state.value.selected) : null))
-const panelId = computed(() => selected.value?.accountId ?? null)
+// Derin bağlantı (E-05-21, BE-043): kişi yüklenen listede yoksa `readUser` ile tek istekte okunur.
+const inView = computed(() => (state.value.selected ? view.rowFor(state.value.selected) : null))
+const detail = useUser(
+  () => state.value.selected,
+  () => state.value.selected !== null && inView.value === null && !view.loading.value,
+)
+const panelId = computed(() =>
+  inView.value || detail.user.value ? (state.value.selected ?? null) : null,
+)
 const selectedMissing = computed(
-  () => state.value.selected !== null && !view.loading.value && selected.value === null,
+  () =>
+    state.value.selected !== null &&
+    panelId.value === null &&
+    !view.loading.value &&
+    !detail.query.isPending.value &&
+    !detail.query.isFetching.value,
 )
 
 function select(accountId: string): void {
@@ -81,7 +93,6 @@ function onCreated(accountId: string): void {
       <UsersToolbar
         :tab="state.tab"
         :counts="view.counts.value"
-        :complete="view.complete.value"
         :search="state.search"
         :department="state.department"
         :departments="view.departments.departments.value"

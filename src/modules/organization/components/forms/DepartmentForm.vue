@@ -123,7 +123,7 @@ function submitMain(): void {
             {{ stepText(r.name, r.ok) }}
           </li>
         </ul>
-        <UiOutcomeNotice :outcome="notice" />
+        <UiOutcomeNotice :outcome="notice" @resolved="model.resolved" />
       </form>
     </template>
 
@@ -161,10 +161,7 @@ function submitMain(): void {
       </div>
       <div v-if="exists" class="of-note" role="alert" data-testid="of-exists">
         <p class="of-note__title">{{ orgText('forms.department.exists.title') }}</p>
-        <p v-if="exists.kind === 'searching'">
-          {{ orgText('forms.department.exists.searching') }}
-        </p>
-        <p v-else-if="exists.kind === 'found'">
+        <p v-if="exists.kind === 'found'">
           {{ orgText('forms.department.exists.found', { name: exists.target.name }) }}
         </p>
         <p v-else-if="exists.kind === 'linked'">
@@ -173,7 +170,6 @@ function submitMain(): void {
         <p v-else-if="exists.kind === 'deleted'">
           {{ orgText('forms.department.exists.deleted', { name: exists.name }) }}
         </p>
-        <p v-else>{{ orgText('forms.department.exists.notFound') }}</p>
       </div>
       <fieldset v-if="link.target.value" class="of-section" data-testid="of-link">
         <UiField
@@ -194,7 +190,7 @@ function submitMain(): void {
           </UiButton>
         </div>
       </fieldset>
-      <UiOutcomeNotice :outcome="notice" />
+      <UiOutcomeNotice :outcome="notice" @resolved="model.resolved" />
     </form>
 
     <template #footer>

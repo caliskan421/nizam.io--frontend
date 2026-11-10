@@ -21,6 +21,7 @@ import {
 } from '../__tests__/harness'
 import {
   isTransferAvailable,
+  transferOffer,
   useCreateUser,
   useDeleteUser,
   useSetTemporaryPassword,
@@ -90,8 +91,19 @@ describe('useUserList (listUsers, S1, imleçli)', () => {
     expect(r.complete.value).toBe(false)
   })
 
+  it('boş sayfa + next_cursor → istemci ilerler; sınırsız boş zincirde durur (BE-011)', async () => {
+    server.use(http.get(USERS, () => json({ users: [], next_cursor: 'c-more' })))
+    const h = harness(ADMIN_SCOPE)
+    const r = h.run(() => useUserList(ASC))
+    await vi.waitFor(() => expect(sent('GET', '/v1/admin/users').length).toBeGreaterThan(5))
+    await vi.waitFor(() => expect(sent('GET', '/v1/admin/users')).toHaveLength(20))
+    expect(r.users.value).toEqual([])
+  })
+
   it('arama kırpılır; yön değişimi yeni sorgu, eski imleç kullanılmaz (E-05-10)', async () => {
-    server.use(http.get(USERS, () => json({ users: [], next_cursor: 'c-asc' })))
+    server.use(
+      http.get(USERS, () => json({ users: [knownUser('a', 'Ali')], next_cursor: 'c-asc' })),
+    )
     const h = harness(ADMIN_SCOPE)
     const filters = ref<UserListFilters>({ search: '  ali ', sortOrder: 'asc' })
     const r = h.run(() => useUserList(filters))
@@ -163,6 +175,12 @@ describe('kullanıcı yazmaları (anahtarsız, S1)', () => {
           ? json({ account_id: 'old', transferred: true }, 201)
           : errorEnvelope('identity.account_exists', 409, [
               { field: 'email', code: 'organization.transfer_available', message: 'x' },
+              { field: 'account_id', code: 'organization.transfer_available', message: 'old' },
+              {
+                field: 'user_full_name',
+                code: 'organization.transfer_available',
+                message: 'Eski Kişi',
+              },
             ])
       }),
     )
@@ -176,6 +194,10 @@ describe('kullanıcı yazmaları (anahtarsız, S1)', () => {
     }
     const first = await m.submit(input)
     expect(first.kind === 'failed' && isTransferAvailable(first.error)).toBe(true)
+    expect(first.kind === 'failed' && transferOffer(first.error)).toEqual({
+      accountId: 'old',
+      fullName: 'Eski Kişi',
+    })
     const again = await m.submit({ ...input, transferAccountId: 'old' })
     expect(again.kind).toBe('success')
     await vi.waitFor(() => expect(sent('POST', '/v1/admin/users')[1]!.body).toBeDefined())

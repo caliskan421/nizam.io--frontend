@@ -3,11 +3,14 @@
 // tüketiciler `../public.ts` üzerinden.
 export { useImpactConfirmedWrite } from './confirm'
 export {
+  fetchProgramDepartment,
   useCatalogDepartments,
   useCreateCoordinatorship,
   useCreateDepartment,
   useDeletedDepartments,
+  existingDepartment,
   useLinkDepartment,
+  useProgramDepartment,
   useProgramDepartmentIndex,
   useRenameDepartmentLink,
   useUpdateDepartment,
@@ -30,11 +33,16 @@ export {
   fetchUserPage,
   isTransferAvailable,
   redactDraft,
+  transferOffer,
   useCreateUser,
   useDeleteUser,
+  useDisableAccount,
+  useEnableAccount,
   useSetTemporaryPassword,
   useUnlockAccount,
   useUpdateUser,
+  useUser,
+  useUserCounts,
   useUserList,
 } from './users'
 export { useAllWorkItemPages, useDepartmentWorkItems, usePersonWorkItems } from './work'

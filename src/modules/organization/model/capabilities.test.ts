@@ -7,13 +7,14 @@ import {
   administrationFacts,
   can,
   canSeeAdministration,
-  matchesRoleTab,
+  countsByTab,
   ORGANIZATION_CAPABILITIES,
   ORGANIZATION_CAPABILITY_SOURCES,
   organizationFacts,
   serverRoleOf,
   teamRoleOf,
   USER_ROLE_TABS,
+  userRoleFilterOf,
   type OrganizationActorFacts,
   type OrganizationCapability,
 } from './capabilities'
@@ -48,6 +49,7 @@ const TABLE: ReadonlyArray<[string, OrganizationActorFacts, OrganizationCapabili
       (c) =>
         ![
           'deleteUser',
+          'changeAccountStatus',
           'changeCompanyAdmin',
           'changeMembershipRole',
           'removeMember',
@@ -173,13 +175,20 @@ describe('rol değerleri (K1: yalnız bu dosyada)', () => {
     expect(serverRoleOf('member')).toBe('uye')
   })
 
-  it('rol sekmeleri: Tümü her satır, Admin hiçbir satır (BE-042), K/Ü seçili program rolleri', () => {
+  it('rol sekmesi → sunucu role süzgeci: Tümü süzgeçsiz, Admin company_admin, K/Ü sunucu rolü', () => {
     expect(USER_ROLE_TABS).toEqual(['tumu', 'admin', 'koordinator', 'uye'])
-    const both = new Set(['coordinator', 'member'] as const)
-    const none = new Set<'coordinator' | 'member'>()
-    expect(matchesRoleTab('tumu', none)).toBe(true)
-    expect(matchesRoleTab('admin', both)).toBe(false)
-    expect(matchesRoleTab('koordinator', both)).toBe(true)
-    expect(matchesRoleTab('uye', new Set(['coordinator'] as const))).toBe(false)
+    expect(userRoleFilterOf('tumu')).toBeNull()
+    expect(userRoleFilterOf('admin')).toBe('company_admin')
+    expect(userRoleFilterOf('koordinator')).toBe('koordinator')
+    expect(userRoleFilterOf('uye')).toBe('uye')
+  })
+
+  it('role_counts → sekme sayaçları (all rolden bağımsız toplam)', () => {
+    expect(countsByTab({ all: 185, company_admin: 3, koordinator: 21, uye: 160 })).toEqual({
+      tumu: 185,
+      admin: 3,
+      koordinator: 21,
+      uye: 160,
+    })
   })
 })

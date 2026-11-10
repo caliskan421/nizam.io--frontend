@@ -21,6 +21,7 @@ import { usePersonWorkItems, useProgramDepartmentIndex } from '../../api'
 import { orderedRoles, programRoles } from '../../model/memberships'
 import { USERS_ROUTE } from '../../routes'
 import { UserPanel, type PersonalTrackingProps } from '../index'
+import { isCompanyAdmin } from '../../model/capabilities'
 import { personUnits } from './assign'
 import { trackingText } from './messages'
 import {
@@ -153,6 +154,8 @@ onBeforeUnmount(() => (document.title = previousTitle))
       :name="profile.name.value"
       :resolved="profile.resolved.value"
       :roles="roles"
+      :company-admin="profile.user.value ? isCompanyAdmin(profile.user.value) : false"
+      :email="profile.user.value?.email ?? null"
       :units="units"
     />
     <div class="pt-body">

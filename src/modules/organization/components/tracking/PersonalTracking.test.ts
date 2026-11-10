@@ -262,20 +262,19 @@ describe('kartlar, sekmeler, liste (E-05-49…67)', () => {
 })
 
 describe('başlık ve ad kaynağı (E-05-40…44)', () => {
-  it('ad liste önbelleğinden; rol rozeti ve birim; e-posta yok; belge başlığı', async () => {
+  it('ad readUser ile; rol rozeti, birim ve e-posta (BE-041/043); belge başlığı', async () => {
     setup()
     const { wrapper } = await mountAt(PersonalTracking, { accountId: 'u1' })
     expect(wrapper.find('[data-person-name]').text()).toBe('Bahar Kılıç')
     expect(wrapper.find('[data-role]').text()).toBe('Üye')
-    expect(wrapper.find('[data-units]').text()).toBe('Mekanik')
-    expect(wrapper.text()).not.toContain('@')
+    expect(wrapper.find('[data-units]').text()).toBe('Mekanik · u1@ornek.test')
+    expect(wrapper.find('[data-email]').text()).toBe('u1@ornek.test')
     expect(document.title).toBe('RoketPortal — Bahar Kılıç')
     // E-05-40: kırıntının son parçası kişi adı.
     expect(pageCrumb.value).toBe('Bahar Kılıç')
-    // Önbellekte yoktu: görevlerden gelen adla TEK `listUsers` araması.
-    const lookups = requests.filter((r) => r.path === USERS)
-    expect(lookups).toHaveLength(1)
-    expect(lookups[0]!.query.get('search')).toBe('Bahar Kılıç')
+    // Önbellekte yoktu: TEK `readUser`; `listUsers` taraması / ad araması yok.
+    expect(requests.filter((r) => r.path === `${USERS}/u1`)).toHaveLength(1)
+    expect(requests.filter((r) => r.path === USERS)).toHaveLength(0)
   })
 
   it('kişi hiçbir kaynakta yoksa "Bilinmeyen kişi"', async () => {
@@ -284,8 +283,8 @@ describe('başlık ve ad kaynağı (E-05-40…44)', () => {
     expect(wrapper.find('[data-person-name]').text()).toBe('Bilinmeyen kişi')
     expect(wrapper.find('[data-role]').exists()).toBe(false)
     expect(wrapper.find('[data-assign]').attributes('disabled')).toBeDefined()
-    // Ad bilinmediğinden arama değil, varsayılan liste sayfası.
-    expect(requests.find((r) => r.path === USERS)!.query.get('search')).toBeNull()
+    // readUser 404 (BE-043).
+    expect(requests.find((r) => r.path === `${USERS}/u1`)).toBeDefined()
   })
 
   it('sökülünce belge başlığı geri döner', async () => {

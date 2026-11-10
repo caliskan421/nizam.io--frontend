@@ -10,6 +10,7 @@ import {
   byAssigneeQuery,
   http,
   json,
+  knownUser,
   MEMBERSHIP_CHANGE,
   ORIGIN,
   resetHarness,
@@ -96,28 +97,50 @@ describe('UserPanel — başlık, özet, roller', () => {
     expect(panel.emitted('close')).toHaveLength(1)
   })
 
-  it('Admin kartı devre dışı stub (BE-042), tık istek atmaz; K/Ü kartları çiplerle tutarlı', async () => {
+  it('Admin kartı canlı (BE-042, company_admin satırdan); e-posta ve hesap durumu (BE-041/044); K/Ü kartları çiplerle tutarlı', async () => {
     server.use(...baseHandlers())
-    const { wrapper } = await mountPanel({ accountId: 'u2' })
-    const before = sent('PATCH', '/v1/admin/users/u2').length
-
-    const admin = wrapper.get('[data-design-stub="BE-042"]')
-    expect(admin.get('input').attributes('disabled')).toBeDefined()
-    await admin.get('label').trigger('click')
-    expect(sent('PATCH', '/v1/admin/users/u2').length).toBe(before)
-
+    const { wrapper } = await mountWith(
+      UserPanel,
+      { accountId: 'u2' },
+      {
+        stubs: STUBS,
+        seed: seedUsers([
+          knownUser('u2', 'Berk Kaya', ['p1:d2:uye'], {
+            company_admin: true,
+            account_status: 'disabled',
+            login_locked: true,
+          }),
+        ]),
+      },
+    )
+    expect(wrapper.find('[data-design-stub="BE-042"]').exists()).toBe(false)
     const card = (r: string) =>
       wrapper.get(`[data-role-card="${r}"] input`).element as HTMLInputElement
+    expect(card('admin').checked).toBe(true)
+    expect(card('admin').disabled).toBe(false)
     expect(card('coordinator').checked).toBe(false)
     expect(card('member').checked).toBe(true)
     expect(card('member').disabled).toBe(true)
+    expect(wrapper.get('[data-testid="panel-email"]').text()).toBe('u2@ornek.test')
+    expect(wrapper.find('[data-testid="panel-disabled"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="panel-locked"]').exists()).toBe(true)
   })
 
-  it('gömülü (05b): kapat yok; önbellekte yoksa ilk liste sayfası okunur, yine yoksa bilgi', async () => {
-    server.use(...baseHandlers(), usersHandler())
+  it('gömülü (05b): kapat yok; önbellekte yoksa readUser (tek istek, listUsers yok), 404 → bilgi (BE-043)', async () => {
+    server.use(
+      ...baseHandlers(),
+      http.get(`${ORIGIN}/v1/admin/users/u2`, () =>
+        json(knownUser('u2', 'Berk Kaya', ['p1:d2:uye'])),
+      ),
+      http.get(`${ORIGIN}/v1/admin/users/zz`, () =>
+        errorEnvelope('organization.account_not_found', 404),
+      ),
+    )
     const found = await mountWith(UserPanel, { accountId: 'u2', embedded: true }, { stubs: STUBS })
     expect(found.wrapper.find('[data-testid="panel-close"]').exists()).toBe(false)
     expect(found.wrapper.get('h2').text()).toBe('Berk Kaya')
+    expect(sent('GET', '/v1/admin/users/u2')).toHaveLength(1)
+    expect(sent('GET', '/v1/admin/users')).toHaveLength(0)
     unmountAll()
 
     const missing = await mountWith(
@@ -224,18 +247,15 @@ describe('UserPanel — çipler (anında, kendi onay/sonucuyla)', () => {
 })
 
 describe('UserPanel — hesap eylemleri', () => {
-  it('şifre sıfırlama (BE-013) ve kilitle (BE-012) devre dışı stub; tık istek atmaz', async () => {
+  it('şifre sıfırlama (BE-013) devre dışı stub; kilitle (BE-012) canlı; tık istek atmaz', async () => {
     server.use(...baseHandlers())
     const { wrapper } = await mountPanel()
-    for (const [id, testid] of [
-      ['BE-013', 'account-reset'],
-      ['BE-012', 'account-lock'],
-    ] as const) {
-      const stub = wrapper.get(`[data-design-stub="${id}"]`)
-      const button = stub.get(`[data-testid="${testid}"]`)
-      expect(button.attributes('disabled')).toBeDefined()
-      await button.trigger('click')
-    }
+    const stub = wrapper.get('[data-design-stub="BE-013"]')
+    const reset = stub.get('[data-testid="account-reset"]')
+    expect(reset.attributes('disabled')).toBeDefined()
+    await reset.trigger('click')
+    expect(wrapper.find('[data-design-stub="BE-012"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="account-lock"]').attributes('disabled')).toBeUndefined()
     expect(sent('PATCH', '/v1/admin/users/u1')).toHaveLength(0)
   })
 
@@ -249,14 +269,23 @@ describe('UserPanel — hesap eylemleri', () => {
     expect(dialog.attributes('data-open')).toBe('true')
   })
 
-  it('giriş kilidini kaldır: 409 account_not_locked → "Hesap kilitli değil." bilgisi', async () => {
+  it('giriş kilidini kaldır (yalnız login_locked iken): 409 account_not_locked → "Hesap kilitli değil." bilgisi', async () => {
     server.use(
       ...baseHandlers(),
       http.post(`${ORIGIN}/v1/admin/accounts/u1/unlock`, () =>
         errorEnvelope('identity.account_not_locked', 409),
       ),
     )
-    const { wrapper } = await mountPanel()
+    const { wrapper } = await mountWith(
+      UserPanel,
+      { accountId: 'u1' },
+      {
+        seed: seedUsers([
+          knownUser('u1', 'Ayşe Demir', ['p1:d1:koordinator'], { login_locked: true }),
+        ]),
+        stubs: STUBS,
+      },
+    )
     await wrapper.get('[data-testid="account-unlock"]').trigger('click')
     await settle()
     expect(sent('POST', '/v1/admin/accounts/u1/unlock')).toHaveLength(1)

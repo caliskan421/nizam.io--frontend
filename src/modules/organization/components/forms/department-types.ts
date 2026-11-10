@@ -20,9 +20,14 @@ export interface DepartmentFormContext {
   index: ReturnType<typeof useProgramDepartmentIndex>
   /** Başarı: bildirim + `saved` + kapanış. */
   done: (message: string, departmentId: string) => void
-  /** Alan hatasına eşlenmeyen sonuç: "sonuç bilinmiyor" yerinde, diğerleri ortak bildirim. */
-  report: (outcome: AnyOutcome) => void
+  /**
+   * Alan hatasına eşlenmeyen sonuç: "sonuç bilinmiyor" yerinde (`resume`: "Yeniden gönder"
+   * çözülünce akışın devamı), diğerleri ortak bildirim.
+   */
+  report: (outcome: AnyOutcome, resume?: (outcome: AnyOutcome) => void) => void
   clearNotice: () => void
+  /** `UiOutcomeNotice` `resolved`: bekleyen devam çalışır (yoksa yalnız bildirim kapanır). */
+  resolved: (outcome: AnyOutcome) => void
   /** Kurulumda alınmış bildirim (sahip yaşamını bilir; CX-F1-Ö-07, W82c). */
   toast: ReturnType<typeof useToast>
 }
@@ -34,8 +39,6 @@ export interface LinkTarget {
 }
 
 export type ExistsState =
-  | { kind: 'searching' }
   | { kind: 'found'; target: LinkTarget }
   | { kind: 'linked'; name: string }
   | { kind: 'deleted'; name: string }
-  | { kind: 'not_found' }

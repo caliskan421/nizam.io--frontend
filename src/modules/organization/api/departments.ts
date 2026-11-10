@@ -6,6 +6,9 @@
  *  - `listDepartments` (S1, katalog: ad/kod/tür/açıklama) ve `listDeletedDepartments` (S2,
  *    imleçli): `department_exists` sonrası "mevcut departmanı bu programa ekle" eşleşmesi (K7).
  *  - Yazmalar anahtarsız (`useKeylessMutation`): son yazan kazanır, `expected_revision` yok.
+ *    İSTİSNA (v0.15, BE-050): `createDepartment` ve `linkDepartment` isteğe bağlı `Idempotency-Key`
+ *    alır → kullanıcı eylemi başına anahtar (`useProtectedMutation`); sonuç bilinmiyorsa AYNI
+ *    anahtar + gövdeyle tek tekrar (`unknown_outcome.retry`, K5), kör tekrar yok.
  *    Ad iki kavramdır: programdaki ad (`renameDepartmentLink`) ≠ katalog adı/kod/açıklama/tür
  *    (`updateDepartment`, şirket geneli — "tüm sezonlarda geçerli").
  *  - Yeni koordinatörlük = `createDepartment` → `linkDepartment` (E-08-05; iki adım, atomik
@@ -20,8 +23,10 @@ import {
 } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { api } from '@/shared/http'
-import { runWithFollowUps } from '@/shared/http/mutation'
+import { ApiError } from '@/shared/errors/api-error'
+import { api, unwrap } from '@/shared/http'
+import { runWithFollowUps, useProtectedMutation } from '@/shared/http/mutation'
+import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
@@ -31,6 +36,7 @@ import type {
   CreateDepartmentInput,
   DeletedDepartmentList,
   Department,
+  ExistingDepartment,
   LinkDepartmentInput,
   ProgramDepartmentLink,
   RenameDepartmentLinkInput,
@@ -74,6 +80,58 @@ export function useProgramDepartmentIndex(enabled: MaybeRefOrGetter<boolean> = t
     departments,
     byId: computed(() => new Map(departments.value.map((d) => [d.department_id, d]))),
     truncated: computed(() => isTruncated(query.data.value)),
+  }
+}
+
+/**
+ * `readProgramDepartment` (S2, BE-049): tek departman — programdaki ad, kod, açıklama, tür.
+ * 08b başlığı ve Hakkında bunu okur (derin bağlantı listeye bağlı değil; `listProgramDepartments`
+ * 200 tavanına takılmaz). Bağsız/silinmiş/başka programın departmanı 404
+ * `program.department_not_found`. Kapsam değişince anahtar değişir (yeni programda yeniden okunur).
+ */
+export function fetchProgramDepartment(
+  programId: string,
+  departmentId: string,
+  signal?: AbortSignal,
+) {
+  return unwrap(
+    api.GET('/v1/program/departments/{departmentId}', {
+      params: { header: programHeader(programId), path: { departmentId } },
+      signal,
+    }),
+  )
+}
+
+export function useProgramDepartment(
+  departmentId: MaybeRefOrGetter<string>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
+  const store = useScopeStore()
+  const query = useQuery(
+    computed(() => {
+      const scope = store.snapshot
+      const id = toValue(departmentId)
+      return {
+        queryKey: queryKeys.departments.detail(scope, id),
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+          fetchProgramDepartment(scope.programId ?? '', id, signal),
+        ),
+        enabled: toValue(enabled) && scope.programId !== null && id !== '',
+        retry: retryTransient,
+        staleTime: ORGANIZATION_STALE_MS,
+      }
+    }),
+  )
+  return {
+    query,
+    department: computed(() => query.data.value ?? null),
+    /** 404 `program.department_not_found`: seçili programda yok (bağsız / silinmiş). */
+    missing: computed(
+      () =>
+        query.isError.value &&
+        query.error.value instanceof ApiError &&
+        query.error.value.code === 'program.department_not_found',
+    ),
   }
 }
 
@@ -137,12 +195,31 @@ export function useDeletedDepartments(enabled: MaybeRefOrGetter<boolean> = true)
 
 // --- Yazmalar ------------------------------------------------------------------------------
 
-/** `createDepartment` (S1, ŞY): katalog kaydı. Kod büyük harfe çevrilir (G17). */
+const EXISTING_CODE = 'organization.existing_department'
+
+/**
+ * 409 `organization.department_exists` zarfındaki mevcut departman (BE-050, v0.15):
+ * `fields[field=department_id].message` kimlik, `fields[field=deleted].message` `"true"|"false"`.
+ * Kimlik yoksa `null` (zarf eski/biçimsiz).
+ */
+export function existingDepartment(error: ApiError): ExistingDepartment | null {
+  const value = (field: string) =>
+    error.fields.find((f) => f.code === EXISTING_CODE && f.field === field)?.value?.trim()
+  const departmentId = value('department_id')
+  return departmentId ? { departmentId, deleted: value('deleted') === 'true' } : null
+}
+
+/**
+ * `createDepartment` (S1, ŞY): katalog kaydı. Kod büyük harfe çevrilir (G17). İsteğe bağlı
+ * `Idempotency-Key` kullanıcı eylemi başına gönderilir (BE-050); tekrar 200 + ilk kaydın bugünkü
+ * hâli.
+ */
 export function useCreateDepartment() {
-  return useKeylessMutation<CreateDepartmentInput, Department>({
+  return useProtectedMutation<CreateDepartmentInput, Department>({
     operation: 'createDepartment',
     send: (vars, ctx) =>
       api.POST('/v1/departments', {
+        params: { header: { 'Idempotency-Key': ctx.idempotencyKey } },
         body: {
           name: vars.name,
           kind: vars.kind,
@@ -154,13 +231,18 @@ export function useCreateDepartment() {
   })
 }
 
-/** `linkDepartment` (S2, ŞY): bağ idempotent (var olan bağ 201, ad değişmez). */
+/**
+ * `linkDepartment` (S2, ŞY): bağ idempotent (var olan bağ 201, ad değişmez); isteğe bağlı
+ * `Idempotency-Key` kullanıcı eylemi başına gönderilir (BE-050).
+ */
 export function useLinkDepartment() {
-  return useKeylessMutation<LinkDepartmentInput, ProgramDepartmentLink>({
+  return useProtectedMutation<LinkDepartmentInput, ProgramDepartmentLink>({
     operation: 'linkDepartment',
     send: (vars, ctx) =>
       api.POST('/v1/program/departments', {
-        params: { header: programHeader(vars.programId) },
+        params: {
+          header: { ...programHeader(vars.programId), 'Idempotency-Key': ctx.idempotencyKey },
+        },
         body: {
           department_id: vars.departmentId,
           ...(vars.displayName ? { display_name: vars.displayName } : {}),
@@ -215,28 +297,41 @@ export function useCreateCoordinatorship() {
   const create = useCreateDepartment()
   const link = useLinkDepartment()
 
+  const followUps =
+    (input: CreateCoordinatorshipInput) =>
+    (department: Department, context: ActionContext | undefined) => [
+      {
+        name: 'link',
+        run: () =>
+          link.submit(
+            {
+              programId: input.programId,
+              departmentId: department.department_id,
+              ...(input.displayName ? { displayName: input.displayName } : {}),
+            },
+            { context },
+          ),
+      },
+    ]
+
   function submit(input: CreateCoordinatorshipInput) {
-    return runWithFollowUps(
-      () => create.submit(input.department),
-      (department, context) => [
-        {
-          name: 'link',
-          run: () =>
-            link.submit(
-              {
-                programId: input.programId,
-                departmentId: department.department_id,
-                ...(input.displayName ? { displayName: input.displayName } : {}),
-              },
-              { context },
-            ),
-        },
-      ],
-    )
+    return runWithFollowUps(() => create.submit(input.department), followUps(input))
+  }
+
+  /**
+   * "Sonuç bilinmiyor" sonrası `retry` çözülünce (aynı anahtarla): başarıysa bağ adımı İLK
+   * eylemin bağlamıyla koşar; başarısızsa birincil hata olarak döner (BE-050, K5).
+   */
+  function resume(
+    input: CreateCoordinatorshipInput,
+    primary: MutationOutcome<CreateDepartmentInput, Department, unknown>,
+  ) {
+    return runWithFollowUps(() => Promise.resolve(primary), followUps(input))
   }
 
   return {
     submit,
+    resume,
     isPending: computed(() => create.isPending.value || link.isPending.value),
   }
 }

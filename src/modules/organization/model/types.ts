@@ -6,12 +6,16 @@
 import type { components } from '@/shared/api/schema'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
+import type { UserRoleFilter } from './capabilities'
+
 type Schemas = components['schemas']
 
 export type KnownUser = Schemas['KnownUser']
 export type UserList = Schemas['UserList']
+export type UserRoleCounts = Schemas['UserRoleCounts']
 export type UserResult = Schemas['UserResult']
 export type AccountResult = Schemas['AccountResult']
+export type AccountStatusResult = Schemas['AccountStatusResult']
 export type RosterList = Schemas['RosterList']
 export type RosterMember = Schemas['RosterMember']
 export type AssignableList = Schemas['AssignableList']
@@ -76,6 +80,12 @@ export interface CreateUserInput {
   transferAccountId?: string
 }
 
+/** Aktarım teklifi (409 `organization.transfer_available`): hesap kimliği + ad (varsa). */
+export interface TransferOffer {
+  accountId: string
+  fullName: string | null
+}
+
 export interface UpdateUserInput {
   accountId: string
   changes: {
@@ -93,6 +103,12 @@ export interface TemporaryPasswordInput {
 
 export interface AccountRef {
   accountId: string
+}
+
+/** 409 `department_exists` zarfındaki mevcut departman (BE-050). */
+export interface ExistingDepartment {
+  departmentId: string
+  deleted: boolean
 }
 
 export interface CreateDepartmentInput {
@@ -145,6 +161,8 @@ export interface CoordinatorshipView {
   displayName: string
   /** `code` yoksa `null` (rozet baş harflerden, E-08-28). */
   code: string | null
+  /** Katalog açıklaması (`readProgramDepartment`; yoksa `null`). */
+  description: string | null
   /** Raporda olmayan birim (yarış) → `null`; sayılar "—" (08 backend §4). */
   stat: CoordinatorshipStat | null
 }
@@ -157,13 +175,26 @@ export interface ListCompleteness {
   truncated: boolean
 }
 
-/** `listUsers` süzgeçleri (S1; anahtar `['users', filters]`). Rol süzgeci sunucuya GİTMEZ (ret). */
+/**
+ * `listUsers` süzgeçleri (S1; anahtar `['users', filters]`). v0.14: `role` (sekme), `program_id` /
+ * `department_id` (koordinatörlük süzgeci) sunucudadır; yanıt `total` + `role_counts` taşır.
+ * Boş/`null` alan anahtara girmez (varsayılan süzgeç anahtarı değişmez).
+ */
 export interface UserListFilters {
-  /** Sunucu `search` (yalnız ad, Türkçe katlamalı; E-05-07); boş/`null` → gönderilmez. */
+  /** Sunucu `search`: görünen ad (Türkçe katlamalı) ya da e-posta (BE-041); boş/`null` → gönderilmez. */
   search: string | null
   /** `sort_by=name` açıkça; yön (E-05-10). */
   sortOrder: SortOrder
+  /** Rol sekmesi (`company_admin` / "herhangi bir programda" K/Ü); `null` → süzgeçsiz. */
+  role?: UserRoleFilter | null
+  /** Koordinatörlük süzgeci için program (departman verilmişse o programda). */
+  programId?: string | null
+  /** Tek koordinatörlük (canlı departmanda ekip satırı olan hesaplar). */
+  departmentId?: string | null
 }
+
+/** Sekme sayaçlarını belirleyen süzgeçler (rol hariç). */
+export type UserCountFilters = Pick<UserListFilters, 'search' | 'programId' | 'departmentId'>
 
 export type SortOrder = 'asc' | 'desc'
 

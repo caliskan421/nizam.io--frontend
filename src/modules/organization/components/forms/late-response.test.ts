@@ -143,7 +143,12 @@ describe('W82c geç yanıt: sökülmüş pencere bildirim üretmez', () => {
   it('UserAccountActions (kilit aç; 409 account_not_locked)', async () => {
     const release = held('post', '/v1/admin/accounts/u1/unlock')
     const h = formsHarness(ADMIN_SCOPE)
-    const w = h.mount(UserAccountActions, { accountId: 'u1', name: 'Ayşe' })
+    const w = h.mount(UserAccountActions, {
+      accountId: 'u1',
+      name: 'Ayşe',
+      accountStatus: 'active',
+      loginLocked: true,
+    })
     await h.flush()
     click('[data-testid="account-unlock"]')
     await lateAfterUnmount(h, w, 'POST', '/v1/admin/accounts/u1/unlock', () =>

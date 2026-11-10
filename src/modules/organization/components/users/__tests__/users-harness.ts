@@ -12,6 +12,7 @@ import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
+import { isCompanyAdmin, serverRoleOf } from '../../../model/capabilities'
 import { http, json, knownUser, ORIGIN } from '../../../__tests__/harness'
 
 export const DEPARTMENTS = [
@@ -66,11 +67,29 @@ export function baseHandlers(fixture: StandingFixture = ADMIN_ME) {
   ]
 }
 
-/** `listUsers`: imleçsiz istek `first` (+ `next_cursor`), imleçli istek `next`. */
+/**
+ * `listUsers`: imleçsiz istek `first` (+ `next_cursor`), imleçli istek `next`. Yanıt sözleşmedeki
+ * `total` (iki sayfanın toplamı) ve `role_counts` (bütün kümenin "herhangi bir programda"
+ * sayıları) alanlarını taşır. Süzgeçleri uygulayan sözleşmeye sadık sürüm: `userListHandler`.
+ */
 export function usersHandler(first = USERS, nextCursor?: string, next: typeof USERS = []) {
+  const all = [...first, ...next]
+  const countRole = (role: string) =>
+    all.filter((u) => (u.memberships ?? []).some((m) => m.endsWith(`:${role}`))).length
+  const totals = {
+    total: all.length,
+    role_counts: {
+      all: all.length,
+      company_admin: all.filter((u) => isCompanyAdmin(u)).length,
+      koordinator: countRole(serverRoleOf('coordinator')),
+      uye: countRole(serverRoleOf('member')),
+    },
+  }
   return http.get(USERS_URL, ({ request }) => {
     const cursor = new URL(request.url).searchParams.get('cursor')
-    return cursor ? json({ users: next }) : json({ users: first, next_cursor: nextCursor })
+    return cursor
+      ? json({ users: next, ...totals })
+      : json({ users: first, next_cursor: nextCursor, ...totals })
   })
 }
 

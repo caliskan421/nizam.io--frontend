@@ -13,7 +13,23 @@ export interface NormalizedFieldError {
   field: string
   code: string
   messageKey: string
+  /**
+   * Sunucu `message` değeri — YALNIZ veri taşıyan alan kodlarında (`DATA_FIELD_CODES`): bu
+   * girdilerde `message` kullanıcı metni değil değerdir (hesap/departman kimliği, ad, bayrak).
+   * Kullanıcıya doğrudan gösterilmez; yalnız eylem değişkeni olarak kullanılır.
+   */
+  value?: string
 }
+
+/**
+ * `fields[].message` değerinin veri olduğu alan kodları (v0.15): aktarım teklifi
+ * (`createUser` 409) ve mevcut departman (`createDepartment` 409). Diğer kodlarda `message`
+ * taşınmaz (KESİN 7: sunucu metni gösterilmez).
+ */
+export const DATA_FIELD_CODES: ReadonlySet<string> = new Set([
+  'organization.transfer_available',
+  'organization.existing_department',
+])
 
 /**
  * Normalize edilmiş hata (C2 zarfı → istemci biçimi). Kullanıcı metni yalnız `messageKey`'den
@@ -99,7 +115,14 @@ export function normalizeErrorResponse(response: Response, body: unknown): ApiEr
   const fields = Array.isArray(body.fields)
     ? body.fields
         .filter((f) => typeof f?.code === 'string')
-        .map((f) => ({ field: f.field, code: f.code, messageKey: messageKeyFor(f.code) }))
+        .map((f) => ({
+          field: f.field,
+          code: f.code,
+          messageKey: messageKeyFor(f.code),
+          ...(DATA_FIELD_CODES.has(f.code) && typeof f.message === 'string'
+            ? { value: f.message }
+            : {}),
+        }))
     : []
   return new ApiError({
     code: body.code,

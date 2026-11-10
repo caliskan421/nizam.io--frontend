@@ -3,11 +3,14 @@
  * ve `provideUsersView` ile tabloya/panele verir (aynı sorgu, aynı sıralama durumu); bağlam yoksa
  * tablo kendi örneğini kurar (prop/emit sözleşmesi değişmez).
  *
- *  - Kaynak: süzgeç yokken şirket geneli `listUsers` (S1, imleçli, "Daha fazla yükle"); tek
- *    koordinatörlük seçiliyken YALNIZ o birimin `listMembers`'ı (tek istek, ≤200; fan-out yok —
- *    K3, P4) ve arama/sıralama o kümede istemcide. Silinmiş ekip satırları gösterilmez (P14).
- *  - Sıralama "kullanıcı ↑/↓" bellekte; yön değişince yeni anahtar → eski imleç kullanılmaz.
- *  - Rol sekmesi ve sayaçlar yüklenen kümede, seçili programın etiketlerinden (E-05-06).
+ *  - Kaynak TEK uç: şirket geneli `listUsers` (S1, imleçli, "Daha fazla yükle"). Rol sekmesi
+ *    (`role`), arama (`search`: ad ya da e-posta), koordinatörlük süzgeci (`program_id` +
+ *    `department_id`) ve sıralama SUNUCUDA (BE-011/041/042, v0.14); tek birim için ayrı
+ *    `listMembers` yoktur. Süzgeçsiz "Tümü" ekip satırsız hesapları da içerir (BE-045).
+ *  - Sayılar sunucudan: liste toplamı `total`, sekme sayaçları `role_counts` (ayrı `limit=1`
+ *    okumalar, bkz. `useUserCounts`); yüklenen satır sayılmaz. K/Ü sekmeleri seçili programa
+ *    daralır (`program_id`), Tümü/Admin şirket geneli kalır.
+ *  - Sıralama "kullanıcı ↑/↓" sunucuda; yön değişince yeni anahtar → eski imleç kullanılmaz.
  */
 import {
   computed,
@@ -15,7 +18,6 @@ import {
   provide,
   ref,
   toValue,
-  type ComputedRef,
   type InjectionKey,
   type MaybeRefOrGetter,
 } from 'vue'
@@ -23,25 +25,23 @@ import {
 import { toApiError } from '@/shared/errors/api-error'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { useDepartmentRoster, useProgramDepartmentIndex, useUserList } from '../../api'
-import type { UserRoleTab } from '../../model/capabilities'
-import type { SortOrder } from '../../model/types'
-import { useUserCacheIndex } from './use-user-cache'
+import { useProgramDepartmentIndex, useUserCounts, useUserList } from '../../api'
 import {
-  filterByTab,
-  rowFromRoster,
-  rowFromUser,
-  searchRows,
-  sortRows,
-  tabCounts,
-  type UserRow,
-} from './user-rows'
+  countsByTab,
+  isProgramScopedTab,
+  userRoleFilterOf,
+  type UserRoleTab,
+} from '../../model/capabilities'
+import type { SortOrder } from '../../model/types'
+import { rowFromUser, type UserRow } from './user-rows'
 
 export interface UsersViewInput {
   roleTab: UserRoleTab
   search: string
   departmentId: string | null
 }
+
+const NO_COUNTS: Record<UserRoleTab, number> = { tumu: 0, admin: 0, koordinator: 0, uye: 0 }
 
 export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
   const store = useScopeStore()
@@ -50,38 +50,47 @@ export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
   const departmentId = computed(() =>
     store.programId === null ? null : toValue(input).departmentId,
   )
-  const rosterMode = computed(() => departmentId.value !== null)
 
-  const list = useUserList(
-    () => ({ search: search.value || null, sortOrder: sortOrder.value }),
-    () => !rosterMode.value,
+  const tab = computed(() => toValue(input).roleTab)
+  // Tümü/Admin şirket geneli (ekip satırsız hesaplar dahil — BE-045; Admin şirket olgusu);
+  // Koordinatör/Üye seçili programın rolleri (`program_id` rol süzgecini o programa daraltır —
+  // G16): satırdaki etiketlerle aynı kapsam. Koordinatörlük süzgeci her zaman program+departman.
+  const scopedTab = computed(() => isProgramScopedTab(tab.value))
+  const programId = computed(() =>
+    departmentId.value !== null || scopedTab.value ? store.programId : null,
   )
-  const roster = useDepartmentRoster(departmentId, rosterMode)
+
+  const list = useUserList(() => ({
+    search: search.value || null,
+    sortOrder: sortOrder.value,
+    role: userRoleFilterOf(tab.value),
+    programId: programId.value,
+    departmentId: departmentId.value,
+  }))
   const departments = useProgramDepartmentIndex()
-  const cache = useUserCacheIndex()
 
-  const source = computed<UserRow[]>(() => {
-    const programId = store.programId
-    const id = departmentId.value
-    if (id === null || programId === null) {
-      return list.users.value.map((user) => rowFromUser(user, programId))
-    }
-    const members = roster.active.value.map((m) =>
-      rowFromRoster(m, programId, id, cache.value.get(m.account_id)),
-    )
-    return sortRows(searchRows(members, search.value), sortOrder.value)
-  })
+  // Sayaçlar sekmeden bağımsız ayrı okumalardan: sekme değişince titremez (`useUserCounts`).
+  const tabCounts = useUserCounts(() => ({
+    search: search.value || null,
+    programId: store.programId,
+    departmentId: departmentId.value,
+  }))
 
-  const status = viewStatus(rosterMode, list, roster, source)
+  const source = computed<UserRow[]>(() =>
+    list.users.value.map((user) => rowFromUser(user, store.programId)),
+  )
 
   return {
-    ...status,
+    ...viewStatus(list),
     sortOrder,
-    rosterMode,
     departments,
     source,
-    rows: computed(() => filterByTab(source.value, toValue(input).roleTab)),
-    counts: computed(() => tabCounts(source.value)),
+    rows: source,
+    /** Süzgeçlere uyan toplam hesap (sunucu `total`); yüklenmediyse `null`. */
+    total: list.total,
+    counts: computed(() =>
+      tabCounts.counts.value ? countsByTab(tabCounts.counts.value) : NO_COUNTS,
+    ),
     loadMore: () => void list.query.fetchNextPage(),
     toggleSort: () => {
       sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -90,37 +99,24 @@ export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
   }
 }
 
-/** Yükleniyor / hata / tamlık / sayfalama durumu (etkin kaynağa göre). */
-function viewStatus(
-  rosterMode: ComputedRef<boolean>,
-  list: ReturnType<typeof useUserList>,
-  roster: ReturnType<typeof useDepartmentRoster>,
-  source: ComputedRef<UserRow[]>,
-) {
-  const active = computed(() => (rosterMode.value ? roster.query : list.query))
+/** Yükleniyor / hata / tamlık / sayfalama durumu. */
+function viewStatus(list: ReturnType<typeof useUserList>) {
+  const query = list.query
   return {
-    loading: computed(() => active.value.isPending.value),
+    loading: computed(() => query.isPending.value),
     loadError: computed(() =>
-      active.value.isError.value && source.value.length === 0
-        ? toApiError(active.value.error.value)
-        : null,
+      query.isError.value && list.users.value.length === 0 ? toApiError(query.error.value) : null,
     ),
     nextError: computed(() =>
-      !rosterMode.value && list.query.isFetchNextPageError.value
-        ? toApiError(list.query.error.value)
-        : null,
+      query.isFetchNextPageError.value ? toApiError(query.error.value) : null,
     ),
-    /** İmleç bitti / tek birim okundu ve sunucu kesmedi: sayılar kesin (§10; CX-F2-K-03). */
-    complete: computed(() =>
-      rosterMode.value
-        ? roster.query.data.value !== undefined && !roster.truncated.value
-        : list.complete.value,
-    ),
-    truncated: computed(() => (rosterMode.value ? roster.truncated.value : list.truncated.value)),
-    hasMore: computed(() => !rosterMode.value && list.query.hasNextPage.value === true),
-    loadingMore: computed(() => !rosterMode.value && list.query.isFetchingNextPage.value),
-    retrying: computed(() => active.value.isFetching.value),
-    retry: () => void active.value.refetch(),
+    /** İmleç bitti ve sunucu kesmedi: yüklenen küme listenin tamamıdır (§10; CX-F2-K-03). */
+    complete: list.complete,
+    truncated: list.truncated,
+    hasMore: computed(() => query.hasNextPage.value === true),
+    loadingMore: computed(() => query.isFetchingNextPage.value),
+    retrying: computed(() => query.isFetching.value),
+    retry: () => void query.refetch(),
   }
 }
 

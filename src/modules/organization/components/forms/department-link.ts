@@ -2,7 +2,8 @@
  * "Bu programa ekle" (`linkDepartment`, S2, ŞY): `department_exists` eşleşmesinde ya da kısmi
  * başarıda (katalog kaydı kaldı, bağ kurulamadı — E-08-05) yeniden sunulan adım. Yeni kullanıcı
  * eylemidir (düğme). Programdaki ad isteğe bağlı (boş → katalog adı); 409
- * `program.department_link_name_exists` → ad alanına. Bağ sunucuda idempotenttir.
+ * `program.department_link_name_exists` → ad alanına. Bağ sunucuda idempotenttir; istek
+ * isteğe bağlı `Idempotency-Key` taşır, sonuç bilinmiyorsa aynı anahtarla tek tekrar (BE-050).
  */
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
@@ -11,7 +12,7 @@ import { useScopeStore } from '@/shared/scope/store'
 
 import { useLinkDepartment } from '../../api'
 import { LINK_NAME_CODES, linkSchema } from './department-schema'
-import type { DepartmentFormContext, LinkTarget } from './department-types'
+import type { AnyOutcome, DepartmentFormContext, LinkTarget } from './department-types'
 import { serverFieldErrors, toTypedSchema } from './form-kit'
 import { orgText } from './messages'
 
@@ -39,17 +40,8 @@ export function useLinkStep(ctx: DepartmentFormContext) {
     form.resetForm({ values: { displayName: '' } })
   }
 
-  const handle = form.handleSubmit(async (values) => {
-    const programId = store.snapshot.programId
-    const chosen = target.value
-    if (!programId || !chosen) return
-    ctx.clearNotice()
-    const displayName = values.displayName.trim()
-    const outcome = await mutation.submit({
-      programId,
-      departmentId: chosen.departmentId,
-      ...(displayName ? { displayName } : {}),
-    })
+  /** Sonuç işleme (ilk gönderim ve "Yeniden gönder" sonrası ortak). */
+  function settle(outcome: AnyOutcome, chosen: LinkTarget): void {
     if (!ctx.dialog.alive() || outcome.kind === 'owner_disposed') return
     if (outcome.kind === 'success') {
       return ctx.done(orgText('forms.department.link.done'), chosen.departmentId)
@@ -62,7 +54,24 @@ export function useLinkStep(ctx: DepartmentFormContext) {
       )
       if (found.displayName) return form.setErrors(found)
     }
-    ctx.report(outcome)
+    ctx.report(outcome, (next) => settle(next, chosen))
+  }
+
+  const handle = form.handleSubmit(async (values) => {
+    const programId = store.snapshot.programId
+    const chosen = target.value
+    if (!programId || !chosen) return
+    ctx.clearNotice()
+    const displayName = values.displayName.trim()
+    // Bağ isteği kullanıcı eylemi başına yeni `Idempotency-Key` alır (BE-050).
+    settle(
+      await mutation.submit({
+        programId,
+        departmentId: chosen.departmentId,
+        ...(displayName ? { displayName } : {}),
+      }),
+      chosen,
+    )
   })
 
   return {

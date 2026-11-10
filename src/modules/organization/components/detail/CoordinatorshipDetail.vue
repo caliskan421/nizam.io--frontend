@@ -9,19 +9,20 @@ import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiEmptyState, UiErrorState } from '@/shared/ui'
 
-import { useCoordinatorships } from '../../api'
+import { useOrganizationDashboard, useProgramDepartment } from '../../api'
 import { can, organizationFacts } from '../../model/capabilities'
-import { findCoordinatorship } from '../../model/coordinatorships'
+import type { CoordinatorshipView } from '../../model/types'
 import { COORDINATORSHIPS_ROUTE } from '../../routes'
 import type { CoordinatorshipDetailEmits, CoordinatorshipDetailProps } from '../index'
 import DetailBody from './DetailBody.vue'
 import { detailText } from './messages'
 
 /**
- * W73 · 08b gövdesi (E-08-50…90). Tek departman okuma ucu yok (BE-049): birim, seçili programın
- * `listProgramDepartments` listesinden seçilir; şirket yöneticisinde rapor (`reportDashboard`,
- * 08 ile AYNI anahtar) aynı birleşimden istatistiği verir — birim başına istek yok (K3).
- * Listede yoksa "Bu koordinatörlük seçili programda yok" (derin bağlantı / kapsam değişimi).
+ * W73 · 08b gövdesi (E-08-50…90). Birim `readProgramDepartment` ile TEK istekte okunur (BE-049,
+ * v0.14: programdaki ad, kod, açıklama, tür; liste 200 tavanına ve listenin yüklenmesine bağlı
+ * değil); şirket yöneticisinde rapor (`reportDashboard`, 08 ile AYNI anahtar) istatistiği verir —
+ * birim başına rapor isteği yok (K3). 404 `program.department_not_found` ya da kapsam değişimi:
+ * "Bu koordinatörlük seçili programda yok" (derin bağlantı).
  * Birimin ekibi ve görevleri (`listMembers`, `listProgramWorkItems?department_id=`) yalnız birim
  * bulunduktan sonra `DetailBody` içinde okunur (bulunamayan birim için istek yok).
  */
@@ -34,16 +35,31 @@ const facts = computed(() =>
   organizationFacts(standing.value, store.programId, { departmentId: props.departmentId }),
 )
 const readReport = computed(() => can('readReport', facts.value))
-const data = useCoordinatorships(readReport)
+const detail = useProgramDepartment(() => props.departmentId)
+const report = useOrganizationDashboard(readReport)
 
-const view = computed(() => findCoordinatorship(data.views.value, props.departmentId))
-const listError = computed(() =>
-  data.departments.isError.value ? toApiError(data.departments.error.value) : null,
+const view = computed<CoordinatorshipView | null>(() => {
+  const department = detail.department.value
+  if (!department) return null
+  const stat =
+    report.data.value?.coordinatorship_stats?.find(
+      (s) => s.department_id === department.department_id,
+    ) ?? null
+  return {
+    departmentId: department.department_id,
+    displayName: department.display_name,
+    code: department.code ?? null,
+    description: department.description ?? null,
+    stat,
+  }
+})
+const loadError = computed(() =>
+  detail.query.isError.value && !detail.missing.value ? toApiError(detail.query.error.value) : null,
 )
 const back = { name: COORDINATORSHIPS_ROUTE.name }
 
 function retry(): void {
-  void data.departments.refetch()
+  void detail.query.refetch()
 }
 </script>
 
@@ -52,15 +68,15 @@ function retry(): void {
     <DetailBody
       v-if="view"
       :view="view"
-      :dashboard="data.dashboard.data.value ?? null"
-      :dashboard-error="data.dashboard.isError.value"
-      :report-loading="readReport && data.dashboard.isPending.value"
+      :dashboard="report.data.value ?? null"
+      :dashboard-error="report.isError.value"
+      :report-loading="readReport && report.isPending.value"
       :tab="tab"
       @update:tab="emit('update:tab', $event)"
     />
     <div v-else class="cd-state">
       <div
-        v-if="data.departments.isPending.value"
+        v-if="detail.query.isPending.value"
         class="cd-skeleton"
         role="status"
         :aria-label="detailText('coordinatorship.page.loading')"
@@ -70,11 +86,11 @@ function retry(): void {
         <span class="cd-skel cd-skel--title" />
       </div>
       <UiErrorState
-        v-else-if="listError"
-        :error="listError"
+        v-else-if="loadError"
+        :error="loadError"
         :title="detailText('coordinatorship.page.error')"
         retryable
-        :retrying="data.departments.isFetching.value"
+        :retrying="detail.query.isFetching.value"
         data-state="error"
         @retry="retry"
       />
@@ -82,11 +98,7 @@ function retry(): void {
         v-else
         icon="coords"
         :title="detailText('coordinatorship.page.missingTitle')"
-        :text="
-          data.departmentsTruncated.value
-            ? detailText('coordinatorship.page.truncated')
-            : detailText('coordinatorship.page.missingText')
-        "
+        :text="detailText('coordinatorship.page.missingText')"
         data-state="missing"
       >
         <template #action>

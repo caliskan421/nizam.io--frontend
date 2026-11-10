@@ -1,9 +1,8 @@
 /**
- * Önbellekteki `listUsers` kayıtlarının dizini (hesap kimliği → `KnownUser`). Tekil kullanıcı
- * okuma ucu yoktur (BE-043): yan panel ve koordinatörlük süzgecindeki satırlar kişiyi yalnız
- * yüklenmiş liste sayfalarından tanır. İstek atmaz; önbellek değiştikçe yeniden hesaplanır.
+ * Önbellekteki kullanıcı kayıtlarının dizini (hesap kimliği → `KnownUser`): yüklenmiş `listUsers`
+ * sayfaları ve `readUser` sonuçları (BE-043). İstek atmaz; önbellek değiştikçe yeniden hesaplanır.
  */
-import { useQueryClient, type InfiniteData } from '@tanstack/vue-query'
+import { useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref } from 'vue'
 
 import { queryKeys } from '@/shared/http/query-keys'
@@ -32,16 +31,28 @@ export function useUserCacheIndex() {
   return computed(() => {
     void version.value
     const index = new Map<string, KnownUser>()
-    const cached = queryClient.getQueriesData<InfiniteData<UserPage>>({
-      queryKey: queryKeys.users.all(),
-    })
-    for (const [, data] of cached) {
-      for (const page of Array.isArray(data?.pages) ? data.pages : []) {
-        for (const user of page.page.users ?? []) {
-          if (!index.has(user.account_id)) index.set(user.account_id, user)
-        }
+    return collectCachedUsers(queryClient, index)
+  })
+}
+
+/** Önbellekteki liste sayfaları + tekil okumalar (`readUser`) → hesap kimliğine göre kayıt. */
+export function collectCachedUsers(
+  queryClient: QueryClient,
+  index = new Map<string, KnownUser>(),
+): Map<string, KnownUser> {
+  const cached = queryClient.getQueriesData<InfiniteData<UserPage> | KnownUser>({
+    queryKey: queryKeys.users.all(),
+  })
+  for (const [, data] of cached) {
+    if (data && 'account_id' in data) {
+      if (!index.has(data.account_id)) index.set(data.account_id, data)
+      continue
+    }
+    for (const page of Array.isArray(data?.pages) ? data.pages : []) {
+      for (const user of page.page.users ?? []) {
+        if (!index.has(user.account_id)) index.set(user.account_id, user)
       }
     }
-    return index
-  })
+  }
+  return index
 }

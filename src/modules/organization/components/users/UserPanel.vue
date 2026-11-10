@@ -7,7 +7,7 @@ import { RouterLink } from 'vue-router'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiAvatar, UiIcon, UiIconButton } from '@/shared/ui'
 
-import { useProgramDepartmentIndex, useUserList } from '../../api'
+import { useProgramDepartmentIndex, useUser } from '../../api'
 import { userLocation } from '../../routes'
 import type { UserPanelEmits, UserPanelProps } from '../index'
 import { usersText } from './messages'
@@ -21,8 +21,7 @@ import UserTaskStrip from './UserTaskStrip.vue'
 
 /**
  * W75 · E-05-25…38 — yan panel (05) ve 05b "Hesap ve roller" sekmesi (`embedded`, kapat yok).
- * Tekil kullanıcı okuma ucu yok (BE-043): kişi sayfanın görünümünden ya da önbellekteki
- * `listUsers` sayfalarından; gömülüyken bulunamazsa ilk liste sayfası okunur (yine yoksa bilgi).
+ * Kişi sayfanın görünümünden ya da önbellekten; yoksa `readUser` (BE-043) okunur (404 → bilgi).
  * Çipler ve hesap eylemleri anında, kendi onay/sonucuyla (P12); "Vazgeç"/"Kaydet" yok
  * (E-05-37/38). Görünürlük `capabilities.ts`; kendi hesabında yıkıcı eylem gizli.
  */
@@ -40,14 +39,13 @@ const row = computed(() => {
   const cached = cache.value.get(props.accountId)
   return cached ? rowFromUser(cached, store.programId) : null
 })
-// Gömülü (05b) ve önbellekte yoksa: varsayılan ilk liste sayfası (05 ile aynı anahtar).
-const fallback = useUserList(
-  { search: null, sortOrder: 'asc' },
-  () => props.embedded && row.value === null,
+// Satır ne listede ne önbellekte: tek kullanıcı okuması (`readUser`, BE-043); sonuç önbellek
+// dizinine düşer ve `row` kendiliğinden dolar.
+const fallback = useUser(
+  () => props.accountId,
+  () => row.value === null,
 )
-const searching = computed(
-  () => props.embedded && row.value === null && fallback.query.isPending.value,
-)
+const searching = computed(() => row.value === null && fallback.query.isPending.value)
 
 const subline = computed(() => {
   if (!row.value) return ''
@@ -70,6 +68,17 @@ const subline = computed(() => {
       <div class="users-panel__who">
         <h2 class="users-panel__name rp-trunc">{{ row?.fullName ?? '—' }}</h2>
         <p class="rp-cap rp-trunc" data-testid="panel-subline">{{ subline }}</p>
+        <p v-if="row" class="rp-cap rp-trunc" data-testid="panel-email">{{ row.email }}</p>
+        <p
+          v-if="row && row.accountStatus === 'disabled'"
+          class="rp-cap"
+          data-testid="panel-disabled"
+        >
+          {{ usersText('users.panel.account.statusDisabled') }}
+        </p>
+        <p v-if="row && row.loginLocked" class="rp-cap" data-testid="panel-locked">
+          {{ usersText('users.panel.account.statusLocked') }}
+        </p>
       </div>
       <UiIconButton
         v-if="!embedded"
@@ -93,12 +102,18 @@ const subline = computed(() => {
         <span class="rp-trunc">{{ usersText('users.panel.profile') }}</span>
         <UiIcon name="arrow-right" size="sm" />
       </RouterLink>
-      <UserRoleCards :labels="row.labels" />
+      <UserRoleCards
+        :account-id="accountId"
+        :company-admin="row.companyAdmin"
+        :labels="row.labels"
+      />
       <UserChips :account-id="accountId" :labels="row.labels" />
       <hr class="rp-hairline" />
       <UserAccountActions
         :account-id="accountId"
         :name="row.fullName"
+        :account-status="row.accountStatus"
+        :login-locked="row.loginLocked"
         @deleted="emit('deleted', $event)"
       />
     </template>

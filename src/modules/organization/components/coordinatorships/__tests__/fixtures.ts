@@ -37,5 +37,5 @@ export function view(
   code: string | null,
   s: CoordinatorshipStat | null = stat(departmentId),
 ): CoordinatorshipView {
-  return { departmentId, displayName, code, stat: s }
+  return { departmentId, displayName, code, description: s?.description ?? null, stat: s }
 }

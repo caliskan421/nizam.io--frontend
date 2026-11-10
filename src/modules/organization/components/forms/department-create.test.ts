@@ -21,7 +21,13 @@ afterAll(() => server.close())
 
 const CATALOG = `${ORIGIN}/v1/departments`
 const LINKS = `${ORIGIN}/v1/program/departments`
-const DELETED = `${ORIGIN}/v1/admin/deleted/departments`
+
+/** 409 `department_exists` + mevcut departman girdileri (v0.15, BE-050). */
+const existsEnvelope = (id: string, deleted: boolean) =>
+  errorEnvelope('organization.department_exists', 409, [
+    { field: 'department_id', code: 'organization.existing_department', message: id },
+    { field: 'deleted', code: 'organization.existing_department', message: String(deleted) },
+  ])
 
 const created = (id = 'dn', name = 'Yazılım') => ({
   department_id: id,
@@ -79,7 +85,7 @@ describe('DepartmentForm — yeni koordinatörlük (E-08-05)', () => {
     expect(sent('POST', '/v1/departments')).toHaveLength(0)
   })
 
-  it('oluştur → bağla: kod büyük harf, bağ program başlığıyla; saved + kapanış; anahtarsız', async () => {
+  it('oluştur → bağla: kod büyük harf, bağ program başlığıyla; saved + kapanış; her adım Idempotency-Key ile', async () => {
     server.use(
       http.post(CATALOG, () => json(created(), 201)),
       http.post(LINKS, () => json(linkResult(), 201)),
@@ -95,8 +101,8 @@ describe('DepartmentForm — yeni koordinatörlük (E-08-05)', () => {
     expect(create!.headers.get('X-Nizamio-Program')).toBeNull()
     expect(link!.body).toEqual({ department_id: 'dn' })
     expect(link!.headers.get('X-Nizamio-Program')).toBe('p1')
-    expect(create!.headers.get('Idempotency-Key')).toBeNull()
-    expect(link!.headers.get('Idempotency-Key')).toBeNull()
+    expect(create!.headers.get('Idempotency-Key')).toMatch(/^[A-Za-z0-9_-]{22}$/)
+    expect(link!.headers.get('Idempotency-Key')).toMatch(/^[A-Za-z0-9_-]{22}$/)
     expect(wrapper.emitted('update:open')).toEqual([[false]])
     expect(toasts()).toContain('Koordinatörlük oluşturuldu ve programa eklendi.')
   })
@@ -150,15 +156,9 @@ describe('DepartmentForm — yeni koordinatörlük (E-08-05)', () => {
     expect(sent('POST', '/v1/program/departments')).toHaveLength(0)
   })
 
-  it('409 department_exists → katalogda tr-katlamalı eşleşme → "Bu programa ekle" mevcut kimlikle', async () => {
+  it('409 department_exists → zarftaki kimlikle "Bu programa ekle"; katalog/silinmiş listesi okunmaz (BE-050)', async () => {
     server.use(
-      http.post(CATALOG, () => errorEnvelope('organization.department_exists', 409)),
-      http.get(CATALOG, () =>
-        json({
-          departments: [{ department_id: 'd-old', name: 'YAZILIM', kind: 'koordinatorluk' }],
-        }),
-      ),
-      http.get(DELETED, () => json({ departments: [], next_cursor: '' })),
+      http.post(CATALOG, () => existsEnvelope('d-old', false)),
       http.post(LINKS, () => json(linkResult('d-old', 'YAZILIM'), 201)),
     )
     const { wrapper } = await openForm()
@@ -166,7 +166,7 @@ describe('DepartmentForm — yeni koordinatörlük (E-08-05)', () => {
     click('[data-testid="of-submit"]')
     await vi.waitFor(() =>
       expect($('[data-testid="of-exists"]')?.textContent).toContain(
-        'Mevcut "YAZILIM" departmanını bu programa ekleyebilirsiniz.',
+        'Mevcut "yazılım" departmanını bu programa ekleyebilirsiniz.',
       ),
     )
     click('[data-testid="of-link-submit"]')
@@ -175,22 +175,16 @@ describe('DepartmentForm — yeni koordinatörlük (E-08-05)', () => {
     await vi.waitFor(() => expect(link!.body).toBeDefined())
     expect(link!.body).toEqual({ department_id: 'd-old' })
     expect(sent('POST', '/v1/departments')).toHaveLength(1)
+    expect(sent('GET', '/v1/departments')).toHaveLength(0)
+    expect(sent('GET', '/v1/admin/deleted/departments')).toHaveLength(0)
   })
 
   it('department_exists: bu programda zaten varsa bilgi; silinmişse geri yükleme notu; bağ düğmesi yok', async () => {
     server.use(
-      http.post(CATALOG, () => errorEnvelope('organization.department_exists', 409)),
-      http.get(CATALOG, () =>
-        json({ departments: [{ department_id: 'd1', name: 'Yazılım', kind: 'koordinatorluk' }] }),
-      ),
-      http.get(DELETED, () =>
-        json({
-          departments: [
-            { department_id: 'dx', name: 'Mekanik', kind: 'koordinatorluk', deleted_at: '' },
-          ],
-          next_cursor: '',
-        }),
-      ),
+      http.post(CATALOG, async ({ request }) => {
+        const { name } = (await request.json()) as { name: string }
+        return name === 'Mekanik' ? existsEnvelope('dx', true) : existsEnvelope('d1', false)
+      }),
     )
     await openForm([{ id: 'd1', name: 'Yazılım (2026)' }])
     await fill('Yazılım')
@@ -212,15 +206,27 @@ describe('DepartmentForm — yeni koordinatörlük (E-08-05)', () => {
     expect($('[data-testid="of-link"]')).toBeNull()
   })
 
-  it('sonuç bilinmiyor → kör tekrar yok; bağ adımı gönderilmez; çift tık tek istek', async () => {
-    server.use(http.post(CATALOG, () => HttpResponse.error()))
-    await openForm()
+  it('sonuç bilinmiyor → "Yeniden gönder" AYNI anahtar + gövdeyle; çözülünce bağ adımı sürer; çift tık tek istek', async () => {
+    let calls = 0
+    server.use(
+      http.post(CATALOG, () => (++calls === 1 ? HttpResponse.error() : json(created(), 200))),
+      http.post(LINKS, () => json(linkResult(), 201)),
+    )
+    const { wrapper } = await openForm()
     await fill()
     click('[data-testid="of-submit"]')
     click('[data-testid="of-submit"]')
     await vi.waitFor(() => expect($('[data-testid="outcome-notice"]')).not.toBeNull())
-    expect($('[data-testid="outcome-retry"]')).toBeNull()
     expect(sent('POST', '/v1/departments')).toHaveLength(1)
     expect(sent('POST', '/v1/program/departments')).toHaveLength(0)
+
+    click('[data-testid="outcome-retry"]')
+    await vi.waitFor(() => expect(wrapper.emitted('saved')).toEqual([['dn']]))
+    const posts = sent('POST', '/v1/departments')
+    expect(posts).toHaveLength(2)
+    expect(posts[1]!.headers.get('Idempotency-Key')).toBe(posts[0]!.headers.get('Idempotency-Key'))
+    expect(posts[1]!.body).toEqual(posts[0]!.body)
+    await vi.waitFor(() => expect(sent('POST', '/v1/program/departments')).toHaveLength(1))
+    expect(toasts()).toContain('Koordinatörlük oluşturuldu ve programa eklendi.')
   })
 })
