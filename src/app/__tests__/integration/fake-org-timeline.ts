@@ -3,16 +3,24 @@
 // okuma GERÇEK sunucu durumunu görür. Sözleşme sadakati (pinli spec, 03c `backend.md`):
 //  - Üç yüz yetkiyi çağıranın belirtecinden hesaplar: `adminGantt` (S2) yalnız yönetici,
 //    `coordinatorGantt` (S3) yönetici ya da birimin koordinatörü, `memberGantt` (S3) birimde ekip
-//    satırı olan hesap ve yalnız kendisine atananlar. İlk 200 kalem; kesilme sinyali yok (BE-019).
+//    satırı olan hesap ve yalnız kendisine atananlar. İlk 200 kalem; kesilme yalnız
+//    `X-Result-Truncated: true` başlığıyla bildirilir (BE-019; tam 200 kalemde başlık YOK).
+//    Satır `dates_revision`, `pending_date_request` (üye yüzünde yalnız yönetici/koordinatöre dolu),
+//    `subtask_counts` taşır (BE-051/052/053; pin v0.15.0-api).
 //  - Tarih yazımı `expected_dates_revision` ister; sürüm uyuşmazsa 409 `work.edit_conflict`.
-//    Uzatma (`extend`) sürüm taşımaz. Bağımlıları zincirle öteler (`cascade_count`).
+//    Uzatma (`extend`) ve talep açma isteğe bağlı `expected_dates_revision` alır (BE-056); uzatma
+//    yanıtı `dates_revision` + `replayed` taşır. Bağımlıları zincirle öteler (`cascade_count`).
 //  - Tarih talebi yalnız birimin KOORDİNATÖRÜNDEN açılır (yönetici tek başına 403); görevde
 //    bekleyen talep varsa 409 `work.date_request_pending_exists`; onay/red yalnız yönetici.
 //  - Uzatma `days` tamsayı 1–90; dışı 422 `work.input_invalid` (alan kodu `work.extend_days_out_of_range`).
 //    Bağımlılık ekleme: bağımlı başlangıç < ön görev bitişi → 422 `work.input_invalid` (alan kodu
 //    `work.dependency_date_order`); silme 200 `StatusResult` (pin v0.11.0-api).
-//  - Anahtar (`Idempotency-Key`) hiçbir tarih/talep/bağımlılık ucunda yoktur.
-import { http } from 'msw'
+//  - `Idempotency-Key` yalnız `extend` ve `requestDateChange`'de (isteğe bağlı, 22–200 bayt; geçersiz
+//    422 `work.input_invalid` alan `idempotency_key` kodu `work.request_key_invalid`): aynı anahtar +
+//    aynı istek 200 + ilk sonuç (`replayed:true`), farklı istek 409 `work.idempotency_key_reused`.
+//    Başka tarih/bağımlılık uçlarında anahtar yoktur. Sınama kancaları: `dropNextResponse(db)`
+//    sonraki extend/talep yanıtını ağ hatasına çevirir (istek UYGULANIR; sonuç bilinmiyor).
+import { http, HttpResponse } from 'msw'
 
 import {
   envelope,
@@ -34,6 +42,81 @@ export function addDays(iso: string, days: number): string {
   return new Date(Date.parse(iso) + days * DAY_MS).toISOString().slice(0, 10)
 }
 
+interface Stored {
+  fingerprint: string
+  status: number
+  body: Record<string, unknown>
+}
+/** Anahtar → ilk sonuç (aktör + uç kapsamı: anahtar ucu ve hesabı içerir). */
+const KEYS = new WeakMap<OrgDb, Map<string, Stored>>()
+/** Sınama kancası: sonraki extend/talep yanıtı ağ hatasına çevrilir (istek UYGULANMIŞTIR). */
+const DROP_NEXT = new WeakMap<OrgDb, number>()
+
+/** Sonraki `count` extend/talep yanıtını düşürür (sonuç bilinmiyor senaryosu). */
+export function dropNextResponses(db: OrgDb, count = 1): void {
+  DROP_NEXT.set(db, count)
+}
+
+const KEY_BYTES = /^.{22,200}$/
+
+/**
+ * `Idempotency-Key` işleyicisi (isteğe bağlı anahtar; ADR-0027). Anahtarsız istek `apply`'ı
+ * doğrudan çalıştırır. Aynı anahtar + aynı istek ilk sonucu `replayed`/200 ile döndürür; farklı
+ * istek 409 `work.idempotency_key_reused`; geçersiz uzunluk 422 `work.request_key_invalid`.
+ */
+function keyed(
+  db: OrgDb,
+  request: Request,
+  scope: string,
+  fingerprint: string,
+  apply: () => Response | Stored,
+  replayShape: (stored: Stored) => Record<string, unknown>,
+): Response {
+  const key = request.headers.get('Idempotency-Key')?.trim() ?? null
+  if (key !== null && !KEY_BYTES.test(key)) return invalidKey()
+  const store = KEYS.get(db) ?? new Map<string, Stored>()
+  KEYS.set(db, store)
+  const slot = key === null ? null : `${scope}:${key}`
+  const seen = slot === null ? undefined : store.get(slot)
+  if (seen) return replayOf(seen, fingerprint, replayShape)
+  const result = apply()
+  if (result instanceof Response) return result
+  if (slot !== null) store.set(slot, { ...result, fingerprint })
+  return dropped(db) ? HttpResponse.error() : json(result.body, result.status)
+}
+
+/** Aynı anahtar: aynı istek ilk sonucu (tekrar), farklı istek 409 `work.idempotency_key_reused`. */
+function replayOf(
+  seen: Stored,
+  fingerprint: string,
+  replayShape: (stored: Stored) => Record<string, unknown>,
+): Response {
+  return seen.fingerprint === fingerprint
+    ? json(replayShape(seen))
+    : envelope('work.idempotency_key_reused', 409)
+}
+
+function invalidKey(): Response {
+  return envelope('work.input_invalid', 422, [
+    { field: 'idempotency_key', code: 'work.request_key_invalid' },
+  ])
+}
+
+/** Sınama kancası: bekleyen düşürme varsa bir hak harcar. */
+function dropped(db: OrgDb): boolean {
+  const left = DROP_NEXT.get(db) ?? 0
+  if (left > 0) DROP_NEXT.set(db, left - 1)
+  return left > 0
+}
+
+/** Bayat `expected_dates_revision` → 409 `work.edit_conflict` (yoksa `null`). */
+function staleRevision(found: Item, expected: number | undefined): Response | null {
+  if (expected === undefined || expected === found.dates_revision) return null
+  return envelope('work.edit_conflict', 409, [
+    { field: 'expected_dates_revision', code: 'work.edit_conflict' },
+  ])
+}
+
 const departmentOf = (request: Request) => request.headers.get('X-Nizamio-Department') ?? ''
 
 function lateness(i: Item) {
@@ -47,9 +130,16 @@ function lateness(i: Item) {
   }
 }
 
-/** `GanttTask` şekli: yalnız sözleşmedeki alanlar (kod, atanan adı, talep, sürüm YOK). */
-function ganttTask(i: Item) {
+/** `GanttTask` şekli: yalnız sözleşmedeki alanlar (kod ve atanan adı YOK). */
+function ganttTask(db: OrgDb, i: Item, seesRequest: boolean) {
+  const subtasks = db.subtasks[i.work_item_id] ?? []
   return {
+    dates_revision: Number(i.dates_revision ?? 1),
+    pending_date_request: seesRequest ? (i.pending_date_request ?? null) : null,
+    subtask_counts: {
+      total: subtasks.length,
+      done: subtasks.filter((s) => s.done === true).length,
+    },
     work_item_id: i.work_item_id,
     title: i.title,
     program_id: i.program_id,
@@ -66,12 +156,12 @@ function ganttTask(i: Item) {
 }
 
 /** Bağ yalnız iki ucu da listelenen görevler arasında döner (WORK-K36). */
-function ganttOf(db: OrgDb, items: Item[]) {
+function ganttOf(db: OrgDb, items: Item[], seesRequest: boolean) {
   const listed = items.slice(0, GANTT_CAP)
   const ids = new Set(listed.map((i) => i.work_item_id))
   const departmentOf = new Map(listed.map((i) => [i.work_item_id, i.department_id]))
   return {
-    tasks: listed.map(ganttTask),
+    tasks: listed.map((i) => ganttTask(db, i, seesRequest)),
     links: db.dependencies
       .filter((d) => ids.has(d.work_item_id) && ids.has(d.depends_on_work_item_id))
       .map((d) => ({
@@ -84,6 +174,16 @@ function ganttOf(db: OrgDb, items: Item[]) {
   }
 }
 
+/** Gantt yanıtı: 200'den fazla kalem varsa `X-Result-Truncated: true` (tam 200'de başlık yok). */
+function ganttJson(db: OrgDb, items: Item[], seesRequest: boolean) {
+  const truncated = items.length > GANTT_CAP
+  return json(
+    ganttOf(db, items, seesRequest),
+    200,
+    truncated ? { 'X-Result-Truncated': 'true' } : {},
+  )
+}
+
 const programItems = (db: OrgDb, program: string) =>
   db.items.filter((i) => i.program_id === program)
 
@@ -93,7 +193,7 @@ function ganttReads(db: OrgDb) {
       const me = o.actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)
       if (!me.admin) return envelope('work.not_authorized', 403)
-      return json(ganttOf(db, programItems(db, o.programOf(request))))
+      return ganttJson(db, programItems(db, o.programOf(request)), true)
     }),
     http.get(`${ORIGIN}/v1/work-items/gantt`, ({ request }) => {
       const me = o.actorOf(db, request)
@@ -104,7 +204,7 @@ function ganttReads(db: OrgDb) {
         return envelope('work.not_authorized', 403)
       }
       const items = programItems(db, program).filter((i) => i.department_id === department)
-      return json(ganttOf(db, items))
+      return ganttJson(db, items, true)
     }),
     http.get(`${ORIGIN}/v1/work-items/gantt/mine`, ({ request }) => {
       const me = o.actorOf(db, request)
@@ -117,7 +217,9 @@ function ganttReads(db: OrgDb) {
       const mine = programItems(db, program).filter(
         (i) => i.department_id === department && i.assignee_account_ids.includes(me.account_id),
       )
-      return json(ganttOf(db, mine))
+      const seesRequest =
+        me.admin || o.teamIn(db, me.account_id, program, department) === 'coordinator'
+      return ganttJson(db, mine, seesRequest)
     }),
   ]
 }
@@ -161,6 +263,49 @@ function cascade(db: OrgDb, changed: Item, seen = new Set<string>()): number {
   return moved
 }
 
+function extendHandler(db: OrgDb) {
+  return http.post(`${ORIGIN}/v1/work-items/:id/extend`, async ({ request, params }) => {
+    const me = o.actorOf(db, request)
+    const found = itemOf(db, params.id)
+    if (!me) return envelope('platform.unauthenticated', 401)
+    if (!found) return envelope('work.item_not_found', 404)
+    if (!manages(db, me, found)) return envelope('work.not_authorized', 403)
+    const body = (await request.json()) as { days: unknown; expected_dates_revision?: number }
+    const { days } = body
+    const fingerprint = JSON.stringify([found.work_item_id, days, body.expected_dates_revision])
+    return keyed(
+      db,
+      request,
+      `extend:${me.account_id}`,
+      fingerprint,
+      () => {
+        if (found.status === 'tamamlandi') return envelope('work.item_completed', 409)
+        // Pin (ExtendRequest): tamsayı 1–90; aksi 422 `work.input_invalid` + alan kodu.
+        if (
+          !Number.isInteger(days) ||
+          (days as number) < EXTEND_MIN ||
+          (days as number) > EXTEND_MAX
+        ) {
+          return envelope('work.input_invalid', 422, [
+            { field: 'days', code: 'work.extend_days_out_of_range' },
+          ])
+        }
+        const stale = staleRevision(found, body.expected_dates_revision)
+        if (stale) return stale
+        found.end_on = addDays(found.end_on as string, days as number)
+        bump(found)
+        const result = { cascade_count: cascade(db, found), new_end_on: found.end_on }
+        return {
+          fingerprint,
+          status: 200,
+          body: { ...result, dates_revision: found.dates_revision, replayed: false },
+        }
+      },
+      (stored) => ({ ...stored.body, replayed: true }),
+    )
+  })
+}
+
 function dateWrites(db: OrgDb) {
   return [
     http.patch(`${ORIGIN}/v1/work-items/:id`, async ({ request, params }) => {
@@ -187,28 +332,7 @@ function dateWrites(db: OrgDb) {
       cascade(db, found)
       return json(found)
     }),
-    http.post(`${ORIGIN}/v1/work-items/:id/extend`, async ({ request, params }) => {
-      const me = o.actorOf(db, request)
-      const found = itemOf(db, params.id)
-      if (!me) return envelope('platform.unauthenticated', 401)
-      if (!found) return envelope('work.item_not_found', 404)
-      if (!manages(db, me, found)) return envelope('work.not_authorized', 403)
-      if (found.status === 'tamamlandi') return envelope('work.item_completed', 409)
-      const { days } = (await request.json()) as { days: unknown }
-      // Pin (ExtendRequest): tamsayı 1–90; aksi 422 `work.input_invalid` + alan kodu.
-      if (
-        !Number.isInteger(days) ||
-        (days as number) < EXTEND_MIN ||
-        (days as number) > EXTEND_MAX
-      ) {
-        return envelope('work.input_invalid', 422, [
-          { field: 'days', code: 'work.extend_days_out_of_range' },
-        ])
-      }
-      found.end_on = addDays(found.end_on as string, days as number)
-      bump(found)
-      return json({ cascade_count: cascade(db, found), new_end_on: found.end_on })
-    }),
+    extendHandler(db),
   ]
 }
 
@@ -217,43 +341,74 @@ function requestShape(row: DateRequestRow) {
   return Object.fromEntries(Object.entries(row).filter(([field]) => field !== 'requester'))
 }
 
+function createRequestHandler(db: OrgDb) {
+  return http.post(`${ORIGIN}/v1/date-change-requests`, async ({ request }) => {
+    const me = o.actorOf(db, request)
+    if (!me) return envelope('platform.unauthenticated', 401)
+    const body = (await request.json()) as {
+      work_item_id: string
+      new_start_on: string
+      new_end_on: string
+      reason?: string
+      expected_dates_revision?: number
+    }
+    const found = itemOf(db, body.work_item_id)
+    if (!found) return envelope('work.item_not_found', 404)
+    // Yönetici tek başına talep açamaz; yalnız görevin birimindeki koordinatör.
+    if (o.teamIn(db, me.account_id, found.program_id, found.department_id) !== 'coordinator') {
+      return envelope('work.not_authorized', 403)
+    }
+    return keyed(
+      db,
+      request,
+      `request:${me.account_id}`,
+      JSON.stringify(body),
+      () => {
+        if (found.pending_date_request) return envelope('work.date_request_pending_exists', 409)
+        const stale = staleRevision(found, body.expected_dates_revision)
+        if (stale) return stale
+        const row = openRequest(db, me, found, body)
+        return { fingerprint: '', status: 201, body: requestShape(row) }
+      },
+      (stored) => {
+        // Tekrar: talebin BUGÜNKÜ hâli (arada karara bağlanmış olabilir).
+        const row = db.dateRequests.find((r) => r.request_id === stored.body.request_id)
+        return row ? requestShape(row) : stored.body
+      },
+    )
+  })
+}
+
+/** Talebi açar ve görevin bekleyen talebini işaretler. */
+function openRequest(
+  db: OrgDb,
+  me: Account,
+  found: Item,
+  body: { new_start_on: string; new_end_on: string; reason?: string },
+): DateRequestRow {
+  const row: DateRequestRow = {
+    request_id: o.next(db, 'dr'),
+    work_item_id: found.work_item_id,
+    status: 'pending',
+    old_start_on: found.start_on as string,
+    old_end_on: found.end_on as string,
+    new_start_on: body.new_start_on,
+    new_end_on: body.new_end_on,
+    ...(body.reason ? { reason: body.reason } : {}),
+    requester: me.account_id,
+  }
+  db.dateRequests.push(row)
+  found.pending_date_request = {
+    request_id: row.request_id,
+    new_start_on: row.new_start_on,
+    new_end_on: row.new_end_on,
+  }
+  return row
+}
+
 function requestHandlers(db: OrgDb) {
   return [
-    http.post(`${ORIGIN}/v1/date-change-requests`, async ({ request }) => {
-      const me = o.actorOf(db, request)
-      if (!me) return envelope('platform.unauthenticated', 401)
-      const body = (await request.json()) as {
-        work_item_id: string
-        new_start_on: string
-        new_end_on: string
-        reason?: string
-      }
-      const found = itemOf(db, body.work_item_id)
-      if (!found) return envelope('work.item_not_found', 404)
-      // Yönetici tek başına talep açamaz; yalnız görevin birimindeki koordinatör.
-      if (o.teamIn(db, me.account_id, found.program_id, found.department_id) !== 'coordinator') {
-        return envelope('work.not_authorized', 403)
-      }
-      if (found.pending_date_request) return envelope('work.date_request_pending_exists', 409)
-      const row: DateRequestRow = {
-        request_id: o.next(db, 'dr'),
-        work_item_id: found.work_item_id,
-        status: 'pending',
-        old_start_on: found.start_on as string,
-        old_end_on: found.end_on as string,
-        new_start_on: body.new_start_on,
-        new_end_on: body.new_end_on,
-        ...(body.reason ? { reason: body.reason } : {}),
-        requester: me.account_id,
-      }
-      db.dateRequests.push(row)
-      found.pending_date_request = {
-        request_id: row.request_id,
-        new_start_on: row.new_start_on,
-        new_end_on: row.new_end_on,
-      }
-      return json(requestShape(row), 201)
-    }),
+    createRequestHandler(db),
     http.get(`${ORIGIN}/v1/date-change-requests`, ({ request }) => {
       const me = o.actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)

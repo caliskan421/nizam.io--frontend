@@ -3,11 +3,13 @@
  * eylemine çevirir, sonucu bildirir. Politika kararı `useDateChange`'de verilmiştir (`write`);
  * burada yalnız uç çağrısı vardır.
  *
- *  - `request` → `requestDateChange` (iki uç da); `extend` → `extendWorkItem`; `update` → ÖNCE taze
- *    `getWorkItem` (`GanttTask`'ta `dates_revision` yok, eksikler yeni-2), sonra `updateWorkItem`.
- *  - Taze görevin tarihleri sürüklemenin `before`'undan farklıysa (başkası değiştirdi) YAZILMAZ.
- *  - Üç uç da anahtarsızdır (BE-056): kör tekrar yok; sonuç bilinmiyorsa sarmalayıcı Gantt /
- *    görev / talebi yeniden okur. 409'lar ve çakışmada ek olarak yeniden okunur.
+ *  - `request` → `requestDateChange`; `extend` → `extendWorkItem`; `update` → `updateWorkItem`.
+ *    Üçü de kullanıcının GÖRDÜĞÜ `dates_revision`'ı (Gantt satırı; BE-053) `expected_dates_revision`
+ *    olarak taşır: ön `getWorkItem` okuması YOK. Arada tarih değiştiyse 409 `work.edit_conflict`
+ *    (alan alan bildirim, yeniden okuma).
+ *  - `extend` ve `request` eylem başına `Idempotency-Key` taşır; sonuç bilinmiyorsa aynı anahtarla
+ *    tek tekrar (BE-056, `api/mutations.ts`). `update` anahtarsızdır (sürüm korur): kör tekrar
+ *    yok, sarmalayıcı yeniden okur. 409'lar ve çakışmada ek olarak yeniden okunur.
  *  - Yaşam döngüsü (CX-F3-Ö-04, ortak-kurallar §7 Ö-07): sahibi sökülmüş sürüklemenin sonucu
  *    (`reachesOwner`) ya da taze okuması bildirim ve ek geçersizleme üretmez; ön okuma sonrası
  *    kapsam/oturum değişmişse de ek okuma başlamaz. Belirsiz sonucun uzlaştırması veri
@@ -27,9 +29,6 @@ import { authSession } from '@/shared/http'
 import { ownerLife, reachesOwner, sameScope, type OwnerLife } from '@/shared/http/mutation'
 import { conflictRows } from '@/shared/ui/conflict'
 
-import { fetchWorkItem } from '@/modules/work/public'
-import { ApiError } from '@/shared/errors/api-error'
-import { errorText } from '@/shared/i18n'
 import type { ActionContext, MutationOutcome } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
@@ -51,6 +50,8 @@ export interface DateChange {
   write: DateWrite
   before: DayRange
   after: DayRange
+  /** Sürüklemenin başladığı andaki Gantt satırı `dates_revision`'ı (BE-053; birleşen bırakmalarda ilki). */
+  datesRevision: number
   /** Görevin KENDİ kapsamı. */
   target: { programId: string; departmentId: string }
 }
@@ -135,31 +136,15 @@ function settle(deps: Deps, change: DateChange, context: ActionContext, outcome:
     reread(deps.client, context.scope, change.workItemId)
 }
 
-/** `updateWorkItem` yolu: taze görev → tarih uyumu → sürümlü yazma. */
+/** `updateWorkItem` yolu: sürümlü yazma (sürüm = kullanıcının gördüğü Gantt satırı sürümü). */
 async function sendUpdate(
   deps: Deps,
   change: DateChange,
   context: ActionContext,
   dates: { start_on: string; end_on: string },
 ): Promise<void> {
-  const { target, workItemId, before } = change
-  let fresh: Awaited<ReturnType<typeof fetchWorkItem>>
-  try {
-    fresh = await fetchWorkItem(target, workItemId)
-  } catch (error) {
-    if (!live(deps, context)) return
-    // Okuma hatası (ApiError ya da beklenmeyen): kullanıcıya kod → i18n; yazma başlamaz.
-    const messageKey = error instanceof ApiError ? error.messageKey : 'errors.platform.internal'
-    deps.toast.push({ message: errorText({ messageKey }), tone: 'danger' })
-    return
-  }
-  if (!live(deps, context)) return
-  if (fresh.start_on !== before.start || fresh.end_on !== before.end) {
-    deps.toast.push({ message: dragText('timeline.drag.datesChanged'), tone: 'danger', timeout: 0 })
-    if (context.scope) reread(deps.client, context.scope, workItemId)
-    return
-  }
-  const vars = { target, workItemId, base: { dates_revision: fresh.dates_revision }, dates }
+  const { target, workItemId, datesRevision } = change
+  const vars = { target, workItemId, base: { dates_revision: datesRevision }, dates }
   settle(deps, change, context, await deps.update.submit(vars, { context }))
 }
 
@@ -172,10 +157,19 @@ async function dispatch(deps: Deps, change: DateChange, context: ActionContext):
   const outcome =
     write.kind === 'request'
       ? await deps.requestDate.submit(
-          { target, workItemId, newStartOn: write.newStartOn, newEndOn: write.newEndOn },
+          {
+            target,
+            workItemId,
+            newStartOn: write.newStartOn,
+            newEndOn: write.newEndOn,
+            expectedDatesRevision: change.datesRevision,
+          },
           opts,
         )
-      : await deps.extend.submit({ target, workItemId, days: write.days }, opts)
+      : await deps.extend.submit(
+          { target, workItemId, days: write.days, expectedDatesRevision: change.datesRevision },
+          opts,
+        )
   settle(deps, change, context, outcome)
 }
 

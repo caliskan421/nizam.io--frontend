@@ -200,7 +200,9 @@ describe('eylem satırı — gerçek DateRequestForm (E-03-54/63; 03c ile aynı 
       work_item_id: 'w1',
       new_start_on: '2026-11-01',
       new_end_on: '2026-11-15',
+      expected_dates_revision: workItem().dates_revision, // kullanıcının gördüğü sürüm (BE-056)
     })
+    expect(req!.headers.get('Idempotency-Key')).toMatch(/^[A-Za-z0-9_-]{22}$/)
     expect(req!.headers.get('X-Nizamio-Department')).toBe('d2')
     expect(useToast().current.value?.message).toBe('Tarih talebi gönderildi.')
     await flushPromises()

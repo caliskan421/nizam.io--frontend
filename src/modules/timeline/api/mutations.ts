@@ -1,9 +1,14 @@
 /**
  * Tarih / talep / bağımlılık yazmaları (03c `backend.md` §2) — hepsi `useProtectedMutation`
- * üzerinden (`useKeylessMutation`; K5, ortak-kurallar §7). Altısı da `Idempotency-Key` ALMAZ
- * (BE-056): istek anahtar taşımaz, SONUÇ BİLİNMİYORSA kör tekrar YOK (`retry` düşer) ve Gantt +
- * görev + talep (+ bağımlılık) yeniden okunur; kullanıcı yeni duruma bakıp karar verir. Tek
- * otomatik tekrar `platform.conflict_retry`'dır (motor, aynı gövdeyle). 401 sonrası özdeş tek
+ * üzerinden (K5, ortak-kurallar §7). İki grup:
+ *  - ANAHTARLI (`extendWorkItem`, `requestDateChange`; BE-056, pin v0.15.0-api): kullanıcı eylemi
+ *    başına `Idempotency-Key` + isteğe bağlı `expected_dates_revision`. Sonuç bilinmiyorsa AYNI
+ *    anahtar ve gövdeyle TEK tekrar yapılır (`useKeyedTimelineMutation`); o da bilinmiyorsa
+ *    Gantt + görev + talep yeniden okunur ve tekrar önerilmez. Tekrar 200 + `replayed:true` (ilk
+ *    sonuç; `dates_revision` ilk sonucun sürümü) başarı sayılır.
+ *  - ANAHTARSIZ (`updateWorkItem` — `expected_dates_revision` korur; `reviewDateChangeRequest`,
+ *    bağımlılık uçları): `useKeylessMutation` — kör tekrar YOK, yeniden okuma.
+ * Tek otomatik tekrar `platform.conflict_retry`'dır (motor, aynı gövdeyle). 401 sonrası özdeş tek
  * tekrar taşıyıcıdadır ve ayrı şeydir. Sahip sökülünce yeni yazma başlamaz (`owner_disposed`);
  * ortak önbellek uzlaştırması (geçersizleme, yeniden okuma) sürer ama ekrana özgü iş ve
  * bildirim başlatılmaz (`reachesOwner`).
@@ -24,6 +29,10 @@ import { useKeylessMutation } from '@/modules/organization/public'
 import { fetchWorkItem } from '@/modules/work/public'
 import { api } from '@/shared/http'
 import {
+  isDetached,
+  markDetached,
+  ownerLife,
+  useProtectedMutation,
   type MutationOutcome,
   type ProtectedMutationOptions,
   type SubmitOptions,
@@ -100,12 +109,49 @@ function useTimelineMutation<V, D>(
   return { submit, isPending: mutation.isPending }
 }
 
+/** Sahibi sökülmüş (geç) sonuç işareti yeni nesneye taşınır (CX-F1-Ö-07). */
+function keepDetached<T extends object>(from: object, to: T): T {
+  return isDetached(from) ? markDetached(to) : to
+}
+
+/**
+ * Anahtarlı zaman çizelgesi yazması (BE-056): `useProtectedMutation` isteğe `Idempotency-Key`
+ * koyar (`send` başlıkları iletir). Sonuç bilinmiyorsa (`unknown_outcome`) AYNI eylemin
+ * `retry`'ı ile TEK tekrar yapılır — aynı anahtar, aynı gövde; sunucu yinelemeyi ilk sonuçla
+ * (`replayed:true`) karşılar, çift uzatma olmaz. Tekrar da bilinmiyorsa kör tekrar sona erer:
+ * Gantt/görev/talep/bağımlılık yeniden okunur ve sonuçtaki `retry` düşürülür.
+ */
+function useKeyedTimelineMutation<V, D>(
+  options: ProtectedMutationOptions<V, D, unknown>,
+  workItemOf: (vars: V) => string,
+) {
+  const client = useQueryClient()
+  const readScope = (): ScopeSnapshot => (getActivePinia() ? useScopeStore().snapshot : NO_SCOPE)
+  const mutation = useProtectedMutation<V, D, unknown>({ ...options, queryClient: client })
+  const owner = ownerLife()
+
+  async function submit(vars: V, opts?: SubmitOptions): Promise<MutationOutcome<V, D, unknown>> {
+    const scope = { ...(opts?.context?.scope ?? readScope()) }
+    let outcome = await mutation.submit(vars, opts)
+    if (outcome.kind === 'unknown_outcome' && outcome.retry && !isDetached(outcome)) {
+      outcome = await outcome.retry()
+    }
+    if (outcome.kind === 'unknown_outcome') {
+      await rereadAll(client, scope, workItemOf(vars))
+      outcome = keepDetached(outcome, { ...outcome, retry: null })
+    }
+    return owner.alive() ? outcome : markDetached(outcome)
+  }
+
+  return { submit, isPending: mutation.isPending }
+}
+
 const byItem = (vars: WorkItemIdOf) => ({ workItemId: vars.workItemId })
 
 /**
  * `updateWorkItem` — yalnız TARİH alanları (`start_on`, `end_on`, `planned_end_on`) ve
- * `expected_dates_revision` (panel açılışındaki `getWorkItem.dates_revision`; `GanttTask`
- * sürüm taşımaz, eksikler yeni-2). Başlık/öncelik gövdede olmaz. 409 `work.edit_conflict` →
+ * `expected_dates_revision` (kaynak: Gantt satırının `dates_revision`'ı — BE-053; panelde
+ * açık görevin `getWorkItem.dates_revision`'ı). Başlık/öncelik gövdede olmaz. 409 `work.edit_conflict` →
  * sonuçta sunucunun güncel görevi (`readCurrent`) — alan alan seçim `shared/ui/conflict` (K5).
  */
 export function useUpdateWorkItemDates() {
@@ -126,18 +172,27 @@ export function useUpdateWorkItemDates() {
 }
 
 /**
- * `extendWorkItem` — yalnız bitiş ileri 1–90 gün. Ne sürüm ne anahtar var: tekrar çift uzatma
- * yapabilir → sonuç bilinmiyorsa tekrar yok, Gantt yeniden okunur (çağıran `end_on`'u
- * karşılaştırır).
+ * `extendWorkItem` — yalnız bitiş ileri 1–90 gün. Eylem başına `Idempotency-Key` (BE-056) ve
+ * (biliniyorsa) `expected_dates_revision` (satırın `dates_revision`'ı; arada tarih değiştiyse 409
+ * `work.edit_conflict`). Sonuç bilinmiyorsa aynı anahtarla tek tekrar; sunucu `replayed:true`
+ * ile ilk sonucu döndürür (`dates_revision` ilk sonucun sürümüdür, görevin bugünküne eşit olmayabilir).
  */
 export function useExtendWorkItem() {
-  return useTimelineMutation<ExtendInput, ExtendResult>(
+  return useKeyedTimelineMutation<ExtendInput, ExtendResult>(
     {
       operation: 'extendWorkItem',
       send: (vars, ctx) =>
         api.POST('/v1/work-items/{id}/extend', {
-          params: { header: scopeHeaders(vars.target), path: { id: vars.workItemId } },
-          body: { days: vars.days },
+          params: {
+            header: { ...ctx.headers, ...scopeHeaders(vars.target) },
+            path: { id: vars.workItemId },
+          },
+          body: {
+            days: vars.days,
+            ...(vars.expectedDatesRevision !== undefined
+              ? { expected_dates_revision: vars.expectedDatesRevision }
+              : {}),
+          },
           signal: ctx.signal,
         }),
       invalidation: byItem,
@@ -148,21 +203,25 @@ export function useExtendWorkItem() {
 
 /**
  * `requestDateChange` (Koordinatör; P8) — `new_start_on` + `new_end_on` ikisi zorunlu, `reason`
- * isteğe bağlı. 409 `work.date_request_pending_exists` → "bekleyen talep var", panel yeniden
+ * isteğe bağlı; `Idempotency-Key` eylem başına + isteğe bağlı `expected_dates_revision` (BE-056;
+ * tekrar talebin bugünkü hâlini 200 ile döndürür). 409 `work.date_request_pending_exists` → "bekleyen talep var", panel yeniden
  * okunur. Yönetici tek başına açamaz (403 `work.not_authorized`).
  */
 export function useRequestDateChange() {
-  return useTimelineMutation<RequestDateChangeInput, DateChangeRequest>(
+  return useKeyedTimelineMutation<RequestDateChangeInput, DateChangeRequest>(
     {
       operation: 'requestDateChange',
       send: (vars, ctx) =>
         api.POST('/v1/date-change-requests', {
-          params: { header: scopeHeaders(vars.target) },
+          params: { header: { ...ctx.headers, ...scopeHeaders(vars.target) } },
           body: {
             work_item_id: vars.workItemId,
             new_start_on: vars.newStartOn,
             new_end_on: vars.newEndOn,
             ...(vars.reason ? { reason: vars.reason } : {}),
+            ...(vars.expectedDatesRevision !== undefined
+              ? { expected_dates_revision: vars.expectedDatesRevision }
+              : {}),
           },
           signal: ctx.signal,
         }),
