@@ -258,7 +258,11 @@ describe('query-keys — §6 tablosu', () => {
   })
 
   it('CX-P-Ö-03: alt görev yazmaları Gantt satır sayacını, updateUser pano total_admins değerini geçersizler', () => {
-    for (const op of ['createWorkItemSubtask', 'updateWorkItemSubtask', 'deleteWorkItemSubtask']) {
+    for (const op of [
+      'createWorkItemSubtask',
+      'updateWorkItemSubtask',
+      'deleteWorkItemSubtask',
+    ] as const) {
       expect(INVALIDATED_BY.gantt, op).toContain(op)
       expect(hits(op, [queryKeys.gantt.face(S, 'program')], { workItemId: 'w1' }), op).toEqual([
         queryKeys.gantt.face(S, 'program'),
