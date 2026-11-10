@@ -439,7 +439,7 @@ describe('Zaman çizelgesi — tavan, boş, yükleniyor, hata (E-03C-82, 83)', (
 })
 
 describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
-  it('Liste: /gorevler (süzgeç taşınmaz); Yeni görev: /gorevler?yeni=1 + koordinatörlük', async () => {
+  it('Liste: /gorevler (süzgeç taşınmaz); Yeni görev: sayfa içi diyalog (rota değişmez)', async () => {
     server.use(
       ...standingHandlers(ADMIN),
       ganttHandler(ADMIN_GANTT, gantt({ tasks: TASKS })),
@@ -462,9 +462,10 @@ describe('Zaman çizelgesi — başlık eylemleri ve şerit', () => {
       .findAll('button')
       .find((b) => b.text() === 'Yeni görev')!
       .trigger('click')
-    await flushPromises()
-    expect(ctx.router.currentRoute.value.path).toBe('/gorevler')
-    expect(query(ctx)).toEqual({ koordinatorluk: 'd2', yeni: '1' })
+    await settle()
+    expect(ctx.router.currentRoute.value.path).toBe('/zaman-cizelgesi')
+    expect(query(ctx)).toEqual({ departman: 'd2' })
+    expect(document.body.querySelector('[role="dialog"] #wf-new-task')).not.toBeNull()
   })
 
   it('şerit: görev aralığı + program yılı; Gantt kaydırması görünen aralığı yansıtır; tık Gantt’ı kaydırır', async () => {

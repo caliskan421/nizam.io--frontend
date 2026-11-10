@@ -20,15 +20,15 @@ import GanttBars from './GanttBars.vue'
 import GanttGrid from './GanttGrid.vue'
 import GanttLinks from './GanttLinks.vue'
 import GanttRows from './GanttRows.vue'
-import { GANTT_HOVER } from './gantt-context'
+import { GANTT_HOVER, VIEW_FALLBACK as FALLBACK } from './gantt-context'
+import { useSubtaskRows } from './use-subtask-rows'
 import { ganttText } from './messages'
 
 /**
- * Gantt kabı (E-03C-21…43): yapışkan başlık + yapışkan sol sütun, tek kaydırma alanı. Satırlar
- * (HTML `treegrid`) ve zaman katmanı (kendi SVG) aynı satır düzleminden (`rows.ts`) beslenir;
- * 250 görevde yalnız görünür dilim çizilir. Grup açık/kapalı durumu burada tutulur (bellek;
- * kapsam değişince üst sayfa bileşeni yeniden kurar). Politika yoktur: seçim, uç sürükleme ve
- * görünen aralık olay olarak yukarı çıkar; tarih kısayolu için `dateKeyHandler` (W95).
+ * Gantt kabı (E-03C-21…43): yapışkan başlık + sol sütun, tek kaydırma alanı. Satırlar (HTML
+ * `treegrid`) ve zaman katmanı (kendi SVG) aynı satır düzleminden (`rows.ts`) beslenir; 250
+ * görevde yalnız görünür dilim çizilir. Grup ve alt görev açık durumu burada (bellek). Politika
+ * yoktur: seçim, uç sürükleme, görünen aralık olay olarak çıkar; tarih kısayolu `dateKeyHandler`.
  */
 const props = defineProps<
   GanttViewProps & {
@@ -40,17 +40,14 @@ const props = defineProps<
 >()
 const emit = defineEmits<GanttViewEmits>()
 
-/** Ölçülemeyen ortamda (test) varsayılan görünür alan. */
-const FALLBACK = { width: 1200, height: 800 }
-
 const scroller = ref<HTMLElement | null>(null)
 const collapsed = ref<ReadonlySet<string>>(new Set())
+const subtasks = useSubtaskRows()
 const viewport = reactive({
   left: 0,
   top: 0,
   width: FALLBACK.width,
   height: FALLBACK.height,
-  /** Ölçülen sol sütun genişliği (dar ekranda token değerinden küçük olabilir). */
   label: GEOMETRY.labelW,
 })
 const announcement = ref('')
@@ -65,6 +62,7 @@ const layout = computed(() =>
     links: props.links,
     departmentNames: props.departmentNames,
     collapsed: collapsed.value,
+    subtaskRows: subtasks.rows.value,
   }),
 )
 const range = computed<GanttDayRange>(() =>
@@ -212,6 +210,7 @@ defineExpose({ scrollToDay })
               :today="today"
               :selected-id="selectedId"
               :draggable-ids="draggableIds"
+              :open-subtasks="subtasks.open.value"
               :layout="layout"
               :window="win"
               @select="onSelect"
@@ -235,6 +234,9 @@ defineExpose({ scrollToDay })
             :page-size="pageSize"
             :department-codes="departmentCodes"
             :date-key-handler="dateKeyHandler"
+            :open-subtasks="subtasks.open.value"
+            @subtasks="subtasks.toggle"
+            @subtask-rows="subtasks.setCount"
             @select="onSelect"
             @toggle="setGroupOpen"
             @reveal="reveal"

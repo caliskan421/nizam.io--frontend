@@ -214,6 +214,7 @@ export const trTimeline = {
       start: 'başlangıç',
       end: 'bitiş',
       datePlaceholder: 'gg.aa.yyyy',
+      plannedEnd: 'İlk plan bitişi: {date}',
       status: 'Durum',
       overdue: 'Gecikme',
       overdueDays: '{n} gün',

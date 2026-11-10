@@ -31,6 +31,12 @@ function denied(db: OrgDb, me: Account, i: Item | undefined) {
   return envelope('work.item_not_found', 404)
 }
 
+/** Bekleyen talep ayrıntısı yalnız yöneticiye ve görevin koordinatörüne dolar; üyede `null` (WORK-K82). */
+function maskedItem(db: OrgDb, me: Account, i: Item): Item {
+  const team = o.teamIn(db, me.account_id, i.program_id, i.department_id)
+  return me.admin || team === 'coordinator' ? i : { ...i, pending_date_request: null }
+}
+
 function guardedItem(
   db: OrgDb,
   request: Request,
@@ -50,22 +56,27 @@ function workReads(db: OrgDb) {
       if (!me) return envelope('platform.unauthenticated', 401)
       const program = o.programOf(request)
       const department = new URL(request.url).searchParams.get('department_id')
-      const items = db.items.filter(
-        (i) =>
-          i.program_id === program &&
-          (!department || i.department_id === department) &&
-          visible(db, me, i),
-      )
+      const items = db.items
+        .filter(
+          (i) =>
+            i.program_id === program &&
+            (!department || i.department_id === department) &&
+            visible(db, me, i),
+        )
+        .map((i) => maskedItem(db, me, i))
       return json({ items })
     }),
     http.get(`${ORIGIN}/v1/work-items/:id`, ({ request, params }) =>
-      guardedItem(db, request, params.id, (i) => json(i)),
+      guardedItem(db, request, params.id, (i) => json(maskedItem(db, o.actorOf(db, request)!, i))),
     ),
     http.get(`${ORIGIN}/v1/work-items/:id/files`, ({ request, params }) =>
       guardedItem(db, request, params.id, () => json({ files: [] })),
     ),
     http.get(`${ORIGIN}/v1/work-items/:id/subtasks`, ({ request, params }) =>
-      guardedItem(db, request, params.id, () => json({ subtasks: [] })),
+      guardedItem(db, request, params.id, () => {
+        const subtasks = db.subtasks[String(params.id)] ?? []
+        return json({ subtasks, total: subtasks.length })
+      }),
     ),
     http.get(`${ORIGIN}/v1/work-items/:id/notes`, ({ request, params }) =>
       guardedItem(db, request, params.id, () => json({ notes: [], total: 0 })),
@@ -147,7 +158,7 @@ function dashboard(db: OrgDb, programId: string) {
     overdue_tasks: 0,
     overdue_tasks_list: [],
     pending_approvals: 0,
-    pending_date_changes: 0,
+    pending_date_changes: items.filter((i) => i.pending_date_request).length,
     deleted_records: 0,
     priority_distribution: {},
     task_status_distribution: {},

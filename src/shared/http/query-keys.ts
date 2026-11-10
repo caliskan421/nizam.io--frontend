@@ -255,6 +255,10 @@ const REPORT_ORGANIZATION_WRITES = [
   'createUser',
   'deleteUser',
   'deleteAccount',
+  // Kenar menüsü "bekleyen tarih talebi" rozeti pano sayacından gelir (W97a: talep açma/karar
+  // sonrası rozet bayat kalıyordu).
+  'requestDateChange',
+  'reviewDateChangeRequest',
 ] as const satisfies readonly OperationId[]
 
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [

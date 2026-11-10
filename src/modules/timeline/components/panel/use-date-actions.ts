@@ -20,7 +20,7 @@ import type { DatePatch, ReviewDecision } from '../../model/types'
 import { checkDraft, type DateInputError, formatInputDay } from './date-input'
 import { panelText } from './messages'
 import { failedCode, failedText, needsReread, rereadItem } from './outcomes'
-import { plannedEndOf, type TaskPanel } from './use-task-panel'
+import type { TaskPanel } from './use-task-panel'
 
 type Outcome = MutationOutcome<unknown, unknown, unknown>
 
@@ -33,16 +33,13 @@ const conflictFormat = (_field: string, value: unknown) =>
   typeof value === 'string' ? formatInputDay(value) : ''
 
 /**
- * Girdi ile görevdeki tarih farkı (yalnız değişen alanlar). Gösterilen bitiş planlanan bitiştir
- * (`planned_end_on` boşsa `end_on`), ama yazma HER ZAMAN `end_on`'a gider; `planned_end_on`
- * yazılmaz (W95 kararı: backend yalnız geç tamamlamada doldurur).
+ * Girdi ile görevdeki tarih farkı (yalnız değişen alanlar). Gösterilen ve yazılan bitiş tek
+ * kaynaktır: `end_on` (W97a); `planned_end_on` yazılmaz, panelde yalnız salt okunur bilgidir.
  */
 export function changedDates(base: WorkItem, value: { startOn: string; endOn: string }): DatePatch {
   const patch: DatePatch = {}
   if (value.startOn !== base.start_on) patch.start_on = value.startOn
-  if (value.endOn !== plannedEndOf(base)) {
-    patch.end_on = value.endOn
-  }
+  if (value.endOn !== base.end_on) patch.end_on = value.endOn
   return patch
 }
 

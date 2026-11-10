@@ -67,3 +67,45 @@ export function seedWorld(db: OrgDb): void {
     item('w4', 'p1', 'd2', acc(p.second.account_id), { title: 'Arayüz taslağı' }),
   ]
 }
+
+/**
+ * Zaman çizelgesi dünyası (W97a): `seedWorld` üstüne tarihli görevler, bir bağımlılık ve bir alt
+ * görev listesi. Yönetici (Yasemin) aynı zamanda Mekanik (d1) koordinatörüdür; Kerem yalnız d1
+ * koordinatörü; Ayşe d1 ve d2 üyesi. Örnek veridir, gerçek veri DEĞİLDİR.
+ */
+export function seedTimeline(db: OrgDb): void {
+  seedWorld(db)
+  const dates = (id: string, start: string, end: string) => {
+    const found = db.items.find((i) => i.work_item_id === id)!
+    Object.assign(found, { start_on: start, end_on: end, status: 'devam_ediyor' })
+  }
+  dates('w1', '2026-11-02', '2026-11-20')
+  dates('w2', '2026-11-23', '2026-12-04')
+  dates('w3', '2026-11-04', '2026-11-27')
+  dates('w4', '2026-11-09', '2026-12-11')
+  // w2, w1 bitmeden başlayamaz.
+  db.dependencies = [{ dependency_id: 'dep-1', work_item_id: 'w2', depends_on_work_item_id: 'w1' }]
+  db.subtasks = {
+    w1: [
+      subtask('s1', 'w1', 'Montaj çizimi', true),
+      subtask('s2', 'w1', 'Test düzeneği', false),
+      subtask('s3', 'w1', 'Rapor', false),
+    ],
+  }
+}
+
+function subtask(id: string, work: string, title: string, done: boolean) {
+  return {
+    subtask_id: id,
+    work_item_id: work,
+    title,
+    done,
+    done_by_full_name: null,
+    assignee_full_name: null,
+    created_by_account_id: 'acc-admin',
+    created_by_full_name: 'Yasemin Yönetici',
+    created_at: '2026-11-01T08:00:00Z',
+    updated_at: '2026-11-01T08:00:00Z',
+    edit_revision: 1,
+  }
+}

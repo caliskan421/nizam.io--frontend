@@ -94,6 +94,7 @@ const help = computed(() =>
       <PanelDates
         v-model:start="panel.start.value"
         v-model:end="panel.end.value"
+        :planned-end="panel.plannedNote.value"
         :editable="panel.can.value.edit"
         :late="task.lateness.is_overdue"
         :start-error="actions.errors.value.start"

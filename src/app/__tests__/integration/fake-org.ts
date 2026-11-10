@@ -68,6 +68,25 @@ export interface Item {
   [field: string]: unknown
 }
 
+export interface DateRequestRow {
+  request_id: string
+  work_item_id: string
+  status: 'pending' | 'approved' | 'rejected'
+  old_start_on: string
+  old_end_on: string
+  new_start_on: string
+  new_end_on: string
+  reason?: string
+  /** Talebi açan hesap (`myDateChangeRequests` yalnız kendisininkini döndürür). */
+  requester: string
+}
+
+export interface DependencyRow {
+  dependency_id: string
+  work_item_id: string
+  depends_on_work_item_id: string
+}
+
 export interface OrgDb {
   roles: ServerRoles
   accounts: Account[]
@@ -77,6 +96,12 @@ export interface OrgDb {
   memberships: Membership[]
   items: Item[]
   transfers: Record<string, unknown>[]
+  /** Tarih değişikliği talepleri (sözleşme `DateChangeRequest` + istemci olmayan `requester`). */
+  dateRequests: DateRequestRow[]
+  /** Görev bağımlılıkları: `work_item_id` `depends_on_work_item_id` bitmeden başlayamaz. */
+  dependencies: DependencyRow[]
+  /** Görev kimliği → alt görevler (sözleşme `WorkItemSubtask` şekli). */
+  subtasks: Record<string, Record<string, unknown>[]>
   /** Erişim belirteci → hesap (yetki her istekte belirteçten). */
   tokens: Map<string, string>
   /** `true` ise sonraki `linkDepartment` 409 `program.department_link_name_exists` (bir kez). */
@@ -94,6 +119,9 @@ export function createDb(roles: ServerRoles, seed: Partial<OrgDb> = {}): OrgDb {
     memberships: [],
     items: [],
     transfers: [],
+    dateRequests: [],
+    dependencies: [],
+    subtasks: {},
     tokens: new Map(),
     failNextLink: false,
     seq: 0,

@@ -163,7 +163,7 @@ export const trWorkDetail = {
       upload: 'Kanıt dosyası yükle',
       remind: 'Atanana hatırlat',
       // E-03-54: uç var, akış F3 (P5, §5) — faz notu, stub değil.
-      dateRequest: 'Tarih değişikliği iste (F3’te)',
+      dateRequest: 'Tarih değişikliği iste',
       copy: 'Kopyala',
       copied: 'Görev bağlantısı panoya kopyalandı.',
       copyFailed: 'Görev bağlantısı kopyalanamadı.',

@@ -170,8 +170,8 @@
     width: calc(var(--space-1) - var(--ui-hairline));
     margin-left: calc(-1 * var(--ui-hairline));
     border-radius: var(--ui-gap-2xs);
-    background: var(--ink);
-    box-shadow: 0 0 0 var(--ui-focus-width) color-mix(in srgb, var(--ink) 30%, transparent);
+    background: var(--rp-blue);
+    box-shadow: 0 0 0 var(--ui-focus-width) color-mix(in srgb, var(--rp-blue) 30%, transparent);
     pointer-events: none;
   }
 
@@ -240,7 +240,7 @@
     width: calc(var(--space-1) - var(--ui-hairline));
     height: var(--ui-fs-xs);
     border-radius: var(--ui-gap-2xs);
-    background: var(--ink);
+    background: var(--rp-blue);
   }
 
   @media (max-width: 900px) {

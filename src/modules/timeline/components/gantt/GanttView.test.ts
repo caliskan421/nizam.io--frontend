@@ -5,7 +5,7 @@ import { nextTick } from 'vue'
 import { link, manyTasks, task } from '../../model/__tests__/gantt-fixtures'
 import type { GanttLink, GanttTask } from '../../model/types'
 import GanttView from './GanttView.vue'
-import { NAMES, TODAY } from './gantt-test-support'
+import { NAMES, queryPlugins, TODAY } from './gantt-test-support'
 
 const TASKS: GanttTask[] = [
   task({
@@ -48,6 +48,7 @@ function mountView(
       ...over,
     },
     attachTo: document.body,
+    global: { plugins: queryPlugins().plugins },
   })
 }
 

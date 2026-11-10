@@ -14,9 +14,8 @@ import { useProgramDepartments } from '@/modules/work/public'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
-import type { GanttFace, GanttTask } from '../../model/types'
+import type { GanttTask } from '../../model/types'
 import { useGantt } from '../../api'
-import { canDragHandles, timelineActorFacts } from '../../model/capabilities'
 import { filterTasks, taskCounts, taskRange, weeklyHistogram } from './frame-model'
 import { useTodayIso } from './today'
 import { useTimelineUrl } from './use-timeline-url'
@@ -35,31 +34,6 @@ function useEffectiveState(
     const department =
       adminFace.value && (known || !departmentsLoaded.value) ? value.department : null
     return { ...value, department }
-  })
-}
-
-/** Seçili satırda tutamaç çizilecek görevler (P8; yetki olgusu mercekten bağımsız). */
-function useDraggableIds(
-  tasks: ComputedRef<GanttTask[]>,
-  face: ComputedRef<GanttFace | null>,
-): ComputedRef<ReadonlySet<string>> {
-  const store = useScopeStore()
-  const { standing } = useStanding()
-  return computed(() => {
-    const ids = new Set<string>()
-    if (face.value === null || standing.value === null) return ids
-    for (const task of tasks.value) {
-      const facts = timelineActorFacts(
-        standing.value,
-        store.snapshot,
-        face.value,
-        task.department_id,
-      )
-      if (canDragHandles({ ...facts, completed: task.status === 'tamamlandi' })) {
-        ids.add(task.work_item_id)
-      }
-    }
-    return ids
   })
 }
 
@@ -142,6 +116,5 @@ export function useTimelinePage(onReset: () => void) {
     year: computed(
       () => programs.value?.find((p) => p.programId === store.programId)?.year ?? null,
     ),
-    draggableIds: useDraggableIds(tasks, face),
   }
 }

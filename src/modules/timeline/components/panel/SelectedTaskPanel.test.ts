@@ -101,7 +101,7 @@ describe('açılış: taze okuma, başlık, özet (E-03C-54…62)', () => {
     expect(text('tp-kicker')).toBe('Altyapı')
   })
 
-  it('bitiş girdisi planlanan bitişi gösterir (planned_end_on boş değilse o)', async () => {
+  it('bitiş girdisi end_on gösterir; planned_end_on ayrı salt okunur bilgi (W97a)', async () => {
     const { h } = render({
       who: 'admin',
       face: 'admin',
@@ -109,7 +109,8 @@ describe('açılış: taze okuma, başlık, özet (E-03C-54…62)', () => {
       item: { planned_end_on: '2026-11-08', end_on: '2026-11-12' },
     })
     await settleQueries(h.queryClient)
-    expect(($('[data-testid="tp-end"]') as HTMLInputElement).value).toBe('08.11.2026')
+    expect(($('[data-testid="tp-end"]') as HTMLInputElement).value).toBe('12.11.2026')
+    expect(text('tp-planned-end')).toBe('İlk plan bitişi: 08.11.2026')
   })
 
   it('dosya listesi 403 → "—" (ek istek yok)', async () => {
@@ -364,11 +365,11 @@ describe('Kaydet bitiş alanı: yazma her zaman end_on (planned_end_on yazılmaz
       item: { planned_end_on: '2026-11-08', end_on: '2026-11-12' },
     })
     await settleQueries(h.queryClient)
-    setValue('[data-testid="tp-end"]', '09.11.2026')
+    setValue('[data-testid="tp-end"]', '13.11.2026')
     click('tp-save')
     await settleQueries(h.queryClient)
     expect(sent('PATCH', ITEM)[0]!.body).toEqual({
-      end_on: '2026-11-09',
+      end_on: '2026-11-13',
       expected_dates_revision: 7,
     })
   })

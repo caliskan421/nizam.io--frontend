@@ -21,6 +21,7 @@ import type { ScopeLens } from '@/shared/scope/scope'
 
 import { createDb, fakeOrg, ORIGIN, PASSWORD, type OrgDb, type ServerRoles } from './fake-org'
 import { teamHandlers } from './fake-org-team'
+import { timelineHandlers } from './fake-org-timeline'
 import { workHandlers } from './fake-org-work'
 
 export interface Recorded {
@@ -59,6 +60,8 @@ export function createBackend(roles: ServerRoles) {
     ...fakeOrg.authHandlers(db),
     ...fakeOrg.standingHandlers(db),
     ...teamHandlers(db),
+    // `GET /v1/work-items/gantt` görev kimliği yolundan ÖNCE eşleşmeli (özgül yol önce).
+    ...timelineHandlers(db),
     ...workHandlers(db),
   ]
   const server = setupServer(...handlers())
@@ -111,7 +114,7 @@ export function createBackend(roles: ServerRoles) {
 
 export type Backend = ReturnType<typeof createBackend>
 
-export { PEOPLE, seedWorld } from './world'
+export { PEOPLE, seedTimeline, seedWorld } from './world'
 
 export interface BootOptions {
   /** Giriş yapacak hesabın e-postası (sahte backend `accounts`). */

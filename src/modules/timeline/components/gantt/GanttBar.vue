@@ -15,6 +15,8 @@ import {
 } from '../../model/timeline'
 import type { GanttTask } from '../../model/types'
 import type { GanttEdge, GanttScale } from '../index'
+import SubtaskChip from '../subtasks/SubtaskChip.vue'
+import SubtaskProgress from '../subtasks/SubtaskProgress.vue'
 import { ganttText } from './messages'
 import { statusTone } from './task-view'
 
@@ -31,6 +33,8 @@ const props = defineProps<{
   selected: boolean
   draggable: boolean
   dependent: boolean
+  /** Alt görev satırları bu görevde açık: ilerleme çizgisi + sayaç çipi (03d E-03C-44/46). */
+  subtasksOpen?: boolean
 }>()
 const emit = defineEmits<{
   select: []
@@ -120,6 +124,38 @@ const midY = top + GEOMETRY.barH / 2
     <text v-if="duration" class="gantt-bar__dur" :x="bar.x + bar.planW - GEOMETRY.barPad" :y="midY">
       {{ duration }}
     </text>
+    <template v-if="subtasksOpen">
+      <foreignObject
+        class="gantt-bar__sub"
+        :x="bar.x"
+        :y="top"
+        :width="Math.max(bar.right - bar.x, 0)"
+        :height="GEOMETRY.barH"
+      >
+        <div class="gantt-bar__subprog">
+          <SubtaskProgress
+            :work-item-id="task.work_item_id"
+            :target="{ programId: task.program_id, departmentId: task.department_id }"
+            open
+          />
+        </div>
+      </foreignObject>
+      <foreignObject
+        class="gantt-bar__sub"
+        :x="bar.right + GEOMETRY.barPad"
+        y="0"
+        :width="GEOMETRY.chipW"
+        :height="GEOMETRY.rowH"
+      >
+        <div class="gantt-bar__subchip">
+          <SubtaskChip
+            :work-item-id="task.work_item_id"
+            :target="{ programId: task.program_id, departmentId: task.department_id }"
+            open
+          />
+        </div>
+      </foreignObject>
+    </template>
     <template v-if="selected && draggable">
       <g v-for="h in handles" :key="h.edge" :data-handle="h.edge">
         <rect

@@ -6,9 +6,12 @@ import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { designStub } from '@/shared/design-stub'
 import { UiIcon } from '@/shared/ui'
 
+import { GEOMETRY } from '../../model/timeline'
 import { useGanttKeyboard, type DateKeyRequest } from '../../composables/useGanttKeyboard'
 import type { GanttLayout, GanttRow, RowWindow } from '../../model/rows'
 import type { GanttRowsEmits, GanttRowsProps } from '../index'
+import SubtaskRows from '../subtasks/SubtaskRows.vue'
+import SubtaskToggle from '../subtasks/SubtaskToggle.vue'
 import { useGanttHover } from './gantt-context'
 import { ganttText } from './messages'
 import { dotTitle, isLate, rowSummary, statusTone } from './task-view'
@@ -29,12 +32,16 @@ const props = defineProps<
     departmentCodes?: ReadonlyMap<string, string>
     /** W95 uzantı noktası: Shift(+Alt)+←/→ tarih kısayolu (verilmezse işlenmez). */
     dateKeyHandler?: (request: DateKeyRequest) => boolean | void
+    /** Alt görev satırları açık görevler (03d; E-03C-33). */
+    openSubtasks?: ReadonlySet<string>
   }
 >()
 const emit = defineEmits<
   GanttRowsEmits & {
     toggle: [groupKey: string, open: boolean]
     reveal: [index: number]
+    subtasks: [workItemId: string]
+    subtaskRows: [workItemId: string, count: number]
   }
 >()
 
@@ -83,6 +90,14 @@ function onClick(row: GanttRow): void {
   if (row.kind === 'group') emit('toggle', row.key, !row.open)
   else emit('select', row.task.work_item_id)
 }
+
+/** Açık alt görev bloğu olan görev satırları (pencereden bağımsız: sayı düzlemi belirler). */
+const openTaskRows = computed(() =>
+  props.layout.rows.filter(
+    (row): row is Extract<GanttRow, { kind: 'task' }> =>
+      row.kind === 'task' && props.openSubtasks?.has(row.key) === true,
+  ),
+)
 
 function groupName(row: Extract<GanttRow, { kind: 'group' }>): string {
   return row.name ?? ganttText('timeline.gantt.unknownGroup')
@@ -163,11 +178,34 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
             aria-hidden="true"
           />
           <span class="gantt-row__title">{{ row.task.title }}</span>
+          <SubtaskToggle
+            :work-item-id="row.task.work_item_id"
+            :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
+            :open="openSubtasks?.has(row.key) === true"
+            :label="codeOf(row) || row.task.title"
+            :tabindex="row.key === tabStop ? 0 : -1"
+            @click.stop
+            @keydown.stop
+            @toggle="emit('subtasks', row.task.work_item_id)"
+          />
         </div>
         <div role="gridcell" class="gantt-sr">
           {{ rowSummary(row.task, layout.dependentIds.has(row.key)) }}
         </div>
       </template>
+    </div>
+    <div
+      v-for="row in openTaskRows"
+      :key="`sub:${row.key}`"
+      class="gantt-subs"
+      :style="{ top: `${row.subY}px`, height: `${row.subRows * GEOMETRY.subH}px` }"
+    >
+      <SubtaskRows
+        :work-item-id="row.task.work_item_id"
+        :target="{ programId: row.task.program_id, departmentId: row.task.department_id }"
+        open
+        @rows="(count) => emit('subtaskRows', row.task.work_item_id, count)"
+      />
     </div>
   </div>
 </template>

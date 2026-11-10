@@ -12,6 +12,7 @@ import type {
   TimelineToolbarEmits,
   TimelineToolbarProps,
 } from '../index'
+import SubtaskMode from '../subtasks/SubtaskMode.vue'
 import { frameText } from './messages'
 
 /**
@@ -141,26 +142,20 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         :label="frameText('timeline.frame.toolbar.status.label')"
         @update:model-value="(v) => v && emit('update:status', v)"
       />
+      <SubtaskMode />
     </div>
     <span class="tl-grow" />
     <div class="tl-group">
       <span class="tl-scale" data-testid="timeline-scale">
         {{ frameText(`timeline.frame.toolbar.scale.${scale}`) }}
       </span>
-      <!-- Uzaklaştır "−": simge kayıt defterinde yok (shared/ui/icons.ts bu işin sahipliğinde değil) -->
-      <button
-        type="button"
-        class="t-iconbtn"
-        :aria-label="frameText('timeline.frame.toolbar.scale.zoomOut')"
-        :title="frameText('timeline.frame.toolbar.scale.zoomOut')"
+      <UiIconButton
+        icon="minus"
+        :label="frameText('timeline.frame.toolbar.scale.zoomOut')"
         :aria-disabled="atWidest ? 'true' : undefined"
         data-action="zoom-out"
         @click="atWidest || zoom(1)"
-      >
-        <svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M5 12h14" />
-        </svg>
-      </button>
+      />
       <UiIconButton
         icon="plus"
         :label="frameText('timeline.frame.toolbar.scale.zoomIn')"
@@ -193,9 +188,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         data-action="fullscreen"
         @click="emit('update:fullscreen', !fullscreen)"
       >
-        <svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
-        </svg>
+        <UiIcon name="expand" size="sm" />
       </button>
     </div>
   </div>
