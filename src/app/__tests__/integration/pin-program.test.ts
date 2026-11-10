@@ -12,7 +12,6 @@ import {
   fill,
   idle,
   seedWorld,
-  switchScope,
   teardown,
   until,
 } from './harness'
@@ -91,6 +90,5 @@ describe('(f) program kısa ad / renk → kenar menüsü avatarı (BE-001)', () 
     expect(patches[1]!.body).toMatchObject({ short_name: null, color: null })
     await until(() => avatarText() === derived.text, 'türetilmiş avatar geri geldi')
     expect(toneOf()).toBe(derived.tone)
-    void switchScope
   })
 })
