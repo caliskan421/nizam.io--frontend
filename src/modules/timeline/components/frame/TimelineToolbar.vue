@@ -12,6 +12,7 @@ import type {
   TimelineToolbarEmits,
   TimelineToolbarProps,
 } from '../index'
+import SubtaskMode from '../subtasks/SubtaskMode.vue'
 import { frameText } from './messages'
 
 /**
@@ -141,6 +142,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         :label="frameText('timeline.frame.toolbar.status.label')"
         @update:model-value="(v) => v && emit('update:status', v)"
       />
+      <SubtaskMode />
     </div>
     <span class="tl-grow" />
     <div class="tl-group">

@@ -18,7 +18,14 @@ import { useBarDrag } from './use-bar-drag'
  * `edge-drag` yayılır; politika (talep / doğrudan yazma / gecikme) W95'tedir. Çizim kendi SVG'dir.
  * `layout` / `window` GanttView'dan gelir (grup açık/kapalı durumu ve dikey pencere orada).
  */
-const props = defineProps<GanttBarsProps & { layout: GanttLayout; window: RowWindow }>()
+const props = defineProps<
+  GanttBarsProps & {
+    layout: GanttLayout
+    window: RowWindow
+    /** Alt görev satırları açık görevler (03d). */
+    openSubtasks?: ReadonlySet<string>
+  }
+>()
 const emit = defineEmits<GanttBarsEmits>()
 
 const hover = useGanttHover()
@@ -98,6 +105,7 @@ function onBackground(row: GanttRow): void {
         :selected="row.key === selectedId"
         :draggable="draggableIds.has(row.key)"
         :dependent="layout.dependentIds.has(row.key)"
+        :subtasks-open="openSubtasks?.has(row.key) === true"
         @select="emit('select', row.task.work_item_id)"
         @handle="(e, edge, x) => startDrag(e, row.task, edge, x)"
       />

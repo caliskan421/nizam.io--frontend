@@ -450,6 +450,8 @@
         { "name": "gantt-axis-day-h", "value": "28px" },
         { "name": "gantt-group-h", "value": "40px" },
         { "name": "gantt-row-h", "value": "44px" },
+        { "name": "gantt-sub-h", "value": "32px" },
+        { "name": "gantt-chip-w", "value": "56px" },
         { "name": "gantt-bar-h", "value": "24px" },
         { "name": "gantt-bar-radius", "value": "8px" },
         { "name": "gantt-handle-w", "value": "6px" },
@@ -473,7 +475,7 @@
         { "name": "gantt-code-w", "value": "48px" },
         { "name": "gantt-dot", "value": "8px" },
         { "name": "gantt-chevron", "value": "16px" },
-        { "name": "gantt-label-cols", "value": "48px 8px minmax(0, 1fr)" },
+        { "name": "gantt-label-cols", "value": "48px 8px minmax(0, 1fr) auto" },
         { "name": "gantt-group-cols", "value": "16px minmax(0, 1fr) auto" }
       ]
     }

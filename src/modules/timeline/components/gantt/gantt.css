@@ -276,6 +276,48 @@
     grid-template-columns: var(--gantt-label-cols);
     column-gap: var(--m-gap-md);
   }
+  /* Açılmış alt görev blokları (03d): etiket sütunu solda yapışık, tarih yazısı zaman alanında. */
+  .gantt-subs {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    --tl-label-col: var(--gantt-label);
+    --tl-track-col: minmax(0, 1fr);
+    pointer-events: none;
+  }
+  .gantt-subs .tl-subs {
+    height: 100%;
+  }
+  .gantt-subs .tl-sub {
+    box-sizing: border-box;
+    height: var(--gantt-sub-h);
+    min-height: 0;
+  }
+  .gantt-subs .tl-sub__label {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    height: 100%;
+    background: var(--bg-surface);
+    border-right: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .gantt-bar__sub {
+    overflow: visible;
+    pointer-events: none;
+  }
+  .gantt-bar__subprog {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--gantt-bar-radius);
+    overflow: hidden;
+  }
+  .gantt-bar__subchip {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
   .gantt-row.is-hover .gantt-row__label {
     background: var(--bg-raised);
   }

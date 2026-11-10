@@ -32,6 +32,17 @@ describe('satır düzlemi (grup → görev)', () => {
     expect(layout.indexByKey.get('c')).toBe(3)
   })
 
+  it('açık alt görev bloğu: görevin altına n × 32 yer açılır, sonraki satırlar kayar (03d)', () => {
+    const closed = buildLayout(input())
+    const open = buildLayout(input({ subtaskRows: new Map([['c', 3]]) }))
+    const at = (layout: typeof open, key: string) => layout.rows[layout.indexByKey.get(key)!]!
+    expect(at(open, 'c')).toMatchObject({ y: 124, height: 44, subRows: 3, subY: 168 })
+    expect(at(open, 'a').y).toBe(at(closed, 'a').y + 3 * 32)
+    expect(at(open, 'b').y).toBe(at(closed, 'b').y)
+    expect(open.height).toBe(closed.height + 3 * 32)
+    expect(at(closed, 'c').subRows).toBe(0)
+  })
+
   it('grup sayaçları: bitti / toplam, gecikme, aralık', () => {
     const layout = buildLayout(
       input({

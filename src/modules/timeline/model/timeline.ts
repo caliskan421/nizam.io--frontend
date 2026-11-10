@@ -25,6 +25,10 @@ export const GEOMETRY = {
   headH: px('gantt-axis-month-h') + px('gantt-axis-day-h'),
   groupH: px('gantt-group-h'),
   rowH: px('gantt-row-h'),
+  /** Açılmış alt görev satırı yüksekliği (03d). */
+  subH: px('gantt-sub-h'),
+  /** Alt görev sayaç çipinin kapladığı alan (çubuk sağında). */
+  chipW: px('gantt-chip-w'),
   barH: px('gantt-bar-h'),
   barR: px('gantt-bar-radius'),
   barTop: (px('gantt-row-h') - px('gantt-bar-h')) / 2,

@@ -7,3 +7,6 @@ export const GANTT_HOVER: InjectionKey<Ref<string | null>> = Symbol('gantt-hover
 export function useGanttHover(): Ref<string | null> {
   return inject(GANTT_HOVER, null) ?? ref<string | null>(null)
 }
+
+/** Ölçülemeyen ortamda (test) varsayılan görünür alan. */
+export const VIEW_FALLBACK = { width: 1200, height: 800 }

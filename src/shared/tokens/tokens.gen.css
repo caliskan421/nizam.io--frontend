@@ -389,6 +389,8 @@
   --gantt-axis-day-h: 28px;
   --gantt-group-h: 40px;
   --gantt-row-h: 44px;
+  --gantt-sub-h: 32px;
+  --gantt-chip-w: 56px;
   --gantt-bar-h: 24px;
   --gantt-bar-radius: 8px;
   --gantt-handle-w: 6px;
@@ -412,7 +414,7 @@
   --gantt-code-w: 48px;
   --gantt-dot: 8px;
   --gantt-chevron: 16px;
-  --gantt-label-cols: 48px 8px minmax(0, 1fr);
+  --gantt-label-cols: 48px 8px minmax(0, 1fr) auto;
   --gantt-group-cols: 16px minmax(0, 1fr) auto;
 }
 

@@ -36,6 +36,10 @@ export interface TaskRow {
   groupKey: string
   y: number
   height: number
+  /** Açık alt görev satırı sayısı (0 = kapalı); satırın hemen altına `subH` × bu kadar yer açılır. */
+  subRows: number
+  /** Alt görev bloğunun üst kenarı (`y + height`). */
+  subY: number
 }
 
 export type GanttRow = GroupRow | TaskRow
@@ -55,6 +59,12 @@ export interface LayoutInput {
   departmentNames: ReadonlyMap<string, string>
   /** Kapalı grupların anahtarları (`groupKey`); varsayılan hepsi açık. */
   collapsed: ReadonlySet<string>
+  /**
+   * Açık alt görev satırları: görev kimliği → alt satır sayısı (yükleniyor / boş / hata = 1).
+   * Açık görevin altına `sayı × alt satır yüksekliği` eklenir, sonraki satırların `y`'si kayar;
+   * çubuk, ızgara ve oklar aynı düzlemi kullanır (03d E-03C-33).
+   */
+  subtaskRows?: ReadonlyMap<string, number>
 }
 
 export function groupKey(departmentId: string): string {
@@ -84,15 +94,21 @@ function groupSpan(tasks: readonly GanttTask[]): GroupRow['span'] {
   return start !== null && end !== null ? { start, end } : null
 }
 
-/** Görevleri gruplayıp düz, ofsetli satır listesine açar. */
-export function buildLayout(input: LayoutInput): GanttLayout {
+interface TaskGroup {
+  departmentId: string
+  name: string | null
+  tasks: GanttTask[]
+}
+
+/** Görevleri departmana göre gruplar: görevler tarihe, gruplar ada göre sıralı. */
+function groupTasks(input: LayoutInput): TaskGroup[] {
   const byDepartment = new Map<string, GanttTask[]>()
   for (const task of input.tasks) {
     const bucket = byDepartment.get(task.department_id)
     if (bucket) bucket.push(task)
     else byDepartment.set(task.department_id, [task])
   }
-  const groups = [...byDepartment.entries()]
+  return [...byDepartment.entries()]
     .map(([departmentId, tasks]) => ({
       departmentId,
       name: input.departmentNames.get(departmentId) ?? null,
@@ -104,29 +120,37 @@ export function buildLayout(input: LayoutInput): GanttLayout {
         collator.compare(a.name ?? '', b.name ?? '') ||
         a.departmentId.localeCompare(b.departmentId),
     )
+}
 
+function groupRow(group: TaskGroup, open: boolean, y: number): GroupRow {
+  return {
+    kind: 'group',
+    key: groupKey(group.departmentId),
+    level: 1,
+    departmentId: group.departmentId,
+    name: group.name,
+    open,
+    total: group.tasks.length,
+    done: group.tasks.filter((t) => t.status === TASK_STATUS_DONE).length,
+    hasOverdue: group.tasks.some((t) => t.lateness.is_overdue),
+    span: groupSpan(group.tasks),
+    y,
+    height: GEOMETRY.groupH,
+  }
+}
+
+/** Görevleri gruplayıp düz, ofsetli satır listesine açar. */
+export function buildLayout(input: LayoutInput): GanttLayout {
   const rows: GanttRow[] = []
   let y = 0
-  for (const group of groups) {
+  for (const group of groupTasks(input)) {
     const key = groupKey(group.departmentId)
     const open = !input.collapsed.has(key)
-    rows.push({
-      kind: 'group',
-      key,
-      level: 1,
-      departmentId: group.departmentId,
-      name: group.name,
-      open,
-      total: group.tasks.length,
-      done: group.tasks.filter((t) => t.status === TASK_STATUS_DONE).length,
-      hasOverdue: group.tasks.some((t) => t.lateness.is_overdue),
-      span: groupSpan(group.tasks),
-      y,
-      height: GEOMETRY.groupH,
-    })
+    rows.push(groupRow(group, open, y))
     y += GEOMETRY.groupH
     if (!open) continue
     for (const task of group.tasks) {
+      const subRows = Math.max(0, input.subtaskRows?.get(task.work_item_id) ?? 0)
       rows.push({
         kind: 'task',
         key: task.work_item_id,
@@ -135,8 +159,10 @@ export function buildLayout(input: LayoutInput): GanttLayout {
         groupKey: key,
         y,
         height: GEOMETRY.rowH,
+        subRows,
+        subY: y + GEOMETRY.rowH,
       })
-      y += GEOMETRY.rowH
+      y += GEOMETRY.rowH + subRows * GEOMETRY.subH
     }
   }
   return {

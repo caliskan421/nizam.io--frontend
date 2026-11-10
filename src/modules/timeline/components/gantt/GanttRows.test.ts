@@ -5,7 +5,7 @@ import { task } from '../../model/__tests__/gantt-fixtures'
 import { buildLayout } from '../../model/rows'
 import type { GanttTask } from '../../model/types'
 import GanttRows from './GanttRows.vue'
-import { layoutOf, NAMES, windowOf } from './gantt-test-support'
+import { layoutOf, NAMES, queryPlugins, windowOf } from './gantt-test-support'
 
 const LATE = { ...task().lateness, is_overdue: true, days_overdue: 41 }
 const TASKS: GanttTask[] = [
@@ -49,6 +49,7 @@ function mountRows(over: Props = {}, collapsed: string[] = [], tasks = TASKS) {
       ...over,
     },
     attachTo: document.body,
+    global: { plugins: queryPlugins().plugins },
   })
 }
 const row = (w: ReturnType<typeof mountRows>, key: string) => w.get(`[data-row-key="${key}"]`)
@@ -145,14 +146,14 @@ describe('tıklama ve klavye', () => {
 
   it('dolaşan tabindex: tek sekme durağı (seçili satır, yoksa ilk satır)', () => {
     const rows = mountRows()
-    expect(rows.findAll('[tabindex="0"]').map((n) => n.attributes('data-row-key'))).toEqual([
-      'g:d2',
-    ])
+    expect(
+      rows.findAll('[role="row"][tabindex="0"]').map((n) => n.attributes('data-row-key')),
+    ).toEqual(['g:d2'])
     const selected = mountRows({ selectedId: 'b' })
-    expect(selected.findAll('[tabindex="0"]').map((n) => n.attributes('data-row-key'))).toEqual([
-      'b',
-    ])
-    expect(selected.findAll('[tabindex="-1"]')).toHaveLength(4)
+    expect(
+      selected.findAll('[role="row"][tabindex="0"]').map((n) => n.attributes('data-row-key')),
+    ).toEqual(['b'])
+    expect(selected.findAll('[role="row"][tabindex="-1"]')).toHaveLength(4)
   })
 
   it('↓ odağı alttaki satıra taşır ve görünür alanı ister; sekme durağı odağı izler', async () => {
@@ -163,7 +164,9 @@ describe('tıklama ve klavye', () => {
     await rows.vm.$nextTick()
     expect(document.activeElement).toBe(row(rows, 'c').element)
     expect(rows.emitted('reveal')).toEqual([[1]])
-    expect(rows.findAll('[tabindex="0"]').map((n) => n.attributes('data-row-key'))).toEqual(['c'])
+    expect(
+      rows.findAll('[role="row"][tabindex="0"]').map((n) => n.attributes('data-row-key')),
+    ).toEqual(['c'])
   })
 
   it('End/Home uç satırlara; PageDown sayfa adımı', async () => {

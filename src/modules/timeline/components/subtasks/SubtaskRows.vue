@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import './subtasks.css'
 
+import { computed, watch } from 'vue'
+
 import { toApiError } from '@/shared/errors/api-error'
 import { UiErrorState, UiIcon } from '@/shared/ui'
 
@@ -19,8 +21,18 @@ import { useSubtaskSummary } from './use-subtask-summary'
  * `--tl-track-col` ile gelir, yoksa makul varsayılan.
  */
 const props = defineProps<SubtaskRowsProps>()
+const emit = defineEmits<{
+  /** Çizilen satır sayısı (yükleniyor / boş / hata = 1): Gantt satır düzlemi buna göre yer açar. */
+  rows: [count: number]
+}>()
 
 const { query, subtasks } = useSubtaskSummary(() => props)
+const rowCount = computed(() => {
+  if (!props.open) return 0
+  const listed = query.isSuccess.value ? subtasks.value.length : 0
+  return Math.max(1, listed)
+})
+watch(rowCount, (count) => emit('rows', count), { immediate: true })
 </script>
 
 <template>

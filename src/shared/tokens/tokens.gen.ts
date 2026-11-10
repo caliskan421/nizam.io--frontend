@@ -2642,6 +2642,18 @@ export const TOKENS = {
     "dark": "44px",
     "light": "44px"
   },
+  "gantt-sub-h": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "32px",
+    "light": "32px"
+  },
+  "gantt-chip-w": {
+    "group": "gantt",
+    "origin": "web",
+    "dark": "56px",
+    "light": "56px"
+  },
   "gantt-bar-h": {
     "group": "gantt",
     "origin": "web",
@@ -2783,8 +2795,8 @@ export const TOKENS = {
   "gantt-label-cols": {
     "group": "gantt",
     "origin": "web",
-    "dark": "48px 8px minmax(0, 1fr)",
-    "light": "48px 8px minmax(0, 1fr)"
+    "dark": "48px 8px minmax(0, 1fr) auto",
+    "light": "48px 8px minmax(0, 1fr) auto"
   },
   "gantt-group-cols": {
     "group": "gantt",
