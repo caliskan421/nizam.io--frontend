@@ -18,6 +18,10 @@ Seçili programın ("sezon") toplantılarını gün gruplarına ayrılmış bir 
 | eksikler.md | denetlendi | 2026-11-08 | backend analisti |
 | dogrulama.md | denetlendi | 2026-11-08 | denetçi (Sonnet) |
 
+## S3 tasarım kararının tamamlanması (2026-11-11)
+
+Kullanıcı, özel seçicinin eksik açılmış görünümünü Claude Opus 5.5 ile tartışıp kararlaştırma yetkisini koordinatöre verdi. İki tur salt okunur görüş sonrası [S3 özel seçici kararı](../../yurutme/web-4/s3-kisi-secici-karari.md) kesinleşti. Açılmış çizim bulunmadı; toplantı tasarım dilinden türetilmiş özel modal uygulanır. Ortak hazır kişi seçici ikame edilmez. Aşağıdaki “çizim bulunamadı” tespiti tarihsel kaynak sınırıdır; artık tasarım cevabı bekleyen bir engel değildir. W105/W106 uygulama ve W107 gerçek entegrasyon/görsel kapıları açık kalır.
+
 ## Uygulama kararı tablosu (CX-M-07)
 
 Karar tarihi 2026-11-10 (WEB-3 O4 adım 2). **Durum: kabul — F4-S1…S10 ürün sahibince cevaplandı (2026-11-10, `../ortak-kurallar.md` §12 P21–P30);** Codex §6 #21–#23 ve README "Açık sorular" kapandı. S3, S4 ve S9 önerilen varsayılandan farklı seçildi ve ilgili satırlar değiştirildi; kalan "geçici kabul (koordinatör)" işaretleri S-dışı mekanizma kararlarıdır. Kaynaklar: `../ortak-kurallar.md` §1–§7, §9, §10, §12 (P1–P31; toplantı P21–P30); `backend.md` §1–§6; `eksikler.md`; `mekanizma.md`; `../../backend-eksikleri/kayit.md`, `../../backend-eksikleri/rapor-F3.md` §4; `../../reviews/EKRANLAR-codex.md` §6 #21–#23. Uygulayıcılar: `../../yurutme/web-4/` (W101–W107). Kısaltmalar: ŞY = şirket yöneticisi (`me.company_admin`), K = toplantıya bağlı departmanın koordinatörü, Ü = üye; yetki **olgudan** (`capabilities.ts`, K1), rol dizesinden değil; mercek ≠ yetki (P1). Toplantı uçlarının tamamı S2 (yalnız program başlığı). **K1 kaynağı:** `istemci-akislari.md` toplantıyı kapsamaz; yetki kuralı meetings README §3/§4'ten alınır (F4-S10, P30 kabul).

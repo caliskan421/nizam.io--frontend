@@ -157,3 +157,8 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 
 Yalnız `GET /v1/instance/profile` `api_version` ana sürüm kapısı uygulanır (CLAUDE.md). Ürün sürümü ile API pin minörünü karşılaştıran uyarı **yapılmaz** (tanımlı eşdeğerlik yok). Asgari web sürümü alanı backend'e belge/politika işi olarak önerilir.
+
+
+### P32 — F4-S3 özel kişi seçici türetme kararı (2026-11-11)
+
+Ürün sahibi, “önerin nedir? arka planda claude opus5.5 ile tartışıp karar ver” diyerek P23 özel seçicinin eksik açılmış görünümünü kararlaştırma yetkisini koordinatöre devretti. İki tur Claude Opus 5.5 değerlendirmesi ve koordinatör karşı görüşleriyle [S3 kararı](../yurutme/web-4/s3-kisi-secici-karari.md) kesinleşti: toplantıya özel, ağsız, aramalı çoklu seçim modalı; gerçek ad/avatar; locked katılımcılar; formda boş seçimi uygulama; kaybolan adayın seçimini sessiz düşürmeme; K/eksik liste uyarısı; ortak modal/odak altyapısı. Eski çizim bulundu iddiası yok, hazır ortak kişi seçici ikamesi yok. Yeni ürün onayı beklenmez; W105/W106/W107 test/görsel kapıları şart. Bu karar VoiceOver veya E-03C-27/41 kullanıcı kanıtı borçlarını kapatmaz; F5 yetkisi vermez.
