@@ -57,6 +57,13 @@ const deleted = useDeletedMeetings(() => admin.value && tab.value === 'silinenle
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
 const split = computed(() => splitMeetings(meetings.items.value, new Date(), timezone.value))
 const shown = computed(() => (tab.value === 'gecmis' ? split.value.past : split.value.upcoming))
+const lensText = computed(() =>
+  scope.lens === 'admin'
+    ? 'Admin olarak sezondaki tüm toplantıları görüyorsun'
+    : scope.lens === 'coordinator'
+      ? 'Koordinatör olarak erişebildiğin toplantıları görüyorsun'
+      : 'Üye olarak erişebildiğin toplantıları görüyorsun',
+)
 const program = computed(
   () => programs.value?.find((p) => p.programId === scope.programId)?.name ?? '',
 )
@@ -89,7 +96,8 @@ watch(
         <h1 class="rp-h1">{{ t('meetings.list.title') }}</h1>
         <p class="rp-sub">
           {{ program }} · {{ meetings.complete.value ? '' : 'En az '
-          }}{{ split.upcoming.length }} yaklaşan, {{ split.past.length }} geçmiş toplantı
+          }}{{ split.upcoming.length }} yaklaşan, {{ split.past.length }} geçmiş toplantı ·
+          {{ lensText }}
         </p>
       </div>
       <button v-if="canCreate" class="t-btn t-btn--primary" @click="creating = true">
@@ -161,7 +169,7 @@ watch(
         @refresh="deleted.refetch()"
       />
       <p v-else-if="meetings.query.isPending.value">{{ t('meetings.list.loading') }}</p>
-      <div v-else-if="meetings.query.isError.value" role="alert">
+      <div v-else-if="meetings.query.isError.value && !meetings.query.data.value" role="alert">
         {{ t('meetings.list.error') }}
         <button @click="meetings.query.refetch()">{{ t('meetings.list.retry') }}</button>
       </div>
