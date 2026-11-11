@@ -2827,6 +2827,24 @@ export const TOKENS = {
     "origin": "web",
     "dark": "16px minmax(0, 1fr) auto",
     "light": "16px minmax(0, 1fr) auto"
+  },
+  "meeting-date-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "60px",
+    "light": "60px"
+  },
+  "meeting-code-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "40px",
+    "light": "40px"
+  },
+  "meeting-code-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
   }
 } as const
 

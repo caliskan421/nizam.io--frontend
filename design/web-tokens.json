@@ -2,6 +2,22 @@
   "$description": "Web'e özgü tasarım token'ları (yol haritası K9). Yalnız tasarım kopyasındaki docs/tasarim/kaynak/theme.css ve tema-sistemi/tokens.css'te olup tasarım sistemi kaynağında (tokens/design-system.tokens.json) bulunmayan değerler; ui/side/topbar grupları bileşen işaretlemesindeki (bundle.css, *.dc.html) ölçek dışı ölçülerdir — src altında px yalnız üretilmiş token dosyasındadır (CX-F0-Ö-02, px-scope.test.ts). Değer düz CSS değeri ya da {dark, light} çiftidir; '{ad}' başka bir token'a başvurur (CSS'te var(--ad)). Kaynakta olan bir adı burada tekrar tanımlamak üreticide hatadır. Değiştirme: bu dosya + `pnpm gen:tokens` + PR.",
   "version": 1,
   "groups": {
+    "meeting": {
+      "$description": "Toplantı liste tasarımının ölçek dışı ölçüleri (Toplantilar.dc.html).",
+      "tokens": [
+        { "name": "meeting-date-width", "value": "60px", "usage": "Liste tarih kutusu genişliği." },
+        {
+          "name": "meeting-code-width",
+          "value": "40px",
+          "usage": "Koordinatörlük kodu alt sınırı."
+        },
+        {
+          "name": "meeting-code-height",
+          "value": "22px",
+          "usage": "Koordinatörlük kodu yüksekliği."
+        }
+      ]
+    },
     "color": {
       "$description": "theme.css açık tema kurallarındaki ham renkler.",
       "tokens": [
