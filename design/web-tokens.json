@@ -45,7 +45,11 @@
         { "name": "meeting-agenda-progress-height", "value": "5px" },
         { "name": "meeting-person-row-height", "value": "38px" },
         { "name": "meeting-person-touch-height", "value": "44px" },
-        { "name": "meeting-person-avatar-size", "value": "24px" }
+        { "name": "meeting-person-avatar-size", "value": "24px" },
+        { "name": "meeting-participant-avatar-size", "value": "28px" },
+        { "name": "meeting-side-card-padding", "value": "22px" },
+        { "name": "meeting-participant-name-font", "value": "500 13px/20px {font-sans}" },
+        { "name": "meeting-participant-role-font", "value": "500 11px/16px {font-sans}" }
       ]
     },
     "color": {

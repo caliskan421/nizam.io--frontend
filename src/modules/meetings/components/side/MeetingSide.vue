@@ -77,10 +77,15 @@ const role = computed(() => {
       </header>
       <ul>
         <li v-for="department in ordered" :key="department.department_id">
-          <strong v-if="code(department.department_id)">{{
-            code(department.department_id)
-          }}</strong>
-          {{ department.department_name }}
+          <strong
+            v-if="code(department.department_id)"
+            class="meeting-side__code"
+            :class="{
+              'meeting-side__code--owner': department.department_id === meeting.owner_department_id,
+            }"
+            >{{ code(department.department_id) }}</strong
+          >
+          <span>{{ department.department_name }}</span>
           <small v-if="department.department_id === meeting.owner_department_id">{{
             text.owner
           }}</small>
