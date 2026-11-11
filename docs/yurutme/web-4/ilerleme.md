@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b birleşti; O3/W107 aktif. F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b ve O3 birleşti; O4 aktif. F4 kapanmış değildir.
 
 ## Durum
 
@@ -12,8 +12,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
 | O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
 | O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Birleşti: #90/#91/#92/#94/#95; üçer CI SUCCESS | `dd755f3` |
-| O3 — Entegrasyon turu (W107) | Aktif | `dd755f3` |
-| O4 — Kapanış | Bekliyor | — |
+| O3 — Entegrasyon turu (W107) | Birleşti: #97, üç CI SUCCESS | `24bfb17` |
+| O4 — Kapanış | Aktif: gerçek imaj tanığı + belgeler; nihai kapı bekliyor | `24bfb17` |
 
 ## Devralınan (WEB-3 O4)
 
@@ -129,3 +129,10 @@ W107 uygulama başı `4bf32fa`: typecheck, tam lint, format, 484 dosyada 3252 te
 O3 gerçek router/AppShell/oturum ve durumlu MSW ile 12 kabul grubunu kapsar: URL/filtre ve gezinme; üç rol/iki kip; oluşturma/belirsiz sonuç; gündem; not anahtarı/409/silme; nottan görev ve türevler; kısmi katılımcı serisi; silinenler; kapsam/oturum/geç sonuç; odak ve derin link; özel seçici/adayı; video yokluğu. `meetings-*.test.ts` dosyaları `src/app/__tests__/integration/` altındadır. Gerçek görev listesi/pano değişir; ilgisiz rozet doğru biçimde sabit kalır. MSW rol kapsamı gerçek backend yetkilendirmesi kanıtı sayılmaz; o tanık O4'tedir.
 
 İki üretim kusuru kapandı: detay 403/404 sonucunda standing tazelenip listeye dönüş (`use-meeting-loss.ts`, aynı hata/ekran/kapsam/oturum korumalı); not silme sonrası bölüm başlığına odak (`MeetingNotes.vue`, `use-note-delete.ts`, `notes-view.ts`, gerçek scope.onChange ve söküm korumalı). Önceki testlerde taslak kalan W102/W103 alt bileşenleri gerçek entegrasyonla karşılandı. Son üretim+Caddy CSP+Chromium kapısı aynı 4bf32fa paketiyle altı görünümde geçti: 390/1024/1440 × iki tema, taşma/CSP/pageerror 0; Space/Enter, filtrede seçim, form/iç seçici/menü/onay odağı, not sil→başlık odağı ve yalnız başlık PATCH doğrulandı. Kanıt `.git/koordinator/web4-w107/` altında (results.json, betik, 18 görüntü). W107 PR/CI/birleşimi bu kayıt anında bekleniyor; O3/O4 kapanmış değildir. F5 açılmadı.
+
+
+## 2026-11-11 — O3 birleşimi ve O4 açılışı
+
+W107 #97 `24bfb174e92185b964e3f82ad2174ff8738e1c17` birleşti. CI [43086372074](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43086372074) üç denetim COMPLETED+SUCCESS; pr-merge.sh ve bağımsız MERGED doğrulaması yapıldı. Kaynak `4bf32fa` yerel kapı ve sabit üretim tarayıcı tanığı yukarıda; PR başı `646b581` yalnız ek koordinatör kaydı taşır.
+
+O4 W110 ayrı worktree'de gerçek Docker/web/backend v0.15 tanığına başladı; koordinatör kapanış belgelerini ayrı dalda yürütür. Nihai gpt-6.1-sol medium `-s read-only` kapısı bu hazırlıklar tamamlanınca çalışacak. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık. F5 yalnız belge hazırlığıdır; açılış onayı ve BE-072 çözümü yok, F5 kodu/işçisi başlamadı.

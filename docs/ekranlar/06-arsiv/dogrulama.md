@@ -44,3 +44,8 @@ Denetlenen içerik: 2026-11-08 ilk sürüm. Sonraki düzeltmeler: denetçi bulgu
 - CX-T-07 — faz görünürlük matrisi (Arşiv/Mesajlar gizli mi) — düzeltici ajan tarafından işleniyor
 - CX-S-06 — `provisioning.write_not_allowed` anlamı — düzeltici ajan tarafından işleniyor
 - CX-S-11 — `archiveUploaders` tip değişikliği kırıcı — düzeltici ajan tarafından işleniyor
+
+
+## WEB-4 O4 hazırlık güncellemesi (2026-11-11)
+
+Yukarıdaki tespit tarihi v0.11 değerlendirmesidir. v0.15 pinli `attachFile`/`deleteFile`, `istemci-akislari.md` §4 ve records README K01/K02/K10 (ADR-0030) yeniden okundu: ŞY yükleyebilir; yalnız yükleyen ŞY silmede ekip satırından muaftır. README/mekanizma/backend metni buna hizalandı. E-06-01…64 geçici kabul tablosu yalnız hazırlıktır; F5 açılmadı, BE-072 engeli ve ürün soruları durur.
