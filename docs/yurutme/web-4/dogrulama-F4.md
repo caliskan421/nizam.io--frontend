@@ -59,3 +59,6 @@ Kalıcı kopya için güvenli kanıtlar: `final-keyboard-results.json`, `final-r
 ## Birleşim ve CI
 
 [#98](https://github.com/caliskan421/nizam.io--frontend/pull/98), üç COMPLETED+SUCCESS denetimi ve zorunlu `pr-merge.sh` ardından `4683af5e71896bb10f52d2fff886511c0f36555d` ile main'e birleşti; MERGED bağımsız doğrulandı. [CI 43103473776](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43103473776): kod/test/build, Web imajı ve gerçek backend Playwright denetimleri geçti.
+
+
+Birleşmiş main `4683af5` üzerinde O4 son tam kapısı ayrıca çalıştırıldı: 484 dosyada3259 test (205,41 sn), typecheck/lint/format/build/gen:check geçti; önce/sonra HEAD aynı, ağaç temiz. Sonraki nihai Sol tur1 üç kabul koşulu buldu; bu yeşil koşum onların kapandığı anlamına gelmez. Takip [WEB-4-codex](../../reviews/WEB-4-codex.md).

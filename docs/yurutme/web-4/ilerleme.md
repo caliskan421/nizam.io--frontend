@@ -148,3 +148,10 @@ Ara imajda üst form kapanışında BODY'ye düşen odak kusuru bulundu. Ortak U
 
 
 W110 #98 üç COMPLETED+SUCCESS ile `pr-merge.sh` üzerinden birleşti: `4683af5e71896bb10f52d2fff886511c0f36555d`. [CI 43103473776](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43103473776); bağımsız MERGED doğrulandı, main fast-forward güncellendi. O4 adım 3 için birleşmiş main tam kapısı sürüyor; nihai Sol incelemesi sırada.
+
+
+## 2026-11-12 — Nihai kapı tur 1, kapanış koşulları
+
+Birleşmiş main `4683af5` üzerinde W110 son tam kapısı geçti: typecheck/lint/format, 484 dosyada 3259 test (205,41 sn), build/gen:check; önce/sonra HEAD aynı ve ağaç temiz. Nihai `gpt-6.1-sol medium -s read-only` gerçek araçlı incelemesi kapanış hazırlık HEAD `292d01c` üzerinde **KOŞULLU UYGUN**: [rapor](../../reviews/WEB-4-codex.md).
+
+Üç koşul F4 içinde kapanmalıdır: Ö-01 bekleyen not PATCH'inin yeni taslağı kapatması/ikinci gönderim → W111; Ö-02 form sunucu alan hatalarının satır içi gösterimi ve K-01 koordinatörlük çip yüzü → W112. Ayrık worktree/dallarda Terra medium işçileri, iki tam test yuvasıyla başladı. Bu mevcut kabul düzeltmesidir; yeni ürün kapsamı veya F5 açılışı değildir. F4 kapanış PR'ı koşulların yeşil birleşimi ve gerektiğinde ikinci nihai tur sonrasına kaldı.
