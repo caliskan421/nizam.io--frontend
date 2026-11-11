@@ -22,6 +22,7 @@ import {
   USERS,
   usersHandler,
 } from '../components/users/__tests__/users-harness'
+import UserPanel from '../components/users/UserPanel.vue'
 import UsersPage from './UsersPage.vue'
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
@@ -163,6 +164,33 @@ function stackedLayout(stacked: boolean): void {
 }
 
 describe('UsersPage — yan panel ve yaşam döngüsü', () => {
+  it.each(['close', 'escape'])(
+    'panel %s ile kapanınca odağı satır düğmesine döndürür',
+    async (method) => {
+      stackedLayout(true)
+      const { wrapper } = await mountPage()
+      const trigger = wrapper.get('[data-account="u1"][role="row"] [data-testid="user-open"]')
+      ;(trigger.element as HTMLElement).focus()
+      await trigger.trigger('click')
+      await settle()
+      const aside = wrapper.get('aside')
+      if (method === 'close') await wrapper.get('[data-testid="panel-close"]').trigger('click')
+      else await aside.trigger('keydown', { key: 'Escape' })
+      await settle()
+      expect(document.activeElement).toBe(trigger.element)
+    },
+  )
+
+  it('seçilen satır yoksa kapatınca aramaya odaklanır', async () => {
+    const { wrapper } = await mountPage()
+    await wrapper.get('[data-account="u1"][role="row"] [data-testid="user-open"]').trigger('click')
+    await settle()
+    wrapper.get('[data-account="u1"][role="row"]').element.remove()
+    wrapper.getComponent(UserPanel).vm.$emit('deleted')
+    await settle()
+    expect(document.activeElement).toBe(wrapper.get('[data-testid="users-search"]').element)
+  })
+
   it('derin bağlantı: yüklü kişi → panel açık; kapat → `secili` silinir', async () => {
     const { wrapper, router } = await mountPage('/kullanicilar?secili=u2')
     expect(wrapper.get('[data-testid="user-panel"]').attributes('data-account')).toBe('u2')

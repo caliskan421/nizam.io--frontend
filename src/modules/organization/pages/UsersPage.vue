@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import './users/users-page.css'
 
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -31,6 +31,8 @@ const { standing } = useStanding()
 const creating = ref(false)
 const passwordFor = ref<string | null>(null)
 const aside = ref<HTMLElement | null>(null)
+const page = ref<HTMLElement | null>(null)
+let panelTrigger: HTMLElement | null = null
 const { reveal } = usePanelReveal(aside)
 
 const url = useUsersUrl(() => {
@@ -72,11 +74,20 @@ const selectedMissing = computed(
 )
 
 function select(accountId: string): void {
+  const rows = page.value?.querySelectorAll<HTMLElement>('[role="row"][data-account]')
+  const row = [...(rows ?? [])].find((item) => item.dataset.account === accountId)
+  panelTrigger = row?.querySelector<HTMLElement>('[data-testid="user-open"]') ?? null
   void url.update({ selected: accountId }, 'push').then(() => reveal())
 }
 
 function closePanel(): void {
-  void url.update({ selected: null }, 'push')
+  void url.update({ selected: null }, 'push').then(async () => {
+    await nextTick()
+    const fallback = page.value?.querySelector<HTMLElement>('[data-testid="users-search"]')
+    const target = panelTrigger?.isConnected ? panelTrigger : fallback
+    target?.focus()
+    panelTrigger = null
+  })
 }
 
 /** Kullanıcı oluşturuldu: kişi seçilir; ŞY'de ikinci adım "Geçici parola belirle" (E-05-05). */
@@ -87,7 +98,7 @@ function onCreated(accountId: string): void {
 </script>
 
 <template>
-  <section class="users-page" data-testid="users-page">
+  <section ref="page" class="users-page" data-testid="users-page">
     <UsersHead :summary="summary" :can-create="canCreate" @create="creating = true" />
     <div class="rp-body">
       <UsersToolbar
@@ -120,6 +131,7 @@ function onCreated(accountId: string): void {
         class="rp-aside"
         tabindex="-1"
         :aria-label="usersText('users.panel.label')"
+        @keydown.esc.stop="closePanel"
       >
         <UserPanel :key="panelId" :account-id="panelId" @close="closePanel" @deleted="closePanel" />
       </aside>
