@@ -139,6 +139,17 @@ it('blocks invalid URL dates before the first request and starts with corrected 
     (notify) => client.getQueryCache().subscribe(notify),
   )
   expect(router.currentRoute.value.query.koordinatorluk).toBe('d')
+  const upcoming = wrapper.get('#meeting-tab-yaklasan')
+  expect(wrapper.get('#meeting-list-panel').attributes('aria-labelledby')).toBe(
+    'meeting-tab-yaklasan',
+  )
+  await upcoming.trigger('keydown', { key: 'ArrowRight' })
+  await flushPromises()
+  expect(router.currentRoute.value.query.zaman).toBe('gecmis')
+  expect(wrapper.get('#meeting-list-panel').attributes('aria-labelledby')).toBe(
+    'meeting-tab-gecmis',
+  )
+  expect(wrapper.get('#meeting-tab-gecmis').attributes('aria-selected')).toBe('true')
   wrapper.unmount()
   client.clear()
 })

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
-import { UiEmptyState } from '@/shared/ui'
+import { UiEmptyState, UiIcon } from '@/shared/ui'
 import { groupMeetings, meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
 import { dayLabel } from '../../pages/meetings/day-label'
@@ -81,12 +81,14 @@ function codes(item: Meeting) {
         >
         <span v-if="item.summary" class="meeting-stats"
           ><span :title="t('meetings.list.agenda')"
-            >{{ item.summary.agenda_checked }} / {{ item.summary.agenda_total }}</span
-          ><span :title="t('meetings.list.notes')">{{ item.summary.note_count }}</span
-          ><span :title="t('meetings.list.participants')">{{
-            item.summary.participant_count
-          }}</span></span
-        ><span aria-hidden="true">›</span>
+            ><UiIcon name="tasks" size="sm" />{{ item.summary.agenda_checked }} /
+            {{ item.summary.agenda_total }}</span
+          ><span :title="t('meetings.list.notes')"
+            ><UiIcon name="meeting-note" size="sm" />{{ item.summary.note_count }}</span
+          ><span :title="t('meetings.list.participants')"
+            ><UiIcon name="meeting-person" size="sm" />{{ item.summary.participant_count }}</span
+          ></span
+        ><UiIcon name="chevron-right" size="sm" aria-hidden="true" />
       </a>
     </section>
   </div>
