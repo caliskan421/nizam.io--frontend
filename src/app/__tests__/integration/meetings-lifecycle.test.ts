@@ -177,7 +177,7 @@ it('anahtarsız toplantı oluşturma sonucu bilinmiyorsa otomatik tekrar gönder
   await fill('#meeting-form input:not([type])', 'Belirsiz toplantı')
   await fill('#meeting-form input[type="date"]', '2099-12-31')
   await fill('#meeting-form input[type="time"]', '10:00')
-  await click('#meeting-form fieldset:last-of-type input')
+  await click('#meeting-form .meeting-form__chip')
   await click('button[form="meeting-form"]')
   await until(() => $('[role="alert"]'), 'belirsizlik uyarısı')
   expect(backend.sent('POST', '/v1/meetings')).toHaveLength(1)

@@ -62,13 +62,10 @@ onMounted(async () => {
         required
     /></label>
   </template>
-  <p
+  <template
     v-for="key in ['invite_mode', 'department_ids', 'participant_ids', 'members_included']"
-    v-show="fieldErrors[key]"
-    :id="`meeting-${key}-error`"
     :key="key"
-    role="alert"
   >
-    {{ fieldErrors[key] }}
-  </p>
+    <p v-if="fieldErrors[key]" :id="`meeting-${key}-error`" role="alert">{{ fieldErrors[key] }}</p>
+  </template>
 </template>
