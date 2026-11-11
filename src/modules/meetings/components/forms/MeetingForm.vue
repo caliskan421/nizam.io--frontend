@@ -3,6 +3,7 @@ import './forms.css'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useProgramDepartments } from '@/modules/work/public'
 import { reachesOwner } from '@/shared/http/mutation'
+import { errorText } from '@/shared/i18n'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
@@ -63,6 +64,32 @@ const canEditDepartments = computed(
 )
 const today = computed(() => meetingDateParts(clock.value, timezone.value).date)
 const uncertain = ref(false)
+const fieldErrors = ref<Record<string, string>>({})
+function showErrors(result: {
+  kind: string
+  error?: { status: number; fields: { field: string; messageKey: string }[] }
+}) {
+  if (result.kind !== 'failed' || result.error?.status !== 422) return false
+  const errors: Record<string, string> = {}
+  for (const field of result.error.fields) {
+    if (
+      [
+        'title',
+        'meeting_date',
+        'department_ids',
+        'participant_ids',
+        'members_included',
+        'invite_mode',
+      ].includes(field.field)
+    )
+      errors[field.field] = errorText(field)
+  }
+  fieldErrors.value = errors
+  return Object.keys(errors).length > 0
+}
+watch([title, date, time, departmentIds, participantIds, members, mode], () => {
+  fieldErrors.value = {}
+})
 const busy = computed(() => create.isPending.value || update.isPending.value)
 const invalidDate = computed(
   () =>
@@ -136,7 +163,7 @@ async function submitUpdate(programId: string, meetingId: string, meetingDate: s
   if (result.kind === 'success') {
     warn(result.data.side_effects)
     emit('saved', meetingId)
-  } else notifyOutcome(result)
+  } else if (!showErrors(result)) notifyOutcome(result)
 }
 async function submitCreate(programId: string, meetingDate: string) {
   const result = await create.submit({
@@ -156,10 +183,11 @@ async function submitCreate(programId: string, meetingDate: string) {
   if (result.kind === 'success') {
     warn(result.data.side_effects, result.data.failed_participants ?? [])
     emit('saved', result.data.meeting.meeting_id)
-  } else notifyOutcome(result)
+  } else if (!showErrors(result)) notifyOutcome(result)
 }
 async function submit() {
   if (invalid.value || busy.value || !scope.programId) return
+  fieldErrors.value = {}
   if (dateChanged.value && date.value < meetingDateParts(new Date(), timezone.value).date) return
   const meetingDate = meetingTimestamp(date.value, time.value, timezone.value)
   if (props.meeting) await submitUpdate(scope.programId, props.meeting.meeting_id, meetingDate)
@@ -178,8 +206,16 @@ async function submit() {
       <template v-if="!departmentEdit">
         <label class="rp-field meeting-form__title"
           >{{ text.title }} <span class="rp-count">{{ Array.from(title).length }} / 255</span
-          ><input v-model="title" class="t-input" required
-        /></label>
+          ><input
+            v-model="title"
+            class="t-input"
+            :aria-invalid="fieldErrors.title ? true : undefined"
+            :aria-describedby="fieldErrors.title ? 'meeting-title-error' : undefined"
+            required
+          /><span v-if="fieldErrors.title" id="meeting-title-error" role="alert">{{
+            fieldErrors.title
+          }}</span></label
+        >
         <label class="rp-field meeting-form__date"
           >{{ text.date
           }}<input
@@ -187,14 +223,34 @@ async function submit() {
             v-model="date"
             class="t-input"
             type="date"
+            :aria-invalid="fieldErrors.meeting_date ? true : undefined"
+            :aria-describedby="fieldErrors.meeting_date ? 'meeting-date-error' : undefined"
             :min="dateChanged ? today : undefined"
             required
-          /><span class="t-hint">{{ text.dateHint }}</span></label
+          /><span class="t-hint">{{ text.dateHint }}</span
+          ><span v-if="fieldErrors.meeting_date" id="meeting-date-error" role="alert">{{
+            fieldErrors.meeting_date
+          }}</span></label
         >
         <label class="rp-field meeting-form__time"
-          >{{ text.time }}<input v-model="time" class="t-input" type="time" required
+          >{{ text.time
+          }}<input
+            v-model="time"
+            class="t-input"
+            type="time"
+            :aria-invalid="fieldErrors.meeting_date ? true : undefined"
+            :aria-describedby="fieldErrors.meeting_date ? 'meeting-date-error' : undefined"
+            required
         /></label>
       </template>
+      <p
+        v-for="key in ['invite_mode', 'department_ids', 'participant_ids', 'members_included']"
+        :key="key"
+        v-show="fieldErrors[key]"
+        role="alert"
+      >
+        {{ fieldErrors[key] }}
+      </p>
       <MeetingInviteMode v-if="!meeting" v-model="mode" />
       <MeetingDepartments
         v-if="!meeting || (departmentEdit && canEditDepartments)"
