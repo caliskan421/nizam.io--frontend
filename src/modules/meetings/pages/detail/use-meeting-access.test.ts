@@ -13,6 +13,10 @@ it('derives management from standing and the meeting facts', () => {
   setActivePinia(createPinia())
   useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
   const meeting = {
+    meeting_id: 'm',
+    program_id: 'p',
+    title: 'Toplantı',
+    meeting_date: '2026-01-01T00:00:00Z',
     invite_mode: 'person',
     owner_department_id: 'd',
     departments: [],
