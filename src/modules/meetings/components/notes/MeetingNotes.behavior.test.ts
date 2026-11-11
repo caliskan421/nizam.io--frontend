@@ -122,3 +122,23 @@ it('marks loaded counts as partial and writes the filter into the URL', async ()
   client.clear()
   meeting.notes.next_cursor = ''
 })
+for (const [admin, role, authorRole] of [
+  [true, 'member', 'admin'],
+  [false, 'coordinator', 'coordinator'],
+] as const) {
+  it(`allows ${authorRole} to edit a converted note`, async () => {
+    note.author_role = authorRole
+    const { wrapper, client } = setup(admin, role)
+    const trigger = wrapper.get('button[aria-label^="Not işlemleri"]')
+    await trigger.trigger('click')
+    const edit = wrapper.findAll('[role="menuitem"]').find((button) => button.text() === 'Düzenle')!
+    await edit.trigger('click')
+    expect(wrapper.find('textarea[aria-label="Not düzenle"]').exists()).toBe(true)
+    const cancel = wrapper.findAll('button').find((button) => button.text() === 'Vazgeç')!
+    await cancel.trigger('click')
+    expect(document.activeElement).toBe(trigger.element)
+    wrapper.unmount()
+    client.clear()
+    note.author_role = 'member'
+  })
+}

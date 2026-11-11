@@ -129,3 +129,27 @@ it('refreshes notes and closes on note_converted', async () => {
   wrapper.unmount()
   client.clear()
 })
+for (const path of ['escape', 'close', 'cancel'] as const) {
+  it(`restores focus after ${path}`, async () => {
+    const opener = document.createElement('button')
+    document.body.append(opener)
+    opener.focus()
+    const { wrapper, client } = setup(true)
+    await wrapper.vm.$nextTick()
+    const dialog = [...document.querySelectorAll('[role="dialog"]')].at(-1)!
+    if (path === 'escape') await new DOMWrapper(dialog).trigger('keydown', { key: 'Escape' })
+    if (path === 'close')
+      await new DOMWrapper(dialog.querySelector('[aria-label="Kapat"]')!).trigger('click')
+    if (path === 'cancel') {
+      const cancel = [...dialog.querySelectorAll('button')].find((button) =>
+        button.textContent?.includes('Vazgeç'),
+      )!
+      await new DOMWrapper(cancel).trigger('click')
+    }
+    expect(wrapper.emitted('close')).toBeTruthy()
+    wrapper.unmount()
+    expect(document.activeElement).toBe(opener)
+    opener.remove()
+    client.clear()
+  })
+}
