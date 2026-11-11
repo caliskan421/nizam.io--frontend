@@ -220,3 +220,17 @@ it('eski tarihli toplantının yalnız başlığı gerçek formdan güncellenir'
   await until(() => backend.sent('PATCH', '/v1/meetings/m1')[0]?.body, 'istek gövdesi')
   expect(backend.sent('PATCH', '/v1/meetings/m1')[0]?.body).toEqual({ title: 'Yeni başlık' })
 })
+
+it('tarih ve koordinatörlük URL süzgeçleri gerçek liste isteğine taşınır', async () => {
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar?zaman=gecmis&koordinatorluk=d1&from=2020-01-01&to=2020-12-31',
+  })
+  await until(() => backend.sent('GET', '/v1/meetings').length > 0, 'liste isteği')
+  const request = backend.sent('GET', '/v1/meetings').at(-1)!
+  expect(request.query.get('department_id')).toBe('d1')
+  expect(request.query.get('from')).toBe('2020-01-01')
+  expect(request.query.get('to')).toBe('2020-12-31')
+  expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
+})
