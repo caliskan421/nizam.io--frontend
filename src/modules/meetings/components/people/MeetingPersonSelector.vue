@@ -54,7 +54,7 @@ onMounted(() => void nextTick(() => input.value?.focus()))
     </p>
     <p v-else-if="!candidates.people.length">{{ text.empty }}</p>
     <p v-else-if="!shown.length">{{ text.noMatch }}</p>
-    <label v-for="person in shown" v-else :key="person.accountId" class="meeting-person-row">
+    <label v-for="person in shown" v-else :key="person.accountId" class="meeting-selector-row">
       <input
         class="t-check"
         type="checkbox"

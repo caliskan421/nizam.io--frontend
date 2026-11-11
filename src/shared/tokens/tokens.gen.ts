@@ -968,6 +968,30 @@ export const TOKENS = {
     "dark": "24px",
     "light": "24px"
   },
+  "meeting-participant-avatar-size": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "28px",
+    "light": "28px"
+  },
+  "meeting-side-card-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "meeting-participant-name-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "500 13px/20px var(--font-sans)",
+    "light": "500 13px/20px var(--font-sans)"
+  },
+  "meeting-participant-role-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "500 11px/16px var(--font-sans)",
+    "light": "500 11px/16px var(--font-sans)"
+  },
   "rp-done-fill": {
     "group": "color",
     "origin": "web",

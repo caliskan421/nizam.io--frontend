@@ -11,7 +11,7 @@ import { useStanding } from '@/shared/scope/standing'
 import { reachesOwner, runWithFollowUps, useActionContext } from '@/shared/http/mutation'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
-import { UiAvatar } from '@/shared/ui'
+import { UiAvatar, UiIcon } from '@/shared/ui'
 import MeetingPersonSelector from './MeetingPersonSelector.vue'
 import './people.css'
 const props = defineProps<{ meeting: MeetingDetail }>()
@@ -155,9 +155,10 @@ async function removePerson(id: string) {
         ref="trigger"
         type="button"
         :disabled="busy"
+        class="t-btn t-btn--secondary t-btn--sm"
         @click="openSelector"
       >
-        {{ text.add }}
+        <UiIcon name="plus" size="sm" /> {{ text.add }}
       </button>
     </header>
     <div v-if="failed.length" role="status">
@@ -167,18 +168,25 @@ async function removePerson(id: string) {
     </div>
     <p v-if="uncertain" role="status">{{ text.uncertain }}</p>
     <div v-for="person in meeting.participants" :key="person.account_id" class="meeting-person-row">
-      <UiAvatar :name="person.full_name" size="sm" /><span>{{ person.full_name }}</span
-      ><small>{{
-        person.teams.map((team) => `${team.department_name} · ${roles[team.role]}`).join(', ')
-      }}</small
-      ><button
+      <UiAvatar :name="person.full_name" size="sm" />
+      <span class="meeting-person-row__name">{{ person.full_name }}</span>
+      <span class="meeting-person-row__roles"
+        ><span
+          v-for="team in person.teams"
+          :key="team.department_id"
+          class="meeting-person-row__role"
+          >{{ team.department_name }} · {{ roles[team.role] }}</span
+        ></span
+      >
+      <button
         v-if="access.manageParticipants"
+        class="meeting-person-row__remove"
         type="button"
         :aria-label="`${person.full_name}: ${text.remove}`"
         :disabled="busy"
         @click="removePerson(person.account_id)"
       >
-        ×
+        <UiIcon name="close" size="sm" />
       </button>
     </div>
     <p>{{ text.hint }}</p>
