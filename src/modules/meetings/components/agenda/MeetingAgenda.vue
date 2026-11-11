@@ -213,13 +213,14 @@ async function deleteItem(item: AgendaItem) {
       <div v-if="canManage">
         <button
           :ref="(el) => setButton(item.agenda_item_id, el)"
+          class="t-iconbtn meeting-agenda__menu-trigger"
           type="button"
           :aria-label="`${item.title} ${text.actions}`"
           :aria-expanded="openMenu === item.agenda_item_id"
           @click="toggleMenu(item.agenda_item_id)"
           @keydown.esc.stop="closeMenu(item.agenda_item_id)"
         >
-          ⋯
+          <UiIcon name="more" size="sm" />
         </button>
         <div
           v-if="openMenu === item.agenda_item_id"

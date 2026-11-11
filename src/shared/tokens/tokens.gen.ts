@@ -812,6 +812,24 @@ export const TOKENS = {
     "dark": "48px",
     "light": "48px"
   },
+  "meeting-head-gap": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "meeting-agenda-row-pad-y": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "meeting-agenda-progress-radius": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "3px",
+    "light": "3px"
+  },
   "meeting-agenda-menu-width": {
     "group": "meeting",
     "origin": "web",

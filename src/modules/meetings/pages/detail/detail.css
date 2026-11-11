@@ -53,3 +53,27 @@
   color: var(--violet);
   font: var(--text-caption);
 }
+.meeting-detail__header > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: var(--meeting-head-gap);
+  min-width: 0;
+}
+.meeting-detail .rp-kicker {
+  margin: 0;
+  color: var(--ink-muted);
+  font: var(--m-kicker);
+  letter-spacing: var(--m-kicker-tracking);
+}
+.meeting-detail .rp-h1 {
+  margin: 0;
+  font: var(--m-h1);
+  letter-spacing: var(--m-h1-tracking);
+}
+.meeting-detail__content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--rp-aside-basis)), 1fr));
+  gap: var(--space-5);
+  align-items: start;
+  min-width: 0;
+}

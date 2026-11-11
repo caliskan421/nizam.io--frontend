@@ -24,6 +24,7 @@ import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { UiIcon } from '@/shared/ui'
 
 const text = trMeetings.meetings.detail
 const route = useRoute()
@@ -179,15 +180,16 @@ async function deleteMeeting() {
         </div>
         <div v-if="canManage">
           <button type="button" class="t-btn t-btn--secondary" @click="openForm">
-            {{ text.edit }}</button
+            <UiIcon name="edit" size="sm" /> {{ text.edit }}</button
           ><button
             ref="menuButton"
+            class="t-iconbtn"
             type="button"
             :aria-label="text.other"
             :aria-expanded="menuOpen"
             @click="menuOpen ? closeMenu() : (menuOpen = true)"
           >
-            ⋯
+            <UiIcon name="more" size="sm" />
           </button>
           <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
             <button type="button" role="menuitem" @click="openFormFromMenu">
@@ -197,7 +199,7 @@ async function deleteMeeting() {
         </div>
       </header>
       <div class="meeting-detail__body">
-        <div>
+        <div class="meeting-detail__content">
           <MeetingAgenda :meeting="meeting" @refresh="refresh" /><MeetingNotes
             :meeting="meeting"
             @convert="openConvert"

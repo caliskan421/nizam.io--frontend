@@ -1,5 +1,5 @@
 .meeting-agenda {
-  padding: var(--space-5);
+  padding: var(--space-6);
 }
 .meeting-agenda__progress {
   width: var(--meeting-agenda-progress-width);
@@ -14,7 +14,7 @@
   align-items: center;
   gap: var(--space-3);
   min-height: var(--meeting-agenda-row-height);
-  padding-block: var(--space-1);
+  padding: var(--meeting-agenda-row-pad-y) var(--space-1);
   border-bottom: var(--ui-hairline) solid var(--border-subtle);
 }
 .meeting-agenda__row small {
@@ -76,4 +76,39 @@
   background: none;
   color: var(--ink);
   font: var(--text-body);
+}
+.meeting-agenda .rp-cardhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  min-width: 0;
+}
+.meeting-agenda .rp-cardtitle {
+  margin: 0;
+  font: var(--text-body-lg);
+  font-weight: 600;
+}
+.meeting-agenda__progress {
+  appearance: none;
+  border: 0;
+  border-radius: var(--meeting-agenda-progress-radius);
+  background: var(--bg-overlay);
+  overflow: hidden;
+}
+.meeting-agenda__progress::-webkit-progress-bar {
+  background: var(--bg-overlay);
+}
+.meeting-agenda__progress::-webkit-progress-value {
+  background: var(--accent-text);
+  border-radius: var(--meeting-agenda-progress-radius);
+}
+.meeting-agenda__progress::-moz-progress-bar {
+  background: var(--accent-text);
+  border-radius: var(--meeting-agenda-progress-radius);
+}
+.meeting-agenda__menu-trigger {
+  width: var(--meeting-agenda-menu-width);
+  height: var(--meeting-agenda-menu-width);
 }
