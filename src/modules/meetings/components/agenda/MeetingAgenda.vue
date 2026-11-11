@@ -184,9 +184,11 @@ async function deleteItem(item: AgendaItem) {
         @submit.prevent="save(item)"
         @keydown.esc.stop="cancelEdit(item)"
       >
-        <input v-model="editTitle" data-agenda-edit :aria-label="`${item.title} düzenle`" /><button
-          type="submit"
-        >
+        <input
+          v-model="editTitle"
+          data-agenda-edit
+          :aria-label="`${item.title} ${text.edit}`"
+        /><button type="submit">
           {{ text.save }}</button
         ><button type="button" @click="cancelEdit(item)">{{ text.cancel }}</button>
       </form>
