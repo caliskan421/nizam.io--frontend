@@ -103,6 +103,11 @@ async function save(item: AgendaItem) {
   )
     editing.value = null
 }
+function editItem(item: AgendaItem) {
+  editing.value = item.agenda_item_id
+  editTitle.value = item.title
+  closeMenu(item.agenda_item_id)
+}
 async function deleteItem(item: AgendaItem) {
   closeMenu(item.agenda_item_id)
   if (!scope.programId || remove.isPending.value) return
@@ -185,17 +190,7 @@ function checker(item: AgendaItem) {
           role="menu"
           @keydown.esc.stop="closeMenu(item.agenda_item_id)"
         >
-          <button
-            role="menuitem"
-            type="button"
-            @click="
-              editing = item.agenda_item_id
-              editTitle = item.title
-              closeMenu(item.agenda_item_id)
-            "
-          >
-            Düzenle
-          </button>
+          <button role="menuitem" type="button" @click="editItem(item)">Düzenle</button>
           <button role="menuitem" type="button" @click="deleteItem(item)">Sil</button>
         </div>
       </div>

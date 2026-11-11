@@ -74,6 +74,18 @@ const dateLabel = computed(() => {
     }).format(date)
   )
 })
+function openFormFromMenu() {
+  closeMenu()
+  formOpen.value = true
+}
+function formSaved() {
+  formOpen.value = false
+  refresh()
+}
+function convertSaved() {
+  closeConvert()
+  refresh()
+}
 function refresh() {
   void query.refetch()
 }
@@ -163,15 +175,7 @@ async function deleteMeeting() {
             ⋯
           </button>
           <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
-            <button
-              type="button"
-              role="menuitem"
-              @click="
-                closeMenu()
-                formOpen = true
-              "
-            >
-              Tarihi ileri al</button
+            <button type="button" role="menuitem" @click="openFormFromMenu">Tarihi ileri al</button
             ><button type="button" role="menuitem" @click="deleteMeeting">Sil</button>
           </div>
         </div>
@@ -195,19 +199,13 @@ async function deleteMeeting() {
         v-if="formOpen"
         :meeting="meeting"
         @close="formOpen = false"
-        @saved="
-          formOpen = false
-          refresh()
-        "
+        @saved="formSaved"
       />
       <MeetingConvert
         v-if="selectedNote"
         :note="selectedNote"
         @close="closeConvert"
-        @saved="
-          closeConvert()
-          refresh()
-        "
+        @saved="convertSaved"
       />
     </template>
   </main>
