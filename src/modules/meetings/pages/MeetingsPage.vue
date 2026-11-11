@@ -15,6 +15,7 @@ import { useNow } from './meetings/use-now'
 import { invalidRange, lensDescription } from './meetings/presentation'
 import MeetingDepartmentFilter from '../components/list/MeetingDepartmentFilter.vue'
 import MeetingHeader from '../components/list/MeetingHeader.vue'
+import MeetingTimeTabs from '../components/list/MeetingTimeTabs.vue'
 import MeetingLoadState from '../components/list/MeetingLoadState.vue'
 import MeetingList from '../components/list/MeetingList.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
@@ -144,31 +145,18 @@ watch(
     />
     <div class="rp-body meetings-body">
       <div class="meetings-toolbar">
-        <div class="rp-seg" role="tablist" :aria-label="t('meetings.list.time')">
-          <button
-            role="tab"
-            :aria-selected="tab === 'yaklasan'"
-            @click="update('zaman', 'yaklasan')"
-          >
-            {{ t('meetings.list.upcoming') }} {{ split.upcoming.length
-            }}{{ meetings.complete.value ? '' : '+' }}
-          </button>
-          <button role="tab" :aria-selected="tab === 'gecmis'" @click="update('zaman', 'gecmis')">
-            {{ t('meetings.list.past') }} {{ split.past.length
-            }}{{ meetings.complete.value ? '' : '+' }}
-          </button>
-          <button
-            v-if="admin"
-            role="tab"
-            :aria-selected="tab === 'silinenler'"
-            :title="t('meetings.list.deletedTitle')"
-            @click="update('zaman', 'silinenler')"
-          >
-            {{ t('meetings.list.deleted') }}
-            {{ deleted.data.value?.pages.flatMap((p) => p.items).length ?? ''
-            }}{{ deleted.hasNextPage.value ? '+' : '' }}
-          </button>
-        </div>
+        <MeetingTimeTabs
+          :selected="tab"
+          :upcoming="split.upcoming.length"
+          :past="split.past.length"
+          :complete="meetings.complete.value"
+          :admin="admin"
+          :deleted-count="
+            deleted.data.value ? deleted.data.value.pages.flatMap((p) => p.items).length : null
+          "
+          :deleted-more="deleted.hasNextPage.value"
+          @select="update('zaman', $event)"
+        />
         <MeetingDepartmentFilter
           :departments="departments.query.data.value?.departments ?? []"
           :selected="value('koordinatorluk')"
@@ -190,50 +178,52 @@ watch(
         /></label>
         <span class="rp-cap">{{ t('meetings.list.codeHint') }}</span>
       </div>
-      <p v-if="invalid" role="alert">{{ t('meetings.list.invalid') }}</p>
-      <DeletedMeetings
-        v-else-if="tab === 'silinenler'"
-        :items="deleted.data.value?.pages.flatMap((p) => p.items) ?? []"
-        :has-more="deleted.hasNextPage.value"
-        :loading="deleted.isFetchingNextPage.value"
-        :error="deleted.isError.value"
-        @close="update('zaman', 'yaklasan')"
-        @refresh="deleted.refetch()"
-        @load-more="deleted.fetchNextPage()"
-      />
-      <MeetingLoadState
-        v-else-if="
-          meetings.query.isPending.value ||
-          (meetings.query.isError.value && !meetings.query.data.value)
-        "
-        :loading="meetings.query.isPending.value"
-        :error="meetings.query.error.value"
-        :retrying="meetings.query.isFetching.value"
-        @retry="meetings.query.refetch()"
-      />
-      <template v-else
-        ><div v-if="loadFailure || meetings.query.isFetchNextPageError.value" role="alert">
-          {{ t('meetings.list.moreError') }}
-          <button @click="loadRemaining">
-            {{ t('meetings.list.retry') }}
-          </button>
-        </div>
-        <MeetingList
-          :items="shown"
-          :complete="meetings.complete.value"
-          @create="creating = true"
-          @open-deleted="update('zaman', 'silinenler')"
-          @select="router.push({ path: `/toplantilar/${$event}`, query: route.query })"
+      <div id="meeting-list-panel" role="tabpanel" :aria-labelledby="`meeting-tab-${tab}`">
+        <p v-if="invalid" role="alert">{{ t('meetings.list.invalid') }}</p>
+        <DeletedMeetings
+          v-else-if="tab === 'silinenler'"
+          :items="deleted.data.value?.pages.flatMap((p) => p.items) ?? []"
+          :has-more="deleted.hasNextPage.value"
+          :loading="deleted.isFetchingNextPage.value"
+          :error="deleted.isError.value"
+          @close="update('zaman', 'yaklasan')"
+          @refresh="deleted.refetch()"
+          @load-more="deleted.fetchNextPage()"
         />
-        <footer class="meetings-foot">
-          <span>{{ t('meetings.list.rule') }}</span
-          ><span>{{
-            t(tab === 'gecmis' ? 'meetings.list.footerPast' : 'meetings.list.footerUpcoming', {
-              count: `${shown.length}${meetings.complete.value ? '' : '+'}`,
-            })
-          }}</span>
-        </footer></template
-      >
+        <MeetingLoadState
+          v-else-if="
+            meetings.query.isPending.value ||
+            (meetings.query.isError.value && !meetings.query.data.value)
+          "
+          :loading="meetings.query.isPending.value"
+          :error="meetings.query.error.value"
+          :retrying="meetings.query.isFetching.value"
+          @retry="meetings.query.refetch()"
+        />
+        <template v-else
+          ><div v-if="loadFailure || meetings.query.isFetchNextPageError.value" role="alert">
+            {{ t('meetings.list.moreError') }}
+            <button @click="loadRemaining">
+              {{ t('meetings.list.retry') }}
+            </button>
+          </div>
+          <MeetingList
+            :items="shown"
+            :complete="meetings.complete.value"
+            @create="creating = true"
+            @open-deleted="update('zaman', 'silinenler')"
+            @select="router.push({ path: `/toplantilar/${$event}`, query: route.query })"
+          />
+          <footer class="meetings-foot">
+            <span>{{ t('meetings.list.rule') }}</span
+            ><span>{{
+              t(tab === 'gecmis' ? 'meetings.list.footerPast' : 'meetings.list.footerUpcoming', {
+                count: `${shown.length}${meetings.complete.value ? '' : '+'}`,
+              })
+            }}</span>
+          </footer></template
+        >
+      </div>
     </div>
     <MeetingForm
       v-if="creating && canCreate"
