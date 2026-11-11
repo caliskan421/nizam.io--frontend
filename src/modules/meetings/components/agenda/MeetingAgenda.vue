@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import './agenda.css'
 import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../../api/detail-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
+import { authSession } from '@/shared/http'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -41,6 +42,15 @@ const canManage = computed(
       viewerRole: props.meeting.viewer_role,
     }).manage,
 )
+function clearDrafts() {
+  draft.value = ''
+  editing.value = null
+  editTitle.value = ''
+  openMenu.value = null
+}
+watch(() => [props.meeting.meeting_id, scope.programId], clearDrafts)
+const offSession = authSession.subscribe(clearDrafts)
+onScopeDispose(offSession)
 const count = computed(() => Array.from(draft.value).length)
 function closeMenu(id: string) {
   openMenu.value = null
@@ -82,7 +92,9 @@ async function addItem() {
   )
     draft.value = ''
 }
-async function toggle(item: AgendaItem) {
+async function toggle(item: AgendaItem, event: Event) {
+  const input = event.target
+  if (input instanceof HTMLInputElement) input.checked = item.is_checked
   if (!scope.programId || update.isPending.value) return
   result(
     await update.submit({
@@ -166,7 +178,7 @@ function checker(item: AgendaItem) {
         :checked="item.is_checked"
         :disabled="!canManage || update.isPending.value"
         :aria-label="item.title"
-        @change="toggle(item)"
+        @change="toggle(item, $event)"
       />
       <form v-if="editing === item.agenda_item_id" @submit.prevent="save(item)">
         <input v-model="editTitle" :aria-label="`${item.title} düzenle`" /><button type="submit">
