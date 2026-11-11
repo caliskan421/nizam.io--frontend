@@ -46,7 +46,6 @@ const formOpen = ref(false)
 const formDateFocus = ref(false)
 const selectedNote = ref<MeetingNote | null>(null)
 const menuOpen = ref(false)
-const personSelectorUnavailable = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 const noteOpener = ref<HTMLElement | null>(null)
 const formOpener = ref<HTMLElement | null>(null)
@@ -113,7 +112,6 @@ function closeDialogs() {
   formOpen.value = false
   selectedNote.value = null
   menuOpen.value = false
-  personSelectorUnavailable.value = false
 }
 watch(() => [scope.programId, id.value], closeDialogs)
 useSessionReset(closeDialogs)
@@ -215,12 +213,7 @@ async function deleteMeeting() {
             :meeting="meeting"
             @convert="openConvert"
             @refresh="refresh"
-          /><MeetingPeople
-            :meeting="meeting"
-            @add="personSelectorUnavailable = true"
-            @refresh="refresh"
-          />
-          <p v-if="personSelectorUnavailable" role="status">{{ text.selectorUnavailable }}</p>
+          /><MeetingPeople :meeting="meeting" @refresh="refresh" />
         </div>
         <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
       </div>
