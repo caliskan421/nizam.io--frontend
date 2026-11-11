@@ -106,3 +106,34 @@ it('yeni toplantıdaki iç kişi seçicinin Escape tuşu yalnız üst pencereyi 
   expect($('#meeting-form')).not.toBeNull()
   await until(() => document.activeElement === trigger, 'odağın iç tetikleyiciye dönüşü')
 })
+
+it('gerçek not formu tek eylemde idempotency anahtarı taşır', async () => {
+  backend.server.use(
+    http.post('http://localhost/v1/meetings/m1/notes', () =>
+      HttpResponse.json({
+        note_id: 'n1',
+        meeting_id: 'm1',
+        author_account_id: PEOPLE.admin.account_id,
+        author_name: PEOPLE.admin.full_name,
+        author_role: 'admin',
+        content: 'Karar',
+        converted_to_work_item_id: null,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+        edit_revision: 1,
+      }),
+    ),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await fill('textarea[aria-label="Not yaz"]', 'Karar')
+  const form = await until(() => $('.meeting-notes form'))
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  await until(() => backend.sent('POST', '/v1/meetings/m1/notes').length === 1, 'not isteği')
+  expect(
+    backend.sent('POST', '/v1/meetings/m1/notes')[0]?.headers.get('Idempotency-Key'),
+  ).toBeTruthy()
+})
