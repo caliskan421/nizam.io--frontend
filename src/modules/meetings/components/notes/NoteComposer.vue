@@ -9,7 +9,12 @@ const count = computed(() => Array.from(draft.value).length)
 </script>
 <template>
   <form class="meeting-notes__composer" @submit.prevent="emit('submit')">
-    <textarea v-model="draft" :aria-label="text.composer" :placeholder="text.placeholder" />
+    <textarea
+      v-model="draft"
+      :aria-label="text.composer"
+      :placeholder="text.placeholder"
+      :disabled="busy"
+    />
     <p v-if="uncertain" role="status">
       {{ text.uncertain }} <button type="button" @click="emit('clear')">{{ text.clear }}</button>
     </p>
