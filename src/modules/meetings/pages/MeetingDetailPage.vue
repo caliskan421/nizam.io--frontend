@@ -2,6 +2,7 @@
 import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
+import { listQuery } from './detail/list-query'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { meetingCapabilities } from '../model/capabilities'
 import { meetingDay } from '../model/list'
@@ -135,7 +136,7 @@ async function deleteMeeting() {
     outcome.kind === 'success' ||
     (outcome.kind === 'failed' && outcome.error.code === 'collaboration.meeting_not_found')
   )
-    void router.push({ name: 'collaboration.meetings' })
+    void router.push({ name: 'collaboration.meetings', query: listQuery(route.query) })
   else notifyOutcome(outcome)
 }
 </script>

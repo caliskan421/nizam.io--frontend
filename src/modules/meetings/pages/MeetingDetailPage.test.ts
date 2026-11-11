@@ -7,7 +7,7 @@ import MeetingDetailPage from './MeetingDetailPage.vue'
 
 const mocks = vi.hoisted(() => ({ push: vi.fn(), submit: vi.fn(), refetch: vi.fn() }))
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ params: { meetingId: 'm' } }),
+  useRoute: () => ({ params: { meetingId: 'm' }, query: { zaman: 'gecmis', notlar: 'benim' } }),
   useRouter: () => ({ push: mocks.push }),
 }))
 vi.mock('../api/queries', () => ({
@@ -107,7 +107,10 @@ it('treats a concurrent meeting deletion as a return to the list', async () => {
     .findAll('button')
     .find((b) => b.text() === 'Sil')!
     .trigger('click')
-  expect(mocks.push).toHaveBeenCalledWith({ name: 'collaboration.meetings' })
+  expect(mocks.push).toHaveBeenCalledWith({
+    name: 'collaboration.meetings',
+    query: { zaman: 'gecmis' },
+  })
   wrapper.unmount()
 })
 
