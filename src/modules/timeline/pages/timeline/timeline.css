@@ -114,6 +114,14 @@
   }
 
   @media (max-width: 900px) {
+    .timeline-page .rp-snack {
+      position: static;
+      transform: none;
+      animation: none;
+      width: auto;
+      margin: 0;
+    }
+
     .timeline-stage {
       padding: var(--space-4) var(--space-5) var(--space-8);
     }

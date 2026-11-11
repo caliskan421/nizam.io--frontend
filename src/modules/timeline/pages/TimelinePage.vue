@@ -120,6 +120,12 @@ function openInList(workItemId: string): void {
       :aria-label="frameText('timeline.page.stage')"
       data-testid="timeline-stage"
     >
+      <DateChangeSnack
+        v-if="dateChange.snack.value?.visible"
+        v-bind="dateChange.snack.value.props"
+        @cancel="dateChange.cancel"
+        @dismiss="dateChange.dismiss"
+      />
       <TimelineToolbar
         :status="state.status"
         :scale="state.scale"
@@ -235,11 +241,5 @@ function openInList(workItemId: string): void {
     <p class="rp-sr" role="status" aria-live="polite" data-testid="timeline-date-announce">
       {{ dateChange.announcement.value }}
     </p>
-    <DateChangeSnack
-      v-if="dateChange.snack.value?.visible"
-      v-bind="dateChange.snack.value.props"
-      @cancel="dateChange.cancel"
-      @dismiss="dateChange.dismiss"
-    />
   </section>
 </template>
