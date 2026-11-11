@@ -160,3 +160,27 @@ it('gerçek detayda elli gündem maddesinde giriş kapanır', async () => {
   expect($('.meeting-agenda')?.textContent).toContain('50')
   expect(backend.sent('POST', '/v1/meetings/m1/agenda')).toHaveLength(0)
 })
+
+it('anahtarsız toplantı oluşturma sonucu bilinmiyorsa otomatik tekrar göndermez', async () => {
+  backend.server.use(http.post('http://localhost/v1/meetings', () => HttpResponse.error()))
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar',
+  })
+  await click(() => byText('.meetings-page button', 'Yeni toplantı'))
+  await fill('#meeting-form input:not([type])', 'Belirsiz toplantı')
+  await fill('#meeting-form input[type="date"]', '2099-12-31')
+  await fill('#meeting-form input[type="time"]', '10:00')
+  await click('#meeting-form fieldset:last-of-type input')
+  await click('button[form="meeting-form"]')
+  await until(() => $('[role="alert"]'), 'belirsizlik uyarısı')
+  expect(backend.sent('POST', '/v1/meetings')).toHaveLength(1)
+  expect(backend.sent('POST', '/v1/meetings')[0]?.headers.get('Idempotency-Key')).toBeNull()
+  expect(
+    (document.querySelector('button[form="meeting-form"]') as HTMLButtonElement).disabled,
+  ).toBe(true)
+  expect(
+    (document.querySelector('#meeting-form input:not([type])') as HTMLInputElement).value,
+  ).toBe('Belirsiz toplantı')
+})
