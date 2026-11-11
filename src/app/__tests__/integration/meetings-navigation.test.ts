@@ -105,3 +105,70 @@ it.each([
   expect(buttons.includes('Değiştir')).toBe(change)
   expect(buttons.includes('Ekle')).toBe(add)
 })
+
+it.each([
+  {
+    label: 'sahip koordinatör olan oluşturan',
+    person: PEOPLE.coord,
+    mode: 'person',
+    owner: 'd1',
+    creator: PEOPLE.coord.account_id,
+    canAdd: true,
+  },
+  {
+    label: 'sahip koordinatörlüğünü kaybetmiş oluşturan',
+    person: PEOPLE.coord,
+    mode: 'person',
+    owner: 'd2',
+    creator: PEOPLE.coord.account_id,
+    canAdd: false,
+  },
+  {
+    label: 'person yöneticisi',
+    person: PEOPLE.admin,
+    mode: 'person',
+    owner: 'd2',
+    creator: PEOPLE.coord.account_id,
+    canAdd: true,
+  },
+  {
+    label: 'bağlı olmayan yönetici',
+    person: PEOPLE.admin,
+    mode: 'coordinatorship',
+    owner: 'd2',
+    creator: PEOPLE.coord.account_id,
+    canAdd: false,
+  },
+])('$label katılımcı yönetimi', async ({ person, mode, owner, creator, canAdd }) => {
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({
+        ...meeting,
+        invite_mode: mode,
+        owner_department_id: owner,
+        departments: [{ department_id: owner, department_name: 'Ekip' }],
+        created_by_account_id: creator,
+      }),
+    ),
+  )
+  const admin = person === PEOPLE.admin
+  await boot({
+    email: person.email,
+    scope: {
+      programId: 'p1',
+      lens: admin ? 'admin' : 'coordinator',
+      ...(admin ? {} : { departmentId: 'd1' }),
+    },
+    path: '/toplantilar/m1',
+  })
+  await until(() => $('.meeting-people'), 'katılımcı kartı')
+  expect(
+    [...document.querySelectorAll('.meeting-people button')].some(
+      (b) => b.textContent?.trim() === 'Ekle',
+    ),
+  ).toBe(canAdd)
+  if (mode === 'person')
+    expect(
+      [...document.querySelectorAll('button')].some((b) => b.textContent?.trim() === 'Değiştir'),
+    ).toBe(false)
+})
