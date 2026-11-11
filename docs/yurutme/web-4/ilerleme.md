@@ -136,3 +136,12 @@ O3 gerçek router/AppShell/oturum ve durumlu MSW ile 12 kabul grubunu kapsar: UR
 W107 #97 `24bfb174e92185b964e3f82ad2174ff8738e1c17` birleşti. CI [43086372074](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43086372074) üç denetim COMPLETED+SUCCESS; pr-merge.sh ve bağımsız MERGED doğrulaması yapıldı. Kaynak `4bf32fa` yerel kapı ve sabit üretim tarayıcı tanığı yukarıda; PR başı `646b581` yalnız ek koordinatör kaydı taşır.
 
 O4 W110 ayrı worktree'de gerçek Docker/web/backend v0.15 tanığına başladı; koordinatör kapanış belgelerini ayrı dalda yürütür. Nihai gpt-6.1-sol medium `-s read-only` kapısı bu hazırlıklar tamamlanınca çalışacak. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık. F5 yalnız belge hazırlığıdır; açılış onayı ve BE-072 çözümü yok, F5 kodu/işçisi başlamadı.
+
+
+## 2026-11-12 — O4 gerçek imaj ve ortak modal düzeltmesi
+
+W110 [#98](https://github.com/caliskan421/nizam.io--frontend/pull/98) açıldı; CI ve birleşim bu kayıt anında bekleniyor. Uygulama kaynağı `707fd07`, teslim `a837e3e`: typecheck, tam lint, format, 484 dosyada 3259 test, gen:check ve build geçti. Gerçek v0.15 backend/üretim Docker tanığı HTTP ve UI kapsamlarını ayrı raporlar; G4 kontrollü 429 tek anahtarsız POST, Retry-After, korunan taslak ve otomatik tekrar yokluğu gerçek UI ile sınandı.
+
+Ara imajda üst form kapanışında BODY'ye düşen odak kusuru bulundu. Ortak UiModal koşullu sökümünde idempotent odak iadesi artık her durumda çalışır; eski kodda üç regresyon kırıldı. Son imaj `sha256:1ed32302346b37149b840ada9f9846831e59d92fc432cc68f59b823e8999dd3c` çalışan konteynerle eşleşti; güvenlik/imagecheck geçti. ŞY detay/form altı görünümde doğru metin, Inter/24px, taşma/CSP/sayfa hatası sıfır; fare ve klavyeyle iç/dış Escape odağı 6/6 doğru tetikleyiciye döndü. Önceki üç rol liste/detay 36 görünüm ve UI yazmaları eski imaj kanıtıdır; son kaynak için yeniden koşulmuş gibi sunulmaz.
+
+54 güvenli JSON/PNG `.git/koordinator/web4-w110/` içine kopyalandı; fixture/state/env/auth ve betikler kopyalanmadı. Ayrıntı [doğrulama-F4](dogrulama-F4.md). Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık; F5 açılmadı.

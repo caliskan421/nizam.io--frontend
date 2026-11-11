@@ -23,7 +23,7 @@ Kaynaklar: [kayıt](kayit.md), [F3 raporu](rapor-F3.md), [tespit paketleri](rapo
 
 | Kalem           | Sonuç                                                                                                                                                                                    |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Yeni BE kimliği | 0; W101–W109 yeni backend eksiği bildirmedi. Özel kişi seçicinin açılmış çizim eksikliği backend eksiği değildir                                                                         |
+| Yeni BE kimliği | 0; W101–W110 yeni backend eksiği bildirmedi. Özel kişi seçicinin açılmış çizim eksikliği backend eksiği değildir                                                                         |
 | BE-060          | **Bağlandı**, v0.15 `Meeting.summary` (K70), W102/#90; satır başına detay fan-out yok                                                                                                    |
 | BE-021          | v0.15 `department_id/from/to` canlı; tarih sınırları dahil ve kurulum saat diliminde. Sekme toplamı/tarih sırası pinde yok; tüm sayfalar yüklenirken `n+`, tamamlanınca kesin sayım/sıra |
 | BE-063          | v0.15 `deleted_by` canlı; diğer ad/kod alanları nötr veya mevcut katılımcı/departman verisiyle. Tam karşılandı denmez                                                                    |
@@ -52,6 +52,6 @@ BE-060 zaten v0.15'te karşılandığı için yeni etiketi beklememiştir. BE-06
 
 W107 gerçek bileşen turunda 403/404 sonrası güvenli listeye dönüş ve not silme sonrası odak kusurları giderildi; kapsam/oturum/söküm yarışları sınandı. W108 aktarım mercek/geç409, 05 odak, G1/G2; W109 gerçek Gantt tutamaç/klavye/gözlemci temizliği ve ek alt görev/pano entegrasyonu tamamladı. `total_admins` UI'da gösterilmez; yalnız kart ve gerçek sorgu/önbellek değişimi kanıtlıdır.
 
-O4 gerçek Docker/backend tanığı, G4 429, nihai Codex hükmü ve kapanış PR'ı henüz bekleniyor; sonuçlar kapanışta buraya bağlanacak. Gerçek VoiceOver ve E-03C-27/41 ürün sahibi görsel onayı otomatik doğrulanmış sayılmaz.
+O4 gerçek Docker/backend tanığı ve G4 429 tamamlandı; [doğrulama kaydı](../yurutme/web-4/dogrulama-F4.md) gerçek HTTP, UI ve MSW kanıtını ayırır. W110 ortak modalın koşullu sökümünde atlanan odak iadesini düzeltti: eski kodda üç regresyon kırıldı; kaynak `707fd07` üzerinde 484 dosyada 3259 test ve son gerçek imajda altı görünüm geçti. İç seçici ve dış form Escape odağı 6/6 doğru tetikleyiciye döndü; taşma/CSP/sayfa hatası sıfır. Nihai Codex hükmü ve kapanış PR'ı bekleniyor. Gerçek VoiceOver ve E-03C-27/41 ürün sahibi görsel onayı otomatik doğrulanmış sayılmaz.
 
 Video şeridi, Canlı/Bekliyor, 09d/09e ve sağlayıcı adı P21/P22 gereği gizlidir; dosya F4 dışıdır. F5 bu raporla açılmaz.
