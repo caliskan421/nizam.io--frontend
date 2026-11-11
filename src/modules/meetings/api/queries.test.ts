@@ -106,3 +106,68 @@ it('stops on a repeated cursor even when the page is empty', async () => {
   app.unmount()
   client.clear()
 })
+
+it('does not mix a delayed old filter response into the new filter', async () => {
+  let release!: () => void
+  let started!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const requested = new Promise<void>((resolve) => {
+    started = resolve
+  })
+  server.use(
+    http.get('http://localhost/v1/meetings', async ({ request }) => {
+      const from = new URL(request.url).searchParams.get('from')
+      if (from === '2026-01-01') {
+        started()
+        await gate
+      }
+      return HttpResponse.json({ items: [{ meeting_id: from }], next_cursor: '' })
+    }),
+  )
+  const filters = ref({ from: '2026-01-01' })
+  const { app, client, result } = mountList(filters)
+  await requested
+  filters.value = { from: '2026-02-01' }
+  await import('vue').then(({ nextTick }) => nextTick())
+  await result.query.suspense()
+  release()
+  const { settleQueries } = await import('@/shared/http/__tests__/settle')
+  await settleQueries(client)
+  expect(result.items.value.map((item) => item.meeting_id)).toEqual(['2026-02-01'])
+  app.unmount()
+  client.clear()
+})
+
+it('does not mix a delayed old program response into the new program', async () => {
+  let release!: () => void
+  let started!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const requested = new Promise<void>((resolve) => {
+    started = resolve
+  })
+  server.use(
+    http.get('http://localhost/v1/meetings', async ({ request }) => {
+      const program = request.headers.get('X-Nizamio-Program')
+      if (program === 'p') {
+        started()
+        await gate
+      }
+      return HttpResponse.json({ items: [{ meeting_id: program }], next_cursor: '' })
+    }),
+  )
+  const { app, client, result } = mountList({})
+  await requested
+  useScopeStore().commit({ programId: 'p2', departmentId: null, lens: 'admin' })
+  await import('vue').then(({ nextTick }) => nextTick())
+  await result.query.suspense()
+  release()
+  const { settleQueries } = await import('@/shared/http/__tests__/settle')
+  await settleQueries(client)
+  expect(result.items.value.map((item) => item.meeting_id)).toEqual(['p2'])
+  app.unmount()
+  client.clear()
+})
