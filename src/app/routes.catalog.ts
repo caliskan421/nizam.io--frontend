@@ -240,7 +240,13 @@ export const ROUTES = {
     phase: 'F4',
     parent: 'collaboration.meetings',
     params: { meetingId: id },
-    query: { notlar: oneOf(['tumu', 'gorev', 'benim']) },
+    query: {
+      notlar: oneOf(['tumu', 'gorev', 'benim']),
+      zaman: oneOf(['yaklasan', 'gecmis', 'silinenler']),
+      koordinatorluk: id,
+      from: text,
+      to: text,
+    },
   },
 } as const satisfies Record<string, RouteSpec>
 

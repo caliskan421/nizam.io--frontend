@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
+import './detail/detail.css'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
+import { listQuery } from './detail/list-query'
+import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { meetingCapabilities } from '../model/capabilities'
-import { meetingDay } from '../model/list'
+import { meetingDepartments } from '../model/list'
+import { dateLabel } from './detail/date-label'
 import type { MeetingNote } from '../model/types'
 import MeetingAgenda from '../components/agenda/MeetingAgenda.vue'
 import MeetingNotes from '../components/notes/MeetingNotes.vue'
@@ -14,12 +18,14 @@ import MeetingForm from '../components/forms/MeetingForm.vue'
 import MeetingConvert from '../components/convert/MeetingConvert.vue'
 import { authSession } from '@/shared/http'
 import { reachesOwner } from '@/shared/http/mutation'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 
+const text = trMeetings.meetings.detail
 const route = useRoute()
 const router = useRouter()
 const scope = useScopeStore()
@@ -30,6 +36,10 @@ const id = computed(() =>
 )
 const query = useMeeting(id)
 const meeting = computed(() => query.data.value)
+const departments = useDepartments()
+const displayDepartments = computed(() =>
+  meeting.value ? meetingDepartments(meeting.value, departments.value) : [],
+)
 usePageCrumb(() => meeting.value?.title ?? null)
 const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()
@@ -39,6 +49,8 @@ const menuOpen = ref(false)
 const personSelectorUnavailable = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 const noteOpener = ref<HTMLElement | null>(null)
+const formOpener = ref<HTMLElement | null>(null)
+const page = ref<HTMLElement | null>(null)
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
 const canManage = computed(() => {
   const m = meeting.value
@@ -53,33 +65,27 @@ const canManage = computed(() => {
     viewerRole: m.viewer_role,
   }).manage
 })
-const dateLabel = computed(() => {
-  if (!meeting.value) return ''
-  const date = new Date(meeting.value.meeting_date)
-  const day = meetingDay(date, timezone.value)
-  const today = meetingDay(new Date(), timezone.value)
-  const tomorrowDate = new Date(Date.now() + 86400000)
-  const relative =
-    day === today ? 'Bugün · ' : day === meetingDay(tomorrowDate, timezone.value) ? 'Yarın · ' : ''
-  return (
-    relative +
-    new Intl.DateTimeFormat('tr-TR', {
-      timeZone: timezone.value,
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      weekday: 'long',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  )
-})
-function openFormFromMenu() {
-  closeMenu()
+const meetingDateLabel = computed(() =>
+  meeting.value
+    ? dateLabel(meeting.value.meeting_date, timezone.value, new Date(), text.today, text.tomorrow)
+    : '',
+)
+
+function openForm() {
+  formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
 }
-function formSaved() {
+function openFormFromMenu() {
+  menuOpen.value = false
+  formOpener.value = menuButton.value
+  formOpen.value = true
+}
+function closeForm() {
   formOpen.value = false
+  void nextTick(() => (formOpener.value?.isConnected ? formOpener.value : page.value)?.focus())
+}
+function formSaved() {
+  closeForm()
   refresh()
 }
 function convertSaved() {
@@ -99,7 +105,11 @@ function openConvert(note: MeetingNote) {
 }
 function closeConvert() {
   selectedNote.value = null
-  void nextTick(() => noteOpener.value?.isConnected && noteOpener.value.focus())
+  void nextTick(() => {
+    const fallback =
+      page.value?.querySelector<HTMLElement>('[data-testid="meeting-notes-title"]') ?? page.value
+    ;(noteOpener.value?.isConnected ? noteOpener.value : fallback)?.focus()
+  })
 }
 function closeDialogs() {
   formOpen.value = false
@@ -116,67 +126,74 @@ async function deleteMeeting() {
   if (!m || !scope.programId || remove.isPending.value) return
   const outcome = await confirmWrite(
     {
-      title: 'Toplantı silinsin mi?',
+      title: text.deleteTitle,
       description: m.title,
-      body: [
-        'Toplantı listeden kalkar ve artık değiştirilemez. Yönetici silinenlerden geri yükleyebilir.',
-      ],
-      confirmLabel: 'Sil',
+      body: [text.deleteBody],
+      confirmLabel: text.delete,
       tone: 'danger',
     },
     (context) => remove.submit({ programId: m.program_id, id: m.meeting_id }, { context }),
   )
   if (!outcome || !reachesOwner(outcome)) return
-  if (outcome.kind === 'success') void router.push({ name: 'collaboration.meetings' })
+  if (
+    outcome.kind === 'success' ||
+    (outcome.kind === 'failed' && outcome.error.code === 'collaboration.meeting_not_found')
+  )
+    void router.push({ name: 'collaboration.meetings', query: listQuery(route.query) })
   else notifyOutcome(outcome)
 }
 </script>
 
 <template>
-  <main class="meeting-detail">
-    <p v-if="query.isPending.value">Yükleniyor…</p>
+  <main ref="page" class="meeting-detail" tabindex="-1">
+    <p v-if="query.isPending.value">{{ text.loading }}</p>
     <div v-else-if="query.isError.value">
-      <p>Toplantı yüklenemedi.</p>
-      <button type="button" @click="refresh">Tekrar dene</button>
+      <p>{{ text.loadError }}</p>
+      <button type="button" @click="refresh">{{ text.retry }}</button>
     </div>
     <template v-else-if="meeting">
       <header class="meeting-detail__header">
         <div>
-          <p class="rp-kicker">{{ dateLabel }}</p>
+          <p class="rp-kicker">{{ meetingDateLabel }}</p>
           <h1 class="rp-h1">{{ meeting.title }}</h1>
           <div class="meeting-detail__departments">
             <span
-              v-for="department in meeting.departments"
+              v-for="department in displayDepartments"
               :key="department.department_id"
+              class="meeting-detail__code"
+              :class="{
+                'meeting-detail__code--owner':
+                  department.department_id === meeting.owner_department_id,
+              }"
               :title="
-                department.department_id === meeting.owner_department_id
-                  ? 'Sahip koordinatörlük'
-                  : undefined
+                department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
-              >{{ department.department_name }}</span
-            ><span>{{ meeting.departments.length }} koordinatörlük davetli</span
+              >{{ department.code }}</span
+            ><span>{{ meeting.departments.length }} {{ text.invited }}</span
             ><span
               v-if="meeting.members_included"
-              title="Bağlı koordinatörlüklerin üyeleri de bu toplantıyı görür ve not ekleyebilir"
-              >Üyeler dahil</span
+              class="meeting-detail__members"
+              :title="text.membersTitle"
+              >{{ text.members }}</span
             >
           </div>
         </div>
         <div v-if="canManage">
-          <button type="button" class="t-btn t-btn--secondary" @click="formOpen = true">
-            Düzenle</button
+          <button type="button" class="t-btn t-btn--secondary" @click="openForm">
+            {{ text.edit }}</button
           ><button
             ref="menuButton"
             type="button"
-            aria-label="Diğer işlemler: tarihi ileri al, sil"
+            :aria-label="text.other"
             :aria-expanded="menuOpen"
             @click="menuOpen ? closeMenu() : (menuOpen = true)"
           >
             ⋯
           </button>
           <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
-            <button type="button" role="menuitem" @click="openFormFromMenu">Tarihi ileri al</button
-            ><button type="button" role="menuitem" @click="deleteMeeting">Sil</button>
+            <button type="button" role="menuitem" @click="openFormFromMenu">
+              {{ text.reschedule }}</button
+            ><button type="button" role="menuitem" @click="deleteMeeting">{{ text.delete }}</button>
           </div>
         </div>
       </header>
@@ -191,16 +208,11 @@ async function deleteMeeting() {
             @add="personSelectorUnavailable = true"
             @refresh="refresh"
           />
-          <p v-if="personSelectorUnavailable" role="status">Kişi seçici henüz kullanılamıyor.</p>
+          <p v-if="personSelectorUnavailable" role="status">{{ text.selectorUnavailable }}</p>
         </div>
-        <MeetingSide :meeting="meeting" @edit="formOpen = true" @remove="deleteMeeting" />
+        <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
       </div>
-      <MeetingForm
-        v-if="formOpen"
-        :meeting="meeting"
-        @close="formOpen = false"
-        @saved="formSaved"
-      />
+      <MeetingForm v-if="formOpen" :meeting="meeting" @close="closeForm" @saved="formSaved" />
       <MeetingConvert
         v-if="selectedNote"
         :note="selectedNote"
@@ -210,31 +222,3 @@ async function deleteMeeting() {
     </template>
   </main>
 </template>
-
-<style scoped>
-.meeting-detail {
-  padding: var(--space-6);
-}
-.meeting-detail__header {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-6);
-}
-.meeting-detail__departments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.meeting-detail__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, var(--rp-aside-basis));
-  gap: var(--space-5);
-}
-@media (max-width: 900px) {
-  .meeting-detail__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-</style>

@@ -79,6 +79,13 @@
   --meeting-note-font: 400 14px/22px var(--font-sans);
   --meeting-quote-padding: 12px 14px;
   --meeting-quote-border: 3px;
+  --meeting-agenda-row-height: 52px;
+  --meeting-agenda-check-width: 20px;
+  --meeting-agenda-check-size: 18px;
+  --meeting-agenda-add-height: 48px;
+  --meeting-agenda-menu-width: 32px;
+  --meeting-agenda-progress-width: 72px;
+  --meeting-agenda-progress-height: 5px;
   /* web · color */
   --avatar-6: #4fd1c5;
   --avatar-7: #ff6b6b;
