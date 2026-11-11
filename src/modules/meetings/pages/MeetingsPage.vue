@@ -59,6 +59,8 @@ const validDate = (date: string) =>
     new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date)
 const invalid = computed(
   () =>
+    (route.query.from !== undefined && typeof route.query.from !== 'string') ||
+    (route.query.to !== undefined && typeof route.query.to !== 'string') ||
     !validDate(from.value) ||
     !validDate(to.value) ||
     (!!from.value && !!to.value && from.value > to.value),
@@ -114,6 +116,9 @@ watch(
           {{ program }} · {{ meetings.complete.value ? '' : 'En az '
           }}{{ split.upcoming.length }} yaklaşan, {{ split.past.length }} geçmiş toplantı ·
           {{ lensText }}
+          <template v-if="from || to || value('koordinatorluk')"
+            >· yüklenen kayıtlar içinde</template
+          >
         </p>
       </div>
       <button v-if="canCreate" class="t-btn t-btn--primary" @click="creating = true">
