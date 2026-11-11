@@ -114,3 +114,49 @@ it('blocks invalid URL dates before the first request and starts with corrected 
   wrapper.unmount()
   client.clear()
 })
+
+it('closes the create form when scope or session changes', async () => {
+  server.use(
+    http.get('http://localhost/v1/program/departments', () =>
+      HttpResponse.json({ departments: [] }),
+    ),
+  )
+  server.use(
+    http.get('http://localhost/v1/meetings', () =>
+      HttpResponse.json({ items: [], next_cursor: '' }),
+    ),
+  )
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const scope = useScopeStore()
+  scope.commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/toplantilar', component: Page }],
+  })
+  await router.push('/toplantilar')
+  const wrapper = mount(Page, {
+    global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
+  })
+  await settleQueries(client)
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Yeni toplantı')!
+    .trigger('click')
+  expect(wrapper.findComponent({ name: 'MeetingForm' }).exists()).toBe(true)
+  scope.commit({ programId: 'p2', departmentId: null, lens: 'admin' })
+  await import('vue').then(({ nextTick }) => nextTick())
+  expect(wrapper.findComponent({ name: 'MeetingForm' }).exists()).toBe(false)
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Yeni toplantı')!
+    .trigger('click')
+  expect(wrapper.findComponent({ name: 'MeetingForm' }).exists()).toBe(true)
+  const { authSession } = await import('@/shared/http')
+  authSession.clear()
+  await import('vue').then(({ nextTick }) => nextTick())
+  expect(wrapper.findComponent({ name: 'MeetingForm' }).exists()).toBe(false)
+  wrapper.unmount()
+  client.clear()
+})
