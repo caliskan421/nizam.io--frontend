@@ -92,3 +92,35 @@ it('person toplantısı gerçek formdan oluşturulup detayına gider', async () 
   expect(backend.sent('POST', '/v1/meetings')[0]?.body).not.toHaveProperty('members_included')
   expect(backend.sent('GET', '/v1/meetings/m1').length).toBeGreaterThan(0)
 })
+
+it('gerçek silme onayından silinenlere gider ve toplantıyı geri yükler', async () => {
+  let deleted = false
+  backend.server.use(
+    http.delete('http://localhost/v1/meetings/m1', () => {
+      deleted = true
+      return new HttpResponse(null, { status: 204 })
+    }),
+    http.get('http://localhost/v1/meetings/deleted', () =>
+      HttpResponse.json({ items: deleted ? [meeting] : [], next_cursor: '' }),
+    ),
+    http.patch('http://localhost/v1/admin/restore/meetings/m1', () => {
+      deleted = false
+      return HttpResponse.json({ meeting_id: 'm1', status: 'restored' })
+    }),
+  )
+  const app = await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await click('button[aria-label^="Diğer işlemler"]')
+  await click(() => byText('[role="menuitem"]', 'Sil'))
+  await click(() => byText('[role="alertdialog"] button', 'Sil'))
+  await until(() => app.router.currentRoute.value.path === '/toplantilar', 'listeye dönüş')
+  await click(() => byText('.meetings-page button', 'Silinenler'))
+  await until(() => $('.meeting-deleted__row'), 'silinen satırı')
+  await click(() => byText('.meeting-deleted button', 'Geri yükle'))
+  await until(() => !$('.meeting-deleted__row'), 'geri yüklendi')
+  expect(backend.sent('DELETE', '/v1/meetings/m1')).toHaveLength(1)
+  expect(backend.sent('PATCH', '/v1/admin/restore/meetings/m1')).toHaveLength(1)
+})
