@@ -104,23 +104,26 @@ async function select(ids: string[]) {
     }
     return outcome
   }
-  while (pending.length && !stopped) {
-    const first = pending.shift()!
-    const outcome = await send(first)
-    if (outcome.kind !== 'success' || stopped) continue
-    let previous = outcome as Awaited<ReturnType<typeof add.submit>>
-    await runWithFollowUps(
-      () => Promise.resolve(outcome),
-      (_data, actionContext) =>
-        pending.splice(0).map((id) => ({
-          name: id,
-          run: async () => {
-            if (!stopped) previous = await send(id, actionContext ?? context)
-            return previous
-          },
-        })),
-    )
+  async function runBatch() {
+    while (pending.length && !stopped) {
+      const first = pending.shift()!
+      const outcome = await send(first)
+      if (outcome.kind !== 'success' || stopped) continue
+      let previous = outcome as Awaited<ReturnType<typeof add.submit>>
+      await runWithFollowUps(
+        () => Promise.resolve(outcome),
+        (_data, actionContext) =>
+          pending.splice(0).map((id) => ({
+            name: id,
+            run: async () => {
+              if (!stopped) previous = await send(id, actionContext ?? context)
+              return previous
+            },
+          })),
+      )
+    }
   }
+  await runBatch()
   if (detached) return
   failed.value = failures
   busy.value = false
@@ -129,12 +132,14 @@ async function select(ids: string[]) {
 async function removePerson(id: string) {
   if (!scope.programId || busy.value) return
   const started = version
+  busy.value = true
   const outcome = await remove.submit({
     programId: scope.programId,
     id: props.meeting.meeting_id,
     userId: id,
   })
   if (!reachesOwner(outcome) || started !== version) return
+  busy.value = false
   if (outcome.kind === 'success') {
     emit('refresh')
     void nextTick(() => section.value?.querySelector<HTMLElement>('h2')?.focus())
