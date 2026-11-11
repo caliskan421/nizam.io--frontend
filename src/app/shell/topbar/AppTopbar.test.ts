@@ -58,6 +58,24 @@ describe('üst çubuk', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('toplantı detay derin bağlantısından filtreleri kırıntıyla listeye taşır', async () => {
+    const { ctx, wrapper } = await mountTopbar(
+      '/toplantilar/m?zaman=gecmis&koordinatorluk=d&from=2026-01-01&to=2026-12-31&notlar=benim',
+    )
+    const link = wrapper
+      .get('[data-testid="topbar-crumbs"]')
+      .findAll('a')
+      .find((a) => a.text() === 'Toplantılar')!
+    await ctx.router.push(link.attributes('href')!)
+    expect(ctx.router.currentRoute.value.name).toBe('collaboration.meetings')
+    expect(ctx.router.currentRoute.value.query).toEqual({
+      zaman: 'gecmis',
+      koordinatorluk: 'd',
+      from: '2026-01-01',
+      to: '2026-12-31',
+    })
+  })
+
   it('açık durumda son parça açık durum başlığı', async () => {
     const { wrapper } = await mountTopbar()
     await wrapper.setProps({ openState: 'state.no-program' })

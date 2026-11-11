@@ -29,6 +29,7 @@ const crumbs = computed(() =>
     programName: programName.value,
     openState: props.openState,
     pageLabel: pageCrumb.value,
+    query: route.query,
   }),
 )
 </script>
