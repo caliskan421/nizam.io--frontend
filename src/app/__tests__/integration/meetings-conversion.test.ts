@@ -91,6 +91,7 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
     'pano önce',
   )
   const badge = $('aside a[href="/gorevler"]')?.textContent
+  const reportReads = backend.sent('GET', '/v1/reports/dashboard').length
   await app.router.push('/gorevler')
   await until(
     () => document.querySelectorAll('[data-work-item]').length === 4,
@@ -115,6 +116,19 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
     new Event('submit', { bubbles: true, cancelable: true }),
   )
   await until(() => $('.meeting-notes__converted'), 'dönüşüm etiketi')
+  await until(
+    () => backend.sent('GET', '/v1/reports/dashboard').length > reportReads,
+    'pano ve rozet yeniden okuma',
+  )
+  const { queryKeys } = await import('@/shared/http/query-keys')
+  await until(
+    () =>
+      (
+        app.queryClient.getQueryData(queryKeys.report.dashboard(app.scope.snapshot)) as
+          { total_tasks?: number } | undefined
+      )?.total_tasks === 5,
+    'yeni pano yanıtı',
+  )
   expect($('aside a[href="/gorevler"]')?.textContent).toBe(badge)
   await app.router.push('/gorevler')
   await until(() => $('[data-work-item="w-new"]'), 'yeni görev listede')
