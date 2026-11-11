@@ -13,7 +13,10 @@ const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
 
-function mountList(filters: MaybeRefOrGetter<MeetingFilters>) {
+function mountList(
+  filters: MaybeRefOrGetter<MeetingFilters>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   const pinia = createPinia()
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
@@ -22,7 +25,7 @@ function mountList(filters: MaybeRefOrGetter<MeetingFilters>) {
   const app = createApp(
     defineComponent({
       setup() {
-        result = useMeetings(filters)
+        result = useMeetings(filters, enabled)
         return () => null
       },
     }),
@@ -168,6 +171,63 @@ it('does not mix a delayed old program response into the new program', async () 
   const { settleQueries } = await import('@/shared/http/__tests__/settle')
   await settleQueries(client)
   expect(result.items.value.map((item) => item.meeting_id)).toEqual(['p2'])
+  app.unmount()
+  client.clear()
+})
+
+it('does not request until enabled and uses the current filter', async () => {
+  const urls: URL[] = []
+  server.use(
+    http.get('http://localhost/v1/meetings', ({ request }) => {
+      urls.push(new URL(request.url))
+      return HttpResponse.json({ items: [], next_cursor: '' })
+    }),
+  )
+  const enabled = ref(false)
+  const filters = ref({ from: '2026-02-02', to: '2026-01-01' })
+  const { app, client, result } = mountList(filters, enabled)
+  await import('vue').then(({ nextTick }) => nextTick())
+  expect(urls).toHaveLength(0)
+  filters.value = { from: '2026-01-01', to: '2026-02-02' }
+  enabled.value = true
+  await import('vue').then(({ nextTick }) => nextTick())
+  await result.query.suspense()
+  expect(urls).toHaveLength(1)
+  expect(urls[0]?.searchParams.get('from')).toBe('2026-01-01')
+  expect(urls[0]?.searchParams.get('to')).toBe('2026-02-02')
+  app.unmount()
+  client.clear()
+})
+
+it('stops pagination when disabled during a request', async () => {
+  let release!: () => void
+  let started!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const requested = new Promise<void>((resolve) => {
+    started = resolve
+  })
+  let requests = 0
+  server.use(
+    http.get('http://localhost/v1/meetings', async ({ request }) => {
+      requests++
+      if (new URL(request.url).searchParams.has('cursor')) {
+        started()
+        await gate
+      }
+      return HttpResponse.json({ items: [], next_cursor: 'next' })
+    }),
+  )
+  const enabled = ref(true)
+  const { app, client, result } = mountList({}, enabled)
+  await result.query.suspense()
+  const loading = result.loadAll()
+  await requested
+  enabled.value = false
+  release()
+  await loading.catch(() => undefined)
+  expect(requests).toBe(2)
   app.unmount()
   client.clear()
 })

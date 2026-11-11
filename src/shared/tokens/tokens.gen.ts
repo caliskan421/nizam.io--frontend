@@ -914,6 +914,12 @@ export const TOKENS = {
     "dark": "10px",
     "light": "10px"
   },
+  "meeting-members-pill-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "26px",
+    "light": "26px"
+  },
   "meeting-agenda-row-pad-y": {
     "group": "meeting",
     "origin": "web",

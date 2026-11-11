@@ -63,6 +63,8 @@ export const ICONS = {
   file: 'M14 3H6v18h12V7zM14 3v4h4',
   'file-upload': 'M14 3H6v18h12V7zM14 3v4h4M12 18v-7M9 14l3-3 3 3',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
+  /** Üyeler dahil (Toplanti-Detay.dc.html). */
+  eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   external: 'M14 4h6v6M20 4l-8 8M10 4H4v16h16v-6',
   close: 'M6 6l12 12M18 6 6 18',
   copy: 'M8 8h12v12H8zM4 16V4h12',

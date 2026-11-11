@@ -6,7 +6,7 @@ import { useMeeting } from '../api/queries'
 import { listQuery } from './detail/list-query'
 import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
-import { meetingCapabilities } from '../model/capabilities'
+import { useMeetingAccess } from './detail/use-meeting-access'
 import { meetingDepartments } from '../model/list'
 import { dateLabel } from './detail/date-label'
 import type { MeetingNote } from '../model/types'
@@ -22,7 +22,6 @@ import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
-import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 import { UiIcon } from '@/shared/ui'
 
@@ -31,7 +30,6 @@ const route = useRoute()
 const router = useRouter()
 const scope = useScopeStore()
 const instance = useInstanceStore()
-const { standing } = useStanding()
 const id = computed(() =>
   typeof route.params.meetingId === 'string' ? route.params.meetingId : null,
 )
@@ -54,19 +52,8 @@ const noteOpener = ref<HTMLElement | null>(null)
 const formOpener = ref<HTMLElement | null>(null)
 const page = ref<HTMLElement | null>(null)
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
-const canManage = computed(() => {
-  const m = meeting.value
-  if (!m) return false
-  return meetingCapabilities(standing.value, scope.programId ?? '', {
-    inviteMode: m.invite_mode,
-    ownerDepartmentId: m.owner_department_id,
-    departmentIds: m.departments.map((d) => d.department_id),
-    createdByAccountId: m.created_by_account_id,
-    membersIncluded: m.members_included,
-    participant: m.participants.some((p) => p.account_id === standing.value?.accountId),
-    viewerRole: m.viewer_role,
-  }).manage
-})
+const canManage = useMeetingAccess(meeting)
+
 const meetingDateLabel = computed(() =>
   meeting.value
     ? dateLabel(meeting.value.meeting_date, timezone.value, new Date(), text.today, text.tomorrow)
@@ -179,12 +166,13 @@ async function deleteMeeting() {
                 department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
               >{{ department.code }}</span
-            ><span>{{ meeting.departments.length }} {{ text.invited }}</span
+            ><span class="meeting-detail__count"
+              >{{ meeting.departments.length }} {{ text.invited }}</span
             ><span
               v-if="meeting.members_included"
               class="meeting-detail__members"
               :title="text.membersTitle"
-              >{{ text.members }}</span
+              ><UiIcon name="eye" size="sm" /> {{ text.members }}</span
             >
           </div>
         </div>
@@ -202,10 +190,22 @@ async function deleteMeeting() {
           >
             <UiIcon name="more" size="sm" />
           </button>
-          <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
-            <button type="button" role="menuitem" @click="openFormFromMenu">
+          <div
+            v-if="menuOpen"
+            class="meeting-detail__menu"
+            role="menu"
+            @keydown.esc.stop="closeMenu"
+          >
+            <button class="rp-menuitem" type="button" role="menuitem" @click="openFormFromMenu">
               {{ text.reschedule }}</button
-            ><button type="button" role="menuitem" @click="deleteMeeting">{{ text.delete }}</button>
+            ><button
+              class="rp-menuitem rp-menuitem--danger"
+              type="button"
+              role="menuitem"
+              @click="deleteMeeting"
+            >
+              {{ text.delete }}
+            </button>
           </div>
         </div>
       </header>

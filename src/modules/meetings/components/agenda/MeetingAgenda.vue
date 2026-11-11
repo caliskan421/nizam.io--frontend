@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import './agenda.css'
 import { checker } from './checker'
+import AgendaMenu from './AgendaMenu.vue'
 import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../../api/detail-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
@@ -27,10 +28,8 @@ const { confirmWrite } = useConfirm()
 const draft = ref('')
 const editing = ref<string | null>(null)
 const editTitle = ref('')
-const openMenu = ref<string | null>(null)
 const limitReached = ref(false)
 const section = ref<HTMLElement | null>(null)
-const menuButtons = new Map<string, HTMLButtonElement>()
 const checked = computed(() => props.meeting.agenda.filter((item) => item.is_checked).length)
 const canManage = computed(
   () =>
@@ -50,20 +49,11 @@ function clearDrafts() {
   draft.value = ''
   editing.value = null
   editTitle.value = ''
-  openMenu.value = null
   limitReached.value = false
 }
 watch(() => [props.meeting.meeting_id, scope.programId], clearDrafts)
 useSessionReset(clearDrafts)
 const count = computed(() => Array.from(draft.value).length)
-function closeMenu(id: string) {
-  openMenu.value = null
-  void nextTick(() => menuButtons.get(id)?.focus())
-}
-function setButton(id: string, el: unknown) {
-  if (el instanceof HTMLButtonElement) menuButtons.set(id, el)
-  else menuButtons.delete(id)
-}
 function result(
   outcome: Awaited<ReturnType<typeof add.submit>> | Awaited<ReturnType<typeof update.submit>>,
 ) {
@@ -123,27 +113,22 @@ async function save(item: AgendaItem) {
       }),
     )
   )
-    cancelEdit(item.agenda_item_id)
+    cancelEdit(item)
 }
 function editItem(item: AgendaItem) {
   editing.value = item.agenda_item_id
   editTitle.value = item.title
-  openMenu.value = null
   void nextTick(() => section.value?.querySelector<HTMLInputElement>('[data-agenda-edit]')?.focus())
 }
-function cancelEdit(id: string) {
+function cancelEdit(item: AgendaItem) {
   editing.value = null
-  void nextTick(() => menuButtons.get(id)?.focus())
-}
-function toggleMenu(id: string) {
-  if (openMenu.value === id) return closeMenu(id)
-  openMenu.value = id
   void nextTick(() =>
-    menuButtons.get(id)?.nextElementSibling?.querySelector<HTMLButtonElement>('button')?.focus(),
+    [...(section.value?.querySelectorAll<HTMLElement>('.meeting-agenda__menu-trigger') ?? [])]
+      .find((el) => el.dataset.agendaId === item.agenda_item_id)
+      ?.focus(),
   )
 }
 async function deleteItem(item: AgendaItem) {
-  closeMenu(item.agenda_item_id)
   if (!scope.programId || remove.isPending.value) return
   const programId = scope.programId
   const outcome = await confirmWrite(
@@ -181,7 +166,11 @@ async function deleteItem(item: AgendaItem) {
         <span>{{ checked }} / {{ meeting.agenda.length }}</span>
       </div>
     </div>
-    <div v-for="item in meeting.agenda" :key="item.agenda_item_id" class="meeting-agenda__row">
+    <div
+      v-for="item in meeting.agenda"
+      :key="`${meeting.meeting_id}:${item.agenda_item_id}`"
+      class="meeting-agenda__row"
+    >
       <input
         class="t-check"
         type="checkbox"
@@ -193,13 +182,15 @@ async function deleteItem(item: AgendaItem) {
       <form
         v-if="editing === item.agenda_item_id"
         @submit.prevent="save(item)"
-        @keydown.esc.stop="cancelEdit(item.agenda_item_id)"
+        @keydown.esc.stop="cancelEdit(item)"
       >
-        <input v-model="editTitle" data-agenda-edit :aria-label="`${item.title} düzenle`" /><button
-          type="submit"
-        >
+        <input
+          v-model="editTitle"
+          data-agenda-edit
+          :aria-label="`${item.title} ${text.edit}`"
+        /><button type="submit">
           {{ text.save }}</button
-        ><button type="button" @click="cancelEdit(item.agenda_item_id)">{{ text.cancel }}</button>
+        ><button type="button" @click="cancelEdit(item)">{{ text.cancel }}</button>
       </form>
       <span v-else :class="{ 'meeting-agenda__done': item.is_checked }">{{ item.title }}</span>
       <small v-if="item.is_checked">{{
@@ -210,27 +201,13 @@ async function deleteItem(item: AgendaItem) {
           text.unknown,
         )
       }}</small>
-      <div v-if="canManage">
-        <button
-          :ref="(el) => setButton(item.agenda_item_id, el)"
-          class="t-iconbtn meeting-agenda__menu-trigger"
-          type="button"
-          :aria-label="`${item.title} ${text.actions}`"
-          :aria-expanded="openMenu === item.agenda_item_id"
-          @click="toggleMenu(item.agenda_item_id)"
-          @keydown.esc.stop="closeMenu(item.agenda_item_id)"
-        >
-          <UiIcon name="more" size="sm" />
-        </button>
-        <div
-          v-if="openMenu === item.agenda_item_id"
-          role="menu"
-          @keydown.esc.stop="closeMenu(item.agenda_item_id)"
-        >
-          <button role="menuitem" type="button" @click="editItem(item)">{{ text.edit }}</button>
-          <button role="menuitem" type="button" @click="deleteItem(item)">{{ text.delete }}</button>
-        </div>
-      </div>
+      <AgendaMenu
+        v-if="canManage"
+        :id="item.agenda_item_id"
+        :title="item.title"
+        @edit="editItem(item)"
+        @remove="deleteItem(item)"
+      />
     </div>
     <form v-if="canManage" @submit.prevent="addItem">
       <label class="meeting-agenda__addrow">
