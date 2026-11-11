@@ -45,6 +45,7 @@ usePageCrumb(() => meeting.value?.title ?? null)
 const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const formOpen = ref(false)
+const formDateFocus = ref(false)
 const selectedNote = ref<MeetingNote | null>(null)
 const menuOpen = ref(false)
 const personSelectorUnavailable = ref(false)
@@ -73,10 +74,12 @@ const meetingDateLabel = computed(() =>
 )
 
 function openForm() {
+  formDateFocus.value = false
   formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
 }
 function openFormFromMenu() {
+  formDateFocus.value = true
   menuOpen.value = false
   formOpener.value = menuButton.value
   formOpen.value = true
@@ -221,7 +224,13 @@ async function deleteMeeting() {
         </div>
         <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
       </div>
-      <MeetingForm v-if="formOpen" :meeting="meeting" @close="closeForm" @saved="formSaved" />
+      <MeetingForm
+        v-if="formOpen"
+        :meeting="meeting"
+        :initial-focus="formDateFocus ? 'date' : undefined"
+        @close="closeForm"
+        @saved="formSaved"
+      />
       <MeetingConvert
         v-if="selectedNote"
         :note="selectedNote"
