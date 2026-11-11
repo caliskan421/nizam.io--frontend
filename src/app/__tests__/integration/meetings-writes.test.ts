@@ -124,3 +124,42 @@ it('gerçek silme onayından silinenlere gider ve toplantıyı geri yükler', as
   expect(backend.sent('DELETE', '/v1/meetings/m1')).toHaveLength(1)
   expect(backend.sent('PATCH', '/v1/admin/restore/meetings/m1')).toHaveLength(1)
 })
+
+it('silinenlerde 409 not_deleted yeniden okur; kalıcı silme onay gerektirir', async () => {
+  let visible = true
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/deleted', () =>
+      HttpResponse.json({ items: visible ? [meeting] : [], next_cursor: '' }),
+    ),
+    http.patch('http://localhost/v1/admin/restore/meetings/m1', () => {
+      visible = false
+      return HttpResponse.json(
+        { code: 'collaboration.not_deleted', message: 'secret', fields: [] },
+        { status: 409 },
+      )
+    }),
+    http.delete('http://localhost/v1/admin/permanent/meetings/m1', () => {
+      visible = false
+      return HttpResponse.json({ meeting_id: 'm1', status: 'purged' })
+    }),
+  )
+  const app = await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar?zaman=silinenler',
+  })
+  await until(() => $('.meeting-deleted__row'), 'silinen satırı')
+  await click(() => byText('.meeting-deleted button', 'Geri yükle'))
+  await until(() => !$('.meeting-deleted__row'), '409 sonrası liste yenilendi')
+  expect(backend.sent('PATCH', '/v1/admin/restore/meetings/m1')).toHaveLength(1)
+  visible = true
+  const { queryKeys } = await import('@/shared/http/query-keys')
+  await app.queryClient.invalidateQueries({ queryKey: queryKeys.meetings.all(app.scope.snapshot) })
+  await until(() => $('.meeting-deleted__row'), 'silinen satırı yeniden')
+  await click('button[aria-label="Kalıcı olarak sil"]')
+  expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/m1')).toHaveLength(0)
+  await click(() => byText('[role="alertdialog"] button', 'Kalıcı olarak sil'))
+  await until(() => !$('.meeting-deleted__row'), 'kalıcı silindi')
+  expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/m1')).toHaveLength(1)
+  expect(document.body.textContent).not.toContain('secret')
+})
