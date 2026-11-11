@@ -6,6 +6,7 @@ import {
   byText,
   click,
   createBackend,
+  fill,
   PEOPLE,
   seedWorld,
   teardown,
@@ -168,4 +169,44 @@ it('yönetici seçicisi program adaylarını ve yalnız kesilme uyarısını gö
   expect($('[role="dialog"]')?.textContent).not.toContain('Yalnız koordine ettiğin')
   expect($('[role="dialog"]')?.textContent).toContain('Liste eksik olabilir')
   expect(backend.sent('GET', '/v1/admin/users').at(-1)?.query.get('program_id')).toBe('p1')
+})
+
+it('seçici filtrede seçimi korur, kilitli katılımcıyı saymaz ve arama Enter göndermez', async () => {
+  const participants = [{ account_id: 'x', full_name: 'Ada Örnek', teams: [] }]
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({ ...meeting, participants }),
+    ),
+    http.get('http://localhost/v1/departments/:id/members', () =>
+      HttpResponse.json({
+        members: [
+          { account_id: 'x', full_name: 'Ada Örnek', status: 'active' },
+          { account_id: 'y', full_name: 'Bora Örnek', status: 'active' },
+        ],
+      }),
+    ),
+  )
+  await boot({
+    email: PEOPLE.coord.email,
+    scope: { programId: 'p1', lens: 'coordinator', departmentId: 'd1' },
+    path: '/toplantilar/m1',
+  })
+  await click(() => byText('.meeting-people button', 'Ekle'))
+  await until(() => document.querySelectorAll('.meeting-selector-row').length === 2, 'iki aday')
+  const rows = [...document.querySelectorAll<HTMLElement>('.meeting-selector-row')]
+  expect((rows[0]!.querySelector('input') as HTMLInputElement).disabled).toBe(true)
+  ;(rows[1]!.querySelector('input') as HTMLInputElement).click()
+  await until(() => $('[role="dialog"]')?.textContent?.includes('1 seçili'), 'seçim sayısı')
+  await fill('[role="dialog"] input[type="search"]', 'Ada')
+  const search = $('[role="dialog"] input[type="search"]')!
+  search.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+  )
+  expect(backend.sent('POST', '/v1/meetings/m1/participants')).toHaveLength(0)
+  await fill('[role="dialog"] input[type="search"]', '')
+  const bora = [...document.querySelectorAll<HTMLElement>('.meeting-selector-row')].find((row) =>
+    row.textContent?.includes('Bora'),
+  )!
+  expect((bora.querySelector('input') as HTMLInputElement).checked).toBe(true)
+  expect($('[role="dialog"]')?.textContent).toContain('1 seçili')
 })
