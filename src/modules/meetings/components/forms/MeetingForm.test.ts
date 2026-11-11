@@ -112,6 +112,7 @@ it('sends only the department set for an authorized department edit', async () =
     title: 'T',
     meeting_date: '2020-01-01T10:00:00Z',
     invite_mode: 'coordinatorship',
+    owner_department_id: 'd',
     departments: [{ department_id: 'd', department_name: 'Birim' }],
     members_included: false,
   } as MeetingDetail
@@ -179,6 +180,7 @@ it('focuses the date field when rescheduling opens the real modal', async () => 
     title: 'T',
     meeting_date: '2099-01-01T10:00:00Z',
     invite_mode: 'person',
+    owner_department_id: 'd',
     departments: [{ department_id: 'd', department_name: 'Birim' }],
     members_included: false,
   } as MeetingDetail

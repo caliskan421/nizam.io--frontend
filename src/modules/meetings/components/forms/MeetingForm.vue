@@ -18,6 +18,7 @@ import { useSessionReset } from '../../pages/detail/use-session-reset'
 import MeetingPersonSelector from '../people/MeetingPersonSelector.vue'
 import { meetingDateParts, meetingTimestamp, meetingWarning } from './meeting-time'
 import MeetingDepartments from './MeetingDepartments.vue'
+import { departmentOrder } from './department-order'
 
 const props = defineProps<{
   meeting: MeetingDetail | null
@@ -45,7 +46,7 @@ const date = ref(initial.date)
 const time = ref(initial.time)
 const dateInput = ref<HTMLInputElement | null>(null)
 const mode = ref<'person' | 'coordinatorship'>(props.meeting?.invite_mode ?? 'coordinatorship')
-const departmentIds = ref<string[]>(props.meeting?.departments.map((d) => d.department_id) ?? [])
+const departmentIds = ref<string[]>(departmentOrder(props.meeting))
 const participantIds = ref<string[]>([])
 const members = ref(props.meeting?.members_included ?? false)
 const options = computed(() => {
