@@ -44,6 +44,7 @@ const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const formOpen = ref(false)
 const formDateFocus = ref(false)
+const formSection = ref<'all' | 'departments'>('all')
 const selectedNote = ref<MeetingNote | null>(null)
 const menuOpen = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
@@ -60,11 +61,17 @@ const meetingDateLabel = computed(() =>
 )
 
 function openForm() {
+  formSection.value = 'all'
   formDateFocus.value = false
   formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
 }
+function openDepartments() {
+  openForm()
+  formSection.value = 'departments'
+}
 function openFormFromMenu() {
+  formSection.value = 'all'
   formDateFocus.value = true
   menuOpen.value = false
   formOpener.value = menuButton.value
@@ -215,11 +222,12 @@ async function deleteMeeting() {
             @refresh="refresh"
           /><MeetingPeople :meeting="meeting" @refresh="refresh" />
         </div>
-        <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
+        <MeetingSide :meeting="meeting" @edit="openDepartments" @remove="deleteMeeting" />
       </div>
       <MeetingForm
         v-if="formOpen"
         :meeting="meeting"
+        :edit-section="formSection"
         :initial-focus="formDateFocus ? 'date' : undefined"
         @close="closeForm"
         @saved="formSaved"
