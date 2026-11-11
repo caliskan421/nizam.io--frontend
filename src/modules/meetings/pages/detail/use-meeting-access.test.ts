@@ -21,10 +21,19 @@ it('derives management from standing and the meeting facts', () => {
     owner_department_id: 'd',
     departments: [],
     created_by_account_id: 'a',
+    created_by_role: 'admin',
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    place: null,
+    agenda: [],
+    notes: { items: [], next_cursor: '' },
+    conference: null,
+    conference_available: false,
+    last_conference: null,
     members_included: false,
     participants: [],
     viewer_role: 'admin',
-  } as MeetingDetail
+  } satisfies MeetingDetail
   expect(useMeetingAccess(meeting).value).toBe(true)
   expect(useMeetingAccess(undefined).value).toBe(false)
 })
