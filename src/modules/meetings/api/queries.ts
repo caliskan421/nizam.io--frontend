@@ -17,11 +17,14 @@ import { sessionBound } from '@/shared/session/query-session'
 import { adminCandidates, coordinatorCandidates } from './candidates'
 import { fetchDeletedMeetings, fetchMeeting, fetchMeetingNotes, fetchMeetings } from './fetchers'
 
-function useListLifetime(filters: MaybeRefOrGetter<MeetingFilters>) {
+function useListLifetime(
+  filters: MaybeRefOrGetter<MeetingFilters>,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
   const store = useScopeStore()
   let version = 0
   const stopFilters = watch(
-    () => JSON.stringify(toValue(filters)),
+    () => JSON.stringify([toValue(filters), toValue(enabled)]),
     () => {
       version += 1
     },
@@ -46,9 +49,12 @@ function useListLifetime(filters: MaybeRefOrGetter<MeetingFilters>) {
   }
 }
 
-export function useMeetings(filters: MaybeRefOrGetter<MeetingFilters>) {
+export function useMeetings(
+  filters: MaybeRefOrGetter<MeetingFilters>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   const store = useScopeStore()
-  const lifetime = useListLifetime(filters)
+  const lifetime = useListLifetime(filters, enabled)
   const query = useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
@@ -68,7 +74,7 @@ export function useMeetings(filters: MaybeRefOrGetter<MeetingFilters>) {
         initialPageParam: '',
         getNextPageParam: (page: Awaited<ReturnType<typeof fetchMeetings>>) =>
           page.next_cursor || undefined,
-        enabled: scope.programId !== null,
+        enabled: scope.programId !== null && toValue(enabled),
         retry: retryTransient,
       }
     }),
@@ -78,7 +84,7 @@ export function useMeetings(filters: MaybeRefOrGetter<MeetingFilters>) {
   async function loadAll() {
     const current = lifetime()
     const visited = new Set<string>()
-    while (query.hasNextPage.value && current()) {
+    while (query.hasNextPage.value && current() && toValue(enabled)) {
       const cursor = query.data.value?.pages.at(-1)?.next_cursor
       if (!cursor || visited.has(cursor)) throw new Error('Tekrarlanan toplantı imleci')
       visited.add(cursor)

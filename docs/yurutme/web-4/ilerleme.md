@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ile kapandı; W101 O2a başladı. F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b aktif. F4 kapanmış değildir.
 
 ## Durum
 
@@ -10,8 +10,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 |---|---|---|
 | Pin aşaması (WEB-P, `v0.15.0-api`) | **KAPANDI 2026-11-10** — Codex tur 2 KOŞULLU UYGUN (HEAD `1bd80b6`); ayrıntı aşağıda "Pin aşaması" | `1bd80b6` |
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
-| O2a — Toplantılar veri katmanı (W101) | Aktif (`web4/o2-w101`, taban #88) | `17ceed7` |
-| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Bekliyor | — |
+| O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
+| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Aktif: W102–W104; W105/W106 sırada | `d3e3263` |
 | O3 — Entegrasyon turu (W107) | Bekliyor | — |
 | O4 — Kapanış | Bekliyor | — |
 
@@ -82,3 +82,8 @@ O1 denetimi: Node 24.9.0 ve aynı `package.json`/kilit dosyasına sahip ana çal
 W100 #88 `17ceed7` birleşti; PR başı `192805b`, CI [42997202531](https://github.com/caliskan421/nizam.io--frontend/actions/runs/42997202531) üç denetim COMPLETED+SUCCESS, MERGED doğrulandı. İlk koşu 42992979250 kayıt durumundaki tipografik apostrof nedeniyle 1 testte kırmızıydı; W100 `192805b` yalnız kayıt biçimini düzeltti, hedefli 30 test geçti; test/parser gevşetilmedi. O1/K-02 belge işi tamam; S3 özel seçici görsel kabulü ve BE-067 kapsam sınırı açık.
 
 O2a W101 Terra medium işçisi başladı; ayrı worktree `nizam.io--frontend-wt-w101`, dal `web4/o2-w101`, kalıcı istem Git worktree yönetim dizininde W-PROMPT.md. O2b W101'in yeşil birleşimini bekler. W108/W109 ve O4 gerçek kullanıcı kanıtı borçları korunur; F5 açılmaz.
+
+
+## 2026-11-11 — O2a W101 birleşimi
+
+PR #89 `d3e3263`: üç CI denetimi COMPLETED+SUCCESS, MERGED doğrulandı. Yerel typecheck/lint/format, 437 dosyada 3083 test, build/gen:check geçti. Üretim+Caddy CSP ile iki boş iskelet rota × üç genişlik × iki tema: 12 ölçüm, taşma/CSP/pageerror 0; dar menü odak/tıklama doğrulandı. Bu yalnız O2a iskelet kabulüdür. O2b W102–W104 ayrı dallarda başladı; W105/W106 sırada. S3 özel seçici tasarımı hâlâ eksik. Nottan görev sonrası sorgu geçersizleme testli; görsel rozet/pano önce-sonra kanıtı W107 girdisidir.

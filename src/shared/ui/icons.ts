@@ -28,6 +28,8 @@ export const ICONS = {
   sim: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9',
   help: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01',
   logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
+  'meeting-note': 'M5 4h14v12l-4 4H5zM15 20v-4h4M8 9h8M8 13h5',
+  'meeting-person': 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0',
   // Yön ve onay
   'chevron-down': 'M6 9l6 6 6-6',
   'chevron-up': 'M6 15l6-6 6 6',
