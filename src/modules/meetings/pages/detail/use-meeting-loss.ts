@@ -18,22 +18,42 @@ export function useMeetingLoss(error: Ref<unknown>, id: Ref<string | null>): voi
   const route = useRoute()
   const router = useRouter()
   let alive = true
+  let scopeVersion = 0
+  const offScope = scope.onChange(() => {
+    scopeVersion += 1
+  })
   onScopeDispose(() => {
     alive = false
+    offScope()
   })
-  watch(error, async (value) => {
-    if (!isMeetingAccessLoss(value)) return
-    const program = scope.programId
-    const meetingId = id.value
-    const generation = authSession.generation
-    await invalidateStanding(client)
-    if (
-      !alive ||
-      generation !== authSession.generation ||
-      program !== scope.programId ||
-      meetingId !== id.value
-    )
-      return
-    void router.push({ name: 'collaboration.meetings', query: listQuery(route.query) })
-  })
+  watch(
+    error,
+    async (value, _previous, onCleanup) => {
+      if (!isMeetingAccessLoss(value)) return
+      let current = true
+      onCleanup(() => {
+        current = false
+      })
+      const snapshot = { ...scope.snapshot }
+      const version = scopeVersion
+      const meetingId = id.value
+      const generation = authSession.generation
+      await invalidateStanding(client)
+      const now = scope.snapshot
+      if (
+        !alive ||
+        !current ||
+        error.value !== value ||
+        version !== scopeVersion ||
+        generation !== authSession.generation ||
+        meetingId !== id.value ||
+        snapshot.programId !== now.programId ||
+        snapshot.departmentId !== now.departmentId ||
+        snapshot.lens !== now.lens
+      )
+        return
+      void router.push({ name: 'collaboration.meetings', query: listQuery(route.query) })
+    },
+    { immediate: true },
+  )
 }
