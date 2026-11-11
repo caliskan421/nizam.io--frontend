@@ -202,3 +202,18 @@ it('kardeş sekme çıkışı açık toplantı taslağını ve oturumu kapatır'
   expect($('#meeting-form')).toBeNull()
   expect(document.body.textContent).not.toContain('Gizli taslak')
 })
+
+it('toplantı detayında video yüzeyi ve konferans isteği yoktur', async () => {
+  const app = await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await until(() => $('.meeting-people'), 'detay')
+  expect(document.body.textContent).not.toMatch(/LiveKit|Konferansı bitir/)
+  expect(byText('.meeting-detail button', 'Katıl')).toBeNull()
+  expect(backend.requests.filter((request) => /conference|video/i.test(request.path))).toHaveLength(
+    0,
+  )
+  expect(app.router.getRoutes().some((route) => /gorusme|conference/i.test(route.path))).toBe(false)
+})
