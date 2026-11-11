@@ -2,8 +2,10 @@ import { expect, it } from 'vitest'
 import Component from './DeletedMeetings.vue'
 
 it('declares its integration contract independently of its body', () => {
-  expect(Object.keys(Component.props ?? {}).sort()).toEqual(['items'].sort())
+  expect(Object.keys(Component.props ?? {}).sort()).toEqual(
+    ['items', 'hasMore', 'loading', 'error'].sort(),
+  )
   expect(
     (Array.isArray(Component.emits) ? Component.emits : Object.keys(Component.emits ?? {})).sort(),
-  ).toEqual(['close', 'refresh'].sort())
+  ).toEqual(['close', 'refresh', 'loadMore'].sort())
 })
