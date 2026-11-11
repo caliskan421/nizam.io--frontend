@@ -1,6 +1,6 @@
 # Ekran tespitleri — koordinatör sentezi
 
-**Durum:** tamamlandı (tespit) · **Tarih:** 2026-11-08 · **Kapsam:** 11 grup, 66 dosya + ortak kurallar, ~7.700 satır · **Pin:** `v0.11.0-api` (tespit anı) · **Güncel durum (2026-11-10):** F0–F3 kapandı; pin aşaması KAPANDI (`v0.15.0-api`, WEB-P #77–#86, Codex KOŞULLU UYGUN — `../reviews/WEB-P-codex.md`); 09 F4-S1…S10 ürün sahibince cevaplandı (`ortak-kurallar.md` §12 P21–P30), sırada F4
+**Durum:** tamamlandı (tespit) · **Tarih:** 2026-11-08 · **Kapsam:** 11 grup, 66 dosya + ortak kurallar, ~7.700 satır · **Pin:** `v0.11.0-api` (tespit anı) · **Güncel durum (2026-11-11):** F0–F3 kapandı; pin aşaması KAPANDI (`v0.15.0-api`, WEB-P #77–#86, Codex KOŞULLU UYGUN — `../reviews/WEB-P-codex.md`); 09 F4-S1…S10 ürün sahibince cevaplandı (`ortak-kurallar.md` §12 P21–P30), F4 O1–O3 main’de (#88–#97), O4 gerçek imaj/nihai kapı ve kapanış bekliyor. F5 yalnız belge iskeleti, açılmadı
 **Üretim:** tasarım analisti (Opus) → backend analisti (Opus) → bağımsız denetçi (Sonnet) → **Codex kapısı** (`gpt-6-astra`, salt okunur; hüküm **KOŞULLU UYGUN**, [`../reviews/EKRANLAR-codex.md`](../reviews/EKRANLAR-codex.md)) → Codex kararlarının grup dosyalarına işlenmesi (§7).
 **Çıktılar:** grup dosyaları (`denetlendi`), [`ortak-kurallar.md`](ortak-kurallar.md), eksik kaydı `../backend-eksikleri/kayit.md` (BE-001…035 düzeltildi, **BE-036…BE-106** eklendi), backend devir raporu [`../backend-eksikleri/rapor-tespit-2026-11-08.md`](../backend-eksikleri/rapor-tespit-2026-11-08.md), yürütme sözleşmesi `../yurutme/web-0/ortak-sozlesme.md` adım 2a.
 
@@ -8,9 +8,9 @@ Bu belge grupların **üstündeki** kararları toplar. Grup içi ayrıntı: `ort
 
 **Codex'in koşulu:** set tasarım envanteri ve uygulayıcı hazırlığı için güçlü temel; ancak §4'teki ilk beş ürün kararı verilip grup README'lerindeki uygulama kararı tabloları doldurulmadan tek başına uygulanabilir gereksinim sayılmaz. `denetlendi` = tespit tamam; `kabul` faz açılışında verilir.
 
-## 1. Sözleşme gerçekleri (tüm gruplar için bağlayıcı)
+## 1. Tespit anındaki sözleşme gerçekleri (v0.11 tarihsel)
 
-Analist varsayımlarıyla çelişip denetçi/Codex tarafından sözleşmeden doğrulanan ve her uygulayıcının bilmesi gereken gerçekler. Ortak davranış kuralları `ortak-kurallar.md`'de; burada yalnız sözleşme olguları.
+Bu tablo 2026-11-08 v0.11 tespit kaydıdır; sonradan bağlanan v0.15 alanları için güncel grup kabul tablosu, api-pin.json ve etiket kaynağı üstündür. Özellikle G19 toplantı görünürlüğü/kipleri [O1](../yurutme/web-4/o1-backend-yeterlilik.md) ve [09 kabulü](09-toplantilar/README.md) ile; G10 dosya yükleme/silme yetkisi [06 backend](06-arsiv/backend.md) v0.15 ADR-0030 notuyla güncellenmiştir. Analist varsayımlarıyla çelişip denetçi/Codex tarafından o tarihte doğrulanan gerçekler aşağıdadır. Ortak davranış kuralları `ortak-kurallar.md`'de; burada yalnız sözleşme olguları.
 
 | # | Gerçek | Kaynak | Gruplar |
 |---|---|---|---|
