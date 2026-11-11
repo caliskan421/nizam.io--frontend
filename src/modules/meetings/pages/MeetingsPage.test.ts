@@ -13,7 +13,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { ref } from 'vue'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, beforeAll, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, vi } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
 import { i18n } from '@/shared/i18n'
 import { settleQueries, until } from '@/shared/http/__tests__/settle'
@@ -28,6 +28,13 @@ vi.mock('@/shared/scope/standing', () => ({
 }))
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+beforeEach(() =>
+  server.use(
+    http.get('http://localhost/v1/meetings/deleted', () =>
+      HttpResponse.json({ items: [{ meeting_id: 'deleted' }], next_cursor: '' }),
+    ),
+  ),
+)
 afterAll(() => server.close())
 
 it('stops after a page error and offers a user retry', async () => {
@@ -63,6 +70,7 @@ it('stops after a page error and offers a user retry', async () => {
   })
   await settleQueries(client)
   expect(wrapper.text()).toContain('Diğer toplantılar yüklenemedi')
+  expect(wrapper.text()).toContain('Silinenler 1')
   expect(pages).toBe(3)
   fail = false
   const button = wrapper.findAll('button').find((b) => b.text() === 'Yeniden dene')

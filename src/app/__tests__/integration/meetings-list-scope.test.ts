@@ -7,6 +7,11 @@ const path = '/toplantilar'
 const admin = { email: PEOPLE.admin.email, scope: { programId: 'p1', lens: 'admin' as const } }
 function meetingHandler() {
   backend.server.use(
+    http.get('http://localhost/v1/meetings/deleted', () =>
+      HttpResponse.json({ items: [], next_cursor: '' }),
+    ),
+  )
+  backend.server.use(
     http.get('http://localhost/v1/meetings', () =>
       HttpResponse.json({ items: [], next_cursor: '' }),
     ),

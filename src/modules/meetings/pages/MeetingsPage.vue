@@ -74,7 +74,7 @@ const filters = computed(() => ({
   to: to.value || undefined,
 }))
 const meetings = useMeetings(filters, () => !invalid.value)
-const deleted = useDeletedMeetings(() => admin.value && tab.value === 'silinenler')
+const deleted = useDeletedMeetings(() => admin.value)
 const now = useNow()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
 const split = computed(() => splitMeetings(meetings.items.value, now.value, timezone.value))
@@ -163,6 +163,8 @@ watch(
             @click="update('zaman', 'silinenler')"
           >
             {{ t('meetings.list.deleted') }}
+            {{ deleted.data.value?.pages.flatMap((p) => p.items).length ?? ''
+            }}{{ deleted.hasNextPage.value ? '+' : '' }}
           </button>
         </div>
         <label
