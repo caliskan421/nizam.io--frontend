@@ -1,6 +1,6 @@
 # 09 · Toplantılar
 
-**Codex kapısı:** KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
+**Tespit Codex kapısı:** KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
 
 **Artboard'lar:** `Toplantilar.dc.html` (`09 · Toplantılar`), `Toplanti-Detay.dc.html` (`09b · Toplantı › Haftalık koordinasyon`), `Toplanti-Formlar.dc.html` (`09c · Toplantı › Pencereler`), `Toplanti-Gorusme.dc.html` (`09d · Toplantı › Görüşme (tam ekran)`), `Toplanti-Kucuk.dc.html` (`09e · Toplantı › Küçültülmüş görüşme`)
 **Faz:** F4 · **v1:** ✓ (09d/09e **gizli**, KR-26) · **Yol haritası bağı:** K1, K2, K5, K7, K10, K13, K14; §4 F4 satırı ("Liste, detay, gündem, notlar, nottan görev, silinenler; video (W7) ayrı"); §6 KR-26
@@ -140,8 +140,8 @@ Uygulayıcı yalnız `kabul` ve **geçici kabul** satırlarını kodlar; `öneri
 | F4-S10 | `istemci-akislari.md` toplantıyı kapsamıyor; eylem görünürlüğü meetings README §3/§4'ten kodlansın, yol haritasına bu istisna yazılsın mı? | Evet; meetings README §3/§4'ten kodlanır, yol haritasına istisna yazılır (öneri ile aynı) — **kabul, P30 (ürün sahibi 2026-11-10)** | `eksikler.md` §4 (K1); BE-036 |
 
 
-## WEB-4 uygulama kanıtı (O4, 2026-11-11)
+## WEB-4 uygulama kanıtı (O4, 2026-11-12)
 
 W101–W107 PR #89–#95 ve #97 birleşti; kayıt [ilerleme.md](../../yurutme/web-4/ilerleme.md). Tablodaki kısa test adları `src/modules/meetings/` altında; `meetings-*.test.ts` entegrasyonları `src/app/__tests__/integration/` altındadır. W102/W103 birim testlerinde taslaklanan alt bileşenler W107 gerçek router/AppShell turuyla karşılandı. Geçici koordinatör kararları P3/P32 ve uygulanmış testlerle yeniden değerlendirildi; ürün sahibi görsel onayı olarak yükseltilmedi. S3 açılmış kaynak çizimi bulunmadı; [P32 türetilmiş özel modal kararı](../../yurutme/web-4/s3-kisi-secici-karari.md) uygulandı.
 
-Yerel tam kapı `4bf32fa`: 484 dosya/3252 test; üretim+Caddy altı genişlik/tema koşulu, gerçek dar ekran etkileşimleri ve odak dönüşleri geçti. Kaynak/görüntüler `.git/koordinator/web4-w102`…`web4-w107` altında. O4 gerçek backend/imaj tanığı [doğrulama kaydında](../../yurutme/web-4/dogrulama-F4.md) ayrıntılıdır: son kaynak `707fd07`, 484 dosya/3259 test, iki tema × üç genişlikte iç/dış modal odağı ve taşma/CSP/sayfa hatası sıfır. Nihai Codex hükmü bekleniyor; bu bölüm F4 kapanış hükmü değildir. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık.
+Yerel tam kapı `4bf32fa`: 484 dosya/3252 test; üretim+Caddy altı genişlik/tema koşulu, gerçek dar ekran etkileşimleri ve odak dönüşleri geçti. Kaynak/görüntüler `.git/koordinator/web4-w102`…`web4-w107` altında. O4 gerçek backend/imaj tanığı [doğrulama kaydında](../../yurutme/web-4/dogrulama-F4.md) ayrıntılıdır: son kaynak `707fd07`, 484 dosya/3259 test, iki tema × üç genişlikte iç/dış modal odağı ve taşma/CSP/sayfa hatası sıfır. W111/#99 ve W112/#100 nihai koşulları giderdi: not gönderim kilidi, create/PATCH satır içi alan hataları ve departman çipleri. Son birleşik kaynak `bbfde3d`: 487 dosyada 3266 test; ayrı üretim+Caddy altı görünüm turları geçti. [Nihai Codex tur 2](../../reviews/WEB-4-codex.md) KOŞULLU UYGUN, üç teknik bulgu kapalı; #100 üç CI SUCCESS ile `9065517` main başına birleşti. Son main `9065517` tam kapısı 487 dosyada 3266 testle geçti; süreç koşulları tamamlandı. **F4 KAPANDI — 2026-11-12.** Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık.

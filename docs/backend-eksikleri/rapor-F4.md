@@ -1,6 +1,6 @@
 # Backend devir raporu — F4 (WEB-4), 2026-11-11
 
-**Durum:** kapanış hazırlığı; nihai kapı ve kapanış PR'ı bekleniyor. **Web pini:** `v0.15.0-api`, F4 boyunca yükseltilmedi. F5 açılmadı; aşağıdaki arşiv paketi yalnız sonraki fazın ihtiyaç devridir.
+**Durum:** F4 kapandı, 2026-11-12; nihai kapı koşulları tamamlandı. **Web pini:** `v0.15.0-api`, F4 boyunca yükseltilmedi. F5 açılmadı; aşağıdaki arşiv paketi yalnız sonraki fazın ihtiyaç devridir.
 
 Kaynaklar: [kayıt](kayit.md), [F3 raporu](rapor-F3.md), [tespit paketleri](rapor-tespit-2026-11-08.md), [O1 yeterlilik](../yurutme/web-4/o1-backend-yeterlilik.md), [09 kabul tablosu](../ekranlar/09-toplantilar/README.md), [F4 ilerleme](../yurutme/web-4/ilerleme.md). Uç/alan önerileri sözleşme yayımlanana ve web pini yükselene kadar uygulama yetkisi değildir.
 
@@ -52,6 +52,6 @@ BE-060 zaten v0.15'te karşılandığı için yeni etiketi beklememiştir. BE-06
 
 W107 gerçek bileşen turunda 403/404 sonrası güvenli listeye dönüş ve not silme sonrası odak kusurları giderildi; kapsam/oturum/söküm yarışları sınandı. W108 aktarım mercek/geç409, 05 odak, G1/G2; W109 gerçek Gantt tutamaç/klavye/gözlemci temizliği ve ek alt görev/pano entegrasyonu tamamladı. `total_admins` UI'da gösterilmez; yalnız kart ve gerçek sorgu/önbellek değişimi kanıtlıdır.
 
-O4 gerçek Docker/backend tanığı ve G4 429 tamamlandı; [doğrulama kaydı](../yurutme/web-4/dogrulama-F4.md) gerçek HTTP, UI ve MSW kanıtını ayırır. W110 ortak modalın koşullu sökümünde atlanan odak iadesini düzeltti: eski kodda üç regresyon kırıldı; kaynak `707fd07` üzerinde 484 dosyada 3259 test ve son gerçek imajda altı görünüm geçti. İç seçici ve dış form Escape odağı 6/6 doğru tetikleyiciye döndü; taşma/CSP/sayfa hatası sıfır. Nihai Codex [tur 2 KOŞULLU UYGUN](../reviews/WEB-4-codex.md), üç teknik koşulun W111/W112 ile kapandığını doğruladı: not düzenleme gönderim kilidi, formun satır içi alan hataları ve departman çip yüzü. Yeni regresyon bulunmadı. W112 CI/birleşimi ve son main kapısının kayıtla bağlanması süreç koşuludur. Gerçek VoiceOver ve E-03C-27/41 ürün sahibi görsel onayı otomatik doğrulanmış sayılmaz.
+O4 gerçek Docker/backend tanığı ve G4 429 tamamlandı; [doğrulama kaydı](../yurutme/web-4/dogrulama-F4.md) gerçek HTTP, UI ve MSW kanıtını ayırır. W110 ortak modalın koşullu sökümünde atlanan odak iadesini düzeltti: eski kodda üç regresyon kırıldı; kaynak `707fd07` üzerinde 484 dosyada 3259 test ve son gerçek imajda altı görünüm geçti. İç seçici ve dış form Escape odağı 6/6 doğru tetikleyiciye döndü; taşma/CSP/sayfa hatası sıfır. Nihai Codex [tur 2 KOŞULLU UYGUN](../reviews/WEB-4-codex.md), üç teknik koşulun W111/W112 ile kapandığını doğruladı: not düzenleme gönderim kilidi, formun satır içi alan hataları ve departman çip yüzü. Yeni regresyon bulunmadı. W112/#100 üç CI SUCCESS ile birleşti; son main `9065517` tam kapısı 487 dosyada 3266 testle geçti. Süreç koşulları tamamlandı. Gerçek VoiceOver ve E-03C-27/41 ürün sahibi görsel onayı otomatik doğrulanmış sayılmaz.
 
 Video şeridi, Canlı/Bekliyor, 09d/09e ve sağlayıcı adı P21/P22 gereği gizlidir; dosya F4 dışıdır. F5 bu raporla açılmaz.

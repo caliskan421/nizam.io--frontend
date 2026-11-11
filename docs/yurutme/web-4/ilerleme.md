@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b ve O3 birleşti; O4 aktif. F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b ve O3 birleşti; O4 kapıları tamamlandı. **F4 KAPANDI — 2026-11-12**; bu kapanış kaydı PR ile main’e alınır. F5 açılmadı.
 
 ## Durum
 
@@ -13,7 +13,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
 | O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Birleşti: #90/#91/#92/#94/#95; üçer CI SUCCESS | `dd755f3` |
 | O3 — Entegrasyon turu (W107) | Birleşti: #97, üç CI SUCCESS | `24bfb17` |
-| O4 — Kapanış | W110 #98 birleşti; gerçek imaj tamam, main/nihai kapı bekliyor | `4683af5` |
+| O4 — Kapanış | **Kapandı 2026-11-12**: gerçek imaj, nihai Sol tur 2 koşulları, son main kapısı tamam | `9065517` |
 
 ## Devralınan (WEB-3 O4)
 
@@ -164,3 +164,14 @@ W111 #99 üç COMPLETED+SUCCESS ve pr-merge.sh ardından `098ecbae5232e07a3b5b1e
 W112 `bbfde3d` son tam kapı geçti:487dosya3266test,type/lint/format/gen/build. W111ve main098ecba birleşik; b14eef8→sonHEAD ağaç farkı0. Son üretim+Caddy6görünümde Enterçipseçimi, taşma/CSP/pageerror0; güvenli7JSON/PNG `.git/koordinator/web4-w112/` içine kopyalandı. İkinci saltokunur inceleme CI ile paralel yürütülür; CI/birleşim onayı yerine geçmez.
 
 Nihai Sol tur2 `f0ab828` HEAD üzerinde KOŞULLU UYGUN: Ö-01,Ö-02,K-01 kapandı; yakın varyantlarda yeni regresyon yok. Gerçekreadonlyaraçizi ve güvenliJSON/PNGincelemesi mevcut. Kalan süreç koşulu W112CI/birleşimi ve birleşmişsonbaşın kapı kaydıdır; gerçekVoiceOver/E03C27/41 takipborçları korunur.
+
+
+## 2026-11-12 — F4 kapanışı
+
+**F4 KAPANDI.** O1–O3, W108/W109 borçları ve O4 düzeltmeleri #88–#100 ile main’dedir. Son uygulama başı `9065517627c262051f8318edd794879c3be6d7c7`: Node24 ile typecheck, tam lint, format, **487 dosyada 3266 test**, gen:check ve build geçti; başlangıç/son HEAD aynı, çalışma ağacı temiz. API pini `v0.15.0-api`, backend commit `b8f6479a7971`; 194 hata kodu ve 189 operasyon, üretilen fark sıfır.
+
+[Nihai Sol tur 2](../../reviews/WEB-4-codex.md) `f0ab828` üzerinde KOŞULLU UYGUN: üç teknik koşul kapalı, yeni regresyon yok. Kalan süreç koşulları W112/#100’ün üç CI SUCCESS ile birleşimi ve yukarıdaki son main kapısıyla tamamlandı. İncelenen kaynak ile son main arasında uygulama/üretim girdisi farkı yok; kapanış dalı yalnız belgedir. [Gerçek imaj ve diğer doğrulamalar](dogrulama-F4.md), [backend devri](../../backend-eksikleri/rapor-F4.md), [09 kabul kanıtı](../../ekranlar/09-toplantilar/README.md).
+
+Geçici koordinatör kabulleri uygulanan P3/P32 ve test kanıtlarıyla yeniden değerlendirildi; ürün sahibi görsel kabulü olarak yükseltilmedi. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık takip borçlarıdır; otomatik doğrulandı sayılmaz. Video/Canlı/Bekliyor/09d/09e/sağlayıcı adı gizli, dosya F4 dışıdır.
+
+**F5 BAŞLAMADI.** Yalnız 06 geçici kabul tablosu ve web-5 yürütme iskeleti hazırlandı. F5 için ürün sahibinin ayrıca onayı ve BE-072 kapsam çözümü gerekir. Kendi test konteynerleri temizlendi; güvenli kanıtlar ana frontend `.git/koordinator/` altında korundu. Yönetim deposuna yalnız güncel web durum/günlük bağlantısı yazılır; diğer oturum kayıtları korunur.
