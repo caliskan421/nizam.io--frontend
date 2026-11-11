@@ -194,3 +194,23 @@ it('clears the draft when the session changes', async () => {
   expect((wrapper.get('input[placeholder]').element as HTMLInputElement).value).toBe('')
   wrapper.unmount()
 })
+it('preserves a draft across a token renewal for the same session', async () => {
+  authSession.establish({
+    token: 'old',
+    account_id: 'a',
+    expires_at: 2000000000,
+    force_password_change: false,
+  })
+  const wrapper = setup(true)
+  await wrapper.get('input[placeholder]').setValue('Taslak')
+  authSession.establish({
+    token: 'new',
+    account_id: 'a',
+    expires_at: 2000000010,
+    force_password_change: false,
+  })
+  await wrapper.vm.$nextTick()
+  expect((wrapper.get('input[placeholder]').element as HTMLInputElement).value).toBe('Taslak')
+  wrapper.unmount()
+  authSession.clear()
+})

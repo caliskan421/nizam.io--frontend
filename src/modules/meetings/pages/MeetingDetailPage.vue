@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import './detail/detail.css'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
@@ -16,7 +16,7 @@ import MeetingPeople from '../components/people/MeetingPeople.vue'
 import MeetingSide from '../components/side/MeetingSide.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import MeetingConvert from '../components/convert/MeetingConvert.vue'
-import { authSession } from '@/shared/http'
+import { useSessionReset } from './detail/use-session-reset'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -118,8 +118,7 @@ function closeDialogs() {
   personSelectorUnavailable.value = false
 }
 watch(() => [scope.programId, id.value], closeDialogs)
-const offSession = authSession.subscribe(closeDialogs)
-onScopeDispose(offSession)
+useSessionReset(closeDialogs)
 async function deleteMeeting() {
   closeMenu()
   const m = meeting.value
