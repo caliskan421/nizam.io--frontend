@@ -1,6 +1,6 @@
 .meeting-deleted {
   padding: var(--space-4);
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--ui-hairline) solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
 }
@@ -15,7 +15,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) 0;
-  border-bottom: var(--border-width) solid var(--border-subtle);
+  border-bottom: var(--ui-hairline) solid var(--border-subtle);
 }
 .meeting-deleted__row h3 {
   flex-basis: 100%;
