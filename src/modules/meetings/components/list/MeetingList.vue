@@ -12,7 +12,14 @@ defineEmits<{ create: []; openDeleted: []; select: [id: string] }>()
 const departments = useProgramDepartments()
 const instance = useInstanceStore()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
-const groups = computed(() => groupMeetings(props.items, timezone.value))
+const groups = computed(() => {
+  const merged = new Map<string, Meeting[]>()
+  for (const group of groupMeetings(props.items, timezone.value)) {
+    const label = dayLabel(group.day, new Date(), timezone.value)
+    merged.set(label, [...(merged.get(label) ?? []), ...group.items])
+  }
+  return [...merged].map(([label, items]) => ({ label, items }))
+})
 function format(date: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat('tr-TR', { ...options, timeZone: timezone.value }).format(
     new Date(date),
@@ -25,9 +32,9 @@ function codes(item: Meeting) {
 <template>
   <div v-if="!items.length" class="meetings-empty">{{ t('meetings.list.empty') }}</div>
   <div v-else class="meetings-groups">
-    <section v-for="group in groups" :key="group.day" class="meetings-group">
+    <section v-for="group in groups" :key="group.label" class="meetings-group">
       <h2>
-        {{ dayLabel(group.day, new Date(), timezone) }}
+        {{ group.label }}
       </h2>
       <a
         v-for="item in group.items"
