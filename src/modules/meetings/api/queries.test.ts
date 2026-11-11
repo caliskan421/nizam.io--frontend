@@ -2,7 +2,8 @@ import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
-import { createApp, defineComponent, ref } from 'vue'
+import { createApp, defineComponent, ref, type MaybeRefOrGetter } from 'vue'
+import type { MeetingFilters } from '../model/types'
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { authSession } from '@/shared/http'
 import { useScopeStore } from '@/shared/scope/store'
@@ -12,7 +13,7 @@ const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
 
-function mountList(filters: Parameters<typeof useMeetings>[0]) {
+function mountList(filters: MaybeRefOrGetter<MeetingFilters>) {
   const pinia = createPinia()
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
@@ -87,5 +88,21 @@ it.each(['session', 'owner'] as const)('stops loading pages after %s changes', a
   await loading.catch(() => undefined)
   expect(requests).toBe(2)
   if (change === 'session') app.unmount()
+  client.clear()
+})
+
+it('stops on a repeated cursor even when the page is empty', async () => {
+  let requests = 0
+  server.use(
+    http.get('http://localhost/v1/meetings', () => {
+      requests += 1
+      return HttpResponse.json({ items: [], next_cursor: 'same' })
+    }),
+  )
+  const { app, client, result } = mountList({})
+  await result.query.suspense()
+  await expect(result.loadAll()).rejects.toThrow('Tekrarlanan toplantı imleci')
+  expect(requests).toBe(2)
+  app.unmount()
   client.clear()
 })

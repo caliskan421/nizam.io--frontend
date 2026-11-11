@@ -12,6 +12,7 @@ import { ownerLife } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
+import { adminCandidates, coordinatorCandidates } from './candidates'
 import { fetchDeletedMeetings, fetchMeeting, fetchMeetingNotes, fetchMeetings } from './fetchers'
 
 function useListLifetime(filters: MaybeRefOrGetter<MeetingFilters>) {
@@ -148,6 +149,33 @@ export function useDeletedMeetings(enabled: MaybeRefOrGetter<boolean>) {
         getNextPageParam: (page: Awaited<ReturnType<typeof fetchDeletedMeetings>>) =>
           page.next_cursor || undefined,
         enabled: scope.programId !== null && toValue(enabled),
+        retry: retryTransient,
+      }
+    }),
+  )
+}
+
+/** Aday kümesi sunucu yetkisine göre çağıranın sağladığı admin veya coordOf olgularıyla okunur. */
+export function useMeetingCandidates(
+  admin: MaybeRefOrGetter<boolean>,
+  coordOf: MaybeRefOrGetter<readonly string[]>,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
+  const store = useScopeStore()
+  return useQuery(
+    computed(() => {
+      const scope = store.snapshot
+      const isAdmin = toValue(admin)
+      const departments = [...new Set(toValue(coordOf))].sort()
+      return {
+        queryKey: queryKeys.meetings.candidates(scope, { admin: isAdmin, departments }),
+        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
+          isAdmin
+            ? adminCandidates(scope.programId!, signal)
+            : coordinatorCandidates(scope.programId!, departments, signal),
+        ),
+        enabled:
+          scope.programId !== null && toValue(enabled) && (isAdmin || departments.length > 0),
         retry: retryTransient,
       }
     }),

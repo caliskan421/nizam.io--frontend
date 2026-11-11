@@ -138,6 +138,8 @@ export const queryKeys = {
     all: (s: ScopeSnapshot) => scoped(s, ['meetings']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['meetings', 'list', filters]),
     deleted: (s: ScopeSnapshot) => scoped(s, ['meetings', 'deleted']),
+    candidates: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['meetings', 'candidates', filters]),
     detail: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', 'detail', id]),
     noteList: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', 'notes', id]),
     item: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', id]),
