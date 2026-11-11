@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import './forms.css'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useProgramDepartments } from '@/modules/work/public'
 import { reachesOwner } from '@/shared/http/mutation'
@@ -15,9 +16,14 @@ import { coordinatorDepartmentIds } from '../../model/capabilities'
 import type { MeetingDetail } from '../../model/types'
 import { useSessionReset } from '../../pages/detail/use-session-reset'
 import MeetingPersonSelector from '../people/MeetingPersonSelector.vue'
-import { meetingTimestamp } from './meeting-time'
+import { meetingDateParts, meetingTimestamp } from './meeting-time'
+import MeetingDepartments from './MeetingDepartments.vue'
 
-const props = defineProps<{ meeting: MeetingDetail | null; initialFocus?: 'date' }>()
+const props = defineProps<{
+  meeting: MeetingDetail | null
+  initialFocus?: 'date'
+  editSection?: 'all' | 'departments'
+}>()
 const emit = defineEmits<{ close: []; saved: [meetingId: string]; selectPeople: [] }>()
 const text = trMeetings.meetings.forms
 const scope = useScopeStore()
@@ -32,24 +38,8 @@ const selectorOpen = ref(false)
 const candidates = useMeetingCandidates(standing, selectorOpen)
 const title = ref(props.meeting?.title ?? '')
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
-function dateParts(value: Date) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone.value,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(value)
-  const get = (key: string) => parts.find((part) => part.type === key)?.value ?? ''
-  return {
-    date: `${get('year')}-${get('month')}-${get('day')}`,
-    time: `${get('hour')}:${get('minute')}`,
-  }
-}
 const initial = props.meeting
-  ? dateParts(new Date(props.meeting.meeting_date))
+  ? meetingDateParts(new Date(props.meeting.meeting_date), timezone.value)
   : { date: '', time: '' }
 const date = ref(initial.date)
 const time = ref(initial.time)
@@ -64,22 +54,31 @@ const options = computed(() => {
     (d) => standing.value?.companyAdmin || allowed.includes(d.department_id),
   )
 })
-const today = computed(() => dateParts(new Date()).date)
+const departmentEdit = computed(() => props.editSection === 'departments')
+const canEditDepartments = computed(
+  () =>
+    !!props.meeting &&
+    standing.value?.companyAdmin === true &&
+    props.meeting.invite_mode === 'coordinatorship',
+)
+const today = computed(() => meetingDateParts(new Date(), timezone.value).date)
 const uncertain = ref(false)
 const busy = computed(() => create.isPending.value || update.isPending.value)
 const invalid = computed(
   () =>
     uncertain.value ||
     !scope.programId ||
-    !title.value.trim() ||
-    Array.from(title.value.trim()).length > 255 ||
-    !date.value ||
-    date.value < today.value ||
-    !time.value ||
-    !meetingTimestamp(date.value, time.value, timezone.value) ||
-    (!props.meeting &&
-      (!departmentIds.value.length ||
-        !options.value.some((d) => d.department_id === departmentIds.value[0]))),
+    (departmentEdit.value && (!canEditDepartments.value || !departmentIds.value.length)) ||
+    (!departmentEdit.value &&
+      (!title.value.trim() ||
+        Array.from(title.value.trim()).length > 255 ||
+        !date.value ||
+        date.value < today.value ||
+        !time.value ||
+        !meetingTimestamp(date.value, time.value, timezone.value) ||
+        (!props.meeting &&
+          (!departmentIds.value.length ||
+            !options.value.some((d) => d.department_id === departmentIds.value[0]))))),
 )
 function selectDepartment(id: string) {
   if (mode.value === 'person') departmentIds.value = [id]
@@ -121,16 +120,18 @@ function warn(side: { event_failed: boolean; failed_messages: number }, failed: 
 async function submit() {
   if (invalid.value || busy.value || !scope.programId) return
   const meetingDate = meetingTimestamp(date.value, time.value, timezone.value)
-  if (!meetingDate) return
+  if (!departmentEdit.value && !meetingDate) return
   if (props.meeting) {
     const result = await update.submit({
       programId: scope.programId,
       id: props.meeting.meeting_id,
-      body: {
-        title: title.value.trim(),
-        meeting_date: meetingDate,
-        ...(mode.value === 'coordinatorship' ? { members_included: members.value } : {}),
-      },
+      body: departmentEdit.value
+        ? { department_ids: [...departmentIds.value] }
+        : {
+            title: title.value.trim(),
+            meeting_date: meetingDate,
+            ...(mode.value === 'coordinatorship' ? { members_included: members.value } : {}),
+          },
     })
     if (!reachesOwner(result)) return
     if (result.kind === 'unknown_outcome') uncertain.value = true
@@ -143,7 +144,7 @@ async function submit() {
       programId: scope.programId,
       body: {
         title: title.value.trim(),
-        meeting_date: meetingDate,
+        meeting_date: meetingDate!,
         invite_mode: mode.value,
         department_ids:
           mode.value === 'person' ? departmentIds.value.slice(0, 1) : [...departmentIds.value],
@@ -167,43 +168,65 @@ async function submit() {
     :dismissible="!busy"
     @close="emit('close')"
   >
-    <form id="meeting-form" @submit.prevent="submit">
+    <form id="meeting-form" class="meeting-form" @submit.prevent="submit">
       <p v-if="uncertain" role="alert">{{ text.uncertain }}</p>
-      <label>{{ text.title }}<input v-model="title" required maxlength="255" /></label>
-      <label
-        >{{ text.date }}<input ref="dateInput" v-model="date" type="date" :min="today" required
-      /></label>
-      <label>{{ text.time }}<input v-model="time" type="time" required /></label>
-      <template v-if="!meeting">
-        <fieldset>
-          <legend>{{ text.mode }}</legend>
-          <label
-            ><input v-model="mode" type="radio" value="coordinatorship" />{{
-              text.coordinatorship
-            }}</label
-          ><label><input v-model="mode" type="radio" value="person" />{{ text.person }}</label>
-        </fieldset>
-        <fieldset>
-          <legend>{{ text.department }}</legend>
-          <label v-for="department in options" :key="department.department_id"
-            ><input
-              :type="mode === 'person' ? 'radio' : 'checkbox'"
-              :checked="departmentIds.includes(department.department_id)"
-              @change="selectDepartment(department.department_id)"
-            />{{ department.display_name }}</label
-          >
-        </fieldset>
-        <button type="button" @click="selectorOpen = true">
-          {{ text.people }} ({{ participantIds.length }})
-        </button>
+      <template v-if="!departmentEdit">
+        <label class="rp-field"
+          >{{ text.title }} <span class="rp-count">{{ Array.from(title).length }} / 255</span
+          ><input v-model="title" class="t-input" required maxlength="255"
+        /></label>
+        <label
+          >{{ text.date }}<input ref="dateInput" v-model="date" type="date" :min="today" required
+        /></label>
+        <label class="rp-field"
+          >{{ text.time }}<input v-model="time" class="t-input" type="time" required
+        /></label>
+        <template v-if="!meeting">
+          <fieldset class="meeting-form__group">
+            <legend>{{ text.mode }}</legend>
+            <label
+              ><input v-model="mode" type="radio" value="coordinatorship" />{{
+                text.coordinatorship
+              }}</label
+            ><label><input v-model="mode" type="radio" value="person" />{{ text.person }}</label>
+          </fieldset>
+          <MeetingDepartments
+            :options="options"
+            :selected="departmentIds"
+            :single="mode === 'person'"
+            :label="text.department"
+            :owner-label="text.owner"
+            @toggle="selectDepartment"
+            @owner="departmentIds = [$event, ...departmentIds.filter((id) => id !== $event)]"
+          />
+          <button type="button" class="t-btn t-btn--secondary" @click="selectorOpen = true">
+            {{ text.people }} ({{ participantIds.length }})
+          </button>
+        </template>
+        <label v-if="mode === 'coordinatorship'"
+          ><input v-model="members" type="checkbox" />{{ text.members }}</label
+        >
       </template>
-      <label v-if="mode === 'coordinatorship'"
-        ><input v-model="members" type="checkbox" />{{ text.members }}</label
-      >
+      <MeetingDepartments
+        v-if="departmentEdit && canEditDepartments"
+        :options="options"
+        :selected="departmentIds"
+        :single="false"
+        :label="text.department"
+        :owner-label="text.owner"
+        @toggle="selectDepartment"
+        @owner="departmentIds = [$event, ...departmentIds.filter((id) => id !== $event)]"
+      />
     </form>
     <template #footer
-      ><button type="button" :disabled="busy" @click="emit('close')">{{ text.cancel }}</button
-      ><button type="submit" form="meeting-form" :disabled="invalid || busy">
+      ><button class="t-btn t-btn--ghost" type="button" :disabled="busy" @click="emit('close')">
+        {{ text.cancel }}</button
+      ><button
+        class="t-btn t-btn--primary"
+        type="submit"
+        form="meeting-form"
+        :disabled="invalid || busy"
+      >
         {{ text.save }}
       </button></template
     >
