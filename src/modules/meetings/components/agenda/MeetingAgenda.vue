@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import './agenda.css'
+import { checker } from './checker'
 import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../../api/detail-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
@@ -26,6 +27,8 @@ const draft = ref('')
 const editing = ref<string | null>(null)
 const editTitle = ref('')
 const openMenu = ref<string | null>(null)
+const limitReached = ref(false)
+const section = ref<HTMLElement | null>(null)
 const menuButtons = new Map<string, HTMLButtonElement>()
 const checked = computed(() => props.meeting.agenda.filter((item) => item.is_checked).length)
 const canManage = computed(
@@ -47,6 +50,7 @@ function clearDrafts() {
   editing.value = null
   editTitle.value = ''
   openMenu.value = null
+  limitReached.value = false
 }
 watch(() => [props.meeting.meeting_id, scope.programId], clearDrafts)
 const offSession = authSession.subscribe(clearDrafts)
@@ -68,6 +72,8 @@ function result(
     emit('refresh')
     return true
   }
+  if (outcome.kind === 'failed' && outcome.error.code === 'collaboration.agenda_limit_reached')
+    limitReached.value = true
   notifyOutcome(outcome)
   return false
 }
@@ -78,6 +84,7 @@ async function addItem() {
     !title ||
     count.value > 300 ||
     props.meeting.agenda.length >= 50 ||
+    limitReached.value ||
     add.isPending.value
   )
     return
@@ -116,12 +123,24 @@ async function save(item: AgendaItem) {
       }),
     )
   )
-    editing.value = null
+    cancelEdit(item.agenda_item_id)
 }
 function editItem(item: AgendaItem) {
   editing.value = item.agenda_item_id
   editTitle.value = item.title
-  closeMenu(item.agenda_item_id)
+  openMenu.value = null
+  void nextTick(() => section.value?.querySelector<HTMLInputElement>('[data-agenda-edit]')?.focus())
+}
+function cancelEdit(id: string) {
+  editing.value = null
+  void nextTick(() => menuButtons.get(id)?.focus())
+}
+function toggleMenu(id: string) {
+  if (openMenu.value === id) return closeMenu(id)
+  openMenu.value = id
+  void nextTick(() =>
+    menuButtons.get(id)?.nextElementSibling?.querySelector<HTMLButtonElement>('button')?.focus(),
+  )
 }
 async function deleteItem(item: AgendaItem) {
   closeMenu(item.agenda_item_id)
@@ -137,41 +156,31 @@ async function deleteItem(item: AgendaItem) {
     (context) => remove.submit({ programId, itemId: item.agenda_item_id }, { context }),
   )
   if (outcome && reachesOwner(outcome)) {
-    if (outcome.kind === 'success') emit('refresh')
-    else notifyOutcome(outcome)
+    if (outcome.kind === 'success') {
+      emit('refresh')
+      void nextTick(() => section.value?.querySelector<HTMLElement>('h2')?.focus())
+    } else notifyOutcome(outcome)
   }
-}
-function checker(item: AgendaItem) {
-  const name =
-    props.meeting.participants.find((p) => p.account_id === item.checked_by_account_id)
-      ?.full_name ?? text.unknown
-  const parts = name.trim().split(/\s+/)
-  const short = parts.length > 1 ? `${parts.slice(0, -1).join(' ')} ${parts.at(-1)?.[0]}.` : name
-  const time = item.checked_at
-    ? new Intl.DateTimeFormat('tr-TR', {
-        timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(new Date(item.checked_at))
-    : ''
-  return [short, time].filter(Boolean).join(' · ')
 }
 </script>
 
 <template>
-  <section class="t-card meeting-agenda" aria-labelledby="meeting-agenda-title">
+  <section ref="section" class="t-card meeting-agenda" aria-labelledby="meeting-agenda-title">
     <div class="rp-cardhead">
-      <h2 id="meeting-agenda-title" class="rp-cardtitle">{{ text.title }}</h2>
-      <span :data-all="meeting.agenda.length > 0 && checked === meeting.agenda.length"
-        >{{ checked }} / {{ meeting.agenda.length }}</span
+      <h2 id="meeting-agenda-title" class="rp-cardtitle" tabindex="-1">{{ text.title }}</h2>
+      <div
+        class="meeting-agenda__status"
+        :data-all="meeting.agenda.length > 0 && checked === meeting.agenda.length"
       >
+        <progress
+          class="meeting-agenda__progress"
+          :value="checked"
+          :max="meeting.agenda.length || 1"
+          :title="`${checked} / ${meeting.agenda.length} ${text.checked}`"
+        />
+        <span>{{ checked }} / {{ meeting.agenda.length }}</span>
+      </div>
     </div>
-    <progress
-      class="meeting-agenda__progress"
-      :value="checked"
-      :max="meeting.agenda.length || 1"
-      :title="`${checked} / ${meeting.agenda.length} ${text.checked}`"
-    />
     <div v-for="item in meeting.agenda" :key="item.agenda_item_id" class="meeting-agenda__row">
       <input
         type="checkbox"
@@ -180,24 +189,34 @@ function checker(item: AgendaItem) {
         :aria-label="item.title"
         @change="toggle(item, $event)"
       />
-      <form v-if="editing === item.agenda_item_id" @submit.prevent="save(item)">
-        <input v-model="editTitle" :aria-label="`${item.title} düzenle`" /><button type="submit">
+      <form
+        v-if="editing === item.agenda_item_id"
+        @submit.prevent="save(item)"
+        @keydown.esc.stop="cancelEdit(item.agenda_item_id)"
+      >
+        <input v-model="editTitle" data-agenda-edit :aria-label="`${item.title} düzenle`" /><button
+          type="submit"
+        >
           {{ text.save }}</button
-        ><button type="button" @click="editing = null">{{ text.cancel }}</button>
+        ><button type="button" @click="cancelEdit(item.agenda_item_id)">{{ text.cancel }}</button>
       </form>
       <span v-else :class="{ 'meeting-agenda__done': item.is_checked }">{{ item.title }}</span>
-      <small v-if="item.is_checked">{{ checker(item) }}</small>
+      <small v-if="item.is_checked">{{
+        checker(
+          item,
+          meeting.participants,
+          instance.profile?.timezone ?? 'Europe/Istanbul',
+          text.unknown,
+        )
+      }}</small>
       <div v-if="canManage">
         <button
           :ref="(el) => setButton(item.agenda_item_id, el)"
           type="button"
           :aria-label="`${item.title} ${text.actions}`"
           :aria-expanded="openMenu === item.agenda_item_id"
-          @click="
-            openMenu === item.agenda_item_id
-              ? closeMenu(item.agenda_item_id)
-              : (openMenu = item.agenda_item_id)
-          "
+          @click="toggleMenu(item.agenda_item_id)"
+          @keydown.esc.stop="closeMenu(item.agenda_item_id)"
         >
           ⋯
         </button>
@@ -215,12 +234,12 @@ function checker(item: AgendaItem) {
       <label>
         <input
           v-model="draft"
-          :disabled="meeting.agenda.length >= 50 || add.isPending.value"
+          :disabled="meeting.agenda.length >= 50 || limitReached || add.isPending.value"
           :placeholder="text.placeholder"
         />
         <span>{{ count }} / 300</span></label
       >
-      <p v-if="meeting.agenda.length >= 50">{{ text.limit }}</p>
+      <p v-if="meeting.agenda.length >= 50 || limitReached">{{ text.limit }}</p>
     </form>
   </section>
 </template>

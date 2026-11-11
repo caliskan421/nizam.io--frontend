@@ -6,6 +6,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { computed } from 'vue'
 import { afterAll, afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { settleQueries } from '@/shared/http/__tests__/settle'
+import { authSession } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
@@ -148,5 +149,48 @@ it('does not retry an unknown add outcome and rereads the detail', async () => {
   expect(reads).toBeGreaterThan(0)
   expect((wrapper.get('input[placeholder]').element as HTMLInputElement).value).toBe('Yeni madde')
   unsubscribe()
+  wrapper.unmount()
+})
+it('focuses the edit field and restores its trigger on Escape', async () => {
+  const wrapper = setup(true)
+  const trigger = wrapper.get('button[aria-label="Karar işlemleri"]')
+  await trigger.trigger('click')
+  const edit = wrapper.findAll('[role="menuitem"]').find((button) => button.text() === 'Düzenle')!
+  expect(document.activeElement).toBe(edit.element)
+  await edit.trigger('click')
+  const input = wrapper.get('[data-agenda-edit]')
+  expect(document.activeElement).toBe(input.element)
+  await input.trigger('keydown.esc')
+  expect(document.activeElement).toBe(trigger.element)
+  wrapper.unmount()
+})
+it('disables the input on the server agenda limit response', async () => {
+  server.use(
+    http.post('http://localhost/v1/meetings/m/agenda', () =>
+      HttpResponse.json(
+        {
+          code: 'collaboration.agenda_limit_reached',
+          message: 'ignored',
+          request_id: 'r',
+          fields: [],
+        },
+        { status: 422 },
+      ),
+    ),
+  )
+  const wrapper = setup(true)
+  await wrapper.get('input[placeholder]').setValue('Yeni')
+  await wrapper.get('form').trigger('submit')
+  await settleQueries(queryClient)
+  expect(wrapper.get('input[placeholder]').attributes('disabled')).toBeDefined()
+  expect(wrapper.text()).toContain('En fazla 50 gündem maddesi eklenebilir.')
+  wrapper.unmount()
+})
+it('clears the draft when the session changes', async () => {
+  const wrapper = setup(true)
+  await wrapper.get('input[placeholder]').setValue('Taslak')
+  authSession.clear()
+  await wrapper.vm.$nextTick()
+  expect((wrapper.get('input[placeholder]').element as HTMLInputElement).value).toBe('')
   wrapper.unmount()
 })
