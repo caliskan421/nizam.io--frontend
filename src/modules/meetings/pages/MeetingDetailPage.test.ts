@@ -7,7 +7,12 @@ import { useScopeStore } from '@/shared/scope/store'
 import { authSession } from '@/shared/http'
 import MeetingDetailPage from './MeetingDetailPage.vue'
 
-const mocks = vi.hoisted(() => ({ push: vi.fn(), submit: vi.fn(), refetch: vi.fn() }))
+const mocks = vi.hoisted(() => ({
+  push: vi.fn(),
+  submit: vi.fn(),
+  refetch: vi.fn(),
+  members: false,
+}))
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { meetingId: 'm' }, query: { zaman: 'gecmis', notlar: 'benim' } }),
   useRouter: () => ({ push: mocks.push }),
@@ -20,11 +25,11 @@ vi.mock('../api/queries', () => ({
       program_id: 'p',
       title: 'Toplantı',
       meeting_date: '2026-10-21T11:00:00Z',
-      invite_mode: 'person',
+      invite_mode: mocks.members ? 'coordinatorship' : 'person',
       owner_department_id: 'd',
       departments: [],
       created_by_account_id: 'a',
-      members_included: false,
+      members_included: mocks.members,
       participants: [],
       agenda: [],
       viewer_role: 'admin',
@@ -80,7 +85,10 @@ function setup() {
   })
   return { wrapper, scope }
 }
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  mocks.members = false
+})
 it('focuses the header menu and restores its trigger on Escape', async () => {
   const { wrapper } = setup()
   const trigger = wrapper.get('[aria-label="Diğer işlemler: tarihi ileri al, sil"]')
@@ -203,5 +211,13 @@ it('places people and side information together beside agenda and notes', () => 
   expect(side.find('meeting-people-stub').exists()).toBe(true)
   expect(side.find('[data-test="departments"]').exists()).toBe(true)
   expect(wrapper.get('.meeting-detail__content').find('meeting-people-stub').exists()).toBe(false)
+  wrapper.unmount()
+})
+
+it('shows membership as a status in the real detail header', () => {
+  mocks.members = true
+  const { wrapper } = setup()
+  expect(wrapper.text()).toContain('Üyeler dahil')
+  expect(wrapper.text()).not.toContain('Tüm üyelere de davet gönder')
   wrapper.unmount()
 })

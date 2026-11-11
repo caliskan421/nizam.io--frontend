@@ -51,7 +51,7 @@ export const trMeetings = {
       deleteBody:
         'Toplantı listeden kalkar ve artık değiştirilemez. Yönetici silinenlerden geri yükleyebilir.',
       owner: 'Sahip koordinatörlük',
-      members: 'Tüm üyelere de davet gönder',
+      members: 'Üyeler dahil',
       membersHint: 'İşaretlemezsen yalnızca koordinatörler davet edilir.',
       membersTitle: 'Bağlı koordinatörlüklerin üyeleri de bu toplantıyı görür ve not ekleyebilir',
       invited: 'koordinatörlük davetli',

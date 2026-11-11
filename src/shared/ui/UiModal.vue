@@ -77,7 +77,7 @@ watch(
 
 onBeforeUnmount(() => {
   layer.leave()
-  if (open.value) trap.deactivate()
+  trap.deactivate()
 })
 </script>
 
