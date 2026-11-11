@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
+import './detail/detail.css'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
 import { listQuery } from './detail/list-query'
@@ -47,6 +48,8 @@ const menuOpen = ref(false)
 const personSelectorUnavailable = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 const noteOpener = ref<HTMLElement | null>(null)
+const formOpener = ref<HTMLElement | null>(null)
+const page = ref<HTMLElement | null>(null)
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
 const canManage = computed(() => {
   const m = meeting.value
@@ -86,12 +89,21 @@ const dateLabel = computed(() => {
     }).format(date)
   )
 })
-function openFormFromMenu() {
-  closeMenu()
+function openForm() {
+  formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
 }
-function formSaved() {
+function openFormFromMenu() {
+  menuOpen.value = false
+  formOpener.value = menuButton.value
+  formOpen.value = true
+}
+function closeForm() {
   formOpen.value = false
+  void nextTick(() => (formOpener.value?.isConnected ? formOpener.value : page.value)?.focus())
+}
+function formSaved() {
+  closeForm()
   refresh()
 }
 function convertSaved() {
@@ -111,7 +123,11 @@ function openConvert(note: MeetingNote) {
 }
 function closeConvert() {
   selectedNote.value = null
-  void nextTick(() => noteOpener.value?.isConnected && noteOpener.value.focus())
+  void nextTick(() => {
+    const fallback =
+      page.value?.querySelector<HTMLElement>('[data-testid="meeting-notes-title"]') ?? page.value
+    ;(noteOpener.value?.isConnected ? noteOpener.value : fallback)?.focus()
+  })
 }
 function closeDialogs() {
   formOpen.value = false
@@ -147,7 +163,7 @@ async function deleteMeeting() {
 </script>
 
 <template>
-  <main class="meeting-detail">
+  <main ref="page" class="meeting-detail" tabindex="-1">
     <p v-if="query.isPending.value">{{ text.loading }}</p>
     <div v-else-if="query.isError.value">
       <p>{{ text.loadError }}</p>
@@ -166,12 +182,14 @@ async function deleteMeeting() {
                 department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
               >{{ department.code }}</span
-            ><span>{{ meeting.departments.length }} koordinatörlük davetli</span
-            ><span v-if="meeting.members_included" :title="text.membersTitle">Üyeler dahil</span>
+            ><span>{{ meeting.departments.length }} {{ text.invited }}</span
+            ><span v-if="meeting.members_included" :title="text.membersTitle">{{
+              text.members
+            }}</span>
           </div>
         </div>
         <div v-if="canManage">
-          <button type="button" class="t-btn t-btn--secondary" @click="formOpen = true">
+          <button type="button" class="t-btn t-btn--secondary" @click="openForm">
             {{ text.edit }}</button
           ><button
             ref="menuButton"
@@ -202,14 +220,9 @@ async function deleteMeeting() {
           />
           <p v-if="personSelectorUnavailable" role="status">{{ text.selectorUnavailable }}</p>
         </div>
-        <MeetingSide :meeting="meeting" @edit="formOpen = true" @remove="deleteMeeting" />
+        <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
       </div>
-      <MeetingForm
-        v-if="formOpen"
-        :meeting="meeting"
-        @close="formOpen = false"
-        @saved="formSaved"
-      />
+      <MeetingForm v-if="formOpen" :meeting="meeting" @close="closeForm" @saved="formSaved" />
       <MeetingConvert
         v-if="selectedNote"
         :note="selectedNote"
@@ -219,31 +232,3 @@ async function deleteMeeting() {
     </template>
   </main>
 </template>
-
-<style scoped>
-.meeting-detail {
-  padding: var(--space-6);
-}
-.meeting-detail__header {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-6);
-}
-.meeting-detail__departments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.meeting-detail__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, var(--rp-aside-basis));
-  gap: var(--space-5);
-}
-@media (max-width: 900px) {
-  .meeting-detail__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-</style>

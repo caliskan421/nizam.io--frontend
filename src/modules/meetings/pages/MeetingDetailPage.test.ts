@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { computed, ref } from 'vue'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
+import { authSession } from '@/shared/http'
 import MeetingDetailPage from './MeetingDetailPage.vue'
 
 const mocks = vi.hoisted(() => ({ push: vi.fn(), submit: vi.fn(), refetch: vi.fn() }))
@@ -47,10 +48,12 @@ vi.mock('@/shared/ui/confirm', () => ({
   notifyOutcome: vi.fn(),
 }))
 const Notes = {
-  template: `<button @click="$emit('convert', { note_id: 'n', content: 'Not' })">Dönüştür</button>`,
+  template: `<div><h2 data-testid="meeting-notes-title" tabindex="-1">Notlar</h2><button @click="$emit('convert', { note_id: 'n', content: 'Not' })">Dönüştür</button></div>`,
 }
 const Convert = { template: `<button @click="$emit('close')">Kapat</button>` }
-const Form = { template: `<div data-test="form" />` }
+const Form = {
+  template: `<div data-test="form"><button @click="$emit('close')">Formu kapat</button></div>`,
+}
 function setup() {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -83,6 +86,42 @@ it('closes the conversion and returns focus to its trigger', async () => {
     .find((b) => b.text() === 'Kapat')!
     .trigger('click')
   expect(document.activeElement).toBe(button.element)
+  wrapper.unmount()
+})
+it('focuses the notes heading when the conversion trigger was removed', async () => {
+  const { wrapper } = setup()
+  const button = wrapper.findAll('button').find((b) => b.text() === 'Dönüştür')!
+  ;(button.element as HTMLButtonElement).focus()
+  await button.trigger('click')
+  button.element.remove()
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Kapat')!
+    .trigger('click')
+  expect(document.activeElement).toBe(wrapper.get('[data-testid="meeting-notes-title"]').element)
+  wrapper.unmount()
+})
+it('returns focus to the edit trigger after the form closes', async () => {
+  const { wrapper } = setup()
+  const button = wrapper.findAll('button').find((b) => b.text() === 'Düzenle')!
+  ;(button.element as HTMLButtonElement).focus()
+  await button.trigger('click')
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Formu kapat')!
+    .trigger('click')
+  expect(document.activeElement).toBe(button.element)
+  wrapper.unmount()
+})
+it('closes an open form when the session changes', async () => {
+  const { wrapper } = setup()
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Düzenle')!
+    .trigger('click')
+  authSession.clear()
+  await wrapper.vm.$nextTick()
+  expect(wrapper.find('[data-test="form"]').exists()).toBe(false)
   wrapper.unmount()
 })
 it('closes an open form when the program changes', async () => {
