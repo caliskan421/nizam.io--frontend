@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from 'vitest'
-import { $, boot, click, createBackend, PEOPLE, seedWorld, teardown, until } from './harness'
+import { $, boot, click, createBackend, fill, PEOPLE, seedWorld, teardown, until } from './harness'
 
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
 const meeting = {
@@ -190,4 +190,33 @@ it('gerçek kişi seçicisi Escape ile kapanır ve odağı Ekle düğmesine dön
   search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
   await until(() => !$('[role="dialog"]'), 'seçici kapandı')
   await until(() => document.activeElement === trigger, 'odak dönüşü')
+})
+
+it('eski tarihli toplantının yalnız başlığı gerçek formdan güncellenir', async () => {
+  backend.server.use(
+    http.patch('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({
+        meeting: { ...meeting, title: 'Yeni başlık' },
+        side_effects: { event_failed: false, failed_messages: 0 },
+      }),
+    ),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await click(
+    () =>
+      [...document.querySelectorAll<HTMLElement>('.meeting-detail button')].find(
+        (b) => b.textContent?.trim() === 'Düzenle',
+      ) ?? null,
+  )
+  await fill('#meeting-form input:not([type])', 'Yeni başlık')
+  const date = await until(() => $('#meeting-form input[type="date"]') as HTMLInputElement | null)
+  expect(date.min).toBe('')
+  await click('button[form="meeting-form"]')
+  await until(() => backend.sent('PATCH', '/v1/meetings/m1').length > 0, 'güncelleme isteği')
+  await until(() => backend.sent('PATCH', '/v1/meetings/m1')[0]?.body, 'istek gövdesi')
+  expect(backend.sent('PATCH', '/v1/meetings/m1')[0]?.body).toEqual({ title: 'Yeni başlık' })
 })
