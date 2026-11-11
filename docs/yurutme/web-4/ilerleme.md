@@ -63,7 +63,7 @@ Pin: `api-pin.json` **`v0.15.0-api`** (`gen:api`: 194 hata kodu, 189 operasyon).
 
 ## 2026-11-11 — O1 ve devredilen borçlar
 
-F4 geçişi ürün sahibince onaylandı. W100 O1: [backend yeterlilik](o1-backend-yeterlilik.md); v0.15 pin korunur, koordinatör adayları BE-067 ile sınırlı, özel seçicinin açılmış çizimi bulunamadı. Commit/PR ve CI kapısı ortam nedeniyle açık; `gh pr list` api.github.com bağlantı hatası verdi.
+F4 geçişi ürün sahibince onaylandı. W100 O1: [backend yeterlilik](o1-backend-yeterlilik.md); v0.15 pin korunur, koordinatör adayları BE-067 ile sınırlı, özel seçicinin açılmış çizimi bulunamadı. Önceki oturumda commit ve GitHub erişimi engelliydi. Bu oturumda GitHub API/uzak main erişimi ve W100 commit işlemi doğrulandı (`6461e4f`); PR/CI ve birleşim henüz açık.
 
 - W108 ayrı borç işçisi: Ö-02 aktarım mercek/geç 409, 05 K-04 odak, G-1/G-2.
 - W109 ayrı borç işçisi: 03c Ö-05/K-04 gerçek yerleşim/temizleme ve Ö-03 ek entegrasyon.
@@ -71,7 +71,7 @@ F4 geçişi ürün sahibince onaylandı. W100 O1: [backend yeterlilik](o1-backen
 - W107 gerçek person rolleri, URL + filtre + özel seçici entegrasyonuna sahip.
 - O4: G-4 429 tanığı, VoiceOver ve E-03C-27/41 kullanıcı kanıtı bekleniyor; otomatik doğrulandı sayılmaz.
 
-O1 denetimi: Node 24.9.0 ve aynı `package.json`/kilit dosyasına sahip ana çalışma ağacının kurulu bağımlılıkları kullanılarak `pnpm lint` ve değişen belgelerin Prettier kontrolü geçti; `git diff --check` temiz. Önceki çevrimdışı kurulum `@primeuix/themes` 2.0.3 önbellekte olmadığından ve varsayılan Node 22.12.0 proje gereksiniminin altında olduğundan başarısızdı. Commit için Git yönetim dizini salt okunur; PR/CI için GitHub erişimi yok. Sonraki adım ortam erişimi, O1 PR yeşil birleşimi, ardından W101.
+O1 denetimi: Node 24.9.0 ve aynı `package.json`/kilit dosyasına sahip ana çalışma ağacının kurulu bağımlılıkları kullanılarak `pnpm lint` ve değişen belgelerin Prettier kontrolü geçti; `git diff --check` temiz. Önceki çevrimdışı kurulum `@primeuix/themes` 2.0.3 önbellekte olmadığından ve varsayılan Node 22.12.0 proje gereksiniminin altında olduğundan başarısızdı. Önceki Git yazma ve GitHub erişim engelleri bu oturumda tekrarlanmadı. W100 belge denetimi ve commit tamamlandı; son tutarlılık düzeltmesinin ardından O1 PR, CI ve yeşil birleşim, sonra W101 gelir.
 
 ### K-02 belge takibi
 
