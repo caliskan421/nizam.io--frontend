@@ -58,7 +58,7 @@ vi.mock('../../api/queries', () => ({
   }),
 }))
 const server = setupServer()
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
 it('creates person meeting with one owner and returns the real meeting id', async () => {
   let payload: Record<string, unknown> | undefined

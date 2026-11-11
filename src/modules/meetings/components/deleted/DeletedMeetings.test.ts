@@ -23,7 +23,7 @@ import { useConfirm } from '@/shared/ui/confirm'
 import type { Meeting } from '../../model/types'
 
 const server = setupServer()
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
 
 it('restores and confirms permanent deletion using the actual endpoints', async () => {
