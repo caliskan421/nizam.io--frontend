@@ -15,7 +15,7 @@ import { mount } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { afterAll, beforeAll, vi } from 'vitest'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useScopeStore } from '@/shared/scope/store'
@@ -33,7 +33,11 @@ vi.mock('@/shared/scope/standing', () => ({
 }))
 vi.mock('../../api/queries', () => ({
   useMeetingCandidates: () => ({
-    data: ref({ people: [], partial: false, truncated: false }),
+    data: ref({
+      people: [{ accountId: 'a1', fullName: 'Ada Örnek' }],
+      partial: false,
+      truncated: false,
+    }),
     isPending: ref(false),
     isError: ref(false),
     refetch: vi.fn(),
@@ -121,6 +125,43 @@ it('sends only the department set for an authorized department edit', async () =
   await settleQueries(client)
   expect(payload).toEqual({ department_ids: ['d'] })
   expect(wrapper.emitted('saved')).toEqual([['m']])
+  wrapper.unmount()
+  client.clear()
+})
+
+it('uses the real nested selector and returns focus to its opener', async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const wrapper = mount(Component, {
+    attachTo: document.body,
+    props: { meeting: null },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+  })
+  await nextTick()
+  const opener = [...document.querySelectorAll('button')].find((button) =>
+    button.textContent?.includes('Kişileri seç'),
+  )!
+  opener.focus()
+  opener.click()
+  await nextTick()
+  await nextTick()
+  const search = document.querySelector<HTMLInputElement>('input[type=search]')!
+  expect(document.activeElement).toBe(search)
+  const person = [...document.querySelectorAll('label')].find((label) =>
+    label.textContent?.includes('Ada Örnek'),
+  )!
+  person.querySelector('input')!.click()
+  await nextTick()
+  const apply = [...document.querySelectorAll('button')].find(
+    (button) => button.textContent?.trim() === 'Uygula',
+  )!
+  apply.click()
+  await nextTick()
+  await nextTick()
+  expect(opener.textContent).toContain('(1)')
+  expect(document.activeElement).toBe(opener)
   wrapper.unmount()
   client.clear()
 })
