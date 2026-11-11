@@ -38,3 +38,21 @@
   color: var(--ink-muted);
   font: var(--m-caption);
 }
+.meeting-people .meeting-person-row {
+  display: grid;
+  grid-template-columns: var(--meeting-person-avatar-size) minmax(0, 1fr) auto;
+  align-items: center;
+}
+.meeting-people .meeting-person-row > span:not(.rp-av),
+.meeting-people .meeting-person-row > small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.meeting-people .meeting-person-row > small {
+  grid-column: 2;
+  margin-left: 0;
+}
+.meeting-people .meeting-person-row > button {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+}
