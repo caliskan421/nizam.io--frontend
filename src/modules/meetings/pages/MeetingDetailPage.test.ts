@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { computed, defineComponent, h, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
 import MeetingDetailPage from './MeetingDetailPage.vue'
@@ -45,25 +45,11 @@ vi.mock('@/shared/ui/confirm', () => ({
   }),
   notifyOutcome: vi.fn(),
 }))
-const note = { note_id: 'n', content: 'Not' }
-const Notes = defineComponent({
-  emits: ['convert'],
-  setup(_, { emit }) {
-    return () => h('button', { onClick: () => emit('convert', note) }, 'Dönüştür')
-  },
-})
-const Convert = defineComponent({
-  emits: ['close', 'saved'],
-  setup(_, { emit }) {
-    return () => h('button', { onClick: () => emit('close') }, 'Kapat')
-  },
-})
-const Form = defineComponent({
-  emits: ['close', 'saved'],
-  setup() {
-    return () => h('div', { 'data-test': 'form' })
-  },
-})
+const Notes = {
+  template: `<button @click="$emit('convert', { note_id: 'n', content: 'Not' })">Dönüştür</button>`,
+}
+const Convert = { template: `<button @click="$emit('close')">Kapat</button>` }
+const Form = { template: `<div data-test="form" />` }
 function setup() {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -123,4 +109,9 @@ it('treats a concurrent meeting deletion as a return to the list', async () => {
     .trigger('click')
   expect(mocks.push).toHaveBeenCalledWith({ name: 'collaboration.meetings' })
   wrapper.unmount()
+})
+
+it('declares the page independently of its body', () => {
+  expect(Object.keys(MeetingDetailPage.props ?? {})).toEqual([])
+  expect(MeetingDetailPage.emits ?? []).toEqual([])
 })
