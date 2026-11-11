@@ -123,9 +123,8 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
   const { queryKeys } = await import('@/shared/http/query-keys')
   await until(
     () =>
-      (
-        app.queryClient.getQueryData(queryKeys.report.dashboard(app.scope.snapshot)) as
-          { total_tasks?: number } | undefined
+      app.queryClient.getQueryData<{ total_tasks?: number }>(
+        queryKeys.report.dashboard(app.scope.snapshot),
       )?.total_tasks === 5,
     'yeni pano yanıtı',
   )
