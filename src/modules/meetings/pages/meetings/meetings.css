@@ -171,3 +171,21 @@
     position: static;
   }
 }
+
+.meetings-page .rp-seg button[aria-selected='true'] {
+  background: var(--bg-base);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 var(--ui-hairline) var(--border-strong);
+}
+[data-theme='light'] .meetings-page .rp-seg button[aria-selected='true'] {
+  background: var(--bg-surface);
+  box-shadow:
+    var(--ui-seg-pressed-shadow-light),
+    inset 0 0 0 var(--ui-hairline) var(--border-subtle);
+}
+#meeting-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
