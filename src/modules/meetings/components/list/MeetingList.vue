@@ -7,6 +7,7 @@ import { useInstanceStore } from '@/shared/instance/store'
 import { groupMeetings, meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
 import { dayLabel } from '../../pages/meetings/day-label'
+import { useNow } from '../../pages/meetings/use-now'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -19,11 +20,12 @@ function select(event: MouseEvent, id: string) {
 }
 const departments = useProgramDepartments()
 const instance = useInstanceStore()
+const now = useNow()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
 const groups = computed(() => {
   const merged = new Map<string, Meeting[]>()
   for (const group of groupMeetings(props.items, timezone.value)) {
-    const label = dayLabel(group.day, new Date(), timezone.value)
+    const label = dayLabel(group.day, now.value, timezone.value)
     merged.set(label, [...(merged.get(label) ?? []), ...group.items])
   }
   return [...merged].map(([label, items]) => ({ label, items }))

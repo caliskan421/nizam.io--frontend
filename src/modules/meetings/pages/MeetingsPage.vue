@@ -11,6 +11,7 @@ import { useStanding } from '@/shared/scope/standing'
 import { useMeetings, useDeletedMeetings } from '../api/queries'
 import { coordinatorDepartmentIds } from '../model/capabilities'
 import { splitMeetings } from '../model/list'
+import { useNow } from './meetings/use-now'
 import MeetingList from '../components/list/MeetingList.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import DeletedMeetings from '../components/deleted/DeletedMeetings.vue'
@@ -72,8 +73,9 @@ const filters = computed(() => ({
 }))
 const meetings = useMeetings(filters, () => !invalid.value)
 const deleted = useDeletedMeetings(() => admin.value && tab.value === 'silinenler')
+const now = useNow()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
-const split = computed(() => splitMeetings(meetings.items.value, new Date(), timezone.value))
+const split = computed(() => splitMeetings(meetings.items.value, now.value, timezone.value))
 const shown = computed(() => (tab.value === 'gecmis' ? split.value.past : split.value.upcoming))
 const lensText = computed(() =>
   scope.lens === 'admin'
