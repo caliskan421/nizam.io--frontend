@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import './convert.css'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useProgramDepartments } from '@/modules/work/public'
@@ -146,8 +147,8 @@ async function submit() {
     :description="`${meeting.data.value?.title ?? ''} · ${note.author_name}`"
     @close="emit('close')"
   >
-    <blockquote>{{ note.content }}</blockquote>
-    <form id="meeting-convert-form" @submit.prevent="submit">
+    <blockquote class="meeting-convert__quote">{{ note.content }}</blockquote>
+    <form id="meeting-convert-form" class="meeting-convert__form" @submit.prevent="submit">
       <label>Görev başlığı <input v-model="title" /></label>
       <p>
         {{ Array.from(title).length }} / 255 · Boş bırakırsan notun ilk 100 karakteri kullanılır.

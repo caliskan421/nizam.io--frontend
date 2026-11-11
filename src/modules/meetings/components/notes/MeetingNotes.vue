@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import './notes.css'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { designStub } from '@/shared/design-stub'
+import { UiAvatar } from '@/shared/ui'
 import { useInstanceStore } from '@/shared/instance/store'
 import { reachesOwner } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
@@ -47,6 +50,8 @@ function time(value: string) {
 const openMenu = ref<string | null>(null)
 const buttons = new Map<string, HTMLButtonElement>()
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
+const roleLabels = { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' }
+const convertedLabel = designStub('BE-065', 'Göreve dönüştü')
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
 const mine = (note: MeetingNote) =>
   !!standing.value && note.author_account_id === standing.value.accountId
@@ -144,7 +149,7 @@ async function deleteNote(note: MeetingNote) {
       </button>
     </div>
     <p v-if="query.hasNextPage.value">Sayaçlar yüklenen notları gösterir.</p>
-    <form v-if="access.visible" @submit.prevent="addNote">
+    <form v-if="access.visible" class="meeting-notes__composer" @submit.prevent="addNote">
       <textarea
         v-model="draft"
         aria-label="Not yaz"
@@ -163,59 +168,62 @@ async function deleteNote(note: MeetingNote) {
       Notlar yüklenemedi. <button type="button" @click="query.refetch()">Yeniden dene</button>
     </p>
     <article v-for="note in shown" :key="note.note_id" class="meeting-notes__item">
-      <strong>{{ note.author_name }}</strong>
-      <small
-        >{{ note.author_role }} ·
-        <time :datetime="note.created_at">{{ time(note.created_at) }}</time
-        ><span v-if="note.edit_revision > 1"> · düzenlendi</span></small
-      >
-      <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
-        <textarea v-model="editDraft" aria-label="Not düzenle" /><button type="submit">
-          Kaydet</button
-        ><button type="button" @click="editing = null">Vazgeç</button>
-      </form>
-      <p v-else>{{ note.content }}</p>
-      <span v-if="converted(note)">Göreve dönüştü</span
-      ><button
-        v-else-if="access.convertNote(facts(note))"
-        type="button"
-        @click="emit('convert', note)"
-      >
-        Göreve dönüştür
-      </button>
-      <small v-if="converted(note) && mine(note) && !access.manage"
-        >Göreve dönüştüğü için yazarı artık düzenleyemez</small
-      >
-      <div v-if="access.editNote(facts(note)) || access.deleteNote(facts(note))">
-        <button
-          :ref="(el) => setButton(note.note_id, el)"
+      <UiAvatar :name="note.author_name" />
+      <div class="meeting-notes__content">
+        <strong>{{ note.author_name }}</strong>
+        <small
+          >{{ note.author_role ? roleLabels[note.author_role] : '' }} ·
+          <time :datetime="note.created_at">{{ time(note.created_at) }}</time
+          ><span v-if="note.edit_revision > 1"> · düzenlendi</span></small
+        >
+        <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
+          <textarea v-model="editDraft" aria-label="Not düzenle" /><button type="submit">
+            Kaydet</button
+          ><button type="button" @click="editing = null">Vazgeç</button>
+        </form>
+        <p v-else>{{ note.content }}</p>
+        <span v-if="converted(note)">{{ convertedLabel }}</span
+        ><button
+          v-else-if="access.convertNote(facts(note))"
           type="button"
-          :aria-label="`Not işlemleri: ${note.author_name}`"
-          :aria-expanded="openMenu === note.note_id"
-          @click="openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)"
+          @click="emit('convert', note)"
         >
-          ⋯
+          Göreve dönüştür
         </button>
-        <div
-          v-if="openMenu === note.note_id"
-          role="menu"
-          @keydown.esc.stop="closeMenu(note.note_id)"
+        <small v-if="converted(note) && mine(note) && !access.manage"
+          >Göreve dönüştüğü için yazarı artık düzenleyemez</small
         >
+        <div v-if="access.editNote(facts(note)) || access.deleteNote(facts(note))">
           <button
-            v-if="access.editNote(facts(note))"
+            :ref="(el) => setButton(note.note_id, el)"
             type="button"
-            role="menuitem"
-            @click="startEdit(note)"
+            :aria-label="`Not işlemleri: ${note.author_name}`"
+            :aria-expanded="openMenu === note.note_id"
+            @click="openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)"
           >
-            Düzenle</button
-          ><button
-            v-if="access.deleteNote(facts(note))"
-            type="button"
-            role="menuitem"
-            @click="deleteNote(note)"
-          >
-            Sil
+            ⋯
           </button>
+          <div
+            v-if="openMenu === note.note_id"
+            role="menu"
+            @keydown.esc.stop="closeMenu(note.note_id)"
+          >
+            <button
+              v-if="access.editNote(facts(note))"
+              type="button"
+              role="menuitem"
+              @click="startEdit(note)"
+            >
+              Düzenle</button
+            ><button
+              v-if="access.deleteNote(facts(note))"
+              type="button"
+              role="menuitem"
+              @click="deleteNote(note)"
+            >
+              Sil
+            </button>
+          </div>
         </div>
       </div>
     </article>
@@ -236,12 +244,3 @@ async function deleteNote(note: MeetingNote) {
     />
   </section>
 </template>
-<style scoped>
-.meeting-notes {
-  padding: var(--space-5);
-}
-.meeting-notes__item {
-  padding-block: var(--space-3);
-  border-bottom: var(--border-width) solid var(--border);
-}
-</style>

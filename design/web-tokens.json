@@ -15,7 +15,14 @@
           "name": "meeting-code-height",
           "value": "22px",
           "usage": "Koordinatörlük kodu yüksekliği."
-        }
+        },
+        { "name": "meeting-card-padding", "value": "22px" },
+        { "name": "meeting-composer-padding", "value": "14px" },
+        { "name": "meeting-composer-gap", "value": "10px" },
+        { "name": "meeting-composer-min-height", "value": "56px" },
+        { "name": "meeting-note-font", "value": "400 14px/22px {font-sans}" },
+        { "name": "meeting-quote-padding", "value": "12px 14px" },
+        { "name": "meeting-quote-border", "value": "3px" }
       ]
     },
     "color": {

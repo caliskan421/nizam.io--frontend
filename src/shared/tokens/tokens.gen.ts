@@ -770,6 +770,66 @@ export const TOKENS = {
     "dark": "8px",
     "light": "8px"
   },
+  "meeting-date-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "60px",
+    "light": "60px"
+  },
+  "meeting-code-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "40px",
+    "light": "40px"
+  },
+  "meeting-code-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "meeting-card-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "meeting-composer-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "meeting-composer-gap": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "meeting-composer-min-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "56px",
+    "light": "56px"
+  },
+  "meeting-note-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "400 14px/22px var(--font-sans)",
+    "light": "400 14px/22px var(--font-sans)"
+  },
+  "meeting-quote-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "12px 14px",
+    "light": "12px 14px"
+  },
+  "meeting-quote-border": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "3px",
+    "light": "3px"
+  },
   "rp-done-fill": {
     "group": "color",
     "origin": "web",
@@ -2827,24 +2887,6 @@ export const TOKENS = {
     "origin": "web",
     "dark": "16px minmax(0, 1fr) auto",
     "light": "16px minmax(0, 1fr) auto"
-  },
-  "meeting-date-width": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "60px",
-    "light": "60px"
-  },
-  "meeting-code-width": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "40px",
-    "light": "40px"
-  },
-  "meeting-code-height": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "22px",
-    "light": "22px"
   }
 } as const
 

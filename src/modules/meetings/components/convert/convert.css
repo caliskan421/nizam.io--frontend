@@ -1,0 +1,24 @@
+.meeting-convert__quote {
+  margin: 0;
+  padding: var(--meeting-quote-padding);
+  border-left: var(--meeting-quote-border) solid var(--border-strong);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--bg-raised);
+  color: var(--ink-muted);
+  overflow-wrap: anywhere;
+}
+.meeting-convert__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.meeting-convert__form label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.meeting-convert__form input,
+.meeting-convert__form select {
+  min-width: 0;
+  width: 100%;
+}
