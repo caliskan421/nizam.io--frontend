@@ -11,6 +11,12 @@ const count = computed(() => Array.from(draft.value).length)
   <form class="meeting-notes__composer" @submit.prevent="emit('submit')">
     <textarea v-model="draft" :aria-label="text.composer" :placeholder="text.placeholder" />
     <p>{{ text.hint }} · {{ count }} / 5000</p>
-    <button type="submit" :disabled="!draft.trim() || count > 5000 || busy">{{ text.add }}</button>
+    <button
+      class="t-btn t-btn--primary t-btn--sm"
+      type="submit"
+      :disabled="!draft.trim() || count > 5000 || busy"
+    >
+      {{ text.add }}
+    </button>
   </form>
 </template>

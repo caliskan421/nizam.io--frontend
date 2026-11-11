@@ -10,7 +10,7 @@ defineProps<{
 const emit = defineEmits<{ change: [value: 'all' | 'converted' | 'mine'] }>()
 </script>
 <template>
-  <div role="group" :aria-label="text.filter">
+  <div class="rp-seg" role="group" :aria-label="text.filter">
     <button type="button" :aria-pressed="filter === 'all'" @click="emit('change', 'all')">
       {{ text.all }} {{ all }}
     </button>

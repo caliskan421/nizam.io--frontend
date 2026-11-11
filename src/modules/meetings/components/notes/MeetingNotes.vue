@@ -183,6 +183,7 @@ async function deleteNote(note: MeetingNote) {
         <span v-if="converted(note)">{{ convertedLabel }}</span
         ><button
           v-else-if="access.convertNote(facts(note))"
+          class="t-btn t-btn--secondary t-btn--sm"
           type="button"
           @click="emit('convert', note)"
         >
@@ -227,6 +228,7 @@ async function deleteNote(note: MeetingNote) {
     </article>
     <button
       v-if="query.hasNextPage.value"
+      class="t-btn t-btn--ghost t-btn--sm"
       type="button"
       :disabled="query.isFetchingNextPage.value"
       @click="query.fetchNextPage()"
