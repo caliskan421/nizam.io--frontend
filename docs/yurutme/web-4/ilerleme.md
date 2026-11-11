@@ -82,3 +82,8 @@ O1 denetimi: Node 24.9.0 ve aynı `package.json`/kilit dosyasına sahip ana çal
 W100 #88 `17ceed7` birleşti; PR başı `192805b`, CI [42997202531](https://github.com/caliskan421/nizam.io--frontend/actions/runs/42997202531) üç denetim COMPLETED+SUCCESS, MERGED doğrulandı. İlk koşu 42992979250 kayıt durumundaki tipografik apostrof nedeniyle 1 testte kırmızıydı; W100 `192805b` yalnız kayıt biçimini düzeltti, hedefli 30 test geçti; test/parser gevşetilmedi. O1/K-02 belge işi tamam; S3 özel seçici görsel kabulü ve BE-067 kapsam sınırı açık.
 
 O2a W101 Terra medium işçisi başladı; ayrı worktree `nizam.io--frontend-wt-w101`, dal `web4/o2-w101`, kalıcı istem Git worktree yönetim dizininde W-PROMPT.md. O2b W101'in yeşil birleşimini bekler. W108/W109 ve O4 gerçek kullanıcı kanıtı borçları korunur; F5 açılmaz.
+
+
+## 2026-11-11 — O2a W101 birleşimi
+
+PR #89 `d3e3263`: üç CI denetimi COMPLETED+SUCCESS, MERGED doğrulandı. Yerel typecheck/lint/format, 437 dosyada 3083 test, build/gen:check geçti. Üretim+Caddy CSP ile iki boş iskelet rota × üç genişlik × iki tema: 12 ölçüm, taşma/CSP/pageerror 0; dar menü odak/tıklama doğrulandı. Bu yalnız O2a iskelet kabulüdür. O2b W102–W104 ayrı dallarda başladı; W105/W106 sırada. S3 özel seçici tasarımı hâlâ eksik. Nottan görev sonrası sorgu geçersizleme testli; görsel rozet/pano önce-sonra kanıtı W107 girdisidir.
