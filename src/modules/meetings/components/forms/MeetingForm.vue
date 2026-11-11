@@ -15,6 +15,7 @@ import { coordinatorDepartmentIds } from '../../model/capabilities'
 import type { MeetingDetail } from '../../model/types'
 import { useSessionReset } from '../../pages/detail/use-session-reset'
 import MeetingPersonSelector from '../people/MeetingPersonSelector.vue'
+import { meetingTimestamp } from './meeting-time'
 
 const props = defineProps<{ meeting: MeetingDetail | null; initialFocus?: 'date' }>()
 const emit = defineEmits<{ close: []; saved: [meetingId: string]; selectPeople: [] }>()
@@ -75,6 +76,7 @@ const invalid = computed(
     !date.value ||
     date.value < today.value ||
     !time.value ||
+    !meetingTimestamp(date.value, time.value, timezone.value) ||
     (!props.meeting &&
       (!departmentIds.value.length ||
         !options.value.some((d) => d.department_id === departmentIds.value[0]))),
@@ -118,7 +120,8 @@ function warn(side: { event_failed: boolean; failed_messages: number }, failed: 
 }
 async function submit() {
   if (invalid.value || busy.value || !scope.programId) return
-  const meetingDate = `${date.value}T${time.value}:00`
+  const meetingDate = meetingTimestamp(date.value, time.value, timezone.value)
+  if (!meetingDate) return
   if (props.meeting) {
     const result = await update.submit({
       programId: scope.programId,
