@@ -99,10 +99,6 @@ function startEdit(note: MeetingNote) {
   editDraft.value = note.content
   closeMenu(note.note_id)
 }
-function clearDraft() {
-  draft.value = ''
-  unknownDraft.value = null
-}
 async function addNote() {
   if (
     !scope.programId ||
@@ -146,9 +142,6 @@ async function deleteNote(note: MeetingNote) {
 
 <template>
   <section class="t-card meeting-notes" :aria-label="text.title">
-    <h2 tabindex="-1" data-testid="meeting-notes-title">
-      {{ text.title }} {{ count(notes.length) }}
-    </h2>
     <NoteFilters
       :filter="filter"
       :all="count(notes.length)"
@@ -161,7 +154,7 @@ async function deleteNote(note: MeetingNote) {
       v-model="draft"
       :busy="add.isPending.value"
       :uncertain="draft === unknownDraft"
-      @clear="clearDraft"
+      @clear="unknownDraft = null"
       @submit="addNote"
     />
     <p v-if="query.isPending.value">{{ text.loading }}</p>
@@ -172,10 +165,15 @@ async function deleteNote(note: MeetingNote) {
       <UiAvatar :name="note.author_name" />
       <div class="meeting-notes__content">
         <strong>{{ note.author_name }}</strong>
+        <span
+          v-if="note.author_role"
+          class="meeting-notes__role"
+          :class="`meeting-notes__role--${note.author_role}`"
+          >{{ roleLabels[note.author_role] }}</span
+        >
         <small
-          >{{ note.author_role ? roleLabels[note.author_role] : '' }} ·
-          <time :datetime="note.created_at">{{ time(note.created_at) }}</time
-          ><span v-if="note.edit_revision > 1"> · {{ text.edited }}</span></small
+          ><time :datetime="note.created_at">{{ time(note.created_at) }}</time>
+          {{ note.edit_revision > 1 ? `· ${text.edited}` : '' }}</small
         >
         <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
           <textarea v-model="editDraft" :aria-label="text.editor" /><button type="submit">
@@ -183,7 +181,7 @@ async function deleteNote(note: MeetingNote) {
           ><button type="button" @click="cancelEdit(note)">{{ text.cancel }}</button>
         </form>
         <p v-else>{{ note.content }}</p>
-        <span v-if="converted(note)">{{ convertedLabel }}</span
+        <span v-if="converted(note)" class="meeting-notes__converted">{{ convertedLabel }}</span
         ><button
           v-else-if="access.convertNote(facts(note))"
           class="t-btn t-btn--secondary t-btn--sm"
@@ -196,8 +194,9 @@ async function deleteNote(note: MeetingNote) {
         <div v-if="access.editNote(facts(note)) || access.deleteNote(facts(note))">
           <button
             :ref="(el) => setButton(note.note_id, el)"
+            class="t-iconbtn"
             type="button"
-            :aria-label="`${text.actions}: ${note.author_name}`"
+            :aria-label="`${text.actions}: ${[access.editNote(facts(note)) ? text.edit : '', access.deleteNote(facts(note)) ? text.delete : ''].filter(Boolean).join(', ')}`"
             :aria-expanded="openMenu === note.note_id"
             :aria-controls="openMenu === note.note_id ? `note-menu-${note.note_id}` : undefined"
             @click="openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)"

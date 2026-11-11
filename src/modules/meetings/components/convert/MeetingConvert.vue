@@ -170,23 +170,34 @@ async function submit() {
   >
     <blockquote class="meeting-convert__quote">{{ note.content }}</blockquote>
     <form id="meeting-convert-form" class="meeting-convert__form" @submit.prevent="submit">
-      <label>{{ text.taskTitle }} <input v-model="title" /></label>
-      <p>{{ Array.from(title).length }} / 255 · {{ text.titleHint }}</p>
-      <label
+      <label class="t-label">{{ text.taskTitle }} <input v-model="title" class="t-input" /></label>
+      <p class="t-hint">{{ Array.from(title).length }} / 255 · {{ text.titleHint }}</p>
+      <label class="t-label"
         >{{ text.department }}
-        <select v-model="department" required>
+        <select v-model="department" class="t-select" required>
           <option value="" disabled>{{ text.select }}</option>
           <option v-for="item in options" :key="item.department_id" :value="item.department_id">
             {{ item.display_name }}
           </option>
         </select>
       </label>
-      <label>{{ text.start }} <input v-model="start" type="date" required /></label>
-      <label
-        >{{ text.end }} <input v-model="end" type="date" required :aria-invalid="!!end && invalid"
-      /></label>
-      <p v-if="end && invalid">{{ text.invalid }}</p>
-      <p>{{ text.info }}</p>
+      <p class="t-hint">{{ text.departmentHint }}</p>
+      <div class="meeting-convert__dates">
+        <label class="t-label"
+          >{{ text.start }} <input v-model="start" class="t-input" type="date" required
+        /></label>
+        <label class="t-label"
+          >{{ text.end }}
+          <input
+            v-model="end"
+            class="t-input"
+            type="date"
+            required
+            :aria-invalid="!!end && invalid"
+        /></label>
+      </div>
+      <p v-if="end && invalid" class="t-hint t-hint--error">{{ text.invalid }}</p>
+      <p class="meeting-convert__info">{{ text.info }}</p>
     </form>
     <template #footer
       ><UiButton variant="ghost" @click="emit('close')">{{ text.cancel }}</UiButton
