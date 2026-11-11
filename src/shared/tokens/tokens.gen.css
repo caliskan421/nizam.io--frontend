@@ -68,6 +68,10 @@
   --m-blur-float: 22px;
   --m-blur-menu: 24px;
   --m-blur-folder: 8px;
+  /* web · meeting */
+  --meeting-date-width: 60px;
+  --meeting-code-width: 40px;
+  --meeting-code-height: 22px;
   /* web · color */
   --avatar-6: #4fd1c5;
   --avatar-7: #ff6b6b;
@@ -421,10 +425,6 @@
   --gantt-label-cols: 48px 8px minmax(0, 1fr) auto;
   --gantt-label-cols-bare: 8px minmax(0, 1fr) auto;
   --gantt-group-cols: 16px minmax(0, 1fr) auto;
-  /* web · meeting */
-  --meeting-date-width: 60px;
-  --meeting-code-width: 40px;
-  --meeting-code-height: 22px;
 }
 
 :root,

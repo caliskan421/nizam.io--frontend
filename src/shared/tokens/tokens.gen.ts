@@ -770,6 +770,24 @@ export const TOKENS = {
     "dark": "8px",
     "light": "8px"
   },
+  "meeting-date-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "60px",
+    "light": "60px"
+  },
+  "meeting-code-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "40px",
+    "light": "40px"
+  },
+  "meeting-code-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
   "rp-done-fill": {
     "group": "color",
     "origin": "web",
@@ -2827,24 +2845,6 @@ export const TOKENS = {
     "origin": "web",
     "dark": "16px minmax(0, 1fr) auto",
     "light": "16px minmax(0, 1fr) auto"
-  },
-  "meeting-date-width": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "60px",
-    "light": "60px"
-  },
-  "meeting-code-width": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "40px",
-    "light": "40px"
-  },
-  "meeting-code-height": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "22px",
-    "light": "22px"
   }
 } as const
 
