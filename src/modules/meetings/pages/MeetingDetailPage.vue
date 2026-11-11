@@ -220,9 +220,12 @@ async function deleteMeeting() {
             :meeting="meeting"
             @convert="openConvert"
             @refresh="refresh"
-          /><MeetingPeople :meeting="meeting" @refresh="refresh" />
+          />
         </div>
-        <MeetingSide :meeting="meeting" @edit="openDepartments" @remove="deleteMeeting" />
+        <div class="meeting-side">
+          <MeetingPeople :meeting="meeting" @refresh="refresh" />
+          <MeetingSide :meeting="meeting" @edit="openDepartments" @remove="deleteMeeting" />
+        </div>
       </div>
       <MeetingForm
         v-if="formOpen"
