@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { designStub } from '@/shared/design-stub'
+import { workShortCode } from '@/modules/work/public'
 import { UiIcon } from '@/shared/ui'
 
 import { taskLocation } from './assign'
@@ -32,7 +32,7 @@ const props = defineProps<{
 
 function shortCode(departmentId: string): string {
   const code = props.codes.get(departmentId)
-  return code ? `${code}-${designStub('BE-005', '—')}` : ''
+  return workShortCode(code)
 }
 
 const view = computed(() =>

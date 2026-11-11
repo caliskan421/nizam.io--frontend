@@ -4,7 +4,7 @@
  * kurulum saat diliminde güne indirilir (ana sayfa `today.ts` ile aynı ilke). Biçim dışı değer
  * gösterilmez (uydurma yok).
  */
-import { designStub } from '@/shared/design-stub'
+import { workShortCode } from '../../model/short-code'
 
 import type { WorkItem, WorkItemStatus } from '../../model/types'
 import { detailText } from './messages'
@@ -87,7 +87,7 @@ export function kickerText(
   departmentName: string | null | undefined,
 ): string {
   const parts: string[] = []
-  if (code) parts.push(designStub('BE-005', `${code}-—`))
+  if (code) parts.push(workShortCode(code))
   if (departmentName) parts.push(departmentName)
   return parts.join(' · ')
 }

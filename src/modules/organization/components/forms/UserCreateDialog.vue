@@ -77,7 +77,7 @@ const chooseRole = computed(() =>
 const roleOptions = USER_ROLES.map((r) => ({ value: r, label: roleLabel(r) }))
 
 /** Aktarım teklifi (409 `organization.transfer_available`); ilk gövde + bağlama bağlı (Ö-02). */
-const bound = useTransferOffer(() => form.values, chooseRole)
+const { bound, stillValid, ticket } = useTransferOffer(() => form.values, chooseRole)
 const offer = computed(() => bound.value?.offer ?? null)
 const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 
@@ -122,8 +122,10 @@ type CreateOutcome = Awaited<ReturnType<typeof create.submit>>
 async function send(values: UserValues, transfer: BoundOffer | null): Promise<void> {
   const programId = store.snapshot.programId
   if (!programId) return
+  if (transfer && !stillValid(transfer)) return void (bound.value = null)
   notice.value = null
   bound.value = null
+  const currentTicket = ticket()
   const body = transfer ? transfer.body : userBody(values, programId, chooseRole.value)
   const outcome = await create.submit(
     transfer ? { ...body, transferAccountId: transfer.offer.accountId } : body,
@@ -136,7 +138,7 @@ async function send(values: UserValues, transfer: BoundOffer | null): Promise<vo
     close()
     return
   }
-  settleFailure(outcome, transfer !== null, body)
+  settleFailure(outcome, transfer !== null, body, currentTicket)
 }
 
 /** Alan hatası / aktarım teklifi / sonuç bilinmiyor / ortak bildirim. */
@@ -144,11 +146,13 @@ function settleFailure(
   outcome: Exclude<CreateOutcome, { kind: 'success' }>,
   transferring: boolean,
   body: CreateUserInput,
+  currentTicket: number,
 ) {
   if (outcome.kind === 'failed') {
     const found = transferring ? null : transferOffer(outcome.error)
     if (found) {
-      bound.value = { offer: found, body, context: outcome.context }
+      const candidate = { offer: found, body, context: outcome.context }
+      if (ticket() === currentTicket && stillValid(candidate)) bound.value = candidate
       return
     }
     const fields = serverFieldErrors(outcome.error, USER_FIELDS, USER_CODES)

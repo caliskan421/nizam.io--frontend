@@ -6,7 +6,7 @@
  */
 import { shallowRef, watch, type ComputedRef } from 'vue'
 
-import type { ActionContext } from '@/shared/http/mutation'
+import { useActionContext, type ActionContext } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 
 import type { CreateUserInput, TransferOffer } from '../../model/types'
@@ -48,12 +48,20 @@ export function userBody(
 export function useTransferOffer(values: () => UserValues, roleChoice: ComputedRef<boolean>) {
   const store = useScopeStore()
   const bound = shallowRef<BoundOffer | null>(null)
+  const actionContext = useActionContext()
+  let revision = 0
 
   function stillValid(current: BoundOffer): boolean {
     const { programId, departmentId } = store.snapshot
     const scope = current.context?.scope
     if (!programId) return false
-    if (scope && (scope.programId !== programId || scope.departmentId !== departmentId)) {
+    if (current.context?.generation !== actionContext().generation) return false
+    if (
+      scope &&
+      (scope.programId !== programId ||
+        scope.departmentId !== departmentId ||
+        scope.lens !== store.snapshot.lens)
+    ) {
       return false
     }
     return bodyKey(current.body) === bodyKey(userBody(values(), programId, roleChoice.value))
@@ -68,11 +76,14 @@ export function useTransferOffer(values: () => UserValues, roleChoice: ComputedR
       roleChoice,
       () => store.snapshot.programId,
       () => store.snapshot.departmentId,
+      () => store.snapshot.lens,
     ],
     () => {
+      revision += 1
       if (bound.value && !stillValid(bound.value)) bound.value = null
     },
+    { flush: 'sync' },
   )
 
-  return bound
+  return { bound, stillValid, ticket: () => revision }
 }

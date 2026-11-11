@@ -4,7 +4,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 
+import { authSession } from '@/shared/http'
 import { useScopeStore } from '@/shared/scope/store'
+import { useToast } from '@/shared/ui'
 
 import { http, json, ORIGIN, requests, server } from './__tests__/harness'
 import {
@@ -42,6 +44,7 @@ afterEach(() => {
   for (const wrapper of mounted.splice(0)) wrapper.unmount()
   requests.length = 0
   server.resetHandlers()
+  useToast().clear()
 })
 
 function standing(companyAdmin: boolean, rows: { department_id: string; role: string }[]) {
@@ -135,7 +138,37 @@ describe('rota kapısı (company_admin olgusu; P1, P13, P16)', () => {
       const { wrapper, router } = await visit(path, 'coordinator')
       await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('home'))
       expect(wrapper.find('[data-page]').exists()).toBe(false)
+      expect(useToast().queue.value).toHaveLength(1)
+      expect(useToast().current.value?.message).toContain('erişim yetkiniz yok')
     }
+  })
+
+  it('geç standing yanıtı sökülmüş ve oturumu değişmiş kapıda bildirim üretmez', async () => {
+    let release!: () => void
+    const pending = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    standing(false, [{ department_id: 'd1', role: 'uye' }])
+    server.use(
+      http.get(`${ORIGIN}/v1/me`, async () => {
+        await pending
+        return json({
+          account_id: 'old',
+          company_admin: false,
+          email: 'old@example.test',
+          full_name: 'Eski',
+        })
+      }),
+    )
+    const { router } = await visit('/kullanicilar', 'coordinator')
+    await vi.waitFor(() => expect(requests.some((r) => r.path === '/v1/me')).toBe(true))
+    useScopeStore().commit({ programId: 'p2', lens: 'member', departmentId: 'd2' })
+    await router.push('/')
+    authSession.clear()
+    release()
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('home')
+    expect(useToast().queue.value).toHaveLength(0)
   })
 
   it('standing gelmeden sayfa çizilmez, yönlendirme de olmaz', async () => {

@@ -3,7 +3,7 @@ import './gantt.css'
 
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 
-import { designStub } from '@/shared/design-stub'
+import { workShortCode } from '@/modules/work/public'
 import { UiIcon } from '@/shared/ui'
 
 import { GEOMETRY } from '../../model/timeline'
@@ -21,7 +21,7 @@ import { dotTitle, isLate, rowSummary, statusTone } from './task-view'
  * `tabindex` (tek sekme durağı), ↑↓ PageUp/Down Home/End, →← aç/kapa, Enter seç; görünür pencere
  * dışındaki odak satırı kaydırmayı üst bileşenden ister (`reveal`). Durum rengi tek başına
  * taşıyıcı değildir: her görev satırının görünmez hücresi başlık, durum, aralık ve gecikmeyi
- * söyler. Kod sütunu: yalnız `departmentCodes` verilen birimde `‹KOD›-—` (sıra numarası statik,
+ * söyler. Kod sütunu: yalnız `departmentCodes` verilen birimde `‹KOD›` (sıra numarası statik,
  * BE-005); aksi hâlde boş. `tasks` / `departmentNames` sözleşme gereği alınır, satırlar `layout`'tan.
  */
 const props = defineProps<
@@ -132,7 +132,7 @@ function groupLabel(row: Extract<GanttRow, { kind: 'group' }>): string {
 
 function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
   const prefix = props.departmentCodes?.get(row.task.department_id)
-  return prefix ? `${prefix}-${designStub('BE-005', '—')}` : ''
+  return workShortCode(prefix)
 }
 </script>
 

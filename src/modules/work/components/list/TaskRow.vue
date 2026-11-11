@@ -3,7 +3,7 @@ import './list.css'
 
 import { computed } from 'vue'
 
-import { designStub } from '@/shared/design-stub'
+import { workShortCode } from '../../model/short-code'
 import { UiAvatar, UiIcon } from '@/shared/ui'
 
 import type { WorkItem } from '../../model/types'
@@ -41,7 +41,7 @@ const emit = defineEmits<{
   openSubtasks: [workItemId: string]
 }>()
 
-const shortCode = computed(() => (props.code ? `${props.code}-${designStub('BE-005', '—')}` : null))
+const shortCode = computed(() => workShortCode(props.code) || null)
 const subtasks = computed(() => subtaskToggle(props.item.subtask_counts))
 const note = computed(() => dueNote(props.item, props.today))
 const request = computed(() => requestTag(props.item))

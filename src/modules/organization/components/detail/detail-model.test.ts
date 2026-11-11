@@ -157,8 +157,8 @@ describe('Dikkat gerektirenler (E-08-83)', () => {
       'ALT',
     )
     expect(rows.map((r) => r.title)).toEqual(['b', 'd', 'e'])
-    expect(rows[0]).toMatchObject({ who: 'ALT-— · Ayşe', late: '30 gün gecikti' })
-    expect(rows[1]!.who).toBe('ALT-— · tarih talebi var')
+    expect(rows[0]).toMatchObject({ who: 'ALT · Ayşe', late: '30 gün gecikti' })
+    expect(rows[1]!.who).toBe('ALT · tarih talebi var')
   })
 })
 

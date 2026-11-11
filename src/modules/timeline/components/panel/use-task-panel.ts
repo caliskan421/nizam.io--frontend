@@ -13,7 +13,7 @@ import {
   useWorkItemFiles,
   type WorkItem,
 } from '@/modules/work/public'
-import { designStub } from '@/shared/design-stub'
+import { workShortCode } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -126,7 +126,7 @@ export function useTaskPanel(input: () => PanelInput) {
     const parts: string[] = []
     // Kod yalnız Admin yüzünde (E-03C-30); sıra numarası yok → statik "—" (BE-005).
     if (input().face === 'admin' && department?.code) {
-      parts.push(designStub('BE-005', `${department.code}-—`))
+      parts.push(workShortCode(department.code))
     }
     const name = input().departmentName ?? department?.display_name
     if (name) parts.push(name)

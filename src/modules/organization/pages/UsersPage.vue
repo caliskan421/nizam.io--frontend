@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import './users/users-page.css'
 
-import { computed, ref } from 'vue'
+import { computed, nextTick, onScopeDispose, ref } from 'vue'
 
+import { useActionContext } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -31,6 +32,17 @@ const { standing } = useStanding()
 const creating = ref(false)
 const passwordFor = ref<string | null>(null)
 const aside = ref<HTMLElement | null>(null)
+const page = ref<HTMLElement | null>(null)
+let panelTrigger: HTMLElement | null = null
+let focusRevision = 0
+const actionContext = useActionContext()
+const unsubscribe = store.onChange(() => {
+  focusRevision += 1
+})
+onScopeDispose(() => {
+  focusRevision += 1
+  unsubscribe()
+})
 const { reveal } = usePanelReveal(aside)
 
 const url = useUsersUrl(() => {
@@ -72,11 +84,30 @@ const selectedMissing = computed(
 )
 
 function select(accountId: string): void {
+  focusRevision += 1
+  const rows = page.value?.querySelectorAll<HTMLElement>('[role="row"][data-account]')
+  const row = [...(rows ?? [])].find((item) => item.dataset.account === accountId)
+  panelTrigger = row?.querySelector<HTMLElement>('[data-testid="user-open"]') ?? null
   void url.update({ selected: accountId }, 'push').then(() => reveal())
 }
 
 function closePanel(): void {
-  void url.update({ selected: null }, 'push')
+  const revision = ++focusRevision
+  const trigger = panelTrigger
+  const context = actionContext()
+  void url.update({ selected: null }, 'push').then(async () => {
+    await nextTick()
+    if (
+      revision !== focusRevision ||
+      context.generation !== actionContext().generation ||
+      state.value.selected
+    )
+      return
+    const fallback = page.value?.querySelector<HTMLElement>('[data-testid="users-search"]')
+    const target = trigger?.isConnected ? trigger : fallback
+    target?.focus()
+    panelTrigger = null
+  })
 }
 
 /** Kullanıcı oluşturuldu: kişi seçilir; ŞY'de ikinci adım "Geçici parola belirle" (E-05-05). */
@@ -87,7 +118,7 @@ function onCreated(accountId: string): void {
 </script>
 
 <template>
-  <section class="users-page" data-testid="users-page">
+  <section ref="page" class="users-page" data-testid="users-page">
     <UsersHead :summary="summary" :can-create="canCreate" @create="creating = true" />
     <div class="rp-body">
       <UsersToolbar
@@ -120,6 +151,7 @@ function onCreated(accountId: string): void {
         class="rp-aside"
         tabindex="-1"
         :aria-label="usersText('users.panel.label')"
+        @keydown.esc.stop="closePanel"
       >
         <UserPanel :key="panelId" :account-id="panelId" @close="closePanel" @deleted="closePanel" />
       </aside>

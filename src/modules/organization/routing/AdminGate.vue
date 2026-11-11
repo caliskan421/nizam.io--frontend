@@ -3,7 +3,9 @@ import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { HOME_ROUTE } from '@/modules/home/public'
+import { i18n } from '@/shared/i18n'
 import { useStanding } from '@/shared/scope/standing'
+import { useToast } from '@/shared/ui'
 
 import { administrationFacts, canSeeAdministration } from '../model/capabilities'
 
@@ -16,13 +18,19 @@ import { administrationFacts, canSeeAdministration } from '../model/capabilities
  */
 const { standing } = useStanding()
 const router = useRouter()
+const toast = useToast()
+let redirecting = false
 const allowed = computed(() => canSeeAdministration(administrationFacts(standing.value)))
 const denied = computed(() => standing.value !== null && !allowed.value)
 
 watch(
   denied,
   (value) => {
-    if (value) void router.replace({ name: HOME_ROUTE.name })
+    if (value && !redirecting) {
+      redirecting = true
+      toast.push({ message: i18n.global.t('organization.accessDenied') })
+      void router.replace({ name: HOME_ROUTE.name })
+    }
   },
   { immediate: true },
 )
