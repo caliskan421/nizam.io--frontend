@@ -55,3 +55,8 @@ F4 kapanış koşulu: **Ö-01, Ö-02 ve K-01’in düzeltme ve ilgili doğrulama
 ### Koordinatör takibi
 
 Koşullar açık: Ö-01 W111, Ö-02/K-01 W112 ayrı işçilerde. F4 kapanmadı. Main `4683af5` üzerinde son tam kapı 484 dosyada3259 test (205,41 sn), typecheck/lint/format/build/gen:check geçti; bu koşulları sınamadığı için nihai kabul yerine geçmez.
+
+
+### Tur 2 öncesi düzeltme kanıtı
+
+Ö-01 W11143dc571/#99 birleşti (098ecba), tam485/3260; bekletilen PATCH tek gönderim ve yeni taslak korunumu, gerçek409 yolu. Ö-02/K-01 W112bbfde3d: 487dosya3266test, type/lint/format/gen/build geçti; alan422create/PATCH ve ARIA, yerelmesaj, çip/owner/person testleri. Önceki iki eski checkboxseçici hatası gerçekçip seçimine uyarlandı; assertion/timeout gevşetilmedi. W112W111'i içerir; b14eef8→bbfde3d ağaçfarkı0. Her işçinin üretim+Caddy altıgörünümü taşma/CSP/pageerror0; W111menü/editör odağı, W112Enterçipseçimi6/6. Kalıcıkanıtlar `.git/koordinator/web4-w111/results.json`, `web4-w112/results.json` ve PNG'ler. W112CI henüzbekleniyor; bu kayıt ikinci bağımsız hüküm değildir.
