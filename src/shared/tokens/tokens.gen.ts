@@ -788,6 +788,72 @@ export const TOKENS = {
     "dark": "22px",
     "light": "22px"
   },
+  "meeting-agenda-row-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "52px",
+    "light": "52px"
+  },
+  "meeting-agenda-check-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "20px",
+    "light": "20px"
+  },
+  "meeting-agenda-check-size": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "18px",
+    "light": "18px"
+  },
+  "meeting-agenda-add-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "48px",
+    "light": "48px"
+  },
+  "meeting-head-gap": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "meeting-members-pill-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "26px",
+    "light": "26px"
+  },
+  "meeting-agenda-row-pad-y": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "meeting-agenda-progress-radius": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "3px",
+    "light": "3px"
+  },
+  "meeting-agenda-menu-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "32px",
+    "light": "32px"
+  },
+  "meeting-agenda-progress-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "72px",
+    "light": "72px"
+  },
+  "meeting-agenda-progress-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "5px",
+    "light": "5px"
+  },
   "rp-done-fill": {
     "group": "color",
     "origin": "web",

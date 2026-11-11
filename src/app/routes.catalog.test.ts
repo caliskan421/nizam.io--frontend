@@ -368,6 +368,20 @@ describe('konum üretme ve süzgeç okuma', () => {
     )
   })
 
+  it('toplantı detayı liste ve not filtrelerini katalogda doğrular', () => {
+    const query = {
+      zaman: 'gecmis',
+      koordinatorluk: 'd',
+      from: '2026-01-01',
+      to: '2026-12-31',
+      notlar: 'benim',
+    } as const
+    expect(routeLocation('collaboration.meeting', { meetingId: 'm' }, query, 'F4').query).toEqual(
+      query,
+    )
+    expect(parseRouteQuery('collaboration.meeting', query)).toEqual(query)
+  })
+
   it('Görevler kisi: virgüllü atanan kimlikleri üretilir ve okunur (BE-038)', () => {
     expect(routeLocation('work.tasks', {}, { kisi: 'a1,a2' }).query).toEqual({ kisi: 'a1,a2' })
     expect(parseRouteQuery('work.tasks', { kisi: 'a1,a2' })).toEqual({ kisi: 'a1,a2' })

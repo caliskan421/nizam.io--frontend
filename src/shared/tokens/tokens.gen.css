@@ -72,6 +72,17 @@
   --meeting-date-width: 60px;
   --meeting-code-width: 40px;
   --meeting-code-height: 22px;
+  --meeting-agenda-row-height: 52px;
+  --meeting-agenda-check-width: 20px;
+  --meeting-agenda-check-size: 18px;
+  --meeting-agenda-add-height: 48px;
+  --meeting-head-gap: 10px;
+  --meeting-members-pill-height: 26px;
+  --meeting-agenda-row-pad-y: 6px;
+  --meeting-agenda-progress-radius: 3px;
+  --meeting-agenda-menu-width: 32px;
+  --meeting-agenda-progress-width: 72px;
+  --meeting-agenda-progress-height: 5px;
   /* web · color */
   --avatar-6: #4fd1c5;
   --avatar-7: #ff6b6b;

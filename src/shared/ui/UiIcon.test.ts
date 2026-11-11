@@ -37,3 +37,9 @@ describe('UiIcon', () => {
     for (const d of Object.values(ICONS)) expect(d).toMatch(/^M[0-9MmLlHhVvCcSsAaZz .,-]+$/)
   })
 })
+
+it('draws the meeting visibility eye from the design source', () => {
+  expect(ICONS.eye).toBe(
+    'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  )
+})

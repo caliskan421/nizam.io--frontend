@@ -11,6 +11,8 @@
  *    ad yok). Açık durum gösteriliyorsa (K7) son parça açık durumun katalog başlığıdır ve ara
  *    parça yoktur (sayfa etiketi yok sayılır).
  */
+import type { LocationQuery } from 'vue-router'
+
 import {
   CURRENT_PHASE,
   type CatalogLocation,
@@ -43,6 +45,7 @@ export interface CrumbInput {
   /** Sayfanın verdiği dinamik son parça (`pageCrumb`); yoksa katalog başlığı. */
   pageLabel?: string | null
   phase?: Phase
+  query?: LocationQuery
 }
 
 function linkTo(name: RouteName, phase: Phase): CatalogLocation | null {
@@ -51,12 +54,24 @@ function linkTo(name: RouteName, phase: Phase): CatalogLocation | null {
   return routeLocation(name, {} as never, {}, phase)
 }
 
+function parentLink(parent: RouteName, current: RouteName, phase: Phase, query: LocationQuery) {
+  const to = linkTo(parent, phase)
+  if (current !== 'collaboration.meeting' || parent !== 'collaboration.meetings' || !to) return to
+  const filtered: Record<string, string> = {}
+  for (const key of ['zaman', 'koordinatorluk', 'from', 'to']) {
+    const value = query[key]
+    if (typeof value === 'string') filtered[key] = value
+  }
+  return { ...to, query: filtered }
+}
+
 export function buildCrumbs({
   routeName,
   programName,
   openState,
   pageLabel = null,
   phase = CURRENT_PHASE,
+  query = {},
 }: CrumbInput): Crumbs {
   const links: Crumb[] = []
   if (programName) links.push({ label: programName, to: linkTo('home', phase) })
@@ -64,7 +79,7 @@ export function buildCrumbs({
   if (!routeName) return { links, current: null }
   const trail = routeTrail(routeName)
   for (const parent of trail.slice(0, -1)) {
-    links.push({ label: routeSpec(parent).title, to: linkTo(parent, phase) })
+    links.push({ label: routeSpec(parent).title, to: parentLink(parent, routeName, phase, query) })
   }
   return { links, current: pageLabel ?? routeSpec(routeName).title }
 }
