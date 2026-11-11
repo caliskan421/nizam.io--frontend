@@ -77,10 +77,10 @@ const split = computed(() => splitMeetings(meetings.items.value, new Date(), tim
 const shown = computed(() => (tab.value === 'gecmis' ? split.value.past : split.value.upcoming))
 const lensText = computed(() =>
   scope.lens === 'admin'
-    ? 'Admin olarak sezondaki tüm toplantıları görüyorsun'
+    ? t('meetings.list.adminLens')
     : scope.lens === 'coordinator'
-      ? 'Koordinatör olarak erişebildiğin toplantıları görüyorsun'
-      : 'Üye olarak erişebildiğin toplantıları görüyorsun',
+      ? t('meetings.list.coordinatorLens')
+      : t('meetings.list.memberLens'),
 )
 const program = computed(
   () => programs.value?.find((p) => p.programId === scope.programId)?.name ?? '',
@@ -113,21 +113,24 @@ watch(
       <div>
         <h1 class="rp-h1">{{ t('meetings.list.title') }}</h1>
         <p class="rp-sub">
-          {{ program }} · {{ meetings.complete.value ? '' : 'En az '
-          }}{{ split.upcoming.length }} yaklaşan, {{ split.past.length }} geçmiş toplantı ·
+          {{ program }} · {{ meetings.complete.value ? '' : t('meetings.list.atLeast') }}
+          {{
+            t('meetings.list.counts', { upcoming: split.upcoming.length, past: split.past.length })
+          }}
+          ·
           {{ lensText }}
           <template v-if="from || to || value('koordinatorluk')"
-            >· yüklenen kayıtlar içinde</template
+            >· {{ t('meetings.list.loaded') }}</template
           >
         </p>
       </div>
       <button v-if="canCreate" class="t-btn t-btn--primary" @click="creating = true">
-        Yeni toplantı
+        {{ t('meetings.list.create') }}
       </button>
     </header>
     <div class="rp-body meetings-body">
       <div class="meetings-toolbar">
-        <div class="rp-seg" role="tablist" aria-label="Toplantı zamanı">
+        <div class="rp-seg" role="tablist" :aria-label="t('meetings.list.time')">
           <button
             role="tab"
             :aria-selected="tab === 'yaklasan'"
@@ -144,10 +147,10 @@ watch(
             v-if="admin"
             role="tab"
             :aria-selected="tab === 'silinenler'"
-            title="Yalnız yönetici görebilir"
+            :title="t('meetings.list.deletedTitle')"
             @click="update('zaman', 'silinenler')"
           >
-            Silinenler
+            {{ t('meetings.list.deleted') }}
           </button>
         </div>
         <label
@@ -212,7 +215,11 @@ watch(
           <span>{{ t('meetings.list.rule') }}</span
           ><span
             >{{ shown.length }}{{ meetings.complete.value ? '' : '+' }}
-            {{ tab === 'gecmis' ? 'geçmiş' : 'yaklaşan' }} toplantı</span
+            {{
+              t(tab === 'gecmis' ? 'meetings.list.footerPast' : 'meetings.list.footerUpcoming', {
+                count: `${shown.length}${meetings.complete.value ? '' : '+'}`,
+              })
+            }}</span
           >
         </footer></template
       >

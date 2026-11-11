@@ -67,18 +67,22 @@ function codes(item: Meeting) {
               :title="department.department_name"
               >{{ department.code }}</span
             ><span
-              >{{ codes(item)[0]?.department_name
+              >{{ codes(item)[0]?.department_name }}{{ ' '
               }}<template v-if="item.departments.length > 1">
-                + {{ item.departments.length - 1 }} koordinatörlük</template
+                {{
+                  t('meetings.list.extraDepartments', { count: item.departments.length - 1 })
+                }}</template
               ></span
             ></span
           ></span
         >
         <span v-if="item.summary" class="meeting-stats"
-          ><span title="Gündem"
+          ><span :title="t('meetings.list.agenda')"
             >{{ item.summary.agenda_checked }} / {{ item.summary.agenda_total }}</span
-          ><span title="Notlar">{{ item.summary.note_count }}</span
-          ><span title="Katılımcılar">{{ item.summary.participant_count }}</span></span
+          ><span :title="t('meetings.list.notes')">{{ item.summary.note_count }}</span
+          ><span :title="t('meetings.list.participants')">{{
+            item.summary.participant_count
+          }}</span></span
         ><span aria-hidden="true">›</span>
       </a>
     </section>
