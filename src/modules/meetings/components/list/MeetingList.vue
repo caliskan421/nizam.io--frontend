@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
+import { UiEmptyState } from '@/shared/ui'
 import { groupMeetings, meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
 import { dayLabel } from '../../pages/meetings/day-label'
@@ -40,7 +41,7 @@ function codes(item: Meeting) {
 }
 </script>
 <template>
-  <div v-if="!items.length" class="meetings-empty">{{ t('meetings.list.empty') }}</div>
+  <UiEmptyState v-if="!items.length" :title="t('meetings.list.empty')" />
   <div v-else class="meetings-groups">
     <section v-for="group in groups" :key="group.label" class="meetings-group">
       <h2>

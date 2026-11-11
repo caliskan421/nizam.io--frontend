@@ -13,7 +13,9 @@ import { coordinatorDepartmentIds } from '../model/capabilities'
 import { splitMeetings } from '../model/list'
 import { useNow } from './meetings/use-now'
 import { invalidRange, lensDescription } from './meetings/presentation'
+import MeetingDepartmentFilter from '../components/list/MeetingDepartmentFilter.vue'
 import MeetingHeader from '../components/list/MeetingHeader.vue'
+import MeetingLoadState from '../components/list/MeetingLoadState.vue'
 import MeetingList from '../components/list/MeetingList.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import DeletedMeetings from '../components/deleted/DeletedMeetings.vue'
@@ -167,22 +169,11 @@ watch(
             }}{{ deleted.hasNextPage.value ? '+' : '' }}
           </button>
         </div>
-        <label
-          >{{ t('meetings.list.department') }}
-          <select
-            :value="value('koordinatorluk')"
-            @change="update('koordinatorluk', ($event.target as HTMLSelectElement).value)"
-          >
-            <option value="">{{ t('meetings.list.all') }}</option>
-            <option
-              v-for="department in departments.query.data.value?.departments ?? []"
-              :key="department.department_id"
-              :value="department.department_id"
-            >
-              {{ department.display_name }}
-            </option>
-          </select></label
-        >
+        <MeetingDepartmentFilter
+          :departments="departments.query.data.value?.departments ?? []"
+          :selected="value('koordinatorluk')"
+          @select="update('koordinatorluk', $event)"
+        />
         <label
           >{{ t('meetings.list.from') }}
           <input
@@ -203,14 +194,23 @@ watch(
       <DeletedMeetings
         v-else-if="tab === 'silinenler'"
         :items="deleted.data.value?.pages.flatMap((p) => p.items) ?? []"
+        :has-more="deleted.hasNextPage.value"
+        :loading="deleted.isFetchingNextPage.value"
+        :error="deleted.isError.value"
         @close="update('zaman', 'yaklasan')"
         @refresh="deleted.refetch()"
+        @load-more="deleted.fetchNextPage()"
       />
-      <p v-else-if="meetings.query.isPending.value">{{ t('meetings.list.loading') }}</p>
-      <div v-else-if="meetings.query.isError.value && !meetings.query.data.value" role="alert">
-        {{ t('meetings.list.error') }}
-        <button @click="meetings.query.refetch()">{{ t('meetings.list.retry') }}</button>
-      </div>
+      <MeetingLoadState
+        v-else-if="
+          meetings.query.isPending.value ||
+          (meetings.query.isError.value && !meetings.query.data.value)
+        "
+        :loading="meetings.query.isPending.value"
+        :error="meetings.query.error.value"
+        :retrying="meetings.query.isFetching.value"
+        @retry="meetings.query.refetch()"
+      />
       <template v-else
         ><div v-if="loadFailure || meetings.query.isFetchNextPageError.value" role="alert">
           {{ t('meetings.list.moreError') }}
