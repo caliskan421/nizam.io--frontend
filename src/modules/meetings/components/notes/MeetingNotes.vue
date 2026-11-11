@@ -10,9 +10,9 @@ import { reachesOwner } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConflictDialog } from '@/shared/ui/conflict'
-import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { notifyOutcome } from '@/shared/ui/confirm'
 import { useMeetingNotes } from '../../api/queries'
-import { useAddMeetingNote, useDeleteMeetingNote } from '../../api/note-writes'
+import { useAddMeetingNote } from '../../api/note-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
 import NoteFilters from './NoteFilters.vue'
@@ -20,7 +20,6 @@ import NoteComposer from './NoteComposer.vue'
 import { noteCount, noteTime, noteFacts, noteFocus, selectNotes } from './notes-view'
 import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
-
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
 const scope = useScopeStore()
@@ -28,15 +27,14 @@ const instance = useInstanceStore()
 const { standing } = useStanding()
 const query = useMeetingNotes(() => props.meeting.meeting_id)
 const add = useAddMeetingNote()
-const remove = useDeleteMeetingNote()
-const { confirmWrite } = useConfirm()
 const draft = ref('')
 const unknownDraft = ref<string | null>(null)
 const { filter, setFilter } = useNoteFilter()
 const count = (value: number) => noteCount(value, query.hasNextPage.value)
 const time = (value: string) => noteTime(value, instance.profile?.timezone)
 const openMenu = ref<string | null>(null)
-const { focus: focusNote, bind: setButton } = noteFocus()
+const section = ref<HTMLElement | null>(null)
+const { focus, bind, heading } = noteFocus(section, () => version)
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
 const text = trMeetings.meetings.notes
 const roleLabels = text.roles
@@ -58,15 +56,16 @@ const access = computed(() =>
 )
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
-const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
+const { update, conflict, editing, editDraft, saveNote, removeNote } = useNoteEdit(
   target,
   () => version,
   () => {
     const id = editing.value?.note_id
     void query.refetch()
     emit('refresh')
-    if (id) focusNote(id)
+    if (id) focus(id)
   },
+  heading,
 )
 function resetDraft() {
   version += 1
@@ -75,7 +74,10 @@ function resetDraft() {
   editing.value = null
   openMenu.value = null
 }
-watch(() => [props.meeting.meeting_id, scope.programId, JSON.stringify(standing.value)], resetDraft)
+watch(
+  [() => props.meeting.meeting_id, () => scope.programId, () => JSON.stringify(standing.value)],
+  resetDraft,
+)
 const initialGeneration = authSession.generation
 const offSession = authSession.subscribe(() => {
   if (authSession.generation !== initialGeneration) resetDraft()
@@ -83,11 +85,11 @@ const offSession = authSession.subscribe(() => {
 onScopeDispose(offSession)
 function cancelEdit(note: MeetingNote) {
   editing.value = null
-  focusNote(note.note_id)
+  focus(note.note_id)
 }
 function closeMenu(id: string) {
   openMenu.value = null
-  focusNote(id)
+  focus(id)
 }
 function startEdit(note: MeetingNote) {
   editing.value = note
@@ -116,27 +118,14 @@ async function addNote() {
     notifyOutcome(result)
   }
 }
-async function deleteNote(note: MeetingNote) {
+function deleteNote(note: MeetingNote) {
   closeMenu(note.note_id)
-  if (!scope.programId) return
-  const started = version
-  const result = await confirmWrite(
-    {
-      title: text.deleteTitle,
-      body: [text.deleteBody],
-      confirmLabel: text.delete,
-      tone: 'danger',
-    },
-    (context) => remove.submit({ ...target(), noteId: note.note_id }, { context }),
-  )
-  if (!result || !reachesOwner(result) || started !== version) return
-  if (result.kind === 'success') emit('refresh')
-  else notifyOutcome(result)
+  void removeNote(note)
 }
 </script>
 
 <template>
-  <section class="t-card meeting-notes" :aria-label="text.title">
+  <section ref="section" class="t-card meeting-notes" :aria-label="text.title">
     <NoteFilters
       :filter="filter"
       :all="count(notes.length)"
@@ -192,7 +181,7 @@ async function deleteNote(note: MeetingNote) {
             class="meeting-notes__actions"
           >
             <button
-              :ref="(el) => setButton(note.note_id, el)"
+              :ref="(el) => bind(note.note_id, el)"
               class="t-iconbtn"
               type="button"
               :aria-label="`${text.actions}: ${[access.editNote(noteFacts(note)) ? text.edit : '', access.deleteNote(noteFacts(note)) ? text.delete : ''].filter(Boolean).join(', ')}`"

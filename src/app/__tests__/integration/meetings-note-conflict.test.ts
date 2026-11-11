@@ -1,6 +1,17 @@
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from 'vitest'
-import { $, boot, click, createBackend, fill, PEOPLE, seedWorld, teardown, until } from './harness'
+import {
+  $,
+  boot,
+  click,
+  createBackend,
+  fill,
+  idle,
+  PEOPLE,
+  seedWorld,
+  teardown,
+  until,
+} from './harness'
 
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
 const meeting = {
@@ -193,12 +204,15 @@ it('gerçek not menüsünden silme onayla yapılır ve not listeden kalkar', asy
       return new HttpResponse(null, { status: 204 })
     }),
   )
-  await boot({
+  const app = await boot({
     email: PEOPLE.admin.email,
     scope: { programId: 'p1', lens: 'admin' },
     path: '/toplantilar/m1',
   })
-  await click('button[aria-label^="Not işlemleri"]')
+  await idle(app.queryClient)
+  const trigger = await until(() => $('button[aria-label^="Not işlemleri"]'))
+  trigger.focus()
+  await click(() => trigger)
   await click(
     () =>
       [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
@@ -214,4 +228,9 @@ it('gerçek not menüsünden silme onayla yapılır ve not listeden kalkar', asy
   )
   await until(() => !$('.meeting-notes__item'), 'not silindi')
   expect(backend.sent('DELETE', '/v1/meeting-notes/n1')).toHaveLength(1)
+  await until(() => !$('[role="alertdialog"]'), 'onay kapandı')
+  await until(
+    () => document.activeElement === $('[data-testid="meeting-notes-title"]'),
+    'silme sonrası odak',
+  )
 })

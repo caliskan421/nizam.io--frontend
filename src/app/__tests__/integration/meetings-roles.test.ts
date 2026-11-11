@@ -1,17 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { fakeOrg } from './fake-org'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from 'vitest'
-import {
-  $,
-  boot,
-  byText,
-  click,
-  createBackend,
-  PEOPLE,
-  seedWorld,
-  teardown,
-  until,
-} from './harness'
+import { $, boot, byText, createBackend, PEOPLE, seedWorld, teardown, until } from './harness'
 
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
 const meeting = {
