@@ -162,3 +162,5 @@ W111 `43dc571` Ö-01 not pending kilidi: ilk PATCH, 409 seçimi ve tekrar boyunc
 W111 #99 üç COMPLETED+SUCCESS ve pr-merge.sh ardından `098ecbae5232e07a3b5b1eac8b2651dc86effb5a` ile birleşti; bağımsız MERGED, main ff temiz. W112 ilk tam kapısında eski checkbox seçicisini kullanan writes/lifecycle testleri kırıldı (485/487 dosya,3264/3266); gerçek çip seçimine uyarlanıp hedefli21test geçti. Assertion/timeout/kapı gevşetilmedi; ikinci tam kapı devam ediyor.
 
 W112 `bbfde3d` son tam kapı geçti:487dosya3266test,type/lint/format/gen/build. W111ve main098ecba birleşik; b14eef8→sonHEAD ağaç farkı0. Son üretim+Caddy6görünümde Enterçipseçimi, taşma/CSP/pageerror0; güvenli7JSON/PNG `.git/koordinator/web4-w112/` içine kopyalandı. İkinci saltokunur inceleme CI ile paralel yürütülür; CI/birleşim onayı yerine geçmez.
+
+Nihai Sol tur2 `f0ab828` HEAD üzerinde KOŞULLU UYGUN: Ö-01,Ö-02,K-01 kapandı; yakın varyantlarda yeni regresyon yok. Gerçekreadonlyaraçizi ve güvenliJSON/PNGincelemesi mevcut. Kalan süreç koşulu W112CI/birleşimi ve birleşmişsonbaşın kapı kaydıdır; gerçekVoiceOver/E03C27/41 takipborçları korunur.
