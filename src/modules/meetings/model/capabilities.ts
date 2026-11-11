@@ -17,12 +17,23 @@ export interface NoteFacts {
   converted: boolean
 }
 
-/** Mercek yetki girdisi değildir; yalnız seçili programın koordinatörlükleri kullanılır. */
-export function meetingCapabilities(
-  standing: Standing | null,
-  programId: string,
+function meetingVisible(
+  admin: boolean,
+  hasRow: boolean,
   meeting: MeetingFacts,
+  personManager: boolean,
+  linked: boolean,
+  linkedMember: boolean,
 ) {
+  if (admin) return true
+  if (!hasRow) return false
+  if (meeting.participant) return true
+  return meeting.inviteMode === 'person'
+    ? personManager
+    : linked || (meeting.membersIncluded && linkedMember)
+}
+
+function meetingAccess(standing: Standing | null, programId: string, meeting: MeetingFacts) {
   const coordinatorIds = new Set(
     standing?.rows
       .filter((r) => r.programId === programId && r.role === 'coordinator')
@@ -38,13 +49,28 @@ export function meetingCapabilities(
   const linkedMember = rows.some(
     (r) => r.role === 'member' && meeting.departmentIds.includes(r.departmentId),
   )
-  const visible =
-    admin ||
-    (rows.length > 0 &&
-      (meeting.participant ||
-        (meeting.inviteMode === 'person'
-          ? personManager
-          : linked || (meeting.membersIncluded && linkedMember))))
+  const visible = meetingVisible(
+    admin,
+    rows.length > 0,
+    meeting,
+    personManager,
+    linked,
+    linkedMember,
+  )
+  return { admin, coordinatorIds, linked, personManager, manager, visible }
+}
+
+/** Mercek yetki girdisi değildir; yalnız seçili programın koordinatörlükleri kullanılır. */
+export function meetingCapabilities(
+  standing: Standing | null,
+  programId: string,
+  meeting: MeetingFacts,
+) {
+  const { admin, coordinatorIds, linked, personManager, manager, visible } = meetingAccess(
+    standing,
+    programId,
+    meeting,
+  )
   return {
     visible,
     create: admin || coordinatorIds.size > 0,

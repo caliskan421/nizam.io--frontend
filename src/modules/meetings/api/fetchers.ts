@@ -1,8 +1,6 @@
 import { programHeaders } from '@/modules/work/public'
 import { api, unwrap } from '@/shared/http'
-import type { operations } from '@/shared/api/schema'
-
-export type MeetingFilters = NonNullable<operations['listMeetings']['parameters']['query']>
+import type { MeetingFilters } from '../model/types'
 
 /** Tüm toplantı uçları S2'dir; yalnız yakalanmış program başlığı taşır. */
 export function fetchMeetings(programId: string, filters: MeetingFilters, signal?: AbortSignal) {
