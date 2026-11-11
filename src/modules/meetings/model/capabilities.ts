@@ -12,7 +12,7 @@ export interface MeetingFacts {
 }
 
 export interface NoteFacts {
-  authorAccountId: string
+  authorAccountId: string | null
   authorRole: string | null
   converted: boolean
 }
@@ -33,12 +33,22 @@ function meetingVisible(
     : linked || (meeting.membersIncluded && linkedMember)
 }
 
+/** Yalnız seçili programın koordinatörlükleri; mercek bu olguyu değiştirmez. */
+export function coordinatorDepartmentIds(
+  standing: Standing | null,
+  programId: string | null,
+): string[] {
+  return [
+    ...new Set(
+      standing?.rows
+        .filter((row) => row.programId === programId && row.role === 'coordinator')
+        .map((row) => row.departmentId) ?? [],
+    ),
+  ].sort()
+}
+
 function meetingAccess(standing: Standing | null, programId: string, meeting: MeetingFacts) {
-  const coordinatorIds = new Set(
-    standing?.rows
-      .filter((r) => r.programId === programId && r.role === 'coordinator')
-      .map((r) => r.departmentId) ?? [],
-  )
+  const coordinatorIds = new Set(coordinatorDepartmentIds(standing, programId))
   const rows = standing?.rows.filter((r) => r.programId === programId) ?? []
   const admin = standing?.companyAdmin === true
   const linked = meeting.departmentIds.some((id) => coordinatorIds.has(id))

@@ -6,11 +6,13 @@ import {
 } from '@tanstack/vue-query'
 import { computed, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { retryTransient } from '@/modules/work/public'
+import { coordinatorDepartmentIds } from '../model/capabilities'
 import type { MeetingDetail, MeetingFilters } from '../model/types'
 import { authSession } from '@/shared/http'
 import { ownerLife } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
+import type { Standing } from '@/shared/scope/standing-facts'
 import { sessionBound } from '@/shared/session/query-session'
 import { adminCandidates, coordinatorCandidates } from './candidates'
 import { fetchDeletedMeetings, fetchMeeting, fetchMeetingNotes, fetchMeetings } from './fetchers'
@@ -155,18 +157,18 @@ export function useDeletedMeetings(enabled: MaybeRefOrGetter<boolean>) {
   )
 }
 
-/** Aday kümesi sunucu yetkisine göre çağıranın sağladığı admin veya coordOf olgularıyla okunur. */
+/** Aday kümesi seçili programın standing olgularından okunur. */
 export function useMeetingCandidates(
-  admin: MaybeRefOrGetter<boolean>,
-  coordOf: MaybeRefOrGetter<readonly string[]>,
+  standing: MaybeRefOrGetter<Standing | null>,
   enabled: MaybeRefOrGetter<boolean>,
 ) {
   const store = useScopeStore()
   return useQuery(
     computed(() => {
       const scope = store.snapshot
-      const isAdmin = toValue(admin)
-      const departments = [...new Set(toValue(coordOf))].sort()
+      const actor = toValue(standing)
+      const isAdmin = actor?.companyAdmin === true
+      const departments = coordinatorDepartmentIds(actor, scope.programId)
       return {
         queryKey: queryKeys.meetings.candidates(scope, { admin: isAdmin, departments }),
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>

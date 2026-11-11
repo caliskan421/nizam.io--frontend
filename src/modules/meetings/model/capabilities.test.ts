@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Standing } from '@/shared/scope/standing-facts'
-import { meetingCapabilities } from './capabilities'
+import { coordinatorDepartmentIds, meetingCapabilities } from './capabilities'
 
 const row = {
   programId: 'p',
@@ -95,5 +95,14 @@ describe('meeting capabilities', () => {
     expect(
       meetingCapabilities(actor(true), 'p', person).convertNote({ ...note, converted: true }),
     ).toBe(false)
+  })
+  it('limits candidate departments to the selected program and coordinator rows', () => {
+    const rows = [
+      row,
+      { ...row, departmentId: 'member', role: 'member' as const },
+      { ...row, programId: 'other', departmentId: 'foreign' },
+      row,
+    ]
+    expect(coordinatorDepartmentIds(actor(false, rows), 'p')).toEqual(['d'])
   })
 })
