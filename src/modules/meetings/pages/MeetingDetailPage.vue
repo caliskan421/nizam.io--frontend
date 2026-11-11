@@ -7,6 +7,7 @@ import { listQuery } from './detail/list-query'
 import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { useMeetingAccess } from './detail/use-meeting-access'
+import { useMeetingLoss } from './detail/use-meeting-loss'
 import { meetingDepartments } from '../model/list'
 import { dateLabel } from './detail/date-label'
 import type { MeetingNote } from '../model/types'
@@ -34,6 +35,7 @@ const id = computed(() =>
   typeof route.params.meetingId === 'string' ? route.params.meetingId : null,
 )
 const query = useMeeting(id)
+useMeetingLoss(query.error, id)
 const meeting = computed(() => query.data.value)
 const departments = useDepartments()
 const displayDepartments = computed(() =>

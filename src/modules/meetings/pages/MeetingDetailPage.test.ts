@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia, setActivePinia } from 'pinia'
 import { computed, ref } from 'vue'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -30,6 +31,7 @@ vi.mock('../api/queries', () => ({
     }),
     isPending: ref(false),
     isError: ref(false),
+    error: ref(null),
     refetch: mocks.refetch,
   }),
 }))
@@ -63,7 +65,7 @@ function setup() {
   const wrapper = mount(MeetingDetailPage, {
     attachTo: document.body,
     global: {
-      plugins: [pinia],
+      plugins: [pinia, [VueQueryPlugin, { queryClient: new QueryClient() }]],
       stubs: {
         MeetingAgenda: true,
         MeetingNotes: Notes,

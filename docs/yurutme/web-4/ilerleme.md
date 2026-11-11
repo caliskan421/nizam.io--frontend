@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b aktif. F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b birleşti; O3/W107 aktif. F4 kapanmış değildir.
 
 ## Durum
 
@@ -11,8 +11,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | Pin aşaması (WEB-P, `v0.15.0-api`) | **KAPANDI 2026-11-10** — Codex tur 2 KOŞULLU UYGUN (HEAD `1bd80b6`); ayrıntı aşağıda "Pin aşaması" | `1bd80b6` |
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
 | O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
-| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Aktif: W102–W104 PR kapısında; W105/W106 uygulama ve doğrulamada | `d3e3263` |
-| O3 — Entegrasyon turu (W107) | Bekliyor | — |
+| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Birleşti: #90/#91/#92/#94/#95; üçer CI SUCCESS | `dd755f3` |
+| O3 — Entegrasyon turu (W107) | Aktif | `dd755f3` |
 | O4 — Kapanış | Bekliyor | — |
 
 ## Devralınan (WEB-3 O4)
@@ -110,3 +110,22 @@ W108 `f6304b6` PR #93: aktarım mercek/geç409, 05 panel odak/owner yarışı, G
 **Birleşim engeli:** #90/#91/#92 ilk ve ikinci CI denemelerinde kod/test ve Docker imajı denetimleri geçti, fakat Ubuntu paket sunucularının DNS çözümlemesi başarısız olduğundan Playwright bağımlılık kurulumu APT exit100 verdi; gerçek backend tarayıcı testleri hiç başlamadı. Başarılı #89 aynı runner imajı `ubuntu-26.04 / 20261101.186`, workflow, pin ve kilit dosyasıyla 4 E2E testini geçmiştir; kaynak veya sürüm uyumsuzluğu kanıtı yok. Test atlama/kapı gevşetme yapılmadı. Yeni PR'ların CI sonuçları ayrıca beklenecek. Bu kayıt anında O2b PR'ları birleşmedi; O3/W107 ve O4 açılmadı, F5 açılmadı.
 
 Ham yerel kanıtlar ve CI karşılaştırma günlükleri `.git/koordinator/web4-w105`, `web4-w106`, `web4-w108` ve aynı dizindeki CI günlüklerindedir. Önceki Apple Git Xcode lisans hataları Homebrew Git PATH ile giderildi; bu ortam hataları başarılı kapı diye kaydedilmedi. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık.
+
+## 2026-11-11 — O2b birleşimi, O3 açılışı
+
+CI DNS engeli sonraki başarılı W108 koşusuyla düzeldi; bu yeni kanıt üzerine başarısız işler tekrar çalıştırıldı. Üçer COMPLETED+SUCCESS, zorunlu pr-merge.sh ve bağımsız MERGED doğrulandı: #93 W108 `b628227`; #90 W102 `8aa69d2`; #91 W103 `2bbb393`; #92 W104 `3d18f18`; #94 W105 `2c05cfb`; #95 W106 `dd755f3`. Tarihsel kırmızı koşular yukarıda korunur; test atlama/CI gevşetme yapılmadı.
+
+W106 son metin düzeltmesi `4ae1050`: P27 tarih cümlesi tam uygulanır; üyeler dahil değilken herkes daveti vaadi kaldırıldı. Son lint/format/build ve altı gerçek görünüm geçti. BE-060 summary alanı W102/#90 ile canlı bağlandı; satır başına detay fan-out yok. BE-021 kalanları, BE-063 kısmi alanlar, BE-064 gruplama kararı ve BE-067 aday kapsamı açık.
+
+W107 ayrı worktree/dal ve kalıcı istemle başladı; O2b TASLAKlarının gerçek bileşen senaryoları, rol/kip, URL/tarih, seçici, görev/rozet/pano ve yaşam döngüsü kabulü burada tamamlanacak. W109 gerçek Gantt/temizleme ve pin ek entegrasyon borçları ayrıca sürüyor. O4/nihai Sol read-only kapı henüz açılmadı; F5 açılmadı.
+
+
+## 2026-11-11 — W109 birleşimi ve W107 yerel kapı
+
+W109 #96 `939414f` birleşti; üç CI denetimi COMPLETED+SUCCESS, pr-merge.sh ve bağımsız MERGED doğrulaması tamamlandı. Panel gözlemcileri ve geç callback'ler seçim/kapsam/sökümde temizlenir; dar ekranda tarih geri alma bildirimi tutamaçları örtmez. Gerçek iki eksenli kaydırma, panel büyümesi sonrası iki tutamaç hit-test'i, klavye, geri alma ve fullscreen altı görünümde doğrulandı (taşma/CSP/pageerror 0). Alt görev özeti yazma ve satır kapat/aç sonrasında 2/3 kalır. Gerçek Admin kartı/onay ve pano GET/önbelleği total_admins 1→2 sınandı; bu alan mevcut UI'da görünmediğinden görünür KPI kanıtı değildir. Tam kapı 440 dosya/3097 test. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık kalır.
+
+W107 uygulama başı `4bf32fa`: typecheck, tam lint, format, 484 dosyada 3252 test (iki worker, 175.01 sn), gen:check ve build geçti. İlk geniş paralel koşum kaynak/zaman aşımı hatalarıyla kırmızıydı; ikinci tam koşumda iki yeni senaryo veri hazır olmadan kontrol yaptığı için başarısızdı. Gerçek veri ve detay GET koşulları beklenerek düzeltildi; zaman aşımı artırılmadı, assertion/test atlanmadı.
+
+O3 gerçek router/AppShell/oturum ve durumlu MSW ile 12 kabul grubunu kapsar: URL/filtre ve gezinme; üç rol/iki kip; oluşturma/belirsiz sonuç; gündem; not anahtarı/409/silme; nottan görev ve türevler; kısmi katılımcı serisi; silinenler; kapsam/oturum/geç sonuç; odak ve derin link; özel seçici/adayı; video yokluğu. `meetings-*.test.ts` dosyaları `src/app/__tests__/integration/` altındadır. Gerçek görev listesi/pano değişir; ilgisiz rozet doğru biçimde sabit kalır. MSW rol kapsamı gerçek backend yetkilendirmesi kanıtı sayılmaz; o tanık O4'tedir.
+
+İki üretim kusuru kapandı: detay 403/404 sonucunda standing tazelenip listeye dönüş (`use-meeting-loss.ts`, aynı hata/ekran/kapsam/oturum korumalı); not silme sonrası bölüm başlığına odak (`MeetingNotes.vue`, `use-note-delete.ts`, `notes-view.ts`, gerçek scope.onChange ve söküm korumalı). Önceki testlerde taslak kalan W102/W103 alt bileşenleri gerçek entegrasyonla karşılandı. Son üretim+Caddy CSP+Chromium kapısı aynı 4bf32fa paketiyle altı görünümde geçti: 390/1024/1440 × iki tema, taşma/CSP/pageerror 0; Space/Enter, filtrede seçim, form/iç seçici/menü/onay odağı, not sil→başlık odağı ve yalnız başlık PATCH doğrulandı. Kanıt `.git/koordinator/web4-w107/` altında (results.json, betik, 18 görüntü). W107 PR/CI/birleşimi bu kayıt anında bekleniyor; O3/O4 kapanmış değildir. F5 açılmadı.
