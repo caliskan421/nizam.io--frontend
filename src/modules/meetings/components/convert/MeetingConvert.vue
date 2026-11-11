@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useProgramDepartments } from '@/modules/work/public'
 import { authSession } from '@/shared/http'
@@ -78,9 +78,27 @@ const invalid = computed(
     start.value < today.value ||
     Array.from(title.value).length > 255,
 )
+const initialGeneration = authSession.generation
+const unsubscribe = authSession.subscribe(() => {
+  if (authSession.generation !== initialGeneration) emit('close')
+})
+onScopeDispose(unsubscribe)
 watch(
-  () => [scope.programId, authSession.generation, standing.value?.accountId],
+  () => scope.programId,
   () => emit('close'),
+)
+watch(
+  () => standing.value,
+  (current, previous) => {
+    if (
+      previous &&
+      (!current ||
+        current.accountId !== previous.accountId ||
+        JSON.stringify(current.rows) !== JSON.stringify(previous.rows) ||
+        current.companyAdmin !== previous.companyAdmin)
+    )
+      emit('close')
+  },
 )
 function sameOwner(generation: number, programId: string | null, accountId: string | undefined) {
   return (
