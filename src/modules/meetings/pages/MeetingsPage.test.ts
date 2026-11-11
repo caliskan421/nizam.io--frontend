@@ -194,3 +194,37 @@ it('hides creation and deleted tabs for a member', async () => {
   client.clear()
   standingState.admin = true
 })
+
+it('stops the automatic drain on repeated cursors, including empty pages', async () => {
+  let requests = 0
+  server.use(
+    http.get('http://localhost/v1/program/departments', () =>
+      HttpResponse.json({ departments: [] }),
+    ),
+  )
+  server.use(
+    http.get('http://localhost/v1/meetings', () => {
+      requests++
+      return HttpResponse.json({ items: [], next_cursor: 'same' })
+    }),
+  )
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/toplantilar', component: Page }],
+  })
+  await router.push('/toplantilar')
+  const wrapper = mount(Page, {
+    global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
+  })
+  await settleQueries(client)
+  expect(wrapper.text()).toContain('Diğer toplantılar yüklenemedi')
+  expect(requests).toBe(2)
+  await flushPromises()
+  expect(requests).toBe(2)
+  wrapper.unmount()
+  client.clear()
+})

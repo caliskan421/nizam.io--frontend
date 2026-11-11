@@ -24,18 +24,30 @@ const instance = useInstanceStore()
 const { standing, programs } = useStanding()
 const departments = useProgramDepartments()
 const creating = ref(false)
+const loadFailure = ref(false)
+const loadingAll = ref(false)
+let listGeneration = 0
+function resetLoad() {
+  listGeneration += 1
+  loadingAll.value = false
+  loadFailure.value = false
+}
 const stopScope = scope.onChange(() => {
   creating.value = false
+  resetLoad()
 })
 let generation = authSession.generation
 let account = authSession.snapshot.accountId
 const stopSession = authSession.subscribe((snapshot) => {
-  if (generation !== authSession.generation || account !== snapshot.accountId)
+  if (generation !== authSession.generation || account !== snapshot.accountId) {
     creating.value = false
+    resetLoad()
+  }
   generation = authSession.generation
   account = snapshot.accountId
 })
 onScopeDispose(() => {
+  resetLoad()
   stopScope()
   stopSession()
 })
@@ -94,16 +106,39 @@ function saved(id?: string) {
 function update(key: string, next: string) {
   void router.replace({ query: { ...route.query, [key]: next || undefined } })
 }
+watch(() => [from.value, to.value, value('koordinatorluk'), invalid.value], resetLoad, {
+  flush: 'sync',
+})
+async function loadRemaining() {
+  if (loadingAll.value || invalid.value) return
+  const started = listGeneration
+  loadingAll.value = true
+  loadFailure.value = false
+  try {
+    await meetings.loadAll()
+  } catch {
+    if (started === listGeneration) loadFailure.value = true
+  } finally {
+    if (started === listGeneration) loadingAll.value = false
+  }
+}
 watch(
-  () => [meetings.query.data.value, meetings.query.isFetching.value, invalid.value],
+  () => [
+    meetings.query.data.value,
+    meetings.query.isFetching.value,
+    invalid.value,
+    loadingAll.value,
+  ],
   () => {
     if (
       !invalid.value &&
+      !loadFailure.value &&
+      !loadingAll.value &&
       meetings.query.hasNextPage.value &&
       !meetings.query.isFetching.value &&
       !meetings.query.isFetchNextPageError.value
     )
-      void meetings.loadAll().catch(() => {})
+      void loadRemaining()
   },
   { immediate: true },
 )
@@ -200,9 +235,9 @@ watch(
         <button @click="meetings.query.refetch()">{{ t('meetings.list.retry') }}</button>
       </div>
       <template v-else
-        ><div v-if="meetings.query.isFetchNextPageError.value" role="alert">
+        ><div v-if="loadFailure || meetings.query.isFetchNextPageError.value" role="alert">
           {{ t('meetings.list.moreError') }}
-          <button @click="meetings.loadAll().catch(() => {})">
+          <button @click="loadRemaining">
             {{ t('meetings.list.retry') }}
           </button>
         </div>
