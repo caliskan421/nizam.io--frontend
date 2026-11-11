@@ -1,12 +1,12 @@
 # O2 — Toplantılar (W101 → W102–W106)
 
-**F4 ürün sahibinin uyarısı/onayı olmadan açılmaz.** Açılış istemi yalnız onaydan sonra yapıştırılır.
+**F4 geçişi 2026-11-11 onaylandı.** O1 raporunu uygulayıcıya aktar.
 
 ## Açılış istemi
 
 ```
 WEB-4 O2 oturumunu koordinatör olarak yürüt.
-Önce doğrula: ürün sahibi F4'e geçiş uyarısı/onayı verdi mi? Vermediyse DUR.
+Ürün sahibi F4 geçişini onayladı; O1 açık sınırlarını izle.
 Oku: docs/yurutme/web-4/README.md → ortak-sozlesme.md → oturum-2-toplantilar.md → ilerleme.md
 → docs/ekranlar/ortak-kurallar.md (tamamı, §12) → docs/ekranlar/09-toplantilar/ (README kabul tablosu → mekanizma → backend → eksikler → ozellikler)
 → docs/backend-eksikleri/rapor-F3.md §4 → docs/yurutme/web-3/ilerleme.md (W97a hataları, dersler).
@@ -24,9 +24,9 @@ her W için ayrı PR, CI yeşilse birleştir (O2b sırası: W102 → W103 → W1
 
 ## W101 — Toplantılar veri katmanı (O2a)
 
-- **Sahip:** `src/modules/meetings/**` (yeni: `api/**`, `model/**` — `capabilities.ts` dahil, `routes.ts`, `public.ts`, `components/index.ts` iskeleti, i18n tek ağaç `trMeetings` kökü — KESİN 24), `src/app/routes.catalog.ts` (F4 rota satırları `/toplantilar`, `/toplantilar/:meetingId`; `zaman`, `koordinatorluk`, `notlar` parametreleri; `CURRENT_PHASE` F3 → F4), `src/app/router.ts` yalnız `meetingsRoutes` kaydı, `src/shared/http/query-keys.ts` yalnız `meetings` anahtarları (`09/backend.md` §5 adlarıyla; ilişki listesi KESİN 29).
+- **Sahip:** `src/modules/meetings/**` (yeni: `api/**`, `model/**` — `capabilities.ts` dahil, `routes.ts`, `public.ts`, `components/index.ts` iskeleti, i18n tek ağaç `trMeetings` kökü — KESİN 24), `src/app/routes.catalog.ts` (F4 rota satırları `/toplantilar`, `/toplantilar/:meetingId`; `zaman`, `koordinatorluk`, `from`, `to`, `notlar` parametreleri; `CURRENT_PHASE` F3 → F4), `src/app/router.ts` yalnız `meetingsRoutes` kaydı, `src/shared/http/query-keys.ts` yalnız `meetings` anahtarları (`09/backend.md` §5 adlarıyla; ilişki listesi KESİN 29).
 - **Tespit:** `09/backend.md` §1 (okuma), §2 (yazma), §3 (eylem görünürlüğü), §4 (türetilenler), §5 (anahtarlar), §6 (sözleşme notları); `eksikler.md` §3, §4, §6; kabul tablosu **satır dışı varsayımlar**; `ortak-kurallar.md` §1, §6, §7 (Ö-07/Ö-08), §9, §10, §12 P1; web-3 `timeline/api`, `capabilities.ts` kalıbı.
-- **İş:** `listMeetings` sonsuz imleç + "bütün sayfaları yükle" yardımcısı (200'lük, sürerken "n+"); `getMeeting` (ilk not sayfası detaydan tohumlanır), `listMeetingNotes`, `listDeletedMeetings` (S2, `sessionBound` + `signal`, KESİN 26); yazma sarmalayıcıları (`createMeeting`, `updateMeeting`, `deleteMeeting`, `restoreMeeting`, `permanentDeleteMeeting`, gündem 3 yazım, `addMeetingNote` (`Idempotency-Key`, eylem başına), `updateMeetingNote` (`expected_revision`, 409 `edit_conflict`), `deleteMeetingNote`, `convertNoteToTask`, katılımcı 2 yazım) — anahtarsız uçlarda kör tekrar yok, sonuç bilinmiyorsa liste/detay yeniden okunur; `capabilities.ts` (K1; meetings README §3/§4 kural kimlikleriyle; olgu = `company_admin`, `myDepartments` rolü, toplantının `departments[]`, `viewer_role`; tablo testi: ŞY × K × Ü × bağlı/bağlı değil × yazar/başka × dönüşmüş); zaman bölme + gün gruplama modeli (kurulum saat dilimi); departman kodu çözümü (`listProgramDepartments` ⋈ `department_id`, sahip önde); iskelet.
+- **İş:** `listMeetings` `department_id`/`from`/`to` filtreleri sorgu anahtarında ve her imleç isteğinde; filtre değişince imleç sıfırlanır; sonsuz imleç + "bütün sayfaları yükle" yardımcısı (200'lük, sürerken "n+"); `getMeeting` (ilk not sayfası detaydan tohumlanır), `listMeetingNotes`, `listDeletedMeetings` (S2, `sessionBound` + `signal`, KESİN 26); yazma sarmalayıcıları (`createMeeting`, `updateMeeting`, `deleteMeeting`, `restoreMeeting`, `permanentDeleteMeeting`, gündem 3 yazım, `addMeetingNote` (`Idempotency-Key`, eylem başına), `updateMeetingNote` (`expected_revision`, 409 `edit_conflict`), `deleteMeetingNote`, `convertNoteToTask`, katılımcı 2 yazım) — anahtarsız uçlarda kör tekrar yok, sonuç bilinmiyorsa liste/detay yeniden okunur; `capabilities.ts` (K1; meetings README §3/§4 kural kimlikleriyle; olgu = `company_admin`, `myDepartments`, `invite_mode`, `owner_department_id`, `created_by_account_id`, katılımcılık ve `viewer_role`; K73/K74 kip ayrımı; tablo testi: ŞY × K × Ü × bağlı/bağlı değil × yazar/başka × dönüşmüş); zaman bölme + gün gruplama modeli (kurulum saat dilimi); departman kodu çözümü (`listProgramDepartments` ⋈ `department_id`, sahip önde); iskelet.
 - **Eksikler (BE):** BE-021, BE-060, BE-061, BE-063, BE-065, BE-067, BE-068 (veri katmanında stub yok; "Şimdilik" yolları); BE-062/BE-022/BE-023 kurulmaz.
 - **Kabul:** her uç için msw testi (S2: yalnız program başlığı); capability tablo testi (üç rol); kapsam/oturum değişiminde sorgular düşer (Ö-08); anahtarsız uçlarda "sonuç bilinmiyor → tek istek"; **"gövde dolunca iskelet/rota testi kırılır mı?" cevabı rapora** (KESİN 22).
 
@@ -34,7 +34,7 @@ her W için ayrı PR, CI yeşilse birleştir (O2b sırası: W102 → W103 → W1
 
 - **Sahip:** `src/modules/meetings/pages/MeetingsPage.vue` (+ `pages/meetings/**`), `src/modules/meetings/components/list/**` (başlık, sekmeler, süzgeç, gün grubu, satır gövdeleri); 01/10 tarafında dosya yok.
 - **Tespit:** E-09-01…19 (+ E-09-03/05 görünürlüğü); `mekanizma.md` §1, §5, §6; `eksikler.md` yeni-1/2/3; `ozellikler.md` §2.1–2.3, §7. Tasarım: `Toplantilar.dc.html`.
-- **İş:** kabul tablosundaki satırlar (başlık/alt başlık, zaman sekmeleri URL `zaman`, koordinatörlük süzgeci URL `koordinatorluk`, gün grupları, satır, statik sayaçlar `designStub('BE-060')`, kural notu düzeltilmiş metin, alt sayaç, boş/yükleniyor/hata, K6/K7 durumları).
+- **İş:** kabul tablosundaki satırlar (başlık/alt başlık, zaman sekmeleri URL `zaman`, koordinatörlük süzgeci URL `koordinatorluk`, E-09-06a tarih süzgeci URL `from`/`to` ve API bağlama, gün grupları, satır, `summary` sayaçları, kural notu düzeltilmiş metin, alt sayaç, boş/yükleniyor/hata, K6/K7 durumları).
 - **Eksikler (BE):** BE-021, BE-060, BE-062 (gizli).
 - **Kabul:** E-09-01…19 kabul kanıtları; satır başına ek istek yok (fan-out testi); Canlı/Bekliyor DOM'da yok; açık/koyu tema; 390/1024/1440 taşma 0.
 
@@ -58,7 +58,7 @@ her W için ayrı PR, CI yeşilse birleştir (O2b sırası: W102 → W103 → W1
 
 - **Sahip:** `src/modules/meetings/components/people/**` (katılımcı kartı + kişi seçici bileşeni), `components/side/**` (koordinatörlükler + bilgi).
 - **Tespit:** E-09-45…54; `backend.md` §1 (katılımcılar), §2 (ekle/çıkar); `eksikler.md` yeni-5/7/10/11/12; `mekanizma.md` §4.12–4.14.
-- **İş:** düz katılımcı listesi, "Ekle" (kişi seçici — ortak bileşen, adaylar `listMembers` yalnız `coordOf`), sıralı ayrı istekler + kısmi başarı uyarısı, çıkar, Koordinatörlükler kartı ("Değiştir" yalnız ŞY — pencere W106), Bilgi kartı (Açan, Oluşturulma, Kimler görür, Rolün).
+- **İş:** düz katılımcı listesi (K72 ekip verisi var; gruplama kararı açık), "Ekle" (P23 özel kişi seçici (açılmış çizim bulunamadı); ŞY `listUsers` program filtresi, K `listMembers` yalnız `coordOf`, BE-067 sınırı ve kesilme açık), sıralı ayrı istekler + kısmi başarı uyarısı, çıkar, Koordinatörlükler kartı ("Değiştir" yalnız coordinatorship kipinde ŞY — pencere W106), Bilgi kartı (Açan, Oluşturulma, Kimler görür, Rolün).
 - **Eksikler (BE):** BE-063, BE-064 (koşullu), BE-066, BE-067, BE-048.
 - **Kabul:** E-09-45…54 kabul kanıtları; K'da "Değiştir" DOM'da yok; kısmi başarı testi; sağlayıcı adı DOM'da yok.
 
@@ -66,6 +66,6 @@ her W için ayrı PR, CI yeşilse birleştir (O2b sırası: W102 → W103 → W1
 
 - **Sahip:** `src/modules/meetings/components/forms/**` (yeni toplantı, düzenle, koordinatörlük kümesi), `components/deleted/**` (silme onayı, Silinenler kartı/sekmesi).
 - **Tespit:** E-09-03, 05, 24, 25, 51, 66…73, 81…84; `backend.md` §2; `mekanizma.md` §4.1–4.5, 4.14; `eksikler.md` yeni-13/14. Tasarım: `Toplanti-Formlar.dc.html`.
-- **İş:** yeni toplantı (başlık, tarih+saat, koordinatörlük çipleri K kısıtıyla, "Üyeler dahil", `Idempotency-Key` yok → kör tekrar yok), düzenle formu (aynı alanlar, sürümsüz PATCH), koordinatörlük kümesi (yalnız ŞY), silme `alertdialog` (konferans cümlesi yok), Silinenler (yalnız ŞY; geri yükle, kalıcı sil onayı).
+- **İş:** yeni toplantı (başlık, tarih+saat, kip seçimi; person kuruluşunda bir sahip departman ve seçilen katılımcılar; `members_included: true` person'da yasak, `Idempotency-Key` yok → kör tekrar yok), düzenle formu (P25, sürümsüz PATCH; person kip/departman değişmez ve `members_included: true` yasak), koordinatörlük kümesi (yalnız coordinatorship kipinde ŞY), silme `alertdialog` (konferans cümlesi yok), Silinenler (yalnız ŞY; geri yükle, kalıcı sil onayı).
 - **Eksikler (BE):** BE-063, BE-067, BE-068.
 - **Kabul:** E-09-03, 05, 24, 25, 51, 66…73, 81…84 kabul kanıtları; geçmiş gün istek atmaz; çift gönderim kilidi; odak dönüşü (KESİN 27); 404 silme → başarı gibi liste.
