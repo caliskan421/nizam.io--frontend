@@ -48,3 +48,20 @@ export interface UpdateAgendaInput extends AgendaTarget {
 export interface ParticipantInput extends MeetingTarget {
   userId: string
 }
+export type MeetingNote = components['schemas']['MeetingNote']
+export type NoteRequest = components['schemas']['NoteRequest']
+export type ReviseMeetingNoteRequest = components['schemas']['ReviseMeetingNoteRequest']
+export type ConvertNoteRequest = components['schemas']['ConvertNoteRequest']
+export type NoteConverted = components['schemas']['NoteConverted']
+export interface AddNoteInput extends MeetingTarget {
+  body: NoteRequest
+}
+export interface NoteTarget extends MeetingTarget {
+  noteId: string
+}
+export interface UpdateNoteInput extends NoteTarget {
+  body: ReviseMeetingNoteRequest
+}
+export interface ConvertNoteInput extends NoteTarget {
+  body: ConvertNoteRequest
+}
