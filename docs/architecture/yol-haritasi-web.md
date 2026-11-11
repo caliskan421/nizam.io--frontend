@@ -30,6 +30,8 @@
 | K14 | v1 kapsamı | **F0–F4.** Tasarımdaki yeni modül ekranları (İşlem geçmişi, Tablolar, Takvim, Kurumsal hafıza, Simülasyon, Bütçe/Talep) v1 dışı, menüde görünmez; ayrı backend+web fazları. Departmanlar v1'de düz liste (hiyerarşi, aktif/pasif, birleştirme sonra). Koordinatör/üye ana sayfası mevcut uçlarla sade; yönetici panosu mevcut rapor uçlarıyla. |
 | K15 | Geliştirme | Ürün sahibi + Claude, bu depoda. Süreç backend/mobil ile aynı: faz = iş dosyası + yürütme seti; koordinatör kod yazmaz, uygulayıcı alt ajanlar worktree'de; her PR CI yeşil; faz sonu Codex salt okunur kapı (`docs/reviews/`); yönetim deposunda (`../program/DURUM.md`) faz başına tek satır. |
 
+**P30 toplantı yetkisi istisnası:** `istemci-akislari.md` toplantı yetkisini kapsamaz; pinli meetings README §3/§4 K73/K74 `capabilities.ts` kaynağıdır (BE-036 madde 7 belge paketi gelene dek).
+
 **Önceki belgeden değişenler:** Karar 1'deki `/v1/me/authorities` önerisi düştü (K1); "Gantt'ta görünür seçici" düştü (K4, backend sözleşmesi); "gerçek zamanlı yok" düştü (K8); "web token'ların sahibi, mobil okur" düştü (K9); yazma protokolü, rota kataloğu, açık durumlar ve program yönetimi eklendi.
 
 ## 3. Mimari (değişmeyen çekirdek)

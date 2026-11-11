@@ -110,7 +110,7 @@ Akış sonrası konsol hatası, CSP ihlali ve `pageerror` her akışta 0 (anonim
 | G-3 | düşük | 03c seçili görev paneli (sağ alt) 1440×900'de kaydırma konumuna göre bitiş tutamacını örter (`elementFromPoint` → `section.timeline-panel`); tutamaç tıklanamaz, çubuk panelin altından kaydırılmalı. | adminA, `/zaman-cizelgesi?olcek=gun&secili=<görev>`, çubuk sağ ucu x≈1070'e gelecek biçimde kaydır. | `src/modules/timeline/components/panel/SelectedTaskPanel.vue` / `panel.css` |
 | G-4 | bilgi | Hızlı 200 görev oluşturma 429 (`platform.rate_limited`) üretir; yazma hız sınırı backend davranışıdır, istemci hatası değil (tohum betiği `Retry-After` ile bekler). | `POST /v1/work-items` art arda. | — |
 
-CSP, taşma, veri bütünlüğü ya da erişilemeyen eylem türünde kusur yok; G-3 dışında hepsi görsel/ileti düzeyinde.
+G-3 yukarıdaki üretim imajı gözleminin tarihsel kaydıdır ve erişilemeyen bir eylem kusurudur. WP4b (#85) `use-panel-reveal.ts` ile kaydırma sonrası ve derin bağlantıda koruma ekledi; `use-panel-reveal.test.ts` sahte geometrilerde kaydırma ve odak çalmamayı sınar. WEB-P Codex tur 2 Ö-05 **kısmen** hükmündedir: gerçek 390/1024/1440 yerleşiminde tutamaç hit-test’i ve klavye/odak kabulü doğrulanmadı; gerçek watcher/scope temizliği de K-04 olarak açık. Bu yüzden G-3 kapanmış sayılmaz; W109 borcudur. Diğer G bulguları görsel/ileti veya hız sınırı düzeyindedir.
 
 ## 7. Yapılamayanlar
 

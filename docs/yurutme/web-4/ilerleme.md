@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 ürün sahibinin uyarısı/onayı olmadan AÇILMAZ.** Onay henüz verilmedi (2026-11-10 itibarıyla); bu dosya WEB-3 O4'te hazırlanan iskelettir.
+**F4 geçişi 2026-11-11 bu oturumda onaylandı.** O1 PR ve CI kapıları açık; F4 kapanmış değildir.
 
 ## Durum
 
@@ -10,16 +10,16 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 |---|---|---|
 | Pin aşaması (WEB-P, `v0.15.0-api`) | **KAPANDI 2026-11-10** — Codex tur 2 KOŞULLU UYGUN (HEAD `1bd80b6`); ayrıntı aşağıda "Pin aşaması" | `1bd80b6` |
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
-| O2a — Toplantılar veri katmanı (W101) | Bekliyor (F4 onayı yok) | — |
+| O2a — Toplantılar veri katmanı (W101) | Bekliyor (O1 PR/CI ve birleşim ardından) | — |
 | O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Bekliyor | — |
 | O3 — Entegrasyon turu (W107) | Bekliyor | — |
 | O4 — Kapanış | Bekliyor | — |
 
 ## Devralınan (WEB-3 O4)
 
-- **Ürün onayı:** **F4-S1…S10 cevaplandı (2026-11-10)** → `../../ekranlar/ortak-kurallar.md` §12 P21–P30 (+ P31 avatar renkleri); 09 kabul tablosu güncellendi. **Hâlâ açık:** F4 geçişi için ürün sahibinin açık "F4'e geç" onayı.
+- **Ürün onayı:** **F4-S1…S10 cevaplandı (2026-11-10)** → `../../ekranlar/ortak-kurallar.md` §12 P21–P30 (+ P31 avatar renkleri); 09 kabul tablosu güncellendi. **Güncelleme:** F4 geçiş onayı 2026-11-11 verildi.
 - **Kapı:** F3 KAPANDI 2026-11-10 — Codex tur 2 KOŞULLU UYGUN (HEAD `768f22b`; `../../reviews/WEB-3-codex.md`); `dogrulama-F3.md` tamam. WEB-3'ten açık "geçici kabul": 03c E-03C-27, 41 (görsel nihai kabul, ürün sahibi onayı) — F4 borcu, F4'ü bloklamaz. **F4'e aktarılan borçlar:** Ö-07 gerçek ekran okuyucu, K-04 05 odak dönüşü, E-03C-27/41 görsel nihai kabul. **Pin aşamasına devredilen koşullar (F4'ten önce, ilk iş):** Codex CX-F3-Ö-03 (ARIA alt satır `aria-rowindex`/sıra), Ö-04 (sürükleme ön okumasında kapsam değişimi), Ö-08 (ortak `useProtectedMutation` başarı bekleyişinde sahip yarışı); kabul ölçütleri `../../backend-eksikleri/rapor-F3.md` §2 ve `../../reviews/WEB-3-codex.md` tur 2.
-- **Backend / F4 ön koşulu — pin aşaması (YAPILDI: `api-pin.json` `v0.15.0-api`; WEB-P, Codex pin kapısı tur 1 düzeltmeleri sürüyor):** `v0.13.0-api`…`v0.15.0-api` yayımlandı; ürün sahibi: F3 `v0.11.0-api` ile kapanır, pin yükseltmesi **F3 kapandıktan sonra F4'ten önce ayrı aşama** (kendi Codex kapısı; `../../backend-eksikleri/rapor-F3.md` §2). Backend notları: kesilme `X-Result-Truncated` başlığından; uzatma tekrarında `replayed:true`, `dates_revision` ilk sonuç; aktarım kimliği `fields[field=account_id]` `message`. `../../backend-eksikleri/rapor-F3.md` §4 — Paket 4.1 (BE-021) + BELGE (BE-036 madde 7); 09 tablosunun "Şimdilik" yolları pin aşamasından sonra yeniden okunur.
+- **Backend / F4 ön koşulu — pin aşaması (YAPILDI: `api-pin.json` `v0.15.0-api`; WEB-P, Codex tur 2 KOŞULLU UYGUN; pin aşaması kapandı):** `v0.13.0-api`…`v0.15.0-api` yayımlandı; ürün sahibi: F3 `v0.11.0-api` ile kapanır, pin yükseltmesi **F3 kapandıktan sonra F4'ten önce ayrı aşama** (kendi Codex kapısı; `../../backend-eksikleri/rapor-F3.md` §2). Backend notları: kesilme `X-Result-Truncated` başlığından; uzatma tekrarında `replayed:true`, `dates_revision` ilk sonuç; aktarım kimliği `fields[field=account_id]` `message`. `../../backend-eksikleri/rapor-F3.md` §4 — Paket 4.1 (BE-021) + BELGE (BE-036 madde 7); 09 tablosunun "Şimdilik" yolları pin aşamasından sonra yeniden okunur.
 - **F3 borçları (F4'ü etkilemez, izlenir):** 05 panel kapanışında odak satıra dönmez; ekran okuyucu gerçek cihaz denemesi yapılmadı; `GanttView.vue` 250 satır sınırında; 03d alt görev bloğu kısa kayma (BE-051); W97b (12) kararı.
 - **Yeni KESİN kurallar:** [ortak-sozlesme.md](ortak-sozlesme.md) 28–32 (bağlama noktası istemde adıyla, türev sayaç/rozet geçersizleme, dar ekran etkileşimli duman, tek kaynak alan, sınırdaki dosya/test süresi).
 
@@ -59,4 +59,20 @@ Pin: `api-pin.json` **`v0.15.0-api`** (`gen:api`: 194 hata kodu, 189 operasyon).
 3. **Gerçek ekran okuyucu (VoiceOver) kabulü** (CX-F3-Ö-07; F3'ten devralınan, hâlâ yapılmadı).
 4. **K-04:** 05 panel kapanışında odak satıra dönüşü.
 5. **E-03C-27/41:** 03c görsel nihai kabul (ürün sahibi onayı).
-6. **Ürün kararlarının uygulanması:** 09 kabul tablosu F4-S1…S10 (P21–P30); özellikle S4 ("Kişiler" daveti: `invite_mode` yeterliliği F4 açılışında doğrulanır) ve S9 (`listMeetings` `from`/`to`).
+6. **Ürün kararlarının uygulanması:** 09 kabul tablosu F4-S1…S10 (P21–P30); özellikle S4 ("Kişiler" daveti: O1 yeterlilik ve BE-067 sınırı) ve S9 (`listMeetings` `from`/`to`).
+
+## 2026-11-11 — O1 ve devredilen borçlar
+
+F4 geçişi ürün sahibince onaylandı. W100 O1: [backend yeterlilik](o1-backend-yeterlilik.md); v0.15 pin korunur, koordinatör adayları BE-067 ile sınırlı, özel seçicinin açılmış çizimi bulunamadı. Önceki oturumda commit ve GitHub erişimi engelliydi. Bu oturumda GitHub API/uzak main erişimi ve W100 commit işlemi doğrulandı (`6461e4f`); PR/CI ve birleşim henüz açık.
+
+- W108 ayrı borç işçisi: Ö-02 aktarım mercek/geç 409, 05 K-04 odak, G-1/G-2.
+- W109 ayrı borç işçisi: 03c Ö-05/K-04 gerçek yerleşim/temizleme ve Ö-03 ek entegrasyon.
+- W100 K-02 belge kalemleri tamamlandı: 05 rol/arama/toplam kabul kanıtları, §6 pano kararının tarihçesi ve G-3 ile WP4b kısmi kanıtı ilişkilendirildi. Ö-05/K-04 gerçek hit-test ve temizleme borcu W109’da açık; belge düzeltmesi bu davranışları doğrulamaz.
+- W107 gerçek person rolleri, URL + filtre + özel seçici entegrasyonuna sahip.
+- O4: G-4 429 tanığı, VoiceOver ve E-03C-27/41 kullanıcı kanıtı bekleniyor; otomatik doğrulandı sayılmaz.
+
+O1 denetimi: Node 24.9.0 ve aynı `package.json`/kilit dosyasına sahip ana çalışma ağacının kurulu bağımlılıkları kullanılarak `pnpm lint` ve değişen belgelerin Prettier kontrolü geçti; `git diff --check` temiz. Önceki çevrimdışı kurulum `@primeuix/themes` 2.0.3 önbellekte olmadığından ve varsayılan Node 22.12.0 proje gereksiniminin altında olduğundan başarısızdı. Önceki Git yazma ve GitHub erişim engelleri bu oturumda tekrarlanmadı. W100 belge denetimi ve commit tamamlandı; son tutarlılık düzeltmesinin ardından O1 PR, CI ve yeşil birleşim, sonra W101 gelir.
+
+### K-02 belge takibi
+
+05 kabul tablosu pinli sunucu rolü, e-posta araması ve toplam kanıtlarına hizalandı; §6 eski pano yasağı tarihsel ayrıldı; G-3 tarihsel gözlemi WP4b kısmi koruması ve açık Ö-05/K-04 gerçek yerleşim borcuna bağlandı. Bu belge kalemleri tamamlandı; O1 commit/PR/CI kapısı açık kalır.
