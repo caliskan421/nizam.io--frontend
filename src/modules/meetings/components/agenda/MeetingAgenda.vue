@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
+import './agenda.css'
 import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../../api/detail-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
@@ -154,6 +155,7 @@ function checker(item: AgendaItem) {
       >
     </div>
     <progress
+      class="meeting-agenda__progress"
       :value="checked"
       :max="meeting.agenda.length || 1"
       :title="`${checked} / ${meeting.agenda.length} ${text.checked}`"
@@ -168,7 +170,7 @@ function checker(item: AgendaItem) {
       />
       <form v-if="editing === item.agenda_item_id" @submit.prevent="save(item)">
         <input v-model="editTitle" :aria-label="`${item.title} düzenle`" /><button type="submit">
-          Kaydet</button
+          {{ text.save }}</button
         ><button type="button" @click="editing = null">{{ text.cancel }}</button>
       </form>
       <span v-else :class="{ 'meeting-agenda__done': item.is_checked }">{{ item.title }}</span>
@@ -192,7 +194,7 @@ function checker(item: AgendaItem) {
           role="menu"
           @keydown.esc.stop="closeMenu(item.agenda_item_id)"
         >
-          <button role="menuitem" type="button" @click="editItem(item)">Düzenle</button>
+          <button role="menuitem" type="button" @click="editItem(item)">{{ text.edit }}</button>
           <button role="menuitem" type="button" @click="deleteItem(item)">{{ text.delete }}</button>
         </div>
       </div>
@@ -210,26 +212,3 @@ function checker(item: AgendaItem) {
     </form>
   </section>
 </template>
-
-<style scoped>
-.meeting-agenda {
-  padding: var(--space-5);
-}
-.meeting-agenda progress {
-  width: 100%;
-}
-.meeting-agenda__row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-block: var(--space-3);
-  border-bottom: var(--ui-hairline) solid var(--border-subtle);
-}
-.meeting-agenda__row > span {
-  flex: 1;
-}
-.meeting-agenda__done {
-  text-decoration: line-through;
-  opacity: 0.62;
-}
-</style>

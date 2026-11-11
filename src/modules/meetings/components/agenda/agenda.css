@@ -1,0 +1,44 @@
+.meeting-agenda {
+  padding: var(--space-5);
+}
+.meeting-agenda__progress {
+  width: var(--meeting-agenda-progress-width);
+  height: var(--meeting-agenda-progress-height);
+  accent-color: var(--accent-text);
+}
+.meeting-agenda__row {
+  display: grid;
+  grid-template-columns: var(--meeting-agenda-check-width) minmax(0, 1fr) auto var(
+      --meeting-agenda-menu-width
+    );
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--meeting-agenda-row-height);
+  padding-block: var(--space-1);
+  border-bottom: var(--ui-hairline) solid var(--border-subtle);
+}
+.meeting-agenda__row small {
+  color: var(--ink-muted);
+  font: var(--m-caption);
+}
+.meeting-agenda__done {
+  text-decoration: line-through;
+  color: var(--ink-muted);
+  opacity: 0.62;
+}
+.meeting-agenda__row input {
+  accent-color: var(--accent-text);
+}
+.meeting-agenda form input {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .meeting-agenda__row {
+    grid-template-columns: var(--meeting-agenda-check-width) minmax(0, 1fr) var(
+        --meeting-agenda-menu-width
+      );
+  }
+  .meeting-agenda__row small {
+    grid-column: 2;
+  }
+}

@@ -15,7 +15,12 @@
           "name": "meeting-code-height",
           "value": "22px",
           "usage": "Koordinatörlük kodu yüksekliği."
-        }
+        },
+        { "name": "meeting-agenda-row-height", "value": "52px" },
+        { "name": "meeting-agenda-check-width", "value": "20px" },
+        { "name": "meeting-agenda-menu-width", "value": "32px" },
+        { "name": "meeting-agenda-progress-width", "value": "72px" },
+        { "name": "meeting-agenda-progress-height", "value": "5px" }
       ]
     },
     "color": {

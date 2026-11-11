@@ -770,6 +770,54 @@ export const TOKENS = {
     "dark": "8px",
     "light": "8px"
   },
+  "meeting-date-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "60px",
+    "light": "60px"
+  },
+  "meeting-code-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "40px",
+    "light": "40px"
+  },
+  "meeting-code-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "22px",
+    "light": "22px"
+  },
+  "meeting-agenda-row-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "52px",
+    "light": "52px"
+  },
+  "meeting-agenda-check-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "20px",
+    "light": "20px"
+  },
+  "meeting-agenda-menu-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "32px",
+    "light": "32px"
+  },
+  "meeting-agenda-progress-width": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "72px",
+    "light": "72px"
+  },
+  "meeting-agenda-progress-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "5px",
+    "light": "5px"
+  },
   "rp-done-fill": {
     "group": "color",
     "origin": "web",
@@ -2827,24 +2875,6 @@ export const TOKENS = {
     "origin": "web",
     "dark": "16px minmax(0, 1fr) auto",
     "light": "16px minmax(0, 1fr) auto"
-  },
-  "meeting-date-width": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "60px",
-    "light": "60px"
-  },
-  "meeting-code-width": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "40px",
-    "light": "40px"
-  },
-  "meeting-code-height": {
-    "group": "meeting",
-    "origin": "web",
-    "dark": "22px",
-    "light": "22px"
   }
 } as const
 
