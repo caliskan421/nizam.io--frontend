@@ -4,11 +4,13 @@ import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../.
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
 import { reachesOwner } from '@/shared/http/mutation'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 
+const text = trMeetings.meetings.agenda
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ refresh: [] }>()
 const scope = useScopeStore()
@@ -114,9 +116,9 @@ async function deleteItem(item: AgendaItem) {
   const programId = scope.programId
   const outcome = await confirmWrite(
     {
-      title: 'Gündem maddesi silinsin mi?',
+      title: text.deleteTitle,
       description: item.title,
-      confirmLabel: 'Sil',
+      confirmLabel: text.delete,
       tone: 'danger',
     },
     (context) => remove.submit({ programId, itemId: item.agenda_item_id }, { context }),
@@ -129,7 +131,7 @@ async function deleteItem(item: AgendaItem) {
 function checker(item: AgendaItem) {
   const name =
     props.meeting.participants.find((p) => p.account_id === item.checked_by_account_id)
-      ?.full_name ?? 'Bilinmeyen kişi'
+      ?.full_name ?? text.unknown
   const parts = name.trim().split(/\s+/)
   const short = parts.length > 1 ? `${parts.slice(0, -1).join(' ')} ${parts.at(-1)?.[0]}.` : name
   const time = item.checked_at
@@ -146,7 +148,7 @@ function checker(item: AgendaItem) {
 <template>
   <section class="t-card meeting-agenda" aria-labelledby="meeting-agenda-title">
     <div class="rp-cardhead">
-      <h2 id="meeting-agenda-title" class="rp-cardtitle">Gündem</h2>
+      <h2 id="meeting-agenda-title" class="rp-cardtitle">{{ text.title }}</h2>
       <span :data-all="meeting.agenda.length > 0 && checked === meeting.agenda.length"
         >{{ checked }} / {{ meeting.agenda.length }}</span
       >
@@ -154,7 +156,7 @@ function checker(item: AgendaItem) {
     <progress
       :value="checked"
       :max="meeting.agenda.length || 1"
-      :title="`${checked} / ${meeting.agenda.length} işaretli`"
+      :title="`${checked} / ${meeting.agenda.length} ${text.checked}`"
     />
     <div v-for="item in meeting.agenda" :key="item.agenda_item_id" class="meeting-agenda__row">
       <input
@@ -167,7 +169,7 @@ function checker(item: AgendaItem) {
       <form v-if="editing === item.agenda_item_id" @submit.prevent="save(item)">
         <input v-model="editTitle" :aria-label="`${item.title} düzenle`" /><button type="submit">
           Kaydet</button
-        ><button type="button" @click="editing = null">Vazgeç</button>
+        ><button type="button" @click="editing = null">{{ text.cancel }}</button>
       </form>
       <span v-else :class="{ 'meeting-agenda__done': item.is_checked }">{{ item.title }}</span>
       <small v-if="item.is_checked">{{ checker(item) }}</small>
@@ -175,7 +177,7 @@ function checker(item: AgendaItem) {
         <button
           :ref="(el) => setButton(item.agenda_item_id, el)"
           type="button"
-          :aria-label="`${item.title} işlemleri`"
+          :aria-label="`${item.title} ${text.actions}`"
           :aria-expanded="openMenu === item.agenda_item_id"
           @click="
             openMenu === item.agenda_item_id
@@ -191,7 +193,7 @@ function checker(item: AgendaItem) {
           @keydown.esc.stop="closeMenu(item.agenda_item_id)"
         >
           <button role="menuitem" type="button" @click="editItem(item)">Düzenle</button>
-          <button role="menuitem" type="button" @click="deleteItem(item)">Sil</button>
+          <button role="menuitem" type="button" @click="deleteItem(item)">{{ text.delete }}</button>
         </div>
       </div>
     </div>
@@ -200,11 +202,11 @@ function checker(item: AgendaItem) {
         <input
           v-model="draft"
           :disabled="meeting.agenda.length >= 50 || add.isPending.value"
-          placeholder="Gündem maddesi ekle ve Enter’a bas"
+          :placeholder="text.placeholder"
         />
         <span>{{ count }} / 300</span></label
       >
-      <p v-if="meeting.agenda.length >= 50">En fazla 50 gündem maddesi eklenebilir.</p>
+      <p v-if="meeting.agenda.length >= 50">{{ text.limit }}</p>
     </form>
   </section>
 </template>

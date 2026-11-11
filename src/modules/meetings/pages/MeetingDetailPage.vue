@@ -14,12 +14,14 @@ import MeetingForm from '../components/forms/MeetingForm.vue'
 import MeetingConvert from '../components/convert/MeetingConvert.vue'
 import { authSession } from '@/shared/http'
 import { reachesOwner } from '@/shared/http/mutation'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 
+const text = trMeetings.meetings.detail
 const route = useRoute()
 const router = useRouter()
 const scope = useScopeStore()
@@ -60,7 +62,11 @@ const dateLabel = computed(() => {
   const today = meetingDay(new Date(), timezone.value)
   const tomorrowDate = new Date(Date.now() + 86400000)
   const relative =
-    day === today ? 'Bugün · ' : day === meetingDay(tomorrowDate, timezone.value) ? 'Yarın · ' : ''
+    day === today
+      ? `${text.today} · `
+      : day === meetingDay(tomorrowDate, timezone.value)
+        ? `${text.tomorrow} · `
+        : ''
   return (
     relative +
     new Intl.DateTimeFormat('tr-TR', {
@@ -116,12 +122,10 @@ async function deleteMeeting() {
   if (!m || !scope.programId || remove.isPending.value) return
   const outcome = await confirmWrite(
     {
-      title: 'Toplantı silinsin mi?',
+      title: text.deleteTitle,
       description: m.title,
-      body: [
-        'Toplantı listeden kalkar ve artık değiştirilemez. Yönetici silinenlerden geri yükleyebilir.',
-      ],
-      confirmLabel: 'Sil',
+      body: [text.deleteBody],
+      confirmLabel: text.delete,
       tone: 'danger',
     },
     (context) => remove.submit({ programId: m.program_id, id: m.meeting_id }, { context }),
@@ -138,10 +142,10 @@ async function deleteMeeting() {
 
 <template>
   <main class="meeting-detail">
-    <p v-if="query.isPending.value">Yükleniyor…</p>
+    <p v-if="query.isPending.value">{{ text.loading }}</p>
     <div v-else-if="query.isError.value">
-      <p>Toplantı yüklenemedi.</p>
-      <button type="button" @click="refresh">Tekrar dene</button>
+      <p>{{ text.loadError }}</p>
+      <button type="button" @click="refresh">{{ text.retry }}</button>
     </div>
     <template v-else-if="meeting">
       <header class="meeting-detail__header">
@@ -153,34 +157,29 @@ async function deleteMeeting() {
               v-for="department in meeting.departments"
               :key="department.department_id"
               :title="
-                department.department_id === meeting.owner_department_id
-                  ? 'Sahip koordinatörlük'
-                  : undefined
+                department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
               >{{ department.department_name }}</span
             ><span>{{ meeting.departments.length }} koordinatörlük davetli</span
-            ><span
-              v-if="meeting.members_included"
-              title="Bağlı koordinatörlüklerin üyeleri de bu toplantıyı görür ve not ekleyebilir"
-              >Üyeler dahil</span
-            >
+            ><span v-if="meeting.members_included" :title="text.membersTitle">Üyeler dahil</span>
           </div>
         </div>
         <div v-if="canManage">
           <button type="button" class="t-btn t-btn--secondary" @click="formOpen = true">
-            Düzenle</button
+            {{ text.edit }}</button
           ><button
             ref="menuButton"
             type="button"
-            aria-label="Diğer işlemler: tarihi ileri al, sil"
+            :aria-label="text.other"
             :aria-expanded="menuOpen"
             @click="menuOpen ? closeMenu() : (menuOpen = true)"
           >
             ⋯
           </button>
           <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
-            <button type="button" role="menuitem" @click="openFormFromMenu">Tarihi ileri al</button
-            ><button type="button" role="menuitem" @click="deleteMeeting">Sil</button>
+            <button type="button" role="menuitem" @click="openFormFromMenu">
+              {{ text.reschedule }}</button
+            ><button type="button" role="menuitem" @click="deleteMeeting">{{ text.delete }}</button>
           </div>
         </div>
       </header>
@@ -195,7 +194,7 @@ async function deleteMeeting() {
             @add="personSelectorUnavailable = true"
             @refresh="refresh"
           />
-          <p v-if="personSelectorUnavailable" role="status">Kişi seçici henüz kullanılamıyor.</p>
+          <p v-if="personSelectorUnavailable" role="status">{{ text.selectorUnavailable }}</p>
         </div>
         <MeetingSide :meeting="meeting" @edit="formOpen = true" @remove="deleteMeeting" />
       </div>
