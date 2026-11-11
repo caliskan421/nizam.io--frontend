@@ -52,7 +52,7 @@ her W için ayrı PR, CI yeşilse birleştir (O2b sırası: W102 → W103 → W1
 - **Tespit:** E-09-36…44, 74…80; `backend.md` §2 (notlar, `convertNoteToTask`), §3; `eksikler.md` yeni-8/9; `mekanizma.md` §4.9–4.11.
 - **İş:** not kartı (yaz — `Idempotency-Key`, süzgeç istemcide, öğe, düzenle `expected_revision` uzlaştırma, sil, daha fazla), göreve dönüştür penceresi (başlık, hedef koordinatörlük, tarihler; `department_id` her zaman), dönüşmüş etiketi bağlantısız (BE-065).
 - **Eksikler (BE):** BE-061, BE-065, BE-005.
-- **Kabul:** E-09-36…44, 74…80 kabul kanıtları; 409 `edit_conflict` uzlaştırma testi; 409 `note_converted`; dönüştürme sonrası `['work','program-list']` geçersizlenir; üç rol kilit testi (E-09-42).
+- **Kabul:** E-09-36…44, 74…80 kabul kanıtları; 409 `edit_conflict` uzlaştırma testi; 409 `note_converted`; dönüştürme sonrası `queryKeys.workItems.all(scope)` (liste, sayaç ve menü rozeti öneki) geçersizlenir; üç rol kilit testi (E-09-42).
 
 ## W105 — Katılımcılar, koordinatörlükler, bilgi kartı (O2b)
 

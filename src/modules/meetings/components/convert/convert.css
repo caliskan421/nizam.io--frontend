@@ -1,0 +1,41 @@
+.meeting-convert__quote {
+  margin: 0;
+  padding: var(--meeting-quote-padding);
+  border-left: var(--meeting-quote-border) solid var(--border-strong);
+  border-radius: 0 var(--meeting-quote-radius) var(--meeting-quote-radius) 0;
+  background: var(--bg-raised);
+  color: var(--ink-muted);
+  font: var(--meeting-quote-font);
+  overflow-wrap: anywhere;
+}
+.meeting-convert__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.meeting-convert__form label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.meeting-convert__form input,
+.meeting-convert__form select {
+  min-width: 0;
+  width: 100%;
+}
+
+.meeting-convert__dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.meeting-convert__info {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
+.meeting-convert__form p {
+  margin: 0;
+}

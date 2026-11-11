@@ -788,6 +788,102 @@ export const TOKENS = {
     "dark": "22px",
     "light": "22px"
   },
+  "meeting-card-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "24px",
+    "light": "24px"
+  },
+  "meeting-composer-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "meeting-composer-gap": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "meeting-composer-min-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "56px",
+    "light": "56px"
+  },
+  "meeting-note-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "400 14px/22px var(--font-sans)",
+    "light": "400 14px/22px var(--font-sans)"
+  },
+  "meeting-quote-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "12px 14px",
+    "light": "12px 14px"
+  },
+  "meeting-quote-border": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "3px",
+    "light": "3px"
+  },
+  "meeting-card-gap": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "14px",
+    "light": "14px"
+  },
+  "meeting-role-padding": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "7px",
+    "light": "7px"
+  },
+  "meeting-role-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "600 11px/20px var(--font-sans)",
+    "light": "600 11px/20px var(--font-sans)"
+  },
+  "meeting-role-radius": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "6px",
+    "light": "6px"
+  },
+  "meeting-converted-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "28px",
+    "light": "28px"
+  },
+  "meeting-converted-radius": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "8px",
+    "light": "8px"
+  },
+  "meeting-card-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "600 16px/24px var(--font-sans)",
+    "light": "600 16px/24px var(--font-sans)"
+  },
+  "meeting-quote-radius": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "10px",
+    "light": "10px"
+  },
+  "meeting-quote-font": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "400 13px/20px var(--font-sans)",
+    "light": "400 13px/20px var(--font-sans)"
+  },
   "meeting-agenda-row-height": {
     "group": "meeting",
     "origin": "web",

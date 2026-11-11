@@ -91,7 +91,7 @@ Hepsi `scopedKey(programId, …)` altında. Kapsam (program) değişince hepsi i
 | `['meetings','notes',id]` (sonsuz) | `listMeetingNotes` (ilk sayfa detaydan tohumlanır) | `addMeetingNote`, `updateMeetingNote`, `deleteMeetingNote`, `convertNoteToTask` |
 | `['program','departments']` | `listProgramDepartments` | `08-koordinatorlukler` mutasyonları |
 | `['me']`, `['me','departments']` | `me`, `myDepartments` | `00-ortak` |
-| `['work','program-list',…]` | `listProgramWorkItems` (`03-gorevler-liste`) | `convertNoteToTask` |
+| `queryKeys.workItems.list(scope, filters)` (`workItems.all` öneki) | `listProgramWorkItems` (`03-gorevler-liste`) | `convertNoteToTask` |
 
 İyimser güncelleme yok (`istemci-akislari.md` §8 ilkesi toplantıya da uygulanır). Her yazmadan sonra detay yeniden okunur.
 
@@ -106,3 +106,6 @@ Hepsi `scopedKey(programId, …)` altında. Kapsam (program) değişince hepsi i
 - **Video (KR-26, ADR-0015):** uçlar var (`startConference`, `endConference`, `joinConference`) ve detay `conference_available` taşır. Backend belgeleri birbiriyle çelişiyor. `docs/deployment.md` ve GAP-123 (kapandı, F36/F38): paket varsayılanı `livekit`, profil 2'de (CDN arkası) `none` öneriliyor (GAP-133, KR-26 ek soru 7 cevapsız). Meetings README §7 ve ADR-0015 ise "üretim paketi `none` verir" diyor (F38 öncesinden kalma). İstemci üretimin kapalı olduğunu varsaymaz, `conference_available` alanını okur. F4'te 09d/09e ve şerit gizlidir (K14 / yol haritası §4). GAP-121/122 kapandı, GAP-134 (443 üzerinden TURN yok) kabul edilmiş sınır.
 - **Sınanmayan kurallar:** sahip olmayan bağlı departman koordinatörünün düzenle/sil, katılımcı ve gündem yetkisi kodda var ama testsiz (GAP-069). Dönüşmüş not kilidi yalnız üye yolunda uygulanıyor (GAP-070). Yan etkiler (mesaj/bildirim) en iyi çabayla yürüyor, `side_effects` ile raporlanıyor (GAP-040, K38).
 - **Kapsam:** her toplantı kendi `program_id`'siyle okunur. Başka programdaki toplantı ŞY için de 404'tür (K18). Seçili programda ekip satırı olmayan hesap 403 alır (K19).
+
+
+**Uygulama anahtarı notu (WEB-4 O2b):** Önceki `work/program-list` gösterimi kavramsal addı; çalışan istemci `queryKeys.workItems.list` ve `workItems.all` önekini kullanır. `convertNoteToTask`, mevcut ilişki haritasıyla görev listesi/sayaç, `shellBadges.counts` ve pano `report` sorgularını geçersizler. W101 gerçek cache testi bunu ölçer; ekranlarda rozet/pano önce-sonra entegrasyon kanıtı W107 kapsamındadır. Yeni bir sorgu anahtarı veya backend eksiği eklenmedi.

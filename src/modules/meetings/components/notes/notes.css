@@ -1,0 +1,95 @@
+.meeting-notes {
+  padding: var(--meeting-card-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--meeting-card-gap);
+}
+.meeting-notes__header,
+.meeting-notes__composer-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.meeting-notes__header h2 {
+  margin: 0;
+  font: var(--meeting-card-font);
+}
+.meeting-notes__role {
+  display: inline-flex;
+  padding-inline: var(--meeting-role-padding);
+  border-radius: var(--meeting-role-radius);
+  background: var(--bg-overlay);
+  color: var(--ink-muted);
+  font: var(--meeting-role-font);
+}
+.meeting-notes__role--admin {
+  color: var(--violet);
+  background: color-mix(in srgb, var(--violet) 12%, transparent);
+}
+.meeting-notes__role--coordinator {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+.meeting-notes__composer-foot p {
+  margin: 0;
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
+.meeting-notes__item {
+  display: flex;
+  gap: var(--space-3);
+  padding-block: var(--space-4);
+  border-bottom: var(--ui-hairline) solid var(--border-subtle);
+}
+.meeting-notes__content {
+  min-width: 0;
+  flex: 1;
+}
+.meeting-notes__composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--meeting-composer-gap);
+  padding: var(--meeting-composer-padding);
+  border: var(--ui-hairline) solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+}
+.meeting-notes textarea {
+  width: 100%;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  resize: vertical;
+  border: 0;
+  min-height: var(--meeting-composer-min-height);
+  font: var(--meeting-note-font);
+}
+.meeting-notes__content p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: var(--meeting-note-font);
+}
+
+.meeting-notes__converted {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--meeting-converted-height);
+  padding-inline: var(--space-3);
+  border: var(--ui-hairline) solid color-mix(in srgb, var(--accent-text) 35%, transparent);
+  border-radius: var(--meeting-converted-radius);
+  color: var(--accent-text);
+  font: var(--ui-text-xs-strong);
+}
+
+.meeting-notes__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--meeting-composer-gap);
+}
+.meeting-notes__actions {
+  margin-left: auto;
+}
