@@ -19,9 +19,11 @@ import { computed, nextTick, ref } from 'vue'
 import { afterAll, beforeAll, vi } from 'vitest'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useScopeStore } from '@/shared/scope/store'
+import type * as WorkPublic from '@/modules/work/public'
+import type { MeetingDetail } from '../../model/types'
 
 vi.mock('@/modules/work/public', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/modules/work/public')>()),
+  ...(await importOriginal<typeof WorkPublic>()),
   useProgramDepartments: () => ({
     query: { data: ref({ departments: [{ department_id: 'd', display_name: 'Birim' }] }) },
   }),
@@ -112,7 +114,7 @@ it('sends only the department set for an authorized department edit', async () =
     invite_mode: 'coordinatorship',
     departments: [{ department_id: 'd', department_name: 'Birim' }],
     members_included: false,
-  } as import('../../model/types').MeetingDetail
+  } as MeetingDetail
   const wrapper = mount(Component, {
     props: { meeting, editSection: 'departments' },
     global: {
@@ -162,6 +164,33 @@ it('uses the real nested selector and returns focus to its opener', async () => 
   await nextTick()
   expect(opener.textContent).toContain('(1)')
   expect(document.activeElement).toBe(opener)
+  wrapper.unmount()
+  client.clear()
+})
+
+it('focuses the date field when rescheduling opens the real modal', async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const meeting = {
+    meeting_id: 'm',
+    program_id: 'p',
+    title: 'T',
+    meeting_date: '2099-01-01T10:00:00Z',
+    invite_mode: 'person',
+    departments: [{ department_id: 'd', department_name: 'Birim' }],
+    members_included: false,
+  } as MeetingDetail
+  const wrapper = mount(Component, {
+    attachTo: document.body,
+    props: { meeting, initialFocus: 'date' },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+  })
+  await nextTick()
+  await nextTick()
+  await nextTick()
+  expect(document.activeElement).toBe(document.querySelector('input[type=date]'))
   wrapper.unmount()
   client.clear()
 })

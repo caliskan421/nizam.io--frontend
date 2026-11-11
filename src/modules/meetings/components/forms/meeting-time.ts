@@ -53,3 +53,15 @@ export function meetingDateParts(value: Date, timezone: string) {
     time: `${get('hour')}:${get('minute')}`,
   }
 }
+
+export function meetingWarning(
+  side: { event_failed: boolean; failed_messages: number },
+  failed: string[],
+  text: { partial: string; eventFailed: string; eventOk: string },
+): string | null {
+  if (!failed.length && !side.event_failed && !side.failed_messages) return null
+  return text.partial
+    .replace('{people}', failed.join(', ') || '0')
+    .replace('{messages}', String(side.failed_messages))
+    .replace('{event}', side.event_failed ? text.eventFailed : text.eventOk)
+}
