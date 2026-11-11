@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import { fakeOrg } from './fake-org'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from 'vitest'
 import {
   $,
@@ -153,5 +154,47 @@ it.each(['coordinatorship', 'person'] as const)(
     expect(byText('.meeting-detail button', 'Düzenle')).toBeNull()
     expect(byText('.meeting-people button', 'Ekle')).toBeNull()
     expect($('.meeting-person-row__remove')).toBeNull()
+  },
+)
+
+it.each([
+  { person: PEOPLE.admin, lens: 'admin' as const, ids: ['m1', 'm2', 'm3'] },
+  { person: PEOPLE.coord, lens: 'coordinator' as const, ids: ['m1', 'm2'] },
+  { person: PEOPLE.member, lens: 'member' as const, ids: ['m1'] },
+])(
+  '$lens listesi sunucunun izin verdiği toplantı kümesini gösterir',
+  async ({ person, lens, ids }) => {
+    backend.server.use(
+      http.get('http://localhost/v1/meetings', ({ request }) => {
+        const account = fakeOrg.actorOf(backend.db, request)?.account_id
+        const visible =
+          account === PEOPLE.admin.account_id
+            ? ['m1', 'm2', 'm3']
+            : account === PEOPLE.coord.account_id
+              ? ['m1', 'm2']
+              : ['m1']
+        return HttpResponse.json({
+          items: visible.map((id) => ({ ...meeting, meeting_id: id, title: `Toplantı ${id}` })),
+          next_cursor: '',
+        })
+      }),
+    )
+    await boot({
+      email: person.email,
+      scope: { programId: 'p1', lens, ...(lens === 'admin' ? {} : { departmentId: 'd1' }) },
+      path: '/toplantilar?zaman=gecmis',
+    })
+    await until(
+      () => document.querySelectorAll('.meeting-row').length === ids.length,
+      'görünür liste',
+    )
+    expect(
+      [...document.querySelectorAll<HTMLAnchorElement>('.meeting-row')].map(
+        (row) => row.getAttribute('href')?.split('?')[0],
+      ),
+    ).toEqual(ids.map((id) => `/toplantilar/${id}`))
+    const read = backend.sent('GET', '/v1/meetings').at(-1)!
+    expect(read.account).toBe(person.account_id)
+    expect(read.headers.get('X-Nizamio-Program')).toBe('p1')
   },
 )
