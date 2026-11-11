@@ -201,8 +201,8 @@ async function deleteItem(item: AgendaItem) {
       }}</small>
       <AgendaMenu
         v-if="canManage"
-        :title="item.title"
         :id="item.agenda_item_id"
+        :title="item.title"
         @edit="editItem(item)"
         @remove="deleteItem(item)"
       />
