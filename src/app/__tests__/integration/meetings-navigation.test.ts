@@ -172,3 +172,22 @@ it.each([
       [...document.querySelectorAll('button')].some((b) => b.textContent?.trim() === 'Değiştir'),
     ).toBe(false)
 })
+
+it('gerçek kişi seçicisi Escape ile kapanır ve odağı Ekle düğmesine döndürür', async () => {
+  await boot({
+    email: PEOPLE.coord.email,
+    scope: { programId: 'p1', lens: 'coordinator', departmentId: 'd1' },
+    path: '/toplantilar/m1',
+  })
+  const trigger = await click(
+    () =>
+      [...document.querySelectorAll<HTMLElement>('.meeting-people button')].find(
+        (b) => b.textContent?.trim() === 'Ekle',
+      ) ?? null,
+  )
+  const search = await until(() => $('[role="dialog"] input[type="search"]'), 'özel kişi seçici')
+  expect(document.activeElement).toBe(search)
+  search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  await until(() => !$('[role="dialog"]'), 'seçici kapandı')
+  await until(() => document.activeElement === trigger, 'odak dönüşü')
+})
