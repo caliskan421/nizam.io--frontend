@@ -7,12 +7,18 @@
       "tokens": [
         {
           "name": "rp-done-fill",
-          "value": { "dark": "{accent-text}", "light": "#7fb800" },
+          "value": {
+            "dark": "{accent-text}",
+            "light": "#7fb800"
+          },
           "usage": "Tamamlandı noktası ve yığılmış çubuk dilimi (rp-dot--done, rp-seg-done); açık temada zeytin yerine dolgu yeşili."
         },
         {
           "name": "rp-blue",
-          "value": { "dark": "#5b8def", "light": "#2563eb" },
+          "value": {
+            "dark": "#5b8def",
+            "light": "#2563eb"
+          },
           "usage": "Zaman çizelgesi \"baktığın yer\" işareti (Gorevler-Zaman.dc.html: şerit penceresi çizgisi ve gösterge)."
         },
         {
@@ -45,7 +51,10 @@
         },
         {
           "name": "shadow-sheet",
-          "value": { "dark": "{m-sh-sheet}", "light": "{m-sh-sheet}" },
+          "value": {
+            "dark": "{m-sh-sheet}",
+            "light": "{m-sh-sheet}"
+          },
           "usage": "Modal, açılır menü, yan panel (kaynak m-sh-sheet ile aynı değer)."
         },
         {
@@ -58,7 +67,10 @@
         },
         {
           "name": "rp-bubble-them-shadow",
-          "value": { "dark": "none", "light": "0 1px 1px rgba(22,22,21,0.06)" },
+          "value": {
+            "dark": "none",
+            "light": "0 1px 1px rgba(22,22,21,0.06)"
+          },
           "usage": "Sohbette karşı tarafın balonu (açık tema)."
         }
       ]
@@ -66,88 +78,240 @@
     "space": {
       "$description": "tokens.css boşluk ölçeği (4px adım).",
       "tokens": [
-        { "name": "space-1", "value": "4px" },
-        { "name": "space-2", "value": "8px" },
-        { "name": "space-3", "value": "12px" },
-        { "name": "space-4", "value": "16px" },
-        { "name": "space-5", "value": "20px" },
-        { "name": "space-6", "value": "24px" },
-        { "name": "space-8", "value": "32px" },
-        { "name": "space-10", "value": "40px" },
-        { "name": "space-12", "value": "48px" },
-        { "name": "space-16", "value": "64px" }
+        {
+          "name": "space-1",
+          "value": "4px"
+        },
+        {
+          "name": "space-2",
+          "value": "8px"
+        },
+        {
+          "name": "space-3",
+          "value": "12px"
+        },
+        {
+          "name": "space-4",
+          "value": "16px"
+        },
+        {
+          "name": "space-5",
+          "value": "20px"
+        },
+        {
+          "name": "space-6",
+          "value": "24px"
+        },
+        {
+          "name": "space-8",
+          "value": "32px"
+        },
+        {
+          "name": "space-10",
+          "value": "40px"
+        },
+        {
+          "name": "space-12",
+          "value": "48px"
+        },
+        {
+          "name": "space-16",
+          "value": "64px"
+        }
       ]
     },
     "radius": {
       "$description": "tokens.css köşe yarıçapları.",
       "tokens": [
-        { "name": "radius-xs", "value": "8px" },
-        { "name": "radius-sm", "value": "12px" },
-        { "name": "radius-md", "value": "16px" },
-        { "name": "radius-lg", "value": "20px" },
-        { "name": "radius-xl", "value": "28px" },
-        { "name": "radius-full", "value": "9999px" }
+        {
+          "name": "radius-xs",
+          "value": "8px"
+        },
+        {
+          "name": "radius-sm",
+          "value": "12px"
+        },
+        {
+          "name": "radius-md",
+          "value": "16px"
+        },
+        {
+          "name": "radius-lg",
+          "value": "20px"
+        },
+        {
+          "name": "radius-xl",
+          "value": "28px"
+        },
+        {
+          "name": "radius-full",
+          "value": "9999px"
+        }
       ]
     },
     "size": {
       "$description": "tokens.css denetim ve ikon ölçüleri.",
       "tokens": [
-        { "name": "control-sm", "value": "36px" },
-        { "name": "control-md", "value": "44px" },
-        { "name": "control-lg", "value": "52px" },
-        { "name": "icon-sm", "value": "16px" },
-        { "name": "icon-md", "value": "20px" },
-        { "name": "icon-lg", "value": "24px" }
+        {
+          "name": "control-sm",
+          "value": "36px"
+        },
+        {
+          "name": "control-md",
+          "value": "44px"
+        },
+        {
+          "name": "control-lg",
+          "value": "52px"
+        },
+        {
+          "name": "icon-sm",
+          "value": "16px"
+        },
+        {
+          "name": "icon-md",
+          "value": "20px"
+        },
+        {
+          "name": "icon-lg",
+          "value": "24px"
+        }
       ]
     },
     "focus": {
       "$description": "Klavye odak halkası ölçüleri (kaynak focus-ring kullanımı: 2px düz çizgi, 2px boşluk; bundle.css :focus-visible).",
       "tokens": [
-        { "name": "focus-ring-width", "value": "2px" },
-        { "name": "focus-ring-offset", "value": "2px" }
+        {
+          "name": "focus-ring-width",
+          "value": "2px"
+        },
+        {
+          "name": "focus-ring-offset",
+          "value": "2px"
+        }
       ]
     },
     "text": {
       "$description": "tokens.css yazı stilleri (CSS font kısaltması: ağırlık boyut/satır aile).",
       "tokens": [
-        { "name": "text-display-xl", "value": "600 48px/52px {font-display}" },
-        { "name": "text-display-lg", "value": "600 36px/42px {font-display}" },
-        { "name": "text-heading-1", "value": "600 28px/34px {font-display}" },
-        { "name": "text-heading-2", "value": "600 22px/28px {font-display}" },
-        { "name": "text-title", "value": "600 18px/26px {font-sans}" },
-        { "name": "text-body-lg", "value": "400 16px/24px {font-sans}" },
-        { "name": "text-body", "value": "400 14px/20px {font-sans}" },
-        { "name": "text-body-strong", "value": "600 14px/20px {font-sans}" },
-        { "name": "text-caption", "value": "400 12px/16px {font-sans}" },
-        { "name": "text-button", "value": "500 14px/20px {font-sans}" },
-        { "name": "text-label", "value": "500 12px/16px {font-mono}" },
-        { "name": "text-mono-body", "value": "400 13px/20px {font-mono}" }
+        {
+          "name": "text-display-xl",
+          "value": "600 48px/52px {font-display}"
+        },
+        {
+          "name": "text-display-lg",
+          "value": "600 36px/42px {font-display}"
+        },
+        {
+          "name": "text-heading-1",
+          "value": "600 28px/34px {font-display}"
+        },
+        {
+          "name": "text-heading-2",
+          "value": "600 22px/28px {font-display}"
+        },
+        {
+          "name": "text-title",
+          "value": "600 18px/26px {font-sans}"
+        },
+        {
+          "name": "text-body-lg",
+          "value": "400 16px/24px {font-sans}"
+        },
+        {
+          "name": "text-body",
+          "value": "400 14px/20px {font-sans}"
+        },
+        {
+          "name": "text-body-strong",
+          "value": "600 14px/20px {font-sans}"
+        },
+        {
+          "name": "text-caption",
+          "value": "400 12px/16px {font-sans}"
+        },
+        {
+          "name": "text-button",
+          "value": "500 14px/20px {font-sans}"
+        },
+        {
+          "name": "text-label",
+          "value": "500 12px/16px {font-mono}"
+        },
+        {
+          "name": "text-mono-body",
+          "value": "400 13px/20px {font-mono}"
+        }
       ]
     },
     "layout": {
       "$description": "theme.css rp-* sayfa iskeleti ölçüleri (yerleşim kuralları theme.css başlığında).",
       "tokens": [
-        { "name": "rp-side-w", "value": "272px", "usage": ".rp-side kenar menüsü genişliği." },
+        {
+          "name": "rp-side-w",
+          "value": "272px",
+          "usage": ".rp-side kenar menüsü genişliği."
+        },
         {
           "name": "rp-rail-w",
           "value": "76px",
           "usage": ".rp-side--rail daraltılmış menü genişliği."
         },
-        { "name": "rp-main-basis", "value": "560px", "usage": ".rp-main esnek taban genişliği." },
-        { "name": "rp-topbar-h", "value": "64px", "usage": ".rp-topbar en küçük yüksekliği." },
-        { "name": "rp-topbar-pad-y", "value": "14px", "usage": ".rp-topbar dikey iç boşluğu." },
-        { "name": "rp-head-basis", "value": "320px", "usage": ".rp-head başlık bloğu tabanı." },
-        { "name": "rp-col-basis", "value": "620px", "usage": ".rp-col ana sütun tabanı." },
-        { "name": "rp-aside-basis", "value": "340px", "usage": ".rp-aside yan sütun tabanı." },
-        { "name": "rp-aside-max", "value": "380px", "usage": ".rp-aside en büyük genişliği." },
-        { "name": "rp-row-h", "value": "56px", "usage": ".rp-tr ızgara tablo satırı yüksekliği." },
+        {
+          "name": "rp-main-basis",
+          "value": "560px",
+          "usage": ".rp-main esnek taban genişliği."
+        },
+        {
+          "name": "rp-topbar-h",
+          "value": "64px",
+          "usage": ".rp-topbar en küçük yüksekliği."
+        },
+        {
+          "name": "rp-topbar-pad-y",
+          "value": "14px",
+          "usage": ".rp-topbar dikey iç boşluğu."
+        },
+        {
+          "name": "rp-head-basis",
+          "value": "320px",
+          "usage": ".rp-head başlık bloğu tabanı."
+        },
+        {
+          "name": "rp-col-basis",
+          "value": "620px",
+          "usage": ".rp-col ana sütun tabanı."
+        },
+        {
+          "name": "rp-aside-basis",
+          "value": "340px",
+          "usage": ".rp-aside yan sütun tabanı."
+        },
+        {
+          "name": "rp-aside-max",
+          "value": "380px",
+          "usage": ".rp-aside en büyük genişliği."
+        },
+        {
+          "name": "rp-row-h",
+          "value": "56px",
+          "usage": ".rp-tr ızgara tablo satırı yüksekliği."
+        },
         {
           "name": "rp-seg-h",
           "value": "32px",
           "usage": ".rp-seg düğmesi, .rp-chipbtn, toplu işlem düğmesi yüksekliği."
         },
-        { "name": "rp-tab-h", "value": "40px", "usage": ".rp-tabs sekme yüksekliği." },
-        { "name": "rp-menu-row-h", "value": "36px", "usage": ".rp-menuitem satır yüksekliği." },
+        {
+          "name": "rp-tab-h",
+          "value": "40px",
+          "usage": ".rp-tabs sekme yüksekliği."
+        },
+        {
+          "name": "rp-menu-row-h",
+          "value": "36px",
+          "usage": ".rp-menuitem satır yüksekliği."
+        },
         {
           "name": "rp-narrow-max",
           "value": "900px",
@@ -158,33 +322,114 @@
     "ui": {
       "$description": "shared/ui bileşen ölçüleri — tema-sistemi/bundle.css ve theme.css'teki ölçek DIŞI değerler (eski shared/ui/styles/metrics.css; CX-F0-Ö-02).",
       "tokens": [
-        { "name": "ui-hairline", "value": "1px" },
-        { "name": "ui-focus-width", "value": "2px" },
-        { "name": "ui-backdrop-blur", "value": "10px" },
-        { "name": "ui-fs-xs", "value": "12px" },
-        { "name": "ui-fs-sm", "value": "13px" },
-        { "name": "ui-text-sm-medium", "value": "500 13px/20px {font-sans}" },
-        { "name": "ui-text-sm-strong", "value": "600 13px/20px {font-sans}" },
-        { "name": "ui-text-xs-strong", "value": "600 12px/16px {font-sans}" },
-        { "name": "ui-text-stat", "value": "600 40px/44px {font-display}" },
-        { "name": "ui-gap-2xs", "value": "2px" },
-        { "name": "ui-gap-xs", "value": "6px" },
-        { "name": "ui-gap-sm", "value": "10px" },
-        { "name": "ui-pill-h", "value": "28px" },
-        { "name": "ui-count-size", "value": "16px" },
-        { "name": "ui-chip-x", "value": "20px" },
-        { "name": "ui-check-size", "value": "20px" },
-        { "name": "ui-check-border", "value": "1.5px" },
-        { "name": "ui-check-mark", "value": "14px" },
-        { "name": "ui-input-icon-pad", "value": "46px" },
-        { "name": "ui-select-chevron-inset", "value": "14px" },
-        { "name": "ui-kbd-size", "value": "24px" },
-        { "name": "ui-kbd-pad", "value": "6px" },
-        { "name": "ui-nav-pad-y", "value": "10px" },
-        { "name": "ui-navlist-pad-y", "value": "9px" },
-        { "name": "ui-nav-bar-w", "value": "4px" },
-        { "name": "ui-nav-bar-h", "value": "20px" },
-        { "name": "ui-seg-h", "value": "32px" },
+        {
+          "name": "ui-hairline",
+          "value": "1px"
+        },
+        {
+          "name": "ui-focus-width",
+          "value": "2px"
+        },
+        {
+          "name": "ui-backdrop-blur",
+          "value": "10px"
+        },
+        {
+          "name": "ui-fs-xs",
+          "value": "12px"
+        },
+        {
+          "name": "ui-fs-sm",
+          "value": "13px"
+        },
+        {
+          "name": "ui-text-sm-medium",
+          "value": "500 13px/20px {font-sans}"
+        },
+        {
+          "name": "ui-text-sm-strong",
+          "value": "600 13px/20px {font-sans}"
+        },
+        {
+          "name": "ui-text-xs-strong",
+          "value": "600 12px/16px {font-sans}"
+        },
+        {
+          "name": "ui-text-stat",
+          "value": "600 40px/44px {font-display}"
+        },
+        {
+          "name": "ui-gap-2xs",
+          "value": "2px"
+        },
+        {
+          "name": "ui-gap-xs",
+          "value": "6px"
+        },
+        {
+          "name": "ui-gap-sm",
+          "value": "10px"
+        },
+        {
+          "name": "ui-pill-h",
+          "value": "28px"
+        },
+        {
+          "name": "ui-count-size",
+          "value": "16px"
+        },
+        {
+          "name": "ui-chip-x",
+          "value": "20px"
+        },
+        {
+          "name": "ui-check-size",
+          "value": "20px"
+        },
+        {
+          "name": "ui-check-border",
+          "value": "1.5px"
+        },
+        {
+          "name": "ui-check-mark",
+          "value": "14px"
+        },
+        {
+          "name": "ui-input-icon-pad",
+          "value": "46px"
+        },
+        {
+          "name": "ui-select-chevron-inset",
+          "value": "14px"
+        },
+        {
+          "name": "ui-kbd-size",
+          "value": "24px"
+        },
+        {
+          "name": "ui-kbd-pad",
+          "value": "6px"
+        },
+        {
+          "name": "ui-nav-pad-y",
+          "value": "10px"
+        },
+        {
+          "name": "ui-navlist-pad-y",
+          "value": "9px"
+        },
+        {
+          "name": "ui-nav-bar-w",
+          "value": "4px"
+        },
+        {
+          "name": "ui-nav-bar-h",
+          "value": "20px"
+        },
+        {
+          "name": "ui-seg-h",
+          "value": "32px"
+        },
         {
           "name": "ui-seg-pressed-shadow-light",
           "value": {
@@ -192,307 +437,1095 @@
             "light": "0 1px 2px color-mix(in srgb, {ink} 8%, transparent)"
           }
         },
-        { "name": "ui-tab-h", "value": "40px" },
-        { "name": "ui-tab-bar", "value": "2px" },
-        { "name": "ui-stat-aside-w", "value": "144px" },
-        { "name": "ui-modal-w", "value": "560px" },
-        { "name": "ui-toast-offset", "value": "28px" },
-        { "name": "ui-toast-pad-x", "value": "18px" },
-        { "name": "ui-toast-radius", "value": "14px" },
-        { "name": "ui-av-sm", "value": "26px" },
-        { "name": "ui-av-md", "value": "32px" },
-        { "name": "ui-av-lg", "value": "52px" },
-        { "name": "ui-av-xl", "value": "72px" },
-        { "name": "ui-av-fs-sm", "value": "10px" },
-        { "name": "ui-av-fs-md", "value": "12px" },
-        { "name": "ui-av-fs-lg", "value": "16px" },
-        { "name": "ui-av-fs-xl", "value": "22px" }
+        {
+          "name": "ui-tab-h",
+          "value": "40px"
+        },
+        {
+          "name": "ui-tab-bar",
+          "value": "2px"
+        },
+        {
+          "name": "ui-stat-aside-w",
+          "value": "144px"
+        },
+        {
+          "name": "ui-modal-w",
+          "value": "560px"
+        },
+        {
+          "name": "ui-toast-offset",
+          "value": "28px"
+        },
+        {
+          "name": "ui-toast-pad-x",
+          "value": "18px"
+        },
+        {
+          "name": "ui-toast-radius",
+          "value": "14px"
+        },
+        {
+          "name": "ui-av-sm",
+          "value": "26px"
+        },
+        {
+          "name": "ui-av-md",
+          "value": "32px"
+        },
+        {
+          "name": "ui-av-lg",
+          "value": "52px"
+        },
+        {
+          "name": "ui-av-xl",
+          "value": "72px"
+        },
+        {
+          "name": "ui-av-fs-sm",
+          "value": "10px"
+        },
+        {
+          "name": "ui-av-fs-md",
+          "value": "12px"
+        },
+        {
+          "name": "ui-av-fs-lg",
+          "value": "16px"
+        },
+        {
+          "name": "ui-av-fs-xl",
+          "value": "22px"
+        }
       ]
     },
     "side": {
       "$description": "Kenar menüsü ölçüleri — Sidebar.dc.html, Kenar-Secici.dc.html, theme.css rp-raillogo ölçek DIŞI değerleri (eski side-metrics.css; CX-F0-Ö-02).",
       "tokens": [
-        { "name": "side-logo-radius", "value": "10px" },
-        { "name": "side-raillogo-radius", "value": "11px" },
-        { "name": "side-label-font", "value": "400 10.5px/13px {font-mono}" },
-        { "name": "side-value-font", "value": "600 13px/18px {font-sans}" },
-        { "name": "side-chevron", "value": "12px" },
-        { "name": "side-pav", "value": "18px" },
-        { "name": "side-pav-radius", "value": "5px" },
-        { "name": "side-pav-fs", "value": "8.5px" },
-        { "name": "side-pav-lg", "value": "28px" },
-        { "name": "side-pav-lg-fs", "value": "11px" },
-        { "name": "side-dot", "value": "8px" },
-        { "name": "side-item-radius", "value": "10px" },
-        { "name": "side-navgroups-gap", "value": "28px" },
-        { "name": "side-badge-w", "value": "22px" },
-        { "name": "side-badge-h", "value": "20px" },
-        { "name": "side-badge-radius", "value": "10px" }
+        {
+          "name": "side-logo-radius",
+          "value": "10px"
+        },
+        {
+          "name": "side-raillogo-radius",
+          "value": "11px"
+        },
+        {
+          "name": "side-label-font",
+          "value": "400 10.5px/13px {font-mono}"
+        },
+        {
+          "name": "side-value-font",
+          "value": "600 13px/18px {font-sans}"
+        },
+        {
+          "name": "side-chevron",
+          "value": "12px"
+        },
+        {
+          "name": "side-pav",
+          "value": "18px"
+        },
+        {
+          "name": "side-pav-radius",
+          "value": "5px"
+        },
+        {
+          "name": "side-pav-fs",
+          "value": "8.5px"
+        },
+        {
+          "name": "side-pav-lg",
+          "value": "28px"
+        },
+        {
+          "name": "side-pav-lg-fs",
+          "value": "11px"
+        },
+        {
+          "name": "side-dot",
+          "value": "8px"
+        },
+        {
+          "name": "side-item-radius",
+          "value": "10px"
+        },
+        {
+          "name": "side-navgroups-gap",
+          "value": "28px"
+        },
+        {
+          "name": "side-badge-w",
+          "value": "22px"
+        },
+        {
+          "name": "side-badge-h",
+          "value": "20px"
+        },
+        {
+          "name": "side-badge-radius",
+          "value": "10px"
+        }
       ]
     },
     "topbar": {
       "$description": "Üst çubuk ölçüleri — theme.css rp-navbtns, Main.dc.html zil noktası ölçek DIŞI değerleri (eski topbar-metrics.css; CX-F0-Ö-02).",
       "tokens": [
-        { "name": "topbar-nav-size", "value": "30px" },
-        { "name": "topbar-nav-icon", "value": "18px" },
-        { "name": "topbar-crumb-fs", "value": "13px" },
-        { "name": "topbar-dot", "value": "7px" },
-        { "name": "topbar-dot-top", "value": "6px" },
-        { "name": "topbar-dot-right", "value": "7px" }
+        {
+          "name": "topbar-nav-size",
+          "value": "30px"
+        },
+        {
+          "name": "topbar-nav-icon",
+          "value": "18px"
+        },
+        {
+          "name": "topbar-crumb-fs",
+          "value": "13px"
+        },
+        {
+          "name": "topbar-dot",
+          "value": "7px"
+        },
+        {
+          "name": "topbar-dot-top",
+          "value": "6px"
+        },
+        {
+          "name": "topbar-dot-right",
+          "value": "7px"
+        }
       ]
     },
     "work": {
       "$description": "modules/work ölçüleri — Gorevler-Liste.dc.html, Toplanti-Detay.dc.html, theme.css (rp-dtable, rp-sheet, rp-subs, rp-note, rp-subslot, rp-reqbar) ölçek DIŞI değerleri (eski list/detail/subtasks/notes/tasks-metrics.css ve files.css :root bloğu; CX-F0-Ö-02).",
       "tokens": [
-        { "name": "list-min-w", "value": "640px" },
-        { "name": "list-cols", "value": "20px minmax(0, 1fr) 124px 132px 60px" },
-        { "name": "list-row-h", "value": "64px" },
-        { "name": "list-meta-cols", "value": "38px 48px minmax(0, 1fr) auto" },
-        { "name": "list-gap-3xs", "value": "3px" },
-        { "name": "list-fs-2xs", "value": "11px" },
-        { "name": "list-dot", "value": "8px" },
-        { "name": "list-dot-ring", "value": "1.5px" },
-        { "name": "list-cap-dot", "value": "5px" },
-        { "name": "list-cap-dot-gap", "value": "7px" },
-        { "name": "list-pill-h", "value": "20px" },
-        { "name": "list-pill-radius", "value": "6px" },
-        { "name": "list-pill-pad", "value": "7px" },
-        { "name": "list-tog-pad-start", "value": "2px" },
-        { "name": "list-tog-icon", "value": "14px" },
-        { "name": "list-tag-icon", "value": "12px" },
-        { "name": "list-av-overlap", "value": "-3px" },
-        { "name": "list-av-ring", "value": "2px" },
-        { "name": "list-tip-offset", "value": "8px" },
-        { "name": "list-tip-pad", "value": "4px 8px" },
-        { "name": "list-tip-radius", "value": "7px" },
-        { "name": "list-tip-font", "value": "500 11px/14px {font-sans}" },
-        { "name": "list-tip-shift", "value": "3px" },
-        { "name": "list-sel-bar", "value": "2px" },
-        { "name": "list-subs-pad", "value": "10px 16px 12px 52px" },
-        { "name": "list-skel-h", "value": "12px" },
-        { "name": "wd-sheet-gap", "value": "18px" },
-        { "name": "wd-head-gap", "value": "14px" },
-        { "name": "wd-title-font", "value": "600 20px/26px {font-display}" },
-        { "name": "wd-fs", "value": "13px" },
-        { "name": "wd-tabs-gap", "value": "16px" },
-        { "name": "wd-tabs-fade", "value": "28px" },
-        { "name": "wd-dl-label-min", "value": "88px" },
-        { "name": "wd-dl-gap-y", "value": "10px" },
-        { "name": "wd-dot", "value": "8px" },
-        { "name": "wd-dot-ring", "value": "1.5px" },
-        { "name": "wd-tl-dot", "value": "20px" },
-        { "name": "wd-tl-inner", "value": "6px" },
-        { "name": "wd-tl-line-left", "value": "9px" },
-        { "name": "wd-tl-line-top", "value": "14px" },
-        { "name": "wd-link-icon", "value": "14px" },
-        { "name": "wd-skeleton-h", "value": "14px" },
-        { "name": "sub-indent", "value": "52px" },
-        { "name": "sub-pad-top", "value": "10px" },
-        { "name": "sub-gap-2xs", "value": "2px" },
-        { "name": "sub-gap-xs", "value": "6px" },
-        { "name": "sub-gap-sm", "value": "10px" },
-        { "name": "sub-check", "value": "18px" },
-        { "name": "sub-check-panel", "value": "16px" },
-        { "name": "sub-col-person", "value": "168px" },
-        { "name": "sub-col-date", "value": "150px" },
-        { "name": "sub-col-file", "value": "140px" },
-        { "name": "sub-col-menu", "value": "32px" },
-        { "name": "sub-menu-btn", "value": "30px" },
-        { "name": "sub-slot-h", "value": "30px" },
-        { "name": "sub-row-panel-h", "value": "32px" },
-        { "name": "sub-radius-row-panel", "value": "6px" },
-        { "name": "sub-icon", "value": "14px" },
-        { "name": "sub-fs-sm", "value": "13px" },
-        { "name": "sub-fs-xs", "value": "12px" },
-        { "name": "sub-fs-2xs", "value": "11px" },
-        { "name": "sub-strike", "value": "1.5px" },
-        { "name": "sub-bar-h", "value": "4px" },
-        { "name": "sub-bar-radius", "value": "2px" },
-        { "name": "sub-pop-date-w", "value": "280px" },
-        { "name": "sub-pop-menu-w", "value": "230px" },
-        { "name": "sub-date-input-h", "value": "34px" },
-        { "name": "notes-body-lh", "value": "22px" },
-        { "name": "notes-composer-pad", "value": "14px" },
-        { "name": "notes-input-min", "value": "56px" },
-        { "name": "tasks-grow-basis", "value": "280px" },
-        { "name": "tasks-search-basis", "value": "200px" },
-        { "name": "tasks-reqbar-gap-x", "value": "14px" },
-        { "name": "tasks-reqbar-text-basis", "value": "240px" },
-        { "name": "tasks-reqbar-icon", "value": "28px" },
-        { "name": "tasks-pop-w", "value": "260px" },
-        { "name": "tasks-pop-max-h", "value": "320px" },
-        { "name": "wf-slot-h", "value": "30px" },
-        { "name": "wf-slot-icon", "value": "14px" }
+        {
+          "name": "list-min-w",
+          "value": "640px"
+        },
+        {
+          "name": "list-cols",
+          "value": "20px minmax(0, 1fr) 124px 132px 60px"
+        },
+        {
+          "name": "list-row-h",
+          "value": "64px"
+        },
+        {
+          "name": "list-meta-cols",
+          "value": "38px 48px minmax(0, 1fr) auto"
+        },
+        {
+          "name": "list-gap-3xs",
+          "value": "3px"
+        },
+        {
+          "name": "list-fs-2xs",
+          "value": "11px"
+        },
+        {
+          "name": "list-dot",
+          "value": "8px"
+        },
+        {
+          "name": "list-dot-ring",
+          "value": "1.5px"
+        },
+        {
+          "name": "list-cap-dot",
+          "value": "5px"
+        },
+        {
+          "name": "list-cap-dot-gap",
+          "value": "7px"
+        },
+        {
+          "name": "list-pill-h",
+          "value": "20px"
+        },
+        {
+          "name": "list-pill-radius",
+          "value": "6px"
+        },
+        {
+          "name": "list-pill-pad",
+          "value": "7px"
+        },
+        {
+          "name": "list-tog-pad-start",
+          "value": "2px"
+        },
+        {
+          "name": "list-tog-icon",
+          "value": "14px"
+        },
+        {
+          "name": "list-tag-icon",
+          "value": "12px"
+        },
+        {
+          "name": "list-av-overlap",
+          "value": "-3px"
+        },
+        {
+          "name": "list-av-ring",
+          "value": "2px"
+        },
+        {
+          "name": "list-tip-offset",
+          "value": "8px"
+        },
+        {
+          "name": "list-tip-pad",
+          "value": "4px 8px"
+        },
+        {
+          "name": "list-tip-radius",
+          "value": "7px"
+        },
+        {
+          "name": "list-tip-font",
+          "value": "500 11px/14px {font-sans}"
+        },
+        {
+          "name": "list-tip-shift",
+          "value": "3px"
+        },
+        {
+          "name": "list-sel-bar",
+          "value": "2px"
+        },
+        {
+          "name": "list-subs-pad",
+          "value": "10px 16px 12px 52px"
+        },
+        {
+          "name": "list-skel-h",
+          "value": "12px"
+        },
+        {
+          "name": "wd-sheet-gap",
+          "value": "18px"
+        },
+        {
+          "name": "wd-head-gap",
+          "value": "14px"
+        },
+        {
+          "name": "wd-title-font",
+          "value": "600 20px/26px {font-display}"
+        },
+        {
+          "name": "wd-fs",
+          "value": "13px"
+        },
+        {
+          "name": "wd-tabs-gap",
+          "value": "16px"
+        },
+        {
+          "name": "wd-tabs-fade",
+          "value": "28px"
+        },
+        {
+          "name": "wd-dl-label-min",
+          "value": "88px"
+        },
+        {
+          "name": "wd-dl-gap-y",
+          "value": "10px"
+        },
+        {
+          "name": "wd-dot",
+          "value": "8px"
+        },
+        {
+          "name": "wd-dot-ring",
+          "value": "1.5px"
+        },
+        {
+          "name": "wd-tl-dot",
+          "value": "20px"
+        },
+        {
+          "name": "wd-tl-inner",
+          "value": "6px"
+        },
+        {
+          "name": "wd-tl-line-left",
+          "value": "9px"
+        },
+        {
+          "name": "wd-tl-line-top",
+          "value": "14px"
+        },
+        {
+          "name": "wd-link-icon",
+          "value": "14px"
+        },
+        {
+          "name": "wd-skeleton-h",
+          "value": "14px"
+        },
+        {
+          "name": "sub-indent",
+          "value": "52px"
+        },
+        {
+          "name": "sub-pad-top",
+          "value": "10px"
+        },
+        {
+          "name": "sub-gap-2xs",
+          "value": "2px"
+        },
+        {
+          "name": "sub-gap-xs",
+          "value": "6px"
+        },
+        {
+          "name": "sub-gap-sm",
+          "value": "10px"
+        },
+        {
+          "name": "sub-check",
+          "value": "18px"
+        },
+        {
+          "name": "sub-check-panel",
+          "value": "16px"
+        },
+        {
+          "name": "sub-col-person",
+          "value": "168px"
+        },
+        {
+          "name": "sub-col-date",
+          "value": "150px"
+        },
+        {
+          "name": "sub-col-file",
+          "value": "140px"
+        },
+        {
+          "name": "sub-col-menu",
+          "value": "32px"
+        },
+        {
+          "name": "sub-menu-btn",
+          "value": "30px"
+        },
+        {
+          "name": "sub-slot-h",
+          "value": "30px"
+        },
+        {
+          "name": "sub-row-panel-h",
+          "value": "32px"
+        },
+        {
+          "name": "sub-radius-row-panel",
+          "value": "6px"
+        },
+        {
+          "name": "sub-icon",
+          "value": "14px"
+        },
+        {
+          "name": "sub-fs-sm",
+          "value": "13px"
+        },
+        {
+          "name": "sub-fs-xs",
+          "value": "12px"
+        },
+        {
+          "name": "sub-fs-2xs",
+          "value": "11px"
+        },
+        {
+          "name": "sub-strike",
+          "value": "1.5px"
+        },
+        {
+          "name": "sub-bar-h",
+          "value": "4px"
+        },
+        {
+          "name": "sub-bar-radius",
+          "value": "2px"
+        },
+        {
+          "name": "sub-pop-date-w",
+          "value": "280px"
+        },
+        {
+          "name": "sub-pop-menu-w",
+          "value": "230px"
+        },
+        {
+          "name": "sub-date-input-h",
+          "value": "34px"
+        },
+        {
+          "name": "notes-body-lh",
+          "value": "22px"
+        },
+        {
+          "name": "notes-composer-pad",
+          "value": "14px"
+        },
+        {
+          "name": "notes-input-min",
+          "value": "56px"
+        },
+        {
+          "name": "tasks-grow-basis",
+          "value": "280px"
+        },
+        {
+          "name": "tasks-search-basis",
+          "value": "200px"
+        },
+        {
+          "name": "tasks-reqbar-gap-x",
+          "value": "14px"
+        },
+        {
+          "name": "tasks-reqbar-text-basis",
+          "value": "240px"
+        },
+        {
+          "name": "tasks-reqbar-icon",
+          "value": "28px"
+        },
+        {
+          "name": "tasks-pop-w",
+          "value": "260px"
+        },
+        {
+          "name": "tasks-pop-max-h",
+          "value": "320px"
+        },
+        {
+          "name": "wf-slot-h",
+          "value": "30px"
+        },
+        {
+          "name": "wf-slot-icon",
+          "value": "14px"
+        }
       ]
     },
     "home": {
       "$description": "modules/home ölçüleri — Main.dc.html artboard, theme.css rp-ichip / rp-cardtitle ölçek DIŞI değerleri (eski home-metrics.css; CX-F0-Ö-02).",
       "tokens": [
-        { "name": "home-head-pad-top", "value": "44px" },
-        { "name": "home-greet", "value": "600 44px/50px {font-display}" },
-        { "name": "home-kpi-min", "value": "220px" },
-        { "name": "home-kpi-h", "value": "176px" },
-        { "name": "home-chip", "value": "36px" },
-        { "name": "home-bar-h", "value": "4px" },
-        { "name": "home-pair-min", "value": "360px" },
-        { "name": "home-card-pad", "value": "28px" },
-        { "name": "home-card-title", "value": "600 18px/24px {font-sans}" },
-        { "name": "home-tile-h", "value": "112px" },
-        { "name": "home-tile-gap", "value": "14px" },
-        { "name": "home-tile-label", "value": "600 14px/18px {font-sans}" },
-        { "name": "home-link-icon", "value": "14px" },
-        { "name": "home-skel-line", "value": "16px" },
-        { "name": "home-skel-num", "value": "52px" }
+        {
+          "name": "home-head-pad-top",
+          "value": "44px"
+        },
+        {
+          "name": "home-greet",
+          "value": "600 44px/50px {font-display}"
+        },
+        {
+          "name": "home-kpi-min",
+          "value": "220px"
+        },
+        {
+          "name": "home-kpi-h",
+          "value": "176px"
+        },
+        {
+          "name": "home-chip",
+          "value": "36px"
+        },
+        {
+          "name": "home-bar-h",
+          "value": "4px"
+        },
+        {
+          "name": "home-pair-min",
+          "value": "360px"
+        },
+        {
+          "name": "home-card-pad",
+          "value": "28px"
+        },
+        {
+          "name": "home-card-title",
+          "value": "600 18px/24px {font-sans}"
+        },
+        {
+          "name": "home-tile-h",
+          "value": "112px"
+        },
+        {
+          "name": "home-tile-gap",
+          "value": "14px"
+        },
+        {
+          "name": "home-tile-label",
+          "value": "600 14px/18px {font-sans}"
+        },
+        {
+          "name": "home-link-icon",
+          "value": "14px"
+        },
+        {
+          "name": "home-skel-line",
+          "value": "16px"
+        },
+        {
+          "name": "home-skel-num",
+          "value": "52px"
+        }
       ]
     },
     "coords": {
       "$description": "modules/organization 08 Koordinatörlükler liste ölçüleri — Koordinatorlukler.dc.html artboard yerel stilleri (rp-health, rp-ccard, rp-ccard__stats, rp-code, rp-tip) ve satır içi ölçek DIŞI değerler (W72).",
       "tokens": [
-        { "name": "coords-health-min", "value": "220px" },
-        { "name": "coords-health-cols", "value": "36px minmax(0, 1fr) 16px" },
-        { "name": "coords-health-pad", "value": "14px 16px" },
-        { "name": "coords-health-num", "value": "600 22px/26px {font-display}" },
-        { "name": "coords-chip", "value": "36px" },
-        { "name": "coords-grow-basis", "value": "280px" },
-        { "name": "coords-search-basis", "value": "200px" },
-        { "name": "coords-card-min", "value": "280px" },
-        { "name": "coords-gap", "value": "14px" },
-        { "name": "coords-card-pad", "value": "18px" },
-        { "name": "coords-code-min", "value": "44px" },
-        { "name": "coords-code-h", "value": "24px" },
-        { "name": "coords-code-offset", "value": "2px" },
-        { "name": "coords-title", "value": "600 15px/20px {font-sans}" },
-        { "name": "coords-lead-h", "value": "28px" },
-        { "name": "coords-av-overlap", "value": "-3px" },
-        { "name": "coords-av-ring", "value": "2px" },
-        { "name": "coords-stat-h", "value": "56px" },
-        { "name": "coords-stat-num", "value": "600 20px/24px {font-display}" },
-        { "name": "coords-dot", "value": "8px" },
-        { "name": "coords-menu-btn", "value": "32px" },
-        { "name": "coords-menu-w", "value": "220px" },
-        { "name": "coords-tip-offset", "value": "8px" },
-        { "name": "coords-tip-pad", "value": "4px 8px" },
-        { "name": "coords-tip-radius", "value": "7px" },
-        { "name": "coords-tip-font", "value": "500 11px/14px {font-sans}" },
-        { "name": "coords-tip-shift", "value": "3px" },
-        { "name": "coords-skel-h", "value": "212px" },
-        { "name": "coords-group-gap", "value": "20px" }
+        {
+          "name": "coords-health-min",
+          "value": "220px"
+        },
+        {
+          "name": "coords-health-cols",
+          "value": "36px minmax(0, 1fr) 16px"
+        },
+        {
+          "name": "coords-health-pad",
+          "value": "14px 16px"
+        },
+        {
+          "name": "coords-health-num",
+          "value": "600 22px/26px {font-display}"
+        },
+        {
+          "name": "coords-chip",
+          "value": "36px"
+        },
+        {
+          "name": "coords-grow-basis",
+          "value": "280px"
+        },
+        {
+          "name": "coords-search-basis",
+          "value": "200px"
+        },
+        {
+          "name": "coords-card-min",
+          "value": "280px"
+        },
+        {
+          "name": "coords-gap",
+          "value": "14px"
+        },
+        {
+          "name": "coords-card-pad",
+          "value": "18px"
+        },
+        {
+          "name": "coords-code-min",
+          "value": "44px"
+        },
+        {
+          "name": "coords-code-h",
+          "value": "24px"
+        },
+        {
+          "name": "coords-code-offset",
+          "value": "2px"
+        },
+        {
+          "name": "coords-title",
+          "value": "600 15px/20px {font-sans}"
+        },
+        {
+          "name": "coords-lead-h",
+          "value": "28px"
+        },
+        {
+          "name": "coords-av-overlap",
+          "value": "-3px"
+        },
+        {
+          "name": "coords-av-ring",
+          "value": "2px"
+        },
+        {
+          "name": "coords-stat-h",
+          "value": "56px"
+        },
+        {
+          "name": "coords-stat-num",
+          "value": "600 20px/24px {font-display}"
+        },
+        {
+          "name": "coords-dot",
+          "value": "8px"
+        },
+        {
+          "name": "coords-menu-btn",
+          "value": "32px"
+        },
+        {
+          "name": "coords-menu-w",
+          "value": "220px"
+        },
+        {
+          "name": "coords-tip-offset",
+          "value": "8px"
+        },
+        {
+          "name": "coords-tip-pad",
+          "value": "4px 8px"
+        },
+        {
+          "name": "coords-tip-radius",
+          "value": "7px"
+        },
+        {
+          "name": "coords-tip-font",
+          "value": "500 11px/14px {font-sans}"
+        },
+        {
+          "name": "coords-tip-shift",
+          "value": "3px"
+        },
+        {
+          "name": "coords-skel-h",
+          "value": "212px"
+        },
+        {
+          "name": "coords-group-gap",
+          "value": "20px"
+        }
       ]
     },
     "coordinatorship": {
       "$description": "modules/organization 08b Koordinatörlük detayı ölçüleri — Koordinatorluk-Detay.dc.html (rp-code--lg, rp-kpistrip, Hakkında/Ekip/Dikkat/Kısayollar kartları) ve theme.css rp-dl / rp-cardtitle / rp-kicker ölçek DIŞI değerleri (W73).",
       "tokens": [
-        { "name": "cd-head-gap", "value": "18px" },
-        { "name": "cd-code-lg", "value": "56px" },
-        { "name": "cd-code-lg-font", "value": "500 16px/20px {font-mono}" },
-        { "name": "cd-kpi-min", "value": "150px" },
-        { "name": "cd-kpi-pad-y", "value": "14px" },
-        { "name": "cd-kpi-pad-x", "value": "18px" },
-        { "name": "cd-kpi-num", "value": "600 26px/32px {font-display}" },
-        { "name": "cd-card-title", "value": "600 16px/24px {font-sans}" },
-        { "name": "cd-aside-pad", "value": "22px" },
-        { "name": "cd-about-text", "value": "400 14px/22px {font-sans}" },
-        { "name": "cd-dl-label-min", "value": "120px" },
-        { "name": "cd-team-min", "value": "220px" },
-        { "name": "cd-badge-h", "value": "22px" },
-        { "name": "cd-badge-font", "value": "600 11px/16px {font-sans}" },
-        { "name": "cd-dot", "value": "8px" },
-        { "name": "cd-member-min", "value": "260px" }
+        {
+          "name": "cd-head-gap",
+          "value": "18px"
+        },
+        {
+          "name": "cd-code-lg",
+          "value": "56px"
+        },
+        {
+          "name": "cd-code-lg-font",
+          "value": "500 16px/20px {font-mono}"
+        },
+        {
+          "name": "cd-kpi-min",
+          "value": "150px"
+        },
+        {
+          "name": "cd-kpi-pad-y",
+          "value": "14px"
+        },
+        {
+          "name": "cd-kpi-pad-x",
+          "value": "18px"
+        },
+        {
+          "name": "cd-kpi-num",
+          "value": "600 26px/32px {font-display}"
+        },
+        {
+          "name": "cd-card-title",
+          "value": "600 16px/24px {font-sans}"
+        },
+        {
+          "name": "cd-aside-pad",
+          "value": "22px"
+        },
+        {
+          "name": "cd-about-text",
+          "value": "400 14px/22px {font-sans}"
+        },
+        {
+          "name": "cd-dl-label-min",
+          "value": "120px"
+        },
+        {
+          "name": "cd-team-min",
+          "value": "220px"
+        },
+        {
+          "name": "cd-badge-h",
+          "value": "22px"
+        },
+        {
+          "name": "cd-badge-font",
+          "value": "600 11px/16px {font-sans}"
+        },
+        {
+          "name": "cd-dot",
+          "value": "8px"
+        },
+        {
+          "name": "cd-member-min",
+          "value": "260px"
+        }
       ]
     },
     "users": {
       "$description": "modules/organization 05 Kullanıcılar ölçüleri — Kullanicilar.dc.html satır içi stilleri ve theme.css rp-sheethead ölçek DIŞI değerleri (W75; CX-F0-Ö-02).",
       "tokens": [
-        { "name": "users-min-w", "value": "640px" },
-        { "name": "users-cols", "value": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px" },
-        { "name": "users-cols-narrow", "value": "20px minmax(0, 1fr) auto 36px" },
-        { "name": "users-badge-h", "value": "24px" },
-        { "name": "users-badge-pad", "value": "0 10px" },
-        { "name": "users-more-pad", "value": "0 8px" },
-        { "name": "users-grow-basis", "value": "280px" },
-        { "name": "users-search-h", "value": "36px" },
-        { "name": "users-search-basis", "value": "180px" },
-        { "name": "users-pop-w", "value": "260px" },
-        { "name": "users-pop-max-h", "value": "320px" },
-        { "name": "users-skel-h", "value": "12px" },
-        { "name": "users-sheethead-gap", "value": "14px" },
-        { "name": "users-name", "value": "600 20px/26px {font-display}" },
-        { "name": "users-strip-cols", "value": "repeat(3, minmax(0, 1fr)) 20px" },
-        { "name": "users-strip-pad", "value": "14px 16px" },
-        { "name": "users-strip-num", "value": "600 20px/26px {font-display}" },
-        { "name": "users-role-cols", "value": "20px minmax(0, 1fr)" },
-        { "name": "users-role-radius", "value": "14px" },
-        { "name": "users-add-h", "value": "28px" },
-        { "name": "users-add-pad", "value": "0 10px" }
+        {
+          "name": "users-min-w",
+          "value": "640px"
+        },
+        {
+          "name": "users-cols",
+          "value": "20px minmax(0, 2fr) 152px minmax(0, 1.2fr) 36px"
+        },
+        {
+          "name": "users-cols-narrow",
+          "value": "20px minmax(0, 1fr) auto 36px"
+        },
+        {
+          "name": "users-badge-h",
+          "value": "24px"
+        },
+        {
+          "name": "users-badge-pad",
+          "value": "0 10px"
+        },
+        {
+          "name": "users-more-pad",
+          "value": "0 8px"
+        },
+        {
+          "name": "users-grow-basis",
+          "value": "280px"
+        },
+        {
+          "name": "users-search-h",
+          "value": "36px"
+        },
+        {
+          "name": "users-search-basis",
+          "value": "180px"
+        },
+        {
+          "name": "users-pop-w",
+          "value": "260px"
+        },
+        {
+          "name": "users-pop-max-h",
+          "value": "320px"
+        },
+        {
+          "name": "users-skel-h",
+          "value": "12px"
+        },
+        {
+          "name": "users-sheethead-gap",
+          "value": "14px"
+        },
+        {
+          "name": "users-name",
+          "value": "600 20px/26px {font-display}"
+        },
+        {
+          "name": "users-strip-cols",
+          "value": "repeat(3, minmax(0, 1fr)) 20px"
+        },
+        {
+          "name": "users-strip-pad",
+          "value": "14px 16px"
+        },
+        {
+          "name": "users-strip-num",
+          "value": "600 20px/26px {font-display}"
+        },
+        {
+          "name": "users-role-cols",
+          "value": "20px minmax(0, 1fr)"
+        },
+        {
+          "name": "users-role-radius",
+          "value": "14px"
+        },
+        {
+          "name": "users-add-h",
+          "value": "28px"
+        },
+        {
+          "name": "users-add-pad",
+          "value": "0 10px"
+        }
       ]
     },
     "tracking": {
       "$description": "modules/organization 05b Kişisel takip ölçüleri — Kullanici-KisiselTakip.dc.html artboard ve theme.css (rp-dtable, rp-trgroup, rp-dot, rp-dl, rp-bar, takvim hücresi) ölçek DIŞI değerleri (W76).",
       "tokens": [
-        { "name": "pt-badge-h", "value": "24px" },
-        { "name": "pt-kpi-min", "value": "200px" },
-        { "name": "pt-kpi-h", "value": "176px" },
-        { "name": "pt-chip", "value": "36px" },
-        { "name": "pt-bar-h", "value": "4px" },
-        { "name": "pt-cols", "value": "8px minmax(0, 1fr) 124px 112px 64px 36px" },
-        { "name": "pt-min-w", "value": "640px" },
-        { "name": "pt-row-pad-sm", "value": "10px 16px" },
-        { "name": "pt-dot", "value": "8px" },
-        { "name": "pt-dot-ring", "value": "1.5px" },
-        { "name": "pt-dot-sm", "value": "6px" },
-        { "name": "pt-card-pad", "value": "22px" },
-        { "name": "pt-card-title", "value": "600 16px/24px {font-sans}" },
-        { "name": "pt-card-gap", "value": "14px" },
-        { "name": "pt-cal-cell", "value": "36px" },
-        { "name": "pt-cal-radius", "value": "10px" },
-        { "name": "pt-cal-font", "value": "400 13px/20px {font-sans}" },
-        { "name": "pt-cal-btn", "value": "28px" },
-        { "name": "pt-cal-dot", "value": "4px" },
-        { "name": "pt-dist-h", "value": "10px" },
-        { "name": "pt-dl-cols", "value": "minmax(88px, auto) minmax(0, 1fr)" },
-        { "name": "pt-dl-gap", "value": "10px 16px" },
-        { "name": "pt-skel-line", "value": "16px" },
-        { "name": "pt-skel-num", "value": "52px" }
+        {
+          "name": "pt-badge-h",
+          "value": "24px"
+        },
+        {
+          "name": "pt-kpi-min",
+          "value": "200px"
+        },
+        {
+          "name": "pt-kpi-h",
+          "value": "176px"
+        },
+        {
+          "name": "pt-chip",
+          "value": "36px"
+        },
+        {
+          "name": "pt-bar-h",
+          "value": "4px"
+        },
+        {
+          "name": "pt-cols",
+          "value": "8px minmax(0, 1fr) 124px 112px 64px 36px"
+        },
+        {
+          "name": "pt-min-w",
+          "value": "640px"
+        },
+        {
+          "name": "pt-row-pad-sm",
+          "value": "10px 16px"
+        },
+        {
+          "name": "pt-dot",
+          "value": "8px"
+        },
+        {
+          "name": "pt-dot-ring",
+          "value": "1.5px"
+        },
+        {
+          "name": "pt-dot-sm",
+          "value": "6px"
+        },
+        {
+          "name": "pt-card-pad",
+          "value": "22px"
+        },
+        {
+          "name": "pt-card-title",
+          "value": "600 16px/24px {font-sans}"
+        },
+        {
+          "name": "pt-card-gap",
+          "value": "14px"
+        },
+        {
+          "name": "pt-cal-cell",
+          "value": "36px"
+        },
+        {
+          "name": "pt-cal-radius",
+          "value": "10px"
+        },
+        {
+          "name": "pt-cal-font",
+          "value": "400 13px/20px {font-sans}"
+        },
+        {
+          "name": "pt-cal-btn",
+          "value": "28px"
+        },
+        {
+          "name": "pt-cal-dot",
+          "value": "4px"
+        },
+        {
+          "name": "pt-dist-h",
+          "value": "10px"
+        },
+        {
+          "name": "pt-dl-cols",
+          "value": "minmax(88px, auto) minmax(0, 1fr)"
+        },
+        {
+          "name": "pt-dl-gap",
+          "value": "10px 16px"
+        },
+        {
+          "name": "pt-skel-line",
+          "value": "16px"
+        },
+        {
+          "name": "pt-skel-num",
+          "value": "52px"
+        }
       ]
     },
     "gantt": {
       "$description": "modules/timeline 03c Zaman çizelgesi — kendi SVG Gantt çekirdeği ölçüleri (W92): Gorevler-Zaman.dc.html artboard ve gantt-secimi.md §7 (gün 21 px; satır 40/44; çubuk 24; sol sütun 300). model/{timeline,rows,links}.ts bu değerleri TOKENS'tan okur; CSS aynı değişkenleri kullanır (tek kaynak).",
       "tokens": [
-        { "name": "gantt-label-w", "value": "300px" },
-        { "name": "gantt-label-max", "value": "50cqw" },
-        { "name": "gantt-view-h", "value": "780px" },
-        { "name": "gantt-axis-month-h", "value": "34px" },
-        { "name": "gantt-axis-day-h", "value": "28px" },
-        { "name": "gantt-group-h", "value": "40px" },
-        { "name": "gantt-row-h", "value": "44px" },
-        { "name": "gantt-sub-h", "value": "32px" },
-        { "name": "gantt-chip-w", "value": "56px" },
-        { "name": "gantt-bar-h", "value": "24px" },
-        { "name": "gantt-bar-radius", "value": "8px" },
-        { "name": "gantt-handle-w", "value": "6px" },
-        { "name": "gantt-handle-h", "value": "16px" },
-        { "name": "gantt-handle-r", "value": "3px" },
-        { "name": "gantt-day-w-gun", "value": "21px" },
-        { "name": "gantt-day-w-hafta", "value": "6px" },
-        { "name": "gantt-day-w-ay", "value": "2px" },
-        { "name": "gantt-today-w", "value": "2px" },
-        { "name": "gantt-today-pill-w", "value": "52px" },
-        { "name": "gantt-today-pill-h", "value": "20px" },
-        { "name": "gantt-today-pill-r", "value": "6px" },
-        { "name": "gantt-ring-w", "value": "2px" },
-        { "name": "gantt-split-w", "value": "2px" },
-        { "name": "gantt-hit-w", "value": "12px" },
-        { "name": "gantt-link-w", "value": "1.5px" },
-        { "name": "gantt-dash", "value": "4 3" },
-        { "name": "gantt-late-border", "value": "1.5px" },
-        { "name": "gantt-summary-h", "value": "8px" },
-        { "name": "gantt-dep-icon", "value": "12px" },
-        { "name": "gantt-code-w", "value": "48px" },
-        { "name": "gantt-dot", "value": "8px" },
-        { "name": "gantt-chevron", "value": "16px" },
-        { "name": "gantt-label-cols", "value": "48px 8px minmax(0, 1fr) auto" },
-        { "name": "gantt-label-cols-bare", "value": "8px minmax(0, 1fr) auto" },
-        { "name": "gantt-group-cols", "value": "16px minmax(0, 1fr) auto" }
+        {
+          "name": "gantt-label-w",
+          "value": "300px"
+        },
+        {
+          "name": "gantt-label-max",
+          "value": "50cqw"
+        },
+        {
+          "name": "gantt-view-h",
+          "value": "780px"
+        },
+        {
+          "name": "gantt-axis-month-h",
+          "value": "34px"
+        },
+        {
+          "name": "gantt-axis-day-h",
+          "value": "28px"
+        },
+        {
+          "name": "gantt-group-h",
+          "value": "40px"
+        },
+        {
+          "name": "gantt-row-h",
+          "value": "44px"
+        },
+        {
+          "name": "gantt-sub-h",
+          "value": "32px"
+        },
+        {
+          "name": "gantt-chip-w",
+          "value": "56px"
+        },
+        {
+          "name": "gantt-bar-h",
+          "value": "24px"
+        },
+        {
+          "name": "gantt-bar-radius",
+          "value": "8px"
+        },
+        {
+          "name": "gantt-handle-w",
+          "value": "6px"
+        },
+        {
+          "name": "gantt-handle-h",
+          "value": "16px"
+        },
+        {
+          "name": "gantt-handle-r",
+          "value": "3px"
+        },
+        {
+          "name": "gantt-day-w-gun",
+          "value": "21px"
+        },
+        {
+          "name": "gantt-day-w-hafta",
+          "value": "6px"
+        },
+        {
+          "name": "gantt-day-w-ay",
+          "value": "2px"
+        },
+        {
+          "name": "gantt-today-w",
+          "value": "2px"
+        },
+        {
+          "name": "gantt-today-pill-w",
+          "value": "52px"
+        },
+        {
+          "name": "gantt-today-pill-h",
+          "value": "20px"
+        },
+        {
+          "name": "gantt-today-pill-r",
+          "value": "6px"
+        },
+        {
+          "name": "gantt-ring-w",
+          "value": "2px"
+        },
+        {
+          "name": "gantt-split-w",
+          "value": "2px"
+        },
+        {
+          "name": "gantt-hit-w",
+          "value": "12px"
+        },
+        {
+          "name": "gantt-link-w",
+          "value": "1.5px"
+        },
+        {
+          "name": "gantt-dash",
+          "value": "4 3"
+        },
+        {
+          "name": "gantt-late-border",
+          "value": "1.5px"
+        },
+        {
+          "name": "gantt-summary-h",
+          "value": "8px"
+        },
+        {
+          "name": "gantt-dep-icon",
+          "value": "12px"
+        },
+        {
+          "name": "gantt-code-w",
+          "value": "48px"
+        },
+        {
+          "name": "gantt-dot",
+          "value": "8px"
+        },
+        {
+          "name": "gantt-chevron",
+          "value": "16px"
+        },
+        {
+          "name": "gantt-label-cols",
+          "value": "48px 8px minmax(0, 1fr) auto"
+        },
+        {
+          "name": "gantt-label-cols-bare",
+          "value": "8px minmax(0, 1fr) auto"
+        },
+        {
+          "name": "gantt-group-cols",
+          "value": "16px minmax(0, 1fr) auto"
+        }
+      ]
+    },
+    "meeting": {
+      "$description": "Toplantı liste tasarımının ölçek dışı ölçüleri (Toplantilar.dc.html).",
+      "tokens": [
+        {
+          "name": "meeting-date-width",
+          "value": "60px",
+          "usage": "Liste tarih kutusu genişliği."
+        },
+        {
+          "name": "meeting-code-width",
+          "value": "40px",
+          "usage": "Koordinatörlük kodu alt sınırı."
+        },
+        {
+          "name": "meeting-code-height",
+          "value": "22px",
+          "usage": "Koordinatörlük kodu yüksekliği."
+        }
       ]
     }
   }
