@@ -16,6 +16,7 @@ export const trMeetings = {
       invalid: 'Başlangıç tarihi bitiş tarihinden sonra olamaz veya tarih geçersiz.',
       loading: 'Toplantılar yükleniyor…',
       error: 'Toplantılar yüklenemedi.',
+      moreError: 'Diğer toplantılar yüklenemedi; sayılar yüklenen kayıtları kapsar.',
       retry: 'Yeniden dene',
       rule: 'Bugünden önceki günlere toplantı açılamaz.',
       empty: 'Bu süzgeçte toplantı yok.',

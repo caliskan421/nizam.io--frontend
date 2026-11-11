@@ -66,7 +66,12 @@ function update(key: string, next: string) {
 watch(
   () => [meetings.query.data.value, meetings.query.isFetching.value, invalid.value],
   () => {
-    if (!invalid.value && meetings.query.hasNextPage.value && !meetings.query.isFetching.value)
+    if (
+      !invalid.value &&
+      meetings.query.hasNextPage.value &&
+      !meetings.query.isFetching.value &&
+      !meetings.query.isFetchNextPageError.value
+    )
       void meetings.loadAll().catch(() => {})
   },
   { immediate: true },
@@ -157,12 +162,18 @@ watch(
         <button @click="meetings.query.refetch()">{{ t('meetings.list.retry') }}</button>
       </div>
       <template v-else
-        ><MeetingList
+        ><div v-if="meetings.query.isFetchNextPageError.value" role="alert">
+          {{ t('meetings.list.moreError') }}
+          <button @click="meetings.loadAll().catch(() => {})">
+            {{ t('meetings.list.retry') }}
+          </button>
+        </div>
+        <MeetingList
           :items="shown"
           :complete="meetings.complete.value"
           @create="creating = true"
           @open-deleted="update('zaman', 'silinenler')"
-          @select="router.push(`/toplantilar/${$event}`)"
+          @select="router.push({ path: `/toplantilar/${$event}`, query: route.query })"
         />
         <footer class="meetings-foot">
           <span>{{ t('meetings.list.rule') }}</span
