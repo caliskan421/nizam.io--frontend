@@ -19,9 +19,10 @@ import { i18n } from '@/shared/i18n'
 import { settleQueries, until } from '@/shared/http/__tests__/settle'
 import { flushPromises } from '@vue/test-utils'
 
+const standingState = vi.hoisted(() => ({ admin: true }))
 vi.mock('@/shared/scope/standing', () => ({
   useStanding: () => ({
-    standing: ref({ companyAdmin: true, rows: [] }),
+    standing: ref({ companyAdmin: standingState.admin, rows: [] }),
     programs: ref([{ programId: 'p', name: 'Sezon' }]),
   }),
 }))
@@ -159,4 +160,37 @@ it('closes the create form when scope or session changes', async () => {
   expect(wrapper.findComponent({ name: 'MeetingForm' }).exists()).toBe(false)
   wrapper.unmount()
   client.clear()
+})
+
+it('hides creation and deleted tabs for a member', async () => {
+  standingState.admin = false
+  server.use(
+    http.get('http://localhost/v1/program/departments', () =>
+      HttpResponse.json({ departments: [] }),
+    ),
+  )
+  server.use(
+    http.get('http://localhost/v1/meetings', () =>
+      HttpResponse.json({ items: [], next_cursor: '' }),
+    ),
+  )
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: 'd', lens: 'member' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/toplantilar', component: Page }],
+  })
+  await router.push('/toplantilar?zaman=silinenler')
+  const wrapper = mount(Page, {
+    global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
+  })
+  await settleQueries(client)
+  expect(wrapper.text()).not.toContain('Yeni toplantı')
+  expect(wrapper.text()).not.toContain('Silinenler')
+  expect(wrapper.text()).toContain('Üye olarak')
+  wrapper.unmount()
+  client.clear()
+  standingState.admin = true
 })
