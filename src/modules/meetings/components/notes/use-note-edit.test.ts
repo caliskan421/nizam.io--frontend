@@ -12,7 +12,7 @@ import type { MeetingNote } from '../../model/types'
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
-it('resolves a 409 against the new revision and sends the selected draft', async () => {
+it.each(['mine', 'theirs'] as const)('resolves a 409 using %s', async (choice) => {
   const requests: Array<{ content: string; expected_revision: number }> = []
   server.use(
     http.patch('http://localhost/v1/meeting-notes/n', async ({ request }) => {
@@ -61,12 +61,16 @@ it('resolves a 409 against the new revision and sends the selected draft', async
   const saving = edit.saveNote()
   await settleQueries(client)
   expect(edit.conflict.open.value).toBe(true)
-  edit.conflict.choose({ content: 'mine' })
+  edit.conflict.choose({ content: choice })
   await saving
-  expect(requests).toEqual([
-    { content: 'Taslak', expected_revision: 2 },
-    { content: 'Taslak', expected_revision: 3 },
-  ])
+  expect(requests).toEqual(
+    choice === 'mine'
+      ? [
+          { content: 'Taslak', expected_revision: 2 },
+          { content: 'Taslak', expected_revision: 3 },
+        ]
+      : [{ content: 'Taslak', expected_revision: 2 }],
+  )
   expect(refreshed).toBe(1)
   app.unmount()
   client.clear()

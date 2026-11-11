@@ -72,6 +72,7 @@ export function useNoteEdit(
     if (started !== version()) return
     const changes = resolveDraft({ content }, { content: server.content }, choices)
     if (changes.content === undefined) {
+      refresh()
       editing.value = null
       return
     }

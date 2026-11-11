@@ -68,6 +68,7 @@ const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
   () => version,
   () => {
     const id = editing.value?.note_id
+    void query.refetch()
     emit('refresh')
     if (id) focusNote(id)
   },
