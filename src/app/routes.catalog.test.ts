@@ -70,8 +70,8 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F3 (WEB-3 W91 faz geçişi: Zaman çizelgesi canlı)', () => {
-    expect(CURRENT_PHASE).toBe('F3')
+  it('etkin faz F4: Toplantılar canlı', () => {
+    expect(CURRENT_PHASE).toBe('F4')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -84,6 +84,8 @@ describe('rota kataloğu — yapı', () => {
       'organization.coordinatorships',
       'organization.coordinatorship',
       'program.programs',
+      'collaboration.meetings',
+      'collaboration.meeting',
     ])
     expect(liveRouteNames('F2')).not.toContain('work.timeline')
     expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])
@@ -164,11 +166,12 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F3): Ana sayfa, Görevler, Zaman çizelgesi ve Yönetim öğeleri canlı; diğerleri gizli', () => {
+  it('etkin faz (F4): Toplantılar da canlı', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],
       ['gantt', 'takip', 'canli'],
+      ['meetings', 'icerik', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
       ['season', 'yonetim', 'canli'],

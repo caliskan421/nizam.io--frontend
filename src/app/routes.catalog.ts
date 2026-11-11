@@ -18,7 +18,7 @@ export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F3'
+export const CURRENT_PHASE: Phase = 'F4'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -226,7 +226,12 @@ export const ROUTES = {
     phase: 'F4',
     menu: { group: 'icerik', key: 'meetings', order: 1 },
     params: {},
-    query: { zaman: oneOf(['yaklasan', 'gecmis', 'silinenler']), koordinatorluk: id },
+    query: {
+      zaman: oneOf(['yaklasan', 'gecmis', 'silinenler']),
+      koordinatorluk: id,
+      from: text,
+      to: text,
+    },
   },
   'collaboration.meeting': {
     path: '/toplantilar/:meetingId',

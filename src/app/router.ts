@@ -17,6 +17,7 @@ import {
   routeSpec,
 } from '@/app/routes.catalog'
 import { homeRoutes } from '@/modules/home/public'
+import { meetingsRoutes } from '@/modules/meetings/public'
 import { identityRoutes } from '@/modules/identity/public'
 import { organizationRoutes } from '@/modules/organization/public'
 import { programRoutes } from '@/modules/program/public'
@@ -42,6 +43,7 @@ export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...organizationRoutes,
   ...programRoutes,
   ...timelineRoutes,
+  ...meetingsRoutes,
 ]
 
 function moduleViews(records: readonly RouteRecordRaw[]): Map<RouteName, ViewLoader> {
