@@ -23,8 +23,8 @@ export function splitMeetings(meetings: readonly Meeting[], now: Date, timezone:
   for (const meeting of meetings) {
     ;(meetingDay(meeting.meeting_date, timezone) >= today ? upcoming : past).push(meeting)
   }
-  upcoming.sort((a, b) => a.meeting_date.localeCompare(b.meeting_date))
-  past.sort((a, b) => b.meeting_date.localeCompare(a.meeting_date))
+  upcoming.sort((a, b) => Date.parse(a.meeting_date) - Date.parse(b.meeting_date))
+  past.sort((a, b) => Date.parse(b.meeting_date) - Date.parse(a.meeting_date))
   return { upcoming, past }
 }
 
