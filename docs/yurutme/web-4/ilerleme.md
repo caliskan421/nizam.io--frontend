@@ -98,3 +98,15 @@ W102 `9c77a64` PR #90: tam kapı 446 dosya/3101 test ve üretim+Caddy 6/6 görse
 - TASLAK W103: `MeetingDetailPage.test.ts` ve `MeetingDetailPage.delete.test.ts` içindeki MeetingNotes, MeetingPeople, MeetingSide, MeetingForm, MeetingConvert; W107 gerçek alt bileşen senaryoları.
 - W104: gerçek nottan görev → görev listesi/kenar menüsü rozeti/pano önce-sonra W107'de. Geçersizleme haritası testi bu kabulün yerine geçmez.
 - O3, O4, nihai read-only Sol kapısı, gerçek VoiceOver ve kullanıcı görsel onayı açık. F5 açılmadı.
+
+## 2026-11-11 — O2b yerel teslimler ve CI altyapı engeli
+
+W105 `f465832` PR #94: özel kişi seçici ve kişi/yan bilgi kartları tamamlandı; typecheck/lint/format, 466 dosya/3173 test, gen:check ve build geçti. Gerçek Caddy+Chromium altı genişlik/tema koşulunda taşma/CSP/pageerror sıfır; 390×600 ve 20 adayla tek modal kaydırma alanı, seçim ve odak dönüşü doğrulandı. Kişi ve yan bilgi kartları tasarımdaki sağ sütuna bağlandı. S3 çizimi bulunmadı; P32 kararına uygun türetilmiş yüzeydir.
+
+W106 `c2ae041`: oluşturma/düzenleme, koordinatörlük kümesi, silinenler tamamlandı. Geçmiş tarih değişmediyse yalnız başlık PATCH, gün değişimi, kurulum saat dilimi, Unicode başlık, K sahip departmanı, restore409 yenilemesi ve canlı departman kodu sınandı. Tam test paketi `ce20720` üzerinde 470 dosya/3185 test; sonraki yerleşim ve kabul düzeltmelerinde `1ee3236` 14 dosya/45 hedefli test, `c2ae041` 7 dosya/18 hedefli test ve son typecheck/tam lint/format/gen/build geçti. Son üretim+Caddy altı görünümde taşma/CSP/pageerror sıfır; gerçek eski tarih title-only PATCH, EKP kodu, nested seçici odağı ve oluşturma/silinenler/departman pencereleri doğrulandı. Nihai PR/CI kapısı açık.
+
+W108 `f6304b6` PR #93: aktarım mercek/geç409, 05 panel odak/owner yarışı, G1 yetkisiz rota bildirimi, G2 nötr kısa kod düzeltildi. Yerel typecheck/lint/format, 438 dosya/3092 test, gen/build geçti. Dört rota × üç genişlik × iki tema ve K/Ü üç yönetim rotasında tek bildirim, iç modal Esc ve panel odağı gerçek tarayıcıyla sınandı. W109 gerçek Gantt yerleşimi/cleanup ve ek entegrasyon işinde; henüz teslim yok.
+
+**Birleşim engeli:** #90/#91/#92 ilk ve ikinci CI denemelerinde kod/test ve Docker imajı denetimleri geçti, fakat Ubuntu paket sunucularının DNS çözümlemesi başarısız olduğundan Playwright bağımlılık kurulumu APT exit100 verdi; gerçek backend tarayıcı testleri hiç başlamadı. Başarılı #89 aynı runner imajı `ubuntu-26.04 / 20261101.186`, workflow, pin ve kilit dosyasıyla 4 E2E testini geçmiştir; kaynak veya sürüm uyumsuzluğu kanıtı yok. Test atlama/kapı gevşetme yapılmadı. Yeni PR'ların CI sonuçları ayrıca beklenecek. Bu kayıt anında O2b PR'ları birleşmedi; O3/W107 ve O4 açılmadı, F5 açılmadı.
+
+Ham yerel kanıtlar ve CI karşılaştırma günlükleri `.git/koordinator/web4-w105`, `web4-w106`, `web4-w108` ve aynı dizindeki CI günlüklerindedir. Önceki Apple Git Xcode lisans hataları Homebrew Git PATH ile giderildi; bu ortam hataları başarılı kapı diye kaydedilmedi. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık.
