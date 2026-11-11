@@ -31,3 +31,20 @@ export interface CreateMeetingInput {
 export interface UpdateMeetingInput extends MeetingTarget {
   body: UpdateMeetingRequest
 }
+export type AgendaItem = components['schemas']['AgendaItem']
+export type AgendaItemRequest = components['schemas']['AgendaItemRequest']
+export type UpdateAgendaItemRequest = components['schemas']['UpdateAgendaItemRequest']
+export type ParticipantResult = components['schemas']['ParticipantResult']
+export interface AddAgendaInput extends MeetingTarget {
+  body: AgendaItemRequest
+}
+export interface AgendaTarget {
+  programId: string
+  itemId: string
+}
+export interface UpdateAgendaInput extends AgendaTarget {
+  body: UpdateAgendaItemRequest
+}
+export interface ParticipantInput extends MeetingTarget {
+  userId: string
+}
