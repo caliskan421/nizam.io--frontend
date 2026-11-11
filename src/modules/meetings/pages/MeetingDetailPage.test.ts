@@ -20,11 +20,11 @@ vi.mock('../api/queries', () => ({
       program_id: 'p',
       title: 'Toplantı',
       meeting_date: '2026-10-21T11:00:00Z',
-      invite_mode: 'person',
+      invite_mode: 'coordinatorship',
       owner_department_id: 'd',
       departments: [],
       created_by_account_id: 'a',
-      members_included: false,
+      members_included: true,
       participants: [],
       agenda: [],
       viewer_role: 'admin',
@@ -203,5 +203,12 @@ it('places people and side information together beside agenda and notes', () => 
   expect(side.find('meeting-people-stub').exists()).toBe(true)
   expect(side.find('[data-test="departments"]').exists()).toBe(true)
   expect(wrapper.get('.meeting-detail__content').find('meeting-people-stub').exists()).toBe(false)
+  wrapper.unmount()
+})
+
+it('shows membership as a status in the real detail header', () => {
+  const { wrapper } = setup()
+  expect(wrapper.text()).toContain('Üyeler dahil')
+  expect(wrapper.text()).not.toContain('Tüm üyelere de davet gönder')
   wrapper.unmount()
 })
