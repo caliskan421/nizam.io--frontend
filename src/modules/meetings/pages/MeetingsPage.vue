@@ -12,6 +12,8 @@ import { useMeetings, useDeletedMeetings } from '../api/queries'
 import { coordinatorDepartmentIds } from '../model/capabilities'
 import { splitMeetings } from '../model/list'
 import { useNow } from './meetings/use-now'
+import { invalidRange, lensDescription } from './meetings/presentation'
+import MeetingHeader from '../components/list/MeetingHeader.vue'
 import MeetingList from '../components/list/MeetingList.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import DeletedMeetings from '../components/deleted/DeletedMeetings.vue'
@@ -65,19 +67,7 @@ const tab = computed(() =>
 const value = (key: string) => (typeof route.query[key] === 'string' ? route.query[key] : '')
 const from = computed(() => value('from'))
 const to = computed(() => value('to'))
-const validDate = (date: string) =>
-  !date ||
-  (/^\d{4}-\d{2}-\d{2}$/.test(date) &&
-    !Number.isNaN(Date.parse(`${date}T00:00:00Z`)) &&
-    new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date)
-const invalid = computed(
-  () =>
-    (route.query.from !== undefined && typeof route.query.from !== 'string') ||
-    (route.query.to !== undefined && typeof route.query.to !== 'string') ||
-    !validDate(from.value) ||
-    !validDate(to.value) ||
-    (!!from.value && !!to.value && from.value > to.value),
-)
+const invalid = computed(() => invalidRange(route.query.from, route.query.to))
 const filters = computed(() => ({
   department_id: value('koordinatorluk') || undefined,
   from: from.value || undefined,
@@ -89,13 +79,7 @@ const now = useNow()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
 const split = computed(() => splitMeetings(meetings.items.value, now.value, timezone.value))
 const shown = computed(() => (tab.value === 'gecmis' ? split.value.past : split.value.upcoming))
-const lensText = computed(() =>
-  scope.lens === 'admin'
-    ? t('meetings.list.adminLens')
-    : scope.lens === 'coordinator'
-      ? t('meetings.list.coordinatorLens')
-      : t('meetings.list.memberLens'),
-)
+const lensText = computed(() => lensDescription(scope.lens))
 const program = computed(
   () => programs.value?.find((p) => p.programId === scope.programId)?.name ?? '',
 )
@@ -146,25 +130,16 @@ watch(
 
 <template>
   <section class="meetings-page">
-    <header class="rp-head">
-      <div>
-        <h1 class="rp-h1">{{ t('meetings.list.title') }}</h1>
-        <p class="rp-sub">
-          {{ program }} · {{ meetings.complete.value ? '' : t('meetings.list.atLeast') }}
-          {{
-            t('meetings.list.counts', { upcoming: split.upcoming.length, past: split.past.length })
-          }}
-          ·
-          {{ lensText }}
-          <template v-if="from || to || value('koordinatorluk')"
-            >· {{ t('meetings.list.loaded') }}</template
-          >
-        </p>
-      </div>
-      <button v-if="canCreate" class="t-btn t-btn--primary" @click="creating = true">
-        {{ t('meetings.list.create') }}
-      </button>
-    </header>
+    <MeetingHeader
+      :program="program"
+      :upcoming="split.upcoming.length"
+      :past="split.past.length"
+      :complete="meetings.complete.value"
+      :lens-text="lensText"
+      :filtered="!!(from || to || value('koordinatorluk'))"
+      :can-create="canCreate"
+      @create="creating = true"
+    />
     <div class="rp-body meetings-body">
       <div class="meetings-toolbar">
         <div class="rp-seg" role="tablist" :aria-label="t('meetings.list.time')">
