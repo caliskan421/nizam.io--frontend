@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { components } from '@/shared/api/schema'
-import { meetingDay, meetingDepartments, splitMeetings } from './list'
+import { groupMeetings, meetingDay, meetingDepartments, splitMeetings } from './list'
 
 type Meeting = components['schemas']['Meeting']
 const meeting = (id: string, date: string): Meeting => ({
@@ -44,5 +44,19 @@ describe('meeting list model', () => {
         (d) => d.code,
       ),
     ).toEqual(['ANA', 'İK'])
+  })
+  it('groups records by the installation calendar day', () => {
+    const groups = groupMeetings(
+      [
+        meeting('a', '2026-11-10T21:01:00Z'),
+        meeting('b', '2026-11-11T12:00:00Z'),
+        meeting('c', '2026-11-10T20:59:00Z'),
+      ],
+      'Europe/Istanbul',
+    )
+    expect(groups.map((g) => [g.day, g.items.map((m) => m.meeting_id)])).toEqual([
+      ['2026-11-11', ['a', 'b']],
+      ['2026-11-10', ['c']],
+    ])
   })
 })

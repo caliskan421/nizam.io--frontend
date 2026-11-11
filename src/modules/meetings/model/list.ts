@@ -48,3 +48,15 @@ export function meetingDepartments(meeting: Meeting, departments: readonly Depar
           .join(''),
     }))
 }
+
+/** Tarih sırası çağırandan gelir; aynı kurulum günü tek grup oluşturur. */
+export function groupMeetings(meetings: readonly Meeting[], timezone: string) {
+  const groups = new Map<string, Meeting[]>()
+  for (const meeting of meetings) {
+    const day = meetingDay(meeting.meeting_date, timezone)
+    const group = groups.get(day) ?? []
+    group.push(meeting)
+    groups.set(day, group)
+  }
+  return [...groups].map(([day, items]) => ({ day, items }))
+}
