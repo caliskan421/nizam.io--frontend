@@ -227,14 +227,11 @@ watch(
         />
         <footer class="meetings-foot">
           <span>{{ t('meetings.list.rule') }}</span
-          ><span
-            >{{ shown.length }}{{ meetings.complete.value ? '' : '+' }}
-            {{
-              t(tab === 'gecmis' ? 'meetings.list.footerPast' : 'meetings.list.footerUpcoming', {
-                count: `${shown.length}${meetings.complete.value ? '' : '+'}`,
-              })
-            }}</span
-          >
+          ><span>{{
+            t(tab === 'gecmis' ? 'meetings.list.footerPast' : 'meetings.list.footerUpcoming', {
+              count: `${shown.length}${meetings.complete.value ? '' : '+'}`,
+            })
+          }}</span>
         </footer></template
       >
     </div>

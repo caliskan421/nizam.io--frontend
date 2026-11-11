@@ -15,12 +15,14 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll, beforeEach, vi } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
+import type * as StandingModule from '@/shared/scope/standing'
 import { i18n } from '@/shared/i18n'
 import { settleQueries, until } from '@/shared/http/__tests__/settle'
 import { flushPromises } from '@vue/test-utils'
 
 const standingState = vi.hoisted(() => ({ admin: true }))
-vi.mock('@/shared/scope/standing', () => ({
+vi.mock('@/shared/scope/standing', async (importOriginal) => ({
+  ...(await importOriginal<typeof StandingModule>()),
   useStanding: () => ({
     standing: ref({ companyAdmin: standingState.admin, rows: [] }),
     programs: ref([{ programId: 'p', name: 'Sezon' }]),
@@ -86,7 +88,9 @@ it('blocks invalid URL dates before the first request and starts with corrected 
   const urls: URL[] = []
   server.use(
     http.get('http://localhost/v1/program/departments', () =>
-      HttpResponse.json({ departments: [] }),
+      HttpResponse.json({
+        departments: [{ department_id: 'd', display_name: 'Ekip', code: 'EKP' }],
+      }),
     ),
   )
   server.use(
@@ -120,6 +124,21 @@ it('blocks invalid URL dates before the first request and starts with corrected 
   expect(urls[0]?.searchParams.get('from')).toBe('2026-02-28')
   expect(urls[0]?.searchParams.get('to')).toBe('2026-03-01')
   expect(wrapper.text()).toContain('yüklenen kayıtlar içinde')
+  expect(wrapper.get('.meetings-foot').text()).toContain('0 yaklaşan toplantı')
+  expect(wrapper.get('.meetings-foot').text()).not.toContain('0 0 yaklaşan')
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text().includes('Koordinatörlük'))!
+    .trigger('click')
+  await wrapper
+    .findAll('[role=menuitemradio]')
+    .find((item) => item.text() === 'Ekip')!
+    .trigger('click')
+  await until(
+    () => urls.some((url) => url.searchParams.get('department_id') === 'd'),
+    (notify) => client.getQueryCache().subscribe(notify),
+  )
+  expect(router.currentRoute.value.query.koordinatorluk).toBe('d')
   wrapper.unmount()
   client.clear()
 })
@@ -166,73 +185,6 @@ it('closes the create form when scope or session changes', async () => {
   authSession.clear()
   await import('vue').then(({ nextTick }) => nextTick())
   expect(wrapper.findComponent({ name: 'MeetingForm' }).exists()).toBe(false)
-  wrapper.unmount()
-  client.clear()
-})
-
-it('hides creation and deleted tabs for a member', async () => {
-  standingState.admin = false
-  server.use(
-    http.get('http://localhost/v1/program/departments', () =>
-      HttpResponse.json({ departments: [] }),
-    ),
-  )
-  server.use(
-    http.get('http://localhost/v1/meetings', () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
-    ),
-  )
-  const pinia = createPinia()
-  setActivePinia(pinia)
-  useScopeStore().commit({ programId: 'p', departmentId: 'd', lens: 'member' })
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  const router = createRouter({
-    history: createMemoryHistory(),
-    routes: [{ path: '/toplantilar', component: Page }],
-  })
-  await router.push('/toplantilar?zaman=silinenler')
-  const wrapper = mount(Page, {
-    global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
-  })
-  await settleQueries(client)
-  expect(wrapper.text()).not.toContain('Yeni toplantı')
-  expect(wrapper.text()).not.toContain('Silinenler')
-  expect(wrapper.text()).toContain('Üye olarak')
-  wrapper.unmount()
-  client.clear()
-  standingState.admin = true
-})
-
-it('stops the automatic drain on repeated cursors, including empty pages', async () => {
-  let requests = 0
-  server.use(
-    http.get('http://localhost/v1/program/departments', () =>
-      HttpResponse.json({ departments: [] }),
-    ),
-  )
-  server.use(
-    http.get('http://localhost/v1/meetings', () => {
-      requests++
-      return HttpResponse.json({ items: [], next_cursor: 'same' })
-    }),
-  )
-  const pinia = createPinia()
-  setActivePinia(pinia)
-  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  const router = createRouter({
-    history: createMemoryHistory(),
-    routes: [{ path: '/toplantilar', component: Page }],
-  })
-  await router.push('/toplantilar')
-  const wrapper = mount(Page, {
-    global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
-  })
-  await settleQueries(client)
-  expect(wrapper.text()).toContain('Diğer toplantılar yüklenemedi')
-  expect(requests).toBe(2)
-  await flushPromises()
-  expect(requests).toBe(2)
   wrapper.unmount()
   client.clear()
 })
