@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ile kapandı; W101 O2a başladı. F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b aktif. F4 kapanmış değildir.
 
 ## Durum
 
@@ -10,8 +10,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 |---|---|---|
 | Pin aşaması (WEB-P, `v0.15.0-api`) | **KAPANDI 2026-11-10** — Codex tur 2 KOŞULLU UYGUN (HEAD `1bd80b6`); ayrıntı aşağıda "Pin aşaması" | `1bd80b6` |
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
-| O2a — Toplantılar veri katmanı (W101) | Aktif (`web4/o2-w101`, taban #88) | `17ceed7` |
-| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Bekliyor | — |
+| O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
+| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Aktif: W102–W104; W105/W106 sırada | `d3e3263` |
 | O3 — Entegrasyon turu (W107) | Bekliyor | — |
 | O4 — Kapanış | Bekliyor | — |
 
