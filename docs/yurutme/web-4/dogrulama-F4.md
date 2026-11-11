@@ -33,7 +33,7 @@ YENİ-EKSİK: yok. SAHİPLİK-DIŞI İHTİYAÇ: yok. TASLAK: yok. Varsayım: yok
 
 ## Kaynaklar ve kanıtlar
 
-Yalnız bu işe ait `nizamio_web4_w110` ağ/DB/sunucu/web/proxy kaynakları ve `nizamio-web4-w110/*` imajları oluşturuldu. Geçici betikler ve ham kanıtlar `/private/tmp/nizamio_web4_w110/` altındadır; fixture ve kimlik bilgileri kalıcı kanıt olarak kopyalanmamalıdır. Diğer oturumların kaynakları değiştirilmedi. İlk izole ortam temizlendi; ikinci taze ortam kanıt kopyası ve koordinatör kabulü için çalışır durumda bırakıldı. Koordinatör 54 güvenli JSON/PNG dosyasını ana frontend `.git/koordinator/web4-w110/` dizinine kopyaladı; fixture/state/env/auth ve betikler kopyalanmadı.
+Yalnız bu işe ait `nizamio_web4_w110` ağ/DB/sunucu/web/proxy kaynakları ve `nizamio-web4-w110/*` imajları oluşturuldu. Geçici betikler ve ham kanıtlar `/private/tmp/nizamio_web4_w110/` altındadır; fixture ve kimlik bilgileri kalıcı kanıt olarak kopyalanmamalıdır. Diğer oturumların kaynakları değiştirilmedi. İlk izole ortam temizlendi; ikinci taze ortam kanıt kopyası ve koordinatör kabulüne kadar korundu; #98 birleşimi ve main kapısından sonra W110’a ait dört konteyner, ağ ve veritabanı hacmi adla temizlendi. 18410–18413 portlarında dinleyen süreç kalmadı; imajlar ve geçici kanıtlar korundu. Koordinatör 54 güvenli JSON/PNG dosyasını ana frontend `.git/koordinator/web4-w110/` dizinine kopyaladı; fixture/state/env/auth ve betikler kopyalanmadı.
 
 ## O4 görsel düzeltmesi
 
