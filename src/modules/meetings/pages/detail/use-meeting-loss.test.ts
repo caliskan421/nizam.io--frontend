@@ -35,7 +35,11 @@ function setup(initial: unknown) {
   const scope = useScopeStore()
   scope.commit({ programId: 'p1', departmentId: 'd1', lens: 'coordinator' })
   const error = ref(initial)
-  const gate = Promise.withResolvers<void>()
+  let resolve!: () => void
+  const promise = new Promise<void>((done) => {
+    resolve = done
+  })
+  const gate = { promise, resolve }
   mocks.invalidate.mockReset().mockReturnValue(gate.promise)
   mocks.push.mockReset()
   const wrapper = mount(
