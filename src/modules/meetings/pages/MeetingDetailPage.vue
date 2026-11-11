@@ -172,7 +172,7 @@ async function deleteMeeting() {
               v-if="meeting.members_included"
               class="meeting-detail__members"
               :title="text.membersTitle"
-              >{{ text.members }}</span
+              ><UiIcon name="eye" size="sm" /> {{ text.members }}</span
             >
           </div>
         </div>

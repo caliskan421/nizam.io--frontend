@@ -51,6 +51,7 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--meeting-members-pill-height);
+  gap: var(--ui-gap-xs);
   padding-inline: var(--space-3);
   border: var(--ui-hairline) solid var(--violet);
   border-radius: var(--radius-full);
