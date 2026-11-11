@@ -36,7 +36,7 @@ function handlers() {
     ),
   )
 }
-beforeAll(() => backend.server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
 beforeEach(() => {
   backend.reset()
   seedWorld(backend.db)
