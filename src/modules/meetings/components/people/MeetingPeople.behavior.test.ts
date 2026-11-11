@@ -84,3 +84,58 @@ it('sends selected people in order and reports partial failure', async () => {
   expect(wrapper.emitted('refresh')).toHaveLength(1)
   wrapper.unmount()
 })
+it('stops the sequence after an unknown outcome', async () => {
+  let calls = 0
+  server.use(
+    http.post('http://localhost/v1/meetings/m/participants', () => {
+      calls += 1
+      return HttpResponse.error()
+    }),
+  )
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const wrapper = mount(MeetingPeople, {
+    props: { meeting },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+    attachTo: document.body,
+  })
+  await wrapper.get('button').trigger('click')
+  await wrapper.vm.$nextTick()
+  for (const box of document.querySelectorAll<HTMLInputElement>('input[type=checkbox]')) box.click()
+  await wrapper.vm.$nextTick()
+  ;[...document.querySelectorAll('button')].find((b) => b.textContent?.includes('Uygula'))!.click()
+  await settleQueries(client)
+  expect(calls).toBe(1)
+  expect(wrapper.text()).toContain('Sonuç doğrulanamadı')
+  wrapper.unmount()
+})
+it.each(['escape', 'cancel', 'close'])('restores focus after %s', async (method) => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const wrapper = mount(MeetingPeople, {
+    props: { meeting },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+    attachTo: document.body,
+  })
+  const trigger = wrapper.get('button')
+  ;(trigger.element as HTMLButtonElement).focus()
+  await trigger.trigger('click')
+  await wrapper.vm.$nextTick()
+  if (method === 'escape')
+    document
+      .querySelector('input[type=search]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  else if (method === 'cancel')
+    [...document.querySelectorAll('button')]
+      .find((button) => button.textContent?.includes('Vazgeç'))!
+      .click()
+  else document.querySelector<HTMLButtonElement>('[role=dialog] button[aria-label]')!.click()
+  await wrapper.vm.$nextTick()
+  await wrapper.vm.$nextTick()
+  expect(document.activeElement).toBe(trigger.element)
+  wrapper.unmount()
+})
