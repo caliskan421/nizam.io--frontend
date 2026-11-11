@@ -10,6 +10,7 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { meetingId: 'm' }, query: { zaman: 'gecmis', notlar: 'benim' } }),
   useRouter: () => ({ push: mocks.push }),
 }))
+vi.mock('./detail/use-departments', () => ({ useDepartments: () => ref([]) }))
 vi.mock('../api/queries', () => ({
   useMeeting: () => ({
     data: ref({

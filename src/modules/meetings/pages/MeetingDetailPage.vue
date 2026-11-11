@@ -3,9 +3,10 @@ import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
 import { listQuery } from './detail/list-query'
+import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { meetingCapabilities } from '../model/capabilities'
-import { meetingDay } from '../model/list'
+import { meetingDay, meetingDepartments } from '../model/list'
 import type { MeetingNote } from '../model/types'
 import MeetingAgenda from '../components/agenda/MeetingAgenda.vue'
 import MeetingNotes from '../components/notes/MeetingNotes.vue'
@@ -33,6 +34,10 @@ const id = computed(() =>
 )
 const query = useMeeting(id)
 const meeting = computed(() => query.data.value)
+const departments = useDepartments()
+const displayDepartments = computed(() =>
+  meeting.value ? meetingDepartments(meeting.value, departments.value) : [],
+)
 usePageCrumb(() => meeting.value?.title ?? null)
 const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()
@@ -155,12 +160,12 @@ async function deleteMeeting() {
           <h1 class="rp-h1">{{ meeting.title }}</h1>
           <div class="meeting-detail__departments">
             <span
-              v-for="department in meeting.departments"
+              v-for="department in displayDepartments"
               :key="department.department_id"
               :title="
                 department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
-              >{{ department.department_name }}</span
+              >{{ department.code }}</span
             ><span>{{ meeting.departments.length }} koordinatörlük davetli</span
             ><span v-if="meeting.members_included" :title="text.membersTitle">Üyeler dahil</span>
           </div>
