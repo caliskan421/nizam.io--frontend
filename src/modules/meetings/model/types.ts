@@ -14,3 +14,20 @@ export interface MeetingCandidates {
   /** K yolu yalnız kendi koordinatörlüklerini kapsar. */
   partial: boolean
 }
+
+export type CreateMeetingRequest = components['schemas']['CreateMeetingRequest']
+export type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
+export type Meeting = components['schemas']['Meeting']
+export type MeetingCreated = components['schemas']['MeetingCreated']
+export type MeetingLifecycleResult = components['schemas']['MeetingLifecycleResult']
+export interface MeetingTarget {
+  programId: string
+  id: string
+}
+export interface CreateMeetingInput {
+  programId: string
+  body: CreateMeetingRequest
+}
+export interface UpdateMeetingInput extends MeetingTarget {
+  body: UpdateMeetingRequest
+}
