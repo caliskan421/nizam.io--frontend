@@ -139,3 +139,40 @@ it.each(['escape', 'cancel', 'close'])('restores focus after %s', async (method)
   expect(document.activeElement).toBe(trigger.element)
   wrapper.unmount()
 })
+it('blocks another removal and add while a removal is pending', async () => {
+  let finish!: () => void
+  const pending = new Promise<void>((resolve) => {
+    finish = resolve
+  })
+  let calls = 0
+  server.use(
+    http.delete('http://localhost/v1/meetings/m/participants/:id', async () => {
+      calls += 1
+      await pending
+      return new HttpResponse(null, { status: 204 })
+    }),
+  )
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const value = {
+    ...meeting,
+    participants: [
+      { account_id: 'b', full_name: 'Bora', teams: [] },
+      { account_id: 'c', full_name: 'Cem', teams: [] },
+    ],
+  }
+  const wrapper = mount(MeetingPeople, {
+    props: { meeting: value },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+    attachTo: document.body,
+  })
+  await wrapper.get('[aria-label="Bora: Katılımcıyı çıkar"]').trigger('click')
+  expect(wrapper.get('[aria-label="Cem: Katılımcıyı çıkar"]').attributes('disabled')).toBeDefined()
+  expect(wrapper.get('header button').attributes('disabled')).toBeDefined()
+  finish()
+  await settleQueries(client)
+  expect(calls).toBe(1)
+  wrapper.unmount()
+})
