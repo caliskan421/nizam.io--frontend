@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b birleşti; O3/W107 aktif. F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ve O2a #89 ile kapandı; O2b ve O3 birleşti; O4 kapıları tamamlandı. **F4 KAPANDI — 2026-11-12**; bu kapanış kaydı PR ile main’e alınır. F5 açılmadı.
 
 ## Durum
 
@@ -12,8 +12,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
 | O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
 | O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Birleşti: #90/#91/#92/#94/#95; üçer CI SUCCESS | `dd755f3` |
-| O3 — Entegrasyon turu (W107) | Aktif | `dd755f3` |
-| O4 — Kapanış | Bekliyor | — |
+| O3 — Entegrasyon turu (W107) | Birleşti: #97, üç CI SUCCESS | `24bfb17` |
+| O4 — Kapanış | **Kapandı 2026-11-12**: gerçek imaj, nihai Sol tur 2 koşulları, son main kapısı tamam | `9065517` |
 
 ## Devralınan (WEB-3 O4)
 
@@ -129,3 +129,49 @@ W107 uygulama başı `4bf32fa`: typecheck, tam lint, format, 484 dosyada 3252 te
 O3 gerçek router/AppShell/oturum ve durumlu MSW ile 12 kabul grubunu kapsar: URL/filtre ve gezinme; üç rol/iki kip; oluşturma/belirsiz sonuç; gündem; not anahtarı/409/silme; nottan görev ve türevler; kısmi katılımcı serisi; silinenler; kapsam/oturum/geç sonuç; odak ve derin link; özel seçici/adayı; video yokluğu. `meetings-*.test.ts` dosyaları `src/app/__tests__/integration/` altındadır. Gerçek görev listesi/pano değişir; ilgisiz rozet doğru biçimde sabit kalır. MSW rol kapsamı gerçek backend yetkilendirmesi kanıtı sayılmaz; o tanık O4'tedir.
 
 İki üretim kusuru kapandı: detay 403/404 sonucunda standing tazelenip listeye dönüş (`use-meeting-loss.ts`, aynı hata/ekran/kapsam/oturum korumalı); not silme sonrası bölüm başlığına odak (`MeetingNotes.vue`, `use-note-delete.ts`, `notes-view.ts`, gerçek scope.onChange ve söküm korumalı). Önceki testlerde taslak kalan W102/W103 alt bileşenleri gerçek entegrasyonla karşılandı. Son üretim+Caddy CSP+Chromium kapısı aynı 4bf32fa paketiyle altı görünümde geçti: 390/1024/1440 × iki tema, taşma/CSP/pageerror 0; Space/Enter, filtrede seçim, form/iç seçici/menü/onay odağı, not sil→başlık odağı ve yalnız başlık PATCH doğrulandı. Kanıt `.git/koordinator/web4-w107/` altında (results.json, betik, 18 görüntü). W107 PR/CI/birleşimi bu kayıt anında bekleniyor; O3/O4 kapanmış değildir. F5 açılmadı.
+
+
+## 2026-11-11 — O3 birleşimi ve O4 açılışı
+
+W107 #97 `24bfb174e92185b964e3f82ad2174ff8738e1c17` birleşti. CI [43086372074](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43086372074) üç denetim COMPLETED+SUCCESS; pr-merge.sh ve bağımsız MERGED doğrulaması yapıldı. Kaynak `4bf32fa` yerel kapı ve sabit üretim tarayıcı tanığı yukarıda; PR başı `646b581` yalnız ek koordinatör kaydı taşır.
+
+O4 W110 ayrı worktree'de gerçek Docker/web/backend v0.15 tanığına başladı; koordinatör kapanış belgelerini ayrı dalda yürütür. Nihai gpt-6.1-sol medium `-s read-only` kapısı bu hazırlıklar tamamlanınca çalışacak. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık. F5 yalnız belge hazırlığıdır; açılış onayı ve BE-072 çözümü yok, F5 kodu/işçisi başlamadı.
+
+
+## 2026-11-12 — O4 gerçek imaj ve ortak modal düzeltmesi
+
+W110 [#98](https://github.com/caliskan421/nizam.io--frontend/pull/98) açıldı; CI ve birleşim bu kayıt anında bekleniyor. Uygulama kaynağı `707fd07`, teslim `a837e3e`: typecheck, tam lint, format, 484 dosyada 3259 test, gen:check ve build geçti. Gerçek v0.15 backend/üretim Docker tanığı HTTP ve UI kapsamlarını ayrı raporlar; G4 kontrollü 429 tek anahtarsız POST, Retry-After, korunan taslak ve otomatik tekrar yokluğu gerçek UI ile sınandı.
+
+Ara imajda üst form kapanışında BODY'ye düşen odak kusuru bulundu. Ortak UiModal koşullu sökümünde idempotent odak iadesi artık her durumda çalışır; eski kodda üç regresyon kırıldı. Son imaj `sha256:1ed32302346b37149b840ada9f9846831e59d92fc432cc68f59b823e8999dd3c` çalışan konteynerle eşleşti; güvenlik/imagecheck geçti. ŞY detay/form altı görünümde doğru metin, Inter/24px, taşma/CSP/sayfa hatası sıfır; fare ve klavyeyle iç/dış Escape odağı 6/6 doğru tetikleyiciye döndü. Önceki üç rol liste/detay 36 görünüm ve UI yazmaları eski imaj kanıtıdır; son kaynak için yeniden koşulmuş gibi sunulmaz.
+
+54 güvenli JSON/PNG `.git/koordinator/web4-w110/` içine kopyalandı; fixture/state/env/auth ve betikler kopyalanmadı. Ayrıntı [doğrulama-F4](dogrulama-F4.md). Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık; F5 açılmadı.
+
+
+W110 #98 üç COMPLETED+SUCCESS ile `pr-merge.sh` üzerinden birleşti: `4683af5e71896bb10f52d2fff886511c0f36555d`. [CI 43103473776](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43103473776); bağımsız MERGED doğrulandı, main fast-forward güncellendi. O4 adım 3 için birleşmiş main tam kapısı sürüyor; nihai Sol incelemesi sırada.
+
+
+## 2026-11-12 — Nihai kapı tur 1, kapanış koşulları
+
+Birleşmiş main `4683af5` üzerinde W110 son tam kapısı geçti: typecheck/lint/format, 484 dosyada 3259 test (205,41 sn), build/gen:check; önce/sonra HEAD aynı ve ağaç temiz. Nihai `gpt-6.1-sol medium -s read-only` gerçek araçlı incelemesi kapanış hazırlık HEAD `292d01c` üzerinde **KOŞULLU UYGUN**: [rapor](../../reviews/WEB-4-codex.md).
+
+Üç koşul F4 içinde kapanmalıdır: Ö-01 bekleyen not PATCH'inin yeni taslağı kapatması/ikinci gönderim → W111; Ö-02 form sunucu alan hatalarının satır içi gösterimi ve K-01 koordinatörlük çip yüzü → W112. Ayrık worktree/dallarda Terra medium işçileri, iki tam test yuvasıyla başladı. Bu mevcut kabul düzeltmesidir; yeni ürün kapsamı veya F5 açılışı değildir. F4 kapanış PR'ı koşulların yeşil birleşimi ve gerektiğinde ikinci nihai tur sonrasına kaldı.
+
+
+W111 `43dc571` Ö-01 not pending kilidi: ilk PATCH, 409 seçimi ve tekrar boyunca giriş/Kaydet/Vazgeç/başka not düzenle tutarlı kilitli. Eski kodda regresyon kırmızı, hedefli ve tam kapı yeşil: 485 dosyada3260 test; type/lint/format/gen/build geçti. Üretim+Caddy altıgörünümde taşma/CSP/pageerror0, dar menü ve editör odağı; kanıt `.git/koordinator/web4-w111/`. [#99](https://github.com/caliskan421/nizam.io--frontend/pull/99) açıldı, CI/birleşim bekliyor. W112 bu kaynağı tam kapısından önce aldı; ikinci nihai tur iki düzeltme birleşince yapılacak.
+
+W111 #99 üç COMPLETED+SUCCESS ve pr-merge.sh ardından `098ecbae5232e07a3b5b1eac8b2651dc86effb5a` ile birleşti; bağımsız MERGED, main ff temiz. W112 ilk tam kapısında eski checkbox seçicisini kullanan writes/lifecycle testleri kırıldı (485/487 dosya,3264/3266); gerçek çip seçimine uyarlanıp hedefli21test geçti. Assertion/timeout/kapı gevşetilmedi; ikinci tam kapı devam ediyor.
+
+W112 `bbfde3d` son tam kapı geçti:487dosya3266test,type/lint/format/gen/build. W111ve main098ecba birleşik; b14eef8→sonHEAD ağaç farkı0. Son üretim+Caddy6görünümde Enterçipseçimi, taşma/CSP/pageerror0; güvenli7JSON/PNG `.git/koordinator/web4-w112/` içine kopyalandı. İkinci saltokunur inceleme CI ile paralel yürütülür; CI/birleşim onayı yerine geçmez.
+
+Nihai Sol tur2 `f0ab828` HEAD üzerinde KOŞULLU UYGUN: Ö-01,Ö-02,K-01 kapandı; yakın varyantlarda yeni regresyon yok. Gerçekreadonlyaraçizi ve güvenliJSON/PNGincelemesi mevcut. Kalan süreç koşulu W112CI/birleşimi ve birleşmişsonbaşın kapı kaydıdır; gerçekVoiceOver/E03C27/41 takipborçları korunur.
+
+
+## 2026-11-12 — F4 kapanışı
+
+**F4 KAPANDI.** O1–O3, W108/W109 borçları ve O4 düzeltmeleri #88–#100 ile main’dedir. Son uygulama başı `9065517627c262051f8318edd794879c3be6d7c7`: Node24 ile typecheck, tam lint, format, **487 dosyada 3266 test**, gen:check ve build geçti; başlangıç/son HEAD aynı, çalışma ağacı temiz. API pini `v0.15.0-api`, backend commit `b8f6479a7971`; 194 hata kodu ve 189 operasyon, üretilen fark sıfır.
+
+[Nihai Sol tur 2](../../reviews/WEB-4-codex.md) `f0ab828` üzerinde KOŞULLU UYGUN: üç teknik koşul kapalı, yeni regresyon yok. Kalan süreç koşulları W112/#100’ün üç CI SUCCESS ile birleşimi ve yukarıdaki son main kapısıyla tamamlandı. İncelenen kaynak ile son main arasında uygulama/üretim girdisi farkı yok; kapanış dalı yalnız belgedir. [Gerçek imaj ve diğer doğrulamalar](dogrulama-F4.md), [backend devri](../../backend-eksikleri/rapor-F4.md), [09 kabul kanıtı](../../ekranlar/09-toplantilar/README.md).
+
+Geçici koordinatör kabulleri uygulanan P3/P32 ve test kanıtlarıyla yeniden değerlendirildi; ürün sahibi görsel kabulü olarak yükseltilmedi. Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel onayı açık takip borçlarıdır; otomatik doğrulandı sayılmaz. Video/Canlı/Bekliyor/09d/09e/sağlayıcı adı gizli, dosya F4 dışıdır.
+
+**F5 BAŞLAMADI.** Yalnız 06 geçici kabul tablosu ve web-5 yürütme iskeleti hazırlandı. F5 için ürün sahibinin ayrıca onayı ve BE-072 kapsam çözümü gerekir. Kendi test konteynerleri temizlendi; güvenli kanıtlar ana frontend `.git/koordinator/` altında korundu. Yönetim deposuna yalnız güncel web durum/günlük bağlantısı yazılır; diğer oturum kayıtları korunur.

@@ -33,7 +33,7 @@ YENİ-EKSİK: yok. SAHİPLİK-DIŞI İHTİYAÇ: yok. TASLAK: yok. Varsayım: yok
 
 ## Kaynaklar ve kanıtlar
 
-Yalnız bu işe ait `nizamio_web4_w110` ağ/DB/sunucu/web/proxy kaynakları ve `nizamio-web4-w110/*` imajları oluşturuldu. Geçici betikler ve ham kanıtlar `/private/tmp/nizamio_web4_w110/` altındadır; fixture ve kimlik bilgileri kalıcı kanıt olarak kopyalanmamalıdır. Diğer oturumların kaynakları değiştirilmedi. İlk izole ortam temizlendi; ikinci taze ortam kanıt kopyası ve koordinatör kabulü için çalışır durumda bırakıldı. Kalıcı kanıt kopyası henüz yapılmadı.
+Yalnız bu işe ait `nizamio_web4_w110` ağ/DB/sunucu/web/proxy kaynakları ve `nizamio-web4-w110/*` imajları oluşturuldu. Geçici betikler ve ham kanıtlar `/private/tmp/nizamio_web4_w110/` altındadır; fixture ve kimlik bilgileri kalıcı kanıt olarak kopyalanmamalıdır. Diğer oturumların kaynakları değiştirilmedi. İlk izole ortam temizlendi; ikinci taze ortam kanıt kopyası ve koordinatör kabulüne kadar korundu; #98 birleşimi ve main kapısından sonra W110’a ait dört konteyner, ağ ve veritabanı hacmi adla temizlendi. 18410–18413 portlarında dinleyen süreç kalmadı; imajlar ve geçici kanıtlar korundu. Koordinatör 54 güvenli JSON/PNG dosyasını ana frontend `.git/koordinator/web4-w110/` dizinine kopyaladı; fixture/state/env/auth ve betikler kopyalanmadı.
 
 ## O4 görsel düzeltmesi
 
@@ -54,3 +54,23 @@ Ortak modal koşullu sökümünde odak tuzağının devreden çıkarılması `op
 Gerçek backend ile ŞY detay ve formu açık/koyu × 390/1024/1440: detayda “Üyeler dahil”, formda “Tüm üyelere de davet gönder”; taşma, CSP ihlali ve pageerror her görünümde 0. Yazı tipi Inter, modal dolgu 24px. Fare ve klavyeyle açılışta özel kişi seçicisi Escape sonrası kendi düğmesine, üst form Escape sonrası “Yeni toplantı” düğmesine altı görünümün tümünde odak döndürdü. Üç rolün tüm eski matrisi ve yukarıdaki UI yazmaları önceki imajın kanıtıdır.
 
 Kalıcı kopya için güvenli kanıtlar: `final-keyboard-results.json`, `final-results.json` (fare), `flows-ui.json`, `flows-write.json`, `rate-ui.json`, `results.json` ve `final-detail-*.png`, `form-*.png`, rol/tema/genişlik adıyla üretilmiş liste ve detay PNG’leri. Betikler, fixture, state, env ve auth verileri kopyalanmaz.
+
+## Birleşim ve CI
+
+[#98](https://github.com/caliskan421/nizam.io--frontend/pull/98), üç COMPLETED+SUCCESS denetimi ve zorunlu `pr-merge.sh` ardından `4683af5e71896bb10f52d2fff886511c0f36555d` ile main'e birleşti; MERGED bağımsız doğrulandı. [CI 43103473776](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43103473776): kod/test/build, Web imajı ve gerçek backend Playwright denetimleri geçti.
+
+Birleşmiş main `4683af5` üzerinde O4 son tam kapısı ayrıca çalıştırıldı: 484 dosyada3259 test (205,41 sn), typecheck/lint/format/build/gen:check geçti; önce/sonra HEAD aynı, ağaç temiz. Sonraki nihai Sol tur1 üç kabul koşulu buldu; bu yeşil koşum onların kapandığı anlamına gelmez. Takip [WEB-4-codex](../../reviews/WEB-4-codex.md).
+
+## Nihai kapı koşulları — W111/W112
+
+W111 `43dc571`, [#99](https://github.com/caliskan421/nizam.io--frontend/pull/99): not düzenleyici ilk PATCH, 409 seçimi ve tekrar boyunca kilitli; eski kodda kırmızı regresyon, yeni kodda gerçek üst bileşen ve 409 testleri yeşil. Tam kapı 485 dosyada 3260 test; typecheck/lint/format/gen/build geçti. Birleşim `098ecba`; [CI 43107051132](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43107051132) üç denetim başarılı.
+
+W112 `bbfde3d`, [#100](https://github.com/caliskan421/nizam.io--frontend/pull/100): create/PATCH alan hataları yerel mesaj ve ARIA ile girişlere bağlı; ham sunucu metni yok, taslak korunur. Departmanlar kabul edilen `aria-pressed` çipleri; kişi kipinin tek sahibi ve K yetkisi korunur. İlk tam koşuda eski checkbox seçicisini kullanan iki entegrasyon kırıldı (485/487 dosya, 3264/3266); gerçek çip seçimine uyarlanarak hedefli 21 test ve son tam **487 dosya / 3266 test** geçti. Typecheck/lint/format/gen/build yeşil. W111 ve main `098ecba` bu kapıdan önce alındı; doğrulanan `b14eef8` ile teslim `bbfde3d` ağaç farkı sıfır. Birleşim `9065517627c262051f8318edd794879c3be6d7c7`; [CI 43109957738](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43109957738) üç denetim COMPLETED+SUCCESS, zorunlu pr-merge.sh ve bağımsız MERGED doğrulaması yapıldı.
+
+Her iki işçinin son üretim paketi+Caddy CSP turu 390/1024/1440 × iki temada taşma/CSP/pageerror sıfır. W111 dar menü ve editör odağı; W112 Enter ile çip seçimi 6/6, Inter, 0 12px dolgu, arka katman z=50. JSON ve PNG’ler `.git/koordinator/web4-w111/` ve `web4-w112/` altında. Bu son turlar sahte API ile yapılmıştır; W110 gerçek backend tanığı yerine sunulmaz. W112 form testindeki mevcut özel seçici taslağı bu bulgunun dışındadır; gerçek özel seçici entegrasyonu W107’de doğrulanmıştır. İşçilere ait Caddy konteynerleri ve bağımlılık bağlantıları temizlendi.
+
+[Nihai Codex tur 2](../../reviews/WEB-4-codex.md), Ö-01/Ö-02/K-01’in kapandığını ve yakın varyantlarda regresyon bulunmadığını doğruladı. Son main kapısı aşağıda tamamlandı.
+
+## Son main kapısı — 2026-11-12
+
+`9065517627c262051f8318edd794879c3be6d7c7` üzerinde Node24 ile typecheck, tam lint, format:check, test --maxWorkers=2 (**487 dosya / 3266 test**), gen:check ve build geçti. Başlangıç/son HEAD aynı, çalışma ağacı temiz. Pin `v0.15.0-api`; 194 hata kodu, 189 operasyon; üretilen fark sıfır. Son uygulama kaynağı Sol tur2 ile incelenen ağaçla aynıdır. Tur2’nin CI/birleşim/son kapı kayıt koşulları tamamlandı; açık gerçek kullanıcı borçları yukarıda aynen korunur.
