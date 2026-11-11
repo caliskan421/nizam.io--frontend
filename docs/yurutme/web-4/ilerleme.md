@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F4 geçişi 2026-11-11 bu oturumda onaylandı.** O1 PR ve CI kapıları açık; F4 kapanmış değildir.
+**F4 geçişi 2026-11-11 onaylandı.** O1 #88 ile kapandı; W101 O2a başladı. F4 kapanmış değildir.
 
 ## Durum
 
@@ -10,7 +10,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 |---|---|---|
 | Pin aşaması (WEB-P, `v0.15.0-api`) | **KAPANDI 2026-11-10** — Codex tur 2 KOŞULLU UYGUN (HEAD `1bd80b6`); ayrıntı aşağıda "Pin aşaması" | `1bd80b6` |
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
-| O2a — Toplantılar veri katmanı (W101) | Bekliyor (O1 PR/CI ve birleşim ardından) | — |
+| O2a — Toplantılar veri katmanı (W101) | Aktif (`web4/o2-w101`, taban #88) | `17ceed7` |
 | O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Bekliyor | — |
 | O3 — Entegrasyon turu (W107) | Bekliyor | — |
 | O4 — Kapanış | Bekliyor | — |
@@ -76,3 +76,9 @@ O1 denetimi: Node 24.9.0 ve aynı `package.json`/kilit dosyasına sahip ana çal
 ### K-02 belge takibi
 
 05 kabul tablosu pinli sunucu rolü, e-posta araması ve toplam kanıtlarına hizalandı; §6 eski pano yasağı tarihsel ayrıldı; G-3 tarihsel gözlemi WP4b kısmi koruması ve açık Ö-05/K-04 gerçek yerleşim borcuna bağlandı. Bu belge kalemleri tamamlandı; O1 commit/PR/CI kapısı açık kalır.
+
+## 2026-11-11 — O1 birleşimi ve O2a açılışı
+
+W100 #88 `17ceed7` birleşti; PR başı `192805b`, CI [42997202531](https://github.com/caliskan421/nizam.io--frontend/actions/runs/42997202531) üç denetim COMPLETED+SUCCESS, MERGED doğrulandı. İlk koşu 42992979250 kayıt durumundaki tipografik apostrof nedeniyle 1 testte kırmızıydı; W100 `192805b` yalnız kayıt biçimini düzeltti, hedefli 30 test geçti; test/parser gevşetilmedi. O1/K-02 belge işi tamam; S3 özel seçici görsel kabulü ve BE-067 kapsam sınırı açık.
+
+O2a W101 Terra medium işçisi başladı; ayrı worktree `nizam.io--frontend-wt-w101`, dal `web4/o2-w101`, kalıcı istem Git worktree yönetim dizininde W-PROMPT.md. O2b W101'in yeşil birleşimini bekler. W108/W109 ve O4 gerçek kullanıcı kanıtı borçları korunur; F5 açılmaz.
