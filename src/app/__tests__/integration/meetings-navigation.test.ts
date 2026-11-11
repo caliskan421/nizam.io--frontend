@@ -62,3 +62,46 @@ it('gerçek satır, detay ve kırıntı liste filtrelerini korur', async () => {
     koordinatorluk: 'd1',
   })
 })
+
+it.each([
+  {
+    person: PEOPLE.admin,
+    lens: 'admin' as const,
+    role: 'admin',
+    edit: true,
+    change: true,
+    add: true,
+  },
+  {
+    person: PEOPLE.coord,
+    lens: 'coordinator' as const,
+    role: 'coordinator',
+    edit: true,
+    change: false,
+    add: true,
+  },
+  {
+    person: PEOPLE.member,
+    lens: 'member' as const,
+    role: 'member',
+    edit: false,
+    change: false,
+    add: false,
+  },
+])('gerçek detay rol görünürlüğü: $role', async ({ person, lens, role, edit, change, add }) => {
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({ ...meeting, viewer_role: role }),
+    ),
+  )
+  await boot({
+    email: person.email,
+    scope: { programId: 'p1', lens, ...(lens === 'admin' ? {} : { departmentId: 'd1' }) },
+    path: '/toplantilar/m1',
+  })
+  await until(() => $('.meeting-people'), 'katılımcı kartı')
+  const buttons = [...document.querySelectorAll('button')].map((b) => b.textContent?.trim())
+  expect(buttons.includes('Düzenle')).toBe(edit)
+  expect(buttons.includes('Değiştir')).toBe(change)
+  expect(buttons.includes('Ekle')).toBe(add)
+})
