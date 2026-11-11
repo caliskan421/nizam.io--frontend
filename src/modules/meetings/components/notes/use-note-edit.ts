@@ -25,8 +25,8 @@ function finish(
   refresh: () => void,
 ) {
   if (result.kind === 'success') {
-    editing.value = null
     refresh()
+    editing.value = null
   } else notifyOutcome(result)
 }
 

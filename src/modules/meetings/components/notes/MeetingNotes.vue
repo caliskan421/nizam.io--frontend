@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import './notes.css'
-import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { designStub } from '@/shared/design-stub'
@@ -16,6 +16,9 @@ import { useMeetingNotes } from '../../api/queries'
 import { useAddMeetingNote, useDeleteMeetingNote } from '../../api/note-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
+import NoteFilters from './NoteFilters.vue'
+import NoteComposer from './NoteComposer.vue'
+import { noteCount, noteTime, noteFacts, noteFocus } from './notes-view'
 import { useNoteEdit } from './use-note-edit'
 
 const props = defineProps<{ meeting: MeetingDetail }>()
@@ -41,16 +44,10 @@ function setFilter(value: 'all' | 'converted' | 'mine') {
     },
   })
 }
-const count = (value: number) => `${value}${query.hasNextPage.value ? '+' : ''}`
-function time(value: string) {
-  return new Intl.DateTimeFormat('tr-TR', {
-    timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value))
-}
+const count = (value: number) => noteCount(value, query.hasNextPage.value)
+const time = (value: string) => noteTime(value, instance.profile?.timezone)
 const openMenu = ref<string | null>(null)
-const buttons = new Map<string, HTMLButtonElement>()
+const { focus: focusNote, bind: setButton } = noteFocus()
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
 const text = trMeetings.meetings.notes
 const roleLabels = text.roles
@@ -74,17 +71,17 @@ const access = computed(() =>
     viewerRole: props.meeting.viewer_role,
   }),
 )
-const facts = (n: MeetingNote) => ({
-  authorAccountId: n.author_account_id,
-  authorRole: n.author_role,
-  converted: converted(n),
-})
+const facts = noteFacts
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
 const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
   target,
   () => version,
-  () => emit('refresh'),
+  () => {
+    const id = editing.value?.note_id
+    emit('refresh')
+    if (id) focusNote(id)
+  },
 )
 function resetDraft() {
   version += 1
@@ -98,13 +95,13 @@ const offSession = authSession.subscribe(() => {
   if (authSession.generation !== initialGeneration) resetDraft()
 })
 onScopeDispose(offSession)
+function cancelEdit(note: MeetingNote) {
+  editing.value = null
+  focusNote(note.note_id)
+}
 function closeMenu(id: string) {
   openMenu.value = null
-  void nextTick(() => buttons.get(id)?.focus())
-}
-function setButton(id: string, el: unknown) {
-  if (el instanceof HTMLButtonElement) buttons.set(id, el)
-  else buttons.delete(id)
+  focusNote(id)
 }
 function startEdit(note: MeetingNote) {
   editing.value = note
@@ -151,25 +148,19 @@ async function deleteNote(note: MeetingNote) {
     <h2 tabindex="-1" data-testid="meeting-notes-title">
       {{ text.title }} {{ count(notes.length) }}
     </h2>
-    <div role="group" :aria-label="text.filter">
-      <button type="button" :aria-pressed="filter === 'all'" @click="setFilter('all')">
-        {{ text.all }} {{ count(notes.length) }}</button
-      ><button type="button" :aria-pressed="filter === 'converted'" @click="setFilter('converted')">
-        {{ text.converted }} {{ count(notes.filter(converted).length) }}</button
-      ><button type="button" :aria-pressed="filter === 'mine'" @click="setFilter('mine')">
-        {{ text.mine }} {{ count(notes.filter(mine).length) }}
-      </button>
-    </div>
-    <form v-if="access.visible" class="meeting-notes__composer" @submit.prevent="addNote">
-      <textarea v-model="draft" :aria-label="text.composer" :placeholder="text.placeholder" />
-      <p>{{ text.hint }} · {{ Array.from(draft).length }} / 5000</p>
-      <button
-        type="submit"
-        :disabled="!draft.trim() || Array.from(draft).length > 5000 || add.isPending.value"
-      >
-        {{ text.add }}
-      </button>
-    </form>
+    <NoteFilters
+      :filter="filter"
+      :all="count(notes.length)"
+      :converted="count(notes.filter(converted).length)"
+      :mine="count(notes.filter(mine).length)"
+      @change="setFilter"
+    />
+    <NoteComposer
+      v-if="access.visible"
+      v-model="draft"
+      :busy="add.isPending.value"
+      @submit="addNote"
+    />
     <p v-if="query.isPending.value">{{ text.loading }}</p>
     <p v-else-if="query.isError.value">
       {{ text.error }} <button type="button" @click="query.refetch()">{{ text.retry }}</button>
@@ -186,7 +177,7 @@ async function deleteNote(note: MeetingNote) {
         <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
           <textarea v-model="editDraft" :aria-label="text.editor" /><button type="submit">
             {{ text.save }}</button
-          ><button type="button" @click="editing = null">{{ text.cancel }}</button>
+          ><button type="button" @click="cancelEdit(note)">{{ text.cancel }}</button>
         </form>
         <p v-else>{{ note.content }}</p>
         <span v-if="converted(note)">{{ convertedLabel }}</span
@@ -204,12 +195,14 @@ async function deleteNote(note: MeetingNote) {
             type="button"
             :aria-label="`${text.actions}: ${note.author_name}`"
             :aria-expanded="openMenu === note.note_id"
+            :aria-controls="openMenu === note.note_id ? `note-menu-${note.note_id}` : undefined"
             @click="openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)"
           >
             ⋯
           </button>
           <div
             v-if="openMenu === note.note_id"
+            :id="`note-menu-${note.note_id}`"
             role="menu"
             @keydown.esc.stop="closeMenu(note.note_id)"
           >

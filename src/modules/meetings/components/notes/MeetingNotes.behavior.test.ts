@@ -5,12 +5,13 @@ import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import { computed } from 'vue'
 import { afterAll, beforeAll, expect, it, vi } from 'vitest'
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
 import MeetingNotes from './MeetingNotes.vue'
 
-const actor = vi.hoisted(() => ({ admin: false, role: 'member' }))
+const actor = vi.hoisted(() => ({ admin: false, role: 'member', replace: vi.fn() }))
 vi.mock('@/shared/scope/standing', () => ({
   useStanding: () => ({
     standing: computed(() => ({
@@ -22,7 +23,7 @@ vi.mock('@/shared/scope/standing', () => ({
 }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
-  useRouter: () => ({ replace: vi.fn() }),
+  useRouter: () => ({ replace: actor.replace }),
 }))
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
@@ -102,9 +103,22 @@ it('filters the loaded notes and submits a note with an idempotency key', async 
   const { wrapper, client } = setup(false, 'member')
   await wrapper.get('textarea[aria-label="Not yaz"]').setValue('Yeni not')
   await wrapper.get('form').trigger('submit')
-  await vi.waitFor(() => expect(key).not.toBe(''))
+  await settleQueries(client)
+  expect(key).not.toBe('')
   await wrapper.get('button[aria-pressed="false"]').trigger('click')
   expect(wrapper.text()).toContain('Karar')
   wrapper.unmount()
   client.clear()
+})
+
+it('marks loaded counts as partial and writes the filter into the URL', async () => {
+  meeting.notes.next_cursor = 'next'
+  const { wrapper, client } = setup(false, 'member')
+  expect(wrapper.text()).toContain('Tümü 1+')
+  expect(wrapper.text()).toContain('Daha fazla not göster')
+  await wrapper.get('button[aria-pressed="false"]').trigger('click')
+  expect(actor.replace).toHaveBeenCalledWith({ query: { notlar: 'gorev' } })
+  wrapper.unmount()
+  client.clear()
+  meeting.notes.next_cursor = ''
 })
