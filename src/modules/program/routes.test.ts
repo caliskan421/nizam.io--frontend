@@ -84,8 +84,8 @@ describe('program rotası', () => {
     expect(router.currentRoute.value.name).toBe('program.programs')
   })
 
-  it('yönetici olmayan ana sayfaya döner; sayfa çizilmez', async () => {
-    standing(false, [{ department_id: 'd1', role: 'koordinator' }])
+  it.each(['koordinator', 'uye'])('%s ana sayfaya döner; sayfa çizilmez', async (role) => {
+    standing(false, [{ department_id: 'd1', role }])
     const { wrapper, router } = await visit('coordinator')
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('home'))
     expect(wrapper.find('[data-page="programs"]').exists()).toBe(false)
