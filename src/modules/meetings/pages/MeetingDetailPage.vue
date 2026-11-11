@@ -44,9 +44,9 @@ const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const formOpen = ref(false)
 const formDateFocus = ref(false)
+const formSection = ref<'all' | 'departments'>('all')
 const selectedNote = ref<MeetingNote | null>(null)
 const menuOpen = ref(false)
-const personSelectorUnavailable = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 const noteOpener = ref<HTMLElement | null>(null)
 const formOpener = ref<HTMLElement | null>(null)
@@ -61,11 +61,17 @@ const meetingDateLabel = computed(() =>
 )
 
 function openForm() {
+  formSection.value = 'all'
   formDateFocus.value = false
   formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
 }
+function openDepartments() {
+  openForm()
+  formSection.value = 'departments'
+}
 function openFormFromMenu() {
+  formSection.value = 'all'
   formDateFocus.value = true
   menuOpen.value = false
   formOpener.value = menuButton.value
@@ -113,7 +119,6 @@ function closeDialogs() {
   formOpen.value = false
   selectedNote.value = null
   menuOpen.value = false
-  personSelectorUnavailable.value = false
 }
 watch(() => [scope.programId, id.value], closeDialogs)
 useSessionReset(closeDialogs)
@@ -215,18 +220,17 @@ async function deleteMeeting() {
             :meeting="meeting"
             @convert="openConvert"
             @refresh="refresh"
-          /><MeetingPeople
-            :meeting="meeting"
-            @add="personSelectorUnavailable = true"
-            @refresh="refresh"
           />
-          <p v-if="personSelectorUnavailable" role="status">{{ text.selectorUnavailable }}</p>
         </div>
-        <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
+        <div class="meeting-side">
+          <MeetingPeople :meeting="meeting" @refresh="refresh" />
+          <MeetingSide :meeting="meeting" @edit="openDepartments" @remove="deleteMeeting" />
+        </div>
       </div>
       <MeetingForm
         v-if="formOpen"
         :meeting="meeting"
+        :edit-section="formSection"
         :initial-focus="formDateFocus ? 'date' : undefined"
         @close="closeForm"
         @saved="formSaved"

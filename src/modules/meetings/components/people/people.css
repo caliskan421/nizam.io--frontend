@@ -1,0 +1,93 @@
+.meeting-selector-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--meeting-person-row-height);
+}
+.meeting-selector-row .t-check {
+  width: var(--meeting-agenda-check-size);
+  height: var(--meeting-agenda-check-size);
+}
+.meeting-selector-row .rp-av {
+  width: var(--meeting-person-avatar-size);
+  height: var(--meeting-person-avatar-size);
+}
+.meeting-selector-row small {
+  margin-left: auto;
+  color: var(--ink-muted);
+}
+.meeting-people {
+  padding: var(--meeting-side-card-padding);
+}
+.meeting-people header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+.meeting-people h2 {
+  margin: 0;
+  font: var(--meeting-card-font);
+}
+.meeting-people > p {
+  color: var(--ink-muted);
+  font: var(--m-caption);
+}
+.meeting-person-row {
+  display: grid;
+  grid-template-columns: var(--meeting-participant-avatar-size) minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--meeting-person-row-height);
+  border-radius: var(--radius-md);
+}
+.meeting-person-row:hover {
+  background: var(--bg-overlay);
+}
+.meeting-person-row .rp-av {
+  width: var(--meeting-participant-avatar-size);
+  height: var(--meeting-participant-avatar-size);
+}
+.meeting-person-row__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: var(--meeting-participant-name-font);
+}
+.meeting-person-row__roles {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.meeting-person-row__role {
+  color: var(--ink-muted);
+  font: var(--meeting-participant-role-font);
+  overflow-wrap: anywhere;
+}
+.meeting-person-row__remove {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  width: var(--meeting-person-avatar-size);
+  height: var(--meeting-person-avatar-size);
+  border: 0;
+  border-radius: var(--radius-xs);
+  color: var(--ink-muted);
+  background: transparent;
+  opacity: 0;
+}
+.meeting-person-row:hover .meeting-person-row__remove,
+.meeting-person-row__remove:focus-visible {
+  opacity: 1;
+}
+@media (max-width: 900px) {
+  .meeting-selector-row,
+  .meeting-person-row {
+    min-height: var(--meeting-person-touch-height);
+  }
+  .meeting-person-row__remove {
+    opacity: 1;
+    min-width: var(--meeting-person-touch-height);
+    min-height: var(--meeting-person-touch-height);
+  }
+}

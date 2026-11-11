@@ -99,6 +99,13 @@
   --meeting-agenda-menu-width: 32px;
   --meeting-agenda-progress-width: 72px;
   --meeting-agenda-progress-height: 5px;
+  --meeting-person-row-height: 38px;
+  --meeting-person-touch-height: 44px;
+  --meeting-person-avatar-size: 24px;
+  --meeting-participant-avatar-size: 28px;
+  --meeting-side-card-padding: 22px;
+  --meeting-participant-name-font: 500 13px/20px var(--font-sans);
+  --meeting-participant-role-font: 500 11px/16px var(--font-sans);
   /* web · color */
   --avatar-6: #4fd1c5;
   --avatar-7: #ff6b6b;
