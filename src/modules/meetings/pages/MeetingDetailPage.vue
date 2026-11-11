@@ -100,6 +100,13 @@ function closeMenu() {
   menuOpen.value = false
   void nextTick(() => menuButton.value?.focus())
 }
+function toggleMenu() {
+  if (menuOpen.value) return closeMenu()
+  menuOpen.value = true
+  void nextTick(() =>
+    menuButton.value?.nextElementSibling?.querySelector<HTMLButtonElement>('button')?.focus(),
+  )
+}
 function openConvert(note: MeetingNote) {
   noteOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   selectedNote.value = note
@@ -187,7 +194,8 @@ async function deleteMeeting() {
             type="button"
             :aria-label="text.other"
             :aria-expanded="menuOpen"
-            @click="menuOpen ? closeMenu() : (menuOpen = true)"
+            @click="toggleMenu"
+            @keydown.esc.stop="closeMenu"
           >
             <UiIcon name="more" size="sm" />
           </button>

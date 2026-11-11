@@ -76,6 +76,16 @@ function setup() {
   return { wrapper, scope }
 }
 beforeEach(() => vi.clearAllMocks())
+it('focuses the header menu and restores its trigger on Escape', async () => {
+  const { wrapper } = setup()
+  const trigger = wrapper.get('[aria-label="Diğer işlemler: tarihi ileri al, sil"]')
+  await trigger.trigger('click')
+  const action = wrapper.get('[role="menuitem"]')
+  expect(document.activeElement).toBe(action.element)
+  await action.trigger('keydown.esc')
+  expect(document.activeElement).toBe(trigger.element)
+  wrapper.unmount()
+})
 it('closes the conversion and returns focus to its trigger', async () => {
   const { wrapper } = setup()
   const button = wrapper.findAll('button').find((b) => b.text() === 'Dönüştür')!
