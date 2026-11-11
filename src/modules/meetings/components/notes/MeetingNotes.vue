@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useInstanceStore } from '@/shared/instance/store'
 import { reachesOwner } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -14,13 +16,34 @@ import { useNoteEdit } from './use-note-edit'
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
 const scope = useScopeStore()
+const route = useRoute()
+const router = useRouter()
+const instance = useInstanceStore()
 const { standing } = useStanding()
 const query = useMeetingNotes(() => props.meeting.meeting_id)
 const add = useAddMeetingNote()
 const remove = useDeleteMeetingNote()
 const { confirmWrite } = useConfirm()
 const draft = ref('')
-const filter = ref<'all' | 'converted' | 'mine'>('all')
+const filter = computed(() =>
+  route.query.notlar === 'gorev' ? 'converted' : route.query.notlar === 'benim' ? 'mine' : 'all',
+)
+function setFilter(value: 'all' | 'converted' | 'mine') {
+  void router.replace({
+    query: {
+      ...route.query,
+      notlar: value === 'converted' ? 'gorev' : value === 'mine' ? 'benim' : 'tumu',
+    },
+  })
+}
+const count = (value: number) => `${value}${query.hasNextPage.value ? '+' : ''}`
+function time(value: string) {
+  return new Intl.DateTimeFormat('tr-TR', {
+    timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
 const openMenu = ref<string | null>(null)
 const buttons = new Map<string, HTMLButtonElement>()
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
@@ -68,6 +91,11 @@ function setButton(id: string, el: unknown) {
   if (el instanceof HTMLButtonElement) buttons.set(id, el)
   else buttons.delete(id)
 }
+function startEdit(note: MeetingNote) {
+  editing.value = note
+  editDraft.value = note.content
+  closeMenu(note.note_id)
+}
 async function addNote() {
   if (
     !scope.programId ||
@@ -104,15 +132,15 @@ async function deleteNote(note: MeetingNote) {
 <template>
   <section class="t-card meeting-notes" aria-label="Notlar">
     <h2>
-      Notlar <span>{{ notes.length }}</span>
+      Notlar <span>{{ count(notes.length) }}</span>
     </h2>
     <div role="group" aria-label="Not filtresi">
-      <button type="button" :aria-pressed="filter === 'all'" @click="filter = 'all'">
-        Tümü {{ notes.length }}</button
-      ><button type="button" :aria-pressed="filter === 'converted'" @click="filter = 'converted'">
-        Göreve dönüşen {{ notes.filter(converted).length }}</button
-      ><button type="button" :aria-pressed="filter === 'mine'" @click="filter = 'mine'">
-        Benim {{ notes.filter(mine).length }}
+      <button type="button" :aria-pressed="filter === 'all'" @click="setFilter('all')">
+        Tümü {{ count(notes.length) }}</button
+      ><button type="button" :aria-pressed="filter === 'converted'" @click="setFilter('converted')">
+        Göreve dönüşen {{ count(notes.filter(converted).length) }}</button
+      ><button type="button" :aria-pressed="filter === 'mine'" @click="setFilter('mine')">
+        Benim {{ count(notes.filter(mine).length) }}
       </button>
     </div>
     <p v-if="query.hasNextPage.value">Sayaçlar yüklenen notları gösterir.</p>
@@ -138,9 +166,7 @@ async function deleteNote(note: MeetingNote) {
       <strong>{{ note.author_name }}</strong>
       <small
         >{{ note.author_role }} ·
-        <time :datetime="note.created_at">{{
-          new Date(note.created_at).toLocaleString('tr-TR')
-        }}</time
+        <time :datetime="note.created_at">{{ time(note.created_at) }}</time
         ><span v-if="note.edit_revision > 1"> · düzenlendi</span></small
       >
       <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
@@ -179,11 +205,7 @@ async function deleteNote(note: MeetingNote) {
             v-if="access.editNote(facts(note))"
             type="button"
             role="menuitem"
-            @click="
-              editing = note
-              editDraft = note.content
-              closeMenu(note.note_id)
-            "
+            @click="startEdit(note)"
           >
             Düzenle</button
           ><button

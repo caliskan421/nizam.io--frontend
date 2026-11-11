@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useQueryClient } from '@tanstack/vue-query'
 import { useProgramDepartments } from '@/modules/work/public'
 import { authSession } from '@/shared/http'
-import { reachesOwner } from '@/shared/http/mutation'
+import { ownerLife, reachesOwner } from '@/shared/http/mutation'
+import { useInstanceStore } from '@/shared/instance/store'
+import { queryKeys } from '@/shared/http/query-keys'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiButton, UiModal } from '@/shared/ui'
@@ -15,6 +18,9 @@ import type { MeetingNote } from '../../model/types'
 const props = defineProps<{ note: MeetingNote }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const scope = useScopeStore()
+const instance = useInstanceStore()
+const client = useQueryClient()
+const owner = ownerLife()
 const { standing } = useStanding()
 const meeting = useMeeting(() => props.note.meeting_id)
 const departments = useProgramDepartments()
@@ -52,6 +58,16 @@ const options = computed(() => {
       (allowed.has(d.department_id) && facts.departmentIds.includes(d.department_id)),
   )
 })
+const today = computed(() => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? ''
+  return `${part('year')}-${part('month')}-${part('day')}`
+})
 const invalid = computed(
   () =>
     !department.value ||
@@ -59,34 +75,48 @@ const invalid = computed(
     !start.value ||
     !end.value ||
     end.value < start.value ||
-    start.value < new Date().toLocaleDateString('en-CA') ||
+    start.value < today.value ||
     Array.from(title.value).length > 255,
 )
 watch(
   () => [scope.programId, authSession.generation, standing.value?.accountId],
   () => emit('close'),
 )
+function sameOwner(generation: number, programId: string | null, accountId: string | undefined) {
+  return (
+    owner.alive() &&
+    generation === authSession.generation &&
+    programId === scope.programId &&
+    accountId === standing.value?.accountId
+  )
+}
 async function submit() {
   if (invalid.value || convert.isPending.value) return
+  const generation = authSession.generation
+  const programId = scope.programId
+  const accountId = standing.value?.accountId
   const result = await convert.submit({
     programId: scope.programId!,
     id: props.note.meeting_id,
     noteId: props.note.note_id,
     body: {
       department_id: department.value,
-      title: title.value,
+      ...(title.value.trim() ? { title: title.value } : {}),
       start_date: start.value,
       end_date: end.value,
     },
   })
   if (!reachesOwner(result)) return
-  if (result.kind === 'success') emit('saved')
-  else {
-    notifyOutcome(result)
-    if (result.kind === 'failed' && result.error.code === 'collaboration.note_converted') {
-      await meeting.refetch()
-      emit('close')
-    }
+  if (result.kind === 'success') {
+    emit('saved')
+    return
+  }
+  notifyOutcome(result)
+  if (result.kind === 'failed' && result.error.code === 'collaboration.note_converted') {
+    await client.invalidateQueries({
+      queryKey: queryKeys.meetings.noteList(scope.snapshot, props.note.meeting_id),
+    })
+    if (sameOwner(generation, programId, accountId)) emit('close')
   }
 }
 </script>
@@ -100,7 +130,7 @@ async function submit() {
   >
     <blockquote>{{ note.content }}</blockquote>
     <form id="meeting-convert-form" @submit.prevent="submit">
-      <label>Görev başlığı <input v-model="title" maxlength="255" /></label>
+      <label>Görev başlığı <input v-model="title" /></label>
       <p>
         {{ Array.from(title).length }} / 255 · Boş bırakırsan notun ilk 100 karakteri kullanılır.
       </p>
