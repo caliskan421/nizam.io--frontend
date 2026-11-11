@@ -19,6 +19,7 @@ import MeetingPersonSelector from '../people/MeetingPersonSelector.vue'
 import { meetingDateParts, meetingTimestamp, meetingWarning } from './meeting-time'
 import MeetingDepartments from './MeetingDepartments.vue'
 import { departmentOrder } from './department-order'
+import { meetingChanges } from './form-diff'
 
 const props = defineProps<{
   meeting: MeetingDetail | null
@@ -34,7 +35,6 @@ const departments = useProgramDepartments()
 const create = useCreateMeeting()
 const update = useUpdateMeeting()
 const toast = useToast()
-const open = ref(true)
 const selectorOpen = ref(false)
 const candidates = useMeetingCandidates(standing, selectorOpen)
 const title = ref(props.meeting?.title ?? '')
@@ -49,35 +49,35 @@ const mode = ref<'person' | 'coordinatorship'>(props.meeting?.invite_mode ?? 'co
 const departmentIds = ref<string[]>(departmentOrder(props.meeting))
 const participantIds = ref<string[]>([])
 const members = ref(props.meeting?.members_included ?? false)
-const options = computed(() => {
-  const allowed = coordinatorDepartmentIds(standing.value, scope.programId)
-  return (departments.query.data.value?.departments ?? []).filter(
-    (d) => standing.value?.companyAdmin || allowed.includes(d.department_id),
-  )
-})
+const options = computed(() => departments.query.data.value?.departments ?? [])
+const allowedOwners = computed(() => coordinatorDepartmentIds(standing.value, scope.programId))
+const dateChanged = computed(
+  () => !props.meeting || date.value !== initial.date || time.value !== initial.time,
+)
 const departmentEdit = computed(() => props.editSection === 'departments')
 const canEditDepartments = computed(
-  () =>
-    !!props.meeting &&
-    standing.value?.companyAdmin === true &&
-    props.meeting.invite_mode === 'coordinatorship',
+  () => standing.value?.companyAdmin === true && props.meeting?.invite_mode === 'coordinatorship',
 )
 const today = computed(() => meetingDateParts(new Date(), timezone.value).date)
 const uncertain = ref(false)
 const busy = computed(() => create.isPending.value || update.isPending.value)
-const invalidFields = computed(
+const invalidDate = computed(
   () =>
-    !title.value.trim() ||
-    Array.from(title.value.trim()).length > 255 ||
-    !date.value ||
-    date.value < today.value ||
-    !time.value ||
-    !meetingTimestamp(date.value, time.value, timezone.value),
+    dateChanged.value &&
+    (!date.value ||
+      date.value < today.value ||
+      !time.value ||
+      !meetingTimestamp(date.value, time.value, timezone.value)),
+)
+const invalidFields = computed(
+  () => !title.value.trim() || Array.from(title.value.trim()).length > 255 || invalidDate.value,
 )
 const invalidOwner = computed(
   () =>
     !departmentIds.value.length ||
-    !options.value.some((d) => d.department_id === departmentIds.value[0]),
+    !options.value.some((d) => d.department_id === departmentIds.value[0]) ||
+    (standing.value?.companyAdmin !== true &&
+      !allowedOwners.value.includes(departmentIds.value[0] ?? '')),
 )
 const invalid = computed(
   () =>
@@ -123,11 +123,12 @@ async function submitUpdate(programId: string, meetingId: string, meetingDate: s
     id: meetingId,
     body: departmentEdit.value
       ? { department_ids: [...departmentIds.value] }
-      : {
+      : meetingChanges(props.meeting!, {
           title: title.value.trim(),
-          meeting_date: meetingDate,
-          ...(mode.value === 'coordinatorship' ? { members_included: members.value } : {}),
-        },
+          meetingDate,
+          dateChanged: dateChanged.value,
+          members: members.value,
+        }),
   })
   if (!reachesOwner(result)) return
   if (result.kind === 'unknown_outcome') uncertain.value = true
@@ -165,7 +166,7 @@ async function submit() {
 </script>
 <template>
   <UiModal
-    v-model:open="open"
+    :open="true"
     :title="meeting ? text.edit : text.create"
     :dismissible="!busy"
     @close="emit('close')"
@@ -175,7 +176,7 @@ async function submit() {
       <template v-if="!departmentEdit">
         <label class="rp-field"
           >{{ text.title }} <span class="rp-count">{{ Array.from(title).length }} / 255</span
-          ><input v-model="title" class="t-input" required maxlength="255"
+          ><input v-model="title" class="t-input" required
         /></label>
         <label class="rp-field"
           >{{ text.date
