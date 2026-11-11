@@ -150,7 +150,9 @@ export function useSelectionReveal(
       if (!active) return
       if (!floating) return revealStacked(panel)
       revealFloating(panel, root, id)
-      const stopGrowth = watchGrowth(panel, () => revealFloating(panel, root, id))
+      const stopGrowth = watchGrowth(panel, () => {
+        if (active) revealFloating(panel, root, id)
+      })
       const stopScroll = release
       release = () => {
         stopScroll?.()

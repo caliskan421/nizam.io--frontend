@@ -117,6 +117,33 @@ describe('CX-P-Ö-05: kaydırma sonrası tutamaç panelin altına girmez', () =>
     },
   )
 
+  it('temizlik öncesi kuyruğa giren ResizeObserver geri çağrısı ölçüm yapmaz', async () => {
+    let callback: ResizeObserverCallback | undefined
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(cb: ResizeObserverCallback) {
+          callback = cb
+        }
+        observe() {}
+        disconnect() {}
+      },
+    )
+    try {
+      const t = setup('absolute', rect(1059, 585, 1399, 884), rect(100, 300, 400, 324))
+      await t.select('w1', false)
+      expect(callback).toBeDefined()
+      t.scope.stop()
+      const measure = vi.spyOn(t.panel, 'getBoundingClientRect')
+      callback!([], {} as ResizeObserver)
+      expect(measure).not.toHaveBeenCalled()
+      expect(scrollBy).not.toHaveBeenCalled()
+      expect(t.ganttScrollBy).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('bekleyen içerik yerleşirken seçim değişirse eski seçim ölçülmez', async () => {
     const t = setup('absolute', rect(1059, 585, 1399, 884), rect(900, 700, 1200, 724))
     t.panel.setAttribute('aria-busy', 'true')
