@@ -280,9 +280,38 @@ it('patches only a changed title on a past person meeting', async () => {
     },
   })
   await wrapper.get('input[required]:not([type])').setValue('Yeni')
-  await wrapper.get('form').trigger('submit')
+  expect((wrapper.get('form').element as HTMLFormElement).checkValidity()).toBe(true)
+  ;(wrapper.get('form').element as HTMLFormElement).requestSubmit()
   await settleQueries(client)
   expect(payload).toEqual({ title: 'Yeni' })
   wrapper.unmount()
   client.clear()
+})
+
+it('refreshes the minimum day when midnight passes', async () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date('2026-12-31T20:59:30Z'))
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const wrapper = mount(Component, {
+    props: { meeting: null },
+    global: {
+      plugins: [pinia, [VueQueryPlugin, { queryClient: client }]],
+      stubs: { teleport: true },
+    },
+  })
+  await wrapper.get('input[required]:not([type])').setValue('T')
+  await wrapper.get('input[type=date]').setValue('2026-12-31')
+  await wrapper.get('input[type=time]').setValue('23:00')
+  await wrapper.findAll('fieldset').at(-1)!.findAll('input')[0]!.setValue(true)
+  expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeUndefined()
+  vi.advanceTimersByTime(60_000)
+  await nextTick()
+  expect(wrapper.get('input[type=date]').attributes('min')).toBe('2027-01-01')
+  expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeDefined()
+  wrapper.unmount()
+  client.clear()
+  vi.useRealTimers()
 })

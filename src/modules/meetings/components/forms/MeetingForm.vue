@@ -15,6 +15,7 @@ import { useCreateMeeting, useUpdateMeeting } from '../../api/meeting-writes'
 import { coordinatorDepartmentIds } from '../../model/capabilities'
 import type { MeetingDetail } from '../../model/types'
 import { useSessionReset } from '../../pages/detail/use-session-reset'
+import { useNow } from '../../pages/meetings/use-now'
 import MeetingPersonSelector from '../people/MeetingPersonSelector.vue'
 import { meetingDateParts, meetingTimestamp, meetingWarning } from './meeting-time'
 import MeetingDepartments from './MeetingDepartments.vue'
@@ -38,12 +39,13 @@ const toast = useToast()
 const selectorOpen = ref(false)
 const candidates = useMeetingCandidates(standing, selectorOpen)
 const title = ref(props.meeting?.title ?? '')
-const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
+const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul'),
+  clock = useNow()
 const initial = props.meeting
   ? meetingDateParts(new Date(props.meeting.meeting_date), timezone.value)
   : { date: '', time: '' }
-const date = ref(initial.date)
-const time = ref(initial.time)
+const date = ref(initial.date),
+  time = ref(initial.time)
 const dateInput = ref<HTMLInputElement | null>(null)
 const mode = ref<'person' | 'coordinatorship'>(props.meeting?.invite_mode ?? 'coordinatorship')
 const departmentIds = ref<string[]>(departmentOrder(props.meeting))
@@ -58,7 +60,7 @@ const departmentEdit = computed(() => props.editSection === 'departments')
 const canEditDepartments = computed(
   () => standing.value?.companyAdmin === true && props.meeting?.invite_mode === 'coordinatorship',
 )
-const today = computed(() => meetingDateParts(new Date(), timezone.value).date)
+const today = computed(() => meetingDateParts(clock.value, timezone.value).date)
 const uncertain = ref(false)
 const busy = computed(() => create.isPending.value || update.isPending.value)
 const invalidDate = computed(
@@ -94,9 +96,7 @@ function selectDepartment(id: string) {
       ? departmentIds.value.filter((value) => value !== id)
       : [...departmentIds.value, id]
 }
-watch(mode, () => {
-  departmentIds.value = departmentIds.value.slice(0, 1)
-})
+watch(mode, () => departmentIds.value.splice(1))
 watch(
   () => scope.snapshot,
   () => emit('close'),
@@ -159,6 +159,7 @@ async function submitCreate(programId: string, meetingDate: string) {
 }
 async function submit() {
   if (invalid.value || busy.value || !scope.programId) return
+  if (dateChanged.value && date.value < meetingDateParts(new Date(), timezone.value).date) return
   const meetingDate = meetingTimestamp(date.value, time.value, timezone.value)
   if (props.meeting) await submitUpdate(scope.programId, props.meeting.meeting_id, meetingDate)
   else if (meetingDate) await submitCreate(scope.programId, meetingDate)
@@ -185,7 +186,7 @@ async function submit() {
             v-model="date"
             class="t-input"
             type="date"
-            :min="today"
+            :min="dateChanged ? today : undefined"
             required
           /><span class="t-hint">{{ text.dateHint }}</span></label
         >

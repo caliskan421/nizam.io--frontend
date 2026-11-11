@@ -5,6 +5,7 @@ import { usePermanentDeleteMeeting, useRestoreMeeting } from '../../api/meeting-
 import type { Meeting } from '../../model/types'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
+import { useInstanceStore } from '@/shared/instance/store'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
 
 const props = defineProps<{
@@ -19,6 +20,14 @@ const restore = useRestoreMeeting()
 const purge = usePermanentDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const section = ref<HTMLElement | null>(null)
+const instance = useInstanceStore()
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('tr-TR', {
+    timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
 const uncertain = ref<string[]>([])
 
 async function finish(
@@ -71,7 +80,7 @@ async function purgeItem(item: Meeting) {
     <ul v-if="props.items.length" class="meeting-deleted__list">
       <li v-for="item in props.items" :key="item.meeting_id" class="meeting-deleted__row">
         <h3>{{ item.title }}</h3>
-        <p>{{ new Date(item.meeting_date).toLocaleString('tr-TR') }}</p>
+        <p>{{ formatDate(item.meeting_date) }}</p>
         <p v-if="uncertain.includes(item.meeting_id)" role="status">{{ text.uncertain }}</p>
         <p v-if="item.deleted_by">{{ text.deletedBy }}: {{ item.deleted_by.full_name }}</p>
         <button

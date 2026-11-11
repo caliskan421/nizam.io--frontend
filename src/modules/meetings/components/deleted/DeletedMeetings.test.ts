@@ -18,6 +18,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, beforeAll } from 'vitest'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useScopeStore } from '@/shared/scope/store'
+import { useInstanceStore } from '@/shared/instance/store'
 import { useConfirm } from '@/shared/ui/confirm'
 import type { Meeting } from '../../model/types'
 
@@ -40,6 +41,9 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
   const pinia = createPinia()
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  useInstanceStore().profile = { timezone: 'America/New_York' } as NonNullable<
+    ReturnType<typeof useInstanceStore>['profile']
+  >
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
   const item = {
     meeting_id: 'm',
@@ -51,6 +55,13 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
     props: { items: [item], hasMore: true },
     global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
   })
+  expect(wrapper.text()).toContain(
+    new Intl.DateTimeFormat('tr-TR', {
+      timeZone: 'America/New_York',
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(item.meeting_date)),
+  )
   await wrapper
     .findAll('button')
     .find((button) => button.text() === 'Geri yükle')!
