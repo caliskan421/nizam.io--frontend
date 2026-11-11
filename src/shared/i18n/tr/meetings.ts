@@ -3,6 +3,9 @@ export const trMeetings = {
   meetings: {
     list: {
       title: 'Toplantılar',
+      today: 'Bugün',
+      thisWeek: 'Bu hafta',
+      nextWeek: 'Gelecek hafta',
       create: 'Yeni toplantı',
       upcoming: 'Yaklaşan',
       past: 'Geçmiş',

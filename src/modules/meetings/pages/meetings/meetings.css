@@ -94,6 +94,6 @@
     grid-template-columns: var(--meeting-date-width) minmax(0, 1fr) auto;
   }
   .meeting-stats {
-    grid-column: 2;
+    display: none;
   }
 }
