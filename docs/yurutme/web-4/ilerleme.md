@@ -13,7 +13,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
 | O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Birleşti: #90/#91/#92/#94/#95; üçer CI SUCCESS | `dd755f3` |
 | O3 — Entegrasyon turu (W107) | Birleşti: #97, üç CI SUCCESS | `24bfb17` |
-| O4 — Kapanış | Aktif: gerçek imaj tanığı + belgeler; nihai kapı bekliyor | `24bfb17` |
+| O4 — Kapanış | W110 #98 birleşti; gerçek imaj tamam, main/nihai kapı bekliyor | `4683af5` |
 
 ## Devralınan (WEB-3 O4)
 
@@ -145,3 +145,6 @@ W110 [#98](https://github.com/caliskan421/nizam.io--frontend/pull/98) açıldı;
 Ara imajda üst form kapanışında BODY'ye düşen odak kusuru bulundu. Ortak UiModal koşullu sökümünde idempotent odak iadesi artık her durumda çalışır; eski kodda üç regresyon kırıldı. Son imaj `sha256:1ed32302346b37149b840ada9f9846831e59d92fc432cc68f59b823e8999dd3c` çalışan konteynerle eşleşti; güvenlik/imagecheck geçti. ŞY detay/form altı görünümde doğru metin, Inter/24px, taşma/CSP/sayfa hatası sıfır; fare ve klavyeyle iç/dış Escape odağı 6/6 doğru tetikleyiciye döndü. Önceki üç rol liste/detay 36 görünüm ve UI yazmaları eski imaj kanıtıdır; son kaynak için yeniden koşulmuş gibi sunulmaz.
 
 54 güvenli JSON/PNG `.git/koordinator/web4-w110/` içine kopyalandı; fixture/state/env/auth ve betikler kopyalanmadı. Ayrıntı [doğrulama-F4](dogrulama-F4.md). Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık; F5 açılmadı.
+
+
+W110 #98 üç COMPLETED+SUCCESS ile `pr-merge.sh` üzerinden birleşti: `4683af5e71896bb10f52d2fff886511c0f36555d`. [CI 43103473776](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43103473776); bağımsız MERGED doğrulandı, main fast-forward güncellendi. O4 adım 3 için birleşmiş main tam kapısı sürüyor; nihai Sol incelemesi sırada.

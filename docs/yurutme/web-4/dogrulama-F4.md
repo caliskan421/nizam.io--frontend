@@ -33,7 +33,7 @@ YENİ-EKSİK: yok. SAHİPLİK-DIŞI İHTİYAÇ: yok. TASLAK: yok. Varsayım: yok
 
 ## Kaynaklar ve kanıtlar
 
-Yalnız bu işe ait `nizamio_web4_w110` ağ/DB/sunucu/web/proxy kaynakları ve `nizamio-web4-w110/*` imajları oluşturuldu. Geçici betikler ve ham kanıtlar `/private/tmp/nizamio_web4_w110/` altındadır; fixture ve kimlik bilgileri kalıcı kanıt olarak kopyalanmamalıdır. Diğer oturumların kaynakları değiştirilmedi. İlk izole ortam temizlendi; ikinci taze ortam kanıt kopyası ve koordinatör kabulü için çalışır durumda bırakıldı. Kalıcı kanıt kopyası henüz yapılmadı.
+Yalnız bu işe ait `nizamio_web4_w110` ağ/DB/sunucu/web/proxy kaynakları ve `nizamio-web4-w110/*` imajları oluşturuldu. Geçici betikler ve ham kanıtlar `/private/tmp/nizamio_web4_w110/` altındadır; fixture ve kimlik bilgileri kalıcı kanıt olarak kopyalanmamalıdır. Diğer oturumların kaynakları değiştirilmedi. İlk izole ortam temizlendi; ikinci taze ortam kanıt kopyası ve koordinatör kabulü için çalışır durumda bırakıldı. Koordinatör 54 güvenli JSON/PNG dosyasını ana frontend `.git/koordinator/web4-w110/` dizinine kopyaladı; fixture/state/env/auth ve betikler kopyalanmadı.
 
 ## O4 görsel düzeltmesi
 
@@ -54,3 +54,8 @@ Ortak modal koşullu sökümünde odak tuzağının devreden çıkarılması `op
 Gerçek backend ile ŞY detay ve formu açık/koyu × 390/1024/1440: detayda “Üyeler dahil”, formda “Tüm üyelere de davet gönder”; taşma, CSP ihlali ve pageerror her görünümde 0. Yazı tipi Inter, modal dolgu 24px. Fare ve klavyeyle açılışta özel kişi seçicisi Escape sonrası kendi düğmesine, üst form Escape sonrası “Yeni toplantı” düğmesine altı görünümün tümünde odak döndürdü. Üç rolün tüm eski matrisi ve yukarıdaki UI yazmaları önceki imajın kanıtıdır.
 
 Kalıcı kopya için güvenli kanıtlar: `final-keyboard-results.json`, `final-results.json` (fare), `flows-ui.json`, `flows-write.json`, `rate-ui.json`, `results.json` ve `final-detail-*.png`, `form-*.png`, rol/tema/genişlik adıyla üretilmiş liste ve detay PNG’leri. Betikler, fixture, state, env ve auth verileri kopyalanmaz.
+
+
+## Birleşim ve CI
+
+[#98](https://github.com/caliskan421/nizam.io--frontend/pull/98), üç COMPLETED+SUCCESS denetimi ve zorunlu `pr-merge.sh` ardından `4683af5e71896bb10f52d2fff886511c0f36555d` ile main'e birleşti; MERGED bağımsız doğrulandı. [CI 43103473776](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43103473776): kod/test/build, Web imajı ve gerçek backend Playwright denetimleri geçti.
