@@ -163,3 +163,59 @@ it('silinenlerde 409 not_deleted yeniden okur; kalıcı silme onay gerektirir', 
   expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/m1')).toHaveLength(1)
   expect(document.body.textContent).not.toContain('secret')
 })
+
+it('gündem ekleme ve işaretleme ilerlemeyi ve işaretleyeni yeniler', async () => {
+  let agenda: Array<Record<string, unknown>> = []
+  const participant = {
+    account_id: PEOPLE.admin.account_id,
+    full_name: PEOPLE.admin.full_name,
+    teams: [],
+  }
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({ ...meeting, agenda, participants: [participant] }),
+    ),
+    http.post('http://localhost/v1/meetings/m1/agenda', () => {
+      const row = {
+        agenda_item_id: 'a1',
+        meeting_id: 'm1',
+        title: 'Karar',
+        is_checked: false,
+        checked_by_account_id: null,
+        checked_at: null,
+        created_at: '2026-01-01T00:00:00Z',
+        sort_order: 1,
+      }
+      agenda = [row]
+      return HttpResponse.json(row)
+    }),
+    http.patch('http://localhost/v1/meeting-agenda/a1', () => {
+      agenda = [
+        {
+          ...agenda[0],
+          is_checked: true,
+          checked_by_account_id: PEOPLE.admin.account_id,
+          checked_at: '2026-01-01T10:00:00Z',
+        },
+      ]
+      return HttpResponse.json(agenda[0])
+    }),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await fill('.meeting-agenda form input', 'Karar')
+  $('.meeting-agenda form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  const checkbox = await until(
+    () => $('.meeting-agenda input[aria-label="Karar"]') as HTMLInputElement | null,
+    'yeni madde',
+  )
+  expect($('.meeting-agenda__status')?.textContent).toContain('0 / 1')
+  checkbox.click()
+  await until(() => $('.meeting-agenda__status')?.textContent?.includes('1 / 1'), 'ilerleme')
+  expect($('.meeting-agenda')?.textContent).toContain('Yasemin Y.')
+  expect(backend.sent('POST', '/v1/meetings/m1/agenda')).toHaveLength(1)
+  expect(backend.sent('PATCH', '/v1/meeting-agenda/a1')).toHaveLength(1)
+})
