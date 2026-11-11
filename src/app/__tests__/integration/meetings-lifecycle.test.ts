@@ -137,3 +137,26 @@ it('gerçek not formu tek eylemde idempotency anahtarı taşır', async () => {
     backend.sent('POST', '/v1/meetings/m1/notes')[0]?.headers.get('Idempotency-Key'),
   ).toBeTruthy()
 })
+
+it('gerçek detayda elli gündem maddesinde giriş kapanır', async () => {
+  const agenda = Array.from({ length: 50 }, (_, i) => ({
+    agenda_item_id: `a${i}`,
+    meeting_id: 'm1',
+    title: `Madde ${i}`,
+    is_checked: false,
+    checked_by_account_id: null,
+    checked_at: null,
+  }))
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () => HttpResponse.json({ ...meeting, agenda })),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  const input = await until(() => $('.meeting-agenda form input') as HTMLInputElement | null)
+  expect(input.disabled).toBe(true)
+  expect($('.meeting-agenda')?.textContent).toContain('50')
+  expect(backend.sent('POST', '/v1/meetings/m1/agenda')).toHaveLength(0)
+})
