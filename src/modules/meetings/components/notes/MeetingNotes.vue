@@ -17,7 +17,7 @@ import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
 import NoteFilters from './NoteFilters.vue'
 import NoteComposer from './NoteComposer.vue'
-import { noteCount, noteTime, noteFacts, noteFocus } from './notes-view'
+import { noteCount, noteTime, noteFacts, noteFocus, selectNotes } from './notes-view'
 import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
 
@@ -44,11 +44,7 @@ const convertedLabel = designStub('BE-065', text.convertedLabel)
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
 const mine = (note: MeetingNote) =>
   !!standing.value && note.author_account_id === standing.value.accountId
-const shown = computed(() =>
-  notes.value.filter(
-    (n) => filter.value === 'all' || (filter.value === 'converted' ? converted(n) : mine(n)),
-  ),
-)
+const shown = computed(() => selectNotes(notes.value, filter.value, standing.value?.accountId))
 const access = computed(() =>
   meetingCapabilities(standing.value, scope.programId ?? '', {
     inviteMode: props.meeting.invite_mode,
@@ -60,7 +56,6 @@ const access = computed(() =>
     viewerRole: props.meeting.viewer_role,
   }),
 )
-const facts = noteFacts
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
 const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
@@ -181,49 +176,56 @@ async function deleteNote(note: MeetingNote) {
           ><button type="button" @click="cancelEdit(note)">{{ text.cancel }}</button>
         </form>
         <p v-else>{{ note.content }}</p>
-        <span v-if="converted(note)" class="meeting-notes__converted">{{ convertedLabel }}</span
-        ><button
-          v-else-if="access.convertNote(facts(note))"
-          class="t-btn t-btn--secondary t-btn--sm"
-          type="button"
-          @click="emit('convert', note)"
-        >
-          {{ text.convert }}
-        </button>
-        <small v-if="converted(note) && mine(note) && !access.manage">{{ text.locked }}</small>
-        <div v-if="access.editNote(facts(note)) || access.deleteNote(facts(note))">
-          <button
-            :ref="(el) => setButton(note.note_id, el)"
-            class="t-iconbtn"
+        <div class="meeting-notes__foot">
+          <span v-if="converted(note)" class="meeting-notes__converted">{{ convertedLabel }}</span
+          ><button
+            v-else-if="access.convertNote(noteFacts(note))"
+            class="t-btn t-btn--secondary t-btn--sm"
             type="button"
-            :aria-label="`${text.actions}: ${[access.editNote(facts(note)) ? text.edit : '', access.deleteNote(facts(note)) ? text.delete : ''].filter(Boolean).join(', ')}`"
-            :aria-expanded="openMenu === note.note_id"
-            :aria-controls="openMenu === note.note_id ? `note-menu-${note.note_id}` : undefined"
-            @click="openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)"
+            @click="emit('convert', note)"
           >
-            ⋯
+            {{ text.convert }}
           </button>
+          <small v-if="converted(note) && mine(note) && !access.manage">{{ text.locked }}</small>
           <div
-            v-if="openMenu === note.note_id"
-            :id="`note-menu-${note.note_id}`"
-            role="menu"
-            @keydown.esc.stop="closeMenu(note.note_id)"
+            v-if="access.editNote(noteFacts(note)) || access.deleteNote(noteFacts(note))"
+            class="meeting-notes__actions"
           >
             <button
-              v-if="access.editNote(facts(note))"
+              :ref="(el) => setButton(note.note_id, el)"
+              class="t-iconbtn"
               type="button"
-              role="menuitem"
-              @click="startEdit(note)"
+              :aria-label="`${text.actions}: ${[access.editNote(noteFacts(note)) ? text.edit : '', access.deleteNote(noteFacts(note)) ? text.delete : ''].filter(Boolean).join(', ')}`"
+              :aria-expanded="openMenu === note.note_id"
+              :aria-controls="openMenu === note.note_id ? `note-menu-${note.note_id}` : undefined"
+              @click="
+                openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)
+              "
             >
-              {{ text.edit }}</button
-            ><button
-              v-if="access.deleteNote(facts(note))"
-              type="button"
-              role="menuitem"
-              @click="deleteNote(note)"
-            >
-              {{ text.delete }}
+              ⋯
             </button>
+            <div
+              v-if="openMenu === note.note_id"
+              :id="`note-menu-${note.note_id}`"
+              role="menu"
+              @keydown.esc.stop="closeMenu(note.note_id)"
+            >
+              <button
+                v-if="access.editNote(noteFacts(note))"
+                type="button"
+                role="menuitem"
+                @click="startEdit(note)"
+              >
+                {{ text.edit }}</button
+              ><button
+                v-if="access.deleteNote(noteFacts(note))"
+                type="button"
+                role="menuitem"
+                @click="deleteNote(note)"
+              >
+                {{ text.delete }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
