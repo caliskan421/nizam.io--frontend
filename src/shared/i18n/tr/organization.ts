@@ -6,6 +6,7 @@
 
 export const trOrganization = {
   organization: {
+    accessDenied: 'Bu yönetim sayfasına erişim yetkiniz yok; ana sayfaya yönlendirildiniz.',
     /**
      * 08 Koordinatörlükler liste (`organization.coordinatorships.*`; 08 `ozellikler.md` §2.1–§2.7, README kabul
      * tablosu E-08-01…45). Tasarımdaki "Dosya yüklenmemiş" / "Henüz dosya yüklenmedi" metinleri

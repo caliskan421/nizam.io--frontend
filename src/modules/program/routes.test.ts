@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 
 import { useScopeStore } from '@/shared/scope/store'
+import { useToast } from '@/shared/ui'
 
 import { http, json, ORIGIN, requests, server } from './__tests__/harness'
 import { PROGRAMS_ROUTE, programRoutes } from './routes'
@@ -30,6 +31,7 @@ afterEach(() => {
   for (const wrapper of mounted.splice(0)) wrapper.unmount()
   requests.length = 0
   server.resetHandlers()
+  useToast().clear()
 })
 
 function standing(companyAdmin: boolean, rows: { department_id: string; role: string }[] = []) {
@@ -87,5 +89,10 @@ describe('program rotası', () => {
     const { wrapper, router } = await visit('coordinator')
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('home'))
     expect(wrapper.find('[data-page="programs"]').exists()).toBe(false)
+    expect(useToast().queue.value).toHaveLength(1)
+    expect(useToast().current.value?.message).toContain('erişim yetkiniz yok')
+    await router.push(PROGRAMS_ROUTE.path)
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('home'))
+    expect(useToast().queue.value).toHaveLength(1)
   })
 })
