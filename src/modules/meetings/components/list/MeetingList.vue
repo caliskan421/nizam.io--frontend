@@ -4,6 +4,7 @@ import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
 import { groupMeetings, meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
+import { dayLabel } from '../../pages/meetings/day-label'
 const props = defineProps<{ items: Meeting[]; complete: boolean }>()
 defineEmits<{ create: []; openDeleted: []; select: [id: string] }>()
 const departments = useProgramDepartments()

@@ -26,7 +26,7 @@
 }
 .meetings-group h2 {
   font-family: var(--font-display);
-  font-size: var(--text-sm);
+  font: var(--coords-title);
   margin: 0;
 }
 .meeting-row {
@@ -35,7 +35,7 @@
   gap: var(--space-4);
   align-items: center;
   padding: var(--space-3);
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--ui-hairline) solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: inherit;
@@ -54,7 +54,7 @@
 }
 .meeting-date b {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font: var(--text-heading-2);
 }
 .meeting-date em {
   font-family: var(--font-mono);
