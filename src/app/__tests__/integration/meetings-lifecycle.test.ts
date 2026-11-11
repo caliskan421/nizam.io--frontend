@@ -63,7 +63,12 @@ it('program değişiminde açık düzenleme taslağı kapanır ve eski detay kal
     http.get('http://localhost/v1/meetings/m1', ({ request }) =>
       request.headers.get('X-Nizamio-Program') === 'p2'
         ? HttpResponse.json(
-            { code: 'collaboration.not_found', message: 'secret', request_id: 'r', fields: [] },
+            {
+              code: 'collaboration.meeting_not_found',
+              message: 'secret',
+              request_id: 'r',
+              fields: [],
+            },
             { status: 404 },
           )
         : HttpResponse.json(meeting),
@@ -84,10 +89,9 @@ it('program değişiminde açık düzenleme taslağı kapanır ve eski detay kal
   await switchScope('Program', 'Teknofest 2027')
   await until(() => app.scope.programId === 'p2')
   await until(() => !$('[role="dialog"]'), 'form kapandı')
-  await until(
-    () => !document.body.textContent?.includes('Entegrasyon toplantısı'),
-    'eski detay kaldırıldı',
-  )
+  await until(() => app.router.currentRoute.value.path === '/toplantilar', 'K6 listeye dönüş')
+  expect(backend.sent('GET', '/v1/me/departments').length).toBeGreaterThan(1)
+  expect(document.body.textContent).not.toContain('Entegrasyon toplantısı')
   expect(document.body.textContent).not.toContain('secret')
 })
 
