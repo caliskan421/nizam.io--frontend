@@ -25,9 +25,7 @@ function codes(item: Meeting) {
   <div v-else class="meetings-groups">
     <section v-for="group in groups" :key="group.day" class="meetings-group">
       <h2>
-        {{
-          format(group.items[0]!.meeting_date, { day: 'numeric', month: 'long', weekday: 'long' })
-        }}
+        {{ dayLabel(group.day, new Date(), timezone) }}
       </h2>
       <a
         v-for="item in group.items"
