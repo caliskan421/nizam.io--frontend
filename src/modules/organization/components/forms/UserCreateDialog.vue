@@ -122,10 +122,7 @@ type CreateOutcome = Awaited<ReturnType<typeof create.submit>>
 async function send(values: UserValues, transfer: BoundOffer | null): Promise<void> {
   const programId = store.snapshot.programId
   if (!programId) return
-  if (transfer && !stillValid(transfer)) {
-    bound.value = null
-    return
-  }
+  if (transfer && !stillValid(transfer)) return void (bound.value = null)
   notice.value = null
   bound.value = null
   const currentTicket = ticket()

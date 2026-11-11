@@ -181,6 +181,21 @@ describe('UsersPage — yan panel ve yaşam döngüsü', () => {
     },
   )
 
+  it('kapanış beklerken başka satır seçilirse eski kapanış odağı çalmaz', async () => {
+    const { wrapper } = await mountPage()
+    await wrapper.get('[data-account="u1"][role="row"] [data-testid="user-open"]').trigger('click')
+    await settle()
+    const close = wrapper.get('[data-testid="panel-close"]')
+    const next = wrapper.get('[data-account="u2"][role="row"] [data-testid="user-open"]')
+    const closing = close.trigger('click')
+    ;(next.element as HTMLElement).focus()
+    const selecting = next.trigger('click')
+    await Promise.all([closing, selecting])
+    await settle()
+    expect(wrapper.get('[data-testid="user-panel"]').attributes('data-account')).toBe('u2')
+    expect(document.activeElement).toBe(next.element)
+  })
+
   it('seçilen satır yoksa kapatınca aramaya odaklanır', async () => {
     const { wrapper } = await mountPage()
     await wrapper.get('[data-account="u1"][role="row"] [data-testid="user-open"]').trigger('click')

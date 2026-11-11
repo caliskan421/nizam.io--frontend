@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import './users/users-page.css'
 
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onScopeDispose, ref } from 'vue'
 
+import { useActionContext } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -33,6 +34,15 @@ const passwordFor = ref<string | null>(null)
 const aside = ref<HTMLElement | null>(null)
 const page = ref<HTMLElement | null>(null)
 let panelTrigger: HTMLElement | null = null
+let focusRevision = 0
+const actionContext = useActionContext()
+const unsubscribe = store.onChange(() => {
+  focusRevision += 1
+})
+onScopeDispose(() => {
+  focusRevision += 1
+  unsubscribe()
+})
 const { reveal } = usePanelReveal(aside)
 
 const url = useUsersUrl(() => {
@@ -74,6 +84,7 @@ const selectedMissing = computed(
 )
 
 function select(accountId: string): void {
+  focusRevision += 1
   const rows = page.value?.querySelectorAll<HTMLElement>('[role="row"][data-account]')
   const row = [...(rows ?? [])].find((item) => item.dataset.account === accountId)
   panelTrigger = row?.querySelector<HTMLElement>('[data-testid="user-open"]') ?? null
@@ -81,10 +92,19 @@ function select(accountId: string): void {
 }
 
 function closePanel(): void {
+  const revision = ++focusRevision
+  const trigger = panelTrigger
+  const context = actionContext()
   void url.update({ selected: null }, 'push').then(async () => {
     await nextTick()
+    if (
+      revision !== focusRevision ||
+      context.generation !== actionContext().generation ||
+      state.value.selected
+    )
+      return
     const fallback = page.value?.querySelector<HTMLElement>('[data-testid="users-search"]')
-    const target = panelTrigger?.isConnected ? panelTrigger : fallback
+    const target = trigger?.isConnected ? trigger : fallback
     target?.focus()
     panelTrigger = null
   })
