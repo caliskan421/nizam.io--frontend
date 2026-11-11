@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent } from 'vue'
 import { afterAll, beforeAll, expect, it } from 'vitest'
+import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import {
   useAddMeetingNote,
@@ -55,6 +56,15 @@ it('writes all meeting operations through S2 without idempotency keys', async ()
     }),
   )
   app.use(pinia).use(VueQueryPlugin, { queryClient: client }).mount(document.createElement('div'))
+  const scope = useScopeStore().snapshot
+  const keys = [
+    queryKeys.meetings.noteList(scope, 'm'),
+    queryKeys.workItems.list(scope, {}),
+    queryKeys.workItems.counts(scope, {}),
+    queryKeys.shellBadges.counts(scope, {}),
+    queryKeys.report.dashboard(scope),
+  ]
+  for (const key of keys) client.setQueryData(key, { before: true })
   const target = { programId: 'p', id: 'm' }
   const note = { ...target, noteId: 'n' }
   const outcomes = [
@@ -67,6 +77,7 @@ it('writes all meeting operations through S2 without idempotency keys', async ()
     }),
   ]
   expect(outcomes.map((o) => o.kind)).toEqual(Array(4).fill('success'))
+  for (const key of keys) expect(client.getQueryState(key)?.isInvalidated).toBe(true)
   expect(seen).toEqual([
     'POST /v1/meetings/m/notes',
     'PATCH /v1/meeting-notes/n',
@@ -101,17 +112,17 @@ it('writes all meeting operations through S2 without idempotency keys', async ()
   expect(conflict.kind).toBe('edit_conflict')
   if (conflict.kind === 'edit_conflict')
     expect(conflict.server).toMatchObject({ content: 'server', edit_revision: 3 })
-  const keys: string[] = []
+  const sentKeys: string[] = []
   server.use(
     http.post('http://localhost/v1/meetings/m/notes', ({ request }) => {
-      keys.push(request.headers.get('Idempotency-Key') ?? '')
-      return keys.length === 1 ? HttpResponse.error() : HttpResponse.json({})
+      sentKeys.push(request.headers.get('Idempotency-Key') ?? '')
+      return sentKeys.length === 1 ? HttpResponse.error() : HttpResponse.json({})
     }),
   )
   expect((await writes.add.submit({ ...target, body: { content: 'again' } })).kind).toBe('success')
-  expect(keys).toHaveLength(2)
-  expect(keys[0]).toBeTruthy()
-  expect(keys[1]).toBe(keys[0])
+  expect(sentKeys).toHaveLength(2)
+  expect(sentKeys[0]).toBeTruthy()
+  expect(sentKeys[1]).toBe(sentKeys[0])
   app.unmount()
   client.clear()
 })
