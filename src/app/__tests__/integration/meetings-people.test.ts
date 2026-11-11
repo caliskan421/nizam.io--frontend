@@ -117,3 +117,55 @@ it('katılımcı serisi belirsiz sonuçta durur ve sonraki kişiye istek gönder
   await until(() => $('.meeting-people [role="status"]'), 'belirsizlik uyarısı')
   expect(backend.sent('POST', '/v1/meetings/m1/participants')).toHaveLength(2)
 })
+
+it('koordinatör seçicisi kendi ekibi ve kesilme uyarılarını ayrı gösterir', async () => {
+  backend.server.use(
+    http.get('http://localhost/v1/departments/:id/members', () =>
+      HttpResponse.json(
+        { members: [{ account_id: 'x', full_name: 'Ada Örnek', status: 'active' }] },
+        { headers: { 'X-Result-Truncated': 'true' } },
+      ),
+    ),
+  )
+  await boot({
+    email: PEOPLE.coord.email,
+    scope: { programId: 'p1', lens: 'coordinator', departmentId: 'd1' },
+    path: '/toplantilar/m1',
+  })
+  await click(() => byText('.meeting-people button', 'Ekle'))
+  await until(() => $('[role="dialog"]')?.textContent?.includes('Ada Örnek'), 'adaylar')
+  expect($('[role="dialog"]')?.textContent).toContain('Yalnız koordine ettiğin')
+  expect($('[role="dialog"]')?.textContent).toContain('Liste eksik olabilir')
+  expect(backend.sent('GET', '/v1/departments/d1/members').length).toBeGreaterThan(0)
+  expect(backend.sent('GET', '/v1/departments/d2/members')).toHaveLength(0)
+})
+
+it('yönetici seçicisi program adaylarını ve yalnız kesilme uyarısını gösterir', async () => {
+  backend.server.use(
+    http.get('http://localhost/v1/admin/users', () =>
+      HttpResponse.json(
+        {
+          users: [
+            { account_id: 'x', full_name: 'Ada Örnek', teams: [{ program_id: 'p1' }] },
+            { account_id: 'y', full_name: 'Başka Program', teams: [{ program_id: 'p2' }] },
+          ],
+          next_cursor: '',
+          total: 2,
+          role_counts: {},
+        },
+        { headers: { 'X-Result-Truncated': 'true' } },
+      ),
+    ),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await click(() => byText('.meeting-people button', 'Ekle'))
+  await until(() => $('[role="dialog"]')?.textContent?.includes('Ada Örnek'), 'adaylar')
+  expect($('[role="dialog"]')?.textContent).not.toContain('Başka Program')
+  expect($('[role="dialog"]')?.textContent).not.toContain('Yalnız koordine ettiğin')
+  expect($('[role="dialog"]')?.textContent).toContain('Liste eksik olabilir')
+  expect(backend.sent('GET', '/v1/admin/users').at(-1)?.query.get('program_id')).toBe('p1')
+})
