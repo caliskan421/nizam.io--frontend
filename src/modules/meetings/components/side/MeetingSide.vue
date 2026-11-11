@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import './side.css'
 import type { MeetingDetail } from '../../model/types'
 import { coordinatorDepartmentIds, meetingCapabilities } from '../../model/capabilities'
+import { meetingDepartments } from '../../model/list'
 import { useDepartments } from '../../pages/detail/use-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
@@ -27,14 +28,8 @@ const access = computed(() =>
     viewerRole: props.meeting.viewer_role,
   }),
 )
-const ordered = computed(() =>
-  [...props.meeting.departments].sort(
-    (a, b) =>
-      Number(b.department_id === props.meeting.owner_department_id) -
-      Number(a.department_id === props.meeting.owner_department_id),
-  ),
-)
-const code = (id: string) => departments.value.find((d) => d.department_id === id)?.code
+const ordered = computed(() => meetingDepartments(props.meeting, departments.value))
+const code = (id: string) => ordered.value.find((d) => d.department_id === id)?.code
 const creator = computed(
   () =>
     props.meeting.participants.find((p) => p.account_id === props.meeting.created_by_account_id)

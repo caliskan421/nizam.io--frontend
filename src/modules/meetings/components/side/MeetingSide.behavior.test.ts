@@ -55,3 +55,14 @@ it('hides editing for coordinators and person meetings and falls back for absent
   expect(admin.find('button').exists()).toBe(false)
   admin.unmount()
 })
+
+it('uses name initials when the department no longer has a code', () => {
+  const value = {
+    ...meeting,
+    departments: [{ department_id: 'deleted', department_name: 'Eski Birim' }],
+    owner_department_id: 'deleted',
+  } as MeetingDetail
+  const wrapper = setup(true, value)
+  expect(wrapper.text()).toContain('EB')
+  wrapper.unmount()
+})
