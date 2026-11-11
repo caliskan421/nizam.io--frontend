@@ -77,11 +77,15 @@ async function settled(panel: HTMLElement): Promise<void> {
  * Panel açıldıktan sonra içerik gelince (dosya sayısı, bekleyen talep kutusu) yüksekliği büyür ve
  * üstü yukarı kayar; kısa bir pencerede her boyut değişiminde çubuk yeniden korunur.
  */
-function watchGrowth(panel: HTMLElement, again: () => void): void {
-  if (typeof ResizeObserver === 'undefined') return
+function watchGrowth(panel: HTMLElement, again: () => void): () => void {
+  if (typeof ResizeObserver === 'undefined') return () => {}
   const observer = new ResizeObserver(again)
   observer.observe(panel)
-  setTimeout(() => observer.disconnect(), ARM_MS)
+  const timer = setTimeout(() => observer.disconnect(), ARM_MS)
+  return () => {
+    clearTimeout(timer)
+    observer.disconnect()
+  }
 }
 
 /**
@@ -124,11 +128,16 @@ export function useSelectionReveal(
     selectedId,
     async (id, _previous, onCleanup) => {
       drop()
-      onCleanup(drop)
+      let active = true
+      onCleanup(() => {
+        active = false
+        drop()
+      })
       if (id === null) return
       const armed = performance.now() - armedAt <= ARM_MS
       armedAt = -Infinity
       await nextTick()
+      if (!active) return
       const root = board.value
       const panel = root?.querySelector<HTMLElement>('[data-testid="timeline-panel"]')
       if (!root || !panel || panel.getBoundingClientRect().height === 0) return // ölçüm yok (jsdom)
@@ -138,9 +147,17 @@ export function useSelectionReveal(
       // yüzen panel çubuğu/tutamaçları örtüyorsa yine de dışarı alınır (CX-P-Ö-05).
       if (!armed && !floating) return
       await settled(panel)
+      if (!active) return
       if (!floating) return revealStacked(panel)
       revealFloating(panel, root, id)
-      watchGrowth(panel, () => revealFloating(panel, root, id))
+      const stopGrowth = watchGrowth(panel, () => {
+        if (active) revealFloating(panel, root, id)
+      })
+      const stopScroll = release
+      release = () => {
+        stopScroll?.()
+        stopGrowth()
+      }
     },
     { flush: 'post' },
   )
