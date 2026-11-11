@@ -125,3 +125,33 @@ it.each([
     ).toHaveLength(0)
   },
 )
+
+it.each(['coordinatorship', 'person'] as const)(
+  'katılımcı üye %s kipinde gerçek detayı görür, yönetemez',
+  async (inviteMode) => {
+    const participants = [
+      { account_id: PEOPLE.member.account_id, full_name: PEOPLE.member.full_name, teams: [] },
+    ]
+    backend.server.use(
+      http.get('http://localhost/v1/meetings/m1', () =>
+        HttpResponse.json({
+          ...meeting,
+          invite_mode: inviteMode,
+          members_included: false,
+          viewer_role: 'member',
+          participants,
+        }),
+      ),
+    )
+    await boot({
+      email: PEOPLE.member.email,
+      scope: { programId: 'p1', lens: 'member', departmentId: 'd1' },
+      path: '/toplantilar/m1',
+    })
+    await until(() => $('.meeting-person-row'), 'katılımcı')
+    expect($('.meeting-person-row')?.textContent).toContain(PEOPLE.member.full_name)
+    expect(byText('.meeting-detail button', 'Düzenle')).toBeNull()
+    expect(byText('.meeting-people button', 'Ekle')).toBeNull()
+    expect($('.meeting-person-row__remove')).toBeNull()
+  },
+)
