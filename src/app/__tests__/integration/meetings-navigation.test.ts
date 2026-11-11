@@ -52,7 +52,7 @@ it('gerçek satır, detay ve kırıntı liste filtrelerini korur', async () => {
     path: '/toplantilar?zaman=gecmis&koordinatorluk=d1',
   })
   await click(() => $('a[href*="/toplantilar/m1"]'))
-  await until(() => $('.meeting-detail'), 'gerçek detay')
+  await until(() => $('.meeting-people'), 'gerçek detay')
   expect(document.body.textContent).toContain('Entegrasyon toplantısı')
   expect(document.body.textContent).toContain('Katılımcılar')
   await click(() => $('[data-testid="topbar-crumbs"] a[href*="/toplantilar"]'))

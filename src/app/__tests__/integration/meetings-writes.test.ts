@@ -92,7 +92,7 @@ it('person toplantısı gerçek formdan oluşturulup detayına gider', async () 
     participant_ids: [],
   })
   expect(backend.sent('POST', '/v1/meetings')[0]?.body).not.toHaveProperty('members_included')
-  expect(backend.sent('GET', '/v1/meetings/m1').length).toBeGreaterThan(0)
+  await until(() => backend.sent('GET', '/v1/meetings/m1').length > 0, 'detay okuması')
   expect(backend.sent('GET', '/v1/meetings').length).toBeGreaterThan(listReads)
 })
 
