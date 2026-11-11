@@ -57,25 +57,20 @@ const access = computed(() =>
 )
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
-const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
+function refreshNotes() {
+  void query.refetch()
+  emit('refresh')
+}
+const { update, conflict, editing, editDraft, saveNote, busy } = useNoteEdit(
   target,
   () => version,
   () => {
     const id = editing.value?.note_id
-    void query.refetch()
-    emit('refresh')
+    refreshNotes()
     if (id) focus(id)
   },
 )
-const removeNote = useNoteDelete(
-  target,
-  () => version,
-  () => {
-    void query.refetch()
-    emit('refresh')
-  },
-  heading,
-)
+const removeNote = useNoteDelete(target, () => version, refreshNotes, heading)
 function resetDraft() {
   version += 1
   draft.value = ''
@@ -93,6 +88,7 @@ const offSession = authSession.subscribe(() => {
 })
 onScopeDispose(offSession)
 function cancelEdit(note: MeetingNote) {
+  if (busy.value) return
   editing.value = null
   focus(note.note_id)
 }
@@ -101,6 +97,7 @@ function closeMenu(id: string) {
   focus(id)
 }
 function startEdit(note: MeetingNote) {
+  if (busy.value) return
   editing.value = note
   editDraft.value = note.content
   closeMenu(note.note_id)
@@ -132,7 +129,6 @@ function deleteNote(note: MeetingNote) {
   void removeNote(note)
 }
 </script>
-
 <template>
   <section ref="section" class="t-card meeting-notes" :aria-label="text.title">
     <NoteFilters
@@ -169,9 +165,14 @@ function deleteNote(note: MeetingNote) {
           {{ note.edit_revision > 1 ? `· ${text.edited}` : '' }}</small
         >
         <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
-          <textarea v-model="editDraft" :aria-label="text.editor" /><button type="submit">
+          <textarea v-model="editDraft" :aria-label="text.editor" :disabled="busy" /><button
+            type="submit"
+            :disabled="busy"
+          >
             {{ text.save }}</button
-          ><button type="button" @click="cancelEdit(note)">{{ text.cancel }}</button>
+          ><button type="button" :disabled="busy" @click="cancelEdit(note)">
+            {{ text.cancel }}
+          </button>
         </form>
         <p v-else>{{ note.content }}</p>
         <div class="meeting-notes__foot">
@@ -212,6 +213,7 @@ function deleteNote(note: MeetingNote) {
                 v-if="access.editNote(noteFacts(note))"
                 type="button"
                 role="menuitem"
+                :disabled="busy"
                 @click="startEdit(note)"
               >
                 {{ text.edit }}</button
