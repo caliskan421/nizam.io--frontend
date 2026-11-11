@@ -8,11 +8,12 @@ export async function adminCandidates(
   programId: string,
   signal: AbortSignal,
 ): Promise<MeetingCandidates> {
-  const people: MeetingCandidate[] = []
+  const people = new Map<string, MeetingCandidate>()
   const seen = new Set<string>()
   let cursor: string | undefined
   let truncated = false
   do {
+    signal.throwIfAborted()
     const read = sessionBound(({ signal: requestSignal }) =>
       fetchUserPage({ search: null, sortOrder: 'asc', programId }, cursor, requestSignal),
     )
@@ -20,14 +21,14 @@ export async function adminCandidates(
     truncated ||= result.truncated
     for (const user of result.page.users ?? []) {
       if (user.teams.some((team) => team.program_id === programId)) {
-        people.push({ accountId: user.account_id, fullName: user.full_name })
+        people.set(user.account_id, { accountId: user.account_id, fullName: user.full_name })
       }
     }
     cursor = result.page.next_cursor || undefined
     if (cursor && seen.has(cursor)) throw new Error('Tekrarlanan kullanıcı imleci')
     if (cursor) seen.add(cursor)
   } while (cursor)
-  return { people, truncated, partial: truncated }
+  return { people: [...people.values()], truncated, partial: truncated }
 }
 
 /** K: yalnız yetkili departmanlar; başka departmanlar kapsam dışıdır (BE-067). */
@@ -39,6 +40,7 @@ export async function coordinatorCandidates(
   const people = new Map<string, string>()
   let truncated = false
   for (const departmentId of new Set(departmentIds)) {
+    signal.throwIfAborted()
     const read = sessionBound(({ signal: requestSignal }) =>
       fetchRoster(programId, departmentId, requestSignal),
     )

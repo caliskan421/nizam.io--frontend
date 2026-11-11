@@ -66,3 +66,59 @@ it('reads only supplied coordOf rosters, deduplicates active rows and records tr
     partial: true,
   })
 })
+
+it.each(['session', 'abort'] as const)('stops a held roster load on %s change', async (change) => {
+  const { authSession } = await import('@/shared/http')
+  let release!: () => void
+  let started!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const requested = new Promise<void>((resolve) => {
+    started = resolve
+  })
+  let calls = 0
+  server.use(
+    http.get('http://localhost/v1/departments/:id/members', async () => {
+      calls += 1
+      started()
+      await gate
+      return HttpResponse.json({ members: [] })
+    }),
+  )
+  const controller = new AbortController()
+  const loading = coordinatorCandidates('p', ['d1', 'd2'], controller.signal)
+  await requested
+  if (change === 'abort') controller.abort()
+  else authSession.clear()
+  release()
+  await expect(loading).rejects.toBeDefined()
+  expect(calls).toBe(1)
+})
+
+it('does not read the next admin page after the account changes', async () => {
+  const { authSession } = await import('@/shared/http')
+  let release!: () => void
+  let started!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const requested = new Promise<void>((resolve) => {
+    started = resolve
+  })
+  let calls = 0
+  server.use(
+    http.get('http://localhost/v1/admin/users', async () => {
+      calls += 1
+      started()
+      await gate
+      return HttpResponse.json({ users: [], next_cursor: 'next', total: 0, role_counts: {} })
+    }),
+  )
+  const loading = adminCandidates('p', new AbortController().signal)
+  await requested
+  authSession.clear()
+  release()
+  await expect(loading).rejects.toBeDefined()
+  expect(calls).toBe(1)
+})
