@@ -2,6 +2,7 @@
 import './notes.css'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { designStub } from '@/shared/design-stub'
 import { UiAvatar } from '@/shared/ui'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -50,8 +51,9 @@ function time(value: string) {
 const openMenu = ref<string | null>(null)
 const buttons = new Map<string, HTMLButtonElement>()
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
-const roleLabels = { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' }
-const convertedLabel = designStub('BE-065', 'Göreve dönüştü')
+const text = trMeetings.meetings.notes
+const roleLabels = text.roles
+const convertedLabel = designStub('BE-065', text.convertedLabel)
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
 const mine = (note: MeetingNote) =>
   !!standing.value && note.author_account_id === standing.value.accountId
@@ -121,9 +123,9 @@ async function deleteNote(note: MeetingNote) {
   if (!scope.programId) return
   const result = await confirmWrite(
     {
-      title: 'Not silinsin mi?',
-      body: ['Bu işlem geri alınamaz.'],
-      confirmLabel: 'Sil',
+      title: text.deleteTitle,
+      body: [text.deleteBody],
+      confirmLabel: text.delete,
       tone: 'danger',
     },
     (context) => remove.submit({ ...target(), noteId: note.note_id }, { context }),
@@ -135,37 +137,33 @@ async function deleteNote(note: MeetingNote) {
 </script>
 
 <template>
-  <section class="t-card meeting-notes" aria-label="Notlar">
+  <section class="t-card meeting-notes" :aria-label="text.title">
     <h2>
-      Notlar <span>{{ count(notes.length) }}</span>
+      {{ text.title }} <span>{{ count(notes.length) }}</span>
     </h2>
-    <div role="group" aria-label="Not filtresi">
+    <div role="group" :aria-label="text.filter">
       <button type="button" :aria-pressed="filter === 'all'" @click="setFilter('all')">
-        Tümü {{ count(notes.length) }}</button
+        {{ text.all }} {{ count(notes.length) }}</button
       ><button type="button" :aria-pressed="filter === 'converted'" @click="setFilter('converted')">
-        Göreve dönüşen {{ count(notes.filter(converted).length) }}</button
+        {{ text.converted }} {{ count(notes.filter(converted).length) }}</button
       ><button type="button" :aria-pressed="filter === 'mine'" @click="setFilter('mine')">
-        Benim {{ count(notes.filter(mine).length) }}
+        {{ text.mine }} {{ count(notes.filter(mine).length) }}
       </button>
     </div>
-    <p v-if="query.hasNextPage.value">Sayaçlar yüklenen notları gösterir.</p>
+    <p v-if="query.hasNextPage.value">{{ text.partial }}</p>
     <form v-if="access.visible" class="meeting-notes__composer" @submit.prevent="addNote">
-      <textarea
-        v-model="draft"
-        aria-label="Not yaz"
-        placeholder="Toplantı notu yaz… Katılan herkes not ekleyebilir."
-      />
-      <p>Notu daha sonra göreve dönüştürebilirsin · {{ Array.from(draft).length }} / 5000</p>
+      <textarea v-model="draft" :aria-label="text.composer" :placeholder="text.placeholder" />
+      <p>{{ text.hint }} · {{ Array.from(draft).length }} / 5000</p>
       <button
         type="submit"
         :disabled="!draft.trim() || Array.from(draft).length > 5000 || add.isPending.value"
       >
-        Not ekle
+        {{ text.add }}
       </button>
     </form>
-    <p v-if="query.isPending.value">Notlar yükleniyor…</p>
+    <p v-if="query.isPending.value">{{ text.loading }}</p>
     <p v-else-if="query.isError.value">
-      Notlar yüklenemedi. <button type="button" @click="query.refetch()">Yeniden dene</button>
+      {{ text.error }} <button type="button" @click="query.refetch()">{{ text.retry }}</button>
     </p>
     <article v-for="note in shown" :key="note.note_id" class="meeting-notes__item">
       <UiAvatar :name="note.author_name" />
@@ -174,12 +172,12 @@ async function deleteNote(note: MeetingNote) {
         <small
           >{{ note.author_role ? roleLabels[note.author_role] : '' }} ·
           <time :datetime="note.created_at">{{ time(note.created_at) }}</time
-          ><span v-if="note.edit_revision > 1"> · düzenlendi</span></small
+          ><span v-if="note.edit_revision > 1"> · {{ text.edited }}</span></small
         >
         <form v-if="editing?.note_id === note.note_id" @submit.prevent="saveNote">
-          <textarea v-model="editDraft" aria-label="Not düzenle" /><button type="submit">
-            Kaydet</button
-          ><button type="button" @click="editing = null">Vazgeç</button>
+          <textarea v-model="editDraft" :aria-label="text.editor" /><button type="submit">
+            {{ text.save }}</button
+          ><button type="button" @click="editing = null">{{ text.cancel }}</button>
         </form>
         <p v-else>{{ note.content }}</p>
         <span v-if="converted(note)">{{ convertedLabel }}</span
@@ -188,16 +186,14 @@ async function deleteNote(note: MeetingNote) {
           type="button"
           @click="emit('convert', note)"
         >
-          Göreve dönüştür
+          {{ text.convert }}
         </button>
-        <small v-if="converted(note) && mine(note) && !access.manage"
-          >Göreve dönüştüğü için yazarı artık düzenleyemez</small
-        >
+        <small v-if="converted(note) && mine(note) && !access.manage">{{ text.locked }}</small>
         <div v-if="access.editNote(facts(note)) || access.deleteNote(facts(note))">
           <button
             :ref="(el) => setButton(note.note_id, el)"
             type="button"
-            :aria-label="`Not işlemleri: ${note.author_name}`"
+            :aria-label="`${text.actions}: ${note.author_name}`"
             :aria-expanded="openMenu === note.note_id"
             @click="openMenu === note.note_id ? closeMenu(note.note_id) : (openMenu = note.note_id)"
           >
@@ -214,14 +210,14 @@ async function deleteNote(note: MeetingNote) {
               role="menuitem"
               @click="startEdit(note)"
             >
-              Düzenle</button
+              {{ text.edit }}</button
             ><button
               v-if="access.deleteNote(facts(note))"
               type="button"
               role="menuitem"
               @click="deleteNote(note)"
             >
-              Sil
+              {{ text.delete }}
             </button>
           </div>
         </div>
@@ -233,7 +229,7 @@ async function deleteNote(note: MeetingNote) {
       :disabled="query.isFetchingNextPage.value"
       @click="query.fetchNextPage()"
     >
-      Daha fazla not göster
+      {{ text.more }}
     </button>
     <ConflictDialog
       v-model:open="conflict.open.value"

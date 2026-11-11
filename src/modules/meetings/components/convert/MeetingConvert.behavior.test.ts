@@ -69,7 +69,7 @@ function setup(admin: boolean) {
   return { wrapper, client, scope }
 }
 const input = (selector: string) =>
-  new DOMWrapper(document.querySelector<HTMLInputElement>(selector)!)
+  new DOMWrapper(document.querySelector<HTMLInputElement>(selector))
 it('limits coordinator targets to managed linked departments', async () => {
   const { wrapper, client } = setup(false)
   await wrapper.vm.$nextTick()

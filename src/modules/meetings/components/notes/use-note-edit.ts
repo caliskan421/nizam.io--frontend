@@ -1,4 +1,5 @@
 import { ref, shallowRef } from 'vue'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { reachesOwner, useActionContext } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
@@ -45,7 +46,7 @@ export function useNoteEdit(target: () => MeetingTarget, refresh: () => void) {
       base: { content: base.content },
       draft: { content },
       server: { content: server.content },
-      labels: { content: 'Not' },
+      labels: { content: trMeetings.meetings.notes.field },
     })
     if (!choices) return
     const changes = resolveDraft({ content }, { content: server.content }, choices)

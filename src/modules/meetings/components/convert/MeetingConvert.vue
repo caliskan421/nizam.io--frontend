@@ -3,6 +3,7 @@ import './convert.css'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useProgramDepartments } from '@/modules/work/public'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { authSession } from '@/shared/http'
 import { ownerLife, reachesOwner } from '@/shared/http/mutation'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -16,6 +17,7 @@ import { useConvertNoteToTask } from '../../api/note-writes'
 import { coordinatorDepartmentIds, meetingCapabilities } from '../../model/capabilities'
 import type { MeetingNote } from '../../model/types'
 
+const text = trMeetings.meetings.convert
 const props = defineProps<{ note: MeetingNote }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const scope = useScopeStore()
@@ -143,37 +145,35 @@ async function submit() {
 <template>
   <UiModal
     v-model:open="open"
-    title="Göreve dönüştür"
+    :title="text.title"
     :description="`${meeting.data.value?.title ?? ''} · ${note.author_name}`"
     @close="emit('close')"
   >
     <blockquote class="meeting-convert__quote">{{ note.content }}</blockquote>
     <form id="meeting-convert-form" class="meeting-convert__form" @submit.prevent="submit">
-      <label>Görev başlığı <input v-model="title" /></label>
-      <p>
-        {{ Array.from(title).length }} / 255 · Boş bırakırsan notun ilk 100 karakteri kullanılır.
-      </p>
+      <label>{{ text.taskTitle }} <input v-model="title" /></label>
+      <p>{{ Array.from(title).length }} / 255 · {{ text.titleHint }}</p>
       <label
-        >Hedef koordinatörlük
+        >{{ text.department }}
         <select v-model="department" required>
-          <option value="" disabled>Seçiniz</option>
+          <option value="" disabled>{{ text.select }}</option>
           <option v-for="item in options" :key="item.department_id" :value="item.department_id">
             {{ item.display_name }}
           </option>
         </select>
       </label>
-      <label>Başlangıç <input v-model="start" type="date" required /></label>
+      <label>{{ text.start }} <input v-model="start" type="date" required /></label>
       <label
-        >Bitiş <input v-model="end" type="date" required :aria-invalid="!!end && invalid"
+        >{{ text.end }} <input v-model="end" type="date" required :aria-invalid="!!end && invalid"
       /></label>
-      <p v-if="end && invalid">Tarihleri ve hedef koordinatörlüğü kontrol edin.</p>
-      <p>Görev, nottaki işaret ve denetim kaydı birlikte yazılır. Not bir kez dönüştürülebilir.</p>
+      <p v-if="end && invalid">{{ text.invalid }}</p>
+      <p>{{ text.info }}</p>
     </form>
     <template #footer
-      ><UiButton variant="ghost" @click="emit('close')">Vazgeç</UiButton
-      ><UiButton variant="primary" :disabled="invalid || convert.isPending.value" @click="submit"
-        >Görevi oluştur</UiButton
-      ></template
+      ><UiButton variant="ghost" @click="emit('close')">{{ text.cancel }}</UiButton
+      ><UiButton variant="primary" :disabled="invalid || convert.isPending.value" @click="submit">{{
+        text.submit
+      }}</UiButton></template
     >
   </UiModal>
 </template>
