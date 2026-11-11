@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import './detail/detail.css'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
@@ -16,7 +16,7 @@ import MeetingPeople from '../components/people/MeetingPeople.vue'
 import MeetingSide from '../components/side/MeetingSide.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import MeetingConvert from '../components/convert/MeetingConvert.vue'
-import { authSession } from '@/shared/http'
+import { useSessionReset } from './detail/use-session-reset'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -24,6 +24,7 @@ import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { UiIcon } from '@/shared/ui'
 
 const text = trMeetings.meetings.detail
 const route = useRoute()
@@ -44,6 +45,7 @@ usePageCrumb(() => meeting.value?.title ?? null)
 const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const formOpen = ref(false)
+const formDateFocus = ref(false)
 const selectedNote = ref<MeetingNote | null>(null)
 const menuOpen = ref(false)
 const personSelectorUnavailable = ref(false)
@@ -72,10 +74,12 @@ const meetingDateLabel = computed(() =>
 )
 
 function openForm() {
+  formDateFocus.value = false
   formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
 }
 function openFormFromMenu() {
+  formDateFocus.value = true
   menuOpen.value = false
   formOpener.value = menuButton.value
   formOpen.value = true
@@ -99,6 +103,13 @@ function closeMenu() {
   menuOpen.value = false
   void nextTick(() => menuButton.value?.focus())
 }
+function toggleMenu() {
+  if (menuOpen.value) return closeMenu()
+  menuOpen.value = true
+  void nextTick(() =>
+    menuButton.value?.nextElementSibling?.querySelector<HTMLButtonElement>('button')?.focus(),
+  )
+}
 function openConvert(note: MeetingNote) {
   noteOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   selectedNote.value = note
@@ -118,8 +129,7 @@ function closeDialogs() {
   personSelectorUnavailable.value = false
 }
 watch(() => [scope.programId, id.value], closeDialogs)
-const offSession = authSession.subscribe(closeDialogs)
-onScopeDispose(offSession)
+useSessionReset(closeDialogs)
 async function deleteMeeting() {
   closeMenu()
   const m = meeting.value
@@ -180,15 +190,17 @@ async function deleteMeeting() {
         </div>
         <div v-if="canManage">
           <button type="button" class="t-btn t-btn--secondary" @click="openForm">
-            {{ text.edit }}</button
+            <UiIcon name="edit" size="sm" /> {{ text.edit }}</button
           ><button
             ref="menuButton"
+            class="t-iconbtn"
             type="button"
             :aria-label="text.other"
             :aria-expanded="menuOpen"
-            @click="menuOpen ? closeMenu() : (menuOpen = true)"
+            @click="toggleMenu"
+            @keydown.esc.stop="closeMenu"
           >
-            ⋯
+            <UiIcon name="more" size="sm" />
           </button>
           <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
             <button type="button" role="menuitem" @click="openFormFromMenu">
@@ -198,7 +210,7 @@ async function deleteMeeting() {
         </div>
       </header>
       <div class="meeting-detail__body">
-        <div>
+        <div class="meeting-detail__content">
           <MeetingAgenda :meeting="meeting" @refresh="refresh" /><MeetingNotes
             :meeting="meeting"
             @convert="openConvert"
@@ -212,7 +224,13 @@ async function deleteMeeting() {
         </div>
         <MeetingSide :meeting="meeting" @edit="openForm" @remove="deleteMeeting" />
       </div>
-      <MeetingForm v-if="formOpen" :meeting="meeting" @close="closeForm" @saved="formSaved" />
+      <MeetingForm
+        v-if="formOpen"
+        :meeting="meeting"
+        :initial-focus="formDateFocus ? 'date' : undefined"
+        @close="closeForm"
+        @saved="formSaved"
+      />
       <MeetingConvert
         v-if="selectedNote"
         :note="selectedNote"

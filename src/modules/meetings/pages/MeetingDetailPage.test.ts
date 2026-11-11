@@ -52,7 +52,8 @@ const Notes = {
 }
 const Convert = { template: `<button @click="$emit('close')">Kapat</button>` }
 const Form = {
-  template: `<div data-test="form"><button @click="$emit('close')">Formu kapat</button></div>`,
+  props: ['initialFocus'],
+  template: `<div data-test="form" :data-focus="initialFocus"><button @click="$emit('close')">Formu kapat</button></div>`,
 }
 function setup() {
   const pinia = createPinia()
@@ -76,6 +77,16 @@ function setup() {
   return { wrapper, scope }
 }
 beforeEach(() => vi.clearAllMocks())
+it('focuses the header menu and restores its trigger on Escape', async () => {
+  const { wrapper } = setup()
+  const trigger = wrapper.get('[aria-label="Diğer işlemler: tarihi ileri al, sil"]')
+  await trigger.trigger('click')
+  const action = wrapper.get('[role="menuitem"]')
+  expect(document.activeElement).toBe(action.element)
+  await action.trigger('keydown.esc')
+  expect(document.activeElement).toBe(trigger.element)
+  wrapper.unmount()
+})
 it('closes the conversion and returns focus to its trigger', async () => {
   const { wrapper } = setup()
   const button = wrapper.findAll('button').find((b) => b.text() === 'Dönüştür')!
@@ -99,6 +110,22 @@ it('focuses the notes heading when the conversion trigger was removed', async ()
     .find((b) => b.text() === 'Kapat')!
     .trigger('click')
   expect(document.activeElement).toBe(wrapper.get('[data-testid="meeting-notes-title"]').element)
+  wrapper.unmount()
+})
+it('requests date focus only from the reschedule menu action', async () => {
+  const { wrapper } = setup()
+  await wrapper.get('[aria-label="Diğer işlemler: tarihi ileri al, sil"]').trigger('click')
+  await wrapper.get('[role="menuitem"]').trigger('click')
+  expect(wrapper.get('[data-test="form"]').attributes('data-focus')).toBe('date')
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Formu kapat')!
+    .trigger('click')
+  await wrapper
+    .findAll('button')
+    .find((b) => b.text() === 'Düzenle')!
+    .trigger('click')
+  expect(wrapper.get('[data-test="form"]').attributes('data-focus')).toBeUndefined()
   wrapper.unmount()
 })
 it('returns focus to the edit trigger after the form closes', async () => {

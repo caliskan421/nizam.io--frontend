@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import './agenda.css'
 import { checker } from './checker'
 import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../../api/detail-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
-import { authSession } from '@/shared/http'
+import { useSessionReset } from '../../pages/detail/use-session-reset'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -54,8 +54,7 @@ function clearDrafts() {
   limitReached.value = false
 }
 watch(() => [props.meeting.meeting_id, scope.programId], clearDrafts)
-const offSession = authSession.subscribe(clearDrafts)
-onScopeDispose(offSession)
+useSessionReset(clearDrafts)
 const count = computed(() => Array.from(draft.value).length)
 function closeMenu(id: string) {
   openMenu.value = null
@@ -214,13 +213,14 @@ async function deleteItem(item: AgendaItem) {
       <div v-if="canManage">
         <button
           :ref="(el) => setButton(item.agenda_item_id, el)"
+          class="t-iconbtn meeting-agenda__menu-trigger"
           type="button"
           :aria-label="`${item.title} ${text.actions}`"
           :aria-expanded="openMenu === item.agenda_item_id"
           @click="toggleMenu(item.agenda_item_id)"
           @keydown.esc.stop="closeMenu(item.agenda_item_id)"
         >
-          ⋯
+          <UiIcon name="more" size="sm" />
         </button>
         <div
           v-if="openMenu === item.agenda_item_id"

@@ -36,6 +36,9 @@
         { "name": "meeting-agenda-check-width", "value": "20px" },
         { "name": "meeting-agenda-check-size", "value": "18px" },
         { "name": "meeting-agenda-add-height", "value": "48px" },
+        { "name": "meeting-head-gap", "value": "10px" },
+        { "name": "meeting-agenda-row-pad-y", "value": "6px" },
+        { "name": "meeting-agenda-progress-radius", "value": "3px" },
         { "name": "meeting-agenda-menu-width", "value": "32px" },
         { "name": "meeting-agenda-progress-width", "value": "72px" },
         { "name": "meeting-agenda-progress-height", "value": "5px" }
