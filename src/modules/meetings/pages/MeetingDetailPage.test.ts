@@ -194,3 +194,12 @@ it('opens the department editor from the side card', async () => {
   expect(wrapper.get('[data-test="form"]').attributes('data-section')).toBe('departments')
   wrapper.unmount()
 })
+
+it('places people and side information together beside agenda and notes', () => {
+  const { wrapper } = setup()
+  const side = wrapper.get('.meeting-detail__body > .meeting-side')
+  expect(side.find('meeting-people-stub').exists()).toBe(true)
+  expect(side.find('[data-test="departments"]').exists()).toBe(true)
+  expect(wrapper.get('.meeting-detail__content').find('meeting-people-stub').exists()).toBe(false)
+  wrapper.unmount()
+})
