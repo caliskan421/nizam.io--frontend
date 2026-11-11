@@ -91,7 +91,7 @@ it('creates person meeting with one owner and returns the real meeting id', asyn
   await wrapper.get('input[type=date]').setValue('2099-12-31')
   await wrapper.get('input[type=time]').setValue('10:00')
   await wrapper.get('input[value=person]').setValue()
-  await wrapper.findAll('fieldset').at(-1)!.findAll('input').at(0)!.setValue()
+  await wrapper.findAll('fieldset').at(-1)!.findAll('.meeting-form__chip').at(0)!.trigger('click')
   await wrapper.get('form').trigger('submit')
   await settleQueries(client)
   expect(payload).toMatchObject({
@@ -239,9 +239,9 @@ it('allows a coordinator to invite another department after their own owner', as
   await wrapper.get('input[required]:not([type])').setValue('😀'.repeat(255))
   await wrapper.get('input[type=date]').setValue('2099-12-31')
   await wrapper.get('input[type=time]').setValue('10:00')
-  const fields = wrapper.findAll('fieldset').at(-1)!.findAll('input')
-  await fields[0]!.setValue(true)
-  await wrapper.findAll('fieldset').at(-1)!.findAll('input')[1]!.setValue(true)
+  const fields = wrapper.findAll('fieldset').at(-1)!.findAll('.meeting-form__chip')
+  await fields[0]!.trigger('click')
+  await wrapper.findAll('fieldset').at(-1)!.findAll('.meeting-form__chip')[1]!.trigger('click')
   await wrapper.get('form').trigger('submit')
   await settleQueries(client)
   expect(payload?.department_ids).toEqual(['d', 'other'])
@@ -305,7 +305,7 @@ it('refreshes the minimum day when midnight passes', async () => {
   await wrapper.get('input[required]:not([type])').setValue('T')
   await wrapper.get('input[type=date]').setValue('2026-12-31')
   await wrapper.get('input[type=time]').setValue('23:00')
-  await wrapper.findAll('fieldset').at(-1)!.findAll('input')[0]!.setValue(true)
+  await wrapper.findAll('fieldset').at(-1)!.findAll('.meeting-form__chip')[0]!.trigger('click')
   expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeUndefined()
   vi.advanceTimersByTime(60_000)
   await nextTick()
@@ -315,3 +315,78 @@ it('refreshes the minimum day when midnight passes', async () => {
   client.clear()
   vi.useRealTimers()
 })
+
+it.each(['create', 'patch'])(
+  'shows server field errors on the real %s form without losing draft',
+  async (operation) => {
+    const handler = operation === 'create' ? http.post : http.patch
+    server.use(
+      handler(
+        operation === 'create' ? 'http://localhost/v1/meetings' : 'http://localhost/v1/meetings/m',
+        () =>
+          HttpResponse.json(
+            {
+              code: 'collaboration.input_invalid',
+              message: 'SECRET',
+              fields: [
+                { field: 'title', code: 'collaboration.input_invalid', message: 'SECRET TITLE' },
+                {
+                  field: 'meeting_date',
+                  code: 'collaboration.input_invalid',
+                  message: 'SECRET DATE',
+                },
+              ],
+            },
+            { status: 422 },
+          ),
+      ),
+    )
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+    const meeting =
+      operation === 'patch'
+        ? ({
+            meeting_id: 'm',
+            program_id: 'p',
+            title: 'Eski',
+            meeting_date: '2099-01-01T10:00:00Z',
+            invite_mode: 'person',
+            owner_department_id: 'd',
+            departments: [{ department_id: 'd', department_name: 'Birim' }],
+            members_included: false,
+          } as MeetingDetail)
+        : null
+    const wrapper = mount(Component, {
+      props: { meeting },
+      global: {
+        plugins: [pinia, [VueQueryPlugin, { queryClient: client }]],
+        stubs: { teleport: true },
+      },
+    })
+    await wrapper.get('input[required]:not([type])').setValue('Taslak')
+    await wrapper.get('input[type=date]').setValue('2099-12-31')
+    await wrapper.get('input[type=time]').setValue('10:00')
+    if (!meeting) await wrapper.get('.meeting-form__chip').trigger('click')
+    await wrapper.get('form').trigger('submit')
+    await settleQueries(client)
+    for (const selector of [
+      'input[required]:not([type])',
+      'input[type=date]',
+      'input[type=time]',
+    ]) {
+      const input = wrapper.get(selector)
+      expect(input.attributes('aria-invalid')).toBe('true')
+      expect(wrapper.find('#' + input.attributes('aria-describedby')).text()).toContain(
+        'Girilen bilgiler geçersiz',
+      )
+    }
+    expect((wrapper.get('input[required]:not([type])').element as HTMLInputElement).value).toBe(
+      'Taslak',
+    )
+    expect(wrapper.text()).not.toContain('SECRET')
+    wrapper.unmount()
+    client.clear()
+  },
+)

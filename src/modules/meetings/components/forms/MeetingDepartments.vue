@@ -11,21 +11,28 @@ const emit = defineEmits<{ toggle: [id: string]; owner: [id: string] }>()
 <template>
   <fieldset class="meeting-form__group">
     <legend>{{ label }}</legend>
-    <label v-for="department in props.options" :key="department.department_id">
-      <input
-        :type="single ? 'radio' : 'checkbox'"
-        :checked="selected.includes(department.department_id)"
-        @change="emit('toggle', department.department_id)"
-      />
-      {{ department.display_name }}
+    <span
+      v-for="department in props.options"
+      :key="department.department_id"
+      class="meeting-form__department"
+    >
+      <button
+        type="button"
+        class="meeting-form__chip"
+        :aria-pressed="selected.includes(department.department_id)"
+        @click="emit('toggle', department.department_id)"
+      >
+        {{ department.display_name }}
+      </button>
       <button
         v-if="!single && selected.includes(department.department_id)"
         type="button"
+        class="meeting-form__owner"
         :aria-pressed="selected[0] === department.department_id"
-        @click.prevent="emit('owner', department.department_id)"
+        @click="emit('owner', department.department_id)"
       >
         {{ ownerLabel }}
       </button>
-    </label>
+    </span>
   </fieldset>
 </template>

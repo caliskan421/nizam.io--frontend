@@ -10,3 +10,12 @@ export function departmentOrder(meeting: MeetingDetail | null): string[] {
       ]
     : []
 }
+
+export function toggleDepartment(
+  mode: 'person' | 'coordinatorship',
+  selected: string[],
+  id: string,
+) {
+  if (mode === 'person') return [id]
+  return selected.includes(id) ? selected.filter((value) => value !== id) : [...selected, id]
+}
