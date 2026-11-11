@@ -8,7 +8,7 @@ import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail } from '../../model/types'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
-import { reachesOwner, useActionContext } from '@/shared/http/mutation'
+import { reachesOwner, runWithFollowUps, useActionContext } from '@/shared/http/mutation'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { UiAvatar } from '@/shared/ui'
@@ -81,37 +81,65 @@ async function select(ids: string[]) {
   let success = false
   busy.value = true
   close()
-  for (const id of ids.filter((id) => !locked.value.includes(id))) {
-    const outcome = await add.submit({ ...target, userId: id }, { context })
+  const pending = ids.filter((id) => !locked.value.includes(id))
+  let stopped = false
+  let detached = false
+  async function send(id: string, actionContext = context) {
+    const outcome = await add.submit({ ...target, userId: id }, { context: actionContext })
     if (!reachesOwner(outcome) || started !== version) {
+      detached = true
+      stopped = true
       if (success || outcome.kind === 'success')
         pushAppNotice({ message: text.partialNotice }, context.generation)
-      return
-    }
-    if (outcome.kind === 'success') success = true
+    } else if (outcome.kind === 'success') success = true
     else if (
       outcome.kind === 'failed' &&
       outcome.error.code === 'collaboration.participant_invalid'
     )
       failures.push(names.get(id) ?? id)
     else {
+      stopped = true
       uncertain.value = outcome.kind === 'unknown_outcome'
       notifyOutcome(outcome)
-      break
+    }
+    return outcome
+  }
+  async function runBatch() {
+    while (pending.length && !stopped) {
+      const first = pending.shift()!
+      const outcome = await send(first)
+      if (outcome.kind !== 'success' || stopped) continue
+      let previous = outcome as Awaited<ReturnType<typeof add.submit>>
+      await runWithFollowUps(
+        () => Promise.resolve(outcome),
+        (_data, actionContext) =>
+          pending.splice(0).map((id) => ({
+            name: id,
+            run: async () => {
+              if (!stopped) previous = await send(id, actionContext ?? context)
+              return previous
+            },
+          })),
+      )
     }
   }
+  await runBatch()
+  if (detached) return
   failed.value = failures
   busy.value = false
   if (success || uncertain.value) emit('refresh')
 }
 async function removePerson(id: string) {
   if (!scope.programId || busy.value) return
+  const started = version
+  busy.value = true
   const outcome = await remove.submit({
     programId: scope.programId,
     id: props.meeting.meeting_id,
     userId: id,
   })
-  if (!reachesOwner(outcome)) return
+  if (!reachesOwner(outcome) || started !== version) return
+  busy.value = false
   if (outcome.kind === 'success') {
     emit('refresh')
     void nextTick(() => section.value?.querySelector<HTMLElement>('h2')?.focus())

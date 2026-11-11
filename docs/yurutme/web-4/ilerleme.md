@@ -11,7 +11,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | Pin aşaması (WEB-P, `v0.15.0-api`) | **KAPANDI 2026-11-10** — Codex tur 2 KOŞULLU UYGUN (HEAD `1bd80b6`); ayrıntı aşağıda "Pin aşaması" | `1bd80b6` |
 | O1 — F4 kabul tablosu (09) | **Kabul** (2026-11-10: E-09-01…84 dolu; F4-S1…S10 ürün sahibi cevapladı → `../../ekranlar/ortak-kurallar.md` §12 P21–P30) | — |
 | O2a — Toplantılar veri katmanı (W101) | Birleşti: #89, üç CI denetimi SUCCESS | `d3e3263` |
-| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Aktif: W102–W104; W105/W106 sırada | `d3e3263` |
+| O2b — Liste, detay + gündem, notlar, katılımcılar, pencereler (W102–W106) | Aktif: W102–W104 PR kapısında; W105/W106 uygulama ve doğrulamada | `d3e3263` |
 | O3 — Entegrasyon turu (W107) | Bekliyor | — |
 | O4 — Kapanış | Bekliyor | — |
 
@@ -87,3 +87,14 @@ O2a W101 Terra medium işçisi başladı; ayrı worktree `nizam.io--frontend-wt-
 ## 2026-11-11 — O2a W101 birleşimi
 
 PR #89 `d3e3263`: üç CI denetimi COMPLETED+SUCCESS, MERGED doğrulandı. Yerel typecheck/lint/format, 437 dosyada 3083 test, build/gen:check geçti. Üretim+Caddy CSP ile iki boş iskelet rota × üç genişlik × iki tema: 12 ölçüm, taşma/CSP/pageerror 0; dar menü odak/tıklama doğrulandı. Bu yalnız O2a iskelet kabulüdür. O2b W102–W104 ayrı dallarda başladı; W105/W106 sırada. S3 özel seçici tasarımı hâlâ eksik. Nottan görev sonrası sorgu geçersizleme testli; görsel rozet/pano önce-sonra kanıtı W107 girdisidir.
+
+## 2026-11-11 — O2b ara kayıt ve S3 kararı
+
+Kullanıcı özel kişi seçicisinin açılmış çizimi yerine koordinatöre karar yetkisi verdi. Gerçek Claude Opus 5.5 ile iki tur salt okunur değerlendirme yapıldı; [S3 kararı](s3-kisi-secici-karari.md) ve ortak-kurallar P32 bağlayıcıdır. Tasarım bekleme sınırı bu türetilmiş özel modal kararıyla çözüldü; uygulama/görsel/entegrasyon kapıları ayrıca geçilecektir. BE-067 aday kapsamı açık kalır.
+
+W102 `9c77a64` PR #90: tam kapı 446 dosya/3101 test ve üretim+Caddy 6/6 görsel koşul yeşil. W103 `bb338c8` PR #91: 455 dosya/3134 test ve 6/6 koşul yeşil. W104 `5aababb` PR #92: 463 dosya/3157 test ve 6/6 koşul yeşil. Bu ara kayıt anında CI/birleşim zinciri açık; yerel kapı CI yerine geçmez. Kanıtlar `.git/koordinator/web4-w102`, `web4-w103`, `web4-w104` altında. W105/W106 özel seçici, katılımcı/yan kart ve form/silinenler işinde; W108 ayrı borç dalında başladı, W109 hazırlanmış fakat başlamadı.
+
+- TASLAK W102: `MeetingsPage.test.ts` form bileşeni; W107 gerçek oluşturma/düzenleme/silinenler entegrasyonu.
+- TASLAK W103: `MeetingDetailPage.test.ts` ve `MeetingDetailPage.delete.test.ts` içindeki MeetingNotes, MeetingPeople, MeetingSide, MeetingForm, MeetingConvert; W107 gerçek alt bileşen senaryoları.
+- W104: gerçek nottan görev → görev listesi/kenar menüsü rozeti/pano önce-sonra W107'de. Geçersizleme haritası testi bu kabulün yerine geçmez.
+- O3, O4, nihai read-only Sol kapısı, gerçek VoiceOver ve kullanıcı görsel onayı açık. F5 açılmadı.

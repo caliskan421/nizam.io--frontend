@@ -45,3 +45,14 @@ it('shows coordinator scope and truncation separately', () => {
   expect(document.body.textContent).toContain('Liste eksik olabilir')
   wrapper.unmount()
 })
+it('focuses search and emits close on Escape', async () => {
+  const wrapper = setup()
+  await wrapper.vm.$nextTick()
+  await wrapper.vm.$nextTick()
+  const search = document.querySelector<HTMLInputElement>('input[type=search]')!
+  expect(document.activeElement).toBe(search)
+  search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  await wrapper.vm.$nextTick()
+  expect(wrapper.emitted('close')).toHaveLength(1)
+  wrapper.unmount()
+})
