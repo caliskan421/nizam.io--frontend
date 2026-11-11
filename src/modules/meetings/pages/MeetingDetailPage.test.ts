@@ -52,8 +52,8 @@ const Notes = {
 }
 const Convert = { template: `<button @click="$emit('close')">Kapat</button>` }
 const Form = {
-  props: ['initialFocus'],
-  template: `<div data-test="form" :data-focus="initialFocus"><button @click="$emit('close')">Formu kapat</button></div>`,
+  props: ['initialFocus', 'editSection'],
+  template: `<div data-test="form" :data-focus="initialFocus" :data-section="editSection"><button @click="$emit('close')">Formu kapat</button></div>`,
 }
 function setup() {
   const pinia = createPinia()
@@ -68,7 +68,9 @@ function setup() {
         MeetingAgenda: true,
         MeetingNotes: Notes,
         MeetingPeople: true,
-        MeetingSide: true,
+        MeetingSide: {
+          template: `<button data-test="departments" @click="$emit('edit')">Değiştir</button>`,
+        },
         MeetingForm: Form,
         MeetingConvert: Convert,
       },
@@ -184,4 +186,11 @@ it('treats a concurrent meeting deletion as a return to the list', async () => {
 it('declares the page independently of its body', () => {
   expect(Object.keys(MeetingDetailPage.props ?? {})).toEqual([])
   expect(MeetingDetailPage.emits ?? []).toEqual([])
+})
+
+it('opens the department editor from the side card', async () => {
+  const { wrapper } = setup()
+  await wrapper.get('[data-test="departments"]').trigger('click')
+  expect(wrapper.get('[data-test="form"]').attributes('data-section')).toBe('departments')
+  wrapper.unmount()
 })

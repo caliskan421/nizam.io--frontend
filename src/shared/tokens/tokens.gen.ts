@@ -950,6 +950,24 @@ export const TOKENS = {
     "dark": "5px",
     "light": "5px"
   },
+  "meeting-person-row-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "38px",
+    "light": "38px"
+  },
+  "meeting-person-touch-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "44px",
+    "light": "44px"
+  },
+  "meeting-person-avatar-size": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "24px",
+    "light": "24px"
+  },
   "rp-done-fill": {
     "group": "color",
     "origin": "web",

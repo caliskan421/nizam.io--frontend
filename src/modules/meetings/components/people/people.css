@@ -1,0 +1,40 @@
+.meeting-person-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--meeting-person-row-height);
+}
+.meeting-person-row .t-check {
+  width: var(--meeting-agenda-check-size);
+  height: var(--meeting-agenda-check-size);
+}
+.meeting-person-row .rp-av {
+  width: var(--meeting-person-avatar-size);
+  height: var(--meeting-person-avatar-size);
+}
+.meeting-person-row small {
+  margin-left: auto;
+  color: var(--ink-muted);
+}
+@media (max-width: 900px) {
+  .meeting-person-row {
+    min-height: var(--meeting-person-touch-height);
+  }
+}
+.meeting-people {
+  padding: var(--meeting-card-padding);
+}
+.meeting-people header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+.meeting-people h2 {
+  margin: 0;
+  font: var(--meeting-card-font);
+}
+.meeting-people > p {
+  color: var(--ink-muted);
+  font: var(--m-caption);
+}
