@@ -10,7 +10,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
 import MeetingPeople from './MeetingPeople.vue'
 const server = setupServer()
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 vi.mock('@/shared/scope/standing', () => ({
