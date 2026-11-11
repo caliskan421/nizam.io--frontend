@@ -139,7 +139,7 @@ for (const path of ['escape', 'close', 'cancel'] as const) {
     const dialog = [...document.querySelectorAll('[role="dialog"]')].at(-1)!
     if (path === 'escape') await new DOMWrapper(dialog).trigger('keydown', { key: 'Escape' })
     if (path === 'close')
-      await new DOMWrapper(dialog.querySelector('[aria-label="Kapat"]')!).trigger('click')
+      await new DOMWrapper(dialog.querySelector('[aria-label="Kapat"]')).trigger('click')
     if (path === 'cancel') {
       const cancel = [...dialog.querySelectorAll('button')].find((button) =>
         button.textContent?.includes('Vazgeç'),
