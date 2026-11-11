@@ -1,7 +1,137 @@
 <script setup lang="ts">
+import './deleted.css'
+import { nextTick, ref } from 'vue'
+import { useProgramDepartments } from '@/modules/work/public'
+import { usePermanentDeleteMeeting, useRestoreMeeting } from '../../api/meeting-writes'
 import type { Meeting } from '../../model/types'
-defineProps<{ items: Meeting[]; hasMore?: boolean; loading?: boolean; error?: boolean }>()
-defineEmits<{ close: []; refresh: []; loadMore: [] }>()
+import { reachesOwner } from '@/shared/http/mutation'
+import { trMeetings } from '@/shared/i18n/tr/meetings'
+import { useInstanceStore } from '@/shared/instance/store'
+import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { UiIconButton } from '@/shared/ui'
+
+const props = defineProps<{
+  items: Meeting[]
+  hasMore?: boolean
+  loading?: boolean
+  error?: boolean
+}>()
+const emit = defineEmits<{ close: []; refresh: []; loadMore: [] }>()
+const text = trMeetings.meetings.deleted
+const restore = useRestoreMeeting()
+const purge = usePermanentDeleteMeeting()
+const { confirmWrite } = useConfirm()
+const section = ref<HTMLElement | null>(null)
+const instance = useInstanceStore()
+const departments = useProgramDepartments()
+function ownerCode(item: Meeting) {
+  return (
+    departments.byId.value.get(item.owner_department_id)?.code ||
+    item.departments.find((d) => d.department_id === item.owner_department_id)?.department_name ||
+    text.unknownDepartment
+  )
+}
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('tr-TR', {
+    timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
+const uncertain = ref<string[]>([])
+
+async function finish(
+  result: Awaited<ReturnType<typeof restore.submit>> | null | undefined,
+  id: string,
+) {
+  if (!result || !reachesOwner(result)) return
+  if (result.kind === 'unknown_outcome') uncertain.value = [...uncertain.value, id]
+  if (
+    result.kind === 'success' ||
+    (result.kind === 'failed' &&
+      ['collaboration.meeting_not_found', 'collaboration.not_deleted'].includes(result.error.code))
+  ) {
+    emit('refresh')
+    await nextTick()
+    section.value?.focus()
+  } else notifyOutcome(result)
+}
+async function restoreItem(item: Meeting) {
+  if (restore.isPending.value || purge.isPending.value || uncertain.value.includes(item.meeting_id))
+    return
+  await finish(
+    await restore.submit({ programId: item.program_id, id: item.meeting_id }),
+    item.meeting_id,
+  )
+}
+async function purgeItem(item: Meeting) {
+  if (restore.isPending.value || purge.isPending.value || uncertain.value.includes(item.meeting_id))
+    return
+  const result = await confirmWrite(
+    {
+      title: text.confirmTitle,
+      description: item.title,
+      body: [text.confirmBody],
+      confirmLabel: text.purge,
+      tone: 'danger',
+    },
+    (context) => purge.submit({ programId: item.program_id, id: item.meeting_id }, { context }),
+  )
+  await finish(result, item.meeting_id)
+}
 </script>
 
-<template><div /></template>
+<template>
+  <section ref="section" class="meeting-deleted" tabindex="-1" :aria-label="text.title">
+    <h2>{{ text.title }} {{ items.length }}</h2>
+    <p v-if="error" role="alert">
+      {{ text.error }} <button type="button" @click="emit('refresh')">{{ text.retry }}</button>
+    </p>
+    <p v-if="!props.items.length && !loading && !error">{{ text.empty }}</p>
+    <ul v-if="props.items.length" class="meeting-deleted__list">
+      <li v-for="item in props.items" :key="item.meeting_id" class="meeting-deleted__row">
+        <div class="meeting-deleted__info">
+          <h3>{{ item.title }}</h3>
+          <p>
+            {{ ownerCode(item) }}
+            · {{ formatDate(item.meeting_date)
+            }}<template v-if="item.deleted_by">
+              · {{ item.deleted_by.full_name }} {{ text.deletedBy }}</template
+            >
+          </p>
+          <p v-if="uncertain.includes(item.meeting_id)" role="status">{{ text.uncertain }}</p>
+        </div>
+        <div class="meeting-deleted__actions">
+          <button
+            class="t-btn t-btn--secondary t-btn--sm"
+            type="button"
+            :disabled="
+              restore.isPending.value ||
+              purge.isPending.value ||
+              uncertain.includes(item.meeting_id)
+            "
+            @click="restoreItem(item)"
+          >
+            {{ text.restore }}
+          </button>
+          <UiIconButton
+            icon="trash"
+            tone="danger"
+            :label="text.purge"
+            :disabled="
+              restore.isPending.value ||
+              purge.isPending.value ||
+              uncertain.includes(item.meeting_id)
+            "
+            @click="purgeItem(item)"
+          />
+        </div>
+      </li>
+    </ul>
+    <p class="meeting-deleted__note">{{ text.note }}</p>
+    <p v-if="loading" role="status">{{ text.loading }}</p>
+    <button v-if="hasMore" type="button" :disabled="loading" @click="emit('loadMore')">
+      {{ text.more }}
+    </button>
+  </section>
+</template>

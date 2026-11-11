@@ -1,0 +1,46 @@
+.meeting-deleted {
+  padding: var(--meeting-side-card-padding);
+  border: var(--ui-hairline) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.meeting-deleted h2 {
+  margin: 0;
+  font: var(--m-card-title);
+}
+.meeting-deleted__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.meeting-deleted__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-bottom: var(--ui-hairline) solid var(--border-subtle);
+}
+.meeting-deleted__info {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.meeting-deleted__row h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font: var(--text-body-strong);
+}
+.meeting-deleted__row p,
+.meeting-deleted__note {
+  margin: 0;
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
+.meeting-deleted__actions {
+  display: flex;
+  gap: var(--space-1);
+}
+.meeting-deleted__note {
+  margin-top: var(--space-2);
+}

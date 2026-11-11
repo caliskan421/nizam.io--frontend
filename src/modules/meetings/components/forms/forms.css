@@ -1,0 +1,52 @@
+.meeting-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.meeting-form > :not(.meeting-form__date, .meeting-form__time) {
+  grid-column: 1 / -1;
+}
+.meeting-form .t-input {
+  min-width: 0;
+  width: 100%;
+}
+.meeting-form__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.meeting-form__group legend {
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+}
+.meeting-form__group label,
+.meeting-form__members {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--ui-hairline) solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+}
+.meeting-form__modes label {
+  flex: 1 1 0;
+}
+.meeting-form__modes label:has(input:checked) {
+  border-color: var(--accent-text);
+  color: var(--ink);
+}
+.meeting-form__modes span,
+.meeting-form__members span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.meeting-form__modes small,
+.meeting-form__members small {
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
