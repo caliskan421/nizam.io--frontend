@@ -127,7 +127,11 @@ async function deleteMeeting() {
     (context) => remove.submit({ programId: m.program_id, id: m.meeting_id }, { context }),
   )
   if (!outcome || !reachesOwner(outcome)) return
-  if (outcome.kind === 'success') void router.push({ name: 'collaboration.meetings' })
+  if (
+    outcome.kind === 'success' ||
+    (outcome.kind === 'failed' && outcome.error.code === 'collaboration.meeting_not_found')
+  )
+    void router.push({ name: 'collaboration.meetings' })
   else notifyOutcome(outcome)
 }
 </script>
