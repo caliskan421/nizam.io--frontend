@@ -9,6 +9,7 @@ import {
   fill,
   PEOPLE,
   seedWorld,
+  siblingSays,
   switchScope,
   teardown,
   until,
@@ -183,4 +184,21 @@ it('anahtarsız toplantı oluşturma sonucu bilinmiyorsa otomatik tekrar gönder
   expect(
     (document.querySelector('#meeting-form input:not([type])') as HTMLInputElement).value,
   ).toBe('Belirsiz toplantı')
+})
+
+it('kardeş sekme çıkışı açık toplantı taslağını ve oturumu kapatır', async () => {
+  const app = await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+    siblingChannel: true,
+  })
+  await click(() => byText('.meeting-detail button', 'Düzenle'))
+  await fill('#meeting-form input:not([type])', 'Gizli taslak')
+  const { SESSION_MESSAGE_VERSION } = await import('@/shared/session/messages')
+  siblingSays({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId: PEOPLE.admin.account_id })
+  await until(() => $('[data-testid="login-form"]'), 'giriş ekranı')
+  expect(app.session.accountId).toBeNull()
+  expect($('#meeting-form')).toBeNull()
+  expect(document.body.textContent).not.toContain('Gizli taslak')
 })
