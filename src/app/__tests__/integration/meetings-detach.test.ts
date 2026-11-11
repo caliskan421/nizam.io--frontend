@@ -1,6 +1,19 @@
+import { QueryObserver } from '@tanstack/vue-query'
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from 'vitest'
-import { $, boot, click, createBackend, PEOPLE, seedWorld, teardown, until } from './harness'
+import {
+  $,
+  boot,
+  byText,
+  click,
+  createBackend,
+  fill,
+  PEOPLE,
+  seedWorld,
+  siblingSays,
+  teardown,
+  until,
+} from './harness'
 
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
 const meeting = {
@@ -82,4 +95,51 @@ it('sökülen detayın geç gündem hatası yeni ekranda bildirim üretmez', asy
   expect(document.querySelectorAll('.rp-toast')).toHaveLength(before)
   expect(document.body.textContent).not.toContain('secret')
   expect(backend.sent('POST', '/v1/meetings/m1/agenda')).toHaveLength(1)
+})
+
+it('kardeş çıkışı ve başka hesap girişinde geç toplantı okuması yeni önbelleğe yazılmaz', async () => {
+  let release!: () => void
+  let arrived!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const reached = new Promise<void>((resolve) => {
+    arrived = resolve
+  })
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', async () => {
+      arrived()
+      await gate
+      return HttpResponse.json(meeting)
+    }),
+  )
+  const app = await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+    siblingChannel: true,
+  })
+  await reached
+  const stale = app.queryClient
+    .getQueryCache()
+    .getAll()
+    .find((q) => String(q.queryKey).includes('meetings,detail,m1'))!
+  const keeper = new QueryObserver(app.queryClient, {
+    queryKey: stale.queryKey,
+    queryFn: stale.options.queryFn,
+    retry: false,
+  })
+  const unsubscribe = keeper.subscribe(() => undefined)
+  const { SESSION_MESSAGE_VERSION } = await import('@/shared/session/messages')
+  siblingSays({ v: SESSION_MESSAGE_VERSION, type: 'logout', accountId: PEOPLE.admin.account_id })
+  await until(() => $('[data-testid="login-form"]'), 'çıkış')
+  await fill('[data-testid="login-form"] [name="email"]', PEOPLE.member.email)
+  await fill('[data-testid="login-form"] [name="password"]', 'dogru-parola')
+  await click(() => byText('[data-testid="login-form"] button', 'Giriş'))
+  await until(() => app.session.accountId === PEOPLE.member.account_id, 'yeni hesap')
+  release()
+  await backend.settled()
+  unsubscribe()
+  expect(app.queryClient.getQueryData(stale.queryKey)).toBeUndefined()
+  expect(document.body.textContent).not.toContain('Entegrasyon toplantısı')
 })
