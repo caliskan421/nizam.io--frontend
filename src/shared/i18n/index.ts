@@ -6,6 +6,7 @@ import { trErrors } from './tr/errors'
 import { trMutation } from './tr/mutation'
 import { trTerms } from './tr/terms'
 import { trHome } from './tr/home'
+import { trMeetings } from './tr/meetings'
 import { trOrganization } from './tr/organization'
 import { trProgram } from './tr/program'
 import { trSide, trTopbar } from './tr/shell'
@@ -89,6 +90,7 @@ export const messages = {
     trOrganization,
     trProgram,
     trTimeline,
+    trMeetings,
   ),
 }
 

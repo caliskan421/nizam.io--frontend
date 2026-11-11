@@ -11,23 +11,24 @@ const admin = { ready: true, companyAdmin: true }
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F3 (W91 faz geçişi; Zaman çizelgesi menüde canlı)', () => {
+describe('etkin faz F4 (Toplantılar menüde canlı)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
-    expect(CURRENT_PHASE).toBe('F3')
+    expect(CURRENT_PHASE).toBe('F4')
     const groups = sideMenuGroups(menuEntries(), admin)
-    expect(groups.map((g) => g.group)).toEqual(['takip', 'yonetim'])
+    expect(groups.map((g) => g.group)).toEqual(['takip', 'icerik', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['home', 'canli'],
       ['tasks', 'canli'],
       ['gantt', 'canli'],
     ])
-    expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
+    expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([['meetings', 'canli']])
+    expect(groups[2]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['users', 'canli'],
       ['coords', 'canli'],
       ['season', 'canli'],
     ])
     const nonAdmin = sideMenuGroups(menuEntries(), { ready: true, companyAdmin: false })
-    expect(nonAdmin.map((g) => g.group)).toEqual(['takip'])
+    expect(nonAdmin.map((g) => g.group)).toEqual(['takip', 'icerik'])
   })
 
   it('/gorevler rotasında etkin öğe tasks', async () => {
