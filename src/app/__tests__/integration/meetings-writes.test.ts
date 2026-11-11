@@ -74,6 +74,8 @@ it('person toplantısı gerçek formdan oluşturulup detayına gider', async () 
     scope: { programId: 'p1', lens: 'admin' },
     path: '/toplantilar',
   })
+  await until(() => backend.sent('GET', '/v1/meetings').length > 0, 'ilk liste')
+  const listReads = backend.sent('GET', '/v1/meetings').length
   await click(() => byText('.meetings-page button', 'Yeni toplantı'))
   await fill('#meeting-form input:not([type])', 'Yeni toplantı')
   await fill('#meeting-form input[type="date"]', '2099-12-31')
@@ -91,6 +93,7 @@ it('person toplantısı gerçek formdan oluşturulup detayına gider', async () 
   })
   expect(backend.sent('POST', '/v1/meetings')[0]?.body).not.toHaveProperty('members_included')
   expect(backend.sent('GET', '/v1/meetings/m1').length).toBeGreaterThan(0)
+  expect(backend.sent('GET', '/v1/meetings').length).toBeGreaterThan(listReads)
 })
 
 it('gerçek silme onayından silinenlere gider ve toplantıyı geri yükler', async () => {
