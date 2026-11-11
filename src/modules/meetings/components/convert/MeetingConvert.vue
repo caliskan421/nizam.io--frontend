@@ -81,14 +81,21 @@ const invalid = computed(
     start.value < today.value ||
     Array.from(title.value).length > 255,
 )
+let version = 0
 const initialGeneration = authSession.generation
 const unsubscribe = authSession.subscribe(() => {
-  if (authSession.generation !== initialGeneration) emit('close')
+  if (authSession.generation !== initialGeneration) {
+    version += 1
+    emit('close')
+  }
 })
 onScopeDispose(unsubscribe)
 watch(
   () => scope.programId,
-  () => emit('close'),
+  () => {
+    version += 1
+    emit('close')
+  },
 )
 watch(
   () => standing.value,
@@ -99,8 +106,10 @@ watch(
         current.accountId !== previous.accountId ||
         JSON.stringify(current.rows) !== JSON.stringify(previous.rows) ||
         current.companyAdmin !== previous.companyAdmin)
-    )
+    ) {
+      version += 1
       emit('close')
+    }
   },
 )
 function sameOwner(generation: number, programId: string | null, accountId: string | undefined) {
@@ -111,8 +120,18 @@ function sameOwner(generation: number, programId: string | null, accountId: stri
     accountId === standing.value?.accountId
   )
 }
+function resultIsCurrent(
+  result: Parameters<typeof reachesOwner>[0],
+  started: number,
+  generation: number,
+  programId: string | null,
+  accountId: string | undefined,
+) {
+  return reachesOwner(result) && started === version && sameOwner(generation, programId, accountId)
+}
 async function submit() {
   if (invalid.value || convert.isPending.value) return
+  const started = version
   const generation = authSession.generation
   const programId = scope.programId
   const accountId = standing.value?.accountId
@@ -127,7 +146,7 @@ async function submit() {
       end_date: end.value,
     },
   })
-  if (!reachesOwner(result)) return
+  if (!resultIsCurrent(result, started, generation, programId, accountId)) return
   if (result.kind === 'success') {
     emit('saved')
     return
@@ -137,7 +156,7 @@ async function submit() {
     await client.invalidateQueries({
       queryKey: queryKeys.meetings.noteList(scope.snapshot, props.note.meeting_id),
     })
-    if (sameOwner(generation, programId, accountId)) emit('close')
+    if (started === version && sameOwner(generation, programId, accountId)) emit('close')
   }
 }
 </script>

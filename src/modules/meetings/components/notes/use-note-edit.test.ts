@@ -46,6 +46,7 @@ it('resolves a 409 against the new revision and sends the selected draft', async
       setup() {
         edit = useNoteEdit(
           () => ({ programId: 'p', id: 'm' }),
+          () => 0,
           () => {
             refreshed += 1
           },

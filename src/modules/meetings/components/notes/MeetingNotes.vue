@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import './notes.css'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { designStub } from '@/shared/design-stub'
 import { UiAvatar } from '@/shared/ui'
 import { useInstanceStore } from '@/shared/instance/store'
+import { authSession } from '@/shared/http'
 import { reachesOwner } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -79,17 +80,24 @@ const facts = (n: MeetingNote) => ({
   converted: converted(n),
 })
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
-const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(target, () =>
-  emit('refresh'),
+let version = 0
+const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
+  target,
+  () => version,
+  () => emit('refresh'),
 )
-watch(
-  () => [props.meeting.meeting_id, scope.programId, standing.value?.accountId],
-  () => {
-    draft.value = ''
-    editing.value = null
-    openMenu.value = null
-  },
-)
+function resetDraft() {
+  version += 1
+  draft.value = ''
+  editing.value = null
+  openMenu.value = null
+}
+watch(() => [props.meeting.meeting_id, scope.programId, JSON.stringify(standing.value)], resetDraft)
+const initialGeneration = authSession.generation
+const offSession = authSession.subscribe(() => {
+  if (authSession.generation !== initialGeneration) resetDraft()
+})
+onScopeDispose(offSession)
 function closeMenu(id: string) {
   openMenu.value = null
   void nextTick(() => buttons.get(id)?.focus())
@@ -111,8 +119,9 @@ async function addNote() {
     add.isPending.value
   )
     return
+  const started = version
   const result = await add.submit({ ...target(), body: { content: draft.value } })
-  if (!reachesOwner(result)) return
+  if (!reachesOwner(result) || started !== version) return
   if (result.kind === 'success') {
     draft.value = ''
     emit('refresh')
@@ -121,6 +130,7 @@ async function addNote() {
 async function deleteNote(note: MeetingNote) {
   closeMenu(note.note_id)
   if (!scope.programId) return
+  const started = version
   const result = await confirmWrite(
     {
       title: text.deleteTitle,
@@ -130,7 +140,7 @@ async function deleteNote(note: MeetingNote) {
     },
     (context) => remove.submit({ ...target(), noteId: note.note_id }, { context }),
   )
-  if (!result || !reachesOwner(result)) return
+  if (!result || !reachesOwner(result) || started !== version) return
   if (result.kind === 'success') emit('refresh')
   else notifyOutcome(result)
 }
@@ -138,8 +148,8 @@ async function deleteNote(note: MeetingNote) {
 
 <template>
   <section class="t-card meeting-notes" :aria-label="text.title">
-    <h2>
-      {{ text.title }} <span>{{ count(notes.length) }}</span>
+    <h2 tabindex="-1" data-testid="meeting-notes-title">
+      {{ text.title }} {{ count(notes.length) }}
     </h2>
     <div role="group" :aria-label="text.filter">
       <button type="button" :aria-pressed="filter === 'all'" @click="setFilter('all')">
@@ -150,7 +160,6 @@ async function deleteNote(note: MeetingNote) {
         {{ text.mine }} {{ count(notes.filter(mine).length) }}
       </button>
     </div>
-    <p v-if="query.hasNextPage.value">{{ text.partial }}</p>
     <form v-if="access.visible" class="meeting-notes__composer" @submit.prevent="addNote">
       <textarea v-model="draft" :aria-label="text.composer" :placeholder="text.placeholder" />
       <p>{{ text.hint }} · {{ Array.from(draft).length }} / 5000</p>
