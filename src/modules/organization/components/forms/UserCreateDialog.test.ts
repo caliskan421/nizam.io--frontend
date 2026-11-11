@@ -216,6 +216,41 @@ describe('UserCreateDialog (E-05-05 "Kullanıcı oluştur"; P14)', () => {
       expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
     })
 
+    it('yalnız mercek değişince teklif düşer', async () => {
+      const { h } = await offered()
+      h.store.commit({ programId: 'p1', lens: 'coordinator', departmentId: null })
+      await nextTick()
+      expect($('[data-testid="of-transfer"]')).toBeNull()
+      expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
+    })
+
+    it('istek beklerken mercek değişirse geç teklif gösterilmez', async () => {
+      let release!: () => void
+      const pending = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      server.use(
+        http.post(USERS, async () => {
+          await pending
+          return errorEnvelope('identity.account_exists', 409, [
+            { field: 'account_id', code: 'organization.transfer_available', message: 'acc-old' },
+          ])
+        }),
+      )
+      const { h } = await openDialog()
+      await fill()
+      click('[data-testid="of-submit"]')
+      await vi.waitFor(() => expect(sent('POST', '/v1/admin/users')).toHaveLength(1))
+      h.store.commit({ programId: 'p1', lens: 'coordinator', departmentId: null })
+      release()
+      await h.flush()
+      await vi.waitFor(() =>
+        expect(($('[data-testid="of-submit"]') as HTMLButtonElement).disabled).toBe(false),
+      )
+      expect($('[data-testid="of-transfer"]')).toBeNull()
+      expect(sent('POST', '/v1/admin/users')).toHaveLength(1)
+    })
+
     it('değişmeyen teklif: aktarım ilk gövdeyi aynen taşır', async () => {
       await offered()
       ;($('[data-testid="of-transfer-action"]') as HTMLButtonElement).click()
