@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useSessionReset } from '../../pages/detail/use-session-reset'
+import { pushAppNotice } from '@/shared/ui/use-toast'
 import { useMeetingCandidates } from '../../api/queries'
 import { useAddMeetingParticipant, useRemoveMeetingParticipant } from '../../api/detail-writes'
 import { meetingCapabilities } from '../../model/capabilities'
@@ -24,6 +26,7 @@ const section = ref<HTMLElement | null>(null)
 const failed = ref<string[]>([])
 const uncertain = ref(false)
 const busy = ref(false)
+let version = 0
 const add = useAddMeetingParticipant()
 const remove = useRemoveMeetingParticipant()
 const capture = useActionContext()
@@ -56,18 +59,22 @@ function close() {
   opened.value = false
   void nextTick(() => trigger.value?.focus())
 }
-watch(
-  () => [scope.programId, props.meeting.meeting_id],
-  () => {
-    opened.value = false
-    failed.value = []
-    uncertain.value = false
-  },
-)
+function reset() {
+  version += 1
+  opened.value = false
+  failed.value = []
+  uncertain.value = false
+  busy.value = false
+}
+watch(() => [scope.programId, scope.departmentId, scope.lens, props.meeting.meeting_id], reset, {
+  flush: 'sync',
+})
+useSessionReset(reset)
 async function select(ids: string[]) {
   const programId = scope.programId
   if (!programId || busy.value || !ids.length) return
   const context = capture()
+  const started = version
   const target = { programId, id: props.meeting.meeting_id }
   const names = new Map(candidates.value.people.map((p) => [p.accountId, p.fullName]))
   const failures: string[] = []
@@ -76,12 +83,17 @@ async function select(ids: string[]) {
   close()
   for (const id of ids.filter((id) => !locked.value.includes(id))) {
     const outcome = await add.submit({ ...target, userId: id }, { context })
-    if (!reachesOwner(outcome)) {
-      busy.value = false
+    if (!reachesOwner(outcome) || started !== version) {
+      if (success || outcome.kind === 'success')
+        pushAppNotice({ message: text.partialNotice }, context.generation)
       return
     }
     if (outcome.kind === 'success') success = true
-    else if (outcome.kind === 'failed') failures.push(names.get(id) ?? id)
+    else if (
+      outcome.kind === 'failed' &&
+      outcome.error.code === 'collaboration.participant_invalid'
+    )
+      failures.push(names.get(id) ?? id)
     else {
       uncertain.value = outcome.kind === 'unknown_outcome'
       notifyOutcome(outcome)

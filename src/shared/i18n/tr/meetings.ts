@@ -120,6 +120,7 @@ export const trMeetings = {
     people: {
       title: 'Katılımcılar',
       hint: 'Katılımcıları bağlı koordinatörlüklerin koordinatörleri yönetir. Yalnız sezona üye hesaplar eklenebilir.',
+      partialNotice: 'Bazı katılımcılar eklendi; diğerlerinin sonucunu toplantıdan kontrol edin.',
       remove: 'Katılımcıyı çıkar',
       failed: 'kişi eklenemedi',
       reason: 'Sezona üye değil ya da hesap silinmiş.',
