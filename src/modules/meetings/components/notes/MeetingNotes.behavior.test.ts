@@ -142,3 +142,32 @@ for (const [admin, role, authorRole] of [
     note.author_role = 'member'
   })
 }
+it('keeps an uncertain draft and blocks a new key until the user clears it', async () => {
+  const keys: string[] = []
+  server.use(
+    http.post('http://localhost/v1/meetings/m/notes', ({ request }) => {
+      keys.push(request.headers.get('Idempotency-Key') ?? '')
+      return HttpResponse.error()
+    }),
+  )
+  const { wrapper, client } = setup(false, 'member')
+  await wrapper.get('textarea[aria-label="Not yaz"]').setValue('Belirsiz not')
+  await wrapper.get('form').trigger('submit')
+  await settleQueries(client)
+  expect(keys).toHaveLength(2)
+  expect(keys[0]).toBe(keys[1])
+  expect((wrapper.get('textarea[aria-label="Not yaz"]').element as HTMLTextAreaElement).value).toBe(
+    'Belirsiz not',
+  )
+  expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
+  expect(wrapper.text()).toContain('doğrulanamadı')
+  await wrapper
+    .findAll('button')
+    .find((button) => button.text() === 'Taslağı temizle')!
+    .trigger('click')
+  expect((wrapper.get('textarea[aria-label="Not yaz"]').element as HTMLTextAreaElement).value).toBe(
+    '',
+  )
+  wrapper.unmount()
+  client.clear()
+})

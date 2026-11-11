@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import './notes.css'
 import { computed, onScopeDispose, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { designStub } from '@/shared/design-stub'
 import { UiAvatar } from '@/shared/ui'
@@ -19,13 +18,12 @@ import type { MeetingDetail, MeetingNote } from '../../model/types'
 import NoteFilters from './NoteFilters.vue'
 import NoteComposer from './NoteComposer.vue'
 import { noteCount, noteTime, noteFacts, noteFocus } from './notes-view'
+import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
 
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
 const scope = useScopeStore()
-const route = useRoute()
-const router = useRouter()
 const instance = useInstanceStore()
 const { standing } = useStanding()
 const query = useMeetingNotes(() => props.meeting.meeting_id)
@@ -33,17 +31,8 @@ const add = useAddMeetingNote()
 const remove = useDeleteMeetingNote()
 const { confirmWrite } = useConfirm()
 const draft = ref('')
-const filter = computed(() =>
-  route.query.notlar === 'gorev' ? 'converted' : route.query.notlar === 'benim' ? 'mine' : 'all',
-)
-function setFilter(value: 'all' | 'converted' | 'mine') {
-  void router.replace({
-    query: {
-      ...route.query,
-      notlar: value === 'converted' ? 'gorev' : value === 'mine' ? 'benim' : 'tumu',
-    },
-  })
-}
+const unknownDraft = ref<string | null>(null)
+const { filter, setFilter } = useNoteFilter()
 const count = (value: number) => noteCount(value, query.hasNextPage.value)
 const time = (value: string) => noteTime(value, instance.profile?.timezone)
 const openMenu = ref<string | null>(null)
@@ -86,6 +75,7 @@ const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
 function resetDraft() {
   version += 1
   draft.value = ''
+  unknownDraft.value = null
   editing.value = null
   openMenu.value = null
 }
@@ -108,21 +98,31 @@ function startEdit(note: MeetingNote) {
   editDraft.value = note.content
   closeMenu(note.note_id)
 }
+function clearDraft() {
+  draft.value = ''
+  unknownDraft.value = null
+}
 async function addNote() {
   if (
     !scope.programId ||
     !draft.value.trim() ||
     Array.from(draft.value).length > 5000 ||
-    add.isPending.value
+    add.isPending.value ||
+    draft.value === unknownDraft.value
   )
     return
   const started = version
-  const result = await add.submit({ ...target(), body: { content: draft.value } })
+  const content = draft.value
+  const result = await add.submit({ ...target(), body: { content } })
   if (!reachesOwner(result) || started !== version) return
   if (result.kind === 'success') {
+    unknownDraft.value = null
     draft.value = ''
     emit('refresh')
-  } else notifyOutcome(result)
+  } else {
+    if (result.kind === 'unknown_outcome') unknownDraft.value = content
+    notifyOutcome(result)
+  }
 }
 async function deleteNote(note: MeetingNote) {
   closeMenu(note.note_id)
@@ -159,6 +159,8 @@ async function deleteNote(note: MeetingNote) {
       v-if="access.visible"
       v-model="draft"
       :busy="add.isPending.value"
+      :uncertain="draft === unknownDraft"
+      @clear="clearDraft"
       @submit="addNote"
     />
     <p v-if="query.isPending.value">{{ text.loading }}</p>

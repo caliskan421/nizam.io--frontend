@@ -16,6 +16,9 @@ export const trMeetings = {
       placeholder: 'Toplantı notu yaz… Katılan herkes not ekleyebilir.',
       hint: 'Notu daha sonra göreve dönüştürebilirsin',
       add: 'Not ekle',
+      uncertain:
+        'Notun kaydedilip kaydedilmediği doğrulanamadı. Yenilenen listeyi kontrol edin; yeni bir işlem için taslağı değiştirin veya temizleyin.',
+      clear: 'Taslağı temizle',
       loading: 'Notlar yükleniyor…',
       error: 'Notlar yüklenemedi.',
       retry: 'Yeniden dene',
