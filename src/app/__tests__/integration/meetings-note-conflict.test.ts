@@ -96,5 +96,74 @@ it('gerçek not düzenleme çakışmasında taslak ve sunucu sürümü gösteril
   await until(() => $('[role=\"dialog\"]'), 'çakışma penceresi')
   expect(document.body.textContent).toContain('Benim taslağım')
   expect(document.body.textContent).not.toContain('secret')
+  await click(
+    () =>
+      [...document.querySelectorAll<HTMLElement>('[role=\"dialog\"] button')].find(
+        (b) => b.textContent?.trim() === 'Güncel değer',
+      ) ?? null,
+  )
+  await click('[data-testid=\"conflict-submit\"]')
+  await until(() => !$('[role=\"dialog\"]'), 'uzlaştırma tamamlandı')
+  await until(
+    () => $('.meeting-notes__item')?.textContent?.includes('Sunucu sürümü'),
+    'sunucu sürümü görünür',
+  )
   expect(backend.sent('PATCH', '/v1/meeting-notes/n1')).toHaveLength(1)
+})
+
+it('başkası dönüştürmüş notun 409 sonucunda gerçek pencere kapanır ve not yenilenir', async () => {
+  const note = {
+    note_id: 'n1',
+    meeting_id: 'm1',
+    author_account_id: PEOPLE.admin.account_id,
+    author_name: PEOPLE.admin.full_name,
+    author_role: 'admin',
+    content: 'Dönüşecek not',
+    converted_to_work_item_id: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    edit_revision: 1,
+  }
+  let converted = false
+  const notes = () => ({
+    items: [{ ...note, converted_to_work_item_id: converted ? 'w-new' : null }],
+    next_cursor: '',
+  })
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({ ...meeting, notes: notes() }),
+    ),
+    http.get('http://localhost/v1/meetings/m1/notes', () => HttpResponse.json(notes())),
+    http.post('http://localhost/v1/meeting-notes/n1/convert-to-task', () => {
+      converted = true
+      return HttpResponse.json(
+        { code: 'collaboration.note_converted', message: 'secret', fields: [] },
+        { status: 409 },
+      )
+    }),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await click(
+    () =>
+      [...document.querySelectorAll<HTMLElement>('.meeting-notes button')].find(
+        (b) => b.textContent?.trim() === 'Göreve dönüştür',
+      ) ?? null,
+  )
+  await fill('#meeting-convert-form select', 'd1')
+  await fill('#meeting-convert-form input[type="date"]:nth-of-type(1)', '2099-12-30')
+  const dates = document.querySelectorAll<HTMLInputElement>(
+    '#meeting-convert-form input[type="date"]',
+  )
+  dates[1]!.value = '2099-12-31'
+  dates[1]!.dispatchEvent(new Event('input', { bubbles: true }))
+  const form = await until(() => $('#meeting-convert-form'))
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  await until(() => $('.meeting-notes__converted'), 'not yenilendi')
+  await until(() => !$('#meeting-convert-form'), 'pencere kapandı')
+  expect(backend.sent('POST', '/v1/meeting-notes/n1/convert-to-task')).toHaveLength(1)
+  expect(document.body.textContent).not.toContain('secret')
 })
