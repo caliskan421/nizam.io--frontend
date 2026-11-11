@@ -3,8 +3,8 @@ import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { reachesOwner, useActionContext, type MutationOutcome } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
-import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
-import { useDeleteMeetingNote, useUpdateMeetingNote } from '../../api/note-writes'
+import { notifyOutcome } from '@/shared/ui/confirm'
+import { useUpdateMeetingNote } from '../../api/note-writes'
 import type { MeetingNote, MeetingTarget } from '../../model/types'
 
 function validEdit(programId: string | null, content: string) {
@@ -23,7 +23,6 @@ function finish(
   result: MutationOutcome<unknown, unknown, unknown>,
   editing: Ref<MeetingNote | null>,
   refresh: () => void,
-  focusHeading: () => void = () => {},
 ) {
   if (result.kind === 'success') {
     refresh()
@@ -35,12 +34,9 @@ export function useNoteEdit(
   target: () => MeetingTarget,
   version: () => number,
   refresh: () => void,
-  focusHeading: () => void = () => {},
 ) {
   const scope = useScopeStore()
   const update = useUpdateMeetingNote()
-  const remove = useDeleteMeetingNote()
-  const { confirmWrite } = useConfirm()
   const captureContext = useActionContext()
   const conflict = useConflictResolver()
   const editing = shallowRef<MeetingNote | null>(null)
@@ -91,23 +87,5 @@ export function useNoteEdit(
     if (!isCurrent(next, started, version)) return
     finish(next, editing, refresh)
   }
-  async function removeNote(note: MeetingNote) {
-    if (!scope.programId) return
-    const started = version()
-    const result = await confirmWrite(
-      {
-        title: trMeetings.meetings.notes.deleteTitle,
-        body: [trMeetings.meetings.notes.deleteBody],
-        confirmLabel: trMeetings.meetings.notes.delete,
-        tone: 'danger',
-      },
-      (context) => remove.submit({ ...target(), noteId: note.note_id }, { context }),
-    )
-    if (!result || !isCurrent(result, started, version)) return
-    if (result.kind === 'success') {
-      refresh()
-      focusHeading()
-    } else notifyOutcome(result)
-  }
-  return { update, conflict, editing, editDraft, saveNote, removeNote }
+  return { update, conflict, editing, editDraft, saveNote }
 }

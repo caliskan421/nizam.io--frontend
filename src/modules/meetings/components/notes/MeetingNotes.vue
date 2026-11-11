@@ -20,6 +20,7 @@ import NoteComposer from './NoteComposer.vue'
 import { noteCount, noteTime, noteFacts, noteFocus, selectNotes } from './notes-view'
 import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
+import { useNoteDelete } from './use-note-delete'
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
 const scope = useScopeStore()
@@ -56,7 +57,7 @@ const access = computed(() =>
 )
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
-const { update, conflict, editing, editDraft, saveNote, removeNote } = useNoteEdit(
+const { update, conflict, editing, editDraft, saveNote } = useNoteEdit(
   target,
   () => version,
   () => {
@@ -64,6 +65,14 @@ const { update, conflict, editing, editDraft, saveNote, removeNote } = useNoteEd
     void query.refetch()
     emit('refresh')
     if (id) focus(id)
+  },
+)
+const removeNote = useNoteDelete(
+  target,
+  () => version,
+  () => {
+    void query.refetch()
+    emit('refresh')
   },
   heading,
 )
