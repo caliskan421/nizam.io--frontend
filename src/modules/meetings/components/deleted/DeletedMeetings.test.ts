@@ -49,6 +49,7 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
     meeting_id: 'm',
     program_id: 'p',
     title: 'Toplantı',
+    departments: [],
     meeting_date: '2026-11-11T10:00:00Z',
   } as Meeting
   const wrapper = mount(Component, {
@@ -71,7 +72,7 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
   expect(wrapper.emitted('refresh')).toHaveLength(1)
   await wrapper
     .findAll('button')
-    .find((button) => button.text() === 'Kalıcı olarak sil')!
+    .find((button) => button.attributes('aria-label') === 'Kalıcı olarak sil')!
     .trigger('click')
   expect(calls).toEqual(['restore'])
   const confirm = useConfirm()

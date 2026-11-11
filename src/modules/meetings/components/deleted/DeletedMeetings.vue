@@ -7,6 +7,7 @@ import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { UiIconButton } from '@/shared/ui'
 
 const props = defineProps<{
   items: Meeting[]
@@ -79,30 +80,46 @@ async function purgeItem(item: Meeting) {
     <p v-if="!props.items.length && !loading && !error">{{ text.empty }}</p>
     <ul v-if="props.items.length" class="meeting-deleted__list">
       <li v-for="item in props.items" :key="item.meeting_id" class="meeting-deleted__row">
-        <h3>{{ item.title }}</h3>
-        <p>{{ formatDate(item.meeting_date) }}</p>
-        <p v-if="uncertain.includes(item.meeting_id)" role="status">{{ text.uncertain }}</p>
-        <p v-if="item.deleted_by">{{ text.deletedBy }}: {{ item.deleted_by.full_name }}</p>
-        <button
-          class="t-btn t-btn--secondary t-btn--sm"
-          type="button"
-          :disabled="
-            restore.isPending.value || purge.isPending.value || uncertain.includes(item.meeting_id)
-          "
-          @click="restoreItem(item)"
-        >
-          {{ text.restore }}
-        </button>
-        <button
-          class="t-btn t-btn--secondary t-btn--sm"
-          type="button"
-          :disabled="
-            restore.isPending.value || purge.isPending.value || uncertain.includes(item.meeting_id)
-          "
-          @click="purgeItem(item)"
-        >
-          {{ text.purge }}
-        </button>
+        <div class="meeting-deleted__info">
+          <h3>{{ item.title }}</h3>
+          <p>
+            {{
+              item.departments.find(
+                (department) => department.department_id === item.owner_department_id,
+              )?.department_name
+            }}
+            · {{ formatDate(item.meeting_date)
+            }}<template v-if="item.deleted_by">
+              · {{ item.deleted_by.full_name }} {{ text.deletedBy }}</template
+            >
+          </p>
+          <p v-if="uncertain.includes(item.meeting_id)" role="status">{{ text.uncertain }}</p>
+        </div>
+        <div class="meeting-deleted__actions">
+          <button
+            class="t-btn t-btn--secondary t-btn--sm"
+            type="button"
+            :disabled="
+              restore.isPending.value ||
+              purge.isPending.value ||
+              uncertain.includes(item.meeting_id)
+            "
+            @click="restoreItem(item)"
+          >
+            {{ text.restore }}
+          </button>
+          <UiIconButton
+            icon="trash"
+            tone="danger"
+            :label="text.purge"
+            :disabled="
+              restore.isPending.value ||
+              purge.isPending.value ||
+              uncertain.includes(item.meeting_id)
+            "
+            @click="purgeItem(item)"
+          />
+        </div>
       </li>
     </ul>
     <p class="meeting-deleted__note">{{ text.note }}</p>

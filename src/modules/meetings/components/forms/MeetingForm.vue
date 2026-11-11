@@ -19,6 +19,7 @@ import { useNow } from '../../pages/meetings/use-now'
 import MeetingPersonSelector from '../people/MeetingPersonSelector.vue'
 import { meetingDateParts, meetingTimestamp, meetingWarning } from './meeting-time'
 import MeetingDepartments from './MeetingDepartments.vue'
+import MeetingInviteMode from './MeetingInviteMode.vue'
 import { departmentOrder } from './department-order'
 import { meetingChanges } from './form-diff'
 
@@ -175,11 +176,11 @@ async function submit() {
     <form id="meeting-form" class="meeting-form" @submit.prevent="submit">
       <p v-if="uncertain" role="alert">{{ text.uncertain }}</p>
       <template v-if="!departmentEdit">
-        <label class="rp-field"
+        <label class="rp-field meeting-form__title"
           >{{ text.title }} <span class="rp-count">{{ Array.from(title).length }} / 255</span
           ><input v-model="title" class="t-input" required
         /></label>
-        <label class="rp-field"
+        <label class="rp-field meeting-form__date"
           >{{ text.date
           }}<input
             ref="dateInput"
@@ -190,26 +191,11 @@ async function submit() {
             required
           /><span class="t-hint">{{ text.dateHint }}</span></label
         >
-        <label class="rp-field"
+        <label class="rp-field meeting-form__time"
           >{{ text.time }}<input v-model="time" class="t-input" type="time" required
         /></label>
-        <template v-if="!meeting">
-          <fieldset class="meeting-form__group">
-            <legend>{{ text.mode }}</legend>
-            <label
-              ><input v-model="mode" type="radio" value="coordinatorship" />{{
-                text.coordinatorship
-              }}</label
-            ><label><input v-model="mode" type="radio" value="person" />{{ text.person }}</label>
-          </fieldset>
-          <button type="button" class="t-btn t-btn--secondary" @click="selectorOpen = true">
-            {{ text.people }} ({{ participantIds.length }})
-          </button>
-        </template>
-        <label v-if="mode === 'coordinatorship'"
-          ><input v-model="members" type="checkbox" />{{ text.members }}</label
-        >
       </template>
+      <MeetingInviteMode v-if="!meeting" v-model="mode" />
       <MeetingDepartments
         v-if="!meeting || (departmentEdit && canEditDepartments)"
         :options="options"
@@ -220,6 +206,20 @@ async function submit() {
         @toggle="selectDepartment"
         @owner="departmentIds = [$event, ...departmentIds.filter((id) => id !== $event)]"
       />
+      <button
+        v-if="!meeting"
+        type="button"
+        class="t-btn t-btn--secondary meeting-form__people"
+        @click="selectorOpen = true"
+      >
+        {{ text.people }} ({{ participantIds.length }})
+      </button>
+      <label v-if="!departmentEdit && mode === 'coordinatorship'" class="meeting-form__members"
+        ><input v-model="members" class="t-check" type="checkbox" /><span
+          ><strong>{{ text.members }}</strong
+          ><small>{{ text.membersHint }}</small></span
+        ></label
+      >
     </form>
     <template #footer
       ><button class="t-btn t-btn--ghost" type="button" :disabled="busy" @click="emit('close')">
@@ -230,7 +230,7 @@ async function submit() {
         form="meeting-form"
         :disabled="invalid || busy"
       >
-        {{ text.save }}
+        {{ meeting ? text.save : text.createAction }}
       </button></template
     >
   </UiModal>
