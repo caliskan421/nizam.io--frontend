@@ -1,4 +1,4 @@
-import { nextTick, ref } from 'vue'
+import { effectScope, nextTick, ref } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useSelectionReveal } from './use-panel-reveal'
@@ -26,18 +26,20 @@ function setup(position: 'absolute' | 'static', panelRect: DOMRect, barRect: DOM
   panel.scrollIntoView = scrollIntoView
   gantt.scrollBy = ganttScrollBy
   const selected = ref<string | null>(null)
-  const reveal = useSelectionReveal(ref(board), () => selected.value)
+  const scope = effectScope()
+  const reveal = scope.run(() => useSelectionReveal(ref(board), () => selected.value))!
   const select = async (id: string, arm: boolean) => {
     if (arm) reveal.arm()
     selected.value = id
     await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 250))
+    await vi.advanceTimersByTimeAsync(250)
   }
-  return { board, panel, scrollIntoView, ganttScrollBy, select }
+  return { board, panel, scrollIntoView, ganttScrollBy, select, selected, scope }
 }
 
 let scrollBy: ReturnType<typeof vi.fn>
 beforeEach(() => {
+  vi.useFakeTimers()
   scrollBy = vi.fn()
   window.scrollBy = scrollBy as unknown as typeof window.scrollBy
   const page = document.documentElement
@@ -47,6 +49,7 @@ beforeEach(() => {
 })
 afterEach(() => {
   document.body.innerHTML = ''
+  vi.useRealTimers()
 })
 
 describe('seçimde panel görünür alana getirilir (K-1, K-3)', () => {
@@ -88,21 +91,45 @@ describe('CX-P-Ö-05: kaydırma sonrası tutamaç panelin altına girmez', () =>
     // Kullanıcı Gantt'ı kaydırdı: bitiş tutamacı artık panelin altında.
     t.board.querySelector('.gantt-bar')!.getBoundingClientRect = () => rect(900, 700, 1200, 724)
     t.board.querySelector('.gantt__scroller')!.dispatchEvent(new Event('scroll'))
-    await new Promise((resolve) => setTimeout(resolve, 260))
+    await vi.advanceTimersByTimeAsync(260)
     // Çubuk panelin üstünde kaldığından en küçük hareket sayfa kaydırmasıdır.
     expect(scrollBy).toHaveBeenCalled()
     expect(t.ganttScrollBy).not.toHaveBeenCalled()
   })
 
-  it('seçim kalkınca dinleyiciler bırakılır (kaydırma artık ölçmez)', async () => {
-    const t = setup('absolute', rect(1059, 585, 1399, 884), rect(100, 300, 400, 324))
-    await t.select('w1', false)
-    const ref2 = t.board.querySelector('.gantt__scroller')!
-    t.board.querySelector('.gantt-bar')!.getBoundingClientRect = () => rect(900, 700, 1200, 724)
-    ;(t as unknown as { board: HTMLElement }).board.remove()
-    ref2.dispatchEvent(new Event('scroll'))
-    await new Promise((resolve) => setTimeout(resolve, 260))
+  it.each(['selection', 'scope'] as const)(
+    '%s temizliği bağlı DOM üzerinde ölçümü ve iki eksenli kaydırmayı durdurur',
+    async (kind) => {
+      const t = setup('absolute', rect(1059, 585, 1399, 884), rect(100, 300, 400, 324))
+      await t.select('w1', false)
+      const measure = vi.spyOn(t.panel, 'getBoundingClientRect')
+      if (kind === 'selection') {
+        t.selected.value = null
+        await nextTick()
+      } else t.scope.stop()
+      measure.mockClear()
+      t.board.querySelector('.gantt__scroller')!.dispatchEvent(new Event('scroll'))
+      window.dispatchEvent(new Event('scroll'))
+      await vi.advanceTimersByTimeAsync(260)
+      expect(measure).not.toHaveBeenCalled()
+      expect(scrollBy).not.toHaveBeenCalled()
+      expect(t.ganttScrollBy).not.toHaveBeenCalled()
+    },
+  )
+
+  it('bekleyen içerik yerleşirken seçim değişirse eski seçim ölçülmez', async () => {
+    const t = setup('absolute', rect(1059, 585, 1399, 884), rect(900, 700, 1200, 724))
+    t.panel.setAttribute('aria-busy', 'true')
+    t.selected.value = 'w1'
+    await nextTick()
+    await nextTick()
+    t.selected.value = null
+    await nextTick()
+    t.panel.removeAttribute('aria-busy')
+    await vi.advanceTimersByTimeAsync(250)
+    expect(scrollBy).not.toHaveBeenCalled()
     expect(t.ganttScrollBy).not.toHaveBeenCalled()
+    t.scope.stop()
   })
 
   it('derin bağlantıda yüzen panel çubuğu örtüyorsa çubuk dışarı alınır (odak çalınmaz)', async () => {
