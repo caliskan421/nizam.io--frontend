@@ -1,7 +1,25 @@
 /** F4 tek metin ağacı; alt dallar ilgili O2b işçilerine aittir. */
 export const trMeetings = {
   meetings: {
-    list: {},
+    list: {
+      title: 'Toplantılar',
+      create: 'Yeni toplantı',
+      upcoming: 'Yaklaşan',
+      past: 'Geçmiş',
+      deleted: 'Silinenler',
+      time: 'Toplantı zamanı',
+      department: 'Koordinatörlük',
+      all: 'Tümü',
+      from: 'Başlangıç',
+      to: 'Bitiş',
+      codeHint: 'Koyu kod sahip koordinatörlüğü gösterir',
+      invalid: 'Başlangıç tarihi bitiş tarihinden sonra olamaz veya tarih geçersiz.',
+      loading: 'Toplantılar yükleniyor…',
+      error: 'Toplantılar yüklenemedi.',
+      retry: 'Yeniden dene',
+      rule: 'Bugünden önceki günlere toplantı açılamaz.',
+      empty: 'Bu süzgeçte toplantı yok.',
+    },
     detail: {},
     agenda: {},
     notes: {},

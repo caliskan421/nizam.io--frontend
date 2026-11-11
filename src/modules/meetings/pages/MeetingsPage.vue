@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import './meetings/meetings.css'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -13,6 +14,7 @@ import MeetingList from '../components/list/MeetingList.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import DeletedMeetings from '../components/deleted/DeletedMeetings.vue'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const scope = useScopeStore()
@@ -75,7 +77,7 @@ watch(
   <section class="meetings-page">
     <header class="rp-head">
       <div>
-        <h1 class="rp-h1">Toplantılar</h1>
+        <h1 class="rp-h1">{{ t('meetings.list.title') }}</h1>
         <p class="rp-sub">
           {{ program }} · {{ meetings.complete.value ? '' : 'En az '
           }}{{ split.upcoming.length }} yaklaşan, {{ split.past.length }} geçmiş toplantı
@@ -93,10 +95,12 @@ watch(
             :aria-selected="tab === 'yaklasan'"
             @click="update('zaman', 'yaklasan')"
           >
-            Yaklaşan {{ split.upcoming.length }}{{ meetings.complete.value ? '' : '+' }}
+            {{ t('meetings.list.upcoming') }} {{ split.upcoming.length
+            }}{{ meetings.complete.value ? '' : '+' }}
           </button>
           <button role="tab" :aria-selected="tab === 'gecmis'" @click="update('zaman', 'gecmis')">
-            Geçmiş {{ split.past.length }}{{ meetings.complete.value ? '' : '+' }}
+            {{ t('meetings.list.past') }} {{ split.past.length
+            }}{{ meetings.complete.value ? '' : '+' }}
           </button>
           <button
             v-if="admin"
@@ -109,12 +113,12 @@ watch(
           </button>
         </div>
         <label
-          >Koordinatörlük
+          >{{ t('meetings.list.department') }}
           <select
             :value="value('koordinatorluk')"
             @change="update('koordinatorluk', ($event.target as HTMLSelectElement).value)"
           >
-            <option value="">Tümü</option>
+            <option value="">{{ t('meetings.list.all') }}</option>
             <option
               v-for="department in departments.query.data.value?.departments ?? []"
               :key="department.department_id"
@@ -125,31 +129,32 @@ watch(
           </select></label
         >
         <label
-          >Başlangıç
+          >{{ t('meetings.list.from') }}
           <input
             type="date"
             :value="from"
             @change="update('from', ($event.target as HTMLInputElement).value)"
         /></label>
         <label
-          >Bitiş
+          >{{ t('meetings.list.to') }}
           <input
             type="date"
             :value="to"
             @change="update('to', ($event.target as HTMLInputElement).value)"
         /></label>
-        <span class="rp-cap">Koyu kod sahip koordinatörlüğü gösterir</span>
+        <span class="rp-cap">{{ t('meetings.list.codeHint') }}</span>
       </div>
-      <p v-if="invalid" role="alert">Başlangıç tarihi bitiş tarihinden sonra olamaz.</p>
+      <p v-if="invalid" role="alert">{{ t('meetings.list.invalid') }}</p>
       <DeletedMeetings
         v-else-if="tab === 'silinenler'"
         :items="deleted.data.value?.pages.flatMap((p) => p.items) ?? []"
         @close="update('zaman', 'yaklasan')"
         @refresh="deleted.refetch()"
       />
-      <p v-else-if="meetings.query.isPending.value">Toplantılar yükleniyor…</p>
+      <p v-else-if="meetings.query.isPending.value">{{ t('meetings.list.loading') }}</p>
       <div v-else-if="meetings.query.isError.value" role="alert">
-        Toplantılar yüklenemedi. <button @click="meetings.query.refetch()">Yeniden dene</button>
+        {{ t('meetings.list.error') }}
+        <button @click="meetings.query.refetch()">{{ t('meetings.list.retry') }}</button>
       </div>
       <template v-else
         ><MeetingList
@@ -160,7 +165,7 @@ watch(
           @select="router.push(`/toplantilar/${$event}`)"
         />
         <footer class="meetings-foot">
-          <span>Bugünden önceki günlere toplantı açılamaz.</span
+          <span>{{ t('meetings.list.rule') }}</span
           ><span
             >{{ shown.length }}{{ meetings.complete.value ? '' : '+' }}
             {{ tab === 'gecmis' ? 'geçmiş' : 'yaklaşan' }} toplantı</span

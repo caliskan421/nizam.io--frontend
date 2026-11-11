@@ -15,6 +15,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
+import { i18n } from '@/shared/i18n'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { Meeting } from '../../model/types'
 
@@ -49,7 +50,7 @@ it('renders summary and owner first without fetching meeting details', async () 
   } as Meeting
   const wrapper = mount(Component, {
     props: { items: [item], complete: true },
-    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+    global: { plugins: [pinia, i18n, [VueQueryPlugin, { queryClient: client }]] },
   })
   await settleQueries(client)
   expect(wrapper.text()).toContain('2 / 4')

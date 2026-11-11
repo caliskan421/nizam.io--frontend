@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
 import { groupMeetings, meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
 import { dayLabel } from '../../pages/meetings/day-label'
+const { t } = useI18n()
 const props = defineProps<{ items: Meeting[]; complete: boolean }>()
 defineEmits<{ create: []; openDeleted: []; select: [id: string] }>()
 const departments = useProgramDepartments()
@@ -21,7 +23,7 @@ function codes(item: Meeting) {
 }
 </script>
 <template>
-  <div v-if="!items.length" class="meetings-empty">Bu süzgeçte toplantı yok.</div>
+  <div v-if="!items.length" class="meetings-empty">{{ t('meetings.list.empty') }}</div>
   <div v-else class="meetings-groups">
     <section v-for="group in groups" :key="group.day" class="meetings-group">
       <h2>
