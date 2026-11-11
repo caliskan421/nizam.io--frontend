@@ -3,7 +3,7 @@ import { programHeaders } from '@/modules/work/public'
 import { api } from '@/shared/http'
 import type {
   CreateMeetingInput,
-  Meeting,
+  MeetingRevised,
   MeetingCreated,
   MeetingLifecycleResult,
   MeetingTarget,
@@ -22,7 +22,7 @@ export function useCreateMeeting() {
   })
 }
 export function useUpdateMeeting() {
-  return useKeylessMutation<UpdateMeetingInput, Meeting>({
+  return useKeylessMutation<UpdateMeetingInput, MeetingRevised>({
     operation: 'updateMeeting',
     send: (vars, ctx) =>
       api.PATCH('/v1/meetings/{id}', {

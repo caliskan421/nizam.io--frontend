@@ -18,6 +18,7 @@ export interface MeetingCandidates {
 export type CreateMeetingRequest = components['schemas']['CreateMeetingRequest']
 export type UpdateMeetingRequest = components['schemas']['UpdateMeetingRequest']
 export type Meeting = components['schemas']['Meeting']
+export type MeetingRevised = components['schemas']['MeetingRevised']
 export type MeetingCreated = components['schemas']['MeetingCreated']
 export type MeetingLifecycleResult = components['schemas']['MeetingLifecycleResult']
 export interface MeetingTarget {

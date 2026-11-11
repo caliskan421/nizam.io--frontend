@@ -38,6 +38,8 @@ it('writes all meeting operations through S2 without idempotency keys', async ()
       seen.push(`${request.method} ${new URL(request.url).pathname}`)
       if (request.method === 'DELETE' && new URL(request.url).pathname === '/v1/meetings/m')
         return new HttpResponse(null, { status: 204 })
+      if (request.method === 'PATCH' && new URL(request.url).pathname === '/v1/meetings/m')
+        return HttpResponse.json({ side_effects: { notifications_failed: true } })
       return HttpResponse.json({})
     }),
   )
@@ -72,6 +74,10 @@ it('writes all meeting operations through S2 without idempotency keys', async ()
     await writes.permanent.submit(target),
   ]
   expect(outcomes.map((o) => o.kind)).toEqual(Array(5).fill('success'))
+  expect(outcomes[1]).toMatchObject({
+    kind: 'success',
+    data: { side_effects: { notifications_failed: true } },
+  })
   expect(seen).toEqual([
     'POST /v1/meetings',
     'PATCH /v1/meetings/m',
