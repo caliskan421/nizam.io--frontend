@@ -106,12 +106,13 @@ async function select(ids: string[]) {
 }
 async function removePerson(id: string) {
   if (!scope.programId || busy.value) return
+  const started = version
   const outcome = await remove.submit({
     programId: scope.programId,
     id: props.meeting.meeting_id,
     userId: id,
   })
-  if (!reachesOwner(outcome)) return
+  if (!reachesOwner(outcome) || started !== version) return
   if (outcome.kind === 'success') {
     emit('refresh')
     void nextTick(() => section.value?.querySelector<HTMLElement>('h2')?.focus())
