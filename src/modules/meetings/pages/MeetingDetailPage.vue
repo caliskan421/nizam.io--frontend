@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
-import { useQueryClient } from '@tanstack/vue-query'
+import { computed, nextTick, ref, watch } from 'vue'
 import './detail/detail.css'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
@@ -8,6 +7,7 @@ import { listQuery } from './detail/list-query'
 import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { useMeetingAccess } from './detail/use-meeting-access'
+import { useMeetingLoss } from './detail/use-meeting-loss'
 import { meetingDepartments } from '../model/list'
 import { dateLabel } from './detail/date-label'
 import type { MeetingNote } from '../model/types'
@@ -19,9 +19,6 @@ import MeetingForm from '../components/forms/MeetingForm.vue'
 import MeetingConvert from '../components/convert/MeetingConvert.vue'
 import { useSessionReset } from './detail/use-session-reset'
 import { reachesOwner } from '@/shared/http/mutation'
-import { authSession } from '@/shared/http'
-import { ApiError } from '@/shared/errors/api-error'
-import { invalidateStanding } from '@/shared/scope/standing'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { usePageCrumb } from '@/shared/navigation/page-crumb'
@@ -38,26 +35,7 @@ const id = computed(() =>
   typeof route.params.meetingId === 'string' ? route.params.meetingId : null,
 )
 const query = useMeeting(id)
-const client = useQueryClient()
-let alive = true
-onScopeDispose(() => {
-  alive = false
-})
-watch(query.error, async (error) => {
-  if (!(error instanceof ApiError) || (error.status !== 403 && error.status !== 404)) return
-  const program = scope.programId
-  const meetingId = id.value
-  const generation = authSession.generation
-  await invalidateStanding(client)
-  if (
-    !alive ||
-    generation !== authSession.generation ||
-    program !== scope.programId ||
-    meetingId !== id.value
-  )
-    return
-  void router.push({ name: 'collaboration.meetings', query: listQuery(route.query) })
-})
+useMeetingLoss(query.error, id)
 const meeting = computed(() => query.data.value)
 const departments = useDepartments()
 const displayDepartments = computed(() =>
