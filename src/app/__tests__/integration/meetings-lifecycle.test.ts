@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from 'vitest'
 import {
   $,
   boot,
+  byText,
   click,
   createBackend,
   fill,
@@ -87,4 +88,21 @@ it('program değişiminde açık düzenleme taslağı kapanır ve eski detay kal
     'eski detay kaldırıldı',
   )
   expect(document.body.textContent).not.toContain('secret')
+})
+
+it('yeni toplantıdaki iç kişi seçicinin Escape tuşu yalnız üst pencereyi kapatır', async () => {
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar',
+  })
+  await click(() => byText('.meetings-page button', 'Yeni toplantı'))
+  const trigger = await until(() => byText('#meeting-form button', 'Kişileri seç'))
+  trigger.focus()
+  await click(() => trigger)
+  const search = await until(() => $('[role="dialog"] input[type="search"]'), 'iç seçici')
+  search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  await until(() => !$('[role="dialog"] input[type="search"]'), 'iç seçici kapanır')
+  expect($('#meeting-form')).not.toBeNull()
+  await until(() => document.activeElement === trigger, 'odağın iç tetikleyiciye dönüşü')
 })
