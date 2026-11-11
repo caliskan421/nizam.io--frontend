@@ -128,3 +128,6 @@
     grid-column: 3;
   }
 }
+.meeting-agenda__menu-container {
+  display: contents;
+}
