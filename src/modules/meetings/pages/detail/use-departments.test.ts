@@ -12,7 +12,7 @@ const server = setupServer(
     HttpResponse.json({ departments: [{ department_id: 'd', code: 'ABC' }] }),
   ),
 )
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
 it('reads program department codes through the shared reader', async () => {
   const pinia = createPinia()

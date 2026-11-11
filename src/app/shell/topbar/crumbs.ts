@@ -54,6 +54,17 @@ function linkTo(name: RouteName, phase: Phase): CatalogLocation | null {
   return routeLocation(name, {} as never, {}, phase)
 }
 
+function parentLink(parent: RouteName, current: RouteName, phase: Phase, query: LocationQuery) {
+  const to = linkTo(parent, phase)
+  if (current !== 'collaboration.meeting' || parent !== 'collaboration.meetings' || !to) return to
+  const filtered: Record<string, string> = {}
+  for (const key of ['zaman', 'koordinatorluk', 'from', 'to']) {
+    const value = query[key]
+    if (typeof value === 'string') filtered[key] = value
+  }
+  return { ...to, query: filtered }
+}
+
 export function buildCrumbs({
   routeName,
   programName,
@@ -68,16 +79,7 @@ export function buildCrumbs({
   if (!routeName) return { links, current: null }
   const trail = routeTrail(routeName)
   for (const parent of trail.slice(0, -1)) {
-    let to = linkTo(parent, phase)
-    if (routeName === 'collaboration.meeting' && parent === 'collaboration.meetings' && to) {
-      const filtered: Record<string, string> = {}
-      for (const key of ['zaman', 'koordinatorluk', 'from', 'to']) {
-        const value = query[key]
-        if (typeof value === 'string') filtered[key] = value
-      }
-      to = { ...to, query: filtered }
-    }
-    links.push({ label: routeSpec(parent).title, to })
+    links.push({ label: routeSpec(parent).title, to: parentLink(parent, routeName, phase, query) })
   }
   return { links, current: pageLabel ?? routeSpec(routeName).title }
 }

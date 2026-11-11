@@ -12,7 +12,7 @@ import type { MeetingDetail } from '../../model/types'
 import MeetingAgenda from './MeetingAgenda.vue'
 
 const server = setupServer()
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 let queryClient: QueryClient
@@ -132,9 +132,9 @@ it('does not retry an unknown add outcome and rereads the detail', async () => {
   let reads = 0
   const observer = new QueryObserver(queryClient, {
     queryKey: queryKeys.meetings.detail(useScopeStore().snapshot, 'm'),
-    queryFn: async () => {
+    queryFn: () => {
       reads += 1
-      return meeting
+      return Promise.resolve(meeting)
     },
     retry: false,
   })
