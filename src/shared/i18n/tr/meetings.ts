@@ -198,6 +198,8 @@ export const trMeetings = {
       purge: 'Kalıcı olarak sil',
       confirmTitle: 'Toplantı kalıcı olarak silinsin mi?',
       confirmBody: 'Bu işlem geri alınamaz.',
+      uncertain: 'Sonuç doğrulanamadı; yenilenen listeyi kontrol edin.',
+      note: 'Kalıcı silme notları, gündemi, katılımcıları, koordinatörlük bağlarını ve konferans kayıtlarını birlikte siler; geri alınamaz.',
     },
   },
 }

@@ -1,0 +1,28 @@
+.meeting-deleted {
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.meeting-deleted__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.meeting-deleted__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+.meeting-deleted__row h3 {
+  flex-basis: 100%;
+  margin: 0;
+}
+.meeting-deleted__row p,
+.meeting-deleted__note {
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
