@@ -167,3 +167,51 @@ it('başkası dönüştürmüş notun 409 sonucunda gerçek pencere kapanır ve 
   expect(backend.sent('POST', '/v1/meeting-notes/n1/convert-to-task')).toHaveLength(1)
   expect(document.body.textContent).not.toContain('secret')
 })
+
+it('gerçek not menüsünden silme onayla yapılır ve not listeden kalkar', async () => {
+  const note = {
+    note_id: 'n1',
+    meeting_id: 'm1',
+    author_account_id: PEOPLE.admin.account_id,
+    author_name: PEOPLE.admin.full_name,
+    author_role: 'admin',
+    content: 'Silinecek not',
+    converted_to_work_item_id: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    edit_revision: 1,
+  }
+  let deleted = false
+  const notes = () => ({ items: deleted ? [] : [note], next_cursor: '' })
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/m1', () =>
+      HttpResponse.json({ ...meeting, notes: notes() }),
+    ),
+    http.get('http://localhost/v1/meetings/m1/notes', () => HttpResponse.json(notes())),
+    http.delete('http://localhost/v1/meeting-notes/n1', () => {
+      deleted = true
+      return new HttpResponse(null, { status: 204 })
+    }),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await click('button[aria-label^="Not işlemleri"]')
+  await click(
+    () =>
+      [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+        (b) => b.textContent?.trim() === 'Sil',
+      ) ?? null,
+  )
+  expect(backend.sent('DELETE', '/v1/meeting-notes/n1')).toHaveLength(0)
+  await click(
+    () =>
+      [...document.querySelectorAll<HTMLElement>('[role="alertdialog"] button')].find(
+        (b) => b.textContent?.trim() === 'Sil',
+      ) ?? null,
+  )
+  await until(() => !$('.meeting-notes__item'), 'not silindi')
+  expect(backend.sent('DELETE', '/v1/meeting-notes/n1')).toHaveLength(1)
+})
