@@ -1,5 +1,5 @@
 .meeting-detail {
-  padding: var(--space-6);
+  padding: var(--space-8);
 }
 .meeting-detail__header {
   display: flex;
@@ -19,6 +19,9 @@
   gap: var(--space-5);
 }
 @media (max-width: 900px) {
+  .meeting-detail {
+    padding: var(--space-6);
+  }
   .meeting-detail__body {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -47,6 +50,7 @@
 .meeting-detail__members {
   display: inline-flex;
   align-items: center;
+  min-height: var(--meeting-members-pill-height);
   padding-inline: var(--space-3);
   border: var(--ui-hairline) solid var(--violet);
   border-radius: var(--radius-full);

@@ -21,6 +21,7 @@
         { "name": "meeting-agenda-check-size", "value": "18px" },
         { "name": "meeting-agenda-add-height", "value": "48px" },
         { "name": "meeting-head-gap", "value": "10px" },
+        { "name": "meeting-members-pill-height", "value": "26px" },
         { "name": "meeting-agenda-row-pad-y", "value": "6px" },
         { "name": "meeting-agenda-progress-radius", "value": "3px" },
         { "name": "meeting-agenda-menu-width", "value": "32px" },

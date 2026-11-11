@@ -179,7 +179,8 @@ async function deleteMeeting() {
                 department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
               >{{ department.code }}</span
-            ><span>{{ meeting.departments.length }} {{ text.invited }}</span
+            ><span class="meeting-detail__count"
+              >{{ meeting.departments.length }} {{ text.invited }}</span
             ><span
               v-if="meeting.members_included"
               class="meeting-detail__members"
