@@ -160,14 +160,22 @@ async function deleteMeeting() {
             <span
               v-for="department in displayDepartments"
               :key="department.department_id"
+              class="meeting-detail__code"
+              :class="{
+                'meeting-detail__code--owner':
+                  department.department_id === meeting.owner_department_id,
+              }"
               :title="
                 department.department_id === meeting.owner_department_id ? text.owner : undefined
               "
               >{{ department.code }}</span
             ><span>{{ meeting.departments.length }} {{ text.invited }}</span
-            ><span v-if="meeting.members_included" :title="text.membersTitle">{{
-              text.members
-            }}</span>
+            ><span
+              v-if="meeting.members_included"
+              class="meeting-detail__members"
+              :title="text.membersTitle"
+              >{{ text.members }}</span
+            >
           </div>
         </div>
         <div v-if="canManage">

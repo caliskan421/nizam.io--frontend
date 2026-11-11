@@ -53,3 +53,27 @@
 .meeting-agenda__status[data-all='true'] {
   color: var(--accent-text);
 }
+.meeting-agenda__row > .t-check {
+  width: var(--meeting-agenda-check-size);
+  height: var(--meeting-agenda-check-size);
+  margin: 0;
+}
+.meeting-agenda__row > span {
+  font: var(--text-body);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.meeting-agenda__addrow {
+  display: grid;
+  grid-template-columns: var(--meeting-agenda-check-width) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--meeting-agenda-add-height);
+  color: var(--ink-faint);
+}
+.meeting-agenda__addrow input {
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: var(--text-body);
+}

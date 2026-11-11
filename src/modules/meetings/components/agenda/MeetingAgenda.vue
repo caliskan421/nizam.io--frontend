@@ -12,6 +12,7 @@ import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { UiIcon } from '@/shared/ui'
 
 const text = trMeetings.meetings.agenda
 const props = defineProps<{ meeting: MeetingDetail }>()
@@ -183,6 +184,7 @@ async function deleteItem(item: AgendaItem) {
     </div>
     <div v-for="item in meeting.agenda" :key="item.agenda_item_id" class="meeting-agenda__row">
       <input
+        class="t-check"
         type="checkbox"
         :checked="item.is_checked"
         :disabled="!canManage || update.isPending.value"
@@ -231,11 +233,13 @@ async function deleteItem(item: AgendaItem) {
       </div>
     </div>
     <form v-if="canManage" @submit.prevent="addItem">
-      <label>
+      <label class="meeting-agenda__addrow">
+        <UiIcon name="plus" size="sm" />
         <input
           v-model="draft"
           :disabled="meeting.agenda.length >= 50 || limitReached || add.isPending.value"
           :placeholder="text.placeholder"
+          :aria-label="text.placeholder"
         />
         <span>{{ count }} / 300</span></label
       >

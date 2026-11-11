@@ -18,6 +18,8 @@
         },
         { "name": "meeting-agenda-row-height", "value": "52px" },
         { "name": "meeting-agenda-check-width", "value": "20px" },
+        { "name": "meeting-agenda-check-size", "value": "18px" },
+        { "name": "meeting-agenda-add-height", "value": "48px" },
         { "name": "meeting-agenda-menu-width", "value": "32px" },
         { "name": "meeting-agenda-progress-width", "value": "72px" },
         { "name": "meeting-agenda-progress-height", "value": "5px" }

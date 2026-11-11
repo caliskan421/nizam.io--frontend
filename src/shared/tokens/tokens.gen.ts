@@ -800,6 +800,18 @@ export const TOKENS = {
     "dark": "20px",
     "light": "20px"
   },
+  "meeting-agenda-check-size": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "18px",
+    "light": "18px"
+  },
+  "meeting-agenda-add-height": {
+    "group": "meeting",
+    "origin": "web",
+    "dark": "48px",
+    "light": "48px"
+  },
   "meeting-agenda-menu-width": {
     "group": "meeting",
     "origin": "web",
