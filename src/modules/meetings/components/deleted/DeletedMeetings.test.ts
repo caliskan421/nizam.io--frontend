@@ -50,6 +50,14 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
     program_id: 'p',
     title: 'Toplantı',
     departments: [],
+    owner_department_id: 'd',
+    created_at: '2026-11-11T10:00:00Z',
+    updated_at: '2026-11-11T10:00:00Z',
+    created_by_account_id: 'a',
+    created_by_role: 'admin',
+    invite_mode: 'person',
+    members_included: false,
+    place: null,
     meeting_date: '2026-11-11T10:00:00Z',
   } as Meeting
   const wrapper = mount(Component, {
