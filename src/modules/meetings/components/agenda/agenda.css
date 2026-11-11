@@ -112,3 +112,19 @@
   width: var(--meeting-agenda-menu-width);
   height: var(--meeting-agenda-menu-width);
 }
+.meeting-agenda__actions {
+  grid-column: 4;
+  grid-row: 1;
+}
+.meeting-agenda__menu {
+  grid-column: 2 / -1;
+  padding: var(--space-1);
+  border: var(--ui-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+@media (max-width: 900px) {
+  .meeting-agenda__actions {
+    grid-column: 3;
+  }
+}

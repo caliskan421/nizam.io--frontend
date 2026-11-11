@@ -77,3 +77,9 @@
   align-items: start;
   min-width: 0;
 }
+.meeting-detail__menu {
+  padding: var(--space-1);
+  border: var(--ui-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}

@@ -202,10 +202,22 @@ async function deleteMeeting() {
           >
             <UiIcon name="more" size="sm" />
           </button>
-          <div v-if="menuOpen" role="menu" @keydown.esc.stop="closeMenu">
-            <button type="button" role="menuitem" @click="openFormFromMenu">
+          <div
+            v-if="menuOpen"
+            class="meeting-detail__menu"
+            role="menu"
+            @keydown.esc.stop="closeMenu"
+          >
+            <button class="rp-menuitem" type="button" role="menuitem" @click="openFormFromMenu">
               {{ text.reschedule }}</button
-            ><button type="button" role="menuitem" @click="deleteMeeting">{{ text.delete }}</button>
+            ><button
+              class="rp-menuitem rp-menuitem--danger"
+              type="button"
+              role="menuitem"
+              @click="deleteMeeting"
+            >
+              {{ text.delete }}
+            </button>
           </div>
         </div>
       </header>

@@ -139,7 +139,7 @@ function toggleMenu(id: string) {
   if (openMenu.value === id) return closeMenu(id)
   openMenu.value = id
   void nextTick(() =>
-    menuButtons.get(id)?.nextElementSibling?.querySelector<HTMLButtonElement>('button')?.focus(),
+    section.value?.querySelector<HTMLButtonElement>('[role=menu] button')?.focus(),
   )
 }
 async function deleteItem(item: AgendaItem) {
@@ -210,7 +210,7 @@ async function deleteItem(item: AgendaItem) {
           text.unknown,
         )
       }}</small>
-      <div v-if="canManage">
+      <div v-if="canManage" class="meeting-agenda__actions">
         <button
           :ref="(el) => setButton(item.agenda_item_id, el)"
           class="t-iconbtn meeting-agenda__menu-trigger"
@@ -222,14 +222,24 @@ async function deleteItem(item: AgendaItem) {
         >
           <UiIcon name="more" size="sm" />
         </button>
-        <div
-          v-if="openMenu === item.agenda_item_id"
-          role="menu"
-          @keydown.esc.stop="closeMenu(item.agenda_item_id)"
+      </div>
+      <div
+        v-if="openMenu === item.agenda_item_id"
+        class="meeting-agenda__menu"
+        role="menu"
+        @keydown.esc.stop="closeMenu(item.agenda_item_id)"
+      >
+        <button class="rp-menuitem" role="menuitem" type="button" @click="editItem(item)">
+          {{ text.edit }}
+        </button>
+        <button
+          class="rp-menuitem rp-menuitem--danger"
+          role="menuitem"
+          type="button"
+          @click="deleteItem(item)"
         >
-          <button role="menuitem" type="button" @click="editItem(item)">{{ text.edit }}</button>
-          <button role="menuitem" type="button" @click="deleteItem(item)">{{ text.delete }}</button>
-        </div>
+          {{ text.delete }}
+        </button>
       </div>
     </div>
     <form v-if="canManage" @submit.prevent="addItem">
