@@ -19,7 +19,7 @@ const purge = usePermanentDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const section = ref<HTMLElement | null>(null)
 
-async function finish(result: Awaited<ReturnType<typeof restore.submit>> | undefined) {
+async function finish(result: Awaited<ReturnType<typeof restore.submit>> | null | undefined) {
   if (!result || !reachesOwner(result)) return
   if (
     result.kind === 'success' ||
