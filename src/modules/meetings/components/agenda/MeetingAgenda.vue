@@ -47,7 +47,9 @@ function setButton(id: string, el: unknown) {
   if (el instanceof HTMLButtonElement) menuButtons.set(id, el)
   else menuButtons.delete(id)
 }
-function result(outcome: Awaited<ReturnType<typeof add.submit>>) {
+function result(
+  outcome: Awaited<ReturnType<typeof add.submit>> | Awaited<ReturnType<typeof update.submit>>,
+) {
   if (!reachesOwner(outcome)) return false
   if (outcome.kind === 'success') {
     emit('refresh')
@@ -224,7 +226,7 @@ function checker(item: AgendaItem) {
   align-items: center;
   gap: var(--space-3);
   padding-block: var(--space-3);
-  border-bottom: var(--border-width) solid var(--border);
+  border-bottom: var(--ui-hairline) solid var(--border-subtle);
 }
 .meeting-agenda__row > span {
   flex: 1;

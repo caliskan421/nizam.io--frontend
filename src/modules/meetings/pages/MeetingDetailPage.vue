@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
 import { useDeleteMeeting } from '../api/meeting-writes'
@@ -36,6 +36,7 @@ const { confirmWrite } = useConfirm()
 const formOpen = ref(false)
 const selectedNote = ref<MeetingNote | null>(null)
 const menuOpen = ref(false)
+const personSelectorUnavailable = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 const noteOpener = ref<HTMLElement | null>(null)
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
@@ -92,8 +93,11 @@ function closeDialogs() {
   formOpen.value = false
   selectedNote.value = null
   menuOpen.value = false
+  personSelectorUnavailable.value = false
 }
-watch(() => [scope.programId, id.value, authSession.generation], closeDialogs)
+watch(() => [scope.programId, id.value], closeDialogs)
+const offSession = authSession.subscribe(closeDialogs)
+onScopeDispose(offSession)
 async function deleteMeeting() {
   closeMenu()
   const m = meeting.value
@@ -178,7 +182,12 @@ async function deleteMeeting() {
             :meeting="meeting"
             @convert="openConvert"
             @refresh="refresh"
-          /><MeetingPeople :meeting="meeting" @refresh="refresh" />
+          /><MeetingPeople
+            :meeting="meeting"
+            @add="personSelectorUnavailable = true"
+            @refresh="refresh"
+          />
+          <p v-if="personSelectorUnavailable" role="status">Kişi seçici henüz kullanılamıyor.</p>
         </div>
         <MeetingSide :meeting="meeting" @edit="formOpen = true" @remove="deleteMeeting" />
       </div>
@@ -222,7 +231,7 @@ async function deleteMeeting() {
 }
 .meeting-detail__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, var(--rp-sidebar-width));
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--rp-aside-basis));
   gap: var(--space-5);
 }
 @media (max-width: 900px) {
