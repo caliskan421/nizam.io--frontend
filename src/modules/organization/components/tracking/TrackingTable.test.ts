@@ -72,7 +72,7 @@ describe('gruplu görev tablosu (E-05-59…67)', () => {
 
   it('kodsuz birimde kod boş; kanıt statik "—" (stub yok)', async () => {
     const wrapper = await render([item('a'), item('b', { department_id: 'd2' })])
-    expect(wrapper.find('[data-work-item="a"] [data-code]').text()).toBe('MEK-—')
+    expect(wrapper.find('[data-work-item="a"] [data-code]').text()).toBe('MEK')
     expect(wrapper.find('[data-work-item="b"] [data-code]').text()).toBe('')
     expect(wrapper.find('[data-evidence]').text()).toBe('—')
     expect(wrapper.find('[data-evidence]').attributes('data-design-stub')).toBeUndefined()

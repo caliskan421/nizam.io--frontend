@@ -207,7 +207,7 @@ describe('kartlar, sekmeler, liste (E-05-49…67)', () => {
     setup()
     const { wrapper } = await mountAt(PersonalTracking, { accountId: 'u1' })
     const row = wrapper.find('[data-work-item="w1"]')
-    expect(row.find('[data-code]').text()).toBe('MEK-—')
+    expect(row.find('[data-code]').text()).toBe('MEK')
     expect(wrapper.find('[data-work-item="w5"] [data-code]').text()).toBe('')
     expect(row.find('[data-due-note]').text()).toBe('7 gün gecikti')
     expect(wrapper.find('[data-work-item="w2"] [data-due-note]').text()).toBe('2 gün kaldı')

@@ -84,10 +84,10 @@ describe('açılış: taze okuma, başlık, özet (E-03C-54…62)', () => {
     expect(sent('GET', '/v1/work-items/w1/dependencies')).toHaveLength(0)
   })
 
-  it('üst satır: Admin yüzünde "KOD-— · koordinatörlük", başlık, durum, kanıt dosyası sayısı', async () => {
+  it('üst satır: Admin yüzünde "KOD · koordinatörlük", başlık, durum, kanıt dosyası sayısı', async () => {
     const { h } = render({ who: 'admin', face: 'admin', files: 2 })
     await settleQueries(h.queryClient)
-    expect(text('tp-kicker')).toBe('ALT-— · Altyapı')
+    expect(text('tp-kicker')).toBe('ALT · Altyapı')
     expect(text('tp-title')).toBe('Rapor')
     expect(text('tp-status')).toBe('Devam ediyor')
     expect(text('tp-files')).toBe('2 dosya')

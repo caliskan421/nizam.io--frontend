@@ -42,7 +42,7 @@ describe('görev satırı (E-03-18…29)', () => {
     const row = mountRow({ title: 'Faz3 asfalt', status: 'devam_ediyor', end_on: '2026-11-12' })
     expect(row.get('a.rp-title').text()).toBe('Faz3 asfalt')
     expect(row.get('a.rp-title').attributes('href')).toBe('/gorevler?gorev=w1')
-    expect(row.get('.task-row__code').text()).toBe('MEK-—')
+    expect(row.get('.task-row__code').text()).toBe('MEK')
     expect(row.get('.task-row__dept').text()).toBe('Mekanik sistemler')
     expect(row.get('.rp-status').text()).toBe('Devam ediyor')
     expect(row.get('.rp-dot').classes()).toContain('rp-dot--doing')

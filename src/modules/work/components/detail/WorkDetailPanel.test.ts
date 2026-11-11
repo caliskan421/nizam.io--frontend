@@ -102,7 +102,7 @@ describe('ayrıntı paneli — açılış ve üst bilgi (E-03-19, E-03-41, E-03-
     expect(request!.headers.get('X-Nizamio-Department')).toBe('d1')
     expect(wrapper.get('h2').text()).toBe('Faz3 asfalt')
     await vi.waitFor(() =>
-      expect(wrapper.get('[data-testid="detail-kicker"]').text()).toBe('MEK-— · Mekanik sistemler'),
+      expect(wrapper.get('[data-testid="detail-kicker"]').text()).toBe('MEK · Mekanik sistemler'),
     )
     const section = wrapper.get('[data-testid="work-detail"]')
     expect(section.attributes('aria-labelledby')).toBe(wrapper.get('h2').attributes('id'))

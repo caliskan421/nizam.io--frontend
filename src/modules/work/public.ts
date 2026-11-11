@@ -20,6 +20,7 @@ export const NewTaskDialog = defineAsyncComponent(
 export type { NewTaskDialogEmits, NewTaskDialogProps } from './components'
 export { createPartialText } from './model/messages'
 export { departmentTarget, listDepartmentFilter, resolveTarget, targetOf } from './model/target'
+export { workShortCode } from './model/short-code'
 export { transitionTargets } from './model/transitions'
 export type {
   WorkItem,

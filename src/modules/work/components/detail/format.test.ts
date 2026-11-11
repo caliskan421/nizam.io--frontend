@@ -44,7 +44,7 @@ describe('tarih biçimleri', () => {
 
 describe('üst bilgi ve kişi', () => {
   it('kod öneki + statik sıra "—" (BE-005) · koordinatörlük; kodsuzda yalnız ad (E-03-41)', () => {
-    expect(kickerText('MEK', 'Mekanik sistemler')).toBe('MEK-— · Mekanik sistemler')
+    expect(kickerText('MEK', 'Mekanik sistemler')).toBe('MEK · Mekanik sistemler')
     expect(kickerText(undefined, 'Mekanik sistemler')).toBe('Mekanik sistemler')
     expect(kickerText('', null)).toBe('')
   })

@@ -6,12 +6,12 @@
  *    talebi tek birimin görev listesinden (`department_id`); tamamlanma `completion_rate` (0–100,
  *    P: kabul), sezon ortalaması `reportDashboard` `completed_tasks / total_tasks`. Görev listesi
  *    sonuna dek yüklenmediyse liste kaynaklı notlar "yüklenen kayıtlar içinde" (§10).
- *  - Dikkat (E-08-83): `is_overdue` süzülür, `days_overdue` azalan, ilk 3; kısa kod `KOD-—`
+ *  - Dikkat (E-08-83): `is_overdue` süzülür, `days_overdue` azalan, ilk 3; kısa kod `KOD`
  *    (BE-005: görev numarası yok).
  *  - Ekip (E-08-81): ilk 6 etkin kişi, koordinatörler önce, sonra ad (`tr`); açık iş = bu kişiye
  *    atanmış (`isAssignedTo`, KESİN 21) ve tamamlanmamış görevler.
  */
-import { isAssignedTo, type WorkItem } from '@/modules/work/public'
+import { isAssignedTo, workShortCode, type WorkItem } from '@/modules/work/public'
 
 import { teamRoleOf } from '../../model/capabilities'
 import type { CoordinatorshipStat, DashboardReport, RosterMember } from '../../model/types'
@@ -228,7 +228,7 @@ export function attentionRows(
     .slice(0, limit)
     .map((i) => {
       const names = i.assignees.map((a) => a.full_name).filter((n): n is string => Boolean(n))
-      const parts = [detailText('coordinatorship.attention.code', { code }), ...names]
+      const parts = [workShortCode(code), ...names].filter(Boolean)
       if (i.pending_date_request !== null) {
         parts.push(detailText('coordinatorship.attention.dateRequest'))
       }

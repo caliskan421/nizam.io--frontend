@@ -9,7 +9,7 @@ import { detailText } from './messages'
 
 /**
  * Dikkat gerektirenler (E-08-82/83): tek birimin görev listesinden (`department_id`, sonuna dek)
- * geciken görevler `days_overdue` azalan, ilk 3; alt satır "‹KOD›-— · atananlar" (görev
+ * geciken görevler `days_overdue` azalan, ilk 3; alt satır "‹KOD› · atananlar" (görev
  * numarası yok, BE-005) + "tarih talebi var". "Tümü" → 03 geciken süzgeci; satır → 03 görev
  * paneli. Liste sürerken "yüklenen kayıtlar içinde".
  */

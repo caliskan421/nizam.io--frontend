@@ -54,7 +54,7 @@ describe('görev tablosu', () => {
   it('satırlar departman adı ve kodu sözlükten (G13)', () => {
     const rows = mountTable().findAll('.rp-tr--body')
     expect(rows.map((r) => r.get('.task-row__dept').text())).toEqual(['Mekanik', 'İdari işler'])
-    expect(rows.map((r) => r.get('.task-row__code').text())).toEqual(['MEK-—', ''])
+    expect(rows.map((r) => r.get('.task-row__code').text())).toEqual(['MEK', ''])
   })
 
   it('etkin sıralama aria-sort; düğme sort yayar', async () => {

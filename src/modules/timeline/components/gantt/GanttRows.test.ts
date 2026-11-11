@@ -120,9 +120,9 @@ describe('sol sütun treegrid (E-03C-21, 28, 30…32, 35)', () => {
     expect(row(rows, 'b').get('.gantt-dot').classes()).not.toContain('gantt-dot--late')
   })
 
-  it('kod sütunu: kodlu birimde "KOD-—" (statik sıra), kodsuzda ve diğer yüzlerde boş', () => {
+  it('kod sütunu: kodlu birimde "KOD" (statik sıra), kodsuzda ve diğer yüzlerde boş', () => {
     const withCodes = mountRows({ departmentCodes: new Map([['d1', 'MEK']]) })
-    expect(row(withCodes, 'a').get('.gantt-row__code').text()).toBe('MEK-—')
+    expect(row(withCodes, 'a').get('.gantt-row__code').text()).toBe('MEK')
     expect(row(withCodes, 'c').get('.gantt-row__code').text()).toBe('')
     // K-7: kod sütunu olmayan yüzde (Koordinatör/Üye) boş sütun çizilmez, etiket dar kalır
     const bare = row(mountRows(), 'a')
