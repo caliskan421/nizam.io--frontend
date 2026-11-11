@@ -29,6 +29,11 @@ afterAll(() => server.close())
 it('restores and confirms permanent deletion using the actual endpoints', async () => {
   const calls: string[] = []
   server.use(
+    http.get('http://localhost/v1/program/departments', () =>
+      HttpResponse.json({
+        departments: [{ department_id: 'd', display_name: 'Birim', code: 'BRM' }],
+      }),
+    ),
     http.patch('http://localhost/v1/admin/restore/meetings/m', () => {
       calls.push('restore')
       return HttpResponse.json({ meeting_id: 'm', status: 'restored' })
@@ -64,6 +69,8 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
     props: { items: [item], hasMore: true },
     global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
   })
+  await settleQueries(client)
+  expect(wrapper.text()).toContain('BRM')
   expect(wrapper.text()).toContain(
     new Intl.DateTimeFormat('tr-TR', {
       timeZone: 'America/New_York',
@@ -93,6 +100,42 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
     .find((button) => button.text() === 'Daha fazla göster')!
     .trigger('click')
   expect(wrapper.emitted('loadMore')).toHaveLength(1)
+  wrapper.unmount()
+  client.clear()
+})
+
+it('refreshes when restore finds the meeting already restored', async () => {
+  server.use(
+    http.get('http://localhost/v1/program/departments', () =>
+      HttpResponse.json({ departments: [] }),
+    ),
+    http.patch('http://localhost/v1/admin/restore/meetings/m', () =>
+      HttpResponse.json(
+        { code: 'collaboration.not_deleted', message: 'secret', request_id: 'r', fields: [] },
+        { status: 409 },
+      ),
+    ),
+  )
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p', departmentId: null, lens: 'admin' })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const item = {
+    meeting_id: 'm',
+    program_id: 'p',
+    owner_department_id: 'd',
+    title: 'T',
+    meeting_date: '2026-11-11T10:00:00Z',
+    departments: [],
+  } as unknown as Meeting
+  const wrapper = mount(Component, {
+    props: { items: [item] },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient: client }]] },
+  })
+  await wrapper.get('button').trigger('click')
+  await settleQueries(client)
+  expect(wrapper.emitted('refresh')).toHaveLength(1)
+  expect(wrapper.text()).not.toContain('secret')
   wrapper.unmount()
   client.clear()
 })

@@ -199,6 +199,7 @@ export const trMeetings = {
       loading: 'Yükleniyor…',
       more: 'Daha fazla göster',
       deletedBy: 'sildi',
+      unknownDepartment: 'Bilinmeyen koordinatörlük',
       restore: 'Geri yükle',
       purge: 'Kalıcı olarak sil',
       confirmTitle: 'Toplantı kalıcı olarak silinsin mi?',

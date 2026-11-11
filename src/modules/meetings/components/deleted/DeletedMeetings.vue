@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import './deleted.css'
 import { nextTick, ref } from 'vue'
+import { useProgramDepartments } from '@/modules/work/public'
 import { usePermanentDeleteMeeting, useRestoreMeeting } from '../../api/meeting-writes'
 import type { Meeting } from '../../model/types'
 import { reachesOwner } from '@/shared/http/mutation'
@@ -22,6 +23,14 @@ const purge = usePermanentDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const section = ref<HTMLElement | null>(null)
 const instance = useInstanceStore()
+const departments = useProgramDepartments()
+function ownerCode(item: Meeting) {
+  return (
+    departments.byId.value.get(item.owner_department_id)?.code ||
+    item.departments.find((d) => d.department_id === item.owner_department_id)?.department_name ||
+    text.unknownDepartment
+  )
+}
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('tr-TR', {
     timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
@@ -39,7 +48,8 @@ async function finish(
   if (result.kind === 'unknown_outcome') uncertain.value = [...uncertain.value, id]
   if (
     result.kind === 'success' ||
-    (result.kind === 'failed' && result.error.code === 'collaboration.meeting_not_found')
+    (result.kind === 'failed' &&
+      ['collaboration.meeting_not_found', 'collaboration.not_deleted'].includes(result.error.code))
   ) {
     emit('refresh')
     await nextTick()
@@ -83,11 +93,7 @@ async function purgeItem(item: Meeting) {
         <div class="meeting-deleted__info">
           <h3>{{ item.title }}</h3>
           <p>
-            {{
-              item.departments.find(
-                (department) => department.department_id === item.owner_department_id,
-              )?.department_name
-            }}
+            {{ ownerCode(item) }}
             · {{ formatDate(item.meeting_date)
             }}<template v-if="item.deleted_by">
               · {{ item.deleted_by.full_name }} {{ text.deletedBy }}</template
