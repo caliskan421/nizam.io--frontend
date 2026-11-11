@@ -214,3 +214,12 @@ it('preserves a draft across a token renewal for the same session', async () => 
   wrapper.unmount()
   authSession.clear()
 })
+it('closes the agenda menu on a session change', async () => {
+  const wrapper = setup(true)
+  await wrapper.get('button[aria-label="Karar işlemleri"]').trigger('click')
+  expect(wrapper.find('[role="menu"]').exists()).toBe(true)
+  authSession.clear()
+  await wrapper.vm.$nextTick()
+  expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+  wrapper.unmount()
+})
