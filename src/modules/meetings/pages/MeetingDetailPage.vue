@@ -7,7 +7,8 @@ import { listQuery } from './detail/list-query'
 import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { meetingCapabilities } from '../model/capabilities'
-import { meetingDay, meetingDepartments } from '../model/list'
+import { meetingDepartments } from '../model/list'
+import { dateLabel } from './detail/date-label'
 import type { MeetingNote } from '../model/types'
 import MeetingAgenda from '../components/agenda/MeetingAgenda.vue'
 import MeetingNotes from '../components/notes/MeetingNotes.vue'
@@ -64,31 +65,12 @@ const canManage = computed(() => {
     viewerRole: m.viewer_role,
   }).manage
 })
-const dateLabel = computed(() => {
-  if (!meeting.value) return ''
-  const date = new Date(meeting.value.meeting_date)
-  const day = meetingDay(date, timezone.value)
-  const today = meetingDay(new Date(), timezone.value)
-  const tomorrowDate = new Date(Date.now() + 86400000)
-  const relative =
-    day === today
-      ? `${text.today} · `
-      : day === meetingDay(tomorrowDate, timezone.value)
-        ? `${text.tomorrow} · `
-        : ''
-  return (
-    relative +
-    new Intl.DateTimeFormat('tr-TR', {
-      timeZone: timezone.value,
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      weekday: 'long',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  )
-})
+const meetingDateLabel = computed(() =>
+  meeting.value
+    ? dateLabel(meeting.value.meeting_date, timezone.value, new Date(), text.today, text.tomorrow)
+    : '',
+)
+
 function openForm() {
   formOpener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   formOpen.value = true
@@ -172,7 +154,7 @@ async function deleteMeeting() {
     <template v-else-if="meeting">
       <header class="meeting-detail__header">
         <div>
-          <p class="rp-kicker">{{ dateLabel }}</p>
+          <p class="rp-kicker">{{ meetingDateLabel }}</p>
           <h1 class="rp-h1">{{ meeting.title }}</h1>
           <div class="meeting-detail__departments">
             <span
