@@ -87,3 +87,33 @@ it('gerçek kişi seçiciden sıralı eklemede kısmi hata adla gösterilir', as
   expect($('.meeting-people [role="status"]')?.textContent).toContain('1 kişi eklenemedi')
   expect(document.body.textContent).not.toContain('secret')
 })
+
+it('katılımcı serisi belirsiz sonuçta durur ve sonraki kişiye istek göndermez', async () => {
+  let count = 0
+  backend.server.use(
+    http.post('http://localhost/v1/meetings/m1/participants', async ({ request }) => {
+      const body = (await request.json()) as { user_id: string }
+      count++
+      return count === 1
+        ? HttpResponse.json({ meeting_id: 'm1', user_id: body.user_id }, { status: 201 })
+        : HttpResponse.error()
+    }),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  // Administratörün bağlı koordinatör olması, coordinatorship kipinde katılımcı yönetimini açar.
+  await click(() => byText('.meeting-people button', 'Ekle'))
+  await until(() => document.querySelectorAll('.meeting-selector-row').length >= 3, 'adaylar')
+  const boxes = document.querySelectorAll<HTMLInputElement>(
+    '.meeting-selector-row input:not(:disabled)',
+  )
+  boxes[0]!.click()
+  boxes[1]!.click()
+  boxes[2]!.click()
+  await click(() => byText('[role="dialog"] button', 'Uygula'))
+  await until(() => $('.meeting-people [role="status"]'), 'belirsizlik uyarısı')
+  expect(backend.sent('POST', '/v1/meetings/m1/participants')).toHaveLength(2)
+})
