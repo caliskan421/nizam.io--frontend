@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import './meetings/meetings.css'
-import { computed, ref, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
+import { authSession } from '@/shared/http'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProgramDepartments } from '@/modules/work/public'
@@ -22,6 +23,21 @@ const instance = useInstanceStore()
 const { standing, programs } = useStanding()
 const departments = useProgramDepartments()
 const creating = ref(false)
+const stopScope = scope.onChange(() => {
+  creating.value = false
+})
+let generation = authSession.generation
+let account = authSession.snapshot.accountId
+const stopSession = authSession.subscribe((snapshot) => {
+  if (generation !== authSession.generation || account !== snapshot.accountId)
+    creating.value = false
+  generation = authSession.generation
+  account = snapshot.accountId
+})
+onScopeDispose(() => {
+  stopScope()
+  stopSession()
+})
 const admin = computed(() => standing.value?.companyAdmin === true)
 const canCreate = computed(
   () => admin.value || coordinatorDepartmentIds(standing.value, scope.programId).length > 0,

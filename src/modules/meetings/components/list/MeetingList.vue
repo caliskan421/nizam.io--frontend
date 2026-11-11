@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
 import { groupMeetings, meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
 import { dayLabel } from '../../pages/meetings/day-label'
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const props = defineProps<{ items: Meeting[]; complete: boolean }>()
-defineEmits<{ create: []; openDeleted: []; select: [id: string] }>()
+const emit = defineEmits<{ create: []; openDeleted: []; select: [id: string] }>()
+function select(event: MouseEvent, id: string) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  event.preventDefault()
+  emit('select', id)
+}
 const departments = useProgramDepartments()
 const instance = useInstanceStore()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
@@ -40,8 +48,8 @@ function codes(item: Meeting) {
         v-for="item in group.items"
         :key="item.meeting_id"
         class="meeting-row"
-        :href="`/toplantilar/${item.meeting_id}`"
-        @click.prevent="$emit('select', item.meeting_id)"
+        :href="router.resolve({ path: `/toplantilar/${item.meeting_id}`, query: route.query }).href"
+        @click="select($event, item.meeting_id)"
       >
         <span class="meeting-date" data-state="normal"
           ><b>{{ format(item.meeting_date, { day: 'numeric' }) }}</b

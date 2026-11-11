@@ -11,6 +11,7 @@ it('declares its integration contract independently of its body', () => {
 import { mount } from '@vue/test-utils'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia, setActivePinia } from 'pinia'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll } from 'vitest'
@@ -48,15 +49,23 @@ it('renders summary and owner first without fetching meeting details', async () 
     ],
     summary: { agenda_checked: 2, agenda_total: 4, note_count: 3, participant_count: 5 },
   } as Meeting
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/toplantilar', component: Component },
+      { path: '/toplantilar/:id', component: Component },
+    ],
+  })
+  await router.push('/toplantilar?zaman=gecmis')
   const wrapper = mount(Component, {
     props: { items: [item], complete: true },
-    global: { plugins: [pinia, i18n, [VueQueryPlugin, { queryClient: client }]] },
+    global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
   })
   await settleQueries(client)
   expect(wrapper.text()).toContain('2 / 4')
   expect(wrapper.text()).toContain('Sahip + 1 koordinatörlük')
   expect(wrapper.findAll('.meeting-code').map((code) => code.text())).toEqual(['SH', 'DB'])
-  expect(wrapper.find('a').attributes('href')).toBe('/toplantilar/m')
+  expect(wrapper.find('a').attributes('href')).toBe('/toplantilar/m?zaman=gecmis')
   expect(wrapper.text()).not.toMatch(/Canlı|Bekliyor/)
   expect(paths).toEqual(['/v1/program/departments'])
   wrapper.unmount()
