@@ -60,6 +60,10 @@ const shown = computed(() => (tab.value === 'gecmis' ? split.value.past : split.
 const program = computed(
   () => programs.value?.find((p) => p.programId === scope.programId)?.name ?? '',
 )
+function saved(id?: string) {
+  creating.value = false
+  if (id) void router.push({ path: `/toplantilar/${id}`, query: route.query })
+}
 function update(key: string, next: string) {
   void router.replace({ query: { ...route.query, [key]: next || undefined } })
 }
@@ -188,7 +192,7 @@ watch(
       v-if="creating && canCreate"
       :meeting="null"
       @close="creating = false"
-      @saved="creating = false"
+      @saved="saved"
     />
   </section>
 </template>
