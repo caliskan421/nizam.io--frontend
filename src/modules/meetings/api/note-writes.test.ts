@@ -27,7 +27,7 @@ function setupWrites() {
   }
 }
 
-it('writes all meeting operations through S2 without idempotency keys', async () => {
+it('writes notes through S2 with an idempotency key only for addition', async () => {
   const seen: string[] = []
   server.use(
     http.all('http://localhost/v1/*', ({ request }) => {
@@ -123,6 +123,18 @@ it('writes all meeting operations through S2 without idempotency keys', async ()
   expect(sentKeys).toHaveLength(2)
   expect(sentKeys[0]).toBeTruthy()
   expect(sentKeys[1]).toBe(sentKeys[0])
+  const unknownKeys: string[] = []
+  server.use(
+    http.post('http://localhost/v1/meetings/m/notes', ({ request }) => {
+      unknownKeys.push(request.headers.get('Idempotency-Key') ?? '')
+      return HttpResponse.error()
+    }),
+  )
+  const unknown = await writes.add.submit({ ...target, body: { content: 'unknown' } })
+  expect(unknown.kind).toBe('unknown_outcome')
+  if (unknown.kind === 'unknown_outcome') expect(unknown.retry).toBeNull()
+  expect(unknownKeys).toHaveLength(2)
+  expect(unknownKeys[0]).toBe(unknownKeys[1])
   app.unmount()
   client.clear()
 })

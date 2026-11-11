@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { useKeylessMutation } from '@/modules/organization/public'
 import { programHeaders } from '@/modules/work/public'
-import { api } from '@/shared/http'
+import { api, authSession } from '@/shared/http'
 import {
   isDetached,
   markDetached,
@@ -51,14 +51,33 @@ export function useAddMeetingNote() {
   return { ...mutation, submit }
 }
 export function useUpdateMeetingNote() {
-  const owner = ownerLife()
   const store = useScopeStore()
+  let scopeVersion = 0
+  const off = store.onChange(() => {
+    scopeVersion += 1
+  })
+  const owner = ownerLife(off)
+  const origins = new WeakMap<UpdateNoteInput, () => boolean>()
+  function capture(vars: UpdateNoteInput) {
+    const version = scopeVersion
+    const generation = authSession.generation
+    const accountId = authSession.snapshot.accountId
+    if (!origins.has(vars))
+      origins.set(
+        vars,
+        () =>
+          owner.alive() &&
+          version === scopeVersion &&
+          generation === authSession.generation &&
+          accountId === authSession.snapshot.accountId,
+      )
+  }
   async function readCurrent(vars: UpdateNoteInput) {
     const controller = new AbortController()
     const seen = new Set<string>()
     let cursor: string | undefined
     do {
-      if (!owner.alive() || store.snapshot.programId !== vars.programId) return null
+      if (!origins.get(vars)?.()) return null
       const page = await sessionBound(({ signal }) =>
         fetchMeetingNotes(vars.programId, vars.id, cursor, signal),
       )({ signal: controller.signal })
@@ -73,12 +92,14 @@ export function useUpdateMeetingNote() {
   return useKeylessMutation<UpdateNoteInput, MeetingNote>({
     operation: 'updateMeetingNote',
     readCurrent,
-    send: (vars, ctx) =>
-      api.PATCH('/v1/meeting-notes/{noteId}', {
+    send: (vars, ctx) => {
+      capture(vars)
+      return api.PATCH('/v1/meeting-notes/{noteId}', {
         params: { header: programHeaders(vars), path: { noteId: vars.noteId } },
         body: vars.body,
         signal: ctx.signal,
-      }),
+      })
+    },
   })
 }
 export function useDeleteMeetingNote() {
