@@ -30,6 +30,20 @@ function finish(
   } else notifyOutcome(result)
 }
 
+function locked(action: () => Promise<void>) {
+  const busy = ref(false)
+  async function run() {
+    if (busy.value) return
+    busy.value = true
+    try {
+      await action()
+    } finally {
+      busy.value = false
+    }
+  }
+  return { busy, run }
+}
+
 export function useNoteEdit(
   target: () => MeetingTarget,
   version: () => number,
@@ -41,7 +55,7 @@ export function useNoteEdit(
   const conflict = useConflictResolver()
   const editing = shallowRef<MeetingNote | null>(null)
   const editDraft = ref('')
-  async function saveNote() {
+  async function performSave() {
     const base = editing.value
     if (!base || !validEdit(scope.programId, editDraft.value)) return
     const started = version()
@@ -87,5 +101,6 @@ export function useNoteEdit(
     if (!isCurrent(next, started, version)) return
     finish(next, editing, refresh)
   }
-  return { update, conflict, editing, editDraft, saveNote }
+  const { busy, run: saveNote } = locked(performSave)
+  return { update, conflict, editing, editDraft, saveNote, busy }
 }
