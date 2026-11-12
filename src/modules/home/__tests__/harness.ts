@@ -215,6 +215,7 @@ export async function mountWith(
     routes: [
       { path: '/', name: 'home', component: empty },
       { path: '/gorevler', name: 'work.tasks', component: empty },
+      { path: '/silinen-kayitlar', name: 'deleted-records.list', component: empty },
     ],
   })
   await router.push('/')

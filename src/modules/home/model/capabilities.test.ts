@@ -5,6 +5,7 @@ import { parseStanding, type Standing } from '@/shared/scope/standing-facts'
 import {
   canAddUser,
   canCreateMeeting,
+  canOpenDeletedRecords,
   canReadDashboard,
   HOME_CAPABILITY_SOURCES,
 } from './capabilities'
@@ -54,6 +55,15 @@ describe('ana sayfa capability', () => {
   it('program seçili değilse ya da olgu yoksa gizli (en dar güvenli)', () => {
     expect(canCreateMeeting(ADMIN, null)).toBe(false)
     expect(canAddUser(null, 'p1')).toBe(false)
+  })
+
+  it.each([
+    ['yönetici', ADMIN, true],
+    ['koordinatör', COORDINATOR, false],
+    ['salt üye', MEMBER, false],
+    ['olgu yok', null, false],
+  ] as const)('"Silinen kayıtlar" düğmesi (E-01-02, P36): %s → %s', (_n, facts, visible) => {
+    expect(canOpenDeletedRecords(facts)).toBe(visible)
   })
 
   it('her kararın kaynağı yazılı', () => {

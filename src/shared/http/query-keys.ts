@@ -91,6 +91,23 @@ export const queryKeys = {
   deletedDepartments: {
     all: (s: ScopeSnapshot) => scoped(s, ['deleted-departments']),
   },
+  /**
+   * Silinmiş görevler (`listDeletedWorkItems`, S2, imleçli; 12 Silinen kayıtlar, W128). Kapsamlı:
+   * program değişince düşer. İstemci süzgeçleri (`tur`, `q`, aralık …) anahtara girmez; yalnız
+   * sayfa boyu gibi sunucu parametreleri `filters` içindedir.
+   */
+  deletedWorkItems: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-work-items']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-work-items', filters]),
+  },
+  /**
+   * Silinmiş hesaplar (`listDeletedAccounts`, S1, hesap geneli; W128). `users` kalıbı: kapsam
+   * değişince düşmez.
+   */
+  deletedAccounts: {
+    all: () => ['deleted-accounts'] as const,
+    list: (filters: QueryFilters) => ['deleted-accounts', filters] as const,
+  },
   workItems: {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['work-items', filters]),
@@ -165,6 +182,8 @@ export type QueryResource =
   | 'departments.assignable'
   | 'catalog.departments'
   | 'deletedDepartments'
+  | 'deletedWorkItems'
+  | 'deletedAccounts'
   | 'workItems.list'
   | 'workItems.item'
   | 'workItems.counts'
@@ -291,6 +310,15 @@ const REPORT_ORGANIZATION_WRITES = [
   // sonrası rozet bayat kalıyordu).
   'requestDateChange',
   'reviewDateChangeRequest',
+  // Pano `deleted_records` (12 Silinen kayıtlar, ana sayfa E-01-02 sayacı) silinen toplantı,
+  // departman ve hesapları sayar: silme, geri yükleme ve kalıcı silme sayacı değiştirir (W128).
+  'deleteMeeting',
+  'restoreMeeting',
+  'permanentDeleteMeeting',
+  'restoreDepartment',
+  'permanentDeleteDepartment',
+  'restoreAccount',
+  'permanentDeleteAccount',
 ] as const satisfies readonly OperationId[]
 
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
@@ -317,7 +345,14 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // K6 yetki kaybı ayrıca standing katmanında; burada üyelik değişiklikleri. Kenar menüsü
   // birim adı `me/departments`'tan okunur (08 §5: `renameDepartmentLink`, kopyalı bağ);
   // hedef = çağıran olan `updateUser` adı/yöneticiliği değiştirir (05 §5).
-  me: unique(MEMBERSHIP_WRITES, ['renameDepartmentLink', 'linkDepartment', 'updateUser']),
+  // Silinmiş departmanın geri yüklenmesi üyelik yetkisini kendiliğinden geri getirir (K6; W128).
+  me: unique(MEMBERSHIP_WRITES, [
+    'renameDepartmentLink',
+    'linkDepartment',
+    'updateUser',
+    'restoreDepartment',
+    'permanentDeleteDepartment',
+  ]),
   // §6 (link/unlink/rename) + kodu değiştiren katalog güncellemesi ve katalog silme (08 §5).
   departments: [
     'linkDepartment',
@@ -335,6 +370,10 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'departments.assignable': unique(MEMBERSHIP_WRITES, ACCOUNT_LIFECYCLE_WRITES, ['createUser']),
   'catalog.departments': CATALOG_DEPARTMENT_WRITES,
   deletedDepartments: ['deleteDepartment', 'restoreDepartment', 'permanentDeleteDepartment'],
+  // 12 Silinen kayıtlar (W128): görev silme/geri yükleme/kalıcı silme silinen görev listesini
+  // yeniden okutur.
+  deletedWorkItems: ['deleteWorkItem', 'restoreWorkItem', 'permanentDeleteWorkItem'],
+  deletedAccounts: [...ACCOUNT_LIFECYCLE_WRITES],
   'workItems.list': unique(
     WORK_ITEM_WRITES,
     DATE_WRITES,
@@ -362,9 +401,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
   'workItems.dependencies': DEPENDENCY_WRITES,
   // Satırın `subtask_counts` alanı alt görev yazmalarıyla değişir (kapalı satır sayacı; CX-P-Ö-03).
+  // Geri yüklenen görev Gantt'a döner, kalıcı silinen zaten yoktu ama satır sayaçları değişebilir
+  // (12 Silinen kayıtlar, W128).
   gantt: unique(DATE_WRITES, DEPENDENCY_WRITES, SUBTASK_WRITES, [
     'createWorkItem',
     'deleteWorkItem',
+    'restoreWorkItem',
+    'permanentDeleteWorkItem',
   ]),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
   // Organizasyon yazmaları (W82a) ve rozetleri besleyen görev/tarih yazmaları geçersizler (WP3).
@@ -377,7 +420,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // 06 Arşiv: yükleme/ad/silme dört okuyucuyu (klasörler, görevler, dosyalar, yükleyenler) ve
   // programın bütün departman anahtarlarını yeniler (yönetici anahtarı rotadaki klasörü taşır).
   // Pano sayaçları (geciken, bekleyen talep) dosyaya bağlı değildir: pano geçersizlenmez.
-  archive: FILE_WRITES,
+  // Geri yüklenen görevin dosyaları erişilebilir döner, kalıcı silinen görevin dosyaları gider
+  // (RECORDS; 12 Silinen kayıtlar, W128).
+  archive: unique(FILE_WRITES, ['restoreWorkItem', 'permanentDeleteWorkItem']),
   meetings: [
     'createMeeting',
     'updateMeeting',
@@ -524,6 +569,8 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'departments.assignable': (scope) => departmentChild(scope, 'assignable'),
   'catalog.departments': prefix(() => queryKeys.catalog.departments()),
   deletedDepartments: prefix(queryKeys.deletedDepartments.all),
+  deletedWorkItems: prefix(queryKeys.deletedWorkItems.all),
+  deletedAccounts: prefix(() => queryKeys.deletedAccounts.all()),
   'workItems.list': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),

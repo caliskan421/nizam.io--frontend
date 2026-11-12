@@ -14,6 +14,7 @@ import {
   row,
   sent,
   server,
+  settle,
   standingHandlers,
   type StandingFixture,
 } from '../__tests__/harness'
@@ -51,18 +52,55 @@ const quickKeys = ({ wrapper }: Page) =>
   wrapper.findAll('[data-quick]').map((q) => q.attributes('data-quick'))
 
 describe('01 Ana sayfa — F1 sade', () => {
-  it('selamlama tam full_name (ilk sözcük değil); F6 bölgeleri DOM’da yok', async () => {
+  it('selamlama tam full_name (ilk sözcük değil); F6 bölgeleri DOM’da yok (E-01-02 hariç)', async () => {
     server.use(...standingHandlers(ADMIN), dashboardHandler())
     const page = await mountWith(HomePage, ADMIN_SCOPE)
     expect(page.wrapper.get('[data-testid="home-greeting"]').text()).toBe('Merhaba Ayşe Nur Yılmaz')
     const text = page.wrapper.text()
-    for (const absent of ['Silinen kayıtlar', 'Rapor oluştur', 'Koordinatörlükler', 'ekip']) {
+    for (const absent of ['Rapor oluştur', 'Koordinatörlükler', 'ekip']) {
       expect(text, absent).not.toContain(absent)
     }
     expect(page.wrapper.find('[aria-labelledby="team-title"]').exists()).toBe(false)
     expect(page.wrapper.find('[aria-labelledby="coord-title"]').exists()).toBe(false)
     expect(page.wrapper.find('ol.rp-timeline').exists()).toBe(false)
     expect(page.wrapper.find('[data-design-stub="BE-010"]').exists()).toBe(true)
+  })
+
+  it('E-01-02 (F5, P36): yönetici "Silinen kayıtlar ‹deleted_records›" düğmesini görür, hedef /silinen-kayitlar', async () => {
+    server.use(...standingHandlers(ADMIN), dashboardHandler())
+    const page = await mountWith(HomePage, ADMIN_SCOPE)
+    const button = page.wrapper.get('[data-testid="home-deleted-records"]')
+    expect(button.text()).toContain('Silinen kayıtlar')
+    expect(button.find('.rp-count').text()).toBe('127')
+    expect(button.attributes('href')).toBe('/silinen-kayitlar')
+    // BE-119: sayı uyuşmazlığı düzeltilmez, açıklanır.
+    expect(button.attributes('title')).toContain('farklı olabilir')
+    expect(sent(DASHBOARD)).toHaveLength(1)
+    await button.trigger('click')
+    await settle()
+    expect(page.router.currentRoute.value.name).toBe('deleted-records.list')
+  })
+
+  it('E-01-02: yönetici Koordinatör merceğinde de düğmeyi görür ama pano çağrılmaz, sayı yok (P1)', async () => {
+    server.use(
+      ...standingHandlers({ ...ADMIN, rows: [{ department_id: 'd1', role: 'koordinator' }] }),
+      countsHandler(ROWS),
+      dashboardHandler(),
+    )
+    const page = await mountWith(HomePage, COORD_SCOPE)
+    const button = page.wrapper.get('[data-testid="home-deleted-records"]')
+    expect(button.find('.rp-count').exists()).toBe(false)
+    expect(sent(DASHBOARD)).toHaveLength(0)
+  })
+
+  it.each([
+    ['koordinatör', COORDINATOR, COORD_SCOPE],
+    ['salt üye', MEMBER, MEMBER_SCOPE],
+  ] as const)('E-01-02: %s için düğme DOM’da yok', async (_name, fixture, scope) => {
+    server.use(...standingHandlers(fixture), countsHandler(ROWS))
+    const page = await mountWith(HomePage, scope)
+    expect(page.wrapper.find('[data-testid="home-deleted-records"]').exists()).toBe(false)
+    expect(page.wrapper.text()).not.toContain('Silinen kayıtlar')
   })
 
   it('Admin merceği: KPI pano ucundan; görev listesi istenmez; üç hızlı işlem', async () => {
