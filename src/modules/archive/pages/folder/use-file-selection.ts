@@ -67,13 +67,21 @@ export function useFileSelection(input: Input) {
     if (found) last = found
     return found ?? (input.holding?.value && last?.file_id === fileId.value ? last : null)
   })
-  const position = computed(() => filePosition(files.value, fileId.value))
   const snapshot = useListedSnapshot(input)
-  const seeking = ref(false)
+  /** Uçuştaki derin bağlantı aramaları (sayaç: eski devam yenisini silmesin). */
+  const seeking = ref(0)
+  /**
+   * Seçim nesli (CX-F5-Ö-01): kapatma, silinme, başka dosya/süzgeç (`?dosya` değişimi) nesli
+   * artırır; sayfa beklerken başlayan asenkron gezinme çözülünce nesil değiştiyse hükümsüzdür
+   * (seçim, URL yazımı, panel, odak değişmez).
+   */
+  let generation = 0
+  watch(fileId, () => generation++, { flush: 'sync' })
 
   function dropTo(id: string): void {
     // Koordinatör kararı: silinince önizleme KAPANIR; odak komşu karta (yoksa dosya başlığına).
     const next = snapshot.neighbor(id)
+    generation++
     void input.select(null, 'replace')
     focusFile(input.root.value, next?.file_id ?? null)
   }
@@ -85,9 +93,9 @@ export function useFileSelection(input: Input) {
       if (id === null || selected.value !== null || !input.settled.value) return
       if (snapshot.wasListed(id)) return dropTo(id)
       if (input.hasMore.value && !input.fetchingMore.value) {
-        seeking.value = true
-        void input.loadMore().finally(() => (seeking.value = false))
-      } else if (!input.hasMore.value && !seeking.value) {
+        seeking.value++
+        void input.loadMore().finally(() => seeking.value--)
+      } else if (!input.hasMore.value && seeking.value === 0) {
         void input.select(null, 'replace')
       }
     },
@@ -96,6 +104,7 @@ export function useFileSelection(input: Input) {
 
   function close(): void {
     const id = fileId.value
+    generation++
     void input.select(null, 'push')
     focusFile(input.root.value, id)
   }
@@ -105,7 +114,9 @@ export function useFileSelection(input: Input) {
     if (to) return void input.select(to.file_id, 'replace')
     if (direction === 'next' && input.hasMore.value) {
       const before = files.value.length
+      const token = generation
       await input.loadMore()
+      if (token !== generation) return
       const next = files.value[before]
       if (next) void input.select(next.file_id, 'replace')
     }
@@ -113,7 +124,7 @@ export function useFileSelection(input: Input) {
 
   return {
     selected,
-    position,
+    position: computed(() => filePosition(files.value, fileId.value)),
     close,
     previous: () => go('previous'),
     next: () => go('next'),

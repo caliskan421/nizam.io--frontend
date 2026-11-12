@@ -40,5 +40,27 @@ export function useArchiveTaskFolders(
       ready,
     }
   })
-  return { tasks, work, folders }
+  /**
+   * Kesişimin iki bağımlılığının hatası BİRLİKTE (Ö-02): ilk okuması başarısız olan kaynak
+   * (`source`) ve hatası. Veri bir kez geldiyse sonraki yenileme hatası ekranı bozmaz.
+   */
+  const failure = computed(() => {
+    if (folders.value.ready) return null
+    if (tasks.isError.value && tasks.data.value === undefined) {
+      return { source: 'tasks' as const, error: tasks.error.value }
+    }
+    if (adminFolder.value && work.query.isError.value && work.query.data.value === undefined) {
+      return { source: 'work' as const, error: work.query.error.value }
+    }
+    return null
+  })
+  /** "Yeniden dene": kesişimin her iki sorgusu (yönetici dışında yalnız `archiveTasks`). */
+  function retry(): void {
+    void tasks.refetch()
+    if (adminFolder.value) void work.query.refetch()
+  }
+  const retrying = computed(
+    () => tasks.isFetching.value || (adminFolder.value && work.query.isFetching.value),
+  )
+  return { tasks, work, folders, failure, retry, retrying }
 }
