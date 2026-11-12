@@ -9,6 +9,8 @@
 ## Özet
 Oturum açan kişinin seçili kapsamdaki genel durumunu tek sayfada gösterir: selamlama ve "Silinen kayıtlar", dört görev KPI'ı (Tamamlanma, Açık görev, Gecikmede, Onay bekleyen), "Hızlı işlemler" (Yeni görev, Toplantı oluştur, Kullanıcı davet et, Rapor oluştur), "Son işlemler" akışı, ekip şeridi (kullanıcı/koordinatörlük ve rol sayıları) ve süzülüp sıralanabilen koordinatörlük kartları (görev dağılımı, geciken, kullanıcı, arşiv, son yükleme). Tasarımda rol ayrımı yok; tek artboard içeriği yönetici merceğini düşündürüyor. Koordinatör/üye için yalnız örnek veride kalmış, çizilmeyen "kişisel kısayollar" ve "dikkat kuyrukları" var (`ozellikler.md` §2.7). Ana veri kaynağı yönetici için rapor/pano uçları, koordinatör/üye için mevcut görev uçları (K14, BE-009); "Son işlemler" için kaynak yok (BE-010, statik).
 
+**F6 hazırlığı:** tam ana sayfa (koordinatörlük kartları, ekip şeridi, "Rapor oluştur") için [WEB-6 iskeleti](../../yurutme/web-6/README.md) — F6 AÇILMADI (kullanıcı onayı + pin yeterliliği). "Silinen kayıtlar" düğmesi F5'te canlandı ([12](../12-silinen-kayitlar/README.md)).
+
 **Faz dağılımı (karar — P6, ürün sahibi 2026-11-08; `../ortak-kurallar.md` §12):** F1 = selamlama + KPI şeridi + hızlı işlemler + nötr "Son işlemler" yer tutucusu; koordinatörlük kartları, ekip şeridi, "Rapor oluştur" ve "Silinen kayıtlar" F6 (F1'de gizli). Satır satır karar: "Uygulama kararı tablosu".
 
 | Bölge | F1 sade | F6 tam | Gerekçe |
