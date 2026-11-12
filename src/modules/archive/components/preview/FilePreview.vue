@@ -195,6 +195,7 @@ function onKeydown(event: KeyboardEvent): void {
     <FileActions
       :file="file"
       :target="target"
+      @removing="emit('removing', $event)"
       @deleted="afterRemoved"
       @renamed="(fileId: string) => emit('renamed', fileId)"
     />

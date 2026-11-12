@@ -19,6 +19,8 @@ interface Input {
   loadMore: () => Promise<void>
   fetchingMore: Ref<boolean>
   settled: Ref<boolean>
+  /** Silme uçuşta: seçili dosya listeden düşse de panel (ve sonucu) açık kalır. */
+  holding?: Ref<boolean>
   fileId: Ref<string | null>
   select: (id: string | null, mode: 'push' | 'replace') => unknown
 }
@@ -36,12 +38,13 @@ function focusFile(root: HTMLElement | null, id: string | null): void {
 }
 
 /** Seçili dosyanın listede göründüğü son liste (silinince komşu buradan bulunur). */
-function useListedSnapshot(input: Input, selected: Ref<ArchiveFile | null>) {
+function useListedSnapshot(input: Input) {
   let known: readonly ArchiveFile[] = []
   watch(
     [input.files, input.fileId],
     () => {
-      if (selected.value !== null) known = input.files.value
+      // Yalnız seçili dosya gerçekten listedeyken (silme sürerken tutulan panel sayılmaz).
+      if (input.files.value.some((f) => f.file_id === input.fileId.value)) known = input.files.value
     },
     { immediate: true, flush: 'sync' },
   )
@@ -58,9 +61,14 @@ function useListedSnapshot(input: Input, selected: Ref<ArchiveFile | null>) {
 
 export function useFileSelection(input: Input) {
   const { files, fileId } = input
-  const selected = computed(() => files.value.find((f) => f.file_id === fileId.value) ?? null)
+  let last: ArchiveFile | null = null
+  const selected = computed(() => {
+    const found = files.value.find((f) => f.file_id === fileId.value) ?? null
+    if (found) last = found
+    return found ?? (input.holding?.value && last?.file_id === fileId.value ? last : null)
+  })
   const position = computed(() => filePosition(files.value, fileId.value))
-  const snapshot = useListedSnapshot(input, selected)
+  const snapshot = useListedSnapshot(input)
   const seeking = ref(false)
 
   function dropTo(id: string): void {
@@ -71,7 +79,7 @@ export function useFileSelection(input: Input) {
   }
 
   watch(
-    [fileId, files, input.hasMore, input.settled],
+    [fileId, files, input.hasMore, input.settled, selected],
     () => {
       const id = fileId.value
       if (id === null || selected.value !== null || !input.settled.value) return
