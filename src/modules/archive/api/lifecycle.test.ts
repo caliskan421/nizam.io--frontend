@@ -2,6 +2,8 @@
 // oturuma yazılmaz; yazmaların geç sonucu sökülmüş sahibe ulaşmaz (`reachesOwner`).
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { effectScope } from 'vue'
+
 import { authSession } from '@/shared/http'
 import { isDetached, reachesOwner } from '@/shared/http/mutation'
 import { settleQueries } from '@/shared/http/__tests__/settle'
@@ -138,11 +140,17 @@ describe('yazmalar: geç sonuç sahibe ulaşmaz', () => {
         }),
       )
       const h = harness(COORD)
-      const { result, app } = h.run(() => ({
-        rename: useRenameArchiveFile(),
-        remove: useDeleteArchiveFile(),
-        attach: useAttachArchiveFile(),
-      }))
+      // Sahip = hook'ların kurulduğu etki kapsamı: yalnız o söküldüğünde yazma sahipsiz sayılır.
+      // Uygulama/QueryClient ayakta kalır; böylece başarı geçersizlemesi sökümle yarışmaz.
+      const { result } = h.run(() => {
+        const owner = effectScope()
+        const hooks = owner.run(() => ({
+          rename: useRenameArchiveFile(),
+          remove: useDeleteArchiveFile(),
+          attach: useAttachArchiveFile(),
+        }))!
+        return { ...hooks, owner }
+      })
       const ref = { target, workItemId: 'w1', fileId: 'f1' }
       const pending =
         kind === 'rename'
@@ -151,7 +159,7 @@ describe('yazmalar: geç sonuç sahibe ulaşmaz', () => {
             ? result.remove.submit(ref)
             : result.attach.submit({ target, workItemId: 'w1', file: file(), tag: 'plan' })
       await g.hit
-      app.unmount()
+      result.owner.stop()
       g.release()
       const outcome = await pending
       expect(outcome.kind).toBe('success')
