@@ -37,7 +37,7 @@ Son sütun: koordinatörün verdiği/önerilen kimlik (`kayit.md` sonuna yazıld
 - **Departman satırı:** ad, kod, tür, `deleted_at`; silen ve görev sayısı yok. Kalıcı silme önkoşulu (`department_in_use`) satırda önceden bilinemez; 409 sonrası mesaj.
 - **Hesap satırı:** yalnız ad; silinme tarihi/silen/rol/e-posta yok.
 - **Sayfalama:** imleç var, toplam yok; "x / y" biçimi uygulanamaz.
-- **Geri yükle sonucu:** `restoreWorkItem` 409 `work.department_unavailable` (koordinatörlük silinmiş/programda değil) → kullanıcı önce departmanı geri yüklemeli: aynı ekranda "Koordinatörlük" türü bu yolu açar (E-12-16 önerisi gerekçesi).
+- **Geri yükle sonucu:** `restoreWorkItem` 409 `work.department_unavailable` (koordinatörlük silinmiş/programda değil) → kullanıcı önce departmanı geri yüklemeli: aynı ekranda "Koordinatörlük" türü bu yolu açar (E-12-16, P41 kabul).
 - **İz kaydı notu:** işlem geçmişi ekranı (01b) v1 dışı; metindeki "işlem geçmişine kaydedilir" cümlesi doğru (audit satırı yazılır) ama bağlantı yok.
 - **Geri yükleme kapsamı cümlesi:** tasarım "alt görevleri, dosyaları ve yorumlarıyla birlikte döner" der. Görevde alt görevler ve dosyalar silmede kalır (WORK-K29/K74) ve geri yüklemede erişilir olur; yorum (not) silmede ayrı işlenmiyor (bilinmiyor); hesapta devredilmiş atamalar **dönmez** (K29), toplantıda konferans **dönmez** (K50), departmanın görevleri **dönmez**. Cümle bu yüzden tüm türler için doğru değildir → gizlenir (P37 metni yalnız saklama cümlesidir).
 
