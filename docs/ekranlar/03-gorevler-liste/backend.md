@@ -71,9 +71,9 @@ Satır numaraları `istemci-akislari.md` dosyasındaki tablo satırlarıdır. "K
 | E-03-62 | Notları oku | Yönetici, koordinatör, atanmış üye (s. 143) | — |
 | E-03-62 | Not yaz | Koordinatör, atanmış üye (s. 144); **yönetici her durumda gizli** | `me.company_admin` |
 | E-03-62 | Notu düzenle/sil | Yalnız yazarı + kapsamda ekip satırı (s. 145) | `author_account_id == me.account_id` |
-| E-03-52, E-03-35 | Kanıt / dosya yükle | Koordinatör, atanmış üye (s. 148); **yönetici her durumda gizli** | `me.company_admin` |
+| E-03-52, E-03-35 | Kanıt / dosya yükle | Yönetici (ekip satırı/atama aranmaz), koordinatör, atanmış üye (s. 148) — **v0.15 ADR-0030** (eski v0.11 "yönetici her durumda gizli" kalktı) | `me.company_admin` |
 | E-03-61 | Dosya adı değiştir | Yönetici, koordinatör, yükleyen (s. 149) | `uploaded_by_account_id` |
-| E-03-61 | Dosya sil | Yalnız yükleyen (s. 150) | `uploaded_by_account_id == me.account_id` |
+| E-03-61 | Dosya sil | Yalnız yükleyen ∧ (yönetici ∨ kapsamda ekip satırı) (s. 150) — **v0.15 ADR-0030** (yükleyen yönetici ekip satırı olmadan siler; başkasınınkini silemez) | `uploaded_by_account_id == me.account_id` |
 | E-03-54 | Tarih değişikliği iste | Koordinatör (s. 151); `pending_date_request != null` ise gizli (ikinci talep 409) | `pending_date_request` |
 | E-03-14 | Talepleri incele (onay/red) | Yönetici (s. 152) | — |
 | E-03-13, E-03-26, E-03-09 | Talep bandı / etiketi / süzgeci | Veri yönetici ve koordinatöre dolar; üyede hep `null` → bant ve süzgeç üyede gizli (WORK-K82, §6) | `pending_date_request` |
