@@ -56,3 +56,6 @@ Ham madde (`rapor-F5.md` için), sıra ve bağımlılık önerisi:
 4. **Paket D — Saklama politikası (M–L, ürün kararı):** BE-112. Önce ürün sahibi kararı (süre var mı), sonra iş + alan.
 5. **Paket E — Yeni silinen türleri (L):** BE-109 (alt görev), BE-111 (not/gündem), BE-076 (dosya, mevcut). Model değişikliği; v1 sonrası.
 Sıra önerisi: A → B → C; D ürün kararıyla paralel; E en sonda.
+
+## 6. Eksik satırı olmayan kimlikler
+`ozellikler.md` kimliklerinden bu dosyada geçmeyenler ya salt arayüzdür (başlık, konum yolu, ham metin, boş/hata durumu, seçilmeyen 01c varyantı E-12-65) ya da karşılığı backend'de vardır ve `backend.md` §1–§2, §7'de eşlenmiştir (ör. E-12-10, 13, 14 canlı türler; E-12-35, 36, 58, 59 yazma uçları). Eksik olan her tasarım öğesi §2'de bir `yeni-N` ya da §1'de mevcut BE satırına bağlıdır.
