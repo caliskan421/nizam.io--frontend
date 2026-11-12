@@ -1,5 +1,5 @@
-import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { enableAutoUnmount } from '@vue/test-utils'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { isValidIdempotencyKey } from '@/shared/http/mutation'
@@ -281,11 +281,13 @@ describe('UploadDialog — yükleme (attachFile)', () => {
     await fill(m)
     await body().find('form').trigger('submit')
     await hold.reached
-    await flushPromises()
-    expect(body().find('[data-testid="upload-progress"]').exists()).toBe(true)
-    expect(
-      (body().find('[data-testid="upload-submit"]').element as HTMLButtonElement).disabled,
-    ).toBe(true)
+    // TanStack durum bildirimi toplu/asenkron gelir: sabit flush yerine KOŞUL beklemesi.
+    await vi.waitFor(() => {
+      expect(body().find('[data-testid="upload-progress"]').exists()).toBe(true)
+      expect(
+        (body().find('[data-testid="upload-submit"]').element as HTMLButtonElement).disabled,
+      ).toBe(true)
+    })
     await body().find('[role="dialog"]').trigger('keydown', { key: 'Escape' })
     expect(m.events.closed).toBe(0)
     hold.release()
