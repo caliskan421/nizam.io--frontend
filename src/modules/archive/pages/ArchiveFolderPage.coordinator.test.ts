@@ -168,10 +168,10 @@ describe('07 koordinatör: başlık, ağaç, görev klasörleri, dosyalar', () =
     expect(sent('GET', '/v1/records/archive/attachments').length).toBeGreaterThan(before)
   })
 
-  it('klasör ZIP (W126) ve Yükle yetkili koordinatöre çizilir; üyede Yükle de var, K1 görünürlüğü', async () => {
+  it('klasör ZIP ve Yükle yetkili koordinatöre çizilir; üyede Yükle de var, K1 görünürlüğü', async () => {
     server.use(...K, ...archiveBackend({ files: FILES }))
     const { wrapper } = await mountPage('/arsiv/d1', COORD)
-    expect(wrapper.find('[data-testid="zip"]').attributes('data-folder')).toBe('d1')
+    expect(wrapper.find('[data-testid="folder-zip"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="folder-upload"]').exists()).toBe(true)
   })
 

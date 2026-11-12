@@ -1,12 +1,12 @@
 // 07 sayfa testleri: GERÇEK API istemcisi + MSW (arşiv harness'ı), gerçek Pinia kapsam deposu,
-// TanStack Query ve bellek router'ı. Komşu W bileşenleri (FilePreview W124, UploadDialog W125,
-// FolderZipButton W126) sözleşme adlarıyla TASLAKLANIR (KESİN 16; O3/W127 entegrasyon girdisi).
+// TanStack Query ve bellek router'ı. Komşu W bileşenleri (FilePreview, UploadDialog,
+// FolderZipButton) GERÇEKTİR (zincir: o2-w124 @ 49ee71b); taslak yok.
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { defineComponent, h, type VNode } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import { i18n } from '@/shared/i18n'
 import { pageCrumb } from '@/shared/navigation/page-crumb'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
@@ -16,79 +16,6 @@ import { archiveFile, folder, http, json, ORIGIN } from '../../../model/__tests_
 import ArchiveFolderPage from '../../ArchiveFolderPage.vue'
 
 export { archiveFile, folder }
-
-/** Taslakların gözlediği prop'lar (sözleşme: `components/index.ts`). */
-interface Observed {
-  file: { file_id: string; work_item_id: string }
-  position: number
-  total: number | null
-  target: { departmentId: string }
-  taskTitle: string | null
-  tasks: unknown
-  defaultTaskId: string | null
-  folder: { folder_id: string }
-}
-
-/** Komşu W bileşeninin sözleşme adlı taslağı; props `render` ile gözlem özniteliklerine yazılır. */
-function stub(
-  name: string,
-  props: string[],
-  emits: string[],
-  render: (p: Observed, emit: (event: string, ...args: unknown[]) => void) => VNode,
-) {
-  return defineComponent({
-    name,
-    props: Object.fromEntries(props.map((p) => [p, { type: null }])),
-    emits,
-    setup:
-      (p, { emit }) =>
-      () =>
-        render(p as unknown as Observed, emit as (event: string, ...args: unknown[]) => void),
-  })
-}
-
-const button = (act: string, onClick: () => void) => h('button', { 'data-act': act, onClick }, act)
-
-/** TASLAK: FilePreview (W124) — props `data-*` ile gözlenir. */
-export const FilePreviewStub = stub(
-  'FilePreview',
-  ['file', 'position', 'total', 'hasMore', 'target', 'taskTitle'],
-  ['close', 'previous', 'next', 'deleted', 'renamed', 'openTask'],
-  (p, emit) =>
-    h('aside', { 'data-testid': 'preview', 'data-file': p.file.file_id }, [
-      h('span', { 'data-testid': 'preview-pos' }, `${p.position}/${p.total ?? 'n+'}`),
-      h('span', { 'data-testid': 'preview-dept' }, p.target.departmentId),
-      h('span', { 'data-testid': 'preview-task' }, p.taskTitle ?? ''),
-      button('close', () => emit('close')),
-      button('previous', () => emit('previous')),
-      button('next', () => emit('next')),
-      button('deleted', () => emit('deleted', p.file.file_id)),
-      button('task', () => emit('openTask', p.file.work_item_id)),
-    ]),
-)
-
-/** TASLAK: UploadDialog (W125). */
-export const UploadDialogStub = stub(
-  'UploadDialog',
-  ['tasks', 'defaultTaskId'],
-  ['close', 'uploaded'],
-  (p, emit) =>
-    h('div', { 'data-testid': 'upload-dialog', 'data-default': String(p.defaultTaskId) }, [
-      h('span', { 'data-testid': 'upload-tasks' }, JSON.stringify(p.tasks)),
-      button('close', () => emit('close')),
-    ]),
-)
-
-/** TASLAK: FolderZipButton (W126). */
-export const FolderZipStub = stub('FolderZipButton', ['target', 'folder'], [], (p) =>
-  h('button', { 'data-testid': 'zip', 'data-folder': p.folder.folder_id }, 'zip'),
-)
-
-export const STUBS = {
-  FilePreview: FilePreviewStub,
-  UploadDialog: UploadDialogStub,
-  FolderZipButton: FolderZipStub,
-}
 
 const mounted: VueWrapper[] = []
 
@@ -120,7 +47,7 @@ export async function mountPage(path: string, selection: ScopeSelection): Promis
   })
   await router.push(path)
   const wrapper = mount(ArchiveFolderPage, {
-    global: { plugins: [pinia, [VueQueryPlugin, { queryClient }], router], stubs: STUBS },
+    global: { plugins: [pinia, [VueQueryPlugin, { queryClient }], router, i18n] },
     attachTo: document.body,
   })
   mounted.push(wrapper)
@@ -186,6 +113,9 @@ export function archiveBackend(b: Backend = {}) {
       }
       return json({ files: list })
     }),
+    // FilePreview yan okumaları (yükleyen adı / alt görev adı).
+    http.get(`${ORIGIN}/v1/work-items/:id/files`, () => json({ files: [] })),
+    http.get(`${ORIGIN}/v1/work-items/:id/subtasks`, () => json({ subtasks: [] })),
     http.get(`${ORIGIN}/v1/program/work-items`, () =>
       json({ items: b.workItems ?? [], ...(b.workNext ? { next_cursor: b.workNext } : {}) }),
     ),

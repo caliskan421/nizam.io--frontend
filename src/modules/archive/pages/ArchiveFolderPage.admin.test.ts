@@ -134,20 +134,13 @@ describe('07 yönetici merceği (P33)', () => {
     expect(router.currentRoute.value.fullPath).toBe('/arsiv/d1')
   })
 
-  it('Yükle: yönetici ekip satırı aranmadan görür; görevler klasörün departmanıyla, ön seçili ?gorev', async () => {
+  it('Yükle: yönetici ekip satırı aranmadan görür; görevler klasörün görevleri, ön seçili ?gorev', async () => {
     server.use(...A, ...backend({ files: [archiveFile()] }))
     const { wrapper, settle } = await mountPage('/arsiv/d7?gorev=w1', ADMIN)
     await wrapper.find('[data-testid="folder-upload"]').trigger('click')
     await settle()
-    const dialog = wrapper.find('[data-testid="upload-dialog"]')
-    expect(dialog.attributes('data-default')).toBe('w1')
-    const tasks = JSON.parse(wrapper.find('[data-testid="upload-tasks"]').text()) as {
-      workItemId: string
-      departmentId: string
-    }[]
-    expect(tasks.map((t) => [t.workItemId, t.departmentId])).toEqual([
-      ['w1', 'd7'],
-      ['w2', 'd7'],
-    ])
+    const select = document.body.querySelector<HTMLSelectElement>('[data-testid="upload-task"]')!
+    expect(select.value).toBe('w1')
+    expect([...select.options].map((o) => o.value).filter(Boolean)).toEqual(['w1', 'w2'])
   })
 })

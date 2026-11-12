@@ -26,51 +26,45 @@ afterAll(() => server.close())
 const K = standing({ rows: [['p1', 'd1', 'koordinator']] })
 const U = standing({ rows: [['p1', 'd1', 'uye']] })
 
-describe('Yükle (W125 UploadDialog bağlama, E-06-35)', () => {
-  it('düğme pencereyi açar: görevler klasör departmanıyla, ön seçili görev yok; kapanınca odak düğmeye döner', async () => {
+const body = () => document.body
+
+describe('Yükle (UploadDialog bağlama, E-06-35)', () => {
+  it('düğme pencereyi açar: görevler klasör departmanıyla (ada göre), ön seçili görev yok; kapanınca odak düğmeye döner', async () => {
     server.use(...K, ...archiveBackend({ files: manyFiles(2) }))
     const { wrapper, settle } = await mountPage('/arsiv/d1', COORD)
     const trigger = wrapper.find('[data-testid="folder-upload"]')
     ;(trigger.element as HTMLElement).focus()
     await trigger.trigger('click')
     await settle()
-    const dialog = wrapper.find('[data-testid="upload-dialog"]')
-    expect(dialog.attributes('data-default')).toBe('null')
-    const tasks = JSON.parse(wrapper.find('[data-testid="upload-tasks"]').text()) as {
-      workItemId: string
-      title: string
-      departmentId: string
-    }[]
-    // Ada göre sıralı (Türkçe), hepsi isteğin departman başlığı.
-    expect(tasks.map((t) => [t.title, t.departmentId])).toEqual([
-      ['Gölgelendirme çalışmaları', 'd1'],
-      ['İklimlendirme hesapları', 'd1'],
+    const select = body().querySelector<HTMLSelectElement>('[data-testid="upload-task"]')!
+    expect(select).not.toBeNull()
+    expect([...select.options].filter((o) => o.value).map((o) => o.text)).toEqual([
+      'Gölgelendirme çalışmaları',
+      'İklimlendirme hesapları',
     ])
-    ;(
-      wrapper.find('[data-testid="upload-dialog"] [data-act="close"]').element as HTMLElement
-    ).focus()
-    await wrapper.find('[data-testid="upload-dialog"] [data-act="close"]').trigger('click')
+    expect(select.value).toBe('')
+    body().querySelector<HTMLButtonElement>('[data-testid="upload-cancel"]')!.click()
     await settle()
-    expect(wrapper.find('[data-testid="upload-dialog"]').exists()).toBe(false)
+    expect(body().querySelector('[data-testid="upload-task"]')).toBeNull()
     expect(document.activeElement).toBe(trigger.element)
   })
 
-  it('seçili görev klasörü (?gorev) yükleme penceresine defaultTaskId olarak gider', async () => {
+  it('seçili görev klasörü (?gorev) yükleme penceresinde ön seçili gelir', async () => {
     server.use(...K, ...archiveBackend({ files: manyFiles(2) }))
     const { wrapper, settle } = await mountPage('/arsiv/d1?gorev=w2', COORD)
     await wrapper.find('[data-testid="folder-upload"]').trigger('click')
     await settle()
-    expect(wrapper.find('[data-testid="upload-dialog"]').attributes('data-default')).toBe('w2')
+    expect(body().querySelector<HTMLSelectElement>('[data-testid="upload-task"]')!.value).toBe('w2')
   })
 
   it('kapsam değişince açık pencere kapanır', async () => {
     server.use(...K, ...archiveBackend({ files: manyFiles(2) }))
     const { wrapper, store, settle } = await mountPage('/arsiv/d1', COORD)
     await wrapper.find('[data-testid="folder-upload"]').trigger('click')
-    expect(wrapper.find('[data-testid="upload-dialog"]').exists()).toBe(true)
+    expect(body().querySelector('[data-testid="upload-task"]')).not.toBeNull()
     store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd2' })
     await settle()
-    expect(wrapper.find('[data-testid="upload-dialog"]').exists()).toBe(false)
+    expect(body().querySelector('[data-testid="upload-task"]')).toBeNull()
   })
 })
 
@@ -87,7 +81,7 @@ describe('üye: sanal "Görevlerim" klasörü', () => {
     const { wrapper } = await mountPage('/arsiv/my-tasks', MEMBER)
     expect(wrapper.find('h1').text()).toBe('Görevlerim')
     expect(wrapper.findAll('[data-folder-id]')).toHaveLength(1)
-    expect(wrapper.find('[data-testid="zip"]').attributes('data-folder')).toBe('my-tasks')
+    expect(wrapper.find('[data-testid="folder-zip"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="folder-upload"]').exists()).toBe(true)
     expect(
       sent('GET', '/v1/records/archive/attachments')[0]!.headers.get('X-Nizamio-Department'),
@@ -101,7 +95,7 @@ describe('üye: sanal "Görevlerim" klasörü', () => {
       ...archiveBackend({ files: manyFiles(1) }).slice(1),
     )
     const { wrapper } = await mountPage('/arsiv/d1', COORD)
-    expect(wrapper.find('[data-testid="zip"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="folder-zip"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="folder-upload"]').exists()).toBe(false)
   })
 })
