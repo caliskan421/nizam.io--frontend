@@ -1,4 +1,4 @@
-import { enableAutoUnmount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { settleQueries } from '@/shared/http/__tests__/settle'
@@ -59,6 +59,22 @@ beforeEach(() => {
   setDefaultStanding(COORDINATOR)
   server.use(subtasksOk)
 })
+
+/** POST'u, istek sunucuya ULAŞANA dek (reached) ve `release` edilene dek bekleten kontrol noktası. */
+function holdPost(respond: () => Response) {
+  let release: () => void = () => {}
+  let arrived: () => void = () => {}
+  const gate = new Promise<void>((resolve) => (release = resolve))
+  const reached = new Promise<void>((resolve) => (arrived = resolve))
+  server.use(
+    http.post(POST, async () => {
+      arrived()
+      await gate
+      return respond()
+    }),
+  )
+  return { reached, release }
+}
 
 async function fill(m: Mounted, over: { task?: string; tag?: string; subtask?: string } = {}) {
   await pick('upload-task', over.task ?? 'w1')
@@ -260,25 +276,19 @@ describe('UploadDialog — yükleme (attachFile)', () => {
   })
 
   it('devam ederken ilerleme durumu görünür, alanlar ve kapatma kilitli; Esc kapatmaz', async () => {
-    let release: () => void = () => {}
-    const gate = new Promise<void>((resolve) => (release = resolve))
-    server.use(
-      http.post(POST, async () => {
-        await gate
-        return json(fileRecord, 201)
-      }),
-    )
+    const hold = holdPost(() => json(fileRecord, 201))
     const m = mountDialog()
     await fill(m)
     await body().find('form').trigger('submit')
-    await new Promise((r) => setTimeout(r, 0))
+    await hold.reached
+    await flushPromises()
     expect(body().find('[data-testid="upload-progress"]').exists()).toBe(true)
     expect(
       (body().find('[data-testid="upload-submit"]').element as HTMLButtonElement).disabled,
     ).toBe(true)
     await body().find('[role="dialog"]').trigger('keydown', { key: 'Escape' })
     expect(m.events.closed).toBe(0)
-    release()
+    hold.release()
     await settleQueries(m.h.queryClient)
     expect(m.events.closed).toBe(1)
   })
@@ -418,21 +428,14 @@ describe('UploadDialog — odak dönüşü (KESİN 27)', () => {
 
 describe('UploadDialog — sökülmüş sahip', () => {
   it('istek uçuşta sahip sökülürse geç sonuç emit, bildirim ya da akış başlatmaz', async () => {
-    let release: () => void = () => {}
-    const gate = new Promise<void>((resolve) => (release = resolve))
-    server.use(
-      http.post(POST, async () => {
-        await gate
-        return errorEnvelope('records.not_authorized', 403)
-      }),
-    )
+    const hold = holdPost(() => errorEnvelope('records.not_authorized', 403))
     const m = mountDialog()
     await fill(m)
     await body().find('form').trigger('submit')
-    await new Promise((r) => setTimeout(r, 0))
+    await hold.reached
     m.wrapper.unmount()
-    release()
-    await new Promise((r) => setTimeout(r, 0))
+    hold.release()
+    await settleQueries(m.h.queryClient)
     expect(m.events.uploaded).toEqual([])
     expect(m.events.closed).toBe(0)
     expect(useToast().queue.value).toHaveLength(0)
