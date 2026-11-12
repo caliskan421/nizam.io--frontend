@@ -116,7 +116,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P40 2026-11-12) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P41 2026-11-12) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -161,6 +161,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P38 | 06 alt başlık (2026-11-12) | **Ürün sahibi kararı.** "Görevlere yüklenen dosyalar" ("Kurumsal hafıza" metni kullanılmaz; BE-033 ad çakışması). |
 | P39 | "grup" / "çalışma grubu" rozeti (2026-11-12) | **Ürün sahibi kararı: gizli** (düz departman v1, K14). |
 | P40 | Koordinatör ve üye 06 (2026-11-12) | **Ürün sahibi kararı.** 06'yı atlayıp doğrudan kendi klasörüne (07) yönlenir (`/arsiv` → `/arsiv/<folder_id>`; üyede `my-tasks`). |
+| P41 | 12 Silinen kayıtlar "Koordinatörlük" türü (2026-11-12) | **Ürün sahibi kararı: eklenir.** Tasarımda çizilmemiş olsa da backend'de var olan silinen departmanlar (`listDeletedDepartments`/`restoreDepartment`/`permanentDeleteDepartment`, S2) tür segmentine "Koordinatörlük" düğmesi olarak ortak çip bileşeniyle en sade biçimde eklenir (P3). Kabul tablosunda E-12-16/E-12-68. |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 
