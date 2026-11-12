@@ -104,3 +104,17 @@ Kapsam değişince `scoped(...)` anahtarları düşer (K2); `deletedAccounts` he
 - Modül README: WORK-K29 (silme yumuşak, ekler kalır), K45 (yalnız ŞY ve seçili program; başka program 404), K46 (geri yükleme koşulları), K47 (kalıcı silme koşulları, eşzamanlı restore/purge tek kazanan), K48 (satır ve ek metadata ayrı transaction → GAP-052), K53, K74 (alt görevlere dokunmaz); COLLABORATION-K22/K23/K50/K77; RECORDS-K16 (dosya silme kalıcı; dosya çöp kutusu yok → BE-076).
 - Denetim: restore/purge audit satırı yazar (`audit.entry_rejected` 500 kodu bunu kanıtlar; iz kaydı notu E-12-40 doğru). Görev için eylem adları `work.item.restored/purged` (kod).
 - "Tümü Silinen" tek liste, toplu uç, çöpü boşalt, CSV, sunucu arama/sıralama/süzgeç, saklama süresi, silen (3 tür), alt görev/dosya/not-gündem silinenleri: **yok** → `eksikler.md`.
+
+## 7. Kimlik kapsama tamamlayıcısı (§1–§6'da adıyla geçmeyen kimlikler)
+| Kimlik | Backend karşılığı |
+|---|---|
+| E-12-01, 03, 62 (hata/yükleniyor), 64 | Salt arayüz / kabuk; uç yok (E-12-64: menü girişi yok). Okuma hata kodları §1 satırlarında. |
+| E-12-05 | CSV: uç yok → BE-116 (`eksikler.md` yeni-9). |
+| E-12-06 | Çöpü boşalt: uç yok → BE-115 (yeni-8). |
+| E-12-07 | Saklama süresi: alan/uç yok → BE-112 (yeni-5). |
+| E-12-22, 23 | Toplu seçim: toplu uç yok (§2 notu) → BE-114 (yeni-7). |
+| E-12-25, 26, 27, 29 | Tür rozeti = istemci sözlüğü; kod yok (BE-005); başlık §4 tür tablosundan; uyarı rozeti için veri yok (BE-108). |
+| E-12-31, 34 | Sıralama: sunucu `sort` yok → BE-117 / saklama BE-112. |
+| E-12-37, 41, 42, 45, 48, 50, 54 | Panel liste öğesinden dolar (§4 tablosu); `getWorkItem` çağrılmaz (§1 son satırlar); `file_count` → E-12-50; atananlar yok (BE-113). |
+| E-12-39 | `next_cursor` ile aynı uç, sonraki sayfa (`cursor` = önceki `next_cursor`); toplantıda boş dize, diğerlerinde alan yok = son sayfa. |
+| E-12-56, 57, 60, 61, 65 | Kaynak yok (saklama) ya da salt arayüz durumu; E-12-65 seçilmeyen varyant. |
