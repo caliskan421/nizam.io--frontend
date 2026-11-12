@@ -64,7 +64,6 @@ async function mountPage(selection: Parameters<typeof harness>[0], url = '/arsiv
   const wrapper = mount(ArchivePage, {
     global: {
       plugins: [getActivePinia()!, i18n, router, [VueQueryPlugin, { queryClient: h.queryClient }]],
-      stubs: { PeriodZipButton: true, UploadDialog: true },
     },
     attachTo: document.body,
   })
