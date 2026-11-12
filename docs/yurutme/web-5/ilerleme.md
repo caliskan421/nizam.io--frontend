@@ -13,7 +13,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2b W122–W126, W128     | Birleşti: #106 (W126), #107 (W125), #108 (W122), #109 (W124), #110 (W123), #112 (W128)       | `9737845`                      |
 | Yaşam döngüsü hotfix    | Birleşti: #111 (test-only)                                                                   | `064e131`                      |
 | Borç W129               | Birleşti: #113 (work yetki hizası, ADR-0030)                                                 | `a19c9d5`                      |
-| O3 W127                 | PR #114 (`28b9e22`, 4023 test), CI'da; dogrulama-F5 (W130) #114 sonrası                      | bekliyor                       |
+| O3 W127                 | PR #114 (`28b9e22`, 4023 test) birleşti; dogrulama-F5 (W130) ayrı dalda yazılıyor           | `8abcb3b`                      |
 | O4 kapanış              | W131 belgeler yazıldı; W130 gerçek imaj tanığı yazılıyor; **Codex gpt-6.1-sol bekliyor**; kapanış PR bekliyor | bekliyor                       |
 
 ## Kayıtlar
@@ -56,7 +56,7 @@ Test-only (`a8c043a`, W121 ajanı, `web5/fix-lifecycle`): bkz. yukarıdaki kırm
 
 `canUploadFile`/`canDeleteFile` ADR-0030 hizası (yönetici yükler, yükleyen yönetici siler) + arşivle eşlik testi; 03 yetki satırları ve `backend.md` giriş cümlesi güncellendi. e2e'de yönetici-yükleme-gizli varsayımı grep'te yok. 2026-11-12 22:40: O2b tamam, main `a19c9d5`, worktree'ler temizlendi.
 
-### O3 — W127 entegrasyon turu (PR #114, `28b9e22`)
+### O3 — W127 entegrasyon turu (PR #114, `28b9e22`; birleşti, main `8abcb3b`)
 
 - 06/07 (üç rol, URL gidiş-dönüşü, yükleme, adlandırma/silme/odak, indirme/ZIP, yaşam döngüsü, odak/ARIA) ve 12 (ana sayfa düğmesi, dört sekme, türevler, `work.department_unavailable`, geç sonuç) entegrasyon senaryoları; `src/app/__tests__/integration/archive-*.test.ts` ve `deleted-records-o3.test.ts`. 4023 test. Görsel duman 18 senaryo (üç rol × üç genişlik × iki tema), `failures` boş.
 - **Kusurlar** (düzeltildi): **KUSUR 1** kalıcı silme sonrası bildirim kayboluyordu (panel kendi silme sonucundan önce sökülüyordu; `c49ba6a`) — koordinatör kararı: silme sürerken panel açık kalır yaklaşımı kabul, sahip sökülmüş değil, KESİN 26a uyumlu. **KUSUR 2** `PeriodZipButton` BE-120 stub işareti eksikti (`6239ed1`); yönetici 06 "Dosya yükle" bağı silinmez, devre dışı `designStub` BE-072 (tasarım birebir), K/Ü 06 görmez. **KUSUR 3** 06'da K/Ü için gereksiz `listProgramDepartments` ve yönlendirme öncesi `archiveTasks` okumaları (`3a54711`).
@@ -65,7 +65,7 @@ Test-only (`a8c043a`, W121 ajanı, `web5/fix-lifecycle`): bkz. yukarıdaki kırm
 ### O4 — kapanış (W130, W131; Codex bekliyor)
 
 - **W131** (`web5/o4-kapanis`): rapor-F5, bu kayıt, oturum-4-kapanis, README, ortak-kurallar §6, 12/06 README kabul kanıtları, 06 mekanizma §4.4 notu, `kayit.md` F5 satırları, pin yükseltme planı, web-6 iskeleti, yol haritası notu (yalnız belge; kod yok).
-- **W130**: `dogrulama-F5.md` (gerçek Docker imajı + gerçek backend tanığı, G4 429, tam kapı) — #114 birleştikten sonra; sonucu bu kayda işlenmedi.
+- **W130**: `dogrulama-F5.md` (gerçek Docker imajı + gerçek backend tanığı, G4 429, tam kapı) — #114 birleşti (`8abcb3b`); W130 ayrı dalda yazıyor, sonucu bu kayda işlenmedi ([dogrulama-F5.md](dogrulama-F5.md) yalnız bağlantı).
 - **Codex gpt-6.1-sol medium `-s read-only`** nihai kapı: **bekliyor** (`docs/reviews/WEB-5-codex.md` henüz yok). Hüküm ve kapanış PR satırı (numara, MERGED, son main hash) hükümden sonra eklenir: **bekliyor**.
 
 ## F6'ya devredilenler / borçlar
