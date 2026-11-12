@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kenar menüsü · Admin, Koordinatör, Üye</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.kr-col{display:flex; flex-direction:column; gap:14px; min-width:0}
+.kr-frame{width:272px; height:1000px; box-sizing:border-box; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-base); overflow:hidden}
+.kr-note{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.kr-rule{display:flex; flex-direction:column; gap:4px; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.kr-rule h3{margin:0; font-size:14px; line-height:20px; font-weight:600}
+.kr-rule p{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.kr-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="width:1440px; min-height:1400px; box-sizing:border-box; padding:56px 56px 48px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:32px">
+
+<header style="display:flex; flex-direction:column; gap:10px; max-width:980px">
+<p class="rp-kicker">kenar menüsü · rol merceğine göre menü grupları</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Aynı kabuk, üç menü</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Rol kartı yetki değil, içerik merceğidir. Menü grupları seçili merceğe göre değişir; sayfa iskeleti, üst çubuk ve bileşenler üç rolde de aynı kalır. Rozetler o rolün kendi sayılarını gösterir: üyede kendi geciken görevleri, koordinatörde birimin geciken ve onay bekleyen görevleri.</p>
+</header>
+
+<div style="display:grid; grid-template-columns:repeat(3, 272px); gap:0 160px; justify-content:start">
+<section class="kr-col" aria-labelledby="k1">
+<div><p class="rp-kicker"><span class="kr-dot" style="background:#e57a9a" aria-hidden="true"></span>admin</p><h2 id="k1" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Mevcut menü</h2></div>
+<div class="kr-frame"><dc-import name="Sidebar" active="home" ctx="{{ adminCtx }}" hint-size="272px,1000px"></dc-import></div>
+<p class="kr-note">Takip · İçerik · Yönetim · Deneysel. Koordinatörlük kartı çıkmaz; admin her şeyi görür.</p>
+</section>
+<section class="kr-col" aria-labelledby="k2">
+<div><p class="rp-kicker"><span class="kr-dot" style="background:#74c27a" aria-hidden="true"></span>koordinatör</p><h2 id="k2" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Birim odaklı menü</h2></div>
+<div class="kr-frame"><dc-import name="Sidebar" active="home" ctx="{{ koordCtx }}" hint-size="272px,1000px"></dc-import></div>
+<p class="kr-note">Takip: Ana sayfa, Görevler (geciken + onay bekleyen rozeti), Zaman çizelgesi, Tarih talepleri. Birim: Birimim, Ekibim. İçerik: Toplantılar, Arşiv, Mesajlar, Tablolar. Yönetim grubu yok.</p>
+</section>
+<section class="kr-col" aria-labelledby="k3">
+<div><p class="rp-kicker"><span class="kr-dot" style="background:#73a9e3" aria-hidden="true"></span>üye</p><h2 id="k3" style="margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600">Kişisel menü</h2></div>
+<div class="kr-frame"><dc-import name="Sidebar" active="home" ctx="{{ uyeCtx }}" hint-size="272px,1000px"></dc-import></div>
+<p class="kr-note">Takip: Ana sayfa, Görevlerim (kendi gecikenleri), Zaman çizelgem. İçerik: Toplantılar, Dosyalarım, Mesajlar. Görev oluşturma, ekip ve yönetim girişleri yok.</p>
+</section>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px">
+<div class="kr-rule"><h3>Mercek ≠ yetki</h3><p>Koordinatör merceğine geçen bir şirket yöneticisi Yönetim grubunu görmeye devam eder (P1). Eylemler sayfada işlem bazlı olgulardan türer.</p></div>
+<div class="kr-rule"><h3>Tek mercekli kullanıcı</h3><p>Yalnız üye olan birinde Rol kartı salt gösterimdir, menü açılmaz (P11). Koordinatörlük kartı birden fazla birim varsa seçici olur.</p></div>
+<div class="kr-rule"><h3>Rozetler role aittir</h3><p>Üyede Görevlerim rozeti kendi geciken görevleri; koordinatörde Görevler rozeti birimin gecikenleri, ikinci rozet onay bekleyenler; Tarih talepleri rozeti yönetici kararı bekleyen talepler.</p></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const progs = [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }];
+    const roles = [{ id: 'admin', coords: [] }, { id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }];
+    const adminCtx = { progs, progId: 'sur', roleId: 'admin', coordId: null, roles };
+    const koordCtx = { progs, progId: 'sur', roleId: 'koord', coordId: 'SİS', roles: roles.filter((r) => r.id !== 'admin') };
+    const uyeCtx = { progs, progId: 'sur', roleId: 'uye', coordId: 'ALT', roles: roles.filter((r) => r.id === 'uye') };
+    return { theme: this.props.theme ?? 'dark', adminCtx, koordCtx, uyeCtx };
+  }
+}
+</script>
+</body>
+</html>

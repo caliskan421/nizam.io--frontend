@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Silinen kayıtlar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-logtype{display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:6px; font-size:11px; font-weight:600; white-space:nowrap}
+.rp-hxchip{display:inline-flex; align-items:center; gap:4px; height:28px; padding:0 4px 0 10px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--bg-raised); font-size:12px; color:var(--ink)}
+.rp-hxchip button{display:grid; place-items:center; width:20px; height:20px; padding:0; border:0; border-radius:50%; background:none; color:var(--ink-muted); cursor:pointer}
+.rp-hxchip .t-icon{width:12px; height:12px}
+.rp-trnote{display:flex; align-items:center; gap:12px; padding:12px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised); font-size:13px; line-height:19px; color:var(--ink-muted)}
+.rp-trnote b{color:var(--ink); font-weight:600}
+.rp-left{display:grid; gap:5px}
+.rp-left__t{font-family:var(--font-mono); font-size:12px; color:var(--ink)}
+.rp-left__bar{height:4px; border-radius:2px; background:var(--bg-overlay); overflow:hidden}
+.rp-left__bar span{display:block; height:100%; border-radius:2px}
+.rp-left[data-soon="true"] .rp-left__t{color:var(--danger)}
+.rp-warn{display:inline-flex; align-items:center; gap:5px; align-self:flex-start; height:22px; padding:0 8px; border-radius:6px; background:color-mix(in srgb, var(--gold) 14%, transparent); color:var(--gold); font-size:11px; font-weight:600; white-space:nowrap}
+.rp-warn .t-icon{width:12px; height:12px}
+.rp-rowact{display:flex; gap:6px; justify-content:flex-end}
+.rp-purge{width:32px; height:32px; color:var(--danger)}
+.rp-linked{display:grid; gap:2px; margin:0; padding:0; list-style:none}
+.rp-linked li{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-subtle); font-size:13px}
+.rp-linked li:last-child{border-bottom:0}
+.rp-linked .t-icon{color:var(--ink-muted)}
+.rp-linked .rp-count{margin-left:auto}
+.rp-expire{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-subtle)}
+.rp-expire:last-child{border-bottom:0}
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="home" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Silinen kayıtlar</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Silinen kayıtlar</h1><p class="rp-sub">{{ d.sub }}</p></div>
+<div class="rp-actions" style="display:flex; gap:8px; flex-wrap:wrap"><button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>CSV indir</button><button class="t-btn t-btn--ghost" type="button" style="color:var(--danger)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>Çöpü boşalt</button></div>
+</div>
+
+<div class="rp-body">
+<div class="rp-col">
+
+<div class="rp-trnote"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="flex:none"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg><span>Silinen kayıtlar <b>{{ d.keep }} gün</b> saklanır, sonra kendiliğinden kalıcı olarak silinir. Geri yüklenen kayıt eski yerine, bağlı alt görevleri, dosyaları ve yorumlarıyla birlikte döner.</span></div>
+
+<div class="rp-toolbar">
+<div class="rp-seg" role="group" aria-label="Kayıt türü"><sc-for list="{{ d.types }}" as="t" hint-placeholder-count="6"><button type="button" aria-pressed="{{ t.on }}">{{ t.label }}<span class="rp-count">{{ t.n }}</span></button></sc-for></div>
+<span class="rp-grow"></span>
+<div class="rp-tgroup">
+<button class="t-btn t-btn--secondary t-btn--sm" type="button" style="padding:0 12px; gap:6px">Silen<svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button" style="padding:0 12px; gap:6px">Koordinatörlük<svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+<div class="t-field" style="width:220px"><input class="t-input t-input--icon" type="search" placeholder="Kayıt, kod veya kişi ara" aria-label="Silinen kayıtlarda ara" style="height:36px"><svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg></div>
+</div>
+</div>
+
+<div class="rp-bulk" role="toolbar" aria-label="Seçili kayıtlar"><span style="font-size:13px; font-weight:600; white-space:nowrap; margin-right:auto">{{ d.selLine }}</span><button type="button" class="rp-bulk__primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"></path></svg>Geri yükle</button><button type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>Kalıcı sil</button><button type="button">Seçimi kaldır</button></div>
+
+<div class="rp-dtable"><div class="rp-scroll"><div role="table" aria-label="Silinen kayıtlar" style="min-width:860px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:{{ d.cols }}"><span role="columnheader"><input class="t-check" type="checkbox" aria-label="Tümünü seç" style="width:18px; height:18px"></span><span role="columnheader">tür</span><span role="columnheader">kayıt</span><span role="columnheader">silen</span><span role="columnheader">kalan süre</span><span role="columnheader"><span class="rp-sr">işlemler</span></span></div>
+<sc-for list="{{ d.groups }}" as="g" hint-placeholder-count="3">
+<div role="row" class="rp-trgroup"><span role="cell">{{ g.day }}</span><span class="rp-count">{{ g.n }}</span></div>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="4">
+<div role="row" class="rp-tr rp-tr--body {{ r.cls }}" style="grid-template-columns:{{ d.cols }}; min-height:60px">
+<span role="cell"><input class="t-check" type="checkbox" checked="{{ r.on }}" aria-label="{{ r.title }} seç" style="width:18px; height:18px"></span>
+<span role="cell"><span class="rp-logtype" style="color:{{ r.color }}; background:{{ r.bg }}">{{ r.type }}</span></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:3px; min-width:0">
+<span style="display:flex; align-items:baseline; gap:8px; min-width:0"><sc-if value="{{ r.hasCode }}" hint-placeholder-val="{{ false }}"><span class="rp-kicker" style="color:var(--ink-faint); flex:none">{{ r.code }}</span></sc-if><span class="rp-trunc" style="font-size:13px; font-weight:600">{{ r.title }}</span></span>
+<span class="rp-cap rp-trunc">{{ r.from }}</span>
+<sc-if value="{{ r.hasWarn }}" hint-placeholder-val="{{ false }}"><span class="rp-warn"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>{{ r.warn }}</span></sc-if>
+</span>
+<span role="cell" style="display:flex; align-items:center; gap:8px; min-width:0"><span class="rp-av rp-av--sm" aria-hidden="true">{{ r.ini }}</span><span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-size:13px">{{ r.actor }}</span><span class="rp-cap">{{ r.time }}</span></span></span>
+<span role="cell" class="rp-left" data-soon="{{ r.soon }}" title="{{ r.leftTitle }}"><span class="rp-left__t">{{ r.left }}</span><span class="rp-left__bar" aria-hidden="true"><span style="width:{{ r.pct }}; background:{{ r.barC }}"></span></span></span>
+<span role="cell" class="rp-rowact"><button class="t-btn t-btn--secondary t-btn--sm" type="button">Geri yükle</button><button class="t-iconbtn rp-purge" type="button" aria-label="{{ r.title }} kalıcı sil" title="Kalıcı sil"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button></span>
+</div>
+</sc-for>
+</sc-for>
+</div></div></div>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:12px"><span class="rp-cap">{{ d.countLine }}</span><button class="t-btn t-btn--ghost t-btn--sm" type="button">Daha fazla göster</button></div>
+<p class="rp-cap" style="margin:0">Geri yükleme ve kalıcı silme işlem geçmişine kaydedilir. Kalıcı silinen kayıt geri getirilemez.</p>
+</div>
+
+<aside class="rp-aside">
+<section class="t-card" style="padding:22px" aria-labelledby="slsel">
+<div class="rp-cardhead" style="margin-bottom:12px"><span class="rp-kicker">seçili kayıt</span><span class="rp-logtype" style="color:var(--violet); background:color-mix(in srgb, var(--violet) 12%, transparent)">Görev</span></div>
+<h2 class="rp-cardtitle" id="slsel" style="margin:0 0 4px"><span class="rp-kicker" style="color:var(--ink-faint); margin-right:8px">ELE-5</span>Saha pano montajı</h2>
+<p class="rp-cap" style="margin:0 0 16px">Elektrik ve enerji › Görevler</p>
+<dl class="rp-dl" style="margin-bottom:18px">
+<dt>Silen</dt><dd>Reha Koçak</dd>
+<dt>Silinme</dt><dd>Bugün 13:42</dd>
+<dt>Kalıcı silinme</dt><dd>20 Kasım 2026</dd>
+<dt>Durumu</dt><dd>Devam ediyordu · %40</dd>
+<dt>Atananlar</dt><dd>Reha Koçak, Ali Avcı</dd>
+</dl>
+<p class="rp-kicker" style="margin:0 0 4px">birlikte geri gelecek</p>
+<ul class="rp-linked">
+<li><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"></path></svg>Alt görev<span class="rp-count">3</span></li>
+<li><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5"></path></svg>Kanıt dosyası<span class="rp-count">2</span></li>
+<li><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Yorum<span class="rp-count">5</span></li>
+<li><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v4M16 3v4M4 9h16M5 5h14v15H5z"></path></svg>Tarih talebi<span class="rp-count">1</span></li>
+</ul>
+<div style="display:flex; gap:8px; margin-top:18px"><button class="t-btn t-btn--primary t-btn--sm" type="button" style="flex:1 1 auto"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"></path></svg>Geri yükle</button><button class="t-btn t-btn--ghost t-btn--sm" type="button" style="color:var(--danger)">Kalıcı sil</button></div>
+</section>
+
+<section class="t-card" style="padding:22px" aria-labelledby="slexp">
+<div class="rp-cardhead" style="margin-bottom:8px"><h2 class="rp-cardtitle" id="slexp" style="font-size:15px">Yakında kalıcı silinecek</h2><span class="rp-count">{{ d.soonN }}</span></div>
+<sc-for list="{{ d.soonList }}" as="s" hint-placeholder-count="3">
+<div class="rp-expire"><span class="rp-logtype" style="color:{{ s.color }}; background:{{ s.bg }}">{{ s.type }}</span><span class="rp-trunc" style="flex:1 1 auto; font-size:13px">{{ s.title }}</span><span class="rp-mono" style="font-size:12px; color:var(--danger); flex:none">{{ s.left }}</span></div>
+</sc-for>
+<p class="rp-cap" style="margin:10px 0 0">Saklamak istediklerini şimdi geri yükle.</p>
+</section>
+</aside>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"retentionDays":{"editor":"number","default":30},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const keep = this.props.retentionDays ?? 30;
+    const T = {
+      'Görev': 'var(--violet)', 'Alt görev': 'var(--violet)', 'Dosya': 'var(--gold)',
+      'Toplantı': 'var(--accent-text)', 'Kullanıcı': 'var(--danger)', 'Not': '#5b8def', 'Gündem': '#5b8def'
+    };
+    const ago = { 'Bugün': 0, 'Dün': 1, '15 Ekim': 6, '24 Eylül': 27, '23 Eylül': 28 };
+    const raw = [
+      ['Bugün · 21 Ekim 2026', 'Bugün', [
+        ['Görev', 'ELE-5', 'Saha pano montajı', 'Elektrik ve enerji › Görevler', 'Reha Koçak', 'RK', '13:42', '', true, true],
+        ['Alt görev', '', 'Pano kablo güzergâhı keşfi', 'ALT-7 · Havalimanı yerleşkesi hidrofor sistemi kurulumu', 'Kadir Özbek', 'KÖ', '12:10', '', true, false],
+        ['Dosya', '', 'Konaklama_listesi_v3.xlsx', 'Arşiv › İdari işler › Konaklama', 'Bahar Kılıç', 'BK', '11:05', '', false, false],
+        ['Gündem', '', 'Jeneratör yakıt tankı tedarikçisi', 'Haftalık koordinasyon toplantısı · 21 Ekim', 'Mevlüt Yunus Kayacan', 'MY', '10:31', '', false, false]
+      ]],
+      ['Dün · 20 Ekim 2026', 'Dün', [
+        ['Kullanıcı', '', 'Gökhan Tanaydın', 'Operasyon · Üye', 'Sistem Admin', 'SA', '17:48', 'Atandığı 4 açık görev sahipsiz kaldı', false, false],
+        ['Toplantı', '', 'Fuar alanı saha yürüyüşü', '24 Ekim 10:00 · Fuar koordinatörlüğü', 'Salih Özer', 'SÖ', '15:20', '', false, false],
+        ['Alt görev', '', 'Stant ölçülerinin teyidi', 'FUA-3 · Stant yerleşim ataması (silindi)', 'Merve Koçoğlu', 'MK', '09:12', 'Bağlı görev de silinmiş, birlikte geri yüklenir', false, false]
+      ]],
+      ['15 Ekim 2026', '15 Ekim', [
+        ['Görev', 'FUA-3', 'Stant yerleşim ataması', 'Fuar › Görevler', 'Merve Koçoğlu', 'MK', '16:02', '', false, false],
+        ['Not', '', '“Trafo onayı gelince pano montajı başlar”', 'Haftalık koordinasyon toplantısı · 14 Ekim', 'Reha Koçak', 'RK', '11:40', '', false, false]
+      ]],
+      ['24 Eylül 2026', '24 Eylül', [
+        ['Dosya', '', 'Hizmet sözleşmesi taslağı.pdf', 'Arşiv › İdari işler › Sözleşmeler', 'Abdullah Ateş', 'AA', '14:55', '', false, false],
+        ['Görev', 'OPE-4', 'Gönüllü başvuru süreci', 'Operasyon › Görevler', 'Salim Sağlık', 'SS', '10:18', '', false, false]
+      ]],
+      ['23 Eylül 2026', '23 Eylül', [
+        ['Dosya', '', 'Vardiya_taslak.xlsx', 'Arşiv › Operasyon › Vardiyalar', 'Gökçe Nur Usta', 'GU', '18:30', '', false, false]
+      ]]
+    ];
+    const mk = (type, extra) => Object.assign({ type, color: T[type], bg: 'color-mix(in srgb, ' + T[type] + ' 12%, transparent)' }, extra);
+    const soonList = [];
+    const groups = raw.map(([day, key, rows]) => ({
+      day, n: rows.length,
+      rows: rows.map(([type, code, title, from, actor, ini, time, warn, on, sel]) => {
+        const leftD = Math.max(0, keep - ago[key]);
+        const soon = leftD <= 3;
+        const left = leftD === 0 ? 'bugün' : leftD + ' gün';
+        if (soon) soonList.push(mk(type, { title: (code ? code + ' · ' : '') + title, left }));
+        return mk(type, {
+          code, hasCode: !!code, title, from, actor, ini, time: key + ' ' + time,
+          warn, hasWarn: !!warn, on, cls: sel ? 'rp-sel' : '',
+          left, soon: soon ? 'true' : 'false', leftTitle: left + ' sonra kalıcı olarak silinir',
+          pct: Math.round(100 * leftD / keep) + '%', barC: soon ? 'var(--danger)' : 'var(--ink-faint)'
+        });
+      })
+    }));
+    const types = [['Tümü', 127, true], ['Görev', 48], ['Alt görev', 21], ['Dosya', 26], ['Toplantı', 9], ['Kullanıcı', 6], ['Not ve gündem', 17]]
+      .map(([label, n, on]) => ({ label, n, on: on ? 'true' : 'false' }));
+    const d = {
+      keep, types, groups, soonList, soonN: soonList.length,
+      sub: '127 kayıt · yalnız adminler görür · ' + keep + ' gün sonra kalıcı olarak silinir',
+      cols: '36px 96px minmax(0,1.6fr) 210px 120px 150px',
+      selLine: '2 kayıt seçildi · 1 görev, 1 alt görev',
+      countLine: '12 / 127 kayıt gösteriliyor'
+    };
+    return { theme: this.props.theme ?? 'dark', d };
+  }
+}
+</script>
+</body>
+</html>

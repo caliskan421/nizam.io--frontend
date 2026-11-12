@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Üye ana sayfa</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-uana-code{display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:22px; padding:0 7px; border-radius:7px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:500; box-sizing:border-box; flex:none}
+.rp-uana-code--own{background:var(--ink); color:var(--bg-base)}
+.rp-uana-queue{display:flex; flex-direction:column; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden}
+.rp-uana-row{display:grid; grid-template-columns:8px minmax(0,1fr) 48px 124px 172px; column-gap:16px; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border-subtle); background:var(--bg-surface)}
+.rp-uana-row:last-child{border-bottom:0}
+.rp-uana-row:hover{background:var(--bg-raised)}
+.rp-uana-row > *{min-width:0}
+.rp-uana-act{display:flex; justify-content:flex-end}
+.rp-uana-act .t-btn{width:100%; justify-content:center}
+.rp-uana-mrow{display:grid; grid-template-columns:56px minmax(0,1fr) 16px; gap:14px; align-items:center; padding:10px 12px 10px 10px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); text-decoration:none; color:inherit}
+.rp-uana-mrow:hover{border-color:var(--border-strong)}
+.rp-uana-mdate{display:flex; flex-direction:column; align-items:center; gap:1px; padding:7px 0 0; border-radius:12px; background:var(--bg-raised); border:1px solid var(--border-subtle); overflow:hidden}
+.rp-uana-mdate b{font-family:var(--font-display); font-size:20px; line-height:22px; font-weight:600}
+.rp-uana-mdate > span{font-size:10px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.04em}
+.rp-uana-mdate i{display:block; width:100%; margin-top:5px; padding:4px 0 5px; border-top:1px solid var(--border-subtle); font-style:normal; font-family:var(--font-mono); font-size:12px; font-weight:500; color:var(--ink); text-align:center}
+.rp-uana-mdate[data-state="due"]{background:color-mix(in srgb, var(--gold) 12%, var(--bg-raised)); border-color:color-mix(in srgb, var(--gold) 50%, transparent)}
+.rp-uana-mdate[data-state="due"] > span{color:var(--gold); font-weight:600}
+.rp-uana-mdate[data-state="due"] i{border-top-color:color-mix(in srgb, var(--gold) 35%, transparent)}
+.rp-uana-pill{display:inline-flex; align-items:center; height:20px; padding:0 8px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; border:1px solid var(--border-subtle); color:var(--ink-muted); background:var(--bg-raised); flex:none}
+.rp-uana-pill--wait{color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:color-mix(in srgb, var(--gold) 8%, transparent)}
+.rp-uana-unread{width:7px; height:7px; border-radius:50%; background:var(--accent-text); flex:none}
+@media (max-width: 900px){ .rp-uana-row{grid-template-columns:8px minmax(0,1fr) 150px} .rp-uana-row > .rp-uana-hide{display:none} }
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="home" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><strong>Ana sayfa</strong></nav>
+<span class="rp-kicker rp-nowrap">21 Ekim 2026, Çarşamba</span>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head" style="padding-top:44px">
+<div>
+<h1 style="margin:0; font-family:var(--font-display); font-size:44px; line-height:50px; font-weight:600; letter-spacing:-0.02em">Merhaba Bahar</h1>
+<p class="rp-sub">Altyapı ve tesisat · üye olarak yalnız sana atanan görevleri görüyorsun</p>
+</div>
+<div class="rp-actions">
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V8M6 14l6-6 6 6M5 4h14"></path></svg>Kanıt yükle</button>
+</div>
+</div>
+
+<div class="rp-body">
+<section aria-label="Görev özetim" style="flex:1 1 100%; min-width:0; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+<a href="Uye-Gorevler.dc.html" class="t-card rp-cardbtn" title="{{ s.title }}" style="display:flex; flex-direction:column; justify-content:space-between; gap:20px; min-height:176px; color:var(--ink); text-decoration:none">
+<span style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%">
+<span style="display:inline-flex; align-items:center; gap:10px; min-width:0"><span class="rp-ichip" aria-hidden="true" style="color:{{ s.tone }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="{{ s.d }}"></path></svg></span><span class="rp-trunc" style="font-weight:500; color:var(--ink-muted)">{{ s.label }}</span></span>
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M7 17 17 7M9 7h8v8"></path></svg>
+</span>
+<span style="display:flex; flex-direction:column; gap:12px; width:100%">
+<span class="rp-num" style="font-size:48px; line-height:52px; color:{{ s.color }}">{{ s.value }}</span>
+<span class="rp-bar" style="height:4px"><span style="width:{{ s.w }}; background:{{ s.tone }}"></span></span>
+<span class="rp-cap rp-trunc">{{ s.note }}</span>
+</span>
+</a>
+</sc-for>
+</section>
+
+<div class="rp-col" style="gap:24px">
+
+<section class="t-card" aria-labelledby="uana-queue" style="padding:24px">
+<div class="rp-cardhead">
+<div><h2 class="rp-cardtitle" id="uana-queue" style="font-size:18px">Bugünün sırası</h2><p class="rp-cap" style="margin:4px 0 0">Önceliğe ve son tarihe göre sıralandı · 9 açık görevinden 5’i</p></div>
+<a class="rp-link" href="Uye-Gorevler.dc.html">Tümü <span class="rp-count">9</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M9 6l6 6-6 6"></path></svg></a>
+</div>
+<div class="rp-uana-queue" role="list" aria-label="Bugün yapılacak görevler">
+<sc-for list="{{ queue }}" as="r" hint-placeholder-count="5">
+<div class="rp-uana-row" role="listitem">
+<span class="rp-dot {{ r.dot }}" aria-hidden="true"></span>
+<span style="display:flex; flex-direction:column; gap:3px; min-width:0">
+<span style="display:flex; align-items:baseline; gap:8px; min-width:0"><a class="rp-title rp-trunc" href="Uye-Gorevler.dc.html">{{ r.title }}</a><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">{{ r.id }}</span></span>
+<span class="rp-cap rp-trunc"><span style="color:{{ r.stColor }}; font-weight:500">{{ r.status }}</span> · {{ r.sub }}</span>
+</span>
+<span class="rp-uana-hide"><span class="rp-uana-code" title="{{ r.coordName }}">{{ r.coord }}</span></span>
+<span class="rp-uana-hide" style="display:flex; flex-direction:column; gap:2px"><span class="rp-mono">{{ r.due }}</span><span class="{{ r.relCls }} rp-nowrap" style="font-size:12px">{{ r.rel }}</span></span>
+<span class="rp-uana-act">
+<sc-if value="{{ r.locked }}" hint-placeholder-val="{{ false }}"><span title="{{ r.lockTitle }}" style="display:flex; width:100%"><button class="t-btn t-btn--secondary t-btn--sm" type="button" disabled aria-label="Göreve başla, {{ r.lockTitle }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3"></path></svg>Göreve başla</button></span></sc-if>
+<sc-if value="{{ r.review }}" hint-placeholder-val="{{ false }}"><span class="t-badge t-badge--gold" title="Kadir Özbek’in onayında" style="height:28px; font-size:12px">Onayda</span></sc-if>
+<sc-if value="{{ r.normal }}" hint-placeholder-val="{{ true }}"><button class="t-btn {{ r.btnCls }} t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ r.ic }}"></path></svg>{{ r.btn }}</button></sc-if>
+</span>
+</div>
+</sc-for>
+</div>
+<p class="rp-cap" style="margin:12px 0 0">Kilitli görevler, bağlı oldukları görev tamamlanınca açılır. Onaya göndermek için en az 1 kanıt dosyası gerekir.</p>
+</section>
+
+<section class="t-card" aria-labelledby="uana-quick" style="padding:24px">
+<h2 class="rp-cardtitle" id="uana-quick" style="font-size:18px; margin-bottom:16px">Hızlı işlemler</h2>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px">
+<button type="button" class="rp-cardbtn" style="display:grid; grid-template-rows:auto 1fr; gap:14px; height:104px; padding:16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised); color:var(--ink); min-width:0"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-muted)"><path d="M12 20V8M6 14l6-6 6 6M5 4h14"></path></svg><span style="align-self:end; display:flex; flex-direction:column; gap:2px; min-width:0"><span style="font-size:14px; font-weight:600; line-height:18px">Kanıt yükle</span><span class="rp-cap rp-trunc">Görev seç, dosya ekle · en çok 90 MB</span></span></button>
+<button type="button" class="rp-cardbtn" style="display:grid; grid-template-rows:auto 1fr; gap:14px; height:104px; padding:16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised); color:var(--ink); min-width:0"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-muted)"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"></path></svg><span style="align-self:end; display:flex; flex-direction:column; gap:2px; min-width:0"><span style="font-size:14px; font-weight:600; line-height:18px">Not yaz</span><span class="rp-cap rp-trunc">Görevine ilerleme notu düş</span></span></button>
+<a href="Mesajlar-Uye.dc.html" class="rp-cardbtn" style="display:grid; grid-template-rows:auto 1fr; gap:14px; height:104px; padding:16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised); color:var(--ink); min-width:0; text-decoration:none"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-muted)"><path d="M4 5h16v11H9l-5 4z"></path></svg><span style="align-self:end; display:flex; flex-direction:column; gap:2px; min-width:0"><span style="font-size:14px; font-weight:600; line-height:18px">Koordinatörüme yaz</span><span class="rp-cap rp-trunc">Kadir Özbek · Altyapı ve tesisat</span></span></a>
+<a href="Uye-Toplanti.dc.html" class="rp-cardbtn" style="display:grid; grid-template-rows:auto 1fr; gap:14px; height:104px; padding:16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised); color:var(--ink); min-width:0; text-decoration:none"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-muted)"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9.5 14.5h5M12 12v5"></path></svg><span style="align-self:end; display:flex; flex-direction:column; gap:2px; min-width:0"><span style="font-size:14px; font-weight:600; line-height:18px">Toplantı notu ekle</span><span class="rp-cap rp-trunc">Bugün 15:30 · Hidrofor teslim kontrolü</span></span></a>
+</div>
+</section>
+
+<section class="t-card" aria-labelledby="uana-feed" style="padding:24px">
+<div class="rp-cardhead">
+<div style="display:flex; align-items:center; gap:10px"><h2 class="rp-cardtitle" id="uana-feed" style="font-size:18px">Son bildirimler</h2><span class="t-badge t-badge--accent" style="height:22px; font-size:11px; padding:0 8px">2 yeni</span></div>
+<a class="rp-link" href="Uye-Profil.dc.html">Tümü<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M9 6l6 6-6 6"></path></svg></a>
+</div>
+<ol class="rp-timeline">
+<sc-for list="{{ feed }}" as="f" hint-placeholder-count="5">
+<li><span class="rp-tl-dot" aria-hidden="true"><span class="rp-dot" style="width:6px; height:6px; background:{{ f.dot }}"></span></span>
+<span style="display:flex; flex-direction:column; gap:3px; min-width:0"><a class="rp-title rp-clamp2" href="{{ f.href }}" style="font-size:13px; line-height:18px">{{ f.text }}</a><span class="rp-cap rp-trunc">{{ f.cap }}</span></span>
+<span style="display:flex; align-items:center; gap:8px"><span class="rp-kicker rp-nowrap" style="color:var(--ink-faint)">{{ f.when }}</span><sc-if value="{{ f.unread }}" hint-placeholder-val="{{ false }}"><span class="rp-uana-unread" aria-label="okunmamış"></span></sc-if></span></li>
+</sc-for>
+</ol>
+</section>
+</div>
+
+<aside class="rp-aside" aria-label="Takvim, toplantılar ve koordinatörlükler">
+<section class="t-card" style="padding:22px">
+<div class="rp-cardhead"><h2 class="rp-cardtitle">Son tarihlerim · Ekim</h2><div class="rp-actions"><button class="t-iconbtn" type="button" aria-label="Önceki ay" style="width:28px; height:28px; border-radius:8px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Sonraki ay" style="width:28px; height:28px; border-radius:8px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button></div></div>
+<div role="grid" aria-label="Ekim 2026" style="display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; text-align:center">
+<sc-for list="{{ dow }}" as="d" hint-placeholder-count="7"><span class="rp-kicker" style="color:var(--ink-faint); padding-bottom:4px">{{ d }}</span></sc-for>
+<sc-for list="{{ cal }}" as="c" hint-placeholder-count="35">
+<span role="gridcell" aria-label="{{ c.aria }}" style="position:relative; display:flex; align-items:center; justify-content:center; height:36px; border-radius:10px; font-size:13px; font-variant-numeric:tabular-nums; background:{{ c.bg }}; color:{{ c.ink }}; font-weight:{{ c.fw }}">{{ c.n }}<span style="position:absolute; bottom:4px; width:4px; height:4px; border-radius:50%; background:{{ c.dot }}"></span></span>
+</sc-for>
+</div>
+<div style="display:flex; gap:16px; margin-top:14px" class="rp-cap"><span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot rp-dot--late" style="width:6px; height:6px"></span>Geciken (4)</span><span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="width:6px; height:6px; background:var(--ink-muted)"></span>Yaklaşan (5)</span></div>
+</section>
+
+<section class="t-card" style="padding:22px">
+<div class="rp-cardhead"><h2 class="rp-cardtitle">Yaklaşan toplantılar</h2><a class="rp-link" href="Uye-Toplanti.dc.html">Tümü<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M9 6l6 6-6 6"></path></svg></a></div>
+<div style="display:flex; flex-direction:column; gap:10px">
+<sc-for list="{{ meetings }}" as="m" hint-placeholder-count="2">
+<a class="rp-uana-mrow" href="Uye-Toplanti.dc.html">
+<span class="rp-uana-mdate" data-state="{{ m.state }}"><b>{{ m.day }}</b><span>{{ m.mon }}</span><i>{{ m.time }}</i></span>
+<span style="display:flex; flex-direction:column; gap:6px; min-width:0"><span class="rp-clamp2" style="font-size:13px; line-height:18px; font-weight:600">{{ m.title }}</span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span class="rp-uana-code">{{ m.coord }}</span><span class="rp-uana-pill {{ m.pillCls }}">{{ m.pill }}</span></span></span>
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+</sc-for>
+</div>
+</section>
+
+<section class="t-card" style="padding:22px">
+<div class="rp-cardhead"><h2 class="rp-cardtitle">Koordinatörlüklerim</h2><span class="rp-count">3</span></div>
+<div style="display:flex; flex-direction:column; gap:16px">
+<sc-for list="{{ coords }}" as="c" hint-placeholder-count="3">
+<div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+<div style="display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center"><span class="rp-uana-code {{ c.codeCls }}">{{ c.code }}</span><span class="rp-trunc" style="font-size:13px; font-weight:600">{{ c.name }}</span><span class="rp-mono rp-nowrap">{{ c.n }} görev</span></div>
+<span class="rp-bar" style="height:6px; background:transparent" role="img" aria-label="{{ c.aria }}"><span class="rp-seg-todo" style="width:{{ c.wTodo }}"></span><span class="rp-seg-doing" style="width:{{ c.wDoing }}"></span><span class="rp-seg-review" style="width:{{ c.wReview }}"></span><span class="rp-seg-late" style="width:{{ c.wBack }}"></span></span>
+<span class="rp-cap rp-trunc"><span class="{{ c.lateCls }}">{{ c.late }}</span> · {{ c.line }}</span>
+</div>
+</sc-for>
+</div>
+<p class="rp-cap" style="margin:16px 0 0; padding-top:12px; border-top:1px solid var(--border-subtle)">Koordinatörlük atamalarını yönetici yapar.</p>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":2100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sbctx = { progs: [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }],
+      progId: 'sur', roleId: 'uye', coordId: 'ALT',
+      roles: [{ id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }] };
+
+    const IC = { bolt: 'M13 3 4 14h7l-1 7 9-11h-7z', warn: 'M12 3 2 20h20zM12 10v4M12 17h.01', clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', back: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3', up: 'M12 20V8M6 14l6-6 6 6M5 4h14', check: 'M5 12.5l4.5 4.5L19 7' };
+
+    // 9 açık görev = 1 başlamadı + 5 devam ediyor + 2 onay bekliyor + 1 iade edildi; 4 gecikmede
+    const stats = [
+      { label: 'Açık görev', value: '9', note: '5 devam · 2 onayda · 1 iade · 1 başlamadı', w: '100%', tone: 'var(--violet)', color: 'var(--ink)', d: IC.bolt, title: 'Açık görevlerimi göster' },
+      { label: 'Gecikmede', value: '4', note: 'Açık görevlerinin %44’ü', w: '44%', tone: 'var(--danger)', color: 'var(--danger)', d: IC.warn, title: 'Geciken görevlerimi göster' },
+      { label: 'Onay bekleyen', value: '2', note: 'Kanıt gönderildi, koordinatör onayında', w: '22%', tone: 'var(--gold)', color: 'var(--ink)', d: IC.clock, title: 'Onaydaki görevlerimi göster' },
+      { label: 'İade edilen', value: '1', note: 'Kanıt eksik — tekrar başla', w: '11%', tone: 'var(--danger)', color: 'var(--danger)', d: IC.back, title: 'İade edilen görevimi göster' }
+    ];
+
+    const CN = { ALT: 'Altyapı ve tesisat', ELE: 'Elektrik ve enerji', OPE: 'Operasyon' };
+    const ST = {
+      todo: ['rp-dot--todo', 'Başlamadı', 'var(--ink-muted)'],
+      doing: ['rp-dot--doing', 'Devam ediyor', 'var(--ink)'],
+      review: ['rp-dot--review', 'Onay bekliyor', 'var(--gold)'],
+      back: ['rp-dot--back', 'İade edildi', 'var(--danger)']
+    };
+    const Q = (id, title, st, due, rel, late, sub, act) => ({
+      id, title, due, rel, sub, coord: id.split('-')[0], coordName: CN[id.split('-')[0]],
+      relCls: late ? 'rp-danger-text' : 'rp-faint', dot: ST[st][0], status: ST[st][1], stColor: ST[st][2],
+      locked: act.kind === 'locked', review: act.kind === 'review', normal: act.kind === 'btn',
+      lockTitle: act.lock || '', btn: act.label || '', btnCls: act.primary ? 't-btn--primary' : 't-btn--secondary', ic: act.ic || ''
+    });
+    const queue = [
+      Q('ALT-4', 'Biletleme', 'back', '20.10.2026', '1 gün gecikti', true, 'Alt görev 2/4 · 6 dosya · iade: imzalı liste eksik', { kind: 'btn', label: 'Tekrar başla', ic: IC.back, primary: true }),
+      Q('ALT-1', 'VİP yönetim takip', 'doing', '04.10.2026', '17 gün gecikti', true, 'Alt görev 1/4 · kanıt yok', { kind: 'btn', label: 'Kanıt yükle', ic: IC.up }),
+      Q('ALT-6', 'Hammaliye planlama ve süreçler', 'todo', '10.10.2026', '11 gün gecikti', true, 'Alt görev 0/3 · ALT-3 Zimmet bekleniyor', { kind: 'locked', lock: 'Bekleyen: ALT-3 Zimmet' }),
+      Q('ALT-5', 'Yemek planlama takip', 'doing', '23.10.2026', '2 gün kaldı', false, 'Alt görev 5/5 · 10 dosya', { kind: 'btn', label: 'Tamamlandı bildir', ic: IC.check }),
+      Q('ELE-1', 'Jeneratör yakıt takibi', 'review', '08.10.2026', '13 gün gecikti', true, 'Alt görev 3/3 · 2 dosya · 19.10’da gönderildi', { kind: 'review' })
+    ];
+
+    const feed = [
+      { text: 'Toplantı: Hidrofor teslim kontrolü 15:30’a alındı', cap: 'Önceki saat 14:00 · Şantiye ofisi · ALT', when: 'bugün 09:12', dot: 'var(--gold)', unread: true, href: 'Uye-Toplanti.dc.html' },
+      { text: 'Kadir Özbek ALT-4 Biletleme görevini iade etti · sebep: kanıt eksik', cap: '“Bilet listesinin imzalı hali eksik”', when: 'dün 18:05', dot: 'var(--danger)', unread: true, href: 'Uye-Gorevler.dc.html' },
+      { text: 'ALT-9 Konaklama sana atandı', cap: 'Atayan: Kadir Özbek · bitiş 30.10.2026', when: 'dün 11:30', dot: 'var(--violet)', unread: false, href: 'Uye-Gorevler.dc.html' },
+      { text: 'ALT-2 Talep toplama onaylandı', cap: 'Onaylayan: Kadir Özbek · görev tamamlandı', when: '19.10', dot: 'var(--accent-text)', unread: false, href: 'Uye-Gorevler.dc.html' },
+      { text: 'Tarih değişikliği: ALT-7 bitiş 31.10’a uzatıldı', cap: 'Önceki bitiş 27.10.2026 · koordinatör kararı', when: '18.10', dot: 'var(--ink-muted)', unread: false, href: 'Uye-Gorevler.dc.html' }
+    ];
+
+    // Ekim 2026: 1 Ekim Perşembe; bugün 21 Ekim
+    const dow = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
+    const due = { 4: 'late', 8: 'late', 10: 'late', 20: 'late', 23: 'soon', 25: 'soon', 28: 'soon', 30: 'soon', 31: 'soon' };
+    const cal = [];
+    for (let i = 0; i < 3; i++) cal.push({ n: '', bg: 'transparent', ink: 'var(--ink)', fw: 400, dot: 'transparent', aria: '' });
+    for (let d = 1; d <= 31; d++) {
+      const k = due[d]; const today = d === 21;
+      cal.push({ n: d, fw: today ? 600 : 400, aria: d + ' Ekim' + (today ? ', bugün' : '') + (k ? (k === 'late' ? ', geciken son tarih' : ', yaklaşan son tarih') : ''),
+        bg: today ? 'var(--accent)' : (k ? 'var(--bg-raised)' : 'transparent'), ink: today ? 'var(--accent-ink)' : (d < 21 ? 'var(--ink-muted)' : 'var(--ink)'),
+        dot: k === 'late' ? 'var(--danger)' : (k === 'soon' ? 'var(--ink-muted)' : 'transparent') });
+    }
+    cal.push({ n: '', bg: 'transparent', ink: 'var(--ink)', fw: 400, dot: 'transparent', aria: '' });
+
+    const meetings = [
+      { day: '21', mon: 'Bugün', time: '15:30', state: 'due', title: 'Hidrofor ve su deposu teslim kontrolü', coord: 'ALT', pill: 'üyeler katılıyor', pillCls: 'rp-uana-pill--wait' },
+      { day: '23', mon: 'Eki', time: '10:00', state: '', title: 'Ulaşım ve güvenlik eşgüdümü', coord: 'OPE', pill: 'üyeler katılıyor', pillCls: '' }
+    ];
+
+    // ALT 6 = 1 başlamadı + 4 devam + 1 iade (3 gecikmiş); ELE 2 = 1 devam + 1 onayda (1 gecikmiş); OPE 1 = 1 onayda
+    const coords = [
+      { code: 'ALT', codeCls: 'rp-uana-code--own', name: 'Altyapı ve tesisat', n: 6, wTodo: '16%', wDoing: '64%', wReview: '0%', wBack: '16%', late: '3 gecikmiş', lateCls: 'rp-danger-text', line: 'Koordinatör: Kadir Özbek', aria: 'ALT: 1 başlamadı, 4 devam ediyor, 1 iade edildi' },
+      { code: 'ELE', codeCls: '', name: 'Elektrik ve enerji', n: 2, wTodo: '0%', wDoing: '49%', wReview: '49%', wBack: '0%', late: '1 gecikmiş', lateCls: 'rp-danger-text', line: '1 devam · 1 onayda', aria: 'ELE: 1 devam ediyor, 1 onay bekliyor' },
+      { code: 'OPE', codeCls: '', name: 'Operasyon', n: 1, wTodo: '0%', wDoing: '0%', wReview: '100%', wBack: '0%', late: 'Gecikme yok', lateCls: 'rp-faint', line: '1 onayda', aria: 'OPE: 1 onay bekliyor' }
+    ];
+
+    return { theme: this.props.theme ?? 'dark', sbctx, stats, queue, feed, dow, cal, meetings, coords };
+  }
+}
+</script>
+</body>
+</html>
