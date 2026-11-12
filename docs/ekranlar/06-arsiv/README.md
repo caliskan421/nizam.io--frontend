@@ -2,7 +2,7 @@
 
 **Codex kapısı:** KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
 
-**Uygulama durumu (F5):** uygulandı — W121 veri katmanı (#105), W122–W126 (#106–#110), W129 (#113), W127 entegrasyon turu (#114, CI'da); F5 Codex nihai kapısı **bekliyor**. Kabul kanıtları tablonun son sütunundadır.
+**Uygulama durumu (F5):** uygulandı — W121 veri katmanı (#105), W122–W126 (#106–#110), W129 (#113), W127 entegrasyon turu (#114, birleşti `8abcb3b`); F5 Codex nihai kapısı **bekliyor**. Kabul kanıtları tablonun son sütunundadır.
 
 **Artboard'lar:** `Arsiv.dc.html` (`06 · Arşiv`), `Arsiv-Klasor.dc.html` (`07 · Arşiv › Klasör`)
 **Faz:** F5 · **v1:** — (F0–F4 dışı; tespit tam yapılır) · **Yol haritası bağı:** K1, K2, K5, K6, K7, K10, K13; §4 satırı "F5 arşiv — Klasörler, dosyalar, ZIP, silinenler/geri yükleme"
@@ -25,7 +25,7 @@ Arşiv, seçili programdaki görevlere yüklenmiş dosyaları koordinatörlük �
 
 **F5 açıldı 2026-11-12 (P33–P40).** Tablo WEB-4 O4 hazırlığından devralındı; satırlar ürün sahibi kararlarıyla **kabul** edildi (`../ortak-kurallar.md` §12). BE-072 çözülmeden yönetici merceği P33'e göre çalışır; BE-072 açık kalır ve rapor-F5'te yeniden raporlanır. Pin yeterliliği (v0.15) W121 başında doğrulanır. Kaynak: v0.15 pinli records README/istemci-akislari ve bu grubun tespitleri. `backend.md` yükleme/silme yetkisi ADR-0030 ile güncellendi.
 
-**Kabul kanıtı sütunu (F5 uygulandı, W121–W126, W128–W129; Codex nihai kapısı bekliyor):** dosya yolları `src/modules/archive/` köküne göre; entegrasyon testleri `src/app/__tests__/integration/archive-*.test.ts` (W127, PR #114 CI'da; birleşene kadar main'de yoktur) ve ortak `archive-fake.ts`/`archive-support.ts` yardımcılarıdır. Sütundaki "hedef" önceki planlanan kapsamdır; kanıt dosyaları o kapsamı karşılar (satır satır eşleme dosya adı düzeyindedir, test-içi `it` adı eşlemesi yapılmadı).
+**Kabul kanıtı sütunu (F5 uygulandı, W121–W126, W128–W129; Codex nihai kapısı bekliyor):** dosya yolları `src/modules/archive/` köküne göre; entegrasyon testleri `src/app/__tests__/integration/archive-*.test.ts` (W127, PR #114, main `8abcb3b`) ve ortak `archive-fake.ts`/`archive-support.ts` yardımcılarıdır. Sütundaki "hedef" önceki planlanan kapsamdır; kanıt dosyaları o kapsamı karşılar (satır satır eşleme dosya adı düzeyindedir, test-içi `it` adı eşlemesi yapılmadı).
 
 | E-kimliği | Faz | Davranış (canlı / statik / gizli / devre dışı) | Kabul edilmiş varsayım | BE bağı | Bağımlılık | Kabul kanıtı |
 |---|---|---|---|---|---|---|
