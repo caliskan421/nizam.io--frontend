@@ -36,7 +36,7 @@ describe('KindSegment (E-12-08…16, P41, P42)', () => {
     wrapper.unmount()
   })
 
-  it('devre dışı türler designStub (BE-109, BE-076, BE-111) ve sayısız', () => {
+  it('devre dışı türler stub işaretli (BE-109, BE-076, BE-111) ve sayısız', () => {
     const wrapper = mountSegment()
     for (const [kind, stub] of [
       ['altgorev', 'BE-109'],
