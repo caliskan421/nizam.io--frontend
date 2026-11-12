@@ -65,6 +65,8 @@ Tetikleyici → ad girişi (çizilmemiş) → boş/uzunluk denetimi → istek (K
 ### 4.4 Silme (E-06-60)
 Tetikleyici → onay diyaloğu (çizilmemiş; Varsayım: ortak onay bileşeni, dosya adı metinde) → istek → başarı: dosya listeden çıkar, önizleme bir sonraki dosyaya geçer (yoksa kapanır), sayaçlar yenilenir. Silme **kalıcıdır**: metadata ve depolama nesnesi birlikte kaldırılır (openapi `deleteFile` özeti, RECORDS-K16); geri alma ve dosya düzeyinde "Silinenler" yoktur (E-06-63; yalnız görev düzeyinde `listDeletedWorkItems`). Onay metni "geri alınamaz" demeli. Silme yalnız yükleyene açıktır; ikinci silme 404 `records.file_not_found` (zaten silinmiş say). `Idempotency-Key` ve revizyon yok.
 
+**F5 uygulaması (fark):** başarıdan sonra panel bir sonraki dosyaya geçmez; **panel kapanır ve odak komşu karta gider** (koordinatör kararı 2026-11-12, W123 varsayımı). Silme sürerken panel açık kalır ve sonuç bildirimi gösterilir (W127 kusur 1 düzeltmesi).
+
 ### 4.5 Etiketi değiştir (E-06-58) ve taşı (E-06-59)
 Tetikleyiciler var, pencere yok. Sözleşmede karşılıkları bu tespitte görülmedi (§4 tablosunda yok) → backend analisti doğrular; yoksa K13 devre dışı.
 
