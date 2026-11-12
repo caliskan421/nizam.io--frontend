@@ -129,10 +129,10 @@ describe('FilesTab (W46 · E-03-61, E-03-50)', () => {
     expect(body().find('[role="dialog"]').exists()).toBe(true)
   })
 
-  it('görünürlük: yönetici yükleyemez/silemez, ad değiştirir; üye yalnız kendi dosyasında', async () => {
+  it('görünürlük: yönetici yükler, başkasınınkini silemez, ad değiştirir; üye yalnız kendi dosyasında', async () => {
     serveFiles()
     const admin = (await tab(ADMIN, ADMIN_SCOPE)).wrapper
-    expect(admin.find('[data-testid="files-upload"]').exists()).toBe(false)
+    expect(admin.find('[data-testid="files-upload"]').exists()).toBe(true)
     expect(admin.find('[data-testid="file-delete"]').exists()).toBe(false)
     expect(admin.findAll('[data-testid="file-rename"]')).toHaveLength(2)
 
