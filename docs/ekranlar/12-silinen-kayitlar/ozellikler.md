@@ -39,7 +39,7 @@ Kimlik `E-12-NN` dört dosyada aynı kalır. "Durumlar" sütunu tasarımda çizi
 | E-12-13 | "Toplantı" | segment düğmesi | "Toplantı ‹9›" | — | sayı | Rozet `--accent-text`. |
 | E-12-14 | "Kullanıcı" | segment düğmesi | "Kullanıcı ‹6›" | — | sayı | Rozet `--danger`. |
 | E-12-15 | "Not ve gündem" | segment düğmesi | "Not ve gündem ‹17›" | — | sayı | Tek seçenek iki türü (Not, Gündem) toplar; rozet `#5b8def`. |
-| E-12-16 | "Koordinatörlük" türü | — (**tasarımda yok**) | — | — | — | Backend'de `listDeletedDepartments` var; tasarım dışı. Satır `eksikler.md` ve README'de öneri olarak izlenir. |
+| E-12-16 | "Koordinatörlük" türü | segment düğmesi (**tasarımda yok; P41 ile eklenir**) | "Koordinatörlük" (sayı yok) | ortak çip/segment bileşeniyle en sade biçim (P3) | silinen departmanlar (`listDeletedDepartments`) | Ürün sahibi kararı P41 (2026-11-12). Rozet etiketi ve rengi tasarımda olmadığından ortak token'larla nötr (yeni renk icat edilmez). |
 | E-12-17 | Silinme tarihi aralığı | açılır düğme (`rp-rangebtn`, `aria-haspopup="dialog"`) + menü (`rp-rangepop`, `role="menu"`, `aria-label="Silinme tarihi aralığı"`) | düğme "Tümü · ‹S› gün"; menü: "Bugün ‹4›", "Son 7 gün ‹9›", "Tümü · ‹S› gün ‹127›" (`menuitemradio`, `aria-checked`) | menü açık/kapalı (`showRangeMenu` prop); seçili öğe kalın + `--bg-overlay` | etiket + her seçenekte sayı | **Yalnız 01d'de var** (01c'de yok). Menü öğesi min. 40 px. |
 | E-12-18 | "Silen" süzgeci | açılır düğme (`t-btn--secondary t-btn--sm`) | "Silen ⌄" | menü içeriği çizilmemiş | kişi listesi (çizilmemiş) | Menü çizilmemiş. |
 | E-12-19 | "Koordinatörlük" süzgeci | açılır düğme | "Koordinatörlük ⌄" | menü çizilmemiş | koordinatörlük listesi (çizilmemiş) | Tasarımın ayırt ettiği "koordinatörlük" = departman. |
@@ -116,7 +116,7 @@ Yalnız en az bir satır seçiliyken görünür (şablon); örnekte görünür.
 | E-12-65 | Gün grubu başlığı (yalnız 01c) | `rp-trgroup` satırı | "Bugün · 21 Ekim 2026 ‹4›" | — | gün + sayı | Seçilmeyen varyant; yalnız fark notu. |
 | E-12-66 | Tür bazında satır alanları: Görev | — | bkz. `backend.md` §4 | — | — | Alan eşlemesi tablosu (kayıt hücresi, panel). |
 | E-12-67 | …Toplantı | — | bkz. `backend.md` §4 | — | — | |
-| E-12-68 | …Koordinatörlük (departman) | — (tasarımda yok) | bkz. `backend.md` §4 | — | — | |
+| E-12-68 | …Koordinatörlük (departman) | — (tasarımda yok; P41) | bkz. `backend.md` §4 | — | — | |
 | E-12-69 | …Kullanıcı (hesap) | — | bkz. `backend.md` §4 | — | — | |
 
 ## 3. Pencereler, menüler, açılır paneller
