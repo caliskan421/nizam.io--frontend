@@ -1,13 +1,13 @@
 # O4 — Kapanış
 
-**Durum (2026-11-12):** O2/O3 PR'ları main'de (#102–#113); W127 #114 CI'da. Belge işi (W131) tamam; gerçek imaj tanığı (W130) yazılıyor; Codex ve kapanış PR'ı **bekliyor**. F5 henüz KAPANMADI.
+**Durum (2026-11-12):** O2/O3 PR'ları main'de (#102–#113); W127 #114 birleşti (main `8abcb3b`). Belge işi (W131) tamam; gerçek imaj tanığı (W130) yazılıyor; Codex ve kapanış PR'ı **bekliyor**. F5 henüz KAPANMADI.
 
 ## Gerçekleşen akış
 
 | Adım | İş                                                                                                                                                  | İşçi / rol        | Durum                                                                 |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------- |
 | 1    | Belgeler: [rapor-F5](../../backend-eksikleri/rapor-F5.md), [ilerleme](ilerleme.md), ortak-kurallar §6, 12/06 kabul kanıtları, 06 mekanizma §4.4 notu, `kayit.md`, [pin yükseltme planı](pin-yukseltme-plani.md), [web-6 iskeleti](../web-6/README.md), yol haritası notu | W131 (Sonnet 5.5) | Yazıldı, yalnız belge; kod yok                                         |
-| 2    | `dogrulama-F5.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend (pin etiketinden), 06/07/12 üç rol × 390/1024/1440 × iki tema, G4 429, tam kapı | W130 (Sonnet 5.5) | #114 birleşince; sonuç henüz bu belgeye işlenmedi                      |
+| 2    | `dogrulama-F5.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend (pin etiketinden), 06/07/12 üç rol × 390/1024/1440 × iki tema, G4 429, tam kapı | W130 (Sonnet 5.5) | #114 birleşti; ayrı dalda yazılıyor, sonuç henüz bu belgeye işlenmedi                      |
 | 3    | Nihai kapı: Codex gpt-6.1-sol medium `-s read-only` tek koşum; hüküm `docs/reviews/WEB-5-codex.md`                                                  | Codex             | **Bekliyor**                                                          |
 | 4    | Koşullar işçiyle kapatılır; gerekirse ikinci tur                                                                                                    | işçi + koordinatör | Bekliyor                                                              |
 | 5    | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla)                                                              | koordinatör       | **Bekliyor**                                                          |
@@ -21,7 +21,7 @@ Koordinatör Fable (kod yazmaz, işçi çıktısı okumaz; özet alır, birleşt
 | Kapı                                                  | Sonuç                                                                                                                                         |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | İşçi tam paketleri (typecheck, lint, format, test, gen, build) | W121 509 dosya / 3450 test; W124 3515; W123 3520; W128 541 dosya / 3675; W127 4023 test. CI tek doğruluk kaynağıdır (iki zamanlama kırmızısı dersi: ilerleme) |
-| main CI                                               | #102–#113 CI yeşil beklenerek birleşti (son main `a19c9d5`; üç denetimin tek tek sonucu doğrulanamadı); #114 CI'da                                                                          |
+| main CI                                               | #102–#113 CI yeşil beklenerek birleşti (son main `a19c9d5`; üç denetimin tek tek sonucu doğrulanamadı); #114 birleşti (`8abcb3b`)                                                                          |
 | Görsel ölçümler                                       | W121–W128 + W127 duman: taşma 0, CSP 0, sayfa hatası 0 (ham kanıt `.git/koordinator/web5-w12*/`)                                              |
 | Belge kapısı (W131)                                   | `prettier --check` değişen dosyalar + `pnpm lint`: commit sırasında çalıştırıldı, sonuç W131 raporunda                                         |
 | Gerçek imaj + gerçek backend (W130)                   | `dogrulama-F5.md` — **bekliyor**                                                                                                              |
