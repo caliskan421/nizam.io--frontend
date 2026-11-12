@@ -37,9 +37,9 @@ function useRangePages(
   context: ComputedRef<{ now: Date; timezone: string }>,
 ) {
   const scope = useScopeStore()
-  let autoPages = 0
+  const autoPages = ref(0)
   const resetAuto = () => {
-    autoPages = 0
+    autoPages.value = 0
   }
   watch(() => [filters.value.kind, filters.value.range], resetAuto)
   const stopScope = scope.onChange(resetAuto)
@@ -48,13 +48,13 @@ function useRangePages(
     rangeNeedsMore(list.rows.value, filters.value, list.hasMore.value, context.value),
   )
   const autoLoading = computed(
-    () => needsMore.value && !list.moreFailed.value && autoPages < MAX_AUTO_PAGES,
+    () => needsMore.value && !list.moreFailed.value && autoPages.value < MAX_AUTO_PAGES,
   )
   watch(
     () => [needsMore.value, list.loadingMore.value, list.loading.value, list.rows.value.length],
     () => {
       if (!autoLoading.value || list.loadingMore.value || list.loading.value) return
-      autoPages += 1
+      autoPages.value += 1
       void list.fetchMore()
     },
     { immediate: true },

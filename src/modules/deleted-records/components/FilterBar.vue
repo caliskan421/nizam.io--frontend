@@ -45,8 +45,8 @@ const RANGE_LABEL: Record<DeletedRange, 'today' | 'week' | 'all'> = {
 const rangeText = (range: DeletedRange) => deletedText(`filters.range.${RANGE_LABEL[range]}`)
 
 const rangeOptions = computed(() =>
-  // Tasarım sırası: Bugün, Son 7 gün, Tümü.
-  [...DELETED_RANGES].reverse().map((value) => ({ value, label: rangeText(value) })),
+  // Tasarım sırası (Bugün, Son 7 gün, Tümü) `DELETED_RANGES` sırasıdır.
+  DELETED_RANGES.map((value) => ({ value, label: rangeText(value) })),
 )
 const actorOptions = computed(() => [
   { value: null, label: deletedText('filters.actor.all') },
