@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import './preview.css'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -32,6 +32,10 @@ const actions = useFileActions(
   () => props.target,
   (fileId) => emit('deleted', fileId),
 )
+
+// Silme uçuştayken sayfa paneli açık tutar: yenilenen liste dosyayı düşürse de sonuç bildirimi
+// sahibine ulaşır (KESİN 26a: sökülmüş sahip bildirim üretmez; burada sökülen biz değiliz).
+watch(actions.removing, (pending) => emit('removing', pending))
 
 const caps = computed(() => archiveCapabilities(standing.value, store.programId))
 const facts = computed(() => ({

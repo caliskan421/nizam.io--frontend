@@ -73,7 +73,9 @@ const search = useDebouncedSearch(
 )
 const searchDisabled = computed(() => data.needsTask.value)
 
+const removing = ref(false)
 const selection = useFileSelection({
+  holding: removing,
   root,
   files: attachments.files,
   hasMore: attachments.hasMore,
@@ -211,6 +213,7 @@ function openTask(workItemId: string): void {
             :has-more="attachments.hasMore.value"
             :target="target"
             :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"
+            @removing="removing = $event"
             @close="selection.close"
             @previous="selection.previous"
             @next="selection.next"

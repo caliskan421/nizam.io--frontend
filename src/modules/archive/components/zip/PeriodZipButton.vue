@@ -5,7 +5,7 @@ import { computed } from 'vue'
 
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
-import { UiButton } from '@/shared/ui'
+import { DesignStub, UiButton } from '@/shared/ui'
 
 import { archiveCapabilities } from '../../model/capabilities'
 import type { PeriodZipButtonProps } from '../index'
@@ -14,7 +14,7 @@ import { useZipDownload } from './use-zip-download'
 
 /**
  * E-06-04 — dönem ZIP'i "Tümünü indir" (06; yalnız ŞY, RECORDS-K24). `target` `null` (yönetici
- * `/arsiv`'te departman başlığı yok; `archiveFullZip` S3 — BE-120) → düğme devre dışı + açıklama;
+ * `/arsiv`'te departman başlığı yok; `archiveFullZip` S3 — BE-120) → düğme devre dışı + `DesignStub` BE-120 + açıklama;
  * keyfî departman başlığı UYDURULMAZ, ağ isteği yok. Yetkisiz hesapta düğme gizlidir. Metinler
  * `zip-status.ts`; otomatik tekrar yok.
  */
@@ -41,17 +41,19 @@ function onClick(): void {
 
 <template>
   <span v-if="visible" class="zip" data-testid="period-zip">
-    <UiButton
-      variant="secondary"
-      icon="download"
-      :disabled="unavailable"
-      :aria-busy="zip.busy.value"
-      :aria-describedby="noteText ? 'period-zip-note' : undefined"
-      data-testid="period-zip-button"
-      @click="onClick"
-    >
-      {{ zipText('period.label') }}
-    </UiButton>
+    <component :is="unavailable ? DesignStub : 'span'" v-bind="unavailable ? { id: 'BE-120' } : {}">
+      <UiButton
+        variant="secondary"
+        icon="download"
+        :disabled="unavailable"
+        :aria-busy="zip.busy.value"
+        :aria-describedby="noteText ? 'period-zip-note' : undefined"
+        data-testid="period-zip-button"
+        @click="onClick"
+      >
+        {{ zipText('period.label') }}
+      </UiButton>
+    </component>
     <span
       v-if="noteText"
       id="period-zip-note"

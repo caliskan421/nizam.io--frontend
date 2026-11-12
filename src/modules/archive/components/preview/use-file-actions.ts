@@ -7,7 +7,7 @@
  *    404 `records.file_not_found` → silinmiş say (`deleted`); diğer hata → ortak bildirim.
  * Bildirim kurulumda alınan `useToast()` ile yapılır; sökülmüş sahip UI/bildirim başlatmaz.
  */
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { ownerLife } from '@/shared/http/mutation'
 import { errorText } from '@/shared/i18n'
@@ -72,7 +72,10 @@ export function useFileRemoval(
   const owner = ownerLife()
   const toast = useToast()
 
-  async function start(): Promise<void> {
+  /** İstek + sonuç işleme sürerken `true` (sayfa paneli bu sürede açık tutar). */
+  const running = ref(false)
+
+  async function run(): Promise<void> {
     if (remove.isPending.value) return
     const current = toValue(file)
     const ref = {
@@ -100,7 +103,15 @@ export function useFileRemoval(
       notifyOutcome(outcome)
     }
   }
-  return { start, pending: remove.isPending }
+  async function start(): Promise<void> {
+    running.value = true
+    try {
+      await run()
+    } finally {
+      running.value = false
+    }
+  }
+  return { start, pending: remove.isPending, running }
 }
 
 export function useFileActions(
@@ -114,6 +125,7 @@ export function useFileActions(
     startDownload: download.start,
     startRemove: removal.start,
     downloading: download.pending,
+    removing: removal.running,
     busy: computed(() => download.pending.value || removal.pending.value),
   }
 }

@@ -57,11 +57,20 @@ describe('PeriodZipButton — hedef yok (BE-120)', () => {
     const { wrapper } = await mountButton({ admin: true }, null)
     const el = wrapper.get('button')
     expect(el.attributes('disabled')).toBeDefined()
+    // Statik öğe BE-120 ile işaretlenir (ortak-kurallar §3); hedef varken işaret yok.
+    expect(wrapper.find('[data-design-stub="BE-120"] button').exists()).toBe(true)
     const note = wrapper.get('[data-testid="period-zip-note"]')
     expect(note.text()).toMatch(/henüz indirilemiyor/)
     expect(el.attributes('aria-describedby')).toBe(note.attributes('id'))
     await el.trigger('click')
     expect(sent('POST', '/v1/download-tickets')).toHaveLength(0)
+  })
+})
+
+describe('PeriodZipButton — hedef var', () => {
+  it('BE-120 işareti yok (düğme gerçek eylemdir)', async () => {
+    const { wrapper } = await mountButton({ admin: true }, TARGET)
+    expect(wrapper.find('[data-design-stub]').exists()).toBe(false)
   })
 })
 

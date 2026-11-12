@@ -169,6 +169,8 @@ export interface FilePreviewProps {
   taskTitle: string | null
 }
 export interface FilePreviewEmits {
+  /** Silme isteği uçuşta mı: sayfa bu sürede paneli listeden düşse bile açık tutar (sonuç bildirimi). */
+  removing: [pending: boolean]
   close: []
   previous: []
   next: []
@@ -183,6 +185,7 @@ export interface FileActionsProps {
   target: ArchiveTarget
 }
 export interface FileActionsEmits {
+  removing: [pending: boolean]
   deleted: [fileId: string]
   renamed: [fileId: string]
 }
