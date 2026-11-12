@@ -1,13 +1,21 @@
 # WEB-5 ilerleme
 
-**BAŞLATILMADI.** WEB-4 O4 yalnız belge iskeleti oluşturdu; F5 onayı yok, BE-072 açık. W121–W127 için dal/worktree/worker/kod yok. Mevcut web pini v0.15.0-api.
+Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-06 E01–64 satırları geçici koordinatör kabulüdür, kullanıcı cevapları değildir. F5-S19/S20 açık; önerilen varsayılanlar 06 README'dedir. Başlamadan yeni pin ve sözleşme yeterliliği doğrulanır. Eski v0.11 yönetici yükleme yasağı v0.15 ADR-0030 ile düzeltilmiştir; kaynak 06 backend.md.
+**F5 AÇILDI 2026-11-12.** Ürün sahibi onayı ve P33–P40 kararları alındı. BE-072 açık (P33 ile yönetici merceği geçici çözüm). Mevcut web pini v0.15.0-api.
 
-| Oturum             | Durum     |
-| ------------------ | --------- |
-| O1 yeterlilik/onay | Bekliyor  |
-| O2a W121           | Başlamadı |
-| O2b W122–W126      | Başlamadı |
-| O3 W127            | Başlamadı |
-| O4 kapanış         | Başlamadı |
+| Oturum                     | Durum                                            |
+| -------------------------- | ------------------------------------------------ |
+| O1 tespit + kararlar       | Çalışıyor (W119 tespit, W120 kararlar)           |
+| O2a W121                   | Başlamadı                                        |
+| O2b W122–W126, W128        | Başlamadı (W128 silinen kayıtlar, veri + UI tek) |
+| O3 W127                    | Başlamadı                                        |
+| O4 kapanış                 | Başlamadı                                        |
+
+## Kayıtlar
+
+### F5 açıldı (2026-11-12)
+
+- Kararlar: P33 (yönetici merceği, BE-072 öncesi), P34 (etiketler), P35 (yükleme), P36 (silinen kayıtlar ayrı ekran, E-01-02 canlanır), P37 (saklama metni), P38 (06 alt başlık), P39 (rozet gizli), P40 (K/Ü doğrudan 07).
+- Açık: BE-072, BE-069 (göreve bağsız yükleme), BE-024 (yeni etiket), BE-025, saklama politikası (ürün kararı ister), 06 PDF segmenti ve arama kapsamı.
+- Tasarım kopyası `1794501200-387f` sürümüne yenilendi (01c/01d/Şablon/Kenar-Roller/Ü/K).

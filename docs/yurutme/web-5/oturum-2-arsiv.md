@@ -1,6 +1,6 @@
-# O2 — Arşiv uygulama planı (başlatılmadı)
+# O2 — Arşiv ve silinen kayıtlar uygulama planı (başlatılmadı)
 
-Bu iş listesi yalnız iskelettir; O1 tamamlanınca pin ve ürün kararlarıyla daraltılır. Her W istemindeki **Tespit** satırı aşağıdaki 06 dosyalarına ve kabul tablosuna bağlanır. Her teslim typecheck/tam lint/format/test/gen/build; UI'da üretim+Caddy CSP+Playwright 390/1024/1440 × iki tema ve dar etkileşim gerekir.
+Bu iş listesi O1 kararlarıyla (P33–P40) daraltılmıştır; W121 başında pin yeterliliği yeniden doğrulanır. Her W istemindeki **Tespit** satırı aşağıdaki 06 dosyalarına ve kabul tablosuna bağlanır. Her teslim typecheck/tam lint/format/test/gen/build; UI'da üretim+Caddy CSP+Playwright 390/1024/1440 × iki tema ve dar etkileşim gerekir.
 
 | W        | İş / sahiplik sınırı                                                       | Tespit                                                                                                                                                                     |
 | -------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -10,5 +10,6 @@ Bu iş listesi yalnız iskelettir; O1 tamamlanınca pin ve ürün kararlarıyla 
 | W124 O2b | Önizleme/seçim, indirme/adlandırma/kalıcı silme, desteklenmeyen eylemler   | [kabul E46–60/64](../../ekranlar/06-arsiv/README.md), [mekanizma](../../ekranlar/06-arsiv/mekanizma.md), [eksikler](../../ekranlar/06-arsiv/eksikler.md)                   |
 | W125 O2b | Görev seçerek anahtarlı yükleme, ilgili gerçek üst bileşene bağlama        | [kabul E05/35/62](../../ekranlar/06-arsiv/README.md), [backend](../../ekranlar/06-arsiv/backend.md), [özellikler](../../ekranlar/06-arsiv/ozellikler.md)                   |
 | W126 O2b | ZIP/bilet akışları ve kalıcı silme/geri yükleme sınırı                     | [kabul E04/34/63](../../ekranlar/06-arsiv/README.md), [backend](../../ekranlar/06-arsiv/backend.md), [eksikler](../../ekranlar/06-arsiv/eksikler.md)                       |
+| W128 O2b | 12 silinen kayıtlar: veri katmanı + UI tek W (görev/toplantı/departman/hesap liste, geri yükle, kalıcı sil; E-01-02 düğmesi canlanır; yalnız yönetici) | [12 README kabul tablosu](../../ekranlar/12-silinen-kayitlar/README.md) (W119), [P36/P37](../../ekranlar/ortak-kurallar.md) |
 
 Paylaşılan dosyalar W121'de sözleşmeli; diğerleri yalnız kendi bloğu. Önizleme/yükleme/ZIP üst bağlama noktaları dosya+prop/emit adıyla iki işçinin istemine yazılır. Dal zinciriyle uyarlanır; her W ayrı `web5/<oturum>-<wid>` ve `nizam.io--frontend-wt-<wid>`. Bu dallar henüz oluşturulmadı.
