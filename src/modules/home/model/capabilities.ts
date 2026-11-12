@@ -16,7 +16,7 @@
 import type { ScopeLens } from '@/shared/scope/scope'
 import type { Standing } from '@/shared/scope/standing-facts'
 
-export type HomeCapability = 'readDashboard' | 'createMeeting' | 'addUser'
+export type HomeCapability = 'readDashboard' | 'createMeeting' | 'addUser' | 'openDeletedRecords'
 
 /** Her kararın kaynağı (denetim izi). */
 export const HOME_CAPABILITY_SOURCES: Readonly<Record<HomeCapability, string>> = {
@@ -26,6 +26,8 @@ export const HOME_CAPABILITY_SOURCES: Readonly<Record<HomeCapability, string>> =
     'meetings README POST /v1/meetings (createMeeting): şirket yöneticisi ∨ koordinatör',
   addUser:
     'ORGANIZATION README POST /v1/admin/users (createUser): şirket yöneticisi ∨ koordinatör (yalnız uye)',
+  openDeletedRecords:
+    '12-silinen-kayitlar README + istemci-akislari §3 silinen listeleri (P36): yalnız şirket yöneticisi, mercekten bağımsız (P1)',
 }
 
 /** Seçili programda en az bir departmanın koordinatörü mü. */
@@ -36,6 +38,14 @@ function coordinatesIn(standing: Standing, programId: string): boolean {
 function adminOrCoordinator(standing: Standing | null, programId: string | null): boolean {
   if (!standing || programId === null) return false
   return standing.companyAdmin || coordinatesIn(standing, programId)
+}
+
+/**
+ * "Silinen kayıtlar" düğmesi (E-01-02; F5, P36): yalnız şirket yöneticisi görür. Mercek girdi
+ * değildir (P1): Koordinatör/Üye merceğindeki yönetici de görür; diğer roller için DOM'da yoktur.
+ */
+export function canOpenDeletedRecords(standing: Standing | null): boolean {
+  return standing?.companyAdmin === true
 }
 
 /** KPI kaynağı pano mu (REPORTING-K01): şirket yöneticisi VE Admin merceği. */

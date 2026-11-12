@@ -9,18 +9,20 @@ import { toApiError } from '@/shared/errors/api-error'
 import { invalidateStanding, useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
+import { useDashboard } from '../api'
 import AdminKpis from '../components/AdminKpis.vue'
+import DeletedRecordsButton from '../components/DeletedRecordsButton.vue'
 import KpiStrip from '../components/KpiStrip.vue'
 import QuickActions from '../components/QuickActions.vue'
 import RecentActivity from '../components/RecentActivity.vue'
 import TeamKpis from '../components/TeamKpis.vue'
-import { canReadDashboard } from '../model/capabilities'
+import { canOpenDeletedRecords, canReadDashboard } from '../model/capabilities'
 import { homeText } from '../model/messages'
 import { quickActions } from '../model/quick-actions'
 
 /**
  * 01 · Ana sayfa — sade F1 (`/`, S1; P6): selamlama, KPI şeridi, hızlı işlemler, nötr "Son
- * işlemler". F6 bölgeleri (Silinen kayıtlar, Rapor oluştur, ekip şeridi, koordinatörlük kartları,
+ * işlemler". F6 bölgeleri (Rapor oluştur, ekip şeridi, koordinatörlük kartları,
  * alt bilgi) F1 yapısında ÇİZİLMEZ. Rota S1'dir: kabuk kapsam beklerken de sayfayı çizer, bu
  * yüzden kapsamlı (S2) okumalar yalnız kapsam tamken bağlanır (kapsamsız istek yok).
  *
@@ -59,6 +61,11 @@ const standingError = computed(() =>
 const assignee = computed(() => lensAssignee(store.lens, facts.value?.accountId))
 const actions = computed(() => quickActions(facts.value, store.programId))
 
+/** E-01-02 "Silinen kayıtlar" (F5, P36): yalnız yönetici; sayaç pano `deleted_records` (Admin merceği). */
+const showDeleted = computed(() => canOpenDeletedRecords(facts.value))
+const dashboard = useDashboard(() => kpiSource.value === 'dashboard')
+const deletedCount = computed(() => dashboard.data.value?.deleted_records ?? null)
+
 function retryStanding(): void {
   void invalidateStanding(queryClient)
 }
@@ -72,6 +79,9 @@ function retryStanding(): void {
           {{ homeText('home.greeting', { name: fullName }) }}
         </h1>
         <span v-else class="home-skel home-skel--greet" aria-hidden="true" />
+      </div>
+      <div v-if="showDeleted" class="rp-actions">
+        <DeletedRecordsButton :count="deletedCount" />
       </div>
     </div>
     <div class="home-body">
