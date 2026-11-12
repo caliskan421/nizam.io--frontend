@@ -16,7 +16,7 @@ import type { ArchiveFile } from '../../../model/types'
 export interface StandingSeed {
   accountId?: string
   companyAdmin?: boolean
-  rows?: ReadonlyArray<{ departmentId: string; role: 'coordinator' | 'member' }>
+  rows?: ReadonlyArray<{ departmentId: string; role: 'koordinator' | 'uye' }>
 }
 
 /** `useStanding()` önbelleğine `me` + `me/departments` yazar (oturum kapalıyken istek atılmaz). */
