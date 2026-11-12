@@ -11,7 +11,7 @@ export const ADMIN_FOLDER_LEVEL = designStub('BE-072', {
   recentFiles: false,
   globalSearch: false,
   /** Boş durum metni anahtarı: "Görev klasörü seçin". */
-  emptyKey: 'archive.admin.selectTask',
+  emptyKey: 'archive.shared.selectTask',
 })
 
 /** Klasör özeti: görev sayısı, bayt toplamı, son yükleme, depolama dağılımı (E-06-12…14, 22…24). */
