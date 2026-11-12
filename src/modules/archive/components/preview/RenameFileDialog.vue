@@ -6,7 +6,7 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import { errorText } from '@/shared/i18n'
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { UiButton, UiField, UiInput, UiModal, useToast } from '@/shared/ui'
-import { UiOutcomeNotice } from '@/shared/ui/confirm'
+import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 
 import { useRenameArchiveFile } from '../../api/writes'
 import type { RenameFileDialogEmits, RenameFileDialogProps } from '../index'
@@ -18,7 +18,8 @@ import { MAX_FILE_NAME, validateFileName } from './rename'
  * form). Anahtarsız `renameFile` (son yazan kazanır): boş ad/150 karakter aşımı istemcide
  * reddedilir; 422 `records.name_invalid` ve 409 `records.name_taken`/`records.moved` TEK alan
  * bildirimi olarak adın altında gösterilir (sunucu `message` yok); sonuç bilinmiyorsa kör
- * tekrar yok — yazma katmanı listeyi yeniden okur, pencere sonucu bildirir. İstek sürerken
+ * tekrar yok — yazma katmanı listeyi yeniden okur, pencere sonucu bildirir. 429 gibi yerinde
+ * gösterilmeyen sonuçlar ortak bildirimle (`notifyOutcome`) duyurulur. İstek sürerken
  * pencere kapatılamaz; odak kapanınca tetikleyiciye döner (`UiModal`).
  */
 const props = defineProps<RenameFileDialogProps>()
@@ -67,7 +68,11 @@ function settle(result: Outcome): void {
     toast.push({ message: previewText('archive.actions.renamed') })
     emit('update:open', false)
     emit('renamed', props.file.file_id)
+    return
   }
+  // Alanda/yerinde gösterilmeyen sınıflar (429 `rate_limited`, `conflict_retry`, `scope_changed`…)
+  // sessiz kalmaz: ortak bildirim (sahibi sökülmüş sonuç `notifyOutcome` içinde elenir).
+  if (!['failed', 'unknown_outcome', 'edit_conflict'].includes(result.kind)) notifyOutcome(result)
 }
 
 async function submit(): Promise<void> {
