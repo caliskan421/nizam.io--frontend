@@ -1,8 +1,11 @@
 /**
- * Önizlenen dosya (`?dosya`) mantığı: seçili dosya yüklenen sayfalarda aranır (derin bağlantı
- * için sonraki sayfalar yüklenir; yerleşmiş listede yoksa param düşer), önceki/sonraki komşu
- * dosyayı seçer (listenin sonunda devam varsa önce bir sayfa yükler), silinince komşuya geçer
- * (yoksa kapanır). Kapanışta odak dosya kartına döner; kart yoksa dosya başlığına (KESİN 27).
+ * Önizlenen dosya (`?dosya`) mantığı:
+ *  - Seçili dosya yüklenen sayfalarda aranır (derin bağlantı için sonraki sayfalar yüklenir;
+ *    yerleşmiş listede yoksa param düşer).
+ *  - Önceki/sonraki komşu dosyayı seçer; listenin sonunda devam varsa önce bir sayfa yükler.
+ *  - Silinince (liste yeniden okununca dosya kaybolur ya da `deleted` gelir) komşuya geçer,
+ *    komşu yoksa kapanır. Komşu, dosyanın listede göründüğü son anlık görüntüden alınır.
+ *  - Kapanışta odak dosya kartına döner; kart yoksa dosya başlığına (KESİN 27).
  */
 import { computed, nextTick, ref, watch, type Ref } from 'vue'
 
@@ -32,16 +35,46 @@ function focusFile(root: HTMLElement | null, id: string | null): void {
   })
 }
 
-/**
- * Derin bağlantı: seçili dosya yüklenen sayfalarda yoksa sonraki sayfa yüklenir; liste yerleşmiş
- * ve devam yoksa `dosya` parametresi düşer.
- */
-function watchSeek(input: Input, selected: Ref<ArchiveFile | null>): void {
-  const seeking = ref(false)
+/** Seçili dosyanın listede göründüğü son liste (silinince komşu buradan bulunur). */
+function useListedSnapshot(input: Input, selected: Ref<ArchiveFile | null>) {
+  let known: readonly ArchiveFile[] = []
   watch(
-    [input.fileId, input.files, input.hasMore, input.settled],
+    [input.files, input.fileId],
     () => {
-      if (input.fileId.value === null || selected.value !== null || !input.settled.value) return
+      if (selected.value !== null) known = input.files.value
+    },
+    { immediate: true, flush: 'sync' },
+  )
+  return {
+    wasListed: (id: string) => known.some((f) => f.file_id === id),
+    /** `id`'den sonraki, yoksa önceki dosya (güncel listede hâlâ bulunan). */
+    neighbor(id: string): ArchiveFile | null {
+      const alive = (f: ArchiveFile | null) =>
+        f !== null && input.files.value.some((g) => g.file_id === f.file_id) ? f : null
+      return alive(adjacentFile(known, id, 'next')) ?? alive(adjacentFile(known, id, 'previous'))
+    },
+  }
+}
+
+export function useFileSelection(input: Input) {
+  const { files, fileId } = input
+  const selected = computed(() => files.value.find((f) => f.file_id === fileId.value) ?? null)
+  const position = computed(() => filePosition(files.value, fileId.value))
+  const snapshot = useListedSnapshot(input, selected)
+  const seeking = ref(false)
+
+  function dropTo(id: string): void {
+    const next = snapshot.neighbor(id)
+    void input.select(next?.file_id ?? null, 'replace')
+    if (!next) focusFile(input.root.value, null)
+  }
+
+  watch(
+    [fileId, files, input.hasMore, input.settled],
+    () => {
+      const id = fileId.value
+      if (id === null || selected.value !== null || !input.settled.value) return
+      if (snapshot.wasListed(id)) return dropTo(id)
       if (input.hasMore.value && !input.fetchingMore.value) {
         seeking.value = true
         void input.loadMore().finally(() => (seeking.value = false))
@@ -51,24 +84,6 @@ function watchSeek(input: Input, selected: Ref<ArchiveFile | null>): void {
     },
     { flush: 'post' },
   )
-}
-
-export function useFileSelection(input: Input) {
-  const { files, fileId } = input
-  const selected = computed(() => files.value.find((f) => f.file_id === fileId.value) ?? null)
-  const position = computed(() => filePosition(files.value, fileId.value))
-  // Silme sonrası liste yeniden okunmuş olabilir: komşu, dosyanın listede göründüğü son
-  // anlık görüntüden alınır.
-  let known: readonly ArchiveFile[] = []
-  watch(
-    [files, fileId],
-    () => {
-      if (selected.value !== null) known = files.value
-    },
-    { immediate: true, flush: 'sync' },
-  )
-
-  watchSeek(input, selected)
 
   function close(): void {
     const id = fileId.value
@@ -78,10 +93,7 @@ export function useFileSelection(input: Input) {
 
   async function go(direction: 'previous' | 'next'): Promise<void> {
     const to = adjacentFile(files.value, fileId.value, direction)
-    if (to) {
-      void input.select(to.file_id, 'replace')
-      return
-    }
+    if (to) return void input.select(to.file_id, 'replace')
     if (direction === 'next' && input.hasMore.value) {
       const before = files.value.length
       await input.loadMore()
@@ -90,19 +102,13 @@ export function useFileSelection(input: Input) {
     }
   }
 
-  function removed(id: string): void {
-    const list = files.value.some((f) => f.file_id === id) ? files.value : known
-    const neighbor = adjacentFile(list, id, 'next') ?? adjacentFile(list, id, 'previous')
-    void input.select(neighbor?.file_id ?? null, 'replace')
-    if (!neighbor) focusFile(input.root.value, null)
-  }
-
   return {
     selected,
     position,
     close,
     previous: () => go('previous'),
     next: () => go('next'),
-    removed,
+    /** `FilePreview` `deleted`: liste henüz yenilenmemiş olabilir; komşu anlık görüntüden. */
+    removed: dropTo,
   }
 }

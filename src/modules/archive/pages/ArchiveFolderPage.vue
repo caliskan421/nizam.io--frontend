@@ -69,7 +69,7 @@ const canZip = computed(() => (data.folder.value ? caps.value.folderZip(data.fol
 
 const search = useDebouncedSearch(
   computed(() => url.state.value.q),
-  (q) => url.update({ q }),
+  (q) => url.update({ q, file: null }),
 )
 const searchDisabled = computed(() => data.needsTask.value)
 
