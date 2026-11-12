@@ -75,6 +75,8 @@ export const ICONS = {
   edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
   /** İndir (Kullanicilar.dc.html "Dışa aktar"). */
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  /** Yükle (Arsiv.dc.html "Dosya yükle"). */
+  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
   /** Zarf (Kullanicilar.dc.html "Şifre sıfırlama bağlantısı"). */
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
   /** Kilit (Kullanicilar.dc.html "Hesabı kilitle"). */
