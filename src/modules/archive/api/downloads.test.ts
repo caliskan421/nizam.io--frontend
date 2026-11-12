@@ -1,3 +1,4 @@
+import { effectScope } from 'vue'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -244,10 +245,13 @@ describe('sahip sökülürse', () => {
       zip(),
     )
     const h = harness(COORD)
-    const { result, app } = h.run(() => useArchiveDownload())
-    const pending = result.start({ target, kind: 'file', id: 'f1', fallbackName: 'a' })
+    const { result } = h.run(() => {
+      const owner = effectScope()
+      return { download: owner.run(() => useArchiveDownload())!, owner }
+    })
+    const pending = result.download.start({ target, kind: 'file', id: 'f1', fallbackName: 'a' })
     await hit
-    app.unmount()
+    result.owner.stop()
     release()
     expect(await pending).toEqual({ kind: 'disposed' })
     expect(sent('GET', '/v1/downloads/tk_1')).toHaveLength(0)
