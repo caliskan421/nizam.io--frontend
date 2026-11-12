@@ -1,6 +1,6 @@
 # WEB-5 — Codex nihai kapı
 
-Faz: F5 (arşiv + silinen kayıtlar). Codex gpt-6.1-sol medium, `-s read-only`. Hüküm durumu: tur 1 KOŞULLU UYGUN; koşulların kapanışı bekliyor; F5 henüz KAPANMADI.
+Faz: F5 (arşiv + silinen kayıtlar). Codex gpt-6.1-sol medium, `-s read-only`. Hüküm durumu: tur 2 KOŞULLU UYGUN; Ö-03/Ö-04 kapanışı bekliyor; F5 henüz KAPANMADI.
 
 ## Tur 1 — 2026-11-13, HEAD 44eb5fe
 
@@ -65,5 +65,57 @@ HEAD: `44eb5fefa13d3afebfbf4ceb67d4672704b309f7`
 | CX-F5-Ö-02  | W132 PR #116 (yönetici görev eşlemesi hata/yeniden deneme + `tasks.error`) | kapandı — `9750cf4`, `74b0f9c`, main `1248daa` |
 | CX-F5-K-01  | `web5/o4-kapanis`: dogrulama-F5 tanık iddiası düzeltildi | kapandı — `0d93711` |
 | CX-F5-K-02  | `web5/o4-kapanis`: rapor-F5 ve kayit.md BE-120 ifadesi düzeltildi | kapandı — `45193bf` |
+| CX-F5-Ö-03  | W133 PR (görev geri yükleme/kalıcı silme `workItems.files` geçersizlemesi + ilişki testi) | bekliyor |
+| CX-F5-Ö-04  | W133 PR (bildirimle Koordinatörlük sekmesine geçişte odak dönüşü) | bekliyor |
 
-Tur 2 hükmü: bekliyor.
+## Tur 2 — 2026-11-13, HEAD d889e2a
+
+HEAD: `d889e2a15d72b8c3bc175309faeecb6d03b9ea8c`
+
+**KOŞULLU UYGUN**
+
+İncelenen yollarda engelleyici yetki, pin veya sahip sökümü kusuru saptamadım. Tur 1’in dört koşulu kaynak ve test iddiaları bakımından kapanmış. Aşağıdaki iki küçük bulgu F5 kapanmadan giderilmeli. Bulgular statik kaynak incelemesine dayanıyor; bu koşumda test çalıştırılmadı.
+
+**Tur 1 kapanışları**
+
+| Bulgu | Değerlendirme |
+|---|---|
+| CX-F5-Ö-01 | **Kapandı.** Bekleyen gezinme seçim nesline bağlı; kapatma ve başka seçim eski devamı hükümsüz kılıyor. `ArchiveFolderPage.races.test.ts` kapatma ve süzgeç değişimini kontrollü yanıtla kapsıyor. |
+| CX-F5-Ö-02 | **Kapandı.** Kesişimin iki kaynağının ilk okuma hatası birlikte değerlendiriliyor; hata görünümü ve yeniden deneme bağlı. Testler iki kaynağı ayrı ayrı düşürüyor ve doğrulama öncesinde dosya isteği çıkmadığını denetliyor. |
+| CX-F5-K-01 | **Kapandı.** Aynı ad/yeni anahtar iddiası “doğrulanmadı” olarak düzeltildi; ham tanıktaki 422 ile uyumlu. |
+| CX-F5-K-02 | **Kapandı.** `rapor-F5.md` ve BE-120 kaydı, çalışan API ile UI’da bulunmayan kullanılabilir yolu açıkça ayırıyor. |
+
+Bu düzeltmelerin incelenen akışlarında yeni regresyon saptamadım.
+
+**CX-F5-Ö-03 — Orta: Görev yaşam döngüsü ortak dosya sorgusunu geçersizlemiyor.**
+
+Konum: `src/shared/http/query-keys.ts:401`; `src/shared/http/query-keys.deleted.test.ts:14`.
+
+- **Tetikleyici → sonuç:** Ortak `workItems.files` girdisi önbellekteyken görev geri yüklenir veya kalıcı silinir. İlişki yalnız dosya yazmalarını ve alt görev silmeyi içerdiğinden bu girdi bayat işaretlenmez; etkin gözlemci yeniden okumaz. Görev ayrıntısının geçersizlenmesi, ayrı çocuk anahtarı kapsamıyor. Dosya okuyucusunun 30 saniyelik tazelik süresi de korunuyor.
+- **Bağ:** E-12-35/36’nın bağlı sorguları yenilemesi; `12-silinen-kayitlar/backend.md` §5’in geri yükleme için açıkça istediği `workItems.files` ilişkisi. Mevcut yaşam döngüsü ilişki testi bu kaynağı beklenen kümeden atlamış.
+- **En küçük sınıf düzeltmesi:** Görev geri yükleme/kalıcı silme ilişkilerine ortak dosya kaynağını eklemek; ilişki testini tamamlamak.
+- **Anlamlı doğrulama:** Taze dosya önbelleği oluştur → yaşam döngüsü yazmasını uygula → pasif girdinin bayat işaretlendiğini, etkin okuyucunun yeniden okuduğunu ve başka program girdisinin etkilenmediğini denetle. Görünür içerik yanlışlığını bu koşumda ayrıca yeniden üretmedim; kesin saptama geçersizleme eksikliğidir.
+
+**CX-F5-Ö-04 — Düşük: Koordinatörlük sekmesine bildirim üzerinden geçiş odağı kaybediyor.**
+
+Konum: `src/modules/deleted-records/pages/DeletedRecordsPage.vue:81`; `src/modules/deleted-records/components/NoticeBar.vue:23`.
+
+- **Tetikleyici → sonuç:** `work.department_unavailable` sonrasında klavyeyle “Koordinatörlük sekmesini aç” seçilir. `dismissNotice()` odaktaki düğmeyi DOM’dan kaldırır; sekme değiştirilir fakat hedef sekmeye odak verilmez. Odak gövdeye düşer.
+- **Bağ:** KESİN 27’nin kapanışta mantıklı hedefe odak dönüşü; `work.department_unavailable` kurtarma yolu.
+- **En küçük sınıf düzeltmesi:** Bildirim kaldırılarak yapılan gezinmelerde odağı yeni seçili tür düğmesine taşımak; bildirimin kapatma yoluna da kalıcı bir dönüş hedefi vermek.
+- **Anlamlı doğrulama:** Gerçek bildirim düğmesini odakla → Enter ile etkinleştir → sekme değişiminden sonra `activeElement` Koordinatörlük düğmesi olmalı. Bildirimi kapatma yolu da sınanmalı. Mevcut O3 testi bu geçişte sekme/kayıt değişimini denetliyor, odağı denetlemiyor.
+
+**Diğer değerlendirmeler**
+
+P33/K2’de açık rota departmanı, yönetici `/arsiv` için S3 isteği yokluğu ve doğrulanmış görevle dosya okuma korunuyor. P34/P35, dört silinen tür, yönetici yetkisi ve ADR-0030 hizasında yeni kusur saptamadım. W127’nin silme sırasında paneli tutması sahip sökümü değildir.
+
+UploadDialog’un anahtarlı tekrar ve sökülmüş sahip kapıları; blob URL’nin seçim değişimi/sökümde serbest bırakılması mevcut. Raster/20 MiB sınırı korunuyor. CSP’de `blob:` görüntü kaynak iznini genişletiyor; script/frame izinlerini genişletmiyor. v0.16/v0.17 alanlarının web pininde kullanıldığına dair bulgu yok. Lint/boyut kuralları değişiklik farkında gevşetilmemiş.
+
+**Belge ve kanıt sınırları**
+
+- W127 MSW/Caddy ve W130 gerçek Docker + pinli backend tanıkları ayrıdır; iki ham matriste de 18 sonuç ve `failures: []` var.
+- W130 tanığı `ae51649` kaynağına aittir; Tur 2 kod düzeltmelerinin üretim tanığı sayılmaz. Güncel uzak CI bağımsız doğrulanmadı.
+- Gerçek VoiceOver ve kullanıcı görsel onayı yapılmamış; otomatik doğrulandı sayılmadı.
+- E-06-01…64 ve E-12-01…69 kabul tabloları değerlendirildi; bütün kaynak, test ve PNG dosyalarını satır satır kapsadığım iddiasında değilim.
+- `../program/DURUM.md` bu yerleşimde bulunamadı.
+- Dosya değiştirilmedi; başlangıç ve bitiş çalışma ağacı temiz. Push/PR yapılmadı; F5 kapanmış sayılmadı.

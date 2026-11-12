@@ -93,3 +93,7 @@ Yeni bir faz açılmadan izlenir; hiçbiri F6'yı kendiliğinden başlatmaz.
 ### Codex tur 1 (2026-11-13)
 
 HEAD `44eb5fe`: **KOŞULLU UYGUN** ([metin](../../reviews/WEB-5-codex.md)). Engelleyici yok. Koşullar: CX-F5-Ö-01 (kapatılan önizleme geç sayfalama yanıtıyla yeniden açılıyor) ve CX-F5-Ö-02 (yönetici görev eşlemesi hatası süresiz yükleniyor) kod düzeltmesi, W132 PR; CX-F5-K-01 (dogrulama-F5 aynı ad tanığı) ve CX-F5-K-02 (dönem ZIP UI yolu yok, API hazır) belge, `web5/o4-kapanis`'te düzeltildi. Kapanış hash'leri ve tur 2: bekliyor. F5 henüz KAPANMADI.
+
+### Codex tur 2 (2026-11-13)
+
+HEAD `d889e2a`: **KOŞULLU UYGUN** ([metin](../../reviews/WEB-5-codex.md)). Tur 1'in dört koşulu (Ö-01, Ö-02, K-01, K-02) kapandı. Yeni: CX-F5-Ö-03 (görev geri yükleme/kalıcı silme ortak `workItems.files` sorgusunu geçersizlemiyor) ve CX-F5-Ö-04 (bildirimle Koordinatörlük sekmesine geçişte odak kaybı) → W133 PR, bekliyor. F5 henüz KAPANMADI.

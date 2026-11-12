@@ -39,3 +39,7 @@ Sonraki faz için ayrıca kullanıcı sınırı korunur: **F6 AÇILMAZ — kulla
 ## Codex tur 1 (2026-11-13)
 
 HEAD `44eb5fe`: **KOŞULLU UYGUN** ([WEB-5-codex.md](../../reviews/WEB-5-codex.md)). Ö-01/Ö-02 → W132 PR; K-01/K-02 → bu dal (düzeltildi). Tur 2 ve kapanış PR: bekliyor.
+
+## Codex tur 2 (2026-11-13)
+
+HEAD `d889e2a`: **KOŞULLU UYGUN**. Tur 1 koşulları kapandı; Ö-03/Ö-04 → W133 PR, bekliyor. Tur 3/kapanış PR: bekliyor.
