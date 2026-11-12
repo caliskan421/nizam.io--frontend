@@ -75,6 +75,11 @@ export const ICONS = {
   edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
   /** İndir (Kullanicilar.dc.html "Dışa aktar"). */
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  /** Etiketi değiştir (Arsiv-Klasor.dc.html önizleme eylemleri). */
+  tag: 'M3 12V4h8l10 10-8 8zM7.5 7.5h.01',
+  /** Başka klasöre taşı (Arsiv-Klasor.dc.html önizleme eylemleri). */
+  'folder-move':
+    'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM10 13h6M13 10l3 3-3 3',
   /** Zarf (Kullanicilar.dc.html "Şifre sıfırlama bağlantısı"). */
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
   /** Kilit (Kullanicilar.dc.html "Hesabı kilitle"). */
