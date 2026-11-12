@@ -14,8 +14,31 @@ export const trArchive = {
       // P38: "Kurumsal hafıza" kullanılmaz (BE-033 ad çakışması).
       subtitle: 'Görevlere yüklenen dosyalar',
     },
+    // 07 sayfa (W123): başlık, meta, arama, erişim kaybı.
     folder: {
       title: 'Klasör',
+      loading: 'Klasör yükleniyor',
+      error: 'Klasör bilgisi yüklenemedi',
+      meta: {
+        // E-06-33: kişi adları ve bayt toplamı gizli/statik (BE-025).
+        tasks: '{n} görev klasörü',
+        tasksMore: '{n}+ görev klasörü',
+        files: '{n} dosya',
+        bytes: '—',
+      },
+      upload: 'Yükle',
+      search: {
+        label: 'Tüm arşivde ara',
+        placeholder: 'Tüm arşivde ara…',
+        // Yönetici, görev seçilmemiş: arama statik (BE-072).
+        needsTask: 'Görev klasörü seçin',
+      },
+      missing: {
+        // K6: klasör yok ya da erişim kaybı.
+        title: 'Klasör bulunamadı',
+        text: 'Bu klasör yok ya da erişiminiz kalmamış olabilir.',
+        back: 'Arşive dön',
+      },
     },
     shared: {
       kind: {
@@ -55,9 +78,37 @@ export const trArchive = {
     },
     // O2b alt dalları: sahibi W gövdesini doldururken buraya ekler.
     folders: {},
-    tree: {},
-    tasks: {},
-    files: {},
+    tree: {
+      label: 'Klasör ağacı',
+      kicker: 'koordinatörlükler',
+      loadingTasks: 'Görev klasörleri yükleniyor',
+      noValue: '—',
+    },
+    tasks: {
+      title: 'Görev klasörleri',
+      caption: 'Her görev kendi klasörü',
+      fileCount: '{n} dosya',
+      empty: 'Bu klasörde dosyalı görev yok',
+      loading: 'Görev klasörleri yükleniyor',
+    },
+    files: {
+      title: 'Son eklenen dosyalar',
+      tag: { label: 'Etiket', all: 'Tümü' },
+      grid: 'Dosyalar',
+      list: 'Dosya listesi',
+      open: '{name} önizle',
+      subtask: 'Alt görev',
+      loadMore: 'Daha fazla yükle',
+      loading: 'Dosyalar yükleniyor',
+      error: 'Dosyalar yüklenemedi',
+      retry: 'Yeniden dene',
+      empty: {
+        title: 'Gösterilecek dosya yok',
+        text: 'Seçili görev klasöründe, etikette ya da aramada dosya bulunamadı.',
+        selectTaskText: 'Dosyalar seçilen görev klasörüne göre listelenir.',
+      },
+      column: { name: 'Ad', task: 'Görev', type: 'Tür', size: 'Boyut', tag: 'Etiket' },
+    },
     preview: {},
     actions: {},
     upload: {},

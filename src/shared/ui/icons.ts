@@ -88,6 +88,9 @@ export const ICONS = {
   minus: 'M5 12h14',
   expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
   'step-forward': 'M4 12h12M12 8l4 4-4 4M20 5v14',
+  // Arşiv klasörü (Arsiv-Klasor.dc.html, W123): yükle düğmesi ve ızgara görünümü
+  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
 } as const
 
 export type IconName = keyof typeof ICONS
