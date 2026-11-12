@@ -89,3 +89,7 @@ Yeni bir faz açılmadan izlenir; hiçbiri F6'yı kendiliğinden başlatmaz.
 | 13  | PDF segmenti (06 `tur`) ve arama kapsamı ürün kararı                                                                                             | 06 README "Hâlâ açık"                                |
 
 **F6 AÇILMAZ — kullanıcı onayı.** F6 (raporlar/pano; 01 tam ana sayfa) ürün sahibinin açık onayı ve pin yeterliliği doğrulanmadan açılmaz; [web-6 iskeleti](../web-6/README.md) yalnız hazırlıktır. Onay otomatik geçti sayılmaz; "F5 kapandı" ifadesi Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz.
+
+### Codex tur 1 (2026-11-13)
+
+HEAD `44eb5fe`: **KOŞULLU UYGUN** ([metin](../../reviews/WEB-5-codex.md)). Engelleyici yok. Koşullar: CX-F5-Ö-01 (kapatılan önizleme geç sayfalama yanıtıyla yeniden açılıyor) ve CX-F5-Ö-02 (yönetici görev eşlemesi hatası süresiz yükleniyor) kod düzeltmesi, W132 PR; CX-F5-K-01 (dogrulama-F5 aynı ad tanığı) ve CX-F5-K-02 (dönem ZIP UI yolu yok, API hazır) belge, `web5/o4-kapanis`'te düzeltildi. Kapanış hash'leri ve tur 2: bekliyor. F5 henüz KAPANMADI.

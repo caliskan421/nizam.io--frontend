@@ -35,3 +35,7 @@ Kabul ölçütleri: 06 ve 12 kabul tablolarının `kabul`/`geçici kabul` satır
 ## Sonrası
 
 Sonraki faz için ayrıca kullanıcı sınırı korunur: **F6 AÇILMAZ — kullanıcı onayı.** Pin yükseltmesi de ayrı onay ister ([plan](pin-yukseltme-plani.md)).
+
+## Codex tur 1 (2026-11-13)
+
+HEAD `44eb5fe`: **KOŞULLU UYGUN** ([WEB-5-codex.md](../../reviews/WEB-5-codex.md)). Ö-01/Ö-02 → W132 PR; K-01/K-02 → bu dal (düzeltildi). Tur 2 ve kapanış PR: bekliyor.
