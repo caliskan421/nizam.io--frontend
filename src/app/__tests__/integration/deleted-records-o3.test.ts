@@ -224,6 +224,39 @@ describe('work.department_unavailable', () => {
   })
 })
 
+describe('work.department_unavailable: odak (KESİN 27, CX-F5-Ö-04)', () => {
+  async function raiseNotice() {
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
+    await until(() => $('[data-record-key="gorev:wx"]'), 'kapalı birim görevi')
+    await click(() => $('[data-record-key="gorev:wx"] [data-action="restore"]'))
+    await accept()
+    await until(() => $('[data-testid="dr-notice"]'), 'satır içi bildirim')
+    return app
+  }
+  it('"Koordinatörlük sekmesini aç": odak yeni seçili tür düğmesinde', async () => {
+    await raiseNotice()
+    const open = $('[data-testid="dr-open-departments"]')!
+    open.focus()
+    expect(document.activeElement).toBe(open)
+    await click(() => open) // klavyede Enter/Space düğmeyi tıklatır
+    const tab = await until(
+      () => $('[data-testid="dr-kinds"] [data-kind="koordinatorluk"]'),
+      'sekme düğmesi',
+    )
+    await until(() => document.activeElement === tab, 'odak Koordinatörlük düğmesinde')
+    expect(tab.getAttribute('aria-pressed')).toBe('true')
+  })
+  it('bildirimi kapat (✕): odak gövdeye düşmez, seçili tür düğmesine döner', async () => {
+    await raiseNotice()
+    const close = $('[data-testid="dr-notice"] button:last-of-type')!
+    close.focus()
+    await click(() => close)
+    await until(() => !$('[data-testid="dr-notice"]'), 'bildirim kapandı')
+    const pressed = $('[data-testid="dr-kinds"] [aria-pressed="true"]')
+    await until(() => document.activeElement === pressed, 'odak seçili tür düğmesinde')
+  })
+})
+
 describe('kalıcı silme: onay ve odak (KESİN 27)', () => {
   it('vazgeç: istek yok, odak eylem düğmesine döner; onay: satır düşer, odak gövdeye düşmez', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
