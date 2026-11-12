@@ -10,6 +10,7 @@ export {
 export { useArchiveContext } from './api/context'
 export type { ArchiveContext } from './model/context'
 export { useArchiveTaskFolders } from './api/admin-tasks'
+export { useFolderCards } from './api/cards'
 export {
   useArchiveAttachments,
   useArchiveFolders,
@@ -31,5 +32,6 @@ export * from './model/folder-cards'
 export * from './model/mime'
 export * from './model/preview'
 export * from './model/stubs'
+export * from './model/tasks'
 export * from './model/tags'
 export type * from './model/types'
