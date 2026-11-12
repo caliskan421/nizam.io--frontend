@@ -60,7 +60,42 @@ export const trArchive = {
     files: {},
     preview: {},
     actions: {},
-    upload: {},
+    upload: {
+      title: 'Dosya yükle',
+      description: 'Dosya, seçtiğiniz görevin arşivine eklenir.',
+      task: {
+        label: 'Görev',
+        placeholder: 'Görev seçin',
+        // BE-121: arşiv görev listesi yalnız dosyası olan görevleri verir.
+        hint: 'Yalnız arşivde görünen görevler listelenir; henüz dosyası olmayan bir görev burada yoktur.',
+        required: 'Görev seçin.',
+        none: 'Dosya yükleyebileceğiniz görev yok. Henüz dosyası olmayan görevler bu listede görünmez.',
+      },
+      tag: {
+        label: 'Etiket',
+        placeholder: 'Etiket seçin',
+        required: 'Etiket seçin.',
+      },
+      subtask: {
+        label: 'Alt görev (isteğe bağlı)',
+        none: 'Alt görev yok',
+        loading: 'Alt görevler yükleniyor…',
+        unavailable: 'Alt görevler okunamadı; dosya göreve eklenir.',
+      },
+      file: {
+        label: 'Dosya',
+        choose: 'Dosya seç',
+        change: 'Başka dosya seç',
+        drop: 'Dosyayı buraya bırakın ya da seçin.',
+        dropActive: 'Bırakın.',
+        required: 'Dosya seçin.',
+        firstOnly: 'Tek seferde bir dosya yüklenir; ilk dosya alındı.',
+        selected: 'Seçilen dosya: {name} ({size})',
+      },
+      progress: 'Yükleniyor…',
+      cancel: 'Vazgeç',
+      submit: 'Yükle',
+    },
     zip: {
       folder: {
         label: 'Klasörü ZIP olarak indir',
