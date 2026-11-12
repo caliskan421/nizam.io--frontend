@@ -57,7 +57,7 @@ describe('router — katalog tek kaynak', () => {
     expect(() => buildRoutes('F2', withoutUsers)).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('F4 (etkin faz): modül sayfalarına bağlı', async () => {
+  it('F5 (etkin faz): modül sayfalarına bağlı', async () => {
     const routes = buildRoutes()
     expect(routes.map((r) => r.name ?? r.path)).toEqual([
       'home',
@@ -71,6 +71,8 @@ describe('router — katalog tek kaynak', () => {
       'program.programs',
       'collaboration.meetings',
       'collaboration.meeting',
+      'archive.folders',
+      'archive.folder',
       '/:pathMatch(.*)*',
     ])
     expect(MODULE_ROUTES.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')
@@ -81,6 +83,29 @@ describe('router — katalog tek kaynak', () => {
     expect(current.name).toBe('work.tasks')
     expect(current.meta).toEqual({ scope: 'S2', title: 'Görevler', menuKey: 'tasks' })
     expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'TasksPage' })
+  })
+
+  it('F5: /arsiv ve /arsiv/:klasorId katalogdan kayıtlı (S3, menü Arşiv; sayfa gövdesinden bağımsız)', async () => {
+    const router = memoryRouter(buildRoutes())
+    await router.push('/arsiv?tur=belge&sirala=ad:azalan')
+    expect(router.currentRoute.value.name).toBe('archive.folders')
+    expect(router.currentRoute.value.meta).toEqual({
+      scope: 'S3',
+      title: 'Arşiv',
+      menuKey: 'archive',
+    })
+    await router.push('/arsiv/my-tasks?gorev=w1&gorunum=liste')
+    expect(router.currentRoute.value.name).toBe('archive.folder')
+    expect(router.currentRoute.value.params).toEqual({ klasorId: 'my-tasks' })
+    expect(router.currentRoute.value.meta).toEqual({
+      scope: 'S3',
+      title: 'Klasör',
+      menuKey: 'archive',
+    })
+    // F4'te gizli: bilinmeyen yol gibi ana sayfaya düşer.
+    const f4 = memoryRouter(buildRoutes('F4'))
+    await f4.push('/arsiv')
+    expect(f4.currentRoute.value.name).toBe('home')
   })
 
   it('F3: /zaman-cizelgesi çalışır (yer tutucu sayfa gövdesine bağlı olmadan: ad, kapsam, süzgeç)', async () => {

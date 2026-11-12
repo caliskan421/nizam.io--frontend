@@ -42,7 +42,8 @@ export function isScopedQueryKey(key: readonly unknown[]): boolean {
   )
 }
 
-export type ArchiveFacet = 'folders' | 'tasks' | 'attachments' | 'uploaders'
+/** `preview`: seçili görsel dosyanın `downloadFile` gövdesi (blob; 06 önizleme). */
+export type ArchiveFacet = 'folders' | 'tasks' | 'attachments' | 'uploaders' | 'preview'
 
 /** §6 tablosu: kaynak → anahtar. */
 export const queryKeys = {
@@ -344,7 +345,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     WORK_ITEM_WRITES,
     DATE_WRITES,
     SUBTASK_WRITES,
-    ['attachFile'],
+    // Tamamlanma kanıtı dosyadan türer: yükleme de silme de görev ayrıntısını yeniden okutur
+    // (06 Arşiv, KESİN 29); yeniden adlandırma görev kaydına dokunmaz.
+    ['attachFile', 'deleteFile'],
     ASSIGNMENT_HANDOVER_WRITES,
   ),
   // Sayaçlar liste ile aynı görünürlük ve aynı yazmalarla değişir (durum, atama, tarih, devir).
@@ -371,6 +374,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     DATE_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
   ),
+  // 06 Arşiv: yükleme/ad/silme dört okuyucuyu (klasörler, görevler, dosyalar, yükleyenler) ve
+  // programın bütün departman anahtarlarını yeniler (yönetici anahtarı rotadaki klasörü taşır).
+  // Pano sayaçları (geciken, bekleyen talep) dosyaya bağlı değildir: pano geçersizlenmez.
   archive: FILE_WRITES,
   meetings: [
     'createMeeting',
@@ -487,6 +493,22 @@ function reportOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
   }
 }
 
+/**
+ * Eylemin PROGRAMININ arşiv okuyucuları, departman parçasından bağımsız: yönetici anahtarları
+ * departman alanında rotadaki klasörü taşır (06 P33) ve eylemin kapsam anlık görüntüsünde
+ * departman yoktur; yalnız öneke bakan filtre onları kaçırırdı. Başka programa dokunulmaz (K2).
+ */
+function archiveOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
+  if (scope.programId === null) return null
+  return {
+    queryKey: [QUERY_KEY_ROOT],
+    predicate: ({ queryKey }) =>
+      isScopedQueryKey(queryKey) &&
+      (queryKey[1] as { program: unknown }).program === scope.programId &&
+      queryKey[2] === 'archive',
+  }
+}
+
 /** Kaynak → filtre eşlemesi (§6). null: yazma sonrası geçersizleme yok. */
 const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'instance.profile': () => null,
@@ -528,7 +550,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'workItems.dependencies': (scope, ctx) => workItemChild(scope, 'dependencies', ctx.workItemId),
   gantt: prefix(queryKeys.gantt.all),
   dateRequests: prefix(queryKeys.dateRequests.all),
-  archive: prefix(queryKeys.archive.all),
+  archive: archiveOfProgram,
   meetings: prefix(queryKeys.meetings.all),
   chats: prefix(queryKeys.chats.all),
 }

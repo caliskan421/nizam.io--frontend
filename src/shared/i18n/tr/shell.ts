@@ -34,7 +34,7 @@ export const trSide = {
     },
     lens: { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' },
     group: { takip: 'Takip', icerik: 'İçerik', yonetim: 'Yönetim' },
-    phase: { F0: 'F0’da', F1: 'F1’de', F2: 'F2’de', F3: 'F3’te', F4: 'F4’te' },
+    phase: { F0: 'F0’da', F1: 'F1’de', F2: 'F2’de', F3: 'F3’te', F4: 'F4’te', F5: 'F5’te' },
     disabled: '{title} — {phase} açılacak',
     badge: {
       overdue: '{n} geciken görev',

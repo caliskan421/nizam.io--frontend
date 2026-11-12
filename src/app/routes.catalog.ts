@@ -6,19 +6,22 @@
 // - Yalnız v1 (F0–F4) ekranları; v1 dışı modüller (Arşiv F5, Mesajlar F7, İşlem geçmişi, Tablolar,
 //   Takvim, Kurumsal hafıza, Simülasyon) ve hedefi tanımsız öğeler (Yardım, Asistan) katalogda
 //   YOKTUR. "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
+//   F5 (W121): Arşiv (06/07) katalogdadır; "Silinen kayıtlar" menüye GİRMEZ (P36: giriş ana sayfa
+//   düğmesi, W128).
 // - Router yalnız `CURRENT_PHASE`'te `canli` olan rotaları kaydeder; diğerleri bilinmeyen yol gibi
 //   davranır. Menü `gizli` öğeyi göstermez, `devre_disi` öğeyi faz notuyla tıklanamaz gösterir.
 // - Kapsam (program/departman/mercek) URL'ye yazılmaz (K2; 00-ortak kabul E-00-04).
 // - Parametre ve süzgeç adları grup README "Rota (önerilen, K10)" satırlarından; katalog son
 //   sözü söyler (ad uyumu, rol değeri taşıyan süzgeçlerin dışarıda bırakılması — bkz. girdiler).
+import { ARCHIVE_TAGS, ARCHIVE_KINDS } from '@/modules/archive/public'
 import { USER_ROLE_TABS } from '@/modules/organization/public'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
-export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4'] as const
+export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F4'
+export const CURRENT_PHASE: Phase = 'F5'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -246,6 +249,37 @@ export const ROUTES = {
       koordinatorluk: id,
       from: text,
       to: text,
+    },
+  },
+  'archive.folders': {
+    path: '/arsiv',
+    title: 'Arşiv',
+    // Arşiv uçlarının hepsi S3'tür; yöneticide departman başlığı yalnız rotadaki klasörden gelir
+    // (P33, `modules/archive/model/admin-scope.ts`), koordinatör/üye 06'yı atlar (P40).
+    scope: 'S3',
+    phase: 'F5',
+    // Sidebar.dc.html: İçerik grubunda Toplantılar'dan sonra (K/Ü varyantı); Kurumsal hafıza yok.
+    menu: { group: 'icerik', key: 'archive', order: 2 },
+    params: {},
+    // 06 README rota satırı: `tur` yalnız gönderilebilen değerler (PDF ayrı kategori değil,
+    // E-06-07); `sirala` yalnız ad/dosya sayısı (Son yükleme için alan yok, BE-025).
+    query: { q: text, tur: oneOf(ARCHIVE_KINDS), sirala: sortBy(['ad', 'dosya']) },
+  },
+  'archive.folder': {
+    path: '/arsiv/:klasorId',
+    title: 'Klasör',
+    scope: 'S3',
+    phase: 'F5',
+    parent: 'archive.folders',
+    params: { klasorId: id },
+    // 07: `gorev` görev klasörü, `etiket` kapalı küme (P34), `gorunum` ızgara/liste, `dosya`
+    // önizlenen dosya kimliği (paylaşılabilir, geri tuşu).
+    query: {
+      gorev: id,
+      etiket: oneOf(ARCHIVE_TAGS),
+      gorunum: oneOf(['izgara', 'liste']),
+      dosya: id,
+      q: text,
     },
   },
 } as const satisfies Record<string, RouteSpec>

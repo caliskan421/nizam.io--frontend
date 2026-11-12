@@ -11,9 +11,9 @@ const admin = { ready: true, companyAdmin: true }
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F4 (Toplantılar menüde canlı)', () => {
+describe('etkin faz F5 (Toplantılar ve Arşiv menüde canlı)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
-    expect(CURRENT_PHASE).toBe('F4')
+    expect(CURRENT_PHASE).toBe('F5')
     const groups = sideMenuGroups(menuEntries(), admin)
     expect(groups.map((g) => g.group)).toEqual(['takip', 'icerik', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
@@ -21,7 +21,10 @@ describe('etkin faz F4 (Toplantılar menüde canlı)', () => {
       ['tasks', 'canli'],
       ['gantt', 'canli'],
     ])
-    expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([['meetings', 'canli']])
+    expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
+      ['meetings', 'canli'],
+      ['archive', 'canli'],
+    ])
     expect(groups[2]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['users', 'canli'],
       ['coords', 'canli'],
