@@ -116,7 +116,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P41 2026-11-12) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -162,6 +162,10 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P39 | "grup" / "çalışma grubu" rozeti (2026-11-12) | **Ürün sahibi kararı: gizli** (düz departman v1, K14). |
 | P40 | Koordinatör ve üye 06 (2026-11-12) | **Ürün sahibi kararı.** 06'yı atlayıp doğrudan kendi klasörüne (07) yönlenir (`/arsiv` → `/arsiv/<folder_id>`; üyede `my-tasks`). |
 | P41 | 12 Silinen kayıtlar "Koordinatörlük" türü (2026-11-12) | **Ürün sahibi kararı: eklenir.** Tasarımda çizilmemiş olsa da backend'de var olan silinen departmanlar (`listDeletedDepartments`/`restoreDepartment`/`permanentDeleteDepartment`, S2) tür segmentine "Koordinatörlük" düğmesi olarak ortak çip bileşeniyle en sade biçimde eklenir (P3). Kabul tablosunda E-12-16/E-12-68. |
+| P42 | 12 "Tümü" sekmesi ve segment (2026-11-12) | **Ürün sahibi kararı.** "Tümü" sekmesi YOK (gizli/çizilmez). Segment: Görev (varsayılan) · Toplantı · Koordinatörlük · Hesap canlı; Alt görev · Dosya · Not ve gündem devre dışı. Birleşik liste BE-110 açık kalır. |
+| P43 | 12 sayaç, tarih aralığı, URL (2026-11-12) | **Ürün sahibi kararı.** Tür sayacı yalnız açık sekmede "n" ya da "n+", diğer sekmelerde sayı yok. Tarih aralığı istemci süzgeci olarak canlı (`deleted_at DESC` sırayla sayfa yükleyerek), menü sayıları gizli, Hesap sekmesinde devre dışı (`deleted_at` yok). URL: `tur`, `q`, `koordinatorluk`, `aralik`, `kayit`; `silen` yalnız Toplantı'da canlı (`deleted_by`), diğerlerinde devre dışı (BE-108). |
+| P44 | 12 çizilmemiş metinler (2026-11-12) | **Ürün sahibi kararı.** Alt satır: görevde "‹koordinatörlük› › Görevler", toplantıda "‹tarih saat› · ‹sahip koordinatörlük›" (E-12-28); iz kaydı cümlesi korunur, bağlantısız (E-12-40); boş liste / süzgeç boş / hata / panel boş durumları ortak K7 metinleri (E-12-54/60/61/62). |
+| P45 | 12 ertelenen backend işleri (2026-11-12) | **Ürün sahibi kararı.** BE-112 saklama politikası, BE-109 alt görev, BE-111 not/gündem, BE-076 dosya çöp kutusu ERTELENDİ: ekranda statik/devre dışı kalır, backend paketine girmez, rapor-F5'te "karar bekler". |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 
