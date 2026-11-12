@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
 import FilterMenu from './FilterMenu.vue'
@@ -99,32 +99,32 @@ describe('FilterMenu', () => {
 })
 
 describe('FilterMenu dar ekran hizası (390 px, KESİN 30)', () => {
+  const rect = (left: number) =>
+    ({
+      left,
+      right: 200,
+      top: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    }) as DOMRect
+
   it('menü tetikleyicinin soluna taşıyorsa sola hizalanır; sığıyorsa sağ hizalı kalır', async () => {
-    const original = Element.prototype.getBoundingClientRect
-    Element.prototype.getBoundingClientRect = function rect(this: Element) {
-      const overflow = this.getAttribute('role') === 'menu'
-      return {
-        left: overflow ? -64 : 20,
-        right: 200,
-        top: 0,
-        bottom: 0,
-        width: 0,
-        height: 0,
-        x: 0,
-        y: 0,
-        toJSON() {},
-      }
-    }
-    try {
-      const wrapper = mountMenu()
-      await trigger(wrapper).trigger('click')
-      await nextTick()
-      await nextTick()
-      expect(wrapper.get('[role="menu"]').classes()).toContain('dr-pop--start')
-      wrapper.unmount()
-    } finally {
-      Element.prototype.getBoundingClientRect = original
-    }
+    const spy = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      return rect(this.getAttribute('role') === 'menu' ? -64 : 20)
+    })
+    const wrapper = mountMenu()
+    await trigger(wrapper).trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(wrapper.get('[role="menu"]').classes()).toContain('dr-pop--start')
+    wrapper.unmount()
+    spy.mockRestore()
     const fits = mountMenu()
     await trigger(fits).trigger('click')
     await nextTick()
