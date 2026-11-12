@@ -1,0 +1,58 @@
+/*
+ * Yükleme penceresi (W125). Renk, boşluk, yarıçap ve yazı yalnız token'dan. Tasarımda pencere
+ * çizilmemiştir (P3/P35): `shared/ui` modal + form ile en sade; sürükle-bırak alanı Ü3
+ * artboard'ındaki kesik çerçeve biçimindedir (yalnız biçim referansı).
+ */
+@layer components {
+  .au-form {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .au-drop {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-4);
+    border: var(--ui-hairline) dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--ink-muted);
+    text-align: center;
+    min-width: 0;
+  }
+  .au-drop--over {
+    border-color: var(--accent-text);
+    color: var(--ink);
+  }
+  .au-drop--invalid {
+    border-color: var(--danger);
+  }
+  .au-drop__text,
+  .au-drop__file {
+    margin: 0;
+    font: var(--text-body);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .au-drop__file {
+    color: var(--ink);
+  }
+  .au-error {
+    margin: 0;
+    color: var(--danger);
+    font-size: var(--ui-fs-sm);
+  }
+  .au-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--ui-fs-sm);
+  }
+  .au-progress__bar {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--accent-text);
+  }
+}

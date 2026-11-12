@@ -54,7 +54,82 @@ export const trArchive = {
       DOSYA: 'Dosya',
     },
     // O2b alt dalları: sahibi W gövdesini doldururken buraya ekler.
-    folders: {},
+    folders: {
+      search: {
+        label: 'Tüm arşivde ara',
+        // BE-077: arama yalnız dosya adında; kişi/görev/etiket araması vaadi yok.
+        placeholder: 'Dosya adı ara…',
+        shortcut: 'Aramaya git',
+      },
+      coordinatorships: {
+        title: 'Koordinatörlükler',
+        loading: 'Koordinatörlükler yükleniyor',
+        empty: 'Gösterilecek koordinatörlük yok',
+        emptyText: 'Bu programda arşivde görünür bir klasör bulunmuyor.',
+        error: 'Koordinatörlükler yüklenemedi',
+        errorText: 'Klasör listesi alınamadı. Bağlantınızı kontrol edip yeniden deneyin.',
+        retry: 'Yeniden dene',
+        more: '{count} koordinatörlük daha',
+        less: 'Daha az göster',
+        truncated: 'Koordinatörlük listesi kesildi: bazı klasörler gösterilemiyor.',
+      },
+      sort: {
+        button: 'Sırala: {field}',
+        menu: 'Klasör sırası',
+        adArtan: 'Ada göre (A → Z)',
+        adAzalan: 'Ada göre (Z → A)',
+        dosyaAzalan: 'Dosya sayısı (çoktan aza)',
+        dosyaArtan: 'Dosya sayısı (azdan çoğa)',
+        sonYukleme: 'Son yükleme',
+        short: {
+          adArtan: 'Ada göre',
+          adAzalan: 'Ada göre (ters)',
+          dosyaAzalan: 'Dosya sayısı',
+          dosyaArtan: 'Dosya sayısı (ters)',
+        },
+      },
+      card: {
+        emptyFolder: 'Henüz dosya yok',
+        files: '{count} dosya',
+        size: 'Boyut',
+        lastUpload: 'Son yükleme',
+      },
+      tags: {
+        title: 'Etiketler',
+        caption: 'dosya türünü anlatır',
+        list: 'Dosya etiketleri',
+      },
+      newTag: {
+        kicker: 'yeni etiket',
+        name: 'Etiket adı',
+        placeholder: 'Etiket adı',
+        colors: 'Etiket rengi',
+        violet: 'Mor',
+        gold: 'Sarı',
+        green: 'Yeşil',
+        red: 'Kırmızı',
+        gray: 'Gri',
+        create: 'Oluştur',
+        // BE-024: etiket kümesi kapalı; form ağ isteği atmaz.
+        hint: 'Etiketler sabit bir kümeden seçilir; yeni etiket şimdilik oluşturulamıyor.',
+      },
+      storage: {
+        kicker: 'depolama',
+        files: 'dosya',
+        total: 'Toplam boyut',
+        breakdown: 'Dağılım',
+        bar: 'Depolama dağılımı bilinmiyor',
+      },
+      actions: {
+        upload: 'Dosya yükle',
+        // BE-072 / BE-121: yönetici 06'da klasör seçmeden yükleyemez; seçici arşiv görevleriyle sınırlı.
+        uploadNeedsFolder: 'Yüklemek için önce bir koordinatörlük klasörü açın.',
+        uploadNoTasks: 'Yüklenebilecek görev bulunamadı.',
+      },
+      noFolders: 'Görüntülenecek klasör yok',
+      noFoldersText: 'Bu kapsamda arşiv klasörünüz bulunmuyor.',
+      redirecting: 'Klasörünüz açılıyor',
+    },
     tree: {},
     tasks: {},
     files: {},
@@ -112,7 +187,60 @@ export const trArchive = {
       removed: 'Dosya silindi.',
       removedAlready: 'Dosya zaten silinmiş.',
     },
-    upload: {},
-    zip: {},
+    upload: {
+      title: 'Dosya yükle',
+      description: 'Dosya, seçtiğiniz görevin arşivine eklenir.',
+      task: {
+        label: 'Görev',
+        placeholder: 'Görev seçin',
+        // BE-121: arşiv görev listesi yalnız dosyası olan görevleri verir.
+        hint: 'Yalnız arşivde görünen görevler listelenir; henüz dosyası olmayan bir görev burada yoktur.',
+        required: 'Görev seçin.',
+        none: 'Dosya yükleyebileceğiniz görev yok. Henüz dosyası olmayan görevler bu listede görünmez.',
+      },
+      tag: {
+        label: 'Etiket',
+        placeholder: 'Etiket seçin',
+        required: 'Etiket seçin.',
+      },
+      subtask: {
+        label: 'Alt görev (isteğe bağlı)',
+        none: 'Alt görev yok',
+        loading: 'Alt görevler yükleniyor…',
+        unavailable: 'Alt görevler okunamadı; dosya göreve eklenir.',
+      },
+      file: {
+        label: 'Dosya',
+        choose: 'Dosya seç',
+        change: 'Başka dosya seç',
+        drop: 'Dosyayı buraya bırakın ya da seçin.',
+        dropActive: 'Bırakın.',
+        required: 'Dosya seçin.',
+        firstOnly: 'Tek seferde bir dosya yüklenir; ilk dosya alındı.',
+        selected: 'Seçilen dosya: {name} ({size})',
+      },
+      progress: 'Yükleniyor…',
+      cancel: 'Vazgeç',
+      submit: 'Yükle',
+    },
+    zip: {
+      folder: {
+        label: 'Klasörü ZIP olarak indir',
+        busy: 'ZIP hazırlanıyor…',
+        saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
+        tooLarge: 'Bu klasör tek ZIP için çok büyük; görevlerden tek tek indirin.',
+      },
+      period: {
+        label: 'Tümünü indir',
+        busy: 'ZIP hazırlanıyor…',
+        saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
+        tooLarge: 'Dönem arşivi tek ZIP için çok büyük; klasörleri ayrı ayrı indirin.',
+        // BE-120: `archiveFullZip` S3 (departman başlığı ister); yönetici /arsiv'te departman seçili değil.
+        unavailable:
+          "Dönem ZIP'i bu görünümde henüz indirilemiyor; bir klasörü açıp klasör ZIP'ini kullanın.",
+      },
+      // Akış ortasında kopma: gövde yarım kalmış olabilir (GAP-041).
+      partial: 'Bağlantı kesildi; indirme yarım kalmış olabilir. Tekrar deneyin.',
+    },
   },
 } as const

@@ -80,6 +80,8 @@ export const ICONS = {
   /** Başka klasöre taşı (Arsiv-Klasor.dc.html önizleme eylemleri). */
   'folder-move':
     'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM10 13h6M13 10l3 3-3 3',
+  /** Yükle (Arsiv.dc.html "Dosya yükle"). */
+  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
   /** Zarf (Kullanicilar.dc.html "Şifre sıfırlama bağlantısı"). */
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
   /** Kilit (Kullanicilar.dc.html "Hesabı kilitle"). */
