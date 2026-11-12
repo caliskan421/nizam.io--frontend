@@ -103,6 +103,18 @@ const TABLE: Array<{
     mustInvalidate: ['deleteDepartment', 'restoreDepartment'],
   },
   {
+    resource: 'deletedWorkItems',
+    key: queryKeys.deletedWorkItems.list(S, f),
+    expected: [...root(S), 'deleted-work-items', f],
+    mustInvalidate: ['deleteWorkItem', 'restoreWorkItem', 'permanentDeleteWorkItem'],
+  },
+  {
+    resource: 'deletedAccounts',
+    key: queryKeys.deletedAccounts.list(f),
+    expected: ['deleted-accounts', f],
+    mustInvalidate: ['deleteAccount', 'restoreAccount', 'permanentDeleteAccount'],
+  },
+  {
     resource: 'workItems.list',
     key: queryKeys.workItems.list(S, f),
     expected: [...root(S), 'work-items', f],
