@@ -1,6 +1,6 @@
 # Backend devir raporu — F5 (WEB-5), 2026-11-12
 
-**Durum:** F5 uygulaması main'de (O1–O3: #102–#113; W127 #114 CI'da); O4 kapanışı sürüyor, Codex nihai kapısı **bekliyor** ([doğrulama](../yurutme/web-5/dogrulama-F5.md) W130 tarafından yazılır). **Web pini:** `v0.15.0-api`, F5 boyunca yükseltilmedi. F6 açılmadı; bu rapor F6'yı açmaz.
+**Durum:** F5 uygulaması main'de (O1–O3: #102–#113; W127 #114 birleşti, main `8abcb3b`); O4 kapanışı sürüyor, Codex nihai kapısı **bekliyor** ([doğrulama](../yurutme/web-5/dogrulama-F5.md) W130 tarafından yazılır). **Web pini:** `v0.15.0-api`, F5 boyunca yükseltilmedi. F6 açılmadı; bu rapor F6'yı açmaz.
 
 Kaynaklar: [kayıt](kayit.md) (BE-024/025/026/069–077, BE-108–121), [F4 raporu](rapor-F4.md), [06 kabul tablosu](../ekranlar/06-arsiv/README.md), [12 kabul tablosu](../ekranlar/12-silinen-kayitlar/README.md), [ortak-kurallar §12 P33–P45](../ekranlar/ortak-kurallar.md), [F5 ilerleme](../yurutme/web-5/ilerleme.md), [pin yükseltme planı](../yurutme/web-5/pin-yukseltme-plani.md). Uç/alan önerileri sözleşme yayımlanana ve web pini yükselene kadar uygulama yetkisi değildir.
 
@@ -99,7 +99,7 @@ Kayıt kuralı: yukarıdaki "kısmen" satırları kayıt durumunu `bağlandı` y
 
 ## 4. F5 doğrulama ve kalan borçlar
 
-**Süreç.** O1 tespit ve kararlar (W119/W120, P33–P45, #102–#104), O2a W121 veri katmanı (#105), O2b altı işçi (W122–W126, W128; #106–#110, #112), yaşam döngüsü hotfix (#111), W129 (work yetki hizası ADR-0030, #113), O3 W127 entegrasyon turu (#114, CI'da). Birleşmiş son main `a19c9d5`. Test sayıları (işçi raporları): W121 509 dosya/3450 test; W124 3515; W123 3520; W128 541 dosya/3675; W127 4023 test. CI zamanlamasına duyarlı iki test kırmızı yaptı (lifecycle sahip söküm, `UploadDialog` ilerleme); kök ders: gerçek zaman beklemesi yok, kontrol noktalı yanıt ve `vi.waitFor` koşul beklemesi ([ilerleme](../yurutme/web-5/ilerleme.md)).
+**Süreç.** O1 tespit ve kararlar (W119/W120, P33–P45, #102–#104), O2a W121 veri katmanı (#105), O2b altı işçi (W122–W126, W128; #106–#110, #112), yaşam döngüsü hotfix (#111), W129 (work yetki hizası ADR-0030, #113), O3 W127 entegrasyon turu (#114, birleşti `8abcb3b`). Birleşmiş son main `a19c9d5`. Test sayıları (işçi raporları): W121 509 dosya/3450 test; W124 3515; W123 3520; W128 541 dosya/3675; W127 4023 test. CI zamanlamasına duyarlı iki test kırmızı yaptı (lifecycle sahip söküm, `UploadDialog` ilerleme); kök ders: gerçek zaman beklemesi yok, kontrol noktalı yanıt ve `vi.waitFor` koşul beklemesi ([ilerleme](../yurutme/web-5/ilerleme.md)).
 
 **W127 entegrasyon kusurları** (düzeltildi, test sabitledi):
 
