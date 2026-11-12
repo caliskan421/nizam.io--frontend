@@ -62,7 +62,7 @@ Her faz: API çağrısı → sorgu/mutasyon → yetki hesabı → arayüz (tasar
 | F8 asistan | F46 paneli (rota kataloğu) | Ana sayfa "Asistan" | |
 | sonra | Yeni modüller (backend fazıyla) | 01b, 11–11e, Takvim, Kurumsal hafıza, Simülasyon, Bütçe/Talep | |
 
-**F5 durumu (2026-11-12):** uygulandı (#102–#113; W127 #114 CI'da); Codex nihai kapısı ve kapanış PR'ı bekliyor ([kayıt](../yurutme/web-5/ilerleme.md)). **Borç:** kenar menüsü tanımına rol bazlı sıra/etiket (örn. üye "Dosyalarım") — menü tanımı rol bilgisi taşımıyor. Yönetici arşivi BE-072 için geçici yolda ([rapor-F5](../backend-eksikleri/rapor-F5.md)). F6 AÇILMAZ — kullanıcı onayı.
+**F5 durumu (2026-11-12):** uygulandı (#102–#113; W127 #114 birleşti `8abcb3b`); Codex nihai kapısı ve kapanış PR'ı bekliyor ([kayıt](../yurutme/web-5/ilerleme.md)). **Borç:** kenar menüsü tanımına rol bazlı sıra/etiket (örn. üye "Dosyalarım") — menü tanımı rol bilgisi taşımıyor. Yönetici arşivi BE-072 için geçici yolda ([rapor-F5](../backend-eksikleri/rapor-F5.md)). F6 AÇILMAZ — kullanıcı onayı.
 
 ## 5. Backend eksikleri
 
