@@ -109,6 +109,9 @@ describe('yönetici görev kesişimi: iki kaynağın hatası birlikte (CX-F5-Ö-
       await vi.waitFor(() =>
         expect(wrapper.find('[data-testid="task-folders-error"]').exists()).toBe(true),
       )
+      expect(wrapper.find('[data-testid="task-folders-error"]').text()).toContain(
+        'Görev klasörleri yüklenemedi',
+      )
       expect(wrapper.find('.arch-tasks__skel').exists()).toBe(false)
       expect(wrapper.find('[data-testid="task-folders"]').exists()).toBe(false)
       expect(sent('GET', '/v1/records/archive/attachments')).toHaveLength(0)

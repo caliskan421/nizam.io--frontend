@@ -182,6 +182,7 @@ function openTask(workItemId: string): void {
             <h2 id="arch-tasks-title" class="arch-tasks__title">{{ folderText('tasks.title') }}</h2>
             <UiErrorState
               :error="toApiError(data.tasksFailure.value.error)"
+              :title="folderText('tasks.error')"
               retryable
               :retrying="data.taskFolders.retrying.value"
               @retry="data.taskFolders.retry()"

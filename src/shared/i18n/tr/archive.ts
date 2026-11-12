@@ -165,6 +165,7 @@ export const trArchive = {
       fileCount: '{n} dosya',
       empty: 'Bu klasörde dosyalı görev yok',
       loading: 'Görev klasörleri yükleniyor',
+      error: 'Görev klasörleri yüklenemedi',
     },
     files: {
       title: 'Son eklenen dosyalar',
