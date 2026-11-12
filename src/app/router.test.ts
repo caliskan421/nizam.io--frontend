@@ -73,6 +73,7 @@ describe('router — katalog tek kaynak', () => {
       'collaboration.meeting',
       'archive.folders',
       'archive.folder',
+      'deleted-records.list',
       '/:pathMatch(.*)*',
     ])
     expect(MODULE_ROUTES.find((r) => r.name === 'work.tasks')?.path).toBe('/gorevler')

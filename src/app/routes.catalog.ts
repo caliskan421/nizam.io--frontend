@@ -6,14 +6,15 @@
 // - Yalnız v1 (F0–F4) ekranları; v1 dışı modüller (Arşiv F5, Mesajlar F7, İşlem geçmişi, Tablolar,
 //   Takvim, Kurumsal hafıza, Simülasyon) ve hedefi tanımsız öğeler (Yardım, Asistan) katalogda
 //   YOKTUR. "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
-//   F5 (W121): Arşiv (06/07) katalogdadır; "Silinen kayıtlar" menüye GİRMEZ (P36: giriş ana sayfa
-//   düğmesi, W128).
+//   F5 (W121): Arşiv (06/07) katalogdadır; "Silinen kayıtlar" (12, W128) katalogdadır ama menüye
+//   GİRMEZ (P36: giriş ana sayfa E-01-02 düğmesi).
 // - Router yalnız `CURRENT_PHASE`'te `canli` olan rotaları kaydeder; diğerleri bilinmeyen yol gibi
 //   davranır. Menü `gizli` öğeyi göstermez, `devre_disi` öğeyi faz notuyla tıklanamaz gösterir.
 // - Kapsam (program/departman/mercek) URL'ye yazılmaz (K2; 00-ortak kabul E-00-04).
 // - Parametre ve süzgeç adları grup README "Rota (önerilen, K10)" satırlarından; katalog son
 //   sözü söyler (ad uyumu, rol değeri taşıyan süzgeçlerin dışarıda bırakılması — bkz. girdiler).
 import { ARCHIVE_TAGS, ARCHIVE_KINDS } from '@/modules/archive/public'
+import { DELETED_KINDS, DELETED_RANGES } from '@/modules/deleted-records/public'
 import { USER_ROLE_TABS } from '@/modules/organization/public'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
@@ -280,6 +281,26 @@ export const ROUTES = {
       gorunum: oneOf(['izgara', 'liste']),
       dosya: id,
       q: text,
+    },
+  },
+  'deleted-records.list': {
+    path: '/silinen-kayitlar',
+    title: 'Silinen kayıtlar',
+    // Görev, toplantı ve koordinatörlük uçları S2'dir (program başlığı); hesap ucu S1'dir ama
+    // varsayılan sekme S2 olduğundan rota S2 sayılır (program yokken kabuğun "program yok"
+    // durumu çizilir; W128 varsayımı). Menüde giriş YOK (P36): menu alanı bilinçli olarak yok.
+    scope: 'S2',
+    phase: 'F5',
+    params: {},
+    // 12 README rota satırı (P41–P43): devre dışı türler (altgorev, dosya, notgundem) URL değeri
+    // olarak tanınmaz; `silen` yalnız toplantıda canlıdır, `aralik` hesapta yok sayılır.
+    query: {
+      tur: oneOf(DELETED_KINDS),
+      q: text,
+      koordinatorluk: id,
+      kayit: id,
+      aralik: oneOf(DELETED_RANGES),
+      silen: id,
     },
   },
 } as const satisfies Record<string, RouteSpec>

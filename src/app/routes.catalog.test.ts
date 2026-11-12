@@ -132,6 +132,15 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'gizli',
     F5: 'canli',
   },
+  // 12 Silinen kayıtlar (W128; P36): F5'te canlı, menüsüz.
+  'deleted-records.list': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'canli',
+  },
 }
 
 const ROLE_SEGMENT =
@@ -156,6 +165,7 @@ describe('rota kataloğu — yapı', () => {
       'collaboration.meeting',
       'archive.folders',
       'archive.folder',
+      'deleted-records.list',
     ])
     expect(liveRouteNames('F4')).not.toContain('archive.folders')
     expect(liveRouteNames('F2')).not.toContain('work.timeline')

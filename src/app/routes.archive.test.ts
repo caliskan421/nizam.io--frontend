@@ -35,7 +35,8 @@ describe('arşiv rota kataloğu (F5)', () => {
     expect('menu' in ROUTES['archive.folder']).toBe(false)
     expect(menuEntries().map((e) => e.key)).toContain('archive')
     expect(menuEntries().map((e) => e.title)).not.toContain('Silinen kayıtlar')
-    expect(Object.keys(ROUTES).join(' ')).not.toMatch(/deleted|silinen/i)
+    // 12 Silinen kayıtlar katalogdadır (W128) ama menüye girmez: menü alanı yok.
+    expect('menu' in ROUTES['deleted-records.list']).toBe(false)
     expect(menuEntries('F4').map((e) => e.key)).not.toContain('archive')
   })
 
