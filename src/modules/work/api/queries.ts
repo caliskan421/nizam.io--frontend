@@ -229,7 +229,7 @@ export function useWorkItemTarget(
  * `listProgramDepartments` — ad/kod sözlüğü (E-03-20/22, bütün roller) ve Admin
  * koordinatörlük süzgeci seçenekleri (E-03-12). Anahtar `scoped(['departments'])`.
  */
-export function useProgramDepartments() {
+export function useProgramDepartments(enabled: MaybeRefOrGetter<boolean> = true) {
   const store = useScopeStore()
   const query = useQuery(
     computed(() => {
@@ -239,7 +239,7 @@ export function useProgramDepartments() {
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchProgramDepartments({ programId: scope.programId ?? '' }, signal),
         ),
-        enabled: scope.programId !== null,
+        enabled: scope.programId !== null && toValue(enabled),
         retry: retryTransient,
         staleTime: STALE_MS,
       }

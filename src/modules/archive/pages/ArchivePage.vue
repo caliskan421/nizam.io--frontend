@@ -74,7 +74,7 @@ const folders = useFolderCards(
   () => sort.value.field,
   () => sort.value.direction,
 )
-const departments = useProgramDepartments()
+const departments = useProgramDepartments(() => context.admin.value === true)
 function retry(): void {
   void (context.admin.value ? departments.query.refetch() : context.folders.refetch())
 }
@@ -103,7 +103,8 @@ const totalFiles = computed(() =>
 )
 
 // Yükleme: görev seçicisi arşivdeki (dosyalı) görevlerle sınırlıdır (BE-121).
-const taskFolders = useArchiveTaskFolders(context)
+// Yönlendirilen roller (P40) 06'da görev okumaz: 07 kendi okumasını açar (W121 temizliği).
+const taskFolders = useArchiveTaskFolders(context, () => context.entry.value.kind === 'grid')
 const uploadList = computed(() =>
   uploadTasks(taskFolders.folders.value.tasks, context.target.value?.departmentId ?? null),
 )

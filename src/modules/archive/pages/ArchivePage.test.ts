@@ -269,29 +269,15 @@ describe('Dosya yükle (E-06-05; W125 bağlama noktası)', () => {
       tasks({ id: 'w2', title: 'Zeytin' }, { id: 'w1', title: 'Ağ planı' }),
     )
 
-  it('tasks = uploadTasks (ada göre sıralı, S3 başlığındaki departman); düğme pencereyi açar', async () => {
-    setup()
-    const { wrapper } = await mountPage(COORD)
-    const button = wrapper.get('[data-action="upload"]')
-    expect(button.attributes('disabled')).toBeUndefined()
-    expect(wrapper.find('[data-design-stub]').exists()).toBe(false)
-    expect(wrapper.findComponent({ name: 'UploadDialog' }).exists()).toBe(false)
-    await button.trigger('click')
-    const dialog = wrapper.findComponent({ name: 'UploadDialog' })
-    expect(dialog.props('tasks')).toEqual([
-      { workItemId: 'w1', title: 'Ağ planı', departmentId: 'd1' },
-      { workItemId: 'w2', title: 'Zeytin', departmentId: 'd1' },
-    ])
-    dialog.vm.$emit('close')
-    await flushPromises()
-    expect(wrapper.findComponent({ name: 'UploadDialog' }).exists()).toBe(false)
-  })
-
-  it('kapsam değişince açık pencere kapanır', async () => {
+  it('yönlendirilen rol (K/Ü) 06 sayfasında görev okumaz: archiveTasks isteği yok, yükleme penceresi açılmaz (W127: 07 kendi okumasını açar)', async () => {
     setup()
     const { wrapper, h } = await mountPage(COORD)
-    await wrapper.get('[data-action="upload"]').trigger('click')
-    expect(wrapper.findComponent({ name: 'UploadDialog' }).exists()).toBe(true)
+    await flushPromises()
+    expect(sent('GET', '/v1/records/archive/tasks')).toHaveLength(0)
+    const button = wrapper.get('[data-action="upload"]')
+    expect(button.attributes('disabled')).toBeDefined()
+    await button.trigger('click')
+    expect(wrapper.findComponent({ name: 'UploadDialog' }).exists()).toBe(false)
     h.store.commit({ programId: 'p2', lens: 'coordinator', departmentId: 'd9' })
     await flushPromises()
     expect(wrapper.findComponent({ name: 'UploadDialog' }).exists()).toBe(false)

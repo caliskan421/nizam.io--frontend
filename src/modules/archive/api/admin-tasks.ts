@@ -7,20 +7,25 @@
  */
 import { computed } from 'vue'
 
+import { toValue, type MaybeRefOrGetter } from 'vue'
+
 import { useWorkItemList } from '@/modules/work/public'
 
 import type { AdminTaskFolders } from '../model/types'
 import type { ArchiveContext } from '../model/context'
 import { useArchiveTasks } from './queries'
 
-export function useArchiveTaskFolders(context: ArchiveContext) {
+export function useArchiveTaskFolders(
+  context: ArchiveContext,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   const { access, target, readsOpen } = context
   const adminFolder = computed(() => access.value.mode === 'admin-folder')
-  const tasks = useArchiveTasks(target, readsOpen)
+  const tasks = useArchiveTasks(target, () => readsOpen.value && toValue(enabled))
   const work = useWorkItemList(
     () => (access.value.mode === 'admin-folder' ? access.value.folderId : null),
     undefined,
-    () => adminFolder.value && readsOpen.value,
+    () => adminFolder.value && readsOpen.value && toValue(enabled),
   )
   const folders = computed<AdminTaskFolders>(() => {
     const archived = tasks.data.value?.tasks ?? []
