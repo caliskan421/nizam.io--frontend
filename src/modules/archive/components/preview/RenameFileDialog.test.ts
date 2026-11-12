@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 
 import { settleQueries } from '@/shared/http/__tests__/settle'
+import { useToast } from '@/shared/ui'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import {
@@ -21,6 +22,7 @@ import RenameFileDialog from './RenameFileDialog.vue'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
+  useToast().clear()
   resetHarness()
   document.body.innerHTML = ''
 })
@@ -123,6 +125,21 @@ describe('RenameFileDialog (E-06-57/64)', () => {
     expect(document.body.querySelector('[data-testid="outcome-retry"]')).toBeNull()
     expect(sent('PATCH', '/v1/files/f1/name')).toHaveLength(1)
     expect(wrapper.emitted('renamed')).toBeUndefined()
+  })
+
+  it('429: pencere açık, taslak korunur, Retry-After metni bildirilir, otomatik tekrar yok', async () => {
+    server.use(
+      http.patch(PATH, () => errorEnvelope('platform.rate_limited', 429, { 'Retry-After': '60' })),
+    )
+    const { h, wrapper } = open()
+    await send(h, 'baska.pdf')
+    expect(useToast().queue.value.map((t) => t.message)).toEqual([
+      expect.stringContaining('1 dakika'),
+    ])
+    expect(input().value).toBe('baska.pdf')
+    expect(wrapper.emitted('renamed')).toBeUndefined()
+    expect(wrapper.emitted('update:open')).toBeUndefined()
+    expect(sent('PATCH', '/v1/files/f1/name')).toHaveLength(1)
   })
 
   it.each([
