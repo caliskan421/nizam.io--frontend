@@ -78,9 +78,23 @@ function act(action: 'restore' | 'purge', row: DeletedRow): void {
   focusIndex = view.visible.value.findIndex((candidate) => candidate.key === row.key)
   void (action === 'restore' ? actions.restore(row) : actions.purge(row))
 }
+/** Bildirim kalkınca odak gövdeye düşmez: verilen (yoksa seçili) tür düğmesine döner (KESİN 27). */
+async function focusKindButton(kind?: string): Promise<void> {
+  await nextTick()
+  const kinds = column.value?.querySelector('[data-testid="dr-kinds"]')
+  const target = kind
+    ? kinds?.querySelector<HTMLElement>(`[data-kind="${kind}"]`)
+    : kinds?.querySelector<HTMLElement>('[aria-pressed="true"]')
+  target?.focus()
+}
 function openDepartments(): void {
   actions.dismissNotice()
   view.setKind('koordinatorluk')
+  void focusKindButton('koordinatorluk')
+}
+function dismissNotice(): void {
+  actions.dismissNotice()
+  void focusKindButton()
 }
 </script>
 
@@ -143,7 +157,7 @@ function openDepartments(): void {
           :message="actions.notice.value.message"
           :departments-link="actions.notice.value.departmentsLink"
           @departments="openDepartments"
-          @dismiss="actions.dismissNotice"
+          @dismiss="dismissNotice"
         />
         <p v-if="view.autoLoading.value" class="rp-cap" role="status">
           {{ deletedText('filters.loadingRange') }}

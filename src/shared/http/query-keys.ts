@@ -241,6 +241,9 @@ const NOTE_WRITES = [
   'deleteWorkItemNote',
 ] as const satisfies readonly OperationId[]
 
+/** Silinen kayıtlar: görev geri yükleme ve kalıcı silme (12). */
+const LIFECYCLE_WORK_ITEM_WRITES = ['restoreWorkItem', 'permanentDeleteWorkItem'] as const
+
 const FILE_WRITES = [
   'attachFile',
   'renameFile',
@@ -398,7 +401,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   ),
   'workItems.subtasks': unique(SUBTASK_WRITES, ['transitionWorkItem', 'removeAssignment']),
   'workItems.notes': NOTE_WRITES,
-  'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask']),
+  // Geri yüklenen/kalıcı silinen görevin ortak dosya listesi (görev ayrıntısı, kanıt, önizleme
+  // yan okumaları) yaşam döngüsüyle değişir (12 Silinen kayıtlar, backend.md §5; CX-F5-Ö-03).
+  'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask'], LIFECYCLE_WORK_ITEM_WRITES),
   'workItems.dependencies': DEPENDENCY_WRITES,
   // Satırın `subtask_counts` alanı alt görev yazmalarıyla değişir (kapalı satır sayacı; CX-P-Ö-03).
   // Geri yüklenen görev Gantt'a döner, kalıcı silinen zaten yoktu ama satır sayaçları değişebilir
