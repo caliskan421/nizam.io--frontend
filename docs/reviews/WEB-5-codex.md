@@ -65,8 +65,8 @@ HEAD: `44eb5fefa13d3afebfbf4ceb67d4672704b309f7`
 | CX-F5-Ö-02  | W132 PR #116 (yönetici görev eşlemesi hata/yeniden deneme + `tasks.error`) | kapandı — `9750cf4`, `74b0f9c`, main `1248daa` |
 | CX-F5-K-01  | `web5/o4-kapanis`: dogrulama-F5 tanık iddiası düzeltildi | kapandı — `0d93711` |
 | CX-F5-K-02  | `web5/o4-kapanis`: rapor-F5 ve kayit.md BE-120 ifadesi düzeltildi | kapandı — `45193bf` |
-| CX-F5-Ö-03  | W133 PR (görev geri yükleme/kalıcı silme `workItems.files` geçersizlemesi + ilişki testi) | bekliyor |
-| CX-F5-Ö-04  | W133 PR (bildirimle Koordinatörlük sekmesine geçişte odak dönüşü) | bekliyor |
+| CX-F5-Ö-03  | W133 PR (görev geri yükleme/kalıcı silme `workItems.files` geçersizlemesi + ilişki testi) | kapandı — `f0f1078`, PR #117 |
+| CX-F5-Ö-04  | W133 PR (bildirimle Koordinatörlük sekmesine geçişte odak dönüşü) | kapandı — `3e2e9c7`, PR #117 |
 
 ## Tur 2 — 2026-11-13, HEAD d889e2a
 
