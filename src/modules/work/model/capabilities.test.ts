@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { archiveCapabilities } from '@/modules/archive/public'
 import type { ScopeLens } from '@/shared/scope/scope'
 import type { Standing } from '@/shared/scope/standing-facts'
 
@@ -15,7 +16,7 @@ import {
   type WorkCapability,
 } from './capabilities'
 
-// istemci-akislari.md §4 tablosu (pin v0.11.0-api, s.139–s.152), olgu birleşimleri üzerinden:
+// istemci-akislari.md §4 tablosu (s.139–s.152; dosya satırları s.148/s.150 pin v0.15.0-api ADR-0030), olgu birleşimleri üzerinden:
 // Y = yönetici (company_admin), K = koordinatör (görevin departmanında, seçili programda),
 // U = üye satırı, A = göreve atanmış, W = kaydın yazarı/yükleyeni, S = alt görev kendisine,
 // N = alt görev atamasız, P = bekleyen tarih talebi var.
@@ -43,12 +44,20 @@ const TABLE: ReadonlyArray<[string, WorkActionContext, WorkCapability[]]> = [
   [
     'yalnız yönetici',
     ctx('Y'),
-    ['manageItem', 'readNotes', 'manageSubtasks', 'renameFile', 'reviewDateChange'],
+    ['manageItem', 'readNotes', 'manageSubtasks', 'uploadFile', 'renameFile', 'reviewDateChange'],
   ],
   [
     'yönetici + atanmış, ekip satırı yok',
     ctx('Y', 'A', 'W'),
-    ['manageItem', 'readNotes', 'manageSubtasks', 'renameFile', 'reviewDateChange'],
+    [
+      'manageItem',
+      'readNotes',
+      'manageSubtasks',
+      'uploadFile',
+      'renameFile',
+      'deleteFile',
+      'reviewDateChange',
+    ],
   ],
   [
     'koordinatör (atanmamış)',
@@ -118,7 +127,7 @@ const TABLE: ReadonlyArray<[string, WorkActionContext, WorkCapability[]]> = [
     ['transition', 'ownStatus', 'readNotes', 'writeNote', 'toggleSubtask', 'uploadFile'],
   ],
   [
-    'yönetici + koordinatör (not/dosya yükleme: yöneticilik baskın)',
+    'yönetici + koordinatör (not yazma: yöneticilik baskın; dosya yükler)',
     ctx('Y', 'K'),
     [
       'manageItem',
@@ -127,6 +136,7 @@ const TABLE: ReadonlyArray<[string, WorkActionContext, WorkCapability[]]> = [
       'readNotes',
       'manageSubtasks',
       'toggleSubtask',
+      'uploadFile',
       'renameFile',
       'requestDateChange',
       'reviewDateChange',
@@ -142,6 +152,7 @@ const TABLE: ReadonlyArray<[string, WorkActionContext, WorkCapability[]]> = [
       'readNotes',
       'editOwnNote',
       'manageSubtasks',
+      'uploadFile',
       'renameFile',
       'deleteFile',
       'reviewDateChange',
@@ -217,11 +228,11 @@ describe('workActorFacts — mercekten bağımsız (P1, ortak-kurallar §1)', ()
     expect(new Set(visible.map((v) => v.join()))).toHaveProperty('size', 1)
   })
 
-  it('yönetici Koordinatör merceğinde de görev yönetir; not yazamaz (s.144 baskın)', () => {
+  it('yönetici Koordinatör merceğinde de görev yönetir ve dosya yükler; not yazamaz (s.144 baskın)', () => {
     const facts = workActorFacts(standing(true, [['koordinator', 'd1']]), 'p1', item)
     expect(WORK_CAPABILITIES.manageItem(facts)).toBe(true)
     expect(WORK_CAPABILITIES.writeNote(facts)).toBe(false)
-    expect(WORK_CAPABILITIES.uploadFile(facts)).toBe(false)
+    expect(WORK_CAPABILITIES.uploadFile(facts)).toBe(true) // ADR-0030: yönetici dosya yükler
   })
 
   it('standing yoksa her olgu false; başka programın satırı yetki vermez', () => {
@@ -266,5 +277,33 @@ describe('kayıt olguları ve yeni görev', () => {
         'p1',
       ),
     ]).toEqual(['d1', 'd3'])
+  })
+})
+
+// ADR-0030 hizası: yükle/sil, arşiv modülüyle BİREBİR aynı sonuç (üç rol + dışarıdaki × atanma × yükleyen).
+describe('dosya yükle/sil — arşiv modülüyle aynı tablo (v0.15 ADR-0030)', () => {
+  const people: Array<[string, Standing]> = [
+    ['yönetici', standing(true, [])],
+    ['koordinatör', standing(false, [['koordinator', 'd1']])],
+    ['üye', standing(false, [['uye', 'd1']])],
+    ['başka departman üyesi', standing(false, [['uye', 'd2']])],
+    ['ekip satırsız', standing(false, [])],
+  ]
+  const cases = people.flatMap(([name, st]) =>
+    [true, false].flatMap((assigned) =>
+      [true, false].map((mine) => [name, st, assigned, mine] as const),
+    ),
+  )
+  it.each(cases)('%s · atanmış=%s · yükleyen=%s', (_n, st, assigned, mine) => {
+    const archive = archiveCapabilities(st, 'p1')
+    const f = workActorFacts(st, 'p1', {
+      department_id: 'd1',
+      assignee_account_ids: assigned ? ['me'] : [],
+    })
+    const uploaded = mine ? 'me' : 'baska'
+    expect(WORK_CAPABILITIES.uploadFile(f)).toBe(archive.upload('d1', assigned))
+    expect(WORK_CAPABILITIES.deleteFile({ ...f, uploader: mine })).toBe(
+      archive.delete({ departmentId: 'd1', uploadedByAccountId: uploaded }),
+    )
   })
 })

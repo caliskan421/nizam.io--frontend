@@ -48,7 +48,7 @@ const action = (wrapper: ReturnType<typeof mountActions>, name: string) =>
 describe('eylem satırı — görünürlük (capabilities, P1)', () => {
   it.each([
     // [ad, olgular, yükle, tarih talebi, sil]
-    ['yönetici', FACTS.admin, false, false, true],
+    ['yönetici', FACTS.admin, true, false, true],
     ['koordinatör', FACTS.coordinator, true, true, true],
     ['atanmış üye', FACTS.assignedMember, true, false, false],
     ['atanmamış üye', FACTS.member, false, false, false],

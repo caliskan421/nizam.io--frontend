@@ -52,13 +52,14 @@ describe('dosya eylem görünürlüğü (istemci-akislari §4 s.148–s.150)', (
     expect(access(UNASSIGNED).canUpload.value).toBe(false)
   })
 
-  it('yönetici: yükleme her durumda gizli (yöneticilik baskın); ad değiştirir, silemez', () => {
+  it('yönetici: ekip satırı/atama olmadan yükler (ADR-0030); ad değiştirir, yalnız kendi dosyasını siler', () => {
     const a = access(ADMIN, ADMIN_SCOPE)
-    expect(a.canUpload.value).toBe(false)
+    expect(a.canUpload.value).toBe(true)
     expect(a.canRename(other)).toBe(true)
-    expect(a.canDelete(fileItem({ uploaded_by_account_id: 'acc-9' }))).toBe(false)
-    // Koordinatör satırı olsa da yöneticilik baskın (s.148); mercek yetki değildir (P1).
-    expect(access(ADMIN_COORD, COORD_SCOPE).canUpload.value).toBe(false)
+    expect(a.canDelete(other)).toBe(false) // başkasının dosyasını yönetici silemez
+    // Yükleyen yönetici ekip satırı olmadan siler (s.150, RECORDS-K10); mercek yetki değildir (P1).
+    expect(a.canDelete(fileItem({ uploaded_by_account_id: ADMIN.accountId }))).toBe(true)
+    expect(access(ADMIN_COORD, COORD_SCOPE).canUpload.value).toBe(true)
   })
 
   it('standing yoksa her eylem gizli (en dar güvenli davranış)', () => {

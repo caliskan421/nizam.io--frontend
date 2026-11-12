@@ -87,16 +87,16 @@ async function visible(ctx: AppContext) {
 }
 
 describe('W48 · yetki görünürlüğü (dört kişilik, gerçek bileşenler)', () => {
-  it('şirket yöneticisi: salt okunur durum, not yazma ve yükleme gizli; yeni görevde tek atanan', async () => {
+  it('şirket yöneticisi: salt okunur durum, not yazma gizli, yükleme açık (ADR-0030); yeni görevde tek atanan', async () => {
     const ctx = await open(ADMIN)
     expect(await visible(ctx)).toEqual({
       statusMenu: false,
       statusReadonly: true,
-      upload: false,
+      upload: true,
       remove: true,
       newTask: true,
       noteInput: false,
-      filesUpload: false,
+      filesUpload: true,
     })
     body().find<HTMLButtonElement>('.rp-head button.t-btn--primary').element.click()
     await settle(ctx.queryClient)

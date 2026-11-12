@@ -220,7 +220,7 @@ describe('kapanış (E-03-43, E-03-56, 404)', () => {
 })
 
 describe('Admin merceği — liste satırından kapsam, yetki görünümü', () => {
-  it('liste okuması bitince görevin kendi kapsamıyla okur; yönetici: salt okunur durum, yükle yok (E-03-44)', async () => {
+  it('liste okuması bitince görevin kendi kapsamıyla okur; yönetici: salt okunur durum, yükle var (E-03-44, ADR-0030)', async () => {
     backend(workItem({ department_id: 'd2' }))
     server.use(
       http.get(`${ORIGIN}/v1/program/work-items`, () =>
@@ -236,8 +236,8 @@ describe('Admin merceği — liste satırından kapsam, yetki görünümü', () 
     expect(wrapper.emitted('close')).toBeUndefined()
     expect(wrapper.find('[data-testid="status-readonly"]').exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'StatusMenu' }).exists()).toBe(false)
-    expect(wrapper.find('[data-action="upload"]').exists()).toBe(false)
-    expect(wrapper.findComponent({ name: 'FileUploadDialog' }).exists()).toBe(false)
+    expect(wrapper.find('[data-action="upload"]').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'FileUploadDialog' }).exists()).toBe(true)
     // Not okuma s.143 yöneticiye açık → sayı gelir.
     await vi.waitFor(() => expect(tabs(wrapper)[3]!.text()).toContain('3'))
   })

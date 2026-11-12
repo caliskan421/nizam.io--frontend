@@ -117,13 +117,12 @@ describe('SubtaskFileSlot (W46 · E-03-35)', () => {
     expect(sent('GET', LIST_PATH)).toHaveLength(2)
   })
 
-  it('yönetici: yükleme gizli (s.148) — "Kanıt yok", devre dışı, pencere yok', async () => {
+  it('yönetici: yükleme açık (s.148, ADR-0030) — "Kanıt yok", etkin, pencere açılır', async () => {
     serveFiles([])
     const { button } = await slot(ADMIN, ADMIN_SCOPE)
-    expect(button.text()).toBe('Kanıt yok')
-    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.text()).toBe('Kanıt yükle')
+    expect(button.attributes('disabled')).toBeUndefined()
     await button.trigger('click')
-    expect(body().find('[role="dialog"]').exists()).toBe(false)
-    expect(body().find('[data-testid="upload-file"]').exists()).toBe(false)
+    expect(body().find('[role="dialog"]').exists()).toBe(true)
   })
 })

@@ -78,11 +78,11 @@ export const WORK_CAPABILITY_SOURCES: Readonly<Record<WorkCapability, string>> =
   toggleSubtask:
     'istemci-akislari §4 s.147: Alt görevi kapat/aç — koordinatör ∨ (atanmış üye ∧ alt görev atamasız ya da kendisine)',
   uploadFile:
-    'istemci-akislari §4 s.148: Dosya yükle — koordinatör ∨ atanmış üye; yöneticilik baskın (records.not_authorized)',
+    'istemci-akislari §4 s.148 (v0.15 ADR-0030, RECORDS-K01): Dosya yükle — yönetici ∨ koordinatör ∨ atanmış üye',
   renameFile:
     'istemci-akislari §4 s.149: Dosya adını değiştir — yönetici ∨ koordinatör ∨ (yükleyen ∧ ekip satırı)',
   deleteFile:
-    'istemci-akislari §4 s.150: Dosya sil — yalnız yükleyen, o kapsamda ekip satırı varken',
+    'istemci-akislari §4 s.150 (v0.15 ADR-0030, RECORDS-K10): Dosya sil — yalnız yükleyen ∧ (yönetici ∨ ekip satırı)',
   requestDateChange:
     'istemci-akislari §4 s.151: Tarih talebi aç — koordinatör; bekleyen talep varken gizli (409 date_request_pending_exists)',
   reviewDateChange: 'istemci-akislari §4 s.152: Tarih talebini incele/sil — yönetici',
@@ -141,10 +141,12 @@ export function canToggleSubtask(c: WorkActionContext): boolean {
   return c.member && c.assigned && assignee !== 'other'
 }
 
-/** s.148 — dosya yükle: koordinatör ya da atanmış üye; şirket yöneticisi her durumda reddedilir. */
+/**
+ * s.148 — dosya yükle (v0.15 ADR-0030, RECORDS-K01/K02): şirket yöneticisi ekip satırı ve atama
+ * aranmadan yükler; koordinatör; atanmış üye. Arşiv modülüyle (`archive/model/capabilities.ts`) aynı kural.
+ */
 export function canUploadFile(f: WorkActorFacts): boolean {
-  if (f.companyAdmin) return false
-  return f.coordinator || (f.member && f.assigned)
+  return f.companyAdmin || f.coordinator || (f.member && f.assigned)
 }
 
 /** s.149 — dosya adını değiştir: yönetici, koordinatör ya da (yükleyen ∧ ekip satırı). */
@@ -152,9 +154,12 @@ export function canRenameFile(c: WorkActionContext): boolean {
   return c.companyAdmin || c.coordinator || (c.uploader === true && hasTeamRow(c))
 }
 
-/** s.150 — dosya sil: yalnız yükleyen + o kapsamda ekip satırı. */
+/**
+ * s.150 — dosya sil (v0.15 ADR-0030, RECORDS-K10): yalnız yükleyen; yükleyen şirket yöneticisi
+ * ekip satırı aranmadan, diğerleri o kapsamda ekip satırı varken. Yönetici başkasınınkini silemez.
+ */
 export function canDeleteFile(c: WorkActionContext): boolean {
-  return c.uploader === true && hasTeamRow(c)
+  return c.uploader === true && (c.companyAdmin || hasTeamRow(c))
 }
 
 /** s.151 — tarih talebi aç: koordinatör; bekleyen talep varsa gizli (ikinci talep 409). */
