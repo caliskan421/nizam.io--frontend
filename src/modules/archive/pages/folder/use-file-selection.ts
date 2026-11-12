@@ -67,9 +67,8 @@ export function useFileSelection(input: Input) {
     if (found) last = found
     return found ?? (input.holding?.value && last?.file_id === fileId.value ? last : null)
   })
-  const position = computed(() => filePosition(files.value, fileId.value))
   const snapshot = useListedSnapshot(input)
-  /** Uçuştaki derin bağlantı aramaları (sayaç: eski devam yenisinin bayrağını silmesin). */
+  /** Uçuştaki derin bağlantı aramaları (sayaç: eski devam yenisini silmesin). */
   const seeking = ref(0)
   /**
    * Seçim nesli (CX-F5-Ö-01): kapatma, silinme, başka dosya/süzgeç (`?dosya` değişimi) nesli
@@ -125,7 +124,7 @@ export function useFileSelection(input: Input) {
 
   return {
     selected,
-    position,
+    position: computed(() => filePosition(files.value, fileId.value)),
     close,
     previous: () => go('previous'),
     next: () => go('next'),

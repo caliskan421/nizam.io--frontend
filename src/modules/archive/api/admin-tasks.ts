@@ -44,13 +44,13 @@ export function useArchiveTaskFolders(
    * Kesişimin iki bağımlılığının hatası BİRLİKTE (Ö-02): ilk okuması başarısız olan kaynak
    * (`source`) ve hatası. Veri bir kez geldiyse sonraki yenileme hatası ekranı bozmaz.
    */
-  const failure = computed<TaskFoldersFailure | null>(() => {
+  const failure = computed(() => {
     if (folders.value.ready) return null
     if (tasks.isError.value && tasks.data.value === undefined) {
-      return { source: 'tasks', error: tasks.error.value }
+      return { source: 'tasks' as const, error: tasks.error.value }
     }
     if (adminFolder.value && work.query.isError.value && work.query.data.value === undefined) {
-      return { source: 'work', error: work.query.error.value }
+      return { source: 'work' as const, error: work.query.error.value }
     }
     return null
   })
@@ -63,9 +63,4 @@ export function useArchiveTaskFolders(
     () => tasks.isFetching.value || (adminFolder.value && work.query.isFetching.value),
   )
   return { tasks, work, folders, failure, retry, retrying }
-}
-
-export interface TaskFoldersFailure {
-  source: 'tasks' | 'work'
-  error: unknown
 }
