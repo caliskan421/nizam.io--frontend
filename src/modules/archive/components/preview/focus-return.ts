@@ -3,14 +3,15 @@
  * kurulum anındaki `document.activeElement` (kartın kendisi) tetikleyici sayılır. Kapanışta
  * (Esc, ✕, silme/ad değişimi sonrası) odak sırayla: tetikleyici hâlâ belgedeyse o; değilse aynı
  * dosyanın kartı (`[data-file-id]`); o da yoksa listedeki ilk dosya kartı (komşu); hiçbiri yoksa
- * belgenin ana bölgesi. Gövdeye (`body`) düşmez. Kartın `data-file-id` taşıması `FileGrid` /
+ * belgenin ana bölgesi. Panel dışarıdan sökülürse (silme sonrası listenin yenilenmesiyle seçili
+ * dosya düşer) odak panelin içindeyse ya da gövdeye düşmüşse aynı yol izlenir. Gövdeye (`body`) düşmez. Kartın `data-file-id` taşıması `FileGrid` /
  * `FileList` (W123) sözleşmesidir; tetikleyici DOM'da kalıyorsa yalnız ona güvenilir.
  */
-import { nextTick } from 'vue'
+import { nextTick, onBeforeUnmount, type Ref } from 'vue'
 
 const MAIN = 'main, [role="main"]'
 
-export function useReturnFocus(fileId: () => string) {
+export function useReturnFocus(fileId: () => string, root?: Ref<HTMLElement | null>) {
   const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
 
   function target(): HTMLElement | null {
@@ -29,6 +30,15 @@ export function useReturnFocus(fileId: () => string) {
     await nextTick()
     target()?.focus()
   }
+
+  // Panel dışarıdan sökülürse (silme sonrası liste yenilenip dosya düşer, rota değişimi):
+  // odak panelin içindeyse ya da gövdeye düşmüşse yukarıdaki sırayla taşınır.
+  onBeforeUnmount(() => {
+    const active = document.activeElement
+    if (active === document.body || (root?.value && active && root.value.contains(active))) {
+      void restore()
+    }
+  })
 
   return { restore }
 }

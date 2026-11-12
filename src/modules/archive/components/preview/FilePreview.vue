@@ -37,7 +37,7 @@ const details = usePreviewDetails(
   () => props.target,
   () => props.file,
 )
-const returnFocus = useReturnFocus(() => props.file.file_id)
+const returnFocus = useReturnFocus(() => props.file.file_id, root)
 
 const badge = computed(() => typeBadge(props.file.content_type))
 const typeName = computed(() => i18n.global.t(`archive.type.${badge.value}`))

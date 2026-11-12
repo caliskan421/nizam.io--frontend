@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { nextTick } from 'vue'
+import { defineComponent, h, ref } from 'vue'
 
 import { useReturnFocus } from './focus-return'
 
@@ -10,10 +11,11 @@ afterEach(() => {
 
 function setup(fileId = 'f1') {
   let restore!: () => Promise<void>
+  const root = ref<HTMLElement | null>(null)
   const Panel = defineComponent({
     setup() {
-      restore = useReturnFocus(() => fileId).restore
-      return () => h('aside', 'panel')
+      restore = useReturnFocus(() => fileId, root).restore
+      return () => h('aside', { ref: root, tabindex: -1 }, h('button', { id: 'inside' }, 'x'))
     },
   })
   return { mountPanel: () => mount(Panel, { attachTo: document.body }), restore: () => restore() }
@@ -56,5 +58,30 @@ describe('useReturnFocus (KESİN 27)', () => {
     await restore()
     expect(document.activeElement).toBe(document.querySelector('main'))
     expect(document.activeElement).not.toBe(document.body)
+  })
+
+  it('panel dışarıdan sökülünce odak panelin içindeyse karta taşınır (silme sonrası liste yenilemesi)', async () => {
+    document.body.innerHTML = '<main><button id="card" data-file-id="f1">kart</button></main>'
+    document.getElementById('card')!.focus()
+    const { mountPanel } = setup()
+    const wrapper = mountPanel()
+    document.getElementById('inside')!.focus()
+    document.getElementById('card')!.remove()
+    document.querySelector('main')!.innerHTML = '<button id="next" data-file-id="f2">komşu</button>'
+    wrapper.unmount()
+    await nextTick()
+    expect(document.activeElement?.id).toBe('next')
+  })
+
+  it('panel dışarıdan sökülürken odak panelin dışındaysa dokunulmaz', async () => {
+    document.body.innerHTML =
+      '<main><button id="card" data-file-id="f1">kart</button><input id="q" /></main>'
+    document.getElementById('card')!.focus()
+    const { mountPanel } = setup()
+    const wrapper = mountPanel()
+    document.getElementById('q')!.focus()
+    wrapper.unmount()
+    await nextTick()
+    expect(document.activeElement?.id).toBe('q')
   })
 })
