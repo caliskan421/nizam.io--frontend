@@ -61,9 +61,9 @@ HEAD: `44eb5fefa13d3afebfbf4ceb67d4672704b309f7`
 
 | Bulgu       | Kapanış                                              | Hash / PR |
 | ----------- | ---------------------------------------------------- | --------- |
-| CX-F5-Ö-01  | W132 PR (geç sayfalama yanıtı seçim nesline bağlanır) | bekliyor  |
-| CX-F5-Ö-02  | W132 PR (yönetici görev eşlemesi hata/yeniden deneme) | bekliyor  |
-| CX-F5-K-01  | `web5/o4-kapanis`: dogrulama-F5 tanık iddiası düzeltildi | bekliyor (hash koordinatörden) |
-| CX-F5-K-02  | `web5/o4-kapanis`: rapor-F5 ve kayit.md BE-120 ifadesi düzeltildi | bekliyor (hash koordinatörden) |
+| CX-F5-Ö-01  | W132 PR #116 (geç sayfalama yanıtı seçim nesline bağlanır) | kapandı — `3cd3c90`, main `1248daa` |
+| CX-F5-Ö-02  | W132 PR #116 (yönetici görev eşlemesi hata/yeniden deneme + `tasks.error`) | kapandı — `9750cf4`, `74b0f9c`, main `1248daa` |
+| CX-F5-K-01  | `web5/o4-kapanis`: dogrulama-F5 tanık iddiası düzeltildi | kapandı — `0d93711` |
+| CX-F5-K-02  | `web5/o4-kapanis`: rapor-F5 ve kayit.md BE-120 ifadesi düzeltildi | kapandı — `45193bf` |
 
 Tur 2 hükmü: bekliyor.
