@@ -1,6 +1,6 @@
 # WEB-5 — arşiv ve silinen kayıtlar
 
-**Durum (2026-11-12): UYGULAMA main'de (O1–O2 + hotfix + W129: #102–#113), O3 W127 #114 CI'da; O4 belgeleri yazıldı. Gerçek imaj tanığı (W130), Codex nihai hükmü ve kapanış PR'ı BEKLİYOR — F5 henüz KAPANMADI. F6 AÇILMAZ (kullanıcı onayı).** [Kapanış raporu](../../backend-eksikleri/rapor-F5.md), [kayıt](ilerleme.md), [pin yükseltme planı](pin-yukseltme-plani.md), [F6 iskeleti](../web-6/README.md).
+**Durum (2026-11-12): UYGULAMA main'de (O1–O2 + hotfix + W129: #102–#113), O3 W127 #114 (main `8abcb3b`); O4 belgeleri yazıldı. Gerçek imaj tanığı (W130), Codex nihai hükmü ve kapanış PR'ı BEKLİYOR — F5 henüz KAPANMADI. F6 AÇILMAZ (kullanıcı onayı).** [Kapanış raporu](../../backend-eksikleri/rapor-F5.md), [kayıt](ilerleme.md), [pin yükseltme planı](pin-yukseltme-plani.md), [F6 iskeleti](../web-6/README.md).
 
 **F5 AÇILDI 2026-11-12.** Ürün sahibi F5 geçişini onayladı ve P33–P40 kararlarını verdi ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)). BE-072 (yönetici arşivi kapsamı) çözülmedi; yönetici merceği P33 ile açık departman seçimi üzerinden çalışır, BE-072 açık kalır ve rapor-F5'te yine raporlanır.
 
