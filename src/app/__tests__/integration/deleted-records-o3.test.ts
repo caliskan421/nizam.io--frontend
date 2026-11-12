@@ -22,6 +22,9 @@ import {
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
 const ADMIN = { email: PEOPLE.admin.email, scope: { programId: 'p1', lens: 'admin' as const } }
 
+/** Geri yükleme isteğini sunucuda bekleten kapı (geç sonuç senaryosu; gerçek süre yok). */
+let restoreGate: { arrived: () => void; wait: Promise<void> } | null = null
+
 interface Dead {
   tasks: string[]
   departments: string[]
@@ -58,8 +61,12 @@ function install(): void {
       }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () => HttpResponse.json({ accounts: [] })),
-    http.patch(`${ORIGIN}/v1/admin/restore/work-items/:id`, ({ params }) => {
+    http.patch(`${ORIGIN}/v1/admin/restore/work-items/:id`, async ({ params }) => {
       const id = String(params.id)
+      if (restoreGate) {
+        restoreGate.arrived()
+        await restoreGate.wait
+      }
       if (id === 'wx' && !dead.deptRestored) return envelope('work.department_unavailable', 409)
       dead.tasks = dead.tasks.filter((x) => x !== id)
       const owner = backend.db.accounts.find((a) => a.account_id === PEOPLE.member.account_id)!
@@ -92,6 +99,7 @@ function install(): void {
 
 const fresh = (): Dead => ({ tasks: ['wd', 'wx'], departments: ['dd'], deptRestored: false })
 const reset = () => {
+  restoreGate = null
   backend.reset()
   seedTimeline(backend.db)
   dead = fresh()
@@ -238,5 +246,26 @@ describe('kalıcı silme: onay ve odak (KESİN 27)', () => {
     await idle(app.queryClient)
     expect(document.activeElement).not.toBe(document.body)
     expect(backend.sent('DELETE', '/v1/admin/permanent/work-items/wd')).toHaveLength(1)
+  })
+})
+
+describe('yaşam döngüsü: sökülmüş ekran', () => {
+  it('uçuştaki geri yükleme sırasında ekrandan ayrılma: geç sonuç bildirim ve ek okuma başlatmaz', async () => {
+    let release!: () => void
+    let arrived!: () => void
+    const reached = new Promise<void>((resolve) => (arrived = resolve))
+    restoreGate = { arrived, wait: new Promise<void>((resolve) => (release = resolve)) }
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
+    await until(() => $('[data-record-key="gorev:wd"]'), 'satır')
+    await click(() => $('[data-record-key="gorev:wd"] [data-action="restore"]'))
+    await click(() => $('[data-testid="confirm-accept"]'))
+    await reached
+    await app.router.push('/')
+    await until(() => $('[data-testid="home-page"]'), 'ana sayfa')
+    const lists = backend.sent('GET', '/v1/admin/deleted/work-items').length
+    release()
+    await idle(app.queryClient)
+    expect($$('.rp-toast')).toHaveLength(0)
+    expect(backend.sent('GET', '/v1/admin/deleted/work-items').length).toBe(lists)
   })
 })
