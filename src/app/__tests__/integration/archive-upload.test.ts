@@ -16,6 +16,7 @@ import {
   teardown,
   until,
   useArchiveBackend,
+  userClick,
 } from './archive-support'
 
 const backend = useArchiveBackend({ coordinator: 'koordinator', member: 'uye' })
@@ -37,16 +38,16 @@ function stubBrowserClone(): void {
 }
 
 const realFetch = globalThis.fetch
-globalThis.fetch = (async (...a: Parameters<typeof fetch>) => {
+globalThis.fetch = async (...a: Parameters<typeof fetch>) => {
   try {
     return await realFetch(...a)
   } catch (e) {
     console.log('DBGF', String(e), String((e as Error).cause))
     throw e
   }
-}) as typeof fetch
+}
 backend.server.events.on('unhandledException', ({ error }) =>
-  console.log('DBGX', String(error), (error as Error).stack?.slice(0, 600)),
+  console.log('DBGX', String(error), error.stack?.slice(0, 600)),
 )
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
 beforeAll(async () => {
@@ -77,7 +78,7 @@ async function choose(name = 'yeni.pdf'): Promise<void> {
 
 async function openAndFill(path: string, boot_ = ADMIN): Promise<Awaited<ReturnType<typeof boot>>> {
   const app = await boot({ ...boot_, path })
-  await click(() => $('[data-testid="folder-upload"]'))
+  await userClick(() => $('[data-testid="folder-upload"]'))
   await until(() => $('[data-testid="upload-task"]'), 'yükleme penceresi')
   await fill('[data-testid="upload-tag"]', 'cikti')
   await choose()
@@ -90,7 +91,7 @@ describe('yükleme', () => {
     await until(() => backend.sent('GET', '/v1/work-items/w1').length > 0, 'görev ayrıntısı')
     await idle(app.queryClient)
     await app.router.push('/arsiv/d1?gorev=w1')
-    await click(() => $('[data-testid="folder-upload"]'))
+    await userClick(() => $('[data-testid="folder-upload"]'))
     await until(() => $('[data-testid="upload-task"]'), 'yükleme penceresi')
     await fill('[data-testid="upload-tag"]', 'cikti')
     await choose()
@@ -138,7 +139,7 @@ describe('yükleme', () => {
   it('koordinatör: 06 yönlendirmesi sonrası kendi klasöründe yükler; başlık kendi departmanı', async () => {
     const app = await boot({ ...COORD, path: '/arsiv' })
     await until(() => app.router.currentRoute.value.path === '/arsiv/d1', 'yönlendirme')
-    await click(() => $('[data-testid="folder-upload"]'))
+    await userClick(() => $('[data-testid="folder-upload"]'))
     await until(() => $('[data-testid="upload-task"]'), 'pencere')
     await fill('[data-testid="upload-task"]', 'w2')
     await fill('[data-testid="upload-tag"]', 'plan')
@@ -152,7 +153,7 @@ describe('yükleme', () => {
 
   it('zorunlu etiket yok: gönderim yazma isteği atmaz', async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv/d1?gorev=w1' })
-    await click(() => $('[data-testid="folder-upload"]'))
+    await userClick(() => $('[data-testid="folder-upload"]'))
     await until(() => $('[data-testid="upload-task"]'), 'pencere')
     await choose()
     await click(() => $('[data-testid="upload-submit"]'))

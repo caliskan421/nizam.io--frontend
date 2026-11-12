@@ -1,5 +1,5 @@
 // W127 · O3: arşiv entegrasyon testlerinin ortak kurulumu (W82a harness'i + durumlu arşiv sunucusu).
-import { PEOPLE, createBackend, seedWorld } from './harness'
+import { $, PEOPLE, click, createBackend, seedWorld, until } from './harness'
 
 import {
   archiveHandlers,
@@ -76,3 +76,14 @@ export const s3 = () =>
 
 /** Arşiv sunucusunda isteği bekletir (geç sonuç senaryoları; gerçek süre yok). */
 export const hold = (method: string, path: string) => holdRequest(archive.state, method, path)
+
+/**
+ * Gerçek kullanıcı tıklaması: tarayıcıda işaretçi önce öğeyi odaklar (`HTMLElement.click()` odaklamaz);
+ * odak dönüşü testleri tetikleyicinin odaklı olmasına dayanır (KESİN 27).
+ */
+export async function userClick(target: string | (() => HTMLElement | null)): Promise<HTMLElement> {
+  const probe = typeof target === 'string' ? () => $(target) : target
+  const el = await until(probe, `tıklanacak öğe ${String(target)}`)
+  el.focus()
+  return click(() => el)
+}

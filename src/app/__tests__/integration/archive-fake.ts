@@ -239,7 +239,7 @@ function attachmentPage(visible: FakeFile[], q: URLSearchParams) {
   }
 }
 
-async function createFile(f: Fake, request: Request, workId: string, g: Gate) {
+function createFile(f: Fake, request: Request, workId: string, g: Gate) {
   const { state, db } = f
   const key = request.headers.get('Idempotency-Key')
   if (!key) return envelope('platform.idempotency_key_required', 400)
