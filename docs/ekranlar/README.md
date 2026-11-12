@@ -96,7 +96,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `09-toplantilar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `10-mesajlar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
-| `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); bağımsız denetim O2b öncesi | — |
+| `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex bekliyor** | — |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,
