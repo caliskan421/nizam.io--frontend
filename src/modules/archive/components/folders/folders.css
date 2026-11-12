@@ -1,0 +1,417 @@
+/*
+ * 06 Arşiv sayfası görünümü — Arsiv.dc.html + theme.css (`rp-head`, `rp-body`, `rp-col`,
+ * `rp-aside`, `rp-folder`, `rp-kicker`, `rp-cap`, `rp-bar`, `rp-dl`, `rp-link` …) birebir
+ * karşılığı. Kural: yalnız token; ham renk ve px yok (ölçek dışı ölçüler mevcut space/ui/control
+ * token'larının birleşimi; medya eşiği `--rp-narrow-max` ile aynı). Sınıflar `.archive-page`
+ * altında kapsanır; katman `components`.
+ */
+@layer components {
+  .archive-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Başlık */
+  .archive-page .rp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-8) 0;
+  }
+  .archive-page .rp-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .archive-page .rp-h1 {
+    margin: 0;
+    font: var(--text-heading-1);
+    letter-spacing: -0.015em;
+  }
+  .archive-page .rp-sub {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .archive-page .rp-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .archive-page .t-btn .rp-trunc:has(> .t-icon) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Gövde */
+  .archive-page .rp-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-8) var(--space-12);
+    align-items: flex-start;
+  }
+  .archive-page .archive-main {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .archive-page .rp-col {
+    flex: 999 1 var(--rp-col-basis);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .archive-page .rp-aside {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .archive-page .rp-trunc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .archive-page .rp-nowrap {
+    white-space: nowrap;
+  }
+  .archive-page .rp-clamp2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .archive-page .rp-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .archive-page .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .archive-page .rp-mono {
+    font: var(--text-label);
+    color: var(--ink);
+  }
+  .archive-page .rp-muted {
+    color: var(--ink-muted);
+  }
+  .archive-page .rp-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .archive-page .rp-cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .archive-page .rp-cardhead > :first-child {
+    min-width: 0;
+  }
+  .archive-page .rp-cardtitle {
+    margin: 0;
+    font: var(--text-body-lg);
+    font-weight: 600;
+  }
+  .archive-page .rp-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    border: 0;
+    background: none;
+    color: var(--ink-muted);
+    font: var(--ui-text-sm-medium);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .archive-page .rp-link:hover {
+    color: var(--ink);
+  }
+  .archive-page .rp-link:focus-visible,
+  .archive-page .rp-folder:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+
+  /* Arama ve tür segmenti (E-06-06/07) */
+  .archive-page .archive-searchbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .archive-page .archive-searchbar__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .archive-page .archive-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .archive-page .archive-search .t-field {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .archive-page .archive-search .t-input {
+    height: var(--control-lg);
+    border-radius: var(--radius-md);
+    font: var(--text-body-lg);
+    padding-right: calc(var(--space-12) + var(--space-2));
+  }
+  .archive-page .archive-search__kbd {
+    position: absolute;
+    right: var(--space-3);
+  }
+
+  /* Koordinatörlük ızgarası (E-06-08…16) */
+  .archive-page .archive-coords {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .archive-page .archive-coords__count {
+    margin-left: var(--space-1);
+    font-size: var(--ui-fs-sm);
+  }
+  .archive-page .archive-sort {
+    position: relative;
+    display: inline-flex;
+  }
+  .archive-page .archive-sort__pop {
+    top: calc(100% + var(--space-1));
+    right: 0;
+    width: max-content;
+    min-width: calc(var(--space-16) * 3);
+    max-width: calc(100vw - var(--space-8));
+  }
+  .archive-page .archive-grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(calc(var(--space-16) * 3 + var(--space-1)), 100%), 1fr)
+    );
+    gap: calc(var(--space-3) + var(--ui-gap-2xs));
+  }
+  .archive-page .archive-more {
+    align-self: center;
+  }
+  .archive-page .rp-folder {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-3) + var(--ui-gap-2xs));
+    padding: calc(var(--space-4) + var(--ui-gap-2xs));
+    height: 100%;
+    box-sizing: border-box;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--surface-top), var(--bg-surface));
+    box-shadow: inset 0 var(--ui-hairline) 0 var(--edge-light);
+    color: var(--ink);
+    text-decoration: none;
+    min-width: 0;
+  }
+  .archive-page .rp-folder:hover {
+    border-color: var(--border-strong);
+  }
+  .archive-page .archive-folder--empty {
+    opacity: 0.55;
+  }
+  .archive-page .rp-folder__icon {
+    position: relative;
+    width: calc(var(--space-12) + var(--space-1));
+    height: var(--space-10);
+    flex: none;
+  }
+  .archive-page .rp-folder__icon::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--space-5) + var(--ui-gap-2xs));
+    height: var(--ui-gap-sm);
+    border-radius: var(--ui-gap-xs) var(--ui-gap-xs) 0 0;
+    background: var(--bg-overlay);
+  }
+  .archive-page .rp-folder__icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: var(--ui-gap-xs);
+    border-radius: var(--space-1) var(--ui-gap-sm) var(--ui-gap-sm) var(--ui-gap-sm);
+    background: linear-gradient(180deg, var(--btn-top), var(--bg-overlay));
+    box-shadow: inset 0 var(--ui-hairline) 0 var(--edge-light);
+  }
+  .archive-page .archive-folder__name {
+    font: var(--text-body-strong);
+    min-height: calc(var(--space-5) * 2);
+  }
+  .archive-page .archive-folder__foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: auto;
+    min-width: 0;
+  }
+  .archive-page .archive-folder__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  .archive-page .archive-folder__rel {
+    color: var(--ink-faint);
+  }
+
+  /* Etiket kartı (E-06-17…21) ve depolama özeti (E-06-22…24) */
+  .archive-page .archive-tags,
+  .archive-page .archive-storage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: calc(var(--space-5) + var(--ui-gap-2xs));
+  }
+  .archive-page .archive-card__head {
+    margin: 0;
+  }
+  .archive-page .archive-tags__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .archive-page .archive-tags__item {
+    display: grid;
+    grid-template-columns: var(--ui-gap-sm) minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .archive-page .rp-dot {
+    display: inline-block;
+    width: var(--ui-gap-sm);
+    height: var(--ui-gap-sm);
+    flex: none;
+    border-radius: var(--radius-full);
+    background: var(--archive-tone, var(--ink-muted));
+  }
+  .archive-page .archive-newtag {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-sm);
+    padding: var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+  }
+  .archive-page .archive-newtag__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .archive-page .archive-newtag__colors {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .archive-page .archive-swatch {
+    width: var(--ui-pill-h);
+    height: var(--ui-pill-h);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: var(--archive-tone, var(--ink-muted));
+    cursor: default;
+  }
+  .archive-page .archive-storage__total {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .archive-page .archive-storage__num {
+    font: var(--text-display-lg);
+    letter-spacing: -0.02em;
+  }
+  .archive-page .rp-bar {
+    display: flex;
+    height: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--bg-overlay);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .archive-page .rp-dl {
+    display: grid;
+    grid-template-columns: minmax(calc(var(--space-16) + var(--space-6)), auto) minmax(0, 1fr);
+    gap: var(--ui-gap-sm) var(--space-4);
+    margin: 0;
+    font: var(--ui-text-sm-medium);
+  }
+  .archive-page .rp-dl dt {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .archive-page .rp-dl dd {
+    margin: 0;
+    text-align: right;
+    color: var(--ink);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Boş / yönlendirme durumu */
+  .archive-page .archive-state {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  @media (max-width: 900px) {
+    .archive-page .rp-head {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .archive-page .rp-body {
+      padding: var(--space-5);
+    }
+    .archive-page .rp-aside {
+      max-width: none;
+    }
+    .archive-page .archive-searchbar__row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

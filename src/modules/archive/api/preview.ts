@@ -14,7 +14,7 @@ import { computed, onScopeDispose, ref, toValue, watch, type MaybeRefOrGetter } 
 import { retryTransient, useWorkItemFiles, useWorkItemSubtasks } from '@/modules/work/public'
 import { api, unwrap } from '@/shared/http'
 import { scopeHeaders } from '@/modules/work/public'
-import { queryKeys } from '@/shared/http/query-keys'
+import { scoped } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
@@ -47,9 +47,13 @@ export function useFilePreview(
       const selected = toValue(file)
       const eligible = resolved !== null && selected !== null && canPreview(selected)
       return {
-        queryKey: queryKeys.archive.list(resolved ? keyScope(scope, resolved) : scope, 'preview', {
-          file_id: selected?.file_id ?? '',
-        }),
+        // `archive` kökünün DIŞINDA: arşiv yazmalarının geçersizlemesi (rename/sil) açık görseli
+        // yeniden indirmez, silinen dosya için 404 okuması tetiklemez. Kapsam değişimi/oturum
+        // temizliği yine kapsamlı anahtardan (`scoped`) etkilenir.
+        queryKey: scoped(resolved ? keyScope(scope, resolved) : scope, [
+          'archive-preview',
+          { file_id: selected?.file_id ?? '' },
+        ]),
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
           fetchFileBlob(resolved!, selected!.file_id, signal),
         ),

@@ -1,0 +1,88 @@
+/*
+ * Görev klasörü kartları — Arsiv-Klasor.dc.html "Görev klasörleri" bölümü (ızgara satırları
+ * `auto 40px auto`, dolgu 14, `--radius-md`) birebir karşılığı. Yalnız token; px yok.
+ */
+@layer components {
+  .arch-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .arch-tasks__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+  .arch-tasks__title {
+    margin: 0;
+    font: var(--text-body-strong);
+    color: var(--ink);
+  }
+  .arch-tasks__caption {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .arch-tasks__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--arch-task-min, 100%), 100%), 1fr));
+    gap: var(--ui-gap-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arch-task {
+    display: grid;
+    grid-template-rows: auto var(--control-sm) auto;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-3) var(--space-3);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .arch-task:hover {
+    border-color: var(--border-strong);
+  }
+  .arch-task[aria-pressed='true'] {
+    border-color: var(--accent-text);
+    box-shadow: 0 0 0 var(--ui-hairline) var(--accent-text);
+  }
+  .arch-task:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+  .arch-task .t-icon {
+    color: var(--ink-muted);
+  }
+  .arch-task__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font: var(--ui-text-sm-strong);
+    word-break: break-word;
+  }
+  .arch-task__count {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .arch-tasks__skel {
+    height: calc(var(--space-16) + var(--space-5));
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+  }
+  .arch-tasks__note {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+}

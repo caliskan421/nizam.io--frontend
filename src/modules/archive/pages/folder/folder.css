@@ -1,0 +1,107 @@
+/*
+ * 07 Arşiv › Klasör sayfa düzeni — Arsiv-Klasor.dc.html `rp-explorer` (248 | 1fr | 340) ve başlık
+ * satırı birebir karşılığı. Kural: yalnız token; px yok. Ölçek dışı üç ölçü (ağaç genişliği,
+ * orta sütun alt sınırı, dosya/görev kartı alt sınırı) `calc(space)` ile kurulur ve
+ * `design/web-tokens.json` `archive` grubuna taşınması önerilir (SAHİPLİK-DIŞI İHTİYAÇ).
+ * Dar ekran: tasarımdaki `@media (max-width:1100px)` tek sütunu, `--rp-narrow-max` dışı eşik
+ * olmadığından (media-thresholds.test.ts) sarmalayan esnek yerleşimle sağlanır: orta sütun alt
+ * sınırı altında ağaç / dosyalar / önizleme akışta alt alta iner.
+ */
+@layer components {
+  .arch-page {
+    --arch-tree-w: calc(var(--space-16) * 3.875);
+    --arch-main-min: calc(var(--space-16) * 7.5);
+    --arch-card-min: calc(var(--space-10) * 3.75);
+    --arch-task-min: calc(var(--space-10) * 4.1);
+    --arch-search-w: calc(var(--space-16) * 5);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .arch-page .arch-explorer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    align-items: flex-start;
+    padding: var(--space-5) var(--space-6) var(--space-10);
+    min-width: 0;
+  }
+  .arch-explorer__tree {
+    flex: 1 1 var(--arch-tree-w);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .arch-explorer__main {
+    display: flex;
+    flex: 1000 1 var(--arch-main-min);
+    flex-direction: column;
+    gap: var(--space-5);
+    min-width: 0;
+  }
+  .arch-explorer__aside {
+    flex: 1 1 var(--rp-aside-basis);
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* Başlık: klasör ikonu | ad + meta | eylemler */
+  .arch-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  .arch-head__icon {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    color: var(--accent-text);
+    box-sizing: content-box;
+  }
+  .arch-head__title {
+    margin: 0;
+    font: var(--wd-title-font);
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arch-head__meta {
+    margin: var(--space-1) 0 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arch-head__text {
+    min-width: 0;
+  }
+  .arch-head__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: flex-end;
+  }
+  /* Tasarımda üst çubuğun sağında 320 genişlikte durur; üst çubuk sayfaya ait değil (KESİN 2),
+     arama ana sütunun sağ üstüne konur. */
+  .arch-search {
+    align-self: flex-end;
+    width: min(100%, var(--arch-search-w));
+    min-width: 0;
+  }
+  .arch-skel {
+    display: block;
+    height: var(--list-skel-h);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+  }
+  .arch-notice {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+}

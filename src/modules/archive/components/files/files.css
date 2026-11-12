@@ -1,0 +1,188 @@
+/*
+ * Dosya süzgeç çubuğu, ızgara ve liste — Arsiv-Klasor.dc.html "Son eklenen dosyalar" bölümü
+ * (`rp-toolbar`, `rp-seg`, dosya kartı: 4:3 tarama alanı + ad/görev/alt görev) birebir karşılığı.
+ * Yalnız token; px yok. Küçük resim yok (BE-026): tarama alanında nötr tür rozeti kalır.
+ */
+@layer components {
+  .arch-files {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .arch-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    justify-content: space-between;
+  }
+  .arch-bar__title {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: 0;
+    font: var(--text-body-strong);
+    color: var(--ink);
+  }
+  .arch-bar__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .arch-dot {
+    display: inline-block;
+    flex: none;
+    width: var(--list-dot);
+    height: var(--list-dot);
+    border-radius: var(--radius-full);
+    box-sizing: border-box;
+  }
+  .arch-dot--card {
+    width: calc(var(--list-dot) + var(--ui-gap-2xs));
+    height: calc(var(--list-dot) + var(--ui-gap-2xs));
+    box-shadow: 0 0 0 var(--ui-gap-2xs) var(--bg-surface);
+  }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--arch-card-min, 100%), 100%), 1fr));
+    gap: var(--ui-gap-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arch-card {
+    display: grid;
+    grid-template-rows: auto auto;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .arch-card:hover {
+    border-color: var(--border-strong);
+  }
+  .arch-card[aria-pressed='true'] {
+    border-color: var(--accent-text);
+    box-shadow: 0 0 0 var(--ui-hairline) var(--accent-text);
+  }
+  .arch-card:focus-visible,
+  .arch-row__open:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+  .arch-card__thumb {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--space-2);
+    aspect-ratio: 4 / 3;
+    box-sizing: border-box;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    background-color: var(--bg-raised);
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0,
+      transparent var(--space-1),
+      var(--border-subtle) var(--space-1),
+      var(--border-subtle) calc(var(--space-1) + var(--ui-hairline))
+    );
+  }
+  .arch-badge {
+    padding: var(--ui-gap-2xs) var(--ui-gap-xs);
+    border-radius: var(--radius-xs);
+    background: var(--bg-surface);
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .arch-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    padding: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .arch-card__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: var(--text-label);
+    color: var(--ink);
+  }
+  .arch-card__task,
+  .arch-card__sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .arch-card__sub {
+    color: var(--ink-faint);
+  }
+  /* Liste görünümü */
+  .arch-list {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .arch-list th,
+  .arch-list td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    text-align: left;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arch-list th {
+    font: var(--text-label);
+    color: var(--ink-faint);
+  }
+  .arch-list tr[aria-selected='true'] td {
+    background: var(--bg-overlay);
+  }
+  .arch-row__open {
+    display: block;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: var(--text-label);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arch-row__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+  }
+  .arch-files__more {
+    align-self: center;
+  }
+  .arch-skel-card {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+  }
+}

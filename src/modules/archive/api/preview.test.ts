@@ -17,6 +17,7 @@ import {
   sent,
   server,
 } from '../model/__tests__/harness'
+import { invalidationFilters } from '@/shared/http/query-keys'
 import { PREVIEW_MAX_BYTES } from '../model/mime'
 import type { ArchiveFile } from '../model/types'
 import { useFilePreview, usePreviewDetails } from './preview'
@@ -202,5 +203,22 @@ describe('yükleyen adı ve alt görev adı (yalnız seçili dosya için)', () =
     h.run(() => usePreviewDetails(target, null))
     await settleQueries(h.queryClient)
     expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(0)
+  })
+
+  it('arşiv geçersizlemesi (rename/sil sonrası) açık görseli yeniden indirmez, 404 okuması yok', async () => {
+    server.use(png())
+    const h = harness(COORD)
+    const { result } = h.run(() => useFilePreview(target, image()))
+    await settleQueries(h.queryClient)
+    expect(sent('GET', '/v1/files/f1/download')).toHaveLength(1)
+    for (const filter of invalidationFilters('deleteFile', h.store.snapshot, {
+      workItemId: 'w1',
+    })) {
+      await h.queryClient.invalidateQueries(filter)
+    }
+    await settleQueries(h.queryClient)
+    expect(sent('GET', '/v1/files/f1/download')).toHaveLength(1)
+    expect(result.url.value).toBe('blob:onizleme-1')
+    expect(revoked).toEqual([])
   })
 })
