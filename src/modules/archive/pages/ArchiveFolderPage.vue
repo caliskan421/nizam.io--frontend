@@ -91,6 +91,11 @@ const folderError = computed(() =>
 const taskCount = computed(() => (data.tasksLoading.value ? null : data.taskList.value.length))
 const View = computed(() => (url.state.value.view === 'liste' ? FileList : FileGrid))
 
+/** Devam yoksa toplam yüklenen sayıdır (son dosyada "sonraki" ölü kalmaz). */
+const previewTotal = computed(() =>
+  attachments.hasMore.value ? data.total.value : attachments.files.value.length,
+)
+
 function closeUpload(): void {
   uploading.value = false
   void nextTick(() => head.value?.focusUpload())
@@ -139,22 +144,23 @@ function openTask(workItemId: string): void {
           />
         </div>
         <div class="arch-explorer__main">
-          <UiInput
-            v-model="search.text.value"
-            class="arch-search"
-            type="search"
-            icon="search"
-            size="sm"
-            :disabled="searchDisabled"
-            :aria-label="folderText('folder.search.label')"
-            :placeholder="
-              searchDisabled
-                ? folderText('folder.search.needsTask')
-                : folderText('folder.search.placeholder')
-            "
-            data-testid="folder-search"
-            @keydown.enter="search.flush"
-          />
+          <div class="arch-search">
+            <UiInput
+              v-model="search.text.value"
+              type="search"
+              icon="search"
+              size="sm"
+              :disabled="searchDisabled"
+              :aria-label="folderText('folder.search.label')"
+              :placeholder="
+                searchDisabled
+                  ? folderText('folder.search.needsTask')
+                  : folderText('folder.search.placeholder')
+              "
+              data-testid="folder-search"
+              @keydown.enter="search.flush"
+            />
+          </div>
           <FolderHead
             ref="head"
             :folder="data.folder.value ?? null"
@@ -201,7 +207,7 @@ function openTask(workItemId: string): void {
           <FilePreview
             :file="selection.selected.value"
             :position="selection.position.value"
-            :total="data.total.value"
+            :total="previewTotal"
             :has-more="attachments.hasMore.value"
             :target="target"
             :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"

@@ -3,8 +3,8 @@
  *  - Seçili dosya yüklenen sayfalarda aranır (derin bağlantı için sonraki sayfalar yüklenir;
  *    yerleşmiş listede yoksa param düşer).
  *  - Önceki/sonraki komşu dosyayı seçer; listenin sonunda devam varsa önce bir sayfa yükler.
- *  - Silinince (liste yeniden okununca dosya kaybolur ya da `deleted` gelir) komşuya geçer,
- *    komşu yoksa kapanır. Komşu, dosyanın listede göründüğü son anlık görüntüden alınır.
+ *  - Silinince (liste yeniden okununca dosya kaybolur ya da `deleted` gelir) önizleme kapanır;
+ *    odak komşu karta (yoksa dosya başlığına) gider. Komşu, son anlık görüntüden alınır.
  *  - Kapanışta odak dosya kartına döner; kart yoksa dosya başlığına (KESİN 27).
  */
 import { computed, nextTick, ref, watch, type Ref } from 'vue'
@@ -64,9 +64,10 @@ export function useFileSelection(input: Input) {
   const seeking = ref(false)
 
   function dropTo(id: string): void {
+    // Koordinatör kararı: silinince önizleme KAPANIR; odak komşu karta (yoksa dosya başlığına).
     const next = snapshot.neighbor(id)
-    void input.select(next?.file_id ?? null, 'replace')
-    if (!next) focusFile(input.root.value, null)
+    void input.select(null, 'replace')
+    focusFile(input.root.value, next?.file_id ?? null)
   }
 
   watch(

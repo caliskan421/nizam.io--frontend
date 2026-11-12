@@ -18,7 +18,7 @@ const view = computed(() => tagView(props.tag))
     :class="{ 'arch-dot--card': card }"
     :style="{ background: cssVar(view.tone) }"
     :title="view.label"
-    :data-tag="tag"
+    :data-tag-dot="tag"
     role="img"
     :aria-label="view.label"
   />

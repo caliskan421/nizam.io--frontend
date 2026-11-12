@@ -81,6 +81,12 @@ describe('önizleme bağlama (W124 FilePreview ?dosya)', () => {
     expect(wrapper.find('[data-testid="preview"]').exists()).toBe(false)
   })
 
+  it('devam yoksa total yüklenen sayıdır; devam varsa bilinen toplam/null', async () => {
+    server.use(...K, ...archiveBackend({ files: FILES }))
+    const { wrapper } = await mountPage('/arsiv/d1?etiket=sonuc&dosya=f1', COORD)
+    expect(wrapper.find('[data-testid="preview-pos"]').text()).toMatch(/^1\/\d+$/)
+  })
+
   it('kapat: ?dosya düşer, odak dosya kartına döner (gövdeye düşmez)', async () => {
     server.use(...K, ...archiveBackend({ files: FILES }))
     const { wrapper, router, settle } = await mountPage('/arsiv/d1?dosya=f3', COORD)
@@ -91,14 +97,16 @@ describe('önizleme bağlama (W124 FilePreview ?dosya)', () => {
     expect(document.activeElement).toBe(wrapper.find('[data-file-id="f3"]').element)
   })
 
-  it('silme: komşuya geçer (liste yenilenmeden de, yenilenince de); komşusuz son dosyada kapanır, odak dosya başlığında', async () => {
+  it('silme: önizleme kapanır (olay gelmese de liste yenilenince); komşusuz son dosyada odak dosya başlığında, odak dosya başlığında', async () => {
     const files = manyFiles(2)
     server.use(...K, ...archiveBackend({ files }))
     const { wrapper, router, queryClient, settle } = await mountPage('/arsiv/d1?dosya=f1', COORD)
     // Önizleme `deleted` yayar (liste henüz eski).
     await act(wrapper, 'deleted')
     await settle()
-    expect(router.currentRoute.value.query.dosya).toBe('f2')
+    expect(router.currentRoute.value.query.dosya).toBeUndefined()
+    await router.replace({ query: { dosya: 'f2' } })
+    await settle()
     // Sunucuda f1 silindi; ortak geçersizleme listeyi yeniden okutur: seçili f2 yerinde kalır.
     files.splice(0, 1)
     await queryClient.invalidateQueries()
@@ -113,15 +121,16 @@ describe('önizleme bağlama (W124 FilePreview ?dosya)', () => {
     expect(document.activeElement).toBe(wrapper.find('#arch-files-title').element)
   })
 
-  it('liste yenilenince seçili dosya kaybolursa (silindi) komşuya geçer', async () => {
+  it('liste yenilenince seçili dosya kaybolursa (silindi) önizleme kapanır, odak komşu kartta', async () => {
     const files = manyFiles(3)
     server.use(...K, ...archiveBackend({ files }))
     const { wrapper, router, queryClient, settle } = await mountPage('/arsiv/d1?dosya=f2', COORD)
     files.splice(1, 1)
     await queryClient.invalidateQueries()
     await settle()
-    expect(router.currentRoute.value.query.dosya).toBe('f3')
-    expect(wrapper.find('[data-testid="preview"]').attributes('data-file')).toBe('f3')
+    expect(router.currentRoute.value.query.dosya).toBeUndefined()
+    expect(wrapper.find('[data-testid="preview"]').exists()).toBe(false)
+    expect(document.activeElement).toBe(wrapper.find('[data-file-id="f3"]').element)
   })
 
   it('önizlemedeki görev bağlantısı görev ayrıntısına gider (03 ?gorev)', async () => {
