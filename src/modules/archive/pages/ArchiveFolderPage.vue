@@ -173,7 +173,22 @@ function openTask(workItemId: string): void {
             :can-upload="canUpload"
             @upload="uploading = true"
           />
+          <section
+            v-if="data.tasksFailure.value"
+            class="arch-tasks"
+            aria-labelledby="arch-tasks-title"
+            data-testid="task-folders-error"
+          >
+            <h2 id="arch-tasks-title" class="arch-tasks__title">{{ folderText('tasks.title') }}</h2>
+            <UiErrorState
+              :error="toApiError(data.tasksFailure.value.error)"
+              retryable
+              :retrying="data.taskFolders.retrying.value"
+              @retry="data.taskFolders.retry()"
+            />
+          </section>
           <TaskFolderCards
+            v-else
             :tasks="data.taskList.value"
             :selected-task-id="data.activeTask.value"
             :truncated="data.taskFolders.folders.value.truncated"

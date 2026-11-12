@@ -24,7 +24,8 @@ function useTaskScope(ctx: ReturnType<typeof useArchiveContext>, url: Ref<Folder
   const taskFolders = useArchiveTaskFolders(ctx)
   const taskList = computed(() => taskFolders.folders.value.tasks)
   const tasksReady = computed(() => taskFolders.folders.value.ready)
-  const tasksFailed = computed(() => taskFolders.tasks.isError.value)
+  const tasksFailure = computed(() => taskFolders.failure.value)
+  const tasksFailed = computed(() => tasksFailure.value !== null)
   const adminFolder = computed(() => ctx.access.value.mode === 'admin-folder')
   /** Doğrulanmış görev süzgeci; doğrulama beklerken `undefined`. */
   const verifiedTask = computed<string | null | undefined>(() => {
@@ -44,6 +45,8 @@ function useTaskScope(ctx: ReturnType<typeof useArchiveContext>, url: Ref<Folder
     verifiedTask,
     activeTask,
     needsTask,
+    tasksFailed,
+    tasksFailure,
     tasksLoading: computed(() => !tasksReady.value && !tasksFailed.value),
   }
 }
