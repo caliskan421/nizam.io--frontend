@@ -40,18 +40,47 @@ import {
 
 // ortak-kurallar §5 faz görünürlük matrisi (menü satırları + alt rotalar) — beklenen tablo.
 const MATRIX: Record<string, Record<Phase, string>> = {
-  home: { F0: 'canli', F1: 'canli', F2: 'canli', F3: 'canli', F4: 'canli' },
-  'identity.session': { F0: 'canli', F1: 'canli', F2: 'canli', F3: 'canli', F4: 'canli' },
-  'work.tasks': { F0: 'devre_disi', F1: 'canli', F2: 'canli', F3: 'canli', F4: 'canli' },
-  'work.timeline': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'canli', F4: 'canli' },
-  'organization.users': { F0: 'gizli', F1: 'gizli', F2: 'canli', F3: 'canli', F4: 'canli' },
-  'organization.user': { F0: 'gizli', F1: 'gizli', F2: 'canli', F3: 'canli', F4: 'canli' },
+  home: { F0: 'canli', F1: 'canli', F2: 'canli', F3: 'canli', F4: 'canli', F5: 'canli' },
+  'identity.session': {
+    F0: 'canli',
+    F1: 'canli',
+    F2: 'canli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+  },
+  'work.tasks': {
+    F0: 'devre_disi',
+    F1: 'canli',
+    F2: 'canli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+  },
+  'work.timeline': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'canli', F4: 'canli', F5: 'canli' },
+  'organization.users': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'canli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+  },
+  'organization.user': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'canli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+  },
   'organization.coordinatorships': {
     F0: 'gizli',
     F1: 'gizli',
     F2: 'canli',
     F3: 'canli',
     F4: 'canli',
+    F5: 'canli',
   },
   'organization.coordinatorship': {
     F0: 'gizli',
@@ -59,19 +88,58 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F2: 'canli',
     F3: 'canli',
     F4: 'canli',
+    F5: 'canli',
   },
   // E-00-25 "Teknofest ve sezon" (W81): F2'de canlı, yalnız yönetici menüsünde.
-  'program.programs': { F0: 'gizli', F1: 'gizli', F2: 'canli', F3: 'canli', F4: 'canli' },
-  'collaboration.meetings': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'gizli', F4: 'canli' },
-  'collaboration.meeting': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'gizli', F4: 'canli' },
+  'program.programs': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'canli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+  },
+  'collaboration.meetings': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'canli',
+    F5: 'canli',
+  },
+  'collaboration.meeting': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'canli',
+    F5: 'canli',
+  },
+  // F5 (W121): Arşiv 06/07; F4'e kadar gizli (F0–F4 dışı, K14).
+  'archive.folders': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'canli',
+  },
+  'archive.folder': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'canli',
+  },
 }
 
 const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F4: Toplantılar canlı', () => {
-    expect(CURRENT_PHASE).toBe('F4')
+  it('etkin faz F5: Arşiv de canlı', () => {
+    expect(CURRENT_PHASE).toBe('F5')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -86,7 +154,10 @@ describe('rota kataloğu — yapı', () => {
       'program.programs',
       'collaboration.meetings',
       'collaboration.meeting',
+      'archive.folders',
+      'archive.folder',
     ])
+    expect(liveRouteNames('F4')).not.toContain('archive.folders')
     expect(liveRouteNames('F2')).not.toContain('work.timeline')
     expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])
   })
@@ -114,7 +185,6 @@ describe('rota kataloğu — yapı', () => {
   it('v1 dışı modüller ve hedefsiz öğeler katalogda yok', () => {
     const paths = ROUTE_NAMES.map((name) => routeSpec(name).path)
     for (const banned of [
-      '/arsiv',
       '/mesajlar',
       '/islem-gecmisi',
       '/tablolar',
@@ -127,9 +197,7 @@ describe('rota kataloğu — yapı', () => {
         banned,
       ).toBe(false)
     }
-    expect(ROUTE_NAMES.some((name) => /archive|message|chat|assistant|help/i.test(name))).toBe(
-      false,
-    )
+    expect(ROUTE_NAMES.some((name) => /message|chat|assistant|help/i.test(name))).toBe(false)
   })
 
   it('rol önekli yol ya da ad yok (K10)', () => {
@@ -166,12 +234,13 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F4): Toplantılar da canlı', () => {
+  it('etkin faz (F5): Arşiv de canlı; Silinen kayıtlar menüde yok (P36)', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],
       ['gantt', 'takip', 'canli'],
       ['meetings', 'icerik', 'canli'],
+      ['archive', 'icerik', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
       ['season', 'yonetim', 'canli'],
@@ -240,6 +309,7 @@ describe('menü', () => {
   })
 
   it('alt rotalar üst menü öğesini etkin yapar; konum izi kökten yaprağa', () => {
+    expect(activeMenuKey('archive.folder')).toBe('archive')
     expect(activeMenuKey('work.timeline')).toBe('gantt')
     expect(activeMenuKey('organization.user')).toBe('users')
     expect(activeMenuKey('collaboration.meeting')).toBe('meetings')

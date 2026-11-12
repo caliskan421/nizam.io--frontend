@@ -2,6 +2,7 @@ import { createI18n } from 'vue-i18n'
 
 import type { ApiError } from '@/shared/errors/api-error'
 
+import { trArchive } from './tr/archive'
 import { trErrors } from './tr/errors'
 import { trMutation } from './tr/mutation'
 import { trTerms } from './tr/terms'
@@ -91,6 +92,7 @@ export const messages = {
     trProgram,
     trTimeline,
     trMeetings,
+    trArchive,
   ),
 }
 
