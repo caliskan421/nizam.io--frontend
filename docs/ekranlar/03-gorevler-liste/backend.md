@@ -57,7 +57,7 @@ Tüm yazmalar `shared/http/mutation` (K5). Başarı sonrası **iyimser güncelle
 | E-03-55 | Kopyala (görev çoğalt) | — **yok** | — | — | — | `eksikler.md` yeni-3 |
 
 ## 3. Eylem görünürlüğü (istemci-akislari.md §4)
-Satır numaraları `istemci-akislari.md` dosyasındaki tablo satırlarıdır. "Koordinatör" = görevin `department_id`'sinin **seçili programdaki** koordinatörü (`myDepartments` satırı); "atanmış üye" = o departmanda `uye` satırı + `assignees[]` içinde olma. Olgular birleşir; "yöneticilik baskın" satırlarında (144, 148) `me.company_admin = true` ise başka olgudan bağımsız gizlenir.
+Satır numaraları `istemci-akislari.md` dosyasındaki tablo satırlarıdır. "Koordinatör" = görevin `department_id`'sinin **seçili programdaki** koordinatörü (`myDepartments` satırı); "atanmış üye" = o departmanda `uye` satırı + `assignees[]` içinde olma. Olgular birleşir; "yöneticilik baskın" satırında (144) `me.company_admin = true` ise başka olgudan bağımsız gizlenir (148 v0.15 ADR-0030 ile kalktı).
 
 | Kimlik | Eylem | Kim görür (satır no §4) | Koşul alanları (yanıt içinde) |
 |---|---|---|---|
