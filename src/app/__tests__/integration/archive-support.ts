@@ -1,5 +1,5 @@
 // W127 · O3: arşiv entegrasyon testlerinin ortak kurulumu (W82a harness'i + durumlu arşiv sunucusu).
-import { PEOPLE, createBackend, seedWorld } from '@/app/__tests__/integration/harness'
+import { PEOPLE, createBackend, seedWorld } from './harness'
 
 import { archiveHandlers, createArchiveState, file, type ArchiveState } from './archive-fake'
 
@@ -15,8 +15,8 @@ export {
   toasts,
   until,
   PEOPLE,
-} from '@/app/__tests__/integration/harness'
-export { ORIGIN } from '@/app/__tests__/integration/fake-org'
+} from './harness'
+export { ORIGIN } from './fake-org'
 
 export const ADMIN = {
   email: PEOPLE.admin.email,
@@ -31,21 +31,28 @@ export const MEMBER = {
   scope: { programId: 'p1', lens: 'member' as const, departmentId: 'd1' },
 }
 
-export const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
-export let state: ArchiveState = createArchiveState()
+export type Roles = Parameters<typeof createBackend>[0]
+export const archive: { state: ArchiveState } = { state: createArchiveState() }
+export let backend!: ReturnType<typeof createBackend>
+
+/** Test dosyası rol dizelerini verir (K1: rol dizesi yalnız test dosyasında). */
+export function useArchiveBackend(roles: Roles) {
+  backend = createBackend(roles)
+  return backend
+}
 
 export function seedArchive(): void {
   seedWorld(backend.db)
   const m = PEOPLE.member.account_id
   const c = PEOPLE.coord.account_id
-  state = createArchiveState()
-  state.files = [
+  archive.state = createArchiveState()
+  archive.state.files = [
     file('f1', 'w1', 'd1', m, { display_name: 'rapor.pdf', tag: 'sonuc' }),
     file('f2', 'w1', 'd1', c, { display_name: 'foto.png', content_type: 'image/png', tag: 'plan' }),
     file('f3', 'w2', 'd1', c, { display_name: 'sartname.pdf', tag: 'ister' }),
     file('f4', 'w3', 'd2', m, { display_name: 'yazilim.pdf' }),
   ]
-  backend.server.use(...archiveHandlers(backend.db, state))
+  backend.server.use(...archiveHandlers(backend.db, archive.state))
 }
 
 /** Her testten önce: sunucu sıfırlanır, arşiv dünyası yeniden kurulur. */

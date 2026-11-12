@@ -6,7 +6,6 @@ import {
   $,
   $$,
   ADMIN,
-  backend,
   boot,
   click,
   COORD,
@@ -16,7 +15,10 @@ import {
   s3,
   teardown,
   until,
-} from './support'
+  useArchiveBackend,
+} from './archive-support'
+
+const backend = useArchiveBackend({ coordinator: 'koordinator', member: 'uye' })
 
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
 beforeAll(async () => {
