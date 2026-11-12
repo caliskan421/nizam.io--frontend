@@ -96,6 +96,24 @@ export const trArchive = {
       cancel: 'Vazgeç',
       submit: 'Yükle',
     },
-    zip: {},
+    zip: {
+      folder: {
+        label: 'Klasörü ZIP olarak indir',
+        busy: 'ZIP hazırlanıyor…',
+        saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
+        tooLarge: 'Bu klasör tek ZIP için çok büyük; görevlerden tek tek indirin.',
+      },
+      period: {
+        label: 'Tümünü indir',
+        busy: 'ZIP hazırlanıyor…',
+        saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
+        tooLarge: 'Dönem arşivi tek ZIP için çok büyük; klasörleri ayrı ayrı indirin.',
+        // BE-120: `archiveFullZip` S3 (departman başlığı ister); yönetici /arsiv'te departman seçili değil.
+        unavailable:
+          "Dönem ZIP'i bu görünümde henüz indirilemiyor; bir klasörü açıp klasör ZIP'ini kullanın.",
+      },
+      // Akış ortasında kopma: gövde yarım kalmış olabilir (GAP-041).
+      partial: 'Bağlantı kesildi; indirme yarım kalmış olabilir. Tekrar deneyin.',
+    },
   },
 } as const
