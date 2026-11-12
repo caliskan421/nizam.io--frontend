@@ -19,8 +19,9 @@ export function useFolderCards(
   field: MaybeRefOrGetter<FolderSortField> = 'ad',
   direction: MaybeRefOrGetter<FolderSortDirection> = 'artan',
 ) {
-  const departments = useProgramDepartments()
   const admin = computed(() => context.admin.value === true)
+  // Departman adları yalnız yönetici ızgarası içindir (K/Ü `archiveFolders` kullanır): W121 temizliği.
+  const departments = useProgramDepartments(admin)
   const cards = computed(() =>
     admin.value
       ? adminFolderCards(
