@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Görev pencereleri (üye)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.rp-ugp{width:1440px; min-height:1500px; box-sizing:border-box; padding:56px 56px 48px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:32px}
+.rp-ugp-grid{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:24px; align-items:start}
+.rp-ugp-col{display:flex; flex-direction:column; gap:12px; min-width:0}
+.rp-ugp-col > .rp-cap{padding:0 4px}
+.rp-ugp-col .t-modal{max-width:none; width:100%; gap:20px}
+.rp-ugp-step{display:inline-flex; align-items:center; gap:8px}
+.rp-ugp-step b{display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:500}
+.rp-ugp-task{display:grid; grid-template-columns:8px minmax(0,1fr) auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-ugp-task__t{display:flex; flex-direction:column; min-width:0}
+.rp-ugp-sec{display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 8px; font-size:13px; line-height:20px; font-weight:600}
+.rp-ugp-files{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden}
+.rp-ugp-files li{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:38px; padding:6px 12px; border-bottom:1px solid var(--border-subtle); box-sizing:border-box; font-size:13px}
+.rp-ugp-files li:last-child{border-bottom:0}
+.rp-ugp-mime{display:inline-flex; align-items:center; justify-content:center; height:20px; border-radius:6px; background:var(--bg-overlay); color:var(--ink-muted); font-family:var(--font-mono); font-size:10.5px; font-weight:500; letter-spacing:0.02em}
+.rp-ugp-drop{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:100%; min-height:84px; padding:12px; border:0; border-radius:var(--radius-md); background:color-mix(in srgb, var(--accent) 5%, transparent); color:var(--ink); font-family:var(--font-sans); font-size:13px; font-weight:600; cursor:pointer; box-sizing:border-box}
+.rp-ugp-drop .t-icon{color:var(--accent-text)}
+.rp-ugp-area{height:auto; min-height:76px; padding:12px 16px; resize:none; line-height:20px}
+.rp-ugp-note{display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; align-items:start; padding:12px 14px; border-radius:var(--radius-md); background:var(--bg-raised); font-size:13px; line-height:19px}
+.rp-ugp-note .t-icon{width:18px; height:18px; margin-top:1px}
+.rp-ugp-note--danger{box-shadow:inset 2px 0 0 var(--danger)}
+.rp-ugp-note--gold{box-shadow:inset 2px 0 0 var(--gold)}
+.rp-ugp-lockhead{display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:14px; align-items:start}
+.rp-ugp-lockchip{width:44px; height:44px; border-radius:var(--radius-sm); display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--danger) 14%, transparent); color:var(--danger); border:1px solid color-mix(in srgb, var(--danger) 35%, transparent); box-sizing:border-box}
+.rp-ugp-wait{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px}
+.rp-ugp-wait li{display:grid; grid-template-columns:8px minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.rp-ugp-wait__who{display:flex; align-items:center; gap:6px; margin-top:4px; font-size:12px; line-height:16px; color:var(--ink-muted)}
+.rp-ugp-wait__due{display:flex; flex-direction:column; align-items:flex-end; gap:2px}
+.rp-ugp-days{display:grid; grid-template-columns:repeat(8, minmax(0,1fr)); gap:4px}
+.rp-ugp-day{display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; border-radius:10px; background:var(--bg-raised); font-family:var(--font-mono); font-size:12px; line-height:16px; color:var(--ink-muted)}
+.rp-ugp-day small{font-size:10px; line-height:12px; color:var(--ink-faint)}
+.rp-ugp-day--sel{background:var(--accent); color:var(--accent-ink)}
+.rp-ugp-day--sel small{color:var(--accent-ink)}
+.rp-ugp-day--anchor{box-shadow:inset 0 0 0 1px var(--border-strong); color:var(--ink)}
+.rp-ugp-result{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); font-size:13px}
+.rp-ugp-rules{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px}
+.rp-ugp-rule{display:flex; flex-direction:column; gap:6px; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.rp-ugp-rule h3{margin:0; display:flex; align-items:center; gap:8px; font-size:14px; line-height:20px; font-weight:600}
+.rp-ugp-rule h3 .t-icon{color:var(--accent-text)}
+.rp-ugp-rule p{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+</style>
+</helmet>
+<div class="rp-ugp" data-theme="{{ theme }}">
+
+<header style="display:flex; flex-direction:column; gap:10px; max-width:920px">
+<p class="rp-kicker">Ü3 · Üye › Görev pencereleri · Altyapı ve tesisat</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Üyenin görev akışındaki üç kritik pencere</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Bahar Kılıç'ın <a href="Uye-Gorevler.dc.html" class="rp-link" style="font-size:15px; color:var(--ink)">Görevlerim</a> ekranından açılan pencereler, açık halleriyle. Üye yalnız kendi görevinin durumunu değiştirir: bitirdiğini bildirir, kilitli görevin nedenini görür, tamamlanma tarihini sınırlı ölçüde düzeltir. Onay, iade ve bağımlılık koordinatörün işidir.</p>
+</header>
+
+<div class="rp-ugp-grid">
+
+<!-- 1 · Tamamlandı bildir -->
+<div class="rp-ugp-col">
+<p class="rp-kicker rp-ugp-step"><b>1</b>Devam eden görevde · “Tamamlandı bildir”</p>
+<section class="t-modal" role="dialog" aria-modal="true" aria-labelledby="ugp-m1-t" aria-describedby="ugp-m1-d">
+<div class="t-modal__head">
+<div style="min-width:0">
+<h2 class="t-modal__title" id="ugp-m1-t">Tamamlandı bildir</h2>
+<p class="t-modal__desc" id="ugp-m1-d">Görev koordinatör onayına gider. Onaylanmazsa iade edilir.</p>
+</div>
+<button class="t-iconbtn" type="button" aria-label="Pencereyi kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-ugp-task">
+<span class="rp-dot rp-dot--doing"></span>
+<span class="rp-ugp-task__t"><span class="rp-title rp-trunc">Biletleme</span><span class="rp-kicker">ALT-4 · Altyapı ve tesisat</span></span>
+<span class="rp-status"><span class="rp-dot rp-dot--doing"></span>Devam ediyor</span>
+</div>
+
+<div>
+<p class="rp-ugp-sec"><span>Kanıt dosyaları</span><span class="rp-count">{{ fileCount }} dosya · {{ fileTotal }}</span></p>
+<ul class="rp-ugp-files" aria-label="Yüklenmiş kanıt dosyaları">
+<sc-for list="{{ files }}" as="f" hint-placeholder-count="6">
+<li><span class="rp-ugp-mime">{{ f.mime }}</span><span class="rp-trunc" title="{{ f.name }}">{{ f.name }}</span><span class="rp-mono rp-faint" style="font-size:12px">{{ f.size }}</span></li>
+</sc-for>
+</ul>
+</div>
+
+<button type="button" class="rp-ugp-drop rp-drop" aria-label="Kanıt dosyası ekle, en çok 90 MB">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path></svg>
+<span>Dosya ekle · en çok 90 MB</span>
+<span class="rp-cap">veya dosyaları buraya sürükle</span>
+</button>
+
+<div class="rp-field">
+<label class="t-label" for="ugp-note" style="margin:0; display:flex; justify-content:space-between">Tamamlanma notu <span class="rp-cap" style="font-weight:400">isteğe bağlı</span></label>
+<textarea class="t-input rp-ugp-area" id="ugp-note" rows="3" placeholder="Koordinatörüne iletmek istediğin bir not varsa yaz"></textarea>
+<span class="rp-cap" style="text-align:right">0 / 10000</span>
+</div>
+
+<div class="rp-ugp-note rp-ugp-note--danger">
+<svg class="t-icon rp-danger-text" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg>
+<span><span class="rp-danger-text" style="font-weight:600">Bitiş 20.10 — 1 gün geç tamamlanıyor.</span> <span class="rp-muted">Gecikme görevin kaydında kalır.</span></span>
+</div>
+</div>
+<div class="t-modal__foot">
+<button class="t-btn t-btn--ghost" type="button">Vazgeç</button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Onaya gönder</button>
+</div>
+</section>
+<p class="rp-cap">En az 1 kanıt dosyası yoksa “Onaya gönder” pasiftir. Gönderilince görev “Onay bekliyor” olur ve Kadir Özbek'e bildirim düşer.</p>
+</div>
+
+<!-- 2 · Bağımlılık kilidi -->
+<div class="rp-ugp-col">
+<p class="rp-kicker rp-ugp-step"><b>2</b>Başlamamış görevde · “Göreve başla”</p>
+<section class="t-modal" role="alertdialog" aria-modal="true" aria-labelledby="ugp-m2-t" aria-describedby="ugp-m2-d">
+<div class="rp-ugp-lockhead">
+<span class="rp-ugp-lockchip" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4M12 15v2"></path></svg></span>
+<div style="min-width:0">
+<h2 class="t-modal__title" id="ugp-m2-t">Göreve başlanamıyor</h2>
+<p class="t-modal__desc" id="ugp-m2-d"><span style="color:var(--ink); font-weight:600">ALT-3 Zimmet</span> ve <span style="color:var(--ink); font-weight:600">ALT-1 VİP yönetim takip</span> tamamlanmadan bu görev başlatılamaz.</p>
+</div>
+<button class="t-iconbtn" type="button" aria-label="Pencereyi kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-ugp-task">
+<span class="rp-dot rp-dot--todo"></span>
+<span class="rp-ugp-task__t"><span class="rp-title rp-trunc">Konaklama</span><span class="rp-kicker">ALT-9 · başlangıç 22.10.2026</span></span>
+<span class="rp-status"><span class="rp-dot rp-dot--todo"></span>Başlamadı</span>
+</div>
+
+<div>
+<p class="rp-ugp-sec"><span>Bekleyen görevler</span><span class="rp-count">2 görev</span></p>
+<ul class="rp-ugp-wait">
+<sc-for list="{{ waits }}" as="w" hint-placeholder-count="2">
+<li>
+<span class="rp-dot {{ w.dot }}"></span>
+<span style="min-width:0">
+<span class="rp-title rp-trunc" style="display:block">{{ w.title }}</span>
+<span class="rp-ugp-wait__who"><span class="rp-kicker">{{ w.id }}</span><span aria-hidden="true">·</span><span class="rp-av rp-av--sm" style="width:20px; height:20px; font-size:9px">{{ w.ini }}</span><span class="rp-trunc">{{ w.who }}</span></span>
+</span>
+<span class="rp-ugp-wait__due"><span class="rp-status" style="font-size:12px">{{ w.status }}</span><span class="rp-mono rp-faint" style="font-size:12px">bitiş {{ w.due }}</span></span>
+</li>
+</sc-for>
+</ul>
+</div>
+
+<div class="rp-ugp-note">
+<svg class="t-icon rp-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01"></path></svg>
+<span class="rp-muted">Bağımlılıklar koordinatör tarafından yönetilir. ALT-1 senin görevin; onu bitirmek kilidin yarısını açar.</span>
+</div>
+</div>
+<div class="t-modal__foot">
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path></svg>Koordinatöre yaz</button>
+<button class="t-btn t-btn--primary" type="button">Anladım</button>
+</div>
+</section>
+<p class="rp-cap">Listede “Göreve başla” zaten kilit ikonuyla pasiftir; pencere, düğmeye basılırsa nedeni ve bekleyen görevleri adıyla gösterir.</p>
+</div>
+
+<!-- 3 · Tamamlanma tarihini geri çek -->
+<div class="rp-ugp-col">
+<p class="rp-kicker rp-ugp-step"><b>3</b>Tamamlanmış görevde · görev panelinden</p>
+<section class="t-modal" role="dialog" aria-modal="true" aria-labelledby="ugp-m3-t" aria-describedby="ugp-m3-d">
+<div class="t-modal__head">
+<div style="min-width:0">
+<h2 class="t-modal__title" id="ugp-m3-t">Tamamlanma tarihini geri çek</h2>
+<p class="t-modal__desc" id="ugp-m3-d">Tamamlanma 19.10.2026 olarak kaydedildi. En çok 7 gün geriye çekebilirsin (çıpa: ilk tamamlanma).</p>
+</div>
+<button class="t-iconbtn" type="button" aria-label="Pencereyi kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-ugp-task">
+<span class="rp-dot rp-dot--done"></span>
+<span class="rp-ugp-task__t"><span class="rp-title rp-trunc">Talep toplama</span><span class="rp-kicker">ALT-2 · plan bitiş 22.10.2026</span></span>
+<span class="rp-status"><span class="rp-dot rp-dot--done"></span>Tamamlandı</span>
+</div>
+
+<div class="rp-field">
+<label class="t-label" for="ugp-date" style="margin:0">Yeni tamamlanma tarihi</label>
+<div class="t-field">
+<svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg>
+<input class="t-input t-input--icon rp-mono" id="ugp-date" type="text" value="17.10.2026" aria-describedby="ugp-date-h">
+</div>
+<span class="rp-cap" id="ugp-date-h">12.10 – 19.10 arası</span>
+</div>
+
+<div class="rp-ugp-days" role="group" aria-label="Seçilebilir günler, Ekim 2026">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="8">
+<span class="rp-ugp-day {{ d.cls }}"><small>{{ d.wd }}</small>{{ d.n }}</span>
+</sc-for>
+</div>
+
+<div class="rp-ugp-result">
+<span class="rp-muted">Plan 22.10 · yeni tamamlanma 17.10</span>
+<span style="font-weight:600; color:var(--accent-text)" class="rp-nowrap">5 gün erken</span>
+</div>
+
+<div class="rp-ugp-note rp-ugp-note--gold">
+<svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--gold)"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+<span>Bu işlem koordinatöre bildirilir. <span class="rp-muted">Kadir Özbek eski ve yeni tarihi birlikte görür.</span></span>
+</div>
+</div>
+<div class="t-modal__foot">
+<button class="t-btn t-btn--ghost" type="button">Vazgeç</button>
+<button class="t-btn t-btn--primary" type="button">Tarihi güncelle</button>
+</div>
+</section>
+<p class="rp-cap">Aralık her zaman ilk tamamlanma gününe göre hesaplanır; tarih bir kez geri çekildikten sonra pencere yine 12.10'un öncesine izin vermez.</p>
+</div>
+
+</div>
+
+<div class="rp-ugp-rules">
+<div class="rp-ugp-rule"><h3><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M9 14l2 2 4-4"></path></svg>Kanıt şart</h3><p>Görev dosyasız tamamlanamaz. Tamamlandı bildirmek için en az 1 kanıt dosyası gerekir; her dosya en çok 90 MB. Yüklenen dosyalar görevin arşiv klasörüne düşer.</p></div>
+<div class="rp-ugp-rule"><h3><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4"></path></svg>Bağımlılık kilidi</h3><p>Bağlı görevlerin tümü tamamlanmadan görev başlatılamaz; kilit bekleyen görevleri adıyla sayar. Bağımlılığı yalnız koordinatör ekler ya da kaldırır, başka koordinatörlükten de olabilir.</p></div>
+<div class="rp-ugp-rule"><h3><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg>7 gün toleransı</h3><p>Tamamlanma tarihi ilk tamamlanma gününden en çok 7 gün geriye çekilebilir, ileri alınamaz. Plan tarihleri değişmez; erken veya geç etiketi yeni tarihe göre yeniden hesaplanır.</p></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const files = [
+      { mime: 'PDF', name: 'Bilet listesi imzalı.pdf', size: '1,8 MB' },
+      { mime: 'XLS', name: 'Biletleme takip tablosu.xlsx', size: '412 KB' },
+      { mime: 'PDF', name: 'Havayolu teklif karşılaştırma.pdf', size: '2,4 MB' },
+      { mime: 'IMG', name: 'Ödeme dekontu 18.10.jpg', size: '864 KB' },
+      { mime: 'IMG', name: 'Ödeme dekontu 19.10.jpg', size: '903 KB' },
+      { mime: 'PDF', name: 'Yolcu kimlik kontrol listesi.pdf', size: '1,1 MB' }
+    ];
+    const waits = [
+      { id: 'ALT-3', title: 'Zimmet', dot: 'rp-dot--todo', status: 'Başlamadı', ini: 'KÖ', who: 'Kadir Özbek', due: '24.10.2026' },
+      { id: 'ALT-1', title: 'VİP yönetim takip', dot: 'rp-dot--doing', status: 'Devam ediyor', ini: 'BK', who: 'sen', due: '23.10.2026' }
+    ];
+    const wd = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    const days = [12, 13, 14, 15, 16, 17, 18, 19].map((n, i) => ({
+      n: String(n),
+      wd: n === 19 ? 'ilk' : wd[i % 7],
+      cls: n === 17 ? 'rp-ugp-day--sel' : (n === 19 ? 'rp-ugp-day--anchor' : '')
+    }));
+    return { theme: this.props.theme ?? 'dark', files, fileCount: files.length, fileTotal: '7,5 MB', waits, days };
+  }
+}
+</script>
+</body>
+</html>

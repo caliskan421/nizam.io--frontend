@@ -115,7 +115,7 @@
 </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","tasks","archive","meetings","calendar","memory","messages","sheets","users","coords","season","sim"],"default":"home"},"collapsed":{"editor":"boolean","default":false},"onNavigate":{"editor":null},"onToggle":{"editor":null},"ctx":{"editor":null},"onCtx":{"editor":null},"$preview":{"width":272,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","tasks","archive","meetings","calendar","memory","messages","sheets","users","coords","season","sim","gantt","dates","unit","team"],"default":"home"},"collapsed":{"editor":"boolean","default":false},"onNavigate":{"editor":null},"onToggle":{"editor":null},"ctx":{"editor":null},"onCtx":{"editor":null},"$preview":{"width":272,"height":1100}}'>
 class Component extends DCLogic {
   renderVals() {
     const active = this.props.active ?? 'home';
@@ -134,11 +134,14 @@ class Component extends DCLogic {
       users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-4-6.3',
       coords: 'M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M15 9h4a1 1 0 0 1 1 1v11M3 21h18M9 7h2M9 11h2M9 15h2',
       season: 'M5 21V4M5 4h11l-2 4 2 4H5',
-      sim: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9'
+      sim: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9',
+      dates: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M12 13v3l2 1',
+      unit: 'M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M15 9h4a1 1 0 0 1 1 1v11M3 21h18M9 7h2M9 11h2M9 15h2',
+      team: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-4-6.3'
     };
     const nav = this.props.onNavigate;
     const mk = (id, label, badge, tone, beta, badge2) => ({ id, label, d: D[id], current: id === active ? 'page' : 'false', badge: badge || '', hasBadge: !!badge, beta: !!beta,
-      badge2: badge2 || '', hasBadge2: !!badge2, badge2Title: badge2 ? badge2 + ' tarih değişikliği talebi bekliyor' : '', badgeTitle: id === 'tasks' && badge ? badge + ' geciken görev' : '',
+      badge2: badge2 || '', hasBadge2: !!badge2, badge2Title: badge2 ? (active === undefined ? '' : badge2 + (this.props.ctx && this.props.ctx.roleId === 'koord' ? ' görev onay bekliyor' : ' tarih değişikliği talebi bekliyor')) : '', badgeTitle: id === 'tasks' && badge ? badge + ' geciken görev' : '',
       go: (e) => { if (typeof nav === 'function') { if (e && e.preventDefault) e.preventDefault(); nav(id); } },
       badgeBg: tone === 'danger' ? 'var(--danger)' : tone === 'gold' ? 'var(--gold)' : 'var(--bg-overlay)', badgeInk: tone === 'danger' ? 'var(--on-danger)' : tone === 'gold' ? 'var(--on-gold)' : 'var(--ink)' });
     const groups = [
@@ -175,7 +178,16 @@ class Component extends DCLogic {
       roles: cx.roles.map((r) => ({ label: (RL[r.id] || RL.admin)[0], color: (RL[r.id] || RL.admin)[1], n: String((r.coords || []).length), showN: r.id !== 'admin' && r.id !== role.id, on: r.id === role.id ? 'true' : 'false', onB: r.id === role.id, pick: () => send({ role: r.id }) })),
       coords: (role.coords || []).map((c) => ({ name: c.name, on: coord && c.id === coord.id ? 'true' : 'false', onB: !!(coord && c.id === coord.id), pick: () => send({ coord: c.id }) }))
     };
-    const shown = role.id === 'admin' ? groups : groups.filter((g) => g.label !== 'Yönetim' && g.label !== 'Deneysel');
+    const uyeGroups = [
+      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevlerim', '4', 'danger'), mk('gantt', 'Zaman çizelgem')] },
+      { label: 'İçerik', items: [mk('meetings', 'Toplantılar'), mk('archive', 'Dosyalarım'), mk('messages', 'Mesajlar', '2')] }
+    ];
+    const koordGroups = [
+      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevler', '3', 'danger', false, '3'), mk('gantt', 'Zaman çizelgesi'), mk('dates', 'Tarih talepleri', '1', 'gold')] },
+      { label: 'Birim', items: [mk('unit', 'Birimim'), mk('team', 'Ekibim')] },
+      { label: 'İçerik', items: [mk('meetings', 'Toplantılar'), mk('archive', 'Arşiv'), mk('messages', 'Mesajlar', '5'), mk('sheets', 'Tablolar')] }
+    ];
+    const shown = role.id === 'admin' ? groups : role.id === 'koord' ? koordGroups : uyeGroups;
     const tg = this.props.onToggle;
     return { groups: shown, sw, rail, full: !rail, toggle: () => { if (typeof tg === 'function') tg(); } };
   }

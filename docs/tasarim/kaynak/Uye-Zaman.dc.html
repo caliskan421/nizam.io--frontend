@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Zaman çizelgem</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-glabel{background:color-mix(in srgb, var(--bg-surface) 72%, transparent); -webkit-backdrop-filter:blur(10px) saturate(1.2); backdrop-filter:blur(10px) saturate(1.2); border:0; border-right:1px solid var(--border-subtle); color:var(--ink); font:inherit}
+.rp-code{display:inline-flex; align-items:center; justify-content:center; min-width:44px; height:24px; padding:0 8px; border-radius:8px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:12px; font-weight:500; box-sizing:border-box; flex:none}
+.rp-code--sm{min-width:0; height:22px; padding:0 7px; font-size:11px; color:var(--ink-muted)}
+.rp-kpistrip{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; background:var(--border-subtle)}
+.rp-kpistrip > *{padding:14px 18px; background:var(--bg-surface); min-width:0}
+.rp-uz-h{position:absolute; height:0; box-sizing:border-box}
+.rp-uz-v{position:absolute; width:0; box-sizing:border-box}
+.rp-uz-legsw{width:22px; height:10px; border-radius:4px; display:inline-block; box-sizing:border-box; flex:none}
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}" style="position:relative">
+<div class="rp-side"><dc-import name="Sidebar" active="gantt" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="Uye-Ana.dc.html">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Uye-Gorevler.dc.html">Görevlerim</a><span aria-hidden="true">/</span><strong>Zaman çizelgem</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Zaman çizelgem</h1><p class="rp-sub">Ekim – Kasım 2026 · 9 görev · tarihler koordinatörün; değişiklik için tarih talebi koordinatörüne iletilir</p></div>
+<div class="rp-actions">
+<div class="rp-seg" role="group" aria-label="Ölçek">
+<button type="button" aria-pressed="true">Hafta</button>
+<button type="button" aria-pressed="false">Ay</button>
+</div>
+<span style="display:inline-flex; align-items:center; gap:10px; padding-left:4px">
+<button class="rp-switch" type="button" role="switch" aria-checked="true" aria-labelledby="uz-dep-lbl"><span></span></button>
+<span id="uz-dep-lbl" style="font-size:13px; font-weight:500; color:var(--ink)">Bağımlılıklar</span>
+</span>
+</div>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:12px; padding:16px 24px 32px">
+
+<section class="rp-kpistrip" aria-label="Özet">
+<sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+<div><p class="rp-kicker rp-trunc">{{ k.label }}</p><p class="rp-num" style="margin:4px 0 2px; font-size:26px; line-height:32px; color:{{ k.color }}">{{ k.value }}</p><p class="rp-cap rp-trunc">{{ k.note }}</p></div>
+</sc-for>
+</section>
+
+<div class="rp-toolbar">
+<div class="rp-tgroup">
+<div class="rp-seg" role="group" aria-label="Koordinatörlük">
+<button type="button" aria-pressed="true">Tümü <span class="rp-count">9</span></button>
+<button type="button" aria-pressed="false">ALT <span class="rp-count">6</span></button>
+<button type="button" aria-pressed="false">ELE <span class="rp-count">2</span></button>
+<button type="button" aria-pressed="false">OPE <span class="rp-count">1</span></button>
+</div>
+</div>
+<div class="rp-tgroup">
+<span style="display:inline-flex; align-items:center; gap:10px">
+<button class="rp-switch" type="button" role="switch" aria-checked="false" aria-labelledby="uz-done-lbl"><span></span></button>
+<span id="uz-done-lbl" class="rp-nowrap" style="font-size:13px; font-weight:500; color:var(--ink-muted)">Tamamlananları göster <span class="rp-count">6</span></span>
+</span>
+</div>
+<span class="rp-grow"></span>
+<div class="rp-tgroup">
+<button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 8l-3 4 3 4M19 8l3 4-3 4"></path></svg>Bugüne git</button>
+</div>
+</div>
+
+<div style="display:flex; gap:8px 20px; align-items:center; flex-wrap:wrap" class="rp-cap">
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot rp-dot--todo"></span>Başlamadı</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--violet)"></span>Devam ediyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--gold)"></span>Onay bekliyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--danger)"></span>İade edildi</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--accent-text)"></span>Tamamlandı</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-uz-legsw" style="border:1.5px dashed var(--danger)"></span>Kesik kırmızı = geciken</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><svg width="28" height="10" viewBox="0 0 28 10" aria-hidden="true" style="flex:none"><path d="M1 5h20" stroke="var(--ink-muted)" stroke-width="1.5" fill="none"></path><path d="M20 1.5 26 5l-6 3.5z" fill="var(--ink-muted)"></path></svg>Bağımlılık</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><svg width="28" height="10" viewBox="0 0 28 10" aria-hidden="true" style="flex:none"><path d="M1 5h20" stroke="var(--ink-muted)" stroke-width="1.5" stroke-dasharray="3 3" fill="none"></path><path d="M20 1.5 26 5l-6 3.5z" fill="var(--ink-muted)"></path></svg>Kesik ok = başka koordinatörlüğe bağımlılık</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:2px; height:12px; border-radius:1px; background:var(--accent-text); display:inline-block"></span>Bugün</span>
+</div>
+
+<div class="rp-dtable" style="position:relative"><div class="rp-scroll">
+<div style="min-width:1060px; position:relative">
+
+<div style="display:grid; grid-template-columns:300px minmax(0,1fr); border-bottom:1px solid var(--border-subtle); position:relative">
+<div class="rp-glabel" style="padding:6px 8px 6px 16px; display:flex; justify-content:space-between; align-items:flex-end; gap:8px"><span class="rp-kicker" style="padding-bottom:4px">görevlerim · 9</span><span class="rp-cap rp-nowrap" style="padding-bottom:4px; display:inline-flex; align-items:center; gap:6px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:14px; height:14px"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"></path></svg>salt okunur</span></div>
+<div>
+<div style="display:flex; height:34px; border-bottom:1px solid var(--border-subtle); box-sizing:content-box">
+<sc-for list="{{ months }}" as="mo" hint-placeholder-count="3"><span class="rp-trunc" style="width:{{ mo.w }}; height:34px; padding:8px 10px; line-height:18px; box-sizing:border-box; border-left:1px solid var(--border-subtle); font-size:13px; font-weight:600">{{ mo.name }}</span></sc-for>
+</div>
+<div style="display:flex; height:28px">
+<sc-for list="{{ weeks }}" as="wk" hint-placeholder-count="9"><span class="rp-mono" style="flex:0 0 {{ wk.w }}; height:28px; padding:5px 0; line-height:18px; box-sizing:border-box; text-align:center; font-size:12px; color:{{ wk.color }}">{{ wk.d }}</span></sc-for>
+</div>
+</div>
+</div>
+
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+<div style="display:grid; grid-template-columns:300px minmax(0,1fr); background:var(--bg-base); border-bottom:1px solid var(--border-subtle)">
+<button type="button" aria-expanded="{{ g.open }}" class="rp-glabel" style="display:grid; grid-template-columns:16px auto minmax(0,1fr) auto; gap:8px; align-items:center; height:40px; padding:0 16px; color:var(--ink); font-family:inherit; font-size:13px; font-weight:600; text-align:left; cursor:pointer">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate({{ g.rot }})"><path d="M6 9l6 6 6-6"></path></svg>
+<span class="rp-code rp-code--sm">{{ g.code }}</span>
+<span class="rp-trunc">{{ g.name }}</span><span class="rp-count" style="color:{{ g.countColor }}">{{ g.count }}</span>
+</button>
+<div style="position:relative; height:40px; background-image:linear-gradient(to right, var(--border-subtle) 1px, transparent 1px); background-size:calc(100% * 7 / 63) 100%"></div>
+</div>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="6">
+<div class="rp-tr--body" style="display:grid; grid-template-columns:300px minmax(0,1fr); border-bottom:1px solid var(--border-subtle); background:{{ r.rowBg }}">
+<div class="rp-glabel" style="display:grid; grid-template-columns:56px 8px minmax(0,1fr); gap:10px; align-items:center; padding:0 16px; height:44px">
+<span class="rp-code rp-code--sm">{{ r.id }}</span>
+<span class="{{ r.dotCls }}" role="img" aria-label="{{ r.dotTitle }}" title="{{ r.dotTitle }}" style="background:{{ r.dotBg }}"></span>
+<a class="rp-title rp-trunc" href="Uye-Gorevler.dc.html" style="font-weight:500; font-size:13px">{{ r.title }}</a>
+</div>
+<div style="position:relative; height:44px; background-image:linear-gradient(to right, var(--border-subtle) 1px, transparent 1px); background-size:calc(100% * 7 / 63) 100%">
+<span title="{{ r.barTitle }}" style="position:absolute; top:10px; height:24px; left:{{ r.x }}; width:{{ r.w }}; border-radius:8px; box-sizing:border-box; background:{{ r.fill }}; border:{{ r.border }}; box-shadow:{{ r.ring }}; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:6px; align-items:center; padding:0 8px; overflow:hidden; font-size:12px; font-weight:600; color:var(--gp-ink); white-space:nowrap; cursor:default">
+<sc-if value="{{ r.lock }}" hint-placeholder-val="{{ false }}"><svg class="t-icon" viewBox="0 0 24 24" aria-label="Bağımlılık bitmeden başlayamaz" style="width:12px; height:12px"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"></path></svg></sc-if>
+<sc-if value="{{ r.dep }}" hint-placeholder-val="{{ false }}"><svg class="t-icon" viewBox="0 0 24 24" aria-label="Bağımlılığı var" style="width:12px; height:12px"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path></svg></sc-if>
+<span class="rp-trunc">{{ r.title }}</span>
+<span class="rp-mono" style="font-size:11px; color:var(--gp-ink-muted)">{{ r.dur }}</span>
+<sc-if value="{{ r.hasOver }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position:absolute; top:-1px; bottom:-1px; left:{{ r.divX }}; width:2px; background:var(--gp-ink); opacity:0.45"></span></sc-if>
+</span>
+</div>
+</div>
+</sc-for>
+</sc-for>
+
+<div aria-hidden="true" style="position:absolute; top:0; left:300px; right:0; height:{{ chartH }}; pointer-events:none">
+<sc-for list="{{ segs }}" as="s" hint-placeholder-count="7"><span class="{{ s.cls }}" style="left:{{ s.l }}; top:{{ s.t }}; width:{{ s.w }}; height:{{ s.h }}; border-top:{{ s.bt }}; border-left:{{ s.bl }}"></span></sc-for>
+<sc-for list="{{ heads }}" as="hd" hint-placeholder-count="2"><svg width="10" height="10" viewBox="0 0 10 10" style="position:absolute; left:{{ hd.l }}; top:{{ hd.t }}; transform:rotate({{ hd.rot }})"><path d="M1 1 9 5 1 9z" fill="var(--ink-muted)"></path></svg></sc-for>
+</div>
+
+<div aria-hidden="true" style="position:absolute; top:0; bottom:0; left:calc(300px + (100% - 300px) * {{ todayP }}); width:2px; background:var(--accent-text); pointer-events:none"></div>
+<span style="position:absolute; top:6px; left:calc(300px + (100% - 300px) * {{ todayP }} - 30px); padding:2px 8px; border-radius:6px; background:var(--accent); color:var(--accent-ink); font-family:var(--font-mono); font-size:12px; font-weight:500">bugün</span>
+
+<section class="rp-pop" aria-label="Çubuk ayrıntısı: ALT-4 Biletleme" style="top:118px; right:12px; width:272px; padding:16px; display:flex; flex-direction:column; gap:12px">
+<span aria-hidden="true" style="position:absolute; left:-6px; top:48px; width:10px; height:10px; transform:rotate(45deg); background:var(--bg-surface); border-left:1px solid var(--border-strong); border-bottom:1px solid var(--border-strong)"></span>
+<div style="min-width:0"><p class="rp-kicker rp-trunc">ALT-4 · Altyapı ve tesisat</p><p style="margin:4px 0 0; font-weight:600; font-size:15px; line-height:21px">Biletleme</p></div>
+<dl class="rp-dl">
+<dt>Durum</dt><dd><span class="rp-status"><span class="rp-dot rp-dot--back"></span>İade edildi</span></dd>
+<dt>Tarih</dt><dd class="rp-mono">01.10 → 20.10</dd>
+<dt>Gecikme</dt><dd class="rp-danger-text">1 gün gecikti</dd>
+<dt>Bağımlı</dt><dd>ALT-3 Zimmet <span class="rp-faint">(Başlamadı)</span></dd>
+</dl>
+<p class="rp-cap" style="margin:0">Tarihleri koordinatör belirler. Çubuk sürüklenemez; bitiş için tarih talebi gönderebilirsin.</p>
+<div style="display:flex; gap:8px; flex-wrap:wrap">
+<a class="t-btn t-btn--secondary t-btn--sm" href="Uye-Gorevler.dc.html" style="text-decoration:none">Görevi aç</a>
+<button class="t-btn t-btn--ghost t-btn--sm" type="button">Tarih talebi gönder</button>
+</div>
+</section>
+</div>
+</div></div>
+
+<p class="rp-cap" style="margin:4px 0 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg>Yalnız sana atanan görevler görünür. Bağımlılıklar koordinatör tarafından yönetilir; ALT-3 Zimmet, ALT-4 Biletleme onaylanmadan başlatılamaz. <a class="rp-link" href="Uye-Gorevler.dc.html">Görevlerim listesine dön</a></p>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sbctx = { progs: [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }],
+      progId: 'sur', roleId: 'uye', coordId: 'ALT',
+      roles: [{ id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }] };
+
+    // Görünen aralık: 28.09.2026 (Pazartesi) – 29.11.2026, 9 hafta = 63 gün
+    const START = Date.UTC(2026, 8, 28);
+    const TOTAL = 63;
+    const day = (m, d) => (Date.UTC(2026, m - 1, d) - START) / 86400000;
+    const pct = (n) => (n / TOTAL * 100).toFixed(2) + '%';
+    const TODAY = day(10, 21);
+    const months = [['Eylül', 3], ['Ekim', 31], ['Kasım', 29]].map(([name, n]) => ({ name, w: pct(n) }));
+    const mondays = [28, 5, 12, 19, 26, 2, 9, 16, 23];
+    const weeks = mondays.map((d, i) => ({ d, w: pct(7), color: i === 3 ? 'var(--ink)' : 'var(--ink-faint)' }));
+
+    const SC = { todo: 'var(--ink-faint)', doing: 'var(--violet)', review: 'var(--gold)', back: 'var(--danger)', done: 'var(--accent-text)' };
+    const SN = { todo: 'Başlamadı', doing: 'Devam ediyor', review: 'Onay bekliyor', back: 'İade edildi', done: 'Tamamlandı' };
+    const dd = (a) => String(a[1]).padStart(2, '0') + '.' + String(a[0]).padStart(2, '0');
+    const R = (id, title, st, s, e, o) => {
+      o = o || {};
+      const x = day(s[0], s[1]); const end = day(e[0], e[1]);
+      const late = (st === 'doing' || st === 'back' || st === 'todo') && end < TODAY;
+      const visEnd = late ? TODAY : end;
+      const over = visEnd > end;
+      const sc = SC[st];
+      const gp = 'var(--gp-' + st + ')';
+      const split = ((end - x) / (visEnd - x) * 100).toFixed(2) + '%';
+      const lateDays = Math.round(visEnd - end);
+      return { id, title, x: pct(x), w: pct(visEnd - x),
+        dur: Math.max(1, Math.round((end - x) / 7)) + ' hf', dep: !!o.dep, lock: !!o.lock,
+        rowBg: o.sel ? 'color-mix(in srgb, var(--ink) 5%, transparent)' : 'transparent',
+        dotCls: st === 'todo' ? 'rp-dot rp-dot--todo' : 'rp-dot',
+        dotBg: st === 'todo' ? 'transparent' : late ? 'linear-gradient(90deg, ' + sc + ' 50%, var(--danger) 50%)' : sc,
+        dotTitle: SN[st] + (late ? ' · ' + lateDays + ' gün gecikti' : ''),
+        barTitle: id + ' · ' + dd(s) + ' → ' + dd(e) + ' · ' + SN[st] + (late ? ' · ' + lateDays + ' gün gecikti' : ''),
+        fill: over ? 'linear-gradient(90deg, ' + gp + ' 0 ' + split + ', var(--gp-late) ' + split + ' 100%)' : gp,
+        border: late ? '1.5px dashed var(--danger)' : '1px solid color-mix(in srgb, ' + sc + ' 70%, transparent)',
+        hasOver: over, divX: 'calc(' + split + ' - 1px)',
+        ring: o.sel ? '0 0 0 2px var(--ink)' : 'none' };
+    };
+
+    // 9 açık görev: devam 5 · onay 2 · iade 1 · başlamadı 1 — gecikmede 4 (ALT-5, ALT-4, ALT-6, ELE-4)
+    const alt = [
+      R('ALT-5', 'Saha yönlendirme tabelalarının montajı', 'doing', [9, 28], [10, 4]),
+      R('ALT-4', 'Biletleme', 'back', [10, 1], [10, 20], { sel: true }),
+      R('ALT-3', 'Zimmet', 'todo', [10, 26], [11, 6], { lock: true }),
+      R('ALT-7', 'Hidrofor sistemi kurulumu', 'doing', [10, 5], [10, 31], { dep: true }),
+      R('ALT-6', 'Su deposu teslim tutanağının hazırlanması', 'doing', [10, 7], [10, 16]),
+      R('ALT-9', 'Konaklama planlaması', 'doing', [10, 14], [10, 23])
+    ];
+    const ele = [
+      R('ELE-4', 'Jeneratör yakıt ikmal planı', 'doing', [10, 5], [10, 15]),
+      R('ELE-2', 'Ana pano enerji besleme hattı', 'review', [10, 8], [10, 24])
+    ];
+    const ope = [
+      R('OPE-3', 'Gönüllü vardiya çizelgesi', 'review', [10, 12], [11, 5])
+    ];
+    const G = (code, name, count, countColor, open, rows) => ({ code, name, count, countColor, open: open ? 'true' : 'false', rot: open ? '0deg' : '-90deg', rows });
+    const groups = [
+      G('ALT', 'Altyapı ve tesisat', '6 · 3 gecikmede', 'var(--danger-text, var(--danger))', true, alt),
+      G('ELE', 'Elektrik ve enerji', '2 · 1 gecikmede', 'var(--danger-text, var(--danger))', true, ele),
+      G('OPE', 'Operasyon', '1', 'var(--ink-muted)', true, ope),
+      G('—', 'Tamamlananlar (gizli)', '6', 'var(--ink-muted)', false, [])
+    ];
+
+    // Satır geometrisi (px): başlık 64 · grup 41 · görev satırı 45
+    const HEAD = 64, GH = 41, RH = 45;
+    const rowTop = (gi, ri) => { let y = HEAD; for (let i = 0; i < gi; i++) y += GH + groups[i].rows.length * RH; return y + GH + ri * RH; };
+    const center = (gi, ri) => rowTop(gi, ri) + 22;
+    const barBottom = (gi, ri) => rowTop(gi, ri) + 34;
+    let chartBottom = HEAD; groups.forEach((g) => { chartBottom += GH + g.rows.length * RH; });
+
+    const SOLID = '1.5px solid var(--ink-muted)';
+    const DASH = '1.5px dashed var(--ink-muted)';
+    const H = (l, t, w, b) => ({ cls: 'rp-uz-h', l, t: t + 'px', w, h: '0', bt: b, bl: '0' });
+    const V = (l, t, h, b) => ({ cls: 'rp-uz-v', l, t: t + 'px', w: '0', h: h + 'px', bt: '0', bl: b });
+
+    // Ok 1: ALT-4 (görünen bitiş = bugün) → ALT-3 başlangıcı (aynı koordinatörlük, düz)
+    const a1x = pct(TODAY), a1y = center(0, 1), a1y2 = center(0, 2), a2x = pct(day(10, 26));
+    // Ok 2: ELE-2 bitişi → ALT-7 (başka koordinatörlük, kesik)
+    const b1x = pct(day(10, 24)), b1y = center(1, 1), b1top = barBottom(0, 3);
+    const segs = [
+      H(a1x, a1y, '6px', SOLID),
+      V('calc(' + a1x + ' + 6px)', a1y, a1y2 - a1y, SOLID),
+      H('calc(' + a1x + ' + 6px)', a1y2, 'calc(' + pct(day(10, 26) - TODAY) + ' - 14px)', SOLID),
+      H('calc(' + a1x + ' + 8px)', a1y, 'calc(100% - ' + a1x + ' - 292px)', '1px dotted var(--border-strong)'),
+      H(b1x, b1y, '10px', DASH),
+      V('calc(' + b1x + ' + 10px)', b1top + 8, b1y - b1top - 8, DASH)
+    ];
+    const heads = [
+      { l: 'calc(' + a2x + ' - 10px)', t: (a1y2 - 5) + 'px', rot: '0deg' },
+      { l: 'calc(' + b1x + ' + 5px)', t: (b1top + 1) + 'px', rot: '-90deg' }
+    ];
+
+    const kpis = [
+      { label: 'görevlerim', value: '9', note: 'ALT 6 · ELE 2 · OPE 1', color: 'var(--ink)' },
+      { label: 'gecikmede', value: '4', note: 'en uzunu 17 gün · ALT-5', color: 'var(--danger)' },
+      { label: 'bu hafta bitiyor', value: '2', note: '23 ve 24 Ekim', color: 'var(--ink)' },
+      { label: 'onay bekliyor', value: '2', note: 'koordinatör onayında', color: 'var(--gold)' },
+      { label: 'bağımlılık', value: '2', note: '1 tanesi başka koordinatörlükten', color: 'var(--ink)' }
+    ];
+
+    return { theme: this.props.theme ?? 'dark', sbctx, months, weeks, groups, segs, heads, kpis,
+      chartH: chartBottom + 'px', todayP: (TODAY / TOTAL).toFixed(4) };
+  }
+}
+</script>
+</body>
+</html>

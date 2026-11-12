@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Bildirimler ve profil</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.rp-uprof-pop{top:58px; right:32px; width:380px; padding:0; overflow:hidden}
+.rp-uprof-pophead{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 16px 4px}
+.rp-uprof-pop .rp-tabs{padding:0 16px; gap:16px}
+.rp-uprof-pop .rp-tabs button{height:36px; font-size:13px}
+.rp-uprof-nlist{list-style:none; margin:0; padding:6px; display:flex; flex-direction:column; gap:2px}
+.rp-uprof-nitem{display:grid; grid-template-columns:32px minmax(0,1fr) 8px; gap:12px; align-items:start; padding:10px; border-radius:var(--radius-sm); text-decoration:none; color:var(--ink)}
+.rp-uprof-nitem:hover{background:var(--bg-raised)}
+.rp-uprof-nitem:focus-visible{outline:2px solid var(--focus-ring); outline-offset:-2px}
+.rp-uprof-nitem--new{background:color-mix(in srgb, var(--bg-raised) 70%, transparent)}
+.rp-uprof-nitem .rp-ichip{width:32px; height:32px}
+.rp-uprof-ntext{font-size:13px; line-height:18px; color:var(--ink-muted)}
+.rp-uprof-ntext strong{color:var(--ink); font-weight:600}
+.rp-uprof-popfoot{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; align-items:center; padding:14px 16px 16px; border-top:1px solid var(--border-subtle)}
+.rp-uprof-form{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px 16px}
+.rp-uprof-form .rp-uprof-full{grid-column:1 / -1}
+.rp-uprof-cardfoot{display:flex; justify-content:flex-end; gap:8px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border-subtle)}
+.rp-uprof-rows{list-style:none; margin:0; padding:0; display:flex; flex-direction:column}
+.rp-uprof-row{display:grid; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--border-subtle); min-width:0}
+.rp-uprof-row > *{min-width:0}
+.rp-uprof-code{display:inline-flex; align-items:center; justify-content:center; height:28px; border-radius:var(--radius-xs); background:var(--bg-raised); border:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:12px; font-weight:500; color:var(--ink)}
+.rp-uprof-role{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-muted); white-space:nowrap}
+.rp-uprof-role i{width:8px; height:8px; border-radius:50%; background:#73a9e3; display:inline-block}
+@media (max-width: 600px){ .rp-uprof-form{grid-template-columns:minmax(0,1fr)} .rp-uprof-pop{right:16px; left:16px; width:auto} }
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="home" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar" style="position:relative">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="#">Ana sayfa</a><span aria-hidden="true">/</span><strong>Profilim</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" aria-expanded="true" aria-controls="rp-uprof-pop" style="position:relative; background:var(--bg-raised); border-color:var(--border-strong)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+
+<section id="rp-uprof-pop" class="rp-pop rp-uprof-pop" role="dialog" aria-label="Bildirimler">
+<div class="rp-uprof-pophead">
+<h2 class="rp-cardtitle">Bildirimler</h2>
+<button type="button" class="rp-link rp-linkbtn" style="font-size:13px">Tümünü okundu say</button>
+</div>
+<div class="rp-tabs" role="tablist" aria-label="Bildirim filtresi">
+<button type="button" role="tab" aria-selected="true">Tümü <span class="rp-count">7</span></button>
+<button type="button" role="tab" aria-selected="false">Okunmamış <span class="rp-count">2</span></button>
+</div>
+<ul class="rp-uprof-nlist">
+<sc-for list="{{ notes }}" as="n" hint-placeholder-count="6">
+<li><a class="rp-uprof-nitem {{ n.cls }}" href="#" aria-label="{{ n.aria }}">
+<span class="rp-ichip" aria-hidden="true" style="color:{{ n.tone }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="{{ n.d }}"></path></svg></span>
+<span style="display:flex; flex-direction:column; gap:4px; min-width:0">
+<span class="rp-uprof-ntext">{{ n.pre }}<strong>{{ n.em }}</strong>{{ n.post }}</span>
+<span class="rp-kicker" style="color:var(--ink-faint)">{{ n.kind }} · {{ n.when }}</span>
+</span>
+<sc-if value="{{ n.unread }}" hint-placeholder-val="{{ true }}"><span class="rp-dot" aria-hidden="true" style="margin-top:6px; background:var(--accent-text)"></span></sc-if>
+</a></li>
+</sc-for>
+</ul>
+<div style="padding:0 16px 10px"><a class="rp-link" href="#">1 eski bildirimi göster<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></a></div>
+<div class="rp-uprof-popfoot">
+<span id="rp-uprof-webpush" style="font-size:13px; font-weight:600">Web bildirimlerini aç</span>
+<button type="button" class="rp-switch" role="switch" aria-checked="false" aria-labelledby="rp-uprof-webpush" aria-describedby="rp-uprof-webpush-cap"><span></span></button>
+<span id="rp-uprof-webpush-cap" class="rp-cap" style="grid-column:1 / -1">Kapalıyken bildirimler yalnız portal açıkken bu listeye düşer. Sohbet ve alt görev bildirim üretmez.</span>
+</div>
+</section>
+</div>
+
+<div class="rp-head" style="align-items:center">
+<div style="display:grid; grid-template-columns:72px minmax(0,1fr); gap:20px; align-items:center">
+<span class="rp-av rp-av--xl" aria-hidden="true" style="background:var(--violet); color:var(--on-violet)">BK</span>
+<div style="min-width:0">
+<div style="display:flex; align-items:center; gap:10px; min-width:0"><h1 class="rp-h1 rp-trunc">Bahar Kılıç</h1><span class="t-badge" style="height:24px; font-size:12px; gap:6px"><span aria-hidden="true" style="width:8px; height:8px; border-radius:50%; background:#73a9e3"></span>Üye</span></div>
+<p class="rp-sub rp-trunc">bahar.kilic@teknofest.org · Altyapı ve tesisat · bu sayfada yalnız kendi hesabını ve tercihlerini görüyorsun</p>
+</div>
+</div>
+<div class="rp-actions">
+<button class="t-btn t-btn--ghost" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg>Çıkış yap</button>
+</div>
+</div>
+
+<div class="rp-body">
+<div class="rp-col" style="gap:20px">
+
+<section class="t-card" style="padding:24px" aria-labelledby="rp-uprof-acc">
+<div class="rp-cardhead"><div><h2 id="rp-uprof-acc" class="rp-cardtitle">Hesap</h2><p class="rp-cap" style="margin:2px 0 0">Ekip listelerinde ve görev atamalarında bu bilgiler görünür.</p></div></div>
+<form class="rp-uprof-form" onsubmit="return false">
+<div class="rp-uprof-full">
+<label class="t-label" for="rp-uprof-name">Ad soyad</label>
+<input class="t-input" id="rp-uprof-name" type="text" value="Bahar Kılıç" autocomplete="name">
+</div>
+<div>
+<label class="t-label" for="rp-uprof-mail">E-posta</label>
+<div class="t-field"><svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3"></path></svg><input class="t-input t-input--icon" id="rp-uprof-mail" type="email" value="bahar.kilic@teknofest.org" readonly aria-describedby="rp-uprof-mail-cap" style="background:var(--bg-raised); color:var(--ink-muted)"></div>
+<p id="rp-uprof-mail-cap" class="rp-cap" style="margin:6px 0 0">Giriş adresin. Değişiklik için yöneticine yaz.</p>
+</div>
+<div>
+<label class="t-label" for="rp-uprof-tel">Telefon</label>
+<input class="t-input" id="rp-uprof-tel" type="tel" value="0532 418 27 63" autocomplete="tel" aria-describedby="rp-uprof-tel-cap">
+<p id="rp-uprof-tel-cap" class="rp-cap" style="margin:6px 0 0">Yalnız koordinatörlerin görür.</p>
+</div>
+</form>
+<div class="rp-uprof-cardfoot">
+<button class="t-btn t-btn--ghost t-btn--sm" type="button">Vazgeç</button>
+<button class="t-btn t-btn--primary t-btn--sm" type="button">Kaydet</button>
+</div>
+</section>
+
+<section class="t-card" style="padding:24px" aria-labelledby="rp-uprof-pw">
+<div class="rp-cardhead"><div><h2 id="rp-uprof-pw" class="rp-cardtitle">Parola</h2><p class="rp-cap" style="margin:2px 0 0">Son değişiklik 02.09.2026</p></div></div>
+<form class="rp-uprof-form" onsubmit="return false">
+<div class="rp-uprof-full">
+<label class="t-label" for="rp-uprof-pw0">Mevcut parola</label>
+<input class="t-input" id="rp-uprof-pw0" type="password" autocomplete="current-password" placeholder="Mevcut parolan">
+</div>
+<div>
+<label class="t-label" for="rp-uprof-pw1">Yeni parola</label>
+<input class="t-input" id="rp-uprof-pw1" type="password" autocomplete="new-password" aria-describedby="rp-uprof-pw-rule">
+</div>
+<div>
+<label class="t-label" for="rp-uprof-pw2">Yeni parola tekrar</label>
+<input class="t-input" id="rp-uprof-pw2" type="password" autocomplete="new-password">
+</div>
+<p id="rp-uprof-pw-rule" class="rp-cap rp-uprof-full" style="margin:0; display:flex; align-items:center; gap:6px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--ink-faint)"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01"></path></svg>En az 12 karakter. Eski parolanla aynı olamaz.</p>
+</form>
+<div class="rp-uprof-cardfoot">
+<button class="t-btn t-btn--secondary t-btn--sm" type="button">Parolayı değiştir</button>
+</div>
+</section>
+
+</div>
+
+<aside class="rp-aside" aria-label="Roller, bildirim tercihleri ve oturum" style="flex:1 1 400px; max-width:460px">
+
+<section class="t-card" style="padding:22px" aria-labelledby="rp-uprof-roles">
+<div class="rp-cardhead"><h2 id="rp-uprof-roles" class="rp-cardtitle">Rollerim ve koordinatörlüklerim</h2></div>
+<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px">
+<span class="rp-av rp-av--sm" aria-hidden="true" style="border-radius:8px; background:var(--violet); color:var(--on-violet)">ŞT</span>
+<span style="font-weight:600; font-size:14px">Şanlıurfa Teknofest 2026</span>
+<span class="rp-grow"></span>
+<span class="rp-count">3 koordinatörlük</span>
+</div>
+<ul class="rp-uprof-rows">
+<sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+<li class="rp-uprof-row" style="grid-template-columns:48px minmax(0,1fr) 36px">
+<span class="rp-uprof-code">{{ r.code }}</span>
+<span style="display:flex; flex-direction:column; gap:3px; min-width:0">
+<span class="rp-trunc" style="font-size:14px; font-weight:600">{{ r.name }}</span>
+<span style="display:flex; align-items:center; gap:10px; min-width:0"><span class="rp-uprof-role"><i aria-hidden="true"></i>Üye</span><span class="rp-cap rp-trunc">Koordinatör: {{ r.coord }}</span></span>
+</span>
+<a class="t-iconbtn" href="#" aria-label="{{ r.msgLabel }}" title="{{ r.msgLabel }}" style="width:36px; height:36px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg></a>
+</li>
+</sc-for>
+</ul>
+<p class="rp-cap" style="margin:6px 0 0; padding-top:12px; border-top:1px solid var(--border-subtle)">Rol ve koordinatörlük atamalarını yönetici yapar. Kenar menüsündeki rol kartı yalnız görünümü süzer.</p>
+</section>
+
+<section class="t-card" style="padding:22px" aria-labelledby="rp-uprof-prefs">
+<div class="rp-cardhead"><div><h2 id="rp-uprof-prefs" class="rp-cardtitle">Bildirim tercihleri</h2><p class="rp-cap" style="margin:2px 0 0">Portal içi bildirim listesine ne düşsün</p></div></div>
+<ul class="rp-uprof-rows">
+<sc-for list="{{ prefs }}" as="p" hint-placeholder-count="4">
+<li class="rp-uprof-row" style="grid-template-columns:minmax(0,1fr) 40px">
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><span id="{{ p.id }}" style="font-size:14px; font-weight:600">{{ p.label }}</span><span class="rp-cap">{{ p.note }}</span></span>
+<button type="button" class="rp-switch" role="switch" aria-checked="{{ p.on }}" aria-labelledby="{{ p.id }}"><span></span></button>
+</li>
+</sc-for>
+<li class="rp-uprof-row" style="grid-template-columns:minmax(0,1fr) auto">
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><span style="font-size:14px; font-weight:600">Web push</span><span class="rp-status" style="font-size:12px; font-weight:400; color:var(--ink-muted)"><span class="rp-dot rp-dot--todo" aria-hidden="true"></span>Bu tarayıcıda kapalı · izin istenmedi</span></span>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button">İzin ver</button>
+</li>
+</ul>
+</section>
+
+<section class="t-card" style="padding:22px" aria-labelledby="rp-uprof-sess">
+<div class="rp-cardhead"><h2 id="rp-uprof-sess" class="rp-cardtitle">Oturum</h2><span class="rp-count">2 cihaz</span></div>
+<dl class="rp-dl" style="margin-bottom:6px">
+<dt>Son giriş</dt><dd class="rp-mono">21.10.2026 08:42</dd>
+</dl>
+<ul class="rp-uprof-rows">
+<sc-for list="{{ devices }}" as="v" hint-placeholder-count="2">
+<li class="rp-uprof-row" style="grid-template-columns:32px minmax(0,1fr) auto">
+<span class="rp-ichip" aria-hidden="true" style="width:32px; height:32px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="{{ v.d }}"></path></svg></span>
+<span style="display:flex; flex-direction:column; gap:2px; min-width:0"><span class="rp-trunc" style="font-size:14px; font-weight:600">{{ v.name }}</span><span class="rp-cap rp-trunc">{{ v.meta }}</span></span>
+<span class="rp-status" style="font-size:12px; color:{{ v.ink }}"><span class="rp-dot" aria-hidden="true" style="width:6px; height:6px; background:{{ v.dot }}"></span>{{ v.state }}</span>
+</li>
+</sc-for>
+</ul>
+<div style="display:flex; justify-content:flex-end; margin-top:14px">
+<button class="t-btn t-btn--ghost t-btn--sm" type="button">Diğer cihazlardan çık</button>
+</div>
+</section>
+
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sbctx = { progs: [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }],
+      progId: 'sur', roleId: 'uye', coordId: 'ALT',
+      roles: [{ id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }] };
+    const IC = {
+      back: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',
+      assign: 'M15 19a6 6 0 0 0-12 0M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M16 11h6',
+      clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+      check: 'M5 12.5l4.5 4.5L19 7',
+      cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+      team: 'M16 19a4 4 0 0 0-8 0M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 19a3 3 0 0 0-3-3M17 5a3 3 0 0 1 0 6',
+      laptop: 'M4 5h16v10H4zM2 19h20',
+      phone: 'M7 3h10v18H7zM11 18h2'
+    };
+    const N = (kind, d, tone, pre, em, post, when, unread) => ({ kind, d, tone, pre, em, post, when, unread, cls: unread ? 'rp-uprof-nitem--new' : '', aria: (unread ? 'Okunmamış: ' : '') + pre + em + post + ', ' + when });
+    const notes = [
+      N('görev iade', IC.back, 'var(--danger)', 'Kadir Özbek ', 'ALT-4 Biletleme', ' görevini iade etti: “İmzalı teslim listesi eksik.”', '25 dk önce', true),
+      N('görev atama', IC.assign, 'var(--violet)', 'Yeni görev: ', 'ALT-11 Jeneratör yakıt planı', ' sana atandı · bitiş 30.10.2026', '2 sa önce', true),
+      N('toplantı', IC.clock, 'var(--ink)', '', 'Altyapı haftalık toplantısı', ' 14:00 yerine 15:30’a alındı · 22.10.2026', 'dün 18:40', false),
+      N('onay', IC.check, 'var(--accent-text)', '', 'ALT-2 Çadır yerleşim planı', ' onaylandı. Görev tamamlandı.', 'dün 11:05', false),
+      N('tarih kararı', IC.cal, 'var(--gold)', '', 'ALT-7 Tır lojistik planlama', ' için yeni bitiş 31.10.2026 olarak onaylandı.', '19.10.2026', false),
+      N('üyelik', IC.team, 'var(--ink-muted)', '', 'Elektrik ve enerji (ELE)', ' koordinatörlüğüne üye olarak eklendin.', '17.10.2026', false)
+    ];
+    const R = (code, name, coord) => ({ code, name, coord, msgLabel: coord + ' ile mesajlaş' });
+    const roles = [
+      R('ALT', 'Altyapı ve tesisat', 'Kadir Özbek'),
+      R('ELE', 'Elektrik ve enerji', 'Serkan Aksoy'),
+      R('OPE', 'Operasyon', 'Deniz Yalçın')
+    ];
+    const prefs = [
+      { id: 'rp-uprof-p1', label: 'Görev atama', note: 'Bana görev atandığında veya görevimden çıkarıldığımda', on: 'true' },
+      { id: 'rp-uprof-p2', label: 'İade ve onay', note: 'Koordinatör görevimi onayladığında ya da iade ettiğinde', on: 'true' },
+      { id: 'rp-uprof-p3', label: 'Toplantı', note: 'Davet, saat değişikliği ve iptal', on: 'true' },
+      { id: 'rp-uprof-p4', label: 'Mesaj', note: 'Birebir mesaj geldiğinde', on: 'false' }
+    ];
+    const devices = [
+      { d: IC.laptop, name: 'Chrome · macOS', meta: 'Şanlıurfa · 21.10.2026 08:42', state: 'Bu cihaz', dot: 'var(--accent-text)', ink: 'var(--ink)' },
+      { d: IC.phone, name: 'Safari · iPhone', meta: 'Şanlıurfa · son etkinlik 20.10.2026 22:15', state: 'Etkin', dot: 'var(--ink-muted)', ink: 'var(--ink-muted)' }
+    ];
+    return { theme: this.props.theme ?? 'dark', sbctx, notes, roles, prefs, devices };
+  }
+}
+</script>
+</body>
+</html>

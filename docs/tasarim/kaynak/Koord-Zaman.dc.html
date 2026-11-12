@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Zaman çizelgesi ve tarih talepleri</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0} :root, [data-theme] { --rp-blue:#5b8def; } [data-theme="light"] { --rp-blue:#2563eb; } .rp-glabel{background:color-mix(in srgb, var(--bg-surface) 72%, transparent); -webkit-backdrop-filter:blur(10px) saturate(1.2); backdrop-filter:blur(10px) saturate(1.2); border:0; border-right:1px solid var(--border-subtle); color:var(--ink); font:inherit}
+.rp-kz-menuhint{margin-left:auto; padding-left:12px; font-family:var(--font-mono); font-size:11px; color:var(--ink-faint)}
+.rp-kz-rules{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px}
+.rp-kz-rule{display:grid; grid-template-columns:36px minmax(0,1fr); gap:14px; align-items:start; padding:18px}
+.rp-kz-rule p{margin:4px 0 0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.rp-kz-date{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="gantt" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Koord-Ana.dc.html">Sistem koordinatörlüğü</a><span aria-hidden="true">/</span><strong>Zaman çizelgesi</strong></nav>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Zaman çizelgesi</h1><p class="rp-sub">Sistem koordinatörlüğü · koordinatör olarak birimin 14 görevini görüyorsun · <span class="rp-danger-text">3 gecikmede</span> · 7 günü aşan tarih değişikliği yönetici onayına gider</p></div>
+<div class="rp-actions">
+<span style="display:inline-flex; align-items:center; gap:8px"><button class="rp-switch" type="button" role="switch" aria-checked="true" aria-labelledby="kz-dep"><span></span></button><span id="kz-dep" style="font-size:13px; font-weight:500">Bağımlılıklar</span></span>
+<div class="rp-seg" role="group" aria-label="Ölçek">
+<button type="button" aria-pressed="true">Hafta</button>
+<button type="button" aria-pressed="false">Ay</button>
+</div>
+<button class="t-btn t-btn--secondary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5"></path></svg>Dışa aktar (PDF)</button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg>Tarih talebi gönder</button>
+</div>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:12px; padding:0 24px 32px">
+
+<div class="rp-tabs" role="tablist" aria-label="Zaman çizelgesi bölümleri">
+<button type="button" role="tab" aria-selected="true">Zaman çizelgesi <span class="rp-count">14</span></button>
+<button type="button" role="tab" aria-selected="false">Tarih taleplerim <span class="rp-count">3</span></button>
+</div>
+
+<div class="rp-toolbar">
+<div class="rp-tgroup">
+<div class="rp-seg" role="group" aria-label="Durum">
+<button type="button" aria-pressed="true">Tümü <span class="rp-count">14</span></button>
+<button type="button" aria-pressed="false">Açık <span class="rp-count">8</span></button>
+<button type="button" aria-pressed="false">Geciken <span class="rp-count">3</span></button>
+<button type="button" aria-pressed="false">Biten <span class="rp-count">6</span></button>
+</div>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button">Sorumlu <span class="rp-count" style="color:var(--ink)">7</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+<span class="rp-grow"></span>
+<div class="rp-tgroup">
+<span class="rp-cap rp-nowrap" style="padding-right:4px">Eylül – Kasım 2026</span>
+<button class="t-iconbtn" type="button" aria-label="Uzaklaştır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M5 12h14"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Yakınlaştır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Bugüne git" title="Bugüne git"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 12h.01"></path></svg></button>
+<button class="t-iconbtn" type="button" aria-label="Tam ekran"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg></button>
+</div>
+</div>
+
+<div role="img" aria-label="Sezon genel bakışı: görünen aralık 7 Eylül – 29 Kasım" style="position:relative; display:grid; grid-template-columns:120px minmax(0,1fr); gap:12px; align-items:center; padding:10px 12px; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-surface)">
+<span class="rp-kicker">sezon 2026 · SİS</span>
+<span style="position:relative; display:flex; align-items:flex-end; gap:2px; height:32px">
+<sc-for list="{{ density }}" as="dn" hint-placeholder-count="35"><span style="flex:1 1 0; height:{{ dn.h }}; border-radius:2px; background:{{ dn.c }}"></span></sc-for>
+<span aria-hidden="true" style="position:absolute; top:-4px; bottom:-4px; left:{{ winL }}; width:{{ winW }}; border:1.5px solid var(--ink); border-radius:8px; background:color-mix(in srgb, var(--ink) 6%, transparent)"></span>
+<span aria-hidden="true" style="position:absolute; top:-6px; bottom:-6px; left:{{ todayO }}; width:2px; background:var(--accent-text)"></span>
+</span>
+</div>
+
+<div style="display:flex; gap:8px 20px; align-items:center; flex-wrap:wrap" class="rp-cap">
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--ink-faint)"></span>Başlamadı</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--violet)"></span>Devam ediyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--gold)"></span>Onay bekliyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--danger)"></span>İade edildi</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:var(--accent-text)"></span>Tamamlandı</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span class="rp-dot" style="background:linear-gradient(90deg, var(--accent-text) 50%, var(--danger) 50%)"></span>Geç bitti</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:22px; height:10px; border-radius:4px; border:1.5px dashed var(--danger); display:inline-block; box-sizing:border-box"></span>Gecikmede</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:22px; height:10px; border-radius:0 4px 4px 0; border:1.5px dashed var(--gold); border-left:0; display:inline-block; box-sizing:border-box"></span>Tarih talebi bekliyor</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:22px; height:0; border-top:1.5px dashed var(--ink-muted); display:inline-block"></span>Başka koordinatörlüğe bağımlılık</span>
+<span class="rp-status" style="font-size:12px; color:var(--ink-muted)"><span style="width:16px; height:16px; border-radius:50%; border:1.5px dashed var(--gold); display:inline-block; box-sizing:border-box"></span>Atanmamış</span>
+</div>
+
+<div class="rp-dtable" style="position:relative"><div class="rp-scroll">
+<div style="min-width:1220px; position:relative">
+
+<div style="display:grid; grid-template-columns:300px minmax(0,1fr); border-bottom:1px solid var(--border-subtle); position:relative">
+<div class="rp-glabel" style="padding:6px 8px 6px 16px; display:flex; justify-content:space-between; align-items:flex-end; gap:8px"><span class="rp-kicker" style="padding-bottom:4px">görev · sorumlu</span><button class="t-iconbtn" type="button" aria-label="Yalnız kodları göster" title="Yalnız kodları göster" style="width:32px; height:32px; border-radius:10px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9 4v16M15 10l-2 2 2 2"></path></svg></button></div>
+<div>
+<div style="display:flex; border-bottom:1px solid var(--border-subtle)">
+<sc-for list="{{ months }}" as="mo" hint-placeholder-count="3"><span class="rp-trunc" style="width:{{ mo.w }}; padding:8px 10px; box-sizing:border-box; border-left:1px solid var(--border-subtle); font-size:13px; font-weight:600">{{ mo.name }}</span></sc-for>
+</div>
+<div style="display:flex">
+<sc-for list="{{ weeks }}" as="wk" hint-placeholder-count="12"><span class="rp-mono" style="flex:0 0 {{ wk.w }}; padding:6px 0; text-align:center; font-size:12px; color:{{ wk.color }}">{{ wk.d }}</span></sc-for>
+</div>
+</div>
+</div>
+
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+<div style="display:grid; grid-template-columns:300px minmax(0,1fr); background:var(--bg-base); border-bottom:1px solid var(--border-subtle)">
+<button type="button" aria-expanded="true" class="rp-glabel" style="display:grid; grid-template-columns:16px minmax(0,1fr) auto; gap:8px; align-items:center; padding:10px 16px; color:var(--ink); font-family:inherit; font-size:13px; font-weight:600; text-align:left; cursor:pointer">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+<span class="rp-trunc">{{ g.name }}</span><span class="rp-count">{{ g.count }}</span>
+</button>
+<div style="position:relative; height:40px; background-image:linear-gradient(to right, var(--border-subtle) 1px, transparent 1px); background-size:calc(100% * 7 / 84) 100%"></div>
+</div>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="8">
+<div class="rp-tr--body" style="display:grid; grid-template-columns:300px minmax(0,1fr); border-bottom:1px solid var(--border-subtle); background:{{ r.rowBg }}">
+<div class="rp-glabel" style="display:grid; grid-template-columns:52px 8px minmax(0,1fr) 24px; gap:10px; align-items:center; padding:0 16px; height:44px">
+<span class="rp-kicker" style="color:var(--ink-faint)">{{ r.id }}</span>
+<span class="rp-dot" aria-hidden="true" title="{{ r.dotTitle }}" style="background:{{ r.dotBg }}"></span>
+<a class="rp-title rp-trunc" href="Koord-Gorevler.dc.html" style="font-weight:500; font-size:13px">{{ r.title }}</a>
+<span class="rp-av rp-av--sm" title="{{ r.who }}" style="width:24px; height:24px; font-size:10px; background:{{ r.avBg }}; color:{{ r.avInk }}; border:{{ r.avBorder }}; box-sizing:border-box">{{ r.ini }}</span>
+</div>
+<div style="position:relative; height:44px; background-image:linear-gradient(to right, var(--border-subtle) 1px, transparent 1px); background-size:calc(100% * 7 / 84) 100%">
+<sc-if value="{{ r.hasExt }}" hint-placeholder-val="{{ false }}">
+<span title="Başka koordinatörlüğe bağımlılık: ELE-2 Jeneratör pano bağlantısı · Elektrik ve enerji · tamamlandı 30.09.2026" style="position:absolute; top:10px; height:24px; left:{{ r.exX }}; width:{{ r.exW }}; border-radius:8px; box-sizing:border-box; border:1.5px dashed var(--border-strong); display:flex; align-items:center; gap:6px; padding:0 8px; overflow:hidden; font-size:12px; font-weight:500; color:var(--ink-muted); white-space:nowrap"><span class="rp-mono" style="font-size:11px">ELE-2</span><span class="rp-trunc">Jeneratör pano bağlantısı</span></span>
+<span aria-hidden="true" style="position:absolute; top:21px; height:0; left:{{ r.arX }}; width:{{ r.arW }}; border-top:1.5px dashed var(--ink-muted)"></span>
+<svg aria-hidden="true" viewBox="0 0 8 10" style="position:absolute; top:17px; left:calc({{ r.x }} - 9px); width:8px; height:10px; fill:var(--ink-muted)"><path d="M0 0l8 5-8 5z"></path></svg>
+</sc-if>
+<span style="position:absolute; top:10px; height:24px; left:{{ r.x }}; width:{{ r.w }}; border-radius:{{ r.radius }}; box-sizing:border-box; background:{{ r.fill }}; border:{{ r.border }}; box-shadow:{{ r.ring }}; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:6px; align-items:center; padding:0 8px; overflow:hidden; font-size:12px; font-weight:600; color:var(--gp-ink); white-space:nowrap">
+<sc-if value="{{ r.dep }}" hint-placeholder-val="{{ false }}"><svg class="t-icon" viewBox="0 0 24 24" aria-label="Bağımlılığı var" style="width:12px; height:12px"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path></svg></sc-if>
+<span class="rp-trunc">{{ r.title }}</span>
+<span class="rp-mono" style="font-size:11px; color:var(--gp-ink-muted)">{{ r.dur }}</span>
+<sc-if value="{{ r.hasOver }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position:absolute; top:-1px; bottom:-1px; left:{{ r.divX }}; width:2px; background:var(--gp-ink); opacity:0.45"></span></sc-if>
+</span>
+<sc-if value="{{ r.hasReq }}" hint-placeholder-val="{{ false }}">
+<span title="{{ r.reqTitle }}" style="position:absolute; top:10px; height:24px; left:{{ r.visEndX }}; width:{{ r.rqw }}; border-radius:0 8px 8px 0; box-sizing:border-box; border:1.5px dashed var(--gold); border-left:0"></span>
+<span title="{{ r.reqTitle }}" style="position:absolute; top:12px; left:calc({{ r.rqEndX }} + 6px); width:20px; height:20px; border-radius:50%; display:grid; place-items:center; background:color-mix(in srgb, var(--gold) 18%, transparent); color:var(--gold)"><svg class="t-icon" viewBox="0 0 24 24" aria-label="Tarih talebi bekliyor" style="width:13px; height:13px"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg></span>
+</sc-if>
+<sc-if value="{{ r.sel }}" hint-placeholder-val="{{ false }}">
+<span aria-hidden="true" style="position:absolute; top:14px; height:16px; width:6px; left:calc({{ r.x }} - 3px); border-radius:3px; background:var(--ink); cursor:ew-resize"></span>
+<span aria-hidden="true" style="position:absolute; top:14px; height:16px; width:6px; left:calc({{ r.visEndX }} - 3px); border-radius:3px; background:var(--ink); cursor:ew-resize"></span>
+</sc-if>
+<sc-if value="{{ r.menu }}" hint-placeholder-val="{{ false }}">
+<div class="rp-pop" role="menu" aria-label="SİS-11 görev işlemleri" style="left:calc({{ r.visEndX }} + 14px); top:36px; width:290px">
+<div style="padding:8px 10px 6px; display:flex; flex-direction:column; gap:3px">
+<span class="rp-kicker">SİS-11 · Selin Yıldız</span>
+<span style="display:flex; align-items:center; gap:8px; font-size:13px"><span class="rp-mono">05.10 → 19.10.2026</span><span class="rp-danger-text" style="font-size:12px">2 gün gecikmede</span></span>
+</div>
+<div class="rp-menudiv"></div>
+<button class="rp-menuitem" type="button" role="menuitem"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12M12 8l4 4-4 4M20 5v14"></path></svg>Süre uzat<span class="rp-kz-menuhint">+7 güne kadar</span></button>
+<button class="rp-menuitem" type="button" role="menuitem"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM5 9h14M12 13v4"></path></svg>Bitiş tarihini bugüne çek<span class="rp-kz-menuhint">21.10</span></button>
+<button class="rp-menuitem" type="button" role="menuitem"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg>Tarih talebi gönder<span class="rp-kz-menuhint">yönetici onayı</span></button>
+<div class="rp-menudiv"></div>
+<a class="rp-menuitem" role="menuitem" href="Koord-Gorevler.dc.html"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M10 4H4v16h16v-6"></path></svg>Görevi aç</a>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</sc-for>
+
+<div aria-hidden="true" style="position:absolute; top:0; bottom:0; left:calc(300px + (100% - 300px) * {{ todayP }}); width:2px; background:var(--accent-text); pointer-events:none"></div>
+<span style="position:absolute; top:6px; left:calc(300px + (100% - 300px) * {{ todayP }} - 30px); padding:2px 8px; border-radius:6px; background:var(--accent); color:var(--accent-ink); font-family:var(--font-mono); font-size:12px; font-weight:500">bugün</span>
+</div>
+</div></div>
+
+<section aria-labelledby="kz-req" style="display:flex; flex-direction:column; gap:12px; margin-top:20px">
+<div class="rp-cardhead" style="margin-bottom:0">
+<div><h2 class="rp-cardtitle" id="kz-req">Tarih taleplerim <span class="rp-count">3</span></h2><p class="rp-cap" style="margin:4px 0 0">Yönetici karar verince bildirim alırsın. 7 güne kadar uzatmalar talep gerektirmez, doğrudan uygulanır.</p></div>
+<div class="rp-actions">
+<div class="rp-seg" role="group" aria-label="Talep durumu">
+<button type="button" aria-pressed="true">Tümü <span class="rp-count">3</span></button>
+<button type="button" aria-pressed="false">Bekliyor <span class="rp-count">1</span></button>
+<button type="button" aria-pressed="false">Onaylandı <span class="rp-count">1</span></button>
+<button type="button" aria-pressed="false">Reddedildi <span class="rp-count">1</span></button>
+</div>
+</div>
+</div>
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Tarih taleplerim" style="min-width:1060px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:minmax(0,1.1fr) 250px minmax(0,1fr) 112px 190px 36px">
+<span role="columnheader">görev</span><span role="columnheader">eski bitiş → yeni bitiş</span><span role="columnheader">sebep</span><span role="columnheader">gönderilme</span><span role="columnheader">durum</span><span></span>
+</div>
+<sc-for list="{{ reqs }}" as="q" hint-placeholder-count="3">
+<div role="row" class="rp-tr rp-tr--body" style="grid-template-columns:minmax(0,1.1fr) 250px minmax(0,1fr) 112px 190px 36px; min-height:72px">
+<span role="cell" style="display:flex; flex-direction:column; gap:2px; min-width:0"><a class="rp-title rp-trunc" href="Koord-Gorevler.dc.html">{{ q.title }}</a><span class="rp-kicker" style="color:var(--ink-faint)">{{ q.id }} · {{ q.who }}</span></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:3px; min-width:0">
+<span class="rp-kz-date"><span class="rp-mono rp-faint" style="text-decoration:line-through">{{ q.old }}</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-label="yeni tarih" style="width:14px; height:14px; color:var(--ink-muted)"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><span class="rp-mono" style="font-weight:500">{{ q.neu }}</span></span>
+<span class="rp-kicker" style="color:var(--ink-faint)">başlangıç {{ q.start }} · {{ q.delta }}</span>
+</span>
+<span role="cell" class="rp-clamp2" style="font-size:13px; line-height:19px; color:var(--ink-muted)">{{ q.reason }}</span>
+<span role="cell" style="display:flex; flex-direction:column; gap:2px"><span class="rp-mono">{{ q.sent }}</span><span class="rp-faint rp-nowrap" style="font-size:12px">{{ q.sentRel }}</span></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:4px; align-items:flex-start; min-width:0"><span class="t-badge {{ q.badge }}">{{ q.status }}</span><span class="rp-kicker rp-trunc" style="max-width:100%; color:var(--ink-faint)" title="{{ q.note }}">{{ q.note }}</span></span>
+<span role="cell"><button class="t-iconbtn rp-hoveract" type="button" aria-label="{{ q.id }} görevini aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></button></span>
+</div>
+</sc-for>
+</div>
+</div></div>
+</section>
+
+<section class="rp-kz-rules" aria-label="Tarih değişikliği kuralları" style="margin-top:8px">
+<div class="t-card rp-kz-rule"><span class="rp-ichip" aria-hidden="true" style="color:var(--violet)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M4 12h12M12 8l4 4-4 4M20 5v14"></path></svg></span><div><h3 class="rp-cardtitle" style="font-size:15px">Süre uzat</h3><p>Bitişi en çok 7 gün ileri alırsın; hemen uygulanır, sorumlu üyeye bildirim gider.</p></div></div>
+<div class="t-card rp-kz-rule"><span class="rp-ichip" aria-hidden="true" style="color:var(--gold)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"></path></svg></span><div><h3 class="rp-cardtitle" style="font-size:15px">Tarih talebi</h3><p>7 günü aşan ya da başlangıcı değiştiren her değişiklik yönetici onayına gider; karar gelene kadar eski tarih geçerlidir.</p></div></div>
+<div class="t-card rp-kz-rule"><span class="rp-ichip" aria-hidden="true" style="color:var(--accent-text)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM5 9h14M12 13v4"></path></svg></span><div><h3 class="rp-cardtitle" style="font-size:15px">Bitişi bugüne çek</h3><p>Erken biten görevi onaylarken bitişi bugüne çekebilirsin; planlanan tarih saklanır ve "X gün erken" etiketi görünür.</p></div></div>
+</section>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sbctx = { progs: [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }],
+      progId: 'sur', roleId: 'koord', coordId: 'SİS',
+      roles: [{ id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }] };
+
+    const START = Date.UTC(2026, 8, 7);
+    const TOTAL = 84;
+    const day = (m, d) => (Date.UTC(2026, m - 1, d) - START) / 86400000;
+    const pct = (n) => (n / TOTAL * 100).toFixed(2) + '%';
+    const TODAY = day(10, 21);
+    const months = [['Eylül', 24], ['Ekim', 31], ['Kasım', 29]].map(([name, n]) => ({ name, w: pct(n) }));
+    const mondays = [7, 14, 21, 28, 5, 12, 19, 26, 2, 9, 16, 23];
+    const weeks = mondays.map((d, i) => ({ d, w: pct(7), color: i === 6 ? 'var(--ink)' : 'var(--ink-faint)' }));
+    const SC = { todo: 'var(--ink-faint)', doing: 'var(--violet)', review: 'var(--gold)', back: 'var(--danger)', done: 'var(--accent-text)' };
+    const SN = { todo: 'Başlamadı', doing: 'Devam ediyor', review: 'Onay bekliyor', back: 'İade edildi', done: 'Tamamlandı' };
+    const AV = { 'Kadir Özbek': ['KÖ', 'var(--accent)', 'var(--accent-ink)'], 'Elif Sarı': ['ES', 'var(--violet)', 'var(--on-violet)'], 'Mert Aydın': ['MA', 'var(--gold)', 'var(--on-gold)'],
+      'Zeynep Kaya': ['ZK', 'var(--bg-overlay)', 'var(--ink)'], 'Burak Demir': ['BD', 'var(--bg-overlay)', 'var(--ink)'], 'Selin Yıldız': ['SY', 'var(--bg-overlay)', 'var(--ink)'], 'Emre Koç': ['EK', 'var(--bg-overlay)', 'var(--ink)'] };
+    const ranges = [];
+    const R = (id, title, who, st, s, e, o) => {
+      o = o || {};
+      const x0 = day(s[0], s[1]); const x = Math.max(0, x0); const end = day(e[0], e[1]); const done = st === 'done';
+      const late = (st === 'doing' || st === 'back' || st === 'todo') && end < TODAY;
+      const doneLate = done && !!o.doneAt && day(o.doneAt[0], o.doneAt[1]) > end;
+      const visEnd = doneLate ? day(o.doneAt[0], o.doneAt[1]) : late ? TODAY : end;
+      const over = visEnd > end;
+      const sc = SC[st];
+      const gp = 'var(--gp-' + st + ')';
+      const overC = 'var(--gp-late)';
+      const split = (Math.max(0, end - x) / (visEnd - x) * 100).toFixed(2) + '%';
+      const lateDays = Math.round(visEnd - end);
+      const av = who ? AV[who] : ['', 'transparent', 'var(--gold)'];
+      ranges.push([x0, doneLate ? visEnd : end]);
+      const r = { id, title, who: who || 'Atanmamış', ini: av[0], avBg: av[1], avInk: av[2], avBorder: who ? '0' : '1.5px dashed var(--gold)',
+        x: pct(x), w: pct(visEnd - x), visEndX: pct(visEnd), radius: x0 < 0 ? '0 8px 8px 0' : '8px',
+        dur: Math.max(1, Math.round((end - x0) / 7)) + ' hf', dep: !!o.dep, sel: !!o.sel, menu: !!o.sel,
+        rowBg: o.sel ? 'color-mix(in srgb, var(--ink) 5%, transparent)' : 'transparent',
+        dotBg: (late || doneLate) ? 'linear-gradient(90deg, ' + sc + ' 50%, var(--danger) 50%)' : sc,
+        dotTitle: SN[st] + (doneLate ? ' · ' + lateDays + ' gün geç bitti' : late ? ' · ' + lateDays + ' gün gecikmede' : '') + (who ? '' : ' · atanmamış'),
+        fill: over ? 'linear-gradient(90deg, ' + gp + ' 0 ' + split + ', ' + overC + ' ' + split + ' 100%)' : gp,
+        border: late ? '1.5px dashed var(--danger)' : '1px solid color-mix(in srgb, ' + sc + ' 70%, transparent)',
+        hasOver: over && end > x, divX: 'calc(' + split + ' - 1px)',
+        ring: o.sel ? '0 0 0 2px var(--ink)' : 'none',
+        hasReq: !!o.req, rqw: o.req ? pct(day(o.req[0], o.req[1]) - visEnd) : '0%', rqEndX: o.req ? pct(day(o.req[0], o.req[1])) : '0%',
+        reqTitle: o.req ? 'Tarih talebi bekliyor: yeni bitiş ' + String(o.req[1]).padStart(2, '0') + '.' + String(o.req[0]).padStart(2, '0') + '.2026 · yönetici incelemesinde' : '',
+        hasExt: !!o.ext };
+      if (o.ext) {
+        const ex = day(o.ext[0][0], o.ext[0][1]); const exE = day(o.ext[1][0], o.ext[1][1]);
+        r.exX = pct(ex); r.exW = pct(exE - ex); r.arX = pct(exE); r.arW = 'calc(' + pct(x) + ' - ' + pct(exE) + ' - 8px)';
+      }
+      return r;
+    };
+    const open = [
+      R('SİS-7', 'Saha ağ omurgası fiber çekimi', 'Mert Aydın', 'doing', [8, 15], [9, 10], { req: [10, 31] }),
+      R('SİS-4', 'Kamera kayıt sunucusu (NVR) kurulumu', 'Burak Demir', 'back', [9, 14], [10, 16]),
+      R('SİS-11', 'Fuar alanı UPS bağlantıları', 'Selin Yıldız', 'doing', [10, 5], [10, 19], { dep: true, sel: true, ext: [[9, 14], [9, 30]] }),
+      R('SİS-9', 'Akreditasyon kartı basım sistemi', 'Zeynep Kaya', 'review', [9, 21], [10, 24], { dep: true }),
+      R('SİS-10', 'Basın merkezi Wi-Fi erişim noktaları', 'Emre Koç', 'review', [9, 28], [10, 25]),
+      R('SİS-12', 'Yarışma alanı skor ekranı yazılımı', 'Mert Aydın', 'review', [10, 5], [10, 30]),
+      R('SİS-13', 'Ziyaretçi sayım turnike entegrasyonu', null, 'todo', [10, 26], [11, 13], { dep: true }),
+      R('SİS-14', 'Yedek uydu internet hattı kurulumu', null, 'todo', [11, 2], [11, 20])
+    ];
+    const done = [
+      R('SİS-1', 'Sunucu odası iklimlendirmesi', 'Elif Sarı', 'done', [9, 7], [9, 25]),
+      R('SİS-2', 'Yazılım lisans alımları', 'Emre Koç', 'done', [9, 7], [9, 30]),
+      R('SİS-6', 'Personel e-posta ve hesap açılışı', 'Kadir Özbek', 'done', [9, 7], [10, 2]),
+      R('SİS-5', 'Bilet doğrulama terminalleri testi', 'Zeynep Kaya', 'done', [9, 21], [10, 9], { doneAt: [10, 12] }),
+      R('SİS-3', 'Etkinlik mobil uygulaması yayını', 'Elif Sarı', 'done', [9, 14], [10, 16]),
+      R('SİS-8', 'Kontrol merkezi video duvarı montajı', 'Burak Demir', 'done', [9, 28], [10, 17])
+    ];
+    const groups = [
+      { name: 'Açık görevler', count: '8 · 3 geciken', rows: open },
+      { name: 'Tamamlanan', count: '6', rows: done }
+    ];
+
+    const SSTART = Date.UTC(2026, 4, 1);
+    const SDAYS = 245;
+    const density = [];
+    for (let i = 0; i < 35; i++) {
+      const ds = (SSTART + i * 7 * 86400000 - START) / 86400000;
+      let n = 0;
+      ranges.forEach(([a, b]) => { if (ds + 7 > a && ds < b) n++; });
+      density.push({ h: (n === 0 ? 2 : 6 + n * 2) + 'px', c: n === 0 ? 'var(--bg-overlay)' : 'var(--ink-muted)' });
+    }
+    const sOff = (d) => ((d * 86400000 + START - SSTART) / 86400000 / SDAYS * 100).toFixed(2) + '%';
+
+    const reqs = [
+      { id: 'SİS-7', title: 'Saha ağ omurgası fiber çekimi', who: 'Mert Aydın', start: '15.08.2026', old: '10.09.2026', neu: '31.10.2026', delta: '+51 gün',
+        reason: 'Fiber kablo tedarikçisinin teslimatı 6 hafta gecikti; eksik makaralar 24.10’da sahada olacak, çekim ve test bir hafta sürüyor.',
+        sent: '19.10.2026', sentRel: '2 gün önce', status: 'Bekliyor', badge: 't-badge--gold', note: 'yönetici incelemesinde' },
+      { id: 'SİS-3', title: 'Etkinlik mobil uygulaması yayını', who: 'Elif Sarı', start: '14.09.2026', old: '09.10.2026', neu: '16.10.2026', delta: '+7 gün',
+        reason: 'Uygulama mağazası incelemesi ikinci tura kaldı; konum izni metni yeniden yazılıp gönderildi.',
+        sent: '08.10.2026', sentRel: '13 gün önce', status: 'Onaylandı', badge: 't-badge--accent', note: '14.10 · yayın 16.10’u geçmesin' },
+      { id: 'SİS-2', title: 'Yazılım lisans alımları', who: 'Emre Koç', start: '07.09.2026', old: '30.09.2026', neu: '14.10.2026', delta: '+14 gün',
+        reason: 'Satın alma birimindeki ikinci imza gecikti; lisans teklifleri yeniden fiyatlanıyor.',
+        sent: '25.09.2026', sentRel: '26 gün önce', status: 'Reddedildi', badge: 't-badge--danger', note: '26.09 · sezon takvimi sabit' }
+    ];
+
+    return { theme: this.props.theme ?? 'dark', sbctx, months, weeks, groups, density, reqs,
+      todayP: (TODAY / TOTAL).toFixed(4), winL: sOff(0), winW: (TOTAL / SDAYS * 100).toFixed(2) + '%', todayO: sOff(TODAY) };
+  }
+}
+</script>
+</body>
+</html>
