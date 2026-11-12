@@ -12,7 +12,7 @@ Kaynak: `../../tasarim/kaynak/Main.dc.html` + `ozellikler.md`. Tasarım bir prot
 
 | Kimlik | Öğe | Hedef | Faz / v1 | Not |
 |---|---|---|---|---|
-| E-01-02 | "Silinen kayıtlar" | bilinmiyor — silinen görevler listesi olabilir | bilinmiyor | **Varsayım:** `listDeletedWorkItems` ekranı (yönetici). Tasarımda hedef ekran yok. Sayaç (`deleted_records`) görev, toplantı, departman ve şirket geneli hesapları tek sayıda toplar; tek hedef liste yoktur (`backend.md` E-01-02). |
+| E-01-02 | "Silinen kayıtlar" | → 12 (P36): `/silinen-kayitlar` (F5; yalnız yönetici) | → 12 (P36) | **Varsayım:** `listDeletedWorkItems` ekranı (yönetici). Tasarımda hedef ekran yok → 12 (P36): ayrı ekran, tür segmenti (Görev, Toplantı, Koordinatörlük, Kullanıcı). Sayaç (`deleted_records`) görev, toplantı, departman ve şirket geneli hesapları tek sayıda toplar; tek hedef liste yoktur (`backend.md` E-01-02). |
 | E-01-04 | KPI "Tamamlanma" | 03 Görevler, süzgeç "bitti" | F1 | **Varsayım:** süzgeç URL'de (`/gorevler?durum=…`); süzgeç adları 03'ün `mekanizma.md`'siyle hizalanmalı. |
 | E-01-05 | KPI "Açık görev" | 03 Görevler, süzgeç "açık" | F1 | aynı varsayım |
 | E-01-06 | KPI "Gecikmede" | 03 Görevler, süzgeç "gecikmede" | F1 | aynı varsayım |
