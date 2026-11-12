@@ -45,6 +45,7 @@ Açık tema varyantları (A1–A4) ayrı grup değildir; ilgili grubun `ozellikl
 | `09-toplantilar` | 09 · Toplantılar; 09b · Toplantı › Haftalık koordinasyon; 09c · Toplantı › Pencereler; 09d · Görüşme (tam ekran); 09e · Küçültülmüş görüşme | F4 (09d/09e statik) | ✓ |
 | `10-mesajlar` | 10 · Mesajlar › Genel grup; 10b · Üye görünümü; 10c · Pencereler; A3 · Açık tema › Mesajlar | F7 | — |
 | `11-tablolar` | 11 · Tablolar; 11b · Fuar haftası vardiya planı; 11c · Paylaş; 11d · Tablo bağlantısı; 11e · Birlikte çalışma; A4 · Açık tema › Tablo | sonra | — |
+| `12-silinen-kayitlar` | 01d · Silinen kayıtlar › seçilen · silinme tarihi sütunu (01c önceki seçenek) | F5 | — |
 
 Dosya adı → artboard eşlemesi `../tasarim/kaynak/canvas.json` içindedir (`boards[*].title`).
 
@@ -95,6 +96,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `09-toplantilar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `10-mesajlar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
+| `12-silinen-kayitlar` | taslak (W119) | taslak (W119) | taslak (W119) | taslak (W119) | taslak (W119) | — |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,

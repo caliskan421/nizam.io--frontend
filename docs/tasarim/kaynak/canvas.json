@@ -50,6 +50,14 @@
       "x": 1520,
       "y": -1560
     },
+    "Silinen-Kayitlar.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "title": "01c · Silinen kayıtlar › önceki seçenek · günlük gruplar",
+      "w": 1440,
+      "x": 4560,
+      "y": -1560
+    },
     "Koordinatorluk-Detay.dc.html": {
       "expand": "fill",
       "h": 1500,
@@ -246,6 +254,147 @@
       "w": 1440,
       "h": 1260,
       "title": "11e · Tablo › Birlikte çalışma"
+    },
+    "Sablon-KayitListesi.dc.html": {
+      "x": 6080,
+      "y": -1560,
+      "w": 1440,
+      "h": 2200,
+      "expand": "fill",
+      "title": "Şablon · Kayıt listesi sayfası (Silinen kayıtlardan)"
+    },
+    "Silinen-Kayitlar-Tarih.dc.html": {
+      "x": 7600,
+      "y": -1560,
+      "w": 1440,
+      "h": 1500,
+      "expand": "fill",
+      "title": "01d · Silinen kayıtlar › seçilen · silinme tarihi sütunu"
+    },
+    "Uye-Ana.dc.html": {
+      "x": -74,
+      "y": 18900,
+      "w": 1440,
+      "h": 2100,
+      "expand": "fill",
+      "title": "Ü1 · Üye › Ana sayfa"
+    },
+    "Uye-Gorevler.dc.html": {
+      "x": 1446,
+      "y": 18900,
+      "w": 1440,
+      "h": 1700,
+      "expand": "fill",
+      "title": "Ü2 · Üye › Görevlerim"
+    },
+    "Uye-Gorev-Pencereler.dc.html": {
+      "x": 2966,
+      "y": 18900,
+      "w": 1440,
+      "h": 1500,
+      "title": "Ü3 · Üye › Görev pencereleri"
+    },
+    "Uye-Zaman.dc.html": {
+      "x": 4486,
+      "y": 18900,
+      "w": 1440,
+      "h": 1300,
+      "expand": "fill",
+      "title": "Ü4 · Üye › Zaman çizelgem"
+    },
+    "Uye-Toplanti.dc.html": {
+      "x": 6006,
+      "y": 18900,
+      "w": 1440,
+      "h": 1500,
+      "expand": "fill",
+      "title": "Ü5 · Üye › Toplantı detayı"
+    },
+    "Uye-Dosyalar.dc.html": {
+      "x": 7526,
+      "y": 18900,
+      "w": 1440,
+      "h": 1400,
+      "expand": "fill",
+      "title": "Ü6 · Üye › Dosyalarım"
+    },
+    "Uye-Profil.dc.html": {
+      "x": 9046,
+      "y": 18900,
+      "w": 1440,
+      "h": 1300,
+      "expand": "fill",
+      "title": "Ü7 · Üye › Bildirimler ve profil"
+    },
+    "Koord-Ana.dc.html": {
+      "x": -74,
+      "y": 21700,
+      "w": 1440,
+      "h": 2300,
+      "expand": "fill",
+      "title": "K1 · Koordinatör › Ana sayfa"
+    },
+    "Koord-Birim.dc.html": {
+      "x": 1446,
+      "y": 21700,
+      "w": 1440,
+      "h": 1600,
+      "expand": "fill",
+      "title": "K2 · Koordinatör › Birimim"
+    },
+    "Koord-Gorevler.dc.html": {
+      "x": 2966,
+      "y": 21700,
+      "w": 1440,
+      "h": 1800,
+      "expand": "fill",
+      "title": "K3 · Koordinatör › Görevler (birim)"
+    },
+    "Koord-Gorev-Pencereler.dc.html": {
+      "x": 4486,
+      "y": 21700,
+      "w": 1440,
+      "h": 1800,
+      "title": "K4 · Koordinatör › Görev pencereleri"
+    },
+    "Koord-Ekip.dc.html": {
+      "x": 6006,
+      "y": 21700,
+      "w": 1440,
+      "h": 1500,
+      "expand": "fill",
+      "title": "K5 · Koordinatör › Ekibim"
+    },
+    "Koord-Zaman.dc.html": {
+      "x": 7526,
+      "y": 21700,
+      "w": 1440,
+      "h": 1900,
+      "expand": "fill",
+      "title": "K6 · Koordinatör › Zaman çizelgesi ve tarih talepleri"
+    },
+    "Koord-Toplanti.dc.html": {
+      "x": 9046,
+      "y": 21700,
+      "w": 1440,
+      "h": 1800,
+      "expand": "fill",
+      "title": "K7 · Koordinatör › Toplantı detayı"
+    },
+    "Koord-Toplantilar.dc.html": {
+      "x": 10566,
+      "y": 21700,
+      "w": 1440,
+      "h": 1500,
+      "expand": "fill",
+      "title": "K8 · Koordinatör › Toplantılar ve pencereler"
+    },
+    "Kenar-Roller.dc.html": {
+      "x": 9120,
+      "y": -1560,
+      "w": 1440,
+      "h": 1400,
+      "title": "Ortak · Kenar menüsü › Admin, Koordinatör, Üye"
     }
   },
   "createdOnFiles": {
@@ -264,13 +413,31 @@
       "w": 240,
       "x": -74,
       "y": 16060
+    },
+    "uyeTitle": {
+      "kind": "title1",
+      "maxW": 10600,
+      "text": "Üye paneli",
+      "x": -74,
+      "y": 18560
+    },
+    "koordTitle": {
+      "kind": "title1",
+      "maxW": 12100,
+      "text": "Koordinatör paneli",
+      "x": -74,
+      "y": 21360
     }
   },
   "order": [
     "Main.dc.html",
     "Islem-Gecmisi.dc.html",
+    "Silinen-Kayitlar.dc.html",
+    "Sablon-KayitListesi.dc.html",
+    "Silinen-Kayitlar-Tarih.dc.html",
     "Sidebar.dc.html",
     "Kenar-Secici.dc.html",
+    "Kenar-Roller.dc.html",
     "Gorevler-Liste.dc.html",
     "Gorevler-Zaman.dc.html",
     "Gorevler-AltGorev.dc.html",
@@ -297,7 +464,22 @@
     "Gorevler-Liste-Acik.dc.html",
     "Mesajlar-Acik.dc.html",
     "Tablo-Detay-Acik.dc.html",
-    "Prototip.dc.html"
+    "Prototip.dc.html",
+    "Uye-Ana.dc.html",
+    "Uye-Gorevler.dc.html",
+    "Uye-Gorev-Pencereler.dc.html",
+    "Uye-Zaman.dc.html",
+    "Uye-Toplanti.dc.html",
+    "Uye-Dosyalar.dc.html",
+    "Uye-Profil.dc.html",
+    "Koord-Ana.dc.html",
+    "Koord-Birim.dc.html",
+    "Koord-Gorevler.dc.html",
+    "Koord-Gorev-Pencereler.dc.html",
+    "Koord-Ekip.dc.html",
+    "Koord-Zaman.dc.html",
+    "Koord-Toplanti.dc.html",
+    "Koord-Toplantilar.dc.html"
   ],
   "pages": [],
   "title": "RoketPortal — Yeniden Tasarım"

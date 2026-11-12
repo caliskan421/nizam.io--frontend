@@ -39,6 +39,8 @@
 
 Hiçbir arşiv durumu `localStorage`'a yazılmaz.
 
+**F5 açılış notu (P33, 2026-11-12).** Yönetici merceğinde klasör durumu açık seçimdir: 06 ızgarası `listProgramDepartments` adlarından kurulur, karta tıklama departmanı S3 başlığı yapar ve rota `/arsiv/:klasorId` olur; keyfî "ilk departman" yoktur. 07'de görev klasörleri `archiveTasks` ∩ `listProgramWorkItems(department_id)` (200 tavan + kesilme uyarısı), dosyalar yalnız seçili görev klasöründe `archiveAttachments?work_item_id=` ile okunur; görev seçilmeden dosya ızgarası ve "Tüm arşivde ara" boş durumda kalır ("Görev klasörü seçin"). Koordinatör ve üye 06'yı atlar (P40). Ayrıntı: `../ortak-kurallar.md` §12 P33, `README.md` kabul tablosu.
+
 ## 4. Etkileşim akışları
 Tüm yazmalar K5 yazma protokolünden geçer (`shared/http/mutation`: 409 çakışma, 429 `Retry-After`, "sonuç bilinmiyor"). Arşiv yazmalarının hiçbirinde `expected_revision` yoktur; `Idempotency-Key` yalnız yüklemede (`attachFile`) vardır, yeniden adlandırma ve silmede **yoktur** (ayrıntı `backend.md` §2).
 

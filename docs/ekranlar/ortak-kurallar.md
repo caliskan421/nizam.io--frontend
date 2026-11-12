@@ -116,7 +116,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P40 2026-11-12) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -127,7 +127,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P3 | Çizilmemiş parçalar | **Ortak bileşenlerle minimum.** Yeni görev formu, durum geçiş menüsü, kişi seçici, koordinatör/üye ana sayfası `shared/ui` ile en sade biçimde; üye "bana atananlar", koordinatör seçili birim, admin KPI. Yeni kuyruk/kısayol icat edilmez; tuvale geri bildirim ayrıca. |
 | P4 | Liste sınırları | **"Daha fazla yükle" + tek departman.** Sayaçlar imleç bitmediyse "yüklenen kayıtlar içinde"; numaralı sayfalayıcı ve toplam BE-003 kapanınca; çoklu koordinatörlük süzgeci yok (K3). |
 | P5 | Durum / kanıt / tarih talebi | **Sözleşmeye uy.** 5 durum sekmesi (`iade_edildi` dahil); herhangi dosya kanıt, yüklemede etiket seçici (kapalı küme); tarih talebi okuma göstergesi F1'de canlı, gönder/onayla F3'e kadar devre dışı; yeni zorunluluk bayrağı yok. |
-| P6 | Yönetici ana sayfası F1 | **KPI + sade özet; kartlar F6.** F1: selamlama, KPI şeridi, hızlı işlemler, nötr "Son işlemler" yer tutucusu; koordinatörlük kartları, ekip şeridi, raporlar F6. |
+| P6 | Yönetici ana sayfası F1 | **KPI + sade özet; kartlar F6.** F1: selamlama, KPI şeridi, hızlı işlemler, nötr "Son işlemler" yer tutucusu; koordinatörlük kartları, ekip şeridi, raporlar F6. (P36 ile E-01-02 "Silinen kayıtlar" düğmesi F5'e alındı.) |
 | P7 | 03 "Kopyala" / toplu seçim | **Kopyala = görev bağlantısını panoya; toplu seçim kutuları gizli** (toplu uç yok). |
 | P9 | Marka satırı | **Sabit "RoketPortal"** (tasarım metni); `instanceProfile.display_name` kullanılmaz. |
 | P10 | Kenar menüsü daraltma | **Yalnız oturum belleği**; K2 izinli anahtar listesi genişlemez (Y9 düşer). |
@@ -153,6 +153,14 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P30 | 09 F4-S10 yetki kaynağı (2026-11-10) | **Ürün sahibi kararı: evet.** Toplantı eylem görünürlüğü meetings README §3/§4 kurallarından kodlanır (`capabilities.ts`); yol haritasına bu istisna yazılır (BE-036 madde 7 belge paketi gelince kaynak değişir). |
 | P31 | Program avatar renkleri (2026-11-10) | **Ürün sahibi kararı: onaylandı.** `avatar-6/7/8` = `#4fd1c5`, `#ff6b6b`, `#94a3b8` kalır. |
 | P8 | Gantt sürükleme (F3) | **Koordinatörde talep, adminde doğrudan.** Koordinatör sürüklemesi `requestDateChange` açar ("değişiklik onaya gider" metni kalır); admin sürüklemesi `updateWorkItem`/`extendWorkItem`; üye sürükleyemez. "İptal et" = gönderim öncesi 5 sn gecikme. Sözleşme koordinatöre doğrudan izin verir; bu ürün tercihidir ve `capabilities.ts`'te kodlanır. |
+| P33 | 06/07 yönetici merceği, BE-072 çözülmeden (2026-11-12) | **Ürün sahibi kararı.** Yönetici için keyfî "ilk departman" teknik başlığı YOK (Codex §8 reddi korunur). 06 koordinatörlük ızgarası yönetici için `listProgramDepartments` (S2) adlarından kurulur; dosya/görev sayısı, boyut, son yükleme bu merceğte statik (`—`, designStub BE-072/BE-025). Yönetici bir klasöre tıklayınca o departman **açık seçimle** S3 başlığı olur (rota `/arsiv/:klasorId`); 07'de ağaç `archiveFolders` (yönetici tüm klasörleri görür), görev klasörleri `archiveTasks` ∩ `listProgramWorkItems(department_id)` (200 tavan + kesilme uyarısı; geçici yol, eksikler §3), dosyalar yalnız seçili görev klasöründe `archiveAttachments?work_item_id=` ile (başlık doğru, indir/adlandır çalışır). Yönetici için klasör düzeyi "Son eklenen dosyalar" ve "Tüm arşivde ara" statik/boş durum ("Görev klasörü seçin"). Koordinatör ve üye tamamen canlı (tek klasör). BE-072 açık kalır, rapor-F5'te yine raporlanır. |
+| P34 | Etiketler (2026-11-12) | **Ürün sahibi kararı.** Kapalı küme Türkçe adlarla: İster, Plan, Girdi, Analiz, Çıktı, Sonuç (`ister/plan/girdi/analiz/cikti/sonuc`); renk istemci sözlüğünden. "Yeni etiket" formu tasarımda kalır, devre dışı (designStub BE-024). Tasarımdaki "Saha görselleri" vb. adlar kullanılmaz. |
+| P35 | Yükleme (2026-11-12) | **Ürün sahibi kararı.** "Dosya yükle" (06) ve "Yükle" (07) ortak bileşenlerle görev seçtiren pencere açar: görev seçici (arşivde görünen görevler), zorunlu etiket, sürükle-bırak; yetki v0.15 ADR-0030. Göreve bağsız yükleme (BE-069) açık kalır. |
+| P36 | Silinen kayıtlar (2026-11-12) | **Ürün sahibi kararı.** Tasarıma eklenen "01d · Silinen kayıtlar › seçilen · silinme tarihi sütunu" (`Silinen-Kayitlar-Tarih.dc.html`) **F5 kapsamında ayrı ekran** olur; yeni ekran grubu `docs/ekranlar/12-silinen-kayitlar/` (tespit W119). 01c (`Silinen-Kayitlar.dc.html`, günlük gruplar) önceki seçenektir, uygulanmaz; `Sablon-KayitListesi` yalnız şablon referansıdır. Pinli v0.15 ile canlı türler: görev, toplantı, departman, hesap (liste + geri yükle + kalıcı sil); dosya, alt görev, not/gündem türleri ile çöpü boşalt, CSV, toplu seçim/işlem ve "birlikte geri gelecek" sayaçları (dosya sayısı hariç) statik/devre dışı, BE olarak raporlanır. **P6 düzeltmesi:** ana sayfa E-01-02 "Silinen kayıtlar" düğmesi F5'te canlanır (yalnız şirket yöneticisi; sayaç `reportDashboard.deleted_records`; hedef rota `/silinen-kayitlar`); kartlar/ekip şeridi/raporlar F6'da kalır. Yalnız yönetici görür. |
+| P37 | Saklama metni (2026-11-12) | **Ürün sahibi kararı.** Backend'de saklama süresi ve otomatik temizlik yok. Metin: "Silinen kayıtlar bir yönetici kalıcı olarak silene kadar saklanır." "Kalan süre" sütunu ve "Yakında kalıcı silinecek" kartı gizli; "silinme tarihi" sütunu canlı. Saklama politikası BE olarak raporlanır (ürün kararı ister). |
+| P38 | 06 alt başlık (2026-11-12) | **Ürün sahibi kararı.** "Görevlere yüklenen dosyalar" ("Kurumsal hafıza" metni kullanılmaz; BE-033 ad çakışması). |
+| P39 | "grup" / "çalışma grubu" rozeti (2026-11-12) | **Ürün sahibi kararı: gizli** (düz departman v1, K14). |
+| P40 | Koordinatör ve üye 06 (2026-11-12) | **Ürün sahibi kararı.** 06'yı atlayıp doğrudan kendi klasörüne (07) yönlenir (`/arsiv` → `/arsiv/<folder_id>`; üyede `my-tasks`). |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 

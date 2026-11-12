@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Koordinatör görev pencereleri</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.rp-kp-cell{display:flex; flex-direction:column; gap:12px; min-width:0}
+.rp-kp-cell > .t-modal{width:100%; max-width:none; gap:20px}
+.rp-kp-cell > .t-modal .t-modal__body{gap:16px}
+.rp-kp-tag{display:inline-flex; align-items:center; gap:8px}
+.rp-kp-ta{height:auto; min-height:76px; padding:10px 14px; resize:vertical; display:block}
+.rp-kp-pair{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px}
+.rp-kp-fs{margin:0; padding:0; border:0; min-width:0; display:flex; flex-direction:column; gap:8px}
+.rp-kp-fs > legend{padding:0; margin-bottom:8px}
+.rp-kp-req{margin-left:6px; font-family:var(--font-mono); font-size:11px; font-weight:500; color:var(--ink-faint)}
+.rp-kp-picker{display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:var(--control-md); padding:5px 6px; border:1px solid var(--border-control); border-radius:var(--radius-md); background:var(--bg-surface); box-sizing:border-box}
+.rp-kp-picker input{flex:1 1 120px; min-width:0; height:28px; border:0; background:transparent; color:var(--ink); font-family:var(--font-sans); font-size:14px; padding:0 6px; outline:none}
+.rp-kp-picker input::placeholder{color:var(--ink-faint)}
+.rp-kp-picker .rp-av{width:20px; height:20px; font-size:9px}
+.rp-kp-dep{display:inline-flex; align-items:center; gap:8px; height:32px; padding:0 10px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:var(--bg-raised); font-size:13px; white-space:nowrap}
+.rp-kp-dep--bad{border-color:color-mix(in srgb, var(--danger) 55%, var(--border-subtle))}
+.rp-kp-alert{display:grid; grid-template-columns:20px minmax(0,1fr); gap:10px; padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:19px}
+.rp-kp-alert svg{margin-top:0}
+.rp-kp-alert--danger{background:color-mix(in srgb, var(--danger) 12%, transparent); border:1px solid color-mix(in srgb, var(--danger) 45%, transparent); color:var(--ink)}
+.rp-kp-alert--danger svg{color:var(--danger)}
+.rp-kp-alert--info{background:var(--bg-raised); border:1px solid var(--border-subtle); color:var(--ink-muted)}
+.rp-kp-alert--info svg{color:var(--accent-text)}
+.rp-kp-alert strong{color:var(--ink); font-weight:600}
+.rp-kp-swrow{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; padding:12px 14px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-kp-swrow p{margin:0}
+.rp-kp-swtitle{font-size:14px; line-height:20px; font-weight:600}
+.rp-kp-files{display:flex; flex-direction:column; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden}
+.rp-kp-file{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:12px; align-items:center; padding:8px 12px; font-size:13px}
+.rp-kp-file + .rp-kp-file{border-top:1px solid var(--border-subtle)}
+.rp-kp-mime{display:inline-flex; align-items:center; justify-content:center; height:22px; border-radius:6px; background:var(--bg-overlay); color:var(--ink-muted); font-family:var(--font-mono); font-size:10.5px; font-weight:500; letter-spacing:0.02em}
+.rp-kp-filechips{display:flex; flex-wrap:wrap; gap:6px}
+.rp-kp-result{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden}
+.rp-kp-result > div{display:flex; flex-direction:column; gap:2px; padding:10px 14px}
+.rp-kp-result > div + div{border-left:1px solid var(--border-subtle)}
+.rp-kp-result strong{font-family:var(--font-mono); font-size:15px; line-height:20px; font-weight:500}
+.rp-kp-taskrow{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; padding:12px 14px; border-radius:var(--radius-md); background:var(--bg-raised)}
+.rp-kp-taskrow b{font-weight:600}
+.rp-kp-arrow{display:grid; grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr); gap:10px; align-items:end}
+.rp-kp-arrow > svg{margin-bottom:10px; color:var(--ink-faint)}
+.rp-kp-ro{display:flex; align-items:center; height:var(--control-md); padding:0 14px; border:1px dashed var(--border-control); border-radius:var(--radius-md); color:var(--ink-muted); font-family:var(--font-mono); font-size:13px; box-sizing:border-box}
+.rp-kp-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px}
+.rp-kp-foot > div{display:flex; gap:12px; margin-left:auto}
+.rp-kp-rule{display:flex; flex-direction:column; gap:4px; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.rp-kp-rule h3{margin:0; font-size:14px; line-height:20px; font-weight:600}
+.rp-kp-rule p{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="width:1440px; min-height:1800px; box-sizing:border-box; padding:56px 56px 48px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:32px">
+
+<header style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px">
+<div style="display:flex; flex-direction:column; gap:10px; max-width:900px">
+<p class="rp-kicker">K4 · Koordinatör · görev pencereleri</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Oluştur, onayla, iade et, tarih iste</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Koordinatörün görev akışındaki dört karar penceresi, açık hâlleriyle. Sistem koordinatörlüğü · koordinatör olarak yalnız SİS görevlerinde açılır; plan tarihini değiştirmek yöneticinin işidir.</p>
+</div>
+<a class="rp-link" href="Koord-Gorevler.dc.html">Görevler tablosuna dön<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+</header>
+
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:24px; align-items:start">
+
+<!-- 1. Yeni görev -->
+<section class="rp-kp-cell" aria-label="Yeni görev penceresi">
+<div class="t-modal" role="dialog" aria-modal="false" aria-labelledby="yg-title">
+<div class="t-modal__head">
+<div>
+<p class="rp-kicker" style="margin-bottom:4px">SİS · Sistem koordinatörlüğü</p>
+<h2 class="t-modal__title" id="yg-title">Yeni görev</h2>
+<p class="t-modal__desc">Görev SİS altında açılır; sorumlulara atama bildirimi gider.</p>
+</div>
+<button type="button" class="t-iconbtn" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-field">
+<label class="t-label" for="yg-baslik" style="margin:0">Başlık<span class="rp-kp-req">zorunlu</span></label>
+<input class="t-input" id="yg-baslik" type="text" value="Saha kablosuz ağ erişim noktaları kurulumu">
+</div>
+<div class="rp-field">
+<label class="t-label" for="yg-aciklama" style="margin:0">Açıklama</label>
+<textarea class="t-input rp-kp-ta" id="yg-aciklama" rows="3">Fuar alanındaki 14 erişim noktasının montajı, PoE anahtarlara bağlanması ve kapsama ölçümü. Ölçüm raporu kanıt olarak yüklenecek.</textarea>
+</div>
+<fieldset class="rp-kp-fs">
+<legend class="t-label">Öncelik</legend>
+<div class="rp-seg" role="group" aria-label="Öncelik">
+<button type="button" aria-pressed="false">Düşük</button>
+<button type="button" aria-pressed="false">Orta</button>
+<button type="button" aria-pressed="true">Yüksek</button>
+<button type="button" aria-pressed="false">Acil</button>
+</div>
+</fieldset>
+<div class="rp-field">
+<label class="t-label" for="yg-kisi" style="margin:0">Sorumlular</label>
+<div class="rp-kp-picker">
+<sc-for list="{{ assignees }}" as="p" hint-placeholder-count="2">
+<span class="t-chip"><span class="rp-av">{{ p.ini }}</span>{{ p.name }}<button type="button" class="t-chip__x" aria-label="{{ p.removeLabel }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:12px; height:12px"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+</sc-for>
+<input id="yg-kisi" type="text" placeholder="Kişi ekle">
+</div>
+<p class="rp-cap" style="margin:0">Havuz: SİS ekibi 7 kişi. Başka birimden kişi atanmaz.</p>
+</div>
+<div class="rp-kp-pair">
+<div class="rp-field">
+<label class="t-label" for="yg-bas" style="margin:0">Başlangıç</label>
+<input class="t-input rp-mono" id="yg-bas" type="text" value="25.10.2026" aria-invalid="true" aria-describedby="yg-cakisma">
+</div>
+<div class="rp-field">
+<label class="t-label" for="yg-bit" style="margin:0">Bitiş</label>
+<input class="t-input rp-mono" id="yg-bit" type="text" value="06.11.2026">
+</div>
+</div>
+<fieldset class="rp-kp-fs">
+<legend class="t-label">Bağımlılıklar <span class="rp-kp-req">bu görev, bunlar bitmeden başlayamaz</span></legend>
+<div class="rp-chiprow" style="gap:8px">
+<span class="rp-kp-dep"><span class="rp-dot rp-dot--done"></span><span class="rp-mono">SİS-4</span><span>Kabin ve raf montajı</span><span class="rp-cap">tamamlandı</span></span>
+<span class="rp-kp-dep rp-kp-dep--bad"><span class="rp-dot rp-dot--doing"></span><span class="rp-mono">ELE-2</span><span>Elektrik ve enerji</span><span class="rp-cap">devam ediyor · bitiş 28.10</span></span>
+<button type="button" class="rp-chipbtn"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Görev ekle</button>
+</div>
+<p class="rp-cap" style="margin:0">Başka koordinatörlüklerin görevleri de seçilebilir.</p>
+</fieldset>
+<div class="rp-kp-alert rp-kp-alert--danger" id="yg-cakisma" role="alert">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><path d="M12 4l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+<div><strong>Tarih çakışması.</strong> ELE-2'nin bitişi (28.10) bu görevin başlangıcından (25.10) sonra. Başlangıcı 28.10 sonrasına al ya da bağımlılığı kaldır; o zamana kadar Oluştur kilitli.</div>
+</div>
+<div class="rp-kp-swrow">
+<div>
+<p class="rp-kp-swtitle" id="yg-kanit-l">Kanıt dosyası zorunlu</p>
+<p class="rp-cap">Üye en az 1 dosya yüklemeden onaya gönderemez.</p>
+</div>
+<button type="button" class="rp-switch" role="switch" aria-checked="true" aria-labelledby="yg-kanit-l"><span></span></button>
+</div>
+</div>
+<div class="rp-kp-foot">
+<span class="rp-cap rp-danger-text">1 çakışma çözülmeli</span>
+<div>
+<button type="button" class="t-btn t-btn--ghost">Vazgeç</button>
+<button type="button" class="t-btn t-btn--primary" disabled aria-describedby="yg-cakisma"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Oluştur</button>
+</div>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Görevler sayfasındaki "Yeni görev" düğmesinden açılır. Tarih çakışması varken birincil düğme kilitlenir ve çakışan bağımlılık kırmızı çerçeve alır.</p>
+</section>
+
+<!-- 2. Onayla -->
+<section class="rp-kp-cell" aria-label="Onayla penceresi">
+<div class="t-modal" role="dialog" aria-modal="false" aria-labelledby="on-title">
+<div class="t-modal__head">
+<div>
+<p class="rp-kicker rp-kp-tag" style="margin-bottom:4px"><span class="rp-dot rp-dot--review"></span>SİS-9 · Onay bekliyor</p>
+<h2 class="t-modal__title" id="on-title">Ağ omurgası kablolaması onaylansın mı?</h2>
+<p class="t-modal__desc">Zeynep Kaya 21.10.2026 11:40'ta onaya sundu. Alt görevler 4/4 tamam.</p>
+</div>
+<button type="button" class="t-iconbtn" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-field">
+<div style="display:flex; justify-content:space-between; align-items:center">
+<p class="t-label" style="margin:0">Kanıt · 4 dosya</p>
+<a class="rp-link" href="#">Hepsini indir</a>
+</div>
+<div class="rp-kp-files">
+<sc-for list="{{ files }}" as="f" hint-placeholder-count="4">
+<div class="rp-kp-file"><span class="rp-kp-mime">{{ f.mime }}</span><span class="rp-trunc">{{ f.name }}</span><span class="rp-cap rp-mono">{{ f.size }}</span></div>
+</sc-for>
+</div>
+</div>
+<div class="rp-kp-swrow">
+<div>
+<p class="rp-kp-swtitle" id="on-cek-l">Bitiş tarihini bugüne çek</p>
+<p class="rp-cap">Tamamlanma 21.10 olarak yazılır; plan tarihi 20.10 saklanır.</p>
+</div>
+<button type="button" class="rp-switch" role="switch" aria-checked="true" aria-labelledby="on-cek-l"><span></span></button>
+</div>
+<div class="rp-kp-result" aria-label="Tarih sonucu">
+<div><span class="rp-cap">Plan</span><strong>20.10</strong></div>
+<div><span class="rp-cap">Tamamlanma</span><strong>21.10</strong></div>
+<div><span class="rp-cap">Sonuç</span><strong class="rp-danger-text">1 gün geç</strong></div>
+</div>
+<div class="rp-field">
+<label class="t-label" for="on-not" style="margin:0">Onay notu <span class="rp-kp-req">isteğe bağlı</span></label>
+<input class="t-input" id="on-not" type="text" placeholder="Ekibe kısa bir not bırak">
+</div>
+<div class="rp-kp-alert rp-kp-alert--info">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+<div>Zeynep Kaya ve Mert Aydın'a onay bildirimi gider; bağımlı görevler (<strong>SİS-11</strong>) başlatılabilir olur.</div>
+</div>
+</div>
+<div class="rp-kp-foot">
+<div>
+<button type="button" class="t-btn t-btn--ghost">Vazgeç</button>
+<button type="button" class="t-btn t-btn--primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Onayla</button>
+</div>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Onay görevi kapatır; geri alınamaz. Anahtar kapalıysa tamamlanma tarihi plan bitişi (20.10) kalır ve görev zamanında sayılır.</p>
+</section>
+
+<!-- 3. İade et -->
+<section class="rp-kp-cell" aria-label="İade et penceresi">
+<div class="t-modal" role="dialog" aria-modal="false" aria-labelledby="ia-title">
+<div class="t-modal__head">
+<div>
+<p class="rp-kicker rp-kp-tag" style="margin-bottom:4px"><span class="rp-dot rp-dot--review"></span>SİS-9 · Onay bekliyor</p>
+<h2 class="t-modal__title" id="ia-title">İade et</h2>
+<p class="t-modal__desc">Ağ omurgası kablolaması · atananlar Zeynep Kaya, Mert Aydın</p>
+</div>
+<button type="button" class="t-iconbtn" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-field">
+<label class="t-label" for="ia-sebep" style="margin:0">İade sebebi<span class="rp-kp-req">zorunlu</span></label>
+<textarea class="t-input rp-kp-ta" id="ia-sebep" rows="3" required aria-describedby="ia-sayac">Topoloji çiziminin güncel hali eksik. B blok kat dağıtım dolabı bağlantısı çizimde görünmüyor; revize çizimi ekleyip tekrar gönderin.</textarea>
+<p class="rp-cap" id="ia-sayac" style="margin:0; text-align:right"><span class="rp-mono">133 / 1000</span></p>
+</div>
+<div class="rp-field">
+<p class="t-label" style="margin:0">İncelenen kanıt · 4 dosya</p>
+<div class="rp-kp-filechips">
+<sc-for list="{{ files }}" as="f" hint-placeholder-count="4">
+<span class="t-chip t-chip--static"><span class="rp-kp-mime" style="height:18px; padding:0 5px; margin-right:4px">{{ f.mime }}</span>{{ f.short }}</span>
+</sc-for>
+</div>
+</div>
+<div class="rp-kp-alert rp-kp-alert--info">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+<div>Görev <strong>İade edildi</strong> olur, atanan "Tekrar başla" ile devam ettirir. Sebep, görev panelinde iade notu olarak görünür; dosyalar silinmez.</div>
+</div>
+</div>
+<div class="rp-kp-foot">
+<div>
+<button type="button" class="t-btn t-btn--ghost">Vazgeç</button>
+<button type="button" class="t-btn t-btn--danger"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>İade et</button>
+</div>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Sebep alanı boşken "İade et" kilitlidir. Zeynep Kaya ve Mert Aydın'a iade bildirimi sebeple birlikte gider.</p>
+</section>
+
+<!-- 4. Tarih değişikliği talebi -->
+<section class="rp-kp-cell" aria-label="Tarih değişikliği talebi penceresi">
+<div class="t-modal" role="dialog" aria-modal="false" aria-labelledby="tt-title">
+<div class="t-modal__head">
+<div>
+<p class="rp-kicker" style="margin-bottom:4px">Yöneticiye · onay gerektirir</p>
+<h2 class="t-modal__title" id="tt-title">Tarih değişikliği talebi</h2>
+<p class="t-modal__desc">Plan tarihini değiştirmek için yöneticiden onay istersin.</p>
+</div>
+<button type="button" class="t-iconbtn" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div class="t-modal__body">
+<div class="rp-kp-taskrow">
+<span class="rp-dot rp-dot--late"></span>
+<div style="min-width:0"><b>Sunucu odası iklimlendirme</b> <span class="rp-mono rp-muted">SİS-7</span><div class="rp-cap">Mevcut plan <span class="rp-mono">10.09.2026 → 30.09.2026</span></div></div>
+<span class="rp-cap rp-danger-text rp-nowrap">21 gün gecikti</span>
+</div>
+<div class="rp-kp-arrow">
+<div class="rp-field">
+<label class="t-label" for="tt-bas" style="margin:0">Yeni başlangıç</label>
+<input class="t-input rp-mono" id="tt-bas" type="text" value="10.09.2026">
+</div>
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+<div class="rp-field">
+<label class="t-label" for="tt-bit" style="margin:0">Yeni bitiş</label>
+<input class="t-input rp-mono" id="tt-bit" type="text" value="31.10.2026">
+</div>
+</div>
+<p class="rp-cap" style="margin:-8px 0 0">Bitiş 31 gün ileri alınıyor.</p>
+<div class="rp-field">
+<label class="t-label" for="tt-sebep" style="margin:0">Sebep<span class="rp-kp-req">zorunlu</span></label>
+<textarea class="t-input rp-kp-ta" id="tt-sebep" rows="3" required>Split klima dış ünitelerinin tedarikçi teslimi 24.10'a kaydı. Montaj ve devreye alma için bir hafta gerekiyor.</textarea>
+</div>
+<div class="rp-kp-alert rp-kp-alert--info">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+<div>Plan tarihini doğrudan değiştiremezsin; talep yönetici onayına gider, sonuç bildirimle döner. Beklerken görev eski tarihle gecikmede görünür.</div>
+</div>
+<div class="rp-kp-swrow">
+<div>
+<p class="rp-kp-swtitle">Alternatif: Süre uzat</p>
+<p class="rp-cap">Bitişe gün ekler, onay gerekmez · 7 güne kadar</p>
+</div>
+<a class="t-btn t-btn--secondary t-btn--sm" href="Koord-Gorevler.dc.html" style="text-decoration:none">Süre uzat</a>
+</div>
+</div>
+<div class="rp-kp-foot">
+<div>
+<button type="button" class="t-btn t-btn--ghost">Vazgeç</button>
+<button type="button" class="t-btn t-btn--primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"></path></svg>Talebi gönder</button>
+</div>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Görev panelinin üç nokta menüsünden ("Tarih talebi gönder") açılır. Bekleyen talep Ana sayfadaki "Tarih taleplerim" kartında izlenir.</p>
+</section>
+
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px">
+<div class="rp-kp-rule"><h3>Onay = kapanış</h3><p>Görev yalnız koordinatör onayıyla Tamamlandı olur. İade edilen görev atanana döner; koordinatörün kendi görevinde onay adımı yoktur.</p></div>
+<div class="rp-kp-rule"><h3>Tarih talebi yöneticiye</h3><p>Plan tarihi koordinatörde kilitlidir. Değişiklik talep olarak yöneticiye gider; 7 güne kadar uzatma için Süre uzat yeterlidir.</p></div>
+<div class="rp-kp-rule"><h3>Çakışmada oluşturma kilitli</h3><p>Bağımlı görevin bitişi yeni görevin başlangıcından sonraysa Oluştur açılmaz. Başka koordinatörlüklerin görevleri de bu kontrole girer.</p></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const assignees = [
+      { ini: 'ZK', name: 'Zeynep Kaya' },
+      { ini: 'MA', name: 'Mert Aydın' }
+    ].map((p) => ({ ...p, removeLabel: p.name + ' kişisini kaldır' }));
+    const files = [
+      { mime: 'PDF', name: 'Omurga topoloji çizimi rev2.pdf', short: 'Topoloji rev2', size: '2,4 MB' },
+      { mime: 'XLS', name: 'Port eşleme tablosu.xlsx', short: 'Port eşleme', size: '186 KB' },
+      { mime: 'IMG', name: 'A blok dağıtım dolabı.jpg', short: 'A blok dolap', size: '4,1 MB' },
+      { mime: 'PDF', name: 'Fiber ölçüm raporu.pdf', short: 'Fiber ölçüm', size: '1,2 MB' }
+    ];
+    return { theme: this.props.theme ?? 'dark', assignees, files };
+  }
+}
+</script>
+</body>
+</html>
