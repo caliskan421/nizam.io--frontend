@@ -61,10 +61,12 @@
 	# <meta name="csp-nonce"> öğesine AYNI istekte yazılır; PrimeVue enjekte ettiği <style>
 	# öğelerine bu nonce'u koyar. 'unsafe-inline' ve 'unsafe-eval' yoktur. Turnstile alanları
 	# script-src/frame-src'dedir. Belge önbelleğe alınmaz (nonce her istekte yenidir).
+	# img-src 'blob:' (W124, koordinatör kararı 2026-11-12): arşiv önizlemesi yalnız aynı kökenden
+	# Authorization'la okunan raster gövdenin blob: URL'sidir; başka kaynak/yönerge gevşemez.
 	handle {
 		rewrite * /index.html
 		header Cache-Control "no-store"
-		header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'nonce-{http.request.uuid}'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'nonce-{http.request.uuid}'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 		templates {
 			mime text/html
 		}
