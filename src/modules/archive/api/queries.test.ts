@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 
+import type { ArchiveFileFilters } from '../model/types'
 import { queryKeys } from '@/shared/http/query-keys'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 
@@ -168,7 +169,7 @@ describe('archiveAttachments — imleç, süzgeç, "n+"', () => {
   it('süzgeç değişince imleç sıfırlanır: yeni süzgeç imleçsiz ilk sayfadan başlar', async () => {
     server.use(pages())
     const h = harness(COORD)
-    const filters = ref<{ tag?: 'plan' | 'girdi' }>({ tag: 'plan' })
+    const filters = ref<ArchiveFileFilters>({ tag: 'plan' })
     const { result } = h.run(() => useArchiveAttachments(coordTarget, filters))
     await settleQueries(h.queryClient)
     await result.loadMore()

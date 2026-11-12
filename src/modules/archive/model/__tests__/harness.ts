@@ -142,11 +142,11 @@ export const ADMIN: ScopeSelection = { programId: 'p1', lens: 'admin', departmen
 export const COORD: ScopeSelection = { programId: 'p1', lens: 'coordinator', departmentId: 'd1' }
 export const MEMBER: ScopeSelection = { programId: 'p1', lens: 'member', departmentId: 'd1' }
 
-export function folder(over: Record<string, unknown> = {}) {
+export function folder(over: object = {}) {
   return { folder_id: 'd1', name: 'Koordinatörlük 1', file_count: 3, is_virtual: false, ...over }
 }
 
-export function archiveFile(over: Record<string, unknown> = {}) {
+export function archiveFile(over: object = {}) {
   return {
     file_id: 'f1',
     work_item_id: 'w1',
