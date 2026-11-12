@@ -30,6 +30,8 @@ export interface ArchiveState {
   ticket: 'ok' | 'rate-limited' | 'target-invalid'
   redeem: 'ok' | 'too-large' | 'too-many' | 'rate-limited'
   tickets: Map<string, { path: string; department: string }>
+  /** Yanıtı bekletilen istekler (arşiv uçları harness `hold`unun önüne geçtiği için burada). */
+  holds: Array<{ method: string; path: string; gate: Promise<void>; arrived: () => void }>
 }
 
 export function createArchiveState(): ArchiveState {
@@ -41,6 +43,7 @@ export function createArchiveState(): ArchiveState {
     ticket: 'ok',
     redeem: 'ok',
     tickets: new Map(),
+    holds: [],
   }
 }
 
@@ -254,7 +257,7 @@ async function createFile(f: Fake, request: Request, workId: string, g: Gate) {
     workId,
     work.department_id,
     g.account.account_id,
-    await uploadFields(request, tag),
+    uploadFields(request, tag),
   )
   state.files.push(created)
   state.keys.set(key, created)
@@ -265,12 +268,17 @@ async function createFile(f: Fake, request: Request, workId: string, g: Gate) {
   return json(item(created), 201)
 }
 
-async function uploadFields(request: Request, tag: string): Promise<Partial<FakeFile>> {
-  const upload = (await request.formData()).get('file') as File | null
+/**
+ * Yüklenen dosya alanları. Gövde OKUNMAZ: jsdom `FormData` gövdesi undici akışında `text()` /
+ * `formData()` ile askıda kalır (tarayıcıda olmayan jsdom sınırı); `Content-Type` çok parçalı
+ * olduğu doğrulanır, ad sabittir.
+ */
+function uploadFields(request: Request, tag: string): Partial<FakeFile> {
+  const multipart = (request.headers.get('Content-Type') ?? '').startsWith('multipart/form-data')
   return {
-    display_name: upload?.name ?? 'dosya',
-    content_type: upload?.type || 'application/octet-stream',
-    size_bytes: upload?.size ?? 0,
+    display_name: multipart ? 'yuklenen.pdf' : 'bozuk-govde',
+    content_type: 'application/pdf',
+    size_bytes: 3,
     tag,
   }
 }
@@ -357,5 +365,30 @@ function downloadHandlers(f: Fake) {
 
 export function archiveHandlers(db: OrgDb, state: ArchiveState) {
   const f = new Fake(db, state)
-  return [...listHandlers(f), ...fileReadHandlers(f), ...writeHandlers(f), ...downloadHandlers(f)]
+  const holdHandler = http.all(`${ORIGIN}/v1/*`, async ({ request }) => {
+    const path = new URL(request.url).pathname
+    const at = state.holds.findIndex((h) => h.method === request.method && h.path === path)
+    if (at < 0) return undefined
+    const [hold] = state.holds.splice(at, 1)
+    hold!.arrived()
+    await hold!.gate
+    return undefined
+  })
+  return [
+    holdHandler,
+    ...listHandlers(f),
+    ...fileReadHandlers(f),
+    ...writeHandlers(f),
+    ...downloadHandlers(f),
+  ]
+}
+
+/** `method path` isteğini sunucuya ulaştığı anda bekletir; `release()` yanıtı bırakır. */
+export function holdRequest(state: ArchiveState, method: string, path: string) {
+  let release!: () => void
+  let arrived!: () => void
+  const gate = new Promise<void>((resolve) => (release = resolve))
+  const reached = new Promise<void>((resolve) => (arrived = resolve))
+  state.holds.push({ method, path, gate, arrived })
+  return { release, arrived: reached }
 }

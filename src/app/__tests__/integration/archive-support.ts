@@ -1,7 +1,13 @@
 // W127 · O3: arşiv entegrasyon testlerinin ortak kurulumu (W82a harness'i + durumlu arşiv sunucusu).
 import { PEOPLE, createBackend, seedWorld } from './harness'
 
-import { archiveHandlers, createArchiveState, file, type ArchiveState } from './archive-fake'
+import {
+  archiveHandlers,
+  createArchiveState,
+  file,
+  holdRequest,
+  type ArchiveState,
+} from './archive-fake'
 
 export {
   $,
@@ -9,6 +15,7 @@ export {
   boot,
   byText,
   click,
+  fill,
   idle,
   switchScope,
   teardown,
@@ -66,3 +73,6 @@ export const s3 = () =>
   backend.requests.filter(
     (r) => r.path.startsWith('/v1/records/archive') || r.path.startsWith('/v1/files/'),
   )
+
+/** Arşiv sunucusunda isteği bekletir (geç sonuç senaryoları; gerçek süre yok). */
+export const hold = (method: string, path: string) => holdRequest(archive.state, method, path)
