@@ -27,6 +27,9 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: V] }>()
 
 const open = ref(false)
+/** Menü tetikleyicinin SOLUNA taşıyorsa (dar ekran) sola hizalanır (390 px; KESİN 30). */
+const alignStart = ref(false)
+const menu = ref<{ $el: HTMLElement } | null>(null)
 const root = ref<HTMLElement | null>(null)
 const button = ref<HTMLButtonElement | null>(null)
 const menuId = `dr-menu-${useId()}`
@@ -50,9 +53,18 @@ function onOutside(event: PointerEvent): void {
   if (open.value && !root.value?.contains(event.target as Node)) close(false)
 }
 
+async function place(): Promise<void> {
+  alignStart.value = false
+  await nextTick()
+  const rect = menu.value?.$el.getBoundingClientRect()
+  if (rect && rect.left < 0) alignStart.value = true
+}
+
 watch(open, (value) => {
-  if (value) document.addEventListener('pointerdown', onOutside)
-  else document.removeEventListener('pointerdown', onOutside)
+  if (value) {
+    document.addEventListener('pointerdown', onOutside)
+    void place()
+  } else document.removeEventListener('pointerdown', onOutside)
 })
 watch(
   () => props.disabled,
@@ -83,7 +95,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
     <UiMenu
       v-if="open"
       :id="menuId"
+      ref="menu"
       class="dr-pop"
+      :class="{ 'dr-pop--start': alignStart }"
       :label="label"
       @close="(reason) => close(reason === 'escape')"
     >

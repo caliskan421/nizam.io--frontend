@@ -97,3 +97,39 @@ describe('FilterMenu', () => {
     wrapper.unmount()
   })
 })
+
+describe('FilterMenu dar ekran hizası (390 px, KESİN 30)', () => {
+  it('menü tetikleyicinin soluna taşıyorsa sola hizalanır; sığıyorsa sağ hizalı kalır', async () => {
+    const original = Element.prototype.getBoundingClientRect
+    Element.prototype.getBoundingClientRect = function rect(this: Element) {
+      const overflow = this.getAttribute('role') === 'menu'
+      return {
+        left: overflow ? -64 : 20,
+        right: 200,
+        top: 0,
+        bottom: 0,
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+        toJSON() {},
+      }
+    }
+    try {
+      const wrapper = mountMenu()
+      await trigger(wrapper).trigger('click')
+      await nextTick()
+      await nextTick()
+      expect(wrapper.get('[role="menu"]').classes()).toContain('dr-pop--start')
+      wrapper.unmount()
+    } finally {
+      Element.prototype.getBoundingClientRect = original
+    }
+    const fits = mountMenu()
+    await trigger(fits).trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(fits.get('[role="menu"]').classes()).not.toContain('dr-pop--start')
+    fits.unmount()
+  })
+})
