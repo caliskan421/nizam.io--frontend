@@ -75,6 +75,13 @@ export const ICONS = {
   edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
   /** İndir (Kullanicilar.dc.html "Dışa aktar"). */
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  /** Etiketi değiştir (Arsiv-Klasor.dc.html önizleme eylemleri). */
+  tag: 'M3 12V4h8l10 10-8 8zM7.5 7.5h.01',
+  /** Başka klasöre taşı (Arsiv-Klasor.dc.html önizleme eylemleri). */
+  'folder-move':
+    'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM10 13h6M13 10l3 3-3 3',
+  /** Yükle (Arsiv.dc.html "Dosya yükle"). */
+  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
   /** Zarf (Kullanicilar.dc.html "Şifre sıfırlama bağlantısı"). */
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
   /** Kilit (Kullanicilar.dc.html "Hesabı kilitle"). */
@@ -89,7 +96,6 @@ export const ICONS = {
   expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
   'step-forward': 'M4 12h12M12 8l4 4-4 4M20 5v14',
   // Arşiv klasörü (Arsiv-Klasor.dc.html, W123): yükle düğmesi ve ızgara görünümü
-  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
   grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
 } as const
 

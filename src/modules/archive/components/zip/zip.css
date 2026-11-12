@@ -1,0 +1,23 @@
+/*
+ * ZIP düğmeleri (06 "Tümünü indir", 07 klasör ZIP simgesi): tasarımdaki düğme/simge düğmesi
+ * `shared/ui` bileşenleridir; burada yalnız durum notu (sürüyor/kaydedildi/hata) yerleşir.
+ * Yalnız token; px yok. Dar ekranda not akışta kalır (örtmez, taşmaz).
+ */
+@layer components {
+  .zip {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .zip__note {
+    margin: var(--space-2) 0 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+  .zip__note--error {
+    color: var(--danger);
+  }
+}
