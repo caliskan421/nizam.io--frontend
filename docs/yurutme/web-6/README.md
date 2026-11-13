@@ -2,6 +2,8 @@
 
 **F6 AÇILDI 2026-11-13 (kullanıcı onayı; pin `v0.15.0-api` yeterli — eksikler kayıt; backend paketi açılmaz).** Ürün sahibi F6 geçişini onayladı ve P46–P53 kararlarını verdi ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)). Backend dursun: bütün eksikler `kayit.md` + `rapor-F6.md`'ye yazılır, ekranda statik/devre dışı kalır (§3 `designStub` koşulu). Pin değişmez; yükseltme ayrı karar ([plan](../web-5/pin-yukseltme-plani.md)). [WEB-5](../web-5/README.md) 2026-11-13'te kapandı (Codex tur 3 UYGUN).
 
+**Durum (2026-11-14):** O1–O3 tamam, F6 kodu main'de (#119–#128, son main `a3b31e3`, 658 dosya / 4590 test). O4 kapanış sürüyor: belgeler (W143) yazıldı, gerçek sunucu tanığı (W144) yazılıyor, Codex ve kapanış PR'ı bekliyor — **F6 henüz KAPANMADI**. **F7 AÇILMADI** ([web-7](../web-7/README.md)); kullanıcı onayı gerekir.
+
 **Kapsam (P46):**
 - **(a) 01 ana sayfa tam (yönetici):** kabul tablosunun F6 satırları E-01-12 ve E-01-19…39 — ekip şeridi, koordinatörlük kartları (arama/süzgeç/sırala), alt bilgi, "Rapor oluştur" yönlendirme menüsü ([01 README](../../ekranlar/01-ana-sayfa/README.md)).
 - **(b) Raporlar/PDF — ayrı sayfa YOK (P47):** rapor eylemleri kendi ekranlarına eklenir: 06 Arşiv (dönem sonu raporu PDF, "Bölüm seç…" [statik, P48], dönem arşivi ZIP [BE-120 stub, P49], "Önizle" → **01f**), 09b/K7 toplantı raporu (+ **01g** önizleme, P50), 03/K3 görev raporu, 05 Kullanıcılar iş yükü raporu (çoklu seçim + `reportWorkloadPdf`). Referans artboard'lar **01i** (indirme noktaları) ve **01h** (pencereler/durumlar/iş yükü seçici); **01e ve A5 önceki seçenektir, uygulanmaz**. Rapor ekranı tespiti: [13-raporlar](../../ekranlar/13-raporlar/README.md) (W134).
@@ -15,7 +17,11 @@
 
 | Dosya | İçerik |
 | --- | --- |
-| [ilerleme.md](ilerleme.md) | Durum ve kayıt (F6 açıldı, O1) |
+| [ilerleme.md](ilerleme.md) | Durum ve kayıt (O1–O3 hash'ler, P46–P53, açık tema v85, borçlar) |
 | [oturum-1-hazirlik.md](oturum-1-hazirlik.md) | F6 açılış kapısı (adımlar kapatıldı) |
-| [oturum-2-uygulama.md](oturum-2-uygulama.md) | O2a/O2b iş listesi + O3/O4 taslağı |
+| [oturum-2-uygulama.md](oturum-2-uygulama.md) | O2a/O2b iş listesi + O3/O4 taslağı (uygulandı) |
+| [oturum-3-entegrasyon.md](oturum-3-entegrasyon.md) | O3 W142 sonucu: 97 entegrasyon testi, 5 kusur, e2e, duman |
+| [oturum-4-kapanis.md](oturum-4-kapanis.md) | O4 akış tablosu (W143, W144, Codex, kapanış PR) ve kapı sonuçları |
+| [dogrulama-F6.md](dogrulama-F6.md) | W144 gerçek imaj + gerçek backend tanığı (ayrı dalda, bekliyor) |
+| [Backend devir raporu](../../backend-eksikleri/rapor-F6.md) | F6'da bağlanan uçlar, BE-120/122…141 durumları, öneri sırası |
 | [ortak-sozlesme.md](ortak-sozlesme.md) | Her uygulayıcı isteminin başına eklenen sözleşme (KESİN 1–32) |
