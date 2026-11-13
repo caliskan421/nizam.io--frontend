@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Dönem sonu raporu önizleme</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+/* Kod çipi (Koord-Ana.dc.html ile aynı) */
+.rp-code{display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:22px; padding:0 7px; border-radius:7px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:500; box-sizing:border-box; flex:none}
+/* Kâğıt yığını ve kâğıt yüzeyi: tema ne olursa olsun açık kâğıt, koyu mürekkep */
+.rp-rapor-stack{display:flex; flex-direction:column; align-items:center; gap:32px; min-width:0}
+.rp-rapor-paper{width:820px; max-width:100%; margin:0 auto; box-sizing:border-box; padding:48px 56px 40px; background:var(--bg-surface); color:var(--ink); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); box-shadow:var(--shadow-card); color-scheme:light; display:flex; flex-direction:column; gap:22px; font-family:var(--font-sans); font-size:12px; line-height:17px; scroll-margin-top:24px}
+.rp-rapor-paper p{margin:0}
+.rp-rapor-paper--a4{min-height:1160px}
+.rp-rapor-paper--wide{width:1160px; max-width:none}
+.rp-rapor-kicker{margin:0; font-family:var(--font-mono); font-size:11px; line-height:14px; font-weight:500; letter-spacing:.08em; color:var(--ink-muted)}
+.rp-rapor-band{display:flex; flex-direction:column; gap:8px; padding:26px 30px 24px; border-radius:var(--radius-xs); background:var(--bg-base); color:var(--ink); color-scheme:dark}
+.rp-rapor-band__t{margin:0; font-family:var(--font-display); font-size:30px; line-height:36px; font-weight:600; letter-spacing:-.005em; color:var(--ink)}
+.rp-rapor-band__sub{margin:0; font-size:12.5px; line-height:18px; color:var(--ink-muted)}
+.rp-rapor-accent{display:block; width:64px; height:3px; border-radius:2px; background:var(--accent)}
+.rp-rapor-sec{display:flex; flex-direction:column; gap:10px; min-width:0}
+.rp-rapor-h{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:0; padding-bottom:6px; border-bottom:2px solid var(--accent-text)}
+.rp-rapor-h > h2, .rp-rapor-h > h3{margin:0; font-family:var(--font-display); font-size:13.5px; line-height:18px; font-weight:600; letter-spacing:.03em; color:var(--ink)}
+.rp-rapor-h > span{font-size:11px; line-height:14px; color:var(--ink-muted); text-align:right}
+.rp-rapor-lab{margin:4px 0 0; font-family:var(--font-display); font-size:11px; line-height:14px; font-weight:600; letter-spacing:.04em; color:var(--ink)}
+.rp-rapor-fn{font-size:10.5px; line-height:15px; color:var(--ink-muted)}
+.rp-rapor-mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+.rp-rapor-danger{color:var(--danger); font-weight:600}
+.rp-rapor-ok{color:var(--accent-text); font-weight:500}
+.rp-rapor-emptyline{padding:10px 12px; border-radius:6px; background:color-mix(in srgb, var(--ink) 4%, transparent); color:var(--ink-muted); font-size:11.5px; line-height:16px}
+.rp-rapor-split{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:28px}
+/* KPI kartları (4 / 6 sütun; sol 3 px ton çubuğu) */
+.rp-rapor-kpis{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px}
+.rp-rapor-kpis--6{grid-template-columns:repeat(6, minmax(0,1fr)); gap:6px}
+.rp-rapor-kpi{display:flex; flex-direction:column; gap:3px; min-width:0; padding:10px 12px 10px 15px; border-radius:6px; background:var(--bg-raised)}
+.rp-rapor-kpi__l{font-size:9.5px; line-height:12px; font-weight:600; letter-spacing:.06em; color:var(--ink-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rp-rapor-kpi__v{font-family:var(--font-display); font-size:24px; line-height:28px; font-weight:600; letter-spacing:-.01em; font-variant-numeric:tabular-nums}
+.rp-rapor-kpis--6 .rp-rapor-kpi__v{font-size:20px; line-height:24px}
+.rp-rapor-kpi__s{font-size:10.5px; line-height:14px; color:var(--ink-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+/* Sıkı zebra tablo (grid) */
+.rp-rapor-table{display:flex; flex-direction:column; font-size:11.5px; line-height:15px; border-bottom:1px solid var(--border-subtle)}
+.rp-rapor-tr{display:grid; column-gap:8px; align-items:center; padding:6px 8px; border-bottom:1px solid var(--border-subtle)}
+.rp-rapor-tr > *{min-width:0}
+.rp-rapor-tr:last-child{border-bottom:0}
+.rp-rapor-tr--head{padding:6px 8px; border-bottom:0; border-radius:4px 4px 0 0; background:var(--ink); color:var(--bg-surface); font-family:var(--font-mono); font-size:10px; line-height:13px; font-weight:500; letter-spacing:.05em; white-space:nowrap}
+.rp-rapor-tr--group{background:color-mix(in srgb, var(--accent-text) 12%, transparent)}
+.rp-rapor-tr--total{font-weight:600; border-top:1.5px solid var(--ink)}
+.rp-rapor-z{background:color-mix(in srgb, var(--ink) 3%, transparent)}
+.rp-rapor-c{text-align:center; font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+.rp-rapor-r{text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+.rp-rapor-n2{display:block; font-size:10px; line-height:13px; color:var(--ink-muted); font-family:var(--font-mono)}
+/* Yatay dağılım çubukları ve ilerleme */
+.rp-rapor-bars{display:flex; flex-direction:column; gap:7px}
+.rp-rapor-bar{display:grid; grid-template-columns:96px minmax(0,1fr) 62px; gap:10px; align-items:center; font-size:11.5px; line-height:15px}
+.rp-rapor-track{display:flex; height:8px; border-radius:var(--radius-full); background:color-mix(in srgb, var(--ink) 7%, transparent); overflow:hidden; min-width:0}
+.rp-rapor-track > span{display:block; height:100%; flex:none}
+.rp-rapor-bar__n{font-family:var(--font-mono); font-size:11px; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums}
+.rp-rapor-prog{display:grid; grid-template-columns:minmax(0,1fr) 34px; gap:8px; align-items:center}
+/* Hap, onay kutusu, not, kart, künye, logo */
+.rp-rapor-pill{display:inline-flex; align-items:center; gap:5px; height:20px; padding:0 8px; border-radius:var(--radius-full); font-size:10.5px; line-height:12px; font-weight:600; letter-spacing:.02em; white-space:nowrap; flex:none; box-sizing:border-box}
+.rp-rapor-agenda{display:grid; grid-template-columns:22px 16px minmax(0,1fr); gap:8px; align-items:center; padding:4px 0; font-size:12px; line-height:16px; cursor:default}
+.rp-rapor-agenda__n{font-family:var(--font-mono); font-size:10.5px; color:var(--ink-muted)}
+.rp-rapor-agenda--off{color:var(--ink-muted)}
+.rp-rapor-checkwrap{position:relative; display:inline-grid; width:16px; height:16px}
+.rp-rapor-check{appearance:none; -webkit-appearance:none; width:16px; height:16px; margin:0; border:1.5px solid var(--border-control); border-radius:4px; background:var(--bg-surface); box-sizing:border-box}
+.rp-rapor-check:checked{background:var(--accent-text); border-color:var(--accent-text)}
+.rp-rapor-checkwrap svg{position:absolute; left:2px; top:2px; width:12px; height:12px; color:var(--bg-surface); stroke-width:3; opacity:0; pointer-events:none}
+.rp-rapor-check:checked + svg{opacity:1}
+.rp-rapor-note{display:flex; flex-direction:column; gap:3px; padding:6px 0 6px 12px; box-shadow:inset 3px 0 0 var(--accent-text)}
+.rp-rapor-note__h{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:10.5px; line-height:14px; color:var(--ink-muted)}
+.rp-rapor-note__h strong{color:var(--ink); font-weight:500}
+.rp-rapor-card{display:flex; flex-direction:column; gap:9px; padding:14px 16px 14px 19px; border:1px solid var(--border-subtle); border-radius:6px; background:var(--bg-surface); min-width:0}
+.rp-rapor-card__h{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:8px; align-items:center}
+.rp-rapor-card__t{margin:0; font-family:var(--font-display); font-size:14px; line-height:19px; font-weight:600; color:var(--ink)}
+.rp-rapor-meta{font-size:11px; line-height:16px; color:var(--ink-muted)}
+.rp-rapor-num{font-family:var(--font-mono); font-size:12px; font-weight:500; color:var(--ink-muted)}
+.rp-rapor-kunye{display:grid; grid-template-columns:120px minmax(0,1fr); gap:6px 16px; margin:0; font-size:12px; line-height:17px}
+.rp-rapor-kunye dt{font-family:var(--font-mono); font-size:10px; line-height:17px; letter-spacing:.06em; color:var(--ink-muted)}
+.rp-rapor-kunye dd{margin:0; min-width:0}
+.rp-rapor-logo{display:inline-grid; place-items:center; flex:none; width:28px; height:28px; border:1.5px dashed var(--border-control); border-radius:6px; font-family:var(--font-mono); font-size:10px; font-weight:500; color:var(--ink-muted); box-sizing:border-box}
+.rp-rapor-logo--md{width:56px; height:56px; border-radius:12px; font-size:13px}
+.rp-rapor-logo--lg{width:120px; height:120px; border-radius:18px; font-size:22px}
+/* Devam şeridi ve altlık */
+.rp-rapor-strip{display:flex; align-items:center; gap:10px; padding-bottom:10px; border-bottom:1px solid var(--border-subtle); font-family:var(--font-display); font-size:11px; line-height:14px; font-weight:600; letter-spacing:.05em; color:var(--ink-muted)}
+.rp-rapor-strip__r{margin-left:auto; display:inline-flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:10.5px; font-weight:400; letter-spacing:0; white-space:nowrap}
+.rp-rapor-foot{margin-top:auto; display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:12px; padding-top:10px; border-top:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:10.5px; line-height:14px; color:var(--ink-muted)}
+.rp-rapor-foot > :nth-child(2){color:var(--ink)}
+.rp-rapor-foot > :last-child{text-align:right}
+/* İçindekiler */
+.rp-rapor-toc{display:flex; flex-direction:column}
+.rp-rapor-toc a{color:inherit; text-decoration:none}
+.rp-rapor-toc a:hover .rp-rapor-toc__t{text-decoration:underline; text-underline-offset:3px}
+.rp-rapor-toc__l0{display:flex; align-items:baseline; gap:8px; padding:12px 0 6px; font-family:var(--font-display); font-size:13px; line-height:18px; font-weight:600; letter-spacing:.03em; color:var(--ink)}
+.rp-rapor-toc__l1{display:flex; align-items:baseline; gap:10px; padding:6px 0 2px; font-size:12px; line-height:16px; font-weight:600; color:var(--ink)}
+.rp-rapor-toc__l2{display:flex; flex-wrap:wrap; gap:2px 16px; padding:0 0 6px 130px; font-size:11px; line-height:16px; color:var(--ink-muted)}
+.rp-rapor-toc__l2 b{font-family:var(--font-mono); font-weight:500; color:var(--ink); margin-left:4px}
+.rp-rapor-dots{flex:1 1 auto; min-width:24px; height:0; border-bottom:1.5px dotted var(--border-control)}
+.rp-rapor-toc__p{flex:none; min-width:22px; text-align:right; font-family:var(--font-mono); font-size:11px; font-weight:500; color:var(--ink)}
+.rp-rapor-tocpill{display:inline-flex; justify-content:center; align-items:center; width:120px; height:18px; flex:none; border-radius:var(--radius-full); font-family:var(--font-mono); font-size:9px; line-height:10px; font-weight:500; letter-spacing:.06em; color:color-mix(in srgb, var(--accent-text) 80%, var(--ink)); background:color-mix(in srgb, var(--accent-text) 12%, transparent); align-self:center}
+/* Aylık aktivite grafiği */
+.rp-rapor-chart{position:relative; display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:10px; align-items:end; height:170px; padding:0 4px 0 28px; border-bottom:1px solid var(--border-strong)}
+.rp-rapor-chart__grid{position:absolute; left:0; right:0; height:0; border-top:1px dashed var(--border-strong)}
+.rp-rapor-chart__grid span{position:absolute; left:0; top:-8px; font-family:var(--font-mono); font-size:9.5px; line-height:12px; color:var(--ink-muted)}
+.rp-rapor-chart__col{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:4px; height:100%; min-width:0}
+.rp-rapor-chart__bar{display:block; width:100%; max-width:34px; border-radius:3px 3px 0 0; background:var(--accent-text)}
+.rp-rapor-chart__v{font-family:var(--font-mono); font-size:10px; line-height:12px; color:var(--ink)}
+.rp-rapor-chart__x{display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:10px; padding:5px 4px 0 28px; font-family:var(--font-mono); font-size:10px; line-height:12px; color:var(--ink-muted); text-align:center; white-space:nowrap}
+/* Lejant */
+.rp-rapor-legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:10.5px; line-height:14px; color:var(--ink-muted)}
+.rp-rapor-legend > span{display:inline-flex; align-items:center; gap:6px}
+.rp-rapor-sw{display:inline-block; width:10px; height:10px; border-radius:2px; flex:none; box-sizing:border-box}
+/* Gantt (yatay kâğıt) */
+.rp-rapor-gantt{display:grid; grid-template-columns:450px minmax(0,1fr); border:1px solid var(--border-subtle); border-radius:4px; overflow:hidden; font-size:11px; line-height:14px}
+.rp-rapor-gl{display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--border-strong)}
+.rp-rapor-gr{position:relative; display:flex; flex-direction:column; min-width:0}
+.rp-rapor-ghead{height:40px; box-sizing:border-box; background:var(--ink); color:var(--bg-surface); font-family:var(--font-mono); font-size:10px; line-height:13px; font-weight:500; letter-spacing:.05em}
+.rp-rapor-grow{display:grid; grid-template-columns:24px minmax(0,1fr) 70px 70px 86px; column-gap:6px; align-items:center; height:26px; padding:0 8px; box-sizing:border-box; border-bottom:1px solid var(--border-subtle); white-space:nowrap}
+.rp-rapor-grow > *{min-width:0}
+.rp-rapor-gcell{position:relative; height:26px; box-sizing:border-box; border-bottom:1px solid var(--border-subtle)}
+.rp-rapor-gbar{position:absolute; top:7px; height:12px; border-radius:3px; box-sizing:border-box}
+.rp-rapor-gwe{position:absolute; top:40px; bottom:22px; background:color-mix(in srgb, var(--ink) 4%, transparent); pointer-events:none}
+.rp-rapor-gtoday{position:absolute; top:40px; bottom:0; width:2px; margin-left:-1px; background:var(--ink); z-index:2; pointer-events:none}
+.rp-rapor-gchip{position:absolute; bottom:3px; transform:translateX(-50%); padding:1px 6px; border-radius:4px; background:var(--ink); color:var(--bg-surface); font-family:var(--font-mono); font-size:9.5px; line-height:14px; white-space:nowrap; z-index:3}
+.rp-rapor-ggroup{background:color-mix(in srgb, var(--accent-text) 12%, transparent); font-weight:600}
+@media (max-width: 700px){
+  .rp-rapor-paper{padding:24px 18px 20px}
+  .rp-rapor-kpis{grid-template-columns:repeat(2, minmax(0,1fr))}
+  .rp-rapor-kpis--6{grid-template-columns:repeat(3, minmax(0,1fr))}
+  .rp-rapor-split{grid-template-columns:minmax(0,1fr)}
+  .rp-rapor-toc__l2{padding-left:0}
+  .rp-rapor-band__t{font-size:24px; line-height:30px}
+}
+</style>
+</helmet>
+<div class="rp-page" data-theme="{{ theme }}">
+<div class="rp-side"><dc-import name="Sidebar" active="home" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
+<main class="rp-main">
+
+<div class="rp-topbar">
+<div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Raporlar.dc.html">Raporlar</a><span aria-hidden="true">/</span><strong>Dönem sonu raporu</strong></nav>
+<span class="rp-kicker rp-nowrap">21 Ekim 2026, Çarşamba</span>
+<button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
+</div>
+
+<div class="rp-head">
+<div><h1 class="rp-h1">Dönem sonu raporu</h1><p class="rp-sub">Önizleme · 14 sayfa · PDF ile aynı sıra ve içerik</p></div>
+</div>
+
+<div class="rp-body">
+<div class="rp-col" style="gap:20px">
+
+<!-- Araç çubuğu: normal akışta (sticky değil) -->
+<div class="rp-toolbar" role="toolbar" aria-label="Önizleme araçları" style="padding:10px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-surface)">
+<div class="rp-tgroup">
+<span class="rp-mono rp-nowrap" style="padding:0 6px; color:var(--ink)">Sayfa 1 / 14</span>
+<span class="rp-cap rp-nowrap rp-trunc">donem-raporu-2026-10-21.pdf · 2,4 MB</span>
+</div>
+<div class="rp-seg" role="group" aria-label="Yakınlaştırma">
+<button type="button" aria-label="Uzaklaştır" title="Uzaklaştır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+<button type="button" aria-pressed="true" aria-label="Yakınlaştırma yüzde 100" class="rp-mono">%100</button>
+<button type="button" aria-label="Yakınlaştır" title="Yakınlaştır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<span class="rp-grow"></span>
+<div class="rp-tgroup">
+<button class="t-iconbtn t-iconbtn--md" type="button" aria-label="Yazdır" title="Yazdır"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z"></path></svg></button>
+<button class="t-btn t-btn--primary" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>PDF indir</button>
+<a href="Raporlar.dc.html" class="t-btn t-btn--ghost" style="text-decoration:none"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>Kapat</a>
+</div>
+</div>
+<p class="rp-cap" style="margin:-8px 0 0 4px">Önizleme, indirilen PDF ile aynı veriden çizilir · Tarihler gg.aa.yyyy, saatler TRT (UTC+3) · Rapor indirmeleri kayda geçer (denetim).</p>
+
+<div class="rp-rapor-stack">
+
+<!-- ═════════ SAYFA 1 · KAPAK (devam şeridi yok, altlık var) ═════════ -->
+<article class="rp-rapor-paper rp-rapor-paper--a4" data-theme="light" id="rp-p1" aria-label="Sayfa 1 — Kapak">
+<header class="rp-rapor-band" data-theme="dark" style="display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:start; min-height:360px; padding:40px 40px 36px; border-radius:var(--radius-sm) var(--radius-sm) 4px 4px; box-sizing:border-box">
+<div style="display:flex; flex-direction:column; gap:20px; min-width:0">
+<p class="rp-rapor-kicker">ROKETPORTAL · TEKNOFEST KOORDİNASYON</p>
+<h2 style="margin:0; font-family:var(--font-display); font-size:44px; line-height:48px; font-weight:600; letter-spacing:-.01em; color:var(--ink)">DÖNEM SONU<br>RAPORU</h2>
+<span class="rp-rapor-accent" aria-hidden="true"></span>
+<div style="display:flex; flex-direction:column; gap:6px">
+<p style="font-family:var(--font-display); font-size:20px; line-height:26px; font-weight:600; letter-spacing:.01em; color:var(--ink)">ŞANLIURFA TEKNOFEST</p>
+<p style="font-size:13px; line-height:18px; color:var(--ink-muted)">2026 · Şanlıurfa</p>
+<p class="rp-rapor-kicker" style="letter-spacing:.02em; margin-top:4px">Oluşturulma: 21.10.2026 14:05</p>
+</div>
+</div>
+<span class="rp-rapor-logo rp-rapor-logo--lg" role="img" aria-label="Program logosu yer tutucu">ŞT</span>
+</header>
+
+<section class="rp-rapor-sec" aria-labelledby="p1-ozet">
+<div class="rp-rapor-h"><h3 id="p1-ozet">DÖNEMİN ÖZETİ</h3><span>02.02.2026 – 31.12.2026</span></div>
+<div class="rp-rapor-kpis">
+<sc-for list="{{ kpiCover }}" as="k" hint-placeholder-count="8">
+<div class="rp-rapor-kpi" style="box-shadow:inset 3px 0 0 {{ k.tone }}">
+<span class="rp-rapor-kpi__l">{{ k.label }}</span>
+<span class="rp-rapor-kpi__v" style="color:{{ k.vc }}">{{ k.value }}</span>
+<span class="rp-rapor-kpi__s">{{ k.sub }}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div style="display:flex; flex-direction:column; gap:6px; max-width:600px">
+<p class="rp-rapor-fn">Bu rapor, seçili program kapsamındaki aktif (silinmemiş) koordinatörlük, görev ve toplantı kayıtlarından otomatik üretilmiştir. Mesaj içerikleri rapora alınmaz; yalnızca sayılar yer alır.</p>
+<p class="rp-rapor-fn">Tarihler gg.aa.yyyy, saatler TRT (UTC+3).</p>
+</div>
+
+<div style="margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:8px; padding-top:40px">
+<span class="rp-rapor-logo rp-rapor-logo--md" role="img" aria-label="RoketPortal amblemi yer tutucu">RP</span>
+<span style="font-family:var(--font-display); font-size:11px; line-height:14px; font-weight:600; letter-spacing:.12em; color:var(--ink)">ROKETPORTAL</span>
+</div>
+<footer class="rp-rapor-foot" style="margin-top:0"><span>Şanlıurfa Teknofest</span><span>Sayfa 1 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+
+<!-- ═════════ SAYFA 2 · İÇİNDEKİLER ═════════ -->
+<article class="rp-rapor-paper rp-rapor-paper--a4" data-theme="light" id="rp-p2" aria-label="Sayfa 2 — İçindekiler">
+<div class="rp-rapor-strip"><span class="rp-rapor-logo" aria-hidden="true">ŞT</span><span>DÖNEM SONU RAPORU — ŞANLIURFA TEKNOFEST</span><span class="rp-rapor-strip__r">Oluşturulma 21.10.2026 14:05<span class="rp-rapor-logo" aria-hidden="true">RP</span></span></div>
+<div class="rp-rapor-h"><h2>İÇİNDEKİLER</h2><span>14 sayfa</span></div>
+<nav class="rp-rapor-toc" aria-label="İçindekiler">
+<a class="rp-rapor-toc__l0" href="#rp-p3"><span class="rp-rapor-toc__t">YÖNETİCİ ÖZETİ</span><span class="rp-rapor-dots" aria-hidden="true"></span><span class="rp-rapor-toc__p">3</span></a>
+<a class="rp-rapor-toc__l0" href="#rp-p4"><span class="rp-rapor-toc__t">GANTT — GÖREV ZAMAN ÇİZELGESİ</span><span class="rp-rapor-dots" aria-hidden="true"></span><span class="rp-rapor-toc__p">4</span></a>
+<a class="rp-rapor-toc__l0" href="#rp-p5"><span class="rp-rapor-toc__t">TEKNOFEST GENELİ</span><span class="rp-rapor-dots" aria-hidden="true"></span><span class="rp-rapor-toc__p">5</span></a>
+<a class="rp-rapor-toc__l0" href="#rp-p6"><span class="rp-rapor-toc__t">KOORDİNATÖRLÜK BÖLÜMLERİ</span><span class="rp-rapor-dots" aria-hidden="true"></span><span class="rp-rapor-toc__p">6</span></a>
+<sc-for list="{{ toc }}" as="c" hint-placeholder-count="11">
+<div style="display:flex; flex-direction:column">
+<a class="rp-rapor-toc__l1" href="{{ c.href }}"><span class="rp-rapor-tocpill">{{ c.kind }}</span><span class="rp-rapor-toc__t rp-trunc">{{ c.name }}</span><span class="rp-rapor-dots" aria-hidden="true"></span><span class="rp-rapor-toc__p">{{ c.page }}</span></a>
+<p class="rp-rapor-toc__l2"><a href="{{ c.href }}">Görevler<b>{{ c.page }}</b></a><span aria-hidden="true">·</span><a href="{{ c.href }}">Görev detayları<b>{{ c.page }}</b></a><span aria-hidden="true">·</span><a href="{{ c.href }}">Toplantılar<b>{{ c.page }}</b></a><span aria-hidden="true">·</span><a href="{{ c.href }}">Dosyalar<b>{{ c.page }}</b></a></p>
+</div>
+</sc-for>
+<a class="rp-rapor-toc__l0" href="#rp-p14"><span class="rp-rapor-toc__t">EK: SÖZLÜK VE KURALLAR</span><span class="rp-rapor-dots" aria-hidden="true"></span><span class="rp-rapor-toc__p">14</span></a>
+</nav>
+<p class="rp-rapor-fn">Bölümler önce koordinatörlükler, sonra çalışma grupları olmak üzere ada göre sıralanır; bu dönemde çalışma grubu yok. Kısa bölümler aynı sayfayı paylaşabilir. Satırlar PDF içinde ilgili sayfaya bağlantıdır.</p>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 2 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+
+<!-- ═════════ SAYFA 3 · YÖNETİCİ ÖZETİ ═════════ -->
+<article class="rp-rapor-paper rp-rapor-paper--a4" data-theme="light" id="rp-p3" aria-label="Sayfa 3 — Yönetici özeti">
+<div class="rp-rapor-strip"><span class="rp-rapor-logo" aria-hidden="true">ŞT</span><span>DÖNEM SONU RAPORU — ŞANLIURFA TEKNOFEST</span><span class="rp-rapor-strip__r">Oluşturulma 21.10.2026 14:05<span class="rp-rapor-logo" aria-hidden="true">RP</span></span></div>
+<header class="rp-rapor-band" data-theme="dark">
+<p class="rp-rapor-kicker">ŞANLIURFA TEKNOFEST · GENEL BAKIŞ</p>
+<h2 class="rp-rapor-band__t">YÖNETİCİ ÖZETİ</h2>
+<span class="rp-rapor-accent" aria-hidden="true"></span>
+<p class="rp-rapor-band__sub">11 koordinatörlük · 79 görev · 41 toplantı</p>
+</header>
+
+<div class="rp-rapor-kpis" aria-label="Özet göstergeler">
+<sc-for list="{{ kpiSum }}" as="k" hint-placeholder-count="8">
+<div class="rp-rapor-kpi" style="box-shadow:inset 3px 0 0 {{ k.tone }}">
+<span class="rp-rapor-kpi__l">{{ k.label }}</span>
+<span class="rp-rapor-kpi__v" style="color:{{ k.vc }}">{{ k.value }}</span>
+<span class="rp-rapor-kpi__s">{{ k.sub }}</span>
+</div>
+</sc-for>
+</div>
+
+<div class="rp-rapor-split">
+<section class="rp-rapor-sec" aria-labelledby="p3-durum">
+<div class="rp-rapor-h"><h3 id="p3-durum">DURUM DAĞILIMI</h3><span>79 görev</span></div>
+<div class="rp-rapor-bars">
+<sc-for list="{{ distStatus }}" as="d" hint-placeholder-count="5">
+<div class="rp-rapor-bar"><span class="rp-trunc">{{ d.label }}</span><span class="rp-rapor-track" aria-hidden="true"><span style="width:{{ d.w }}; background:{{ d.bg }}; border-radius:999px"></span></span><span class="rp-rapor-bar__n" style="display:flex; justify-content:flex-end; gap:8px"><span>{{ d.n }}</span><span style="color:var(--ink-muted); min-width:28px">{{ d.p }}</span></span></div>
+</sc-for>
+</div>
+</section>
+<section class="rp-rapor-sec" aria-labelledby="p3-oncelik">
+<div class="rp-rapor-h"><h3 id="p3-oncelik">ÖNCELİK DAĞILIMI</h3><span>79 görev</span></div>
+<div class="rp-rapor-bars">
+<sc-for list="{{ distPrio }}" as="d" hint-placeholder-count="4">
+<div class="rp-rapor-bar"><span class="rp-trunc">{{ d.label }}</span><span class="rp-rapor-track" aria-hidden="true"><span style="width:{{ d.w }}; background:{{ d.bg }}; border-radius:999px"></span></span><span class="rp-rapor-bar__n" style="display:flex; justify-content:flex-end; gap:8px"><span>{{ d.n }}</span><span style="color:var(--ink-muted); min-width:28px">{{ d.p }}</span></span></div>
+</sc-for>
+</div>
+</section>
+</div>
+
+<section class="rp-rapor-sec" aria-labelledby="p3-kars">
+<div class="rp-rapor-h"><h3 id="p3-kars">KOORDİNATÖRLÜK KARŞILAŞTIRMASI</h3><span>11 bölüm</span></div>
+<div class="rp-scroll">
+<div class="rp-rapor-table" role="table" aria-labelledby="p3-kars" style="min-width:600px">
+<div class="rp-rapor-tr rp-rapor-tr--head" role="row" style="grid-template-columns:minmax(0,1fr) 46px 46px 58px 62px 46px 150px"><span role="columnheader">KOORDİNATÖRLÜK</span><span class="rp-rapor-c" role="columnheader">GÖREV</span><span class="rp-rapor-c" role="columnheader">BİTEN</span><span class="rp-rapor-c" role="columnheader">GECİKEN</span><span class="rp-rapor-c" role="columnheader">TOPLANTI</span><span class="rp-rapor-c" role="columnheader">DOSYA</span><span role="columnheader">İLERLEME</span></div>
+<sc-for list="{{ cmp }}" as="r" hint-placeholder-count="11">
+<div class="rp-rapor-tr {{ r.z }}" role="row" style="grid-template-columns:minmax(0,1fr) 46px 46px 58px 62px 46px 150px">
+<span role="cell"><strong style="font-weight:600">{{ r.name }}</strong><span class="rp-rapor-n2">KOORDİNATÖRLÜK · {{ r.code }}</span></span>
+<span class="rp-rapor-c" role="cell">{{ r.total }}</span>
+<span class="rp-rapor-c" role="cell">{{ r.done }}</span>
+<span class="rp-rapor-c {{ r.lateCls }}" role="cell">{{ r.late }}</span>
+<span class="rp-rapor-c" role="cell">{{ r.meet }}</span>
+<span class="rp-rapor-c" role="cell">{{ r.files }}</span>
+<span class="rp-rapor-prog" role="cell"><span class="rp-rapor-track" aria-hidden="true"><span style="width:{{ r.w }}; background:var(--accent-text); border-radius:999px"></span></span><span class="rp-rapor-r">{{ r.pct }}</span></span>
+</div>
+</sc-for>
+<div class="rp-rapor-tr rp-rapor-tr--total" role="row" style="grid-template-columns:minmax(0,1fr) 46px 46px 58px 62px 46px 150px">
+<span role="cell">Toplam</span><span class="rp-rapor-c" role="cell">79</span><span class="rp-rapor-c" role="cell">39</span><span class="rp-rapor-c rp-rapor-danger" role="cell">15</span><span class="rp-rapor-c" role="cell">41</span><span class="rp-rapor-c" role="cell">50</span>
+<span class="rp-rapor-prog" role="cell"><span class="rp-rapor-track" aria-hidden="true"><span style="width:49%; background:var(--accent-text); border-radius:999px"></span></span><span class="rp-rapor-r">%49</span></span>
+</div>
+</div>
+</div>
+<p class="rp-rapor-fn">Geciken: bitiş tarihi geçmiş açık görev. İlerleme = biten / görev. Birden çok koordinatörlüğe bağlı toplantı her bölümde ayrı, toplamda bir kez sayılır.</p>
+</section>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 3 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+
+<!-- ═════════ SAYFA 4 · GANTT — GÖREV ZAMAN ÇİZELGESİ (yatay, geniş kâğıt) ═════════ -->
+<div class="rp-scroll" style="align-self:stretch; max-width:100%; padding-bottom:6px">
+<article class="rp-rapor-paper rp-rapor-paper--wide" data-theme="light" id="rp-p4" aria-label="Sayfa 4 — Gantt, görev zaman çizelgesi (yatay sayfa)">
+<div class="rp-rapor-strip"><span class="rp-rapor-logo" aria-hidden="true">ŞT</span><span>DÖNEM SONU RAPORU — ŞANLIURFA TEKNOFEST</span><span class="rp-rapor-strip__r">Oluşturulma 21.10.2026 14:05<span class="rp-rapor-logo" aria-hidden="true">RP</span></span></div>
+<div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:6px; border-bottom:2px solid var(--accent-text)">
+<h2 style="margin:0; font-family:var(--font-display); font-size:16px; line-height:22px; font-weight:600; letter-spacing:.03em">ŞANLIURFA TEKNOFEST — GÖREV ZAMAN ÇİZELGESİ</h2>
+<span class="rp-rapor-mono" style="font-size:11px; color:var(--ink-muted)">79 görev · Mart – Kasım 2026 · Rapor tarihi 21.10.2026</span>
+</div>
+
+<div class="rp-rapor-gantt" role="group" aria-label="Altyapı ve tesisat görevlerinin Mart–Kasım 2026 zaman çizelgesi">
+<div class="rp-rapor-gl">
+<div class="rp-rapor-ghead rp-rapor-grow" style="height:40px; align-items:end; padding-bottom:7px; border-bottom:0"><span>#</span><span>GÖREV</span><span>BAŞLANGIÇ</span><span>BİTİŞ</span><span>DURUM</span></div>
+<div class="rp-rapor-grow rp-rapor-ggroup" style="grid-template-columns:minmax(0,1fr) auto"><span class="rp-trunc">Altyapı ve tesisat  ·  14 görev</span><span class="rp-rapor-mono" style="font-weight:500; color:var(--ink-muted)">ALT</span></div>
+<sc-for list="{{ gRows }}" as="g" hint-placeholder-count="10">
+<div class="rp-rapor-grow {{ g.z }}">
+<span class="rp-rapor-mono" style="color:var(--ink-muted)">{{ g.num }}</span>
+<span class="rp-trunc" style="font-weight:500">{{ g.title }}</span>
+<span class="rp-rapor-mono">{{ g.s }}</span>
+<span class="rp-rapor-mono {{ g.endCls }}">{{ g.e }}</span>
+<span class="rp-status" style="font-size:10.5px; gap:5px; color:{{ g.sc }}; font-weight:600"><span class="rp-dot {{ g.dot }}" style="width:7px; height:7px"></span>{{ g.sl }}</span>
+</div>
+</sc-for>
+<div class="rp-rapor-grow" style="height:22px; border-bottom:0; grid-template-columns:minmax(0,1fr)"><span class="rp-rapor-fn rp-trunc">Önizlemede ALT'tan 10 görev · #10–#13 ve diğer 10 koordinatörlüğün 65 görevi PDF'te</span></div>
+</div>
+<div class="rp-rapor-gr">
+<div class="rp-rapor-ghead" style="display:flex; flex-direction:column">
+<div style="display:flex; height:22px; border-bottom:1px solid color-mix(in srgb, var(--bg-surface) 25%, transparent)">
+<sc-for list="{{ gMonths }}" as="m" hint-placeholder-count="9"><span class="rp-trunc" style="width:{{ m.w }}; flex:none; padding:5px 6px 0; box-sizing:border-box; border-left:1px solid color-mix(in srgb, var(--bg-surface) 25%, transparent); font-family:var(--font-display); font-size:10.5px; font-weight:600; letter-spacing:.04em">{{ m.name }}</span></sc-for>
+</div>
+<div style="position:relative; height:18px">
+<sc-for list="{{ gDays }}" as="d" hint-placeholder-count="18"><span style="position:absolute; top:3px; left:{{ d.x }}; padding-left:3px; font-size:9px; line-height:12px">{{ d.d }}</span></sc-for>
+</div>
+</div>
+<sc-for list="{{ gWeekends }}" as="w" hint-placeholder-count="39"><span class="rp-rapor-gwe" aria-hidden="true" style="left:{{ w.x }}; width:{{ w.w }}"></span></sc-for>
+<div class="rp-rapor-gcell rp-rapor-ggroup"></div>
+<sc-for list="{{ gRows }}" as="g" hint-placeholder-count="10">
+<div class="rp-rapor-gcell {{ g.z }}" title="{{ g.tip }}">
+<span class="rp-rapor-gbar {{ g.seg }}" style="left:{{ g.x }}; width:{{ g.w }}; border:{{ g.bd }}; border-radius:{{ g.br }}"></span>
+<sc-if value="{{ g.hasTail }}" hint-placeholder-val="{{ false }}"><span class="rp-rapor-gbar" style="left:{{ g.tx }}; width:{{ g.tw }}; background:{{ g.tbg }}; border:{{ g.tbd }}; border-left:0; border-radius:0 3px 3px 0"></span></sc-if>
+</div>
+</sc-for>
+<div style="position:relative; height:22px"><span class="rp-rapor-gchip" style="left:{{ gToday }}">Rapor tarihi 21.10.2026</span></div>
+<span class="rp-rapor-gtoday" aria-hidden="true" style="left:{{ gToday }}"></span>
+</div>
+</div>
+
+<div class="rp-rapor-legend" aria-label="Lejant">
+<span><i class="rp-rapor-sw rp-seg-todo" aria-hidden="true"></i>Başlamadı</span>
+<span><i class="rp-rapor-sw rp-seg-doing" aria-hidden="true"></i>Devam ediyor</span>
+<span><i class="rp-rapor-sw rp-seg-review" aria-hidden="true"></i>Onay bekliyor</span>
+<span><i class="rp-rapor-sw rp-seg-done" aria-hidden="true"></i>Tamamlandı</span>
+<span><i class="rp-rapor-sw rp-seg-late" aria-hidden="true"></i>Gecikme (geç bitişte kırmızı kuyruk · açık gecikende kesik kırmızı kenar)</span>
+<span><i aria-hidden="true" style="display:inline-block; width:2px; height:12px; background:var(--ink)"></i>Rapor tarihi</span>
+</div>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 4 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+</div>
+
+<!-- ═════════ SAYFA 5 · TEKNOFEST GENELİ ═════════ -->
+<article class="rp-rapor-paper rp-rapor-paper--a4" data-theme="light" id="rp-p5" aria-label="Sayfa 5 — Teknofest geneli">
+<div class="rp-rapor-strip"><span class="rp-rapor-logo" aria-hidden="true">ŞT</span><span>DÖNEM SONU RAPORU — ŞANLIURFA TEKNOFEST</span><span class="rp-rapor-strip__r">Oluşturulma 21.10.2026 14:05<span class="rp-rapor-logo" aria-hidden="true">RP</span></span></div>
+<header class="rp-rapor-band" data-theme="dark">
+<p class="rp-rapor-kicker">ŞANLIURFA TEKNOFEST · GENEL GÖSTERGELER</p>
+<h2 class="rp-rapor-band__t">TEKNOFEST GENELİ</h2>
+<span class="rp-rapor-accent" aria-hidden="true"></span>
+<p class="rp-rapor-band__sub">Aktivite, tarih talepleri ve iş yükü</p>
+</header>
+
+<section class="rp-rapor-sec" aria-labelledby="p5-akt">
+<div class="rp-rapor-h"><h3 id="p5-akt">AYLIK AKTİVİTE</h3><span>Toplam 461 kayıt</span></div>
+<div role="img" aria-label="Aylık aktivite, Kasım 2025 – Ekim 2026: en yüksek Haziran 2026 ile 61 kayıt, toplam 461 kayıt">
+<div class="rp-rapor-chart">
+<sc-for list="{{ actGrid }}" as="l" hint-placeholder-count="3"><span class="rp-rapor-chart__grid" aria-hidden="true" style="bottom:{{ l.b }}"><span>{{ l.v }}</span></span></sc-for>
+<sc-for list="{{ act }}" as="a" hint-placeholder-count="12"><div class="rp-rapor-chart__col"><span class="rp-rapor-chart__v">{{ a.v }}</span><span class="rp-rapor-chart__bar" style="height:{{ a.h }}"></span></div></sc-for>
+</div>
+<div class="rp-rapor-chart__x"><sc-for list="{{ act }}" as="a" hint-placeholder-count="12"><span>{{ a.m }}</span></sc-for></div>
+</div>
+<p class="rp-rapor-fn">Aktivite: görev, toplantı, not, dosya ve tarih talebi kayıtlarının aylık toplamı.</p>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p5-tt">
+<div class="rp-rapor-h"><h3 id="p5-tt">TARİH DEĞİŞİKLİĞİ TALEPLERİ</h3><span>Onaylananlarda ortalama kayma: 4,2 gün</span></div>
+<div class="rp-rapor-kpis">
+<sc-for list="{{ kpiReq }}" as="k" hint-placeholder-count="4">
+<div class="rp-rapor-kpi" style="box-shadow:inset 3px 0 0 {{ k.tone }}">
+<span class="rp-rapor-kpi__l">{{ k.label }}</span>
+<span class="rp-rapor-kpi__v" style="color:{{ k.vc }}">{{ k.value }}</span>
+<span class="rp-rapor-kpi__s">{{ k.sub }}</span>
+</div>
+</sc-for>
+</div>
+<p class="rp-rapor-lab">EN ÇOK TALEP ALAN GÖREVLER</p>
+<div class="rp-rapor-table" role="table" aria-label="En çok talep alan görevler">
+<sc-for list="{{ reqTop }}" as="q" hint-placeholder-count="5">
+<div class="rp-rapor-tr {{ q.z }}" role="row" style="grid-template-columns:64px minmax(0,1fr) 150px 64px">
+<span role="cell"><span class="rp-code">{{ q.code }}</span></span>
+<span class="rp-trunc" role="cell" style="font-weight:500">{{ q.title }}</span>
+<span class="rp-trunc" role="cell" style="color:var(--ink-muted)">{{ q.coord }}</span>
+<span class="rp-rapor-r" role="cell">{{ q.n }}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<!-- [BE] Mesajlaşma ve Görev aktarımları bölümleri çizilmedi — v0.15 reportSeason yanıtında mesaj okundu/rol kırılımı ve programlar arası görev aktarımı sayacı yok; eski R1'deki bu iki blok, uç gelince bu araya girer · statik -->
+
+<section class="rp-rapor-sec" aria-labelledby="p5-iy">
+<div class="rp-rapor-h"><h3 id="p5-iy">İŞ YÜKÜ</h3><span>İlk 8 / 17 kişi (aktif göreve göre)</span></div>
+<div class="rp-scroll">
+<div class="rp-rapor-table" role="table" aria-labelledby="p5-iy" style="min-width:600px">
+<div class="rp-rapor-tr rp-rapor-tr--head" role="row" style="grid-template-columns:minmax(0,1fr) 50px 60px 86px 52px 180px"><span role="columnheader">KİŞİ</span><span class="rp-rapor-c" role="columnheader">AKTİF</span><span class="rp-rapor-c" role="columnheader">GECİKEN</span><span class="rp-rapor-c" role="columnheader">TAMAMLANAN</span><span class="rp-rapor-c" role="columnheader">TOPLAM</span><span role="columnheader">DAĞILIM</span></div>
+<sc-for list="{{ load }}" as="p" hint-placeholder-count="8">
+<div class="rp-rapor-tr {{ p.z }}" role="row" style="grid-template-columns:minmax(0,1fr) 50px 60px 86px 52px 180px">
+<span role="cell"><strong style="font-weight:600">{{ p.name }}</strong><span class="rp-rapor-n2">{{ p.codes }}</span></span>
+<span class="rp-rapor-c" role="cell">{{ p.act }}</span>
+<span class="rp-rapor-c {{ p.lateCls }}" role="cell">{{ p.late }}</span>
+<span class="rp-rapor-c" role="cell">{{ p.done }}</span>
+<span class="rp-rapor-c" role="cell">{{ p.total }}</span>
+<span role="cell" title="{{ p.tip }}"><span class="rp-rapor-track" aria-hidden="true" style="height:10px; border-radius:2px"><span class="rp-seg-done" style="width:{{ p.wDone }}"></span><span class="rp-seg-doing" style="width:{{ p.wAct }}"></span><span class="rp-seg-late" style="width:{{ p.wLate }}"></span></span></span>
+</div>
+</sc-for>
+</div>
+</div>
+<div class="rp-rapor-legend" aria-label="Dağılım lejantı">
+<span><i class="rp-rapor-sw rp-seg-done" aria-hidden="true"></i>Tamamlanan</span>
+<span><i class="rp-rapor-sw rp-seg-doing" aria-hidden="true"></i>Aktif (zamanında)</span>
+<span><i class="rp-rapor-sw rp-seg-late" aria-hidden="true"></i>Geciken</span>
+</div>
+<p class="rp-rapor-fn">Aktif = açık görev (geciken dahil); toplam = aktif + tamamlanan. Bir kişi birden çok koordinatörlükte görev alabilir. Programda kayıtlı toplam 18 kullanıcı (2 admin · 15 koordinatör · 3 üye) bulunuyor.</p>
+</section>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 5 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+
+<!-- ═════════ SAYFA 6 · KOORDİNATÖRLÜK BÖLÜMÜ — ALTYAPI VE TESİSAT (örnek; diğer 10 bölüm aynı düzende) ═════════ -->
+<article class="rp-rapor-paper rp-rapor-paper--a4" data-theme="light" id="rp-p6" aria-label="Sayfa 6 — Koordinatörlük bölümü: Altyapı ve tesisat">
+<div class="rp-rapor-strip"><span class="rp-rapor-logo" aria-hidden="true">ŞT</span><span>DÖNEM SONU RAPORU — ŞANLIURFA TEKNOFEST</span><span class="rp-rapor-strip__r">Oluşturulma 21.10.2026 14:05<span class="rp-rapor-logo" aria-hidden="true">RP</span></span></div>
+<header class="rp-rapor-band" data-theme="dark">
+<p class="rp-rapor-kicker">KOORDİNATÖRLÜK · ALT</p>
+<h2 class="rp-rapor-band__t">ALTYAPI VE TESİSAT</h2>
+<span class="rp-rapor-accent" aria-hidden="true"></span>
+<p class="rp-rapor-band__sub">14 görev · 4 toplantı · 12 dosya · 3 üye</p>
+</header>
+
+<dl class="rp-rapor-kunye">
+<dt>AÇIKLAMA</dt><dd>Fuar alanı altyapısı: su, atık su, elektrik kanalları ve saha tesisatı</dd>
+<dt>KOORDİNATÖRLER</dt><dd>Abdullah Ateş, Ali Avcı</dd>
+<dt>ÜYELER (3)</dt><dd>Bahar Kılıç, Kadir Özbek, Reha Koçak</dd>
+</dl>
+
+<div class="rp-rapor-kpis rp-rapor-kpis--6" aria-label="Bölüm göstergeleri">
+<sc-for list="{{ kpiAlt }}" as="k" hint-placeholder-count="6">
+<div class="rp-rapor-kpi" style="box-shadow:inset 3px 0 0 {{ k.tone }}">
+<span class="rp-rapor-kpi__l">{{ k.label }}</span>
+<span class="rp-rapor-kpi__v" style="color:{{ k.vc }}">{{ k.value }}</span>
+<span class="rp-rapor-kpi__s">{{ k.sub }}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:8px" aria-label="Durum şeridi">
+<span class="rp-rapor-track" role="img" aria-label="Durum: 2 başlamadı, 3 devam ediyor, 0 onay bekliyor, 0 iade edildi, 9 tamamlandı" style="height:10px; border-radius:3px; gap:2px">
+<sc-for list="{{ altStripBar }}" as="s" hint-placeholder-count="3"><span class="{{ s.seg }}" style="width:{{ s.w }}"></span></sc-for>
+</span>
+<div class="rp-rapor-legend">
+<sc-for list="{{ altStripLeg }}" as="s" hint-placeholder-count="5"><span><i class="rp-rapor-sw {{ s.seg }}" aria-hidden="true"></i>{{ s.label }} <b class="rp-rapor-mono" style="color:var(--ink); font-weight:500">{{ s.n }}</b></span></sc-for>
+</div>
+</div>
+
+<section class="rp-rapor-sec" aria-labelledby="p6-gor">
+<div class="rp-rapor-h"><h3 id="p6-gor">GÖREVLER</h3><span>14 görev</span></div>
+<div class="rp-scroll">
+<div class="rp-rapor-table" role="table" aria-labelledby="p6-gor" style="min-width:680px">
+<div class="rp-rapor-tr rp-rapor-tr--head" role="row" style="grid-template-columns:24px minmax(0,1fr) 92px 74px 76px 96px 88px 34px"><span class="rp-rapor-c" role="columnheader">#</span><span role="columnheader">GÖREV</span><span role="columnheader">DURUM</span><span role="columnheader">ÖNCELİK</span><span role="columnheader">TARİH</span><span role="columnheader">ATANANLAR</span><span role="columnheader">GECİKME</span><span class="rp-rapor-c" role="columnheader">D/N</span></div>
+<sc-for list="{{ altTasks }}" as="t" hint-placeholder-count="14">
+<div class="rp-rapor-tr {{ t.z }}" role="row" style="grid-template-columns:24px minmax(0,1fr) 92px 74px 76px 96px 88px 34px; align-items:start">
+<span class="rp-rapor-c" role="cell" style="color:var(--ink-muted)">{{ t.num }}</span>
+<span role="cell" style="font-weight:600">{{ t.title }}</span>
+<span role="cell"><span class="rp-status" style="font-size:11px; line-height:15px; gap:6px; color:{{ t.sc }}; font-weight:600"><span class="rp-dot {{ t.dot }}" style="width:7px; height:7px"></span>{{ t.sl }}</span></span>
+<span role="cell"><span class="rp-prio {{ t.pcls }}" style="font-size:11px; line-height:15px; gap:5px; color:var(--ink)"><span class="rp-prio__bars" aria-hidden="true"><span></span><span></span><span></span></span><sc-if value="{{ t.notAcil }}" hint-placeholder-val="{{ true }}">{{ t.pl }}</sc-if><sc-if value="{{ t.acil }}" hint-placeholder-val="{{ false }}"><span class="t-badge t-badge--danger" style="height:16px; padding:0 6px; font-size:10px; line-height:12px">acil</span></sc-if></span></span>
+<span class="rp-rapor-mono" role="cell" style="font-size:10.5px; line-height:14px">{{ t.s }}<br>{{ t.e }}<sc-if value="{{ t.hasPlan }}" hint-placeholder-val="{{ false }}"><span class="rp-rapor-n2" style="font-size:9.5px">plan {{ t.plan }}</span></sc-if></span>
+<span role="cell" style="font-size:11px">{{ t.who }}</span>
+<span class="{{ t.gcls }}" role="cell" style="font-size:11px">{{ t.gec }}</span>
+<span class="rp-rapor-c" role="cell">{{ t.dn }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+<p class="rp-rapor-fn">D/N: dosya / not sayısı. Gecikme değerleri rapor oluşturulma anına göredir (bkz. Ek).</p>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p6-det">
+<div class="rp-rapor-h"><h3 id="p6-det">GÖREV DETAYLARI</h3><span>İçeriği olan 11 görev</span></div>
+<sc-for list="{{ details }}" as="c" hint-placeholder-count="2">
+<article class="rp-rapor-card" aria-label="{{ c.num }} {{ c.title }}" style="box-shadow:inset 3px 0 0 {{ c.sc }}">
+<div class="rp-rapor-card__h"><span class="rp-rapor-num">{{ c.num }}</span><h4 class="rp-rapor-card__t rp-trunc">{{ c.title }}</h4><span class="rp-rapor-pill" style="color:{{ c.pc }}; background:{{ c.pbg }}">{{ c.sl }}</span></div>
+<p class="rp-rapor-meta">Öncelik: <strong style="color:var(--ink)">{{ c.prio }}</strong> · <span class="rp-rapor-mono">{{ c.dates }}</span> · <span class="rp-rapor-danger">{{ c.gec }}</span> · Atananlar: {{ c.who }}</p>
+<p style="font-size:12px; line-height:17px">{{ c.desc }}</p>
+<sc-if value="{{ c.hasDeps }}" hint-placeholder-val="{{ true }}"><p class="rp-rapor-meta">Bağımlı olduğu görevler: <strong class="rp-rapor-mono" style="color:var(--ink)">{{ c.deps }}</strong></p></sc-if>
+<p class="rp-rapor-lab">NOTLAR ({{ c.noteN }})</p>
+<sc-for list="{{ c.notes }}" as="n" hint-placeholder-count="2">
+<div class="rp-rapor-note">
+<div class="rp-rapor-note__h"><strong>{{ n.head }}</strong><span>· {{ n.who }}</span><sc-if value="{{ n.hasFlag }}" hint-placeholder-val="{{ false }}"><span class="rp-rapor-pill" style="height:17px; font-size:9.5px; color:{{ n.fc }}; background:{{ n.fbg }}">{{ n.flag }}</span></sc-if><sc-if value="{{ n.shared }}" hint-placeholder-val="{{ false }}"><span class="rp-rapor-pill" style="height:17px; font-size:9.5px; color:var(--ink-muted); background:color-mix(in srgb, var(--ink-muted) 14%, transparent)">PAYLAŞILAN</span></sc-if></div>
+<p style="font-size:12px; line-height:17px">{{ n.text }}</p>
+</div>
+</sc-for>
+<p class="rp-rapor-lab">TARİH DEĞİŞİKLİĞİ TALEPLERİ ({{ c.reqN }})</p>
+<sc-for list="{{ c.reqs }}" as="r" hint-placeholder-count="1">
+<div style="display:flex; flex-direction:column; gap:2px; font-size:11.5px; line-height:16px">
+<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap"><span>Bitiş</span><span class="rp-rapor-mono">{{ r.from }}</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-label="yeni tarih" role="img" style="width:14px; height:14px; color:var(--ink-muted)"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><span class="rp-rapor-mono" style="font-weight:600">{{ r.to }}</span><span class="rp-rapor-pill" style="color:{{ r.pc }}; background:{{ r.pbg }}">{{ r.st }}</span></div>
+<span class="rp-rapor-meta">Talep: {{ r.by }} · Gerekçe: {{ r.why }}</span>
+</div>
+</sc-for>
+<p class="rp-rapor-lab">DOSYALAR ({{ c.fileN }})</p>
+<ul style="margin:0; padding-left:18px; font-size:11.5px; line-height:17px">
+<sc-for list="{{ c.files }}" as="f" hint-placeholder-count="2"><li><span class="rp-rapor-mono">{{ f.name }}</span> <span class="rp-rapor-meta">— {{ f.meta }}</span></li></sc-for>
+</ul>
+</article>
+</sc-for>
+<p class="rp-rapor-emptyline">9 görev kartı daha (#1, #2, #3, #5, #6, #8, #9, #11, #12) PDF'te yer alır; önizlemede gizlendi.</p>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p6-top">
+<div class="rp-rapor-h"><h3 id="p6-top">TOPLANTILAR</h3><span>4 toplantı</span></div>
+<article class="rp-rapor-card" aria-label="Haftalık koordinasyon toplantısı, 14.10.2026" style="gap:10px">
+<div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap"><span class="rp-rapor-mono" style="font-size:11px; color:var(--ink-muted)">14.10.2026 · 14:00–15:10</span><span class="rp-rapor-mono" style="font-size:10.5px; font-weight:500; letter-spacing:.06em">GÜNDEM 4/6</span></div>
+<h4 class="rp-rapor-card__t">Haftalık koordinasyon toplantısı</h4>
+<p class="rp-rapor-meta">Oluşturan: Ali Avcı · Katılımcılar (5): Abdullah Ateş, Ali Avcı, Bahar Kılıç, Reha Koçak, Kadir Özbek · Koordinatörlük üyeleri de dahil</p>
+<p class="rp-rapor-meta">Ortak toplantı — diğer bölümler: Elektrik ve enerji</p>
+<p class="rp-rapor-lab">GÜNDEM — 4/6 GÖRÜŞÜLDÜ</p>
+<div style="display:flex; flex-direction:column">
+<sc-for list="{{ agenda }}" as="a" hint-placeholder-count="6">
+<label class="rp-rapor-agenda {{ a.cls }}"><span class="rp-rapor-agenda__n">{{ a.n }}</span><span class="rp-rapor-checkwrap"><input type="checkbox" class="rp-rapor-check" checked="{{ a.on }}" onChange="{{ noop }}"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.5 4 4 8-9"></path></svg></span><span>{{ a.t }}</span></label>
+</sc-for>
+</div>
+<p class="rp-rapor-lab">NOTLAR (5)</p>
+<sc-for list="{{ mNotes }}" as="n" hint-placeholder-count="5">
+<div class="rp-rapor-note">
+<div class="rp-rapor-note__h"><strong>{{ n.head }}</strong><sc-if value="{{ n.conv }}" hint-placeholder-val="{{ false }}"><span>· Göreve dönüştürüldü</span></sc-if></div>
+<p style="font-size:12px; line-height:17px">{{ n.text }}</p>
+<sc-if value="{{ n.conv }}" hint-placeholder-val="{{ false }}"><p class="rp-rapor-meta">Göreve dönüştürüldü: <strong class="rp-rapor-mono" style="color:var(--accent-text)">{{ n.taskNum }}</strong> {{ n.task }}</p></sc-if>
+</div>
+</sc-for>
+</article>
+<p class="rp-rapor-emptyline">3 toplantı daha PDF'te yer alır; önizlemede gizlendi.</p>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p6-dos">
+<div class="rp-rapor-h"><h3 id="p6-dos">DOSYALAR</h3><span>12 dosya · 32,7 MB</span></div>
+<div class="rp-scroll">
+<div class="rp-rapor-table" role="table" aria-labelledby="p6-dos" style="min-width:620px">
+<div class="rp-rapor-tr rp-rapor-tr--head" role="row" style="grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 92px 56px 76px"><span role="columnheader">DOSYA</span><span role="columnheader">GÖREV</span><span role="columnheader">YÜKLEYEN</span><span class="rp-rapor-r" role="columnheader">BOYUT</span><span class="rp-rapor-r" role="columnheader">TARİH</span></div>
+<sc-for list="{{ fileGroups }}" as="g" hint-placeholder-count="4">
+<div class="rp-rapor-tr" role="row" style="grid-template-columns:minmax(0,1fr) auto; background:color-mix(in srgb, var(--ink) 6%, transparent)">
+<span role="cell"><span class="rp-rapor-pill" style="color:var(--ink); background:var(--bg-surface); border:1px solid var(--border-strong)">{{ g.tag }}</span></span>
+<span class="rp-rapor-mono" role="cell" style="font-size:10.5px; color:var(--ink-muted)">{{ g.meta }}</span>
+</div>
+<sc-for list="{{ g.files }}" as="f" hint-placeholder-count="3">
+<div class="rp-rapor-tr {{ f.z }}" role="row" style="grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 92px 56px 76px">
+<span class="rp-rapor-mono rp-trunc" role="cell" style="font-size:11px">{{ f.name }}</span>
+<span class="rp-trunc" role="cell"><span class="rp-rapor-mono" style="color:var(--ink-muted)">{{ f.num }}</span> {{ f.task }}</span>
+<span class="rp-trunc" role="cell">{{ f.by }}</span>
+<span class="rp-rapor-r" role="cell">{{ f.size }}</span>
+<span class="rp-rapor-r" role="cell">{{ f.date }}</span>
+</div>
+</sc-for>
+</sc-for>
+</div>
+</div>
+</section>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 6 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+
+<div class="rp-empty" id="rp-p7-13" style="width:820px; max-width:100%; box-sizing:border-box; padding:18px 16px; flex-direction:row; gap:10px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v14H6zM14 2v6h6"></path></svg><span>Sayfa 7–13 · diğer 10 koordinatörlük bölümü aynı düzende (önizlemede gizlendi)</span></div>
+
+<!-- ═════════ SAYFA 14 · EK: SÖZLÜK VE KURALLAR ═════════ -->
+<article class="rp-rapor-paper rp-rapor-paper--a4" data-theme="light" id="rp-p14" aria-label="Sayfa 14 — Ek: sözlük ve kurallar">
+<div class="rp-rapor-strip"><span class="rp-rapor-logo" aria-hidden="true">ŞT</span><span>DÖNEM SONU RAPORU — ŞANLIURFA TEKNOFEST</span><span class="rp-rapor-strip__r">Oluşturulma 21.10.2026 14:05<span class="rp-rapor-logo" aria-hidden="true">RP</span></span></div>
+<header class="rp-rapor-band" data-theme="dark">
+<p class="rp-rapor-kicker">SÖZLÜK · KURALLAR · KAPSAM</p>
+<h2 class="rp-rapor-band__t">EK: SÖZLÜK VE KURALLAR</h2>
+<span class="rp-rapor-accent" aria-hidden="true"></span>
+<p class="rp-rapor-band__sub">Rapordaki değerlerin anlamı ve hesap kuralları</p>
+</header>
+
+<section class="rp-rapor-sec" aria-labelledby="p14-dur">
+<div class="rp-rapor-h"><h3 id="p14-dur">GÖREV DURUMLARI</h3><span>5 değer</span></div>
+<div class="rp-rapor-table" role="table" aria-labelledby="p14-dur">
+<div class="rp-rapor-tr rp-rapor-tr--head" role="row" style="grid-template-columns:150px minmax(0,1fr)"><span role="columnheader">DEĞER</span><span role="columnheader">AÇIKLAMA</span></div>
+<sc-for list="{{ glossStatus }}" as="g" hint-placeholder-count="5">
+<div class="rp-rapor-tr {{ g.z }}" role="row" style="grid-template-columns:150px minmax(0,1fr)"><span role="cell"><span class="rp-rapor-pill" style="color:{{ g.pc }}; background:{{ g.pbg }}">{{ g.label }}</span></span><span role="cell">{{ g.text }}</span></div>
+</sc-for>
+</div>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p14-onc">
+<div class="rp-rapor-h"><h3 id="p14-onc">ÖNCELİKLER</h3><span>4 değer</span></div>
+<div class="rp-rapor-table" role="table" aria-labelledby="p14-onc">
+<div class="rp-rapor-tr rp-rapor-tr--head" role="row" style="grid-template-columns:150px minmax(0,1fr)"><span role="columnheader">DEĞER</span><span role="columnheader">AÇIKLAMA</span></div>
+<sc-for list="{{ glossPrio }}" as="g" hint-placeholder-count="4">
+<div class="rp-rapor-tr {{ g.z }}" role="row" style="grid-template-columns:150px minmax(0,1fr)"><span role="cell"><span class="rp-rapor-pill" style="color:{{ g.pc }}; background:{{ g.pbg }}">{{ g.label }}</span></span><span role="cell">{{ g.text }}</span></div>
+</sc-for>
+</div>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p14-gec">
+<div class="rp-rapor-h"><h3 id="p14-gec">GECİKME KURALI</h3><span>4 madde</span></div>
+<ol style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; font-size:12px; line-height:17px">
+<li>Açık görev, bitiş tarihinin ertesi Türkiye gününden itibaren gecikmiştir (son gün boyunca gecikmiş sayılmaz).</li>
+<li>Tamamlanmış görevde son tarih, tarih itildiyse ilk planlanan bitiştir.</li>
+<li>Tamamlanma günü son tarihten sonraysa "geç", önceyse "erken", aynı günse "zamanında".</li>
+<li>Gün sayıları rapor oluşturulma anına göredir.</li>
+</ol>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p14-kis">
+<div class="rp-rapor-h"><h3 id="p14-kis">KISALTMALAR VE ETİKETLER</h3></div>
+<ul style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:7px; font-size:12px; line-height:17px">
+<li><strong class="rp-rapor-mono">D/N</strong> — görev tablosunda dosya / not sayısı.</li>
+<li><strong class="rp-rapor-mono">#N</strong> — görevin koordinatörlük içindeki sıra numarası; görev tablosu, görev detayı, dosya tablosu ve Gantt'ta aynıdır.</li>
+<li><strong class="rp-rapor-mono">01, 02</strong> — gündem maddesi sırası; <strong class="rp-rapor-mono">Not 01 · 14:05</strong> — toplantı notunun sırası ve saati.</li>
+<li><span style="display:inline-flex; flex-wrap:wrap; gap:6px; vertical-align:middle"><span class="rp-rapor-pill" style="height:18px; color:color-mix(in srgb, var(--danger) 80%, var(--ink)); background:color-mix(in srgb, var(--danger) 16%, transparent)">ACİL</span><span class="rp-rapor-pill" style="height:18px; color:color-mix(in srgb, var(--danger) 80%, var(--ink)); background:color-mix(in srgb, var(--danger) 16%, transparent)">ENGEL</span><span class="rp-rapor-pill" style="height:18px; color:color-mix(in srgb, var(--gold) 70%, var(--ink)); background:color-mix(in srgb, var(--gold) 16%, transparent)">SORU</span><span class="rp-rapor-pill" style="height:18px; color:var(--ink-muted); background:color-mix(in srgb, var(--ink-muted) 14%, transparent)">BİLGİ</span></span> — not bayrakları; notu yazan kişi işaretler.</li>
+<li><span class="rp-rapor-pill" style="height:18px; color:var(--ink-muted); background:color-mix(in srgb, var(--ink-muted) 14%, transparent)">PAYLAŞILAN</span> — not, görevin bağlı olduğu toplantı katılımcılarıyla paylaşılmıştır.</li>
+<li>Dosya etiketleri sabit sırayla gruplanır: Teklifler · Planlar · Saha görselleri · Güncel durum verisi · Sonuç dosyası · Alan planları · Analiz ve hesaplamalar · Alan tasarımı · İster dosyası · Teknik şartname · Statik rapor.</li>
+</ul>
+</section>
+
+<section class="rp-rapor-sec" aria-labelledby="p14-kap">
+<div class="rp-rapor-h"><h3 id="p14-kap">KAPSAM VE VERİ NOTLARI</h3><span>5 madde</span></div>
+<ol style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; font-size:12px; line-height:17px">
+<li>Rapor yalnız seçili programı kapsar: Şanlıurfa Teknofest · 2026 sezonu (02.02.2026 – 31.12.2026).</li>
+<li>Silinmiş koordinatörlük, görev, toplantı ve dosya kayıtları rapora alınmaz.</li>
+<li>Birden çok koordinatörlüğe bağlı toplantı her bölümde ayrı gösterilir, toplamlarda bir kez sayılır.</li>
+<li>Mesaj içerikleri rapora alınmaz; yalnızca sayılar yer alır.</li>
+<li>Tarihler gg.aa.yyyy, saatler TRT (UTC+3).</li>
+</ol>
+</section>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 14 / 14</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":11400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sbctx = { progs: [{ id: 'sur', name: 'Şanlıurfa Teknofest', short: 'Şanlıurfa', sub: '2026 sezonu', av: 'ŞT', bg: 'var(--violet)', ink: 'var(--on-violet)' }, { id: 'izm', name: 'İzmir Teknofest', short: 'İzmir', sub: '2026 sezonu', av: 'İT', bg: 'var(--gold)', ink: 'var(--on-gold)' }],
+      progId: 'sur', roleId: 'admin', coordId: null,
+      roles: [{ id: 'admin', coords: [] }, { id: 'koord', coords: [{ id: 'SİS', name: 'Sistem koordinatörlüğü' }, { id: 'EĞİ', name: 'Eğitim ve Arge' }] }, { id: 'uye', coords: [{ id: 'ALT', name: 'Altyapı ve tesisat' }, { id: 'ELE', name: 'Elektrik ve enerji' }, { id: 'OPE', name: 'Operasyon' }] }] };
+    const noop = () => {};
+
+    /* Yardımcılar: yüzde önde ("%49"), ondalık virgül, zebra, hap tonu */
+    const pctS = (n, t) => '%' + Math.round(n / t * 100);
+    const wS = (n, t) => (n / t * 100).toFixed(2) + '%';
+    const mb = (x) => x.toFixed(1).replace('.', ',') + ' MB';
+    const zb = (arr) => arr.map((r, i) => Object.assign({ z: i % 2 ? 'rp-rapor-z' : '' }, r));
+    const tint = (c) => ({ pc: 'color-mix(in srgb, ' + c + ' 80%, var(--ink))', pbg: 'color-mix(in srgb, ' + c + ' 16%, transparent)' });
+    const ST = {
+      todo: { sl: 'Başlamadı', sc: 'var(--ink-faint)', dot: 'rp-dot--todo', seg: 'rp-seg-todo' },
+      doing: { sl: 'Devam ediyor', sc: 'var(--violet)', dot: 'rp-dot--doing', seg: 'rp-seg-doing' },
+      review: { sl: 'Onay bekliyor', sc: 'var(--gold)', dot: 'rp-dot--review', seg: 'rp-seg-review' },
+      back: { sl: 'İade edildi', sc: 'var(--danger)', dot: 'rp-dot--back', seg: 'rp-seg-late' },
+      done: { sl: 'Tamamlandı', sc: 'var(--accent-text)', dot: 'rp-dot--done', seg: 'rp-seg-done' }
+    };
+
+    /* KPI kartları */
+    const K = (label, value, sub, tone, vc) => ({ label, value, sub, tone: tone || 'var(--ink-muted)', vc: vc || 'var(--ink)' });
+    const kpiCover = [
+      K('GÖREV', '79', '39 tamamlandı'),
+      K('TAMAMLANMA', pctS(39, 79), '6 geç tamamlandı', 'var(--accent-text)', 'var(--accent-text)'),
+      K('GECİKEN (AÇIK)', '15', '40 açık görevden', 'var(--danger)', 'var(--danger)'),
+      K('TOPLANTI', '41', '118 not'),
+      K('KOORDİNATÖRLÜK', '11', '0 çalışma grubu'),
+      K('KULLANICI', '18', '15 koordinatör'),
+      K('DOSYA', '50', '412,6 MB'),
+      K('TARİH TALEBİ', '9', '3 bekliyor', 'var(--gold)', 'var(--gold)')
+    ];
+    const kpiSum = [
+      K('GÖREV', '79', '40 açık'),
+      K('TAMAMLANMA', pctS(39, 79), '39 / 79 görev', 'var(--accent-text)', 'var(--accent-text)'),
+      K('GECİKEN (AÇIK)', '15', "açık görevlerin " + pctS(15, 40) + "'i", 'var(--danger)', 'var(--danger)'),
+      K('ZAMANINDA TAMAMLANAN', '33', '4 erken', 'var(--accent-text)'),
+      K('GEÇ TAMAMLANAN', '6', "tamamlananların " + pctS(6, 39) + "'i", 'var(--danger)', 'var(--danger)'),
+      K('TOPLANTI', '41', 'gündem 162/201'),
+      K('DOSYA', '50', '412,6 MB'),
+      K('TARİH TALEBİ', '9', '5 onay · 1 red · 3 bekliyor', 'var(--gold)', 'var(--gold)')
+    ];
+    const kpiReq = [
+      K('TOPLAM TALEP', '9', 'dönem boyunca'),
+      K('ONAYLANAN', '5', pctS(5, 9) + ' · ort. kayma 4,2 gün', 'var(--accent-text)', 'var(--accent-text)'),
+      K('REDDEDİLEN', '1', pctS(1, 9), 'var(--danger)', 'var(--danger)'),
+      K('BEKLEYEN', '3', pctS(3, 9) + ' · karar bekliyor', 'var(--gold)', 'var(--gold)')
+    ];
+    const kpiAlt = [
+      K('GÖREV', '14', '9 tamamlandı'),
+      K('TAMAMLANMA', pctS(9, 14), '9 / 14 görev', 'var(--accent-text)', 'var(--accent-text)'),
+      K('GECİKEN', '3', 'açık görev', 'var(--danger)', 'var(--danger)'),
+      K('GEÇ BİTEN', '2', '9 bitenden', 'var(--danger)', 'var(--danger)'),
+      K('TOPLANTI', '4', '1 ortak toplantı'),
+      K('DOSYA', '12', '32,7 MB')
+    ];
+
+    /* Yönetici özeti: dağılımlar (79 görev) */
+    const distStatus = [['Başlamadı', 17, 'var(--ink-faint)'], ['Devam ediyor', 19, 'var(--violet)'], ['Onay bekliyor', 3, 'var(--gold)'], ['İade edildi', 1, 'var(--danger)'], ['Tamamlandı', 39, 'var(--accent-text)']]
+      .map(([label, n, bg]) => ({ label, n, bg, p: pctS(n, 79), w: wS(n, 79) }));
+    const distPrio = [['Acil', 6, 100], ['Yüksek', 21, 70], ['Orta', 38, 45], ['Düşük', 14, 25]]
+      .map(([label, n, k]) => ({ label, n, bg: 'color-mix(in srgb, var(--ink) ' + k + '%, transparent)', p: pctS(n, 79), w: wS(n, 79) }));
+
+    /* Koordinatörlükler (Main.dc.html kanonik; ada göre, Türkçe sıra) */
+    const COORDS = [
+      ['Altyapı ve tesisat', 'ALT', 14, 9, 3, 4, 12, 6],
+      ['Eğitim ve Arge', 'EĞİ', 7, 2, 2, 5, 2, 7],
+      ['Elektrik ve enerji', 'ELE', 7, 4, 1, 4, 4, 8],
+      ['Fuar', 'FUA', 4, 2, 1, 3, 3, 8],
+      ['İdari işler', 'İDA', 11, 1, 4, 3, 6, 9],
+      ['Mekanik sistemler', 'MEK', 8, 7, 1, 5, 8, 10],
+      ['Mimari tasarım', 'MİM', 5, 3, 0, 2, 3, 11],
+      ['Operasyon', 'OPE', 8, 4, 0, 6, 5, 11],
+      ['Satış ve pazarlama', 'SAT', 7, 4, 0, 3, 4, 12],
+      ['Sistem koordinatörlüğü', 'SİS', 4, 2, 0, 4, 2, 12],
+      ['Ulaşım planlama', 'ULA', 4, 1, 3, 2, 1, 13]
+    ];
+    const cmp = zb(COORDS.map(([name, code, total, done, late, meet, files]) => ({ name, code, total, done, late, meet, files,
+      lateCls: late > 0 ? 'rp-rapor-danger' : '', pct: pctS(done, total), w: wS(done, total) })));
+    const toc = COORDS.map(([name, code, , , , , , page]) => ({ name, code, kind: 'KOORDİNATÖRLÜK', page: String(page), href: code === 'ALT' ? '#rp-p6' : '#rp-p7-13' }));
+
+    /* Gantt: eksen 01.03.2026 – 30.11.2026 (275 gün), konumlar yüzde */
+    const D0 = Date.UTC(2026, 2, 1);
+    const GT = 275;
+    const dd = (s) => { const p = s.split('.').map(Number); return (Date.UTC(p[2], p[1] - 1, p[0]) - D0) / 86400000; };
+    const gp = (n) => (n / GT * 100).toFixed(3) + '%';
+    const TODAY = dd('21.10.2026');
+    const MONTHS = [['MART', 31], ['NİSAN', 30], ['MAYIS', 31], ['HAZİRAN', 30], ['TEMMUZ', 31], ['AĞUSTOS', 31], ['EYLÜL', 30], ['EKİM', 31], ['KASIM', 30]];
+    const gMonths = MONTHS.map(([name, n]) => ({ name, w: gp(n) }));
+    const gDays = [];
+    let off = 0;
+    MONTHS.forEach(([, n]) => { gDays.push({ d: '1', x: gp(off) }); gDays.push({ d: '15', x: gp(off + 14) }); off += n; });
+    const gWeekends = [{ x: gp(0), w: gp(1) }];
+    for (let s = 6; s < GT; s += 7) gWeekends.push({ x: gp(s), w: gp(Math.min(2, GT - s)) });
+    const GR = [
+      [1, 'Su deposu temel betonunun yapılması', 'done', '09.03.2026', '28.03.2026', '31.03.2026'],
+      [2, 'Saha içi içme suyu hattı', 'done', '30.03.2026', '24.04.2026', '22.04.2026'],
+      [3, 'Atık su toplama hattı', 'done', '13.04.2026', '22.05.2026', '27.05.2026'],
+      [4, 'Fuar alanı elektrik kablo kanalları', 'doing', '01.09.2026', '17.10.2026', null],
+      [5, 'Jeneratör sahası zemin betonu', 'done', '05.10.2026', '30.10.2026', '20.10.2026'],
+      [6, 'Yangın hidrant hattı', 'todo', '03.11.2026', '21.11.2026', null],
+      [7, 'Saha aydınlatma direkleri montajı', 'doing', '28.09.2026', '15.10.2026', null],
+      [8, 'Geçici tuvalet üniteleri bağlantıları', 'done', '15.06.2026', '10.07.2026', '10.07.2026'],
+      [9, 'Drenaj kanalı temizliği', 'doing', '18.09.2026', '12.10.2026', null],
+      [14, 'Kablosuz ağ erişim noktaları kurulumu', 'todo', '10.11.2026', '25.11.2026', null]
+    ];
+    const gRows = zb(GR.map(([n, title, st, s, e, doneAt]) => {
+      const a = dd(s); const b = dd(e) + 1; const S = ST[st];
+      const r = { num: '#' + n, title, s, e, sl: S.sl, sc: S.sc, dot: S.dot, seg: S.seg, endCls: '', bd: '0', br: '3px', hasTail: false, tx: '0%', tw: '0%', tbg: 'transparent', tbd: '0', tip: '#' + n + ' · ' + S.sl };
+      if (doneAt) {
+        const c = dd(doneAt) + 1;
+        if (c > b) { Object.assign(r, { x: gp(a), w: gp(b - a), br: '3px 0 0 3px', hasTail: true, tx: gp(b), tw: gp(c - b), tbg: 'var(--danger)', tbd: '0', tip: r.tip + ' · ' + (c - b) + ' gün geç bitti' }); }
+        else { Object.assign(r, { x: gp(a), w: gp(c - a), tip: r.tip + (c < b ? ' · ' + (b - c) + ' gün erken' : ' · zamanında') }); }
+      } else if (b <= TODAY) {
+        const lateDays = TODAY - b + 1;
+        Object.assign(r, { x: gp(a), w: gp(b - a), bd: '1.5px dashed var(--danger)', br: '3px 0 0 3px', endCls: 'rp-rapor-danger', hasTail: true, tx: gp(b), tw: gp(TODAY + 0.5 - b), tbg: 'color-mix(in srgb, var(--danger) 18%, transparent)', tbd: '1.5px dashed var(--danger)', tip: r.tip + ' · ' + lateDays + ' gün gecikti' });
+      } else { Object.assign(r, { x: gp(a), w: gp(b - a) }); }
+      return r;
+    }));
+    const gToday = gp(TODAY + 0.5);
+
+    /* Aylık aktivite (12 ay, toplam 461) — ölçek tavanı 70, çizim yüksekliği 150 px */
+    const ACT = [['Kas 25', 9], ['Ara 25', 14], ['Oca 26', 22], ['Şub 26', 31], ['Mar 26', 38], ['Nis 26', 46], ['May 26', 52], ['Haz 26', 61], ['Tem 26', 58], ['Ağu 26', 49], ['Eyl 26', 44], ['Eki 26', 37]];
+    const act = ACT.map(([m, v]) => ({ m, v: String(v), h: Math.round(v / 70 * 150) + 'px' }));
+    const actGrid = [20, 40, 60].map((v) => ({ v: String(v), b: (v / 70 * 150).toFixed(1) + 'px' }));
+
+    /* Tarih talepleri: en çok talep alan 5 görev */
+    const reqTop = zb([
+      ['ALT-7', 'Saha aydınlatma direkleri montajı', 'Altyapı ve tesisat', '2 talep'],
+      ['İDA-3', 'VİP yönetim takip', 'İdari işler', '2 talep'],
+      ['ULA-2', 'Öğrenci ve misafir otopark zemin düzenlemesi faz5 ve faz6', 'Ulaşım planlama', '2 talep'],
+      ['EĞİ-5', 'Gönüllü eğitim programı takvimi', 'Eğitim ve Arge', '1 talep'],
+      ['ALT-4', 'Fuar alanı elektrik kablo kanalları', 'Altyapı ve tesisat', '1 talep']
+    ].map(([code, title, coord, n]) => ({ code, title, coord, n })));
+
+    /* İş yükü: ilk 8 kişi, aktif ↓; dağılım en büyük toplama (15) göre */
+    const LOAD = [
+      ['Bahar Kılıç', 'ALT · ELE · OPE', 9, 4, 6],
+      ['Kadir Özbek', 'ALT · SİS · EĞİ', 5, 1, 7],
+      ['Ali Avcı', 'ALT', 4, 2, 5],
+      ['Merve Koçoğlu', 'EĞİ', 4, 2, 2],
+      ['Yunus Çiftçioğlu', 'OPE', 4, 0, 4],
+      ['Reha Koçak', 'ELE · ALT', 3, 1, 4],
+      ['Salih Özer', 'ULA', 3, 3, 1],
+      ['Abdullah Ateş', 'ALT', 2, 0, 4]
+    ];
+    const MAXT = Math.max.apply(null, LOAD.map((p) => p[2] + p[4]));
+    const load = zb(LOAD.map(([name, codes, a, l, d]) => ({ name, codes, act: a, late: l, done: d, total: a + d,
+      lateCls: l > 0 ? 'rp-rapor-danger' : '', wDone: wS(d, MAXT), wAct: wS(a - l, MAXT), wLate: wS(l, MAXT),
+      tip: d + ' tamamlanan · ' + (a - l) + ' aktif (zamanında) · ' + l + ' geciken' })));
+
+    /* Altyapı ve tesisat: 14 görev (#1–#14) — 2 başlamadı · 3 devam · 0 onayda · 9 tamamlandı */
+    const PR = { acil: { pcls: 'rp-prio--high', pl: 'Acil', acil: true }, high: { pcls: 'rp-prio--high', pl: 'Yüksek', acil: false }, mid: { pcls: 'rp-prio--mid', pl: 'Orta', acil: false }, low: { pcls: 'rp-prio--low', pl: 'Düşük', acil: false } };
+    const GK = { late: 'rp-rapor-danger', lateDone: 'rp-danger-text', early: 'rp-rapor-ok', ontime: 'rp-rapor-ok', none: 'rp-muted' };
+    const TASKS = [
+      [1, 'Su deposu temel betonunun yapılması', 'done', 'high', '09.03.2026', '28.03.2026', 'Kadir Özbek, Abdullah Ateş', '3 gün geç bitti', 'lateDone', '2/3'],
+      [2, 'Saha içi içme suyu hattı', 'done', 'mid', '30.03.2026', '24.04.2026', 'Ali Avcı', '2 gün erken', 'early', '1/2'],
+      [3, 'Atık su toplama hattı', 'done', 'high', '13.04.2026', '22.05.2026', 'Abdullah Ateş, Kadir Özbek', '5 gün geç bitti', 'lateDone', '2/1'],
+      [4, 'Fuar alanı elektrik kablo kanalları', 'doing', 'acil', '01.09.2026', '17.10.2026', 'Bahar Kılıç', '4 gün gecikti', 'late', '2/2'],
+      [5, 'Jeneratör sahası zemin betonu', 'done', 'high', '05.10.2026', '30.10.2026', 'Reha Koçak, Ali Avcı', '10 gün erken', 'early', '1/1'],
+      [6, 'Yangın hidrant hattı', 'todo', 'mid', '03.11.2026', '21.11.2026', 'Kadir Özbek, Ali Avcı, Abdullah Ateş', '—', 'none', '1/1'],
+      [7, 'Saha aydınlatma direkleri montajı', 'doing', 'mid', '28.09.2026', '15.10.2026', 'Ali Avcı, Reha Koçak', '6 gün gecikti', 'late', '1/1', '10.10.2026'],
+      [8, 'Geçici tuvalet üniteleri bağlantıları', 'done', 'mid', '15.06.2026', '10.07.2026', 'Bahar Kılıç', 'Zamanında', 'ontime', '1/0'],
+      [9, 'Drenaj kanalı temizliği', 'doing', 'low', '18.09.2026', '12.10.2026', 'Kadir Özbek, Ali Avcı', '9 gün gecikti', 'late', '0/2'],
+      [10, 'Yol kenarı yağmur suyu ızgaraları', 'done', 'low', '04.05.2026', '29.05.2026', 'Abdullah Ateş, Ali Avcı', 'Zamanında', 'ontime', '0/0'],
+      [11, 'Trafo binası topraklama hattı', 'done', 'high', '01.06.2026', '26.06.2026', 'Reha Koçak, Abdullah Ateş', 'Zamanında', 'ontime', '1/1'],
+      [12, 'Su deposu dolum ve basınç testi', 'done', 'mid', '06.04.2026', '17.04.2026', 'Kadir Özbek, Ali Avcı', 'Zamanında', 'ontime', '0/1'],
+      [13, 'Direk montajı için vinç kiralama', 'done', 'high', '14.10.2026', '17.10.2026', 'Ali Avcı', 'Zamanında', 'ontime', '0/0'],
+      [14, 'Kablosuz ağ erişim noktaları kurulumu', 'todo', 'high', '10.11.2026', '25.11.2026', 'Kadir Özbek, Ali Avcı, Abdullah Ateş', '—', 'none', '0/0']
+    ];
+    const TITLE = {};
+    TASKS.forEach((t) => { TITLE[t[0]] = t[1]; });
+    const altTasks = zb(TASKS.map(([n, title, st, pr, s, e, who, gec, gk, dn, plan]) => {
+      const S = ST[st]; const P = PR[pr];
+      return { num: '#' + n, title, sl: S.sl, sc: S.sc, dot: S.dot, pcls: P.pcls, pl: P.pl, acil: P.acil, notAcil: !P.acil, s, e, who, gec, gcls: GK[gk], dn, hasPlan: !!plan, plan: plan || '' };
+    }));
+    const stripN = { todo: 2, doing: 3, review: 0, back: 0, done: 9 };
+    const altStripLeg = ['todo', 'doing', 'review', 'back', 'done'].map((k) => ({ label: ST[k].sl, seg: ST[k].seg, n: String(stripN[k]) }));
+    const altStripBar = ['todo', 'doing', 'review', 'back', 'done'].filter((k) => stripN[k] > 0).map((k) => ({ seg: ST[k].seg, w: wS(stripN[k], 14) }));
+
+    /* Görev detay kartları (#4, #7) */
+    const FLAG = { ENGEL: 'var(--danger)', ACİL: 'var(--danger)', SORU: 'var(--gold)', BİLGİ: 'var(--ink-muted)' };
+    const NT = (head, who, text, flag, shared) => Object.assign({ head, who, text, flag: flag || '', hasFlag: !!flag, shared: !!shared }, flag ? { fc: tint(FLAG[flag]).pc, fbg: tint(FLAG[flag]).pbg } : { fc: 'var(--ink-muted)', fbg: 'transparent' });
+    const RQ = (from, to, st, c, by, why) => Object.assign({ from, to, st, by, why }, tint(c));
+    const DET = (n, st, o) => Object.assign({ num: '#' + n, title: TITLE[n], sl: ST[st].sl, sc: ST[st].sc, noteN: String(o.notes.length), reqN: String(o.reqs.length), fileN: String(o.files.length), hasDeps: !!o.deps }, tint(ST[st].sc), o);
+    const details = [
+      DET(4, 'doing', { prio: 'Acil', dates: '01.09.2026 – 17.10.2026', gec: '4 gün gecikti', who: 'Bahar Kılıç', deps: '#1, #3',
+        desc: 'Ana dağıtım panolarından stant adalarına uzanan 1.240 m kablo kanalının kazısı, kum yatağı ve kapak montajı. Kalan bölüm C ve D salonları arasında.',
+        notes: [NT('Not 01 · 09.10.2026 11:20', 'Bahar Kılıç', 'C salonu önünde içme suyu hattıyla kesişim çıktı; güzergah değişikliği onayı gelene kadar kazı durdu.', 'ENGEL'),
+          NT('Not 02 · 17.10.2026 16:05', 'Ali Avcı', 'Güzergah değişikliği onaylandı. Taşeron ek ekiple kalan 370 m için 5 iş günü öngörülüyor.', null, true)],
+        reqs: [RQ('17.10.2026', '24.10.2026', 'Onay bekliyor', 'var(--gold)', 'Bahar Kılıç, 16.10.2026', 'taşeron ekip gecikmesi')],
+        files: [{ name: 'saha-kablo-kanali-plan-v3.pdf', meta: 'Planlar · 3,8 MB · Bahar Kılıç' }, { name: 'IMG_1042.jpg', meta: 'Saha görselleri · 4,6 MB · Bahar Kılıç' }] }),
+      DET(7, 'doing', { prio: 'Orta', dates: '28.09.2026 – 15.10.2026 (plan 10.10.2026)', gec: '6 gün gecikti', who: 'Ali Avcı, Reha Koçak', deps: '#13',
+        desc: 'Ana yürüyüş aksı ve otopark çevresine 48 adet 8 m aydınlatma direğinin temel, montaj ve enerji bağlantısı.',
+        notes: [NT('Not 01 · 14.10.2026 14:52', 'Ali Avcı', 'Kalan 19 direk için vinç gerekiyor; kiralama #13 ile takipte. Vinç gelirse montaj iki günde biter.', 'SORU')],
+        reqs: [RQ('10.10.2026', '15.10.2026', 'Onaylandı', 'var(--accent-text)', 'Ali Avcı, 07.10.2026', 'direk teslimatı gecikti'),
+          RQ('15.10.2026', '22.10.2026', 'Reddedildi', 'var(--danger)', 'Ali Avcı, 14.10.2026', 'vinç kiralaması bekleniyor')],
+        files: [{ name: 'aydinlatma-direk-temel.jpg', meta: 'Saha görselleri · 3,1 MB · Ali Avcı' }] })
+    ];
+
+    /* Toplantı kartı: gündem 4/6, 5 not */
+    const agenda = [['01', 'Kablo kanalı kazı ilerlemesi', true], ['02', 'Jeneratör sahası beton tarihi', true], ['03', 'Hidrant hattı malzeme teslimi', true], ['04', 'Aydınlatma direkleri gecikme gerekçesi', true], ['05', 'Drenaj temizliği ekip planı', false], ['06', 'Kablosuz ağ keşif tarihi', false]]
+      .map(([n, t, on]) => ({ n, t, on, cls: on ? '' : 'rp-rapor-agenda--off' }));
+    const MN = (head, text, taskN) => ({ head, text, conv: !!taskN, taskNum: taskN ? '#' + taskN : '', task: taskN ? TITLE[taskN] : '' });
+    const mNotes = [
+      MN('Not 01 · 14:05', 'Kablo kanalı kazısı %70 seviyesinde; taşeron ek ekip pazartesi sahaya giriyor.'),
+      MN('Not 02 · 14:18', "Jeneratör sahası beton dökümü 24.10.2026'ya alındı.", 5),
+      MN('Not 03 · 14:31', 'Hidrant hattı malzemesi 29.10.2026 tarihinde teslim edilecek.'),
+      MN('Not 04 · 14:47', 'Direk montajı için vinç kiralanacak; iki tedarikçiden teklif alınacak.', 13),
+      MN('Not 05 · 15:02', 'Sonraki toplantı 21.10.2026 14:00.')
+    ];
+
+    /* Dosyalar: etikete göre gruplu (sabit etiket sırası), grup içinde ada göre */
+    const FG = [
+      ['TEKLİFLER', [['jenerator-zemin-betonu-teklif.pdf', 5, 0.6, 'Reha Koçak', '03.10.2026'], ['su-deposu-beton-teklifi.pdf', 1, 0.4, 'Kadir Özbek', '02.03.2026']]],
+      ['PLANLAR', [['atik-su-hatti-guzergah.pdf', 3, 2.1, 'Abdullah Ateş', '20.04.2026'], ['hidrant-hatti-kesit.dwg', 6, 6.2, 'Kadir Özbek', '08.10.2026'], ['saha-kablo-kanali-plan-v3.pdf', 4, 3.8, 'Bahar Kılıç', '12.09.2026']]],
+      ['SAHA GÖRSELLERİ', [['aydinlatma-direk-temel.jpg', 7, 3.1, 'Ali Avcı', '13.10.2026'], ['IMG_0877.jpg', 1, 3.9, 'Kadir Özbek', '27.03.2026'], ['IMG_0915.jpg', 3, 4.2, 'Abdullah Ateş', '26.05.2026'], ['IMG_1042.jpg', 4, 4.6, 'Bahar Kılıç', '16.10.2026'], ['tuvalet-unite-baglanti.jpg', 8, 2.7, 'Bahar Kılıç', '09.07.2026']]],
+      ['GÜNCEL DURUM VERİSİ', [['icme-suyu-basinc-olcum.xlsx', 2, 0.2, 'Ali Avcı', '21.04.2026'], ['trafo-topraklama-olcum.pdf', 11, 0.9, 'Reha Koçak', '25.06.2026']]]
+    ];
+    const fileGroups = FG.map(([tag, rows]) => ({ tag,
+      meta: rows.length + ' dosya · ' + mb(rows.reduce((s, r) => s + r[2], 0)),
+      files: zb(rows.map(([name, n, size, by, date]) => ({ name, num: '#' + n, task: TITLE[n], size: mb(size), by, date }))) }));
+
+    /* Ek: sözlük */
+    const glossStatus = zb([
+      ['todo', 'Görev oluşturuldu; henüz üzerinde çalışılmıyor.'],
+      ['doing', 'Atanan kişi çalışmaya başladı.'],
+      ['review', 'Kanıt yüklendi; koordinatör onayı bekleniyor.'],
+      ['back', 'Koordinatör kanıtı yetersiz buldu; görev atanana geri gönderildi.'],
+      ['done', 'Koordinatör onayladı; görev kapandı.']
+    ].map(([k, text]) => Object.assign({ label: ST[k].sl, text }, tint(ST[k].sc))));
+    const glossPrio = zb([
+      ['Acil', 'var(--danger)', 'Aynı gün ele alınır; diğer işlerin önüne geçer.'],
+      ['Yüksek', 'var(--ink)', 'Bu hafta içinde ilerleme beklenir.'],
+      ['Orta', 'var(--ink-muted)', 'Planlanan takvimde yürür.'],
+      ['Düşük', 'var(--ink-faint)', 'Takvim esnektir; boş kapasiteyle yürür.']
+    ].map(([label, c, text]) => Object.assign({ label, text }, tint(c))));
+
+    return { theme: this.props.theme ?? 'dark', sbctx, noop,
+      kpiCover, kpiSum, kpiReq, kpiAlt, distStatus, distPrio, cmp, toc,
+      gMonths, gDays, gWeekends, gRows, gToday, act, actGrid, reqTop, load,
+      altTasks, altStripLeg, altStripBar, details, agenda, mNotes, fileGroups, glossStatus, glossPrio };
+  }
+}
+</script>
+</body>
+</html>

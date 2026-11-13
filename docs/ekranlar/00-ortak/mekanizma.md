@@ -123,3 +123,75 @@ Tasarımda kabuk için hiçbiri yok — **tasarımda yok, K7 varsayılanı**:
 - Tasarım sistemi token kopyası (K9) + `design/web-tokens.json` (`rp-*` yerleşim ölçüleri, rol renkleri önerisi).
 - Bildirim paneli ve okunmamış mesaj rozeti F7 (`10-mesajlar`); Asistan F8.
 - Program kısa ad/renk: BE-001.
+
+
+---
+
+## 9. F6: menü tanımı rol taşır (WEB-6; P46 (d), P47, P53; W135)
+
+Kaynak: `Sidebar.dc.html` (v85, `groups`/`koordGroups`/`uyeGroups`), `Kenar-Roller.dc.html` (`Ortak · Kenar menüsü › Program, rol, koordinatörlük`: "Aynı kabuk, üç menü"). Bugünkü kod tek menü kullanır (`routes.catalog.ts` `menu: {group, key, order}`; etiket sabit); F6'da **menü tanımı rol taşır** (W141 uygular): her menü girdisi `roles` kümesi ve gerekirse rol etiketi (`Görevler` → `Görevlerim`, `Arşiv` → `Dosyalarım`) alır; rozet kaynağı rolün kendi sayılarıdır.
+
+**Menü seçimi (kural).** Menü grubu **yetki olgusundan** seçilir, mercek yalnız içeriği daraltır (P1/P11): `company_admin` → yönetici menüsü (mercek Admin/Koordinatör/Üye olsa da; Yönetim grubu kaybolmaz, K/Ü merceğinde yalnız sayfa içeriği ve rozet sayıları merceğe göre süzülür, P53); `company_admin` değilse mercek Koordinatör → koordinatör menüsü, mercek Üye → üye menüsü. Birleşik rolde (hem koordinatör hem üye) mercek karar verir. Gizleme güvenlik değildir; sunucu her istekte denetler.
+
+**Ortak kural.** F6 dışı ya da fazı gelmemiş girdiler **menüde gizlidir** (ortak-kurallar §5): Takvim, Kurumsal hafıza, Mesajlar (F7), Tablolar, Simülasyon, Birimim, Ekibim. **"Raporlar" öğesi hiçbir menüde yoktur (P47).**
+
+### 9.1 Yönetici menüsü (admin)
+| Etiket | Hedef rota | Rozet kaynağı | Görünürlük (F6) |
+|---|---|---|---|
+| Ana sayfa | `/` (`home`) | — | görünür; 01 yönetici sayfası |
+| Görevler | `/gorevler` | 1) geciken `reportDashboard.overdue_tasks` (`--danger`); 2) tarih talebi `pending_date_changes` (nötr, çerçeveli) | görünür (E-00-14/15 aynen) |
+| Zaman çizelgesi | `/zaman-cizelgesi` | — | görünür (F3 canlı; v85 `Sidebar` admin grubunda yok → **geçici kabul: korunur**, aşağıdaki not) |
+| Takvim | — | — | **gizli** (F6 dışı, K14; v85 yeni) |
+| Kurumsal hafıza | — | — | **gizli** (F6 dışı; BE-033) |
+| Arşiv | `/arsiv` | — | görünür (F5) |
+| Toplantılar | `/toplantilar` | — | görünür (F4) |
+| Mesajlar | — | `unread_chats` (F7) | **gizli** (F7) |
+| Tablolar | — | — | **gizli** (F6 dışı; BE-031) |
+| Kullanıcılar | `/kullanicilar` | — | görünür; Yönetim grubu `company_admin` ile (P1) |
+| Koordinatörlükler | `/koordinatorlukler` | — | görünür; Yönetim |
+| Teknofest ve sezon | `/programlar` | — | görünür; Yönetim |
+| Simülasyon (Deneysel) | — | — | **gizli** (K14) |
+| **Raporlar** | **YOK** | — | **menüde öğe ve rota yok (P47)**; raporlar kendi ekranlarında |
+
+### 9.2 Koordinatör menüsü
+| Etiket | Hedef rota | Rozet kaynağı | Görünürlük (F6) |
+|---|---|---|---|
+| Ana sayfa | `/` | — | görünür; K1 (F6) |
+| Görevler | `/gorevler` | 1) geciken `countProgramWorkItems.overdue` (`department_id` = seçili birim; `--danger`); 2) **onay bekleyen** `by_status.onaya_sunuldu` (`title`: "‹n› görev onay bekliyor") | görünür; ikinci rozet F6'da tarih talebinden onay bekleyene döner (v85 `Sidebar`/`Kenar-Roller`) |
+| Tarih talepleri | `/zaman-cizelgesi` (03c; tarih talepleri bölümü) | altın rozet `countProgramWorkItems.pending_date_requests` (seçili birim) | tasarım ayrı öğe + K6 sayfası ister; K6 F6 dışı → **geçici kabul:** ayrı öğe gizli, rozet "Zaman çizelgesi" öğesine taşınır (E-00-15 davranışı) |
+| Zaman çizelgesi | `/zaman-cizelgesi` | (yukarıdaki talep rozeti) | görünür (F3 canlı; v85 koordinatör grubunda yok, `Kenar-Roller` açıklama metni hâlâ "Zaman çizelgesi" der → **geçici kabul: korunur**) |
+| Takvim | — | — | **gizli** (F6 dışı) |
+| Birimim (Birim grubu) | — (K2 `Koord-Birim`) | — | **gizli** (K2 F6 dışı, §5) |
+| Ekibim (Birim grubu) | — (K5 `Koord-Ekip`) | — | **gizli** (K5 F6 dışı) |
+| Kurumsal hafıza | — | — | **gizli** |
+| Toplantılar | `/toplantilar` | — | görünür (F4) |
+| Arşiv | `/arsiv` (P40: doğrudan kendi klasörüne) | — | görünür; etiket "Arşiv" |
+| Mesajlar | — | `unread_chats` (F7) | **gizli** (F7) |
+| Tablolar | — | — | **gizli** |
+| Yönetim grubu | — | — | **yok** (`company_admin` değil); yönetici bu mercekte yönetici menüsünü korur (P1) |
+| **Raporlar** | **YOK** | — | menüde öğe yok (P47); K1'de rapor girişi yok (P53); K7/K3 düğmeleri |
+
+### 9.3 Üye menüsü
+| Etiket | Hedef rota | Rozet kaynağı | Görünürlük (F6) |
+|---|---|---|---|
+| Ana sayfa | `/` | — | görünür; Ü1 (F6) |
+| **Görevlerim** | `/gorevler` (üye merceği: bana atananlar) | kendi geciken görevleri `countProgramWorkItems.overdue` (`assignee_account_id` = ben; `--danger`); **tarih talebi rozeti hiçbir zaman** (üye için 0 / gizli) | görünür; etiket "Görevlerim" (rol etiketi) |
+| Zaman çizelgem | `/zaman-cizelgesi` | — | görünür (F3 canlı; v85 üye grubunda yok, `Kenar-Roller` metni "Zaman çizelgem" der → **geçici kabul: korunur**) |
+| Takvim | — | — | **gizli** (F6 dışı) |
+| Kurumsal hafıza | — | — | **gizli** |
+| Toplantılar | `/toplantilar` | — | görünür (F4) |
+| **Dosyalarım** | `/arsiv` → `/arsiv/my-tasks` (P40) | — | görünür; etiket "Dosyalarım" (rol etiketi; F5 borcu #6 kapanır) |
+| Mesajlar | — | `unread_chats` (F7) | **gizli** (F7) |
+| Yönetim, Birim grupları | — | — | **yok**; görev oluşturma, ekip ve yönetim girişleri yok |
+| **Raporlar** | **YOK** | — | üye hiçbir rapor görmez (REPORTING-K01/K07) |
+
+### 9.4 Alt blok ve rozet kuralları (v85 değişiklikleri)
+- **Oturum kartı = "Profilim" düğmesi** (`sb-me`; dar hâlde `sb-me__rail`): avatar çevresinde rol rengi halkası (`--role-admin`/koordinatör/`--role-uye` token'ları), ikinci satır "‹rol› · Profilim". Profil sayfası (Ü7) F6 dışı → **geçici kabul:** halka ve rol etiketi canlı; kart tıklanamaz kalır (E-00-28), "· Profilim" ve e-posta satırı ayrımı profil sayfasıyla gelir; çıkış düğmesi aynı.
+- **Rozetler role aittir** (`Kenar-Roller`): üyede Görevlerim = kendi gecikenleri; koordinatörde Görevler = birimin gecikenleri + ikinci rozet onay bekleyenler; tarih talebi rozeti koordinatörde (F6'da "Zaman çizelgesi" öğesinde), admin'de Görevler'in ikinci rozeti. Sayı 0 ise rozet gizli. Sayaç kaynakları ve geçersizleme E-00-14/15 ile aynıdır (ortak-kurallar §6; `shell-counts`).
+- **Dar menü** (76 px): aynı girdi kümesi, `aria-label` + `title`; rozet dar hâlde yok (E-00-31).
+- **Menü etiketi ≠ sayfa başlığı:** rol etiketi (Görevlerim, Dosyalarım) yalnız menüdedir; sayfa başlığı ve kırıntı rota kataloğundan gelir (`Görevler`, `Arşiv`) — tasarımda sayfa başlığı rol ayrımı yoktur.
+
+### 9.5 Notlar
+- **F5 borcu kapanışı:** `../../yurutme/web-5/ilerleme.md` "F6'ya devredilenler" #6 ("Menü rol sırası ve 'Dosyalarım' etiketi") bu bölümle **kapanır**; uygulama W141.
+- **Zaman çizelgesi/çizelgem** v85 `Sidebar`'ında admin/koordinatör/üye gruplarında yoktur (Takvim gelmiştir) ama `Kenar-Roller` metni ve F3 canlı rota onu varsayar; Takvim F6 dışı olduğundan **03c girişi korunur** (geçici kabul; koordinatör teyidi gerekir, aksi halde F3 işlevine menüden erişilemez).
+- **Birimim/Ekibim/Tarih talepleri** hedefleri (K2/K5/K6) F6 dışıdır; bu girdiler tanımda yer alır ama `phase` değeri F6'dan sonrasıdır (faz görünürlüğü tek yerden, `routes.catalog.ts`).

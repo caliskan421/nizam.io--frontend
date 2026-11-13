@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Takvim ve hafıza</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.nt-ib{width:32px; height:32px; flex:none; display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:8px; background:transparent; color:var(--ink-muted)}
+.nt-ib svg{width:16px; height:16px}
+/* ---- asistan paneli ---- */
+.rp-page[data-asst="true"] .rp-main{margin-right:420px}
+.as-panel{position:fixed; top:0; right:0; bottom:0; z-index:55; width:420px; max-width:100vw; display:flex; flex-direction:column; border-left:1px solid var(--border-strong); background:var(--bg-surface); box-shadow:-12px 0 32px rgba(0,0,0,0.18); font-family:var(--font-sans); color:var(--ink)}
+.as-head{display:flex; align-items:center; gap:10px; min-height:64px; padding:0 12px 0 18px; border-bottom:1px solid var(--border-subtle); box-sizing:border-box; flex:none}
+.as-logo{width:32px; height:32px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--accent); color:var(--accent-ink)}
+.as-logo svg{width:18px; height:18px}
+.as-ht{display:flex; flex-direction:column; min-width:0; flex:1 1 auto}
+.as-ht h2{margin:0; font-size:15px; line-height:20px; font-weight:600}
+.as-scroll{flex:1 1 auto; overflow-y:auto; padding:20px 18px; display:flex; flex-direction:column; gap:16px}
+.as-hello h3{margin:8px 0 6px; font-family:var(--font-display); font-size:24px; line-height:30px; font-weight:600; letter-spacing:-0.01em}
+.as-hello p{margin:0; font-size:13.5px; line-height:20px; color:var(--ink-muted)}
+.as-sugs{display:flex; flex-direction:column; gap:6px}
+.as-sug{text-align:left; padding:10px 14px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised); color:var(--ink); font:inherit; font-size:13px; line-height:18px; cursor:pointer}
+.as-sug:hover{border-color:var(--border-strong); background:var(--bg-overlay)}
+.as-me{align-self:flex-end; max-width:85%; padding:10px 14px; border-radius:16px 16px 4px 16px; background:var(--bg-overlay); font-size:13.5px; line-height:19px; white-space:pre-wrap}
+.as-bot{display:flex; flex-direction:column; gap:10px; max-width:100%}
+.as-text{margin:0; font-size:13.5px; line-height:20px}
+.as-lines{margin:0; display:flex; flex-direction:column; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised); overflow:hidden}
+.as-lines > div{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:9px 14px; border-top:1px solid var(--border-subtle)}
+.as-lines > div:first-child{border-top:0}
+.as-lines dt{font-size:13px; color:var(--ink-muted)}
+.as-lines dd{margin:0; font-size:13px; font-weight:600; text-align:right; max-width:220px}
+.as-card{list-style:none; margin:0; padding:4px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised)}
+.as-row{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; width:100%; padding:9px 10px; border:0; border-radius:9px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer}
+.as-row:hover{background:var(--bg-overlay)}
+.as-code{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); flex:none}
+.as-rt{font-size:13px; font-weight:600}
+.as-note{font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); white-space:nowrap}
+.as-note[data-late="true"]{color:var(--danger)}
+.as-cal{width:28px; height:28px; border-radius:8px; border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700}
+.as-req{display:flex; flex-direction:column; gap:8px; padding:10px; border-top:1px solid var(--border-subtle)}
+.as-req:first-child{border-top:0}
+.as-reqt{display:flex; flex-direction:column; gap:3px; padding:0; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; min-width:0}
+.as-acts{display:flex; gap:6px}
+.as-acts .t-btn{height:28px; padding:0 10px; font-size:12.5px}
+.as-st{font-size:12.5px; font-weight:600; color:var(--ink-muted)}
+.as-st[data-ok="true"]{color:var(--accent-text)}
+.as-person{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:center; padding:9px 10px}
+.as-confirm{display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:12px; border:1px solid color-mix(in srgb, var(--accent-text) 35%, var(--border-subtle)); background:color-mix(in srgb, var(--accent-text) 7%, var(--bg-raised))}
+.as-confirm p{margin:0; font-size:13px; line-height:18px; font-weight:600}
+.as-confirm div{display:flex; justify-content:flex-end; gap:8px}
+.as-did{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--accent-text)}
+.as-did svg{width:14px; height:14px}
+.as-src{font-family:var(--font-mono); font-size:10.5px; line-height:14px; color:var(--ink-faint)}
+.as-typing{display:flex; gap:5px; padding:4px 2px}
+.as-typing span{width:7px; height:7px; border-radius:50%; background:var(--ink-faint); animation:asDot 1s infinite ease-in-out}
+.as-typing span:nth-child(2){animation-delay:.15s}.as-typing span:nth-child(3){animation-delay:.3s}
+@keyframes asDot{0%,80%,100%{opacity:.3; transform:translateY(0)}40%{opacity:1; transform:translateY(-3px)}}
+.as-input{flex:none; padding:12px 14px 14px; border-top:1px solid var(--border-subtle)}
+.as-box{display:grid; grid-template-columns:minmax(0,1fr) 36px; gap:8px; align-items:end; padding:8px 8px 8px 14px; border:1px solid var(--border-control); border-radius:14px; background:var(--bg-base)}
+.as-box:focus-within{border-color:var(--ink-muted)}
+.as-ta{border:0; outline:0; resize:none; background:transparent; color:var(--ink); font:inherit; font-size:13.5px; line-height:20px; padding:6px 0; min-height:40px}
+.as-send{width:36px; height:36px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; cursor:pointer}
+.as-send:disabled{opacity:.35; cursor:default}
+.as-send svg{width:16px; height:16px}
+.as-foot{margin:8px 2px 0; font-size:11.5px; line-height:15px; color:var(--ink-faint)}
+@media (max-width:900px){.rp-page[data-asst="true"] .rp-main{margin-right:0}}
+
+.as-panel.tk-frame{position:relative; top:auto; right:auto; bottom:auto; width:400px; height:640px; border:1px solid var(--border-strong); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-card)}
+.as-mem{display:flex; flex-direction:column; gap:3px; width:100%; padding:10px; border:0; border-radius:9px; background:none; color:var(--ink); font:inherit; text-align:left}
+.as-mem__k{font-family:var(--font-mono); font-size:10.5px; color:var(--gold)}
+.as-mem strong{font-size:13px; font-weight:600}
+.as-mem__s{font-size:12.5px; line-height:17px; color:var(--ink-muted)}
+.tk-sec{display:flex; flex-direction:column; gap:18px}
+.tk-sechead{display:flex; align-items:baseline; gap:14px; padding-bottom:12px; border-bottom:1px solid var(--border-subtle)}
+.tk-sechead h2{margin:0; font-family:var(--font-display); font-size:24px; line-height:30px; font-weight:600}
+.tk-note{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.tt{width:100%; border-collapse:collapse; font-size:13.5px}
+.tt thead th{padding:0 12px 10px; text-align:left; font-weight:600}
+.tt thead th i{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px}
+.tt tbody th{padding:11px 12px 11px 0; text-align:left; font-weight:500; width:34%}
+.tt tbody th span{display:block; font-size:12px; color:var(--ink-muted); font-weight:400}
+.tt td{padding:11px 12px; border-top:1px solid var(--border-subtle); color:var(--ink-muted)}
+.tt tbody th{border-top:1px solid var(--border-subtle)}
+.tt-grp th{padding:22px 0 8px!important; font-family:var(--font-mono); font-size:11px!important; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint)!important; border-top:0!important}
+.tt-y{color:var(--accent-text); font-weight:700}
+.tt-n{color:var(--ink-faint)}
+.tt-p{color:var(--ink)}
+.tk-modal{width:520px; border:1px solid var(--border-strong); border-radius:18px; background:var(--bg-raised); box-shadow:var(--shadow-sheet); overflow:hidden}
+.tk-mh{display:flex; justify-content:space-between; align-items:flex-start; padding:20px 22px 6px}
+.tk-mh h3{margin:0; font-size:18px; line-height:24px; font-weight:600}
+.tk-mb{display:flex; flex-direction:column; gap:14px; padding:12px 22px 20px}
+.tk-field{display:flex; flex-direction:column; gap:6px}
+.tk-input{height:40px; padding:0 14px; border-radius:10px; border:1px solid var(--ink-muted); background:var(--bg-base); display:flex; align-items:center; font-size:14px}
+.tk-chips{display:flex; gap:6px; flex-wrap:wrap}
+.tk-chips span{height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border-subtle); display:inline-flex; align-items:center; font-size:12.5px; color:var(--ink-muted)}
+.tk-chips span[data-on]{border-color:var(--ink); color:var(--ink); font-weight:600}
+.tk-mf{display:flex; justify-content:flex-end; gap:8px; padding:14px 22px; border-top:1px solid var(--border-subtle)}
+.rp-memhit{display:flex; flex-direction:column; gap:2px; padding:12px 14px; border-radius:12px; border:1px solid color-mix(in srgb, var(--gold) 35%, var(--border-subtle)); background:color-mix(in srgb, var(--gold) 7%, var(--bg-surface))}
+.rp-memhit__h{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-muted); padding-bottom:4px}
+.rp-memhit__h svg{color:var(--gold); flex:none; width:16px; height:16px}
+.rp-memhit__h b{color:var(--ink); font-weight:600}
+.rp-memhit__it{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:8px 0; border-top:1px solid var(--border-subtle)}
+.rp-memhit__sug{font-size:12.5px; line-height:17px}
+.tk-cmt{display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; padding:12px 14px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface); font-size:13px; line-height:18px}
+.tk-cal{display:grid; grid-template-columns:repeat(3, 1fr); border:1px solid var(--border-subtle); border-radius:12px; overflow:hidden}
+.tk-day{min-height:118px; padding:8px; border-left:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:4px}
+.tk-day:first-child{border-left:0}
+.tk-day b{font-size:12px; color:var(--ink-muted); font-weight:600}
+.tk-ev{font-size:11.5px; line-height:15px; padding:3px 6px; border-radius:6px; border-left:3px solid var(--c); background:color-mix(in srgb, var(--c) 12%, transparent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tk-kinds{display:flex; gap:6px; flex-wrap:wrap}
+.tk-kinds span{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 10px; border-radius:999px; border:1px solid var(--border-subtle); font-size:12.5px}
+.tk-kinds span i{width:8px; height:8px; border-radius:50%; background:var(--c)}
+.tk-kinds span[data-new]{border-color:var(--gold)}
+</style>
+</helmet>
+<div data-theme="dark" style="width:1440px; height:2300px; box-sizing:border-box; padding:56px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:52px">
+<header style="display:flex; flex-direction:column; gap:10px; max-width:960px">
+<p class="rp-kicker">Takvim ve Kurumsal hafıza · tamamlananlar</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Rollere açıldı, hafıza doğru anda karşına çıkıyor</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">İki sayfa artık üç rolün menüsünde. Takvim rolüne göre süzülür; hafıza herkese açıktır ama karar yetkisi koordinatörde. Yeni görev açarken ve Asistan'a sorarken ilgili geçmiş deneyimler kendiliğinden gelir. Sayfaların kendisi yandaki iki board'da, çalışan prototipten.</p>
+</header>
+
+<section class="tk-sec" aria-labelledby="t1">
+<div class="tk-sechead"><span class="rp-kicker">1</span><h2 id="t1">Kim ne görür, ne yapar</h2></div>
+<div style="display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:40px; align-items:start">
+<table class="tt"><thead><tr><th scope="col"></th><th scope="col"><i style="background:#e57a9a"></i>Admin</th><th scope="col"><i style="background:#74c27a"></i>Koordinatör</th><th scope="col"><i style="background:#73a9e3"></i>Üye</th></tr></thead><tbody><tr class="tt-grp"><th colspan="4">Takvim</th></tr><tr><th scope="row">Menüde</th><td><span class="tt-p">Takip altında</span></td><td><span class="tt-p">Takip altında</span></td><td><span class="tt-p">Takip altında</span></td></tr><tr><th scope="row">Görev bitişleri</th><td><span class="tt-p">Tüm program</span></td><td><span class="tt-p">Kendi birimleri</span></td><td><span class="tt-p">Yalnız kendi görevleri</span></td></tr><tr><th scope="row">Toplantılar</th><td><span class="tt-p">Tümü</span></td><td><span class="tt-p">Birimlerinin ve davetli olduğu</span></td><td><span class="tt-p">Birimlerinin ve davetli olduğu</span></td></tr><tr><th scope="row">Tarih talepleri</th><td><span class="tt-p">Tümü, talep edilen yeni bitiş gününde</span></td><td><span class="tt-p">Birimlerininki</span></td><td><span class="tt-p">Kendi gönderdikleri</span></td></tr><tr><th scope="row">Tablo kayıtları</th><td><span class="tt-p">Görebildiği tablolar</span></td><td><span class="tt-p">Görebildiği tablolar</span></td><td><span class="tt-p">Görebildiği tablolar</span></td></tr><tr class="tt-grp"><th colspan="4">Kurumsal hafıza</th></tr><tr><th scope="row">Menüde</th><td><span class="tt-p">İçerik altında</span></td><td><span class="tt-p">İçerik altında</span></td><td><span class="tt-p">İçerik altında</span></td></tr><tr><th scope="row">Tüm deneyimleri okur<span>“Yalnız birimlerim” filtresi koordinatör ve üyede</span></th><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-y" aria-label="Evet">✓</span></td></tr><tr><th scope="row">Deneyim kaydı açar</th><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-y" aria-label="Evet">✓</span></td></tr><tr><th scope="row">Öneri ekler, “Ben de yaşadım” der</th><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-y" aria-label="Evet">✓</span></td></tr><tr><th scope="row">Durumu değiştirir</th><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-p">Kendi birimlerinde</span></td><td><span class="tt-n" aria-label="Hayır">—</span></td></tr><tr><th scope="row">Öneriyi göreve dönüştürür</th><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-p">Kendi birimlerinde</span></td><td><span class="tt-n" aria-label="Hayır">—</span></td></tr><tr><th scope="row">Kaydı siler</th><td><span class="tt-y" aria-label="Evet">✓</span></td><td><span class="tt-p">Yalnız kendi kaydını</span></td><td><span class="tt-p">Yalnız kendi kaydını</span></td></tr></tbody></table>
+<div style="display:flex; flex-direction:column; gap:14px">
+<div class="t-card" style="padding:18px"><h3 style="margin:0 0 4px; font-size:14px">Hafıza neden herkese açık?</h3><p class="tk-note">Bir birimin yaşadığı sorun başka birime de ders olur: ulaşım gecikmesi gönüllü planını da etkiler. Okumayı kısıtlamak hafızanın amacına ters düşer.</p></div>
+<div class="t-card" style="padding:18px"><h3 style="margin:0 0 4px; font-size:14px">Karar neden koordinatörde?</h3><p class="tk-note">“Uygulandı” demek ve öneriyi göreve çevirmek iş planını değiştirir. Bunu o birimin koordinatörü ya da admin yapar; üye ise önerisini yazıp destek verir.</p></div>
+<div class="t-card" style="padding:18px"><h3 style="margin:0 0 4px; font-size:14px">Takvimde talep</h3><p class="tk-note">Bekleyen tarih talebi, istenen yeni bitiş gününde sarı olarak görünür; güne tıklayınca “Tarih talepleri” bölümünden göreve gidilir.</p></div>
+</div>
+</div>
+</section>
+
+<section class="tk-sec" aria-labelledby="t2">
+<div class="tk-sechead"><span class="rp-kicker">2</span><h2 id="t2">Yeni görev açarken hafıza</h2><span class="rp-cap">başlık yazıldıkça eşleşir · koordinatörlük eşleşmesi öne çıkar</span></div>
+<div style="display:grid; grid-template-columns:520px minmax(0,1fr); gap:48px; align-items:start">
+<div class="tk-modal" role="dialog" aria-label="Yeni görev (örnek)">
+<div class="tk-mh"><div><h3>Yeni görev</h3><p class="rp-cap" style="margin:2px 0 0">Görev oluşturulduğunda atanan kişiye bildirim gider.</p></div></div>
+<div class="tk-mb">
+<div class="tk-field"><span class="t-label" style="margin:0">Başlık</span><div class="tk-input">Jeneratör yakıt ikmali planı</div></div>
+<div class="rp-memhit"><div class="rp-memhit__h"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"></path></svg><span><b>Hafızada 2 ilgili deneyim</b> · geçen ekipler bunu yaşadı</span></div>
+<div class="rp-memhit__it"><div style="min-width:0; display:flex; flex-direction:column; gap:3px"><strong style="font-size:13px">Jeneratör yakıt ikmali gece için planlanmadı</strong><span class="rp-memhit__sug" style="color:var(--ink-muted)">Henüz öneri yok · etkisi: İkinci gün sabah 45 dakikalık kesinti oldu.</span><span class="rp-cap">Teknofest 2025 · Elektrik ve enerji · 1 kişi de yaşadı</span></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" aria-pressed="true" style="white-space:nowrap; color:var(--accent-text)">Göreve eklendi</button></div>
+<div class="rp-memhit__it"><div style="min-width:0; display:flex; flex-direction:column; gap:3px"><strong style="font-size:13px">Stant elektrik talepleri son hafta toplandı</strong><span class="rp-memhit__sug">Katılımcı elektrik formu kurulumdan en az 3 hafta önce kapanmalı.</span><span class="rp-cap">Teknofest 2025 · Elektrik ve enerji · 2 kişi de yaşadı</span></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" style="white-space:nowrap">Göreve not olarak ekle</button></div>
+</div>
+<div class="tk-field"><span class="t-label" style="margin:0">Koordinatörlük</span><div class="tk-chips"><span>Altyapı</span><span data-on>Elektrik ve enerji</span><span>Operasyon</span><span>Sistem</span></div></div>
+</div>
+<div class="tk-mf"><button class="t-btn t-btn--ghost" type="button">Vazgeç</button><button class="t-btn t-btn--primary" type="button">Oluştur</button></div>
+</div>
+<div style="display:flex; flex-direction:column; gap:16px; max-width:520px">
+<p class="tk-note"><b style="color:var(--ink)">Ne olur:</b> Başlıktaki kelimeler deneyimlerin başlığı, etkisi ve önerisiyle karşılaştırılır; aynı koordinatörlükteki kayıtlar öne geçer. En çok 3 deneyim gösterilir, eşleşme yoksa kutu hiç çıkmaz.</p>
+<p class="tk-note"><b style="color:var(--ink)">“Göreve not olarak ekle”</b> seçilenler, görev oluşturulunca görevin notlarına düşer. Böylece görevi alan kişi geçen sezonun dersini görevin içinde okur:</p>
+<div class="tk-cmt"><span class="rp-av rp-av--sm" aria-hidden="true">MA</span><div><b>Muhammet Ali Çalışkan</b> <span class="rp-cap">bugün 11:58</span><p style="margin:4px 0 0">Kurumsal hafızadan (Teknofest 2025): Jeneratör yakıt ikmali gece için planlanmadı</p></div></div>
+<p class="tk-note">Hafızadan “Öneriyi göreve dönüştür” ile açılan görevde bu kutu çıkmaz; o görev zaten deneyime bağlıdır.</p>
+</div>
+</div>
+</section>
+
+<section class="tk-sec" aria-labelledby="t3">
+<div class="tk-sechead"><span class="rp-kicker">3</span><h2 id="t3">Asistan hafızayı kaynak olarak kullanır · takvimde talepler</h2></div>
+<div style="display:grid; grid-template-columns:400px minmax(0,1fr); gap:48px; align-items:start">
+<aside class="as-panel tk-frame" aria-label="Asistan örnek"><div class="as-head"><span class="as-logo" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 2.5v3M8 6h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9.5 11.5v1M14.5 11.5v1M9.5 16h5M2.5 11v4M21.5 11v4"></path></svg></span><div class="as-ht"><h2>Asistan</h2><span class="rp-cap rp-trunc">Bağlam: Görevler · Koordinatör</span></div></div>
+<div class="as-scroll"><div class="as-me">Ulaşımla ilgili geçen sezondan ne öğrendik?</div><div class="as-bot"><p class="as-text">Kurumsal hafızada 2 ilgili deneyim buldum:</p><ul class="as-card"><li><button type="button" class="as-mem"><span class="as-mem__k">Hafıza · Teknofest 2025 · Ulaşım</span><strong>Ring servisleri fuar çıkışında yetersiz kaldı</strong><span class="as-mem__s">Öneri: Kapanıştan önceki iki saatte sefer aralığı 10 dakikaya inmeli; 4 ek araç rezerve edilmeli.</span></button></li><li><button type="button" class="as-mem"><span class="as-mem__k">Hafıza · Teknofest 2026 · Ulaşım</span><strong>Otopark yönlendirme tabelaları girişte görünmüyor</strong><span class="as-mem__s">Henüz öneri yok</span></button></li></ul><span class="as-src">Kaynak: kurumsal hafıza · 8 deneyim · herkes okuyabilir</span></div></div></aside>
+<div style="display:flex; flex-direction:column; gap:18px">
+<p class="tk-note">Asistan “hafıza, deneyim, geçen sezon, ne öğrendik” gibi sorularda hafızayı arar. Bir görevi özetlerken ya da görev oluştururken ilgili deneyimi de ekler. Kartlar hafızadaki kaydı açar.</p>
+<div class="tk-kinds" aria-label="Takvim filtreleri"><span style="--c:var(--accent-text)"><i></i>Toplantılar</span><span data-new style="--c:var(--gold)"><i></i>Talepler <b style="font-size:11px; color:var(--gold)">yeni</b></span><span style="--c:var(--role-uye, #73a9e3)"><i></i>Tablo kayıtları</span><span style="--c:var(--violet)"><i></i>Görev bitişleri</span><span style="--c:var(--danger)"><i></i>Sezon</span></div>
+<div class="tk-cal" aria-hidden="true"><div class="tk-day"><b>30</b><span class="tk-ev" style="--c:var(--violet)">ELE-4 · Pano kurulumu</span></div><div class="tk-day"><b>31</b><span class="tk-ev" style="--c:var(--gold)">ALT-7 · talep: bitiş 31.10</span><span class="tk-ev" style="--c:var(--gold)">SİS-4 · talep: bitiş 31.10</span><span class="tk-ev" style="--c:var(--violet)">OPE-3 · Vardiya listesi</span></div><div class="tk-day"><b>1</b><span class="tk-ev" style="--c:var(--accent-text)">10:00 Haftalık koordinasyon</span></div></div>
+<p class="tk-note">Önceden “Talepler” üstteki özet kartlarda sayılıyor ama filtrede ve ızgarada yoktu; şimdi üçünde de var ve gün penceresinde kendi bölümü bulunuyor.</p>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
