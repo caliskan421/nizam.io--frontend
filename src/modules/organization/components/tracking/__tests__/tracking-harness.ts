@@ -1,6 +1,7 @@
 // 05b bileşen testleri: GERÇEK API istemcisi + MSW (organizasyon harness'ının sunucusu ve istek
 // kaydı), gerçek Pinia kapsam deposu, TanStack Query ve bellek router'ı. Komşu O2b bileşeni
 // `UserPanel` (W75) sözleşme adıyla TASLAKLANIR (rapor: TASLAK satırı).
+import { i18n } from '@/shared/i18n'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -196,7 +197,7 @@ export async function mountAt(
   const wrapper = mount(host, {
     attrs: props,
     global: {
-      plugins: [pinia, [VueQueryPlugin, { queryClient }], router],
+      plugins: [pinia, i18n, [VueQueryPlugin, { queryClient }], router],
       stubs: options.realPanel ? {} : { UserPanel: UserPanelStub },
     },
     attachTo: document.body,
