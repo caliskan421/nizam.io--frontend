@@ -2,6 +2,8 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
+**F5 KAPANDI — 2026-11-13.** Codex 3 tur (KOŞULLU UYGUN → KOŞULLU UYGUN → UYGUN, [hüküm](../../reviews/WEB-5-codex.md)); PR'lar #102–#117; son kod main `f17adc6`, 585 dosya / 4032 test; 06 Arşiv ve 12 Silinen kayıtlar ekranları canlı. Kapanış PR #118 bekliyor. **F6 ve pin yükseltme aşaması AÇILMAZ — kullanıcı onayı.**
+
 **F5 AÇILDI 2026-11-12.** Ürün sahibi onayı ve P33–P45 kararları alındı. BE-072 açık (P33 ile yönetici merceği geçici çözüm). Web pini `v0.15.0-api` (F5 boyunca yükseltilmedi). **F6 AÇILMAZ — kullanıcı onayı gerekir** (aşağıdaki "F6'ya devredilenler / borçlar" sonundaki kural).
 
 ## Durum
@@ -13,8 +15,8 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2b W122–W126, W128     | Birleşti: #106 (W126), #107 (W125), #108 (W122), #109 (W124), #110 (W123), #112 (W128)       | `9737845`                      |
 | Yaşam döngüsü hotfix    | Birleşti: #111 (test-only)                                                                   | `064e131`                      |
 | Borç W129               | Birleşti: #113 (work yetki hizası, ADR-0030)                                                 | `a19c9d5`                      |
-| O3 W127                 | PR #114 (`28b9e22`, 4023 test) birleşti; dogrulama-F5 (W130) ayrı dalda yazılıyor           | `8abcb3b`                      |
-| O4 kapanış              | W131 belgeler yazıldı; W130 gerçek imaj tanığı yazılıyor; **Codex gpt-6.1-sol bekliyor**; kapanış PR bekliyor | bekliyor                       |
+| O3 W127                 | tamam: PR #114 (`28b9e22`) birleşti                                                          | `8abcb3b`                      |
+| O4 kapanış              | tamam: belgeler (W131), dogrulama-F5 (W130), W132 #116, W133 #117; Codex tur 3 UYGUN; kapanış PR #118 bekliyor | `f17adc6` (son kod)            |
 
 ## Kayıtlar
 
@@ -97,3 +99,7 @@ HEAD `44eb5fe`: **KOŞULLU UYGUN** ([metin](../../reviews/WEB-5-codex.md)). Enge
 ### Codex tur 2 (2026-11-13)
 
 HEAD `d889e2a`: **KOŞULLU UYGUN** ([metin](../../reviews/WEB-5-codex.md)). Tur 1'in dört koşulu (Ö-01, Ö-02, K-01, K-02) kapandı. Yeni: CX-F5-Ö-03 (görev geri yükleme/kalıcı silme ortak `workItems.files` sorgusunu geçersizlemiyor) ve CX-F5-Ö-04 (bildirimle Koordinatörlük sekmesine geçişte odak kaybı) → W133 PR, bekliyor. F5 henüz KAPANMADI.
+
+### F5 KAPANDI — 2026-11-13
+
+Codex tur 3 (HEAD `848409d`): **UYGUN**; Ö-03 (`f0f1078`) ve Ö-04 (`3e2e9c7`) PR #117 ile kapandı. Borç listesi (yukarıdaki "F6'ya devredilenler / borçlar") aynen korunur. F6 ve pin yükseltme aşaması ayrı kullanıcı onayı ister.

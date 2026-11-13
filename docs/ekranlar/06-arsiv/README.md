@@ -1,8 +1,8 @@
 # 06 · Arşiv
 
-**Codex kapısı:** KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
+**Codex kapısı:** UYGUN (WEB-5, 2026-11-13); tespit kapısı KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
 
-**Uygulama durumu (F5):** uygulandı — W121 veri katmanı (#105), W122–W126 (#106–#110), W129 (#113), W127 entegrasyon turu (#114, birleşti `8abcb3b`); F5 Codex nihai kapısı **bekliyor**. Kabul kanıtları tablonun son sütunundadır.
+**Uygulama durumu (F5):** uygulandı — W121 veri katmanı (#105), W122–W126 (#106–#110), W129 (#113), W127 entegrasyon turu (#114, birleşti `8abcb3b`); F5 Codex nihai kapısı UYGUN (WEB-5). Kabul kanıtları tablonun son sütunundadır.
 
 **Artboard'lar:** `Arsiv.dc.html` (`06 · Arşiv`), `Arsiv-Klasor.dc.html` (`07 · Arşiv › Klasör`)
 **Faz:** F5 · **v1:** — (F0–F4 dışı; tespit tam yapılır) · **Yol haritası bağı:** K1, K2, K5, K6, K7, K10, K13; §4 satırı "F5 arşiv — Klasörler, dosyalar, ZIP, silinenler/geri yükleme"

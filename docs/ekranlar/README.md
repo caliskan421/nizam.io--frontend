@@ -91,12 +91,12 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `03-gorevler-liste` | **kabul** | **kabul** | **kabul** | **kabul** | denetlendi | koşullu uygun |
 | `03c-zaman-cizelgesi` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `05-kullanicilar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
-| `06-arsiv` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
+| `06-arsiv` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | uygulandı (F5), Codex UYGUN (WEB-5) |
 | `08-koordinatorlukler` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `09-toplantilar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `10-mesajlar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
-| `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex bekliyor** | — |
+| `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex UYGUN (WEB-5)** | UYGUN (WEB-5) |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,

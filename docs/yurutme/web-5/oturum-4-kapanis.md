@@ -43,3 +43,7 @@ HEAD `44eb5fe`: **KOŞULLU UYGUN** ([WEB-5-codex.md](../../reviews/WEB-5-codex.m
 ## Codex tur 2 (2026-11-13)
 
 HEAD `d889e2a`: **KOŞULLU UYGUN**. Tur 1 koşulları kapandı; Ö-03/Ö-04 → W133 PR, bekliyor. Tur 3/kapanış PR: bekliyor.
+
+## F5 KAPANDI — 2026-11-13
+
+Codex tur 3 (HEAD `848409d`): **UYGUN**. Ö-03/Ö-04 PR #117 ile kapandı. Kapanış PR #118 bekliyor. F6 ve pin yükseltmesi AÇILMAZ — kullanıcı onayı. (Yukarıdaki "bekliyor" satırları tarihsel kayıttır.)

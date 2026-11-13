@@ -1,6 +1,8 @@
 # 12 · Silinen kayıtlar
 
-**Tespit durumu:** **uygulandı** (W128 #112 ekran + veri katmanı; W127 #114 entegrasyon turu, birleşti `8abcb3b`); Codex nihai kapısı **bekliyor**. Tespit W119 (WEB-5 O1), 2026-11-12; kararlar P42–P45 işlendi · öz denetim `dogrulama.md`. **Arayüz etiketi notu:** P42 "Hesap" türü arayüzde **"Kullanıcı"** olarak gösterilir (kod ve backend dilinde hesap). Ortak kurallar `../ortak-kurallar.md`.
+**Codex kapısı:** UYGUN (WEB-5, 2026-11-13).
+
+**Tespit durumu:** **uygulandı** (W128 #112 ekran + veri katmanı; W127 #114 entegrasyon turu, birleşti `8abcb3b`); Codex nihai kapısı UYGUN (WEB-5). Tespit W119 (WEB-5 O1), 2026-11-12; kararlar P42–P45 işlendi · öz denetim `dogrulama.md`. **Arayüz etiketi notu:** P42 "Hesap" türü arayüzde **"Kullanıcı"** olarak gösterilir (kod ve backend dilinde hesap). Ortak kurallar `../ortak-kurallar.md`.
 
 **Artboard'lar:** `Silinen-Kayitlar-Tarih.dc.html` (`01d · Silinen kayıtlar › seçilen · silinme tarihi sütunu`, **seçilen**), `Silinen-Kayitlar.dc.html` (`01c · … önceki seçenek · günlük gruplar`, yalnız fark notu), `Sablon-KayitListesi.dc.html` (`Şablon · Kayıt listesi sayfası`)
 **Faz:** F5 · **v1:** — (v1 = F0–F4; F5 ekranı) · **Yol haritası bağı:** K1, K2, K3, K5, K7, K10, K13; §4 F5 satırı ("silinenler/geri yükleme"); `../ortak-kurallar.md` §12 P36, P37, P41

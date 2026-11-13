@@ -1,6 +1,6 @@
 # Backend devir raporu — F5 (WEB-5), 2026-11-12
 
-**Durum:** F5 uygulaması main'de (O1–O3: #102–#113; W127 #114 birleşti, main `8abcb3b`); O4 kapanışı sürüyor, Codex nihai kapısı **bekliyor** ([doğrulama](../yurutme/web-5/dogrulama-F5.md) W130 tarafından yazılır). **Web pini:** `v0.15.0-api`, F5 boyunca yükseltilmedi. F6 açılmadı; bu rapor F6'yı açmaz.
+**Durum:** F5 kapandı 2026-11-13 (Codex tur 3 UYGUN, [hüküm](../reviews/WEB-5-codex.md)); web pini `v0.15.0-api`; F6 açılmadı. Bu rapor F6'yı veya pin yükseltmesini açmaz. Doğrulama: [dogrulama-F5](../yurutme/web-5/dogrulama-F5.md).
 
 Kaynaklar: [kayıt](kayit.md) (BE-024/025/026/069–077, BE-108–121), [F4 raporu](rapor-F4.md), [06 kabul tablosu](../ekranlar/06-arsiv/README.md), [12 kabul tablosu](../ekranlar/12-silinen-kayitlar/README.md), [ortak-kurallar §12 P33–P45](../ekranlar/ortak-kurallar.md), [F5 ilerleme](../yurutme/web-5/ilerleme.md), [pin yükseltme planı](../yurutme/web-5/pin-yukseltme-plani.md). Uç/alan önerileri sözleşme yayımlanana ve web pini yükselene kadar uygulama yetkisi değildir.
 

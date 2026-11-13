@@ -11,3 +11,5 @@
 **Sıra:** O1 [hazırlık](oturum-1-hazirlik.md) (W119 tespit + W120 kararlar) → O2a W121 arşiv veri katmanı → O2b W122–W126 (arşiv UI) + **W128 silinen kayıtlar (veri + UI tek W; girdi: `12-silinen-kayitlar` README kabul tablosu)** → O3 zorunlu W127 [entegrasyon](oturum-3-entegrasyon.md) → O4 [kapanış](oturum-4-kapanis.md) (W131 belgeler, W130 `dogrulama-F5.md`, Codex, kapanış PR). Ayrıntı [oturum-2-arsiv.md](oturum-2-arsiv.md). Her geçiş öncekinin yeşil CI ve MERGED kanıtını bekler. [İlerleme](ilerleme.md) tek kayıttır.
 
 **Kapı sonuçları ve hüküm:** işçi paketleri W127 sonunda 4023 test; CI #102–#113 birleşti. Gerçek imaj tanığı [`dogrulama-F5.md`](dogrulama-F5.md) (W130, **bekliyor**); Codex gpt-6.1-sol hükmü `../../reviews/WEB-5-codex.md` (**bekliyor**); kapanış PR (**bekliyor**).
+
+**F5 KAPANDI — 2026-11-13.** Codex tur 3 UYGUN ([hüküm](../../reviews/WEB-5-codex.md)); kapanış PR #118 bekliyor. F6 ve pin yükseltmesi AÇILMAZ — kullanıcı onayı. (Üstteki durum satırları tarihsel kayıttır.)

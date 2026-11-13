@@ -1,6 +1,6 @@
 # WEB-5 — Codex nihai kapı
 
-Faz: F5 (arşiv + silinen kayıtlar). Codex gpt-6.1-sol medium, `-s read-only`. Hüküm durumu: tur 2 KOŞULLU UYGUN; Ö-03/Ö-04 kapanışı bekliyor; F5 henüz KAPANMADI.
+Faz: F5 (arşiv + silinen kayıtlar). Codex gpt-6.1-sol medium, `-s read-only`. Hüküm durumu: tur 3 UYGUN; F5 KAPANDI (kapanış PR #118 bekliyor).
 
 ## Tur 1 — 2026-11-13, HEAD 44eb5fe
 
@@ -119,3 +119,19 @@ UploadDialog’un anahtarlı tekrar ve sökülmüş sahip kapıları; blob URL�
 - E-06-01…64 ve E-12-01…69 kabul tabloları değerlendirildi; bütün kaynak, test ve PNG dosyalarını satır satır kapsadığım iddiasında değilim.
 - `../program/DURUM.md` bu yerleşimde bulunamadı.
 - Dosya değiştirilmedi; başlangıç ve bitiş çalışma ağacı temiz. Push/PR yapılmadı; F5 kapanmış sayılmadı.
+
+## Tur 3 — 2026-11-13, HEAD 848409d
+
+HEAD: `848409d5490fdf942085ef951fb91d7f41a47bbc`
+
+**UYGUN** — Tur 3’ün dar kapsamında yeni somut bulgu veya regresyon saptamadım.
+
+- **CX-F5-Ö-03 kapandı:** `query-keys.ts:405`, görev geri yükleme ve kalıcı silmeyi `workItems.files` geçersizlemesine ekliyor. `query-keys.deleted.test.ts:69–92`, iki işlem için gerçek QueryClient üzerinde etkin okuyucunun yeniden okumasını, pasif girdinin bayatlamasını ve başka programın korunmasını denetliyor. E-12-35/36 ve KESİN 29 bakımından sınıf düzeltmesi yeterli.
+- **CX-F5-Ö-04 kapandı:** `DeletedRecordsPage.vue:82–97`, bildirimden Koordinatörlük geçişinde hedef tür düğmesine, kapatmada seçili tür düğmesine odak veriyor. `deleted-records-o3.test.ts:227–257`, iki yolu da `activeElement` ile denetliyor. KESİN 27 bakımından sınıf düzeltmesi yeterli.
+
+Kanıt sınırları:
+
+- Hüküm kaynak ve test iddialarının incelemesine dayanıyor; testler çalıştırılmadı, uzak CI doğrulanmadı.
+- Odak testi, odaklanmış yerleşik düğmenin tıklanmasını kullanıyor; gerçek Enter/Space veya VoiceOver tanığı değildir. Kullanıcı görsel onayı doğrulanmış sayılmadı.
+- Yeni geniş tarama yapılmadı; tüm F5 dosyalarını kapsadığım iddiasında değilim.
+- Dosya değiştirilmedi, push/PR yapılmadı. Başlangıç ve bitiş çalışma ağacı temiz; farkta boşluk hatası yok.
