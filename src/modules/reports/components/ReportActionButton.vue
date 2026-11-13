@@ -72,6 +72,15 @@ const label = computed(() => {
         : reportLabel.value
   }
 })
+// Ekranın kendi etiketi (yuva) yalnız düğmenin kendi durum etiketi olmayan hâllerde görünür:
+// hazırlanıyor / bekleme sayacı / "Yeniden dene" dışında (kilitli ve devre dışı dahil) etiket
+// yer değiştirmez (KUSUR 1: kilitli durumda "PDF indir" varsayılan etikete dönüyordu).
+const ownsLabel = computed(
+  () =>
+    state.value === 'preparing' ||
+    state.value === 'cooldown' ||
+    (state.value === 'failed' && showsRetry(failure.value)),
+)
 const failureText = computed(() => (failure.value ? t(failure.value.messageKey) : ''))
 // 429/503 kartı başlığı ve kod satırı (01h); diğer hatalar yalnız metin gösterir.
 const FAILURE_STATUS: Partial<Record<ReportFailure['kind'], number>> = {
@@ -133,7 +142,7 @@ defineExpose({ start })
         :aria-busy="state === 'preparing' ? 'true' : undefined"
         @click="start"
       >
-        <slot v-if="state === 'ready' || state === 'downloaded'">{{ label }}</slot>
+        <slot v-if="!ownsLabel">{{ label }}</slot>
         <template v-else>{{ label }}</template>
       </UiButton>
       <UiButton v-if="state === 'preparing'" variant="ghost" size="sm" @click="downloads.cancel()">
