@@ -1,7 +1,7 @@
 # Tasarım kaynağı (anlık kopya)
 
 Kaynak tuval: **"(Doğan) RoketPortal — Yeniden Tasarım"** — <https://claude.ai/artifact/W25DrXfL1htpcn8E5gL1Xf>
-Kopyalanan sürüm: `1794590338-3fe0` (2026-11-13; önceki `1794501200-387f`, 2026-11-12; ondan önce `1794118532-71ae`, 2026-11-08). `Prototip.dc.html` (1 MB, etkileşimli) kopyalanmadı; tuvalde açılır.
+Kopyalanan sürüm: `1794590338-3fe0` (2026-11-13; **dört rapor dosyası v87 `1794595177-744f`**, aşağıdaki "v87" notu; önceki `1794501200-387f`, 2026-11-12; ondan önce `1794118532-71ae`, 2026-11-08). `Prototip.dc.html` (1 MB, etkileşimli) kopyalanmadı; tuvalde açılır.
 
 - `kaynak/canvas.json` — artboard listesi ve başlıkları (ör. `03 · Görevler › Liste`).
 - `kaynak/*.dc.html` — her ekranın işaretlemesi; `renderVals()` içindeki örnek veriler **gerçek veri değildir**.
@@ -54,3 +54,5 @@ Yenileme: `kaynak/` bu sürümün kopyasıyla değiştirildi (`Prototip.dc.html`
 **Kapsam notu (F6).** F6 = 01 tam ana sayfa + rapor eylemleri (13) + K1/Ü1 + rol menüleri. Ü2–Ü7, K2–K8 ve Bildirimler/Asistan/Takvim/Kurumsal hafıza **dışı**. 01e ve A5 önceki seçenektir, uygulanmaz. Karar kaynağı: `ekranlar/ortak-kurallar.md` §12 P46–P53.
 
 - **v87: yalnız bu dört dosya** — `Rapor-Donem`, `Rapor-Toplanti`, `Rapor-Pencereler`, `Rapor-Noktalar` canvas v87 (`1794595177-744f`) kopyasıyla değiştirildi (01f kırıntı/Kapat → Arşiv, 17 sayfa; 01g kırıntı/Kapat → toplantı, bitiş saati yok; 01h 429/503 süre yok, ZIP "kayda geçer" yok; 01i Arşiv alt başlığı P38).
+- **v87 doğrulaması (W143, 2026-11-14):** dört dosya W138'de yazıldı (commit `82041e7`, "WEB-6 W138: tasarım kopyası v87 (dört rapor artboard'u)"; `git log` o dört dosya için başka commit göstermez). `docs/tasarim/kaynak/` bu sürümde koordinatörün v87 kopyasıyla (`1794595177-744f`, `Prototip.dc.html` hariç) **dosya dosya aynıdır** (`diff -rq`: tek fark kopyalanmayan `Prototip.dc.html`); dört `Rapor-*` dosyası ayrıca bayt düzeyinde eşleşti (`cmp`). `canvas.json` v85 ile aynı kaldı, v87 yamaları artboard başlıklarını değiştirmedi. Prototip v86 (`Prototip.dc.html`) yine kopyalanmadı. Kalan tuval notları (01h hücre kicker'ı "sekmesi", 01i penceresinde "kayda geçer", "Raporlar sayfasına dön" bağları) önemsiz sayıldı ve bir sonraki tasarım turunda toplanır ([rapor-F6 §4](../backend-eksikleri/rapor-F6.md)).
+- **F6 uygulaması (W143):** 01f/01g/01h/01i dosyaları F6'da referans olarak kullanıldı; uygulamayla bilinen sapmalar (kâğıt 880 px / 10,5 pt, oturum kartı e-posta, 390 px düğme genişliği) [rapor-F6 §4](../backend-eksikleri/rapor-F6.md)'tedir. Bir sonraki tuval yenilemesi (Ü/K panelleri, Takvim, Kurumsal hafıza, Bildirimler, Asistan) F7 kararına bağlıdır ([web-7](../yurutme/web-7/README.md)).
