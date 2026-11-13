@@ -371,6 +371,26 @@
     border-radius: var(--radius-md);
     background: var(--bg-surface);
   }
+  /* Rol halkası (E-00-47; `Sidebar.dc.html` `me.roleColor`): kart zemini boşluğu + rol rengi. */
+  .rp-av.side-ring {
+    box-shadow:
+      0 0 0 var(--ui-gap-2xs) var(--bg-surface),
+      0 0 0 calc(var(--ui-gap-2xs) * 2) var(--side-ring-color);
+  }
+  .side-rail__av.side-ring {
+    box-shadow:
+      0 0 0 var(--ui-gap-2xs) var(--bg-base),
+      0 0 0 calc(var(--ui-gap-2xs) * 2) var(--side-ring-color);
+  }
+  .side-ring--admin {
+    --side-ring-color: var(--role-admin);
+  }
+  .side-ring--coordinator {
+    --side-ring-color: var(--role-koord);
+  }
+  .side-ring--member {
+    --side-ring-color: var(--role-uye);
+  }
   .side-account__text {
     display: flex;
     flex-direction: column;
