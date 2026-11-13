@@ -87,6 +87,12 @@ function guardedItem(
   const me = o.actorOf(db, request)
   if (!me) return envelope('platform.unauthenticated', 401)
   const found = db.items.find((i) => i.work_item_id === id && i.program_id === o.programOf(request))
+  // Sözleşme (istemci-akislari §2): tek görev istekleri görevin KENDİ departman başlığıyla gider;
+  // başka başlık 404 `work.item_not_found`.
+  const department = request.headers.get('X-Nizamio-Department')
+  if (found && department !== null && department !== found.department_id) {
+    return envelope('work.item_not_found', 404)
+  }
   return found && visible(db, me, found) ? ok(found) : denied(db, me, found)
 }
 

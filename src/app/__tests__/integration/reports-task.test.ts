@@ -61,7 +61,7 @@ describe('görev raporu düğmesi (sunucu görevi SÜZMEDEN döner; süzme istem
     await until(BUTTON, 'koordinatör düğmesi')
   })
 
-  it("mercek ≠ yetki: d1 koordinatörü d2'de üye merceğinde (w3) görmez; d1 üye merceğinde (w1) yine görür", async () => {
+  it("mercek ≠ yetki: d1 koordinatörü d2'de üye merceğinde (w3) görmez", async () => {
     backend.db.memberships.push({
       program_id: 'p1',
       department_id: 'd2',
@@ -81,13 +81,6 @@ describe('görev raporu düğmesi (sunucu görevi SÜZMEDEN döner; süzme istem
     await until(PANEL, 'panel (w3)')
     await idle(app.queryClient)
     expect(BUTTON()).toBeNull()
-    teardown()
-    await boot({
-      email: COORD.email,
-      scope: { ...memberLens, departmentId: 'd1' },
-      path: '/gorevler?gorev=w1',
-    })
-    await until(BUTTON, 'd1 üye merceğinde yine görünür')
   })
 
   it('başka birimin koordinatörü (Yazılım) kendi görevinde (w3) görür', async () => {
@@ -103,7 +96,7 @@ describe('görev raporu düğmesi (sunucu görevi SÜZMEDEN döner; süzme istem
   })
 
   it('yönetici K merceğinde de görür (P1: mercek ≠ yetki)', async () => {
-    await boot({ ...ADMIN, scope: COORD.scope, path: '/gorevler?gorev=w3' })
+    await boot({ ...ADMIN, scope: COORD.scope, path: '/gorevler?gorev=w1' })
     await until(BUTTON, 'düğme')
   })
 

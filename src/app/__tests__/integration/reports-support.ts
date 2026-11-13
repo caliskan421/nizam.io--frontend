@@ -1,9 +1,7 @@
 // W142 · O3: rapor entegrasyon testlerinin ortak kurulumu (W82a harness'i + arşiv + rapor sunucusu).
-import { http } from 'msw'
 import { vi } from 'vitest'
 
 import { PEOPLE, createBackend, seedWorld, until, $, click } from './harness'
-import { envelope, ORIGIN } from './fake-org'
 import { archiveHandlers, createArchiveState, file, type ArchiveState } from './archive-fake'
 import {
   createReportsState,
@@ -127,22 +125,4 @@ export function captureSaves(saved: string[]): void {
     if (this.hasAttribute('download')) saved.push(this.download)
     else original.call(this)
   })
-}
-
-/**
- * Sözleşme kuralı (`istemci-akislari.md` §2, `getWorkItem`): tek görev okuması görevin KENDİ
- * departman başlığıyla gitmelidir; başka başlık 404 `work.item_not_found` alır. Ortak sahte sunucu
- * bunu denetlemez; bu yardımcı denetimi ek bir işleyiciyle açar (diğer yanıtlar ortak işleyiciden).
- */
-export function enforceItemScope(): void {
-  backend.server.use(
-    http.get(`${ORIGIN}/v1/work-items/:id`, ({ request, params }) => {
-      const found = backend.db.items.find((i) => i.work_item_id === params.id)
-      const department = request.headers.get('X-Nizamio-Department')
-      if (!found || (department !== null && department !== found.department_id)) {
-        return envelope('work.item_not_found', 404)
-      }
-      return undefined
-    }),
-  )
 }

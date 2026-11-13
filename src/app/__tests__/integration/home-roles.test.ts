@@ -11,7 +11,6 @@ import {
   byText,
   click,
   COORD,
-  enforceItemScope,
   idle,
   MEMBER,
   PEOPLE,
@@ -200,7 +199,6 @@ describe('Ü1 (üye hesabı)', () => {
   })
 
   it('başka birimdeki görevin bağlantısı 03 paneli açar (Ü1 program geneli kuyruktan; W140 kusur adayı a)', async () => {
-    enforceItemScope()
     const app = await boot({ ...MEMBER, path: '/' })
     await until(() => rows('queue').length === 3, 'kuyruk')
     const other = byText('[data-region="queue"] a.rh-title', 'Yazılım planı')!
