@@ -1,4 +1,4 @@
-export { meetingsRoutes } from './routes'
+export { MEETING_ROUTE, MEETINGS_ROUTE, meetingsRoutes } from './routes'
 export * from './api/queries'
 export * from './api/meeting-writes'
 export * from './api/detail-writes'
