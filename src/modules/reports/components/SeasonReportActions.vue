@@ -2,7 +2,6 @@
 import './reports.css'
 
 import { computed, nextTick, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { useStanding } from '@/shared/scope/standing'
@@ -13,6 +12,7 @@ import { reportCapabilities } from '../model/capabilities'
 import { REPORT_SEASON_ROUTE } from '../routes'
 import ReportActionButton from './ReportActionButton.vue'
 import SectionPickerDialog from './SectionPickerDialog.vue'
+import { t } from './text'
 
 /**
  * 06 Arşiv başlığındaki dönem sonu raporu eylemleri (01i hücre A, E-13-01…08, 12): "Dönem sonu
@@ -23,7 +23,6 @@ import SectionPickerDialog from './SectionPickerDialog.vue'
  * düz indirmeyi başlatır. Pencere kapanınca odak "Bölüm seç…" düğmesine döner (UiModal; indirme
  * başlayınca kart ana düğmede görünür). 390'da düğme tam genişlik, yığılı.
  */
-const { t } = useI18n()
 const scope = useScopeStore()
 const { standing, programs } = useStanding()
 const capabilities = computed(() => reportCapabilities(standing.value, scope.programId))

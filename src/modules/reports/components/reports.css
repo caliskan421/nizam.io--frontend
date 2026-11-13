@@ -76,6 +76,28 @@
     }
   }
 
+  /* 09b/K7 başlığı: "Düzenle"nin soluna yaslanır (başlık eylemleri sağda, 01i hücre C). */
+  .report-meeting {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .meeting-detail__header > .report-meeting {
+    margin-inline-start: auto;
+  }
+
+  /* 03/K3 paneli: rapor düğmesi simge satırının üstünde, kendi satırında (01i hücre D). */
+  .report-task {
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+  .wd-actions:has(> .report-task) {
+    flex-wrap: wrap;
+  }
+
   /* Durum kartı (01h) */
   .report-card {
     --report-tone: var(--accent-text);

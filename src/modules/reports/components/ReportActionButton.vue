@@ -2,7 +2,6 @@
 import './reports.css'
 
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { UiButton } from '@/shared/ui'
 
@@ -15,6 +14,7 @@ import {
 } from '../model/action-state'
 import type { ReportFailure, ReportKind } from '../model/types'
 import ReportStateCard from './ReportStateCard.vue'
+import { t } from './text'
 
 /**
  * Rapor düğmesi (13 `mekanizma.md` §3.1; dört yerde aynı bileşen): `kind` PDF türü
@@ -39,7 +39,6 @@ const emit = defineEmits<{
   failed: [code: string]
 }>()
 
-const { t } = useI18n()
 const downloads = useReportDownloads()
 const phase = ref<ReportActionPhase>('idle')
 const failure = ref<ReportFailure | null>(null)

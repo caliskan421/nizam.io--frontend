@@ -18,6 +18,7 @@ import MeetingSide from '../components/side/MeetingSide.vue'
 import MeetingForm from '../components/forms/MeetingForm.vue'
 import MeetingConvert from '../components/convert/MeetingConvert.vue'
 import { useSessionReset } from './detail/use-session-reset'
+import { MeetingReportButton } from '@/modules/reports/public'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -183,6 +184,7 @@ async function deleteMeeting() {
             >
           </div>
         </div>
+        <MeetingReportButton :meeting="meeting" />
         <div v-if="canManage">
           <button type="button" class="t-btn t-btn--secondary" @click="openForm">
             <UiIcon name="edit" size="sm" /> {{ text.edit }}</button

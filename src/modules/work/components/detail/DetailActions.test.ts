@@ -34,11 +34,14 @@ afterAll(() => server.close())
 // Bu dosyadaki eylem testleri `DateRequestForm`'u (timeline) saplamayla değiştirir; gerçek
 // formla uçtan uca deneme aşağıdaki "gerçek form" bölümündedir (TASLAK satırı: W94 raporu).
 const FORM_STUB = { DateRequestForm: true }
+// TASLAK (KESİN 16): `TaskReportButton` (reports/W138) bu dosyada saplamayla değiştirilir; gerçek
+// düğmenin davranışı `reports/components/TaskReportButton.test.ts` ve panel entegrasyonundadır.
+const REPORT_STUB = { TaskReportButton: true }
 
 function mountActions(facts: WorkActorFacts, over = {}) {
   return mount(DetailActions, {
     props: { item: workItem(over), facts },
-    global: { stubs: { ...CHILD_STUBS, ...FORM_STUB } },
+    global: { stubs: { ...CHILD_STUBS, ...FORM_STUB, ...REPORT_STUB } },
   })
 }
 
@@ -60,6 +63,16 @@ describe('eylem satırı — görünürlük (capabilities, P1)', () => {
     // Hatırlat ve Kopyala herkeste.
     expect(action(wrapper, 'remind').exists()).toBe(true)
     expect(action(wrapper, 'copy').exists()).toBe(true)
+  })
+
+  it('"Görev raporu (PDF)" şeridin ilk öğesi (W138 bağı; görünürlük düğmenin kendi kuralı)', () => {
+    for (const facts of [FACTS.admin, FACTS.coordinator, FACTS.member]) {
+      const wrapper = mountActions(facts, { work_item_id: 'w7', department_id: 'd3' })
+      const report = wrapper.findComponent({ name: 'TaskReportButton' })
+      expect(report.exists()).toBe(true)
+      expect(report.props('item')).toMatchObject({ work_item_id: 'w7', department_id: 'd3' })
+      expect(wrapper.get('.wd-actions').element.firstElementChild).toBe(report.element)
+    }
   })
 
   it('bekleyen tarih talebi varken "Tarih değişikliği iste" gizli (s.151)', () => {

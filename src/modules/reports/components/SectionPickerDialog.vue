@@ -3,7 +3,6 @@ import './picker.css'
 import './reports.css'
 
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { useProgramDepartments } from '@/modules/work/public'
 import { DesignStub, UiButton, UiModal } from '@/shared/ui'
@@ -17,6 +16,7 @@ import {
   toggleSection,
   type SectionId,
 } from '../model/sections'
+import { t } from './text'
 
 /**
  * "Bölüm seç…" penceresi (01i hücre B, E-13-04…06; STATİK, BE-122): hepsi seçili açılır; kilitli
@@ -31,7 +31,6 @@ const props = defineProps<{ programLabel: string }>()
 const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ download: [] }>()
 
-const { t } = useI18n()
 const selected = ref<Set<SectionId>>(allSections())
 watch(open, (isOpen) => {
   if (isOpen) selected.value = allSections()

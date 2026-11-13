@@ -2,9 +2,9 @@
 import './reports.css'
 
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { DesignStub, UiIcon, type IconName } from '@/shared/ui'
+import { t } from './text'
 
 /**
  * Ortak dışa aktarım durum kartı (01h; E-13-68…72): dört rapor düğmesinde (06 PDF, 09b/K7, 03/K3,
@@ -23,7 +23,6 @@ const props = defineProps<{
   note?: string
 }>()
 
-const { t } = useI18n()
 const ICONS: Record<typeof props.tone, IconName> = {
   progress: 'clock',
   warn: 'alert',

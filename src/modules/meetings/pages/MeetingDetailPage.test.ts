@@ -17,6 +17,14 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { meetingId: 'm' }, query: { zaman: 'gecmis', notlar: 'benim' } }),
   useRouter: () => ({ push: mocks.push }),
 }))
+// TASLAK (KESİN 16): `MeetingReportButton` (reports/W138) bu dosyada saplamayla değiştirilir;
+// gerçek düğme `reports/components/MeetingReportButton.test.ts`'tedir.
+vi.mock('@/modules/reports/public', () => ({
+  MeetingReportButton: {
+    props: ['meeting'],
+    template: '<span data-testid="meeting-report" :data-meeting="meeting.meeting_id" />',
+  },
+}))
 vi.mock('./detail/use-departments', () => ({ useDepartments: () => ref([]) }))
 vi.mock('../api/queries', () => ({
   useMeeting: () => ({
@@ -97,6 +105,18 @@ it('focuses the header menu and restores its trigger on Escape', async () => {
   expect(document.activeElement).toBe(action.element)
   await action.trigger('keydown.esc')
   expect(document.activeElement).toBe(trigger.element)
+  wrapper.unmount()
+})
+it('binds the report button into the header, left of the edit action (W138)', () => {
+  const { wrapper } = setup()
+  const report = wrapper.get('[data-testid="meeting-report"]')
+  expect(report.attributes('data-meeting')).toBe('m')
+  const header = wrapper.get('.meeting-detail__header')
+  expect(report.element.parentElement).toBe(header.element)
+  const edit = wrapper.findAll('button').find((b) => b.text() === 'Düzenle')!
+  expect(report.element.compareDocumentPosition(edit.element)).toBe(
+    Node.DOCUMENT_POSITION_FOLLOWING,
+  )
   wrapper.unmount()
 })
 it('closes the conversion and returns focus to its trigger', async () => {

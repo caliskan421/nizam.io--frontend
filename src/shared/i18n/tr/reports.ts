@@ -31,7 +31,8 @@ export const trReports = {
         all: 'Tümü',
         count: '{n} koordinatörlük',
         meta: 'PDF · A4 · kayda geçer (denetim)',
-        partial: 'Bölüm seçimi yakında; şimdilik yalnız tam rapor iner. Bütün bölümleri seçili bırakın.',
+        partial:
+          'Bölüm seçimi yakında; şimdilik yalnız tam rapor iner. Bütün bölümleri seçili bırakın.',
         cancel: 'Vazgeç',
         download: 'Seçilenleri indir (PDF)',
         section: {
@@ -48,7 +49,14 @@ export const trReports = {
         },
       },
     },
-    meeting: { title: 'Toplantı raporu' },
+    meeting: {
+      title: 'Toplantı raporu',
+      // 09b/K7 başlığı (E-13-41…43): ipucu ve "Önizle" bağlantısı (yalnız ŞY).
+      actions: {
+        hint: 'Künye, gündem ve notların tamamını içeren PDF',
+        preview: 'Önizle',
+      },
+    },
     task: { title: 'Görev raporu' },
     // Ortak durum kartları (W138; E-13-68…75, 01h): kart başlığı/kod satırı/alt not.
     states: {
