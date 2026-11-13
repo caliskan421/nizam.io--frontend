@@ -2,7 +2,7 @@
 import './reports.css'
 
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { queryKeys } from '@/shared/http/query-keys'
@@ -11,6 +11,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { UiIcon, useToast } from '@/shared/ui'
 
 import { reportCapabilities } from '../model/capabilities'
+import { meetingReturnKey, takeFocusReturn } from '../model/return-focus'
 import { REPORT_MEETING_ROUTE } from '../routes'
 import ReportActionButton from './ReportActionButton.vue'
 import { t } from './text'
@@ -48,6 +49,16 @@ const canExport = computed(() =>
   }),
 )
 
+const previewLink = ref<{ $el: HTMLElement } | null>(null)
+// Önizlemeden "Kapat" ile dönüşte odak "Önizle" bağlantısına gelir (KESİN 27).
+watch(
+  previewLink,
+  (link) => {
+    if (link && takeFocusReturn(meetingReturnKey(meetingId.value))) link.$el.focus()
+  },
+  { flush: 'post' },
+)
+
 function onFailed(code: string): void {
   if (code !== 'reporting.not_found') return
   toast.push({ message: t('reports.states.notFound'), tone: 'danger' })
@@ -65,6 +76,7 @@ function onFailed(code: string): void {
     />
     <RouterLink
       v-if="caps.canPreviewMeeting()"
+      ref="previewLink"
       class="report-link"
       :to="{ name: REPORT_MEETING_ROUTE.name, params: { meetingId } }"
       data-action="preview-meeting"

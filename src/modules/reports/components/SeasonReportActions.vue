@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import './reports.css'
 
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useStanding } from '@/shared/scope/standing'
@@ -9,6 +9,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { UiIcon, UiIconButton } from '@/shared/ui'
 
 import { reportCapabilities } from '../model/capabilities'
+import { SEASON_RETURN_KEY, takeFocusReturn } from '../model/return-focus'
 import { REPORT_SEASON_ROUTE } from '../routes'
 import ReportActionButton from './ReportActionButton.vue'
 import SectionPickerDialog from './SectionPickerDialog.vue'
@@ -27,6 +28,7 @@ const scope = useScopeStore()
 const { standing, programs } = useStanding()
 const capabilities = computed(() => reportCapabilities(standing.value, scope.programId))
 const pickerOpen = ref(false)
+const previewLink = ref<{ $el: HTMLElement } | null>(null)
 const download = ref<{ start: () => Promise<void> } | null>(null)
 
 const programLabel = computed(() => {
@@ -36,6 +38,15 @@ const programLabel = computed(() => {
     ? program.name
     : t('reports.season.picker.kicker', { program: program.name, year: program.year })
 })
+
+// Önizlemeden "Kapat" ile dönüşte odak "Önizle" bağlantısına gelir (E-13-17, KESİN 27).
+watch(
+  previewLink,
+  (link) => {
+    if (link && takeFocusReturn(SEASON_RETURN_KEY)) link.$el.focus()
+  },
+  { flush: 'post' },
+)
 
 function startFullDownload(): void {
   void nextTick(() => download.value?.start())
@@ -57,6 +68,7 @@ function startFullDownload(): void {
     </ReportActionButton>
     <RouterLink
       v-if="capabilities.canPreviewSeason()"
+      ref="previewLink"
       class="report-link"
       :to="{ name: REPORT_SEASON_ROUTE.name }"
       data-action="preview-season"
