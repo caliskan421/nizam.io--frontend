@@ -13,6 +13,7 @@ import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
+import type { CoordinatorshipStat } from '../model/coordinatorships'
 import type { DashboardReport, KpiItem } from '../model/types'
 
 export const ORIGIN = 'http://localhost'
@@ -123,6 +124,30 @@ export function dashboard(over: Partial<DashboardReport> = {}): DashboardReport 
   }
 }
 
+/** Koordinatörlük satırı (şemanın zorunlu alanları); bölgeler 08/F6 fikstürüyle sınanır. */
+export function stat(
+  departmentId: string,
+  name: string,
+  over: Partial<CoordinatorshipStat> = {},
+): CoordinatorshipStat {
+  return {
+    department_id: departmentId,
+    name,
+    kind: 'koordinatorluk',
+    coordinators: [{ account_id: `lead-${departmentId}`, full_name: 'Abdullah Ateş' }],
+    total_tasks: 10,
+    completed_tasks: 4,
+    in_progress_tasks: 3,
+    not_started_tasks: 2,
+    overdue_tasks: 0,
+    completion_rate: 40,
+    member_count: 5,
+    meeting_count: 0,
+    last_activity_at: null,
+    ...over,
+  }
+}
+
 export const dashboardHandler = (report: DashboardReport = dashboard()) =>
   http.get(`${ORIGIN}${DASHBOARD}`, () => json(report))
 
@@ -216,6 +241,16 @@ export async function mountWith(
       { path: '/', name: 'home', component: empty },
       { path: '/gorevler', name: 'work.tasks', component: empty },
       { path: '/silinen-kayitlar', name: 'deleted-records.list', component: empty },
+      { path: '/arsiv', name: 'archive.folders', component: empty },
+      { path: '/arsiv/:klasorId', name: 'archive.folder', component: empty },
+      { path: '/kullanicilar', name: 'organization.users', component: empty },
+      { path: '/koordinatorlukler', name: 'organization.coordinatorships', component: empty },
+      {
+        path: '/koordinatorlukler/:departmentId',
+        name: 'organization.coordinatorship',
+        component: empty,
+      },
+      { path: '/toplantilar', name: 'collaboration.meetings', component: empty },
     ],
   })
   await router.push('/')

@@ -1,0 +1,344 @@
+/*
+ * 01 F6 yönetici bölgeleri — Main.dc.html "ekip" şeridi, "Koordinatörlükler" başlığı + araç
+ * çubuğu + kart ızgarası, alt bilgi; Rapor-Noktalar.dc.html hücre F (`rp-pop` menüsü) ve theme.css
+ * `rp-toolbar`, `rp-tgroup`, `rp-kicker`, `rp-avstack`, `rp-tip`, `rp-seg-*`, `rp-empty`
+ * birebir karşılığı. Kural: yalnız token; px yok — ölçek dışı ölçüler `--home-*`
+ * (design/web-tokens.json `home` grubu). Sınıflar `.home-page` altında kapsanır.
+ */
+@layer components {
+  .home-page .rp-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+  .home-page .rp-mono {
+    font: var(--text-mono-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .home-page .rp-danger-text {
+    color: var(--danger);
+  }
+  .home-page .rp-grow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Rapor oluştur (E-01-12): kutucuk ızgarada, menü hemen altında tam genişlikte */
+  .home-page .home-report {
+    display: contents;
+  }
+  .home-page .home-report__menu {
+    position: relative;
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .home-page .home-report__where {
+    font: var(--text-caption);
+    color: var(--ink-faint);
+  }
+
+  /* Ekip şeridi (E-01-19/20) */
+  .home-page .home-team {
+    padding: var(--space-5) var(--space-6);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-8);
+  }
+  .home-page .home-team__lead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex: 1 1 var(--home-team-lead-basis);
+    min-width: 0;
+  }
+  .home-page .home-team__count {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .home-page .home-team__num {
+    font: var(--home-team-num);
+  }
+  .home-page .home-team__roles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ui-gap-sm);
+    flex: 999 1 var(--home-team-roles-basis);
+    min-width: 0;
+  }
+  .home-page .home-role {
+    display: grid;
+    grid-template-columns: var(--home-role-cols);
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--home-role-pad);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    color: var(--ink);
+    min-width: 0;
+  }
+  .home-page .home-role__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .home-page .home-role__num {
+    font: var(--home-role-num);
+  }
+  .home-page .home-role__go {
+    color: var(--ink-faint);
+    display: flex;
+  }
+
+  /* Koordinatörlükler başlığı ve araç çubuğu (E-01-21…27) */
+  .home-page .home-coords {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .home-page .home-coords__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .home-page .home-coords__hint {
+    margin: var(--space-1) 0 0;
+  }
+  .home-page .rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+  }
+  .home-page .rp-tgroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+  }
+  .home-page .home-search {
+    width: var(--home-search-w);
+    max-width: 100%;
+  }
+  .home-page .home-sort {
+    position: relative;
+    display: inline-flex;
+  }
+  .home-page .home-sort__pop {
+    top: calc(100% + var(--space-2));
+    right: 0;
+    width: var(--home-sort-w);
+    max-width: calc(100vw - var(--space-8));
+  }
+  .home-page .home-sort__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    text-align: left;
+  }
+  .home-page .rp-menudiv {
+    height: var(--ui-hairline);
+    margin: var(--space-2) var(--space-1);
+    background: var(--border-subtle);
+  }
+
+  /* Kart ızgarası ve kart (E-01-28…38) */
+  .home-page .home-ccards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--home-ccard-min), 100%), 1fr));
+    gap: var(--space-4);
+  }
+  .home-page .home-ccard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--home-ccard-pad);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .home-page .home-ccard__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: start;
+  }
+  .home-page .home-ccard__name {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .home-page .rp-title {
+    font: var(--home-ccard-title);
+    color: var(--ink);
+    text-decoration: none;
+    display: block;
+  }
+  .home-page .rp-title:hover {
+    text-decoration: underline;
+    text-underline-offset: var(--home-tip-shift);
+  }
+  .home-page .rp-avstack {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+  }
+  .home-page .rp-avstack .rp-av {
+    box-shadow: 0 0 0 var(--home-av-ring) var(--bg-surface);
+  }
+  .home-page .rp-avstack > * + * {
+    margin-left: var(--home-av-overlap);
+  }
+  .home-page .home-more {
+    display: inline-flex;
+    align-items: center;
+    height: var(--ui-av-sm);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--bg-overlay);
+    color: var(--ink-muted);
+    font: var(--text-label);
+    box-shadow: 0 0 0 var(--home-av-ring) var(--bg-surface);
+    box-sizing: border-box;
+  }
+  .home-page .rp-tip {
+    position: relative;
+    cursor: default;
+  }
+  .home-page .rp-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + var(--home-tip-offset));
+    right: 0;
+    padding: var(--home-tip-pad);
+    border-radius: var(--home-tip-radius);
+    background: var(--ink);
+    color: var(--bg-base);
+    font: var(--home-tip-font);
+    letter-spacing: 0;
+    white-space: nowrap;
+    box-shadow: var(--shadow-card);
+    opacity: 0;
+    transform: translateY(var(--home-tip-shift));
+    transition:
+      opacity 0.12s,
+      transform 0.12s;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .home-page .rp-tip:hover,
+  .home-page .rp-tip:focus-visible {
+    z-index: 3;
+  }
+  .home-page .rp-tip:hover::after,
+  .home-page .rp-tip:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .home-page .home-ccard__prog {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .home-page .home-ccard__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .home-page .home-ccard__total {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  .home-page .home-ccard__num {
+    font: var(--home-ccard-num);
+  }
+  .home-page .home-ccard .rp-bar {
+    height: var(--home-ccard-bar-h);
+    background: transparent;
+  }
+  .home-page .home-seg {
+    width: var(--home-seg-w, 0%);
+  }
+  .home-page .home-seg--todo {
+    background: var(--ink-faint);
+  }
+  .home-page .home-seg--doing {
+    background: var(--violet);
+  }
+  .home-page .home-seg--review {
+    background: var(--gold);
+  }
+  .home-page .home-seg--done {
+    background: var(--rp-done-fill);
+  }
+  .home-page .home-ccard__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-1);
+    padding-top: var(--space-3);
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .home-page .rp-statbtn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ui-gap-2xs);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .home-page .rp-statbtn:hover .rp-num {
+    text-decoration: underline;
+    text-underline-offset: var(--home-tip-shift);
+  }
+  .home-page .rp-statbtn:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .home-page .home-ccard__stat-num {
+    font: var(--home-ccard-stat-num);
+  }
+
+  /* Boş / yükleniyor / alt bilgi */
+  .home-page .home-coords .rp-empty {
+    margin: 0;
+  }
+  .home-page .home-ccard--skel {
+    min-height: var(--home-kpi-h);
+  }
+  .home-page .home-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding-top: var(--space-6);
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+
+  @media (max-width: 900px) {
+    .home-page .home-team__roles {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .home-page .home-search {
+      width: 100%;
+    }
+  }
+}

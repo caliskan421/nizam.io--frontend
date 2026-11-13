@@ -329,6 +329,27 @@
   --home-link-icon: 14px;
   --home-skel-line: 16px;
   --home-skel-num: 52px;
+  --home-team-lead-basis: 200px;
+  --home-team-roles-basis: 480px;
+  --home-team-num: 600 32px/36px var(--font-display);
+  --home-role-cols: 36px minmax(0, 1fr) 16px;
+  --home-role-pad: 12px 14px;
+  --home-role-num: 600 22px/26px var(--font-display);
+  --home-search-w: 220px;
+  --home-sort-w: 250px;
+  --home-ccard-min: 300px;
+  --home-ccard-pad: 22px;
+  --home-ccard-title: 600 15px/20px var(--font-sans);
+  --home-ccard-num: 600 32px/36px var(--font-display);
+  --home-ccard-stat-num: 600 20px/24px var(--font-display);
+  --home-ccard-bar-h: 8px;
+  --home-av-overlap: -3px;
+  --home-av-ring: 2px;
+  --home-tip-offset: 8px;
+  --home-tip-pad: 4px 8px;
+  --home-tip-radius: 7px;
+  --home-tip-font: 500 11px/14px var(--font-sans);
+  --home-tip-shift: 3px;
   /* web · coords */
   --coords-health-min: 220px;
   --coords-health-cols: 36px minmax(0, 1fr) 16px;

@@ -13,7 +13,7 @@ const ALL: QuickAction[] = [
 ]
 
 describe('Hızlı işlemler (E-01-08…11)', () => {
-  it('başlık; "Yeni görev" 03 Görevler bağlantısı; "Rapor oluştur" yok', async () => {
+  it('başlık; "Yeni görev" 03 Görevler bağlantısı; rapor kutucuğu yalnız verilince', async () => {
     const { wrapper, router } = await mountWith(QuickActions, null, { actions: ALL })
     expect(wrapper.get('h2').text()).toBe('Hızlı işlemler')
     const create = wrapper.get('[data-quick="newTask"]')
