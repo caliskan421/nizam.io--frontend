@@ -31,8 +31,6 @@ export const trHome = {
       newTask: 'Yeni görev',
       meeting: 'Toplantı oluştur',
       invite: 'Kullanıcı davet et',
-      phase: { F2: 'F2’de', F4: 'F4’te' },
-      disabled: '{label} — {phase} açılacak',
     },
     recent: {
       title: 'Son işlemler',
