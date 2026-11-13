@@ -459,11 +459,10 @@
     --report-cols: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr)
       minmax(0, 2fr) minmax(0, 1fr);
   }
-  .report-cols-gloss {
-    --report-cols: minmax(0, 1fr) minmax(0, 3fr);
-  }
+  .report-cols-gloss,
   .report-cols-converted {
     --report-cols: minmax(0, 1fr) minmax(0, 3fr);
+    min-inline-size: 0;
   }
   .report-prog {
     display: grid;
@@ -556,7 +555,7 @@
   /* Künye, İçindekiler */
   .report-kunye {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 5fr);
+    grid-template-columns: max-content minmax(0, 1fr);
     gap: var(--space-2) var(--space-4);
     margin: 0;
     font: var(--text-caption);
@@ -756,6 +755,9 @@
   .report-trig:first-of-type {
     border-top: 0;
     padding-top: 0;
+  }
+  .report-trig .report-pill {
+    align-self: flex-start;
   }
   .report-trig__t {
     font: var(--text-body-strong);
