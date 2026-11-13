@@ -57,7 +57,7 @@ Her faz: API çağrısı → sorgu/mutasyon → yetki hesabı → arayüz (tasar
 | **F3** zaman çizelgesi | Gantt üç yüz, tarih talepleri, uzatma, bağımlılıklar | 03c, 03d | ✓ |
 | **F4** toplantılar | Liste, detay, gündem, notlar, nottan görev, silinenler; video (W7) ayrı | 09, 09b, 09c (09d/09e statik, KR-26) | ✓ |
 | F5 arşiv | Klasörler, dosyalar, ZIP, silinenler/geri yükleme | 06, 07, 12 (silinen kayıtlar) | |
-| F6 rapor/pano | Yönetici panosu tam, iş yükü, PDF | 01 (tam) | |
+| F6 rapor/pano | Yönetici panosu tam, iş yükü, PDF | 01 (tam) | **AÇILDI 2026-11-13 (P46–P53):** raporlar ayrı sayfa değil, kendi ekranlarında (06 Arşiv, 09b/K7, 03/K3, 05) + 01f/01g önizleme; K1/Ü1 ana sayfaları ve rol menüleri dahil; 01b F6 dışı; backend paketi açılmaz ([web-6](../yurutme/web-6/README.md)) |
 | F7 sohbet + bildirim | Sohbet, SSE, okunmamış, bildirimler, Web Push | 10, 10b, 10c | |
 | F8 asistan | F46 paneli (rota kataloğu) | Ana sayfa "Asistan" | |
 | sonra | Yeni modüller (backend fazıyla) | 01b, 11–11e, Takvim, Kurumsal hafıza, Simülasyon, Bütçe/Talep | |
