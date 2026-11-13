@@ -28,7 +28,6 @@ import type { WorkItem, WorkItemList, WorkItemResource, WorkTarget } from '../mo
 import {
   fetchFiles,
   fetchNotes,
-  fetchProgramDepartments,
   fetchSubtasks,
   fetchWorkItem,
   fetchWorkItemCounts,
@@ -232,31 +231,8 @@ export function useWorkItemTarget(
   })
 }
 
-/**
- * `listProgramDepartments` — ad/kod sözlüğü (E-03-20/22, bütün roller) ve Admin
- * koordinatörlük süzgeci seçenekleri (E-03-12). Anahtar `scoped(['departments'])`.
- */
-export function useProgramDepartments(enabled: MaybeRefOrGetter<boolean> = true) {
-  const store = useScopeStore()
-  const query = useQuery(
-    computed(() => {
-      const scope = store.snapshot
-      return {
-        queryKey: queryKeys.departments.all(scope),
-        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
-          fetchProgramDepartments({ programId: scope.programId ?? '' }, signal),
-        ),
-        enabled: scope.programId !== null && toValue(enabled),
-        retry: retryTransient,
-        staleTime: STALE_MS,
-      }
-    }),
-  )
-  const byId = computed(
-    () => new Map((query.data.value?.departments ?? []).map((d) => [d.department_id, d])),
-  )
-  return { query, byId }
-}
+/** `listProgramDepartments` okuyucusu shared'dadır (modül döngüsü; W142 KUSUR 4); adı korunur. */
+export { useProgramDepartments } from '@/shared/scope/program-departments'
 
 /**
  * `myDepartments` satırlarından seçili programın departmanları (Koordinatör/Üye seçim listesi;

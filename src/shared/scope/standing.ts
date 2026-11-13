@@ -10,11 +10,11 @@ import type { QueryClient } from '@tanstack/vue-query'
 import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
-import { ApiError } from '@/shared/errors/api-error'
 import { api, unwrap } from '@/shared/http'
+import { retryTransient } from '@/shared/http/retry'
 import { queryKeys } from '@/shared/http/query-keys'
 import { unwrapList } from '@/shared/http/truncation'
-import { SessionChangedError, sessionBound } from '@/shared/session/query-session'
+import { sessionBound } from '@/shared/session/query-session'
 import { useSessionStore } from '@/shared/session/store'
 
 import { hasErrorCode } from './authority-loss'
@@ -35,16 +35,6 @@ export function isStandingKey(key: readonly unknown[]): boolean {
   return STANDING_KEY_LIST.some(
     (candidate) => candidate.length === key.length && candidate.every((part, i) => part === key[i]),
   )
-}
-
-/**
- * Yalnız geçici hatalarda (ağ, 5xx) en çok iki tekrar; 4xx bir hükümdür, tekrarlanmaz. Oturum
- * değiştiyse (`SessionChangedError`, CX-F1-Ö-08) eski sorgu sürdürülmez.
- */
-function retryTransient(failureCount: number, error: unknown): boolean {
-  if (failureCount >= 2 || error instanceof SessionChangedError) return false
-  if (!(error instanceof ApiError)) return true
-  return error.status === null || error.status >= 500
 }
 
 const TRUNCATED_HEADER = 'X-Result-Truncated'

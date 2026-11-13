@@ -3,7 +3,7 @@ import '../components/preview/preview.css'
 
 import { computed, ref } from 'vue'
 
-import { useProgramDepartments } from '@/modules/work/public'
+import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { toApiError } from '@/shared/errors/api-error'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useStanding } from '@/shared/scope/standing'

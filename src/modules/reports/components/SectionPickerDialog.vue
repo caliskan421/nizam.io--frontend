@@ -4,7 +4,7 @@ import './reports.css'
 
 import { computed, ref, watch } from 'vue'
 
-import { useProgramDepartments } from '@/modules/work/public'
+import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { DesignStub, UiButton, UiModal } from '@/shared/ui'
 
 import {

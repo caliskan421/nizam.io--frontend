@@ -14,7 +14,7 @@
 import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { retryTransient } from '@/modules/work/public'
+import { retryTransient } from '@/shared/http/retry'
 import { linkSignals } from '@/shared/download'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
