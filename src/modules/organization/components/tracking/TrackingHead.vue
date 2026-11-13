@@ -2,6 +2,7 @@
 import { computed, onScopeDispose, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
+import { ReportActionButton, reportCapabilities } from '@/modules/reports/public'
 import { canCreateWorkItem } from '@/modules/work/public'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 import { useStanding } from '@/shared/scope/standing'
@@ -16,7 +17,9 @@ import { trackingText } from './messages'
  * E-05-41…48 — profil başlığı. Ad E-05-40 kaynağından (yüklenirken iskelet); rol rozeti Admin (varsa) +
  * seçili programdaki roller (ilk + "+n"; K1 yalnız gösterim); alt satır birim adları · e-posta (BE-041);
  * Admin ilk rozet (BE-042). Eylemler: "Profili düzenle" → 05 yan paneli (`?secili=`, P15); "Mesaj" (F7) ve
- * "Kişisel rapor" (F6) açıklamalı devre dışı (P2, stub yok); "Görev ata" work
+ * (F7) açıklamalı devre dışı (P2, stub yok); "Kişisel rapor" (E-13-64, F6) yalnız şirket
+ * yöneticisinde (`canExportWorkload`) ortak `ReportActionButton kind="workload"` ile, gövde
+ * `member_ids: [hesap]`, aksi hâlde gizli; "Görev ata" work
  * `canCreateWorkItem` ile görünür, hedef koordinatörlük AÇIK seçilir (kişinin birimleri; tekse
  * doğrudan) ve Görevler ekranının yeni görev girişine gider. Kapsam değişince seçici kapanır.
  */
@@ -55,13 +58,13 @@ const subtitle = computed(() => {
   })
 })
 
+const canReport = computed(() =>
+  reportCapabilities(standing.value, store.programId).canExportWorkload(),
+)
+const memberIds = computed(() => [props.accountId])
+
 const phases = computed(() =>
-  (
-    [
-      ['message', 'F7', 'mail'],
-      ['report', 'F6', 'download'],
-    ] as const
-  ).map(([key, phase, icon]) => {
+  ([['message', 'F7', 'mail']] as const).map(([key, phase, icon]) => {
     const label = trackingText(`tracking.head.${key}`)
     return {
       key,
@@ -166,6 +169,15 @@ onScopeDispose(store.onChange(() => (picking.value = false)))
         <UiIcon :name="phase.icon" size="sm" />
         <span class="rp-trunc">{{ phase.label }}</span>
       </button>
+      <ReportActionButton
+        v-if="canReport"
+        kind="workload"
+        :member-ids="memberIds"
+        data-personal-report
+      >
+        <UiIcon name="download" size="sm" />
+        <span class="rp-trunc">{{ trackingText('tracking.head.report') }}</span>
+      </ReportActionButton>
       <UiButton
         v-if="canAssign"
         variant="primary"

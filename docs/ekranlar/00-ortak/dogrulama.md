@@ -49,3 +49,6 @@ Denetlenen içerik: 2026-11-08 ilk sürüm. Sonraki düzeltmeler: denetçi bulgu
 - `CX-T-07` — arşiv/mesajlar için faz görünürlük matrisi; düzeltici ajan tarafından işleniyor.
 - `CX-S-10` — başarısız logout sonrası oturum varsayımı (F0 oturum davranışı); düzeltici ajan tarafından işleniyor.
 - `CX-M-01`, `CX-M-07`, `CX-M-09` (tüm gruplar) — bu kapanışla işlendi: README durumları `denetlendi`, README'de uygulama kararı tablosu, bu bölüm.
+
+## F6 uygulama kaydı (W141, WEB-6 O2b)
+Rol menüleri uygulandı: E-00-41 (menü rolü yetki olgusundan; `resolveMenuRole`), E-00-42 (Raporlar öğesi/rotası yok), E-00-43 (Görevlerim, Zaman çizelgem, Dosyalarım), E-00-44 (koordinatör kümesi), E-00-45 (koordinatör onay bekleyen rozeti; tarih talebi Zaman çizelgesi'nde), E-00-46 (03c girişi korunur), E-00-47 (rol halkası + rol etiketi; kart tıklanamaz). Menü tanımı: `src/app/shell/side/menu-definition.ts` (rota kataloğu öğeyi ve faz görünürlüğünü, tanım rol/grup/sıra/etiket/rozeti verir). Testler: `menu-definition.test.ts`, `SideAccount.test.ts`.

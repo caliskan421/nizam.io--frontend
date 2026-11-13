@@ -55,8 +55,8 @@ describe('fetchShellWorkCounts (countProgramWorkItems)', () => {
 
 describe('Görevler rozetleri — gerçek sayaç ucu', () => {
   it.each([
-    ['coordinator', { overdue: 6, pendingDates: 2 }, null],
-    ['member', { overdue: 6, pendingDates: null }, 'acc-1'],
+    ['coordinator', { overdue: 6, pendingDates: 2, awaitingApproval: 1 }, null],
+    ['member', { overdue: 6, pendingDates: null, awaitingApproval: null }, 'acc-1'],
   ] as const)('%s merceği', async (lens, expected, assignee) => {
     const ctx = await sideContext()
     const { lifecycle, store } = createFakeLifecycle()

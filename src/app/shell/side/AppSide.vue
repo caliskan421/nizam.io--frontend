@@ -29,7 +29,7 @@ const props = defineProps<{ collapsed: boolean; narrowOpen?: boolean }>()
 const emit = defineEmits<{ 'update:collapsed': [value: boolean]; reveal: [] }>()
 
 const lifecycle = injectScopeLifecycle()
-const { groups, activeKey } = useSideMenu()
+const { groups, activeKey, role } = useSideMenu()
 const { badges } = useTaskBadges()
 const version = buildVersionLabel()
 const switcher = ref<SwitcherState | null>(null)
@@ -66,6 +66,7 @@ function openFromRail(which: ScopeStep): void {
       v-if="collapsed"
       :groups="groups"
       :active-key="activeKey"
+      :role="role"
       @expand="emit('update:collapsed', false)"
       @open="openFromRail"
     />
@@ -74,7 +75,7 @@ function openFromRail(which: ScopeStep): void {
       <SideScope v-model:switcher="switcher" />
       <SideNav :groups="groups" :active-key="activeKey" :badges="badges" />
       <div class="side-foot">
-        <SideAccount />
+        <SideAccount :role="role" />
       </div>
     </div>
   </aside>

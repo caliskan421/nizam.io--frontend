@@ -5,8 +5,10 @@ import { parseStanding, type Standing } from '@/shared/scope/standing-facts'
 import {
   canAddUser,
   canCreateMeeting,
+  canCreateReport,
   canOpenDeletedRecords,
   canReadDashboard,
+  canSeeAdminRegions,
   HOME_CAPABILITY_SOURCES,
 } from './capabilities'
 
@@ -65,6 +67,19 @@ describe('ana sayfa capability', () => {
   ] as const)('"Silinen kayıtlar" düğmesi (E-01-02, P36): %s → %s', (_n, facts, visible) => {
     expect(canOpenDeletedRecords(facts)).toBe(visible)
   })
+
+  it.each([
+    ['yönetici', ADMIN, true],
+    ['koordinatör', COORDINATOR, false],
+    ['salt üye', MEMBER, false],
+    ['olgu yok', null, false],
+  ] as const)(
+    'yönetici bölgeleri ve "Rapor oluştur" (E-01-12/19…39, P47/P53): %s → %s',
+    (_n, facts, visible) => {
+      expect(canSeeAdminRegions(facts)).toBe(visible)
+      expect(canCreateReport(facts)).toBe(visible)
+    },
+  )
 
   it('her kararın kaynağı yazılı', () => {
     for (const source of Object.values(HOME_CAPABILITY_SOURCES))

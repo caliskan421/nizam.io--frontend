@@ -332,6 +332,16 @@ export const trReports = {
       notFound: 'Kayıt bulunamadı.',
       progressStub: 'ilerleme yakında',
     },
+    // 05 Kullanıcılar iş yükü seçimi (W139; E-13-59…62): satır kutuları, seçim çubuğu, ipuçları.
+    workload: {
+      noProgram: 'Önce bir program seçin.',
+      selectAll: 'Tümünü seç',
+      selectRow: '{name} rapora ekle',
+      notInWorkload: 'Bu hesap seçili programın iş yükünde değil.',
+      selected: '{n} üye seçili',
+      clear: 'Seçimi temizle',
+      refreshed: 'Seçim güncellendi, yeniden deneyin.',
+    },
     // Rapor düğmeleri (`ReportActionButton`; E-13-02, 41, 55, 59). Etiket varsayılandır; ekran
     // (05b "Kişisel rapor" gibi) kendi etiketini yuvayla verebilir.
     action: {

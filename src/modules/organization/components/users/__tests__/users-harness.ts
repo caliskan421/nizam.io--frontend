@@ -7,6 +7,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, type Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import { i18n } from '@/shared/i18n'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
@@ -149,7 +150,7 @@ export async function mountWith(
   const wrapper = mount(host, {
     attrs: props,
     global: {
-      plugins: [pinia, [VueQueryPlugin, { queryClient }], router],
+      plugins: [pinia, i18n, [VueQueryPlugin, { queryClient }], router],
       stubs: options.stubs ?? {},
     },
     attachTo: document.body,

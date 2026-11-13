@@ -16,7 +16,13 @@
 import type { ScopeLens } from '@/shared/scope/scope'
 import type { Standing } from '@/shared/scope/standing-facts'
 
-export type HomeCapability = 'readDashboard' | 'createMeeting' | 'addUser' | 'openDeletedRecords'
+export type HomeCapability =
+  | 'readDashboard'
+  | 'createMeeting'
+  | 'addUser'
+  | 'openDeletedRecords'
+  | 'seeAdminRegions'
+  | 'createReport'
 
 /** Her kararın kaynağı (denetim izi). */
 export const HOME_CAPABILITY_SOURCES: Readonly<Record<HomeCapability, string>> = {
@@ -28,6 +34,10 @@ export const HOME_CAPABILITY_SOURCES: Readonly<Record<HomeCapability, string>> =
     'ORGANIZATION README POST /v1/admin/users (createUser): şirket yöneticisi ∨ koordinatör (yalnız uye)',
   openDeletedRecords:
     '12-silinen-kayitlar README + istemci-akislari §3 silinen listeleri (P36): yalnız şirket yöneticisi, mercekten bağımsız (P1)',
+  seeAdminRegions:
+    'REPORTING-K01 + P53: ekip şeridi, koordinatörlük kartları ve alt bilgi program geneli; yalnız şirket yöneticisi, mercekten bağımsız (P1)',
+  createReport:
+    'REPORTING-K01 + P47/P53: "Rapor oluştur" yönlendirme menüsü yalnız şirket yöneticisi, mercekten bağımsız (P1); K/Ü rapor kutucuğu görmez',
 }
 
 /** Seçili programda en az bir departmanın koordinatörü mü. */
@@ -61,4 +71,18 @@ export function canCreateMeeting(standing: Standing | null, programId: string | 
 /** "Kullanıcı davet et" kutucuğu görünür mü (F2'ye kadar devre dışı). */
 export function canAddUser(standing: Standing | null, programId: string | null): boolean {
   return adminOrCoordinator(standing, programId)
+}
+
+/**
+ * F6 yönetici bölgeleri (E-01-19…39; P53): ekip şeridi, koordinatörlük kartları, alt bilgi. Girdi
+ * yalnız `company_admin` OLGUSUdur; mercek değil — yönetici K/Ü merceğine geçince de program
+ * geneli kalır. `reportDashboard` yalnız bu olguyla çağrılır (REPORTING-K01).
+ */
+export function canSeeAdminRegions(standing: Standing | null): boolean {
+  return standing?.companyAdmin === true
+}
+
+/** "Rapor oluştur" kutucuğu (E-01-12; P47): yalnız şirket yöneticisi; menü ağ isteği atmaz. */
+export function canCreateReport(standing: Standing | null): boolean {
+  return standing?.companyAdmin === true
 }

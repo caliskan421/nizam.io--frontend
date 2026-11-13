@@ -51,19 +51,28 @@ const kpiValues = ({ wrapper }: Page) => wrapper.findAll('[data-kpi-value]').map
 const quickKeys = ({ wrapper }: Page) =>
   wrapper.findAll('[data-quick]').map((q) => q.attributes('data-quick'))
 
-describe('01 Ana sayfa — F1 sade', () => {
-  it('selamlama tam full_name (ilk sözcük değil); F6 bölgeleri DOM’da yok (E-01-02 hariç)', async () => {
+describe('01 Ana sayfa — sayfa seçici ve F1 gövdesi', () => {
+  it('selamlama tam full_name (ilk sözcük değil); "Son işlemler" nötr yer tutucu (BE-010)', async () => {
     server.use(...standingHandlers(ADMIN), dashboardHandler())
     const page = await mountWith(HomePage, ADMIN_SCOPE)
     expect(page.wrapper.get('[data-testid="home-greeting"]').text()).toBe('Merhaba Ayşe Nur Yılmaz')
-    const text = page.wrapper.text()
-    for (const absent of ['Rapor oluştur', 'Koordinatörlükler', 'ekip']) {
-      expect(text, absent).not.toContain(absent)
-    }
-    expect(page.wrapper.find('[aria-labelledby="team-title"]').exists()).toBe(false)
-    expect(page.wrapper.find('[aria-labelledby="coord-title"]').exists()).toBe(false)
     expect(page.wrapper.find('ol.rp-timeline').exists()).toBe(false)
     expect(page.wrapper.find('[data-design-stub="BE-010"]').exists()).toBe(true)
+  })
+
+  it('sayfa seçici (P53): yönetici → yönetici sayfası; yönetici olmayan → rol taslağı, F6 bölgeleri yok', async () => {
+    server.use(...standingHandlers(ADMIN), dashboardHandler())
+    const admin = await mountWith(HomePage, ADMIN_SCOPE)
+    expect(admin.wrapper.get('[data-testid="home-page"]').attributes('data-home')).toBe('admin')
+    resetAll()
+    server.use(...standingHandlers(COORDINATOR), countsHandler(ROWS))
+    const coordinator = await mountWith(HomePage, COORD_SCOPE)
+    const page = coordinator.wrapper.get('[data-testid="home-page"]')
+    expect(page.attributes('data-home')).toBe('role-draft')
+    for (const region of ['team', 'coords', 'footer']) {
+      expect(coordinator.wrapper.find(`[data-region="${region}"]`).exists(), region).toBe(false)
+    }
+    expect(coordinator.wrapper.text()).not.toContain('Rapor oluştur')
   })
 
   it('E-01-02 (F5, P36): yönetici "Silinen kayıtlar ‹deleted_records›" düğmesini görür, hedef /silinen-kayitlar', async () => {
@@ -81,7 +90,7 @@ describe('01 Ana sayfa — F1 sade', () => {
     expect(page.router.currentRoute.value.name).toBe('deleted-records.list')
   })
 
-  it('E-01-02: yönetici Koordinatör merceğinde de düğmeyi görür ama pano çağrılmaz, sayı yok (P1)', async () => {
+  it('E-01-02: yönetici Koordinatör merceğinde de düğmeyi görür; sayı program geneli panodan (P1/P53)', async () => {
     server.use(
       ...standingHandlers({ ...ADMIN, rows: [{ department_id: 'd1', role: 'koordinator' }] }),
       countsHandler(ROWS),
@@ -89,8 +98,8 @@ describe('01 Ana sayfa — F1 sade', () => {
     )
     const page = await mountWith(HomePage, COORD_SCOPE)
     const button = page.wrapper.get('[data-testid="home-deleted-records"]')
-    expect(button.find('.rp-count').exists()).toBe(false)
-    expect(sent(DASHBOARD)).toHaveLength(0)
+    expect(button.find('.rp-count').text()).toBe('127')
+    expect(sent(DASHBOARD)).toHaveLength(1)
   })
 
   it.each([
@@ -110,7 +119,7 @@ describe('01 Ana sayfa — F1 sade', () => {
     expect(kpiValues(page)).toEqual(['%49', '40', '15', '3'])
     expect(sent(DASHBOARD)).toHaveLength(1)
     expect(sent(LIST)).toHaveLength(0)
-    expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite'])
+    expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite', 'report'])
   })
 
   it('Koordinatör merceği: KPI seçili birim sayaçlarından; pano ve liste ÇAĞRILMAZ', async () => {
@@ -127,11 +136,13 @@ describe('01 Ana sayfa — F1 sade', () => {
   it('Yönetici Üye merceğinde: pano yok, "bana atananlar"; yönetici eylemleri korunur (P1)', async () => {
     server.use(...standingHandlers(ADMIN_MEMBER), countsHandler(ROWS), dashboardHandler())
     const page = await mountWith(HomePage, MEMBER_SCOPE)
-    expect(sent(DASHBOARD)).toHaveLength(0)
+    // Pano yalnız program geneli yönetici bölgeleri için (P53); KPI birim sayaçlarından.
+    expect(page.wrapper.find('[data-kpi-source="dashboard"]').exists()).toBe(false)
+    expect(sent(DASHBOARD)).toHaveLength(1)
     // Sunucu süzgeci (assignee_account_id=ben): acc-1'e atanan iki görev (biri bitti); başkasına
     // atanan onaydaki görev sayılmaz.
     expect(kpiValues(page)).toEqual(['%50', '1', '0', '0'])
-    expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite'])
+    expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite', 'report'])
   })
 
   it('salt üye: hızlı işlemler kartı ve "Yeni görev" DOM’da yok', async () => {
