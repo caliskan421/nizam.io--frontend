@@ -9,6 +9,8 @@
 - `/kullanicilar/:hesapId` — kişisel takip; `sekme` (`gorevler` | `dosyalar` | `etkinlik` | `hesap`), `kart` (`tamamlanan` | `acik` | `geciken` | `onayda`), `grupla` (`son-tarih` | `durum`), `ay` (`YYYY-MM`, takvim kartı).
 - **Varsayım:** parametre adları öneridir; rota kataloğu (F0) son sözü söyler.
 
+**F6:** rapor eylemleri → [13-raporlar](../13-raporlar/README.md) E-13-NN.
+
 ## Özet
 Kullanıcılar ekranı, şirketteki kişileri tek tabloda listeler (ad, e-posta, rol rozetleri, koordinatörlük atamaları), rol sekmesi + arama + koordinatörlük süzgeciyle daraltır ve satır seçilince sağdaki yan panelde kişinin rollerini ve koordinatörlük atamalarını düzenletir; hesap işlemleri (şifre sıfırlama bağlantısı, kilitleme, silme) aynı panelin menüsündedir. Kişisel takip (05b) bir kişinin görevlerini dört özet kartı, son tarihe/duruma göre gruplanmış görev tablosu, aylık son tarih takvimi ve durum dağılımıyla gösterir; Dosyalar, Etkinlik ve Hesap ve roller sekmelerinin içeriği tasarımda yoktur. Tasarım ekranı yönetici (Admin merceği) gözüyle çizer; Koordinatör/Üye merceğinde neyin görüneceği tasarımda yoktur ve eylem görünürlüğü `istemci-akislari.md` §4 yöntemine göre işlem bazında hesaplanmalıdır (kullanıcı yönetimi işlemleri o tabloda henüz satır olarak yok — backend analisti doğrulamalı). Ana veri: kullanıcı/hesap listesi, ekip üyelikleri (program, departman, rol) ve kişinin atandığı görevler. İlgili açık eksikler: BE-011 (program kapsamlı liste/sayaç), BE-012 (kilitle), BE-013 (sıfırlama/davet bağlantısı), BE-014 (dışa aktar), BE-015 (Etkinlik sekmesi).
 

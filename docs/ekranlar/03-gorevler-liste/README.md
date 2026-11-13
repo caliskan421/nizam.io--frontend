@@ -6,6 +6,8 @@
 **Faz:** F1 · **v1:** ✓ · **Yol haritası bağı:** K3 (tek uç `listProgramWorkItems`, fan-out yasağı), K5 (yazma protokolü), K7 (açık durumlar), K10 (rota), K11 (formlar), K13 (eksik statik), §4 F1 satırı
 **Rota (önerilen, K10):** `/gorevler` — tipli parametreler — **Varsayım:** aşağıdaki ad ve küme (doğrulanacak: F1 `app/routes.catalog.ts` rota kataloğu kararı, K10): `durum` (sekme anahtarı), `talep` (bool), `q` (metin), `kisi` (kullanıcı kimliği), `koordinatorluk` (departman kimliği), `sirala` (`gorev|durum|bitis` + yön), `sayfa`/imleç, `gorev` (ayrıntı panelinde açık görev kimliği). Zaman çizelgesi ayrı rota `/zaman-cizelgesi` (grup `03c-zaman-cizelgesi`).
 
+**F6:** rapor eylemleri → [13-raporlar](../13-raporlar/README.md) E-13-NN.
+
 ## Özet
 Seçili programın görevlerini durum sekmeleri (sayaçlı), arama, kişi/koordinatörlük süzgeçleri ve sıralanabilir sütunlarla tabloda listeler; satır içinde alt görevler açılıp kişi, tarih, kanıt ve zorunlu-alan bayraklarıyla yerinde düzenlenir; sağdaki ayrıntı paneli seçili görevin özetini, durum seçicisini, ilerleme çizgisini ve görev düzeyi eylemleri (kanıt yükle, hatırlat, tarih değişikliği iste, kopyala, sil) gösterir. Üstte bekleyen tarih değişikliği talepleri bandı vardır. Tüm merceklerde (Admin / Koordinatör / Üye) aynı iskelet görünür; kapsam (program + departman) satır kümesini, `istemci-akislari.md` §4 eylem görünürlüğünü belirler. Ana veri kaynağı tek uç `listProgramWorkItems` (K3); sayaç, sayfa numarası, arama, kısa kod ve zaman çizgisi için bilinen eksikler BE-003…BE-007.
 

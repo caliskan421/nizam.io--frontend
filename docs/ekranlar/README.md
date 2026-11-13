@@ -46,6 +46,7 @@ Açık tema varyantları (A1–A4) ayrı grup değildir; ilgili grubun `ozellikl
 | `10-mesajlar` | 10 · Mesajlar › Genel grup; 10b · Üye görünümü; 10c · Pencereler; A3 · Açık tema › Mesajlar | F7 | — |
 | `11-tablolar` | 11 · Tablolar; 11b · Fuar haftası vardiya planı; 11c · Paylaş; 11d · Tablo bağlantısı; 11e · Birlikte çalışma; A4 · Açık tema › Tablo | sonra | — |
 | `12-silinen-kayitlar` | 01d · Silinen kayıtlar › seçilen · silinme tarihi sütunu (01c önceki seçenek) | F5 | — |
+| `13-raporlar` | 01i · Raporlar › Her rapor kendi yerinde; 01f · Arşiv › Dönem sonu raporu önizleme; 01g · Toplantı › Toplantı raporu önizleme; 01h · Raporlar › Pencereler, durumlar ve iş yükü seçici (yalnız durum kartları/ZIP onayı/kâğıt içerikleri; 01e · Raporlar ve A5 önceki seçenek, uygulanmaz) | F6 | — |
 
 Dosya adı → artboard eşlemesi `../tasarim/kaynak/canvas.json` içindedir (`boards[*].title`).
 
@@ -97,6 +98,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `10-mesajlar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex UYGUN (WEB-5)** | UYGUN (WEB-5) |
+| `13-raporlar` | **kabul** (P46–P53; öneri satırları açık sorularda) | **kabul** | **kabul** | **kabul** | öz denetim (W134); bağımsız denetçi bekliyor | bekliyor |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,
