@@ -2,6 +2,8 @@
 
 **Codex kapısı:** KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
 
+**F6 bağlantısı:** işlem geçmişinin hangi fazda açılacağı kararı [WEB-6 iskeleti](../../yurutme/web-6/README.md) hazırlığında ele alınır; F6 AÇILMADI.
+
 **Artboard'lar:** `Islem-Gecmisi.dc.html` (`01b · Ana sayfa › İşlem geçmişi`; 1440×1500, yalnız koyu tema varsayılanı; açık tema artboard'u yok)
 **Faz:** sonra (yeni modül, ayrı backend + web fazı) · **v1:** — (K14: v1 dışı, menüde görünmez) · **Yol haritası bağı:** K13, K14, §4 "sonra" satırı; eksik kaydı `BE-030` (ekranın tamamı)
 **Rota (önerilen, K10):** `/islem-gecmisi` — tipli süzgeç parametreleri (öneri, URL'de): `from`, `to` (tarih; gün tıklaması / aralık), `tur[]` (işlem türü), `islem[]` (işlem kodu), `yapan[]` (kullanıcı kimliği), `koord[]` (departman kimliği veya "bağlı değil"), `q` (arama). Varsayım: tür/kimlik biçimleri backend fazında belirlenir.

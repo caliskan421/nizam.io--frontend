@@ -56,11 +56,13 @@ Her faz: API çağrısı → sorgu/mutasyon → yetki hesabı → arayüz (tasar
 | **F2** organizasyon + program | Kullanıcılar, kişisel takip, koordinatörlükler (düz), departman/üyelik/koordinatör, programlar ("Teknofest ve sezon"), katılım bağı, dönem aktarımı, sıfırlama | 05, 05b, 08, 08b | ✓ |
 | **F3** zaman çizelgesi | Gantt üç yüz, tarih talepleri, uzatma, bağımlılıklar | 03c, 03d | ✓ |
 | **F4** toplantılar | Liste, detay, gündem, notlar, nottan görev, silinenler; video (W7) ayrı | 09, 09b, 09c (09d/09e statik, KR-26) | ✓ |
-| F5 arşiv | Klasörler, dosyalar, ZIP, silinenler/geri yükleme | 06, 07 | |
+| F5 arşiv | Klasörler, dosyalar, ZIP, silinenler/geri yükleme | 06, 07, 12 (silinen kayıtlar) | |
 | F6 rapor/pano | Yönetici panosu tam, iş yükü, PDF | 01 (tam) | |
 | F7 sohbet + bildirim | Sohbet, SSE, okunmamış, bildirimler, Web Push | 10, 10b, 10c | |
 | F8 asistan | F46 paneli (rota kataloğu) | Ana sayfa "Asistan" | |
 | sonra | Yeni modüller (backend fazıyla) | 01b, 11–11e, Takvim, Kurumsal hafıza, Simülasyon, Bütçe/Talep | |
+
+**F5 durumu (2026-11-12):** uygulandı (#102–#113; W127 #114 birleşti `8abcb3b`); Codex nihai kapısı ve kapanış PR'ı bekliyor ([kayıt](../yurutme/web-5/ilerleme.md)). **Borç:** kenar menüsü tanımına rol bazlı sıra/etiket (örn. üye "Dosyalarım") — menü tanımı rol bilgisi taşımıyor. Yönetici arşivi BE-072 için geçici yolda ([rapor-F5](../backend-eksikleri/rapor-F5.md)). F6 AÇILMAZ — kullanıcı onayı.
 
 ## 5. Backend eksikleri
 

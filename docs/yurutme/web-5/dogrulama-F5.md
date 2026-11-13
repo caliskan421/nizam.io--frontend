@@ -90,7 +90,7 @@ K/Ü'de `/silinen-kayitlar` hiçbir `admin/deleted` ya da `meetings/deleted` ist
 ## API ek kanıtları — `api-extra.json`
 
 - **Dönem ZIP** (`archiveFullZip`): ŞY bileti 201 → indirme 200 `application/zip` (`donem-arsivi.zip`, 63 dosya); **K** aynı bileti alır ama indirme **403 `records.not_authorized`**; bilet tek kullanımlık (ikinci tüketim 404).
-- **attachFile idempotent tekrar:** aynı anahtar + aynı gövde → ilk 201, tekrar **200** aynı `file_id`, listede tek kopya; aynı anahtar + farklı gövde → **409 `records.idempotency_key_reused`**. Yeni anahtar + aynı görünür ad → 201 (sunucu yüklemede ad benzersizliği aramaz; çakışma yalnız yeniden adlandırmada).
+- **attachFile idempotent tekrar:** aynı anahtar + aynı gövde → ilk 201, tekrar **200** aynı `file_id`, listede tek kopya; aynı anahtar + farklı gövde → **409 `records.idempotency_key_reused`**. Yeni anahtar + aynı görünür ad: **doğrulanmadı.** Kalıcı kanıt (`web5-w130/shots/api-extra.json` `yeniAnahtarAyniAd`) 422 `records.too_many_files` verdi; tanık yetersiz, çünkü görev dosya tavanına ulaşmıştı (Codex CX-F5-K-01). Ad benzersizliği davranışı bu tanıkla kanıtlanmış sayılmaz.
 
 ## G4 — gerçek 429 tanığı — `g4.json`
 
