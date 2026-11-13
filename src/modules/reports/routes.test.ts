@@ -14,12 +14,12 @@ import { REPORT_MEETING_ROUTE, REPORT_SEASON_ROUTE, reportsRoutes } from './rout
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 vi.mock('./pages/SeasonReportPage.vue', async () => {
-  const { defineComponent, h } = await import('vue')
-  return { default: defineComponent({ setup: () => () => h('div', { 'data-page': 'season' }) }) }
+  const { h } = await import('vue')
+  return { default: () => h('div', { 'data-page': 'season' }) }
 })
 vi.mock('./pages/MeetingReportPage.vue', async () => {
-  const { defineComponent, h } = await import('vue')
-  return { default: defineComponent({ setup: () => () => h('div', { 'data-page': 'meeting' }) }) }
+  const { h } = await import('vue')
+  return { default: () => h('div', { 'data-page': 'meeting' }) }
 })
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
