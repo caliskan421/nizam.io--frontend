@@ -19,7 +19,8 @@ export type RedeemFault =
   | 'not_found'
   | 'ticket_invalid'
   | 'not_authorized'
-export type SeasonFault = 'ok' | 'empty' | 'export_in_progress' | 'rate_limited' | 'capacity_full' | 'error'
+export type SeasonFault =
+  'ok' | 'empty' | 'export_in_progress' | 'rate_limited' | 'capacity_full' | 'error'
 
 export interface FakeMeeting {
   meeting_id: string

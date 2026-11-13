@@ -132,12 +132,15 @@ describe('dönem ZIP ve eylem şeridi', () => {
   it.each([
     ['koordinatör', COORD, '[data-testid="archive-folder-page"]'],
     ['üye', MEMBER, '[data-testid="archive-folder-page"]'],
-  ])('rapor eylemleri yalnız yöneticide: %s /arsiv\'de dönem düğmesi görmez', async (_n, who, page) => {
-    const app = await boot({ ...who, path: '/arsiv' })
-    await until(() => $(page), 'arşiv klasör sayfası')
-    await idle(app.queryClient)
-    expect(byText('button', 'Dönem sonu raporu (PDF)')).toBeNull()
-    expect($('[data-action="pick-sections"]')).toBeNull()
-    expect($('[data-action="preview-season"]')).toBeNull()
-  })
+  ])(
+    "rapor eylemleri yalnız yöneticide: %s /arsiv'de dönem düğmesi görmez",
+    async (_n, who, page) => {
+      const app = await boot({ ...who, path: '/arsiv' })
+      await until(() => $(page), 'arşiv klasör sayfası')
+      await idle(app.queryClient)
+      expect(byText('button', 'Dönem sonu raporu (PDF)')).toBeNull()
+      expect($('[data-action="pick-sections"]')).toBeNull()
+      expect($('[data-action="preview-season"]')).toBeNull()
+    },
+  )
 })
