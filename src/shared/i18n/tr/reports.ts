@@ -10,7 +10,44 @@
 export const trReports = {
   reports: {
     // 01f ve 01g sayfa başlıkları (E-13-14; E-13-46). Gövde metinleri W138'in dalıdır.
-    season: { title: 'Dönem sonu raporu' },
+    season: {
+      title: 'Dönem sonu raporu',
+      // 06 Arşiv başlığı (E-13-01…08): "Önizle" bağlantısı ve bitişik "Bölüm seç…" düğmesi.
+      actions: {
+        preview: 'Önizle',
+        pickTitle: 'Bölüm seç… — varsayılan tam rapor',
+      },
+      // "Bölüm seç…" penceresi (01i hücre B; statik, BE-122; E-13-04…06).
+      picker: {
+        kicker: '{program} · {year} sezonu',
+        title: 'Dönem sonu raporu — bölümleri seç',
+        description:
+          "Hiçbir şey değiştirmezsen tam rapor iner. Doğrudan 'PDF' düğmesi her zaman tam raporu verir.",
+        sections: 'BÖLÜMLER',
+        list: 'Rapor bölümleri',
+        always: 'her zaman',
+        departments: 'KOORDİNATÖRLÜKLER',
+        soon: 'yakında',
+        all: 'Tümü',
+        count: '{n} koordinatörlük',
+        meta: 'PDF · A4 · kayda geçer (denetim)',
+        partial: 'Bölüm seçimi yakında; şimdilik yalnız tam rapor iner. Bütün bölümleri seçili bırakın.',
+        cancel: 'Vazgeç',
+        download: 'Seçilenleri indir (PDF)',
+        section: {
+          cover: 'Kapak ve içindekiler',
+          summary: 'Yönetici özeti',
+          gantt: 'Gantt — görev zaman çizelgesi',
+          general: 'Teknofest geneli',
+          departments: 'Koordinatörlük bölümleri',
+          tasks: 'Görev tablosu',
+          details: 'Görev detay kartları (notlar, tarih talepleri)',
+          meetings: 'Toplantılar',
+          files: 'Dosyalar',
+          appendix: 'Ek: sözlük ve kurallar',
+        },
+      },
+    },
     meeting: { title: 'Toplantı raporu' },
     task: { title: 'Görev raporu' },
     // Ortak durum kartları (W138; E-13-68…75, 01h): kart başlığı/kod satırı/alt not.

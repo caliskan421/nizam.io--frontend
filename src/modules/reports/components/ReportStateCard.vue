@@ -63,7 +63,7 @@ const codeLine = computed(() =>
         :aria-label="t('reports.status.preparing.progressLabel')"
       />
       <DesignStub id="BE-131">
-        <span class="report-card__soon">{{ t('reports.states.progressStub') }}</span>
+        <span class="report-soon">{{ t('reports.states.progressStub') }}</span>
       </DesignStub>
     </div>
   </div>
