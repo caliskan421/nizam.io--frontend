@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Asistan paneli</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.nt-ib{width:32px; height:32px; flex:none; display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:8px; background:transparent; color:var(--ink-muted); cursor:pointer}
+.nt-ib svg{width:16px; height:16px}
+/* ---- asistan paneli ---- */
+.rp-page[data-asst="true"] .rp-main{margin-right:420px}
+.as-panel{position:fixed; top:0; right:0; bottom:0; z-index:55; width:420px; max-width:100vw; display:flex; flex-direction:column; border-left:1px solid var(--border-strong); background:var(--bg-surface); box-shadow:-12px 0 32px rgba(0,0,0,0.18); font-family:var(--font-sans); color:var(--ink)}
+.as-head{display:flex; align-items:center; gap:10px; min-height:64px; padding:0 12px 0 18px; border-bottom:1px solid var(--border-subtle); box-sizing:border-box; flex:none}
+.as-logo{width:32px; height:32px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--accent); color:var(--accent-ink)}
+.as-logo svg{width:18px; height:18px}
+.as-ht{display:flex; flex-direction:column; min-width:0; flex:1 1 auto}
+.as-ht h2{margin:0; font-size:15px; line-height:20px; font-weight:600}
+.as-scroll{flex:1 1 auto; overflow-y:auto; padding:20px 18px; display:flex; flex-direction:column; gap:16px}
+.as-hello h3{margin:8px 0 6px; font-family:var(--font-display); font-size:24px; line-height:30px; font-weight:600; letter-spacing:-0.01em}
+.as-hello p{margin:0; font-size:13.5px; line-height:20px; color:var(--ink-muted)}
+.as-sugs{display:flex; flex-direction:column; gap:6px}
+.as-sug{text-align:left; padding:10px 14px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised); color:var(--ink); font:inherit; font-size:13px; line-height:18px; cursor:pointer}
+.as-sug:hover{border-color:var(--border-strong); background:var(--bg-overlay)}
+.as-me{align-self:flex-end; max-width:85%; padding:10px 14px; border-radius:16px 16px 4px 16px; background:var(--bg-overlay); font-size:13.5px; line-height:19px; white-space:pre-wrap}
+.as-bot{display:flex; flex-direction:column; gap:10px; max-width:100%}
+.as-text{margin:0; font-size:13.5px; line-height:20px}
+.as-lines{margin:0; display:flex; flex-direction:column; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised); overflow:hidden}
+.as-lines > div{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:9px 14px; border-top:1px solid var(--border-subtle)}
+.as-lines > div:first-child{border-top:0}
+.as-lines dt{font-size:13px; color:var(--ink-muted)}
+.as-lines dd{margin:0; font-size:13px; font-weight:600; text-align:right; max-width:220px}
+.as-card{list-style:none; margin:0; padding:4px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-raised)}
+.as-row{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; width:100%; padding:9px 10px; border:0; border-radius:9px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer}
+.as-row:hover{background:var(--bg-overlay)}
+.as-code{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); flex:none}
+.as-rt{font-size:13px; font-weight:600}
+.as-note{font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); white-space:nowrap}
+.as-note[data-late="true"]{color:var(--danger)}
+.as-cal{width:28px; height:28px; border-radius:8px; border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700}
+.as-req{display:flex; flex-direction:column; gap:8px; padding:10px; border-top:1px solid var(--border-subtle)}
+.as-req:first-child{border-top:0}
+.as-reqt{display:flex; flex-direction:column; gap:3px; padding:0; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; min-width:0}
+.as-acts{display:flex; gap:6px}
+.as-acts .t-btn{height:28px; padding:0 10px; font-size:12.5px}
+.as-st{font-size:12.5px; font-weight:600; color:var(--ink-muted)}
+.as-st[data-ok="true"]{color:var(--accent-text)}
+.as-person{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:center; padding:9px 10px}
+.as-confirm{display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:12px; border:1px solid color-mix(in srgb, var(--accent-text) 35%, var(--border-subtle)); background:color-mix(in srgb, var(--accent-text) 7%, var(--bg-raised))}
+.as-confirm p{margin:0; font-size:13px; line-height:18px; font-weight:600}
+.as-confirm div{display:flex; justify-content:flex-end; gap:8px}
+.as-did{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--accent-text)}
+.as-did svg{width:14px; height:14px}
+.as-src{font-family:var(--font-mono); font-size:10.5px; line-height:14px; color:var(--ink-faint)}
+.as-typing{display:flex; gap:5px; padding:4px 2px}
+.as-typing span{width:7px; height:7px; border-radius:50%; background:var(--ink-faint); animation:asDot 1s infinite ease-in-out}
+.as-typing span:nth-child(2){animation-delay:.15s}.as-typing span:nth-child(3){animation-delay:.3s}
+@keyframes asDot{0%,80%,100%{opacity:.3; transform:translateY(0)}40%{opacity:1; transform:translateY(-3px)}}
+.as-input{flex:none; padding:12px 14px 14px; border-top:1px solid var(--border-subtle)}
+.as-box{display:grid; grid-template-columns:minmax(0,1fr) 36px; gap:8px; align-items:end; padding:8px 8px 8px 14px; border:1px solid var(--border-control); border-radius:14px; background:var(--bg-base)}
+.as-box:focus-within{border-color:var(--ink-muted)}
+.as-ta{border:0; outline:0; resize:none; background:transparent; color:var(--ink); font:inherit; font-size:13.5px; line-height:20px; padding:6px 0; min-height:40px}
+.as-send{width:36px; height:36px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; cursor:pointer}
+.as-send:disabled{opacity:.35; cursor:default}
+.as-send svg{width:16px; height:16px}
+.as-foot{margin:8px 2px 0; font-size:11.5px; line-height:15px; color:var(--ink-faint)}
+@media (max-width:900px){.rp-page[data-asst="true"] .rp-main{margin-right:0}}
+
+.ab-frame.as-panel{position:relative; top:auto; right:auto; bottom:auto; width:400px; height:780px; border:1px solid var(--border-strong); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-card)}
+.ab-frame .as-typing span{animation:none; opacity:.6}
+.ab-row{display:grid; grid-template-columns:repeat(3, 400px); justify-content:space-between}
+.ab-col{display:flex; flex-direction:column; gap:14px; min-width:0}
+.ab-h{margin:4px 0 0; font-size:17px; line-height:22px; font-weight:600}
+.ab-note{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.ab-shot{position:relative; height:300px; display:grid; grid-template-columns:70px minmax(0,1fr) 130px; border:1px solid var(--border-subtle); border-radius:14px; overflow:hidden; background:var(--bg-base)}
+.ab-side{border-right:1px solid var(--border-subtle); background:var(--bg-surface)}
+.ab-main{display:flex; flex-direction:column}
+.ab-top{display:flex; justify-content:space-between; align-items:center; height:36px; padding:0 10px; border-bottom:1px solid var(--border-subtle)}
+.ab-top span:first-child{width:80px; height:8px; border-radius:4px; background:var(--border-strong)}
+.ab-pill{height:20px; padding:0 8px; border-radius:6px; background:var(--accent); color:var(--accent-ink); font-size:10px; font-weight:700; display:flex; align-items:center}
+.ab-lines{padding:14px 10px; display:flex; flex-direction:column; gap:10px}
+.ab-lines span{height:8px; border-radius:4px; background:var(--border-subtle)}
+.ab-dock{border-left:1px solid var(--border-strong); background:var(--bg-surface); padding:14px 10px; display:flex; flex-direction:column; gap:10px}
+.ab-dock span{height:8px; border-radius:4px; background:var(--border-strong); width:50%}
+.ab-rules{display:flex; flex-direction:column; gap:12px}
+.ab-rule{display:flex; flex-direction:column; gap:4px; padding:14px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.ab-rule h3{margin:0; font-size:14px; line-height:20px; font-weight:600}
+.ab-rule p{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+</style>
+</helmet>
+<div class="ab" data-theme="dark" style="width:1440px; height:2200px; box-sizing:border-box; padding:56px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:48px">
+<header style="display:flex; flex-direction:column; gap:10px; max-width:940px">
+<p class="rp-kicker">Ortak bileşen · üst çubuk › Asistan</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Asistan paneli</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Sağa yanaşan, sayfayı kapatmayan bir yardımcı. Senin rolünle görebildiğin veriye bakar, yanıtı tıklanabilir kartlarla verir, bir şeyi değiştirmeden önce onay ister. Gerçek genişlik 420 px; aşağıdaki çerçeveler 400 px.</p>
+</header>
+<div class="ab-row"><section class="ab-col" aria-labelledby="ab1"><div><p class="rp-kicker">1</p><h2 id="ab1" class="ab-h">Boş durum · Admin</h2></div><aside class="as-panel ab-frame" aria-label="Asistan · Boş durum · Admin"><div class="as-head"><span class="as-logo" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 2.5v3M8 6h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9.5 11.5v1M14.5 11.5v1M9.5 16h5M2.5 11v4M21.5 11v4"></path></svg></span><div class="as-ht"><h2>Asistan</h2><span class="rp-cap rp-trunc">Bağlam: Ana sayfa · Admin</span></div><button type="button" class="nt-ib" aria-label="Yeni sohbet"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button><button type="button" class="nt-ib" aria-label="Kapat"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div><div class="as-scroll"><div class="as-hello"><h3>Ne yapalım, Doğan?</h3><p>Görebildiğin görev, talep ve toplantılara bakarak yanıt veririm. Bir şeyi değiştirmeden önce hep onayını isterim.</p></div><div class="as-sugs"><button type="button" class="as-sug">Geciken görevleri listele</button><button type="button" class="as-sug">Bekleyen tarih taleplerini göster</button><button type="button" class="as-sug">Bu haftanın özetini çıkar</button><button type="button" class="as-sug">Kimin iş yükü fazla?</button><button type="button" class="as-sug">Görev oluştur: Fuar alanı keşif ziyareti</button></div></div><div class="as-input"><div class="as-box"><textarea class="as-ta" rows="2" placeholder="Bir şey sor ya da iste…" aria-label="Asistana mesaj"></textarea><button class="as-send" type="button" aria-label="Gönder" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button></div><p class="as-foot">Yalnız rolünün görebildiklerini kullanır · değişiklikten önce onay ister</p></div></aside><p class="ab-note">Öneriler role ve sayfaya göre değişir. Bir görev açıkken ilk öneri “SİS-4 görevini özetle” olur.</p></section><section class="ab-col" aria-labelledby="ab2"><div><p class="rp-kicker">2</p><h2 id="ab2" class="ab-h">Yanıt kartı ve eylem</h2></div><aside class="as-panel ab-frame" aria-label="Asistan · Yanıt kartı ve eylem"><div class="as-head"><span class="as-logo" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 2.5v3M8 6h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9.5 11.5v1M14.5 11.5v1M9.5 16h5M2.5 11v4M21.5 11v4"></path></svg></span><div class="as-ht"><h2>Asistan</h2><span class="rp-cap rp-trunc">Bağlam: Görevler · Admin</span></div><button type="button" class="nt-ib" aria-label="Yeni sohbet"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button><button type="button" class="nt-ib" aria-label="Kapat"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div><div class="as-scroll"><div class="as-me">Geciken görevleri listele</div><div class="as-bot"><p class="as-text">Tüm programda 7 görev gecikmede. En eskisi ALT-7, 41 gündür bekliyor. İlk 6’sını gösteriyorum.</p><ul class="as-card"><li><button type="button" class="as-row"><span class="as-code">ALT-7</span><span class="rp-trunc as-rt">Hidrofor ve su tesisatı</span><span class="as-note" data-late="true">41 gün gecikti</span></button></li><li><button type="button" class="as-row"><span class="as-code">ELE-2</span><span class="rp-trunc as-rt">Jeneratör kiralama</span><span class="as-note" data-late="true">12 gün gecikti</span></button></li><li><button type="button" class="as-row"><span class="as-code">OPE-7</span><span class="rp-trunc as-rt">Gönüllü vardiya listesi</span><span class="as-note" data-late="true">6 gün gecikti</span></button></li><li><button type="button" class="as-row"><span class="as-code">SİS-3</span><span class="rp-trunc as-rt">Kayıt formu testleri</span><span class="as-note" data-late="true">3 gün gecikti</span></button></li></ul><div class="as-confirm"><p>Bu görevlerin sorumlularına hatırlatma mesajı gönderilsin mi?</p><div><button class="t-btn t-btn--ghost t-btn--sm" type="button">Vazgeç</button><button class="t-btn t-btn--primary t-btn--sm" type="button">Hatırlatma gönder</button></div></div><span class="as-src">Kaynak: 42 görev tarandı · yalnız admin olarak görebildiklerin</span></div></div><div class="as-input"><div class="as-box"><textarea class="as-ta" rows="2" placeholder="Bir şey sor ya da iste…" aria-label="Asistana mesaj"></textarea><button class="as-send" type="button" aria-label="Gönder" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button></div><p class="as-foot">Yalnız rolünün görebildiklerini kullanır · değişiklikten önce onay ister</p></div></aside><p class="ab-note">Liste satırına tıklamak kaydı açar, panel açık kalır. Toplu bir eylem önerilirse ayrı bir onay kutusu çıkar.</p></section><section class="ab-col" aria-labelledby="ab3"><div><p class="rp-kicker">3</p><h2 id="ab3" class="ab-h">Satır içi karar ve özet</h2></div><aside class="as-panel ab-frame" aria-label="Asistan · Satır içi karar ve özet"><div class="as-head"><span class="as-logo" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 2.5v3M8 6h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9.5 11.5v1M14.5 11.5v1M9.5 16h5M2.5 11v4M21.5 11v4"></path></svg></span><div class="as-ht"><h2>Asistan</h2><span class="rp-cap rp-trunc">Bağlam: Ana sayfa · Admin</span></div><button type="button" class="nt-ib" aria-label="Yeni sohbet"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button><button type="button" class="nt-ib" aria-label="Kapat"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div><div class="as-scroll"><div class="as-me">Bekleyen tarih taleplerini göster</div><div class="as-bot"><p class="as-text">2 tarih talebi kararını bekliyor. Buradan da onaylayabilirsin.</p><ul class="as-card"><li class="as-req"><button type="button" class="as-reqt"><span style="display:flex; gap:8px; min-width:0"><span class="as-code">ALT-7</span><span class="rp-trunc as-rt">Hidrofor ve su tesisatı</span></span><span class="rp-cap rp-trunc">Kadir Özbek · 10.09 → 31.10</span></button><span class="as-st" data-ok="true">Onaylandı</span></li><li class="as-req"><button type="button" class="as-reqt"><span style="display:flex; gap:8px; min-width:0"><span class="as-code">SİS-4</span><span class="rp-trunc as-rt">Akreditasyon sistemi</span></span><span class="rp-cap rp-trunc">Zeynep Kaya · 24.10 → 31.10</span></button><span class="as-acts"><button class="t-btn t-btn--secondary t-btn--sm" type="button">Reddet</button><button class="t-btn t-btn--primary t-btn--sm" type="button">Onayla</button></span></li></ul><span class="as-src">Kaynak: 5 tarih talebi</span></div><div class="as-me">Bu haftanın özetini çıkar</div><div class="as-bot"><p class="as-text">Tüm programda durum şöyle:</p><dl class="as-lines"><div><dt>Açık görev</dt><dd>31</dd></div><div><dt>Gecikmede</dt><dd>7</dd></div><div><dt>Bu hafta bitmesi gereken</dt><dd>5</dd></div><div><dt>Önce bak</dt><dd>ALT-7 · Hidrofor</dd></div></dl><span class="as-did"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Rapor hazırlanıyor</span></div></div><div class="as-input"><div class="as-box"><textarea class="as-ta" rows="2" placeholder="Bir şey sor ya da iste…" aria-label="Asistana mesaj"></textarea><button class="as-send" type="button" aria-label="Gönder" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button></div><p class="as-foot">Yalnız rolünün görebildiklerini kullanır · değişiklikten önce onay ister</p></div></aside><p class="ab-note">Tarih talepleri panelden de onaylanır; karar zil panelindeki ve görevdeki talebi aynı anda kapatır.</p></section></div>
+<div class="ab-row"><section class="ab-col" aria-labelledby="ab4"><div><p class="rp-kicker">4</p><h2 id="ab4" class="ab-h">Bağlam: açık görev</h2></div><aside class="as-panel ab-frame" aria-label="Asistan · Bağlam: açık görev"><div class="as-head"><span class="as-logo" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 2.5v3M8 6h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9.5 11.5v1M14.5 11.5v1M9.5 16h5M2.5 11v4M21.5 11v4"></path></svg></span><div class="as-ht"><h2>Asistan</h2><span class="rp-cap rp-trunc">Bağlam: SİS-4 · Koordinatör</span></div><button type="button" class="nt-ib" aria-label="Yeni sohbet"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button><button type="button" class="nt-ib" aria-label="Kapat"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div><div class="as-scroll"><div class="as-me">SİS-4 görevini özetle</div><div class="as-bot"><p class="as-text">SİS-4 · Akreditasyon sistemi</p><dl class="as-lines"><div><dt>Durum</dt><dd>Devam ediyor</dd></div><div><dt>Sorumlu</dt><dd>Zeynep Kaya, Mert Aydın</dd></div><div><dt>Tarih</dt><dd>01.10 → 24.10</dd></div><div><dt>Bekleyen talep</dt><dd>Var · 31.10’a</dd></div></dl><span class="as-src">Kaynak: SİS-4 görev kaydı ve işlem geçmişi</span></div><div class="as-me">Görev oluştur: Turnike kartlarının basımı</div><div class="as-bot"><p class="as-text">Görev penceresini şu bilgilerle açayım; sorumlu ve tarihleri sen seç.</p><dl class="as-lines"><div><dt>Başlık</dt><dd>Turnike kartlarının basımı</dd></div><div><dt>Koordinatörlük</dt><dd>SİS</dd></div><div><dt>Bitiş</dt><dd>04.11 (14 gün)</dd></div></dl><div class="as-confirm"><p>Görev penceresi bu bilgilerle açılsın mı?</p><div><button class="t-btn t-btn--ghost t-btn--sm" type="button">Vazgeç</button><button class="t-btn t-btn--primary t-btn--sm" type="button">Pencereyi aç</button></div></div></div></div><div class="as-input"><div class="as-box"><textarea class="as-ta" rows="2" placeholder="Bir şey sor ya da iste…" aria-label="Asistana mesaj"></textarea><button class="as-send" type="button" aria-label="Gönder" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button></div><p class="as-foot">Yalnız rolünün görebildiklerini kullanır · değişiklikten önce onay ister</p></div></aside><p class="ab-note">Görev, toplantı ya da tablo açıkken başlıktaki bağlam onu gösterir; “bu görev” dediğinde neyi kastettiğin bilinir.</p></section><section class="ab-col" aria-labelledby="ab5"><div><p class="rp-kicker">5</p><h2 id="ab5" class="ab-h">Sınırlar · Üye</h2></div><aside class="as-panel ab-frame" aria-label="Asistan · Sınırlar · Üye"><div class="as-head"><span class="as-logo" aria-hidden="true"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 2.5v3M8 6h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9.5 11.5v1M14.5 11.5v1M9.5 16h5M2.5 11v4M21.5 11v4"></path></svg></span><div class="as-ht"><h2>Asistan</h2><span class="rp-cap rp-trunc">Bağlam: Görevlerim · Üye</span></div><button type="button" class="nt-ib" aria-label="Yeni sohbet"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button><button type="button" class="nt-ib" aria-label="Kapat"><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div><div class="as-scroll"><div class="as-me">Ekipte kimin işi çok?</div><div class="as-bot"><p class="as-text">Ekip yükünü yalnız koordinatörler görebilir. Kendi yükün: 4 açık görev, 1 gecikmede.</p><span class="as-src">Kaynak: 6 görev · yalnız üye olarak görebildiklerin</span></div><div class="as-me">Geçen sezonun bütçesi ne kadardı?</div><div class="as-bot"><p class="as-text">Bunu yanıtlayamıyorum; bütçe kayıtlarını üye olarak göremiyorsun. Şunlardan birini dene:</p><div class="as-sugs"><button type="button" class="as-sug">Geciken görevlerim</button><button type="button" class="as-sug">Tarih taleplerimin durumu</button><button type="button" class="as-sug">Yaklaşan toplantılarım</button></div></div><div class="as-typing" role="status" aria-label="Asistan yazıyor"><span></span><span></span><span></span></div></div><div class="as-input"><div class="as-box"><textarea class="as-ta" rows="2" placeholder="Bir şey sor ya da iste…" aria-label="Asistana mesaj"></textarea><button class="as-send" type="button" aria-label="Gönder" disabled><svg class="t-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button></div><p class="as-foot">Yalnız rolünün görebildiklerini kullanır · değişiklikten önce onay ister</p></div></aside><p class="ab-note">Asistan rolün dışına çıkmaz: üye ekip yükünü göremez, görev açamaz. Anlamadığında uydurmaz, ne yapabildiğini gösterir.</p></section><section class="ab-col" aria-labelledby="ab6"><div><p class="rp-kicker">6</p><h2 id="ab6" class="ab-h">Sayfadaki yeri</h2></div>
+<div class="ab-shot" aria-hidden="true"><div class="ab-side"></div><div class="ab-main"><div class="ab-top"><span></span><span class="ab-pill">Asistan</span></div><div class="ab-lines"><span style="width:60%"></span><span style="width:85%"></span><span style="width:70%"></span><span style="width:78%"></span></div></div><div class="ab-dock"><span></span><span style="width:70%"></span><span style="width:80%"></span></div></div>
+<div class="ab-rules">
+<div class="ab-rule"><h3>Üstte, her sayfadan</h3><p>Üst çubuktaki Asistan düğmesi paneli açıp kapatır. Panel sağa yanaşır, sayfa daralır ve kullanılmaya devam eder; modal değildir.</p></div>
+<div class="ab-rule"><h3>Gezinirken açık kalır</h3><p>Sayfa değişince sohbet sürer, başlıktaki bağlam güncellenir. “+” yeni sohbet başlatır.</p></div>
+<div class="ab-rule"><h3>Önce onay, sonra işlem</h3><p>Okuma serbest. Hatırlatma, rapor, görev açma gibi her değişiklik ayrı bir onay kutusundan geçer; Vazgeç hiçbir şeyi değiştirmez.</p></div>
+<div class="ab-rule"><h3>Kaynak satırı</h3><p>Her yanıtın altında neye bakıldığı yazar: kaç görev, hangi kayıt ve hangi rolle.</p></div>
+</div></section></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

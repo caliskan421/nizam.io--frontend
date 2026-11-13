@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>RoketPortal — Raporlar · sekmeler, pencereler ve durumlar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="tema-sistemi/tokens.css">
+<link rel="stylesheet" href="tema-sistemi/bundle.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* Galeri hücreleri */
+.rp-rapor-grid{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:32px 24px; align-items:start}
+.rp-rapor-cell{display:flex; flex-direction:column; gap:12px; min-width:0}
+.rp-rapor-span2{grid-column:span 2}
+.rp-rapor-span3{grid-column:span 3}
+.rp-rapor-celldesc{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.rp-rapor-win{display:flex; flex-direction:column; gap:16px; padding:20px; border:1px solid var(--border-subtle); border-radius:var(--radius-xl); background:var(--bg-surface); min-width:0}
+.rp-rapor-soon{display:inline-flex; align-items:center; height:18px; padding:0 6px; border-radius:6px; border:1px dashed var(--border-control); color:var(--ink-muted); font-family:var(--font-mono); font-size:10.5px; line-height:16px; font-weight:500; white-space:nowrap; flex:none}
+.rp-rapor-code{display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:22px; padding:0 7px; border-radius:7px; background:var(--bg-overlay); color:var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:500; box-sizing:border-box; flex:none}
+.rp-rapor-code--own{background:var(--ink); color:var(--bg-base)}
+.rp-rapor-codes{display:flex; flex-wrap:wrap; gap:4px; min-width:0}
+.rp-rapor-alert{display:grid; grid-template-columns:20px minmax(0,1fr) auto; gap:10px; align-items:start; padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:19px}
+.rp-rapor-alert strong{color:var(--ink); font-weight:600}
+.rp-rapor-alert--info{background:var(--bg-raised); border:1px solid var(--border-subtle); color:var(--ink-muted)}
+.rp-rapor-alert--info svg{color:var(--accent-text)}
+.rp-rapor-alert--gold{background:color-mix(in srgb, var(--gold) 12%, transparent); border:1px solid color-mix(in srgb, var(--gold) 45%, transparent); color:var(--ink)}
+.rp-rapor-alert--gold svg{color:var(--gold)}
+.rp-rapor-tag{font-family:var(--font-mono); font-size:11px; line-height:16px; color:var(--ink-muted); white-space:nowrap}
+.rp-rapor-c{text-align:center; justify-self:center}
+.rp-rapor-n{font-family:var(--font-mono); font-size:13px; font-variant-numeric:tabular-nums}
+.rp-rapor-more{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; padding:0; border:0; border-radius:8px; background:none; color:var(--ink-muted); cursor:pointer}
+.rp-rapor-more:hover{background:var(--bg-raised); color:var(--ink)}
+.rp-rapor-more .t-icon{transition:transform .12s linear}
+.rp-rapor-more[aria-expanded="true"] .t-icon{transform:rotate(90deg)}
+.rp-rapor-sub{padding:12px 16px 14px 52px; border-bottom:1px solid var(--border-subtle); background:color-mix(in srgb, var(--bg-raised) 55%, transparent); display:flex; flex-direction:column; gap:4px}
+.rp-rapor-stask{display:grid; grid-template-columns:minmax(0,1fr) 116px 86px 96px 36px minmax(0,0.9fr); gap:12px; align-items:center; min-height:40px; font-size:13px}
+.rp-rapor-stask--head{min-height:24px; font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); white-space:nowrap}
+.rp-rapor-alt{display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 12px; border:1px dashed var(--border-strong); border-radius:var(--radius-md)}
+.rp-rapor-toast{display:flex; align-items:center; gap:10px; padding:12px 14px 12px 16px; border-radius:14px; background:var(--ink); color:var(--bg-base); font-size:13px; font-weight:600; box-shadow:var(--shadow-card); min-width:0}
+.rp-rapor-toast .t-btn{flex:none; background:transparent; color:var(--bg-base); border-color:color-mix(in srgb, var(--bg-base) 35%, transparent); height:32px; padding:0 10px; font-size:12.5px}
+.rp-rapor-state{display:flex; flex-direction:column; gap:12px; padding:18px}
+.rp-rapor-statehead{display:grid; grid-template-columns:36px minmax(0,1fr); gap:12px; align-items:start}
+.rp-rapor-statehead h3{margin:0; font-size:15px; line-height:22px; font-weight:600}
+.rp-rapor-statehead p{margin:2px 0 0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.rp-rapor-stateact{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px}
+.rp-rapor-tree{display:flex; flex-direction:column; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden}
+.rp-rapor-tree > div{display:grid; grid-template-columns:20px minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px 12px; font-size:13px}
+.rp-rapor-tree > div + div{border-top:1px solid var(--border-subtle)}
+.rp-rapor-tree .t-icon{color:var(--ink-muted)}
+.rp-rapor-mark{outline:2px dashed var(--accent-text); outline-offset:3px}
+.rp-rapor-mini{display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-base)}
+.rp-rapor-rule{display:flex; flex-direction:column; gap:4px; padding:16px 18px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.rp-rapor-rule h3{margin:0; font-size:14px; line-height:20px; font-weight:600}
+.rp-rapor-rule p, .rp-rapor-rule li{margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)}
+.rp-rapor-rule ol{margin:4px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:4px}
+.rp-rapor-dep{display:inline-flex; align-items:center; gap:8px; height:30px; padding:0 10px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:var(--bg-raised); font-size:13px; white-space:nowrap}
+.rp-rapor-snote{display:grid; grid-template-columns:26px minmax(0,1fr); gap:10px}
+/* Dar ekran (390) */
+.rp-rapor-phone{width:390px; max-width:100%; border:1px solid var(--border-subtle); border-radius:24px; overflow:hidden; background:var(--bg-base); display:flex; flex-direction:column; box-sizing:border-box}
+.rp-rapor-phonebar{display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border-subtle)}
+.rp-rapor-phonebody{display:flex; flex-direction:column; gap:16px; padding:20px 16px 24px}
+.rp-rapor-phone .rp-tabs{-webkit-mask-image:linear-gradient(90deg, var(--ink) calc(100% - 32px), transparent); mask-image:linear-gradient(90deg, var(--ink) calc(100% - 32px), transparent)}
+.rp-rapor-kpi2{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px}
+.rp-rapor-kpi2 > div{display:flex; flex-direction:column; gap:2px; padding:12px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); min-width:0}
+/* Kâğıt yüzeyi (PDF önizlemesi) */
+.rp-rapor-paper{width:820px; max-width:100%; margin:0 auto; box-sizing:border-box; padding:48px 56px 40px; background:var(--bg-surface); color:var(--ink); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); box-shadow:var(--shadow-card); color-scheme:light; display:flex; flex-direction:column; gap:20px; font-family:var(--font-sans)}
+.rp-rapor-paper--sm{width:100%; max-width:460px; padding:22px 22px 16px; gap:12px; font-size:10.5px; line-height:14px}
+.rp-rapor-band{margin:-22px -22px 0; padding:16px 18px 14px; border-radius:var(--radius-sm) var(--radius-sm) 0 0; background:var(--bg-base); color:var(--ink); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:start}
+.rp-rapor-band h2{margin:4px 0 0; font-family:var(--font-display); font-size:19px; line-height:23px; font-weight:600; letter-spacing:0.01em}
+.rp-rapor-band .rp-rapor-kicker{color:var(--ink-muted)}
+.rp-rapor-bandline{display:block; width:40px; height:2px; margin:8px 0 6px; background:var(--accent)}
+.rp-rapor-kicker{margin:0; font-family:var(--font-mono); font-size:9.5px; line-height:13px; font-weight:500; letter-spacing:0.04em; color:var(--ink-muted)}
+.rp-rapor-logo{display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border:1.5px dashed var(--border-strong); border-radius:8px; font-family:var(--font-mono); font-size:10.5px; font-weight:500; color:var(--ink-muted); box-sizing:border-box; flex:none}
+.rp-rapor-h{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:4px 0 0; padding-bottom:4px; border-bottom:2px solid var(--accent-text); font-family:var(--font-display); font-size:11.5px; line-height:15px; font-weight:600; color:var(--ink)}
+.rp-rapor-h span{font-family:var(--font-mono); font-size:9.5px; font-weight:400; color:var(--ink-muted)}
+.rp-rapor-kpi{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:6px}
+.rp-rapor-kpi > div{display:flex; flex-direction:column; gap:2px; padding:7px 8px; border-left:3px solid var(--tone, var(--ink-faint)); background:var(--bg-raised); border-radius:0 6px 6px 0; min-width:0}
+.rp-rapor-kpi b{font-family:var(--font-display); font-size:19px; line-height:22px; font-weight:600; letter-spacing:-0.01em}
+.rp-rapor-kpi small{font-family:var(--font-mono); font-size:8.5px; line-height:11px; color:var(--ink-muted); letter-spacing:0.03em}
+.rp-rapor-kpi em{font-style:normal; font-size:9px; line-height:12px; color:var(--ink-muted)}
+.rp-rapor-kpi--sm b{font-size:16px; line-height:19px}
+.rp-rapor-tone-accent{--tone:var(--accent-text)} .rp-rapor-tone-danger{--tone:var(--danger)} .rp-rapor-tone-gold{--tone:var(--gold)} .rp-rapor-tone-violet{--tone:var(--violet)} .rp-rapor-tone-ink{--tone:var(--ink-faint)}
+.rp-rapor-table{width:100%; border-collapse:collapse; font-size:10px; line-height:13px}
+.rp-rapor-table th{padding:5px 6px; background:var(--ink); color:var(--bg-surface); font-family:var(--font-mono); font-size:8.5px; line-height:11px; font-weight:500; letter-spacing:0.03em; text-align:left; white-space:nowrap}
+.rp-rapor-table td{padding:5px 6px; border-bottom:1px solid var(--border-subtle); vertical-align:top}
+.rp-rapor-table tbody tr:nth-child(even) td{background:color-mix(in srgb, var(--ink) 3%, transparent)}
+.rp-rapor-table .rp-rapor-c{text-align:center}
+.rp-rapor-table .rp-rapor-bad{color:var(--danger); font-weight:700}
+.rp-rapor-early{color:var(--accent-text); font-weight:600}
+.rp-rapor-group{display:flex; justify-content:space-between; gap:8px; padding:5px 8px; background:color-mix(in srgb, var(--accent-text) 12%, transparent); font-family:var(--font-display); font-size:10px; line-height:13px; font-weight:600; letter-spacing:0.02em; color:var(--ink)}
+.rp-rapor-person{display:flex; flex-direction:column; gap:7px; padding-top:7px; border-top:2px solid var(--accent-text)}
+.rp-rapor-person h3{margin:0; font-family:var(--font-display); font-size:12.5px; line-height:16px; font-weight:600}
+.rp-rapor-kv{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px 14px; margin:0}
+.rp-rapor-kv > div{display:flex; flex-direction:column; gap:1px; padding-bottom:5px; border-bottom:1px solid var(--border-subtle); min-width:0}
+.rp-rapor-kv dt{font-family:var(--font-mono); font-size:8.5px; line-height:11px; letter-spacing:0.03em; color:var(--ink-muted)}
+.rp-rapor-kv dd{margin:0; font-family:var(--font-display); font-size:11px; line-height:15px; font-weight:600; color:var(--ink)}
+.rp-rapor-pill{display:inline-flex; align-items:center; height:16px; padding:0 7px; border-radius:999px; font-family:var(--font-sans); font-size:9px; line-height:12px; font-weight:700; white-space:nowrap; color:var(--tone, var(--ink-muted)); background:color-mix(in srgb, var(--tone, var(--ink-muted)) 16%, transparent); vertical-align:middle}
+.rp-rapor-note{display:flex; flex-direction:column; gap:2px; padding:1px 0 1px 9px; border-left:3px solid var(--accent-text)}
+.rp-rapor-note b{display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-family:var(--font-display); font-size:10px; line-height:14px; font-weight:600}
+.rp-rapor-note p{margin:0; font-size:10.5px; line-height:14px}
+.rp-rapor-foot{display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:8px; margin-top:4px; padding-top:7px; border-top:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:8.5px; line-height:11px; color:var(--ink-muted)}
+.rp-rapor-foot > span:last-child{text-align:right}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="width:1440px; min-height:5000px; box-sizing:border-box; padding:56px 56px 64px; background:var(--bg-base); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:20px; display:flex; flex-direction:column; gap:40px">
+
+<header style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px">
+<div style="display:flex; flex-direction:column; gap:10px; max-width:940px">
+<p class="rp-kicker">01h · Raporlar · sekmeler, pencereler ve durumlar</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Diğer üç sekme, dışa aktarım durumları ve dar ekran</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Raporlar sayfasının İş yükü, Görev raporları ve Toplantı raporları sekmeleri; PDF ve ZIP indirirken görülen sunucu durumları; koordinatörün tek kayıt raporu aldığı yerler ve 390 px dar ekran. Ekranlar Rahat yoğunlukta, küçük kâğıtlar PDF çıktısının Sıkı önizlemesi.</p>
+</div>
+<a class="rp-link" href="Raporlar.dc.html">Raporlar sayfasına dön<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+</header>
+
+<div class="rp-rapor-grid">
+
+<!-- ═════ 1. İş yükü sekmesi ═════ -->
+<section class="rp-rapor-cell rp-rapor-span2" aria-label="İş yükü sekmesi">
+<p class="rp-kicker">İş yükü sekmesi</p>
+<p class="rp-rapor-celldesc">Üye bazında açık, geciken ve tamamlanan görevler. Seçilen üyeler tek PDF'te toplanır; seçim yoksa listedeki bütün üyeler rapora girer. Koordinatörlük süzgeci tarayıcıda çalışır.</p>
+<div class="rp-rapor-win">
+<div class="rp-tabs" role="tablist" aria-label="Rapor sekmeleri">
+<button type="button" role="tab" aria-selected="false">Dönem raporu</button>
+<button type="button" role="tab" aria-selected="true">İş yükü <span class="rp-count">17</span></button>
+<button type="button" role="tab" aria-selected="false">Görev raporları <span class="rp-count">79</span></button>
+<button type="button" role="tab" aria-selected="false">Toplantı raporları <span class="rp-count">41</span></button>
+</div>
+<div class="rp-toolbar">
+<div class="rp-tgroup rp-tgroup--grow">
+<div class="t-field" style="flex:1 1 200px; min-width:0">
+<svg class="t-icon t-icon--sm t-field__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4"></path></svg>
+<input class="t-input t-input--icon" type="search" aria-label="Üye ara" placeholder="Üye ara" style="height:36px; border-radius:12px; padding-left:40px">
+</div>
+<div class="t-field" style="flex:0 1 210px; min-width:0">
+<select class="t-select" aria-label="Koordinatörlük süzgeci" style="height:36px; border-radius:12px; font-size:13px"><option>Tüm koordinatörlükler</option><option>Altyapı ve tesisat</option><option>Eğitim ve Arge</option><option>Elektrik ve enerji</option></select>
+<svg class="t-icon t-icon--sm t-field__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+</div>
+<div class="rp-tgroup">
+<!-- [BE aday 3] CSV/XLSX biçimi — v0.15'te yalnız PDF; statik -->
+<button class="t-btn t-btn--ghost t-btn--sm" type="button" disabled>CSV / XLSX</button><span class="rp-rapor-soon">yakında</span>
+<button class="t-btn t-btn--primary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Seçilenlerin PDF'i (3 üye)</button>
+</div>
+</div>
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Üyelerin iş yükü" style="min-width:760px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:20px minmax(0,1fr) 128px 52px 64px 88px 112px 28px">
+<span role="columnheader"><input class="t-check" type="checkbox" aria-label="Tümünü seç" style="width:18px; height:18px"></span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">üye</button></span>
+<span role="columnheader">koordinatörlük</span>
+<span role="columnheader" class="rp-rapor-c">açık</span>
+<span role="columnheader" class="rp-rapor-c">geciken</span>
+<span role="columnheader" class="rp-rapor-c">tamamlanan</span>
+<span role="columnheader">dağılım</span>
+<span role="columnheader"><span class="rp-sr">Görevleri aç</span></span>
+</div>
+<sc-for list="{{ members }}" as="m" hint-placeholder-count="8">
+<div role="row" class="rp-tr rp-tr--body {{ m.cls }}" style="grid-template-columns:20px minmax(0,1fr) 128px 52px 64px 88px 112px 28px">
+<span role="cell"><input class="t-check" type="checkbox" checked="{{ m.sel }}" aria-label="{{ m.selLabel }}" style="width:18px; height:18px"></span>
+<span role="cell" class="rp-cellmain"><span class="rp-av" aria-hidden="true">{{ m.ini }}</span><span class="rp-cellmain__text"><span class="rp-title rp-trunc">{{ m.name }}</span><span class="rp-cap rp-trunc">{{ m.total }} görev</span></span></span>
+<span role="cell" class="rp-rapor-codes"><sc-for list="{{ m.coords }}" as="c" hint-placeholder-count="2"><span class="rp-rapor-code">{{ c.code }}</span></sc-for></span>
+<span role="cell" class="rp-rapor-n rp-rapor-c">{{ m.open }}</span>
+<span role="cell" class="rp-rapor-n rp-rapor-c {{ m.lateCls }}" style="font-weight:600">{{ m.late }}</span>
+<span role="cell" class="rp-rapor-n rp-rapor-c">{{ m.done }}</span>
+<span role="cell"><span class="rp-bar" role="img" aria-label="{{ m.barLabel }}"><span class="rp-seg-doing" style="width:{{ m.wOpen }}"></span><span class="rp-seg-late" style="width:{{ m.wLate }}"></span><span class="rp-seg-done" style="width:{{ m.wDone }}"></span></span></span>
+<span role="cell"><button type="button" class="rp-rapor-more" aria-expanded="{{ m.expA }}" aria-label="{{ m.expLabel }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button></span>
+</div>
+<sc-if value="{{ m.exp }}" hint-placeholder-val="{{ false }}">
+<div role="row" class="rp-rapor-sub" aria-label="Bahar Kılıç görevleri">
+<div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-bottom:6px"><span class="rp-kicker">Bahar Kılıç · 15 görevden 4'ü · Altyapı ve tesisat</span><a class="rp-link" href="#">Tümü (15)</a></div>
+<div class="rp-rapor-stask rp-rapor-stask--head"><span>başlık</span><span>durum</span><span>öncelik</span><span>bitiş</span><span class="rp-rapor-c">ek</span><span>son not</span></div>
+<sc-for list="{{ bkTasks }}" as="t" hint-placeholder-count="4">
+<div class="rp-rapor-stask">
+<span style="display:flex; align-items:baseline; gap:8px; min-width:0"><span class="rp-mono rp-faint" style="font-size:12px; flex:none">{{ t.code }}</span><span class="rp-trunc" style="font-weight:500">{{ t.title }}</span></span>
+<span class="rp-status"><span class="rp-dot {{ t.dot }}" aria-hidden="true"></span>{{ t.status }}</span>
+<span class="rp-prio {{ t.prioCls }}"><span class="rp-prio__bars" aria-hidden="true"><span></span><span></span><span></span></span>{{ t.prio }}</span>
+<span style="display:flex; flex-direction:column; gap:1px"><span class="rp-mono" style="font-size:12px">{{ t.due }}</span><span class="{{ t.lateCls }}" style="font-size:11.5px; line-height:15px; white-space:nowrap">{{ t.lateText }}</span></span>
+<span class="rp-rapor-n rp-rapor-c" style="font-size:12px">{{ t.files }}</span>
+<span style="display:flex; flex-direction:column; gap:1px; min-width:0"><span class="rp-trunc" style="font-size:12.5px">{{ t.note }}</span><span class="rp-mono rp-faint" style="font-size:11px">{{ t.noteWhen }}</span></span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</div></div>
+<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px">
+<span class="rp-cap">17 üyeden 8'i gösteriliyor · 3 üye seçili · <button class="rp-linkbtn rp-link" type="button" style="display:inline">Seçimi temizle</button></span>
+<div class="rp-rapor-alt" aria-label="Seçim yokken düğme hâli">
+<span class="rp-rapor-tag">seçim yokken</span>
+<button class="t-btn t-btn--primary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Bütün üyelerin PDF'i (17 üye)</button>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Açık = tamamlanmamış (onay bekleyen dahil). Bir üye birden çok koordinatörlükteyse PDF'te her grupta ayrıca listelenir. Rapor indirmeleri kayda geçer (denetim).</p>
+</div>
+</section>
+
+<!-- ═════ 1b. İş yükü PDF küçük kâğıt ═════ -->
+<section class="rp-rapor-cell" aria-label="İş yükü PDF önizlemesi">
+<p class="rp-kicker">İş yükü PDF önizleme · is-yuku-raporu-2026-10-21.pdf · 0,9 MB</p>
+<p class="rp-rapor-celldesc">Seçili 3 üye, koordinatörlüğe göre gruplu. Kişi başına 4 KPI ve görev tablosu; geciken satırlar kırmızı.</p>
+<article class="rp-rapor-paper rp-rapor-paper--sm" data-theme="light" aria-label="İş yükü raporu, sayfa 1">
+<header class="rp-rapor-band" data-theme="dark">
+<div>
+<p class="rp-rapor-kicker">ŞANLIURFA TEKNOFEST · 3 ÜYE</p>
+<h2>PERSONEL İŞ YÜKÜ RAPORU</h2>
+<span class="rp-rapor-bandline" aria-hidden="true"></span>
+<p class="rp-rapor-kicker">Oluşturma: 21.10.2026 14:05</p>
+</div>
+<span class="rp-rapor-logo" aria-hidden="true">ŞT</span>
+</header>
+<p class="rp-rapor-h">ÖZET<span>Bahar Kılıç · Kadir Özbek · Salih Özer</span></p>
+<div class="rp-rapor-kpi">
+<sc-for list="{{ wlKpi }}" as="k" hint-placeholder-count="4">
+<div class="{{ k.tone }}"><small>{{ k.label }}</small><b>{{ k.value }}</b><em>{{ k.note }}</em></div>
+</sc-for>
+</div>
+<div class="rp-rapor-group"><span>ALTYAPI VE TESİSAT (1 ÜYE)</span><span style="font-family:var(--font-mono); font-weight:400; color:var(--ink-muted)">1 / 6 grup</span></div>
+<div class="rp-rapor-person">
+<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px"><h3>Bahar Kılıç</h3><span class="rp-rapor-kicker">ALT · ELE · OPE</span></div>
+<p style="margin:0; color:var(--ink-muted)">9 açık / 15 toplam görev · 4 geciken · 1 onayda · tamamlanma %40</p>
+<div class="rp-rapor-kpi rp-rapor-kpi--sm">
+<sc-for list="{{ bkKpi }}" as="k" hint-placeholder-count="4">
+<div class="{{ k.tone }}"><small>{{ k.label }}</small><b>{{ k.value }}</b></div>
+</sc-for>
+</div>
+<table class="rp-rapor-table">
+<thead><tr><th>GÖREV</th><th>DURUM</th><th>BİTİŞ</th><th class="rp-rapor-c">GECİKME</th><th class="rp-rapor-c">KANIT</th></tr></thead>
+<tbody>
+<sc-for list="{{ bkTasks }}" as="t" hint-placeholder-count="4">
+<tr><td><span style="font-family:var(--font-mono); color:var(--ink-muted)">{{ t.code }}</span> {{ t.title }}</td><td><span class="rp-rapor-pill {{ t.pill }}">{{ t.status }}</span></td><td style="font-family:var(--font-mono); white-space:nowrap">{{ t.dueShort }}</td><td class="rp-rapor-c {{ t.paperLateCls }}" style="white-space:nowrap">{{ t.paperLate }}</td><td class="rp-rapor-c" style="white-space:nowrap">{{ t.proof }}</td></tr>
+</sc-for>
+</tbody>
+</table>
+<p style="margin:0; color:var(--ink-muted)">Elektrik ve enerji ile Operasyon görevleri (11) kendi grup sayfalarında.</p>
+</div>
+<p class="rp-rapor-kicker" style="padding:6px 8px; border:1px dashed var(--border-strong); border-radius:6px">Sonraki sayfalar: EĞİTİM VE ARGE (1 ÜYE) · ELEKTRİK VE ENERJİ (1 ÜYE) · OPERASYON (1 ÜYE) · SİSTEM KOORDİNATÖRLÜĞÜ (1 ÜYE) · ULAŞIM PLANLAMA (1 ÜYE)</p>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 1 / 3</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+</section>
+
+<!-- ═════ 2. Görev raporları sekmesi ═════ -->
+<section class="rp-rapor-cell rp-rapor-span2" aria-label="Görev raporları sekmesi">
+<p class="rp-kicker">Görev raporları sekmesi</p>
+<p class="rp-rapor-celldesc">Programın görev listesi; her satırın sağında tek görevin PDF'i. Satıra tıklayınca sağda ayrıntı paneli açılır (yanda ALT-4 açık).</p>
+<div class="rp-rapor-win">
+<div class="rp-tabs" role="tablist" aria-label="Rapor sekmeleri">
+<button type="button" role="tab" aria-selected="false">Dönem raporu</button>
+<button type="button" role="tab" aria-selected="false">İş yükü <span class="rp-count">17</span></button>
+<button type="button" role="tab" aria-selected="true">Görev raporları <span class="rp-count">79</span></button>
+<button type="button" role="tab" aria-selected="false">Toplantı raporları <span class="rp-count">41</span></button>
+</div>
+<div class="rp-rapor-alert rp-rapor-alert--gold" role="status">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><path d="M12 4l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+<div><strong>İlk 200 görev gösteriliyor · süzgeci daraltın</strong><div class="rp-cap">Durum örneği: liste 200 satırı aşınca sunucu kesme bildirir. Bu programda 79 görev var, bant görünmez.</div></div>
+<span class="rp-rapor-tag">X-Result-Truncated</span>
+</div>
+<div class="rp-toolbar">
+<div class="rp-seg" role="group" aria-label="Görev süzgeci">
+<button type="button" aria-pressed="false">Tümü <span class="rp-count">(79)</span></button>
+<button type="button" aria-pressed="false">Açık <span class="rp-count">(40)</span></button>
+<button type="button" aria-pressed="true">Geciken <span class="rp-count">(15)</span></button>
+<button type="button" aria-pressed="false">Tamamlanan <span class="rp-count">(39)</span></button>
+</div>
+<span class="rp-cap" style="margin-left:auto">15 geciken görevden 6'sı</span>
+</div>
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Görev raporları" style="min-width:760px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:12px minmax(0,1fr) 52px 64px 88px 92px 92px 36px; column-gap:14px">
+<span role="columnheader"><span class="rp-sr">durum</span></span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">görev</button></span>
+<span role="columnheader">koord.</span>
+<span role="columnheader">atanan</span>
+<span role="columnheader">öncelik</span>
+<span role="columnheader"><button class="rp-sortbtn" type="button">bitiş</button></span>
+<span role="columnheader">gecikme</span>
+<span role="columnheader"><span class="rp-sr">PDF</span></span>
+</div>
+<sc-for list="{{ tasks }}" as="r" hint-placeholder-count="6">
+<div role="row" class="rp-tr rp-tr--body {{ r.cls }}" style="grid-template-columns:12px minmax(0,1fr) 52px 64px 88px 92px 92px 36px; column-gap:14px">
+<span role="cell"><span class="rp-dot {{ r.dot }}" role="img" aria-label="{{ r.status }}"></span></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:2px; min-width:0"><button class="rp-linkbtn rp-title rp-trunc" type="button">{{ r.title }}</button><span class="rp-cap rp-trunc"><span class="rp-mono" style="font-size:12px">{{ r.code }}</span> · {{ r.status }}</span></span>
+<span role="cell"><span class="rp-rapor-code">{{ r.coord }}</span></span>
+<span role="cell"><sc-if value="{{ r.hasPeople }}" hint-placeholder-val="{{ true }}"><span class="rp-avstack"><sc-for list="{{ r.people }}" as="p" hint-placeholder-count="1"><span class="rp-av rp-av--sm" title="{{ p.full }}" aria-label="{{ p.full }}">{{ p.ini }}</span></sc-for></span></sc-if><sc-if value="{{ r.noPeople }}" hint-placeholder-val="{{ false }}"><span class="rp-cap">atanmamış</span></sc-if></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:3px; align-items:flex-start"><span class="rp-prio {{ r.prioCls }}"><span class="rp-prio__bars" aria-hidden="true"><span></span><span></span><span></span></span>{{ r.prio }}</span><sc-if value="{{ r.acil }}" hint-placeholder-val="{{ false }}"><span class="t-badge t-badge--danger" style="height:18px; padding:0 7px; font-size:11px">acil</span></sc-if></span>
+<span role="cell" class="rp-mono" style="font-size:12.5px">{{ r.due }}</span>
+<span role="cell" class="rp-danger-text" style="font-size:13px; font-weight:600; white-space:nowrap">{{ r.late }}</span>
+<span role="cell"><button class="t-iconbtn" type="button" aria-label="{{ r.pdfLabel }}" title="Görev raporu (PDF)"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg></button></span>
+</div>
+</sc-for>
+</div>
+</div></div>
+<p class="rp-cap" style="margin:0">Gecikme, bitiş tarihinin ertesi Türkiye gününden sayılır; gün sayıları 21.10.2026 14:05'e göredir. Liste hafif uçtan gelir; PDF her tıklamada yeniden üretilir.</p>
+</div>
+</section>
+
+<!-- ═════ 2b. Görev ayrıntı paneli (rp-sheet) ═════ -->
+<section class="rp-rapor-cell" aria-label="Görev ayrıntı paneli">
+<p class="rp-kicker">Sağda açılan panel · ALT-4</p>
+<p class="rp-rapor-celldesc">Açıklama, bağımlılıklar ve son notlar salt okunur; panelin tek eylemi PDF indirmek.</p>
+<div class="rp-sheet" style="gap:18px">
+<div class="rp-sheethead" style="grid-template-columns:minmax(0,1fr) auto">
+<div style="min-width:0"><p class="rp-kicker rp-trunc">ALT-4 · Altyapı ve tesisat</p><h2 class="rp-clamp2" style="margin:6px 0 0; font-family:var(--font-display); font-size:20px; line-height:26px; font-weight:600">Fuar alanı elektrik kablo kanalları</h2></div>
+<button class="t-iconbtn" type="button" aria-label="Paneli kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px">
+<span class="t-badge" style="height:26px; gap:8px; font-size:12.5px"><span class="rp-dot rp-dot--doing" aria-hidden="true"></span>Devam ediyor</span>
+<span class="rp-danger-text" style="font-size:13px; font-weight:600">4 gün gecikti</span>
+</div>
+<dl class="rp-dl">
+<dt>Koordinatörlük</dt><dd>Altyapı ve tesisat</dd>
+<dt>Atananlar</dt><dd>Bahar Kılıç</dd>
+<dt>Tarih</dt><dd class="rp-mono">01.09 → 17.10.2026</dd>
+<dt>Öncelik</dt><dd><span class="rp-prio rp-prio--high" style="color:var(--ink)"><span class="rp-prio__bars" aria-hidden="true"><span></span><span></span><span></span></span>Acil</span></dd>
+</dl>
+<div style="display:flex; flex-direction:column; gap:6px">
+<p class="rp-kicker">açıklama</p>
+<p style="margin:0; font-size:13px; line-height:19px; color:var(--ink)">A–C blokları arasında 1,2 km kablo kanalı kazısı, tava montajı ve geri dolgu. Jeneratör sahasına bağlantı ALT-5 ile birlikte yapılacak.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:8px">
+<p class="rp-kicker">bağımlılıklar · 2</p>
+<div class="rp-chiprow" style="gap:8px">
+<span class="rp-rapor-dep"><span class="rp-dot rp-dot--done" aria-hidden="true"></span><span class="rp-mono">ALT-1</span><span class="rp-cap">tamamlandı</span></span>
+<span class="rp-rapor-dep"><span class="rp-dot rp-dot--done" aria-hidden="true"></span><span class="rp-mono">ALT-3</span><span class="rp-cap">tamamlandı</span></span>
+</div>
+</div>
+<div style="display:flex; flex-direction:column; gap:12px">
+<p class="rp-kicker">son notlar · 3</p>
+<sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+<div class="rp-rapor-snote">
+<span class="rp-av rp-av--sm" aria-hidden="true">{{ n.ini }}</span>
+<div style="min-width:0; display:flex; flex-direction:column; gap:2px"><span style="display:flex; flex-wrap:wrap; align-items:baseline; gap:8px"><strong style="font-size:13px; font-weight:600">{{ n.who }}</strong><span class="rp-kicker" style="color:var(--ink-faint); font-size:11px">{{ n.when }}</span><span class="{{ n.flagCls }}" style="font-family:var(--font-mono); font-size:10.5px; font-weight:500">{{ n.flag }}</span></span><p style="margin:0; font-size:13px; line-height:19px; color:var(--ink-muted)">{{ n.body }}</p></div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex; flex-direction:column; gap:8px; padding-top:16px; border-top:1px solid var(--border-subtle)">
+<button class="t-btn t-btn--primary t-btn--block" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>PDF indir</button>
+<p class="rp-cap" style="margin:0; text-align:center"><span class="rp-mono">gorev-raporu-3c1d88aa.pdf · 0,3 MB</span></p>
+</div>
+</div>
+</section>
+
+<!-- ═════ 3. Toplantı raporları sekmesi ═════ -->
+<section class="rp-rapor-cell rp-rapor-span3" aria-label="Toplantı raporları sekmesi">
+<p class="rp-kicker">Toplantı raporları sekmesi</p>
+<p class="rp-rapor-celldesc">Programdaki toplantılar, son tarihten geriye. Sahip koordinatörlüğün yanında dahil edilen birimler; silinmiş birim etiketle kalır. Her satırda tutanak PDF'i.</p>
+<div class="rp-rapor-win">
+<div class="rp-tabs" role="tablist" aria-label="Rapor sekmeleri">
+<button type="button" role="tab" aria-selected="false">Dönem raporu</button>
+<button type="button" role="tab" aria-selected="false">İş yükü <span class="rp-count">17</span></button>
+<button type="button" role="tab" aria-selected="false">Görev raporları <span class="rp-count">79</span></button>
+<button type="button" role="tab" aria-selected="true">Toplantı raporları <span class="rp-count">41</span></button>
+</div>
+<div class="rp-dtable"><div class="rp-scroll">
+<div role="table" aria-label="Toplantı raporları" style="min-width:1100px">
+<div role="row" class="rp-tr rp-tr--head" style="grid-template-columns:92px minmax(0,1fr) 230px 150px 72px 56px 96px 236px">
+<span role="columnheader"><button class="rp-sortbtn" type="button">tarih</button></span>
+<span role="columnheader">başlık</span>
+<span role="columnheader">sahip koordinatörlük</span>
+<span role="columnheader">kuran</span>
+<span role="columnheader" class="rp-rapor-c">katılımcı</span>
+<span role="columnheader" class="rp-rapor-c">not</span>
+<span role="columnheader" class="rp-rapor-c">üyeler dahil</span>
+<span role="columnheader"><span class="rp-sr">Rapor</span></span>
+</div>
+<sc-for list="{{ meetings }}" as="t" hint-placeholder-count="5">
+<div role="row" class="rp-tr rp-tr--body" style="grid-template-columns:92px minmax(0,1fr) 230px 150px 72px 56px 96px 236px; min-height:64px">
+<span role="cell" style="display:flex; flex-direction:column; gap:1px"><span class="rp-mono" style="font-size:12.5px">{{ t.date }}</span><span class="rp-mono rp-faint" style="font-size:11.5px">{{ t.time }}</span></span>
+<span role="cell" class="rp-title rp-trunc">{{ t.title }}</span>
+<span role="cell" style="display:flex; flex-direction:column; gap:4px; min-width:0"><span style="display:flex; align-items:center; gap:6px; min-width:0"><span class="rp-rapor-code rp-rapor-code--own" title="Sahip koordinatörlük">{{ t.own }}</span><span class="rp-trunc" style="font-size:13px">{{ t.ownName }}</span></span><sc-if value="{{ t.hasExtra }}" hint-placeholder-val="{{ false }}"><span style="display:flex; flex-wrap:wrap; align-items:center; gap:4px"><span class="rp-cap">dahil:</span><sc-for list="{{ t.extra }}" as="x" hint-placeholder-count="1"><span class="rp-rapor-code">{{ x.code }}</span></sc-for><sc-if value="{{ t.hasDeleted }}" hint-placeholder-val="{{ false }}"><span class="t-badge" style="height:22px; padding:0 8px; font-size:11.5px; color:var(--ink-muted)">{{ t.deleted }}</span></sc-if></span></sc-if></span>
+<span role="cell" style="display:flex; flex-direction:column; gap:1px; min-width:0"><span class="rp-trunc" style="font-size:13px">{{ t.by }}</span><span class="rp-cap">{{ t.role }}</span></span>
+<span role="cell" class="rp-rapor-n rp-rapor-c">{{ t.people }}</span>
+<span role="cell" class="rp-rapor-n rp-rapor-c">{{ t.notes }}</span>
+<span role="cell" class="rp-rapor-c"><sc-if value="{{ t.members }}" hint-placeholder-val="{{ true }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" role="img" aria-label="Koordinatörlük üyeleri de dahil" style="color:var(--accent-text)"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if><sc-if value="{{ t.noMembers }}" hint-placeholder-val="{{ false }}"><span class="rp-faint" aria-label="Üyeler dahil değil">—</span></sc-if></span>
+<span role="cell" style="display:flex; align-items:center; justify-content:flex-end; gap:10px"><sc-if value="{{ t.preview }}" hint-placeholder-val="{{ false }}"><a class="rp-link" href="Rapor-Toplanti.dc.html" style="font-size:12px">önizleme</a></sc-if><button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg>Toplantı raporu (PDF)</button></span>
+</div>
+</sc-for>
+</div>
+</div></div>
+<div style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px">
+<span class="rp-cap">41 toplantıdan son 5'i · toplam 118 not</span>
+<span class="rp-cap">Tutanak: künye, gündem ve notların tamamı · <span class="rp-mono">toplanti-raporu-7f3a9c2e.pdf · 0,4 MB</span></span>
+</div>
+</div>
+</section>
+
+<!-- ═════ 2c. Görev raporu PDF küçük kâğıt ═════ -->
+<section class="rp-rapor-cell" aria-label="Görev raporu PDF önizlemesi">
+<p class="rp-kicker">Görev raporu PDF önizleme · gorev-raporu-3c1d88aa.pdf · 0,3 MB</p>
+<p class="rp-rapor-celldesc">Eski "Notları indir" çıktısı yeni dilde: bant, künye, not akışı ve dosyalar; tek sayfa.</p>
+<article class="rp-rapor-paper rp-rapor-paper--sm" data-theme="light" aria-label="Görev raporu, sayfa 1">
+<header class="rp-rapor-band" data-theme="dark">
+<div>
+<p class="rp-rapor-kicker">ŞANLIURFA TEKNOFEST · GÖREV RAPORU</p>
+<h2>FUAR ALANI ELEKTRİK KABLO KANALLARI</h2>
+<span class="rp-rapor-bandline" aria-hidden="true"></span>
+<p class="rp-rapor-kicker">ALT-4 · Oluşturulma 21.10.2026 14:05</p>
+</div>
+<span class="rp-rapor-logo" aria-hidden="true">ŞT</span>
+</header>
+<dl class="rp-rapor-kv">
+<div><dt>DURUM</dt><dd><span class="rp-rapor-pill rp-rapor-tone-violet">Devam ediyor</span></dd></div>
+<div><dt>ÖNCELİK</dt><dd><span class="rp-rapor-pill rp-rapor-tone-danger">Acil</span></dd></div>
+<div><dt>BAŞLANGIÇ</dt><dd>01.09.2026</dd></div>
+<div><dt>BİTİŞ</dt><dd>17.10.2026 <span style="color:var(--danger); font-weight:700">· 4 gün gecikti</span></dd></div>
+<div><dt>KOORDİNATÖRLÜK</dt><dd>Altyapı ve tesisat</dd></div>
+<div><dt>OLUŞTURAN</dt><dd>Ali Avcı</dd></div>
+<div style="grid-column:span 2"><dt>ATANANLAR</dt><dd>Bahar Kılıç</dd></div>
+</dl>
+<p style="margin:0">A–C blokları arasında 1,2 km kablo kanalı kazısı, tava montajı ve geri dolgu. Jeneratör sahasına bağlantı ALT-5 ile birlikte yapılacak. <span style="color:var(--ink-muted)">Bağımlılıklar: ALT-1, ALT-3 (tamamlandı).</span></p>
+<p class="rp-rapor-h">NOTLAR (3)<span>zaman sırasıyla</span></p>
+<sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+<div class="rp-rapor-note">
+<b>Not {{ n.no }} · {{ n.when }} · {{ n.who }} <span class="rp-rapor-pill {{ n.pill }}">{{ n.flagUp }}</span></b>
+<p>{{ n.body }}</p>
+</div>
+</sc-for>
+<p class="rp-rapor-h">DOSYALAR (2)<span>toplam 4,6 MB</span></p>
+<table class="rp-rapor-table">
+<thead><tr><th>DOSYA</th><th>YÜKLEYEN</th><th class="rp-rapor-c">BOYUT</th><th class="rp-rapor-c">TARİH</th></tr></thead>
+<tbody>
+<sc-for list="{{ taskFiles }}" as="f" hint-placeholder-count="2">
+<tr><td style="word-break:break-all">{{ f.name }}</td><td style="white-space:nowrap">{{ f.who }}</td><td class="rp-rapor-c" style="font-family:var(--font-mono); white-space:nowrap">{{ f.size }}</td><td class="rp-rapor-c" style="font-family:var(--font-mono); white-space:nowrap">{{ f.date }}</td></tr>
+</sc-for>
+</tbody>
+</table>
+<footer class="rp-rapor-foot"><span>Şanlıurfa Teknofest</span><span>Sayfa 1 / 1</span><span>RoketPortal · 21.10.2026</span></footer>
+</article>
+</section>
+
+<!-- ═════ 4. Dışa aktarım durum pencereleri ═════ -->
+<section class="rp-rapor-cell" aria-label="Dışa aktarım durumları">
+<p class="rp-kicker">Dışa aktarım durumları · 4 hâl</p>
+<p class="rp-rapor-celldesc">PDF tek seferde üretilir; hesap başına aynı anda tek rapor. Düğme hazırlanırken kilitlenir, sunucu yanıtına göre aşağıdaki dört hâlden biri görünür.</p>
+
+<div class="t-card rp-rapor-state" aria-label="Rapor hazırlanıyor">
+<div class="rp-rapor-statehead">
+<span class="rp-ichip" aria-hidden="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 2h8l6 6v14H6zM14 2v6h6"></path></svg></span>
+<div><h3>Rapor hazırlanıyor…</h3><p>Dönem sonu raporu (PDF) tek seferde üretilir; aynı anda tek rapor. Bu sırada diğer rapor düğmeleri kilitli.</p></div>
+</div>
+<!-- [BE aday 5] asenkron üretim ilerlemesi — PDF senkron, ilerleme yüzdesi yok; belirsiz şerit statik -->
+<div style="display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center">
+<span class="rp-bar" role="progressbar" aria-label="Rapor hazırlanıyor, ilerleme bilinmiyor" style="height:6px"><span class="rp-seg-done" style="width:36%; margin-left:18%; border-radius:999px"></span></span>
+<span class="rp-rapor-soon">ilerleme yakında</span>
+</div>
+<div class="rp-rapor-stateact">
+<button class="t-btn t-btn--primary t-btn--sm" type="button" disabled aria-busy="true">Hazırlanıyor…</button>
+<button class="t-btn t-btn--ghost t-btn--sm" type="button">İptal</button>
+</div>
+</div>
+
+<div class="t-card rp-rapor-state" aria-label="Zaten bir rapor hazırlanıyor">
+<div class="rp-rapor-statehead">
+<span class="rp-ichip" aria-hidden="true"><span class="rp-dot rp-dot--review"></span></span>
+<div><h3>Zaten bir rapor hazırlanıyor</h3><p>27 saniye sonra yeniden deneyin. Önceki raporunuz bitince düğme kendiliğinden açılır.</p></div>
+</div>
+<div class="rp-rapor-stateact">
+<span class="rp-rapor-tag">429 · reporting.export_in_progress · Retry-After 27</span>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button" disabled>Bekleyin (27 s)</button>
+</div>
+</div>
+
+<div class="t-card rp-rapor-state" aria-label="Sunucu kapasitesi dolu">
+<div class="rp-rapor-statehead">
+<span class="rp-ichip" aria-hidden="true"><span class="rp-dot rp-dot--back"></span></span>
+<div><h3>Sunucu kapasitesi dolu, biraz sonra</h3><p>Şu an çok sayıda rapor üretiliyor; biraz sonra deneyin (15 sn). Otomatik yeniden deneme yapılmaz.</p></div>
+</div>
+<div class="rp-rapor-stateact">
+<span class="rp-rapor-tag">503 · reporting.capacity_full · Retry-After: 15 sn</span>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg>Yeniden dene</button>
+</div>
+</div>
+
+<div class="t-card rp-rapor-state" aria-label="İndirme tamamlandı">
+<p class="rp-kicker">başarı · alt bildirim</p>
+<div class="rp-rapor-toast" role="status">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>
+<span class="rp-trunc" style="flex:1 1 auto">donem-raporu-2026-10-21.pdf indirildi · 2,4 MB</span>
+<button class="t-btn" type="button">Klasörde göster</button>
+</div>
+<p class="rp-cap" style="margin:0">14 sayfa. Rapor indirmeleri kayda geçer (denetim).</p>
+</div>
+</section>
+
+<!-- ═════ 4b. Dönem arşivi ZIP onayı ═════ -->
+<section class="rp-rapor-cell" aria-label="Dönem arşivi ZIP onay penceresi">
+<p class="rp-kicker">Dönem arşivi ZIP onayı</p>
+<p class="rp-rapor-celldesc">"Dönem arşivi (ZIP)" düğmesinden açılır. Arşiv büyük olduğu için önce onay istenir.</p>
+<div class="t-modal" role="dialog" aria-modal="false" aria-labelledby="zip-title" style="width:100%; max-width:none; gap:20px">
+<div class="t-modal__head">
+<div>
+<p class="rp-kicker" style="margin-bottom:4px">Şanlıurfa Teknofest · 2026 sezonu</p>
+<h2 class="t-modal__title" id="zip-title">Dönem arşivi (ZIP)</h2>
+<p class="t-modal__desc">63 dosya · 668,7 MB · birkaç dakika sürebilir</p>
+</div>
+<button type="button" class="t-iconbtn" aria-label="Kapat"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div class="t-modal__body" style="gap:14px">
+<p class="rp-cap rp-mono" style="margin:0">Sanliurfa-Teknofest-Donem-Arsivi-2026-10-21/</p>
+<div class="rp-rapor-tree">
+<div><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"></path></svg><span class="rp-mono rp-trunc">00-Genel/</span><span class="rp-cap">dönem raporu (PDF)</span></div>
+<div><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"></path></svg><span class="rp-mono rp-trunc">01-Altyapi-ve-tesisat/</span><span class="rp-cap">birim raporu · 12 dosya</span></div>
+<div style="padding-left:34px"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v14H6zM14 2v6h6"></path></svg><span class="rp-mono rp-trunc">EKSIK-DOSYALAR.txt</span><span class="rp-cap">yalnız eksik dosya varsa</span></div>
+</div>
+<p class="rp-cap" style="margin:0">… ve 02–11 arası diğer 10 koordinatörlük klasörü.</p>
+<div class="rp-rapor-alert rp-rapor-alert--info" style="grid-template-columns:20px minmax(0,1fr)">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+<div>İndirme başladıktan sonra sayfayı kapatmayın veya yenilemeyin. Arşiv tamamlanınca tek dosya olarak iner.</div>
+</div>
+</div>
+<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px">
+<span class="rp-cap">Kayda geçer (denetim)</span>
+<div style="display:flex; gap:12px; margin-left:auto">
+<button type="button" class="t-btn t-btn--ghost">Vazgeç</button>
+<button type="button" class="t-btn t-btn--primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Hazırla ve indir</button>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ═════ 6. Dar ekran (390) ═════ -->
+<section class="rp-rapor-cell" aria-label="Dar ekran örneği, 390 piksel">
+<p class="rp-kicker">Dar ekran · 390 px</p>
+<p class="rp-rapor-celldesc">Raporlar sayfası tek sütun: birincil düğme tam genişlik, sekmeler yatay kayar, yan panel akışta en alta iner.</p>
+<div class="rp-rapor-phone" style="width:390px">
+<div class="rp-rapor-phonebar">
+<button class="t-iconbtn" type="button" aria-label="Menüyü aç"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+<nav class="rp-crumbs" aria-label="Konum"><strong>Raporlar</strong></nav>
+<button class="t-iconbtn" type="button" aria-label="Bildirimler"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg></button>
+</div>
+<div class="rp-rapor-phonebody">
+<div><h2 class="rp-h1" style="font-size:26px; line-height:32px">Raporlar</h2><p class="rp-sub">2026 sezonu · programın tamamı · yalnız yönetici görür</p></div>
+<div style="display:flex; flex-direction:column; gap:8px">
+<button class="t-btn t-btn--primary t-btn--block" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Dönem sonu raporu (PDF)</button>
+<button class="t-btn t-btn--secondary t-btn--block" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"></path></svg>Dönem arşivi (ZIP)</button>
+<div style="display:flex; align-items:center; gap:8px">
+<!-- [BE HTML] HTML rapor — v0.15'te yalnız PDF; statik -->
+<button class="t-btn t-btn--ghost t-btn--sm" type="button" disabled style="flex:1 1 auto">HTML sürüm</button><span class="rp-rapor-soon">yakında</span>
+</div>
+</div>
+<div class="rp-tabs" role="tablist" aria-label="Rapor sekmeleri">
+<button type="button" role="tab" aria-selected="true">Dönem raporu</button>
+<button type="button" role="tab" aria-selected="false">İş yükü</button>
+<button type="button" role="tab" aria-selected="false">Görev raporları</button>
+<button type="button" role="tab" aria-selected="false">Toplantı raporları</button>
+</div>
+<div class="t-card" style="padding:16px; display:flex; flex-direction:column; gap:12px">
+<h3 class="rp-cardtitle" style="font-size:15px">Rapor kapsamı</h3>
+<dl class="rp-dl" style="grid-template-columns:auto minmax(0,1fr)">
+<dt>Program</dt><dd>Şanlıurfa Teknofest</dd>
+<dt>Dönem</dt><dd class="rp-mono">02.02.2026 – 31.12.2026</dd>
+<dt>Oluşturulma</dt><dd class="rp-mono">21.10.2026 14:05</dd>
+</dl>
+<p class="rp-cap" style="margin:0">Aktif (silinmemiş) koordinatörlük, görev ve toplantı kayıtlarından üretilir. Mesaj içerikleri alınmaz; yalnız sayılar yer alır.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:8px">
+<p class="rp-kicker">dönemin özeti</p>
+<div class="rp-rapor-kpi2">
+<sc-for list="{{ phoneKpi }}" as="k" hint-placeholder-count="8">
+<div><span class="rp-kicker" style="font-size:11px">{{ k.label }}</span><span class="rp-num {{ k.cls }}" style="font-size:22px; line-height:28px">{{ k.value }}</span><span class="rp-cap rp-trunc">{{ k.note }}</span></div>
+</sc-for>
+</div>
+</div>
+<div class="t-card" style="padding:16px; display:flex; flex-direction:column; gap:10px">
+<h3 class="rp-cardtitle" style="font-size:15px">Dışa aktarım</h3>
+<span class="rp-status"><span class="rp-dot rp-dot--done" aria-hidden="true"></span>Hazır</span>
+<p class="rp-cap" style="margin:0">PDF tek seferde üretilir; aynı anda tek rapor. Rapor indirmeleri kayda geçer (denetim).</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ═════ 5. Koordinatör bağlamı ═════ -->
+<section class="rp-rapor-cell" aria-label="Koordinatör bağlamı">
+<p class="rp-kicker">Koordinatör bağlamı</p>
+<p class="rp-rapor-celldesc">Koordinatör merceğinde Raporlar sayfası yok. Kendi birimindeki tek görev ve tek toplantının PDF'ini, kaydın kendi ekranından alır.</p>
+<div class="t-card" style="padding:20px; display:flex; flex-direction:column; gap:16px">
+<p class="rp-kicker">Koordinatör merceği · Kadir Özbek · SİS</p>
+
+<div style="display:flex; flex-direction:column; gap:8px">
+<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px"><span class="rp-rapor-tag">K3 · Görevler · sağ panel</span><a class="rp-link" href="Koord-Gorevler.dc.html" style="font-size:12px">K3'e git</a></div>
+<div class="rp-rapor-mini">
+<div style="display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:start">
+<div style="min-width:0"><p class="rp-kicker rp-trunc">SİS-9 · Sistem koordinatörlüğü</p><p style="margin:4px 0 0; font-family:var(--font-display); font-size:16px; line-height:22px; font-weight:600">Ağ omurgası kablolaması</p></div>
+<span class="rp-status" style="font-size:12px"><span class="rp-dot rp-dot--review" aria-hidden="true"></span>Onay bekliyor</span>
+</div>
+<div class="rp-hairline"></div>
+<p class="rp-cap" style="margin:0">kanıt · alt görevler · notlar …</p>
+<div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; padding-top:4px">
+<button class="t-btn t-btn--secondary t-btn--sm rp-rapor-mark" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg>Görev raporu (PDF)</button>
+<button class="t-btn t-btn--primary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Onayla</button>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Panelin alt eylem şeridinde, kararın yanında. Yalnız kendi birimindeki görev.</p>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:8px">
+<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px"><span class="rp-rapor-tag">K7 · Toplantı · başlık eylemleri</span><a class="rp-link" href="Koord-Toplanti.dc.html" style="font-size:12px">K7'ye git</a></div>
+<div class="rp-rapor-mini">
+<div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap"><span class="rp-rapor-code rp-rapor-code--own">SİS</span><span class="rp-rapor-code">ALT</span><span class="rp-rapor-code">ELE</span></div>
+<div style="min-width:0"><p style="margin:0; font-family:var(--font-display); font-size:16px; line-height:22px; font-weight:600">Haftalık koordinasyon toplantısı</p><p class="rp-cap" style="margin:2px 0 0">21 Ekim 2026 · 14:00 · kuran: sen · 9 katılımcı</p></div>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<button class="t-btn t-btn--secondary t-btn--sm rp-rapor-mark" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg>Toplantı raporu (PDF)</button>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button">Düzenle</button>
+</div>
+</div>
+<p class="rp-cap" style="margin:0">Başlığın sağında, ilk eylem. Sahibi ya da dahil olduğu toplantı.</p>
+</div>
+
+<!-- [BE aday 2] koordinatör birim raporu — iş yükü ve dönem raporu koordinatöre kapalı (403); statik -->
+<div class="rp-rapor-alert rp-rapor-alert--info">
+<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true" style="width:20px; height:20px"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+<div><strong>İş yükü ve dönem raporu koordinatöre kapalı (403)</strong> — birim raporu için BE aday 2.</div>
+<span class="rp-rapor-soon">yakında</span>
+</div>
+<!-- [BE aday 2] birim raporu düğmesi — uç yok; statik -->
+<div style="display:flex; align-items:center; gap:8px">
+<button class="t-btn t-btn--ghost t-btn--sm" type="button" disabled>Birim raporu (PDF)</button><span class="rp-rapor-soon">yakında</span>
+</div>
+</div>
+</section>
+
+<!-- ═════ Kurallar ═════ -->
+<section class="rp-rapor-cell" aria-label="Rapor kuralları">
+<p class="rp-kicker">Kurallar</p>
+<p class="rp-rapor-celldesc">Bu pencerelerin hepsinde geçerli olan sabitler.</p>
+<div class="rp-rapor-rule"><h3>Tek seferde tek rapor</h3><p>Hesap başına aynı anda tek PDF üretilir. İkinci istek 429 alır ve Retry-After süresi düğmede geri sayılır; kapasite dolunca 503 döner.</p></div>
+<div class="rp-rapor-rule"><h3>Liste 200 satırda kesilir</h3><p>Görev ve toplantı listeleri en çok 200 satır getirir; kesme olursa altın tonlu bant çıkar. PDF'ler kesilmez.</p></div>
+<div class="rp-rapor-rule"><h3>Kâğıt her temada açık</h3><p>PDF önizlemesi koyu temada da açık zemin, koyu mürekkep; bant nötr koyu. Ekranın kabuğu temayı izler.</p></div>
+<div class="rp-rapor-rule"><h3>Gecikme kuralı</h3>
+<ol>
+<li>Açık görev, bitiş tarihinin ertesi Türkiye gününden itibaren gecikmiştir.</li>
+<li>Tamamlanmış görevde son tarih, tarih itildiyse ilk planlanan bitiştir.</li>
+<li>Tamamlanma son tarihten sonraysa "geç", önceyse "erken", aynı günse "zamanında".</li>
+<li>Gün sayıları rapor oluşturulma anına göredir.</li>
+</ol>
+<p style="margin-top:6px">Tarihler gg.aa.yyyy, saatler TRT (UTC+3).</p>
+</div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":5000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const pct = (a, b) => (b ? Math.round((a / b) * 1000) / 10 : 0) + '%';
+    const members = [
+      { ini: 'BK', name: 'Bahar Kılıç', coords: ['ALT', 'ELE', 'OPE'], open: 9, late: 4, done: 6, sel: true, exp: true },
+      { ini: 'KÖ', name: 'Kadir Özbek', coords: ['SİS', 'EĞİ'], open: 5, late: 1, done: 7, sel: true },
+      { ini: 'AA', name: 'Ali Avcı', coords: ['ALT'], open: 4, late: 2, done: 5 },
+      { ini: 'RK', name: 'Reha Koçak', coords: ['ELE'], open: 3, late: 1, done: 4 },
+      { ini: 'MK', name: 'Merve Koçoğlu', coords: ['EĞİ'], open: 4, late: 2, done: 2 },
+      { ini: 'SÖ', name: 'Salih Özer', coords: ['ULA'], open: 3, late: 3, done: 1, sel: true },
+      { ini: 'AA', name: 'Abdullah Ateş', coords: ['ALT'], open: 2, late: 0, done: 4 },
+      { ini: 'YÇ', name: 'Yunus Çiftçioğlu', coords: ['OPE'], open: 4, late: 0, done: 4 }
+    ].map((m) => {
+      const total = m.open + m.done;
+      return {
+        ...m,
+        sel: !!m.sel,
+        exp: !!m.exp,
+        expA: m.exp ? 'true' : 'false',
+        cls: m.sel ? 'rp-sel' : '',
+        total,
+        coords: m.coords.map((code) => ({ code })),
+        lateCls: m.late ? 'rp-danger-text' : 'rp-faint',
+        wOpen: pct(m.open - m.late, total),
+        wLate: pct(m.late, total),
+        wDone: pct(m.done, total),
+        barLabel: m.name + ': ' + (m.open - m.late) + ' açık, ' + m.late + ' geciken, ' + m.done + ' tamamlanan',
+        selLabel: m.name + ' rapora ekle',
+        expLabel: m.name + ' görevlerini ' + (m.exp ? 'kapat' : 'aç')
+      };
+    });
+
+    const bkTasks = [
+      { code: 'ALT-4', title: 'Fuar alanı elektrik kablo kanalları', prio: 'Acil', prioCls: 'rp-prio--high', due: '17.10.2026', dueShort: '17.10.2026', lateDays: 4, files: 2, note: 'Kazı %70; taşeron ek ekip verdi', noteWhen: '14.10 · Ali Avcı' },
+      { code: 'ALT-7', title: 'Saha aydınlatma direkleri montajı', prio: 'Orta', prioCls: 'rp-prio--mid', due: '15.10.2026', dueShort: '15.10.2026', lateDays: 6, files: 0, note: 'Vinç kiralaması ALT-13 olarak açıldı', noteWhen: '14.10 · Ali Avcı' },
+      { code: 'ALT-9', title: 'Drenaj kanalı temizliği', prio: 'Düşük', prioCls: 'rp-prio--low', due: '12.10.2026', dueShort: '12.10.2026', lateDays: 9, files: 1, note: 'Ekip planı sonraki toplantıya kaldı', noteWhen: '14.10 · Bahar Kılıç' },
+      { code: 'ALT-5', title: 'Jeneratör sahası zemin betonu', prio: 'Yüksek', prioCls: 'rp-prio--high', due: '30.10.2026', dueShort: '30.10.2026', lateDays: 0, done: true, early: 10, files: 1, note: "Beton dökümü 24.10'a alındı", noteWhen: '14.10 · Ali Avcı' }
+    ].map((t) => ({
+      ...t,
+      dot: t.done ? 'rp-dot--done' : 'rp-dot--doing',
+      status: t.done ? 'Tamamlandı' : 'Devam ediyor',
+      pill: t.done ? 'rp-rapor-tone-accent' : 'rp-rapor-tone-violet',
+      lateText: t.lateDays ? t.lateDays + ' gün gecikti' : t.early + ' gün erken',
+      lateCls: t.lateDays ? 'rp-danger-text' : 'rp-rapor-early',
+      paperLate: t.lateDays ? t.lateDays + ' gün' : t.early + ' gün erken',
+      paperLateCls: t.lateDays ? 'rp-rapor-bad' : 'rp-rapor-early',
+      proof: t.files ? t.files + ' dosya' : 'yok'
+    }));
+
+    const wlKpi = [
+      { label: 'ÜYE', value: '3', note: 'seçili', tone: 'rp-rapor-tone-ink' },
+      { label: 'AÇIK GÖREV', value: '17', note: '9 + 5 + 3', tone: 'rp-rapor-tone-violet' },
+      { label: 'GECİKEN', value: '8', note: '4 + 1 + 3', tone: 'rp-rapor-tone-danger' },
+      { label: 'TAMAMLANMA', value: '%45', note: '14 / 31 görev', tone: 'rp-rapor-tone-accent' }
+    ];
+    const bkKpi = [
+      { label: 'AÇIK', value: '9', tone: 'rp-rapor-tone-violet' },
+      { label: 'GECİKEN', value: '4', tone: 'rp-rapor-tone-danger' },
+      { label: 'ONAYDA', value: '1', tone: 'rp-rapor-tone-gold' },
+      { label: 'TAMAMLANMA', value: '%40', tone: 'rp-rapor-tone-accent' }
+    ];
+
+    const PR = { acil: ['Acil', 'rp-prio--high', true], high: ['Yüksek', 'rp-prio--high', false], mid: ['Orta', 'rp-prio--mid', false], low: ['Düşük', 'rp-prio--low', false] };
+    const ST = { doing: ['rp-dot--doing', 'Devam ediyor'], review: ['rp-dot--review', 'Onay bekliyor'], todo: ['rp-dot--todo', 'Başlamadı'] };
+    const tasks = [
+      { code: 'ALT-4', title: 'Fuar alanı elektrik kablo kanalları', coord: 'ALT', people: [['BK', 'Bahar Kılıç']], p: 'acil', s: 'doing', due: '17.10.2026', late: 4, sel: true },
+      { code: 'ALT-7', title: 'Saha aydınlatma direkleri montajı', coord: 'ALT', people: [['BK', 'Bahar Kılıç'], ['AA', 'Ali Avcı']], p: 'mid', s: 'doing', due: '15.10.2026', late: 6 },
+      { code: 'İDA-3', title: 'Gönüllü yaka kartı ve erişim listesi', coord: 'İDA', people: [], p: 'high', s: 'review', due: '14.10.2026', late: 7 },
+      { code: 'EĞİ-5', title: 'Atölye malzeme listesinin hazırlanması', coord: 'EĞİ', people: [['MK', 'Merve Koçoğlu']], p: 'mid', s: 'todo', due: '16.10.2026', late: 5 },
+      { code: 'ULA-2', title: 'Ziyaretçi servis güzergâhı ve durak planı', coord: 'ULA', people: [['SÖ', 'Salih Özer']], p: 'high', s: 'doing', due: '09.10.2026', late: 12 },
+      { code: 'MEK-6', title: 'Faz3 asfalt işlemi', coord: 'MEK', people: [['MY', 'Mevlüt Yunus Kayacan']], p: 'high', s: 'doing', due: '25.07.2026', late: 88 }
+    ].map((r) => ({
+      ...r,
+      cls: r.sel ? 'rp-sel' : '',
+      dot: ST[r.s][0],
+      status: ST[r.s][1],
+      prio: PR[r.p][0],
+      prioCls: PR[r.p][1],
+      acil: PR[r.p][2],
+      people: r.people.map(([ini, full]) => ({ ini, full })),
+      hasPeople: r.people.length > 0,
+      noPeople: r.people.length === 0,
+      late: r.late + ' gün',
+      pdfLabel: r.code + ' görev raporu (PDF)'
+    }));
+
+    const notes = [
+      { no: '01', ini: 'BK', who: 'Bahar Kılıç', when: '09.10.2026 11:20', flag: 'Engel', flagUp: 'ENGEL', pill: 'rp-rapor-tone-danger', flagCls: 'rp-danger-text', body: 'B kapısı önündeki kazı için belediye izni bekleniyor; bu bölümde çalışma durdu.' },
+      { no: '02', ini: 'AA', who: 'Ali Avcı', when: '14.10.2026 14:05', flag: 'Bilgi', flagUp: 'BİLGİ', pill: 'rp-rapor-tone-ink', flagCls: 'rp-muted', body: 'Kazı %70 tamamlandı; taşeron ek ekip verdi.' },
+      { no: '03', ini: 'BK', who: 'Bahar Kılıç', when: '18.10.2026 16:30', flag: 'Soru', flagUp: 'SORU', pill: 'rp-rapor-tone-gold', flagCls: 'rp-muted', body: 'Tava montajı için ek malzeme siparişi onaylanacak mı? Teklif dosyası ekte.' }
+    ];
+    const taskFiles = [
+      { name: 'kablo-kanali-kesit-cizimi.pdf', who: 'Ali Avcı', size: '1,2 MB', date: '05.09.2026' },
+      { name: 'kazi-ilerleme-14-10.jpg', who: 'Bahar Kılıç', size: '3,4 MB', date: '14.10.2026' }
+    ];
+
+    const meetings = [
+      { date: '14.10.2026', time: '14:00–15:10', title: 'Haftalık koordinasyon toplantısı', own: 'ALT', ownName: 'Altyapı ve tesisat', extra: ['ELE'], by: 'Ali Avcı', role: 'koordinatör', people: 5, notes: 5, members: true, preview: true },
+      { date: '13.10.2026', time: '10:00–11:00', title: 'EĞİ atölye planlama toplantısı', own: 'EĞİ', ownName: 'Eğitim ve Arge', extra: [], by: 'Merve Koçoğlu', role: 'koordinatör', people: 4, notes: 3, members: false },
+      { date: '09.10.2026', time: '09:30–12:00', title: 'Operasyon saha turu', own: 'OPE', ownName: 'Operasyon', extra: [], deleted: 'Lojistik (silinmiş)', by: 'Yunus Çiftçioğlu', role: 'koordinatör', people: 6, notes: 4, members: true },
+      { date: '07.10.2026', time: '15:00–16:00', title: 'SİS entegrasyon toplantısı', own: 'SİS', ownName: 'Sistem koordinatörlüğü', extra: ['ALT', 'ELE'], by: 'Muhammet Ali Çalışkan', role: 'koordinatör', people: 5, notes: 2, members: true },
+      { date: '02.10.2026', time: '11:00–12:00', title: 'Fuar stand yerleşimi', own: 'FUA', ownName: 'Fuar', extra: [], by: 'Salim Sağlık', role: 'koordinatör', people: 3, notes: 2, members: false }
+    ].map((t) => ({
+      ...t,
+      extra: t.extra.map((code) => ({ code })),
+      hasExtra: t.extra.length > 0 || !!t.deleted,
+      hasDeleted: !!t.deleted,
+      deleted: t.deleted || '',
+      noMembers: !t.members,
+      preview: !!t.preview
+    }));
+
+    const phoneKpi = [
+      { label: 'görev', value: '79', note: '40 açık · 39 tamamlandı', cls: '' },
+      { label: 'tamamlanma', value: '%49', note: "79 görevin 39'u", cls: '' },
+      { label: 'geciken', value: '15', note: 'açık görevlerde', cls: 'rp-danger-text' },
+      { label: 'toplantı', value: '41', note: '118 not', cls: '' },
+      { label: 'koordinatörlük', value: '11', note: '0 çalışma grubu', cls: '' },
+      { label: 'kullanıcı', value: '18', note: '2 admin · 15 koord. · 3 üye', cls: '' },
+      { label: 'dosya', value: '50', note: '412,6 MB', cls: '' },
+      { label: 'tarih talebi', value: '9', note: '5 onay · 1 red · 3 bekliyor', cls: '' }
+    ];
+
+    return { theme: this.props.theme ?? 'dark', members, bkTasks, wlKpi, bkKpi, tasks, notes, taskFiles, meetings, phoneKpi };
+  }
+}
+</script>
+</body>
+</html>

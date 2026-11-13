@@ -123,3 +123,57 @@ Kapsam (program, mercek, departman) değişince tüm anahtarlar iptal edilir, es
 - `archiveFolders` S3'tür; yöneticinin hangi `X-Nizamio-Department` değeriyle çağıracağı sözleşmede yazmıyor (**bilinmiyor** — programa bağlı herhangi bir departman kimliği beklendiği tahmin edilir; 06/F5 analiziyle doğrulanmalı).
 - `MeResponse.full_name` zorunlu; `account_id` "bana atanan" sayacının anahtarı.
 - Hata kodları `error-codes.json`'da doğrulandı: `reporting.not_authorized` (403), `program.not_found`, `organization.authority_unavailable` (503), `organization.membership_required`, `work.program_scope_invalid`, `records.not_authorized`, `platform.rate_limited`, `platform.scope_missing`, `identity.unavailable`.
+
+
+---
+
+## 7. F6 — K1/Ü1 uç eşlemesi ve 01 F6 bölgeleri (WEB-6 W135, pin `v0.15.0-api`)
+
+Doğrulama (2026-11-13, `v0.15.0-api` `openapi.yaml`): `DashboardReport` 19 alan (hepsi zorunlu; `coordinatorship_stats` ve `overdue_tasks_list` **kesilmez**, `X-Result-Truncated` koymaz), `CoordinatorshipStat` (`department_id`, `name`, `kind`, `description?`, `coordinators[]`, `total_tasks`, `completed_tasks`, `in_progress_tasks`, `not_started_tasks`, `overdue_tasks`, `completion_rate`, `member_count` — koordinatörler dahil değil —, `meeting_count` dashboard'da 0 (GAP-221; **kullanılmaz**), `last_activity_at`), `ProgramWorkItemCounts` (`total`, `by_status{5}`, `overdue`, `pending_date_requests`), `WorkItem` (satırda dosya sayısı, onaya sunuş zamanı, bağımlılık özeti, iade sebebi **yok**), `DateChangeRequest` (`request_id`, `work_item_id`, `status`, `old/new_start_on`, `old/new_end_on`, `reason`; zaman ve karar notu yok), `Meeting.summary` (`participant_count`, `conference_status` — P21 gizli), `MyDepartment` (`department_id`, `display_name`, `role`; kod/koordinatör adı yok). Eşleme §A.1/§B (`RAPOR-nizamio-raporlar`) ile örtüşür; çelişki yok.
+
+### 7.1 01 yönetici sayfası F6 bölgeleri (tek `reportDashboard`, ikinci istek yok)
+| Kimlik | Uç / alan | Not |
+|---|---|---|
+| E-01-19/20/39 | `total_users`, `total_coordinatorships`, `total_admins` (şirket geneli), `total_coordinators`, `total_members` | rol sayaçları örtüşebilir; ipucu metni E-01-19 kararı |
+| E-01-21…27 | `coordinatorship_stats[]` (istemci süzgeç/sıralama/arama; `Intl.Collator('tr')`) | sunucu sırası ad bayt sırası; kesme yok |
+| E-01-28…36 | `name`, `coordinators[].full_name`, `member_count`, `total_tasks`, `completion_rate`, `not_started_tasks`, `in_progress_tasks`, `completed_tasks`, `overdue_tasks` | 4. dilim artık = `total − not_started − in_progress − completed` ("onayda/iade", BE-078); avatar: koordinatörler + "+N" (BE-079) |
+| E-01-37 | `archiveFolders` (S3) ikinci istek | yönetici P33 kapsamı; hata yalnız bu sayaç |
+| E-01-38 | — | satır gizli (BE-025) |
+| E-01-12 | — (ağ yok) | yönlendirme menüsü (P47); indirme uçları kendi ekranlarında: `reportSeasonPdf` (06), `reportWorkloadPdf` (05), `reportMeetingPdf` (09b/K7), `reportTaskPdf` (03/K3); hepsi `issueDownloadTicket` bilet akışı; ayrıntı `13-raporlar` (W134) |
+| (kullanılmayan) | `meeting_count`, `last_activity_at`, `overdue_tasks_list`, `pending_date_changes`, `task_status_distribution`, `priority_distribution`, `reportDashboardTasks/Meetings/Coordinatorships` | P52: kullanılmaz (`overdue_tasks_list` ileride dikkat kuyruğu adayı) |
+
+Hata kodları §2 tablosu geçerlidir (`reporting.not_authorized` 403 K/Ü'de hiç üretilmez: çağrı yok).
+
+### 7.2 K1 uç eşlemesi (seçili birim; yalnız `company_admin` olmayan koordinatör)
+| Kimlik | operationId | Yol | Kapsam / parametre | Alan → öğe |
+|---|---|---|---|---|
+| E-K1-01 | `me` | `GET /v1/me` | S1 | `full_name` |
+| E-K1-02 | `myDepartments` | `GET /v1/me/departments` | S1 | `departments[].role`, `display_name` |
+| E-K1-05, 07…13 | `countProgramWorkItems` | `GET /v1/program/work-items/counts` | S2; `department_id` | `total`, `by_status{…}`, `overdue`, `pending_date_requests` |
+| E-K1-09, 11, 12, 14…16, 19, 20, 23, 24, 27, 28 | `listProgramWorkItems` | `GET /v1/program/work-items` | S2; `department_id`; `limit=200`, `cursor` | `title`, `status`, `priority`, `assignees[]`, `assignee_account_ids`, `end_on`, `is_overdue`, `days_overdue`, `pending_date_request`, `subtask_counts` |
+| E-K1-17 | `transitionWorkItem` | `POST /v1/work-items/{id}/transitions` | S3 | 03 yazma sözleşmesi |
+| E-K1-22, 21 | `addAssignments` | `POST /v1/work-items/{id}/assignments` | S3 | 03 yazma sözleşmesi |
+| E-K1-25, 33 | `requestDateChange` / `listDateChangeRequests` | `POST`/`GET /v1/date-change-requests` | S1/S2 | F3 canlı uçlar |
+| E-K1-26, 28 | `listMembers` | `GET /v1/departments/{id}/members` | S2 | `RosterList` (kendi birimi; `X-Result-Truncated`) |
+| E-K1-34, 35 | `listMeetings` | `GET /v1/meetings` | S2; `from` = bugün, `department_id` | `meeting_date`, `title`, `departments[]`, `owner_department_id`, `members_included`, `summary.participant_count` |
+| E-K1-38, 39 | `myDateChangeRequests` | `GET /v1/date-change-requests/mine` | S1 | `status`, `old_end_on`, `new_end_on`, `reason` |
+| E-K1-40 | — | — | — | uç yok (BE-010/BE-091) |
+
+### 7.3 Ü1 uç eşlemesi (program geneli, `assignee_account_id` = ben)
+| Kimlik | operationId | Yol | Kapsam / parametre | Alan → öğe |
+|---|---|---|---|---|
+| E-Ü1-01, 02 | `me`, `myDepartments` | `GET /v1/me`, `/v1/me/departments` | S1 | `full_name`, `display_name` |
+| E-Ü1-04…08 | `countProgramWorkItems` | `GET /v1/program/work-items/counts` | S2; `assignee_account_id` | `by_status`, `overdue`, `total` |
+| E-Ü1-09…17, 25…27, 30, 31 | `listProgramWorkItems` | `GET /v1/program/work-items` | S2; `assignee_account_id`; `limit=200`, `cursor` | `title`, `status`, `priority`, `end_on`, `days_overdue`, `department_id`, `subtask_counts`, `completion_evidence_required` |
+| E-Ü1-12…15 | `ownStatusWorkItem` | `PATCH /v1/work-items/{id}/own-status` | S3 | üye kendi görev durumunu değiştirir (03 kuralı) |
+| E-Ü1-03, 13, 19 | `attachFile` | `POST /v1/work-items/{id}/files` | S3 | P35 yükleme; yetki ADR-0030 |
+| E-Ü1-20 | `addWorkItemNote` | `POST /v1/work-items/{id}/notes` | S3 | 03 not formu |
+| E-Ü1-22, 28, 29 | `listMeetings` | `GET /v1/meetings` | S2; `from` = bugün | K1 ile aynı alanlar |
+| E-Ü1-23 | `countUnreadNotifications` | `GET /v1/notifications/unread-count` | S1 | hesap geneli sayaç; liste F7 |
+| E-Ü1-24 | — | — | — | F7 (`listNotifications` mevcut; panel yok) |
+
+### 7.4 Sorgu anahtarları ve geçersizleme
+K1/Ü1 yeni anahtar tanımlamaz: `scoped(['work-items', filters])` ve `workItems.counts` (ortak-kurallar §6; K1 `department_id` süzgeçli, Ü1 `assignee_account_id` süzgeçli), `scoped(['meetings', filters])`, `scoped(['date-requests', …])`, `['notifications','unread-count']`, `['me']`, `['me','departments']`. Görev/tarih yazmaları bu anahtarları geçersizler (§6 "Pano geçersizlemesinin gerçek kapsamı"; `shell-counts` dahil). Kapsam değişince `scoped(...)` ailesi düşer (K2).
+
+### 7.5 Kapsam notu (Ü1 "program geneli")
+`listProgramWorkItems`'ta `department_id` isteğe bağlıdır; Ü1 tek istekle üyenin bütün birimlerindeki atamalarını okur (fan-out değil, K3). Sunucu salt üyeye yalnız atananları döndürür; birleşik rolde `assignee_account_id` = ben zorunlu (KESİN 21, BE-038 bağlandı).
