@@ -12,7 +12,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W136             | Birleşti: #122 (rapor veri katmanı, paylaşılan bilet indirme, F6 rotaları, `CURRENT_PHASE` F6)                                            | `76bc9ab` |
 | O2b W137–W141        | Birleşti: #123 (W141), #124 (W139), #125 (W137), #126 (W138), #127 (W140)                                                                 | `21e49a5` |
 | O3 W142              | Birleşti: #128 (97 entegrasyon testi, 5 kusur düzeltmesi, e2e/reports.spec.ts)                                                            | `a3b31e3` |
-| O4 kapanış           | W143 belgeler (`web6/o4-kapanis`); W144 tanığı birleşti (#129, `66c1708`); W145 düzeltmeleri (KUSUR 1/3/5a) sürüyor; Codex ve kapanış PR bekliyor | `a3b31e3` |
+| O4 kapanış           | W143 belgeler (`web6/o4-kapanis`); W144 tanığı birleşti (#129, `66c1708`); W145 düzeltme turu birleşti (#130, `136da28`) — **O4 düzeltme turu KAPANDI**; F6 KAPANMADI, Codex tur 1 ve kapanış PR bekliyor | `136da28` |
 
 ## Kayıtlar
 
@@ -134,12 +134,15 @@ Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 b
 | 12  | K1/Ü1 uçsuz alanlar BE-137…141, BE-005 (görev kodu), BE-078/079 (kart dilimi/avatar) açık; "backend dursun" (P46) sürüyor                                                                                                                                          | [rapor-F6](../../backend-eksikleri/rapor-F6.md) |
 | 13  | **F7 adayları** (karar ister; [web-7](../web-7/README.md)): Kurumsal hafıza, Takvim, Bildirimler, Asistan panelleri (tuvalde var, F6 dışı); profil sayfası (Ü7); Ü2–Ü7, K2–K8; 01b işlem geçmişi                                                                         | P46 / [web-7](../web-7/README.md)               |
 | 14  | Pin yükseltmesi ve "Şimdilik" yollarının kaldırılması hâlâ ayrı karar                                                                                                                                                                                               | [pin-yukseltme-plani](../web-5/pin-yukseltme-plani.md) |
+| 15  | Gerçek `v0.15.0-api` backend'e karşı `e2e/smoke.spec.ts` logout adımı (~satır 112) ve `e2e/two-tabs.spec.ts` `/v1/me` beklemesi (~satır 62) `a3b31e3`'te de düşüyor (W145 tanığı); nedeni **araştırılmadı**; sahte `/v1` CI yeşil. "Gerçek backend e2e ilk CI koşumu" (#9) ile birleşik | W145 |
+| 16  | 390 px dumanda konsol hatası 1 (W140 ve W145'te aynı; içeriğine bakılmadı) | W140 / W145 |
+| 17  | KUSUR 3 sonrası 01 kutucukları liste sayfasına gider; pencereyi doğrudan açan URL parametresi yok → **F7 adayı:** 09/05 sayfalarına oluşturma parametresi | W145 |
 
 **F7 AÇILMAZ — kullanıcı onayı.** Onay otomatik geçti sayılmaz; "F6 kapandı" ifadesi gerçek sunucu tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz.
 
-### O4 — kapanış (W143, W144; Codex bekliyor)
+### O4 — kapanış (W143, W144, W145; Codex tur 1 bekliyor)
 
 - **W143** (`web6/o4-kapanis`): rapor-F6, bu kayıt, oturum-3-entegrasyon, oturum-4-kapanis, 13-raporlar mekanizma §4.3 (KESİN 26 hizası), 01/13/00 README kabul kanıtları, `ekranlar/README` durum, web-7 iskeleti, yol haritası §4 ve tasarım README sürüm notu (yalnız belge; kod yok).
 - **W144** (#129, `66c1708`): [dogrulama-F6.md](dogrulama-F6.md) — gerçek imaj + gerçek backend, 78 görünüm / 6 tıklama bağlamı / 35 API koşumu 0 başarısız. Kusurlar: 1 → W145; 2 kusur değil; 3 → W145; 4 ürün kararı (karar bekler); 5a → W145; 5b kusur değil.
-- **W145** (`web6/o4-w145`): KUSUR 1/3/5a düzeltmeleri — sürüyor, sonuç bu kayda işlenmedi.
+- **W145** (#130, `136da28`): KUSUR 1 (`0c35c92`, `886fa56`: `/oturum?next=` yalnız uygulama içi yol, `src/app/session-next.ts`, başarılı girişte `replace`; parola değişimi değişmedi; next'siz `/oturum` S0'da kalır, varsayım kabul), KUSUR 3 (`b59ca10`, `4052424`: 01 kutucukları `/toplantilar` ve `/kullanicilar`'a), KUSUR 5a (`06f67ac`: K1 şeridi flex-wrap; ara genişliklerde 5+1/4+2 kabul, borç değil). Kapı 660 dosya / 4599 test; duman K1 × 3 × iki tema 0/0/0. **O4 düzeltme turu KAPANDI.**
 - **Codex** `gpt-6.1-sol` medium `-s read-only` nihai kapı: **bekliyor** (`docs/reviews/WEB-6-codex.md` henüz yok). Hüküm ve kapanış PR satırı hükümden sonra eklenir: **bekliyor**.

@@ -1,6 +1,6 @@
 # Backend devir raporu — F6 (WEB-6), 2026-11-14
 
-**Durum:** F6 kodu main'de (#119–#128, son kod `a3b31e3`); gerçek sunucu tanığı alındı (W144, §5); Codex nihai kapısı ve kapanış PR'ı **bekliyor** (F6 henüz KAPANMADI). Web pini `v0.15.0-api` (F6 boyunca yükseltilmedi). **"Backend dursun" kuralı (P46) geçerli kaldı: F6 için backend paketi açılmadı**; bu raporun bütün satırları açık eksiktir ve ekranda statik/devre dışı/gizli çalışır. Bu rapor F7'yi veya pin yükseltmesini açmaz.
+**Durum:** F6 kodu main'de (#119–#128 ve O4 düzeltme turu #129–#130; son main `136da28`); gerçek sunucu tanığı alındı (W144, §5); Codex nihai kapısı ve kapanış PR'ı **bekliyor** (F6 henüz KAPANMADI). Web pini `v0.15.0-api` (F6 boyunca yükseltilmedi). **"Backend dursun" kuralı (P46) geçerli kaldı: F6 için backend paketi açılmadı**; bu raporun bütün satırları açık eksiktir ve ekranda statik/devre dışı/gizli çalışır. Bu rapor F7'yi veya pin yükseltmesini açmaz.
 
 Kaynaklar: [kayıt](kayit.md) (BE-120, BE-122…BE-141), [13 Raporlar tespiti](../ekranlar/13-raporlar/README.md), [01 ana sayfa](../ekranlar/01-ana-sayfa/README.md), [ortak-kurallar §12 P46–P53](../ekranlar/ortak-kurallar.md), [F6 ilerleme](../yurutme/web-6/ilerleme.md), [F5 raporu](rapor-F5.md), [gerçek sunucu tanığı](../yurutme/web-6/dogrulama-F6.md) (W144, #129). Uç/alan önerileri sözleşme yayımlanana ve web pini yükselene kadar uygulama yetkisi değildir.
 
@@ -92,4 +92,13 @@ Sıra BE-072/BE-119 gibi F5 önceliklerinin yerine geçmez; ürün sahibi sıral
 
 **W142 kusurları** (düzeltildi, test sabitledi): 1 `ReportActionButton` kilitli/devre dışıyken yuva etiketi (`95fe33f`); 2 01g "Tetikleyiciler" notu üretimde (`79a0972`); 3 `?gorev=` ile başka birimin görevi 404 (`4435b5e`); 4 `work ↔ reports` modül döngüsü (`2d00088`); 5 390 px bölüm penceresi (`e3448b3`).
 
-**Kalan borçlar:** gerçek cihaz ekran okuyucu (W136–W142); E-13-72 dosya boyutu; yönetici üye merceğinde başka birim görevine derin bağlantı: W144 sonucu "404 değil, panel açılır", **KUSUR 4 karar bekler** (§5); E-13-10 ZIP onayı (BE-120/124 ile); 390 px ZIP/yükle düğmesi genişliği; E-K1-17/18 iade gerekçesi (BE-139); kâğıt 880/10,5 pt; gerçek backend e2e ilk CI koşumu. Tam liste: [ilerleme "F7'ye devredilenler / borçlar"](../yurutme/web-6/ilerleme.md).
+**W145 düzeltme turu (#130, main `136da28`; W144 kusurları 1/3/5a):**
+
+- **KUSUR 1** (`0c35c92`, `886fa56`): kapı `/oturum?next=` taşır, yalnız uygulama içi yol kabul edilir (`src/app/session-next.ts`); başarılı girişte `replace`; parola değişimi akışı değişmedi. `next`'siz doğrudan `/oturum` S0'da kalır (varsayım kabul).
+- **KUSUR 3** (`b59ca10`, `4052424`): 01 "Toplantı oluştur" ve "Kullanıcı davet et" kutucukları canlı, `/toplantilar` ve `/kullanicilar` liste sayfalarına gider. Pencereyi doğrudan açan URL parametresi yok → **F7 adayı:** 09/05 sayfalarına oluşturma parametresi.
+- **KUSUR 5a** (`06f67ac`): K1 şeridi `flex-wrap`; 1440'ta 6 tek satır, 1024'te 3+3, 390'da 2×3; ara genişliklerde 5+1/4+2 olabilir — kabul edildi, borç değil (not).
+- Kapı: 660 dosya / 4599 test; duman K1 × 3 genişlik × iki tema 0/0/0 (kanıt `.git/koordinator/web6-w145/`, yerel).
+
+**Kanıt sınırları ve yeni borçlar:** (a) gerçek `v0.15.0-api` backend'e karşı `e2e/smoke.spec.ts` logout adımı (~satır 112) ve `e2e/two-tabs.spec.ts` `/v1/me` beklemesi (~satır 62) `a3b31e3`'te de düşüyor (W145 tanığı; nedeni **araştırılmadı**); sahte `/v1` ile CI yeşil. "Gerçek backend e2e ilk CI koşumu" borcuyla birleşir. (b) 390 px dumanda konsol hatası 1 (W140 ve W145'te aynı; içeriğine bakılmadı). (c) KUSUR 3 için pencere açan parametre F7 adayı.
+
+**Kalan borçlar:** gerçek cihaz ekran okuyucu (W136–W142); E-13-72 dosya boyutu; yönetici üye merceğinde başka birim görevine derin bağlantı: W144 sonucu "404 değil, panel açılır", **KUSUR 4 karar bekler** (§5); E-13-10 ZIP onayı (BE-120/124 ile); 390 px ZIP/yükle düğmesi genişliği; E-K1-17/18 iade gerekçesi (BE-139); kâğıt 880/10,5 pt; gerçek backend e2e ilk CI koşumu (smoke/two-tabs gerçek sunucuda düşüyor, yukarıda). Tam liste: [ilerleme "F7'ye devredilenler / borçlar"](../yurutme/web-6/ilerleme.md).

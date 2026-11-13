@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**Durum (2026-11-14):** O1–O3 PR'ları main'de (#119–#128; son main `a3b31e3`). Belge işi (W143) yazıldı; gerçek imaj + gerçek backend tanığı (W144) yazılıyor; Codex ve kapanış PR'ı **bekliyor**. F6 henüz KAPANMADI. F7 AÇILMADI ([web-7](../web-7/README.md)).
+**Durum (2026-11-14):** O1–O3 PR'ları main'de (#119–#128), W144 tanığı #129 (`66c1708`) ve W145 düzeltme turu #130 (`136da28`) birleşti; **O4 düzeltme turu KAPANDI**. Belge işi (W143) yazıldı; Codex tur 1 ve kapanış PR'ı **bekliyor**. F6 henüz KAPANMADI. F7 AÇILMADI ([web-7](../web-7/README.md)).
 
 ## Gerçekleşen akış
 
@@ -8,6 +8,7 @@
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------- |
 | 1    | Belgeler: [rapor-F6](../../backend-eksikleri/rapor-F6.md), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), 13-raporlar mekanizma §4.3 (KESİN 26), 01/13/00 README kabul kanıtları, [web-7 iskeleti](../web-7/README.md), yol haritası §4 ve tasarım README notu | W143 (Sonnet 5.5)  | Yazıldı (`web6/o4-kapanis`), yalnız belge; kod yok; PR bekliyor              |
 | 2    | `dogrulama-F6.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend (pin `v0.15.0-api`), dört PDF akışı, 429/403/404, 01f/01g/01/K1/Ü1, üç rol × 390/1024/1440 × iki tema, `?gorev=` derin bağlantı, tasarım farkları, `KUSUR n:` listesi | W144 (Sonnet 5.5)  | Birleşti (#129, `66c1708`): 78 görünüm / 6 tıklama bağlamı / 35 API koşumu 0 başarısız; kusurlar: 1/3/5a → W145, 2 ve 5b kusur değil (değerlendirildi), 4 ürün kararı (karar bekler)       |
+| 2b   | W145 düzeltmeleri: KUSUR 1 (`/oturum?next=`), KUSUR 3 (01 kutucukları 09/05'e), KUSUR 5a (K1 şeridi flex-wrap); 660 dosya / 4599 test, duman 0/0/0 | W145 (Sonnet 5.5) | Birleşti (#130, `136da28`) |
 | 3    | Nihai kapı: Codex `gpt-6.1-sol` medium `-s read-only` tek koşum; hüküm `docs/reviews/WEB-6-codex.md`                                                                                                                                         | Codex              | **Bekliyor**                                                                 |
 | 4    | Koşullar işçiyle kapatılır; gerekirse ikinci tur                                                                                                                                                                                             | işçi + koordinatör | Bekliyor                                                                     |
 | 5    | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla)                                                                                                                                                       | koordinatör        | **Bekliyor**                                                                 |

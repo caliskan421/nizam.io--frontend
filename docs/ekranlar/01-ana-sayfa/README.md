@@ -221,6 +221,7 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 
 | Satırlar | Konu | Kanıt (dosya · test adı / akış) |
 |---|---|---|
+| E-01-10/11 | "Toplantı oluştur" / "Kullanıcı davet et" kutucukları (W145, KUSUR 3) | `components/QuickActions.test.ts` ("toplantı ve kullanıcı kutucukları canlı bağlantıdır: faz etiketi yok, 09/05 listelerine gider (KUSUR 3)", "yalnız verilen kutucuklar çizilir"); PR #130 |
 | E-01-12 | "Rapor oluştur" yönlendirme menüsü | `components/ReportCreateMenu.test.ts`, `components/QuickActions.test.ts`, `model/report-targets.test.ts`; `int/home-admin.test.ts` ("yönetici: kutucuk menüyü açar; dört seçenek tasarım sırasında; menü ağ isteği atmaz", "Esc menüyü kapatır…", "yönetici K merceğinde de kutucuğu görür") |
 | E-01-19/20 | Ekip şeridi, rol kartı → 05 `?rol=` | `components/TeamStrip.test.ts`, `components/TeamKpis.test.ts`, `model/team.test.ts`; `int/home-admin.test.ts` ("ekip şeridi ve koordinatörlük kartları dashboard alanlarından; dashboard TEK kez okunur") |
 | E-01-21…27 | Başlık, "Tümünü gör", arama, süzgeç, sıralama, boş durum | `components/CoordToolbar.test.ts`, `components/CoordSortMenu.test.ts`, `components/CoordinatorshipsSection.test.ts`, `model/use-coord-controls.test.ts`, `model/turkish.test.ts`; `int/home-admin.test.ts` ("arama süzer: mek yalnız Mekanik kartını bırakır; sonuç yoksa boş durum") |
