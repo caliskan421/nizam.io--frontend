@@ -83,11 +83,11 @@ describe('kenar menüsü grupları', () => {
   it('F2: Yönetim yalnız company_admin olgusuyla; standing gelmeden yok', () => {
     const entries = menuEntries('F2')
     expect(sideMenuGroups(entries, admin).map((g) => g.group)).toEqual(['takip', 'yonetim'])
+    expect(sideMenuGroups(entries, coordinator).map((g) => g.group)).toEqual(['takip'])
     expect(
-      sideMenuGroups(entries, coordinator).map((g) => g.group),
-    ).toEqual(['takip'])
-    expect(
-      sideMenuGroups(entries, { ready: false, companyAdmin: true, role: 'coordinator' }).map((g) => g.group),
+      sideMenuGroups(entries, { ready: false, companyAdmin: true, role: 'coordinator' }).map(
+        (g) => g.group,
+      ),
     ).toEqual(['takip'])
   })
 

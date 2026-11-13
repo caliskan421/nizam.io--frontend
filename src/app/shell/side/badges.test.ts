@@ -69,7 +69,11 @@ describe('Görevler rozetleri', () => {
     const zero = await boot('admin', 'F1', () => Promise.resolve(counts(0, 0)))
     expect(zero.badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
     const failed = await boot('admin', 'F1', () => Promise.reject(new Error('503')))
-    expect(failed.badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
+    expect(failed.badges.value).toEqual({
+      overdue: null,
+      pendingDates: null,
+      awaitingApproval: null,
+    })
   })
 
   it('Koordinatör merceği: countProgramWorkItems, seçili birim; geciken + tarih talebi (BE-003)', async () => {
@@ -146,7 +150,11 @@ describe('Görevler rozetleri', () => {
       () => Promise.reject(new Error('x')),
       () => Promise.reject(new Error('403')),
     )
-    expect(failed.badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
+    expect(failed.badges.value).toEqual({
+      overdue: null,
+      pendingDates: null,
+      awaitingApproval: null,
+    })
   })
 })
 
