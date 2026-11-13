@@ -1,22 +1,26 @@
 <script setup lang="ts">
 import './users.css'
 
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { UiButton, UiEmptyState, UiErrorState } from '@/shared/ui'
+import { UiButton, UiCheck, UiEmptyState, UiErrorState } from '@/shared/ui'
 
 import { USERS_ROUTE } from '../../routes'
 import type { UsersTableEmits, UsersTableProps } from '../index'
 import { usersText } from './messages'
 import { injectUsersView, useUsersView } from './use-users-view'
+import { injectWorkloadSelection, workloadText } from './use-workload-selection'
 import UserRow from './UserRow.vue'
+import WorkloadSelectionBar from './WorkloadSelectionBar.vue'
 
 /**
  * W75 · E-05-09…24 — kullanıcı tablosu (`rp-dtable`). Veri sayfanın görünümünden (yoksa kendi
  * örneği): `listUsers` ya da tek birimin `listMembers`'ı. Sıralama yalnız ada göre ↑/↓
  * (`aria-sort`; yön değişince yeni sorgu, eski imleç kullanılmaz — E-05-10). Tümünü seç ve satır
- * kutuları gizli (P7). Numaralı sayfalayıcı ve sayfa boyutu yok (P4): alt satır "1–‹yüklenen› /
+ * kutuları yalnız iş yükü raporu seçiminde (şirket yöneticisi; E-13-60, `use-workload-selection`):
+ * "Tümünü seç" yalnız yüklenmiş satırlardan seçilebilir olanları işaretler, ikinci basış
+ * kaldırır. Numaralı sayfalayıcı ve sayfa boyutu yok (P4): alt satır "1–‹yüklenen› /
  * ‹toplam›" — toplam sunucu `total`'ı (BE-011, E-05-22) — ve "Daha fazla yükle" (imleç bitince
  * gizli). "Tümü" ekip satırsız hesapları da içerir (BE-045): "listelenmez" notu yoktur.
  * Yükleniyor → iskelet satırlar.
@@ -33,6 +37,28 @@ const view =
     search: props.search,
     departmentId: props.departmentId,
   }))
+
+const selection = injectWorkloadSelection()
+const root = ref<HTMLElement | null>(null)
+const picking = computed(() => selection?.enabled.value === true)
+const pickable = computed(() =>
+  selection ? view.rows.value.filter((row) => selection.canPick(row)) : [],
+)
+const allPicked = computed(
+  () =>
+    pickable.value.length > 0 &&
+    pickable.value.every((row) => selection?.isSelected(row.accountId)),
+)
+function pickAll(): void {
+  selection?.setMany(
+    pickable.value.map((row) => row.accountId),
+    !allPicked.value,
+  )
+}
+/** "Seçimi temizle" düğmesi kalkar: odak başlıktaki "Tümünü seç" kutusuna döner (KESİN 27). */
+function focusPickAll(): void {
+  root.value?.querySelector<HTMLElement>('[data-testid="users-pick-all"]')?.focus()
+}
 
 const ascending = computed(() => view.sortOrder.value === 'asc')
 const filtered = computed(
@@ -57,7 +83,7 @@ const caption = computed(() =>
 </script>
 
 <template>
-  <div class="users-table">
+  <div ref="root" class="users-table">
     <UiErrorState
       v-if="view.loadError.value"
       :error="view.loadError.value"
@@ -87,7 +113,16 @@ const caption = computed(() =>
           :aria-busy="view.loading.value ? 'true' : undefined"
         >
           <div role="row" class="rp-tr rp-tr--head">
-            <span role="columnheader" class="users-row__pick" />
+            <span role="columnheader" class="users-row__pick">
+              <UiCheck
+                v-if="picking"
+                :model-value="allPicked"
+                :label="workloadText('selectAll')"
+                :disabled="pickable.length === 0"
+                data-testid="users-pick-all"
+                @update:model-value="pickAll"
+              />
+            </span>
             <span role="columnheader" :aria-sort="ascending ? 'ascending' : 'descending'">
               <button
                 type="button"
@@ -150,6 +185,7 @@ const caption = computed(() =>
       <span v-else aria-hidden="true" />
       <span aria-hidden="true" />
     </div>
+    <WorkloadSelectionBar @cleared="focusPickAll" />
     <p v-if="view.truncated.value" class="rp-cap users-note--warn" data-testid="users-truncated">
       {{ usersText('users.table.truncated') }}
     </p>

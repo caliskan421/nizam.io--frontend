@@ -151,6 +151,33 @@
     visibility: hidden;
   }
 
+  /* İş yükü raporu seçimi (E-13-60…62; Rapor-Noktalar.dc.html hücre E): onay kutusu sütunu,
+     seçim çubuğu "‹N› üye seçili · Seçimi temizle". */
+  .users-table .users-row__pick {
+    display: inline-flex;
+    align-items: center;
+  }
+  .users-table .users-selbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .users-table .users-linkbtn {
+    border: 0;
+    padding: 0;
+    background: none;
+    font: var(--text-caption);
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+    cursor: pointer;
+  }
+  .users-table .users-linkbtn:hover {
+    color: var(--ink);
+  }
+
   /* Sayfalayıcı satırı (E-05-22…24) ve notlar */
   .users-table .users-pager {
     display: grid;
@@ -180,6 +207,16 @@
     .users-table .rp-tr > :nth-child(5) {
       grid-column: 4;
       grid-row: 1;
+    }
+    /* Seçim sayacı yapışık alt şerit (tasarım 390 çizmez; akışta, örtmeyen): görünür alanın
+       altına yapışır, içeriğin üstünde kalır, kaydırmayı engellemez. */
+    .users-table .users-selbar {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      padding: var(--space-3) var(--space-4);
+      border-top: var(--ui-hairline) solid var(--border-subtle);
+      background: var(--bg-surface);
     }
   }
 }

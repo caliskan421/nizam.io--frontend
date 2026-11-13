@@ -12,6 +12,7 @@ import UserCreateDialog from '../components/forms/UserCreateDialog.vue'
 import { useUser } from '../api'
 import { usersText } from '../components/users/messages'
 import { provideUsersView } from '../components/users/use-users-view'
+import { provideWorkloadSelection } from '../components/users/use-workload-selection'
 import UserPanel from '../components/users/UserPanel.vue'
 import UsersTable from '../components/users/UsersTable.vue'
 import { can, organizationFacts } from '../model/capabilities'
@@ -50,6 +51,9 @@ const url = useUsersUrl(() => {
   passwordFor.value = null
 })
 const state = url.state
+
+// İş yükü raporu satır seçimi (E-13-59…62): bellekte; rota/kapsam değişince sıfırlanır.
+provideWorkloadSelection()
 
 const view = provideUsersView(() => ({
   roleTab: state.value.tab,
