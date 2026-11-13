@@ -51,16 +51,72 @@ const stat = (id: string, name: string, over: Record<string, unknown> = {}) => (
   ...over,
 })
 
+const STATS = {
+  completed_tasks: 1,
+  completion_rate: 33,
+  overdue_tasks: 1,
+  total_attachments: 50,
+  total_coordinatorships: 2,
+  total_meetings: 41,
+  total_members: 12,
+  total_messages: 7,
+  total_notes: 118,
+  total_tasks: 3,
+  total_users: 18,
+}
+
+const ACTIVITY = [
+  { completed_tasks: 4, count: 20, created_tasks: 6, meetings: 5, messages: 5, month: '2026-05' },
+  {
+    completed_tasks: 10,
+    count: 61,
+    created_tasks: 20,
+    meetings: 11,
+    messages: 20,
+    month: '2026-06',
+  },
+]
+
+const EMPTY_DEPARTMENT = {
+  description: undefined,
+  meeting_count: 0,
+  total_tasks: 0,
+  completed_tasks: 0,
+  overdue_tasks: 0,
+}
+
+function seasonTasks(): Task[] {
+  return [
+    seasonTask({
+      work_item_id: 'w1',
+      priority: 'acil',
+      is_overdue: true,
+      days_overdue: 4,
+      planned_end_on: '2026-09-30',
+    }),
+    seasonTask({
+      work_item_id: 'w2',
+      title: 'Hidrant hattı',
+      status: 'tamamlandi',
+      is_completed_late: true,
+      days_late: 2,
+      created_at: '2026-03-02T08:00:00Z',
+      assignees: [],
+      priority: 'yuksek',
+    }),
+    seasonTask({
+      work_item_id: 'w3',
+      title: 'Aydınlatma',
+      status: 'iade_edildi',
+      created_at: '2026-03-03T08:00:00Z',
+    }),
+  ]
+}
+
 export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
   return {
     coordinatorship_performance: [
-      stat('d2', 'Operasyon', {
-        description: undefined,
-        meeting_count: 0,
-        total_tasks: 0,
-        completed_tasks: 0,
-        overdue_tasks: 0,
-      }),
+      stat('d2', 'Operasyon', EMPTY_DEPARTMENT),
       stat('d1', 'Altyapı ve tesisat'),
     ],
     date_change_stats: { approved: 5, pending: 3, rejected: 1, total: 9 },
@@ -72,40 +128,11 @@ export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
       total_participants: 90,
     },
     message_stats: { from_admins: 3, from_others: 4, total: 7 },
-    monthly_activity: [
-      {
-        completed_tasks: 4,
-        count: 20,
-        created_tasks: 6,
-        meetings: 5,
-        messages: 5,
-        month: '2026-05',
-      },
-      {
-        completed_tasks: 10,
-        count: 61,
-        created_tasks: 20,
-        meetings: 11,
-        messages: 20,
-        month: '2026-06',
-      },
-    ],
+    monthly_activity: ACTIVITY,
     priority_distribution: { acil: 1, yuksek: 1, orta: 1, dusuk: 0 },
     program_id: 'p1',
     program_name: 'Şanlıurfa Teknofest',
-    stats: {
-      completed_tasks: 1,
-      completion_rate: 33,
-      overdue_tasks: 1,
-      total_attachments: 50,
-      total_coordinatorships: 2,
-      total_meetings: 41,
-      total_members: 12,
-      total_messages: 7,
-      total_notes: 118,
-      total_tasks: 3,
-      total_users: 18,
-    },
+    stats: STATS,
     task_status_distribution: {
       baslanmadi: 0,
       devam_ediyor: 1,
@@ -113,34 +140,9 @@ export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
       iade_edildi: 1,
       tamamlandi: 1,
     },
-    tasks: [
-      seasonTask({
-        work_item_id: 'w1',
-        priority: 'acil',
-        is_overdue: true,
-        days_overdue: 4,
-        planned_end_on: '2026-09-30',
-      }),
-      seasonTask({
-        work_item_id: 'w2',
-        title: 'Hidrant hattı',
-        status: 'tamamlandi',
-        is_completed_late: true,
-        days_late: 2,
-        created_at: '2026-03-02T08:00:00Z',
-        assignees: [],
-        priority: 'yuksek',
-      }),
-      seasonTask({
-        work_item_id: 'w3',
-        title: 'Aydınlatma',
-        status: 'iade_edildi',
-        created_at: '2026-03-03T08:00:00Z',
-        department_id: 'd1',
-      }),
-    ],
+    tasks: seasonTasks(),
     ...over,
-  } as SeasonReport
+  }
 }
 
 export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportMeetingDetail {
@@ -190,5 +192,5 @@ export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportM
       { account_id: 'u2', full_name: 'Kadir Özbek', role: 'member' },
     ],
     ...over,
-  } as ReportMeetingDetail
+  }
 }
