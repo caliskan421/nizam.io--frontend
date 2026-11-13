@@ -41,15 +41,18 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   expect(((await meResponse.json()) as { account_id: string }).account_id).toBe(
     fixture.adminAccountId,
   )
-  await expect(status).toHaveAttribute('data-status', 'authenticated')
-  await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
+  // W145 KUSUR 1: kapının yönlendirdiği giriş (`/oturum?next=/`) sonrası kullanıcı `/oturum`'da
+  // kalmaz, geldiği rotaya (ana sayfa) döner.
+  await expect(page.getByTestId('app-shell')).toBeVisible()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(status).toHaveCount(0)
 
   // Üretim CSP'sinde BÜTÜN ihlaller 0 (CX-F1-Ö-03; yazı tipi CX-F0-Ö-05 dahil): kendi barındırılan
   // yazı tipleri `font-src 'self'` ile yüklendi; ayrıntı hata iletisinde. Giriş sonrası belge
-  // kimlik sayfasıdır (`/oturum`; anonim `/` oraya yönlenir) — gerçek ana sayfa / dolu KPI
-  // tanığı değildir (CX-F1-Ö-06; F2 borcu).
+  // ana sayfadır (anonim `/` → `/oturum?next=/` → giriş → `/`); dolu KPI tanığı
+  // değildir (CX-F1-Ö-06; F2 borcu).
   const violations = await cspViolations(page)
-  expect(violations, describeViolations('/oturum', violations)).toEqual([])
+  expect(violations, describeViolations('/', violations)).toEqual([])
   expect(await loadedFontFamilies(page)).toEqual(expect.arrayContaining(['Inter', 'Poppins']))
 
   // Katman sırası (W61b): kabuk yüklendi; components katmanı Tailwind base/preflight'ın üstünde.
@@ -76,16 +79,14 @@ test('giriş → /v1/me → yenileme sonrası sessiz refresh → çıkış', asy
   const refreshed = await silentRefresh
   expect(refreshed.status()).toBe(200)
   const renewed = ((await refreshed.json()) as { access_token?: string }).access_token ?? ''
-  await expect(status).toHaveAttribute('data-status', 'authenticated')
-  await expect(page.getByTestId('me-email')).toHaveText(ADMIN.email)
+  await expect(page.getByTestId('app-shell')).toBeVisible()
   expect(await storageHasOnlyAllowedKeys(page, [accessToken, renewed])).toEqual([])
 
   await page.screenshot({ path: 'test-results/smoke-authenticated.png', fullPage: true })
 
-  // Giriş akışı kimlik sayfasında sürer: anonim `/` → `/oturum` yönlendirmesi (session-gate),
-  // giriş ve yenileme aynı rotada kalır. `session-status` / `logout` yalnız bu sayfadadır.
-  const sessionPath = new URL(page.url()).pathname
-  expect(sessionPath).toBe('/oturum')
+  // Kimlik sayfası (`/oturum`, `next`siz doğrudan ziyaret S0'da kalır): `session-status` / `logout`
+  // yalnız bu sayfadadır.
+  const sessionPath = '/oturum'
 
   // Görev listesi parçası da üretim CSP'sinde ihlalsiz (CX-F1-Ö-03). Tam gezinme: bellek sıfırlanır,
   // oturum sessiz refresh ile döner; ihlal toplayıcı her belgede yeniden kurulur.

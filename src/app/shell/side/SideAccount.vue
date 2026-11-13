@@ -35,7 +35,8 @@ async function signOut(): Promise<void> {
   } finally {
     busy.value = false
   }
-  await router.push(routeLocation('identity.session', {}))
+  // Çıkıştan sonraki giriş ana sayfaya döner (W145 KUSUR 1).
+  await router.push(routeLocation('identity.session', {}, { next: '/' }))
 }
 </script>
 
