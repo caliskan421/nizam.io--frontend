@@ -1,7 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
-import { until } from '@/shared/http/__tests__/settle'
+import { settleQueries } from '@/shared/http/__tests__/settle'
+import { queryKeys } from '@/shared/http/query-keys'
 
 import { resetHarness, server } from '../../__tests__/harness'
 import { ADMIN_ME, baseHandlers, mountWith, unmountAll } from './__tests__/users-harness'
@@ -51,7 +52,7 @@ describe('useWorkloadSelection (E-13-60…62)', () => {
 
   it('rapor eylemi yalnız şirket yöneticisinde açık (canExportWorkload)', async () => {
     const admin = await mountSelection()
-    await until(() => admin.selection.enabled.value)
+    await vi.waitFor(() => expect(admin.selection.enabled.value).toBe(true))
     expect(admin.selection.enabled.value).toBe(true)
     unmountAll()
     const member = await mountSelection({
@@ -59,7 +60,9 @@ describe('useWorkloadSelection (E-13-60…62)', () => {
       companyAdmin: false,
       rows: [{ department_id: 'd1', role: 'koordinator' }],
     })
-    await until(() => member.queryClient.isFetching() === 0)
+    await settleQueries(member.queryClient)
+    // Standing yüklendi (koordinatör satırı var) ve yine de eylem kapalı.
+    expect(member.queryClient.getQueryData(queryKeys.me.root())).toBeDefined()
     expect(member.selection.enabled.value).toBe(false)
   })
 

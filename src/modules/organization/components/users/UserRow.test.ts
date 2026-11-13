@@ -1,6 +1,11 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { i18n } from '@/shared/i18n'
+
+import { fakeSelection } from './__tests__/workload-fake'
+import { WORKLOAD_SELECTION } from './use-workload-selection'
+
 import UserRow from './UserRow.vue'
 
 import type { UserRow as Row } from './user-rows'
@@ -57,5 +62,41 @@ describe('UserRow (E-05-13…21)', () => {
     expect(noTeam.get('[data-testid="role-first"]').text()).toBe('Admin')
     expect(noTeam.find('[data-testid="role-more"]').exists()).toBe(false)
     expect(noTeam.get('[data-testid="user-coord"]').text()).toBe('Atanmamış')
+  })
+})
+
+describe('UserRow — iş yükü seçimi (E-13-60, 62)', () => {
+  const mountPick = (selection?: ReturnType<typeof fakeSelection>) =>
+    mount(UserRow, {
+      props: { row: row(), departments, selected: false },
+      global: {
+        stubs: { RouterLink: RouterLinkStub },
+        plugins: [i18n],
+        provide: selection ? { [WORKLOAD_SELECTION as symbol]: selection } : {},
+      },
+    })
+
+  it('kutu yalnız etkin seçimde; aria-label "‹ad› rapora ekle"; tıklama paneli açmaz, satırı vurgular', async () => {
+    const selection = fakeSelection()
+    const w = mountPick(selection)
+    const box = w.get('[data-testid="user-pick"]')
+    expect(box.attributes('aria-label')).toBe('ışık ünal rapora ekle')
+    await box.setValue(true)
+    expect(w.emitted('select')).toBeUndefined()
+    expect(selection.isSelected('u1')).toBe(true)
+    expect(w.classes()).toContain('rp-sel')
+    expect(
+      mountPick(fakeSelection({ enabled: false }))
+        .find('input')
+        .exists(),
+    ).toBe(false)
+  })
+
+  it('iş yükünde olmayan hesap: devre dışı kutu + ipucu', () => {
+    const w = mountPick(fakeSelection({ blocked: true }))
+    const box = w.get('[data-testid="user-pick"]')
+    expect(box.attributes('disabled')).toBeDefined()
+    expect(box.attributes('title')).toBe('Bu hesap seçili programın iş yükünde değil.')
+    expect(w.get('.users-row__pick').attributes('title')).toBe(box.attributes('title'))
   })
 })
