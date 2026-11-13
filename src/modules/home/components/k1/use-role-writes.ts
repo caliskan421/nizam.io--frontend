@@ -71,7 +71,7 @@ function confirmSubtasks(
       confirmLabel: homeText('home.k1.write.subtasksConfirm'),
       tone: 'primary',
     },
-    resend,
+    (context) => resend(context),
     { context: first },
   )
 }

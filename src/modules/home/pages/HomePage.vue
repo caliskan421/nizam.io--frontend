@@ -2,7 +2,7 @@
 import '../components/role-home.css'
 
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, defineAsyncComponent } from 'vue'
+import { computed } from 'vue'
 
 import { invalidateStanding } from '@/shared/scope/standing'
 import { UiErrorState } from '@/shared/ui'
@@ -11,6 +11,8 @@ import { canSeeAdminRegions } from '../model/capabilities'
 import { homeText } from '../model/messages'
 import { useHomeScope } from '../model/use-home-scope'
 import AdminHomePage from './AdminHomePage.vue'
+import CoordinatorHomePage from './CoordinatorHomePage.vue'
+import MemberHomePage from './MemberHomePage.vue'
 
 /**
  * 01 · Ana sayfa (`/`, S1) — sayfa seçici (P53; `01-ana-sayfa/README.md` K1/Ü1 "Sayfa seçimi").
@@ -18,11 +20,8 @@ import AdminHomePage from './AdminHomePage.vue'
  * yetki, P1); yönetici olmayan hesapta Koordinatör merceği K1 (`CoordinatorHomePage`), Üye
  * merceği Ü1 (`MemberHomePage`) açar (W140). Olgu ya da mercek henüz yoksa (yükleniyor) iskelet,
  * olgu okunamazsa bölge içi hata + "Yeniden dene". Mercek/birim değişince gövde yeniden
- * kurulur (`key`): yerel durum sıfır, sorgular kapsamla düşer (K2). K1/Ü1 ayrı parçalardır.
+ * kurulur (`key`): yerel durum sıfır, sorgular kapsamla düşer (K2).
  */
-const CoordinatorHomePage = defineAsyncComponent(() => import('./CoordinatorHomePage.vue'))
-const MemberHomePage = defineAsyncComponent(() => import('./MemberHomePage.vue'))
-
 const { store, facts, standingError } = useHomeScope()
 const queryClient = useQueryClient()
 const admin = computed(() => canSeeAdminRegions(facts.value))

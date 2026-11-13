@@ -32,7 +32,7 @@ const ICON: Record<string, IconName> = {
         v-if="showTask"
         class="rh-quick"
         :to="{ name: TASKS_ROUTE.name, query: TASKS_NEW_TASK_QUERY }"
-        data-quick="task"
+        data-quick="newTask"
       >
         <span class="rh-quick__top"><UiIcon :name="ICON.task!" /></span>
         <span class="rh-clamp2 rh-quick__label">{{ homeText('home.k1.quick.task') }}</span>
