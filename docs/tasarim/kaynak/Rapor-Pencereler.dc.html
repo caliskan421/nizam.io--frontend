@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<title>RoketPortal — Raporlar · sekmeler, pencereler ve durumlar</title>
+<title>RoketPortal — Raporlar · pencereler, durumlar ve iş yükü seçici</title>
 <script src="./support.js"></script>
 <link rel="stylesheet" href="tema-sistemi/tokens.css">
 <link rel="stylesheet" href="tema-sistemi/bundle.css">
@@ -112,9 +112,9 @@ body{margin:0}
 
 <header style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px">
 <div style="display:flex; flex-direction:column; gap:10px; max-width:940px">
-<p class="rp-kicker">01h · Raporlar · sekmeler, pencereler ve durumlar</p>
-<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Diğer üç sekme, dışa aktarım durumları ve dar ekran</h1>
-<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">Raporlar sayfasının İş yükü, Görev raporları ve Toplantı raporları sekmeleri; PDF ve ZIP indirirken görülen sunucu durumları; koordinatörün tek kayıt raporu aldığı yerler ve 390 px dar ekran. Ekranlar Rahat yoğunlukta, küçük kâğıtlar PDF çıktısının Sıkı önizlemesi.</p>
+<p class="rp-kicker">01h · Raporlar · pencereler, durumlar ve iş yükü seçici (yerleri 01i'de)</p>
+<h1 style="margin:0; font-family:var(--font-display); font-size:36px; line-height:42px; font-weight:600; letter-spacing:-0.02em">Pencereler, dışa aktarım durumları ve dar ekran</h1>
+<p style="margin:0; font-size:15px; line-height:22px; color:var(--ink-muted)">İş yükü üye seçici, görev ve toplantı raporu listeleri, PDF ve ZIP indirirken görülen sunucu durumları, koordinatörün tek kayıt raporu aldığı yerler ve 390 px dar ekran. Bu pencerelerin ekrandaki yerleri 01i'de (Arşiv, Kullanıcılar, toplantı detayı, görev paneli). Ekranlar Rahat yoğunlukta, küçük kâğıtlar PDF çıktısının Sıkı önizlemesi.</p>
 </div>
 <a class="rp-link" href="Raporlar.dc.html">Raporlar sayfasına dön<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
 </header>
@@ -459,21 +459,21 @@ body{margin:0}
 <div class="t-card rp-rapor-state" aria-label="Zaten bir rapor hazırlanıyor">
 <div class="rp-rapor-statehead">
 <span class="rp-ichip" aria-hidden="true"><span class="rp-dot rp-dot--review"></span></span>
-<div><h3>Zaten bir rapor hazırlanıyor</h3><p>27 saniye sonra yeniden deneyin. Önceki raporunuz bitince düğme kendiliğinden açılır.</p></div>
+<div><h3>Zaten bir rapor hazırlanıyor</h3><p>Bitince tekrar deneyin. Önceki raporunuz tamamlanınca düğme kendiliğinden açılır; Retry-After başlığı varsa sayaç gösterilir.</p></div>
 </div>
 <div class="rp-rapor-stateact">
-<span class="rp-rapor-tag">429 · reporting.export_in_progress · Retry-After 27</span>
-<button class="t-btn t-btn--secondary t-btn--sm" type="button" disabled>Bekleyin (27 s)</button>
+<span class="rp-rapor-tag">429 · reporting.export_in_progress</span>
+<button class="t-btn t-btn--secondary t-btn--sm" type="button" disabled>Bekleyin</button>
 </div>
 </div>
 
-<div class="t-card rp-rapor-state" aria-label="Sunucu kapasitesi dolu">
+<div class="t-card rp-rapor-state" aria-label="Sunucu şu an yoğun">
 <div class="rp-rapor-statehead">
 <span class="rp-ichip" aria-hidden="true"><span class="rp-dot rp-dot--back"></span></span>
-<div><h3>Sunucu kapasitesi dolu, biraz sonra</h3><p>Şu an çok sayıda rapor üretiliyor; biraz sonra deneyin (15 sn). Otomatik yeniden deneme yapılmaz.</p></div>
+<div><h3>Sunucu şu an yoğun, biraz sonra tekrar deneyin</h3><p>Şu an çok sayıda rapor üretiliyor. Otomatik yeniden deneme yapılmaz.</p></div>
 </div>
 <div class="rp-rapor-stateact">
-<span class="rp-rapor-tag">503 · reporting.capacity_full · Retry-After: 15 sn</span>
+<span class="rp-rapor-tag">503 · reporting.capacity_full</span>
 <button class="t-btn t-btn--secondary t-btn--sm" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg>Yeniden dene</button>
 </div>
 </div>
@@ -516,7 +516,6 @@ body{margin:0}
 </div>
 </div>
 <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px">
-<span class="rp-cap">Kayda geçer (denetim)</span>
 <div style="display:flex; gap:12px; margin-left:auto">
 <button type="button" class="t-btn t-btn--ghost">Vazgeç</button>
 <button type="button" class="t-btn t-btn--primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Hazırla ve indir</button>
@@ -631,7 +630,7 @@ body{margin:0}
 <section class="rp-rapor-cell" aria-label="Rapor kuralları">
 <p class="rp-kicker">Kurallar</p>
 <p class="rp-rapor-celldesc">Bu pencerelerin hepsinde geçerli olan sabitler.</p>
-<div class="rp-rapor-rule"><h3>Tek seferde tek rapor</h3><p>Hesap başına aynı anda tek PDF üretilir. İkinci istek 429 alır ve Retry-After süresi düğmede geri sayılır; kapasite dolunca 503 döner.</p></div>
+<div class="rp-rapor-rule"><h3>Tek seferde tek rapor</h3><p>Hesap başına aynı anda tek PDF üretilir. İkinci istek 429 alır (Retry-After başlığı varsa sayaç gösterilir); sunucu yoğunsa 503 döner.</p></div>
 <div class="rp-rapor-rule"><h3>Liste 200 satırda kesilir</h3><p>Görev ve toplantı listeleri en çok 200 satır getirir; kesme olursa altın tonlu bant çıkar. PDF'ler kesilmez.</p></div>
 <div class="rp-rapor-rule"><h3>Kâğıt her temada açık</h3><p>PDF önizlemesi koyu temada da açık zemin, koyu mürekkep; bant nötr koyu. Ekranın kabuğu temayı izler.</p></div>
 <div class="rp-rapor-rule"><h3>Gecikme kuralı</h3>

@@ -15,6 +15,14 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { meetingId: 'm' }, query: { zaman: 'gecmis', notlar: 'benim' } }),
   useRouter: () => ({ push: mocks.push }),
 }))
+// TASLAK (KESİN 16): `MeetingReportButton` (reports/W138) bu dosyada saplamayla değiştirilir;
+// gerçek düğme `reports/components/MeetingReportButton.test.ts`'tedir.
+vi.mock('@/modules/reports/public', () => ({
+  MeetingReportButton: {
+    props: ['meeting'],
+    template: '<span data-testid="meeting-report" :data-meeting="meeting.meeting_id" />',
+  },
+}))
 vi.mock('./detail/use-departments', () => ({ useDepartments: () => ref([]) }))
 vi.mock('../api/queries', () => ({
   useMeeting: () => ({

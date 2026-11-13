@@ -3,6 +3,7 @@ import './detail.css'
 
 import { computed, ref } from 'vue'
 
+import { TaskReportButton } from '@/modules/reports/public'
 import { DateRequestForm, panelText } from '@/modules/timeline/public'
 import { DesignStub, UiIconButton, useToast } from '@/shared/ui'
 
@@ -56,6 +57,7 @@ async function copyLink(): Promise<void> {
 
 <template>
   <div class="wd-actions" role="group" :aria-label="t('workDetail.actions.label')">
+    <TaskReportButton :item="item" />
     <UiIconButton
       v-if="canUpload"
       class="wd-upbtn"

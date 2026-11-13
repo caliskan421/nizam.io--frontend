@@ -124,7 +124,7 @@ body{margin:0}
 <p class="rp-rapor-celldesc">Dönem sonu raporu ve dönem arşivi burada. Mevcut "Tümünü indir" → "Dönem arşivi (ZIP)" adını alır; "Dönem sonu raporu (PDF)" ve bitişik "Bölüm seç…" eklenir.</p>
 <div class="rp-rapor-win" style="padding:0">
 <div class="rp-head" style="padding:24px 28px 28px">
-<div><h1 class="rp-h1">Arşiv</h1><p class="rp-sub">Kurumsal hafıza · tamamlanan her görevin kanıt dosyaları burada</p></div>
+<div><h1 class="rp-h1">Arşiv</h1><p class="rp-sub">Görevlere yüklenen dosyalar</p></div>
 <div class="rp-actions" style="align-items:flex-start">
 <span style="display:flex; flex-direction:column; gap:6px; align-items:flex-start"><span class="rp-rapor-split"><button class="t-btn t-btn--secondary rp-rapor-mark" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg>Dönem sonu raporu (PDF)</button><!-- [BE aday 6] bölüm/koordinatörlük seçimi parametresi v0.15'te yok; pencere statik, tüm bölümler seçiliyken düz indirme canlı --><button class="t-iconbtn t-iconbtn--md rp-rapor-mark" type="button" aria-label="Bölüm seç…" title="Bölüm seç… — varsayılan tam rapor"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></span><a class="rp-link" href="Rapor-Donem.dc.html"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg>Önizle (01f)</a></span>
 <!-- [BE-120] yönetici için dönem ZIP'i Arşiv'den — backend'de hazır değil; devre dışı, statik -->
@@ -133,7 +133,7 @@ body{margin:0}
 </div>
 </div>
 </div>
-<p class="rp-cap" style="margin:0">Mevcut "Tümünü indir" → "Dönem arşivi (ZIP)". Önizleme (01f) buradan açılır: "Önizle" bağlantısı PDF düğmesinin altında. Dosya: donem-raporu-2026-10-21.pdf · 2,4 MB · 14 sayfa; ZIP 63 dosya · 668,7 MB.</p>
+<p class="rp-cap" style="margin:0">Mevcut "Tümünü indir" → "Dönem arşivi (ZIP)". Önizleme (01f) buradan açılır: "Önizle" bağlantısı PDF düğmesinin altında. Dosya: donem-raporu-2026-10-21.pdf · 2,4 MB · 17 sayfa; ZIP 63 dosya · 668,7 MB.</p>
 </section>
 
 <!-- ═════ B. Bölüm seçimi penceresi ═════ -->
@@ -165,7 +165,7 @@ body{margin:0}
 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px"><p class="rp-kicker">KOORDİNATÖRLÜKLER</p><span class="rp-rapor-soon">yakında</span></div>
 <div class="rp-chiprow" style="gap:6px"><button type="button" class="rp-chipbtn" aria-pressed="true">Tümü</button><sc-for list="{{ coords }}" as="c" hint-placeholder-count="11"><button type="button" class="rp-chipbtn" aria-pressed="true"><span class="rp-mono">{{ c.code }}</span></button></sc-for></div>
 </div>
-<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px"><span class="rp-cap"><span class="rp-mono" style="color:var(--ink)">≈ 14 sayfa · 11 koordinatörlük</span> · PDF · A4 · kayda geçer (denetim)</span><div style="display:flex; gap:12px; margin-left:auto"><button type="button" class="t-btn t-btn--ghost">Vazgeç</button><button type="button" class="t-btn t-btn--primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Seçilenleri indir (PDF)</button></div></div>
+<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px"><span class="rp-cap"><span class="rp-mono" style="color:var(--ink)">≈ 17 sayfa · 11 koordinatörlük</span> · PDF · A4 · kayda geçer (denetim)</span><div style="display:flex; gap:12px; margin-left:auto"><button type="button" class="t-btn t-btn--ghost">Vazgeç</button><button type="button" class="t-btn t-btn--primary"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Seçilenleri indir (PDF)</button></div></div>
 </div>
 
 <div style="display:flex; flex-direction:column; gap:12px; min-width:0">
@@ -175,7 +175,7 @@ body{margin:0}
 <div><strong>[BE] v0.15'te bölüm/koordinatörlük parametresi yok</strong> → pencere statik; bütün kutular seçiliyken düz indirme (canlı). Bir kutu kaldırılınca "Seçilenleri indir" yakında rozetiyle devre dışı kalır.</div>
 <span class="rp-rapor-soon" style="grid-column:2; justify-self:start">yakında</span>
 </div>
-<div class="rp-rapor-rule"><h3>Varsayılan tam rapor</h3><p>Pencere kapatılır ya da hiçbir kutu değişmezse "Seçilenleri indir" = "Dönem sonu raporu (PDF)" ile aynı dosya: donem-raporu-2026-10-21.pdf · 2,4 MB · 14 sayfa.</p></div>
+<div class="rp-rapor-rule"><h3>Varsayılan tam rapor</h3><p>Pencere kapatılır ya da hiçbir kutu değişmezse "Seçilenleri indir" = "Dönem sonu raporu (PDF)" ile aynı dosya: donem-raporu-2026-10-21.pdf · 2,4 MB · 17 sayfa.</p></div>
 <div class="rp-rapor-rule"><h3>Kapak ve içindekiler kilitli</h3><p>Her çıktıda bulunur; içindekiler yalnız seçilen bölümleri listeler.</p></div>
 </div>
 
@@ -392,7 +392,7 @@ body{margin:0}
 <button class="t-iconbtn" type="button" aria-label="Bildirimler"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg></button>
 </div>
 <div class="rp-rapor-phonebody">
-<div><h2 class="rp-h1" style="font-size:26px; line-height:32px">Arşiv</h2><p class="rp-sub">Kurumsal hafıza · tamamlanan her görevin kanıt dosyaları burada</p></div>
+<div><h2 class="rp-h1" style="font-size:26px; line-height:32px">Arşiv</h2><p class="rp-sub">Görevlere yüklenen dosyalar</p></div>
 <div style="display:flex; flex-direction:column; gap:8px">
 <span class="rp-rapor-split" style="display:flex"><button class="t-btn t-btn--secondary t-btn--block" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg>Dönem sonu raporu (PDF)</button><button class="t-iconbtn t-iconbtn--md" type="button" aria-label="Bölüm seç…"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></span>
 <!-- [BE-120] yönetici için dönem ZIP'i Arşiv'den — backend'de hazır değil; devre dışı, statik -->
@@ -428,7 +428,7 @@ body{margin:0}
 <!-- [BE aday 1] koordinatörlük süzgeci — reportSeasonPdf parametre almaz; çipler statik -->
 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px"><p class="rp-kicker">KOORDİNATÖRLÜKLER</p><span class="rp-rapor-soon">yakında</span></div>
 <div class="rp-chiprow" style="gap:6px"><button type="button" class="rp-chipbtn" aria-pressed="true">Tümü</button><sc-for list="{{ coords }}" as="c" hint-placeholder-count="11"><button type="button" class="rp-chipbtn" aria-pressed="true"><span class="rp-mono">{{ c.code }}</span></button></sc-for></div>
-<span class="rp-cap">≈ 14 sayfa · 11 koordinatörlük</span>
+<span class="rp-cap">≈ 17 sayfa · 11 koordinatörlük</span>
 </div>
 <div class="rp-rapor-phonefoot">
 <button class="t-btn t-btn--primary t-btn--block" type="button"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>Seçilenleri indir (PDF)</button>
@@ -481,7 +481,7 @@ class Component extends DCLogic {
       { id: 'ozet', label: 'Yönetici özeti', pg: '1 s.', cls: '' },
       { id: 'gantt', label: 'Gantt — görev zaman çizelgesi', pg: '1 s.', cls: '' },
       { id: 'genel', label: 'Teknofest geneli', pg: '1 s.', cls: '' },
-      { id: 'koord', label: 'Koordinatörlük bölümleri', pg: '8 s.', cls: '' },
+      { id: 'koord', label: 'Koordinatörlük bölümleri', pg: '11 s.', cls: '' },
       { id: 'k-gorev', label: 'Görev tablosu', pg: '', cls: SUB },
       { id: 'k-detay', label: 'Görev detay kartları (notlar, tarih talepleri)', pg: '', cls: SUB },
       { id: 'k-topl', label: 'Toplantılar', pg: '', cls: SUB },

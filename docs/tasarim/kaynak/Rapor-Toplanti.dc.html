@@ -80,12 +80,12 @@ a.t-btn{text-decoration:none}
 </style>
 </helmet>
 <div class="rp-page" data-theme="{{ theme }}">
-<div class="rp-side"><dc-import name="Sidebar" active="home" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
+<div class="rp-side"><dc-import name="Sidebar" active="meetings" ctx="{{ sbctx }}" hint-size="272px,1100px"></dc-import></div>
 <main class="rp-main">
 
 <div class="rp-topbar">
 <div class="rp-navbtns" role="group" aria-label="Gezinme geçmişi"><button type="button" aria-label="Geri" title="Geri"><svg class="t-icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" aria-label="İleri" title="İleri" disabled><svg class="t-icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div>
-<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Raporlar.dc.html">Raporlar</a><span aria-hidden="true">/</span><strong>Toplantı raporu</strong></nav>
+<nav class="rp-crumbs" aria-label="Konum"><a href="#">Şanlıurfa Teknofest</a><span aria-hidden="true">/</span><a href="Toplantilar.dc.html">Toplantılar</a><span aria-hidden="true">/</span><a href="Toplanti-Detay.dc.html">Haftalık koordinasyon toplantısı</a><span aria-hidden="true">/</span><strong>Toplantı raporu</strong></nav>
 <span class="rp-kicker rp-nowrap">21 Ekim 2026, Çarşamba</span>
 <button class="t-iconbtn rp-themebtn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><svg class="t-icon t-icon--sm rp-ic-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><svg class="t-icon t-icon--sm rp-ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button><button class="t-iconbtn" type="button" aria-label="Bildirimler, 2 okunmamış" style="position:relative"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 2px var(--bg-base)"></span></button>
 </div>
@@ -116,7 +116,7 @@ a.t-btn{text-decoration:none}
 <div class="rp-tgroup">
 <button class="t-btn t-btn--primary t-btn--sm" type="button" onClick="{{ h.pdf }}"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"></path></svg>PDF indir</button>
 <a class="t-btn t-btn--secondary t-btn--sm" href="Toplanti-Detay.dc.html"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"></path></svg>Toplantıya git</a>
-<a class="t-btn t-btn--ghost t-btn--sm" href="Raporlar.dc.html"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>Kapat</a>
+<a class="t-btn t-btn--ghost t-btn--sm" href="Toplanti-Detay.dc.html"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>Kapat</a>
 </div>
 </div>
 
@@ -135,7 +135,7 @@ a.t-btn{text-decoration:none}
 <p class="rp-rapor-kicker">ŞANLIURFA TEKNOFEST · TOPLANTI RAPORU</p>
 <span class="rp-rapor-band__rule" aria-hidden="true"></span>
 <h2 class="rp-rapor-band__h">HAFTALIK KOORDİNASYON TOPLANTISI</h2>
-<p class="rp-rapor-band__d">14.10.2026 · 14:00–15:10</p>
+<p class="rp-rapor-band__d">14.10.2026 · 14:00</p>
 </div>
 <span class="rp-rapor-logo rp-rapor-logo--lg" aria-hidden="true">ŞT</span>
 </header>
@@ -199,20 +199,16 @@ a.t-btn{text-decoration:none}
 
 <aside class="rp-aside" aria-label="Rapor bilgileri">
 <section class="t-card" aria-labelledby="tg-title" style="padding:22px; display:flex; flex-direction:column; gap:12px">
-<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle" id="tg-title">Tetikleyiciler <span class="rp-count">3</span></h2></div>
-<p class="rp-cap" style="margin:0">Aynı toplantı raporu üç yerden üretilir; içerik ve dosya aynıdır.</p>
+<div class="rp-cardhead" style="margin:0"><h2 class="rp-cardtitle" id="tg-title">Tetikleyiciler <span class="rp-count">2</span></h2></div>
+<p class="rp-cap" style="margin:0">Bu rapor 09b toplantı detayı ve K7 başlığındaki 'Toplantı raporu (PDF)' düğmesiyle üretilir (yönetici + toplantının sahip/dahil koordinatörü). Önizleme yalnız yönetici.</p>
 <div>
-<div class="rp-rapor-trig">
-<span class="rp-ichip" aria-hidden="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M6 2h8l6 6v14H6zM14 2v6h6"></path></svg></span>
-<div style="min-width:0"><p class="rp-rapor-trig__t">Raporlar › Toplantı raporları sekmesi</p><p class="rp-rapor-trig__s">Toplantı satırının sağındaki "Toplantı raporu (PDF)"</p><span class="rp-rapor-role">Yönetici</span></div>
-</div>
 <div class="rp-rapor-trig">
 <span class="rp-ichip" aria-hidden="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg></span>
 <div style="min-width:0"><p class="rp-rapor-trig__t">09b Toplantı detayı › "Toplantı raporu (PDF)"</p><p class="rp-rapor-trig__s">Başlığın sağındaki secondary düğme</p><span class="rp-rapor-role">Yönetici</span></div>
 </div>
 <div class="rp-rapor-trig">
 <span class="rp-ichip" aria-hidden="true"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v7M9 15l3 3 3-3"></path></svg></span>
-<div style="min-width:0"><p class="rp-rapor-trig__t">K7 Koordinatör toplantı ekranı › "Toplantı raporu (PDF)"</p><p class="rp-rapor-trig__s">Koordinatör, yalnız kendi koordinatörlüğünün toplantıları için</p><span class="rp-rapor-role">Yalnız kendi koordinatörlüğü</span></div>
+<div style="min-width:0"><p class="rp-rapor-trig__t">K7 Koordinatör toplantı ekranı › "Toplantı raporu (PDF)"</p><p class="rp-rapor-trig__s">Sahip olduğu ya da dahil edildiği toplantılar için</p><span class="rp-rapor-role">Sahip ya da dahil koordinatör</span></div>
 </div>
 </div>
 <hr class="rp-hairline">

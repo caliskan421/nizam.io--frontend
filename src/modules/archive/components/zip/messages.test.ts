@@ -23,7 +23,7 @@ describe('archive.zip metinleri', () => {
 
   it('tasarım adları birebir; arşivde silinenler/geri yükleme vaadi yok (E-06-63)', () => {
     expect(zipText('folder.label')).toBe('Klasörü ZIP olarak indir')
-    expect(zipText('period.label')).toBe('Tümünü indir')
+    expect(zipText('period.label')).toBe('Dönem arşivi (ZIP)')
     expect(JSON.stringify(trZip)).not.toMatch(/silinen|geri yükle/i)
   })
 })

@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import './reports.css'
+
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { UiButton } from '@/shared/ui'
 
@@ -12,6 +13,8 @@ import {
   type ReportActionPhase,
 } from '../model/action-state'
 import type { ReportFailure, ReportKind } from '../model/types'
+import ReportStateCard from './ReportStateCard.vue'
+import { t } from './text'
 
 /**
  * Rapor düğmesi (13 `mekanizma.md` §3.1; dört yerde aynı bileşen): `kind` PDF türü
@@ -21,19 +24,24 @@ import type { ReportFailure, ReportKind } from '../model/types'
  * altındadır (biri hazırlanırken diğerleri kilitli). Olaylar: `done(dosyaAdı)` indirme
  * kaydedildi, `failed(kod)` sınıflandırılmış hata (iptal/kilit olay üretmez). Etiket varsayılandır;
  * ekran kendi etiketini yuvayla verebilir. Yetki kararı çağıranındır (`model/capabilities.ts`).
+ * Durum kartları ortak `ReportStateCard`'dır (01h; W138). `trailing` yuvası düğmeye bitişik ek
+ * denetimdir ("Bölüm seç…"); `start()` dışarıya açılır (bölüm penceresinin "Seçilenleri indir"i
+ * AYNI düğme durumunda çalışsın diye; ek yüzey, prop/emit sözleşmesi değişmez).
  */
 const props = defineProps<{
   kind: ReportKind
   targetId?: string
   memberIds?: readonly string[]
   disabledReason?: string
+  /** Görünüm (W138 eki): önizleme araç çubukları birincil + küçük düğme ister. */
+  variant?: 'primary' | 'secondary'
+  size?: 'sm' | 'md'
 }>()
 const emit = defineEmits<{
   done: [fileName: string]
   failed: [code: string]
 }>()
 
-const { t } = useI18n()
 const downloads = useReportDownloads()
 const phase = ref<ReportActionPhase>('idle')
 const failure = ref<ReportFailure | null>(null)
@@ -65,6 +73,20 @@ const label = computed(() => {
   }
 })
 const failureText = computed(() => (failure.value ? t(failure.value.messageKey) : ''))
+// 429/503 kartı başlığı ve kod satırı (01h); diğer hatalar yalnız metin gösterir.
+const FAILURE_STATUS: Partial<Record<ReportFailure['kind'], number>> = {
+  export_in_progress: 429,
+  capacity_full: 503,
+}
+const failureTitle = computed(() => {
+  const kind = failure.value?.kind
+  return kind === 'export_in_progress' || kind === 'capacity_full'
+    ? t(`reports.status.${kind}.title`)
+    : undefined
+})
+const failureStatus = computed(() =>
+  failure.value ? FAILURE_STATUS[failure.value.kind] : undefined,
+)
 
 // Başka kayda/seçime geçilince önceki sonuç gösterilmez.
 watch(
@@ -96,12 +118,16 @@ async function start(): Promise<void> {
     emit('failed', result.failure.code)
   }
 }
+defineExpose({ start })
 </script>
 
 <template>
   <div class="report-action" :data-state="state">
     <div class="report-action__row">
       <UiButton
+        icon="download"
+        :variant="props.variant"
+        :size="props.size"
         :disabled="!canStart(state)"
         :title="props.disabledReason"
         :aria-busy="state === 'preparing' ? 'true' : undefined"
@@ -113,24 +139,30 @@ async function start(): Promise<void> {
       <UiButton v-if="state === 'preparing'" variant="ghost" size="sm" @click="downloads.cancel()">
         {{ t('reports.action.cancel') }}
       </UiButton>
+      <slot name="trailing" />
     </div>
-    <div
+    <ReportStateCard
       v-if="state === 'preparing'"
-      role="status"
-      :aria-label="t('reports.status.preparing.title')"
-    >
-      <p>{{ t('reports.status.preparing.title') }}</p>
-      <p>{{ t('reports.status.preparing.body', { report: reportLabel }) }}</p>
-      <p :aria-label="t('reports.status.preparing.progressLabel')">
-        {{ t('reports.status.preparing.progress') }}
-      </p>
-    </div>
-    <p v-else-if="state === 'locked'" role="status">{{ t('reports.action.locked') }}</p>
-    <p v-else-if="state === 'downloaded'" role="status">
-      {{ t('reports.action.downloaded', { name: fileName }) }}
+      tone="progress"
+      :title="t('reports.status.preparing.title')"
+      :body="t('reports.status.preparing.body', { report: reportLabel })"
+    />
+    <p v-else-if="state === 'locked'" class="report-action__note" role="status">
+      {{ t('reports.action.locked') }}
     </p>
-    <p v-else-if="state === 'failed' || (state === 'cooldown' && failure)" role="alert">
-      {{ failureText }}
-    </p>
+    <ReportStateCard
+      v-else-if="state === 'downloaded'"
+      tone="success"
+      :body="t('reports.action.downloaded', { name: fileName })"
+      :note="t('reports.states.auditNote')"
+    />
+    <ReportStateCard
+      v-else-if="state === 'failed' || (state === 'cooldown' && failure)"
+      :tone="failureStatus === undefined ? 'error' : 'warn'"
+      :title="failureTitle"
+      :body="failureText"
+      :status="failureStatus"
+      :code="failure?.code"
+    />
   </div>
 </template>
