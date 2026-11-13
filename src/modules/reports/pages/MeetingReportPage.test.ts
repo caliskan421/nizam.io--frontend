@@ -139,13 +139,11 @@ describe('MeetingReportPage (01g; E-13-46…53)', () => {
     expect(takeFocusReturn(meetingReturnKey('m1'))).toBe(true)
   })
 
-  it('yan kartlar: iki tetikleyici (üçüncü "sekme" yok), üye notu', async () => {
+  it('yan kart: "Tetikleyiciler" tasarım notu çizilmez (E-13-54 ret); yalnız denetim ve saat notu', async () => {
     const { wrapper } = await open()
     const aside = wrapper.get('aside')
-    expect(aside.text()).toContain('Tetikleyiciler')
-    expect(aside.findAll('.report-trig')).toHaveLength(2)
-    expect(aside.text()).not.toMatch(/Raporlar ›|sekmesi|toplanti-raporu-.*\.pdf|MB/)
-    expect(aside.text()).toContain('Üye için rapor ucu yok.')
+    expect(aside.text()).not.toMatch(/Tetikleyiciler|Üye için rapor ucu yok|09b|K7/)
+    expect(aside.text()).toContain('Rapor indirmeleri kayda geçer (denetim).')
   })
 
   it('"PDF indir" toplantı PDF biletini üretir', async () => {

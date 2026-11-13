@@ -8,7 +8,7 @@ import { toApiError } from '@/shared/errors/api-error'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
-import { UiErrorState, UiIcon } from '@/shared/ui'
+import { UiErrorState } from '@/shared/ui'
 
 import { useReportMeetingDetail } from '../api/queries'
 import MeetingPaper from '../components/preview/MeetingPaper.vue'
@@ -23,8 +23,8 @@ import { meetingReturnKey, requestFocusReturn } from '../model/return-focus'
 /**
  * 01g toplantı raporu önizlemesi (`/toplantilar/:meetingId/rapor`; E-13-46…53). Yalnız şirket
  * yöneticisi (`ReportsGate`); `reportMeetingDetail` hafif okumadır. Kırıntı/"Kapat"/"Toplantıya
- * git" toplantı detayına döner (P47: "Raporlar" bağlantısı yok); yan kartlar iki tetikleyiciyi
- * (09b, K7) söyler. Bitiş saati ve not yazarı yoktur; "Sayfa 1 / 1" gizli.
+ * git" toplantı detayına döner (P47: "Raporlar" bağlantısı yok); "Tetikleyiciler" kartı tasarım notudur,
+ * çizilmez (E-13-54 ret; W142 KUSUR 2). Bitiş saati ve not yazarı yoktur; "Sayfa 1 / 1" gizli.
  */
 const route = useRoute()
 const scope = useScopeStore()
@@ -119,26 +119,6 @@ function onClose(): void {
         </div>
       </div>
       <aside class="report-page__aside" :aria-label="t('reports.meeting.aside.label')">
-        <section class="t-card report-aside-card" aria-labelledby="report-trig">
-          <h2 id="report-trig">{{ t('reports.meeting.aside.triggers') }}</h2>
-          <p>{{ t('reports.meeting.aside.triggersText') }}</p>
-          <div class="report-trig">
-            <span class="report-trig__t"
-              ><UiIcon name="file" size="sm" /> {{ t('reports.meeting.aside.detail') }}</span
-            >
-            <p>{{ t('reports.meeting.aside.detailSub') }}</p>
-            <span class="report-pill">{{ t('reports.meeting.aside.detailRole') }}</span>
-          </div>
-          <div class="report-trig">
-            <span class="report-trig__t"
-              ><UiIcon name="file" size="sm" /> {{ t('reports.meeting.aside.coordinator') }}</span
-            >
-            <p>{{ t('reports.meeting.aside.coordinatorSub') }}</p>
-            <span class="report-pill">{{ t('reports.meeting.aside.coordinatorRole') }}</span>
-          </div>
-          <p>{{ t('reports.meeting.aside.notCount') }}</p>
-          <p>{{ t('reports.meeting.aside.member') }}</p>
-        </section>
         <section class="t-card report-aside-card">
           <p>{{ t('reports.meeting.aside.audit') }}</p>
           <p>{{ t('reports.meeting.aside.times') }}</p>

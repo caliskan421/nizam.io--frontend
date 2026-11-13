@@ -300,21 +300,9 @@ export const trReports = {
         taskGone: '—',
         footRight: 'RoketPortal · {date}',
       },
-      // Yan kartlar (v87): iki tetikleyici; rapor kuralları.
+      // Yan kart (v87): rapor kuralları ("Tetikleyiciler" kartı çizilmez: E-13-54 ret).
       aside: {
         label: 'Rapor bilgileri',
-        triggers: 'Tetikleyiciler',
-        triggersText:
-          "Bu rapor 09b toplantı detayı ve K7 başlığındaki 'Toplantı raporu (PDF)' düğmesiyle üretilir (yönetici + toplantının sahip/dahil koordinatörü). Önizleme yalnız yönetici.",
-        detail: "09b Toplantı detayı › 'Toplantı raporu (PDF)'",
-        detailSub: 'Başlığın sağındaki secondary düğme',
-        detailRole: 'Yönetici',
-        coordinator: "K7 Koordinatör toplantı ekranı › 'Toplantı raporu (PDF)'",
-        coordinatorSub: 'Sahip olduğu ya da dahil edildiği toplantılar için',
-        coordinatorRole: 'Sahip ya da dahil koordinatör',
-        notCount:
-          'Rapor not sayısına bağlı değildir; gündemi olup notu olmayan toplantı da indirilebilir.',
-        member: 'Üye için rapor ucu yok.',
         audit: 'Rapor indirmeleri kayda geçer (denetim).',
         times: 'Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre.',
       },
