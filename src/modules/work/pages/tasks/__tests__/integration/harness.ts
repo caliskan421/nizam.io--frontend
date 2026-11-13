@@ -196,7 +196,13 @@ export async function mountApp(selection: ScopeSelection, path = '/gorevler'): P
   })
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [...homeRoutes, ...workRoutes],
+    routes: [
+      ...homeRoutes,
+      ...workRoutes,
+      // 01 hızlı işlemleri canlı bağlantılar (W145 KUSUR 3): hedef rotalar kayıtlı olmalı.
+      { path: '/toplantilar', name: 'collaboration.meetings', component: { render: () => null } },
+      { path: '/kullanicilar', name: 'organization.users', component: { render: () => null } },
+    ],
   })
   await router.push(path)
   const wrapper = mount(Root, {
