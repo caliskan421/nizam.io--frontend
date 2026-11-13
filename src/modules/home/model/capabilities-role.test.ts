@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { parseStanding, type Standing } from '@/shared/scope/standing-facts'
 
-import { coordinatedUnitNames, homeVariant, isCoordinatorRole } from './capabilities'
+import { coordinatedUnitNames, isCoordinatorRole } from './capabilities'
 
 function standing(companyAdmin: boolean, rows: Array<[string, string, string]> = []): Standing {
   return parseStanding(
@@ -18,29 +18,6 @@ function standing(companyAdmin: boolean, rows: Array<[string, string, string]> =
     },
   )
 }
-
-describe('sayfa seçimi (P53, W135 varsayımı 1)', () => {
-  const coordinator = standing(false, [['p1', 'd1', 'koordinator']])
-  const member = standing(false, [['p1', 'd1', 'uye']])
-  const adminAndMember = standing(true, [['p1', 'd1', 'uye']])
-
-  it('company_admin her mercekte yönetici sayfası (P1)', () => {
-    for (const lens of ['admin', 'coordinator', 'member', null] as const) {
-      expect(homeVariant(adminAndMember, lens), String(lens)).toBe('admin')
-    }
-  })
-
-  it('yönetici olmayan: Koordinatör merceği K1, Üye merceği Ü1', () => {
-    expect(homeVariant(coordinator, 'coordinator')).toBe('coordinator')
-    expect(homeVariant(member, 'member')).toBe('member')
-  })
-
-  it('olgu ya da mercek yoksa yönetici sayfası (yükleniyor durumu onun)', () => {
-    expect(homeVariant(null, 'member')).toBe('admin')
-    expect(homeVariant(member, null)).toBe('admin')
-    expect(homeVariant(member, 'admin')).toBe('admin')
-  })
-})
 
 describe('ekip rolü ve koordinatörlük adları', () => {
   it('liste satırı rolü', () => {

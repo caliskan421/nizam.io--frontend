@@ -55,7 +55,7 @@ const ICON: Record<string, IconName> = {
         </span>
         <span class="rh-clamp2 rh-quick__label">{{ homeText('home.k1.quick.member') }}</span>
       </button>
-      <RouterLink class="rh-quick" :to="{ name: TIMELINE_ROUTE.name }" data-quick="request">
+      <RouterLink class="rh-quick" :to="{ path: TIMELINE_ROUTE.path }" data-quick="request">
         <span class="rh-quick__top"><UiIcon :name="ICON.request!" /></span>
         <span class="rh-clamp2 rh-quick__label">{{ homeText('home.k1.quick.request') }}</span>
       </RouterLink>

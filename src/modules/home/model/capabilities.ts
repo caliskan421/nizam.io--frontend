@@ -16,7 +16,13 @@
 import type { ScopeLens } from '@/shared/scope/scope'
 import type { Standing } from '@/shared/scope/standing-facts'
 
-export type HomeCapability = 'readDashboard' | 'createMeeting' | 'addUser' | 'openDeletedRecords'
+export type HomeCapability =
+  | 'readDashboard'
+  | 'createMeeting'
+  | 'addUser'
+  | 'openDeletedRecords'
+  | 'seeAdminRegions'
+  | 'createReport'
 
 /** Her kararın kaynağı (denetim izi). */
 export const HOME_CAPABILITY_SOURCES: Readonly<Record<HomeCapability, string>> = {
@@ -28,6 +34,10 @@ export const HOME_CAPABILITY_SOURCES: Readonly<Record<HomeCapability, string>> =
     'ORGANIZATION README POST /v1/admin/users (createUser): şirket yöneticisi ∨ koordinatör (yalnız uye)',
   openDeletedRecords:
     '12-silinen-kayitlar README + istemci-akislari §3 silinen listeleri (P36): yalnız şirket yöneticisi, mercekten bağımsız (P1)',
+  seeAdminRegions:
+    'REPORTING-K01 + P53: ekip şeridi, koordinatörlük kartları ve alt bilgi program geneli; yalnız şirket yöneticisi, mercekten bağımsız (P1)',
+  createReport:
+    'REPORTING-K01 + P47/P53: "Rapor oluştur" yönlendirme menüsü yalnız şirket yöneticisi, mercekten bağımsız (P1); K/Ü rapor kutucuğu görmez',
 }
 
 /** Seçili programda en az bir departmanın koordinatörü mü. */
@@ -63,22 +73,6 @@ export function canAddUser(standing: Standing | null, programId: string | null):
   return adminOrCoordinator(standing, programId)
 }
 
-/** 01 ana sayfa gövdesi: yönetici sayfası, K1 (koordinatör) ya da Ü1 (üye) — P53. */
-export type HomeVariant = 'admin' | 'coordinator' | 'member'
-
-/**
- * Sayfa seçimi (P53, geçici kabul — W135 varsayımı 1): `company_admin` mercek ne olursa olsun
- * yönetici sayfasını görür (P1; E-01-28 kartları program geneli). K1 yalnız `company_admin`
- * OLMAYAN hesabın Koordinatör merceğinde, Ü1 yalnız Üye merceğinde açılır. Olgular (standing)
- * ya da mercek henüz yoksa yönetici sayfası (kendi yükleniyor durumu) kalır.
- */
-export function homeVariant(standing: Standing | null, lens: ScopeLens | null): HomeVariant {
-  if (!standing || standing.companyAdmin) return 'admin'
-  if (lens === 'coordinator') return 'coordinator'
-  if (lens === 'member') return 'member'
-  return 'admin'
-}
-
 /** Ekip listesi satırının rolü koordinatör mü (`listMembers` satırı; yalnız gösterim noktası). */
 export function isCoordinatorRole(role: string): boolean {
   return role === 'koordinator'
@@ -97,4 +91,18 @@ export function coordinatedUnitNames(
     }
   }
   return [...seen.values()]
+}
+
+/**
+ * F6 yönetici bölgeleri (E-01-19…39; P53): ekip şeridi, koordinatörlük kartları, alt bilgi. Girdi
+ * yalnız `company_admin` OLGUSUdur; mercek değil — yönetici K/Ü merceğine geçince de program
+ * geneli kalır. `reportDashboard` yalnız bu olguyla çağrılır (REPORTING-K01).
+ */
+export function canSeeAdminRegions(standing: Standing | null): boolean {
+  return standing?.companyAdmin === true
+}
+
+/** "Rapor oluştur" kutucuğu (E-01-12; P47): yalnız şirket yöneticisi; menü ağ isteği atmaz. */
+export function canCreateReport(standing: Standing | null): boolean {
+  return standing?.companyAdmin === true
 }

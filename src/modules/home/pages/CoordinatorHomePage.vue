@@ -9,6 +9,7 @@ import { canCreateWorkItem, TASKS_NEW_TASK_QUERY, TASKS_ROUTE } from '@/modules/
 import { toApiError } from '@/shared/errors/api-error'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
+import { UiEmptyState } from '@/shared/ui'
 
 import { useRoleLoad } from '../api/role/use-role-load'
 import { useRoster } from '../api/role/use-roster'
@@ -118,7 +119,7 @@ const retryCounts = () => void load.counts.refetch()
 </script>
 
 <template>
-  <section class="role-home" data-testid="k1-home">
+  <section class="role-home" data-testid="home-page" data-home="k1">
     <div class="rh-head">
       <div>
         <h1 v-if="facts" class="rh-greeting" data-testid="home-greeting">
@@ -146,7 +147,15 @@ const retryCounts = () => void load.counts.refetch()
         </RouterLink>
       </div>
     </div>
-    <div class="rh-body">
+    <div v-if="!ready" class="rh-body">
+      <UiEmptyState
+        icon="coords"
+        :title="homeText('home.kpi.selectTitle')"
+        :text="homeText('home.kpi.selectText')"
+        data-testid="role-select"
+      />
+    </div>
+    <div v-else class="rh-body">
       <UnitStrip
         :unit="unitName"
         :summary="summary"

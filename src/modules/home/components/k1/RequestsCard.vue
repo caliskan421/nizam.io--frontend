@@ -35,7 +35,7 @@ const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-
         {{ homeText('home.k1.requests.title') }}
         <UiCount :value="rows.length" />
       </h2>
-      <RouterLink class="rh-link" :to="{ name: TIMELINE_ROUTE.name }">
+      <RouterLink class="rh-link" :to="{ path: TIMELINE_ROUTE.path }">
         {{ homeText('home.k1.requests.all') }}
       </RouterLink>
     </div>
@@ -53,7 +53,7 @@ const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-
         :key="r.request.request_id"
         class="rh-req"
         :class="{ 'rh-req--wait': r.request.status === 'pending' }"
-        :to="{ name: TIMELINE_ROUTE.name }"
+        :to="{ path: TIMELINE_ROUTE.path }"
         data-row
       >
         <span class="rh-stack">

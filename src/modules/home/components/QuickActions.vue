@@ -6,12 +6,13 @@ import { UiIcon } from '@/shared/ui'
 
 import { homeText } from '../model/messages'
 import type { QuickAction } from '../model/quick-actions'
+import ReportCreateMenu from './ReportCreateMenu.vue'
 
 /**
  * "Hızlı işlemler" kartı (E-01-08…11; `Main.dc.html` 2 sütunlu ızgara). Yalnız capability'si olan
  * kutucuklar gelir (`quickActions`). "Yeni görev" 03 Görevler'e gider (formu orada açılır);
  * faz dışı kutucuk açıklamalı devre dışıdır (`aria-disabled`, ipucu "F4’te açılacak"),
- * tıklama gezinmez (P2, ortak-kurallar §5).
+ * tıklama gezinmez (P2, ortak-kurallar §5). "Rapor oluştur" (yalnız yönetici) yönlendirme menüsü açar.
  */
 defineProps<{ actions: QuickAction[] }>()
 
@@ -19,6 +20,7 @@ const LABELS = {
   newTask: 'home.quick.newTask',
   meeting: 'home.quick.meeting',
   invite: 'home.quick.invite',
+  report: 'home.report.tile',
 } as const
 
 function label(action: QuickAction): string {
@@ -39,8 +41,9 @@ function disabledHint(action: QuickAction): string {
     <h2 class="rp-cardtitle">{{ homeText('home.quick.title') }}</h2>
     <div class="home-tiles">
       <template v-for="action in actions" :key="action.key">
+        <ReportCreateMenu v-if="action.key === 'report'" />
         <RouterLink
-          v-if="action.phase === null"
+          v-else-if="action.phase === null"
           :to="{ name: TASKS_ROUTE.name, query: TASKS_NEW_TASK_QUERY }"
           class="rp-cardbtn home-tile"
           :data-quick="action.key"

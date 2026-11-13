@@ -89,7 +89,7 @@ const cells = computed<Cell[]>(() => {
       value: String(s.dateRequests),
       note: homeText('home.k1.notes.dateRequests'),
       danger: false,
-      to: { name: TIMELINE_ROUTE.name },
+      to: { path: TIMELINE_ROUTE.path },
     },
   ]
 })

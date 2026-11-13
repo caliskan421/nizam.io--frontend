@@ -32,7 +32,13 @@ describe('ana sayfa görünüm kuralları', () => {
   it('dosyalar bulundu (sayfa, bileşenler, stiller)', () => {
     const names = files.map((f) => f.name)
     expect(names).toEqual(
-      expect.arrayContaining(['pages/HomePage.vue', 'pages/home.css', 'components/KpiCard.vue']),
+      expect.arrayContaining([
+        'pages/HomePage.vue',
+        'pages/AdminHomePage.vue',
+        'pages/home.css',
+        'pages/home-admin.css',
+        'components/KpiCard.vue',
+      ]),
     )
   })
 
@@ -50,20 +56,28 @@ describe('ana sayfa görünüm kuralları', () => {
   })
 
   it('medya koşulu dar ekran eşiğiyle (--rp-narrow-max = 900px) aynı', () => {
-    const css = files.find((f) => f.name === 'pages/home.css')!.text
-    expect(css.match(/@media[^{]*/g)?.map((m) => m.trim())).toEqual(['@media (max-width: 900px)'])
+    for (const name of ['pages/home.css', 'pages/home-admin.css']) {
+      const css = files.find((f) => f.name === name)!.text
+      expect(
+        css.match(/@media[^{]*/g)?.map((m) => m.trim()),
+        name,
+      ).toEqual(['@media (max-width: 900px)'])
+    }
   })
 
   it('statik satır içi stil yok; dinamik bağ yalnız --home-* özel özelliği; .vue ≤ 250 satır', () => {
     for (const { name, text } of files.filter((f) => f.name.endsWith('.vue'))) {
       expect(text, name).not.toMatch(/\sstyle=/)
       for (const binding of text.match(/:style="[^"]*"/g) ?? []) {
-        expect(binding, name).toBe(':style="fill"')
+        // Tek dinamik bağlar: KPI doluluğu ve kart dilimi genişliği (`--home-seg-w`).
+        expect([':style="fill"', ':style="segment.style"'], name).toContain(binding)
       }
       expect(text.split('\n').length, name).toBeLessThanOrEqual(250)
     }
     const card = files.find((f) => f.name === 'components/KpiCard.vue')!.text
     expect(card).toMatch(/'--home-kpi-fill': `\$\{props\.card\.bar\}%`/)
+    const ccard = files.find((f) => f.name === 'components/CoordinatorshipCard.vue')!.text
+    expect(ccard).toMatch(/'--home-seg-w': `\$\{bar\.value\[key\]\}%`/)
   })
 
   it('KPI kartı gövdesi üstten hizalı (not satırı olmayan kartta değer kaymaz, W63)', () => {

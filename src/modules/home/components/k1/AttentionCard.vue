@@ -52,7 +52,7 @@ function sent(): void {
         {{ homeText('home.k1.attention.title') }}
         <UiCount :value="rows.length" />
       </h2>
-      <RouterLink class="rh-link" :to="{ name: TIMELINE_ROUTE.name }">
+      <RouterLink class="rh-link" :to="{ path: TIMELINE_ROUTE.path }">
         {{ homeText('home.k1.attention.timeline') }}
       </RouterLink>
     </div>

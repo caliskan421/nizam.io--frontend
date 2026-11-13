@@ -7,6 +7,7 @@ import { useMyProgramDepartments } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
+import { UiEmptyState } from '@/shared/ui'
 import { UiButton } from '@/shared/ui'
 
 import { useRoleFacts } from '../api/role/use-facts'
@@ -90,7 +91,7 @@ function openUpload(preset: string | null = null): void {
 </script>
 
 <template>
-  <section class="role-home" data-testid="u1-home">
+  <section class="role-home" data-testid="home-page" data-home="u1">
     <div class="rh-head">
       <div>
         <h1 v-if="standing" class="rh-greeting" data-testid="home-greeting">
@@ -111,7 +112,15 @@ function openUpload(preset: string | null = null): void {
         </UiButton>
       </div>
     </div>
-    <div class="rh-body">
+    <div v-if="!ready" class="rh-body">
+      <UiEmptyState
+        icon="coords"
+        :title="homeText('home.kpi.selectTitle')"
+        :text="homeText('home.kpi.selectText')"
+        data-testid="role-select"
+      />
+    </div>
+    <div v-else class="rh-body">
       <SummaryStrip
         :counts="load.counts.data.value ?? null"
         :loading="!load.counts.data.value && !countsError"
