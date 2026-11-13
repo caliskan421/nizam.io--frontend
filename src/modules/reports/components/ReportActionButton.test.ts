@@ -188,7 +188,7 @@ describe('W138 ek yüzey (trailing yuvası, start(), kartlar)', () => {
       { kind: 'season' },
       { trailing: '<button type="button" data-testid="extra">Bölüm seç…</button>' },
     )
-    expect(wrapper.get('.report-action__row [data-testid="extra"]').exists()).toBe(true)
+    expect(wrapper.find('.report-action__row [data-testid="extra"]').exists()).toBe(true)
     await (wrapper.vm as unknown as { start: () => Promise<void> }).start()
     await settleQueries(queryClient)
     await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('downloaded'))
