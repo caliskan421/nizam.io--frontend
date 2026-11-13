@@ -22,7 +22,7 @@
     "name": "bg-base",
     "value": {
      "dark": "#0b0b0b",
-     "light": "#f6f6f3"
+     "light": "#eceef1"
     },
     "usage": "Ekran zemini ve cam çubukların karıştığı renk. Klasör ön yüzü bu renge doğru söner."
    },
@@ -38,7 +38,7 @@
     "name": "bg-raised",
     "value": {
      "dark": "#1f1f1f",
-     "light": "#f1f1ed"
+     "light": "#f2f3f5"
     },
     "usage": "Satır kartı (form satırları), hap sekme rayı, karşı tarafın mesaj balonu, yazma alanı."
    },
@@ -46,7 +46,7 @@
     "name": "bg-overlay",
     "value": {
      "dark": "#2a2a2a",
-     "light": "#e7e7e2"
+     "light": "#e6e8ec"
     },
     "usage": "Hap sekmenin kayan başparmağı, segment içi seçili öğe, avatar zemini, kapalı anahtar."
    },
@@ -54,7 +54,7 @@
     "name": "border-subtle",
     "value": {
      "dark": "#262626",
-     "light": "#e5e5df"
+     "light": "#e2e5e9"
     },
     "usage": "Kart ve tablo kenarı, satır ayırıcı, sekme alt çizgisi."
    },
@@ -62,7 +62,7 @@
     "name": "border-strong",
     "value": {
      "dark": "#3a3a3a",
-     "light": "#d0d0c9"
+     "light": "#cfd3d9"
     },
     "usage": "Açılır menü kenarı, boş durum kesik çizgisi, seçili segmentin iç çizgisi, üzerine gelinen düğme kenarı."
    },
@@ -70,7 +70,7 @@
     "name": "border-control",
     "value": {
      "dark": "#6b6b6b",
-     "light": "#96968f"
+     "light": "#bfc4cb"
     },
     "usage": "Hayalet düğme ve form kontrolü kenarı; her iki temada zemin üzerinde 3:1 üstünde."
    },
@@ -78,7 +78,7 @@
     "name": "ink",
     "value": {
      "dark": "#f5f5f5",
-     "light": "#161615"
+     "light": "#121316"
     },
     "usage": "Gövde metni ve başlıklar; bg-base, bg-surface ve bg-raised üzerinde okunur. Snackbar ve tost zemininde ters kullanılır."
    },
@@ -86,7 +86,7 @@
     "name": "ink-muted",
     "value": {
      "dark": "#a1a1a1",
-     "light": "#5c5c57"
+     "light": "#555a63"
     },
     "usage": "İkincil metin: alt başlık, etiket, sütun başlığı, pasif sekme; bg-base ve bg-surface üzerinde 4.5:1 üstü."
    },
@@ -94,7 +94,7 @@
     "name": "ink-faint",
     "value": {
      "dark": "#8a8a8a",
-     "light": "#71716b"
+     "light": "#70757e"
     },
     "usage": "Üçüncül metin: kimlik numarası, sayaç, boş durum yazısı, başlamadı durumu; bg-base ve bg-surface üzerinde 4.5:1 üstü."
    },
@@ -102,7 +102,7 @@
     "name": "accent",
     "value": {
      "dark": "#c8f53c",
-     "light": "#c8f53c"
+     "light": "#cbe83c"
     },
     "usage": "Ana eylem: Kanıt yükle, Oluştur, + düğmesi, gönder düğmesi, açık anahtar. Metin rengi değil."
    },
@@ -110,7 +110,7 @@
     "name": "accent-ink",
     "value": {
      "dark": "#0b0b0b",
-     "light": "#161615"
+     "light": "#121316"
     },
     "usage": "accent dolgusu üzerindeki metin ve ikon."
    },
@@ -118,7 +118,7 @@
     "name": "accent-top",
     "value": {
      "dark": "#d8f866",
-     "light": "#d8f866"
+     "light": "#d8f05e"
     },
     "usage": "Ana eylem düğmesi ve logo karosunun üst degrade durağı (accent ile biter)."
    },
@@ -126,7 +126,7 @@
     "name": "accent-text",
     "value": {
      "dark": "#c8f53c",
-     "light": "#4a6a00"
+     "light": "#4f6e00"
     },
     "usage": "Vurgu metni ve işaretleri: seçili sekme çizgisi, seçili satır şeridi, tamamlandı durumu, gerçekleşen harcama çubuğu. Koyu temada lime, açık temada koyu yeşil; her iki zeminde okunur."
    },
@@ -134,7 +134,7 @@
     "name": "focus-ring",
     "value": {
      "dark": "#c8f53c",
-     "light": "#4a6a00"
+     "light": "#121316"
     },
     "usage": "Klavye odağı: 2px düz çizgi, 2px boşlukla. Her iki temada tüm yüzeylerde 3:1 üstü."
    },
@@ -142,7 +142,7 @@
     "name": "violet",
     "value": {
      "dark": "#9b30d9",
-     "light": "#7a26c1"
+     "light": "#7334d9"
     },
     "usage": "Devam ediyor ve taahhüt anlamı: durum noktası, çubuk dilimi, taahhüt tutarı. Koyu temada bg-surface üzerinde 3.1:1, bu yüzden yalnızca 20px üstü rakam ve işaretlerde metin olarak kullanılır."
    },
@@ -158,7 +158,7 @@
     "name": "gold",
     "value": {
      "dark": "#ffd166",
-     "light": "#a86f00"
+     "light": "#c27400"
     },
     "usage": "Bekliyor anlamı: onayda, onay bekliyor, %80 uyarısı, bekleyen sayaç rozeti. Açık temada beyaz üzerinde 3.9:1; küçük metinde kalın ağırlıkla ya da işaret olarak kullanılır."
    },
@@ -174,7 +174,7 @@
     "name": "danger",
     "value": {
      "dark": "#ff5a5a",
-     "light": "#d02b2b"
+     "light": "#e0441c"
     },
     "usage": "Gecikme, aşım, red ve silme: durum noktası, rakam, uyarı şeridi, tehlikeli eylem. Her iki zeminde 4.5:1 üstü."
    },
@@ -198,7 +198,7 @@
     "name": "btn-bottom",
     "value": {
      "dark": "#262626",
-     "light": "#f4f4f0"
+     "light": "#f6f7f8"
     },
     "usage": "İkincil düğme ve ikon düğmesinin alt degrade durağı."
    },
@@ -206,7 +206,7 @@
     "name": "btn-border",
     "value": {
      "dark": "#3c3c3c",
-     "light": "#d5d5ce"
+     "light": "#d9dde2"
     },
     "usage": "İkincil düğme ve ikon düğmesi kenarı."
    },
@@ -230,7 +230,7 @@
     "name": "scrim",
     "value": {
      "dark": "#0000008c",
-     "light": "#16161566"
+     "light": "#12131659"
     },
     "usage": "Alt sayfa ve çekmecenin arka örtüsü."
    },
@@ -238,7 +238,7 @@
     "name": "gp-todo",
     "value": {
      "dark": "#b4b7be",
-     "light": "#d3d6dc"
+     "light": "#bfc4cc"
     },
     "usage": "Zaman çizelgesi çubuğu: başlamadı. Üzerindeki yazı gp-ink."
    },
@@ -246,7 +246,7 @@
     "name": "gp-doing",
     "value": {
      "dark": "#c27ce6",
-     "light": "#d2a2ee"
+     "light": "#a675f2"
     },
     "usage": "Zaman çizelgesi çubuğu: devam ediyor. Üzerindeki yazı gp-ink."
    },
@@ -254,7 +254,7 @@
     "name": "gp-review",
     "value": {
      "dark": "#ffd166",
-     "light": "#ffdc85"
+     "light": "#ffbf2e"
     },
     "usage": "Zaman çizelgesi çubuğu: onay bekliyor. Üzerindeki yazı gp-ink."
    },
@@ -262,7 +262,7 @@
     "name": "gp-back",
     "value": {
      "dark": "#ff9a85",
-     "light": "#ffb4a4"
+     "light": "#ff8c6e"
     },
     "usage": "Zaman çizelgesi çubuğu: geri gönderildi. Üzerindeki yazı gp-ink."
    },
@@ -270,7 +270,7 @@
     "name": "gp-done",
     "value": {
      "dark": "#c8f53c",
-     "light": "#d6f56f"
+     "light": "#c3e33a"
     },
     "usage": "Zaman çizelgesi çubuğu: tamamlandı. Üzerindeki yazı gp-ink."
    },
@@ -278,7 +278,7 @@
     "name": "gp-late",
     "value": {
      "dark": "#ff7d7d",
-     "light": "#ffa0a0"
+     "light": "#ff7d5c"
     },
     "usage": "Zaman çizelgesi çubuğu: gecikmiş kısım. Üzerindeki yazı gp-ink."
    },
@@ -286,7 +286,7 @@
     "name": "gp-late-line",
     "value": {
      "dark": "#ff5a5a",
-     "light": "#d02b2b"
+     "light": "#e0441c"
     },
     "usage": "Zaman çizelgesinde bugün çizgisi ve gecikme sınırı."
    },
@@ -294,7 +294,7 @@
     "name": "gp-ink",
     "value": {
      "dark": "#17181c",
-     "light": "#17181c"
+     "light": "#121316"
     },
     "usage": "Zaman çizelgesi çubuklarının üzerindeki metin; her iki temada açık çubuk renkleri üzerinde okunur."
    },
@@ -302,7 +302,7 @@
     "name": "gp-ink-muted",
     "value": {
      "dark": "#4a4d55",
-     "light": "#4a4d55"
+     "light": "#3f434a"
     },
     "usage": "Zaman çizelgesi çubuklarındaki ikincil metin (tarih aralığı)."
    },
@@ -310,7 +310,7 @@
     "name": "role-admin",
     "value": {
      "dark": "#e57a9a",
-     "light": "#e57a9a"
+     "light": "#ec4f86"
     },
     "usage": "Yönetici rolü işareti: kullanıcı listesi, rol etiketi noktası. Pastel; metin rengi değil."
    },
@@ -323,10 +323,18 @@
     "usage": "Koordinatör rolü işareti ve koordinatörlük tablolarının kart tonu. Pastel; metin rengi değil."
    },
    {
+    "name": "task-done",
+    "value": {
+     "dark": "#c8f53c",
+     "light": "#74c27a"
+    },
+    "usage": "Tamamlanan görev: durum etiketi/noktası, tamamlanma KPI'sı, ilerleme çubukları, genel durum grafiği. Koyu temada lime (accent-text), açık temada koordinatörlük yeşili (role-koord)."
+   },
+   {
     "name": "role-uye",
     "value": {
      "dark": "#73a9e3",
-     "light": "#73a9e3"
+     "light": "#3c82ea"
     },
     "usage": "Üye rolü işareti, kişisel alan tonu ve takvimde tablo kaydı rengi. Pastel; metin rengi değil."
    },
@@ -334,7 +342,7 @@
     "name": "glass-bar",
     "value": {
      "dark": "rgba(11, 11, 11, 0.78)",
-     "light": "rgba(246, 246, 243, 0.78)"
+     "light": "rgba(236, 238, 241, 0.78)"
     },
     "usage": "Yapışkan üst çubuk, sabit sekme şeridi, sohbet başlığı ve yazma alanının cam dolgusu (bg-base %78). Altında içerik bulanıklaşarak kayar."
    },
@@ -342,7 +350,7 @@
     "name": "glass-float",
     "value": {
      "dark": "rgba(18, 18, 18, 0.74)",
-     "light": "rgba(255, 255, 255, 0.78)"
+     "light": "rgba(255, 255, 255, 0.66)"
     },
     "usage": "Yüzen kontroller: alt menü kapsülü, asistan dairesi, üst çubuktaki menü dairesi."
    },
@@ -358,7 +366,7 @@
     "name": "glass-edge",
     "value": {
      "dark": "rgba(255, 255, 255, 0.08)",
-     "light": "rgba(22, 22, 21, 0.10)"
+     "light": "rgba(18, 19, 22, 0.09)"
     },
     "usage": "Cam yüzeylerin 1px kenarı ve flyout ayırıcı çizgisi."
    },
@@ -366,7 +374,7 @@
     "name": "glass-ink",
     "value": {
      "dark": "#f5f5f5",
-     "light": "#161615"
+     "light": "#121316"
     },
     "usage": "Cam yüzeyler üzerindeki metin ve ikon; glass-float ve glass-menu üzerinde 4.5:1 üstü."
    },
@@ -374,7 +382,7 @@
     "name": "glass-ink-faint",
     "value": {
      "dark": "#8a8a8a",
-     "light": "#71716b"
+     "light": "#70757e"
     },
     "usage": "Flyout başlığı ve ikincil satır yazısı (glass-menu üzerinde)."
    },
@@ -382,7 +390,7 @@
     "name": "nav-highlight",
     "value": {
      "dark": "rgba(255, 255, 255, 0.13)",
-     "light": "rgba(22, 22, 21, 0.08)"
+     "light": "rgba(18, 19, 22, 0.08)"
     },
     "usage": "Alt menüde etkin öğenin kayan vurgusu."
    },
@@ -390,7 +398,7 @@
     "name": "scrim-soft",
     "value": {
      "dark": "rgba(0, 0, 0, 0.28)",
-     "light": "rgba(22, 22, 21, 0.18)"
+     "light": "rgba(18, 19, 22, 0.18)"
     },
     "usage": "Flyout açıkken ekranı hafifçe karartan örtü."
    },
@@ -414,7 +422,7 @@
     "name": "quote-fill",
     "value": {
      "dark": "rgba(255, 255, 255, 0.06)",
-     "light": "rgba(22, 22, 21, 0.05)"
+     "light": "rgba(18, 19, 22, 0.05)"
     },
     "usage": "Balon içindeki alıntı kutusu ve anket seçeneği zemini."
    },
@@ -430,7 +438,7 @@
     "name": "day-chip",
     "value": {
      "dark": "rgba(40, 40, 40, 0.80)",
-     "light": "rgba(231, 231, 226, 0.85)"
+     "light": "rgba(230, 232, 236, 0.85)"
     },
     "usage": "Sohbet akışındaki gün hapı; üzerindeki yazı ink-muted."
    },
@@ -467,10 +475,18 @@
     "usage": "Klasör ön panelinin orta durağı (%45)."
    },
    {
+    "name": "program-teal",
+    "value": {
+     "dark": "#5DD6C0",
+     "light": "#5DD6C0"
+    },
+    "usage": "Dönem rozeti turkuaz zemini; üzerindeki kısa ad on-avatar."
+   },
+   {
     "name": "avatar-1",
     "value": {
      "dark": "#c8f53c",
-     "light": "#c8f53c"
+     "light": "#bfe02f"
     },
     "usage": "Kişi avatarı renk sırası 1. Üzerindeki baş harfler on-avatar."
    },
@@ -807,7 +823,7 @@
     "name": "m-sh-float",
     "value": {
      "dark": "0 12px 32px rgba(0,0,0,0.45)",
-     "light": "0 10px 28px rgba(22,22,21,0.14)"
+     "light": "0 10px 28px rgba(18,19,22,0.14)"
     },
     "usage": "Alt menü kapsülü ve asistan dairesi."
    },
@@ -815,7 +831,7 @@
     "name": "m-sh-menu",
     "value": {
      "dark": "0 20px 48px rgba(0,0,0,0.55)",
-     "light": "0 20px 48px rgba(22,22,21,0.16)"
+     "light": "0 20px 48px rgba(18,19,22,0.16)"
     },
     "usage": "Flyout menü."
    },
@@ -823,7 +839,7 @@
     "name": "m-sh-drawer",
     "value": {
      "dark": "-24px 0 60px rgba(0,0,0,0.45)",
-     "light": "-24px 0 60px rgba(22,22,21,0.14)"
+     "light": "-24px 0 60px rgba(18,19,22,0.14)"
     },
     "usage": "Sağdan açılan çekmece."
    },
@@ -831,7 +847,7 @@
     "name": "m-sh-sheet",
     "value": {
      "dark": "0 24px 64px rgba(0,0,0,0.6)",
-     "light": "0 24px 64px rgba(22,22,21,0.14)"
+     "light": "0 24px 64px rgba(18,19,22,0.16)"
     },
     "usage": "Alt sayfa."
    },
@@ -839,7 +855,7 @@
     "name": "m-sh-thumb",
     "value": {
      "dark": "0 1px 2px rgba(0,0,0,0.25)",
-     "light": "0 1px 2px rgba(22,22,21,0.12)"
+     "light": "0 1px 2px rgba(18,19,22,0.12)"
     },
     "usage": "Hap sekmenin kayan başparmağı."
    },

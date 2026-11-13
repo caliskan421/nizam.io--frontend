@@ -89,7 +89,7 @@
           "name": "shadow-card",
           "value": {
             "dark": "0 12px 32px rgba(0,0,0,0.5)",
-            "light": "0 1px 2px rgba(22,22,21,0.05), 0 6px 20px rgba(22,22,21,0.06)"
+            "light": "0 1px 2px rgba(18,19,22,.05), 0 6px 18px rgba(18,19,22,.06)"
           },
           "usage": "Kart, toplu işlem çubuğu, tost; açık temada t-card / rp-dtable gölgesi."
         },
@@ -543,6 +543,61 @@
         { "name": "gantt-label-cols", "value": "48px 8px minmax(0, 1fr) auto" },
         { "name": "gantt-label-cols-bare", "value": "8px minmax(0, 1fr) auto" },
         { "name": "gantt-group-cols", "value": "16px minmax(0, 1fr) auto" }
+      ]
+    },
+    "light-v85": {
+      "$description": "Açık tema v85'in (theme.css [data-theme=light]) web'e özgü değişkenleri; tasarım sistemi kaynağında karşılığı yoktur. theme.css koyu bloğunda tanımlı değil; yalnız açık tema kurallarında tüketildiği için koyu değer açık ile aynıdır.",
+      "tokens": [
+        {
+          "name": "glass",
+          "value": { "dark": "rgba(255,255,255,.66)", "light": "rgba(255,255,255,.66)" },
+          "usage": "Cam yüzey (açık tema v85)."
+        },
+        {
+          "name": "glass-line",
+          "value": { "dark": "rgba(18,19,22,.09)", "light": "rgba(18,19,22,.09)" },
+          "usage": "Cam yüzey kenarı."
+        },
+        {
+          "name": "hi",
+          "value": { "dark": "#121316", "light": "#121316" },
+          "usage": "Vurgulu seçili öğe zemini."
+        },
+        {
+          "name": "hi-ink",
+          "value": { "dark": "#ffffff", "light": "#ffffff" },
+          "usage": "`hi` üstü metin."
+        },
+        {
+          "name": "hi-ink-2",
+          "value": { "dark": "rgba(255,255,255,.66)", "light": "rgba(255,255,255,.66)" },
+          "usage": "`hi` üstü ikincil metin (sayaç)."
+        },
+        {
+          "name": "chart-done",
+          "value": { "dark": "#b4d82a", "light": "#b4d82a" },
+          "usage": "Grafik tamamlandı dilimi."
+        },
+        {
+          "name": "av-neutral",
+          "value": { "dark": "#121316", "light": "#121316" },
+          "usage": "Nötr avatar zemini."
+        },
+        {
+          "name": "av-neutral-ink",
+          "value": { "dark": "#ffffff", "light": "#ffffff" },
+          "usage": "Nötr avatar metni."
+        },
+        {
+          "name": "nav-on",
+          "value": { "dark": "#121316", "light": "#121316" },
+          "usage": "Seçili gezinti öğesi rengi."
+        },
+        {
+          "name": "bar-done",
+          "value": { "dark": "#8bb637", "light": "#8bb637" },
+          "usage": "İlerleme çubuğu tamamlandı dolgusu (theme.css açık tema kuralındaki --bar-done)."
+        }
       ]
     }
   }

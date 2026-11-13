@@ -62,6 +62,11 @@ function designVars(theme: Theme): VarMap {
   ])
 }
 
+/** `.16` ile `0.16` aynı değerdir (theme.css v85 gölgeleri baştaki sıfırı yazmaz). */
+function zeroLead(value: string): string {
+  return value.replace(/(?<![\d.])\.(\d)/g, '0.$1')
+}
+
 function generatedVars(theme: Theme): VarMap {
   return new Map(
     Object.entries(TOKENS).map(([name, t]) => [`--${name}`, t[theme]] as [string, string]),
@@ -86,7 +91,7 @@ describe('tasarım kopyası ↔ üretilmiş token CSS', () => {
         resolveVars(design.get(name)!, design),
         resolveVars(`var(${name})`, generated),
       ])
-      .filter(([, want, got]) => want !== got)
+      .filter(([, want, got]) => zeroLead(want!) !== zeroLead(got!))
     expect(mismatches).toEqual([])
   })
 
