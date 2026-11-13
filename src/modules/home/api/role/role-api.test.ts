@@ -36,14 +36,14 @@ const COORD = {
 }
 
 function harness<T>(setup: () => T) {
-  const box: { value: T | null } = { value: null }
+  let result: T | undefined
   const Probe = defineComponent({
     setup() {
-      box.value = setup()
+      result = setup()
       return () => h('div')
     },
   })
-  return { Probe, get: () => box.value as T }
+  return { Probe, get: () => result as T }
 }
 
 const EMPTY_COUNTS = {

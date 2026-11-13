@@ -11,8 +11,11 @@ import { useDepartmentRoster } from '@/modules/organization/public'
 import { isCoordinatorRole } from '../../model/capabilities'
 import type { TeamMember } from '../../model/k1/team'
 
-export function useRoster(department: MaybeRefOrGetter<string | null>) {
-  const roster = useDepartmentRoster(department)
+export function useRoster(
+  department: MaybeRefOrGetter<string | null>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
+  const roster = useDepartmentRoster(department, enabled)
   const members = computed<TeamMember[]>(() =>
     roster.active.value.map((m) => ({
       accountId: m.account_id,

@@ -36,7 +36,7 @@ describe('router — katalog tek kaynak', () => {
     expect(current.meta).toEqual({ scope: 'S1', title: 'Ana sayfa', menuKey: 'home' })
     expect(MODULE_ROUTES.find((r) => r.name === 'home')?.path).toBe('/')
     // Gezinme tembel yükleyiciyi çözer; kayıt gerçek sayfa bileşenini taşır.
-    expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'HomePage' })
+    expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'HomeRoute' })
   })
 
   it('gizli rotanın yolu kayıtlı değildir; bilinmeyen yol gibi ana sayfaya düşer', async () => {

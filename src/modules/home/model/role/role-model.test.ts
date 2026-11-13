@@ -106,3 +106,28 @@ describe('toplantı satırı (E-K1-35, E-Ü1-29)', () => {
     ).toEqual(['a', 'b'])
   })
 })
+
+describe('bitiş göstergesi', () => {
+  it('geciken sunucudan; kalan gün kurulum gününe göre', async () => {
+    const { dueView } = await import('./due')
+    expect(
+      dueView({ end_on: '2026-10-20', is_overdue: true, days_overdue: 1 }, '2026-10-21'),
+    ).toEqual({
+      date: '20.10',
+      kind: 'late',
+      days: 1,
+    })
+    expect(
+      dueView({ end_on: '2026-10-21', is_overdue: false, days_overdue: 0 }, '2026-10-21').kind,
+    ).toBe('today')
+    expect(
+      dueView({ end_on: '2026-10-24', is_overdue: false, days_overdue: 0 }, '2026-10-21'),
+    ).toMatchObject({
+      kind: 'left',
+      days: 3,
+    })
+    expect(
+      dueView({ end_on: 'bozuk', is_overdue: false, days_overdue: 0 }, '2026-10-21').kind,
+    ).toBe('unknown')
+  })
+})

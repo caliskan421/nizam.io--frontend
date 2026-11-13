@@ -43,6 +43,7 @@ export const trHome = {
     // --- K1 koordinatör ana sayfası (E-K1-01…41; W140). Sayı/ad/tarih yalnız gerçek veriden. ---
     k1: {
       subtitle: '{unit} · koordinatör olarak birimin tüm görevlerini görüyorsun',
+      subtitleNoUnit: 'Koordinatör olarak birimin tüm görevlerini görüyorsun',
       multi: '{n} koordinatörlüğün var ({names})',
       actions: { meeting: 'Toplantı planla', task: 'Yeni görev' },
       kicker: '{unit} · {n} görev · bugün',
@@ -106,6 +107,7 @@ export const trHome = {
         viewLabel: '{title} için talebi gör',
         who: 'Atanmamış',
         subtasks: 'Alt görev {done}/{total}',
+        sent: 'Tarih talebi gönderildi',
       },
       team: {
         title: 'Ekip yükü',
@@ -172,6 +174,10 @@ export const trHome = {
         returned: 'Görev iade edildi',
         claimed: 'Görev üstlenildi',
         failed: 'İşlem tamamlanamadı',
+        subtasksTitle: 'Açık alt görevler kapatılsın mı?',
+        subtasksBody: 'Görevi tamamlamak için açık alt görevler de kapatılır.',
+        subtasksConfirm: 'Kapat ve tamamla',
+        evidence: 'Önce kanıt dosyası yükleyin',
       },
     },
     // --- Ü1 üye ana sayfası (E-Ü1-01…33; W140). ---
@@ -240,7 +246,15 @@ export const trHome = {
         upcoming: ', yaklaşan son tarih',
         legendOverdue: 'Geciken ({n})',
         legendUpcoming: 'Yaklaşan ({n})',
-        weekdays: { 1: 'Pzt', 2: 'Sal', 3: 'Çar', 4: 'Per', 5: 'Cum', 6: 'Cmt', 7: 'Paz' },
+        weekdays: {
+          mon: 'Pzt',
+          tue: 'Sal',
+          wed: 'Çar',
+          thu: 'Per',
+          fri: 'Cum',
+          sat: 'Cmt',
+          sun: 'Paz',
+        },
       },
       depts: {
         title: 'Koordinatörlüklerim',
