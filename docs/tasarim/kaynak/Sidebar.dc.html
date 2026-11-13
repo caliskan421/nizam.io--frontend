@@ -14,6 +14,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>body{margin:0}
 .sb-sw{position:relative; display:flex; flex-direction:column; gap:8px}
+.sb-me{display:grid; grid-template-columns:minmax(0,1fr) 36px; gap:6px; align-items:center; padding:6px 10px 6px 6px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)}
+.sb-me[data-on="true"]{border-color:var(--border-strong); background:var(--bg-raised)}
+.sb-me__btn{display:grid; grid-template-columns:32px minmax(0,1fr); gap:10px; align-items:center; min-height:44px; padding:4px; border:0; border-radius:12px; background:transparent; color:var(--ink); font-family:inherit; text-align:left; cursor:pointer; min-width:0}
+.sb-me__btn:hover{background:var(--bg-raised)}
+.sb-me__btn:focus-visible, .sb-me__rail:focus-visible{outline:2px solid var(--focus-ring); outline-offset:2px}
+.sb-me__rail{align-self:center; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:transparent; cursor:pointer}
 .sb-pair{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px}
 .sb-card{position:relative; z-index:1; display:flex; flex-direction:column; gap:4px; width:100%; min-height:56px; padding:8px 10px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface); color:var(--ink); font-family:inherit; text-align:left; cursor:pointer; box-sizing:border-box; min-width:0}
 .sb-card:hover{border-color:var(--border-strong)}
@@ -89,9 +95,11 @@
 
 <div style="display:flex; flex-direction:column; gap:10px">
 <div class="rp-navlist"><a class="t-nav" href="#"><svg class="t-icon" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"></path></svg><span class="rp-trunc" style="flex:1 1 auto">Yardım ve rehberler</span></a></div>
-<div style="display:grid; grid-template-columns:32px minmax(0,1fr) 36px; gap:10px; align-items:center; padding:10px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--bg-surface)">
-<span class="rp-av" aria-hidden="true">MA</span>
-<span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-weight:600; font-size:13px">Muhammet Ali Çalışkan</span><span class="rp-cap rp-trunc">macaliskan@gmail.com</span></span>
+<div class="sb-me" data-on="{{ me.on }}">
+<button type="button" class="sb-me__btn" onClick="{{ me.go }}" aria-current="{{ me.cur }}" aria-label="Profilim: {{ me.name }}, {{ me.roleLabel }} görünümü" title="Profilim">
+<span class="rp-av" aria-hidden="true" style="box-shadow:0 0 0 2px var(--bg-surface), 0 0 0 4px {{ me.roleColor }}">{{ me.ini }}</span>
+<span style="display:flex; flex-direction:column; min-width:0"><span class="rp-trunc" style="font-weight:600; font-size:13px">{{ me.name }}</span><span class="rp-cap rp-trunc">{{ me.roleLabel }} · Profilim</span></span>
+</button>
 <button class="t-iconbtn" type="button" aria-label="Çıkış yap"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg></button>
 </div>
 </div>
@@ -110,12 +118,12 @@
 </div>
 </sc-for>
 </nav>
-<span class="rp-av" aria-hidden="true" style="align-self:center">MA</span>
+<button type="button" class="sb-me__rail" onClick="{{ me.go }}" aria-current="{{ me.cur }}" aria-label="Profilim" title="Profilim"><span class="rp-av" aria-hidden="true" style="box-shadow:0 0 0 2px var(--bg-base), 0 0 0 4px {{ me.roleColor }}">{{ me.ini }}</span></button>
 </div>
 </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","tasks","archive","meetings","calendar","memory","messages","sheets","users","coords","season","sim","gantt","dates","unit","team"],"default":"home"},"collapsed":{"editor":"boolean","default":false},"onNavigate":{"editor":null},"onToggle":{"editor":null},"ctx":{"editor":null},"onCtx":{"editor":null},"$preview":{"width":272,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","tasks","archive","meetings","calendar","memory","messages","sheets","users","coords","season","sim","gantt","dates","unit","team"],"default":"home"},"collapsed":{"editor":"boolean","default":false},"onNavigate":{"editor":null},"onToggle":{"editor":null},"ctx":{"editor":null},"me":{"editor":null},"onCtx":{"editor":null},"$preview":{"width":272,"height":1100}}'>
 class Component extends DCLogic {
   renderVals() {
     const active = this.props.active ?? 'home';
@@ -179,17 +187,20 @@ class Component extends DCLogic {
       coords: (role.coords || []).map((c) => ({ name: c.name, on: coord && c.id === coord.id ? 'true' : 'false', onB: !!(coord && c.id === coord.id), pick: () => send({ coord: c.id }) }))
     };
     const uyeGroups = [
-      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevlerim', '4', 'danger'), mk('gantt', 'Zaman çizelgem')] },
-      { label: 'İçerik', items: [mk('meetings', 'Toplantılar'), mk('archive', 'Dosyalarım'), mk('messages', 'Mesajlar', '2')] }
+      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevlerim', '4', 'danger'), mk('calendar', 'Takvim')] },
+      { label: 'İçerik', items: [mk('memory', 'Kurumsal hafıza'), mk('meetings', 'Toplantılar'), mk('archive', 'Dosyalarım'), mk('messages', 'Mesajlar', '2')] }
     ];
     const koordGroups = [
-      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevler', '3', 'danger', false, '3'), mk('gantt', 'Zaman çizelgesi'), mk('dates', 'Tarih talepleri', '1', 'gold')] },
+      { label: 'Takip', items: [mk('home', 'Ana sayfa'), mk('tasks', 'Görevler', '3', 'danger', false, '3'), mk('dates', 'Tarih talepleri', '1', 'gold'), mk('calendar', 'Takvim')] },
       { label: 'Birim', items: [mk('unit', 'Birimim'), mk('team', 'Ekibim')] },
-      { label: 'İçerik', items: [mk('meetings', 'Toplantılar'), mk('archive', 'Arşiv'), mk('messages', 'Mesajlar', '5'), mk('sheets', 'Tablolar')] }
+      { label: 'İçerik', items: [mk('memory', 'Kurumsal hafıza'), mk('meetings', 'Toplantılar'), mk('archive', 'Arşiv'), mk('messages', 'Mesajlar', '5'), mk('sheets', 'Tablolar')] }
     ];
     const shown = role.id === 'admin' ? groups : role.id === 'koord' ? koordGroups : uyeGroups;
     const tg = this.props.onToggle;
-    return { groups: shown, sw, rail, full: !rail, toggle: () => { if (typeof tg === 'function') tg(); } };
+    const meP = this.props.me || { name: 'Muhammet Ali Çalışkan', ini: 'MA' };
+    const me = { name: meP.name, ini: meP.ini, roleLabel: rl[0], roleColor: rl[1], on: active === 'profile' ? 'true' : 'false', cur: active === 'profile' ? 'page' : 'false',
+      go: (e) => { if (e && e.preventDefault) e.preventDefault(); if (typeof nav === 'function') nav('profile'); } };
+    return { groups: shown, sw, me, rail, full: !rail, toggle: () => { if (typeof tg === 'function') tg(); } };
   }
 }
 </script>

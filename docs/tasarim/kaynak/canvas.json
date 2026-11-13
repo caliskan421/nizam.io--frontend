@@ -395,6 +395,89 @@
       "w": 1440,
       "h": 1400,
       "title": "Ortak · Kenar menüsü › Admin, Koordinatör, Üye"
+    },
+    "Bildirimler.dc.html": {
+      "x": 10640,
+      "y": -1560,
+      "w": 1440,
+      "h": 3000,
+      "title": "Ortak · Zil, bildirim paneli ve Web Push izni"
+    },
+    "Asistan.dc.html": {
+      "x": 12160,
+      "y": -1560,
+      "w": 1440,
+      "h": 2200,
+      "title": "Ortak · Asistan paneli"
+    },
+    "Takvim.dc.html": {
+      "x": 13680,
+      "y": -1560,
+      "w": 1440,
+      "h": 1100,
+      "title": "12 · Takvim (çalışan prototipten)"
+    },
+    "Kurumsal-Hafiza.dc.html": {
+      "x": 15200,
+      "y": -1560,
+      "w": 1440,
+      "h": 1100,
+      "title": "13 · Kurumsal hafıza (çalışan prototipten)"
+    },
+    "Takvim-Hafiza.dc.html": {
+      "x": 16720,
+      "y": -1560,
+      "w": 1440,
+      "h": 2300,
+      "title": "12b · Takvim ve hafıza › roller ve hafıza önerileri"
+    },
+    "Raporlar.dc.html": {
+      "x": 18240,
+      "y": -1560,
+      "w": 1440,
+      "h": 1900,
+      "expand": "fill",
+      "title": "01e · Raporlar › önceki seçenek · rapor merkezi (uygulanmaz)"
+    },
+    "Rapor-Donem.dc.html": {
+      "x": 19760,
+      "y": -1560,
+      "w": 1440,
+      "h": 11400,
+      "expand": "fill",
+      "title": "01f · Arşiv › Dönem sonu raporu önizleme"
+    },
+    "Rapor-Toplanti.dc.html": {
+      "x": 21280,
+      "y": -1560,
+      "w": 1440,
+      "h": 1800,
+      "expand": "fill",
+      "title": "01g · Toplantı › Toplantı raporu önizleme"
+    },
+    "Rapor-Pencereler.dc.html": {
+      "x": 22800,
+      "y": -1560,
+      "w": 1440,
+      "h": 5000,
+      "expand": "fill",
+      "title": "01h · Raporlar › Pencereler, durumlar ve iş yükü seçici (yerleri 01i'de)"
+    },
+    "Raporlar-Acik.dc.html": {
+      "x": 6006,
+      "y": 16400,
+      "w": 1440,
+      "h": 1900,
+      "expand": "fill",
+      "title": "A5 · Açık tema › Raporlar (önceki seçenek, uygulanmaz)"
+    },
+    "Rapor-Noktalar.dc.html": {
+      "x": 24320,
+      "y": -1560,
+      "w": 1440,
+      "h": 4800,
+      "expand": "fill",
+      "title": "01i · Raporlar › Her rapor kendi yerinde"
     }
   },
   "createdOnFiles": {
@@ -427,6 +510,13 @@
       "text": "Koordinatör paneli",
       "x": -74,
       "y": 21360
+    },
+    "raporTitle": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Raporlar (F6)",
+      "x": 18240,
+      "y": -1900
     }
   },
   "order": [
@@ -438,6 +528,11 @@
     "Sidebar.dc.html",
     "Kenar-Secici.dc.html",
     "Kenar-Roller.dc.html",
+    "Bildirimler.dc.html",
+    "Asistan.dc.html",
+    "Takvim.dc.html",
+    "Kurumsal-Hafiza.dc.html",
+    "Takvim-Hafiza.dc.html",
     "Gorevler-Liste.dc.html",
     "Gorevler-Zaman.dc.html",
     "Gorevler-AltGorev.dc.html",
@@ -479,7 +574,13 @@
     "Koord-Ekip.dc.html",
     "Koord-Zaman.dc.html",
     "Koord-Toplanti.dc.html",
-    "Koord-Toplantilar.dc.html"
+    "Koord-Toplantilar.dc.html",
+    "Raporlar.dc.html",
+    "Rapor-Donem.dc.html",
+    "Rapor-Toplanti.dc.html",
+    "Rapor-Pencereler.dc.html",
+    "Rapor-Noktalar.dc.html",
+    "Raporlar-Acik.dc.html"
   ],
   "pages": [],
   "title": "RoketPortal — Yeniden Tasarım"

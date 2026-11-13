@@ -67,14 +67,9 @@ a.rp-kg-ev:hover{text-decoration:underline; text-underline-offset:3px}
 
 <div class="rp-body">
 <div style="flex:1 1 100%; min-width:0; display:flex; flex-direction:column; gap:14px">
-<div class="rp-tabs" role="tablist" aria-label="Görev durumu">
-<button type="button" role="tab" aria-selected="true">Tümü <span class="rp-count">14</span></button>
-<button type="button" role="tab" aria-selected="false" style="color:var(--ink)">Onay bekleyen <span class="rp-kg-goldcount">3</span></button>
-<button type="button" role="tab" aria-selected="false">Atanmamış <span class="rp-count">2</span></button>
-<button type="button" role="tab" aria-selected="false">Devam ediyor <span class="rp-count">6</span></button>
-<button type="button" role="tab" aria-selected="false">İade <span class="rp-count">1</span></button>
-<button type="button" role="tab" aria-selected="false">Başlamadı <span class="rp-count">1</span></button>
-<button type="button" role="tab" aria-selected="false">Tamamlandı <span class="rp-count">1</span></button>
+<div class="rp-toolbar">
+<div class="rp-tgroup"><div class="rp-seg" role="group" aria-label="Kayıtlı görünümler"><button type="button" aria-pressed="true">Tümü <span class="rp-count">(14)</span></button><button type="button" aria-pressed="false">Onay bekleyen <span class="rp-count">(3)</span></button><button type="button" aria-pressed="false">Atanmamış <span class="rp-count">(2)</span></button><button type="button" aria-pressed="false">Devam ediyor <span class="rp-count">(6)</span></button><button type="button" aria-pressed="false">İade edildi <span class="rp-count">(1)</span></button><button type="button" aria-pressed="false">Başlamadı <span class="rp-count">(1)</span></button><button type="button" aria-pressed="false">Tamamlandı <span class="rp-count">(1)</span></button></div></div>
+<div class="rp-tgroup"><div class="rp-seg" role="group" aria-label="Tarih talebi filtresi"><button type="button" aria-pressed="false">Tarih talebi <span class="rp-count">(1)</span></button></div></div>
 </div>
 
 <div class="rp-toolbar">
@@ -86,7 +81,6 @@ a.rp-kg-ev:hover{text-decoration:underline; text-underline-offset:3px}
 </div>
 <div class="rp-tgroup">
 <button class="t-btn t-btn--secondary t-btn--sm rp-kg-filter" type="button" aria-haspopup="listbox"><span class="rp-avstack" aria-hidden="true"><span class="rp-av rp-kg-avsm">ZK</span><span class="rp-av rp-kg-avsm">MA</span><span class="rp-av rp-kg-avsm">BD</span></span>Kişi<span class="rp-count">7</span><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
-<button class="t-btn t-btn--secondary t-btn--sm rp-kg-filter" type="button" aria-haspopup="listbox">Öncelik<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
 </div>
 <div class="rp-tgroup">
 <button class="t-btn t-btn--secondary t-btn--sm rp-kg-filter" type="button" aria-haspopup="listbox"><svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"></path></svg><span class="rp-muted" style="font-weight:500">Gruplama:</span>Duruma göre<svg class="t-icon t-icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
