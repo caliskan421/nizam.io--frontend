@@ -1022,6 +1022,66 @@ export const TOKENS = {
     "dark": "#94a3b8",
     "light": "#94a3b8"
   },
+  "glass": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "rgba(255,255,255,.66)",
+    "light": "rgba(255,255,255,.66)"
+  },
+  "glass-line": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "rgba(18,19,22,.09)",
+    "light": "rgba(18,19,22,.09)"
+  },
+  "hi": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#121316",
+    "light": "#121316"
+  },
+  "hi-ink": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#ffffff",
+    "light": "#ffffff"
+  },
+  "hi-ink-2": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "rgba(255,255,255,.66)",
+    "light": "rgba(255,255,255,.66)"
+  },
+  "chart-done": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#b4d82a",
+    "light": "#b4d82a"
+  },
+  "av-neutral": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#121316",
+    "light": "#121316"
+  },
+  "av-neutral-ink": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#ffffff",
+    "light": "#ffffff"
+  },
+  "nav-on": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#121316",
+    "light": "#121316"
+  },
+  "bar-done": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#8bb637",
+    "light": "#8bb637"
+  },
   "shadow-card": {
     "group": "shadow",
     "origin": "web",

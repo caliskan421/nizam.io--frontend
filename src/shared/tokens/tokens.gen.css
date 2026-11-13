@@ -110,6 +110,17 @@
   --avatar-6: #4fd1c5;
   --avatar-7: #ff6b6b;
   --avatar-8: #94a3b8;
+  /* web · light-v85 */
+  --glass: rgba(255,255,255,.66);
+  --glass-line: rgba(18,19,22,.09);
+  --hi: #121316;
+  --hi-ink: #ffffff;
+  --hi-ink-2: rgba(255,255,255,.66);
+  --chart-done: #b4d82a;
+  --av-neutral: #121316;
+  --av-neutral-ink: #ffffff;
+  --nav-on: #121316;
+  --bar-done: #8bb637;
   /* web · space */
   --space-1: 4px;
   --space-2: 8px;
