@@ -52,3 +52,5 @@ Yenileme: `kaynak/` bu sürümün kopyasıyla değiştirildi (`Prototip.dc.html`
 - `canvas.json` — yukarıdaki artboard'lar eklendi; `tema-sistemi/*` aynı.
 
 **Kapsam notu (F6).** F6 = 01 tam ana sayfa + rapor eylemleri (13) + K1/Ü1 + rol menüleri. Ü2–Ü7, K2–K8 ve Bildirimler/Asistan/Takvim/Kurumsal hafıza **dışı**. 01e ve A5 önceki seçenektir, uygulanmaz. Karar kaynağı: `ekranlar/ortak-kurallar.md` §12 P46–P53.
+
+- **v87: yalnız bu dört dosya** — `Rapor-Donem`, `Rapor-Toplanti`, `Rapor-Pencereler`, `Rapor-Noktalar` canvas v87 (`1794595177-744f`) kopyasıyla değiştirildi (01f kırıntı/Kapat → Arşiv, 17 sayfa; 01g kırıntı/Kapat → toplantı, bitiş saati yok; 01h 429/503 süre yok, ZIP "kayda geçer" yok; 01i Arşiv alt başlığı P38).
