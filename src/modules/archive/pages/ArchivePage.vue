@@ -3,6 +3,7 @@ import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+import { SeasonReportActions } from '@/modules/reports/public'
 import { useProgramDepartments } from '@/modules/work/public'
 import { authSession } from '@/shared/http'
 import { useScopeStore } from '@/shared/scope/store'
@@ -143,6 +144,7 @@ onScopeDispose(() => {
         <p class="rp-sub">{{ t('archive.page.subtitle') }}</p>
       </div>
       <div class="rp-actions">
+        <SeasonReportActions />
         <PeriodZipButton v-if="capabilities.periodZip()" :target="context.target.value" />
         <component
           :is="needsFolder ? DesignStub : 'span'"

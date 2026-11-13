@@ -16,6 +16,7 @@ export {
   useReportTaskDetail,
 } from './api/queries'
 export { default as ReportActionButton } from './components/ReportActionButton.vue'
+export { default as SeasonReportActions } from './components/SeasonReportActions.vue'
 export * from './model/capabilities'
 export * from './model/failure'
 export { createReportGate, reportGate, type ReportGate, type ReportLease } from './model/gate'

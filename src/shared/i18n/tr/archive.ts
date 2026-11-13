@@ -283,7 +283,7 @@ export const trArchive = {
         tooLarge: 'Bu klasör tek ZIP için çok büyük; görevlerden tek tek indirin.',
       },
       period: {
-        label: 'Tümünü indir',
+        label: 'Dönem arşivi (ZIP)',
         busy: 'ZIP hazırlanıyor…',
         saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
         tooLarge: 'Dönem arşivi tek ZIP için çok büyük; klasörleri ayrı ayrı indirin.',

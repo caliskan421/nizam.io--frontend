@@ -57,6 +57,8 @@ async function mountPage(selection: Parameters<typeof harness>[0], url = '/arsiv
     routes: [
       { path: '/arsiv', name: 'archive.folders', component: ArchivePage },
       { path: '/arsiv/:klasorId', name: 'archive.folder', component: { template: '<i />' } },
+      // W138: 06 başlığındaki "Önizle" bağlantısının hedefi (rapor modülü rotası).
+      { path: '/arsiv/donem-raporu', name: 'reports.season', component: { template: '<i />' } },
     ],
   })
   await router.push(url)
@@ -104,7 +106,22 @@ describe('yönetici (P33)', () => {
     expect(wrapper.get('[data-field="files"]').text()).toBe('—')
   })
 
-  it('"Tümünü indir" bağlı ve hedefsiz (null → devre dışı, BE-120); "Dosya yükle" devre dışı + BE-072', async () => {
+  it('rapor eylemleri bağlı (W138, KESİN 28): PDF + "Bölüm seç…" + "Önizle" ZIP düğmesinden önce', async () => {
+    server.use(...adminHandlers)
+    const { wrapper } = await mountPage(ADMIN)
+    const actions = wrapper.get('.rp-actions')
+    expect(actions.find('[data-testid="season-actions"]').exists()).toBe(true)
+    expect(actions.get('[data-testid="season-actions"]').text()).toContain(
+      'Dönem sonu raporu (PDF)',
+    )
+    expect(actions.find('[data-action="pick-sections"]').exists()).toBe(true)
+    expect(actions.get('[data-action="preview-season"]').text()).toBe('Önizle')
+    const order = [...actions.element.children].map((el) => el.getAttribute('data-testid'))
+    expect(order.indexOf('season-actions')).toBeLessThan(order.indexOf('period-zip'))
+    expect(wrapper.get('[data-testid="period-zip-button"]').text()).toBe('Dönem arşivi (ZIP)')
+  })
+
+  it('"Dönem arşivi (ZIP)" bağlı ve hedefsiz (null → devre dışı, BE-120); "Dosya yükle" devre dışı + BE-072', async () => {
     server.use(...adminHandlers)
     const { wrapper } = await mountPage(ADMIN)
     const zip = wrapper.findComponent({ name: 'PeriodZipButton' })

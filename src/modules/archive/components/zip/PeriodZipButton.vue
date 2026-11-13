@@ -13,7 +13,7 @@ import { zipText } from './messages'
 import { useZipDownload } from './use-zip-download'
 
 /**
- * E-06-04 — dönem ZIP'i "Tümünü indir" (06; yalnız ŞY, RECORDS-K24). `target` `null` (yönetici
+ * E-06-04 — dönem ZIP'i "Dönem arşivi (ZIP)" (eski "Tümünü indir"; W138 adı değiştirdi) (06; yalnız ŞY, RECORDS-K24). `target` `null` (yönetici
  * `/arsiv`'te departman başlığı yok; `archiveFullZip` S3 — BE-120) → düğme devre dışı + `DesignStub` BE-120 + açıklama;
  * keyfî departman başlığı UYDURULMAZ, ağ isteği yok. Yetkisiz hesapta düğme gizlidir. Metinler
  * `zip-status.ts`; otomatik tekrar yok.

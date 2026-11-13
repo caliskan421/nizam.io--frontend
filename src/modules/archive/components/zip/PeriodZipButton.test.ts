@@ -42,7 +42,7 @@ async function mountButton(who: Who, target: typeof TARGET | null, scope: ScopeS
 describe('PeriodZipButton — görünürlük (yalnız ŞY, RECORDS-K24)', () => {
   it('ŞY görür; koordinatör ve üye hesabı göremez (mercek yetki değil)', async () => {
     const admin = await mountButton({ admin: true }, TARGET)
-    expect(admin.wrapper.get('button').text()).toBe('Tümünü indir')
+    expect(admin.wrapper.get('button').text()).toBe('Dönem arşivi (ZIP)')
     unmountAll()
     const coord = await mountButton({ rows: [['p1', 'd1', 'koordinator']] }, TARGET, COORD)
     expect(coord.wrapper.find('[data-testid="period-zip"]').exists()).toBe(false)
