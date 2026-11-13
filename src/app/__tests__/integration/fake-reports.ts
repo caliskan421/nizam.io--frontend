@@ -5,9 +5,8 @@
 // `platform.rate_limited` bilet üretiminde, `reporting.*` (slot, doğrulama, yetki) tüketimde gelir.
 import { http, HttpResponse } from 'msw'
 
-import { meetingFixture, seasonFixture } from '@/modules/reports/__tests__/fixtures'
-
 import { envelope, fakeOrg, json, ORIGIN, type Account, type OrgDb } from './fake-org'
+import { meetingBody, seasonBody } from './fake-reports-data'
 
 export type IssueFault = 'ok' | 'rate_limited' | 'target_invalid'
 export type RedeemFault =
@@ -31,16 +30,22 @@ export interface FakeMeeting {
   department_ids: string[]
 }
 
+/** Üretilmiş bilet (tüketimde hesabın olguları ve hedef buradan okunur). */
+export interface Issued {
+  method: string
+  path: string
+  body: unknown
+  program: string
+  account: string
+}
+
 export interface ReportsState {
   issue: IssueFault
   redeem: RedeemFault
   season: SeasonFault
   filename: string
   /** Bilet kimliği → üretim isteği. */
-  tickets: Map<
-    string,
-    { method: string; path: string; body: unknown; program: string; account: string }
-  >
+  tickets: Map<string, Issued>
   /** Tüketilen bilet sayısı (ikinci bilet / tekrar tüketim yakalamak için). */
   redeemed: string[]
   meetings: FakeMeeting[]
@@ -106,34 +111,63 @@ class Fake {
   }
 }
 
+/** Tüketimde sunucu hatası (slot, doğrulama, yetki); yoksa `null` = PDF. */
+function redeemFault(f: Fake, issued: Issued, account: Account): Response | null {
+  const { db, state } = f
+  const denied = f.authorize(account, issued.program, issued.path)
+  if (denied) return denied
+  const members = (issued.body as { member_ids?: string[] } | undefined)?.member_ids ?? []
+  const unknown = members.filter((id) => !db.accounts.some((a) => a.account_id === id))
+  if (unknown.length > 0 || state.redeem === 'input_invalid') {
+    return envelope('reporting.input_invalid', 422, [
+      { field: 'member_ids', code: 'reporting.member_invalid' },
+    ])
+  }
+  switch (state.redeem) {
+    case 'not_found':
+      return envelope('reporting.not_found', 404)
+    case 'not_authorized':
+      // Yetki kaybı: hesap artık şirket yöneticisi değil (sonraki `me` bunu söyler).
+      account.admin = false
+      return envelope('reporting.not_authorized', 403)
+    case 'export_in_progress':
+      return limited('reporting.export_in_progress', '1')
+    case 'rate_limited':
+      return limited('platform.rate_limited', '60')
+    case 'capacity_full':
+      return envelope('reporting.capacity_full', 503)
+    default:
+      return null
+  }
+}
+
+async function issue(f: Fake, request: Request): Promise<Response | undefined> {
+  const { state } = f
+  const body = (await request.clone().json()) as { method: string; path: string; body?: unknown }
+  // Arşiv bileti rapor değildir: arşiv sahte sunucusuna düşer.
+  if (!body.path.startsWith('/v1/reports/')) return undefined
+  const account = f.me(request)
+  if (!account) return envelope('platform.unauthenticated', 401)
+  if (!request.headers.get('X-Requested-With')) return envelope('platform.csrf_required', 403)
+  const program = request.headers.get('X-Nizamio-Program') ?? ''
+  if (!program) return envelope('platform.scope_required', 400)
+  if (state.issue === 'rate_limited') return limited('platform.rate_limited', '17')
+  if (state.issue === 'target_invalid') return envelope('identity.download_target_invalid', 422)
+  const ticket = `rt-${state.tickets.size + 1}`
+  state.tickets.set(ticket, {
+    method: body.method,
+    path: body.path,
+    body: body.body,
+    program,
+    account: account.account_id,
+  })
+  return json({ ticket, url: `/v1/downloads/${ticket}`, expires_at: '2026-11-13T10:01:00Z' })
+}
+
 function ticketHandlers(f: Fake) {
   const { db, state } = f
   return [
-    http.post(`${ORIGIN}/v1/download-tickets`, async ({ request }) => {
-      const body = (await request.clone().json()) as {
-        method: string
-        path: string
-        body?: unknown
-      }
-      // Arşiv bileti rapor değildir: arşiv sahte sunucusuna düşer.
-      if (!body.path.startsWith('/v1/reports/')) return undefined
-      const account = f.me(request)
-      if (!account) return envelope('platform.unauthenticated', 401)
-      if (!request.headers.get('X-Requested-With')) return envelope('platform.csrf_required', 403)
-      const program = request.headers.get('X-Nizamio-Program') ?? ''
-      if (!program) return envelope('platform.scope_required', 400)
-      if (state.issue === 'rate_limited') return limited('platform.rate_limited', '17')
-      if (state.issue === 'target_invalid') return envelope('identity.download_target_invalid', 422)
-      const ticket = `rt-${state.tickets.size + 1}`
-      state.tickets.set(ticket, {
-        method: body.method,
-        path: body.path,
-        body: body.body,
-        program,
-        account: account.account_id,
-      })
-      return json({ ticket, url: `/v1/downloads/${ticket}`, expires_at: '2026-11-13T10:01:00Z' })
-    }),
+    http.post(`${ORIGIN}/v1/download-tickets`, ({ request }) => issue(f, request)),
     // Tüketim S0: kimlik bilettedir (başlık yok); yetki bileti üreten hesabın olgularından.
     http.get(`${ORIGIN}/v1/downloads/:ticket`, ({ params }) => {
       const key = String(params.ticket)
@@ -145,32 +179,15 @@ function ticketHandlers(f: Fake) {
         return envelope('identity.download_ticket_invalid', 404)
       }
       state.tickets.delete(key)
-      const denied = f.authorize(account, issued.program, issued.path)
-      if (denied) return denied
-      const members = (issued.body as { member_ids?: string[] } | undefined)?.member_ids ?? []
-      const unknown = members.filter((id) => !db.accounts.some((a) => a.account_id === id))
-      if (unknown.length > 0 || state.redeem === 'input_invalid') {
-        return envelope('reporting.input_invalid', 422, [
-          { field: 'member_ids', code: 'reporting.member_invalid' },
-        ])
-      }
-      if (state.redeem === 'not_found') return envelope('reporting.not_found', 404)
-      if (state.redeem === 'not_authorized') {
-        // Yetki kaybı: hesap artık şirket yöneticisi değil (sonraki `me` bunu söyler).
-        account.admin = false
-        return envelope('reporting.not_authorized', 403)
-      }
-      if (state.redeem === 'export_in_progress') {
-        return limited('reporting.export_in_progress', '1')
-      }
-      if (state.redeem === 'rate_limited') return limited('platform.rate_limited', '60')
-      if (state.redeem === 'capacity_full') return envelope('reporting.capacity_full', 503)
-      return new HttpResponse(PDF, {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${state.filename}"`,
-        },
-      })
+      return (
+        redeemFault(f, issued, account) ??
+        new HttpResponse(PDF, {
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="${state.filename}"`,
+          },
+        })
+      )
     }),
   ]
 }
@@ -197,10 +214,10 @@ function jsonHandlers(f: Fake) {
           return envelope('platform.internal', 500)
       }
       const program = fakeOrg.programOf(request)
-      const base = seasonFixture({
-        program_id: program,
-        program_name: db.programs.find((p) => p.program_id === program)?.name ?? '',
-      })
+      const base = seasonBody(
+        program,
+        db.programs.find((p) => p.program_id === program)?.name ?? '',
+      )
       if (state.season === 'ok') return json(base)
       return json({
         ...base,
@@ -215,11 +232,7 @@ function jsonHandlers(f: Fake) {
       if (denied) return denied
       const found = state.meetings.find((m) => m.meeting_id === params.id)
       if (!found) return envelope('reporting.not_found', 404)
-      const base = meetingFixture()
-      return json({
-        ...base,
-        meeting: { ...base.meeting, meeting_id: found.meeting_id, title: found.title },
-      })
+      return json(meetingBody(found.meeting_id, found.title))
     }),
   ]
 }

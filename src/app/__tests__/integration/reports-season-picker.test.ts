@@ -1,6 +1,6 @@
 // W142 · O3 senaryo 1 (b): "Bölüm seç…" penceresi (statik, BE-122), dönem ZIP'i (BE-120 stub) ve
 // odak dönüşü; gerçek router/AppShell/oturum.
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   $,

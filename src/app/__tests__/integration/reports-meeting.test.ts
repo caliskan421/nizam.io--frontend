@@ -1,7 +1,7 @@
 // W142 · O3 senaryo 2: 09b toplantı detayı ve K7 — "Toplantı raporu (PDF)" yetkisi (ŞY + sahip/dahil
 // departman koordinatörü), "Önizle" yalnız ŞY → 01g; MeetingReportButton'un gerçek bileşenle bağı
 // (W138 TASLAK: `MeetingDetailPage.test.ts`, `MeetingDetailPage.delete.test.ts` vi.mock reports/public).
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   $,

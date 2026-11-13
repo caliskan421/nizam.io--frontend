@@ -116,7 +116,9 @@ export async function userClick(target: string | (() => HTMLElement | null)): Pr
  * `saved`'e yazılır); yönlendirici bağlantıları (`RouterLink`) gerçek tıklamayla çalışır.
  */
 export function captureSaves(saved: string[]): void {
-  const original = HTMLAnchorElement.prototype.click
+  const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'click')!.value as (
+    this: HTMLAnchorElement,
+  ) => void
   URL.createObjectURL = vi.fn(() => 'blob:test')
   URL.revokeObjectURL = vi.fn()
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (

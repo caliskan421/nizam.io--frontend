@@ -130,11 +130,11 @@ describe('yönetici bölgeleri (reportDashboard)', () => {
     const app = await boot({ ...ADMIN, path: '/' })
     await until(() => $('[data-region="coords"]')?.textContent?.includes('Yazılım'), 'kartlar')
     await fill('[data-region="coords-toolbar"] input[type="search"]', 'mek')
-    await until(() => !$('[data-region="coords"]')!.textContent!.includes('Yazılım'), 'süzüldü')
+    await until(() => !$('[data-region="coords"]')!.textContent.includes('Yazılım'), 'süzüldü')
     expect($('[data-region="coords"]')!.textContent).toContain('Mekanik')
     await fill('[data-region="coords-toolbar"] input[type="search"]', 'zzz')
     await until(
-      () => $('[data-region="coords"]')!.textContent!.includes('eşleşen koordinatörlük yok'),
+      () => $('[data-region="coords"]')!.textContent.includes('eşleşen koordinatörlük yok'),
       'boş',
     )
     await idle(app.queryClient)
