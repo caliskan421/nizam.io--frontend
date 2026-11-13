@@ -148,3 +148,128 @@ Bu ekranda **doğrudan yazma eylemi yoktur.** Tüm düğmeler gezinmedir (§1). 
 - **Paylaşılan durum:** seçili kapsam (program, mercek, departman), tema, `me` (ad ve yönetici bayrağı).
 - **Ortak bileşen adayları** (`shared/ui`): KPI kartı, bölümlü süzgeç (`rp-seg`), sıralama menüsü (`rp-pop` + `menuitemradio`), avatar yığını + ipucu (`rp-avstack`, `rp-tip`), yığılmış durum çubuğu (`rp-bar` + `rp-seg-*`), zaman çizgisi listesi (`rp-timeline`), boş kutu (`rp-empty`). Durum çubuğu ve renkleri 03/08 ile paylaşılır.
 - **Diğer ekranlar:** 03 (KPI ve "geciken" süzgeç adları), 05 (rol sekmeleri), 08/08b, 06 (F5), 09c (F4), 01b (v1 dışı).
+
+
+---
+
+## 9. F6 — K1 ve Ü1 rol ana sayfaları (P53)
+
+Kaynak: `Koord-Ana.dc.html`, `Uye-Ana.dc.html` (v85). Tasarımda olay işleyicileri örnek veride boştur; hedefler etiket ve bağlantılardan okunmuştur. Karar durumları README "K1"/"Ü1" bölümlerindedir.
+
+### 9.1 Giriş, rota ve sayfa seçimi
+- Rota `/` (K10); parametre yok. **Sayfa seçimi:** `company_admin` → yönetici ana sayfası (mercek ne olursa, P1/P53); aksi halde Koordinatör merceği → K1, Üye merceği → Ü1 (**geçici kabul**, W135 varsayımı). Mercek değişince bütün sorgular iptal, yerel durum sıfır (K2).
+- **K1'de rapor girişi yok** (P53). Rapor düğmeleri K7 (toplantı) ve K3 (görev) ekranlarındadır; Ü1'de hiçbir rapor yok.
+- Kenar menüsü girişlerinden **Birimim, Ekibim, Zaman çizelgem/çizelgesi** hedefleri (K2/K5/K6/Ü3) F6 dışıdır; menüde gizli (§5), sayfa içi bağlantılar açıklamalı devre dışı "sonraki fazda" (`designStub` yok; §3 faz ertelemesi).
+
+### 9.2 Tek yükleme ve türetim (KESİN 21, K3)
+- K1: `countProgramWorkItems` (`department_id`) sunucu sayaçları; **aynı süzgeçle** `listProgramWorkItems` (`limit=200`, imleçle devam; en çok N sayfa, aşılırsa "≥"/"yaklaşık" ipucu, sayı uydurulmaz). Ü1: aynı iki uç `assignee_account_id` = ben, `department_id` yok (program geneli). Liste kümesinden: onay bekleyenler (`status = onaya_sunuldu`), atanmamış (`assignee_account_ids = []`, açık), geciken (`is_overdue`), ekip yükü (K1; `assignees[]` ⋈ `listMembers`), kuyruk sıralaması ve takvim (Ü1). Ayrı süzme kodu yazılmaz; yüklemler `work/public.ts` (`assignedSubset`, `isAssignedTo`, `lensAssignee`).
+- **Ü1 "Bugünün sırası" anahtarı (geçici kabul):** açık görevler (`status ≠ tamamlandi`); sıra: (1) `iade_edildi`, (2) `is_overdue` (`days_overdue` azalan), (3) `priority` acil > yuksek > orta > dusuk, (4) `end_on` artan; `onaya_sunuldu` olanlar en sona; ilk 5 gösterilir, "Tümü ‹açık sayısı›" 03'e gider. Eşitlikte ad A→Z (`Intl.Collator('tr')`).
+- **K1 ekip yükü:** üye başına `açık = devam + onayda + geciken + iade` (atanmış, tamamlanmamış); çubuk dilimi `görev sayısı × %25` (kişi başı 4 görev = %100; tasarım sabiti); sıra: açık azalan, eşitlikte ad. Atanmamış görev kimsenin yüküne girmez.
+- **Göreli tarih:** "‹n› gün gecikti" `days_overdue` (sunucu), "‹n› gün kaldı" = `end_on − bugün` (kurulum saat dilimi takvim günü; WORK-K37).
+- Pano uçları (`reportDashboard*`) K/Ü merceğinde **çağrılmaz** (403 yok).
+
+### 9.3 Durum makinesi
+| Durum | Değerler | Varsayılan | Nerede | Not |
+|---|---|---|---|---|
+| Ü1 takvim ayı | `YYYY-MM` | bugünün ayı | bellek | ay okları ağsız; kapsam değişince sıfır |
+| K1/Ü1 bölge yüklemesi | yükleniyor · hata · boş · dolu | — | sorgu önbelleği | bölgeler bağımsız; biri düşünce sayfa düşmez |
+
+### 9.4 Boş / yükleniyor / hata
+| Durum | Davranış |
+|---|---|
+| Birimde/atamada görev yok | KPI "0", çubuklar boş; kart gövdeleri nötr metin ("Onay bekleyen görev yok", "Atanmamış görev yok", "Dikkat gerektiren görev yok", "Bugün için görev yok"); sahte satır yok (§4) |
+| Ekip boş (K1) | "Ekibinde henüz üye yok" |
+| Yaklaşan toplantı yok | "Yaklaşan toplantı yok" |
+| Tarih talebi yok | "Tarih talebi yok" |
+| Bölge hatası | satır içi hata + "Yeniden dene"; K6 hataları kapsam akışına (403 `organization.membership_required` → K7 "Departman ataması bekleniyor") |
+| Yükleniyor | bölge başına iskelet; KPI sayaçları ve liste bağımsız |
+
+### 9.5 Yazma eylemleri (K5 protokolü)
+K1: "İade et"/"Onayla" (`transitionWorkItem`), "Üstlen" (`addAssignments`), "Ata" ve "Süre uzat" (03 paneli/`DateRequestForm`). Ü1: "Tekrar başla"/"Tamamlandı bildir"/"Göreve başla" (`useOwnStatusWorkItem`/`transitionWorkItem`), "Kanıt yükle" (`attachFile`), "Not yaz" (`addWorkItemNote`). Hepsi 03/06 ortak yazma bileşenleri; yeni yazma kodu yok. Başarıda `workItems`/`gantt`/pano anahtarları geçersiz (ortak-kurallar §6; `shell-counts` dahil).
+
+### 9.6 Öğe → davranış (K1)
+| Kimlik | Öğe | Kaynak | Davranış |
+|---|---|---|---|
+| E-K1-01 | Selamlama | `me.full_name` (`['me']`) | yükleme: ad `me` yanıtından |
+| E-K1-02 | Alt başlık | `myDepartments` (`role = koordinator` satırları, `display_name`) + seçili birim | yükleme; birim değişince yeniden |
+| E-K1-03 | "Toplantı planla" düğmesi | 09 `capabilities.ts` (K: sahip departman); form 09c (F4) | tıklama 09c formunu açar; salt üyede yok |
+| E-K1-04 | "Yeni görev" düğmesi | work `canCreateWorkItem`; 03 ortak formu, departman = seçili birim | tıklama 03'ün yeni görev formunu açar |
+| E-K1-05 | Birim satırı kickerı | `countProgramWorkItems.total` (`department_id` = seçili birim) | yükleme / birim değişimi |
+| E-K1-06 | "Birimim →" bağlantısı | — | tıklama gezinmez |
+| E-K1-07 | Birim özeti şeridi (6 kutu) | `countProgramWorkItems` (`department_id`; sunucu sayaçları) + aynı yüklemdeki `listProgramWorkItems` kümesi (KESİN 21) | tıklama 03'ü süzgeçle açar; bölge hatası "Yeniden dene" |
+| E-K1-08 | KPI "açık görev" | `countProgramWorkItems`: `total − by_status.tamamlandi`; `by_status.devam_ediyor/baslanmadi` | `kabul` (E-01-05 kuralı; `iade_edildi`/`onaya_sunuldu` açıktır) |
+| E-K1-09 | KPI "geciken" | `countProgramWorkItems.overdue`; "en uzunu" = yüklenen kümede `max(days_overdue)` | sayı `--danger` |
+| E-K1-10 | KPI "onay bekleyen" | `by_status.onaya_sunuldu` | geçici kabul — not "Kararını bekliyor" (kanıt kuralı görev düzeyinde, E-01-07 ile aynı: "Kanıtlı" iddiası yok) |
+| E-K1-11 | KPI "iade" | `by_status.iade_edildi`; not yüklenen kümeden | geçici kabul — tek iade varsa atanan adı, birden çoksa "‹n› görev"; kod yok (BE-005) |
+| E-K1-12 | KPI "atanmamış" | sunucu sayacı yok; yüklenen kümede `assignee_account_ids = []` (açık görevler) | tıklama 03'ü süzgeçsiz açar (03'te atanmamış süzgeci yok) |
+| E-K1-13 | KPI "tarih talebi" | `countProgramWorkItems.pending_date_requests` (görev sayısı) | tıklama 03c (`/zaman-cizelgesi`) |
+| E-K1-14 | "Onay bekleyen" kart başlığı | `by_status.onaya_sunuldu` | `kabul` — bağlantı `/gorevler?durum=onaya_sunuldu` |
+| E-K1-15 | Onay kartı alt yazısı | — (gönderim zamanı alanı yok) | geçici kabul — yalnız "Kararını bekliyor"; "Kanıt yüklendi" ve "en eskisi …" gizli (W134 kayıt bloğuna aday: görev satırında onaya sunuş zamanı) |
+| E-K1-16 | Onay satırı | `listProgramWorkItems` (`status = onaya_sunuldu`): `title`, `assignees[].full_name`, `end_on`, `is_overdue`/`days_overdue` | başlık tıklaması 03 panelini açar |
+| E-K1-17 | "İade et" / "Onayla" düğmeleri | `transitionWorkItem` (03 durum geçişi; `transitionTargets` yüklemi) | korumalı yazma; başarıda `workItems`, `gantt`, pano anahtarları geçersiz (§6) |
+| E-K1-18 | Onay kartı altnotu | — (statik metin) | geçici kabul — yalnız "iade ederken sebep yazman gerekir" kısmı garanti; tarihi bugüne çekme cümlesi 03 onay akışında böyle bir seçenek varsa gösterilir (§4: olmayan davranış vaat edilmez) |
+| E-K1-19 | "Atanmamış" kart başlığı | E-K1-12 ile aynı küme | geçici kabul — sayı dinamik; "İkisi de başlamadı" yerine "Sorumlu atanana kadar ekip listesinde görünmez." |
+| E-K1-20 | Atanmamış satırı | `title`, `priority`, `end_on` (yüklenen küme) | geçici kabul — kilit rozeti gizli (satırda bağımlılık özeti yok; W134 kayıt bloğuna aday: görev satırında bekleyen bağımlılık özeti); kod `—` |
+| E-K1-21 | "Ata" bağlantısı | 03 paneli atama bölümü (`addAssignments`) | tıklama 03 panelini atama kipinde açar |
+| E-K1-22 | "Üstlen" düğmesi | `addAssignments` (kendi hesabım); yetki 03 `capabilities.ts` | korumalı yazma |
+| E-K1-23 | "Dikkat gerektirenler" kart başlığı | yüklenen kümede `is_overdue`; bağlantı 03c | geçici kabul — "‹n› geciken görev" canlı; "bağımlılık bekliyor" gizli (E-K1-20 ile aynı gerekçe) |
+| E-K1-24 | Dikkat satırı | `assignees`, `end_on`, `days_overdue`, `pending_date_request`, `subtask_counts`; "talep reddedildi" için `date-requests/mine` son durum | geçici kabul — "talep reddedildi" yalnız yüklenen talep listesinde eşleşirse; kod `—` |
+| E-K1-25 | Dikkat satırı eylemi | 03 paneli; `DateRequestForm` (timeline, F3 canlı) | geçici kabul — "Süre uzat" tarih talebi formunu açar; "Talebi gör" 03 paneli; "Bağımlılıklar" 03 paneli bağımlılık bölümü; yalnız bağımlılıktan kilitli dördüncü tür satır gizli |
+| E-K1-26 | "Ekip yükü" kart başlığı | `listMembers` (S2, kendi birimi, tek istek; fan-out değil) | `kabul` — "Ekibim →" (K5) F6 dışı: devre dışı + faz notu |
+| E-K1-27 | Ekip yükü alt yazısı ve lejant | yüklenen kümeden | geçici kabul — "‹n› atanmış açık görev · yüke göre sıralı"; "SİS-9 iki kişide" gizli; lejant sabit |
+| E-K1-28 | Ekip üyesi satırı | `listMembers` + yüklenen görevlerin `assignees[]` kırılımı (KESİN 21 tek küme) | hover/odak: ipucu |
+| E-K1-29 | "Hızlı işlemler" kartı | bkz. E-K1-30…33 | `kabul` (P3: yeni kısayol icat edilmez; çizilen dört kutucuk) |
+| E-K1-30 | Hızlı işlem "Yeni görev" | E-K1-04 ile aynı | `kabul` |
+| E-K1-31 | Hızlı işlem "Toplantı planla" | E-K1-03 ile aynı | `kabul` |
+| E-K1-32 | Hızlı işlem "Ekibe üye ekle" | — | tıklama gezinmez |
+| E-K1-33 | Hızlı işlem "Tarih talebi gönder" | 03c + `DateRequestForm` | tıklama 03c |
+| E-K1-34 | "Yaklaşan toplantılar" kart başlığı | `listMeetings` (`from` = bugün, `department_id` = seçili birim; kurulum saat dilimi) | `kabul` (P29 `from`/`to`); "Tümü" → 09 liste |
+| E-K1-35 | Toplantı satırı | `Meeting.meeting_date`, `title`, `departments[].department_name`, `owner_department_id`, `members_included`, `summary.participant_count` | satır tıklaması 09b |
+| E-K1-36 | "Canlı" tarih kutusu ve rozeti | — | `kabul` (P21: sahte Canlı/Bekliyor yok; `conference_status` çizilmez) |
+| E-K1-37 | "Anlık toplantı başlat" | — | `kabul` (P21, KR-26: gerçek sağlayıcı W7'de) |
+| E-K1-38 | "Tarih taleplerim" kart başlığı | `date-requests/mine` (`useMyDateChangeRequests`) | `kabul` (P18 metin: plan tarihini yönetici değiştirir); "Tümü" → 03c |
+| E-K1-39 | Tarih talebi satırı | `DateChangeRequest`: `status`, `old_end_on`, `new_end_on`, `reason`; başlık yüklenen görev kümesinden | satır tıklaması 03c |
+| E-K1-40 | "Son etkinlik" akışı | — (audit okuma yok; rol kapsamlı okuma BE-091) | `kabul` (§4, P6): nötr yer tutucu "Henüz işlem geçmişi yok / yakında"; `designStub('BE-010', …)`; sahte akış yok |
+| E-K1-41 | Rapor girişi (çizilmeyen) | — | `kabul` (P53): K1'de rapor kutucuğu/menüsü **yok**; koordinatörün raporları yalnız K7 (toplantı) ve K3 (görev) düğmeleri |
+
+### 9.7 Öğe → davranış (Ü1)
+| Kimlik | Öğe | Kaynak | Davranış |
+|---|---|---|---|
+| E-Ü1-01 | Selamlama | `me.full_name` | geçici kabul — tam `full_name` (E-01-01) |
+| E-Ü1-02 | Alt başlık | seçili birim adı (`myDepartments.display_name`) + sabit metin | geçici kabul — metin birebir; birim adı kapsam etiketidir, sayaçlar program geneli (bkz. kapsam notu) |
+| E-Ü1-03 | "Kanıt yükle" üst düğmesi | 06/07 ortak yükleme penceresi (`attachFile`; görev seçici = bana atananlar; yetki ADR-0030) | tıklama yükleme penceresini açar |
+| E-Ü1-04 | "Görev özetim" şeridi (4 kart) | `countProgramWorkItems` (`assignee_account_id` = ben; BE-038 bağlandı); `department_id` yok (program geneli) | tıklama 03; hata "Yeniden dene" |
+| E-Ü1-05 | Kart "Açık görev" | `total − by_status.tamamlandi`; `by_status` kırılımı | `kabul` (E-01-05) |
+| E-Ü1-06 | Kart "Gecikmede" | `overdue`; yüzde `overdue / açık` yuvarlanır | sayı `--danger` |
+| E-Ü1-07 | Kart "Onay bekleyen" | `by_status.onaya_sunuldu` | geçici kabul — not "Koordinatör onayında" (kanıt iddiası yok, E-01-07) |
+| E-Ü1-08 | Kart "İade edilen" | `by_status.iade_edildi` | geçici kabul — not "Tekrar başlayabilirsin" (iade sebebi satırda yok; "kanıt eksik" iddiası kaldırıldı; W134 kayıt bloğuna aday: iade sebebinin görev satırında/okuma ucunda yer alması) |
+| E-Ü1-09 | "Bugünün sırası" başlığı | aynı yükleme: `listProgramWorkItems` (`assignee_account_id`, `limit=200`) | geçici kabul — istemci sıralama anahtarı: iade_edildi, sonra geciken (`days_overdue` azalan), sonra `priority` (acil > yuksek > orta > dusuk), sonra `end_on`; onaya sunulanlar sona; ilk 5; yüklemeden bağımsız ek istek yok (KESİN 21) |
+| E-Ü1-10 | "Tümü ‹n›" bağlantısı | 03 (üye merceği) | tıklama 03 |
+| E-Ü1-11 | Kuyruk satırı | `title`, `status`, `subtask_counts`, `department_id`→`myDepartments` adı, `end_on`, `days_overdue` | başlık tıklaması 03 panelini açar |
+| E-Ü1-12 | Eylem "Tekrar başla" | `useOwnStatusWorkItem` (`iade_edildi → devam_ediyor`) | korumalı yazma |
+| E-Ü1-13 | Eylem "Kanıt yükle" | yükleme penceresi, görev sabit | `kabul` (P35) |
+| E-Ü1-14 | Eylem "Tamamlandı bildir" | `transitionWorkItem` (`→ onaya_sunuldu`; `completion_evidence_required` kuralı 03'te) | kanıt yoksa 03'ün hata mesajı |
+| E-Ü1-15 | Eylem "Göreve başla" (kilitli) | `transitionWorkItem` (`baslanmadi → devam_ediyor`) | korumalı yazma |
+| E-Ü1-16 | Rozet "Onayda" | `status = onaya_sunuldu` | geçici kabul — ipucu "Koordinatör onayında" (koordinatör adı üyeye okunamaz) |
+| E-Ü1-17 | Kuyruk altnotu | `completion_evidence_required` | geçici kabul — kilit cümlesi gizli (E-Ü1-15); kanıt cümlesi yalnız o alan `true` olan görev kuyrukta varsa |
+| E-Ü1-18 | "Hızlı işlemler" kartı | bkz. E-Ü1-19…22 | `kabul` (P3) |
+| E-Ü1-19 | "Kanıt yükle" kutucuğu | E-Ü1-03 ile aynı | geçici kabul — alt satır "Görev seç, dosya ekle" (90 MB gizli) |
+| E-Ü1-20 | "Not yaz" kutucuğu | `addWorkItemNote` (03 not formu; görev seçici = bana atananlar) | `kabul` |
+| E-Ü1-21 | "Koordinatörüme yaz" kutucuğu | — (10 Mesajlar F7) | tıklama gezinmez |
+| E-Ü1-22 | "Toplantı notu ekle" kutucuğu | `listMeetings` en yakın toplantı → 09b not ekleme (09 `capabilities.ts`) | geçici kabul — hedef 09b (Ü5 `Uye-Toplanti` F6 dışı); yaklaşan toplantı yoksa kutucuk devre dışı |
+| E-Ü1-23 | "Son bildirimler" kart başlığı | `countUnreadNotifications` (S1, hesap geneli); liste F7 | geçici kabul — "‹n› yeni" canlı; "Tümü" (Ü7) F6 dışı devre dışı; liste F7'de (`listNotifications` mevcut; kayıt BE-002 vazgeçildi → F7) |
+| E-Ü1-24 | Bildirim satırları | — (F7) | `kabul` (§4): nötr "Henüz bildirim yok / yakında"; sahte satır yok |
+| E-Ü1-25 | "Son tarihlerim · Ekim" takvimi | yüklenen kümede `end_on` (açık görevler) | ok tuşları ay değiştirir |
+| E-Ü1-26 | Takvim ızgarası | aynı küme | geçici kabul — hücre `aria-label` "21 Ekim, bugün" / ", geciken son tarih" / ", yaklaşan son tarih"; hafta Pazartesi başlar; TRT takvim günü |
+| E-Ü1-27 | Takvim lejantı | aynı küme | `kabul` — geciken = açık ve `is_overdue` görev sayısı; yaklaşan = açık ve `end_on` ≥ bugün görev sayısı |
+| E-Ü1-28 | "Yaklaşan toplantılar" kart başlığı | `listMeetings` (`from` = bugün) | `kabul`; "Tümü" → 09 liste |
+| E-Ü1-29 | Toplantı satırı | `meeting_date`, `title`, `departments[]`, `members_included` | geçici kabul — kod yerine ad kısaltması; satır tıklaması 09b (Ü5 yerine) |
+| E-Ü1-30 | "Koordinatörlüklerim" kart başlığı | `myDepartments` (üyelik satırları) | `kabul` |
+| E-Ü1-31 | Koordinatörlük satırı | aynı yükleme kümesinin `department_id` kırılımı (tek istek; fan-out değil) | geçici kabul — "‹n› görev" = o birimdeki açık görevlerim; dilimler başlamadı/devam/onayda/iade; ikinci satır durum özeti ("1 devam · 1 onayda"); "Koordinatör: ‹ad›" gizli (W134 kayıt bloğuna aday: üyeye birim koordinatör adı); kod yerine ad |
+| E-Ü1-32 | Kart altnotu | — (statik metin; sözleşme bilgisi) | `kabul` |
+| E-Ü1-33 | Rapor girişi (çizilmeyen) | — | `kabul` (P47, REPORTING-K01/K07): üye hiçbir rapor görmez |
+
+### 9.8 01 yönetici sayfası — F6 davranış eklemeleri
+- **E-01-12 "Rapor oluştur" (P47, kabul):** küçük yönlendirme menüsü; dört satır: "Dönem sonu raporu" → 06 Arşiv; "İş yükü raporu" → 05 Kullanıcılar; "Toplantı raporu" → toplantı seç (09 listesi); "Görev raporu" → görev seç (03). Ayrı sayfa/rota yok; ağ isteği atmaz; yalnız `company_admin`.
+- **01b işlem geçmişi F6 dışı (P46):** "Son işlemler" "Tümü" bağlantısı devre dışı kalır.
+- **E-01-28:** kartlar yönetici için program geneli; 200 satır uyarısı gerekmez (v0.15 `reportDashboard` gömülü dizileri kesmez; spec).

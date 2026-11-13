@@ -168,3 +168,104 @@ Yalnız token. `Main-Acik.dc.html` yalnız `theme` varsayılanında (`light`) fa
 16. **Yükleniyor / hata durumları** hiçbir bölgede çizilmemiş; yalnız koordinatörlük boş durumu var.
 17. **Rol ayrımı yok.** Tek artboard var ve içerik (Silinen kayıtlar, Kullanıcı davet et, Rapor oluştur, ekip rol sayıları, tüm koordinatörlükler) yönetici merceğini düşündürüyor; koordinatör/üye için ayrı bir ana sayfa çizilmemiş.
 18. **Kapsam belirsiz.** KPI'lar, ekip sayıları ve koordinatörlük kartları seçili programa mı, seçili koordinatörlüğe mi, şirkete mi ait, tasarımdan anlaşılmıyor (kırıntıda program adı var; Koordinatörlük kartı seçilince ekranın daralıp daralmadığı çizilmemiş).
+
+
+---
+
+## 9. K1 · Koordinatör ana sayfası (`Koord-Ana.dc.html`) — F6
+
+Kaynak: `../../tasarim/kaynak/Koord-Ana.dc.html` (sürüm `1794590338-3fe0`); karar P53. Örnek veriler (Kadir Özbek, SİS-n kodları, tarihler) gerçek değildir.
+
+**Yerleşim.** `rp-page` → kenar menüsü (`Sidebar active="home"`, `roleId: koord`) + `rp-main`: üst çubuk (geri/ileri, kırıntı "Şanlıurfa Teknofest / Ana sayfa", tarih "21 Ekim 2026, Çarşamba", tema, bildirim zili) → `rp-head` (selamlama + alt başlık, sağda "Toplantı planla" ve birincil "Yeni görev") → `rp-body`: (1) tam genişlik birim kickerı + "Birimim →" ve "Birim özeti" şeridi (6 kutu, `grid auto-fit minmax(150px,1fr)`, 1 px ayraç); (2) **sol sütun** (`gap:20px`, dört `t-card`, `padding:24px`): Onay bekleyen · Atanmamış · Dikkat gerektirenler · Ekip yükü; (3) **sağ `aside` "Gün özeti"**: Hızlı işlemler · Yaklaşan toplantılar · Tarih taleplerim · Son etkinlik. Dar ekranda (≤ 900 px) satır ızgaraları daralır (`rp-ka-hide` sütunları gizlenir, onay düğmeleri alt satıra iner). Tuval 1440×2300.
+
+**Sınıflar.** Sayfaya özgü `rp-ka-*` (`rp-ka-row--appr|free|att|load`, `rp-ka-meta`, `rp-ka-btns`, `rp-ka-role`, `rp-ka-me`, `rp-ka-gold`, `rp-ka-st--wait|ok|no`, `rp-ka-req`, `rp-ka-quick`, `rp-ka-kpi`), ortak `rp-kpistrip`, `rp-code`, `rp-mrow`/`rp-mdate`/`rp-pill` (toplantı satırı; canlı kutu `data-state="live"` + `rpPulse` animasyonu, `prefers-reduced-motion` ile durur).
+
+**Öğeler** (kimlikler README "K1" bölümüyle aynıdır; "Metin" sütunu artboard'dan birebir):
+
+| Kimlik | Öğe | Metin / biçim | Durumlar ve not |
+|---|---|---|---|
+| E-K1-01 | Selamlama | "Merhaba Kadir" | yükleme: ad `me` yanıtından |
+| E-K1-02 | Alt başlık | "Sistem koordinatörlüğü · koordinatör olarak birimin tüm görevlerini görüyorsun · 2 koordinatörlüğün var (SİS, EĞİ)" | yükleme; birim değişince yeniden |
+| E-K1-03 | "Toplantı planla" düğmesi | → `Koord-Toplantilar` (09c formu) | tıklama 09c formunu açar; salt üyede yok |
+| E-K1-04 | "Yeni görev" düğmesi | → `Koord-Gorev-Pencereler` | tıklama 03'ün yeni görev formunu açar |
+| E-K1-05 | Birim satırı kickerı | "sis · 14 görev · bugün" | yükleme / birim değişimi |
+| E-K1-06 | "Birimim →" bağlantısı | → `Koord-Birim` (K2) | tıklama gezinmez |
+| E-K1-07 | Birim özeti şeridi (6 kutu) | `Birim özeti`: açık görev · geciken · onay bekleyen · iade · atanmamış · tarih talebi | tıklama 03'ü süzgeçle açar; bölge hatası "Yeniden dene" |
+| E-K1-08 | KPI "açık görev" | değer + "‹n› devam · ‹m› başlamadı" | — |
+| E-K1-09 | KPI "geciken" | değer + "En uzunu 21 gün · SİS-7" | sayı `--danger` |
+| E-K1-10 | KPI "onay bekleyen" | değer + "Kanıtlı, kararını bekliyor" | — |
+| E-K1-11 | KPI "iade" | değer + "SİS-8 · Selin Yıldız" | — |
+| E-K1-12 | KPI "atanmamış" | değer + "Sorumlu bekliyor" | tıklama 03'ü süzgeçsiz açar (03'te atanmamış süzgeci yok) |
+| E-K1-13 | KPI "tarih talebi" | değer + "Bekliyor · yönetici incelemesinde" | tıklama 03c (`/zaman-cizelgesi`) |
+| E-K1-14 | "Onay bekleyen" kart başlığı | "Onay bekleyen ‹n›" + "Görevlerde aç →" | — |
+| E-K1-15 | Onay kartı alt yazısı | "Kanıt yüklendi, kararını bekliyor · en eskisi dün 16:20" | — |
+| E-K1-16 | Onay satırı | başlık · kod · atananlar · "gönderildi ‹n› önce" · "‹n› dosya" · "bitiş 20.10 · 1 gün geç" | başlık tıklaması 03 panelini açar |
+| E-K1-17 | "İade et" / "Onayla" düğmeleri | `‹kod› görevini iade et` / `onayla` | korumalı yazma; başarıda `workItems`, `gantt`, pano anahtarları geçersiz (§6) |
+| E-K1-18 | Onay kartı altnotu | "Onaylarken bitiş tarihini bugüne çekebilirsin. Plan tarihi saklanır; iade ederken sebep yazman gerekir." | — |
+| E-K1-19 | "Atanmamış" kart başlığı | "Atanmamış ‹n›" + "Sorumlu bekliyor" + "İkisi de başlamadı; sorumlu atanana kadar ekip listesinde görünmez." | — |
+| E-K1-20 | Atanmamış satırı | başlık · kod · "Atanmamış" · kilit rozeti "SİS-9 ve ELE-2 bekleniyor" · öncelik · bitiş + göreli | — |
+| E-K1-21 | "Ata" bağlantısı | → `Koord-Gorev-Pencereler` (atama) | tıklama 03 panelini atama kipinde açar |
+| E-K1-22 | "Üstlen" düğmesi | `‹kod› görevini üstlen` | korumalı yazma |
+| E-K1-23 | "Dikkat gerektirenler" kart başlığı | "Dikkat gerektirenler ‹n›" + "Zaman çizelgesi →" + "3 geciken görev · 1 görev bağımlılık bekliyor" | — |
+| E-K1-24 | Dikkat satırı | başlık · kod · "Kadir Özbek · bitiş 30.09.2026 · tarih talebi bekliyor" · "21 gün gecikti" · alt görev | — |
+| E-K1-25 | Dikkat satırı eylemi | "Talebi gör" · "Süre uzat" · "Bağımlılıklar" | — |
+| E-K1-26 | "Ekip yükü" kart başlığı | "Ekip yükü ‹n›" + "Ekibim →" | — |
+| E-K1-27 | Ekip yükü alt yazısı ve lejant | "10 atanmış açık görev · SİS-9 iki kişide · yüke göre sıralı"; lejant devam/onayda/geciken/iade | — |
+| E-K1-28 | Ekip üyesi satırı | avatar · ad · rol noktası (Koordinatör/Üye) · "sen" · 4 renkli yük çubuğu · "‹n› açık · ‹m› geciken" | hover/odak: ipucu |
+| E-K1-29 | "Hızlı işlemler" kartı | 4 kutucuk | — |
+| E-K1-30 | Hızlı işlem "Yeni görev" | → `Koord-Gorev-Pencereler` | — |
+| E-K1-31 | Hızlı işlem "Toplantı planla" | → `Koord-Toplantilar` | — |
+| E-K1-32 | Hızlı işlem "Ekibe üye ekle" | → `Koord-Ekip` (K5) | tıklama gezinmez |
+| E-K1-33 | Hızlı işlem "Tarih talebi gönder" | → `Koord-Zaman` (K6) | tıklama 03c |
+| E-K1-34 | "Yaklaşan toplantılar" kart başlığı | "Yaklaşan toplantılar ‹n›" + "Tümü" | — |
+| E-K1-35 | Toplantı satırı | gün · ay · saat · başlık · koordinatörlük kodları · "9 katılımcı" / "Üyeler katılıyor" | satır tıklaması 09b |
+| E-K1-36 | "Canlı" tarih kutusu ve rozeti | `data-state="live"`, "Canlı" pill | — |
+| E-K1-37 | "Anlık toplantı başlat" | düğme | — |
+| E-K1-38 | "Tarih taleplerim" kart başlığı | "Tarih taleplerim ‹n›" + "Tümü" + "1 bekliyor · 2 karar verildi · plan tarihini yönetici değiştirir" | — |
+| E-K1-39 | Tarih talebi satırı | kod · başlık · durum · "bitiş 30.09 → 31.10" · "19.10 gönderildi" · not | satır tıklaması 03c |
+| E-K1-40 | "Son etkinlik" akışı | 5 satırlık zaman çizgisi | — |
+| E-K1-41 | Rapor girişi (çizilmeyen) | — (artboard'da yok) | — |
+
+## 10. Ü1 · Üye ana sayfası (`Uye-Ana.dc.html`) — F6
+
+Kaynak: `../../tasarim/kaynak/Uye-Ana.dc.html` (sürüm `1794590338-3fe0`); karar P53. Örnek veriler (Bahar, ALT-n/ELE-1/OPE kodları, Kadir Özbek) gerçek değildir.
+
+**Yerleşim.** `rp-page` → kenar menüsü (`roleId: uye`) + `rp-main`: üst çubuk → `rp-head` (selamlama + alt başlık, sağda "Kanıt yükle") → `rp-body`: (1) "Görev özetim" şeridi (4 kart, ikonlu başlık + ok, değer, ilerleme çubuğu, not); (2) **sol sütun**: "Bugünün sırası" (5 satırlık liste, `role="list"`) · "Hızlı işlemler" (2×2 kutucuk) · "Son bildirimler" (zaman çizgisi `ol`); (3) **sağ `aside`** (Takvim, toplantılar ve koordinatörlükler): "Son tarihlerim · Ekim" (ay ızgarası `role="grid"`, 7 sütun, hafta Pazartesi'den, lejant) · "Yaklaşan toplantılar" · "Koordinatörlüklerim". Tuval 1440×2100.
+
+**Öğeler** (kimlikler README "Ü1" bölümüyle aynıdır):
+
+| Kimlik | Öğe | Metin / biçim | Durumlar ve not |
+|---|---|---|---|
+| E-Ü1-01 | Selamlama | "Merhaba Bahar" | — |
+| E-Ü1-02 | Alt başlık | "Altyapı ve tesisat · üye olarak yalnız sana atanan görevleri görüyorsun" | — |
+| E-Ü1-03 | "Kanıt yükle" üst düğmesi | düğme | tıklama yükleme penceresini açar |
+| E-Ü1-04 | "Görev özetim" şeridi (4 kart) | Açık görev · Gecikmede · Onay bekleyen · İade edilen | tıklama 03; hata "Yeniden dene" |
+| E-Ü1-05 | Kart "Açık görev" | değer + "5 devam · 2 onayda · 1 iade · 1 başlamadı" + çubuk %100 | — |
+| E-Ü1-06 | Kart "Gecikmede" | değer + "Açık görevlerinin %44’ü" + çubuk | sayı `--danger` |
+| E-Ü1-07 | Kart "Onay bekleyen" | değer + "Kanıt gönderildi, koordinatör onayında" | — |
+| E-Ü1-08 | Kart "İade edilen" | değer + "Kanıt eksik — tekrar başla" | — |
+| E-Ü1-09 | "Bugünün sırası" başlığı | "Bugünün sırası" + "Önceliğe ve son tarihe göre sıralandı · 9 açık görevinden 5’i" | — |
+| E-Ü1-10 | "Tümü ‹n›" bağlantısı | → `Uye-Gorevler` | tıklama 03 |
+| E-Ü1-11 | Kuyruk satırı | başlık · kod · durum etiketi · "Alt görev 2/4 · 6 dosya · iade: imzalı liste eksik" · koordinatörlük rozeti · bitiş + göreli · eylem | başlık tıklaması 03 panelini açar |
+| E-Ü1-12 | Eylem "Tekrar başla" | iade edildi satırı | korumalı yazma |
+| E-Ü1-13 | Eylem "Kanıt yükle" | devam eden satır | — |
+| E-Ü1-14 | Eylem "Tamamlandı bildir" | devam eden satır | kanıt yoksa 03'ün hata mesajı |
+| E-Ü1-15 | Eylem "Göreve başla" (kilitli) | devre dışı düğme + "Bekleyen: ALT-3 Zimmet" ipucu | korumalı yazma |
+| E-Ü1-16 | Rozet "Onayda" | `Kadir Özbek’in onayında` | — |
+| E-Ü1-17 | Kuyruk altnotu | "Kilitli görevler, bağlı oldukları görev tamamlanınca açılır. Onaya göndermek için en az 1 kanıt dosyası gerekir." | — |
+| E-Ü1-18 | "Hızlı işlemler" kartı | 4 kutucuk | — |
+| E-Ü1-19 | "Kanıt yükle" kutucuğu | "Görev seç, dosya ekle · en çok 90 MB" | — |
+| E-Ü1-20 | "Not yaz" kutucuğu | "Görevine ilerleme notu düş" | — |
+| E-Ü1-21 | "Koordinatörüme yaz" kutucuğu | "Kadir Özbek · Altyapı ve tesisat" | tıklama gezinmez |
+| E-Ü1-22 | "Toplantı notu ekle" kutucuğu | "Bugün 15:30 · Hidrofor teslim kontrolü" | — |
+| E-Ü1-23 | "Son bildirimler" kart başlığı | "Son bildirimler" + "2 yeni" + "Tümü" | — |
+| E-Ü1-24 | Bildirim satırları | 5 satır, okunmamış noktası | — |
+| E-Ü1-25 | "Son tarihlerim · Ekim" takvimi | ay başlığı + önceki/sonraki ay | ok tuşları ay değiştirir |
+| E-Ü1-26 | Takvim ızgarası | 7×5 gün hücresi, noktalar (geciken/yaklaşan) | — |
+| E-Ü1-27 | Takvim lejantı | "Geciken (4)" · "Yaklaşan (5)" | — |
+| E-Ü1-28 | "Yaklaşan toplantılar" kart başlığı | "Yaklaşan toplantılar" + "Tümü" | — |
+| E-Ü1-29 | Toplantı satırı | gün · ay/Bugün · saat · başlık · koordinatörlük kodu · pill "üyeler katılıyor" | — |
+| E-Ü1-30 | "Koordinatörlüklerim" kart başlığı | "Koordinatörlüklerim ‹n›" | — |
+| E-Ü1-31 | Koordinatörlük satırı | kod · ad · "‹n› görev" · 4 dilimli durum çubuğu · "3 gecikmiş" · "Koordinatör: Kadir Özbek" | — |
+| E-Ü1-32 | Kart altnotu | "Koordinatörlük atamalarını yönetici yapar." | — |
+| E-Ü1-33 | Rapor girişi (çizilmeyen) | — (artboard'da yok) | — |
