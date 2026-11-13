@@ -7,7 +7,8 @@ import { createFakeLifecycle, setupWithScope, sideContext } from './__tests__/fa
 import { useTaskBadges } from './badges'
 import { menuIcon, phaseNote, sideMenuGroups, useSideMenu } from './menu'
 
-const admin = { ready: true, companyAdmin: true }
+const admin = { ready: true, companyAdmin: true, role: 'admin' } as const
+const coordinator = { ready: true, companyAdmin: false, role: 'coordinator' } as const
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
@@ -30,7 +31,7 @@ describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüd
       ['coords', 'canli'],
       ['season', 'canli'],
     ])
-    const nonAdmin = sideMenuGroups(menuEntries(), { ready: true, companyAdmin: false })
+    const nonAdmin = sideMenuGroups(menuEntries(), coordinator)
     expect(nonAdmin.map((g) => g.group)).toEqual(['takip', 'icerik'])
   })
 
@@ -49,7 +50,7 @@ describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüd
     const { badges } = setupWithScope(ctx, lifecycle, () => useTaskBadges(undefined, fetcher))
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(1)
-    expect(badges.value).toEqual({ overdue: 4, pendingDates: 1 })
+    expect(badges.value).toEqual({ overdue: 4, pendingDates: 1, awaitingApproval: null })
 
     const coordCtx = await sideContext()
     const coord = createFakeLifecycle({
@@ -64,7 +65,7 @@ describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüd
     await flushPromises()
     expect(idle).not.toHaveBeenCalled()
     expect(counts).toHaveBeenCalledTimes(1)
-    expect(other.badges.value).toEqual({ overdue: 3, pendingDates: 2 })
+    expect(other.badges.value).toEqual({ overdue: 3, pendingDates: 2, awaitingApproval: null })
   })
 })
 
@@ -83,10 +84,10 @@ describe('kenar menüsü grupları', () => {
     const entries = menuEntries('F2')
     expect(sideMenuGroups(entries, admin).map((g) => g.group)).toEqual(['takip', 'yonetim'])
     expect(
-      sideMenuGroups(entries, { ready: true, companyAdmin: false }).map((g) => g.group),
+      sideMenuGroups(entries, coordinator).map((g) => g.group),
     ).toEqual(['takip'])
     expect(
-      sideMenuGroups(entries, { ready: false, companyAdmin: true }).map((g) => g.group),
+      sideMenuGroups(entries, { ready: false, companyAdmin: true, role: 'coordinator' }).map((g) => g.group),
     ).toEqual(['takip'])
   })
 
