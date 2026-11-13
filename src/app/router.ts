@@ -18,6 +18,7 @@ import {
 } from '@/app/routes.catalog'
 import { archiveRoutes } from '@/modules/archive/public'
 import { deletedRecordsRoutes } from '@/modules/deleted-records/public'
+import { reportsRoutes } from '@/modules/reports/public'
 import { homeRoutes } from '@/modules/home/public'
 import { meetingsRoutes } from '@/modules/meetings/public'
 import { identityRoutes } from '@/modules/identity/public'
@@ -48,6 +49,7 @@ export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...meetingsRoutes,
   ...archiveRoutes,
   ...deletedRecordsRoutes,
+  ...reportsRoutes,
 ]
 
 function moduleViews(records: readonly RouteRecordRaw[]): Map<RouteName, ViewLoader> {

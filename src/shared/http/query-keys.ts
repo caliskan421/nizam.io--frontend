@@ -146,6 +146,14 @@ export const queryKeys = {
   report: {
     dashboard: (s: ScopeSnapshot) => scoped(s, ['report', 'dashboard']),
     coordinatorships: (s: ScopeSnapshot) => scoped(s, ['report', 'dashboard', 'coordinatorships']),
+    /** `reportSeason` — dönem raporu JSON'u (01f önizleme; W136); `staleTime: 0`, ağır uç. */
+    season: (s: ScopeSnapshot) => scoped(s, ['report', 'season']),
+    /** `reportWorkload` — iş yükü JSON'u (yalnız anahtar; okuyucu F6 sonrası). */
+    workload: (s: ScopeSnapshot) => scoped(s, ['report', 'workload']),
+    /** `reportMeetingDetail` — toplantı rapor ayrıntısı (01g önizleme; W136). */
+    meeting: (s: ScopeSnapshot, id: string) => scoped(s, ['report', 'meeting', id]),
+    /** `reportTaskDetail` — görev rapor ayrıntısı (W136). */
+    task: (s: ScopeSnapshot, id: string) => scoped(s, ['report', 'task', id]),
   },
   archive: {
     all: (s: ScopeSnapshot) => scoped(s, ['archive']),
@@ -194,6 +202,8 @@ export type QueryResource =
   | 'gantt'
   | 'dateRequests'
   | 'report'
+  | 'report.meeting'
+  | 'report.task'
   | 'archive'
   | 'meetings'
   | 'chats'
@@ -324,6 +334,24 @@ const REPORT_ORGANIZATION_WRITES = [
   'permanentDeleteAccount',
 ] as const satisfies readonly OperationId[]
 
+// Toplantı içeriği yazmaları (konferans başlat/bitir hariç: rapora ve panoya girmez).
+const MEETING_CONTENT_WRITES = [
+  'createMeeting',
+  'updateMeeting',
+  'deleteMeeting',
+  'restoreMeeting',
+  'permanentDeleteMeeting',
+  'addAgendaItem',
+  'updateAgendaItem',
+  'deleteAgendaItem',
+  'addMeetingNote',
+  'updateMeetingNote',
+  'deleteMeetingNote',
+  'convertNoteToTask',
+  'addMeetingParticipant',
+  'removeMeetingParticipant',
+] as const satisfies readonly OperationId[]
+
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
   ...new Set(lists.flat()),
 ]
@@ -416,36 +444,36 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   ]),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
   // Organizasyon yazmaları (W82a) ve rozetleri besleyen görev/tarih yazmaları geçersizler (WP3).
+  // `report`: program geneli özetler — pano (`dashboard`), dönem (`season`) ve iş yükü
+  // (`workload`) JSON'ları aynı programın aynı yazmalarıyla yenilenir (W136: dönem raporu
+  // toplantı sayaçlarını da taşır → toplantı içeriği yazmaları eklendi).
   report: unique(
     REPORT_ORGANIZATION_WRITES,
     WORK_ITEM_WRITES,
     DATE_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
+    MEETING_CONTENT_WRITES,
   ),
+  // Görev rapor ayrıntısı (`reportTaskDetail`: künye, bağımlılıklar, son 20 not): görev, tarih,
+  // not, alt görev ve bağımlılık yazmaları ile atama devri; hedef görev biliniyorsa yalnız o.
+  'report.task': unique(
+    WORK_ITEM_WRITES,
+    DATE_WRITES,
+    NOTE_WRITES,
+    SUBTASK_WRITES,
+    DEPENDENCY_WRITES,
+    ASSIGNMENT_HANDOVER_WRITES,
+  ),
+  // Toplantı rapor ayrıntısı (`reportMeetingDetail`: künye, katılımcı rolleri, gündem, notlar):
+  // toplantı içeriği yazmaları + departman adı / üyelik / kullanıcı adı yazmaları.
+  'report.meeting': unique(MEETING_CONTENT_WRITES, REPORT_ORGANIZATION_WRITES),
   // 06 Arşiv: yükleme/ad/silme dört okuyucuyu (klasörler, görevler, dosyalar, yükleyenler) ve
   // programın bütün departman anahtarlarını yeniler (yönetici anahtarı rotadaki klasörü taşır).
   // Pano sayaçları (geciken, bekleyen talep) dosyaya bağlı değildir: pano geçersizlenmez.
   // Geri yüklenen görevin dosyaları erişilebilir döner, kalıcı silinen görevin dosyaları gider
   // (RECORDS; 12 Silinen kayıtlar, W128).
   archive: unique(FILE_WRITES, ['restoreWorkItem', 'permanentDeleteWorkItem']),
-  meetings: [
-    'createMeeting',
-    'updateMeeting',
-    'deleteMeeting',
-    'restoreMeeting',
-    'permanentDeleteMeeting',
-    'addAgendaItem',
-    'updateAgendaItem',
-    'deleteAgendaItem',
-    'addMeetingNote',
-    'updateMeetingNote',
-    'deleteMeetingNote',
-    'convertNoteToTask',
-    'addMeetingParticipant',
-    'removeMeetingParticipant',
-    'startConference',
-    'endConference',
-  ],
+  meetings: [...MEETING_CONTENT_WRITES, 'startConference', 'endConference'],
   chats: [
     'openDirectChat',
     'createGroupChat',
@@ -491,6 +519,8 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
 /** Mutasyonun hedef kaydı; verilmezse ilgili kaynağın kapsamdaki bütün kayıtları geçersizlenir. */
 export interface InvalidationContext {
   workItemId?: string
+  /** Hedef toplantı (rapor ayrıntısı `report.meeting`); verilmezse programdaki bütün toplantı raporları. */
+  meetingId?: string
 }
 
 /** TanStack `invalidateQueries` filtresi (yalnız kullandığımız alanlar). */
@@ -527,19 +557,27 @@ const prefix =
   (scope) => ({ queryKey: key(scope) })
 
 /**
- * Eylemin PROGRAMININ panosu (`scoped([... 'report', 'dashboard', …])`), mercek/birim parçasından
- * bağımsız: Admin ve Koordinatör merceğindeki pano anahtarları aynı programdadır. Başka programın
- * panosuna dokunulmaz (K2); programsız eylemde geçersizleme yok.
+ * Eylemin PROGRAMININ rapor okuyucuları (`scoped([... 'report', <tür>, …])`), mercek/birim
+ * parçasından bağımsız: Admin ve Koordinatör merceğindeki anahtarlar aynı programdadır. Başka
+ * programın raporuna dokunulmaz (K2); programsız eylemde geçersizleme yok. `id` verilirse yalnız
+ * o kaydın (`['report', 'task' | 'meeting', id]`) anahtarı vurulur.
  */
-function reportOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
-  if (scope.programId === null) return null
-  return {
-    queryKey: [QUERY_KEY_ROOT],
-    predicate: ({ queryKey }) =>
-      isScopedQueryKey(queryKey) &&
-      (queryKey[1] as { program: unknown }).program === scope.programId &&
-      queryKey[2] === 'report' &&
-      queryKey[3] === 'dashboard',
+function reportOfProgram(
+  kinds: readonly string[],
+  id?: (ctx: InvalidationContext) => string | undefined,
+): FilterBuilder {
+  return (scope, ctx) => {
+    if (scope.programId === null) return null
+    const target = id?.(ctx)
+    return {
+      queryKey: [QUERY_KEY_ROOT],
+      predicate: ({ queryKey }) =>
+        isScopedQueryKey(queryKey) &&
+        (queryKey[1] as { program: unknown }).program === scope.programId &&
+        queryKey[2] === 'report' &&
+        kinds.includes(queryKey[3] as string) &&
+        (target === undefined || queryKey[4] === target),
+    }
   }
 }
 
@@ -562,7 +600,9 @@ function archiveOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
 /** Kaynak → filtre eşlemesi (§6). null: yazma sonrası geçersizleme yok. */
 const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'instance.profile': () => null,
-  report: reportOfProgram,
+  report: reportOfProgram(['dashboard', 'season', 'workload']),
+  'report.task': reportOfProgram(['task'], (ctx) => ctx.workItemId),
+  'report.meeting': reportOfProgram(['meeting'], (ctx) => ctx.meetingId),
   'notifications.unreadCount': prefix(() => queryKeys.notifications.unreadCount()),
   'chats.unreadOverview': prefix(() => queryKeys.chatsUnread.overview()),
   programs: prefix(() => queryKeys.programs.all()),

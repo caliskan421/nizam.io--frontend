@@ -40,7 +40,15 @@ import {
 
 // ortak-kurallar §5 faz görünürlük matrisi (menü satırları + alt rotalar) — beklenen tablo.
 const MATRIX: Record<string, Record<Phase, string>> = {
-  home: { F0: 'canli', F1: 'canli', F2: 'canli', F3: 'canli', F4: 'canli', F5: 'canli' },
+  home: {
+    F0: 'canli',
+    F1: 'canli',
+    F2: 'canli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+    F6: 'canli',
+  },
   'identity.session': {
     F0: 'canli',
     F1: 'canli',
@@ -48,6 +56,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   'work.tasks': {
     F0: 'devre_disi',
@@ -56,8 +65,17 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
-  'work.timeline': { F0: 'gizli', F1: 'gizli', F2: 'gizli', F3: 'canli', F4: 'canli', F5: 'canli' },
+  'work.timeline': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'canli',
+    F4: 'canli',
+    F5: 'canli',
+    F6: 'canli',
+  },
   'organization.users': {
     F0: 'gizli',
     F1: 'gizli',
@@ -65,6 +83,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   'organization.user': {
     F0: 'gizli',
@@ -73,6 +92,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   'organization.coordinatorships': {
     F0: 'gizli',
@@ -81,6 +101,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   'organization.coordinatorship': {
     F0: 'gizli',
@@ -89,6 +110,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   // E-00-25 "Teknofest ve sezon" (W81): F2'de canlı, yalnız yönetici menüsünde.
   'program.programs': {
@@ -98,6 +120,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'canli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   'collaboration.meetings': {
     F0: 'gizli',
@@ -106,6 +129,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'gizli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   'collaboration.meeting': {
     F0: 'gizli',
@@ -114,6 +138,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'gizli',
     F4: 'canli',
     F5: 'canli',
+    F6: 'canli',
   },
   // F5 (W121): Arşiv 06/07; F4'e kadar gizli (F0–F4 dışı, K14).
   'archive.folders': {
@@ -123,6 +148,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'gizli',
     F4: 'gizli',
     F5: 'canli',
+    F6: 'canli',
   },
   'archive.folder': {
     F0: 'gizli',
@@ -131,6 +157,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'gizli',
     F4: 'gizli',
     F5: 'canli',
+    F6: 'canli',
   },
   // 12 Silinen kayıtlar (W128; P36): F5'te canlı, menüsüz.
   'deleted-records.list': {
@@ -140,6 +167,26 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F3: 'gizli',
     F4: 'gizli',
     F5: 'canli',
+    F6: 'canli',
+  },
+  // 13 Raporlar (W136; K10): iki önizleme rotası F6'da canlı, menüsüz.
+  'reports.season': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'gizli',
+    F6: 'canli',
+  },
+  'reports.meeting': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'gizli',
+    F6: 'canli',
   },
 }
 
@@ -147,8 +194,8 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F5: Arşiv de canlı', () => {
-    expect(CURRENT_PHASE).toBe('F5')
+  it('etkin faz F6: Arşiv ve rapor önizlemeleri de canlı', () => {
+    expect(CURRENT_PHASE).toBe('F6')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -165,8 +212,11 @@ describe('rota kataloğu — yapı', () => {
       'collaboration.meeting',
       'archive.folders',
       'archive.folder',
+      'reports.season',
+      'reports.meeting',
       'deleted-records.list',
     ])
+    expect(liveRouteNames('F5')).not.toContain('reports.season')
     expect(liveRouteNames('F4')).not.toContain('archive.folders')
     expect(liveRouteNames('F2')).not.toContain('work.timeline')
     expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])

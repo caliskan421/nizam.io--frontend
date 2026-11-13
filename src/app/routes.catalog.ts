@@ -6,6 +6,8 @@
 // - Yalnız v1 (F0–F4) ekranları; v1 dışı modüller (Arşiv F5, Mesajlar F7, İşlem geçmişi, Tablolar,
 //   Takvim, Kurumsal hafıza, Simülasyon) ve hedefi tanımsız öğeler (Yardım, Asistan) katalogda
 //   YOKTUR. "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
+//   F6 (W136): iki rapor önizleme rotası (01f/01g; yalnız şirket yöneticisi) katalogdadır, menüsüz;
+//   `CURRENT_PHASE` F6'da canlıdır (router'a girerler; kapı `modules/reports/routing/ReportsGate`).
 //   F5 (W121): Arşiv (06/07) katalogdadır; "Silinen kayıtlar" (12, W128) katalogdadır ama menüye
 //   GİRMEZ (P36: giriş ana sayfa E-01-02 düğmesi).
 // - Router yalnız `CURRENT_PHASE`'te `canli` olan rotaları kaydeder; diğerleri bilinmeyen yol gibi
@@ -18,11 +20,11 @@ import { DELETED_KINDS, DELETED_RANGES } from '@/modules/deleted-records/public'
 import { USER_ROLE_TABS } from '@/modules/organization/public'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
-export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5'] as const
+export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F5'
+export const CURRENT_PHASE: Phase = 'F6'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -282,6 +284,29 @@ export const ROUTES = {
       dosya: id,
       q: text,
     },
+  },
+  'reports.season': {
+    path: '/arsiv/donem-raporu',
+    title: 'Dönem sonu raporu',
+    // 01f önizleme (13 mekanizma §1): `reportSeason` S2; yalnız şirket yöneticisi (K/Ü → erişim
+    // yok, `modules/reports/routing/ReportsGate`). Menüde YOK (E-13-76: `/raporlar` rotası yok);
+    // giriş 06 Arşiv başlığındaki "Önizle" bağlantısıdır. Süzgeç yok (E-13-13).
+    scope: 'S2',
+    phase: 'F6',
+    parent: 'archive.folders',
+    params: {},
+    query: {},
+  },
+  'reports.meeting': {
+    path: '/toplantilar/:meetingId/rapor',
+    title: 'Toplantı raporu',
+    // 01g önizleme: `reportMeetingDetail` S2; yalnız şirket yöneticisi (K için 403,
+    // REPORTING-K01). Rota parametresi tipli `meetingId` (09 ile aynı ad); menüsüz.
+    scope: 'S2',
+    phase: 'F6',
+    parent: 'collaboration.meeting',
+    params: { meetingId: id },
+    query: {},
   },
   'deleted-records.list': {
     path: '/silinen-kayitlar',
