@@ -1,108 +1,27 @@
 <script setup lang="ts">
-import './home.css'
-
-import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
-import { lensAssignee } from '@/modules/work/public'
-import { toApiError } from '@/shared/errors/api-error'
-import { invalidateStanding, useStanding } from '@/shared/scope/standing'
-import { useScopeStore } from '@/shared/scope/store'
+import { useStanding } from '@/shared/scope/standing'
 
-import { useDashboard } from '../api'
-import AdminKpis from '../components/AdminKpis.vue'
-import DeletedRecordsButton from '../components/DeletedRecordsButton.vue'
-import KpiStrip from '../components/KpiStrip.vue'
-import QuickActions from '../components/QuickActions.vue'
-import RecentActivity from '../components/RecentActivity.vue'
-import TeamKpis from '../components/TeamKpis.vue'
-import { canOpenDeletedRecords, canReadDashboard } from '../model/capabilities'
-import { homeText } from '../model/messages'
-import { quickActions } from '../model/quick-actions'
+import { canSeeAdminRegions } from '../model/capabilities'
+import AdminHomePage from './AdminHomePage.vue'
+import RoleHomeDraft from './RoleHomeDraft.vue'
 
 /**
- * 01 · Ana sayfa — sade F1 (`/`, S1; P6): selamlama, KPI şeridi, hızlı işlemler, nötr "Son
- * işlemler". F6 bölgeleri (Rapor oluştur, ekip şeridi, koordinatörlük kartları,
- * alt bilgi) F1 yapısında ÇİZİLMEZ. Rota S1'dir: kabuk kapsam beklerken de sayfayı çizer, bu
- * yüzden kapsamlı (S2) okumalar yalnız kapsam tamken bağlanır (kapsamsız istek yok).
+ * 01 · Ana sayfa (`/`, S1) — sayfa seçici (P53; `01-ana-sayfa/README.md` K1/Ü1 "Sayfa seçimi").
+ * `company_admin` olgusu olan hesap mercek ne olursa olsun yönetici sayfasını görür (mercek ≠
+ * yetki, P1); yönetici olmayan hesap K1/Ü1 gövdelerine düşer. Olgu gelene dek (yükleniyor) ve
+ * hata durumunda rol gövdesi (selamlama iskeleti + KPI iskeleti/hata) çizilir.
  *
- * KPI veri kaynağı (01 backend.md "Mercek → veri kaynağı"): Admin merceği + şirket yöneticisi →
- * `reportDashboard`; Koordinatör → seçili birim sayaçları (`countProgramWorkItems`); Üye → aynı sayaç, "bana atananlar" (sunucu süzgeci).
- * Eylem görünürlüğü yetkiden (P1), mercekten değil.
+ * BAĞLAMA NOKTASI (KESİN 28, W140): `<RoleHomeDraft />` TASLAKTIR — W140 yönetici olmayan
+ * dalı K1 (Koordinatör merceği) / Ü1 (Üye merceği) sayfa bileşenleriyle değiştirir; yönetici
+ * dalı (`AdminHomePage`) W137'dir.
  */
-type KpiSource = 'dashboard' | 'team' | 'select' | 'loading' | 'error'
-
-const store = useScopeStore()
 const standing = useStanding()
-const queryClient = useQueryClient()
-
-const facts = computed(() => standing.standing.value)
-const fullName = computed(() => facts.value?.fullName ?? null)
-
-const scopeComplete = computed(
-  () =>
-    store.programId !== null &&
-    store.lens !== null &&
-    (store.lens === 'admin' || store.departmentId !== null),
-)
-
-const kpiSource = computed<KpiSource>(() => {
-  if (standing.status.value === 'error') return 'error'
-  if (standing.status.value !== 'ready') return 'loading'
-  if (!scopeComplete.value) return 'select'
-  if (store.lens !== 'admin') return 'team'
-  return canReadDashboard(facts.value, store.lens) ? 'dashboard' : 'select'
-})
-
-const standingError = computed(() =>
-  kpiSource.value === 'error' ? toApiError(standing.error.value) : null,
-)
-/** Üye merceğinde "bana atananlar" (sunucu `assignee_account_id`; birleşik rolde zorunlu). */
-const assignee = computed(() => lensAssignee(store.lens, facts.value?.accountId))
-const actions = computed(() => quickActions(facts.value, store.programId))
-
-/** E-01-02 "Silinen kayıtlar" (F5, P36): yalnız yönetici; sayaç pano `deleted_records` (Admin merceği). */
-const showDeleted = computed(() => canOpenDeletedRecords(facts.value))
-const dashboard = useDashboard(() => kpiSource.value === 'dashboard')
-const deletedCount = computed(() => dashboard.data.value?.deleted_records ?? null)
-
-function retryStanding(): void {
-  void invalidateStanding(queryClient)
-}
+const admin = computed(() => canSeeAdminRegions(standing.standing.value))
 </script>
 
 <template>
-  <section class="home-page" data-testid="home-page">
-    <div class="rp-head">
-      <div>
-        <h1 v-if="fullName" class="home-greeting" data-testid="home-greeting">
-          {{ homeText('home.greeting', { name: fullName }) }}
-        </h1>
-        <span v-else class="home-skel home-skel--greet" aria-hidden="true" />
-      </div>
-      <div v-if="showDeleted" class="rp-actions">
-        <DeletedRecordsButton :count="deletedCount" />
-      </div>
-    </div>
-    <div class="home-body">
-      <AdminKpis v-if="kpiSource === 'dashboard'" />
-      <TeamKpis
-        v-else-if="kpiSource === 'team' && store.departmentId !== null"
-        :department-id="store.departmentId"
-        :assignee="assignee"
-      />
-      <KpiStrip
-        v-else
-        :cards="null"
-        :loading="kpiSource === 'loading'"
-        :error="standingError"
-        :select="kpiSource === 'select'"
-        @retry="retryStanding"
-      />
-      <div class="home-pair">
-        <QuickActions v-if="actions.length > 0" :actions="actions" />
-        <RecentActivity />
-      </div>
-    </div>
-  </section>
+  <AdminHomePage v-if="admin" />
+  <RoleHomeDraft v-else />
 </template>
