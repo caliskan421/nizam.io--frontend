@@ -65,7 +65,11 @@ export function resetRole(): void {
 }
 
 /** `mountWith` gibi; rota tablosu rol sayfalarının hedeflerini de içerir. */
-export async function mountRole(component: Component, selection: ScopeSelection) {
+export async function mountRole(
+  component: Component,
+  selection: ScopeSelection,
+  props: Record<string, unknown> = {},
+) {
   const pinia = createPinia()
   setActivePinia(pinia)
   const store = useScopeStore()
@@ -86,6 +90,7 @@ export async function mountRole(component: Component, selection: ScopeSelection)
   })
   await router.push('/')
   const wrapper = mount(component, {
+    props,
     global: { plugins: [pinia, [VueQueryPlugin, { queryClient }], router] },
     attachTo: document.body,
   })
