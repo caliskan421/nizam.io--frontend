@@ -194,8 +194,8 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F5: Arşiv de canlı', () => {
-    expect(CURRENT_PHASE).toBe('F5')
+  it('etkin faz F6: Arşiv ve rapor önizlemeleri de canlı', () => {
+    expect(CURRENT_PHASE).toBe('F6')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -212,8 +212,11 @@ describe('rota kataloğu — yapı', () => {
       'collaboration.meeting',
       'archive.folders',
       'archive.folder',
+      'reports.season',
+      'reports.meeting',
       'deleted-records.list',
     ])
+    expect(liveRouteNames('F5')).not.toContain('reports.season')
     expect(liveRouteNames('F4')).not.toContain('archive.folders')
     expect(liveRouteNames('F2')).not.toContain('work.timeline')
     expect(liveRouteNames('F1')).toEqual(['home', 'identity.session', 'work.tasks'])

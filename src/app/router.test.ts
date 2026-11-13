@@ -57,7 +57,7 @@ describe('router — katalog tek kaynak', () => {
     expect(() => buildRoutes('F2', withoutUsers)).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('F5 (etkin faz): modül sayfalarına bağlı', async () => {
+  it('F6 (etkin faz): modül sayfalarına bağlı', async () => {
     const routes = buildRoutes()
     expect(routes.map((r) => r.name ?? r.path)).toEqual([
       'home',
@@ -73,6 +73,8 @@ describe('router — katalog tek kaynak', () => {
       'collaboration.meeting',
       'archive.folders',
       'archive.folder',
+      'reports.season',
+      'reports.meeting',
       'deleted-records.list',
       '/:pathMatch(.*)*',
     ])

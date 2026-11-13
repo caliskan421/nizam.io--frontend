@@ -49,20 +49,19 @@ describe('rapor rota kataloğu (F6)', () => {
     })
   })
 
-  it("faz açılana dek (etkin faz F5) router'a girmez; F6'da canlı", () => {
-    expect(CURRENT_PHASE).toBe('F5')
-    expect(visibilityOf('reports.season')).toBe('gizli')
-    expect(liveRouteNames()).not.toContain('reports.season')
-    expect(liveRouteNames('F6')).toEqual(
-      expect.arrayContaining(['reports.season', 'reports.meeting']),
-    )
-    expect(() => routeLocation('reports.season', {})).toThrow(/canlı değil/)
+  it("etkin faz F6: rapor rotaları canlı; F5'te router'a girmez", () => {
+    expect(CURRENT_PHASE).toBe('F6')
+    expect(visibilityOf('reports.season')).toBe('canli')
+    expect(visibilityOf('reports.season', 'F5')).toBe('gizli')
+    expect(liveRouteNames()).toEqual(expect.arrayContaining(['reports.season', 'reports.meeting']))
+    expect(liveRouteNames('F5')).not.toContain('reports.season')
+    expect(routeLocation('reports.season', {})).toMatchObject({ name: 'reports.season' })
   })
 
-  it('modül kayıtları bağlanınca F6 router kaydı kurulur (statik rota dinamik klasörden önce)', () => {
-    const records = buildRoutes('F6', [...MODULE_ROUTES, ...reportsRoutes])
-    const season = records.find((r) => r.name === 'reports.season')
-    expect(season?.path).toBe('/arsiv/donem-raporu')
+  it("modül kayıtları router'da (MODULE_ROUTES); F6 kaydı kurulur", () => {
+    expect(MODULE_ROUTES).toEqual(expect.arrayContaining(reportsRoutes))
+    const records = buildRoutes()
+    expect(records.find((r) => r.name === 'reports.season')?.path).toBe('/arsiv/donem-raporu')
     expect(records.find((r) => r.name === 'reports.meeting')?.path).toBe(
       '/toplantilar/:meetingId/rapor',
     )
