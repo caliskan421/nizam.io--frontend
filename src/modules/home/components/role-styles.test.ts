@@ -30,6 +30,14 @@ describe('K1/Ü1 görünüm kuralları', () => {
     expect(css.match(/@media[^{]*/g)?.map((m) => m.trim())).toEqual(['@media (max-width: 900px)'])
   })
 
+  it('birim özeti şeridi esnek sarma: 6 kutu tek satıra sığar, eksik satır uzar (KUSUR 5a)', () => {
+    const css = files.find((f) => f.name === 'role-home.css')!.text
+    const strip = /\.role-home \.rh-strip \{[^}]*\}/.exec(css)?.[0] ?? ''
+    expect(strip).toContain('display: flex')
+    expect(strip).toContain('flex-wrap: wrap')
+    expect(css).toMatch(/\.rh-strip > \* \{\s*flex: 1 1 calc\(var\(--pt-kpi-min\) \* 0\.9\)/)
+  })
+
   it('statik satır içi stil yok; dinamik bağ yalnız fill (--rh-w)', () => {
     for (const { name, text } of files.filter((f) => f.name.endsWith('.vue'))) {
       expect(text, name).not.toMatch(/\sstyle=/)

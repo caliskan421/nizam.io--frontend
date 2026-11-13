@@ -353,10 +353,12 @@
     width: var(--rh-w, 0%);
   }
 
-  /* Birim özeti şeridi (E-K1-07) */
+  /* Birim özeti şeridi (E-K1-07; W145 KUSUR 5a): tasarımda tek satır 6 kutu. Esnek sarma: 1440'ta
+     6 kutu tek satır, 1024'te 3+3; ara genişliklerde eksik satırın kutuları uzar (boş gri blok
+     kalmaz). Dar ekranda (aşağıdaki medya) taban küçülür: 390'da 2 sütun. */
   .role-home .rh-strip {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(var(--pt-kpi-min), 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--ui-hairline);
     border: var(--ui-hairline) solid var(--border-subtle);
     border-radius: var(--radius-md);
@@ -364,6 +366,7 @@
     background: var(--border-subtle);
   }
   .role-home .rh-strip > * {
+    flex: 1 1 calc(var(--pt-kpi-min) * 0.9);
     min-width: 0;
     padding: var(--space-3) var(--space-5);
     background: var(--bg-surface);
@@ -736,6 +739,9 @@
   }
 
   @media (max-width: 900px) {
+    .role-home .rh-strip > * {
+      flex-basis: calc(var(--pt-kpi-min) * 0.75);
+    }
     .role-home .rh-head,
     .role-home .rh-body {
       padding-left: var(--space-5);
