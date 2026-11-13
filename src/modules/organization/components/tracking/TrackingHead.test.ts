@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { resetHarness } from '../../__tests__/harness'
+import { browserSave, pdf, ticketOk } from '@/shared/download/__tests__/harness'
+
+import { resetHarness, sent } from '../../__tests__/harness'
 import { mountAt, server, settle, standingHandlers, unmountAll } from './__tests__/tracking-harness'
 import TrackingHead from './TrackingHead.vue'
 
@@ -54,7 +56,7 @@ describe('profil başlığı (E-05-41…47)', () => {
     expect(b.wrapper.find('h1').exists()).toBe(false)
   })
 
-  it('Profili düzenle → 05 yan paneli; Mesaj/Kişisel rapor açıklamalı devre dışı, istek yok', async () => {
+  it('Profili düzenle → 05 yan paneli; Mesaj açıklamalı devre dışı, istek yok', async () => {
     server.use(...standingHandlers())
     const { wrapper, router } = await mountAt(TrackingHead, props())
     expect(wrapper.find('[data-edit-profile]').attributes('href')).toBe('/kullanicilar?secili=u1')
@@ -63,9 +65,7 @@ describe('profil başlığı (E-05-41…47)', () => {
     expect(wrapper.find('[data-edit-profile] svg.t-icon').exists()).toBe(true)
     expect(message.find('svg.t-icon').exists()).toBe(true)
     expect(message.attributes('aria-label')).toBe('Mesaj — F7’de açılacak')
-    expect(wrapper.find('[data-phase="report"]').attributes('title')).toBe(
-      'Kişisel rapor — F6’da açılacak',
-    )
+    expect(wrapper.find('[data-phase="report"]').exists()).toBe(false)
     await message.trigger('click')
     await settle()
     expect(router.currentRoute.value.path).toBe('/kullanicilar/u1')
@@ -144,5 +144,31 @@ describe('Görev ata (E-05-48, P15)', () => {
     server.use(...standingHandlers(false, [{ department_id: 'd1', role: 'koordinator' }]))
     const b = await mountAt(TrackingHead, props())
     expect(b.wrapper.find('[data-assign]').exists()).toBe(true)
+  })
+})
+
+describe('Kişisel rapor (E-13-64, E-05-47)', () => {
+  it('ŞY: düğme görünür, bilet gövdesi member_ids: [hesap], dosya indirilir', async () => {
+    const saved = browserSave()
+    server.use(...standingHandlers(), ticketOk(), pdf())
+    const { wrapper } = await mountAt(TrackingHead, props())
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-personal-report] button').exists()).toBe(true),
+    )
+    const button = wrapper.get('[data-personal-report] button')
+    expect(button.text()).toBe('Kişisel rapor')
+    await button.trigger('click')
+    await vi.waitFor(() => expect(saved.clicked).toHaveLength(1))
+    expect(sent('POST', '/v1/download-tickets').map((r) => r.body)).toEqual([
+      { method: 'POST', path: '/v1/reports/workload', body: { member_ids: ['u1'] } },
+    ])
+  })
+
+  it('koordinatör (ŞY değil): düğme çizilmez', async () => {
+    server.use(...standingHandlers(false, [{ department_id: 'd1', role: 'koordinator' }]))
+    const { wrapper } = await mountAt(TrackingHead, props())
+    await settle()
+    expect(wrapper.find('[data-personal-report]').exists()).toBe(false)
+    expect(sent('POST', '/v1/download-tickets')).toHaveLength(0)
   })
 })

@@ -8,7 +8,8 @@
  *  - Koordinatör/Üye merceği (BE-003, bağlandı): `countProgramWorkItems` (S2) — görev listesiyle
  *    aynı görünürlük ve süzgeç: seçili birim (`department_id`); Üye merceğinde ayrıca
  *    `assignee_account_id` = ben (K3: mercek içeriği daraltır, yetkiyi değil). `overdue` ve
- *    (yalnız Koordinatör) `pending_date_requests` rozete gider.
+ *    (yalnız Koordinatör) `pending_date_requests` + `by_status.onaya_sunuldu` rozete gider.
+ *    Rozetin hangi menü öğesinde çizildiği menü tanımındadır (`menu-definition.ts`, F6 E-00-45).
  *  - Tarih talebi rozeti Üye merceğinde HER ZAMAN gizli (istemci-akislari §6; eksik değil, kural).
  *  - Bildirim sayacı hesap genelidir (S1): anahtar kapsamsız, kapsam değişince yeniden istenmez.
  *
@@ -40,10 +41,12 @@ export async function fetchUnreadNotificationCount(signal?: AbortSignal): Promis
   return result.count
 }
 
-export type ShellWorkCounts = Pick<
-  components['schemas']['ProgramWorkItemCounts'],
-  'overdue' | 'pending_date_requests'
->
+type WorkItemCounts = components['schemas']['ProgramWorkItemCounts']
+
+/** `by_status` yalnız onay bekleyen sayısıyla okunur (koordinatör ikinci rozeti, E-00-45). */
+export type ShellWorkCounts = Pick<WorkItemCounts, 'overdue' | 'pending_date_requests'> & {
+  by_status?: Pick<WorkItemCounts['by_status'], 'onaya_sunuldu'>
+}
 
 /** K/Ü rozet sayacı süzgeçleri; liste ile aynı kurallar (`countProgramWorkItems`). */
 export interface ShellCountsRequest {
@@ -76,6 +79,8 @@ export async function fetchShellWorkCounts(
 export interface TaskBadges {
   overdue: number | null
   pendingDates: number | null
+  /** Koordinatör merceği: onay bekleyen görevler (`by_status.onaya_sunuldu`; E-00-45). */
+  awaitingApproval: number | null
 }
 
 function positive(value: number | undefined): number | null {
@@ -159,17 +164,21 @@ export function useTaskBadges(
   )
 
   const badges = computed<TaskBadges>(() => {
-    if (!live || store.lens === null) return { overdue: null, pendingDates: null }
+    if (!live || store.lens === null) {
+      return { overdue: null, pendingDates: null, awaitingApproval: null }
+    }
     if (store.lens === 'admin') {
       return {
         overdue: positive(counts.value?.overdue_tasks),
         pendingDates: positive(counts.value?.pending_date_changes),
+        awaitingApproval: null,
       }
     }
+    const coordinator = store.lens === 'coordinator'
     return {
       overdue: positive(lensCounts.value?.overdue),
-      pendingDates:
-        store.lens === 'coordinator' ? positive(lensCounts.value?.pending_date_requests) : null,
+      pendingDates: coordinator ? positive(lensCounts.value?.pending_date_requests) : null,
+      awaitingApproval: coordinator ? positive(lensCounts.value?.by_status?.onaya_sunuldu) : null,
     }
   })
   return { badges }

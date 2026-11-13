@@ -34,6 +34,8 @@ export const trSide = {
     },
     lens: { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' },
     group: { takip: 'Takip', icerik: 'İçerik', yonetim: 'Yönetim' },
+    // Rol etiketleri (F6, E-00-43; yalnız menüde — sayfa başlığı rota kataloğundan gelir).
+    item: { myTasks: 'Görevlerim', myTimeline: 'Zaman çizelgem', myFiles: 'Dosyalarım' },
     phase: {
       F0: 'F0’da',
       F1: 'F1’de',
@@ -47,6 +49,7 @@ export const trSide = {
     badge: {
       overdue: '{n} geciken görev',
       dates: '{n} tarih değişikliği talebi bekliyor',
+      approval: '{n} görev onay bekliyor',
     },
     logout: 'Çıkış yap',
   },

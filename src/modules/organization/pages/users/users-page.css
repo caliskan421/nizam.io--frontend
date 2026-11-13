@@ -68,6 +68,11 @@
     flex-direction: column;
     gap: var(--space-4);
   }
+  .users-page .users-workload {
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+  }
   .users-page .rp-cap {
     margin: 0;
     font: var(--text-caption);
@@ -133,6 +138,18 @@
     }
     .users-page .rp-aside {
       max-width: none;
+    }
+    /* "İş yükü raporu (PDF)" 390'da tam genişlik (E-13-59); durum kartları altında yığılır. */
+    .users-page .rp-actions {
+      flex: 1 1 100%;
+    }
+    .users-page .users-workload {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .users-page .users-workload .report-action__row > .t-btn {
+      width: 100%;
+      justify-content: center;
     }
   }
 }
