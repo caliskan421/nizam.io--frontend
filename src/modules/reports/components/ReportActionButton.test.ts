@@ -118,7 +118,9 @@ describe('durum makinesi', () => {
     await wrapper.find('button').trigger('click')
     await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('cooldown'))
     expect(wrapper.text()).toContain('Bekleyin (1 s)')
-    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    const card = wrapper.find('[role="alert"]')
+    expect(card.text()).toContain('Zaten bir rapor hazırlanıyor')
+    expect(card.text()).toContain('429 · reporting.export_in_progress')
     expect(wrapper.emitted('failed')).toEqual([['reporting.export_in_progress']])
     expect(wrapper.find('button').attributes('disabled')).toBeDefined()
   })
@@ -133,7 +135,10 @@ describe('durum makinesi', () => {
     await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('failed'))
     expect(wrapper.find('button').text()).toBe('Yeniden dene')
     expect(wrapper.find('button').attributes('disabled')).toBeUndefined()
-    expect(wrapper.find('[role="alert"]').text()).toContain('biraz sonra deneyin')
+    const card = wrapper.find('[role="alert"]')
+    expect(card.text()).toContain('Sunucu şu an yoğun, biraz sonra tekrar deneyin')
+    expect(card.text()).toContain('503 · reporting.capacity_full')
+    expect(card.text()).not.toMatch(/\d+ ?(sn|saniye)/)
   })
 
   it('disabledReason: devre dışı, istek yok, gerekçe title', async () => {
@@ -173,5 +178,43 @@ describe('durum makinesi', () => {
     expect(sent('GET', '/v1/downloads/tk_1')).toHaveLength(0)
     expect(saved.clicked).toEqual([])
     expect(useToast().current.value).toBeNull()
+  })
+})
+
+describe('W138 ek yüzey (trailing yuvası, start(), kartlar)', () => {
+  it('trailing yuvası düğmeye bitişik çizilir; start() düğmeyle aynı durumda indirir', async () => {
+    server.use(ticketOk(), pdf())
+    const { wrapper, queryClient } = mountButton(
+      { kind: 'season' },
+      { trailing: '<button type="button" data-testid="extra">Bölüm seç…</button>' },
+    )
+    expect(wrapper.get('.report-action__row [data-testid="extra"]').exists()).toBe(true)
+    await (wrapper.vm as unknown as { start: () => Promise<void> }).start()
+    await settleQueries(queryClient)
+    await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('downloaded'))
+    expect(saved.clicked).toHaveLength(1)
+    expect(wrapper.get('[data-testid="report-card"]').text()).toContain(
+      'Rapor indirmeleri kayda geçer (denetim).',
+    )
+  })
+
+  it('hazırlanırken kart role=status + aria-busy ve "ilerleme yakında" taşır', async () => {
+    let release!: () => void
+    const open = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.post(`${ORIGIN}/v1/download-tickets`, async () => {
+        await open
+        return json({ ticket: 'tk_1', url: '/v1/downloads/tk_1', expires_at: 'x' }, 201)
+      }),
+      pdf(),
+    )
+    const { wrapper } = mountButton({ kind: 'meeting', targetId: 'm1' })
+    await wrapper.find('button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('preparing'))
+    const card = wrapper.get('[data-testid="report-card"]')
+    expect(card.attributes('aria-busy')).toBe('true')
+    expect(card.text()).toContain('ilerleme yakında')
+    release()
+    await flushPromises()
   })
 })

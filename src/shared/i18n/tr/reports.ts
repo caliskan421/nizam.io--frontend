@@ -12,6 +12,14 @@ export const trReports = {
     // 01f ve 01g sayfa başlıkları (E-13-14; E-13-46). Gövde metinleri W138'in dalıdır.
     season: { title: 'Dönem sonu raporu' },
     meeting: { title: 'Toplantı raporu' },
+    task: { title: 'Görev raporu' },
+    // Ortak durum kartları (W138; E-13-68…75, 01h): kart başlığı/kod satırı/alt not.
+    states: {
+      codeLine: '{status} · {code}',
+      auditNote: 'Rapor indirmeleri kayda geçer (denetim).',
+      notFound: 'Kayıt bulunamadı.',
+      progressStub: 'ilerleme yakında',
+    },
     // Rapor düğmeleri (`ReportActionButton`; E-13-02, 41, 55, 59). Etiket varsayılandır; ekran
     // (05b "Kişisel rapor" gibi) kendi etiketini yuvayla verebilir.
     action: {
@@ -39,15 +47,14 @@ export const trReports = {
       },
       downloaded: { title: 'İndirme tamamlandı' },
       export_in_progress: { title: 'Zaten bir rapor hazırlanıyor' },
-      capacity_full: { title: 'Sunucu kapasitesi dolu, biraz sonra' },
+      capacity_full: { title: 'Sunucu şu an yoğun, biraz sonra tekrar deneyin' },
     },
     // Hata metinleri (`ReportFailure.messageKey`; yalnız bu beş sınıfın kendi metni vardır,
     // diğerleri `errors.*` kullanır).
     failure: {
       export_in_progress:
         'Önceki raporunuz bitince yeniden deneyin. Başka bir sekme ya da cihazdaki rapor sürüyor olabilir.',
-      capacity_full:
-        'Şu an çok sayıda rapor üretiliyor; biraz sonra deneyin. Otomatik yeniden deneme yapılmaz.',
+      capacity_full: 'Şu an çok sayıda rapor üretiliyor. Otomatik yeniden deneme yapılmaz.',
       input_invalid: 'Seçim güncellendi, yeniden deneyin.',
       too_large: 'Daha az üye seçin.',
       report_failed: 'Rapor oluşturulamadı.',

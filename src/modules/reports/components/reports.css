@@ -1,0 +1,146 @@
+/*
+ * Rapor eylemleri (13 Raporlar; Rapor-Noktalar 01i, Rapor-Pencereler 01h): düğme + durum kartları.
+ * Yalnız token; px yok (medya eşiği hariç, `--rp-narrow-max` ile eşli). Kartlar tasarımdaki
+ * `rp-rapor-alert` kartlarının karşılığıdır; ton `--report-tone` yerel değişkeniyle verilir.
+ */
+@layer components {
+  .report-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .report-action__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .report-action__note {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+
+  /* Tek parça düğme + bitişik simge düğmesi ("Bölüm seç…"): iç köşeler düz. */
+  .report-split {
+    display: inline-flex;
+    align-items: stretch;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .report-split > .t-iconbtn {
+    border: var(--ui-hairline) solid var(--border-control);
+    border-inline-start: 0;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+  .report-split > .report-action:first-child .t-btn {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  /* Durum kartı (01h) */
+  .report-card {
+    --report-tone: var(--accent-text);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: var(--rp-aside-basis);
+    padding: var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    color: var(--ink);
+    box-shadow: inset var(--space-1) 0 0 var(--report-tone);
+  }
+  .report-card--warn {
+    --report-tone: var(--gold);
+  }
+  .report-card--error {
+    --report-tone: var(--danger);
+  }
+  .report-card__icon {
+    display: grid;
+    place-items: center;
+    inline-size: var(--home-chip);
+    block-size: var(--home-chip);
+    border-radius: var(--radius-xs);
+    color: var(--report-tone);
+    background: color-mix(in srgb, var(--report-tone) 16%, transparent);
+  }
+  .report-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+  .report-card__title {
+    margin: 0;
+    font: var(--text-body-strong);
+  }
+  .report-card__body,
+  .report-card__note {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .report-card__code {
+    margin: 0;
+    font: var(--text-label);
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+  .report-card__progress {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .report-card__bar {
+    flex: 1 1 auto;
+    min-width: 0;
+    block-size: var(--pt-dot);
+    border-radius: var(--radius-full);
+    background: linear-gradient(
+      90deg,
+      transparent 0,
+      var(--report-tone) 40%,
+      var(--report-tone) 60%,
+      transparent 100%
+    );
+    background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+    background-size: 50% 100%;
+    background-repeat: no-repeat;
+  }
+  .report-card__soon {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--space-2);
+    border: var(--ui-hairline) dashed var(--border-control);
+    border-radius: var(--radius-xs);
+    font: var(--text-label);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .report-card__bar {
+      animation: report-indeterminate 1.4s ease-in-out infinite;
+    }
+    @keyframes report-indeterminate {
+      from {
+        background-position: -50% 0;
+      }
+      to {
+        background-position: 150% 0;
+      }
+    }
+  }
+}
