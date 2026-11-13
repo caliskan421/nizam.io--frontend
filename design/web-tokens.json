@@ -82,37 +82,6 @@
         }
       ]
     },
-    "light-v85": {
-      "$description": "theme.css v85 açık tema renk teması (1794590338-3fe0) değişkenleri; yalnız [data-theme=light] kurallarında tüketilir, koyu temada karşılığı yoktur (değer iki temada aynı, kullanılmaz).",
-      "tokens": [
-        { "name": "glass", "value": "rgba(255,255,255,.66)", "usage": "Açık tema cam yüzey." },
-        {
-          "name": "glass-line",
-          "value": "rgba(18,19,22,.09)",
-          "usage": "Açık tema cam yüzey çizgisi."
-        },
-        {
-          "name": "hi",
-          "value": "#121316",
-          "usage": "Açık temada vurgulu siyah kapsül (seçili gezinme, segment, sayfa numarası, nötr avatar)."
-        },
-        { "name": "hi-ink", "value": "#ffffff", "usage": "--hi üzerindeki yazı." },
-        {
-          "name": "hi-ink-2",
-          "value": "rgba(255,255,255,.66)",
-          "usage": "--hi üzerindeki ikincil yazı (sekme sayacı)."
-        },
-        { "name": "chart-done", "value": "#b4d82a", "usage": "Açık tema tamamlandı grafik rengi." },
-        { "name": "av-neutral", "value": "#121316", "usage": "Açık tema nötr avatar zemini." },
-        { "name": "av-neutral-ink", "value": "#ffffff", "usage": "Nötr avatar yazısı." },
-        { "name": "nav-on", "value": "#121316", "usage": "Açık tema seçili gezinme rengi." },
-        {
-          "name": "bar-done",
-          "value": "#8bb637",
-          "usage": "Açık temada ilerleme çubuğu dolgusu (canlı yeşil)."
-        }
-      ]
-    },
     "shadow": {
       "$description": "tokens.css / theme.css gölgeleri; kaynakta eşi olan değer başvuruyla gelir.",
       "tokens": [

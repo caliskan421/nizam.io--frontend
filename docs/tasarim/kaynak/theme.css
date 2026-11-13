@@ -20,19 +20,16 @@
   color-scheme: dark;
 }
 [data-theme="light"] {
-  /* Renk teması dosyasından (renk-temasi.css · 2b): soğuk nötr zemin, beyaz kartlar, doygun vurgular */
-  --bg-base:#eceef1; --bg-surface:#ffffff; --bg-raised:#f2f3f5; --bg-overlay:#e6e8ec;
-  --border-subtle:#e2e5e9; --border-strong:#cfd3d9; --border-control:#bfc4cb;
-  --ink:#121316; --ink-muted:#555a63; --ink-faint:#70757e;
-  --accent:#cbe83c; --accent-top:#d8f05e; --accent-ink:#121316; --accent-text:#4f6e00; --focus-ring:#121316;
-  --violet:#7334d9; --on-violet:#ffffff; --gold:#c27400; --on-gold:#ffffff; --danger:#e0441c; --on-danger:#ffffff;
-  --btn-top:#ffffff; --btn-bottom:#f6f7f8; --btn-border:#d9dde2; --surface-top:#ffffff; --edge-light:#ffffffcc; --scrim:#12131659;
-  --gp-todo:#bfc4cc; --gp-doing:#a675f2; --gp-review:#ffbf2e; --gp-back:#ff8c6e; --gp-done:#c3e33a; --gp-late:#ff7d5c; --gp-late-line:#e0441c; --gp-ink:#121316; --gp-ink-muted:#3f434a;
-  --role-admin:#ec4f86; --role-uye:#3c82ea; --avatar-1:#bfe02f;
-  --shadow-card:0 1px 2px rgba(18,19,22,.05),0 6px 18px rgba(18,19,22,.06); --shadow-sheet:0 24px 64px rgba(18,19,22,.16);
-  --glass:rgba(255,255,255,.66); --glass-ink:#121316; --glass-line:rgba(18,19,22,.09);
-  --hi:#121316; --hi-ink:#ffffff; --hi-ink-2:rgba(255,255,255,.66);
-  --chart-done:#b4d82a; --av-neutral:#121316; --av-neutral-ink:#ffffff; --nav-on:#121316;
+  --bg-base:#f6f6f3; --bg-surface:#ffffff; --bg-raised:#f1f1ed; --bg-overlay:#e7e7e2;
+  --border-subtle:#e5e5df; --border-strong:#d0d0c9; --border-control:#96968f;
+  --ink:#161615; --ink-muted:#5c5c57; --ink-faint:#71716b;
+  --accent:#c8f53c; --accent-ink:#161615; --accent-text:#4a6a00; --focus-ring:#4a6a00;
+  --violet:#7a26c1; --on-violet:#ffffff; --gold:#a86f00; --on-gold:#ffffff;
+  --danger:#d02b2b; --on-danger:#ffffff;
+  --btn-top:#ffffff; --btn-bottom:#f4f4f0; --btn-border:#d5d5ce; --surface-top:#ffffff;
+  --edge-light:#ffffffcc; --accent-top:#d8f866; --scrim:#16161566;
+  --shadow-card:0 1px 2px rgba(22,22,21,0.05), 0 6px 20px rgba(22,22,21,0.06); --shadow-sheet:0 24px 64px rgba(22,22,21,0.14);
+  --gp-todo:#d3d6dc; --gp-doing:#d2a2ee; --gp-review:#ffdc85; --gp-back:#ffb4a4; --gp-done:#d6f56f; --gp-late:#ffa0a0; --gp-late-line:#d02b2b; --gp-ink:#17181c; --gp-ink-muted:#4a4d55;
   color-scheme: light;
 }
 :root {
@@ -115,8 +112,7 @@
 .rp-seg button { flex:none; display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--ink-muted); font-family:var(--font-sans); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; }
 .rp-seg button:hover { color:var(--ink); }
 .rp-seg button[aria-pressed="true"] { background:var(--bg-base); color:var(--ink); box-shadow:inset 0 0 0 1px var(--border-strong); }
-[data-theme="light"] .rp-seg button[aria-pressed="true"] { background:var(--hi); color:var(--hi-ink); box-shadow:0 2px 8px rgba(18,19,22,.2); }
-[data-theme="light"] .rp-seg button[aria-pressed="true"] .rp-count { color:var(--hi-ink-2); }
+[data-theme="light"] .rp-seg button[aria-pressed="true"] { background:var(--bg-surface); box-shadow:0 1px 2px rgba(17,17,17,0.08), inset 0 0 0 1px var(--border-subtle); }
 .rp-count { font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); white-space:nowrap; }
 
 /* Durum */
@@ -287,17 +283,5 @@
 .rp-themebtn .rp-ic-moon { display:none; }
 [data-theme="light"] .rp-themebtn .rp-ic-sun { display:none; }
 [data-theme="light"] .rp-themebtn .rp-ic-moon { display:inline-block; }
-/* Renk teması dosyasından (bölüm 3), bu projenin sınıflarına uyarlandı */
-/* Seçili gezinme: siyah kapsül, beyaz yazı */
-[data-theme="light"] .t-nav[aria-current="page"] { background:var(--hi); color:var(--hi-ink); box-shadow:0 6px 16px rgba(18,19,22,.22); }
-[data-theme="light"] .t-nav[aria-current="page"] .t-icon { color:var(--hi-ink); }
-[data-theme="light"] .t-nav[aria-current="page"]::before { display:none; }
-/* Nötr avatarlar zeminle karışmasın */
-[data-theme="light"] .rp-av:not([style*="background"]) { background:var(--hi); color:var(--hi-ink); }
-/* Seçili sayfa numarası ve sekme sayaçları */
-[data-theme="light"] .t-page[aria-current="page"] { background:var(--hi); color:var(--hi-ink); }
-/* İlerleme çubukları: açık temada dolgu canlı yeşil (#8bb637); zeytin yeşili yalnız yazı ve simgelerde */
-[data-theme="light"] { --bar-done:#8bb637; }
-[data-theme="light"] .rp-bar > span[style*="--accent-text)"], [data-theme="light"] .rp-dsubs__bar > span, [data-theme="light"] .sg-prog--lg > span { background:var(--bar-done) !important; }
 .t-modal-backdrop{align-items:center !important; padding:24px 16px !important; overflow-y:auto}
 .t-modal-backdrop > .t-modal{margin:auto 0; max-height:calc(100vh - 48px); overflow-y:auto}
