@@ -10,7 +10,7 @@
 Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, **Program / Rol / Koordinatörlük** kapsam kartları, gruplu ana menü, yardım bağlantısı, oturum kartı ve çıkış), sağda ana alanın tepesinde 64 px üst çubuk (geri/ileri, konum izi, tema düğmesi, bildirim zili; ana sayfada ek olarak tarih ve "Asistan"). Kapsam kartları K2'nin istemci merceğidir: Admin merceği departmansız program kapsamı, Koordinatör/Üye merceği `me/departments` satırlarından birim seçimi; seçim değişince ekran verisi yeni kapsamla yüklenir. Menü grupları mercekle değişir (tasarımda "Yönetim" ve "Deneysel" yalnız Admin'de); K14 gereği Takvim, Kurumsal hafıza, Tablolar ve Simülasyon v1'de menüde görünmez. Tema koyu varsayılan, `data-theme="light"` ile açık; tek düğmeyle geçilir ve K2 depolama istisnasıyla hatırlanır. Ana veri kaynakları: `GET /v1/me`, `GET /v1/me/departments`, program listesi, menü rozet sayaçları, okunmamış bildirim sayacı (eşleme `backend.md`'de).
 
 ## Dosyalar
-**Durum: kabul** (2026-11-08, ürün kararları P1–P8 işlendi; O2/O3 uygulayıcıları yalnız `kabul` satırlarını kodlar).
+**Durum: kabul** (2026-11-08, ürün kararları P1–P8 işlendi; O2/O3 uygulayıcıları yalnız `kabul` satırlarını kodlar). **F6 (2026-11-13, W135):** menü tanımı rol taşır — yönetici/koordinatör/üye menü grupları `mekanizma.md` §9'da öğe öğe; E-00-41…47 aşağıdaki tabloda; "Raporlar" öğesi yok (P47); F5 borcu "menü rol sırası/Dosyalarım" kapanır (uygulama W141).
 
 | Dosya | Durum | Son güncelleme | Üreten |
 |---|---|---|---|
@@ -64,6 +64,13 @@ Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, 
 | E-00-38 Bildirim zili | F0 sayaç · F7 panel | **sayaç canlı** (`countUnreadNotifications`, hesap geneli; `count>0` nokta, `aria-label` sayılı); **panel devre dışı** (F7'ye kadar tıklanamaz, ortak-kurallar §5) | — (Açık soru 4 §5 ile kapandı) | BE-002 (vazgeçildi — faz sırası; stub yok, §3) | W14 `['notifications','unread-count']`, W22; 10 grubu (F7) | kapsam değişince sayaç yeniden istenmez; düğme `disabled` + açıklama; `designStub` kullanılmaz |
 | E-00-39 Asistan | F8 | gizli (P2) | — (Açık soru 3 P2 ile kapandı) | — | W22 | ana sayfa üst çubuğunda yok; `assistant*` çağrılmaz |
 | E-00-40 Dar menü kapsam simgeleri | F0 | canlı gösterim (program avatarı `short_name`/`color` (BE-001 bağlandı), rol noktası, birim kodu `ProgramDepartment.code` ya da baş harf); Admin'de birim simgesi yok; **tık → kapsam seçicisini açar** | **kabul** — gösterim Kenar-Secici kural notuna göre (tasarım kuralı; W21 kabul ölçütü). **kabul** — tıklanınca kapsam seçicisini açar (P11, koordinatör kararı) | BE-001 | W13, W14 `scoped(['departments'])`, W21 | 76 px dar menüde E-00-40 görünür (W21); kod yoksa baş harf; simgeye tık → kapsam seçicisi açılır (klavyeyle de) |
+| E-00-41 Rol menüsü seçimi (F6) | F6 | canlı; menü grubu `company_admin` olgusu + mercekten (yönetici → yönetici menüsü her mercekte; K/Ü → rol menüsü) | **kabul (P1, P11, P53):** mercek ≠ yetki; yönetici K/Ü merceğinde yönetici menüsünü korur. Uygulama: menü girdisi `roles` taşır (mekanizma §9). | — | W15 katalog, W141 | birim testi: dört kişilik senaryo (yönetici × 3 mercek, koordinatör, üye) menü kümeleri |
+| E-00-42 "Raporlar" öğesi | F6 | **hiçbir menüde yok** | **kabul (P47):** ayrı sayfa/rota yok; raporlar kendi ekranlarında | — | — | katalogda `/raporlar` yok; menü testi |
+| E-00-43 Üye etiketleri (Görevlerim, Dosyalarım) | F6 | canlı (rol etiketi) | **kabul (P53, F5 borcu #6):** Üye menüsünde "Görevlerim", "Dosyalarım"; sayfa başlığı değişmez | — | 03, 06 | üye menüsü etiketleri |
+| E-00-44 Koordinatör menüsü sırası | F6 | canlı | **geçici kabul (W135):** Ana sayfa · Görevler · Zaman çizelgesi (+ talep rozeti) · Toplantılar · Arşiv; Birimim/Ekibim/Takvim/Hafıza/Mesajlar/Tablolar gizli; Tarih talepleri ayrı öğesi gizli (K6 dışı) | — | K2/K5/K6 (sonra) | koordinatör menü kümesi |
+| E-00-45 Koordinatör ikinci rozet = onay bekleyen | F6 | canlı | **kabul (v85 `Kenar-Roller`):** `by_status.onaya_sunuldu` (seçili birim); tarih talebi rozeti "Zaman çizelgesi" öğesine taşınır (**geçici kabul**) | BE-003 | `countProgramWorkItems` | rozet testi |
+| E-00-46 03c girişi K/Ü'de | F6 | canlı | **geçici kabul (W135):** v85 `Sidebar` K/Ü gruplarında Zaman çizelgesi yok; Takvim F6 dışı → 03c menüde kalır (koordinatör teyidi) | — | 03c (F3) | menüde `/zaman-cizelgesi` |
+| E-00-47 Profilim kartı | F6 | canlı gösterim (rol halkası + rol etiketi); tıklama yok | **geçici kabul (W135):** profil sayfası (Ü7) F6 dışı; kart tıklanamaz (E-00-28) | — | Ü7 (sonra) | halka rengi token |
 
 
 **Ekran düzeyi varsayımlar (E-kimliksiz):**
@@ -81,3 +88,7 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 - **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? F7 açılışında sorulur; v1'de rozet gizli.
 
 Kapananlar: Arşiv/Mesajlar menüde gizli → kabul (P2) · Yardım gizli → kabul (P2) · Asistan gizli → kabul (P2) · zil paneli F7'ye kadar devre dışı, sayaç canlı → kabul (§5) · Yönetim grubu `company_admin` ile, mercekten bağımsız → kabul (P1) · daraltılmış menüde kapsam simgeleri görünür, tık seçiciyi açar → kabul (P11) · daraltma yalnız oturum belleği → kabul (P10) · tek mercekte rol kartı salt gösterim → kabul (P11) · ürün adı sabit "RoketPortal" → kabul (P9).
+
+## F6: menü tanımı rol taşır
+
+Ayrıntı ve öğe tabloları: [mekanizma.md §9](mekanizma.md). Özet: menü grubu yetki olgusundan (`company_admin`) ve mercekten seçilir; yönetici K/Ü merceğinde yönetici menüsünü korur (P1/P11); koordinatör menüsü Ana sayfa · Görevler · Zaman çizelgesi · Toplantılar · Arşiv; üye menüsü Ana sayfa · Görevlerim · Zaman çizelgem · Toplantılar · Dosyalarım; **Raporlar öğesi yoktur (P47)**; Takvim, Kurumsal hafıza, Mesajlar, Tablolar, Birimim, Ekibim gizlidir. Kaynak artboard'lar `Sidebar.dc.html` (v85) ve `Kenar-Roller.dc.html`.
