@@ -53,6 +53,7 @@
   --color-gp-ink-muted: var(--gp-ink-muted);
   --color-role-admin: var(--role-admin);
   --color-role-koord: var(--role-koord);
+  --color-task-done: var(--task-done);
   --color-role-uye: var(--role-uye);
   --color-glass-bar: var(--glass-bar);
   --color-glass-float: var(--glass-float);
@@ -71,6 +72,7 @@
   --color-folder-back: var(--folder-back);
   --color-folder-front: var(--folder-front);
   --color-folder-front-mid: var(--folder-front-mid);
+  --color-program-teal: var(--program-teal);
   --color-avatar-1: var(--avatar-1);
   --color-avatar-2: var(--avatar-2);
   --color-avatar-3: var(--avatar-3);
