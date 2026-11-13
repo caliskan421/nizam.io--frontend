@@ -17,7 +17,7 @@ const status = (page: Page) => page.getByTestId('session-status')
 
 test('iki sekme, eşzamanlı 401 → tek refresh, iki oturum da geçerli', async ({ context }) => {
   const pageA = await context.newPage()
-  await pageA.goto('/')
+  await pageA.goto('/oturum')
   await expect(status(pageA)).toHaveAttribute('data-status', 'anonymous')
   await pageA.locator('input[name="email"]').fill(ADMIN.email)
   await pageA.locator('input[name="password"]').fill(ADMIN.password)

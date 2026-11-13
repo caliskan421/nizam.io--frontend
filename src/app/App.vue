@@ -8,6 +8,7 @@ import PasswordChangedNotice from '@/app/password/PasswordChangedNotice.vue'
 import { passwordChanged } from '@/app/password/password-flow'
 import { routeLocation } from '@/app/routes.catalog'
 import { sessionGate } from '@/app/session-gate'
+import { safeNext } from '@/app/session-next'
 import { LogoutUnverifiedNotice } from '@/app/states/public'
 import UpdateRequired from '@/app/UpdateRequired.vue'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -26,9 +27,17 @@ const mustChangePassword = computed(() => session.isAuthenticated && session.for
 
 // Parola değişiminden sonraki açık giriş: bildirim kalkar, kullanıcı ana sayfaya döner.
 watch(shell, (open) => {
-  if (!open || !passwordChanged.value) return
-  passwordChanged.value = false
-  void router.replace(routeLocation('home', {}))
+  if (!open) return
+  if (passwordChanged.value) {
+    passwordChanged.value = false
+    void router.replace(routeLocation('home', {}))
+    return
+  }
+  // Kapının yönlendirdiği girişten sonra (`/oturum?next=…`): geldiği rotaya (yoksa ana sayfaya)
+  // `replace` ile dönülür (W145 KUSUR 1). `next`siz `/oturum` ziyareti S0'da kalır.
+  if (route.name !== 'identity.session' || route.query.next === undefined) return
+  const next = safeNext(route.query.next, router)
+  void router.replace(next ?? routeLocation('home', {}))
 })
 
 // Oturum açık değilken S0 dışı rota (ör. `/`) içerik göstermez; oturum sayfasına gider.
@@ -42,7 +51,11 @@ const gate = computed(() =>
 watch(
   gate,
   (decision) => {
-    if (decision === 'to-session') void router.replace(routeLocation('identity.session', {}))
+    if (decision !== 'to-session') return
+    // Geldiği rota korunur (yalnız uygulama içi yol; ilk gezinmede `route` henüz çözülmemiş olabilir).
+    const from = router.currentRoute.value.fullPath
+    const next = safeNext(from, router)
+    void router.replace(routeLocation('identity.session', {}, next ? { next } : {}))
   },
   { immediate: true },
 )

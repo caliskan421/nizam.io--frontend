@@ -110,7 +110,9 @@ export const ROUTES = {
     scope: 'S0',
     phase: 'F0',
     params: {},
-    query: {},
+    // `next`: kapının yönlendirdiği uygulama içi yol (geldiği rota); başarılı girişte oraya
+    // `replace` ile dönülür (W145 KUSUR 1; doğrulama `session-next.ts`, dış/mutlak URL reddedilir).
+    query: { next: text },
   },
   'work.tasks': {
     path: '/gorevler',

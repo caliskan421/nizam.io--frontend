@@ -23,7 +23,8 @@ async function signIn(page: Page): Promise<void> {
   await page.locator('input[name="email"]').fill(ADMIN.email)
   await page.locator('input[name="password"]').fill(ADMIN.password)
   await page.getByRole('button', { name: 'giriş' }).click()
-  await expect(page.getByTestId('session-status')).toHaveAttribute('data-status', 'authenticated')
+  // Giriş sonrası kapının yönlendirdiği rotaya (ana sayfa) dönülür (W145 KUSUR 1).
+  await expect(page.getByTestId('app-shell')).toBeVisible()
 }
 
 /** Üretim CSP'sinde ihlal 0 (şimdiki belge; her tam gezinme yeni belge ve yeni toplayıcıdır). */
