@@ -200,6 +200,18 @@ const TABLE: Array<{
     mustInvalidate: ['assignMembership', 'removeCoordinator', 'linkDepartment', 'deleteUser'],
   },
   {
+    resource: 'report.task',
+    key: queryKeys.report.task(S, 'w1'),
+    expected: [...root(S), 'report', 'task', 'w1'],
+    mustInvalidate: ['updateWorkItem', 'transitionWorkItem', 'addWorkItemNote', 'addDependency'],
+  },
+  {
+    resource: 'report.meeting',
+    key: queryKeys.report.meeting(S, 'm1'),
+    expected: [...root(S), 'report', 'meeting', 'm1'],
+    mustInvalidate: ['updateMeeting', 'addMeetingNote', 'convertNoteToTask', 'deleteMeeting'],
+  },
+  {
     resource: 'archive',
     key: queryKeys.archive.list(S, 'attachments', f),
     expected: [...root(S), 'archive', 'attachments', f],
