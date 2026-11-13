@@ -51,7 +51,7 @@ describe('BarSeg / RegionBody / DueText', () => {
     const failed = await mount(RegionBody, {
       error: { messageKey: 'errors.client.network_error', requestId: null },
     })
-    expect(failed.wrapper.get('[role="alert"]').exists()).toBe(true)
+    expect(failed.wrapper.find('[role="alert"]').exists()).toBe(true)
     await failed.wrapper.get('button').trigger('click')
     expect(failed.wrapper.emitted('retry')).toHaveLength(1)
   })

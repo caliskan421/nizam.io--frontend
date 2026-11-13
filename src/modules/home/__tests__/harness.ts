@@ -14,6 +14,8 @@ import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
 import type { CoordinatorshipStat } from '../model/coordinatorships'
+import type { WorkItem } from '@/modules/work/public'
+
 import type { DashboardReport, KpiItem } from '../model/types'
 
 export const ORIGIN = 'http://localhost'
@@ -153,14 +155,14 @@ export const dashboardHandler = (report: DashboardReport = dashboard()) =>
 
 let seq = 0
 /** Liste satırı: KPI alanları + şemanın zorunlu alanları. */
-export function row(status: KpiItem['status'], over: Partial<KpiItem> = {}) {
+export function row(status: KpiItem['status'], over: Partial<WorkItem> = {}): WorkItem {
   seq += 1
   return {
     work_item_id: `w${seq}`,
     program_id: 'p1',
     department_id: 'd1',
     title: `Görev ${seq}`,
-    priority: 'orta',
+    priority: 'orta' as const,
     status,
     assignees: [],
     assignee_account_ids: ['acc-1'],
