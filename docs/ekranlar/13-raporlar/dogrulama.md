@@ -36,3 +36,11 @@ Denetçi: **öz denetim (W134, tespit işçisi)** — bağımsız denetçi ve Co
 
 ## Hüküm
 Öz denetim: `taslak` — bulgular işlendi; **bağımsız denetçi (daha küçük model) ve Codex salt okunur kapısı bekliyor**. Bu dosya o iki adım gelmeden `denetlendi` durumuna alınmaz. Koordinatör kararı bekleyen tek madde #10 (rapor görünürlük kuralının `capabilities.ts` istisnası olarak yazılması); doğrulanamayanlar #6, #22, #23.
+
+## Tuvale geri bildirim (ürün sahibi)
+Koordinatör tasarım tarafına iletir; uygulama bu kalemleri aşağıdaki gibi karşılar, tuval düzeltilince kalemler kapanır.
+1. **01f ve 01g kırıntısı ile "Kapat" düğmeleri** `Raporlar.dc.html`'e (01e) gidiyor; P47 ile çelişir. Hedef: 01f için Arşiv (`Arsiv.dc.html`), 01g için `Toplanti-Detay.dc.html`. Kırıntı "Raporlar /" yerine "Arşiv /" ve "Toplantılar / ‹başlık› /".
+2. **01g "Tetikleyiciler 3" kartı** "Raporlar › Toplantı raporları sekmesi"ni birinci tetikleyici sayıyor; sekme yok (P52). Kart iki tetikleyiciye (09b, K7) indirilmeli.
+3. **01h `Retry-After` örnekleri:** "27 saniye" (429 `reporting.export_in_progress`) ve "(15 sn)" / "Retry-After: 15 sn" (503 `reporting.capacity_full`) pin gerçeğiyle uyuşmuyor: 429'da başlık sabit 1 sn, 503'te hiç başlık yok (BE-135). Örnek metinler sayısız ("Biraz sonra yeniden deneyin") ya da genel örnek olarak işaretlenmeli.
+4. **01i hücre A alt başlığı** "Kurumsal hafıza · tamamlanan her görevin kanıt dosyaları burada" P38 ("Görevlere yüklenen dosyalar") ile çelişir.
+5. Ek: 01f "PDF ile aynı sıra ve içerik / aynı veriden" iddiaları (v0.15 PDF'i sadedir, BE-123); 01f aylık aktivite dipnotu (not/dosya/tarih talebi yok); 01h ZIP onay penceresindeki "Kayda geçer (denetim)" rozeti (ZIP audit'i doğrulanamadı); 01g "14:00–15:10" saat aralığı (bitiş alanı yok).

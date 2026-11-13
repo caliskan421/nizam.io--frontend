@@ -111,7 +111,7 @@ Karar tarihi 2026-11-09 (WEB-1 O5 adım 2). Kaynaklar: `../ortak-kurallar.md` §
 | E-08-86 Zaman çizelgesinde gör | F3 | devre dışı "F3'te" (F2) → **F3'te canlı** `/zaman-cizelgesi?departman=‹id›` | kabul — P2, §5 | — | 03c (F3) | `aria-disabled` · **W73 (#54)** · F3: **PR #68** (`ae7f1b9`) — `CoordinatorshipDetail.test` «Kısayollar: Görevlerde aç + Zaman çizelgesinde gör canlı; F5/F4 devre dışı»; IT `timeline-views` «08 E-08-86 “Zaman çizelgesinde gör”: departman süzgeci Gantt’ta uygulanır» |
 | E-08-87 Arşiv klasörü | F5 | devre dışı "F5'te" | kabul — P2 | BE-025 | 07 (F5) | `aria-disabled` · **W73 (#54)** |
 | E-08-88 Toplantı planla | F4 | devre dışı "F4'te" | kabul — P2 | — | 09 (F4) | `aria-disabled` · **W73 (#54)** |
-| E-08-89 Birim raporu (PDF) | F6 | gizli | kabul — P6 kalıbı (raporlar F6; 01 E-01-12); uç yok, kayda gerek yok (eksikler §1) | — | F6 | DOM'da yok · **W73 (#54)** |
+| E-08-89 Birim raporu (PDF) | F6 | gizli | kabul — P6 kalıbı (raporlar F6; 01 E-01-12); uç yok, kayda gerek yok (eksikler §1) | BE-128 (13-raporlar E-13-81) | F6 | DOM'da yok · **W73 (#54)** |
 | E-08-90 Son etkinlik | F2 | statik nötr yer tutucu — `designStub('BE-018')`; sahte akış yok | kabul — §4, BE-018 Şimdilik | BE-018, BE-091 | W15 | sahte olay yok testi · **W73 (#54)** |
 
 **Satır dışı varsayımlar:**

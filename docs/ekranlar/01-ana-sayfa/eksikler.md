@@ -75,15 +75,15 @@ Koordinatör `kayit.md` bloğunu (BE-122…) W134 yazar; W135 yalnız aday liste
 
 | Aday (W134 kayıt bloğuna aday) | Etkilenen öğe | Şimdilik | Mevcut kayıt bağı |
 |---|---|---|---|
-| Görev satırında **dosya sayısı** (`WorkItem.file_count`) ve **onaya sunuş zamanı** (`submitted_at`) | E-K1-15/16, E-Ü1-11 | alan gizli (görev başına `listWorkItemFiles` fan-out yasak) | — (BE-113 yalnız silinmiş görev) |
-| Görev satırında **bekleyen bağımlılık özeti** (kilit rozeti/"bekleniyor" metni) | E-K1-20/23/25, E-Ü1-15 | kilit göstergesi çizilmez; engel sunucu hatasıyla bildirilir | — |
+| Görev satırında **dosya sayısı** (`WorkItem.file_count`) ve **onaya sunuş zamanı** (`submitted_at`) | E-K1-15/16, E-Ü1-11 | alan gizli (görev başına `listWorkItemFiles` fan-out yasak) | **BE-137** (BE-113 yalnız silinmiş görev) |
+| Görev satırında **bekleyen bağımlılık özeti** (kilit rozeti/"bekleniyor" metni) | E-K1-20/23/25, E-Ü1-15 | kilit göstergesi çizilmez; engel sunucu hatasıyla bildirilir | **BE-138** |
 | **Atanmamış görev sayacı/süzgeci** (`countProgramWorkItems` ve `listProgramWorkItems` `unassigned=true`) | E-K1-12/19 | yüklenen kümede istemci türetimi, "≥" ipucu | BE-003/BE-038 ailesi |
-| **İade sebebi** okuma (görev satırı ya da son iade kaydı) | E-Ü1-08/11 | metin gizli; nötr not | — |
-| Tarih talebi satırında **oluşturma/karar zamanı** ve **yönetici karar notu** | E-K1-39 | gizli | — |
-| Üyeye **birim koordinatörünün adı** (`MyDepartment.coordinators[]`) | E-Ü1-21/31 | gizli | — |
+| **İade sebebi** okuma (görev satırı ya da son iade kaydı) | E-Ü1-08/11 | metin gizli; nötr not | **BE-139** |
+| Tarih talebi satırında **oluşturma/karar zamanı** ve **yönetici karar notu** | E-K1-39 | gizli | **BE-140** |
+| Üyeye **birim koordinatörünün adı** (`MyDepartment.coordinators[]`) | E-Ü1-21/31 | gizli | **BE-141** |
 | **Kısa kod** K/Ü yüzünde (`MyDepartment.code`, görev kısa kodu) | E-K1-02/05/16/20/24, E-Ü1-11/31 | birim adı; görev kodu `—` | BE-005 |
 | Rol kapsamlı **audit okuma** (Son etkinlik) | E-K1-40, E-01-13…18 | nötr yer tutucu | BE-010, BE-091 |
 | Bildirim özeti/listesi | E-Ü1-23/24 | sayaç canlı, liste F7 | BE-002 (vazgeçildi → F7) |
-| Yönetici K/Ü merceğinde **ana sayfa kapsamı** kararı (K1/Ü1 gövdesi mi, yönetici sayfası mı) | sayfa seçimi | yönetici sayfası kalır (geçici kabul) | P1, P53 — ürün sahibi teyidi |
+| Yönetici K/Ü merceğinde **ana sayfa kapsamı** kararı (K1/Ü1 gövdesi mi, yönetici sayfası mı) | sayfa seçimi | yönetici sayfası kalır (ürün teyidi alındı: program geneli) | P1, P53 (BE kaydı değil) |
 
 01 yönetici F6 bölgeleri için aday yok (mevcut kayıtlar yeterli): BE-078, BE-079, BE-025, BE-036 (2), BE-072, BE-119. `meeting_count` GAP-221'e bağlıdır (`kayit.md` yeni satırı W134).
