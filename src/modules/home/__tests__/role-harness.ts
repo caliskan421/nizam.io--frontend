@@ -1,15 +1,18 @@
 // K1/Ü1 testleri: harness'in üstüne rol sayfalarının okuma uçları (liste, toplantı, ekip, talep,
 // bildirim sayacı) ve ek rota kayıtları. Ağ yalnız MSW (gerçek istemci).
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Component } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { vi } from 'vitest'
 
 import { useScopeStore } from '@/shared/scope/store'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 
-import { COUNTS, http, json, LIST, ORIGIN, row, settle } from './harness'
+import { settleQueries } from '@/shared/http/__tests__/settle'
+
+import { COUNTS, http, json, LIST, ORIGIN, resetAll, row } from './harness'
 
 export { row }
 
@@ -53,7 +56,13 @@ export function roleHandlers(
   ]
 }
 
-const clients: QueryClient[] = []
+const mounted: VueWrapper[] = []
+
+/** Her testin sonunda: rol sayfası sökülür, harness sıfırlanır. */
+export function resetRole(): void {
+  for (const wrapper of mounted.splice(0)) wrapper.unmount()
+  resetAll()
+}
 
 /** `mountWith` gibi; rota tablosu rol sayfalarının hedeflerini de içerir. */
 export async function mountRole(component: Component, selection: ScopeSelection) {
@@ -80,7 +89,28 @@ export async function mountRole(component: Component, selection: ScopeSelection)
     global: { plugins: [pinia, [VueQueryPlugin, { queryClient }], router] },
     attachTo: document.body,
   })
-  clients.push(queryClient)
-  await settle()
+  mounted.push(wrapper)
+  await settleQueries([queryClient])
   return { wrapper, router, store, queryClient }
+}
+
+/**
+ * Tarayıcıda `structuredClone(File)` yine `File`; jsdom'da değil. Yazma motoru gövdeyi
+ * dondururken tarayıcı davranışı korunur (work/archive yükleme testleriyle aynı).
+ */
+export function stubBrowserClone(): void {
+  const nativeClone = globalThis.structuredClone
+  const clone = (value: unknown): unknown => {
+    if (value instanceof Blob) return value
+    if (Array.isArray(value)) return value.map(clone)
+    if (
+      value !== null &&
+      typeof value === 'object' &&
+      Object.getPrototypeOf(value) === Object.prototype
+    ) {
+      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, clone(v)]))
+    }
+    return nativeClone(value)
+  }
+  vi.stubGlobal('structuredClone', clone)
 }
