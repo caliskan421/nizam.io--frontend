@@ -54,13 +54,13 @@ function mountButton(props: Record<string, unknown>, slots: Record<string, strin
 }
 
 describe('ReportActionButton sözleşmesi (derlenmiş props/emits)', () => {
-  it('props: kind, targetId, memberIds, disabledReason; emits: done, failed', () => {
+  it('props: kind, targetId, memberIds, disabledReason (+ W138: variant, size); emits: done, failed', () => {
     const options = ReportActionButton as unknown as {
       props: Record<string, unknown>
       emits: string[] | Record<string, unknown>
     }
     expect(Object.keys(options.props).sort()).toEqual(
-      ['disabledReason', 'kind', 'memberIds', 'targetId'].sort(),
+      ['disabledReason', 'kind', 'memberIds', 'size', 'targetId', 'variant'].sort(),
     )
     const emits = Array.isArray(options.emits) ? options.emits : Object.keys(options.emits)
     expect(emits.sort()).toEqual(['done', 'failed'])

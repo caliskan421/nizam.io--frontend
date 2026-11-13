@@ -33,6 +33,9 @@ const props = defineProps<{
   targetId?: string
   memberIds?: readonly string[]
   disabledReason?: string
+  /** Görünüm (W138 eki): önizleme araç çubukları birincil + küçük düğme ister. */
+  variant?: 'primary' | 'secondary'
+  size?: 'sm' | 'md'
 }>()
 const emit = defineEmits<{
   done: [fileName: string]
@@ -123,6 +126,8 @@ defineExpose({ start })
     <div class="report-action__row">
       <UiButton
         icon="download"
+        :variant="props.variant"
+        :size="props.size"
         :disabled="!canStart(state)"
         :title="props.disabledReason"
         :aria-busy="state === 'preparing' ? 'true' : undefined"
