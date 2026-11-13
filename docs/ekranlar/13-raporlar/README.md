@@ -1,0 +1,173 @@
+# 13 · Raporlar — her rapor kendi yerinde
+
+**Codex kapısı:** bekliyor (tespit yeni). **Tespit durumu:** tespit W134 (WEB-6 O1), 2026-11-13; kararlar **P46–P53** (`../ortak-kurallar.md` §12; W135 işler, bu grup yalnız `P47` vb. diye atıf yapar) ve koordinatör varsayılanları işlendi · öz denetim `dogrulama.md`. Ortak kurallar `../ortak-kurallar.md`.
+
+**Artboard'lar (tasarım v85, `Rapor-*.dc.html`):**
+- `Rapor-Noktalar.dc.html` — `01i · Raporlar › Her rapor kendi yerinde` (**ana referans**: Arşiv başlığı, bölüm seçimi penceresi, toplantı detayı başlığı, Kullanıcılar iş yükü, görev paneli, Hızlı işlemler menüsü, dar ekran, durum/denetim notu)
+- `Rapor-Donem.dc.html` — `01f · Arşiv › Dönem sonu raporu önizleme` (tek uzun artboard, 1440×11400; P51)
+- `Rapor-Toplanti.dc.html` — `01g · Toplantı › Toplantı raporu önizleme`
+- `Rapor-Pencereler.dc.html` — `01h · Raporlar › Pencereler, durumlar ve iş yükü seçici`: **yalnız** dışa aktarım durum kartları (hazırlanıyor · 429 · 503 · indirildi), ZIP onay penceresi, iş yükü ve görev PDF kâğıtlarının içerik referansı alınır; sekmeler ve sekme içerikleri uygulanmaz (P52)
+- Önceki seçenek, **uygulanmaz** (yalnız aşağıdaki "uygulanmayanlar"): `Raporlar.dc.html` (`01e`), `Raporlar-Acik.dc.html` (`A5`)
+
+**Faz:** F6 · **v1:** — (v1 = F0–F4; F5 ve F6 ekranları) · **Yol haritası bağı:** K1, K2, K5, K6, K7, K10, K13; `../ortak-kurallar.md` §12 P46–P53
+**Rota (önerilen, K10):** yeni **iki** rota — `/arsiv/donem-raporu` (01f, yalnız ŞY) ve `/toplantilar/:meetingId/rapor` (01g, yalnız ŞY); **`/raporlar` yok**, kenar menüsünde Raporlar öğesi yok (P47). Bilet akışı ve durum kartları ortak bileşendir, rota almaz.
+**Sürüm:** web pini `v0.15.0-api` (değişmez, P46); sözleşme gerçeği `backend.md` ve `dogrulama.md` içinde pinden doğrulandı.
+
+## Özet
+Bu grup **ayrı bir sayfa değil**: dört mevcut ekrana eklenen rapor eylemleri (06 Arşiv, 09b/K7 toplantı detayı, 03/K3 görev paneli, 05 Kullanıcılar), iki önizleme ekranı (01f dönem sonu raporu, 01g toplantı raporu), 01 ana sayfadaki "Rapor oluştur" yönlendirme menüsü ve hepsinin paylaştığı **indirme mekanizması**dır (bilet akışı + düğme durum makinesi + 429/503 durum kartları). Dört PDF ucu canlıdır: `reportSeasonPdf`, `reportMeetingPdf`, `reportTaskPdf`, `reportWorkloadPdf` (POST, gövdeli bilet); JSON olarak yalnız iki önizleme okunur (`reportSeason`, `reportMeetingDetail`; ikisi de yalnız şirket yöneticisi). Görev ve toplantı PDF'ini şirket yöneticisi ile **kaynağın birimini koordine eden koordinatör** alır; dönem, iş yükü, önizleme ve pano yalnız şirket yöneticisinindir; **üye hiçbir rapor görmez** (REPORTING-K01/K07). Önemli sınır: dönem sonu PDF'inin **hedef içeriği 01f çizimidir** (P48), v0.15 şablonu çok daha sadedir (BE-123); bölüm seçimi ve koordinatörlük süzgeci parametresi yoktur (BE-122) — pencere çizilir ama "tam rapor" dışında statiktir; dönem ZIP'i yönetici için kullanılamaz (BE-120) ve raporları içermez (BE-124). 01f önizlemesi `reportSeason` JSON'undaki alanlarla canlıdır; JSON'da olmayan kâğıt bölümleri (görev detay kartları, toplantılar, dosyalar, iş yükü, Gantt, dosya sayıları) statik yer tutucudur ve sahte veri üretmez (§4; BE-136).
+
+## Dosyalar
+| Dosya | Durum | Son güncelleme | Üreten |
+|---|---|---|---|
+| ozellikler.md | taslak | 2026-11-13 | tasarım analisti (W134) |
+| mekanizma.md | taslak | 2026-11-13 | tasarım analisti (W134) |
+| backend.md | taslak | 2026-11-13 | backend analisti (W134) |
+| eksikler.md | taslak | 2026-11-13 | backend analisti (W134) |
+| dogrulama.md | öz denetim; bağımsız denetçi bekliyor | 2026-11-13 | W134 |
+
+## Uygulanmayanlar (kapsam dışı — değişmez)
+- **Menüde "Raporlar" öğesi ve `/raporlar` rotası yok** (P47): her rapor kendi alanından iner. Kenar menüsü ve rol menüleri (`Kenar-Roller`) bu grup yüzünden değişmez.
+- **01e / A5 (`Raporlar.dc.html`, `Raporlar-Acik.dc.html`) rapor merkezi uygulanmaz** (P47, P52); içindeki "Genel bakış / Koordinatörlükler" sekmeleri hiç çizilmedi, "Dönem raporu · İş yükü · Görev raporları · Toplantı raporları" sekmeleri de uygulanmaz (P52).
+- **01h'nin sekme sayfaları uygulanmaz:** iş yükü sekmesi tablosu, görev raporları listesi ve yan paneli, toplantı raporları listesi ve "Rapor kuralları" kartı; yalnız durum kartları, ZIP onayı ve kâğıt içerikleri alınır.
+- `reportDashboardCoordinatorships/Tasks/Meetings`, `reportTaskDetail` ve `reportWorkload` (JSON) F6 rapor eylemlerinde kullanılmaz (P52); `reportDashboard` 01 ana sayfa grubundadır.
+- Görev raporu ve iş yükü raporu için **web önizlemesi yoktur**; önizleme yalnız dönem (01f) ve toplantı (01g) içindir (P46/P47).
+- K1 koordinatör ve Ü1 üye ana sayfalarında rapor girişi yoktur (P53); koordinatörün raporları yalnız K7 (toplantı) ve K3 (görev) düğmeleridir.
+- Tasarımdaki örnek sayılar (11 koordinatörlük, 79 görev, 185 kullanıcı, 14 sayfa, 2,4 MB vb.) şekil kanıtıdır, kopyalanmaz (`../README.md` yazım kuralları).
+
+## Uygulama kararı tablosu (CX-M-07)
+Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırlarını kodlar, `geçici kabul` satırları koordinatör varsayılanıdır (kodlanır, ilerleme notunda raporlanır), `öneri` kodlanmaz (en dar güvenli davranış), `ret` yoktur/çizilmez (`../ortak-kurallar.md` §2). Bu tablo W134 tarafından P46–P53 ve `../../../.git/koordinator/web6-kararlar.md` varsayılanlarıyla **taslak** doldurulmuştur; kaynak sürümü `v0.15.0-api`; **toplam 86 satır** (karar dağılımı en alttaki "Karar özeti"nde). Uygulayıcı oturum(lar)ı ve **kabul kanıtı** (test dosyaları) uygulama sırasında eklenir; bu fazda koddan önce kanıt sütunu yoktur. `designStub` yalnız kayıtta `açık` satırı olan, ekranda var olan kabul edilmiş işlev eksiğine bağlanır (§3): E-13-03/04/05 → BE-122, E-13-09 → BE-120, E-13-28 → BE-123, E-13-31 → BE-134, E-13-34/35/36 → BE-136 (E-13-34 BE-123 ile), E-13-68 "ilerleme yakında" → BE-131.
+
+### (a) 06 Arşiv başlığı
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-01 06 başlık eylem şeridi | F6 | canlı (düzen) — sıra: "Dönem sonu raporu (PDF)" + bitişik "Bölüm seç…" · "Dönem arşivi (ZIP)" · "Dosya yükle"; "Önizle" bağlantısı PDF düğmesinin altında; ZIP düğmesi eski "Tümünü indir"in yerini alır | kabul (P47, P49) | BE-120 | — | ŞY (06 yalnız ŞY'de görünür, P40) |
+| E-13-02 "Dönem sonu raporu (PDF)" düğmesi | F6 | canlı — `POST /v1/download-tickets` → `GET /v1/downloads/{ticket}` (hedef `reportSeasonPdf`, parametresiz = tam rapor); düğme durumları E-13-68…75 | kabul (P47, P48) | — | reportSeasonPdf | ŞY |
+| E-13-03 "Bölüm seç…" düğmesi (bitişik ikon düğme) | F6 | statik — düğme etkin, pencereyi açar (E-13-04); tek parça görünüm; `title` "Bölüm seç… — varsayılan tam rapor" | kabul (P48) | BE-122 | — | ŞY |
+| E-13-04 Bölüm seçimi penceresi | F6 | statik — hepsi seçili açılır; kilitli "Kapak ve içindekiler"; 4 ana + 4 girintili alt bölüm; hepsi seçiliyken "Seçilenleri indir (PDF)" = düz indirme (canlı); bir kutu kaldırılınca düğme devre dışı + "yakında" (`designStub('BE-122')`) | kabul (P48) | BE-122, BE-123 | reportSeasonPdf (yalnız tam indirme) | ŞY |
+| E-13-05 Koordinatörlük süzgeci çipleri ("Tümü" + kodlar) | F6 | statik — çipler çizilir, etkileşim devre dışı + "yakında"; çip kaynağı program koordinatörlükleri (`listProgramDepartments`, kod yoksa ad) | geçici kabul (koordinatör varsayılanı: çip kaynağı) | BE-122 | listProgramDepartments (S2) | ŞY |
+| E-13-06 Pencere özeti ("≈ 14 sayfa · 11 koordinatörlük") | F6 | kısmi — koordinatörlük sayısı canlı (`listProgramDepartments` uzunluğu); sayfa tahmini gizli (veri yok, §4); "PDF · A4 · kayda geçer (denetim)" sabit metin | geçici kabul | BE-136 | listProgramDepartments | ŞY |
+| E-13-07 Dosya adı / boyut / sayfa bilgi satırı ("donem-raporu-…pdf · 2,4 MB · 14 sayfa") | F6 | gizli — boyut ve sayfa indirmeden önce bilinmez; dosya adı yalnız indirme sonrası `Content-Disposition`'dan (E-13-72); sahte değer yok (§4) | kabul (§4) | BE-136 | — | ŞY |
+| E-13-08 "Önizle (01f)" bağlantısı | F6 | canlı — `/arsiv/donem-raporu` rotasına gider; ağır okuma yalnız sayfa açılınca başlar (E-13-40) | kabul (P47) | — | — | ŞY |
+| E-13-09 "Dönem arşivi (ZIP)" düğmesi | F6 | devre dışı — `designStub('BE-120')` + açıklama (F5 `PeriodZipButton` korunur, yalnız ad değişir); P49 kararındaki "Raporlar başlığındaki ikinci ZIP düğmesi" ayrı sayfa olmadığından (P47) yoktur, tek düğme Arşiv'dedir; BE-120 çözülünce açılır; tasarımdaki "backend'de hazır değil (BE-120)" notu tasarım notudur, ekrana yazılmaz | kabul (P49) | BE-120, BE-124 | archiveFullZip (S3 — yönetici başlıksız çağıramaz) | ŞY |
+| E-13-10 ZIP onay penceresi (01h) | F6 | kodlanır, ulaşılamaz — düğme devre dışıyken açılmaz; içerik: dosya sayısı · boyut · "birkaç dakika sürebilir", "indirme başladıktan sonra sayfayı kapatmayın"; **klasör ağacı satırları** (`00-Genel/` dönem raporu, birim raporu) BE-124 kapanana dek gösterilmez (v0.15 ZIP'inde rapor yok) | geçici kabul | BE-120, BE-124 | archiveFullZip (bilet) | ŞY |
+| E-13-11 ZIP "Kayda geçer (denetim)" rozeti | F6 | gizli — ZIP indirmesinin audit yazdığı pin'de doğrulanamadı (RECORDS-K17 yalnız yükleme/ad/silme; `reporting.report_downloaded` yalnız PDF) | geçici kabul (doğrulanamadı) | BE-120 | — | ŞY |
+| E-13-12 Dar ekran 390 px (Arşiv eylemleri, bölüm seçimi) | F6 | canlı — Arşiv eylemleri tam genişlikte yığılır; bölüm seçimi tam ekran modal, alt düğmeler yapışık | geçici kabul (ortak duyarlı kurallar) | — | — | ŞY |
+
+### (b) 01f dönem sonu raporu önizleme ekranı
+Rota `/arsiv/donem-raporu`. Kaynak tek ağır JSON `reportSeason` (S2, yalnız ŞY, tek eşzamanlı üretim korumalı). Kâğıt bölümü → kaynak özeti: kapak/özet KPI → `stats` + `date_change_stats` + `meeting_stats` + `tasks`; dağılımlar → `task_status_distribution`, `priority_distribution`; koordinatörlük karşılaştırması ve bölüm KPI → `coordinatorship_performance` + `tasks`; aylık aktivite → `monthly_activity`; **JSON'da karşılığı olmayan** (statik/gizli): dönem tarih aralığı, dosya sayıları/boyutları ve dosya tablosu, görev açıklaması/bağımlılık adı/not/tarih talebi ayrıntısı, toplantı kartları, iş yükü tablosu, "ortalama kayma" ve "en çok talep alan görevler", Gantt çizimi, sayfa numaraları. Ayrıntı: `ozellikler.md` §2.2, `backend.md` §1.2, `eksikler.md`.
+
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-13 01f rota, kabuk ve kırıntı | F6 | canlı — rota `/arsiv/donem-raporu`; menüde "Arşiv" etkin; kırıntı "‹program› / Arşiv / Dönem sonu raporu" (tasarımdaki "Raporlar /" bağlantısı uygulanmaz, P47); K/Ü doğrudan adresle girerse K7 "erişim yok" durumu | geçici kabul (rota önerisi, K10) | — | — | ŞY |
+| E-13-14 Başlık ve alt başlık | F6 | canlı — H1 "Dönem sonu raporu"; alt başlık "Önizleme" (sayfa sayısı ve "PDF ile aynı sıra ve içerik" iddiası çıkarılır: indirilen PDF şablonu daha sadedir) | geçici kabul | BE-123 | — | ŞY |
+| E-13-15 Önizleme araç çubuğu (sayfa, yakınlaştırma, yazdır) | F6 | kısmi — "Sayfa x / y" gizli (tek akış, P51); dosya adı/boyut gizli; yakınlaştırma (−, %100, +) canlı (yalnız CSS ölçek); "Yazdır" kodlanmaz (önizlemeyi yazdırmak PDF değildir) | geçici kabul (yakınlaştırma); öneri (yazdır) | — | — | ŞY |
+| E-13-16 "PDF indir" (primary) | F6 | canlı — E-13-02 ile aynı eylem ve durum makinesi | kabul (P47) | — | reportSeasonPdf | ŞY |
+| E-13-17 "Kapat" bağlantısı | F6 | canlı — Arşiv (06) ekranına döner; odak "Önizle" bağlantısına döner (KESİN 27) | kabul | — | — | ŞY |
+| E-13-18 Önizleme alt notu | F6 | canlı (sabit metin) — "Önizleme canlı veriden çizilir; indirilen PDF'in şablonu güncellenene kadar daha sade olabilir · Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre · Rapor indirmeleri kayda geçer (denetim)" (tasarım: "PDF ile aynı veriden", "TRT (UTC+3)" yerine) | geçici kabul | BE-123 | — | ŞY |
+| E-13-19 Kâğıt teması | F6 | canlı — kâğıt her temada açık zemin/koyu mürekkep (`data-theme="light"` kapsamı), bantlar nötr koyu; ekran kabuğu temayı izler | geçici kabul (01h kural kartı) | — | — | ŞY |
+| E-13-20 Kapak bandı | F6 | kısmi — kicker "ROKETPORTAL · TEKNOFEST KOORDİNASYON" ve "DÖNEM SONU RAPORU" sabit; program adı `program_name`; "‹yıl›" `Program.year`; konum gizli; "Oluşturulma" `generated_at` (kurulum saat dilimi); logo yer tutucusu = program rozeti (`short_name`/`color`, BE-001 bağlandı) | geçici kabul | BE-136 | reportSeason (program_name, generated_at), readProgram (year) | ŞY |
+| E-13-21 Kapak "DÖNEMİN ÖZETİ" tarih aralığı | F6 | gizli — program dönem başlangıç/bitiş alanı yok (`Program` yalnız `year`); uydurma tarih yok (§4) | kabul (§4) | BE-136 | — | ŞY |
+| E-13-22 Kapak KPI kartları (8) | F6 | kısmi — Görev/Tamamlanma/Geciken/Toplantı/Koordinatörlük/Kullanıcı/Tarih talebi `stats`+`date_change_stats`'tan; alt notlar: "geç tamamlandı" `tasks`'tan istemci sayımı, "N not" `meeting_stats.total_notes`; Dosya kartında yalnız `total_attachments` (boyut gizli); "0 çalışma grubu" ve "15 koordinatör" alt notları gizli (P39; alan yok) | geçici kabul | BE-136 | reportSeason (stats, date_change_stats, meeting_stats, tasks) | ŞY |
+| E-13-23 Kapak kapsam notu ve amblem | F6 | canlı (sabit metin) — "Bu rapor … yalnızca sayılar yer alır." (`message_stats` yalnız sayıdır, doğrulandı); amblem yer tutucusu "RP" | geçici kabul | — | — | ŞY |
+| E-13-24 İçindekiler | F6 | kısmi — bölüm satırları sayfa içi çapa bağlantısı; sayfa numaraları gizli (akış); koordinatörlük alt bağlantıları yalnız canlı bölümlere (Görevler); Görev detayları/Toplantılar/Dosyalar bağlantıları BE-136 kapanana dek gizli | geçici kabul | BE-136 | reportSeason | ŞY |
+| E-13-25 Yönetici özeti bandı ve KPI (8) | F6 | kısmi — alt satır "N koordinatörlük · N görev · N toplantı" canlı; KPI: Zamanında/Geç tamamlanan `tasks`'tan istemci sayımı; "gündem a/b" ve Dosya boyutu gizli | geçici kabul | BE-136 | reportSeason | ŞY |
+| E-13-26 Durum ve öncelik dağılımı | F6 | canlı — `task_status_distribution` (5 anahtar daima gelir, doğrulandı) ve `priority_distribution` (4 anahtar); yatay çubuk + adet + yüzde; etiketler tasarımdaki (Başlamadı · Devam ediyor · Onay bekliyor · İade edildi · Tamamlandı; Düşük · Orta · Yüksek · Acil) | kabul (P48) | BE-133 | reportSeason | ŞY |
+| E-13-27 Koordinatörlük karşılaştırması tablosu | F6 | kısmi — Görev, Biten, Geciken, İlerleme `coordinatorship_performance`'tan; Toplantı sütunu bu uçta canlı (`meeting_count` dolu; GAP-221 yalnız pano içindir); DOSYA sütunu "—"; kod çipi `listProgramDepartments.code` (yoksa ad); Toplam satırı `stats` | geçici kabul | BE-136 | reportSeason (coordinatorship_performance, stats), listProgramDepartments | ŞY |
+| E-13-28 Gantt — görev zaman çizelgesi bölümü | F6 | statik — yer tutucu bölüm "Gantt önizlemesi bu sürümde yok; PDF şablonu BE-123 ile gelir" (sahte çubuk yok); görev satırları `reportSeason.tasks` ile çizilebilir ama çizim kararı ürün sahibinde | öneri (canlı çizim kodlanmaz) | BE-123, BE-057 | reportSeason (tasks) | ŞY |
+| E-13-29 Teknofest geneli bandı ve aylık aktivite | F6 | canlı — `monthly_activity` (yalnız gerçek seri); başlık altı tanımı JSON'a göre "oluşturulan + tamamlanan görev, toplantı, mesaj" (tasarımdaki "not, dosya, tarih talebi" tanımı doğru değildir); "Toplam N kayıt" = `count` toplamı; en yüksek ay etiketi canlı | geçici kabul | BE-136 | reportSeason (monthly_activity) | ŞY |
+| E-13-30 Tarih değişikliği talepleri | F6 | kısmi — 4 KPI `date_change_stats` (Toplam, Onaylanan, Reddedilen, Bekleyen; yüzde istemci); "Onaylananlarda ortalama kayma" ve "En çok talep alan görevler" gizli | geçici kabul | BE-136 | reportSeason (date_change_stats) | ŞY |
+| E-13-31 İş yükü bölümü (ilk 8 / N kişi) | F6 | statik — yer tutucu "İş yükü bölümü için veri ucu yok"; ikinci ağır JSON (`reportWorkload`) bu ekranda çağrılmaz (hesap başına tek eşzamanlı üretim, E-13-40) | öneri (reportWorkload tek ardışık okuma ürün kararı bekler) | BE-134 | — | ŞY |
+| E-13-32 Koordinatörlük bölümü: bant, künye, KPI, durum şeridi | F6 | kısmi — bant: ad/kod/`kind`; "N görev · N toplantı · N üye" canlı, "N dosya" gizli; künye: Açıklama ve Koordinatörler canlı, Üyeler (N) yalnız sayı (adlar gizli); KPI 6'sı: Görev/Tamamlanma/Geciken/Geç biten/Toplantı canlı, Dosya gizli; durum şeridi bölümün `tasks` kümesinden 5 durum (onayda/iade ayrımı istemcide mümkün) | geçici kabul | BE-136, BE-079 | reportSeason (coordinatorship_performance, tasks) | ŞY |
+| E-13-33 Görev tablosu | F6 | kısmi — sütunlar: Görev, Durum, Öncelik, Tarih (+ plan), Atananlar, Gecikme canlı; "#" sıra numarası gizli (BE-005; satır sırası `created_at`); D/N sütununda yalnız N (`note_count`), D gizli | geçici kabul | BE-005, BE-136 | reportSeason (tasks) | ŞY |
+| E-13-34 Görev detay kartları (açıklama, bağımlılık, notlar, tarih talepleri, dosyalar) | F6 | statik — yer tutucu "Görev ayrıntıları PDF şablonuyla gelir"; satır başına isteğe bağlı açma (`reportTaskDetail`, kullanıcı eylemi, tek kayıt) yalnız öneri | öneri | BE-123, BE-136 | — | ŞY |
+| E-13-35 Toplantılar (bölüm başına kartlar) | F6 | statik — yer tutucu; bölüm başına toplantı/gündem/not listesi dönem JSON'unda yok; `reportDashboardTasks/Meetings` kullanılmaz (P52) | geçici kabul (P52) | BE-136 | — | ŞY |
+| E-13-36 Dosyalar (etikete göre gruplu tablo) | F6 | statik — yer tutucu; dosya listesi dönem JSON'unda yok | geçici kabul | BE-136 | — | ŞY |
+| E-13-37 Ek: sözlük ve kurallar | F6 | canlı (sabit metin) — durum/öncelik sözlüğü, gecikme kuralı (kurulum saat dilimi), kısaltmalar; "birden çok koordinatörlüğe bağlı toplantı" ve "aktarım" maddeleri pin'de doğrulanamadığından gizli | geçici kabul | BE-123 | — | ŞY |
+| E-13-38 Sayfa iskeleti (üst bilgi, altlık, sayfa x/y) | F6 | kısmi — üst bilgi "DÖNEM SONU RAPORU — ‹PROGRAM›" ve "Oluşturulma" canlı; altlıkta program adı + "RoketPortal · ‹tarih›"; "Sayfa x / y" gizli | geçici kabul | — | reportSeason (generated_at) | ŞY |
+| E-13-39 01f durumları (yükleniyor, boş dönem, hata) | F6 | canlı — yükleniyor: kâğıt iskeleti + "Rapor hazırlanıyor" (JSON slot korumalı); boş dönem: sıfır zarf ve tasarım boş metinleri ("Koordinatörlük verisi bulunamadı." vb.); hata: bölge içi mesaj + "Yeniden dene" (429/503/403/404 ortak, E-13-69…73); kesme yok (dönem JSON'unda kesme tanımsız) | geçici kabul (K7 varsayılanı) | BE-132, BE-135 | reportSeason | ŞY |
+| E-13-40 Veri tazeleme ve ağır okuma kuralı | F6 | canlı (kural) — `reportSeason` yalnız 01f açıkken, `staleTime` 0, odak/yeniden bağlanmada otomatik tazeleme KAPALI; hesap başına tek eşzamanlı üretim nedeniyle önizleme okuması ile PDF indirmesi aynı anda çalıştırılmaz (indirme sürerken önizleme okuması bekler) | geçici kabul (P52) | BE-131, BE-132 | reportSeason | ŞY |
+
+### (c) Toplantı raporu: 09b / K7 düğmesi ve 01g önizleme
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-41 09b başlık: "Toplantı raporu (PDF)" | F6 | canlı — `reportMeetingPdf` bilet akışı; "Düzenle"nin soluna secondary düğme; toplantı yüklendiğinde her zaman görünür (not/gündem sayısından bağımsız, P50) | kabul (P47, P50) | — | reportMeetingPdf | ŞY + K (toplantının sahip ya da dahil koordinatörlüğünü koordine eden) |
+| E-13-42 09b düğme ipucu | F6 | canlı — `title` "Künye, gündem ve notların tamamını içeren PDF" | kabul | — | — | ŞY + K |
+| E-13-43 "Önizle (01g)" bağlantısı | F6 | canlı — `/toplantilar/:id/rapor`; **yalnız ŞY** (K için `reportMeetingDetail` 403, REPORTING-K01); K merceğindeki gerçek K'de bağlantı yok, yalnız PDF | kabul (P47) | — | reportMeetingDetail | ŞY (K yok) |
+| E-13-44 K7 "Toplantı raporu (PDF)" düğmesi | F6 | canlı — K7 başlık eylemlerinde ilk eylem; aynı bilet akışı; koordinatör yalnız kendi koordine ettiği birimin sahip/dahil toplantısını alır (başka toplantıda 403/404) | kabul (P47) | — | reportMeetingPdf | K (kendi birimi); ŞY |
+| E-13-45 Silinmiş toplantı | F6 | gizli — silinenler görünümünde (salt okunur) rapor düğmesi çizilmez | geçici kabul | — | — | ŞY + K |
+| E-13-46 01g rota, kabuk ve kırıntı | F6 | canlı — rota `/toplantilar/:meetingId/rapor`; kırıntı "‹program› / Toplantılar / ‹başlık› / Rapor" (tasarımdaki "Raporlar /" uygulanmaz) | geçici kabul (rota önerisi) | — | reportMeetingDetail | ŞY |
+| E-13-47 01g araç çubuğu | F6 | kısmi — "Toplantı raporu · ‹başlık›", yakınlaştırma canlı, "Sayfa 1 / 1" gizli; "PDF indir" (E-13-41 eylemi), "Toplantıya git" (09b), "Kapat" | geçici kabul | — | reportMeetingPdf | ŞY |
+| E-13-48 Künye bandı | F6 | canlı — başlık, "TARİH" (saat dahil; bitiş saati alanı yok, tasarımdaki "14:00–15:10" aralığı gösterilmez), "KOORDİNATÖRLÜK" (`coordinatorships[].name`; silinmiş birim "(silinmiş)"), "OLUŞTURAN" (`created_by.full_name`); program rozeti | kabul (P50) | — | reportMeetingDetail | ŞY |
+| E-13-49 Katılımcılar ve "Koordinatörlük üyeleri de dahil" rozeti | F6 | canlı — `participants[].full_name` (n = `participant_count`), `members_included` | kabul (P50) | — | reportMeetingDetail | ŞY |
+| E-13-50 Gündem "a/b görüşüldü" ve maddeler | F6 | canlı — `agenda[]` (`title`, `is_checked`), salt okunur onay kutuları; boş gündem "Gündem girilmemiş" | kabul (P50) | — | reportMeetingDetail | ŞY |
+| E-13-51 Notlar — zaman akışı | F6 | canlı — "Toplam n not"; her not "Not NN · SS:DD" + "Göreve dönüştürüldü" rozeti + gövde; "→ ‹kod› ‹başlık›" satırında kod gizli (BE-005), başlık `converted_task_title`; yazar tasarımda yok, eklenmez | kabul (P50) | BE-005 | reportMeetingDetail (notes) | ŞY |
+| E-13-52 "Göreve dönüştürülenler" tablosu (NOT · GÖREV · DURUM) | F6 | kısmi — NOT ve GÖREV (başlık) canlı (`converted_to_task_id`/`converted_task_title`); DURUM sütunu gizli (alan yok); dönüştürülmüş not yoksa tablo çizilmez | kabul (P50) | BE-125, BE-005 | reportMeetingDetail (notes) | ŞY |
+| E-13-53 01g altlığı ("Sayfa 1 / 1 · RoketPortal · tarih") | F6 | kısmi — "Sayfa 1 / 1" gizli; tarih = önizleme açılış günü (kurulum saat dilimi) | geçici kabul | — | — | ŞY |
+| E-13-54 "Tetikleyiciler 3" kartı (Raporlar › Toplantı raporları sekmesi) | F6 | uygulanmaz — kart tasarım notudur; sekme yok (P52); 09b + K7 yeter | ret (P47, P52) | — | — | — |
+
+### (d) Görev raporu: 03 / K3 görev paneli
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-55 03 görev ayrıntı paneli: "Görev raporu (PDF)" | F6 | canlı — panelin alt eylem şeridinde, "Kanıt dosyası yükle" ikonunun solunda; `reportTaskPdf` bilet akışı; panel her açıldığında görünür | kabul (P47) | — | reportTaskPdf | ŞY + K (görevin koordinatörü) |
+| E-13-56 K3 görev paneli: "Görev raporu (PDF)" | F6 | canlı — alt eylem şeridinde kararın (Onayla) yanında; yalnız kendi birimindeki görev | kabul (P47) | — | reportTaskPdf | K (kendi birimi); ŞY |
+| E-13-57 Görev raporu önizlemesi (01h kâğıdı, "Görev raporu önizlemesi (01h)" bağlantısı) | F6 | uygulanmaz — görev raporunun web önizlemesi yok; `reportTaskDetail` F6'da kullanılmaz | ret (P52) | — | — | — |
+| E-13-58 Silinmiş görev | F6 | gizli — silinmiş görevde panel salt okunur/yok; rapor düğmesi çizilmez | geçici kabul | — | — | ŞY + K |
+
+### (e) İş yükü raporu: 05 Kullanıcılar
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-59 05 başlık: "İş yükü raporu (PDF)" / "Seçilenlerin iş yükü (PDF) · N" | F6 | canlı — `reportWorkloadPdf` (POST, bilet gövdeli); seçim yokken gövde `{}` (bütün üyeler), seçim varken `member_ids`; etiket sayısı yalnız seçimde (N = seçili); seçimsiz "· 185" sayısı gösterilmez (rapor üyesi ≠ `listUsers` toplamı) | kabul (P47) | — | reportWorkloadPdf | ŞY (K/Ü 05'e giremez, P13) |
+| E-13-60 Satır başı onay kutuları ve "Tümünü seç" | F6 | canlı — yalnız ŞY'de çizilir; "Tümünü seç" yüklenen/görünen sayfa; seçim bellekte, sayfa ve süzgeç değişince korunur, program değişince temizlenir | geçici kabul (seçim kapsamı) | — | — | ŞY |
+| E-13-61 Seçim çubuğu ("N üye seçili · Seçimi temizle") | F6 | canlı — alt sayfalama satırına eklenir | geçici kabul | — | — | ŞY |
+| E-13-62 Seçilemeyen satırlar (ekip dışı hesap) | F6 | canlı — seçili programın iş yükünde olmayan hesabın onay kutusu devre dışı ("Bu programın ekibinde değil"); gövdedeki geçersiz üye 422 `reporting.input_invalid` → seçim yenilenir | geçici kabul (doğrulanacak: ekip üyeliği satır alanı) | — | reportWorkloadPdf (422) | ŞY |
+| E-13-63 İş yükü PDF kâğıt önizlemesi (01h/01i) | F6 | uygulanmaz — web önizlemesi yok | ret (P52) | — | — | — |
+| E-13-64 05b "Kişisel rapor" (E-05-47) | F6 | canlı — `reportWorkloadPdf` `member_ids: [hesap]`; yalnız ŞY; 05 README E-05-47 "devre dışı F6'da" satırı bu kararla canlanır | geçici kabul | — | reportWorkloadPdf | ŞY |
+
+### (f) 01 Ana sayfa "Rapor oluştur"
+01 grubunun E-01-12 satırı (W135) bu satıra bağlanır; menü içeriği ve rota hedefleri burada kararlaştırılır.
+
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-65 01 "Rapor oluştur" yönlendirme menüsü | F6 | canlı — kutucuk ayrı sayfa açmaz; menü: Dönem sonu raporu (PDF) → `/arsiv`; İş yükü raporu (PDF) → `/kullanicilar`; Toplantı raporu "toplantıyı seç" → `/toplantilar`; Görev raporu "görevi seç" → `/gorevler` | kabul (P47) | — | — | ŞY |
+| E-13-66 K1/Ü1 ve K/Ü mercekleri: rapor girişi | F6 | gizli — K1 `Koord-Ana` ve Ü1 `Uye-Ana`'da rapor kutucuğu yok (P53); yönetici K/Ü merceğine geçince yetki (P1) korunur, 01'deki menü ŞY için dört seçenekli kalır | kabul (P53, P1) | — | — | — |
+| E-13-67 "Koordinatör varsayılanı (karar ister)" kartı | F6 | uygulanmaz — soru kapandı: koordinatör 01'e girmez (P53), yönetici merceğinde menü tam | ret (P53) | — | — | — |
+
+### (g) Dışa aktarım durumları ve bilet mekanizması
+Ortak durum kartları dört rapor düğmesinin hepsinde (06 PDF, 09b/K7, 03/K3, 05) aynı bileşendir (01h kartları); ayrıntı `mekanizma.md` §2–§5.
+
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-68 "Rapor hazırlanıyor…" durumu | F6 | canlı — düğme "Hazırlanıyor…", `aria-busy`, tekrar tıklama kilitli; diğer rapor düğmeleri kilitli; "İptal" bilet/gövde okumasını keser (`AbortController`); belirsiz ilerleme şeridi ve "ilerleme yakında" rozeti statik (`designStub('BE-131')`) | kabul (P47); geçici kabul (iptal) | BE-131 | issueDownloadTicket, redeemDownloadTicket | rapor düğmesini gören herkes |
+| E-13-69 429 `reporting.export_in_progress` kartı | F6 | canlı — "Zaten bir rapor hazırlanıyor"; `Retry-After` (pin'de her zaman 1 sn) geri sayım "Bekleyin (N s)"; bitince düğme etkinleşir, indirme **kendiliğinden başlamaz** (otomatik tekrar yok); tasarımdaki "27 s" örnektir | geçici kabul | BE-135 | redeemDownloadTicket (hedef 429) | rapor düğmesini gören herkes |
+| E-13-70 429 `platform.rate_limited` kartı | F6 | canlı — bilet üretimi (oturum başına 16 açık bilet, `Retry-After: 60`) ya da dışa aktarım kotası; aynı geri sayım kartı; tasarımda ayrı kart yok | geçici kabul (K7 varsayılanı) | — | issueDownloadTicket, redeemDownloadTicket | rapor düğmesini gören herkes |
+| E-13-71 503 `reporting.capacity_full` kartı | F6 | canlı — "Sunucu kapasitesi dolu, biraz sonra"; pin'de `Retry-After` yok → "(15 sn)" gösterilmez; "Yeniden dene" kullanıcı eylemi, otomatik tekrar yok | geçici kabul | BE-135 | redeemDownloadTicket (hedef 503) | rapor düğmesini gören herkes |
+| E-13-72 "İndirildi" bildirimi | F6 | canlı — "‹dosya adı› indirildi · ‹boyut›"; ad `Content-Disposition` `filename=` (ASCII; yedek ad sabit), boyut gerçek blob; sayfa sayısı gizli; "Klasörde göster" tarayıcıda yapılamaz (gizli); "Rapor indirmeleri kayda geçer (denetim)" sabit not | geçici kabul | — | redeemDownloadTicket | rapor düğmesini gören herkes |
+| E-13-73 Diğer hatalar | F6 | canlı — 403 `reporting.not_authorized` (yetki düştü: `me` geçersizlenir, düğme gizlenir); 404 `reporting.not_found` (kayıt silinmiş/kapsam dışı: panel/sayfa kapanır, liste tazelenir); 404 `program.not_found` (K6); 422 `reporting.input_invalid` (seçimi yenile); 404 `identity.download_ticket_invalid` (yeni bilet, kullanıcı yeniden tıklar); 422 `identity.download_target_invalid` (genel hata); 500 `audit.entry_rejected`/`platform.internal` ("Rapor oluşturulamadı"); 503 `organization.authority_unavailable`/`identity.unavailable`; ağ kopması | geçici kabul (K7 varsayılanı) | — | issueDownloadTicket, redeemDownloadTicket | rapor düğmesini gören herkes |
+| E-13-74 Bilet kuralı | F6 | canlı (kural) — bilet düğmeye tıklanınca üretilir, önbelleğe/duruma girmez, her tıklamada yenisi; tüketim hemen; program başlığı bilet isteğine konur | kabul (ADR-0013) | — | issueDownloadTicket, redeemDownloadTicket | rapor düğmesini gören herkes |
+| E-13-75 Odak dönüşü | F6 | canlı (kural) — indirme bitince/başarısız olunca odak tetikleyen düğmeye döner (KESİN 27); modal kapanışında düğmeye döner | kabul (KESİN 27) | — | — | rapor düğmesini gören herkes |
+
+### (h) Üye ve uygulanmayanlar
+| E-kimliği · öğe | Faz | Davranış (canlı / statik / gizli / devre dışı) | Karar | BE bağı | Kaynak uç | Rol görünürlüğü |
+|---|---|---|---|---|---|---|
+| E-13-76 Kenar menüsünde "Raporlar" öğesi ve `/raporlar` rotası | F6 | yok — menü tanımına rapor girişi eklenmez, rota katalogda yok | ret (P47) | — | — | — |
+| E-13-77 01e / A5 rapor merkezi (`Raporlar`, `Raporlar-Acik`) | F6 | yok — "önceki seçenek, uygulanmaz" | ret (P47, P52) | — | — | — |
+| E-13-78 Sekmeler (Dönem raporu · İş yükü · Görev raporları · Toplantı raporları) ve 01h sekme içerikleri | F6 | yok — iş yükü sekmesi tablosu, görev raporları listesi/panel, toplantı raporları listesi uygulanmaz | ret (P52) | — | — | — |
+| E-13-79 Pano/liste/detay JSON uçları rapor eylemlerinde | F6 | yok — `reportDashboardCoordinatorships/Tasks/Meetings`, `reportTaskDetail`, `reportWorkload` bu grupta kullanılmaz (`reportDashboard` 01 ana sayfa grubunundur; `reportMeetingDetail` yalnız E-13-46…53) | ret (P52) | — | — | — |
+| E-13-80 Üye: hiçbir rapor eylemi | F6 | gizli — Ü ekranlarında (Ü1, Ü5 vb.) rapor düğmesi, menü, kısayol yok; `reportTaskPdf`/`reportMeetingPdf` üyeye 403 | kabul (P47; REPORTING-K01/K07) | — | — | Ü: yok |
+| E-13-81 Koordinatör "Birim raporu (PDF)" (08b E-08-89, 01h koordinatör bağlamı) | F6 | gizli — 08b E-08-89 gizli kalır; K için birim raporu ucu yok | kabul (P51) | BE-128 | — | — |
+| E-13-82 "HTML sürüm" düğmesi | F6 | yok — çizildiği 01e/01h dar ekran kartı uygulanmadığından ekranda yeri yoktur; BE kaydı açık | kabul (P51 — yer yok) | BE-126 | — | — |
+| E-13-83 Tarih aralığı ve koordinatörlük süzgeci (01e "Rapor kapsamı" kartı) | F6 | yok — kapsam kartı uygulanmaz; yalnız "Bölüm seç…" penceresindeki koordinatörlük çipleri (E-13-05) statik | kabul (P51 — yer yok) | BE-127 | — | — |
+| E-13-84 "CSV / XLSX" (01h iş yükü sekmesi) | F6 | yok — iş yükü sekmesi uygulanmaz | kabul (P51 — yer yok) | BE-129 | — | — |
+| E-13-85 "Son raporlar" kartı (01e) | F6 | yok — kart uygulanmaz; sahte liste üretilmez (§4) | kabul (P51 — yer yok; §4) | BE-130 | — | — |
+| E-13-86 03c/K6 Gantt "Dışa aktar (PDF)" ve 05b/08b diğer rapor düğmeleri | F6 | kapsam dışı — Gantt dışa aktarımı rapor ailesi değildir (BE-057, 03c kararı P19); bu grup onu değiştirmez | kabul (P19) | BE-057 | — | — |
+
+### Karar özeti
+Toplam **86** satır. `kabul` **35** · `geçici kabul` **41** · `öneri` **4** · `ret` **8** (E-13-15, E-13-68 gibi karma kararlı satırlar iki sayıma da girer, bu yüzden toplam satır sayısını aşar). `ret` satırları uygulanmayan tasarım parçalarıdır (E-13-54, 57, 63, 67, 76–79). Yeni BE kimlikleri **BE-122…BE-136** (`../../backend-eksikleri/kayit.md`); `eksikler.md` §2 satır → kimlik eşlemesini verir.
+
+## Açık sorular (ürün sahibine)
+- 01f Gantt bölümü `reportSeason.tasks` ile istemcide çizilsin mi (E-13-28; bağımlılık okları olmadan)? Şimdilik statik yer tutucu.
+- 01f iş yükü bölümü için ikinci ağır JSON okuması (`reportWorkload`, ardışık) kabul edilir mi, yoksa BE-134 kapanana dek yer tutucu mu (E-13-31)?
+- Görev detay kartları için satır başına isteğe bağlı açma (`reportTaskDetail`, kullanıcı eylemi) istenir mi (E-13-34)?
+- Dönem PDF şablonunun 01f'ye göre yeniden yazımı (BE-123, L) ve bölüm seçimi parametresi (BE-122) backend'de hangi sırayla? "Backend dursun" kararı sürdükçe tam rapor dışındaki seçimler statik kalır.
+- Dönem ZIP'inde rapor ve klasör yapısı (BE-124) ile yönetici için başlıksız ZIP (BE-120) birlikte mi planlansın?
+- Tuval geri bildirimi (ürün sahibi/tasarım): 01f/01g kırıntısındaki "Raporlar" bağlantısı, 01g "Tetikleyiciler" kartı ve 01h'deki "(15 sn)"/"27 saniye" örnekleri pin gerçeğiyle uyuşmuyor (`dogrulama.md`).
