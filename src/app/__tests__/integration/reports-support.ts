@@ -1,4 +1,6 @@
 // W142 · O3: rapor entegrasyon testlerinin ortak kurulumu (W82a harness'i + arşiv + rapor sunucusu).
+import { vi } from 'vitest'
+
 import { PEOPLE, createBackend, seedWorld, until, $, click } from './harness'
 import { archiveHandlers, createArchiveState, file, type ArchiveState } from './archive-fake'
 import {
@@ -105,4 +107,20 @@ export async function userClick(target: string | (() => HTMLElement | null)): Pr
   const el = await until(probe, `tıklanacak öğe ${String(target)}`)
   el.focus()
   return click(() => el)
+}
+
+/**
+ * Tarayıcı dosya kaydı: yalnız `download` öznitelikli bağlantı tıklaması yakalanır (kaydedilen ad
+ * `saved`'e yazılır); yönlendirici bağlantıları (`RouterLink`) gerçek tıklamayla çalışır.
+ */
+export function captureSaves(saved: string[]): void {
+  const original = HTMLAnchorElement.prototype.click
+  URL.createObjectURL = vi.fn(() => 'blob:test')
+  URL.revokeObjectURL = vi.fn()
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+    this: HTMLAnchorElement,
+  ) {
+    if (this.hasAttribute('download')) saved.push(this.download)
+    else original.call(this)
+  })
 }

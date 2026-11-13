@@ -7,6 +7,7 @@ import {
   $$,
   ADMIN,
   boot,
+  captureSaves,
   COORD,
   MEMBER,
   byText,
@@ -37,13 +38,7 @@ beforeAll(async () => {
 beforeEach(() => {
   resetReports()
   saved.length = 0
-  URL.createObjectURL = vi.fn(() => 'blob:test')
-  URL.revokeObjectURL = vi.fn()
-  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
-    this: HTMLAnchorElement,
-  ) {
-    saved.push(this.download)
-  })
+  captureSaves(saved)
 })
 afterEach(() => teardown())
 afterAll(() => backend.server.close())
