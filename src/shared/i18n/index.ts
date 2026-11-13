@@ -11,6 +11,7 @@ import { trHome } from './tr/home'
 import { trMeetings } from './tr/meetings'
 import { trOrganization } from './tr/organization'
 import { trProgram } from './tr/program'
+import { trReports } from './tr/reports'
 import { trSide, trTopbar } from './tr/shell'
 import { trStates } from './tr/states'
 import { trTimeline } from './tr/timeline'
@@ -95,6 +96,7 @@ export const messages = {
     trMeetings,
     trArchive,
     trDeletedRecords,
+    trReports,
   ),
 }
 
