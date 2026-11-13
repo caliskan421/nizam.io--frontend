@@ -18,6 +18,7 @@ import {
   standingHandlers,
   type StandingFixture,
 } from '../__tests__/harness'
+import { roleHandlers } from '../__tests__/role-harness'
 import HomePage from './HomePage.vue'
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
@@ -60,19 +61,34 @@ describe('01 Ana sayfa — sayfa seçici ve F1 gövdesi', () => {
     expect(page.wrapper.find('[data-design-stub="BE-010"]').exists()).toBe(true)
   })
 
-  it('sayfa seçici (P53): yönetici → yönetici sayfası; yönetici olmayan → rol taslağı, F6 bölgeleri yok', async () => {
+  it('sayfa seçici (P53): yönetici → yönetici; Koordinatör merceği → K1; Üye merceği → Ü1; yönetici K/Ü merceğinde yönetici kalır', async () => {
     server.use(...standingHandlers(ADMIN), dashboardHandler())
     const admin = await mountWith(HomePage, ADMIN_SCOPE)
     expect(admin.wrapper.get('[data-testid="home-page"]').attributes('data-home')).toBe('admin')
     resetAll()
-    server.use(...standingHandlers(COORDINATOR), countsHandler(ROWS))
+    server.use(...standingHandlers(COORDINATOR), ...roleHandlers())
     const coordinator = await mountWith(HomePage, COORD_SCOPE)
-    const page = coordinator.wrapper.get('[data-testid="home-page"]')
-    expect(page.attributes('data-home')).toBe('role-draft')
-    for (const region of ['team', 'coords', 'footer']) {
+    await vi.waitFor(() =>
+      expect(coordinator.wrapper.get('[data-testid="home-page"]').attributes('data-home')).toBe(
+        'k1',
+      ),
+    )
+    for (const region of ['coords', 'footer']) {
       expect(coordinator.wrapper.find(`[data-region="${region}"]`).exists(), region).toBe(false)
     }
     expect(coordinator.wrapper.text()).not.toContain('Rapor oluştur')
+    resetAll()
+    server.use(...standingHandlers(MEMBER), ...roleHandlers())
+    const member = await mountWith(HomePage, MEMBER_SCOPE)
+    await vi.waitFor(() =>
+      expect(member.wrapper.get('[data-testid="home-page"]').attributes('data-home')).toBe('u1'),
+    )
+    resetAll()
+    server.use(...standingHandlers(ADMIN_MEMBER), dashboardHandler())
+    const adminAsMember = await mountWith(HomePage, MEMBER_SCOPE)
+    expect(adminAsMember.wrapper.get('[data-testid="home-page"]').attributes('data-home')).toBe(
+      'admin',
+    )
   })
 
   it('E-01-02 (F5, P36): yönetici "Silinen kayıtlar ‹deleted_records›" düğmesini görür, hedef /silinen-kayitlar', async () => {
@@ -106,8 +122,9 @@ describe('01 Ana sayfa — sayfa seçici ve F1 gövdesi', () => {
     ['koordinatör', COORDINATOR, COORD_SCOPE],
     ['salt üye', MEMBER, MEMBER_SCOPE],
   ] as const)('E-01-02: %s için düğme DOM’da yok', async (_name, fixture, scope) => {
-    server.use(...standingHandlers(fixture), countsHandler(ROWS))
+    server.use(...standingHandlers(fixture), ...roleHandlers())
     const page = await mountWith(HomePage, scope)
+    await settle()
     expect(page.wrapper.find('[data-testid="home-deleted-records"]').exists()).toBe(false)
     expect(page.wrapper.text()).not.toContain('Silinen kayıtlar')
   })
@@ -122,17 +139,6 @@ describe('01 Ana sayfa — sayfa seçici ve F1 gövdesi', () => {
     expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite', 'report'])
   })
 
-  it('Koordinatör merceği: KPI seçili birim sayaçlarından; pano ve liste ÇAĞRILMAZ', async () => {
-    server.use(...standingHandlers(COORDINATOR), countsHandler(ROWS))
-    const page = await mountWith(HomePage, COORD_SCOPE)
-    expect(page.wrapper.find('[data-kpi-source="work-counts"]').exists()).toBe(true)
-    expect(sent(DASHBOARD)).toHaveLength(0)
-    expect(sent(LIST)).toHaveLength(0)
-    expect(sent(COUNTS)[0]!.query.get('department_id')).toBe('d1')
-    expect(kpiValues(page)).toEqual(['%33', '2', '0', '1'])
-    expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite'])
-  })
-
   it('Yönetici Üye merceğinde: pano yok, "bana atananlar"; yönetici eylemleri korunur (P1)', async () => {
     server.use(...standingHandlers(ADMIN_MEMBER), countsHandler(ROWS), dashboardHandler())
     const page = await mountWith(HomePage, MEMBER_SCOPE)
@@ -145,16 +151,8 @@ describe('01 Ana sayfa — sayfa seçici ve F1 gövdesi', () => {
     expect(quickKeys(page)).toEqual(['newTask', 'meeting', 'invite', 'report'])
   })
 
-  it('salt üye: hızlı işlemler kartı ve "Yeni görev" DOM’da yok', async () => {
-    server.use(...standingHandlers(MEMBER), countsHandler(ROWS))
-    const page = await mountWith(HomePage, MEMBER_SCOPE)
-    expect(page.wrapper.find('[data-region="quick"]').exists()).toBe(false)
-    expect(page.wrapper.text()).not.toContain('Yeni görev')
-    expect(page.wrapper.find('[data-region="recent"]').exists()).toBe(true)
-  })
-
   it('kapsam eksik (birim seçilmedi): seçim notu; kapsamlı istek yok', async () => {
-    server.use(...standingHandlers(COORDINATOR), countsHandler(ROWS), dashboardHandler())
+    server.use(...standingHandlers(COORDINATOR), ...roleHandlers(), dashboardHandler())
     const page = await mountWith(HomePage, {
       programId: 'p1',
       lens: 'coordinator',

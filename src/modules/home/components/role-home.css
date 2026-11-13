@@ -1,0 +1,773 @@
+/*
+ * K1 / Ü1 ana sayfa görünümü — Koord-Ana.dc.html ve Uye-Ana.dc.html (v85) `<style>` ile
+ * theme.css `rp-head/rp-body/rp-col/rp-aside` karşılığı. Kural: yalnız token; px yok (ölçek
+ * dışı ölçüler mevcut üretilmiş token'lardan `calc` ile); medya eşiği `--rp-narrow-max`
+ * (900px) ile aynı. Sınıflar `.role-home` altında kapsanır; açık/koyu tema yalnız token'la.
+ */
+@layer components {
+  .role-home {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .role-home .rh-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding: var(--home-head-pad-top) var(--space-8) 0;
+  }
+  .role-home .rh-head > :first-child {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .role-home .rh-greeting {
+    margin: 0;
+    font: var(--home-greet);
+    letter-spacing: -0.02em;
+  }
+  .role-home .rh-sub {
+    margin: var(--space-2) 0 0;
+    font: var(--text-body);
+    color: var(--ink-muted);
+  }
+  .role-home .rh-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .role-home .rh-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    align-items: flex-start;
+    padding: var(--space-6) var(--space-8) var(--space-12);
+  }
+  .role-home .rh-top {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-sm);
+  }
+  .role-home .rh-col {
+    flex: 999 1 var(--rp-col-basis);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .role-home .rh-aside {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Ortak tipografi */
+  .role-home .rh-kicker {
+    margin: 0;
+    font: var(--text-label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    min-width: 0;
+  }
+  .role-home .rh-cap {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .role-home .rh-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .role-home .rh-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .role-home .rh-danger {
+    color: var(--danger);
+  }
+  .role-home .rh-trunc {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .role-home .rh-clamp2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .role-home .rh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-2xs);
+    flex: none;
+    margin-left: auto;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: var(--text-caption);
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .role-home a.rh-link:hover,
+  .role-home button.rh-link:hover {
+    color: var(--ink);
+  }
+  .role-home .rh-link[aria-disabled='true'] {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .role-home .rh-link:focus-visible,
+  .role-home .rh-title:focus-visible,
+  .role-home .rh-kpi:focus-visible,
+  .role-home .rh-quick:focus-visible,
+  .role-home .rh-mrow:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .role-home .rh-title {
+    min-width: 0;
+    font: var(--text-body-strong);
+    color: var(--ink);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .role-home .rh-title:hover {
+    text-decoration: underline;
+  }
+
+  /* Kart */
+  .role-home .rh-card {
+    padding: var(--space-6);
+    min-width: 0;
+  }
+  .role-home .rh-card--aside {
+    padding: var(--pt-card-pad);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-sm);
+  }
+  .role-home .rh-cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .role-home .rh-cardtitle {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    font: var(--home-card-title);
+  }
+  .role-home .rh-note {
+    margin: var(--space-1) 0 var(--space-2);
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .role-home .rh-foot {
+    margin: var(--space-3) 0 0;
+    padding-top: var(--space-3);
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .role-home .rh-region-empty {
+    margin: 0;
+    padding: var(--space-4) 0;
+    font: var(--text-body);
+    color: var(--ink-faint);
+  }
+
+  /* Durum noktaları (`rp-dot`) */
+  .role-home .rh-dot {
+    width: var(--list-dot);
+    height: var(--list-dot);
+    border-radius: var(--radius-full);
+    flex: none;
+    display: inline-block;
+    box-sizing: border-box;
+  }
+  .role-home .rh-dot--todo {
+    border: var(--list-dot-ring) solid var(--ink-faint);
+  }
+  .role-home .rh-dot--doing {
+    background: var(--violet);
+  }
+  .role-home .rh-dot--review {
+    background: var(--gold);
+  }
+  .role-home .rh-dot--back {
+    background: var(--danger);
+    opacity: 0.5;
+  }
+  .role-home .rh-dot--late {
+    background: var(--danger);
+  }
+  .role-home .rh-dot--done {
+    background: var(--rp-done-fill);
+  }
+
+  /* Rozetler */
+  .role-home .rh-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--meeting-code-width);
+    height: var(--meeting-code-height);
+    padding: 0 var(--ui-gap-xs);
+    border-radius: var(--radius-xs);
+    background: var(--bg-overlay);
+    color: var(--ink);
+    font: var(--text-label);
+    box-sizing: border-box;
+    flex: none;
+  }
+  .role-home .rh-code--own {
+    background: var(--ink);
+    color: var(--bg-base);
+  }
+  .role-home .rh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+    height: var(--list-pill-h);
+    padding: 0 var(--ui-gap-sm);
+    border-radius: var(--radius-full);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    background: var(--bg-raised);
+    color: var(--ink-muted);
+    font: var(--ui-text-xs-strong);
+    white-space: nowrap;
+    flex: none;
+  }
+  .role-home .rh-pill--gold {
+    color: var(--gold);
+    border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+    background: color-mix(in srgb, var(--gold) 8%, transparent);
+  }
+  .role-home .rh-pill--ok {
+    color: var(--accent-text);
+    border-color: color-mix(in srgb, var(--accent-text) 40%, transparent);
+    background: transparent;
+  }
+  .role-home .rh-pill--no {
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+    background: transparent;
+  }
+  .role-home .rh-role {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+    height: var(--list-pill-h);
+    padding: 0 var(--ui-gap-xs);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    font: var(--ui-text-xs-strong);
+    color: var(--ink-muted);
+    white-space: nowrap;
+    flex: none;
+  }
+  .role-home .rh-me {
+    display: inline-flex;
+    align-items: center;
+    height: var(--list-pill-h);
+    padding: 0 var(--ui-gap-xs);
+    border-radius: var(--radius-xs);
+    background: var(--bg-overlay);
+    color: var(--ink);
+    font: var(--ui-text-xs-strong);
+    flex: none;
+  }
+  .role-home .rh-prio {
+    font: var(--ui-text-xs-strong);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .role-home .rh-prio--acil,
+  .role-home .rh-prio--yuksek {
+    color: var(--danger);
+  }
+
+  /* Çubuk */
+  .role-home .rh-bar {
+    display: flex;
+    height: var(--home-bar-h);
+    border-radius: var(--radius-full);
+    background: var(--bg-overlay);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .role-home .rh-bar > span {
+    display: block;
+    height: 100%;
+    flex: none;
+  }
+  .role-home .rh-bar--thick {
+    height: var(--pt-dist-h);
+  }
+  .role-home .rh-seg-doing {
+    background: var(--violet);
+    width: var(--rh-w, 0%);
+  }
+  .role-home .rh-seg-review {
+    background: var(--gold);
+    width: var(--rh-w, 0%);
+  }
+  .role-home .rh-seg-late {
+    background: var(--danger);
+    width: var(--rh-w, 0%);
+  }
+  .role-home .rh-seg-back {
+    background: var(--danger);
+    opacity: 0.5;
+    width: var(--rh-w, 0%);
+  }
+  .role-home .rh-seg-todo {
+    background: var(--ink-faint);
+    width: var(--rh-w, 0%);
+  }
+  .role-home .rh-seg-fill {
+    background: var(--rh-tone, var(--accent-text));
+    width: var(--rh-w, 0%);
+  }
+
+  /* Birim özeti şeridi (E-K1-07) */
+  .role-home .rh-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--pt-kpi-min), 1fr));
+    gap: var(--ui-hairline);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--border-subtle);
+  }
+  .role-home .rh-strip > * {
+    min-width: 0;
+    padding: var(--space-3) var(--space-5);
+    background: var(--bg-surface);
+  }
+  .role-home .rh-kpi {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .role-home a.rh-kpi:hover {
+    background: var(--bg-raised);
+  }
+  .role-home .rh-kpi__value {
+    margin: var(--space-1) 0 var(--ui-gap-2xs);
+    font: var(--text-heading-2);
+  }
+  .role-home .rh-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  /* Satırlar (onay / atanmamış / dikkat / ekip yükü / talep) */
+  .role-home .rh-row {
+    display: grid;
+    align-items: center;
+    column-gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    min-width: 0;
+  }
+  .role-home .rh-row:last-of-type {
+    border-bottom: 0;
+  }
+  .role-home .rh-row > * {
+    min-width: 0;
+  }
+  .role-home .rh-row--appr {
+    grid-template-columns: var(--list-dot) minmax(0, 1fr) auto;
+  }
+  .role-home .rh-row--free {
+    grid-template-columns: var(--list-dot) minmax(0, 1fr) auto auto auto;
+  }
+  .role-home .rh-row--att {
+    grid-template-columns: var(--list-dot) minmax(0, 1fr) auto auto;
+  }
+  .role-home .rh-row--load {
+    grid-template-columns:
+      var(--ui-av-md) minmax(0, 1fr) minmax(var(--meeting-date-width), 1fr)
+      auto;
+  }
+  .role-home .rh-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-xs);
+    min-width: 0;
+  }
+  .role-home .rh-line {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .role-home .rh-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    min-width: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .role-home .rh-btns {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex: none;
+  }
+  .role-home .rh-who {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+    color: var(--ink);
+  }
+  .role-home .rh-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .role-home .rh-legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+  }
+  .role-home .rh-req {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .role-home .rh-req:last-of-type {
+    border-bottom: 0;
+  }
+  .role-home .rh-req--wait {
+    margin: 0 calc(var(--space-3) * -1);
+    padding: var(--space-3);
+    border: var(--ui-hairline) solid color-mix(in srgb, var(--gold) 35%, transparent);
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, var(--gold) 6%, transparent);
+  }
+  .role-home .rh-req a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Hızlı işlemler */
+  .role-home .rh-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ui-gap-sm);
+  }
+  .role-home .rh-tiles--auto {
+    grid-template-columns: repeat(auto-fit, minmax(calc(var(--home-tile-h) * 1.1), 1fr));
+  }
+  .role-home .rh-quick {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: var(--space-3);
+    height: var(--home-tile-h);
+    padding: var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    color: var(--ink);
+    text-align: left;
+    font: inherit;
+    text-decoration: none;
+    box-sizing: border-box;
+    min-width: 0;
+    cursor: pointer;
+  }
+  .role-home .rh-quick:hover {
+    border-color: var(--border-strong);
+  }
+  .role-home .rh-quick[aria-disabled='true'] {
+    cursor: not-allowed;
+    color: var(--ink-faint);
+  }
+  .role-home .rh-quick[aria-disabled='true']:hover {
+    border-color: var(--border-subtle);
+  }
+  .role-home .rh-quick__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--ink-muted);
+  }
+  .role-home .rh-quick__label {
+    align-self: end;
+    font: var(--home-tile-label);
+  }
+  .role-home .rh-quick__sub {
+    display: block;
+    margin-top: var(--ui-gap-2xs);
+    font: var(--text-caption);
+    font-weight: 400;
+    color: var(--ink-muted);
+  }
+  .role-home .rh-quick__phase {
+    font: var(--text-label);
+    color: var(--ink-faint);
+  }
+
+  /* Toplantı satırı (E-K1-35, E-Ü1-29) */
+  .role-home .rh-mrow {
+    display: grid;
+    grid-template-columns: var(--meeting-date-width) minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--ui-gap-sm);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: inherit;
+    text-decoration: none;
+  }
+  .role-home .rh-mrow:hover {
+    border-color: var(--border-strong);
+  }
+  .role-home .rh-mdate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1) 0 0;
+    gap: var(--ui-gap-2xs);
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    border: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .role-home .rh-mdate b {
+    font: var(--text-heading-2);
+  }
+  .role-home .rh-mdate span {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .role-home .rh-mdate em {
+    display: block;
+    width: 100%;
+    margin-top: var(--ui-gap-xs);
+    padding: var(--space-1) 0;
+    border-top: var(--ui-hairline) solid var(--border-subtle);
+    font-style: normal;
+    font: var(--text-label);
+    color: var(--ink);
+    text-align: center;
+  }
+
+  /* Ü1: görev özeti, kuyruk, takvim, birimler */
+  .role-home .rh-sum {
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: var(--home-kpi-h);
+    color: var(--ink);
+    text-decoration: none;
+    min-width: 0;
+  }
+  .role-home .rh-sum:hover {
+    border-color: var(--border-strong);
+  }
+  .role-home .rh-sum__value {
+    font: var(--text-display-lg);
+  }
+  .role-home .rh-sum__value--danger {
+    color: var(--danger);
+  }
+  .role-home .rh-sums {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--pt-kpi-min), 1fr));
+    gap: var(--space-4);
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .role-home .rh-row--queue {
+    grid-template-columns: var(--list-dot) minmax(0, 1fr) auto;
+    padding: var(--space-4) 0;
+  }
+  .role-home .rh-due {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    text-align: right;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .role-home .rh-cal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .role-home .rh-cal__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--ui-gap-2xs);
+    text-align: center;
+  }
+  .role-home .rh-cal__dow {
+    font: var(--ui-text-xs-strong);
+    color: var(--ink-faint);
+  }
+  .role-home .rh-cal__cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-gap-2xs);
+    min-height: var(--pt-cal-cell);
+    border-radius: var(--pt-cal-radius);
+    font: var(--pt-cal-font);
+    color: var(--ink);
+  }
+  .role-home .rh-cal__cell[data-out='true'] {
+    color: var(--ink-faint);
+  }
+  .role-home .rh-cal__cell[data-today='true'] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .role-home .rh-cal__dot {
+    width: var(--pt-cal-dot);
+    height: var(--pt-cal-dot);
+    border-radius: var(--radius-full);
+    background: var(--violet);
+  }
+  .role-home .rh-cal__dot--late {
+    background: var(--danger);
+  }
+  .role-home .rh-cal__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-left: auto;
+  }
+  .role-home .rh-unit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .role-home .rh-unit:last-of-type {
+    border-bottom: 0;
+  }
+
+  /* Yükleniyor */
+  .role-home .rh-skel {
+    display: block;
+    height: var(--home-skel-line);
+    border-radius: var(--radius-xs);
+    background: var(--bg-raised);
+    margin: var(--space-3) 0;
+  }
+  .role-home .rh-skel--num {
+    height: var(--home-skel-num);
+    width: 40%;
+  }
+  .role-home .rh-skel--greet {
+    height: var(--home-skel-num);
+    width: 50%;
+  }
+
+  /* Diyaloglar */
+  .role-home-dialog .rh-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .role-home-dialog .rh-textarea {
+    width: 100%;
+    min-height: calc(var(--control-lg) * 2);
+    padding: var(--space-3) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-control);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--ink);
+    font: var(--text-body);
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .role-home-dialog .rh-textarea:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+  }
+  .role-home-dialog .rh-error {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--danger);
+  }
+
+  @media (max-width: 900px) {
+    .role-home .rh-head,
+    .role-home .rh-body {
+      padding-left: var(--space-5);
+      padding-right: var(--space-5);
+    }
+    .role-home .rh-aside {
+      max-width: none;
+    }
+    .role-home .rh-row--free {
+      grid-template-columns: var(--list-dot) minmax(0, 1fr) auto;
+    }
+    .role-home .rh-row--free > .rh-hide,
+    .role-home .rh-row--load > .rh-hide,
+    .role-home .rh-row--att > .rh-hide {
+      display: none;
+    }
+    .role-home .rh-row--load {
+      grid-template-columns: var(--ui-av-md) minmax(0, 1fr) auto;
+    }
+    .role-home .rh-row--appr {
+      grid-template-columns: var(--list-dot) minmax(0, 1fr);
+    }
+    .role-home .rh-row--appr > .rh-btns {
+      grid-column: 2;
+      margin-top: var(--space-3);
+    }
+    .role-home .rh-row--queue {
+      grid-template-columns: var(--list-dot) minmax(0, 1fr);
+    }
+    .role-home .rh-row--queue > .rh-btns {
+      grid-column: 2;
+      flex-wrap: wrap;
+    }
+  }
+}

@@ -73,6 +73,26 @@ export function canAddUser(standing: Standing | null, programId: string | null):
   return adminOrCoordinator(standing, programId)
 }
 
+/** Ekip listesi satırının rolü koordinatör mü (`listMembers` satırı; yalnız gösterim noktası). */
+export function isCoordinatorRole(role: string): boolean {
+  return role === 'koordinator'
+}
+
+/** Seçili programda koordinatörü olunan birimlerin görünen adları (E-K1-02 alt başlık). */
+export function coordinatedUnitNames(
+  standing: Standing | null,
+  programId: string | null,
+): string[] {
+  if (!standing || programId === null) return []
+  const seen = new Map<string, string>()
+  for (const row of standing.rows) {
+    if (row.programId === programId && row.role === 'coordinator') {
+      seen.set(row.departmentId, row.displayName)
+    }
+  }
+  return [...seen.values()]
+}
+
 /**
  * F6 yönetici bölgeleri (E-01-19…39; P53): ekip şeridi, koordinatörlük kartları, alt bilgi. Girdi
  * yalnız `company_admin` OLGUSUdur; mercek değil — yönetici K/Ü merceğine geçince de program
