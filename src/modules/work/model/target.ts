@@ -59,3 +59,27 @@ export function resolveTarget(
   }
   return null
 }
+
+type Located = Pick<WorkItem, 'work_item_id' | 'program_id' | 'department_id'>
+
+const isLocated = (value: unknown): value is Located =>
+  typeof value === 'object' &&
+  value !== null &&
+  'work_item_id' in value &&
+  'program_id' in value &&
+  'department_id' in value
+
+/**
+ * Önbellekteki görev sorgusu verisinden görev satırları: sonsuz liste sayfaları ya da tek görev;
+ * sayaç gibi diğer biçimler boş döner. Başka ekranın (ör. ana sayfa K1/Ü1 program geneli kuyruğu)
+ * yüklediği satırlardan görevin KENDİ kapsamı bulunur: `?gorev=` ile açılan görev seçili birimde
+ * değilse istek başka birim başlığıyla gidip 404 almasın (W142 KUSUR 3).
+ */
+export function locatedItems(data: unknown): Located[] {
+  if (isLocated(data)) return [data]
+  const pages = (data as { pages?: unknown } | null)?.pages
+  if (!Array.isArray(pages)) return []
+  return pages.flatMap((page: { items?: unknown }) =>
+    Array.isArray(page?.items) ? page.items.filter(isLocated) : [],
+  )
+}

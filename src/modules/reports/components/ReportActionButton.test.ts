@@ -107,6 +107,16 @@ describe('durum makinesi', () => {
     await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('ready'))
   })
 
+  it('kilitliyken ekranın kendi etiketi (yuva) korunur (W142 KUSUR 1)', async () => {
+    const lease = reportGate.acquire()!
+    const { wrapper } = mountButton({ kind: 'season' }, { default: 'PDF indir' })
+    await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('locked'))
+    expect(wrapper.find('button').text()).toBe('PDF indir')
+    lease.release()
+    await vi.waitFor(() => expect(wrapper.attributes('data-state')).toBe('ready'))
+    expect(wrapper.find('button').text()).toBe('PDF indir')
+  })
+
   it('429 Retry-After: hata + "Bekleyin (N s)" sayacı; failed(kod) yayınlanır', async () => {
     server.use(
       ticketOk(),

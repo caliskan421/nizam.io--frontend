@@ -11,6 +11,7 @@
 import {
   useInfiniteQuery,
   useQuery,
+  useQueryClient,
   type QueryFunctionContext,
   type QueryKey,
 } from '@tanstack/vue-query'
@@ -22,12 +23,11 @@ import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
-import { listDepartmentFilter, resolveTarget } from '../model/target'
+import { listDepartmentFilter, locatedItems, resolveTarget } from '../model/target'
 import type { WorkItem, WorkItemList, WorkItemResource, WorkTarget } from '../model/types'
 import {
   fetchFiles,
   fetchNotes,
-  fetchProgramDepartments,
   fetchSubtasks,
   fetchWorkItem,
   fetchWorkItemCounts,
@@ -210,6 +210,7 @@ export function useWorkItemTarget(
   listAssignees?: MaybeRefOrGetter<readonly string[] | undefined>,
 ) {
   const store = useScopeStore()
+  const client = useQueryClient()
   const list = useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
@@ -221,35 +222,17 @@ export function useWorkItemTarget(
     const id = toValue(workItemId)
     if (id === null) return null
     const listed = list.data.value?.pages.flatMap((page) => page.items) ?? []
-    return resolveTarget(id, store.snapshot, listed)
+    // Bu ekranın listesinde yoksa seçili kapsamda önbelleğe düşmüş başka listelerden (K1/Ü1 kuyruğu)
+    // görevin kendi birimi alınır; hiçbirinde yoksa seçili birim (derin bağlantı).
+    const cached = client
+      .getQueriesData({ queryKey: queryKeys.workItems.all(store.snapshot) })
+      .flatMap(([, data]) => locatedItems(data))
+    return resolveTarget(id, store.snapshot, [...listed, ...cached])
   })
 }
 
-/**
- * `listProgramDepartments` — ad/kod sözlüğü (E-03-20/22, bütün roller) ve Admin
- * koordinatörlük süzgeci seçenekleri (E-03-12). Anahtar `scoped(['departments'])`.
- */
-export function useProgramDepartments(enabled: MaybeRefOrGetter<boolean> = true) {
-  const store = useScopeStore()
-  const query = useQuery(
-    computed(() => {
-      const scope = store.snapshot
-      return {
-        queryKey: queryKeys.departments.all(scope),
-        queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
-          fetchProgramDepartments({ programId: scope.programId ?? '' }, signal),
-        ),
-        enabled: scope.programId !== null && toValue(enabled),
-        retry: retryTransient,
-        staleTime: STALE_MS,
-      }
-    }),
-  )
-  const byId = computed(
-    () => new Map((query.data.value?.departments ?? []).map((d) => [d.department_id, d])),
-  )
-  return { query, byId }
-}
+/** `listProgramDepartments` okuyucusu shared'dadır (modül döngüsü; W142 KUSUR 4); adı korunur. */
+export { useProgramDepartments } from '@/shared/scope/program-departments'
 
 /**
  * `myDepartments` satırlarından seçili programın departmanları (Koordinatör/Üye seçim listesi;

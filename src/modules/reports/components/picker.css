@@ -99,4 +99,31 @@
     gap: var(--space-3);
     margin-inline-start: auto;
   }
+
+  /*
+   * Dar ekran (E-13-12): bölüm seçimi TAM EKRAN pencere, alt düğmeler yapışık (gövde kayar, alt
+   * şerit yerinde kalır). Pencere kabuğu `UiModal` (`t-modal`) ortaktır; bu kural yalnız bu
+   * pencerenin gövdesini taşıyan örnekte uygulanır. Eşik = `--rp-narrow-max` (medya koşulunda
+   * var() çalışmaz; eşitlik `shared/tokens/media-thresholds.test.ts`).
+   */
+  @media (max-width: 900px) {
+    .t-modal-backdrop:has(.report-picker) {
+      padding: 0;
+      align-items: stretch;
+    }
+    .t-modal:has(.report-picker) {
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+    }
+    .t-modal:has(.report-picker) .t-modal__body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+    }
+  }
 }

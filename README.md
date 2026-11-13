@@ -110,6 +110,7 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   departman → programa bağlama → üye) kurar; backend seed yüzü yoktur (D-0162).
 - **Duman:** `e2e/smoke.spec.ts` — giriş → `/v1/me` → sayfa yenileme sonrası sessiz refresh
   → çıkış; tarayıcı depolarının boş ve yenileme çerezinin HttpOnly olduğu denetlenir.
+- **Raporlar (F6):** `e2e/reports.spec.ts` — 06 dönem PDF bileti + indirme, "Bölüm seç…" (390 px tam ekran), önizleme, 05 iş yükü PDF, "Rapor oluştur" menüsü; üretim CSP ihlali 0.
 - **İki sekme:** `e2e/two-tabs.spec.ts` — aynı tarayıcı bağlamında iki gerçek sayfa; erişim
   belirteci dolduktan sonra eşzamanlı 401 → ağda tek `/v1/auth/refresh`, iki oturum da
   geçerli. Bu senaryo için ikinci bir server (`18081`, `NIZAMIO_SESSION_TTL=1m`, aynı DB)

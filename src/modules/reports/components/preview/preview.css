@@ -745,24 +745,6 @@
     font: var(--text-caption);
     color: var(--ink-muted);
   }
-  .report-trig {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding-block: var(--space-3);
-    border-top: var(--ui-hairline) solid var(--border-subtle);
-  }
-  .report-trig:first-of-type {
-    border-top: 0;
-    padding-top: 0;
-  }
-  .report-trig .report-pill {
-    align-self: flex-start;
-  }
-  .report-trig__t {
-    font: var(--text-body-strong);
-    color: var(--ink);
-  }
 
   /* Yükleniyor iskeleti */
   .report-skeleton {
