@@ -7,9 +7,9 @@ import QuickActions from './QuickActions.vue'
 afterEach(resetAll)
 
 const ALL: QuickAction[] = [
-  { key: 'newTask', icon: 'plus', phase: null },
-  { key: 'meeting', icon: 'meetings', phase: 'F4' },
-  { key: 'invite', icon: 'user-plus', phase: 'F2' },
+  { key: 'newTask', icon: 'plus' },
+  { key: 'meeting', icon: 'meetings' },
+  { key: 'invite', icon: 'user-plus' },
 ]
 
 describe('Hızlı işlemler (E-01-08…11)', () => {
@@ -27,18 +27,23 @@ describe('Hızlı işlemler (E-01-08…11)', () => {
     expect(router.currentRoute.value.query).toEqual({ yeni: '1' })
   })
 
-  it('faz dışı: aria-disabled + faz notu; tıklama gezinmez', async () => {
+  it('toplantı ve kullanıcı kutucukları canlı bağlantıdır: faz etiketi yok, 09/05 listelerine gider (KUSUR 3)', async () => {
     const { wrapper, router } = await mountWith(QuickActions, null, { actions: ALL })
     const meeting = wrapper.get('[data-quick="meeting"]')
-    expect(meeting.attributes('aria-disabled')).toBe('true')
-    expect(meeting.attributes('title')).toBe('Toplantı oluştur — F4’te açılacak')
-    expect(meeting.text()).toContain('F4’te')
+    expect(meeting.element.tagName).toBe('A')
+    expect(meeting.attributes('aria-disabled')).toBeUndefined()
+    expect(meeting.attributes('href')).toBe('/toplantilar')
     const invite = wrapper.get('[data-quick="invite"]')
-    expect(invite.attributes('title')).toBe('Kullanıcı davet et — F2’de açılacak')
+    expect(invite.element.tagName).toBe('A')
+    expect(invite.attributes('aria-disabled')).toBeUndefined()
+    expect(invite.attributes('href')).toBe('/kullanicilar')
+    expect(wrapper.text()).not.toMatch(/F\d/)
     await meeting.trigger('click')
+    await settle()
+    expect(router.currentRoute.value.name).toBe('collaboration.meetings')
     await invite.trigger('click')
     await settle()
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('organization.users')
   })
 
   it('yalnız verilen kutucuklar çizilir', async () => {

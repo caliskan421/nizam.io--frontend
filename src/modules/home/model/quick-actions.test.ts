@@ -23,12 +23,12 @@ const standing = (companyAdmin: boolean, role?: string) =>
   )
 
 describe('hızlı işlemler (E-01-08…12)', () => {
-  it('yönetici: yeni görev canlı; toplantı F4, davet F2 devre dışı; rapor menüsü canlı (E-01-12)', () => {
+  it('yönetici: dört kutucuk, faz etiketi yok (hepsi canlı; E-01-10…12)', () => {
     expect(quickActions(standing(true), 'p1')).toEqual([
-      { key: 'newTask', icon: 'plus', phase: null },
-      { key: 'meeting', icon: 'meetings', phase: 'F4' },
-      { key: 'invite', icon: 'user-plus', phase: 'F2' },
-      { key: 'report', icon: 'document', phase: null },
+      { key: 'newTask', icon: 'plus' },
+      { key: 'meeting', icon: 'meetings' },
+      { key: 'invite', icon: 'user-plus' },
+      { key: 'report', icon: 'document' },
     ])
   })
 
