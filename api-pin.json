@@ -6,8 +6,8 @@
   "designTokens": {
     "$comment": "Tasarım sistemi token kaynağının pini (K9). Kopya: tokens/design-system.tokens.json. gen:tokens kopyanın git blob kimliğini 'blob' ile karşılaştırır; uyuşmazlık = hata. Güncelleme = yeni kopya (git show <commit>:<path>) + yeni commit/blob + pnpm gen:tokens + PR.",
     "repo": "https://github.com/caliskan421/nizam.io--mobile",
-    "commit": "49593388d089a4ce0c2a17cafd423c9c75d6556c",
+    "commit": "e641d2eb9e640566e9d3acfd52e55176cfc5b3a1",
     "path": "docs/design/design sytem/tokens.json",
-    "blob": "2e1521ab9fe632f81f418ed085d5ba0330c35bc6"
+    "blob": "75d4a46f14e97718c2de934d34f60580352bcc93"
   }
 }

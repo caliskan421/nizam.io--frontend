@@ -1,11 +1,11 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. Kaynak: tokens/design-system.tokens.json + design/web-tokens.json; `pnpm gen:tokens`.
 
-/** Kaynak pini: https://github.com/caliskan421/nizam.io--mobile@49593388d089a4ce0c2a17cafd423c9c75d6556c — docs/design/design sytem/tokens.json (blob 2e1521ab9fe632f81f418ed085d5ba0330c35bc6). */
+/** Kaynak pini: https://github.com/caliskan421/nizam.io--mobile@e641d2eb9e640566e9d3acfd52e55176cfc5b3a1 — docs/design/design sytem/tokens.json (blob 75d4a46f14e97718c2de934d34f60580352bcc93). */
 export const DESIGN_TOKEN_PIN = {
   "repo": "https://github.com/caliskan421/nizam.io--mobile",
-  "commit": "49593388d089a4ce0c2a17cafd423c9c75d6556c",
+  "commit": "e641d2eb9e640566e9d3acfd52e55176cfc5b3a1",
   "path": "docs/design/design sytem/tokens.json",
-  "blob": "2e1521ab9fe632f81f418ed085d5ba0330c35bc6"
+  "blob": "75d4a46f14e97718c2de934d34f60580352bcc93"
 } as const
 
 /** Temalar; ilki varsayılan (K9 "koyu varsayılan"). */
@@ -18,7 +18,7 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "#0b0b0b",
-    "light": "#f6f6f3"
+    "light": "#eceef1"
   },
   "bg-surface": {
     "group": "color",
@@ -30,85 +30,85 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "#1f1f1f",
-    "light": "#f1f1ed"
+    "light": "#f2f3f5"
   },
   "bg-overlay": {
     "group": "color",
     "origin": "source",
     "dark": "#2a2a2a",
-    "light": "#e7e7e2"
+    "light": "#e6e8ec"
   },
   "border-subtle": {
     "group": "color",
     "origin": "source",
     "dark": "#262626",
-    "light": "#e5e5df"
+    "light": "#e2e5e9"
   },
   "border-strong": {
     "group": "color",
     "origin": "source",
     "dark": "#3a3a3a",
-    "light": "#d0d0c9"
+    "light": "#cfd3d9"
   },
   "border-control": {
     "group": "color",
     "origin": "source",
     "dark": "#6b6b6b",
-    "light": "#96968f"
+    "light": "#bfc4cb"
   },
   "ink": {
     "group": "color",
     "origin": "source",
     "dark": "#f5f5f5",
-    "light": "#161615"
+    "light": "#121316"
   },
   "ink-muted": {
     "group": "color",
     "origin": "source",
     "dark": "#a1a1a1",
-    "light": "#5c5c57"
+    "light": "#555a63"
   },
   "ink-faint": {
     "group": "color",
     "origin": "source",
     "dark": "#8a8a8a",
-    "light": "#71716b"
+    "light": "#70757e"
   },
   "accent": {
     "group": "color",
     "origin": "source",
     "dark": "#c8f53c",
-    "light": "#c8f53c"
+    "light": "#cbe83c"
   },
   "accent-ink": {
     "group": "color",
     "origin": "source",
     "dark": "#0b0b0b",
-    "light": "#161615"
+    "light": "#121316"
   },
   "accent-top": {
     "group": "color",
     "origin": "source",
     "dark": "#d8f866",
-    "light": "#d8f866"
+    "light": "#d8f05e"
   },
   "accent-text": {
     "group": "color",
     "origin": "source",
     "dark": "#c8f53c",
-    "light": "#4a6a00"
+    "light": "#4f6e00"
   },
   "focus-ring": {
     "group": "color",
     "origin": "source",
     "dark": "#c8f53c",
-    "light": "#4a6a00"
+    "light": "#121316"
   },
   "violet": {
     "group": "color",
     "origin": "source",
     "dark": "#9b30d9",
-    "light": "#7a26c1"
+    "light": "#7334d9"
   },
   "on-violet": {
     "group": "color",
@@ -120,7 +120,7 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "#ffd166",
-    "light": "#a86f00"
+    "light": "#c27400"
   },
   "on-gold": {
     "group": "color",
@@ -132,7 +132,7 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "#ff5a5a",
-    "light": "#d02b2b"
+    "light": "#e0441c"
   },
   "on-danger": {
     "group": "color",
@@ -150,13 +150,13 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "#262626",
-    "light": "#f4f4f0"
+    "light": "#f6f7f8"
   },
   "btn-border": {
     "group": "color",
     "origin": "source",
     "dark": "#3c3c3c",
-    "light": "#d5d5ce"
+    "light": "#d9dde2"
   },
   "surface-top": {
     "group": "color",
@@ -174,67 +174,67 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "#0000008c",
-    "light": "#16161566"
+    "light": "#12131659"
   },
   "gp-todo": {
     "group": "color",
     "origin": "source",
     "dark": "#b4b7be",
-    "light": "#d3d6dc"
+    "light": "#bfc4cc"
   },
   "gp-doing": {
     "group": "color",
     "origin": "source",
     "dark": "#c27ce6",
-    "light": "#d2a2ee"
+    "light": "#a675f2"
   },
   "gp-review": {
     "group": "color",
     "origin": "source",
     "dark": "#ffd166",
-    "light": "#ffdc85"
+    "light": "#ffbf2e"
   },
   "gp-back": {
     "group": "color",
     "origin": "source",
     "dark": "#ff9a85",
-    "light": "#ffb4a4"
+    "light": "#ff8c6e"
   },
   "gp-done": {
     "group": "color",
     "origin": "source",
     "dark": "#c8f53c",
-    "light": "#d6f56f"
+    "light": "#c3e33a"
   },
   "gp-late": {
     "group": "color",
     "origin": "source",
     "dark": "#ff7d7d",
-    "light": "#ffa0a0"
+    "light": "#ff7d5c"
   },
   "gp-late-line": {
     "group": "color",
     "origin": "source",
     "dark": "#ff5a5a",
-    "light": "#d02b2b"
+    "light": "#e0441c"
   },
   "gp-ink": {
     "group": "color",
     "origin": "source",
     "dark": "#17181c",
-    "light": "#17181c"
+    "light": "#121316"
   },
   "gp-ink-muted": {
     "group": "color",
     "origin": "source",
     "dark": "#4a4d55",
-    "light": "#4a4d55"
+    "light": "#3f434a"
   },
   "role-admin": {
     "group": "color",
     "origin": "source",
     "dark": "#e57a9a",
-    "light": "#e57a9a"
+    "light": "#ec4f86"
   },
   "role-koord": {
     "group": "color",
@@ -242,23 +242,29 @@ export const TOKENS = {
     "dark": "#74c27a",
     "light": "#74c27a"
   },
+  "task-done": {
+    "group": "color",
+    "origin": "source",
+    "dark": "#c8f53c",
+    "light": "#74c27a"
+  },
   "role-uye": {
     "group": "color",
     "origin": "source",
     "dark": "#73a9e3",
-    "light": "#73a9e3"
+    "light": "#3c82ea"
   },
   "glass-bar": {
     "group": "color",
     "origin": "source",
     "dark": "rgba(11, 11, 11, 0.78)",
-    "light": "rgba(246, 246, 243, 0.78)"
+    "light": "rgba(236, 238, 241, 0.78)"
   },
   "glass-float": {
     "group": "color",
     "origin": "source",
     "dark": "rgba(18, 18, 18, 0.74)",
-    "light": "rgba(255, 255, 255, 0.78)"
+    "light": "rgba(255, 255, 255, 0.66)"
   },
   "glass-menu": {
     "group": "color",
@@ -270,31 +276,31 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "rgba(255, 255, 255, 0.08)",
-    "light": "rgba(22, 22, 21, 0.10)"
+    "light": "rgba(18, 19, 22, 0.09)"
   },
   "glass-ink": {
     "group": "color",
     "origin": "source",
     "dark": "#f5f5f5",
-    "light": "#161615"
+    "light": "#121316"
   },
   "glass-ink-faint": {
     "group": "color",
     "origin": "source",
     "dark": "#8a8a8a",
-    "light": "#71716b"
+    "light": "#70757e"
   },
   "nav-highlight": {
     "group": "color",
     "origin": "source",
     "dark": "rgba(255, 255, 255, 0.13)",
-    "light": "rgba(22, 22, 21, 0.08)"
+    "light": "rgba(18, 19, 22, 0.08)"
   },
   "scrim-soft": {
     "group": "color",
     "origin": "source",
     "dark": "rgba(0, 0, 0, 0.28)",
-    "light": "rgba(22, 22, 21, 0.18)"
+    "light": "rgba(18, 19, 22, 0.18)"
   },
   "bubble-mine": {
     "group": "color",
@@ -312,7 +318,7 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "rgba(255, 255, 255, 0.06)",
-    "light": "rgba(22, 22, 21, 0.05)"
+    "light": "rgba(18, 19, 22, 0.05)"
   },
   "ref-chip": {
     "group": "color",
@@ -324,7 +330,7 @@ export const TOKENS = {
     "group": "color",
     "origin": "source",
     "dark": "rgba(40, 40, 40, 0.80)",
-    "light": "rgba(231, 231, 226, 0.85)"
+    "light": "rgba(230, 232, 236, 0.85)"
   },
   "switch-knob": {
     "group": "color",
@@ -350,11 +356,17 @@ export const TOKENS = {
     "dark": "rgba(95, 95, 95, 0.55)",
     "light": "rgba(210, 210, 204, 0.55)"
   },
+  "program-teal": {
+    "group": "color",
+    "origin": "source",
+    "dark": "#5DD6C0",
+    "light": "#5DD6C0"
+  },
   "avatar-1": {
     "group": "color",
     "origin": "source",
     "dark": "#c8f53c",
-    "light": "#c8f53c"
+    "light": "#bfe02f"
   },
   "avatar-2": {
     "group": "color",
@@ -672,31 +684,31 @@ export const TOKENS = {
     "group": "shadow",
     "origin": "source",
     "dark": "0 12px 32px rgba(0,0,0,0.45)",
-    "light": "0 10px 28px rgba(22,22,21,0.14)"
+    "light": "0 10px 28px rgba(18,19,22,0.14)"
   },
   "m-sh-menu": {
     "group": "shadow",
     "origin": "source",
     "dark": "0 20px 48px rgba(0,0,0,0.55)",
-    "light": "0 20px 48px rgba(22,22,21,0.16)"
+    "light": "0 20px 48px rgba(18,19,22,0.16)"
   },
   "m-sh-drawer": {
     "group": "shadow",
     "origin": "source",
     "dark": "-24px 0 60px rgba(0,0,0,0.45)",
-    "light": "-24px 0 60px rgba(22,22,21,0.14)"
+    "light": "-24px 0 60px rgba(18,19,22,0.14)"
   },
   "m-sh-sheet": {
     "group": "shadow",
     "origin": "source",
     "dark": "0 24px 64px rgba(0,0,0,0.6)",
-    "light": "0 24px 64px rgba(22,22,21,0.14)"
+    "light": "0 24px 64px rgba(18,19,22,0.16)"
   },
   "m-sh-thumb": {
     "group": "shadow",
     "origin": "source",
     "dark": "0 1px 2px rgba(0,0,0,0.25)",
-    "light": "0 1px 2px rgba(22,22,21,0.12)"
+    "light": "0 1px 2px rgba(18,19,22,0.12)"
   },
   "m-sh-knob": {
     "group": "shadow",
@@ -1026,7 +1038,7 @@ export const TOKENS = {
     "group": "shadow",
     "origin": "web",
     "dark": "0 12px 32px rgba(0,0,0,0.5)",
-    "light": "0 1px 2px rgba(22,22,21,0.05), 0 6px 20px rgba(22,22,21,0.06)"
+    "light": "0 1px 2px rgba(18,19,22,.05), 0 6px 18px rgba(18,19,22,.06)"
   },
   "shadow-sheet": {
     "group": "shadow",
@@ -3049,6 +3061,66 @@ export const TOKENS = {
     "origin": "web",
     "dark": "16px minmax(0, 1fr) auto",
     "light": "16px minmax(0, 1fr) auto"
+  },
+  "glass": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "rgba(255,255,255,.66)",
+    "light": "rgba(255,255,255,.66)"
+  },
+  "glass-line": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "rgba(18,19,22,.09)",
+    "light": "rgba(18,19,22,.09)"
+  },
+  "hi": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#121316",
+    "light": "#121316"
+  },
+  "hi-ink": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#ffffff",
+    "light": "#ffffff"
+  },
+  "hi-ink-2": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "rgba(255,255,255,.66)",
+    "light": "rgba(255,255,255,.66)"
+  },
+  "chart-done": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#b4d82a",
+    "light": "#b4d82a"
+  },
+  "av-neutral": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#121316",
+    "light": "#121316"
+  },
+  "av-neutral-ink": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#ffffff",
+    "light": "#ffffff"
+  },
+  "nav-on": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#121316",
+    "light": "#121316"
+  },
+  "bar-done": {
+    "group": "light-v85",
+    "origin": "web",
+    "dark": "#8bb637",
+    "light": "#8bb637"
   }
 } as const
 
