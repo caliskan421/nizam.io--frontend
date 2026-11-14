@@ -38,6 +38,36 @@ afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
 describe('önizleme okuması', () => {
+  // CX-F6-E-05: başlıklı 429 ortak sayacı başlatır; sayaç boyunca önizleme tekrarı ve PDF düğmesi
+  // kapalı, süre bitince otomatik istek yok (süre dolumu ve otomatik istek yokluğu `queries.test.ts`'te sahte saatle).
+  it.each(['export_in_progress', 'rate_limited'] as const)(
+    '%s (Retry-After): sayaç boyunca "Yeniden dene" ve "PDF indir" kapalı, ek istek yok',
+    async (mode) => {
+      reports.state.season = mode
+      const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+      await until(() => document.body.textContent?.includes('Dönem raporu okunamadı'), 'hata')
+      await idle(app.queryClient)
+      const retry = () => byText('button', 'Yeniden dene') as HTMLButtonElement | null
+      const pdf = () => $('[data-testid="preview-pdf"] button') as HTMLButtonElement | null
+      await until(() => retry()?.disabled && pdf()?.disabled, 'tekrar ve PDF kapalı')
+      expect(document.body.textContent).toContain('Bekleyin (')
+      retry()!.click()
+      pdf()!.click()
+      await flushPromises()
+      await idle(app.queryClient)
+      expect(sent()).toHaveLength(1)
+      expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(0)
+    },
+  )
+
+  it('başlıksız 503 (capacity_full): sayaç yok, "Yeniden dene" açık', async () => {
+    reports.state.season = 'capacity_full'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(() => byText('button', 'Yeniden dene'), 'hata')
+    expect(document.body.textContent).not.toContain('Bekleyin (')
+    expect((byText('button', 'Yeniden dene') as HTMLButtonElement).disabled).toBe(false)
+  })
+
   it('reportSeason yalnız sayfa açılınca okunur: Arşiv sayfası okumaz, "Önizle" okutur', async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv' })
     await until(() => byText('button', 'Dönem sonu raporu (PDF)'), 'arşiv')
@@ -103,8 +133,6 @@ describe('önizleme okuması', () => {
 
   it.each([
     ['error', 'Dönem raporu okunamadı'],
-    ['export_in_progress', 'Dönem raporu okunamadı'],
-    ['rate_limited', 'Dönem raporu okunamadı'],
     ['capacity_full', 'Dönem raporu okunamadı'],
   ] as const)('%s: bölge içi hata + "Yeniden dene", otomatik tekrar yok', async (mode, title) => {
     reports.state.season = mode

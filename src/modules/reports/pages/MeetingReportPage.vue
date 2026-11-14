@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import '../components/preview/preview.css'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { toApiError } from '@/shared/errors/api-error'
@@ -10,6 +10,7 @@ import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiErrorState } from '@/shared/ui'
 
+import { NOT_FOUND_CODE, useMeetingGone } from '../api/meeting-gone'
 import { useReportMeetingDetail } from '../api/queries'
 import MeetingPaper from '../components/preview/MeetingPaper.vue'
 import PreviewToolbar from '../components/preview/PreviewToolbar.vue'
@@ -67,6 +68,19 @@ const subtitle = computed(() => {
   })
 })
 const error = computed(() => (query.isError.value ? toApiError(query.error.value) : null))
+// 404 `reporting.not_found` (silinmiş/kapsam dışı): önizleme kapanır, liste tazelenir, tek bildirim
+// (CX-F6-E-06). Geçici hatalardan (5xx/ağ) ayrıdır: onlar bölge içi "Yeniden dene" olarak kalır.
+const gone = useMeetingGone()
+watch(
+  () => [meetingId.value, error.value?.code] as const,
+  ([id, code]) => {
+    if (id && code === NOT_FOUND_CODE) gone(id)
+  },
+  { immediate: true },
+)
+function onPdfFailed(code: string): void {
+  if (meetingId.value && code === NOT_FOUND_CODE) gone(meetingId.value)
+}
 function onClose(): void {
   if (meetingId.value) requestFocusReturn(meetingReturnKey(meetingId.value))
 }
@@ -94,6 +108,7 @@ function onClose(): void {
             detail ? t('reports.meeting.toolbar.label', { title: detail.meeting.title }) : undefined
           "
           @close="onClose"
+          @failed="onPdfFailed"
         />
         <UiErrorState
           v-if="error"
