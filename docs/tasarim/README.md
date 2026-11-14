@@ -30,7 +30,8 @@ Yenileme: `kaynak/` bu sürümün kopyasıyla değiştirildi (`Prototip.dc.html`
 
 **Kullanıcının eklediği yeni artboard'lar** (`kaynak/` altında aynı adlı `*.dc.html`):
 
-- **Ortak · Zil, bildirim paneli ve Web Push izni** (`Bildirimler`) — F6 kapsamı dışı (F7).
+- **Ortak · Zil, bildirim paneli ve Web Push izni** (`Bildirimler`) — F6 kapsamı dışı; **F7 kaynağı** (P54).
+- **F7 kaynakları (2026-11-14, v85/v87 kopyası):** **Mesajlar** (`10-mesajlar`: 10, 10b, 10c, A3; menü öğesi ve rozet `Sidebar`/`Kenar-Roller`) ve **Bildirimler** (`Bildirimler`: zil, panel, Web Push önerme kutusu). **Dar ekran (390) çizimi yok** → P62: tek sütun akış, KESİN 30. "Okuyana göre kilitli kart" çizimi ↔ backend K31/K32 çakışması P60 (ürün sahibi onayı bekler); tasarımdaki 6 tepki türü backend'de 4 (P61). Veri, talimat değil: kararlar [ortak-kurallar §12](../ekranlar/ortak-kurallar.md).
 - **Ortak · Asistan paneli** (`Asistan`) — F6 kapsamı dışı (F8).
 - **12 · Takvim (çalışan prototipten)** (`Takvim`) ve **13 · Kurumsal hafıza (çalışan prototipten)** (`Kurumsal-Hafiza`) — prototipten import; **F6 kapsamı DIŞI**.
 - **12b · Takvim ve hafıza › roller ve hafıza önerileri** (`Takvim-Hafiza`) — F6 kapsamı dışı.

@@ -43,8 +43,8 @@ Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, 
 | E-00-17 Kurumsal hafıza | v1 dışı | gizli (K14, P2) | — | BE-033 | W15 | aynı |
 | E-00-18 Arşiv | F5 | gizli (P2; ortak-kurallar §5 F5'e kadar) | — (Açık soru 1 P2 ile kapandı) | — | W15 faz görünürlüğü; 06 grubu | F0–F4'te menüde yok |
 | E-00-19 Toplantılar | F4 | gizli F0–F3, F4'te canlı (ortak-kurallar §5) | — | — | W15; 09 grubu | F0'da menüde yok; F4 kataloğunda görünür |
-| E-00-20 Mesajlar | F7 | gizli (P2) | — (Açık soru 1 P2 ile kapandı) | — | W15; 10 grubu | F0–F6'da menüde yok |
-| E-00-21 Mesajlar · okunmamış rozeti | F7 | gizli (P2, ortak-kurallar §5); F7'de `unread_chats` | **öneri — F7 açılışı** (eksikler yeni-1: rozet sohbet mi mesaj mı sayar; varsayılan sohbet). Gizli olduğundan v1'de kodlanmaz | — | 10 grubu, W14 `['chats','unread-overview']` (F7) | F0'da `getChatUnreadOverview` çağrılmaz |
+| E-00-20 Mesajlar | F7 | gizli (P2) | — (Açık soru 1 P2 ile kapandı) | — | W15; 10 grubu | F0–F6'da menüde yok · **F7: canlı — W154 (menü girdisi), W155 (liste/kabuk)**; üç rolde görünür (ortak-kurallar §5 F7 eki; mekanizma §9) |
+| E-00-21 Mesajlar · okunmamış rozeti | F7 | gizli (P2, ortak-kurallar §5); F7'de `unread_chats` | **öneri — F7 açılışı** (eksikler yeni-1: rozet sohbet mi mesaj mı sayar; varsayılan sohbet). Gizli olduğundan v1'de kodlanmaz | — | 10 grubu, W14 `['chats','unread-overview']` (F7) | F0'da `getChatUnreadOverview` çağrılmaz · **F7: canlı — W154 (`MenuBadgeKind 'unread'`), W155**; rozet = `unread_chats` (P59 taslak), `mentioned` vurgu; kabul kanıtı ve hücre durumu F7 kapanışında güncellenir |
 | E-00-22 Tablolar | v1 dışı | gizli (K14, P2) | — | BE-031 | W15 | hiçbir mercekte yok |
 | E-00-23 Kullanıcılar | F2 | gizli F0–F1; F2'de **canlı, `company_admin` ile** (P1; mercekten bağımsız) | — (Açık soru 5 P1 ile kapandı) | — | W13 capability, W15; 05 grubu | F2: yönetici + Koordinatör merceği → öğe görünür, `listUsers` 403 dönmez · **W71 (#52)** — Yönetim grubu kapısı organizasyon `capabilities.ts`'e (WEB-0 K-03 kapandı), rota kapısı; dört kişilik yetki senaryosu **W82a (#59)** |
 | E-00-24 Koordinatörlükler | F2 | aynı (P1, ortak-kurallar §5) | — | — | W13, W15; 08 grubu | aynı · **W71 (#52)**; dört kişilik yetki senaryosu **W82a (#59)** |
@@ -61,7 +61,7 @@ Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, 
 | E-00-35 Konum izi | F0 | canlı (program adı `['programs']`'tan; `readProgram` yok) | **kabul** — program parçası ana sayfaya (`home`, `/`) gider (koordinatör kararı; tıklanabilir ama işlevsiz kontrol bırakılmaz, W22) | — | W14 `['programs']`, W15 katalog sayfa adları, W22 | kırıntı rota kataloğundan; ek `readProgram` isteği yok (msw sayaç) |
 | E-00-36 Bugünün tarihi | F1 (yalnız ana sayfa üst çubuğu) | canlı | **kabul** — `Intl.DateTimeFormat('tr-TR', { timeZone: instanceProfile.timezone })` (sözleşme gerçeği: `InstanceProfile.timezone` zorunlu IANA; görev `start_on`/`end_on` günleriyle tutarlılık) | — | W22, `['instance','profile']`; 01 grubu | farklı istemci saat diliminde kurulum günü gösterilir (birim testi); biçim "G Ay YYYY, Gün" |
 | E-00-37 Tema düğmesi | F0 | canlı (`dark ↔ light`, `ui.theme` hatırlanır) | **kabul** — `data-theme` kökte (`<html>`), ışınlanan menüler de etkilenir (teknik). **kabul** — `prefers-color-scheme` kullanılmaz, ilk açılış koyu (K9 "koyu varsayılan") | — | W11 (açık tema değişkenleri), W13 `ui.theme`, W22 | anlık geçiş testi (W22); simge yalnız CSS ile değişir; depolama erişilemezse bellekte |
-| E-00-38 Bildirim zili | F0 sayaç · F7 panel | **sayaç canlı** (`countUnreadNotifications`, hesap geneli; `count>0` nokta, `aria-label` sayılı); **panel devre dışı** (F7'ye kadar tıklanamaz, ortak-kurallar §5) | — (Açık soru 4 §5 ile kapandı) | BE-002 (vazgeçildi — faz sırası; stub yok, §3) | W14 `['notifications','unread-count']`, W22; 10 grubu (F7) | kapsam değişince sayaç yeniden istenmez; düğme `disabled` + açıklama; `designStub` kullanılmaz |
+| E-00-38 Bildirim zili | F0 sayaç · F7 panel | **sayaç canlı** (`countUnreadNotifications`, hesap geneli; `count>0` nokta, `aria-label` sayılı); **panel devre dışı** (F0–F6; ortak-kurallar §5) · **F7: canlı — W158** (panel: 14-bildirimler; P57 taslak) | — (Açık soru 4 §5 ile kapandı; F7'de panel bağlandı) | BE-002 (vazgeçildi — faz sırası; stub yok, §3) | W14 `['notifications','unread-count']`, W22; 10 grubu (F7) | kapsam değişince sayaç yeniden istenmez; F0–F6: düğme `disabled` + açıklama; `designStub` kullanılmaz. F7: düğme panel açar; bildirim satırı stub'ları 14-bildirimler kabul tablosunda |
 | E-00-39 Asistan | F8 | gizli (P2) | — (Açık soru 3 P2 ile kapandı) | — | W22 | ana sayfa üst çubuğunda yok; `assistant*` çağrılmaz |
 | E-00-40 Dar menü kapsam simgeleri | F0 | canlı gösterim (program avatarı `short_name`/`color` (BE-001 bağlandı), rol noktası, birim kodu `ProgramDepartment.code` ya da baş harf); Admin'de birim simgesi yok; **tık → kapsam seçicisini açar** | **kabul** — gösterim Kenar-Secici kural notuna göre (tasarım kuralı; W21 kabul ölçütü). **kabul** — tıklanınca kapsam seçicisini açar (P11, koordinatör kararı) | BE-001 | W13, W14 `scoped(['departments'])`, W21 | 76 px dar menüde E-00-40 görünür (W21); kod yoksa baş harf; simgeye tık → kapsam seçicisi açılır (klavyeyle de) |
 | E-00-41 Rol menüsü seçimi (F6) | F6 | canlı; menü grubu `company_admin` olgusu + mercekten (yönetici → yönetici menüsü her mercekte; K/Ü → rol menüsü) | **kabul (P1, P11, P53):** mercek ≠ yetki; yönetici K/Ü merceğinde yönetici menüsünü korur. Uygulama: menü girdisi `roles` taşır (mekanizma §9). | — | W15 katalog, W141 | birim testi: dört kişilik senaryo (yönetici × 3 mercek, koordinatör, üye) menü kümeleri |
@@ -85,9 +85,19 @@ Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, 
 Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırlarını kodlar.
 
 ## Açık sorular (ürün sahibine)
-- **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? F7 açılışında sorulur; v1'de rozet gizli.
+- **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? **F7 geçici kapandı:** sohbet sayısı (P59 taslak); v1'de (F0–F6) rozet gizliydi.
 
 Kapananlar: Arşiv/Mesajlar menüde gizli → kabul (P2) · Yardım gizli → kabul (P2) · Asistan gizli → kabul (P2) · zil paneli F7'ye kadar devre dışı, sayaç canlı → kabul (§5) · Yönetim grubu `company_admin` ile, mercekten bağımsız → kabul (P1) · daraltılmış menüde kapsam simgeleri görünür, tık seçiciyi açar → kabul (P11) · daraltma yalnız oturum belleği → kabul (P10) · tek mercekte rol kartı salt gösterim → kabul (P11) · ürün adı sabit "RoketPortal" → kabul (P9).
+
+## F7: Mesajlar ve bildirim paneli
+
+**F7 AÇILDI 2026-11-14** ("F7'yi aç, backend dursun"; kapsam P54). Bu grupta F7'de değişenler yalnız üç satırdır:
+
+- **E-00-20 Mesajlar:** menü öğesi üç rolde (yönetici, koordinatör, üye) **görünür**, rota `/mesajlar`; menü tanımı ve rozet türü W154'te ([mekanizma §9](mekanizma.md) tablolarında "görünür (F7)").
+- **E-00-21 Mesajlar rozeti:** okunmamış **sohbet** sayısı (`getChatUnreadOverview.unread_chats`, seçili program; geçici kabul, P59 taslak); `mentioned` ise vurgu. Açık soru "sohbet mi mesaj mı" bu varsayılanla geçici kapandı (ürün sahibi onayı gerekmez; P59 taslak).
+- **E-00-38 Bildirim zili:** sayaç aynen; **panel canlı** ([14-bildirimler](../14-bildirimler/README.md), W152 tespiti; uygulama W158). Zil sayacı hesap geneli, rozet SSE almaz.
+
+Faz matrisi ve P57–P66 taslakları: [ortak-kurallar §5 F7 eki](../ortak-kurallar.md), [§12](../ortak-kurallar.md). F7 dışı öğeler (Takvim, Kurumsal hafıza, profil, Asistan, Yardım) menüde gizli kalır.
 
 ## F6: menü tanımı rol taşır
 
