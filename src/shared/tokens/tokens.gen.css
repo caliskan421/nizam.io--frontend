@@ -234,6 +234,8 @@
   --topbar-dot-top: 6px;
   --topbar-dot-right: 7px;
   --notif-panel-w: 420px;
+  --chat-bub-min-w: 120px;
+  --chat-att-min-w: 240px;
   /* web · work */
   --list-min-w: 640px;
   --list-cols: 20px minmax(0, 1fr) 124px 132px 60px;

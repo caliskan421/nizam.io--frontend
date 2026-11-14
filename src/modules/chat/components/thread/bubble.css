@@ -45,7 +45,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-gap-xs);
-  min-width: 0;
+  /* Tasarım `.rp-bub{min-width:120px}`: kısa metin dosya/anket kartını "V…"ye daraltmasın. */
+  min-width: var(--chat-bub-min-w);
   max-width: 100%;
   padding: var(--space-2) var(--space-3) var(--ui-gap-xs);
   border-radius: var(--m-r-row) var(--m-r-row) var(--m-r-row) var(--m-r-bubble-tail);
@@ -169,6 +170,7 @@ button.chat-tick {
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  min-width: var(--chat-att-min-w);
   padding: var(--ui-gap-xs) var(--space-3) var(--ui-gap-xs) var(--ui-gap-xs);
   border: var(--ui-hairline) solid color-mix(in srgb, var(--ink) 8%, transparent);
   border-radius: var(--m-r-attach);
@@ -218,7 +220,7 @@ button.chat-tick {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  min-width: 0;
+  min-width: var(--chat-att-min-w);
   padding: var(--m-gap-md) var(--space-3);
   border: var(--ui-hairline) solid color-mix(in srgb, var(--ink) 8%, transparent);
   border-radius: var(--m-r-attach);
