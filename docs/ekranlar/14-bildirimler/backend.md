@@ -196,7 +196,7 @@ notifications: {
 | E-14-89 | Bildirimde program bilgisi yok (çoklu program) | `Notification` (program_id yok) | BE: BE-143 |
 | E-14-90 | Sohbet bildirim üretmez | (uç yok) | BE: BE-027 |
 | E-14-91 | Mesajlar rozeti ayrı sayaç (P59) | getChatUnreadOverview (10 grubu) |  |
-| E-14-92 | Okuyana göre kilitli kart (P60 ★) | — |  |
+| E-14-92 | Okuyana göre kilitli kart (P60) | — |  |
 | E-14-93 | Profilim › "Neyi nereden duymak istersin" matrisi (portal içi / tarayıcı / e-posta) | (uç yok) | BE: BE-151 |
 | E-14-94 | Sessiz saatler kartı (22:00 – 08:00, hafta sonu) | (uç yok) | BE: BE-153 |
 | E-14-95 | "Tarayıcı bildirimi alan cihazlar" kartı | (uç yok) | BE: BE-152 |
@@ -219,5 +219,5 @@ notifications: {
 ## 9. CSP, Caddy ve service worker (deploy işçisi)
 - **CSP** (`deploy/Caddyfile`, yalnız SPA belgesinde): `default-src 'self'; script-src 'self' https://challenges.cloudflare.com; … connect-src 'self'; …`; `worker-src` yok. Geri düşüş zinciri (`worker-src` → `child-src` → `script-src 'self'`) aynı kökenli service worker'a izin verir; yine de açık **`worker-src 'self'`** önerilir (niyet belgeleme, tarayıcı farkı güvencesi). `connect-src` değişmez: push servisine tarayıcı kendisi bağlanır; service worker'dan ağ isteği yoktur.
 - **`/sw.js` önbellek:** `public/` altındaki dosyalar Caddy `@static` bloğunda `Cache-Control: public, max-age=3600` alır; service worker betiği için `Cache-Control: no-cache` ayrı `handle /sw.js` bloğu gerekir (güncelleme ve ters güncelleme güvenliği). `Service-Worker-Allowed` gerekmez (kök kapsam). Service worker yanıtına belge CSP'si uygulanmaz (statik dosya yanıtında CSP başlığı yok); gerekirse `sw.js` için kendi sıkı CSP başlığı eklenebilir.
-- **Manifest:** `public/manifest.webmanifest` + `index.html` `<link rel="manifest">` ve simgeler (iOS şartı, §8). Bu iş P58 dahilse O2'nin son işçisi + deploy işçisindedir.
+- **Manifest:** `public/manifest.webmanifest` + `index.html` `<link rel="manifest">` ve simgeler (iOS şartı, §8). Bu iş P58 dahil (kesin) olduğundan O2b'nin son işçisi + deploy işçisindedir.
 - **Dev/test:** Vite `public/sw.js` yayınlar; service worker birim testi `push`/`notificationclick` olaylarını sahte (`ServiceWorkerGlobalScope`) ortamda sınar; gerçek tarayıcı izin akışı e2e'de **tanık** olarak ayrıca (otomasyonda `Notification.requestPermission` bağlama özeldir).

@@ -45,7 +45,7 @@ Kimlikler `E-14-NN` (`README.md` tablosu). Ortak kurallar (varsayım durumları,
 3. **İyimser güncelleme yoktur** (ortak-kurallar §7): başarı yanıtı gelmeden nokta kalkmaz, sayaç düşmez; düğme/satır `aria-busy` + ikinci tık yok sayılır. Başarıda **türevler birlikte geçersizlenir:** zil sayacı (`notifications.unreadCount`) + panel listesi (`notifications.list`) (E-14-85). Idempotent olduğu için (K17) çift tık/tekrar zararsızdır; `Idempotency-Key` gerekmez (uçta yok).
 4. **Hatalar** (E-14-47): 404 `notifications.notification_not_found` → satır listeden düşer (liste yenilenir), sessiz; 409 `platform.conflict_retry` → motor tekrarı; 409 `provisioning.write_not_allowed` → "salt okunur mod" ortak iletisi; 429/ağ → ortak yazma hatası bildirimi (yalnız sahibi sökülmemişse).
 
-### 3.3 Web Push durum makinesi (P58★ dahil edilirse)
+### 3.3 Web Push durum makinesi (P58 dahil, kesin)
 Girdiler: `pushPublicKey.enabled`; destek (`'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window`); iOS/iPadOS ve `display-mode: standalone` değil; `Notification.permission` (`default` | `granted` | `denied`); `PushManager.getSubscription()` (yok | var); bellekte `snoozed` ve `result`.
 
 Kutu hangi hâlde (üstten aşağı ilk eşleşen):
@@ -195,7 +195,7 @@ Tasarım yok → KESİN 30 / P62 (E-14-24): panel **tam ekran modal** olur (baş
 | E-14-89 | Bildirimde program bilgisi yok (çoklu program) | — | — | §2; backend §7 |
 | E-14-90 | Sohbet bildirim üretmez | — | — | §2; backend §7 |
 | E-14-91 | Mesajlar rozeti ayrı sayaç (P59) | — | — | §2; backend §7 |
-| E-14-92 | Okuyana göre kilitli kart (P60 ★) | — | — | §2; backend §7 |
+| E-14-92 | Okuyana göre kilitli kart (P60) | — | — | §2; backend §7 |
 | E-14-93 | Profilim › "Neyi nereden duymak istersin" matrisi (portal içi / tarayıcı / e-posta) | — | — | —; backend §7 |
 | E-14-94 | Sessiz saatler kartı (22:00 – 08:00, hafta sonu) | — | — | —; backend §7 |
 | E-14-95 | "Tarayıcı bildirimi alan cihazlar" kartı | — | — | —; backend §7 |

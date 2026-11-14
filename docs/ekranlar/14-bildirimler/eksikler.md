@@ -1,6 +1,6 @@
 # 14 — Backend eksikleri (ne yok)
 
-Her satır bir tasarım öğesidir; backend'de karşılığı yoksa burada durur. Yeni kimlikler **BE-142…BE-156** olarak `../../backend-eksikleri/kayit.md` sonuna yazıldı (W152; koordinatör kimlik bloğu BE-142…BE-159, `web7-kararlar.md`; BE-157…159 kullanılmadı, boş kalır). Kararlar `P54–P66` ("geçici kabul (P5x taslak)"): **"Backend dursun" (F7'de de):** backend paketi açılmaz; bütün eksikler kayıtta `açık` kalır, ekranda statik/devre dışı/gizli çalışır. `designStub` yalnız **uygulanmış arayüzdeki** kabul edilmiş işlev eksiğine bağlanır (`../ortak-kurallar.md` §3): bu grupta stub alan öğeler yalnız çizilen devre dışı kontrollerdir — "Senden bekleyen" sekmesi (`BE-144`) ve `work.date_change.requested` satırındaki "Onayla"/"Reddet" (`BE-146`); **çizilmeyen** öğeler (bilgi noktası, ay simgesi, hover "sessize al"/"Kaldır", tablo/gecikme/hatırlatma satırları, gruplama, saklama metni) stub almaz (hiç çizilmez; sahte veri yok, §4). Belge eksikleri (örn. `istemci-akislari.md`'de bildirim bölümü yok) stub almaz, `dogrulama.md`'de yazılıdır.
+Her satır bir tasarım öğesidir; backend'de karşılığı yoksa burada durur. Yeni kimlikler **BE-142…BE-156** olarak `../../backend-eksikleri/kayit.md` sonuna yazıldı (W152; koordinatör kimlik bloğu BE-142…BE-159, `web7-kararlar.md`; BE-157…159 kullanılmadı, boş kalır). Kararlar `P54–P66` ("geçici kabul (P5x kesin)", ürün sahibi onayı 2026-11-14): **"Backend dursun" (F7'de de):** backend paketi açılmaz; bütün eksikler kayıtta `açık` kalır, ekranda statik/devre dışı/gizli çalışır. `designStub` yalnız **uygulanmış arayüzdeki** kabul edilmiş işlev eksiğine bağlanır (`../ortak-kurallar.md` §3): bu grupta stub alan öğeler yalnız çizilen devre dışı kontrollerdir — "Senden bekleyen" sekmesi (`BE-144`) ve `work.date_change.requested` satırındaki "Onayla"/"Reddet" (`BE-146`); **çizilmeyen** öğeler (bilgi noktası, ay simgesi, hover "sessize al"/"Kaldır", tablo/gecikme/hatırlatma satırları, gruplama, saklama metni) stub almaz (hiç çizilmez; sahte veri yok, §4). Belge eksikleri (örn. `istemci-akislari.md`'de bildirim bölümü yok) stub almaz, `dogrulama.md`'de yazılıdır.
 
 ## 1. Mevcut kayıtla eşleşenler
 | Kimlik (E-) | Öğe | BE-NNN | Kayıttaki tanım yeterli mi? | Düzeltme önerisi |
@@ -153,7 +153,7 @@ Sıra önerisi: A (BE-143) → B (BE-144/145/146) → C → D → E. Hiçbiri F7
 | E-14-89 | Bildirimde program bilgisi yok (çoklu program) | BE-143 | açık (stub: hayır) |
 | E-14-90 | Sohbet bildirim üretmez | BE-027 | açık (stub: hayır) |
 | E-14-91 | Mesajlar rozeti ayrı sayaç (P59) | — (backend karşılığı var / eksik değil) | uygulanır |
-| E-14-92 | Okuyana göre kilitli kart (P60 ★) | — (backend karşılığı var / eksik değil) | uygulanır |
+| E-14-92 | Okuyana göre kilitli kart (P60) | — (backend karşılığı var / eksik değil) | uygulanır |
 | E-14-93 | Profilim › "Neyi nereden duymak istersin" matrisi (portal içi / tarayıcı / e-posta) | BE-151 | açık (stub: hayır) |
 | E-14-94 | Sessiz saatler kartı (22:00 – 08:00, hafta sonu) | BE-153 | açık (stub: hayır) |
 | E-14-95 | "Tarayıcı bildirimi alan cihazlar" kartı | BE-152 | açık (stub: hayır) |

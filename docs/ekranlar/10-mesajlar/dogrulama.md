@@ -67,7 +67,7 @@ Kaynaklar: pin `v0.15.0-api` (`git show v0.15.0-api:<yol>`; `openapi.yaml`, `ist
 | F7-12 | backend.md §6 (eski) | iyimser güncelleme "Varsayım" | varsayım | Karar: iyimser YOK (mekanizma §9.1) | düşük | düzeltildi |
 | F7-13 | deploy/Caddyfile | akış için vekil | eksik bilgi | `connect-src 'self'` yeterli; ama `/v1` vekili bu depoda yok, akış için tamponlamasız vekil ve ≥6 dk okuma zaman aşımı gerekir (backend.md §9) | orta | açık (SAHİPLİK-DIŞI) |
 
-**Kendi çapraz denetim sonucu:** yüksek önemli açık bulgu yok; açık kalanlar F7-7 ve F7-13 (ikisi bu grubun sahipliği dışı). Ürün sahibi sorusu gerektirenler README "Açık sorular"dadır (P60*, P58*, BE-160/161 istenip istenmediği).
+**Kendi çapraz denetim sonucu:** yüksek önemli açık bulgu yok; açık kalanlar F7-7 ve F7-13 (ikisi bu grubun sahipliği dışı). Ürün sahibi sorusu gerektirenler README "Açık sorular"dadır (BE-160/161 istenip istenmediği; P58/P60 2026-11-14'te kapandı).
 
 ## Kapanış
 Denetlenen içerik: 2026-11-08 ilk sürüm. Sonraki düzeltmeler: denetçi bulguları analistlere geri verildi ve kapatıldı (yukarıdaki durumlar güncel); Codex kapı hükmü `../../reviews/EKRANLAR-codex.md` bu grubu ilgilendiren bulgular:

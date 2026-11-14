@@ -78,7 +78,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 
 - Dil Türkçe; backend kimlikleri (`operationId`, alan adı, hata kodu) ve CSS sınıfları olduğu gibi.
 - Örnek veriler (`renderVals()`) **gerçek veri değildir**: biçim/şekil kanıtı olarak kullanılır, değerler kopyalanmaz.
-**Durum notu (2026-11-14): F7 açıldı** ("F7'yi aç, backend dursun"; kapsam P54: sohbet 10/10b/10c + bildirimler `14-bildirimler` + kabuk Mesajlar/zil paneli; Web Push P58 onayına bağlı). F6 KAPANDI. P57–P66 koordinatör varsayılanı olarak [ortak-kurallar §12](ortak-kurallar.md)'de taslaktır; §5 F7 eki matrisi verir. Yürütme: [web-7](../yurutme/web-7/README.md).
+**Durum notu (2026-11-14): F7 açıldı** ("F7'yi aç, backend dursun"; kapsam P54: sohbet 10/10b/10c + bildirimler `14-bildirimler` + kabuk Mesajlar/zil paneli; Web Push P58 dahil, ürün sahibi 2026-11-14). F6 KAPANDI. P57–P66 [ortak-kurallar §12](ortak-kurallar.md)'de KESİNDİR (ürün sahibi onayı 2026-11-14); §5 F7 eki matrisi verir. Yürütme: [web-7](../yurutme/web-7/README.md).
 
 - Her tespit konumlanır: `ozellikler.md` bölge adı ↔ `mekanizma.md` davranış ↔ `backend.md` uç ↔ `eksikler.md` satır, aynı **öğe kimliği** ile (`E-<grup>-NN`, ör. `E-03-07`).
 - Varsayım yazılırsa `**Varsayım:** … (doğrulanacak: …)` biçimindedir ve neyin doğrulanacağı söylenir. Bilinmeyen "bilinmiyor" diye yazılır, uydurulmaz. Varsayımın uygulama durumu (öneri / kabul / ret) grup README'sindeki tabloda tutulur, dosya içinde değil.
@@ -102,7 +102,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex UYGUN (WEB-5)** | UYGUN (WEB-5) |
 | `13-raporlar` | **kabul** (P46–P53; öneri satırları açık sorularda) | **kabul** | **kabul** | **kabul** | öz denetim (W134); bağımsız denetçi bekliyor; gerçek sunucu tanığı W144 bekliyor | **uygulandı (F6)** (#122–#134); Codex WEB-6 3 tur UYGUN, F6 KAPANDI (2026-11-14) |
-| `14-bildirimler` | taslak (W152; P54–P56 kesin, P57–P66 koordinatör varsayılanı, ★P58/P60 onay bekler) | taslak (W152) | taslak (W152) | taslak (W152) | öz denetim (W152); bağımsız denetçi bekliyor | bekliyor (WEB-7 nihai kapısı) |
+| `14-bildirimler` | taslak (W152; P54–P56 kesin, P57–P66 kesin, ürün sahibi onayı 2026-11-14) | taslak (W152) | taslak (W152) | taslak (W152) | öz denetim (W152); bağımsız denetçi bekliyor | bekliyor (WEB-7 nihai kapısı) |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,
