@@ -58,7 +58,7 @@ Her faz: API çağrısı → sorgu/mutasyon → yetki hesabı → arayüz (tasar
 | **F4** toplantılar | Liste, detay, gündem, notlar, nottan görev, silinenler; video (W7) ayrı | 09, 09b, 09c (09d/09e statik, KR-26) | ✓ |
 | F5 arşiv | Klasörler, dosyalar, ZIP, silinenler/geri yükleme | 06, 07, 12 (silinen kayıtlar) | |
 | F6 rapor/pano | Yönetici panosu tam, iş yükü, PDF | 01 (tam) | **KAPANDI (2026-11-14; açıldı 2026-11-13; PR #119–#134, Codex 3 tur UYGUN, kapanış PR'ı ile birleşir) (P46–P53):** raporlar ayrı sayfa değil, kendi ekranlarında (06 Arşiv, 09b/K7, 03/K3, 05) + 01f/01g önizleme; K1/Ü1 ana sayfaları ve rol menüleri dahil; 01b F6 dışı; backend paketi açılmaz ([web-6](../yurutme/web-6/README.md)) |
-| F7 sohbet + bildirim | Sohbet, SSE, okunmamış, bildirimler, Web Push | 10, 10b, 10c | **AÇILDI 2026-11-14 (P54; backend dursun)** ([web-7](../yurutme/web-7/README.md)). Kapsam (P54): yalnız sohbet + bildirimler (zil paneli canlı, Mesajlar menüsü + rozet, SSE `shared/sse`; Web Push P58 onayına bağlı); Takvim, Kurumsal hafıza, profil, Ü2–Ü7/K2–K8, Asistan sonraki faz; pin `v0.15.0-api` değişmez, backend paketi açılmaz |
+| F7 sohbet + bildirim | Sohbet, SSE, okunmamış, bildirimler, Web Push | 10, 10b, 10c | **AÇILDI 2026-11-14 (P54; backend dursun)** ([web-7](../yurutme/web-7/README.md)). Kapsam (P54): yalnız sohbet + bildirimler (zil paneli canlı, Mesajlar menüsü + rozet, SSE `shared/sse`; Web Push **dahil** (P58, ürün sahibi 2026-11-14; O2b son işçisi W159); Takvim, Kurumsal hafıza, profil, Ü2–Ü7/K2–K8, Asistan sonraki faz; pin `v0.15.0-api` değişmez, backend paketi açılmaz |
 | F8 asistan | F46 paneli (rota kataloğu) | Ana sayfa "Asistan" | |
 | sonra | Yeni modüller (backend fazıyla) | 01b, 11–11e, Takvim, Kurumsal hafıza, Simülasyon, Bütçe/Talep | |
 
