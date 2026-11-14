@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 (sohbet + bildirimler); P55/P56 kayıtlı; P57–P66 KESİN (ürün sahibi onayı 2026-11-14: P58 Web Push dahil, P60 backend kazanır, P57 bildirim sade liste). WEB-6 KAPANDI (Codex 3 tur UYGUN). Pin `v0.15.0-api` değişmez; backend paketi açılmaz. Plan [README](README.md)'de.
 
-**F7 KAPANMADI — Codex tur 2 (2026-11-14).** Tur 1 UYGUN DEĞİL koşulları W164'te kapandı (#150, `8742269`). O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), sonra Codex 2–3 tur ([iskelet](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
+**F7 KAPANMADI — Codex tur 2 KOŞULLU UYGUN, W165 düzeltiyor (2026-11-14).** Tur 1 UYGUN DEĞİL koşulları W164'te kapandı (#150, `8742269`). O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), sonra Codex 2–3 tur ([iskelet](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Durum
 
@@ -66,6 +66,10 @@ KUSUR 1–6 **KAPANDI** (W163, #149, main `a56e291`): 1+2 `5a4ed87`/`c129cfc`/`6
 [Hüküm](../../reviews/WEB-7-codex.md): CX-F7-E-01 (yüksek/engelleyici: SSE olay uygulama bağlamı eski kapsamda, aynı programda birim/mercek değişince çıkarılma kapanmaz), Ö-01 (yüksek: geç gönderim sonucu başka taslağı siliyor), Ö-02 (orta: önbellekli sohbete dönüşte uzlaştırma yok), Ö-03 (orta: odak dönüşünde okundu tetiklenmiyor), K-01 (orta: sohbet testlerinde gerçek zaman beklemeleri) → **W164 düzeltiyor** (`web7/o4-w164`); K-02 (düşük belge) W161'de kapandı. Tur 2 bekliyor.
 
 **W164 düzeltmeleri (#150, main `8742269`):** E-01 `354a2ed`, Ö-01 `a5dc176`, Ö-03 `7efd68c`, Ö-02 `797830e`, K-01 `16f52eb`; hepsi geri alınınca kırmızı teyit; 765 dosya / 5501 test; duman gerçek SSE + Caddy 2 senaryo × 3 × 2 tema 0/0/0 (`web7-w164/`, yerel). Varsayımlar kabul. **Açık borç:** pin olayı için ayrı test yok; Ö-03 sökülme birim testi yok.
+
+### O4 — Codex tur 2: KOŞULLU UYGUN → W165 (HEAD `35b7de9`)
+
+[Hüküm](../../reviews/WEB-7-codex.md): tur 1 kapanışları anlamlı bulundu (E-01, Ö-01, Ö-02, Ö-03, K-01, K-02). Yeni: **CX-F7-Ö-04** (yüksek: taslak nesli/sürümü bütünüyle korunmuyor — düzenleme kaydı beklerken vazgeç + başka mesaj düzenle ilk başarıyla yeni taslağı siliyor; `settleSent` gövde eşitliği Yanıtla bağlamı/çip değişimini temizliyor) ve **Ö-05** (orta: A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` ile B'yi listeye atıyor) → **W165 düzeltiyor**. Notlar/borç: pin olayı ve gecikmiş kapsam değişimi için ayrı test yok; Ö-03 görünürlük dönüşü/sökülme sınanmadı; gerçek uyku geri gelmesini reddeden otomatik kural yok. Kanıt sınırı: Codex test koşamadı (EPERM); W164 ham konsol 70 kayıt (sahte uç 404'leri, "konsol temiz" değil). Tur 3 bekliyor.
 
 ## Kararlar P54–P66 (özet; metinler [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md))
 

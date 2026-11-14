@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**Durum (2026-11-14): F7 KAPANMADI — Codex tur 2.** Tur 1 koşulları W164'te kapandı. O1–O3 (#137–#147) main'de (son kod `76e4345`; 758 dosya / 5478 test). Bu belgeler W161 (yalnız belge, `web7/o4-kapanis`); gerçek sunucu tanığı W162 (`web7/o4-w162`) ve Codex nihai kapısı ([hüküm](../../reviews/WEB-7-codex.md), iskelet) tamamlanmadı; kapanış PR'ı: bekliyor (CI ve birleşme ayrıca). F8 AÇILMADI ([web-8](../web-8/README.md)).
+**Durum (2026-11-14): F7 KAPANMADI — Codex tur 2 KOŞULLU UYGUN, W165 düzeltiyor.** Tur 1 koşulları W164'te kapandı. O1–O3 (#137–#147) main'de (son kod `76e4345`; 758 dosya / 5478 test). Bu belgeler W161 (yalnız belge, `web7/o4-kapanis`); gerçek sunucu tanığı W162 (`web7/o4-w162`) ve Codex nihai kapısı ([hüküm](../../reviews/WEB-7-codex.md), iskelet) tamamlanmadı; kapanış PR'ı: bekliyor (CI ve birleşme ayrıca). F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Planlanan akış
 
@@ -11,7 +11,8 @@
 | 2b | W163 düzeltmeleri: KUSUR 1–6 (KUSUR 6: `/mesajlar` departman kapısından muaf, koordinatör kararı P54) + "Gruptan ayrıl" metin bağlantısı | W163 (Sonnet 5.5) | **Tamam** (#149, main `a56e291`; KUSUR 1–6 kapandı, 761 dosya / 5491 test) |
 | 3a | Codex tur 1 (HEAD `a6cea6b`): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | **Tamam: UYGUN DEĞİL** (E-01 engelleyici, Ö-01/02/03, K-01, K-02) |
 | 3b | W164: E-01, Ö-01, Ö-02, Ö-03, K-01 düzeltmeleri (K-02 W161'de kapandı) | W164 (Sonnet 5.5) | **Tamam** (#150, main `8742269`; 765 dosya / 5501 test) |
-| 3c | Codex tur 2 (ve gerekirse tur 3) | Codex | Bekliyor |
+| 3c | Codex tur 2 (HEAD `35b7de9`) | Codex | **Tamam: KOŞULLU UYGUN** (Ö-04 yüksek, Ö-05 orta) |
+| 3d | W165: Ö-04, Ö-05 düzeltmeleri; sonra Codex tur 3 | W165 (Sonnet 5.5) | **Sürüyor** ("W165 main'de" bekleniyor) |
 | 4 | Koşullar işçiyle kapatılır; gerekirse sonraki tur | işçi + koordinatör | Bekliyor |
 | 5 | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla) | koordinatör | Bekliyor |
 

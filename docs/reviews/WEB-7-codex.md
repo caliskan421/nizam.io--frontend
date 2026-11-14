@@ -1,6 +1,6 @@
 # WEB-7 — Codex nihai kapı
 
-Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Codex `gpt-6.1-sol` medium, `-s read-only`. Hüküm durumu: **tur 1 UYGUN DEĞİL** (HEAD `a6cea6b`; koşullar W164'te kapandı, main `8742269`; tur 2 bekliyor). F7 **KAPANMADI** — Codex bekliyor. Ham çıktılar koordinatör kaydında tutulacak (`.git/koordinator/web7-codex-tur{1,2,3}.md`, yerel). İstem: koordinatör `web7-codex-prompt.md` ([oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md) "Codex istem notları").
+Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Codex `gpt-6.1-sol` medium, `-s read-only`. Hüküm durumu: **tur 1 UYGUN DEĞİL** (HEAD `a6cea6b`; koşullar W164'te kapandı, main `8742269`; tur 2 KOŞULLU UYGUN, W165; tur 3 bekliyor). F7 **KAPANMADI** — Codex bekliyor. Ham çıktılar koordinatör kaydında tutulacak (`.git/koordinator/web7-codex-tur{1,2,3}.md`, yerel). İstem: koordinatör `web7-codex-prompt.md` ([oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md) "Codex istem notları").
 
 Girdiler: main `76e4345` (W160 birleşik) + W161 belgeleri + W162 `dogrulama-F7.md` (bekliyor); kapı HEAD'i W162 main'e girince belirlenir. Kabul ölçütleri: 10/14/00 "F7 uygulama kanıtı" bölümleri, P54–P66, KESİN 17/21/22/26/27/29/30/33/34. Araç izi olmayan çıktı kapı sayılmaz; hüküm HEAD CI'sını doğrulamaz (kapanış PR'ı ayrıca).
 
@@ -59,10 +59,50 @@ Atamalar W164'te (`web7/o4-w164`) kapandı; K-02 W161'de. Kapanış hash'leri yu
 
 W164 (PR #150, main `8742269`): Kapı 765 dosya / 5501 test; duman gerçek SSE + Caddy 2 senaryo × 3 × 2 tema 0/0/0 (kanıt `web7-w164/`, yerel); her düzeltme geri alınınca ilgili test kırmızı teyit edildi. Varsayımlar kabul: önbellek ölçütü `getQueryData`; `saving` genel bayrak kalır; geç recheck atılır. Açık borçlar: pin olayı için ayrı test yok; Ö-03 sökülme birim testi yok.
 
-## Tur 2 — bekliyor
+## Tur 2 — 2026-11-14, HEAD 35b7de9
 
-_(gerekirse)_
+HEAD: `35b7de936ab13f625c5a54184d3fcd72114610df`
 
-## Tur 3 (nihai) — bekliyor
+**KOŞULLU UYGUN**
+
+Tur 1'in engelleyici eski kapsam kusuru (E-01) kapanmış; incelenen yollarda yeni engelleyici yetki veya pin kusuru yok. Geç sonuçların sahipliğinde iki davranış kusuru (Ö-04, Ö-05) F7 kapanmadan giderilmeli. Codex dosya değiştirmedi, uygulama/test yazmadı, push/PR yapmadı; çalışma ağacı temiz kaldı. Ham çıktı: `.git/koordinator/web7-codex-tur2.md` (yerel).
+
+### Tur 1 kapanışlarının denetimi (kod ve test gövdeleri; geri alma deneyi bu turda yok)
+
+| Bulgu / commit | Değerlendirme |
+| --- | --- |
+| E-01 `354a2ed` | Olay kapsamı her olayda güncel snapshot'tan; `chat-stream-scope.test` mercek değişiminden sonra çıkarılmayı (listeye dönüş + tek bildirim) denetliyor; anlamlı. Sabit olayı ve gecikmiş kapsam değişimi için ayrı test yok; başka sohbete geçiş dalı Ö-05 |
+| Ö-01 `a5dc176` | A'nın geç yanıtı B taslağını silmiyor, farklı metni temizlemiyor; `chat-send-late.test` yanıt bariyeriyle sınıyor; anlamlı. Sürüm koruması bütün taslak değişikliklerini kapsamıyor: Ö-04 |
+| Ö-02 `797830e` | `useActivationReconcile`; `chat-stream-return.test` iki gezinme yolunda yeni mesaj/düzenleme/silme ve `after` +1; anlamlı |
+| Ö-03 `7efd68c` | Odak/görünürlük → `touch()`; `chat-window.test` 999 ms'de sıfır / 1000 ms'de tek POST; anlamlı. Test mevcut okunmamışlarla başlıyor; görünürlük dönüşü ve yeni dinleyicilerin sökülmesi ayrıca sınanmıyor |
+| K-01 `16f52eb` | Üç gerçek bekleme bariyere çevrilmiş; chat testlerinde doğrudan gerçek uyku kalmamış. Geri gelmesini reddeden otomatik kural yok (borç) |
+| K-02 W161 | Üç belge bölümü tarihsel test kapsamı ile W162 tanığını ayırıyor; kapanmış |
+
+### Yeni bulgular
+
+| Bulgu | Önem | Konum | Bağ | Atanan | Durum |
+| --- | --- | --- | --- | --- | --- |
+| CX-F7-Ö-04 Taslak anahtarı korunuyor, taslak nesli/sürümü bütünüyle korunmuyor (düzenleme kaydı beklerken vazgeç + başka mesaj düzenle → ilk başarı yeni taslağı siliyor; `settleSent` yalnız gövde eşitliği → Yanıtla bağlamı/çip değişimi temizleniyor) | Yüksek | `composer/drafts.ts:49`, `use-edit.ts:84`, `:135` | E-10-46/51/60, K5, KESİN 26 | W165 | açık |
+| CX-F7-Ö-05 A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` üretiyor; sayfa B'yi listeye atıyor ve yanlış "bulunamadı" bildirimi çıkıyor | Orta | `api/stream-apply.ts:41`, `:79`; `pages/ChatPage.vue:54` | N-10-14, KESİN 26 | W165 | açık |
+
+### Bulgu ayrıntıları
+
+**CX-F7-Ö-04.** Düzenleme kaydı beklerken kullanıcı metni değiştirebilir veya Vazgeç ile çıkıp aynı sohbette başka mesajı düzenlemeye başlayabilir; ilk kaydın başarısı koşulsuz `endEdit(at)` çağırıp **sonradan oluşan düzenleme taslağını siler**; `saving` bayrağı metin girişini, vazgeçmeyi ve yeni düzenlemeyi engellemez. `settleSent` yalnız gövde eşitliğini karşılaştırır: yanıt beklerken metin değişmeden başka mesaja Yanıtla seçilirse yeni yanıt bağlamı eski başarıyla temizlenir; gövdenin değiştirilip eski metne döndürülmesi de yeni taslağı eski sürümden ayıramaz. *Düzeltme sınıfı:* normal ve düzenleme taslaklarında değişiklik nesli/sürümü yakalamak; başarı temizliğini yalnız aynı sürüme uygulamak; yanıt ve çip değişiklikleri sürüme dahil; gönderim, yükleme ve düzenleme aynı sahiplik kuralını kullanmalı. *Doğrulama:* PATCH yanıtını tut → vazgeç → başka mesaj için yeni düzenleme metni yaz → ilk yanıtı bırak → yeni metin ve düzenleme kipi korunmalı; POST/yükleme için gövde aynı kalırken değişen yanıt bağlamı korunmalı.
+
+**CX-F7-Ö-05.** A açıkken çıkarılma olayı gelir; ayrıntı okuması 404 verirken aynı planın liste okuması bekler; kullanıcı aynı kapsamda B'yi açar; plan hâlâ `open = A` taşır, `recheck` yalnız kapsam ve sayfa sahibini denetler; A'nın önbellekteki 404'ü `onChatLost(A)` üretir, sayfa callback'i kimliği kullanmadığından B'den de listeye yönlendirir. Yetki aşımı değildir. *Düzeltme sınıfı:* gecikmiş erişim sonucunu uygulamadan önce güncel açık sohbet kimliğini doğrulamak; sayfa callback'inde farklı sohbetin kapanışını reddetmek. *Doğrulama:* A için ayrıntı 404'ünü tamamlat, aynı olayın liste yanıtını bariyerde tut → B'yi aç → bariyeri bırak → B açık kalmalı, yanlış bildirim çıkmamalı.
+
+### Bağımsız sınıf taraması (özet)
+
+Temiz: yetki/pin (`v0.15.0-api`, program/grup rolü ayrı, yeni sızıntı yok), SSE yaşam döngüsü (`shared/sse`, `EventSource` yok; gecikmiş sohbet sonucu yalnız Ö-05'te), bilet/abonelik, modül sınırları (`public.ts`; rota gövdeleri ve zil paneli bağlı), service worker (yalnız `push`/`notificationclick`, fetch/önbellek yok, CSP `worker-src` ve `/sw.js` no-cache var), kurallar (tur 1 sonrası diff'te lint/boyut/CI gevşetmesi yok).
+
+### Kanıt sınırları (tur 2)
+
+- Codex seçili sekiz test dosyasını çalıştıramadı: salt okunur ortamda Vitest geçici dizin oluşturamadı (`EPERM`), hiçbir test başlamadı; ürün testi başarısızlığı değildir. Tam test/build/CI ve geri alma deneyi bu tur doğrulanmadı.
+- W162 sonuç dosyaları `76e4345`, W163 `97158da`, W164 `16f52eb` HEAD'lerine aittir; mevcut HEAD'de yeniden koşulmadı.
+- W164 duman: 12 görünüm sonucunda taşma 0, CSP 0; ancak ham konsolda **70 hata kaydı** (52 sahte sunucuda karşılanmayan `program/work-items/counts`, 18 çıkarılma senaryosundaki sohbet/üye 404'leri). "Konsol temiz" kanıtı değildir; gerçek backend kusuru da göstermez.
+- Gerçek FCM aboneliği ve teslim W162 ham kaydıyla desteklenir (sarmallı W159 dumanından ayrı).
+- VoiceOver, kullanıcı görsel onayı, OS bildirimine tıklama, gerçek mobil cihaz doğrulanmadı; bilinen borçlar tekrarlanmadı. `../program/` komşu yolda bulunamadı; tam kapsama iddiası yok.
+
+## Tur 3 (nihai) — bekliyor (W165 sonrası)
 
 _(gerekirse)_
