@@ -38,13 +38,13 @@ interface Harness {
 
 function load(windows: Harness['windows'] = []): Harness {
   const listeners = new Map<string, Listener>()
-  const shown = vi.fn(async () => undefined)
-  const openWindow = vi.fn(async () => null)
+  const shown = vi.fn(() => Promise.resolve())
+  const openWindow = vi.fn(() => Promise.resolve(null))
   const close = vi.fn()
   const self = {
     location: { origin: ORIGIN },
     registration: { showNotification: shown },
-    clients: { matchAll: vi.fn(async () => windows), openWindow },
+    clients: { matchAll: vi.fn(() => Promise.resolve(windows)), openWindow },
     addEventListener: (type: string, listener: Listener) => listeners.set(type, listener),
   }
   vm.runInNewContext(SOURCE, { self, URL, Object })
@@ -60,7 +60,7 @@ function load(windows: Harness['windows'] = []): Harness {
       const data =
         payload === undefined
           ? null
-          : { json: () => (raw ? JSON.parse(String(payload)) : (payload as unknown)) }
+          : { json: () => (raw ? JSON.parse(payload as string) : payload) }
       listeners.get('push')!({ data, waitUntil: wait })
       await Promise.all(waits.splice(0))
       const [title, options] = shown.mock.calls.at(-1) as unknown as [
@@ -179,7 +179,7 @@ describe('notificationclick (E-14-76): hedef eşlemesi model/target ile aynı', 
     expect(foreign.focus).not.toHaveBeenCalled()
     expect(sw.openWindow).toHaveBeenCalledTimes(1)
 
-    const tab = { url: `${ORIGIN}/`, focus: vi.fn(async () => undefined), navigate: vi.fn() }
+    const tab = { url: `${ORIGIN}/`, focus: vi.fn(() => Promise.resolve()), navigate: vi.fn() }
     tab.navigate.mockRejectedValue(new TypeError('uncontrolled'))
     const sw2 = load([tab])
     await sw2.click({ type: 't', subject_ref: { kind: 'work_item', id: 'w-1' } })

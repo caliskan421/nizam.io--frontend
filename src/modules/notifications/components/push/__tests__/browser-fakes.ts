@@ -14,7 +14,7 @@ export const ENDPOINT = 'https://push.example.test/send/abc123'
 
 export class FakeSubscription {
   endpoint = ENDPOINT
-  unsubscribe = vi.fn(async () => true)
+  unsubscribe = vi.fn(() => Promise.resolve(true))
   toJSON() {
     return { endpoint: this.endpoint, keys: { p256dh: 'p256dh-b64url', auth: 'auth-b64url' } }
   }
@@ -31,6 +31,8 @@ export interface BrowserOptions {
   existing?: boolean
   /** `pushManager.subscribe` reddeder. */
   subscribeFails?: boolean
+  /** `pushManager.subscribe` bu söz çözülene kadar bekler. */
+  subscribeGate?: Promise<void>
   /** Hiç Push API yok (eski tarayıcı). */
   noApis?: boolean
   userAgent?: string
@@ -55,6 +57,57 @@ export interface BrowserFake {
 }
 
 const own = (target: object, key: string) => Object.getOwnPropertyDescriptor(target, key)
+const defineNav = (key: string, value: unknown) =>
+  Object.defineProperty(navigator, key, { configurable: true, get: () => value })
+
+/** `navigator` / `window` alanlarını sahteler; eski tanımlayıcıları `restore` için döndürür. */
+function fakeEnvironment(options: BrowserOptions) {
+  const saved = {
+    serviceWorker: own(navigator, 'serviceWorker'),
+    userAgent: own(navigator, 'userAgent'),
+    platform: own(navigator, 'platform'),
+    maxTouchPoints: own(navigator, 'maxTouchPoints'),
+    standalone: own(navigator, 'standalone'),
+    matchMedia: own(window, 'matchMedia'),
+  }
+  if (options.userAgent) defineNav('userAgent', options.userAgent)
+  if (options.platform) defineNav('platform', options.platform)
+  if (options.maxTouchPoints !== undefined) defineNav('maxTouchPoints', options.maxTouchPoints)
+  if (options.standalone) {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: (query: string) => ({ matches: query.includes('standalone'), media: query }),
+    })
+  }
+  return () => {
+    vi.unstubAllGlobals()
+    for (const [key, descriptor] of Object.entries(saved)) {
+      const target = key === 'matchMedia' ? window : navigator
+      if (descriptor) Object.defineProperty(target, key, descriptor)
+      else delete (target as unknown as Record<string, unknown>)[key]
+    }
+  }
+}
+
+function fakeRegistration(
+  options: BrowserOptions,
+  subscription: FakeSubscription,
+  read: () => FakeSubscription | null,
+  write: (value: FakeSubscription) => void,
+) {
+  return {
+    pushManager: {
+      getSubscription: vi.fn(() => Promise.resolve(read())),
+      subscribe: vi.fn(async () => {
+        await options.subscribeGate
+        if (options.subscribeFails) throw new DOMException('push service', 'AbortError')
+        write(subscription)
+        return subscription
+      }),
+    },
+    showNotification: vi.fn(() => Promise.resolve()),
+  }
+}
 
 export function installBrowser(options: BrowserOptions = {}): BrowserFake {
   const subscription = new FakeSubscription()
@@ -64,22 +117,17 @@ export function installBrowser(options: BrowserOptions = {}): BrowserFake {
   let release: ((value: NotificationPermission) => void) | null = null
   let held = false
 
-  const registration = {
-    pushManager: {
-      getSubscription: vi.fn(async () => current),
-      subscribe: vi.fn(async () => {
-        if (options.subscribeFails) throw new DOMException('push service', 'AbortError')
-        current = subscription
-        return subscription
-      }),
-    },
-    showNotification: vi.fn(async () => undefined),
-  }
-  const register = vi.fn(async () => {
+  const registration = fakeRegistration(
+    options,
+    subscription,
+    () => current,
+    (v) => (current = v),
+  )
+  const register = vi.fn(() => {
     registered = true
-    return registration
+    return Promise.resolve(registration)
   })
-  const getRegistration = vi.fn(async () => (registered ? registration : undefined))
+  const getRegistration = vi.fn(() => Promise.resolve(registered ? registration : undefined))
   const requestPermission = vi.fn(
     () =>
       new Promise<NotificationPermission>((resolve) => {
@@ -92,28 +140,12 @@ export function installBrowser(options: BrowserOptions = {}): BrowserFake {
       }),
   )
 
-  const saved = {
-    serviceWorker: own(navigator, 'serviceWorker'),
-    userAgent: own(navigator, 'userAgent'),
-    platform: own(navigator, 'platform'),
-    maxTouchPoints: own(navigator, 'maxTouchPoints'),
-    standalone: own(navigator, 'standalone'),
-    matchMedia: own(window, 'matchMedia'),
-  }
-  const define = (key: string, value: unknown) =>
-    Object.defineProperty(navigator, key, { configurable: true, get: () => value })
-
-  if (options.userAgent) define('userAgent', options.userAgent)
-  if (options.platform) define('platform', options.platform)
-  if (options.maxTouchPoints !== undefined) define('maxTouchPoints', options.maxTouchPoints)
-  if (options.standalone) {
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      value: (query: string) => ({ matches: query.includes('standalone'), media: query }),
-    })
-  }
-  if (!options.noApis) {
-    define('serviceWorker', { register, ready: Promise.resolve(registration), getRegistration })
+  const restore = fakeEnvironment(options)
+  if (options.noApis) {
+    delete (globalThis as { Notification?: unknown }).Notification
+    delete (globalThis as { PushManager?: unknown }).PushManager
+  } else {
+    defineNav('serviceWorker', { register, ready: Promise.resolve(registration), getRegistration })
     vi.stubGlobal('PushManager', class PushManager {})
     vi.stubGlobal('Notification', {
       get permission() {
@@ -121,10 +153,6 @@ export function installBrowser(options: BrowserOptions = {}): BrowserFake {
       },
       requestPermission,
     })
-  } else {
-    vi.stubGlobal('Notification', undefined)
-    delete (globalThis as { Notification?: unknown }).Notification
-    delete (globalThis as { PushManager?: unknown }).PushManager
   }
 
   return {
@@ -140,13 +168,6 @@ export function installBrowser(options: BrowserOptions = {}): BrowserFake {
       held = true
       return (value) => release?.(value)
     },
-    restore: () => {
-      vi.unstubAllGlobals()
-      for (const [key, descriptor] of Object.entries(saved)) {
-        const target = key === 'matchMedia' ? window : navigator
-        if (descriptor) Object.defineProperty(target, key, descriptor)
-        else delete (target as unknown as Record<string, unknown>)[key]
-      }
-    },
+    restore,
   }
 }

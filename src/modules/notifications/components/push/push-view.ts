@@ -2,7 +2,7 @@
  * Web Push kutusunun görünüm kararı (14 `mekanizma.md` §3.3 durum makinesi; E-14-60, 69…73).
  * Saf işlev: girdiler tarayıcı/oturum gerçekleridir, çıktı yalnız hangi yüzün çizileceği.
  */
-import type { PermissionState, PushSupport } from '../../api/push-client'
+import type { PermissionState, PushSupport } from '../../model/push-browser'
 
 export type PushView =
   'hidden' | 'prompt' | 'snoozed' | 'blocked' | 'ios' | 'unsupported' | 'enabled'

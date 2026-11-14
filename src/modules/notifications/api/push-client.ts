@@ -12,28 +12,16 @@
  *    404/410 ile düşürür (K12). Paylaşılan tarayıcıda önceki hesabın bildirimi gelmesin, yeni
  *    hesabın kaydı 409 almasın diye (E-14-79).
  */
-import { authSession } from '@/shared/http'
-import type { AuthSession } from '@/shared/session/auth-session'
-
+import {
+  PushClientError,
+  SERVICE_WORKER_SCOPE,
+  SERVICE_WORKER_URL,
+  USER_AGENT_LIMIT,
+  type BrowserSubscription,
+  type PermissionState,
+  type PushSupport,
+} from '../model/push-browser'
 import type { RegisterTargetRequest } from '../model/types'
-
-/** Service worker dosyası ve kapsamı (kök). */
-export const SERVICE_WORKER_URL = '/sw.js'
-export const SERVICE_WORKER_SCOPE = '/'
-export const USER_AGENT_LIMIT = 200
-
-export type PushSupport = 'supported' | 'unsupported' | 'ios_install'
-export type PermissionState = NotificationPermission | 'unsupported'
-
-/** Tarayıcıya özgü başarısızlık (UI genel metne çevirir; ayrıntı kullanıcıya gösterilmez). */
-export class PushClientError extends Error {
-  readonly reason: 'key_invalid' | 'subscribe_failed' | 'unsupported'
-  constructor(reason: PushClientError['reason']) {
-    super(reason)
-    this.name = 'PushClientError'
-    this.reason = reason
-  }
-}
 
 function hasApis(): boolean {
   return (
@@ -53,7 +41,7 @@ function isIos(): boolean {
 }
 
 function isStandalone(): boolean {
-  const legacy = (navigator as { standalone?: boolean }).standalone === true
+  const legacy = Reflect.get(navigator, 'standalone') === true
   const media =
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(display-mode: standalone)').matches
@@ -130,11 +118,6 @@ export async function existingSubscription(): Promise<PushSubscription | null> {
   }
 }
 
-export interface BrowserSubscription {
-  registration: ServiceWorkerRegistration
-  subscription: PushSubscription
-}
-
 /** (b) `sw.js` kaydı → `ready` → `pushManager.subscribe`; izin zaten `granted` olmalıdır. */
 export async function subscribeBrowser(publicKey: string): Promise<BrowserSubscription> {
   if (!hasApis()) throw new PushClientError('unsupported')
@@ -174,33 +157,4 @@ export async function unsubscribeLocal(): Promise<void> {
   } catch {
     // Sunucu hedefi sonraki teslimde 404/410 ile düşer (K12).
   }
-}
-
-/**
- * Çıkış kancası (E-14-79): oturum nesli değişince (yerel çıkış, kardeş sekme çıkışı, doğrulanamayan
- * çıkış) ya da oturum başka hesaba geçince yerel abonelik iptal edilir. `shared/session` çıkış
- * akışına dokunmadan `authSession.subscribe` ile bağlanır (`bindSessionQueries` kalıbı).
- */
-export function installPushSignOutHook(
-  session: Pick<AuthSession, 'generation' | 'snapshot' | 'subscribe'> = authSession,
-  unsubscribe: () => Promise<void> = unsubscribeLocal,
-): () => void {
-  let generation = session.generation
-  let lastAccount = session.snapshot.accountId
-  return session.subscribe((snapshot) => {
-    const ended = session.generation !== generation
-    const switched =
-      snapshot.accountId !== null && lastAccount !== null && snapshot.accountId !== lastAccount
-    generation = session.generation
-    if (snapshot.accountId !== null) lastAccount = snapshot.accountId
-    if (ended || switched) void unsubscribe()
-  })
-}
-
-let hookInstalled = false
-/** Uygulama başına bir kez (modül içe aktarılınca); testler `installPushSignOutHook`'u doğrudan çağırır. */
-export function ensurePushSignOutHook(): void {
-  if (hookInstalled) return
-  hookInstalled = true
-  installPushSignOutHook()
 }
