@@ -171,7 +171,7 @@ const retryCounts = () => void load.counts.refetch()
       <div class="rh-col">
         <ApprovalsCard
           :items="approvals"
-          :count="summary?.pending ?? approvals.length"
+          :count="summary?.pending ?? (partial ? `≥${approvals.length}` : approvals.length)"
           :today="today"
           :loading="listLoading"
           :error="listError"

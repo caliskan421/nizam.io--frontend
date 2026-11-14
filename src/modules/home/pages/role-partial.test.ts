@@ -182,4 +182,80 @@ describe('K1 kısmi küme (CX-F6-E-03)', () => {
     expect(note(page, 'team').exists()).toBe(true)
     expect(page.wrapper.find('[data-partial] [data-action="scope-more"]').exists()).toBe(true)
   })
+
+  // CX-F6-E-07: sayaç hatası liste kapsamını/devam eylemini gizlemez; türevler alt sınır.
+  const COUNTS_FAIL = http.get(`${ORIGIN}${COUNTS}`, () =>
+    json({ code: 'platform.internal', message: 'x', request_id: 'r', fields: [] }, 500),
+  )
+  const pending = (title: string) => row('onaya_sunuldu', { title, end_on: '2099-01-10' })
+
+  it('sayaç hatası + 2. sayfa hatası: liste eylemi görünür, aynı imleci sürdürür, sayaç düzelmeden yeni görevleri getirir', async () => {
+    let fail = true
+    const cursors: (string | null)[] = []
+    server.use(
+      COUNTS_FAIL,
+      ...standingHandlers(COORD),
+      http.get(`${ORIGIN}${LIST}`, ({ request }) => {
+        const cursor = new URL(request.url).searchParams.get('cursor')
+        cursors.push(cursor)
+        if (!cursor) return json({ items: [pending('Birinci onay')], next_cursor: 'c2' })
+        return fail
+          ? json({ code: 'platform.internal', message: 'x', request_id: 'r', fields: [] }, 500)
+          : json({ items: [pending('İkinci onay')], next_cursor: '' })
+      }),
+      ...roleHandlers(),
+    )
+    const page = await mountRole(CoordinatorHomePage, COORD_SCOPE)
+    await vi.waitFor(() =>
+      expect(page.wrapper.get('[data-partial]').attributes('data-scope')).toBe('failed'),
+    )
+    // Sayaç hatası bölge içinde; kapsam notu ve eylem yine de çizili.
+    expect(page.wrapper.find('[data-region="unit"] [role="alert"]').exists()).toBe(true)
+    expect(page.wrapper.get('[data-partial]').text()).toContain('İlk 1 görev yüklendi')
+    expect(region(page, 'approvals').find('.rp-count').text()).toBe('≥1')
+    const countCalls = sent(COUNTS).length
+
+    fail = false
+    await page.wrapper.get('[data-partial] [data-action="scope-more"]').trigger('click')
+    await vi.waitFor(() => expect(page.wrapper.find('[data-partial]').exists()).toBe(false))
+    expect(cursors.slice(-1)).toEqual(['c2'])
+    expect(sent(COUNTS)).toHaveLength(countCalls)
+    expect(region(page, 'approvals').find('.rp-count').text()).toBe('2')
+    expect(region(page, 'approvals').text()).toContain('İkinci onay')
+  })
+
+  it('sayaç hatası + 5 sayfa tavanı: "Devam et" görünür, imleçten sürdürür; "Yeniden dene" yalnız sayaç', async () => {
+    const cursors: (string | null)[] = []
+    server.use(
+      COUNTS_FAIL,
+      ...standingHandlers(COORD),
+      http.get(`${ORIGIN}${LIST}`, ({ request }) => {
+        const cursor = new URL(request.url).searchParams.get('cursor')
+        cursors.push(cursor)
+        const n = cursor ? Number(cursor.slice(1)) : 1
+        return n >= 6
+          ? json({ items: [pending('Altıncı sayfa onayı')], next_cursor: '' })
+          : json({ items: [pending(`Onay ${n}`)], next_cursor: `c${n + 1}` })
+      }),
+      ...roleHandlers(),
+    )
+    const page = await mountRole(CoordinatorHomePage, COORD_SCOPE)
+    await vi.waitFor(() =>
+      expect(page.wrapper.get('[data-partial]').attributes('data-scope')).toBe('capped'),
+    )
+    expect(sent(LIST)).toHaveLength(5)
+    expect(region(page, 'approvals').find('.rp-count').text()).toBe('≥5')
+    // "Yeniden dene" sayaç sorgusunu yeniler; liste istek sayısı değişmez.
+    const countCalls = sent(COUNTS).length
+    await page.wrapper.get('[data-region="unit"] [role="alert"] button').trigger('click')
+    await vi.waitFor(() => expect(sent(COUNTS).length).toBeGreaterThan(countCalls))
+    expect(sent(LIST)).toHaveLength(5)
+
+    await page.wrapper.get('[data-partial] [data-action="scope-more"]').trigger('click')
+    await vi.waitFor(() => expect(sent(LIST)).toHaveLength(6))
+    expect(cursors.slice(-1)).toEqual(['c6'])
+    await vi.waitFor(() => expect(page.wrapper.find('[data-partial]').exists()).toBe(false))
+    expect(region(page, 'approvals').find('.rp-count').text()).toBe('6')
+    expect(region(page, 'approvals').text()).toContain('Altıncı sayfa onayı')
+  })
 })

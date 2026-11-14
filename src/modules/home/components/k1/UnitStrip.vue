@@ -152,7 +152,8 @@ const cells = computed<Cell[]>(() => {
         </div>
       </template>
     </section>
-    <template v-if="summary?.partial && !loading && !error">
+    <!-- Kapsam etiketi + devam/yeniden deneme sayaç başarısından BAĞIMSIZ (CX-F6-E-07). -->
+    <template v-if="scope || (summary?.partial && !loading && !error)">
       <ScopeNote
         v-if="scope"
         :scope="scope"
