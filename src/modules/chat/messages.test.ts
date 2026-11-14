@@ -41,8 +41,11 @@ describe('sohbet metinleri (tek ağaç trChat)', () => {
     expect(Object.keys(trChat.chat.thread.reaction)).toEqual(['like', 'heart', 'check', 'star'])
   })
 
-  it('tasarımdaki sözleşme dışı özellikler için metin yok (iletme, sessize alma, anonim, Koordinatörler grubu)', () => {
-    const all = leaves(trChat).join(' ')
+  it('sözleşme dışı özellikler: metin yalnız devre dışı designStub etiketlerinde (BE-027, BE-161); iletme ve "Koordinatörler" grubu (BE-160) çizilmez', () => {
+    const stubLabels = ['chat.dialogs.info.mute', 'chat.dialogs.pollForm.secret']
+    expect(stubLabels.map((k) => chatText(k as ChatTextKey))).toEqual(['Sessize al', 'Anonim'])
+    const rest = (leaves(trChat) as ChatTextKey[]).filter((k) => !stubLabels.includes(k))
+    const all = rest.map((k) => chatText(k)).join(' ')
     expect(all).not.toMatch(/sessize|anonim|Koordinatörler/i)
   })
 })

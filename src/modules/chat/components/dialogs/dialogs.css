@@ -1,0 +1,263 @@
+/*
+ * 10c pencereleri (Mesajlar-Pencereler.dc.html): kabuk `UiModal` (`t-modal`); burada gövde düzeni.
+ * Çizilmemiş parçalar (aday seçici, bilgi sekmeleri, dosya bırakma alanı) P3: `shared/ui` + en
+ * sade yerleşim. Yalnız token; ham renk/px yok.
+ */
+@layer components {
+  .chat-dlg {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .chat-dlg__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .chat-dlg__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .chat-dlg__label {
+    margin: 0;
+    padding: 0;
+    font: var(--text-label);
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+  .chat-dlg__row2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .chat-dlg__option,
+  .chat-dlg__seg-row,
+  .chat-dlg__check {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    min-width: 0;
+  }
+  .chat-dlg__option > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .chat-dlg__seg-row {
+    justify-content: space-between;
+  }
+  .chat-dlg__stub {
+    display: inline-flex;
+    gap: var(--ui-gap-sm);
+  }
+  .chat-dlg__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ui-gap-sm);
+  }
+  .chat-dlg__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ui-gap-sm);
+  }
+  .chat-dlg__chip {
+    min-height: var(--control-sm);
+    padding: 0 var(--space-3);
+    border: var(--ui-hairline) solid var(--border-control);
+    border-radius: var(--radius-full);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-body);
+    cursor: pointer;
+  }
+  .chat-dlg__chip[aria-pressed='true'] {
+    border-color: var(--accent-text);
+    background: var(--bg-overlay);
+    color: var(--accent-text);
+  }
+  .chat-dlg__chip:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .chat-dlg__quote,
+  .chat-dlg__bubble {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    color: var(--ink);
+    font: var(--text-body);
+  }
+  .chat-dlg__drop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ui-gap-sm);
+    padding: var(--space-4);
+    border: var(--ui-hairline) dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--ink-muted);
+    font: var(--text-body);
+  }
+  .chat-dlg__drop--over {
+    border-color: var(--accent-text);
+    background: var(--bg-raised);
+  }
+  .chat-dlg__file {
+    position: absolute;
+    width: var(--ui-hairline);
+    height: var(--ui-hairline);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chat-dlg__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .chat-dlg__who-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .chat-dlg__name {
+    margin: 0;
+    font: var(--text-title);
+    overflow-wrap: anywhere;
+  }
+  .chat-dlg__sub {
+    margin: 0;
+    font: var(--text-body);
+    color: var(--ink-muted);
+  }
+
+  .chat-dlg-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .chat-dlg-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ui-gap-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .chat-dlg-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    max-height: calc(var(--control-lg) * 6);
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+  .chat-dlg-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--control-md);
+    min-width: 0;
+    padding: var(--ui-gap-xs) var(--space-3);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--ink);
+    font: var(--text-body);
+    text-align: start;
+    box-sizing: border-box;
+  }
+  button.chat-dlg-row {
+    cursor: pointer;
+  }
+  .chat-dlg-row:hover,
+  .chat-dlg-row[aria-pressed='true'] {
+    background: var(--bg-raised);
+  }
+  .chat-dlg-row[aria-pressed='true'] {
+    color: var(--accent-text);
+  }
+  .chat-dlg-row:focus-visible,
+  .chat-dlg-row__main:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .chat-dlg-row--split {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .chat-dlg-row__main {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+  }
+  button.chat-dlg-row__main {
+    cursor: pointer;
+  }
+  .chat-dlg-row__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .chat-dlg-row__meta {
+    flex: none;
+    color: var(--ink-muted);
+    font: var(--text-caption);
+  }
+
+  /*
+   * Dar ekran (P62; tasarımda 390 px yok): yedi pencere TAM EKRAN, alt düğmeler yapışık (gövde
+   * kayar, alt şerit yerinde kalır; E-13-12 kalıbı). Pencere kabuğu `UiModal` ortaktır; kural
+   * yalnız bu gövdeleri taşıyan pencerelerde uygulanır. Eşik = `--rp-narrow-max` (medya
+   * koşulunda var() çalışmaz; eşitlik `shared/tokens/media-thresholds.test.ts`).
+   */
+  @media (max-width: 900px) {
+    .t-modal-backdrop:has(.chat-dlg) {
+      padding: 0;
+      align-items: stretch;
+    }
+    .t-modal:has(.chat-dlg) {
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+    }
+    .t-modal:has(.chat-dlg) .t-modal__body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .chat-dlg__row2 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
