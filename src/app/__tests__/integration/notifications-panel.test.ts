@@ -263,3 +263,49 @@ describe('kapanış', () => {
     await until(() => !panel(), 'panel kapandı')
   })
 })
+
+describe('panel açıkken onay penceresi', () => {
+  it('ConfirmDialog etkileşimi dış tık sayılmaz: panel açık kalır; onay kapanınca yine açık', async () => {
+    addFor('member', 'work.item.created', WORK('w1'))
+    const app = await boot({ ...MEMBER, path: '/mesajlar' })
+    await idle(app.queryClient)
+    await openPanel()
+    const { defineComponent, h } = await import('vue')
+    const { mount } = await import('@vue/test-utils')
+    const { VueQueryPlugin } = await import('@tanstack/vue-query')
+    const { i18n } = await import('@/shared/i18n')
+    const { useConfirm } = await import('@/shared/ui/confirm')
+    let ask!: () => Promise<unknown>
+    const probe = mount(
+      defineComponent({
+        setup() {
+          const { confirmWrite } = useConfirm()
+          ask = () =>
+            confirmWrite({ title: 'Onay', confirmLabel: 'Tamam', tone: 'primary' }, () =>
+              Promise.resolve({ kind: 'success', data: null, status: 204 } as never),
+            )
+          return () => h('div')
+        },
+      }),
+      {
+        global: {
+          plugins: [
+            app.pinia,
+            [VueQueryPlugin, { queryClient: app.queryClient }],
+            app.router,
+            i18n,
+          ],
+        },
+      },
+    )
+    const answer = ask()
+    await until(() => $('[data-testid="confirm-dialog"]'), 'onay penceresi')
+    // Onay penceresine işaretçi basışı (dış tık kuralı): panel kapanmamalı.
+    $('[data-testid="confirm-dialog"]')!.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    await userClick('[data-testid="confirm-accept"]')
+    await answer
+    await until(() => !$('[data-testid="confirm-dialog"]'), 'onay kapandı')
+    expect(panel()).not.toBeNull()
+    probe.unmount()
+  })
+})
