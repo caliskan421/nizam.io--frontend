@@ -4,7 +4,7 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { shallowRef, type Component, type ShallowRef } from 'vue'
+import { ref, shallowRef, type Component, type ShallowRef } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { queryKeys } from '@/shared/http/query-keys'
@@ -159,8 +159,10 @@ function fakeContext(win: ShallowRef<MessageWindow>): ChatPageContext {
       reconcile: () => Promise.resolve(),
       loadOlder: () => Promise.resolve(),
       jumpTo: () => Promise.resolve(),
+      query: { isPending: ref(false), isError: ref(false), refetch: () => Promise.resolve() },
     },
     typingAccountIds: () => [],
+    connection: () => 'open',
   }
 }
 

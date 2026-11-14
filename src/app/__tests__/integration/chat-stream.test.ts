@@ -35,7 +35,6 @@ import {
   typeText,
   until,
   useChatBackend,
-  userClick,
   WHO,
 } from './chat-support'
 
@@ -328,6 +327,24 @@ describe('kopma ve uzlaştırma', () => {
     expect(streamRequests()).toHaveLength(4)
     await idle(app.queryClient)
   })
-})
 
-void userClick
+  it('N-10-15: kopukluk 10 sn\'yi aşarsa "Bağlantı yeniden kuruluyor…" (role=status); bağlanınca söner', async () => {
+    chat.state.streamReject = 503
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
+    fakeClock()
+    await until(() => messageEls().length > 0, 'mesajlar')
+    await advance(9_000)
+    expect($('[data-testid="chat-reconnecting"]')).toBeNull()
+    await advance(2_000)
+    await until(() => $('[data-testid="chat-reconnecting"]'), 'gösterge')
+    expect($('[data-testid="chat-reconnecting"]')!.getAttribute('role')).toBe('status')
+    expect($('[data-testid="chat-reconnecting"]')!.textContent).toContain(
+      'Bağlantı yeniden kuruluyor',
+    )
+    chat.state.streamReject = null
+    await advance(10_000)
+    await streamOpen()
+    await until(() => !$('[data-testid="chat-reconnecting"]'), 'gösterge söndü')
+    await idle(app.queryClient)
+  })
+})

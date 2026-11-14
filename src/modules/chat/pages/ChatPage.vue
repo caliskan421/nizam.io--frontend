@@ -55,6 +55,7 @@ provide(CHAT_PAGE_KEY, {
   chatId: () => chatId.value,
   messages,
   typingAccountIds: () => stream.typingAccountIds.value,
+  connection: () => stream.state.value,
 })
 
 // Konum izinin son parçası sohbet adıdır (E-10-02); veri gelmeden sahte ad yok.

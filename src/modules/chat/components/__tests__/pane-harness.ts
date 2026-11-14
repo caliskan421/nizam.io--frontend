@@ -104,6 +104,7 @@ export async function mountPane(options: PaneOptions & { chatId?: string } = {})
         chatId: () => options.chatId ?? 'c1',
         messages,
         typingAccountIds: () => typing.value,
+        connection: () => 'open',
       })
       provide(CHAT_DIALOG_OPENER, (request) => void dialogs.push(request))
       return () => [h(ConversationPane, { chatId: options.chatId ?? 'c1' }), h(ConfirmHost)]
