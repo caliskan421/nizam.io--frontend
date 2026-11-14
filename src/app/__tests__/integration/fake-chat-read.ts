@@ -1,7 +1,7 @@
 // W160 · O3: sahte sohbet okuma uçları (liste, ayrıntı, mesaj penceresi, üyeler, sabitler, adaylar,
 // ref'ler, okunmamış özeti). Üyelik sunucuda uygulanır; mesaj penceresi `listChatMessages`
 // anlamını (son sayfa, before, after, around, limit) birebir taklit eder.
-import { http, HttpResponse } from 'msw'
+import { http } from 'msw'
 
 import type { ChatMessage } from '@/modules/chat/public'
 
@@ -156,6 +156,43 @@ function detailHandlers(db: OrgDb, state: ChatState) {
   ]
 }
 
+/** Referans özeti (`getChatRefSummary`): çağıran referansın sohbetinin üyesidir; görev yoksa `available:false`. */
+function refSummary(db: OrgDb, state: ChatState, request: Request, refId: string) {
+  const me = fakeOrg.actorOf(db, request)
+  if (!me) return envelope('platform.unauthenticated', 401)
+  for (const chat of state.chats) {
+    if (!isMember(chat, me.account_id)) continue
+    for (const message of chat.messages) {
+      const ref = message.base.refs.find((r) => r.ref_id === refId)
+      if (!ref) continue
+      const base = {
+        chat_id: chat.chat_id,
+        kind: ref.kind,
+        message_id: message.base.message_id,
+        ref_id: refId,
+        target_id: ref.target_id,
+      }
+      const task = db.items.find((i) => i.work_item_id === ref.target_id)
+      if (ref.kind !== 'task' || !task) return json({ ...base, available: false })
+      return json({
+        ...base,
+        available: true,
+        task: {
+          assignees: [],
+          department_id: task.department_id,
+          department_name: null,
+          description: '',
+          end_on: String(task.end_on),
+          start_on: String(task.start_on),
+          status: task.status,
+          title: task.title,
+        },
+      })
+    }
+  }
+  return envelope('messaging.ref_not_found', 404)
+}
+
 function auxHandlers(db: OrgDb, state: ChatState) {
   return [
     http.get(`${ORIGIN}/v1/chats/candidates`, ({ request }) => {
@@ -206,7 +243,9 @@ function auxHandlers(db: OrgDb, state: ChatState) {
       })
       return json({ items })
     }),
-    http.get(`${ORIGIN}/v1/chat-refs/:refId`, () => HttpResponse.json({}, { status: 404 })),
+    http.get(`${ORIGIN}/v1/chat-refs/:refId`, ({ request, params }) =>
+      refSummary(db, state, request, String(params.refId)),
+    ),
   ]
 }
 
