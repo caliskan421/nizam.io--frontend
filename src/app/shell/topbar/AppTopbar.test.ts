@@ -113,7 +113,7 @@ describe('üst çubuk', () => {
     expect(document.documentElement.dataset.theme).toBe('dark')
   })
 
-  it('zil: sayaç canlı (nokta + sayılı ad); F7 panel sözleşmesi: devre dışı değil, dialog açar', async () => {
+  it('zil: sayaç canlı (sayılı rozet + sayılı ad); F7 panel sözleşmesi: devre dışı değil, dialog açar', async () => {
     const { wrapper } = await mountTopbar('/oturum', {}, 2)
     const bell = wrapper.get('[data-testid="topbar-bell"]')
     expect(bell.attributes('disabled')).toBeUndefined()
@@ -121,7 +121,7 @@ describe('üst çubuk', () => {
     expect(bell.attributes('aria-expanded')).toBe('false')
     expect(bell.attributes('aria-controls')).toBeUndefined()
     expect(bell.attributes('aria-label')).toBe('Bildirimler, 2 okunmamış')
-    expect(bell.find('.topbar-bell__dot').exists()).toBe(true)
+    expect(bell.get('.topbar-bell__badge').text()).toBe('2')
     expect(wrapper.find('[data-testid="notification-panel"]').exists()).toBe(false)
     await bell.trigger('click')
     expect(bell.attributes('aria-expanded')).toBe('true')
@@ -133,11 +133,11 @@ describe('üst çubuk', () => {
     expect(bell.attributes('aria-controls')).toBeUndefined()
   })
 
-  it('zil: okunmamış yoksa nokta yok, ad sayısız', async () => {
+  it('zil: okunmamış yoksa rozet yok, ad sayısız', async () => {
     const { wrapper } = await mountTopbar('/oturum', {}, 0)
     const bell = wrapper.get('[data-testid="topbar-bell"]')
     expect(bell.attributes('aria-label')).toBe('Bildirimler')
-    expect(bell.find('.topbar-bell__dot').exists()).toBe(false)
+    expect(bell.find('.topbar-bell__badge').exists()).toBe(false)
   })
 
   it('tarih yalnız ana sayfada, kurulum saat dilimiyle', async () => {

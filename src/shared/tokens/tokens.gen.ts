@@ -1748,6 +1748,12 @@ export const TOKENS = {
     "dark": "7px",
     "light": "7px"
   },
+  "notif-panel-w": {
+    "group": "topbar",
+    "origin": "web",
+    "dark": "420px",
+    "light": "420px"
+  },
   "list-min-w": {
     "group": "work",
     "origin": "web",
