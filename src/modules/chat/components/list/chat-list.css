@@ -95,7 +95,8 @@
   box-sizing: border-box;
   padding: 0 var(--ui-gap-xs);
   border-radius: var(--radius-full);
-  background: var(--accent-text);
+  /* `--accent` + `--accent-ink` (UiBadge accent tonu): açık temada `--accent-text` zemini okunmazdı. */
+  background: var(--accent);
   color: var(--accent-ink);
   font-weight: 700;
   line-height: 1;
