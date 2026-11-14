@@ -1,12 +1,12 @@
 # WEB-7 — iskelet (F7 AÇILMADI)
 
-**F7 AÇILMADI — karar bekler.** (WEB-6 KAPANDI 2026-11-14, kapanış PR'ı ile birleşir.) Bu klasör yalnız hazırlıktır; faz, kapsam ve sıra ürün sahibinin açık kararına kadar belirsizdir. Onay otomatik geçti sayılmaz: F7 ancak (1) kullanıcının açık "F7'yi aç" onayıyla, (2) [WEB-6](../web-6/README.md) KAPANDI kaydıyla (W144 gerçek sunucu tanığı, Codex hükmü, kapanış PR MERGED) ve (3) pin yeterliliğinin doğrulanmasıyla açılır. Hiçbir işçi, bu klasöre dayanarak kod, belge PR'ı veya backend isteği başlatmaz.
+**F7 AÇILMADI — karar bekler.** Kapsam kararı verildi (P54, 2026-11-14): **F7 kapsamı: sohbet + bildirimler**; diğerleri sonraki faz. Açılış yine açık onay ister. (WEB-6 KAPANDI 2026-11-14, kapanış PR'ı ile birleşir.) Bu klasör yalnız hazırlıktır; faz, kapsam ve sıra ürün sahibinin açık kararına kadar belirsizdir. Onay otomatik geçti sayılmaz: F7 ancak (1) kullanıcının açık "F7'yi aç" onayıyla, (2) [WEB-6](../web-6/README.md) KAPANDI kaydıyla (W144 gerçek sunucu tanığı, Codex hükmü, kapanış PR MERGED) ve (3) pin yeterliliğinin doğrulanmasıyla açılır. Hiçbir işçi, bu klasöre dayanarak kod, belge PR'ı veya backend isteği başlatmaz.
 
 **Kural (aynen F5/F6 kalıbı):** web yeni faza kendiliğinden geçmez; faz geçişi ürün sahibinin kararıdır. "Backend dursun" (P46) F6 için verilmiş karardır ve F7'ye otomatik taşınmaz; F7 açılırken ayrıca sorulur (backend paketi açılsın mı, hangi sırayla — [rapor-F6 §6](../../backend-eksikleri/rapor-F6.md), [rapor-F5 §1](../../backend-eksikleri/rapor-F5.md)).
 
-## Aday kapsam (karar ister)
+## Aday kapsam
 
-Hiçbiri seçilmedi; yol haritası [§4](../../architecture/yol-haritasi-web.md) F7'yi "sohbet + bildirim" (Mesajlar 10/10b/10c), F8'i "asistan" olarak yazar. Tuvale sonradan eklenen ekranlar ve F6'dan devreden satırlar aşağıdadır. Tasarım kaynağı [`../../tasarim/kaynak/`](../../tasarim/README.md) (v85 + v87 rapor dosyaları).
+**F7 kapsamı: sohbet + bildirimler (P54, ürün sahibi 2026-11-14); diğerleri sonraki faz.** Aşağıdaki tablo aday listesi olarak kalır (Mesajlar ve Bildirimler satırları F7; Takvim, Kurumsal hafıza, profil sayfası, Ü2–Ü7/K2–K8, Asistan F7 DIŞI). Önceki durum: hiçbiri seçilmedi; yol haritası [§4](../../architecture/yol-haritasi-web.md) F7'yi "sohbet + bildirim" (Mesajlar 10/10b/10c), F8'i "asistan" olarak yazar. Tuvale sonradan eklenen ekranlar ve F6'dan devreden satırlar aşağıdadır. Tasarım kaynağı [`../../tasarim/kaynak/`](../../tasarim/README.md) (v85 + v87 rapor dosyaları).
 
 | Aday                                                             | Tasarım artboard / ekran grubu                                                 | Not (kaynak)                                                                                                                                                                                              |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -24,13 +24,13 @@ Hiçbiri seçilmedi; yol haritası [§4](../../architecture/yol-haritasi-web.md)
 
 ## Ürün sahibine açık sorular
 
-1. F7 hangi kümeyle açılır: yol haritasındaki gibi sohbet + bildirim mi, yoksa rol panelleri (Ü2–Ü7, K2–K8) mi, yoksa ikisi iki ayrı faz mı?
-2. Takvim ve Kurumsal hafıza yol haritasına alınacak mı; Takvim 03c'nin yerine mi geçer?
-3. Profil sayfası (Ü7) kendi başına küçük bir iş mi, yoksa Bildirimler ile birlikte mi?
+1. **Karar verildi (P54):** F7 sohbet + bildirimlerle açılır; rol panelleri sonraki faz. (Eski soru: F7 hangi kümeyle açılır: yol haritasındaki gibi sohbet + bildirim mi, yoksa rol panelleri (Ü2–Ü7, K2–K8) mi, yoksa ikisi iki ayrı faz mı?)
+2. **Karar verildi (P54):** Takvim ve Kurumsal hafıza F7 DIŞI (sonraki faz; Takvim–03c ilişkisi o zaman). (Eski soru: Takvim ve Kurumsal hafıza yol haritasına alınacak mı; Takvim 03c'nin yerine mi geçer?)
+3. **Karar verildi (P54):** profil sayfası F7 DIŞI; bildirimler F7'de ayrı gider. (Eski soru: Profil sayfası (Ü7) kendi başına küçük bir iş mi, yoksa Bildirimler ile birlikte mi?)
 4. 01b işlem geçmişi için audit okuma backend paketi (BE-030/BE-091/BE-010) açılsın mı?
 5. "Backend dursun" kuralı sürecek mi? Süreceyse F7 kapsamı yalnız mevcut uçlarla sınırlıdır; sürmeyecekse önce [rapor-F6 §6](../../backend-eksikleri/rapor-F6.md) önceliği (BE-122/123/124/125) ve pin yükseltmesi sıralanır.
 
-6. **Karar bekler (W144 KUSUR 4, W147 ile daraltıldı):** liste/sayaç mercek süzgeci doğrulandı; yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi? (admin merceğinde panel açılır; koordinatör merceğinde 404; soğuk derin bağlantıda hedef/kapsam çözümleme UX borcu (Codex tur 2, [ilerleme #22](../web-6/ilerleme.md)); varsayılan P1/P53 korunur; [rapor-F6 §5](../../backend-eksikleri/rapor-F6.md).)
+6. **Karar verildi (P55, 2026-11-14; W144 KUSUR 4, W147 ile daraltıldı):** yönetici başka birimin görevini derin bağlantıyla AÇAR (mevcut davranış korunur); liste/sayaç P53 gereği süzülü; soğuk bağlantı UX borcu açık ([ilerleme #22](../web-6/ilerleme.md)). Program seçici (W148, [ilerleme #20](../web-6/ilerleme.md)): **karar verildi (P56)**, böyle kalır, kapandı. Eski soru: liste/sayaç mercek süzgeci doğrulandı; yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi? (admin merceğinde panel açılır; koordinatör merceğinde 404; soğuk derin bağlantıda hedef/kapsam çözümleme UX borcu (Codex tur 2, [ilerleme #22](../web-6/ilerleme.md)); varsayılan P1/P53 korunur; [rapor-F6 §5](../../backend-eksikleri/rapor-F6.md).)
 
 7. **Süreç önerisi (CX-F6-K-10):** ortak sözleşmeye/KESİN kurallarına "duman betikleri senaryo başına ayrı results dosyası (HEAD/koşum kimliğiyle)" eklensin mi? ([ilerleme #25](../web-6/ilerleme.md))
 

@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F7 AÇILMADI — kullanıcı onayı bekler.** Önkoşullar: WEB-6 KAPANDI (W144 tanığı, Codex hükmü, kapanış PR MERGED), açık F7 onayı, pin yeterliliği. Aday kapsam ve açık sorular [README](README.md)'de.
+**F7 AÇILMADI — kullanıcı onayı bekler.** Kapsam kararı verildi (P54, 2026-11-14): sohbet + bildirimler; diğer adaylar sonraki faz. P55/P56 de kayıtlı. Önkoşullar: WEB-6 KAPANDI (W144 tanığı, Codex hükmü, kapanış PR MERGED), açık F7 onayı, pin yeterliliği. Aday kapsam ve açık sorular [README](README.md)'de.
 
 ## Durum
 
