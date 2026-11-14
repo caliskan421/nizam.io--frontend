@@ -4,7 +4,7 @@
  * İlerleme verisi yok → belirsiz çubuk. `file_too_large` / `file_rejected` / `input_invalid` alan
  * altında gösterilir (tavan sunucu yapılandırmasıdır; sayı yazılmaz). Karar sunucudadır.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { errorText } from '@/shared/i18n'
 import { notifyOutcome } from '@/shared/ui/confirm'
@@ -12,40 +12,57 @@ import { notifyOutcome } from '@/shared/ui/confirm'
 import { useSendChatAttachment } from '../../api/attachments'
 import { newClientMessageId } from '../../model/message-state'
 import type { ThreadContext } from '../thread/use-thread'
-import { chatDrafts, clearChips } from './drafts'
+import { chatDrafts, settleSent } from './drafts'
 import type { Notice } from './use-send'
+
+type UploadOutcome = Awaited<ReturnType<ReturnType<typeof useSendChatAttachment>['submit']>>
+
+/** Geç sonuç güncel sohbetin UI durumuna işlemez (KESİN 26): veri yalnız kendi anahtarına yazılır. */
+function applyUpload(
+  outcome: UploadOutcome,
+  at: {
+    key: string
+    body: string | null
+    thread: ThreadContext
+    setNotice: (notice: Notice | null) => void
+  },
+): void {
+  const current = at.thread.draftKey.value === at.key
+  if (outcome.kind === 'success') {
+    if (at.body !== null) settleSent(at.key, at.body)
+    if (current) at.thread.stickBottom.value += 1
+  } else if (outcome.kind === 'failed') {
+    if (current) at.setNotice({ kind: 'error', text: errorText(outcome.error) })
+  } else {
+    notifyOutcome(outcome)
+  }
+}
 
 export function useUpload(thread: ThreadContext, setNotice: (notice: Notice | null) => void) {
   const mutation = useSendChatAttachment()
-  const uploading = ref(false)
+  const uploadingKey = ref<string | null>(null)
+  const uploading = computed(() => uploadingKey.value === thread.draftKey.value)
 
   async function upload(file: File): Promise<void> {
     if (uploading.value) return
     const key = thread.draftKey.value
+    const chatId = thread.chatId.value
     const draft = chatDrafts.get(key)
     const caption = draft?.body.trim() || undefined
-    uploading.value = true
+    uploadingKey.value = key
     setNotice(null)
     try {
       const outcome = await mutation.submit({
         programId: thread.programId.value,
-        chatId: thread.chatId.value,
+        chatId,
         clientMessageId: newClientMessageId(),
         file,
         ...(caption ? { caption } : {}),
         ...(draft?.replyTo ? { replyToMessageId: draft.replyTo } : {}),
       })
-      if (outcome.kind === 'success') {
-        chatDrafts.clear(key)
-        clearChips(key)
-        thread.stickBottom.value += 1
-      } else if (outcome.kind === 'failed') {
-        setNotice({ kind: 'error', text: errorText(outcome.error) })
-      } else {
-        notifyOutcome(outcome)
-      }
+      applyUpload(outcome, { key, body: draft?.body ?? null, thread, setNotice })
     } finally {
-      uploading.value = false
+      if (uploadingKey.value === key) uploadingKey.value = null
     }
   }
 

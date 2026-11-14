@@ -4,7 +4,8 @@
  * TEK istek (art arda tetikler birleşir). Kendi gönderimimden sonra ayrı çağrı yoktur (okunmamış
  * sayımı başkasının mesajıdır). 404 `messaging.message_not_found` → son görünen BAŞKA mesajla
  * bir kez daha. Sunucu geri gitmeyi reddeder; istemci de `seq` geriye gitmez. Sahip sökülünce
- * bekleyen gönderim iptal edilir (KESİN 26a).
+ * bekleyen gönderim iptal edilir (KESİN 26a). Odak/görünürlük dönüşü aynı birleşik tetikleyiciye
+ * bağlanır (odaksızken vazgeçilen okundu dönüşte tek istekle gider; dinleyiciler sökülmede kalkar).
  */
 import { onScopeDispose, type Ref } from 'vue'
 
@@ -93,7 +94,16 @@ export function useReadMarker(input: ReadMarkerInput) {
     }, READ_DEBOUNCE_MS)
   }
 
+  // Odak/görünürlük dönüşü: odaksızken vazgeçen gönderim dönüşte yeniden (birleşik) tetiklenir.
+  function onReturn(): void {
+    if (!disposed && focused()) touch()
+  }
+  globalThis.addEventListener?.('focus', onReturn)
+  globalThis.document?.addEventListener('visibilitychange', onReturn)
+
   onScopeDispose(() => {
+    globalThis.removeEventListener?.('focus', onReturn)
+    globalThis.document?.removeEventListener('visibilitychange', onReturn)
     disposed = true
     if (timer !== null) clearTimeout(timer)
     timer = null

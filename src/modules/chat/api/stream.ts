@@ -19,6 +19,7 @@ import { openEventStream, type StreamEvent, type StreamState } from '@/shared/ss
 import { createTypingTracker, TYPING_TTL_MS } from '../model/typing'
 import type { ChatStreamOptions } from '../model/types'
 import { dispatchEvent } from './stream-apply'
+import { windowKey } from './window-cache'
 
 /** Önce akış (abonelik), SONRA liste uzlaştırması (§10.5); GAP-209 boşluğunu da kapatır. */
 function reconcileLists(client: QueryClient, scope: ScopeSnapshot): void {
@@ -91,6 +92,48 @@ function usePendingReconcile(options: ChatStreamOptions, alive: () => boolean) {
   }
 }
 
+/**
+ * Önbellekli sohbet yeniden etkinleşince (A→B→A, Mesajlar→Görevler→Mesajlar) pencere
+ * `staleTime: Infinity` nedeniyle kendiliğinden okunmaz; akış aboneliği HAZIR olunca mevcut pencere
+ * TEK `reconcile` ile (`after` + `before`) uzlaştırılır (N-10-13/14, §10.5). Döngü yok: etkinleşme
+ * başına en çok bir okuma; ilk açılış (önbellek yok) kendi okumasını yapar, ek okuma eklenmez.
+ */
+function useActivationReconcile(
+  options: ChatStreamOptions,
+  alive: () => boolean,
+  onFail: () => void,
+) {
+  const client = useQueryClient()
+  const scopeStore = useScopeStore()
+  let pendingChat: string | null = null
+  let ready = false
+  function run(): void {
+    const id = toValue(options.chatId)
+    if (!ready || pendingChat === null || pendingChat !== id || !alive()) return
+    pendingChat = null
+    options.messages?.reconcile().catch(onFail)
+  }
+  watch(
+    () => toValue(options.chatId),
+    (id) => {
+      const cached = id !== null && client.getQueryData(windowKey(scopeStore.snapshot, id))
+      pendingChat = cached ? id : null
+      run()
+    },
+    { immediate: true },
+  )
+  return {
+    opened(reconnect: boolean): void {
+      ready = true
+      if (reconnect) pendingChat = null
+      else run()
+    },
+    closed(): void {
+      ready = false
+    },
+  }
+}
+
 export function useChatStream(options: ChatStreamOptions) {
   const client = useQueryClient()
   const scopeStore = useScopeStore()
@@ -99,6 +142,7 @@ export function useChatStream(options: ChatStreamOptions) {
   const state = ref<StreamState>('closed')
   const typing = useTypingState(options, () => session.accountId)
   const pending = usePendingReconcile(options, owner.alive)
+  const activation = useActivationReconcile(options, owner.alive, () => pending.mark())
   let handle: ReturnType<typeof openEventStream> | null = null
   let generation = 0
 
@@ -107,6 +151,7 @@ export function useChatStream(options: ChatStreamOptions) {
     handle?.close()
     handle = null
     typing.clear()
+    activation.closed()
     state.value = 'closed'
   }
 
@@ -117,7 +162,7 @@ export function useChatStream(options: ChatStreamOptions) {
       return
     }
     const mine = generation
-    const scope = { ...scopeStore.snapshot }
+    const scope = () => ({ ...scopeStore.snapshot })
     const current = () => mine === generation && owner.alive()
     const onReadFailed = () => current() && pending.mark()
     const base = { client, scope, options, meAccountId: session.accountId, alive: owner.alive }
@@ -131,7 +176,8 @@ export function useChatStream(options: ChatStreamOptions) {
       onTyping: (event) => current() && typing.touch(event),
       onOpen: ({ reconnect }) => {
         if (!current()) return
-        reconcileLists(client, scope)
+        reconcileLists(client, scope())
+        activation.opened(reconnect)
         if (reconnect) pending.reconnected()
       },
       deps: options.deps,

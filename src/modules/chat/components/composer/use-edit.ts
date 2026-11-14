@@ -62,6 +62,17 @@ function handleEdit(
   return conflict
 }
 
+function editVars(thread: ThreadContext, chatId: string, edit: EditDraft, seq: number) {
+  return {
+    programId: thread.programId.value,
+    chatId,
+    messageId: edit.messageId,
+    seq,
+    body: edit.body.trim(),
+    expectedRevision: edit.expectedRevision,
+  }
+}
+
 export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null) => void) {
   const mutation = useEditChatMessage()
   const resolver = useConflictResolver()
@@ -69,57 +80,61 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
   const saving = ref(false)
   const key = () => thread.draftKey.value
 
-  function finish(): void {
-    chatDrafts.endEdit(key())
-    editBase.clear(key())
-    setNotice(null)
+  /** Düzenlemeyi bitirir: veri verilen ANAHTARA; bildirim yalnız hâlâ o sohbet açıksa (KESİN 26). */
+  function finish(at: string = key()): void {
+    chatDrafts.endEdit(at)
+    editBase.clear(at)
+    if (key() === at) setNotice(null)
   }
 
-  async function resolveConflict(server: ChatMessage, edit: EditDraft, seq: number): Promise<void> {
+  async function resolveConflict(
+    server: ChatMessage,
+    edit: EditDraft,
+    seq: number,
+    at: string,
+  ): Promise<void> {
     const mine = edit.body.trim()
-    const choice = await askConflict(resolver, editBase.get(key()), mine, server)
+    const choice = await askConflict(resolver, editBase.get(at), mine, server)
     if (choice === null) return
     if (choice === 'theirs') {
       await page.messages.refreshMessage(seq)
-      return finish()
+      return finish(at)
     }
     const next = {
       messageId: server.message_id,
       body: mine,
       expectedRevision: server.edit_revision,
     }
-    chatDrafts.startEdit(key(), next)
-    editBase.set(key(), server.body)
-    await submit(true)
+    chatDrafts.startEdit(at, next)
+    editBase.set(at, server.body)
+    await submit(true, at)
   }
 
   /** `again`: çakışma çözümünden sonraki TEK yeniden gönderim (döngü yok). */
-  async function submit(again = false): Promise<void> {
-    const edit = chatDrafts.getEdit(key())
+  async function submit(again = false, at: string = key()): Promise<void> {
+    const edit = chatDrafts.getEdit(at)
     if (saving.value || !edit || edit.body.trim() === '') return
     const seq = thread.findMessage(edit.messageId)?.seq ?? 0
+    const chatId = thread.chatId.value
     saving.value = true
     setNotice(null)
+    // Geç sonuç güncel sohbetin bildirimine işlemez (KESİN 26); veri `at` anahtarına yazılır.
+    const guarded = (notice: Notice | null) => {
+      if (key() === at) setNotice(notice)
+    }
     let result: 'done' | ChatMessage | null
     try {
       result = handleEdit(
-        await mutation.submit({
-          programId: thread.programId.value,
-          chatId: thread.chatId.value,
-          messageId: edit.messageId,
-          seq,
-          body: edit.body.trim(),
-          expectedRevision: edit.expectedRevision,
-        }),
+        await mutation.submit(editVars(thread, chatId, edit, seq)),
         again,
-        setNotice,
+        guarded,
       )
     } finally {
       saving.value = false
     }
-    if (result === 'done') finish()
-    else if (result !== null) await resolveConflict(result, edit, seq)
+    if (result === 'done') finish(at)
+    else if (result !== null && key() === at) await resolveConflict(result, edit, seq, at)
   }
 
-  return { saving, conflict: resolver, submit, cancel: finish }
+  return { saving, conflict: resolver, submit: () => submit(), cancel: () => finish() }
 }
