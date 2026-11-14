@@ -22,6 +22,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
 import { reportGate, type ReportGate } from '../model/gate'
+import { bindGateToSession } from './cancellation'
 
 const program = (programId: string) => ({ 'X-Nizamio-Program': programId })
 
@@ -50,6 +51,7 @@ export function fetchTaskDetail(programId: string, id: string, signal?: AbortSig
 /** Dönem raporu JSON'u (01f). Kilit sırası beklenirken `signal` iptali sıradan düşürür. */
 export function useReportSeason(enabled: MaybeRefOrGetter<boolean>, gate: ReportGate = reportGate) {
   const store = useScopeStore()
+  bindGateToSession(gate)
   return useQuery(
     computed(() => {
       const scope = store.snapshot

@@ -28,12 +28,13 @@ import { reportGate, type ReportGate, type ReportLease } from '../model/gate'
 import { settleDownload } from '../model/settle'
 import { reportTarget } from '../model/targets'
 import type { ReportRequest, ReportRunInput, ReportRunResult } from '../model/types'
-import { bindLeaseCancellation } from './cancellation'
+import { bindGateToSession, bindLeaseCancellation } from './cancellation'
 
 export function useReportDownloads(gate: ReportGate = reportGate) {
   const store = useScopeStore()
   const client = useQueryClient()
   const toast = useToast()
+  bindGateToSession(gate)
   const flow = useDownloadFlow<ReportRequest>(reportTarget)
   const pending = ref(false)
   let held: ReportLease | null = null
