@@ -22,14 +22,17 @@ export interface SettleHooks {
   cooldown: (seconds: number) => void
 }
 
+/** Ortak bekleme politikası: yalnız `Retry-After` taşıyan 429'lar sayaç başlatır (indirme + JSON okuma). */
+export function applyCooldown(failure: ReportFailure, start: (seconds: number) => void): void {
+  if (COOLDOWN_KINDS.has(failure.kind) && failure.retryAfter !== null) start(failure.retryAfter)
+}
+
 export function settleDownload(
   result: DownloadResult<ReportRequest>,
   hooks: SettleHooks,
 ): ReportRunResult {
   const fail = (failure: ReportFailure): ReportRunResult => {
-    if (COOLDOWN_KINDS.has(failure.kind) && failure.retryAfter !== null) {
-      hooks.cooldown(failure.retryAfter)
-    }
+    applyCooldown(failure, hooks.cooldown)
     return { kind: 'failed', failure }
   }
   switch (result.kind) {

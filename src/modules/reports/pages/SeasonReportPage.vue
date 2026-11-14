@@ -11,6 +11,7 @@ import { useScopeStore } from '@/shared/scope/store'
 import { UiErrorState } from '@/shared/ui'
 
 import { useReportSeason } from '../api/queries'
+import { reportGate } from '../model/gate'
 import ReportStateCard from '../components/ReportStateCard.vue'
 import SeasonAppendix from '../components/preview/SeasonAppendix.vue'
 import SeasonCover from '../components/preview/SeasonCover.vue'
@@ -61,6 +62,8 @@ const sections = computed(() =>
     ? departmentSections(season.value, (id) => departments.byId.value.get(id)?.code ?? null)
     : [],
 )
+// Ağır okuma 429'u ortak bekleme sayacını başlatır; sayaç boyunca "Yeniden dene" kapalı (E-05).
+const cooldown = reportGate.cooldown
 const error = computed(() => (query.isError.value ? toApiError(query.error.value) : null))
 </script>
 
@@ -83,10 +86,13 @@ const error = computed(() => (query.isError.value ? toApiError(query.error.value
           <UiErrorState
             :error="error"
             :title="t('reports.season.state.errorTitle')"
-            :retrying="query.isFetching.value"
+            :retrying="query.isFetching.value || cooldown > 0"
             retryable
             @retry="query.refetch()"
           />
+          <p v-if="cooldown > 0" class="report-action__note" role="status">
+            {{ t('reports.action.cooldown', { seconds: cooldown }) }}
+          </p>
         </div>
         <div v-else-if="!season || !context" class="report-stage" aria-busy="true">
           <ReportStateCard
