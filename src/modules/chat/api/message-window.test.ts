@@ -1,3 +1,4 @@
+import { flushPromises } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
@@ -108,11 +109,15 @@ describe('useChatMessages', () => {
     const fake = fakeChatServer(range(1, 5))
     let inFlight = 0
     let maxInFlight = 0
+    // İstek-varış ve yanıt bariyerleri: gerçek süre beklemesi yok. Bariyer ilk yüklemeden SONRA kurulur.
+    let arrive = () => undefined as void
+    let gate: Promise<void> = Promise.resolve()
     server.use(
       http.get(`${ORIGIN}/v1/chats/c1/messages`, async ({ request }) => {
         inFlight += 1
         maxInFlight = Math.max(maxInFlight, inFlight)
-        await new Promise((r) => setTimeout(r, 5))
+        arrive()
+        await gate
         const after = new URL(request.url).searchParams.get('after')
         const out = fake.readSync(
           after === null ? { limit: 50 } : { limit: 50, after: Number(after) },
@@ -123,7 +128,20 @@ describe('useChatMessages', () => {
     )
     const m = mountSetup(() => useChatMessages('c1'))
     await settleQueries(m.client)
-    await Promise.all([m.result.loadNewer(), m.result.loadNewer(), m.result.refreshMessage(3)])
+    const arrived = new Promise<void>((r) => (arrive = r))
+    let open!: () => void
+    gate = new Promise<void>((r) => (open = r))
+    const all = Promise.all([
+      m.result.loadNewer(),
+      m.result.loadNewer(),
+      m.result.refreshMessage(3),
+    ])
+    await arrived
+    await flushPromises()
+    // İlk okuma yanıt beklerken sıradaki işlem BAŞLAMAMIŞ olmalı.
+    expect(maxInFlight).toBe(1)
+    open()
+    await all
     expect(maxInFlight).toBe(1)
   })
 
