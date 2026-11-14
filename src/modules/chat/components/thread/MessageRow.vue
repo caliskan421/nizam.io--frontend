@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
       <div class="chat-bub">
         <span v-if="showName" class="chat-bub__name">{{ senderName }}</span>
         <QuoteBlock v-if="message.reply_to" :quote="message.reply_to" />
-        <BodyText :message="message" :summaries="summaries" />
+        <BodyText v-if="!message.poll" :message="message" :summaries="summaries" />
         <MessageCards :message="message" :summaries="summaries" />
         <PollCard v-if="message.poll" :message="message" />
         <span v-if="message.task_ids.length > 0" class="chat-tref" data-testid="chat-converted">

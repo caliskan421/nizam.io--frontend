@@ -186,6 +186,31 @@ describe('mesaj eylemleri', () => {
   })
 })
 
+describe('anket sorusu tek kez (KUSUR 5)', () => {
+  it('anket mesajında soru yalnız kart başlığında görünür; balon metni çizilmez', async () => {
+    servePane({
+      messages: [
+        msg(1, {
+          body: 'Hangi gün uygun?',
+          poll: {
+            multi: false,
+            closes_at: null,
+            closed_at: null,
+            results: [{ option_index: 0, label: 'Cuma', count: 0, voters: [] }],
+          },
+        }),
+        msg(2, { body: 'Düz mesaj' }),
+      ],
+    })
+    const { wrapper } = await mountPane()
+    const rows = wrapper.findAll('[data-testid="chat-message"]')
+    expect(rows[0]!.text().split('Hangi gün uygun?').length - 1).toBe(1)
+    expect(rows[0]!.find('.chat-bub__text').exists()).toBe(false)
+    expect(rows[0]!.get('.chat-poll__q').text()).toContain('Hangi gün uygun?')
+    expect(rows[1]!.get('.chat-bub__text').text()).toBe('Düz mesaj')
+  })
+})
+
 describe('açılır yüzeyin görünürlüğü (KUSUR 9)', () => {
   it('menü ve tepki seçici açılınca kaydırma kabında görünür olana dek kaydırılır (block: nearest)', async () => {
     servePane({ messages: [msg(1)] })
