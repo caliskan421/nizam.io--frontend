@@ -23,6 +23,7 @@ import type {
   ChatList,
   ChatRefList,
   ChatRefSummary,
+  ChatUnreadOverview,
   CandidatePurpose,
   RefKind,
 } from '../model/types'
@@ -234,13 +235,16 @@ export function useChatRefs(
  * Programlar arası okunmamış özeti (S1, hesap geneli): rozet kaynağı. `staleTime` 30 sn + odak +
  * 60 sn aralık (yalnız görünürken); `/mesajlar` açıkken SSE olayları ayrıca yeniler.
  */
-export function useChatUnreadOverview(enabled: MaybeRefOrGetter<boolean> = true) {
+export function useChatUnreadOverview(
+  enabled: MaybeRefOrGetter<boolean> = true,
+  fetcher: (signal?: AbortSignal) => Promise<ChatUnreadOverview> = fetchUnreadOverview,
+) {
   const session = useSessionStore()
   const store = useScopeStore()
   const query = useQuery(
     computed(() => ({
       queryKey: queryKeys.chatsUnread.overview(),
-      queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetchUnreadOverview(signal)),
+      queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetcher(signal)),
       enabled: toValue(enabled) && session.isAuthenticated,
       staleTime: UNREAD_OVERVIEW_STALE_MS,
       refetchInterval: UNREAD_OVERVIEW_INTERVAL_MS,

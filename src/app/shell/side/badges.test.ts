@@ -49,14 +49,26 @@ describe('Görevler rozetleri', () => {
     const fetcher = vi.fn(() => Promise.resolve(counts(5, 2)))
     const { badges } = await boot('admin', 'F0', fetcher)
     expect(fetcher).not.toHaveBeenCalled()
-    expect(badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
+    expect(badges.value).toEqual({
+      overdue: null,
+      pendingDates: null,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
   })
 
   it('Admin merceği canlı: reportDashboard sayıları; anahtar kapsamlı', async () => {
     const fetcher = vi.fn(() => Promise.resolve(counts(5, 2)))
     const { badges, ctx, store } = await boot('admin', 'F1', fetcher)
     expect(fetcher).toHaveBeenCalledTimes(1)
-    expect(badges.value).toEqual({ overdue: 5, pendingDates: 2, awaitingApproval: null })
+    expect(badges.value).toEqual({
+      overdue: 5,
+      pendingDates: 2,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
     const key = queryKeys.report.dashboard(store.snapshot)
     expect(ctx.queryClient.getQueryData(key)).toEqual(counts(5, 2))
     // Kapsamlı anahtar: kapsam değişiminde temizlik hedefi.
@@ -67,12 +79,20 @@ describe('Görevler rozetleri', () => {
 
   it('0 sayıda ve hata durumunda rozet gizli', async () => {
     const zero = await boot('admin', 'F1', () => Promise.resolve(counts(0, 0)))
-    expect(zero.badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
+    expect(zero.badges.value).toEqual({
+      overdue: null,
+      pendingDates: null,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
     const failed = await boot('admin', 'F1', () => Promise.reject(new Error('503')))
     expect(failed.badges.value).toEqual({
       overdue: null,
       pendingDates: null,
       awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
     })
   })
 
@@ -89,7 +109,13 @@ describe('Görevler rozetleri', () => {
       departmentId: 'd1',
       assigneeAccountId: null,
     })
-    expect(badges.value).toEqual({ overdue: 7, pendingDates: 3, awaitingApproval: null })
+    expect(badges.value).toEqual({
+      overdue: 7,
+      pendingDates: 3,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
     // Anahtar kapsamlı ve görev yazmalarının geçersizleme önekinin altında.
     const prefix = queryKeys.workItems.all(store.snapshot)
     const cached = ctx.queryClient
@@ -117,7 +143,13 @@ describe('Görevler rozetleri', () => {
       departmentId: 'd1',
       assigneeAccountId: 'acc-1',
     })
-    expect(badges.value).toEqual({ overdue: 2, pendingDates: null, awaitingApproval: null })
+    expect(badges.value).toEqual({
+      overdue: 2,
+      pendingDates: null,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
   })
 
   it('K/Ü: F0, birim yok, hesap yok → istek yok; 0 ve hata → rozet gizli', async () => {
@@ -126,7 +158,13 @@ describe('Görevler rozetleri', () => {
     )
     const f0 = await boot('coordinator', 'F0', () => Promise.reject(new Error('x')), countsFetcher)
     expect(countsFetcher).not.toHaveBeenCalled()
-    expect(f0.badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
+    expect(f0.badges.value).toEqual({
+      overdue: null,
+      pendingDates: null,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
 
     const ctx = await sideContext()
     const { lifecycle, store } = createFakeLifecycle({ standing: null })
@@ -143,7 +181,13 @@ describe('Görevler rozetleri', () => {
       () => Promise.reject(new Error('x')),
       () => Promise.resolve({ overdue: 0, pending_date_requests: 0 }),
     )
-    expect(zero.badges.value).toEqual({ overdue: null, pendingDates: null, awaitingApproval: null })
+    expect(zero.badges.value).toEqual({
+      overdue: null,
+      pendingDates: null,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
     const failed = await boot(
       'coordinator',
       'F1',
@@ -154,6 +198,8 @@ describe('Görevler rozetleri', () => {
       overdue: null,
       pendingDates: null,
       awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
     })
   })
 })

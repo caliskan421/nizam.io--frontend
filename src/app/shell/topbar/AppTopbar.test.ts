@@ -113,12 +113,24 @@ describe('üst çubuk', () => {
     expect(document.documentElement.dataset.theme).toBe('dark')
   })
 
-  it('zil: sayaç canlı (nokta + sayılı ad), panel devre dışı', async () => {
+  it('zil: sayaç canlı (nokta + sayılı ad); F7 panel sözleşmesi: devre dışı değil, dialog açar', async () => {
     const { wrapper } = await mountTopbar('/oturum', {}, 2)
     const bell = wrapper.get('[data-testid="topbar-bell"]')
-    expect(bell.attributes('disabled')).toBeDefined()
+    expect(bell.attributes('disabled')).toBeUndefined()
+    expect(bell.attributes('aria-haspopup')).toBe('dialog')
+    expect(bell.attributes('aria-expanded')).toBe('false')
+    expect(bell.attributes('aria-controls')).toBeUndefined()
     expect(bell.attributes('aria-label')).toBe('Bildirimler, 2 okunmamış')
     expect(bell.find('.topbar-bell__dot').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="notification-panel"]').exists()).toBe(false)
+    await bell.trigger('click')
+    expect(bell.attributes('aria-expanded')).toBe('true')
+    const panel = wrapper.get('[data-testid="notification-panel"]')
+    expect(bell.attributes('aria-controls')).toBe(panel.attributes('id'))
+    expect(panel.attributes('role')).toBe('dialog')
+    await bell.trigger('click')
+    expect(bell.attributes('aria-expanded')).toBe('false')
+    expect(bell.attributes('aria-controls')).toBeUndefined()
   })
 
   it('zil: okunmamış yoksa nokta yok, ad sayısız', async () => {

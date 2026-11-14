@@ -26,6 +26,7 @@ export {
   type NotificationAction,
   type NotificationTone,
 } from './model/dictionary'
+export { NOTIFICATION_PANEL_ID } from './model/panel'
 export { notificationTarget, type NotificationTarget } from './model/target'
 export { notificationCapabilities, type NotificationCapabilities } from './model/capabilities'
 export { AWAITING_TAB, INLINE_DECISION } from './model/stubs'

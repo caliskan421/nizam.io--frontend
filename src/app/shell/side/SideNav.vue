@@ -28,6 +28,20 @@ const BADGE_VALUE: Readonly<Record<MenuBadgeKind, (b: TaskBadges) => number | nu
   overdue: (b) => b.overdue,
   dates: (b) => b.pendingDates,
   approval: (b) => b.awaitingApproval,
+  unread: (b) => b.unreadChats,
+}
+
+/** Mesajlar rozeti `mentioned` iken vurgulu (danger tonu; P59 taslak), aksi nötr. */
+function badgeTone(kind: MenuBadgeKind, badges: TaskBadges | undefined): 'danger' | undefined {
+  if (kind === 'overdue') return 'danger'
+  return kind === 'unread' && badges?.unreadMentioned ? 'danger' : undefined
+}
+
+function badgeLabel(kind: MenuBadgeKind, n: number, badges: TaskBadges | undefined): string {
+  if (kind === 'unread' && badges?.unreadMentioned) {
+    return sideText('side.badge.unreadMentioned', { n })
+  }
+  return sideText(`side.badge.${kind}`, { n })
 }
 
 function shownBadges(
@@ -73,11 +87,11 @@ function shownBadges(
             v-for="b in shownBadges(entry, badges)"
             :key="b.kind"
             count
-            :tone="b.kind === 'overdue' ? 'danger' : undefined"
+            :tone="badgeTone(b.kind, badges)"
             class="side-badge"
-            :class="{ 'side-badge--dates': b.kind !== 'overdue' }"
+            :class="{ 'side-badge--dates': b.kind !== 'overdue' && b.kind !== 'unread' }"
             :data-badge="b.kind"
-            :label="sideText(`side.badge.${b.kind}`, { n: b.n })"
+            :label="badgeLabel(b.kind, b.n, badges)"
             >{{ b.n }}</UiBadge
           >
         </UiNavItem>

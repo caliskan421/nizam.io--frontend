@@ -48,6 +48,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'identity.session': {
     F0: 'canli',
@@ -57,6 +58,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'work.tasks': {
     F0: 'devre_disi',
@@ -66,6 +68,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'work.timeline': {
     F0: 'gizli',
@@ -75,6 +78,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'organization.users': {
     F0: 'gizli',
@@ -84,6 +88,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'organization.user': {
     F0: 'gizli',
@@ -93,6 +98,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'organization.coordinatorships': {
     F0: 'gizli',
@@ -102,6 +108,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'organization.coordinatorship': {
     F0: 'gizli',
@@ -111,6 +118,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   // E-00-25 "Teknofest ve sezon" (W81): F2'de canlı, yalnız yönetici menüsünde.
   'program.programs': {
@@ -121,6 +129,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'collaboration.meetings': {
     F0: 'gizli',
@@ -130,6 +139,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'collaboration.meeting': {
     F0: 'gizli',
@@ -139,6 +149,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'canli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   // F5 (W121): Arşiv 06/07; F4'e kadar gizli (F0–F4 dışı, K14).
   'archive.folders': {
@@ -149,6 +160,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'gizli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   'archive.folder': {
     F0: 'gizli',
@@ -158,6 +170,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'gizli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
   },
   // 12 Silinen kayıtlar (W128; P36): F5'te canlı, menüsüz.
   'deleted-records.list': {
@@ -168,6 +181,28 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'gizli',
     F5: 'canli',
     F6: 'canli',
+    F7: 'canli',
+  },
+  // 10 Mesajlar (W154; F7): sohbet listesi ve konuşma, üç rolde menüde (İçerik).
+  'collaboration.chats': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'gizli',
+    F6: 'gizli',
+    F7: 'canli',
+  },
+  'collaboration.chat': {
+    F0: 'gizli',
+    F1: 'gizli',
+    F2: 'gizli',
+    F3: 'gizli',
+    F4: 'gizli',
+    F5: 'gizli',
+    F6: 'gizli',
+    F7: 'canli',
   },
   // 13 Raporlar (W136; K10): iki önizleme rotası F6'da canlı, menüsüz.
   'reports.season': {
@@ -178,6 +213,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'gizli',
     F5: 'gizli',
     F6: 'canli',
+    F7: 'canli',
   },
   'reports.meeting': {
     F0: 'gizli',
@@ -187,6 +223,7 @@ const MATRIX: Record<string, Record<Phase, string>> = {
     F4: 'gizli',
     F5: 'gizli',
     F6: 'canli',
+    F7: 'canli',
   },
 }
 
@@ -194,8 +231,8 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F6: Arşiv ve rapor önizlemeleri de canlı', () => {
-    expect(CURRENT_PHASE).toBe('F6')
+  it('etkin faz F7: Arşiv, rapor önizlemeleri ve Mesajlar de canlı', () => {
+    expect(CURRENT_PHASE).toBe('F7')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -214,8 +251,11 @@ describe('rota kataloğu — yapı', () => {
       'archive.folder',
       'reports.season',
       'reports.meeting',
+      'collaboration.chats',
+      'collaboration.chat',
       'deleted-records.list',
     ])
+    expect(liveRouteNames('F6')).not.toContain('collaboration.chats')
     expect(liveRouteNames('F5')).not.toContain('reports.season')
     expect(liveRouteNames('F4')).not.toContain('archive.folders')
     expect(liveRouteNames('F2')).not.toContain('work.timeline')
@@ -242,10 +282,9 @@ describe('rota kataloğu — yapı', () => {
     ])
   })
 
-  it('v1 dışı modüller ve hedefsiz öğeler katalogda yok', () => {
+  it('henüz açılmamış modüller ve hedefsiz öğeler katalogda yok (Mesajlar F7 ile girdi)', () => {
     const paths = ROUTE_NAMES.map((name) => routeSpec(name).path)
     for (const banned of [
-      '/mesajlar',
       '/islem-gecmisi',
       '/tablolar',
       '/takvim',
@@ -257,7 +296,9 @@ describe('rota kataloğu — yapı', () => {
         banned,
       ).toBe(false)
     }
-    expect(ROUTE_NAMES.some((name) => /message|chat|assistant|help/i.test(name))).toBe(false)
+    expect(ROUTE_NAMES.some((name) => /assistant|help/i.test(name))).toBe(false)
+    // Mesajlar F7'den beri katalogda: iki rota, üç rolde menü girdisi tekil.
+    expect(paths).toEqual(expect.arrayContaining(['/mesajlar', '/mesajlar/:chatId']))
   })
 
   it('rol önekli yol ya da ad yok (K10)', () => {
@@ -294,13 +335,14 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F5): Arşiv de canlı; Silinen kayıtlar menüde yok (P36)', () => {
+  it('etkin faz (F7): Arşiv ve Mesajlar canlı; Silinen kayıtlar menüde yok (P36)', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],
       ['gantt', 'takip', 'canli'],
       ['meetings', 'icerik', 'canli'],
       ['archive', 'icerik', 'canli'],
+      ['messages', 'icerik', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
       ['season', 'yonetim', 'canli'],
@@ -553,5 +595,46 @@ describe('konum üretme ve süzgeç okuma', () => {
 
   it('katalog nesnesi dışa açık ve değişmez biçimde okunur', () => {
     expect(ROUTES.home.path).toBe('/')
+  })
+})
+
+describe('F7 Mesajlar rotaları (W154)', () => {
+  it('iki rota: /mesajlar ve /mesajlar/:chatId; S2; F7 öncesi router’a girmez', () => {
+    expect(routeSpec('collaboration.chats')).toMatchObject({
+      path: '/mesajlar',
+      scope: 'S2',
+      phase: 'F7',
+    })
+    expect(routeSpec('collaboration.chat')).toMatchObject({
+      path: '/mesajlar/:chatId',
+      scope: 'S2',
+      phase: 'F7',
+      parent: 'collaboration.chats',
+    })
+    expect(Object.keys(routeSpec('collaboration.chat').params)).toEqual(['chatId'])
+    expect(liveRouteNames('F6')).not.toContain('collaboration.chat')
+    expect(visibilityOf('collaboration.chats', 'F6')).toBe('gizli')
+  })
+
+  it('menü: İçerik grubunda, Toplantılar ve Arşiv’den sonra; konuşma rotası da Mesajlar’ı etkin yapar', () => {
+    const keys = menuEntries()
+      .filter((e) => e.group === 'icerik')
+      .map((e) => e.key)
+    expect(keys).toEqual(['meetings', 'archive', 'messages'])
+    expect(activeMenuKey('collaboration.chats')).toBe('messages')
+    expect(activeMenuKey('collaboration.chat')).toBe('messages')
+  })
+
+  it('tipli konum: sohbet kimliği + hedef mesaj; süzgeç kapalı kümeden', () => {
+    expect(routeLocation('collaboration.chat', { chatId: 'c-1' }, { mesaj: '42' })).toEqual({
+      name: 'collaboration.chat',
+      params: { chatId: 'c-1' },
+      query: { mesaj: '42' },
+    })
+    expect(() => routeLocation('collaboration.chats', {}, { filtre: 'okunmamis' })).not.toThrow()
+    expect(parseRouteQuery('collaboration.chats', { filtre: 'bilinmeyen' })).toEqual({})
+    expect(parseRouteQuery('collaboration.chats', { filtre: 'gruplar' })).toEqual({
+      filtre: 'gruplar',
+    })
   })
 })

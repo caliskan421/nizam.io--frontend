@@ -12,6 +12,7 @@ export {
   useChats,
   useChatUnreadOverview,
 } from './api/queries'
+export { fetchUnreadOverview } from './api/fetchers'
 export { useChatMessages } from './api/message-window'
 export { useChatStream } from './api/stream'
 export { useSendChatAttachment, useChatDownload, chatDownloadPath } from './api/attachments'

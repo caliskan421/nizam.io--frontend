@@ -6,6 +6,7 @@
  * yalnız props/emits sözleşmesini ve kabuk yuvasını sabitler. Veri: `useNotifications(open)`.
  */
 import { notificationText } from '../messages'
+import { NOTIFICATION_PANEL_ID } from '../model/panel'
 import type { NotificationTarget } from '../model/target'
 
 defineProps<{
@@ -24,6 +25,7 @@ defineEmits<{
 <template>
   <section
     v-if="open"
+    :id="NOTIFICATION_PANEL_ID"
     class="notification-panel"
     role="dialog"
     :aria-label="notificationText('notifications.panel.title')"

@@ -20,6 +20,7 @@ import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { CURRENT_PHASE, type Phase, visibilityOf } from '@/app/routes.catalog'
+import { fetchUnreadOverview, useChatUnreadOverview } from '@/modules/chat/public'
 import type { components } from '@/shared/api/schema'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
@@ -75,6 +76,13 @@ export interface TaskBadges {
   pendingDates: number | null
   /** Koordinatör merceği: onay bekleyen görevler (`by_status.onaya_sunuldu`; E-00-45). */
   awaitingApproval: number | null
+  /**
+   * Mesajlar (F7, E-00-21): seçili programın okunmamış SOHBET sayısı (`getChatUnreadOverview`,
+   * hesap geneli S1; mercekten bağımsız). Satır yok / hata / 0 → `null` (rozet gizli).
+   */
+  unreadChats: number | null
+  /** Okunmamış mesajlardan biri çağıranı anıyor (`mentioned`): rozet vurgulu (P59 taslak). */
+  unreadMentioned: boolean
 }
 
 function positive(value: number | undefined): number | null {
@@ -124,6 +132,19 @@ function useLensCounts(
   return lensCounts
 }
 
+/** Mesajlar rozeti (E-00-21): seçili programın okunmamış sohbet sayısı + `mentioned` vurgusu. */
+function useChatBadge(phase: Phase, chatFetcher: typeof fetchUnreadOverview) {
+  const live = visibilityOf('collaboration.chats', phase) === 'canli'
+  const chat = useChatUnreadOverview(() => live, chatFetcher)
+  return computed(() => {
+    const unreadChats = live ? positive(chat.selected.value?.unread_chats) : null
+    return {
+      unreadChats,
+      unreadMentioned: unreadChats !== null && chat.selected.value?.mentioned === true,
+    }
+  })
+}
+
 export function useTaskBadges(
   phase: Phase = CURRENT_PHASE,
   fetcher: (signal?: AbortSignal) => Promise<DashboardCounts> = fetchDashboardCounts,
@@ -131,6 +152,7 @@ export function useTaskBadges(
     request: ShellCountsRequest,
     signal?: AbortSignal,
   ) => Promise<ShellWorkCounts> = fetchShellWorkCounts,
+  chatFetcher: typeof fetchUnreadOverview = fetchUnreadOverview,
 ) {
   const lifecycle = injectScopeLifecycle()
   const store = useScopeStore()
@@ -157,7 +179,9 @@ export function useTaskBadges(
     adminView.value && !query.isError.value ? (query.data.value ?? null) : null,
   )
 
-  const badges = computed<TaskBadges>(() => {
+  const unread = useChatBadge(phase, chatFetcher)
+
+  const taskBadges = computed(() => {
     if (!live || store.lens === null) {
       return { overdue: null, pendingDates: null, awaitingApproval: null }
     }
@@ -175,6 +199,7 @@ export function useTaskBadges(
       awaitingApproval: coordinator ? positive(lensCounts.value?.by_status?.onaya_sunuldu) : null,
     }
   })
+  const badges = computed<TaskBadges>(() => ({ ...taskBadges.value, ...unread.value }))
   return { badges }
 }
 

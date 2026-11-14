@@ -8,8 +8,9 @@
  *
  *  - Menü yetki olgusundan seçilir (`company_admin` → yönetici menüsü her mercekte); mercek
  *    yalnız `company_admin` olmayanlarda menüyü seçer ve yetki değildir (P1/P11/P53).
- *  - "Raporlar" öğesi hiçbir menüde YOKTUR (P47); Takvim, Kurumsal hafıza, Mesajlar, Tablolar,
- *    Birimim, Ekibim, Simülasyon katalogda menü girdisi olmadığından yoktur (§9 ortak kural).
+ *  - "Raporlar" öğesi hiçbir menüde YOKTUR (P47); Takvim, Kurumsal hafıza, Tablolar, Birimim,
+ *    Ekibim, Simülasyon katalogda menü girdisi olmadığından yoktur (§9 ortak kural). Mesajlar F7'de
+ *    üç rolde İçerik grubundadır (W154).
  *  - Gizleme güvenlik değildir: sunucu her istekte denetler.
  */
 import type { MenuGroup } from '@/app/routes.catalog'
@@ -21,7 +22,7 @@ import type { SideTextKey } from './messages'
 export type MenuRole = 'admin' | 'coordinator' | 'member'
 
 /** Menü öğesi rozeti türü; sayılar `badges.ts` `TaskBadges`'ten. */
-export type MenuBadgeKind = 'overdue' | 'dates' | 'approval'
+export type MenuBadgeKind = 'overdue' | 'dates' | 'approval' | 'unread'
 
 /** Öğenin bir rol menüsündeki yeri. `badges` soldan sağa çizim sırasıdır. */
 export interface MenuSlot {
@@ -83,6 +84,17 @@ export const MENU_DEFINITION: readonly MenuItemDef[] = [
       admin: { group: 'icerik', order: 2 },
       coordinator: { group: 'icerik', order: 2 },
       member: { group: 'icerik', order: 2, label: 'side.item.myFiles' },
+    },
+  },
+  {
+    key: 'messages',
+    // F7 (E-00-20/21): üç rolde aynı; rozet = seçili programın okunmamış SOHBET sayısı
+    // (`getChatUnreadOverview.unread_chats`); `mentioned` ise vurgulu (P59 taslak). Mesajlar
+    // sohbet bildirimi üretmez: rozet zil sayacından ayrıdır (E-14-91).
+    roles: {
+      admin: { group: 'icerik', order: 3, badges: ['unread'] },
+      coordinator: { group: 'icerik', order: 3, badges: ['unread'] },
+      member: { group: 'icerik', order: 3, badges: ['unread'] },
     },
   },
   { key: 'users', roles: { admin: { group: 'yonetim', order: 1 } } },

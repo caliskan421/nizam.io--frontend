@@ -53,6 +53,8 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
       { path: '/zaman-cizelgesi', name: 'work.timeline', component: { render: () => null } },
       // F4: toplantı menü öğesi.
       { path: '/toplantilar', name: 'collaboration.meetings', component: { render: () => null } },
+      // F7 (W154): Mesajlar menü öğesi.
+      { path: '/mesajlar', name: 'collaboration.chats', component: { render: () => null } },
       // F5 (W121): Arşiv menü öğesi.
       { path: '/arsiv', name: 'archive.folders', component: { render: () => null } },
       // F2 (W71): yönetici menüsündeki Yönetim öğeleri.

@@ -12,9 +12,9 @@ const coordinator = { ready: true, companyAdmin: false, role: 'coordinator' } as
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüde canlı)', () => {
+describe('etkin faz F7 (rapor rotaları menüsüz; Toplantılar, Arşiv ve Mesajlar menüde canlı)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
-    expect(CURRENT_PHASE).toBe('F6')
+    expect(CURRENT_PHASE).toBe('F7')
     const groups = sideMenuGroups(menuEntries(), admin)
     expect(groups.map((g) => g.group)).toEqual(['takip', 'icerik', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
@@ -25,6 +25,7 @@ describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüd
     expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['meetings', 'canli'],
       ['archive', 'canli'],
+      ['messages', 'canli'],
     ])
     expect(groups[2]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['users', 'canli'],
@@ -47,10 +48,27 @@ describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüd
     const ctx = await sideContext()
     const { lifecycle, store } = createFakeLifecycle()
     store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
-    const { badges } = setupWithScope(ctx, lifecycle, () => useTaskBadges(undefined, fetcher))
+    // F7: Mesajlar rozeti hesap geneli özetten (seçili program satırı; `mentioned` vurgusu).
+    const chats = vi.fn(() =>
+      Promise.resolve({
+        items: [
+          { program_id: 'p1', program_name: 'P', unread_chats: 2, mentioned: true },
+          { program_id: 'p2', program_name: 'Q', unread_chats: 9, mentioned: false },
+        ],
+      }),
+    )
+    const { badges } = setupWithScope(ctx, lifecycle, () =>
+      useTaskBadges(undefined, fetcher, undefined, chats),
+    )
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(1)
-    expect(badges.value).toEqual({ overdue: 4, pendingDates: 1, awaitingApproval: null })
+    expect(badges.value).toEqual({
+      overdue: 4,
+      pendingDates: 1,
+      awaitingApproval: null,
+      unreadChats: 2,
+      unreadMentioned: true,
+    })
 
     const coordCtx = await sideContext()
     const coord = createFakeLifecycle({
@@ -59,13 +77,20 @@ describe('etkin faz F6 (rapor rotaları menüsüz; Toplantılar ve Arşiv menüd
     coord.store.commit({ programId: 'p1', lens: 'coordinator', departmentId: 'd1' })
     const idle = vi.fn(() => Promise.resolve({ overdue_tasks: 9, pending_date_changes: 9 }))
     const counts = vi.fn(() => Promise.resolve({ overdue: 3, pending_date_requests: 2 }))
+    const noChats = vi.fn(() => Promise.resolve({ items: [] }))
     const other = setupWithScope(coordCtx, coord.lifecycle, () =>
-      useTaskBadges(undefined, idle, counts),
+      useTaskBadges(undefined, idle, counts, noChats),
     )
     await flushPromises()
     expect(idle).not.toHaveBeenCalled()
     expect(counts).toHaveBeenCalledTimes(1)
-    expect(other.badges.value).toEqual({ overdue: 3, pendingDates: 2, awaitingApproval: null })
+    expect(other.badges.value).toEqual({
+      overdue: 3,
+      pendingDates: 2,
+      awaitingApproval: null,
+      unreadChats: null,
+      unreadMentioned: false,
+    })
   })
 })
 

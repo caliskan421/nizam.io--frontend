@@ -3,9 +3,10 @@
 // görünürlüğü (ortak-kurallar §5). URL özelliğe göredir; rol öneki yok (lint + test).
 //
 // Kurallar:
-// - Yalnız v1 (F0–F4) ekranları; v1 dışı modüller (Arşiv F5, Mesajlar F7, İşlem geçmişi, Tablolar,
-//   Takvim, Kurumsal hafıza, Simülasyon) ve hedefi tanımsız öğeler (Yardım, Asistan) katalogda
-//   YOKTUR. "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
+// - v1 (F0–F4) ekranları + sonraki fazlarda açılanlar (Arşiv F5, Raporlar F6, Mesajlar F7); henüz
+//   açılmamış modüller (İşlem geçmişi, Tablolar, Takvim, Kurumsal hafıza, Simülasyon) ve hedefi
+//   tanımsız öğeler (Yardım, Asistan) katalogda YOKTUR. F7 (W154): Mesajlar (10/10b/10c) — iki
+//   rota, üç rolde menüde (İçerik grubu); bildirim paneli rota değildir (zil, URL durumu yok). "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
 //   F6 (W136): iki rapor önizleme rotası (01f/01g; yalnız şirket yöneticisi) katalogdadır, menüsüz;
 //   `CURRENT_PHASE` F6'da canlıdır (router'a girerler; kapı `modules/reports/routing/ReportsGate`).
 //   F5 (W121): Arşiv (06/07) katalogdadır; "Silinen kayıtlar" (12, W128) katalogdadır ama menüye
@@ -20,11 +21,11 @@ import { DELETED_KINDS, DELETED_RANGES } from '@/modules/deleted-records/public'
 import { USER_ROLE_TABS } from '@/modules/organization/public'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
-export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6'] as const
+export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F6'
+export const CURRENT_PHASE: Phase = 'F7'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -309,6 +310,29 @@ export const ROUTES = {
     parent: 'collaboration.meeting',
     params: { meetingId: id },
     query: {},
+  },
+  'collaboration.chats': {
+    path: '/mesajlar',
+    title: 'Mesajlar',
+    // 10 README: program kapsamlı sohbet (S2; liste S2, rozet kaynağı S1 `getChatUnreadOverview`).
+    // Dar ekranda (P62) `/mesajlar` yalnız liste, `/mesajlar/:chatId` yalnız konuşma (rota durumu).
+    scope: 'S2',
+    phase: 'F7',
+    menu: { group: 'icerik', key: 'messages', order: 3 },
+    params: {},
+    // `filtre`: istemci süzgeci sekmesi (E-10-06; BE-081 sunucu süzgeci gelene dek yüklenen
+    // sayfalarda); arama ve imleç URL'de taşınmaz.
+    query: { filtre: oneOf(['okunmamis', 'gruplar', 'kisiler']) },
+  },
+  'collaboration.chat': {
+    path: '/mesajlar/:chatId',
+    title: 'Konuşma',
+    scope: 'S2',
+    phase: 'F7',
+    parent: 'collaboration.chats',
+    params: { chatId: id },
+    // `mesaj`: hedef mesajın `seq` değeri (bağlantı kopyala; `around` ile açılır, E-10-45).
+    query: { filtre: oneOf(['okunmamis', 'gruplar', 'kisiler']), mesaj: text },
   },
   'deleted-records.list': {
     path: '/silinen-kayitlar',

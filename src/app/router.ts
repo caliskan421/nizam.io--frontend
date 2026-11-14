@@ -17,6 +17,7 @@ import {
   routeSpec,
 } from '@/app/routes.catalog'
 import { archiveRoutes } from '@/modules/archive/public'
+import { chatRoutes } from '@/modules/chat/public'
 import { deletedRecordsRoutes } from '@/modules/deleted-records/public'
 import { reportsRoutes } from '@/modules/reports/public'
 import { homeRoutes } from '@/modules/home/public'
@@ -47,6 +48,7 @@ export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...programRoutes,
   ...timelineRoutes,
   ...meetingsRoutes,
+  ...chatRoutes,
   ...archiveRoutes,
   ...deletedRecordsRoutes,
   ...reportsRoutes,
