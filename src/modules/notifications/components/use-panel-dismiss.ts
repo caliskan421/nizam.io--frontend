@@ -92,7 +92,8 @@ export function usePanelDismiss(options: DismissOptions) {
   const dom = useDocumentListeners(options, () => trigger)
 
   async function onOpened(): Promise<void> {
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const active = document.activeElement
+    const previous = active instanceof HTMLElement && active !== document.body ? active : null
     dom.attach()
     await nextTick()
     if (!options.open()) return
