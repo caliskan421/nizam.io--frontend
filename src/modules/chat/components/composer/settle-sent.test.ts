@@ -1,7 +1,7 @@
 // CX-F7-Ö-01 / Ö-04: gönderim sonucu yalnız gönderilen anahtarın GÖNDERİLEN sürümünü (nesil) temizler.
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { chatDrafts, chipsOf, resetDrafts, settleSent } from './drafts'
+import { addMention, addRef, chatDrafts, chipsOf, resetDrafts, settleSent } from './drafts'
 
 afterEach(() => resetDrafts())
 
@@ -61,5 +61,22 @@ describe('settleSent', () => {
     const second = chatDrafts.editVersion('k1')
     chatDrafts.setEditBody('k1', 'b')
     expect(chatDrafts.editVersion('k1')).toBeGreaterThan(second)
+  })
+
+  it('gönderim beklerken çip eklenir: gövde aynı olsa da temizlenmez', () => {
+    chatDrafts.setBody('k1', 'merhaba')
+    const sent = chatDrafts.version('k1')
+    addMention('k1', chip)
+    settleSent('k1', sent)
+    expect(chatDrafts.get('k1')?.body).toBe('merhaba')
+    expect(chipsOf('k1').mentions).toHaveLength(1)
+  })
+
+  it('görev çipi (ref) eklemek de sürümü artırır', () => {
+    chatDrafts.setBody('k1', 'bak')
+    const sent = chatDrafts.version('k1')
+    addRef('k1', { token: '#G1', kind: 'task', targetId: 't1' })
+    settleSent('k1', sent)
+    expect(chipsOf('k1').refs).toHaveLength(1)
   })
 })

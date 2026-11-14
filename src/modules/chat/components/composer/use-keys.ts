@@ -6,7 +6,7 @@
 import type { ComputedRef, Ref } from 'vue'
 
 import type { ThreadContext } from '../thread/use-thread'
-import { chipsOf } from './drafts'
+import { addMention, addRef } from './drafts'
 import { applySuggestion } from './suggest'
 import type { useSuggest } from './use-suggest'
 
@@ -33,10 +33,10 @@ export function useKeys(input: KeysInput) {
     if (!option || !trigger) return
     const next = applySuggestion(text.value, trigger, option.token)
     text.value = next.text
-    const chips = chipsOf(thread.draftKey.value)
-    if (option.mention) chips.mentions.push({ token: option.token, mention: option.mention })
+    const at = thread.draftKey.value
+    if (option.mention) addMention(at, { token: option.token, mention: option.mention })
     if (option.task) {
-      chips.refs.push({ token: option.token, kind: 'task', targetId: option.task.targetId })
+      addRef(at, { token: option.token, kind: 'task', targetId: option.task.targetId })
     }
     input.setCaret(next.caret)
   }

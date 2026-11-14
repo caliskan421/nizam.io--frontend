@@ -36,6 +36,8 @@ export interface DraftStore {
    * başında yakalanır, sonuç yalnız AYNI sürüm için temizlik yapar (eski metne dönüş yeni sürümdür).
    */
   version: (chatId: string) => number
+  /** Çip dizisi değişti (ekle/çıkar): taslak sürümünü artırır (CX-F7-Ö-04). */
+  touch: (chatId: string) => void
   /** Düzenleme taslağının nesli (başlat / metin / bitir her seferinde artar). */
   editVersion: (chatId: string) => number
   getEdit: (chatId: string) => EditDraft | null
@@ -54,6 +56,7 @@ export function createDraftStore(newId: () => string = newClientMessageId): Draf
   const bump = (map: Map<string, number>, chatId: string) => void map.set(chatId, ++counter)
   return {
     version: (chatId) => versions.get(chatId) ?? 0,
+    touch: (chatId) => bump(versions, chatId),
     editVersion: (chatId) => editVersions.get(chatId) ?? 0,
     get: (chatId) => drafts.get(chatId) ?? null,
     setBody(chatId, body) {

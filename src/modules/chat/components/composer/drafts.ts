@@ -38,6 +38,17 @@ export function chipsOf(key: string): DraftChips {
   return value
 }
 
+/** Çip ekler ve taslak sürümünü artırır: gönderim sürerken eklenen çip eski başarıyla silinmez. */
+export function addMention(key: string, chip: DraftChips['mentions'][number]): void {
+  chipsOf(key).mentions.push(chip)
+  chatDrafts.touch(key)
+}
+
+export function addRef(key: string, chip: DraftChips['refs'][number]): void {
+  chipsOf(key).refs.push(chip)
+  chatDrafts.touch(key)
+}
+
 export function clearChips(key: string): void {
   chips.delete(key)
 }
