@@ -53,10 +53,12 @@ export function useScrollFollow(input: ScrollFollowInput) {
   let before: ScrollSnapshot | null = null
   let settledFor: string | null = null
 
+  // DOM güncellenmeden ÖNCEKİ ölçü + ÖNCEKİ pencere: `seq` sınırları eski listeden okunur (yeni liste
+  // verilirse `lastSeq` iki ölçüde de aynı olur ve yeni mesajda alta kayma hiç tetiklenmezdi; KUSUR 12).
   watch(
     input.items,
-    () => {
-      before = input.list.value ? snapshot(input.list.value, input.items()) : null
+    (_now, previous) => {
+      before = input.list.value ? snapshot(input.list.value, previous ?? []) : null
     },
     { flush: 'pre' },
   )

@@ -1,7 +1,8 @@
 /**
  * Panel kapanışı, odak ve dar ekran davranışı (14 `mekanizma.md` §3.4–3.5; E-14-22…24; KESİN 27).
  *  - Esc ve dış tık (`pointerdown`, yakalama) kapanış İSTEĞİ yayar (`close`); zilin kendi tıklaması
- *    dış sayılmaz (zil açıp kapatır).
+ *    dış sayılmaz (zil açıp kapatır); panelin üstündeki pencerenin (`aria-modal`, ör. onay) içindeki
+ *    etkileşim de dış tık sayılmaz.
  *  - Program/birim/mercek, oturum ya da hesap değişimi paneli kapatır (E-14-88).
  *  - Açılışta odak panelin ilk etkin öğesine (yoksa köküne); her kapanışta odak zile (yoksa önceki
  *    odağa) döner — yalnız odak gövdeye düştüyse (başka bir öğeye tıklandıysa dokunulmaz).
@@ -65,6 +66,8 @@ function useDocumentListeners(options: DismissOptions, triggerOf: () => HTMLElem
     const target = event.target
     if (!(target instanceof Node) || options.root.value?.contains(target)) return
     if (triggerOf()?.contains(target)) return
+    // Panelin ÜSTÜNE açılan pencere (onay, çakışma): etkileşimi dış tık değildir; panel açık kalır.
+    if (target instanceof Element && target.closest('[aria-modal="true"]') !== null) return
     options.close()
   }
   function attach(): void {

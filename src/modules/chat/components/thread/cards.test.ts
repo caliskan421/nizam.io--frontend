@@ -42,6 +42,34 @@ const taskSummary = {
 }
 
 describe('kartlar ve çipler', () => {
+  it('KUSUR 13: silinmiş/erişilemeyen görev (available:false, başlık yok) "artık yok" çipiyle gösterilir', async () => {
+    servePane({
+      messages: [
+        msg(1, {
+          body: 'Eski görev kartı',
+          refs: [{ kind: 'task', ref_id: 'r9', target_id: 't9' }],
+        }),
+      ],
+    })
+    server.use(
+      http.get(`${ORIGIN}/v1/chat-refs/r9`, () =>
+        json({
+          available: false,
+          chat_id: 'c1',
+          kind: 'task',
+          message_id: 'm1',
+          ref_id: 'r9',
+          target_id: 't9',
+        }),
+      ),
+    )
+    const { wrapper } = await mountPane()
+    await vi.waitFor(() => expect(wrapper.find('.chat-tref--gone').exists()).toBe(true))
+    expect(wrapper.get('.chat-tref--gone').element.tagName).toBe('SPAN')
+    expect(wrapper.get('.chat-tref--gone').text()).toBe('Bu öğe artık yok')
+    expect(sent('GET', '/v1/work-items/t9')).toHaveLength(0)
+  })
+
   it('görev çipi: gövdedeki "#başlık" çip olur; erişim yoksa (403) not gösterilir, gezinme yok', async () => {
     servePane({
       messages: [

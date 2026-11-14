@@ -201,7 +201,7 @@ describe('kapanış (E-03-43, E-03-56, 404)', () => {
     const { mountPanel } = setup(COORD_SCOPE, false, COORD_D1)
     const wrapper = mountPanel({ workItemId: 'w1' })
     await vi.waitFor(() => expect(wrapper.emitted('close')).toEqual([['not_found']]))
-    expect(useToast().current.value?.message).toBe('Görev bulunamadı.')
+    expect(useToast().current.value?.message).toBe('Bu görev bu kapsamda bulunamadı')
   })
 
   it('Admin merceği, görev yüklenen listede yok → "kapsam bilinmiyor" + kapanış; getWorkItem yok', async () => {
@@ -212,9 +212,7 @@ describe('kapanış (E-03-43, E-03-56, 404)', () => {
     const wrapper = mountPanel({ workItemId: 'w1' })
     expect(wrapper.emitted('close')).toBeUndefined()
     await vi.waitFor(() => expect(wrapper.emitted('close')).toEqual([['not_found']]))
-    expect(useToast().current.value?.message).toBe(
-      'Görevin kapsamı bilinmiyor; görevi listeden açın.',
-    )
+    expect(useToast().current.value?.message).toBe('Bu görev bu kapsamda bulunamadı')
     expect(sent('GET', ITEM)).toHaveLength(0)
   })
 })

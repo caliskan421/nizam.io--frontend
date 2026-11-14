@@ -164,4 +164,16 @@ describe('ShareFileDialog — Arşivden (E-10-54)', () => {
     clickText('Vazgeç')
     await vi.waitFor(() => expect(wrapper.emitted('close')).toHaveLength(2))
   })
+
+  it('Ekle menüsünden gelen sekme açılır: tab="archive" → "Arşivden", varsayılan "Yeni yükle" (E-10-54/55/101)', async () => {
+    serve()
+    on('get', '/v1/program/departments', () => json({ departments: [] }))
+    const { wrapper } = mountDialog(ShareFileDialog, { chatId: 'c1', tab: 'archive' })
+    await vi.waitFor(() => expect($('[data-testid="dlg-archive"]')).not.toBeNull())
+    expect($('[data-testid="dlg-upload"]')).toBeNull()
+    wrapper.unmount()
+    mountDialog(ShareFileDialog, { chatId: 'c1' })
+    await vi.waitFor(() => expect($('[data-testid="dlg-upload"]')).not.toBeNull())
+    expect($('[data-testid="dlg-archive"]')).toBeNull()
+  })
 })

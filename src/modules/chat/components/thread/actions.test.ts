@@ -1,5 +1,5 @@
 import { flushPromises } from '@vue/test-utils'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { msg } from '../../__tests__/fixtures'
 import {
@@ -183,5 +183,29 @@ describe('mesaj eylemleri', () => {
     expect(polls[1]!.text()).toContain('Anket kapandı')
     expect(polls[1]!.get('.chat-poll__opt').attributes('disabled')).toBeDefined()
     expect(wrapper.get('[data-testid="chat-file-gone"]').text()).toContain('Bu öğe artık yok')
+  })
+})
+
+describe('açılır yüzeyin görünürlüğü (KUSUR 9)', () => {
+  it('menü ve tepki seçici açılınca kaydırma kabında görünür olana dek kaydırılır (block: nearest)', async () => {
+    servePane({ messages: [msg(1)] })
+    const scroll = vi.fn()
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scroll,
+    })
+    try {
+      const { wrapper } = await mountPane()
+      await openMenu(wrapper, 0)
+      await flushPromises()
+      expect(scroll).toHaveBeenCalledWith({ block: 'nearest' })
+      expect(scroll.mock.instances.at(-1)).toBe(wrapper.get('.chat-pop--more').element)
+      scroll.mockClear()
+      await wrapper.get('[aria-label="Tepki ver"]').trigger('click')
+      await flushPromises()
+      expect(scroll).toHaveBeenCalledWith({ block: 'nearest' })
+    } finally {
+      delete (Element.prototype as unknown as Record<string, unknown>).scrollIntoView
+    }
   })
 })

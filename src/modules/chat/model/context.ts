@@ -3,18 +3,30 @@
  * eylemleri ve akış. Böylece `ConversationPane`/`Composer` aynı pencereyi ve aynı tek akışı
  * kullanır (iki ayrı akış/okuyucu açılmaz; KESİN 34). `provide` yalnız `ChatPage`'dedir.
  */
-import { inject, type InjectionKey } from 'vue'
+import { inject, type InjectionKey, type Ref } from 'vue'
+
+import type { StreamState } from '@/shared/sse'
 
 import type { ChatStreamMessages } from './types'
+
+/** Pencere okuyucusunun yükleniyor/hata durumu (konuşma bölmesi iskeleti ve "Yeniden dene"). */
+export interface MessagesQueryState {
+  isPending: Readonly<Ref<boolean>>
+  isError: Readonly<Ref<boolean>>
+  refetch: () => Promise<unknown>
+}
 
 export interface ChatPageContext {
   chatId: () => string | null
   messages: ChatStreamMessages & {
     loadOlder: () => Promise<void>
     jumpTo: (seq: number) => Promise<void>
+    query: MessagesQueryState
   }
   /** Yazanların hesap kimlikleri (açık sohbet; ~5 sn). */
   typingAccountIds: () => string[]
+  /** Gerçek zamanlı akışın durumu (N-10-15 "Bağlantı yeniden kuruluyor…" göstergesi). */
+  connection: () => StreamState
 }
 
 export const CHAT_PAGE_KEY: InjectionKey<ChatPageContext> = Symbol('chat-page')

@@ -1,8 +1,13 @@
 /**
  * Sohbet taslakları (K2, mekanizma §9.6): modül düzeyi TEK depo, yalnız bellekte. Anahtar
- * `<hesap>:<program>:<sohbet>`; program ya da oturum değişince eski anahtarlara erişilmez,
- * ayrıca yazma çubuğu bu değişimlerde depoyu boşaltır (`Composer`).
+ * `<hesap>:<program>:<sohbet>`; program ya da oturum değişince eski anahtarlara erişilmez ve depo
+ * BOŞALIR. Boşaltma yazma çubuğuna değil modül yaşamına bağlıdır (`bindDraftLifetime`): kapsam
+ * değişince sayfa/yazma çubuğu yeniden kurulur, o örneğin izleyicisi çalışmadan sökülürdü
+ * (KUSUR 8: program p1 → p2 → p1 sonrası eski taslak geri geliyordu).
  */
+import { authSession } from '@/shared/http'
+import { useScopeStore } from '@/shared/scope/store'
+
 import { createDraftStore } from '../../model/draft'
 import type { ChatMention } from '../../model/types'
 
@@ -50,4 +55,37 @@ export function resetDrafts(): void {
   chatDrafts.clearAll()
   chips.clear()
   editBases.clear()
+}
+
+let stopLifetime: (() => void) | null = null
+
+/**
+ * Depoyu program ve oturum (hesap/nesil) değişimine bağlar; tek sefer, sayfa sökülse de sürer.
+ * Sayfa kurulumunda çağrılır (`ChatPage`).
+ */
+export function bindDraftLifetime(): void {
+  if (stopLifetime !== null) return
+  const scope = useScopeStore()
+  const account = { id: authSession.snapshot.accountId, generation: authSession.generation }
+  const offScope = scope.onChange((next, previous) => {
+    if (next.programId !== previous.programId) resetDrafts()
+  })
+  const offSession = authSession.subscribe((snapshot) => {
+    const changed =
+      authSession.generation !== account.generation ||
+      (snapshot.accountId !== null && snapshot.accountId !== account.id)
+    account.id = snapshot.accountId
+    account.generation = authSession.generation
+    if (changed) resetDrafts()
+  })
+  stopLifetime = () => {
+    offScope()
+    void offSession()
+  }
+}
+
+/** Testler: bağlantıyı söker (modül grafiği yeniden kurulmadan yeni Pinia ile bağlanabilsin). */
+export function unbindDraftLifetime(): void {
+  stopLifetime?.()
+  stopLifetime = null
 }

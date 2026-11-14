@@ -22,7 +22,8 @@ export type DialogRequest =
   | { dialog: 'newGroup'; mode: 'group' | 'direct' }
   | { dialog: 'taskFromMessage'; chatId: string; messageId: string; seq: number }
   | { dialog: 'poll'; chatId: string }
-  | { dialog: 'shareFile'; chatId: string }
+  /** `tab`: Ekle menüsünden gelen sekme (E-10-54 "Arşivden", E-10-55 "Yeni yükle"); yoksa "Yeni yükle". */
+  | { dialog: 'shareFile'; chatId: string; tab?: 'archive' | 'upload' }
 
 /** `forward` açılabilir değildir (BE-080). */
 export function isOpenable(name: ChatDialogName): boolean {

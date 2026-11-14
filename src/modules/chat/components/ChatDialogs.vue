@@ -88,6 +88,7 @@ async function restoreFocus(): Promise<void> {
     <ShareFileDialog
       v-else-if="request.dialog === 'shareFile'"
       :chat-id="request.chatId"
+      :tab="request.tab"
       @close="emit('close')"
     />
   </div>

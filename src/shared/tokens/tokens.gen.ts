@@ -1754,6 +1754,18 @@ export const TOKENS = {
     "dark": "420px",
     "light": "420px"
   },
+  "chat-bub-min-w": {
+    "group": "topbar",
+    "origin": "web",
+    "dark": "120px",
+    "light": "120px"
+  },
+  "chat-att-min-w": {
+    "group": "topbar",
+    "origin": "web",
+    "dark": "240px",
+    "light": "240px"
+  },
   "list-min-w": {
     "group": "work",
     "origin": "web",
