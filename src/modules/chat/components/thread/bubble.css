@@ -34,7 +34,8 @@
 .msg-row__col {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  /* Kart/anket alt genişliği (`--chat-att-min-w`) balonu taşırmasın: sütun içeriğinin en küçük boyundan daralmaz. */
+  min-width: min-content;
   max-width: min(var(--rp-col-basis), 72%);
 }
 .msg-row--me .msg-row__col {
@@ -402,6 +403,28 @@ button.chat-tick {
   /* Dokunmatik/dar ekran: araçlar mesaja dokununca açılır; menüler akışta yer açar. */
   .msg-row__col {
     max-width: 82%;
+  }
+  /* Satır araçları balonun ÜSTÜNDE yüzer (balona dokunuşu kesmez): görünmezken ızgarada genişlik tutup balonu daraltmaz
+     (390'da araçlar sütunu balonu ~140 px'e sıkıştırıyordu; KUSUR 11). Odaklanabilir kalır. */
+  .msg-row__tools {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    transform: translateY(-100%);
+  }
+  .msg-row__tools {
+    pointer-events: none;
+  }
+  .msg-row--tools .msg-row__tools,
+  .msg-row:focus-within .msg-row__tools,
+  .msg-row:hover .msg-row__tools {
+    pointer-events: auto;
+  }
+  .msg-row--them .msg-row__tools {
+    left: calc(var(--ui-av-md) + var(--space-2));
+  }
+  .msg-row--me .msg-row__tools {
+    right: 0;
   }
   .chat-pop {
     position: static;
