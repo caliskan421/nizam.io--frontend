@@ -30,6 +30,13 @@ test('iki sekme, eşzamanlı 401 → tek refresh, iki oturum da geçerli', async
   await expect(status(pageB)).toHaveAttribute('data-status', 'authenticated')
   await expect(pageB.getByTestId('me-email')).toHaveText(ADMIN.email)
 
+  // F7: kabuğun arka plan okumaları (zil sayacı, Mesajlar rozeti; 60 sn aralık) belirteç dolunca
+  // kendiliğinden 401 → tek uçuş refresh yapar ve senaryonun "iki sayfa da süresi dolmuş
+  // belirteçle korumalı uç çağırır" önkoşulunu bozar. Ölçülen istek `/v1/me` olduğundan bu iki
+  // arka plan ucu senaryo boyunca kesilir (davranış değil, ölçüm düzeneği).
+  const background = /\/v1\/(notifications\/unread-count|me\/chat-unread)$/
+  await context.route(background, (route) => route.abort())
+
   // Erişim belirteci iki sayfada da dolsun (refresh çerezi geçerli kalır).
   await pageA.waitForTimeout(EXPIRY_WAIT_MS)
 
@@ -66,6 +73,7 @@ test('iki sekme, eşzamanlı 401 → tek refresh, iki oturum da geçerli', async
   ])
   await Promise.all([okA, okB])
   await context.unroute('**/v1/me')
+  await context.unroute(background)
 
   // İki sayfa da önce 401 aldı (belirteç gerçekten geçersizdi), sonra 200.
   expect(meStatuses.filter((s) => s === 401)).toHaveLength(2)
