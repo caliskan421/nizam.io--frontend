@@ -110,16 +110,15 @@ watch(
 )
 
 const dialog = ref<DialogRequest | null>(null)
-// Konuşma/yazma çubuğu pencere ister (10c): açıcı `ChatDialogs.request`'e bağlanır (W156 bağlaması).
-provide(CHAT_DIALOG_OPENER, (request) => void (dialog.value = request))
-function openCreate(mode: 'group' | 'direct'): void {
-  dialog.value = { dialog: 'newGroup', mode }
-}
-/** Komşu tetikleyiciler (mesaj menüsü, yazma çubuğu) pencereyi bu girişle açar. */
-function openDialog(request: DialogRequest): void {
+// TEK açma yolu (10c): konuşma, yazma çubuğu ve liste pencere ister; açıcı `ChatDialogs.request`'e
+// bağlanır. Sayfa ayrıca dışa açık bir `openDialog` yöntemi sunmaz (KUSUR 4, W156/W157 çifte yol).
+function open(request: DialogRequest): void {
   dialog.value = request
 }
-defineExpose({ openDialog })
+provide(CHAT_DIALOG_OPENER, open)
+function openCreate(mode: 'group' | 'direct'): void {
+  open({ dialog: 'newGroup', mode })
+}
 function closeDialog(): void {
   const closed = dialog.value
   dialog.value = null

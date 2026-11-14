@@ -322,13 +322,13 @@ describe('ChatPage — kabuk, dar ekran ve odak (E-10-04, N-10-40, N-10-42)', ()
 
   it('diğer pencereler kapanınca odak düğmeye ZORLANMAZ (ChatDialogs tetikleyiciye döndürür)', async () => {
     serve(LIST)
-    const { wrapper } = await mountAt('/mesajlar', true)
-    ;(
-      wrapper.getComponent(ChatPage).vm as unknown as { openDialog: (r: unknown) => void }
-    ).openDialog({ dialog: 'poll', chatId: 'c1' })
+    const { wrapper } = await mountAt('/mesajlar/c1', true)
+    // Tek açma yolu: konuşma başlığı `CHAT_DIALOG_OPENER` ile pencere ister (sayfa dışa açık yöntem sunmaz).
+    await wrapper.get('.chat-thread__who').trigger('click')
     await flushPromises()
     const dialogs = wrapper.getComponent(ChatDialogs)
-    expect(dialogs.props('request')).toEqual({ dialog: 'poll', chatId: 'c1' })
+    expect(dialogs.props('request')).toEqual({ dialog: 'groupInfo', chatId: 'c1' })
+    expect('openDialog' in wrapper.getComponent(ChatPage).vm).toBe(false)
     ;(active() as HTMLElement).blur()
     dialogs.vm.$emit('close')
     await flushPromises()
