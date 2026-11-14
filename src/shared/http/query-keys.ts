@@ -715,6 +715,19 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'chats.refSummary': (scope) => chatReserved(scope, 'ref'),
 }
 
+/**
+ * Tek bir §6 kaynağının filtresi (yazma dışı geçersizleme: SSE olayı → ilgili sorgu, yeniden
+ * bağlanma uzlaştırması). Program kapsamı yoksa kapsamlı kaynakta `null` döner değil, filtre
+ * kapsam anahtarıyla kurulur; çağıran kapsamı verir. `null`: kaynakta geçersizleme yok.
+ */
+export function resourceFilter(
+  resource: QueryResource,
+  scope: ScopeSnapshot,
+  ctx: InvalidationContext = {},
+): InvalidationFilter | null {
+  return FILTERS[resource](scope, ctx)
+}
+
 /** Bir mutasyonun geçersizlediği §6 kaynakları. */
 export function resourcesInvalidatedBy(operation: OperationId): QueryResource[] {
   return (Object.keys(INVALIDATED_BY) as QueryResource[]).filter((resource) =>

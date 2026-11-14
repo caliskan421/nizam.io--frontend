@@ -3,6 +3,7 @@ import { createI18n } from 'vue-i18n'
 import type { ApiError } from '@/shared/errors/api-error'
 
 import { trArchive } from './tr/archive'
+import { trChat } from './tr/chat'
 import { trDeletedRecords } from './tr/deleted-records'
 import { trErrors } from './tr/errors'
 import { trMutation } from './tr/mutation'
@@ -99,6 +100,7 @@ export const messages = {
     trDeletedRecords,
     trReports,
     trNotifications,
+    trChat,
   ),
 }
 
