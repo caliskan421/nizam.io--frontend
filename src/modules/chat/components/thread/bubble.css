@@ -404,13 +404,17 @@ button.chat-tick {
   .msg-row__col {
     max-width: 82%;
   }
-  /* Satır araçları balonun ÜSTÜNDE yüzer (balona dokunuşu kesmez): görünmezken ızgarada genişlik tutup balonu daraltmaz
-     (390'da araçlar sütunu balonu ~140 px'e sıkıştırıyordu; KUSUR 11). Odaklanabilir kalır. */
+  /* Satır araçları balonun ÜSTÜNDE, satırın kendi üst şeridindedir: görünmezken ızgarada genişlik tutup balonu
+     daraltmaz (KUSUR 11); açılınca satır şerit kadar uzar, bu yüzden bir önceki mesajın saat damgasını örtmez
+     (KUSUR 5). Odaklanabilir kalır. */
   .msg-row__tools {
     position: absolute;
     top: 0;
     z-index: 2;
-    transform: translateY(-100%);
+  }
+  .msg-row--tools,
+  .msg-row:focus-within {
+    padding-top: calc(var(--ui-av-sm) + var(--space-1));
   }
   .msg-row__tools {
     pointer-events: none;

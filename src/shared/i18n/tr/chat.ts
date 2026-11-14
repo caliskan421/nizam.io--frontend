@@ -150,9 +150,6 @@ export const trChat = {
       mentionRejected: 'Herkesi yalnız grup yöneticileri anabilir; mesaj gönderilmedi.',
       messageDeleted: 'Yanıtlanan ya da düzenlenen mesaj silinmiş; taslağınız korundu.',
       replyGone: 'Yanıtladığınız mesaj silinmiş; yanıt bağlamı kaldırıldı.',
-      editConflict: 'Mesaj başka bir yerde değişti. Güncel metin aşağıda; taslağınız korundu.',
-      editConflictUse: 'Güncel metni kullan',
-      editConflictKeep: 'Taslağımı koru',
       failed: 'Mesaj gönderilemedi.',
     },
     dialogs: {

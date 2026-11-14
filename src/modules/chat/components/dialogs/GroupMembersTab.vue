@@ -169,15 +169,15 @@ async function setAdmin(m: ChatMember, on: boolean): Promise<void> {
     <UiHint v-if="members.data.value?.truncated">
       {{ chatText('chat.dialogs.members.truncated') }}
     </UiHint>
-    <UiButton
+    <button
       v-if="self && capabilities.leaveGroup({ fromSource: self.from_source })"
-      variant="danger"
-      size="sm"
+      type="button"
+      class="chat-dlg__leave"
       :disabled="busy"
       data-testid="dlg-leave"
       @click="kick(self, true)"
     >
       {{ chatText('chat.dialogs.members.leave') }}
-    </UiButton>
+    </button>
   </div>
 </template>

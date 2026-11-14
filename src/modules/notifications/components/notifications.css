@@ -48,8 +48,14 @@
     flex: 1 1 auto;
     min-height: 0;
   }
+  /* Sekme satırı kaydırılan gövdenin ÜSTÜNDE ve küçülmez (`rp-tabs` `overflow-x` ile flex'te 0'a
+     kadar daralırdı; grup başlığı sekmeleri örterdi — KUSUR 3). */
   .nb-tabs > .rp-tabs {
+    position: relative;
+    z-index: 1;
+    flex: none;
     padding: 0 var(--space-5);
+    background: var(--bg-raised);
   }
   .nb-tabs > [role='tabpanel'] {
     flex: 1 1 auto;

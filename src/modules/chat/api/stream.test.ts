@@ -336,3 +336,81 @@ describe('useChatStream: yaşam döngüsü (KESİN 34, 26)', () => {
     expect(m.result.stream.state.value).toBe('open')
   })
 })
+
+describe('useChatStream: bekleyen uzlaştırma (KUSUR 1-2)', () => {
+  async function opened() {
+    serveReads()
+    const s = makeStream()
+    const messages = fakeMessages()
+    const h = start(messages, transportOf([{ kind: 'open', body: s.body }]))
+    await tick(10)
+    return { ...h, s, messages }
+  }
+
+  it('olay → ağ hatası → çevrimiçi: pencere TEK kez uzlaştırılır; ikinci tetik okumaz', async () => {
+    const { s, messages } = await opened()
+    messages.loadNewer.mockRejectedValueOnce(new TypeError('network'))
+    s.push(frame('message.created', 'c1', { message_id: 'm6' }))
+    await tick(1200)
+    expect(messages.loadNewer).toHaveBeenCalledTimes(1)
+    expect(messages.reconcile).not.toHaveBeenCalled()
+    globalThis.dispatchEvent(new Event('online'))
+    await tick(10)
+    expect(messages.reconcile).toHaveBeenCalledTimes(1)
+    globalThis.dispatchEvent(new Event('online'))
+    globalThis.dispatchEvent(new Event('focus'))
+    await tick(10)
+    expect(messages.reconcile).toHaveBeenCalledTimes(1)
+  })
+
+  it('başarılı okuma bayrak bırakmaz: online uzlaştırma başlatmaz', async () => {
+    const { s, messages } = await opened()
+    s.push(frame('message.created', 'c1', { message_id: 'm6' }))
+    await tick(1200)
+    globalThis.dispatchEvent(new Event('online'))
+    await tick(10)
+    expect(messages.reconcile).not.toHaveBeenCalled()
+  })
+
+  it('pencere odağı bekleyen uzlaştırmayı tetikler; başarısız uzlaştırma bayrağı korur (otomatik döngü yok)', async () => {
+    const { s, messages } = await opened()
+    messages.refreshPeerRead.mockRejectedValueOnce(new TypeError('network'))
+    s.push(frame('read.updated', 'c1'))
+    await tick(1200)
+    messages.reconcile.mockRejectedValueOnce(new TypeError('network'))
+    globalThis.dispatchEvent(new Event('focus'))
+    await tick(5000)
+    expect(messages.reconcile).toHaveBeenCalledTimes(1)
+    globalThis.dispatchEvent(new Event('focus'))
+    await tick(10)
+    expect(messages.reconcile).toHaveBeenCalledTimes(2)
+  })
+
+  it('reddedilen plan yakalanmamış red olmaz; sessiz kalır ve çevrimiçinde uzlaştırılır', async () => {
+    const { s, messages } = await opened()
+    const unhandled = vi.fn()
+    process.on('unhandledRejection', unhandled)
+    messages.refreshMessage.mockImplementationOnce(() => {
+      throw new Error('boom')
+    })
+    s.push(frame('message.updated', 'c1', { message_id: 'm3' }))
+    await tick(1200)
+    await vi.advanceTimersByTimeAsync(0)
+    process.off('unhandledRejection', unhandled)
+    expect(unhandled).not.toHaveBeenCalled()
+    globalThis.dispatchEvent(new Event('online'))
+    await tick(10)
+    expect(messages.reconcile).toHaveBeenCalledTimes(1)
+  })
+
+  it('sayfa sökülünce bekleyen uzlaştırma çalışmaz', async () => {
+    const { s, messages, m } = await opened()
+    messages.loadNewer.mockRejectedValueOnce(new TypeError('network'))
+    s.push(frame('message.created', 'c1', { message_id: 'm6' }))
+    await tick(1200)
+    m.wrapper.unmount()
+    globalThis.dispatchEvent(new Event('online'))
+    await tick(10)
+    expect(messages.reconcile).not.toHaveBeenCalled()
+  })
+})
