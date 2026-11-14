@@ -60,11 +60,16 @@ const parsed = computed(() =>
   segmentBody(props.message.body, mentionNeedles.value, refNeedles.value),
 )
 const targetOf = (refId: string) => taskRefs.value.find((r) => r.ref_id === refId)?.target_id ?? ''
-/** Özeti gelmemiş ya da gövdede yeri olmayan görev referansları. */
+/**
+ * Gövdede yeri olmayan görev referansları (özeti gelmiş olanlar). Başlığı olmayan referans
+ * (`available:false`, silinmiş/erişilemeyen görev) iğne eşleşmesine hiç girmez; yine de "artık
+ * yok" çipiyle GÖSTERİLİR (KUSUR 13: bu çip hiç çizilmiyordu).
+ */
+const placed = computed(
+  () => new Set(parsed.value.segments.flatMap((s) => (s.kind === 'ref' ? [s.refId] : []))),
+)
 const trailing = computed(() =>
-  taskRefs.value.filter(
-    (r) => parsed.value.unplacedRefs.includes(r.ref_id) && props.summaries.has(r.ref_id),
-  ),
+  taskRefs.value.filter((r) => !placed.value.has(r.ref_id) && props.summaries.has(r.ref_id)),
 )
 </script>
 
