@@ -140,6 +140,45 @@ describe('reportSeason (01f önizleme)', () => {
     }
   })
 
+  it('CX-F6-E-08: sayaç sürerken yeni gözlem ağa çıkmaz; süre dolunca otomatik istek yok; refetch tek istek', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      server.use(
+        http.get(`${ORIGIN}${SEASON_PATH}`, () =>
+          errorEnvelope('platform.rate_limited', 429, { 'Retry-After': '60' }),
+        ),
+      )
+      const gate = createReportGate()
+      const first = harness(ADMIN)
+      const a = first.run(() => useReportSeason(true, gate))
+      await settleQueries(first.queryClient)
+      expect(sent('GET', SEASON_PATH)).toHaveLength(1)
+      a.app.unmount()
+
+      // Aynı önbellek, yeni gözlemci (sök → yeniden aç): sayaç sürerken GET yok.
+      server.use(seasonOk())
+      const again = first.run(() => useReportSeason(true, gate))
+      await settleQueries(first.queryClient)
+      expect(sent('GET', SEASON_PATH)).toHaveLength(1)
+      expect(again.result.error.value).toMatchObject({
+        code: 'reporting.export_in_progress',
+        retryAfter: gate.cooldown.value,
+      })
+      expect(gate.busy.value).toBe(false)
+
+      vi.advanceTimersByTime(60_000)
+      expect(gate.cooldown.value).toBe(0)
+      await settleQueries(first.queryClient)
+      expect(sent('GET', SEASON_PATH)).toHaveLength(1)
+
+      await again.result.refetch()
+      expect(sent('GET', SEASON_PATH)).toHaveLength(2)
+      expect(again.result.data.value?.program_name).toBe('Program')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it.each([
     ['429 başlıksız', () => errorEnvelope('reporting.export_in_progress', 429)],
     ['503 capacity_full', () => errorEnvelope('reporting.capacity_full', 503)],
