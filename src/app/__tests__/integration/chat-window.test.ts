@@ -3,11 +3,13 @@
 // kenar menüsü rozeti; KESİN 29). Gerçek router/AppShell/oturum + durumlu sahte sunucu.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { addMessage } from './fake-chat'
 import {
   $,
   $$,
   addPeerReply,
   advance,
+  toasts,
   boot,
   chatOf,
   GROUP,
@@ -22,6 +24,7 @@ import {
   teardown,
   until,
   useChatBackend,
+  watchStreams,
   userClick,
   WHO,
 } from './chat-support'
@@ -40,6 +43,7 @@ beforeAll(async () => {
 }, 60_000)
 beforeEach(() => {
   resetChats()
+  watchStreams()
   vi.spyOn(document, 'hasFocus').mockReturnValue(true)
 })
 afterEach(() => {
@@ -81,6 +85,45 @@ describe('liste → konuşma → pencere', () => {
     ).toHaveLength(1)
     expect($('.msg-row--focus')?.dataset.seq).toBe('2')
     expect(group.messages).toHaveLength(61)
+  })
+})
+
+describe('derin bağlantı ve uzak alıntı', () => {
+  it('`?mesaj=<seq>`: hedefin çevresi `around` ile yüklenir ve vurgulanır; son sayfa okunmaz', async () => {
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}?mesaj=5` })
+    await until(() => seqsOnScreen().includes(5), 'hedef yüklendi')
+    await idle(app.queryClient)
+    const around = sent('GET', `/v1/chats/${GROUP}/messages`).filter(
+      (r) => r.query.get('around') === '5',
+    )
+    expect(around).toHaveLength(1)
+    expect($('.msg-row--focus')?.dataset.seq).toBe('5')
+    expect(Math.min(...seqsOnScreen())).toBeLessThanOrEqual(5)
+  })
+
+  it('alıntı hedefi 3 sayfadan uzaksa: tam 3 `before` okuması, sessiz kalır (bildirim yok)', async () => {
+    const group = chatOf(GROUP)
+    for (let i = 61; i <= 330; i += 1) addMessage(group, WHO.coord, `Mekanik mesaj ${i}`)
+    addPeerReply(GROUP, 1, 'second', 'Çok eski bir mesaja yanıt')
+    // Okunmamış çapası aramasının ek sayfa okumaları karışmasın: hepsi okunmuş.
+    group.reads[WHO.member.account_id] = group.last_seq
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
+    await until(() => $('.chat-quote'), 'alıntı')
+    await idle(app.queryClient)
+    await userClick(() => $('.chat-quote'))
+    await until(
+      () =>
+        sent('GET', `/v1/chats/${GROUP}/messages`).filter((r) => r.query.has('before')).length ===
+        3,
+      '3 sayfa',
+    )
+    await idle(app.queryClient)
+    expect(seqsOnScreen()).not.toContain(1)
+    expect($('.msg-row--focus')).toBeNull()
+    expect(toasts()).toBe('')
+    expect(
+      sent('GET', `/v1/chats/${GROUP}/messages`).filter((r) => r.query.has('before')),
+    ).toHaveLength(3)
   })
 })
 

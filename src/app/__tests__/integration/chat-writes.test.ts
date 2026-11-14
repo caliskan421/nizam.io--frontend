@@ -29,6 +29,7 @@ import {
   typeText,
   until,
   useChatBackend,
+  watchStreams,
   userClick,
   COORD,
   WHO,
@@ -47,6 +48,7 @@ beforeAll(async () => {
 }, 60_000)
 beforeEach(() => {
   resetChats()
+  watchStreams()
   vi.spyOn(document, 'hasFocus').mockReturnValue(true)
 })
 afterEach(() => teardown())
