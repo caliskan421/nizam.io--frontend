@@ -48,7 +48,13 @@ const item = (over: Record<string, unknown> = {}) => ({
 const LIST = `${ORIGIN}/v1/notifications`
 
 function serve(items: unknown[], extra: Record<string, unknown> = {}) {
-  server.use(http.get(LIST, () => json({ items, unread_count: items.length, ...extra })))
+  server.use(
+    http.get(LIST, () => json({ items, unread_count: items.length, ...extra })),
+    // Panel altındaki Web Push kutusu (W159) VAPID anahtarını okur; kapalı → kutu çizilmez.
+    http.get(`${ORIGIN}/v1/notifications/vapid-public-key`, () =>
+      json({ enabled: false, public_key: '' }),
+    ),
+  )
 }
 
 async function mountPanel(open = true) {
