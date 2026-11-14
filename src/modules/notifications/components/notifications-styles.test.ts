@@ -41,4 +41,12 @@ describe('bildirim paneli görünüm kuralları', () => {
     expect(Number(z)).toBeGreaterThan(40)
     expect(Number(z)).toBeLessThan(50)
   })
+
+  it('sekme satırı küçülmez ve gövdenin üstündedir (KUSUR 3: grup başlığı sekmeyi örtmez)', () => {
+    const rule = /\.nb-tabs > \.rp-tabs \{([^}]*)\}/.exec(read('notifications.css'))?.[1] ?? ''
+    expect(rule).toMatch(/flex: none;/)
+    expect(rule).toMatch(/position: relative;/)
+    expect(rule).toMatch(/z-index: 1;/)
+    expect(rule).toMatch(/background: var\(--bg-raised\);/)
+  })
 })
