@@ -37,6 +37,8 @@ export const EMPTY_REASON_STATES: Readonly<Record<ScopeEmptyReason, OpenStateNam
  * 05/08 README satır dışı varsayımlar, kabul): yönetici departmansız programda kullanıcı
  * oluşturup departman bağlayabilmeli (05) ve 08'e girip birim ekleyebilmeli (E-08-39). Program
  * yönetimi (E-00-25, W81): departmansız programa departman bağlama ve aktarım buradan yapılır.
+ * Mesajlar (10, KUSUR 6): sohbet program kapsamlıdır ve otomatik "Genel" grubu departmansız
+ * programda da vardır (P54); kapı yalnız diğer ekranlarda kalır.
  */
 export const NO_DEPARTMENT_EXEMPT_ROUTES: ReadonlySet<RouteName> = new Set<RouteName>([
   'organization.users',
@@ -44,6 +46,8 @@ export const NO_DEPARTMENT_EXEMPT_ROUTES: ReadonlySet<RouteName> = new Set<Route
   'organization.coordinatorships',
   'organization.coordinatorship',
   'program.programs',
+  'collaboration.chats',
+  'collaboration.chat',
 ])
 
 /** "Program yok" (K7) durumundan muaf rotalar: program oluşturma yolu (E-00-25, W81). */

@@ -213,6 +213,15 @@ describe('GroupInfoDialog — grup (E-10-62…71)', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/mesajlar'))
   })
 
+  it('Gruptan ayrıl dolu düğme değil, tehlike tonlu metin bağlantısıdır (tasarım farkı)', async () => {
+    serve()
+    mountDialog(GroupInfoDialog, props, { who: ADMIN })
+    await ready()
+    const leave = $('[data-testid="dlg-leave"]')!
+    expect(leave.classList.contains('chat-dlg__leave')).toBe(true)
+    expect(leave.className).not.toMatch(/t-btn/)
+  })
+
   it('kaynaktan gelen kendi satırında Gruptan ayrıl yok (member_source_managed)', async () => {
     serve(GROUP, {
       items: [member(ME, 'Ben', 'admin', true), member('u1', 'Ayşe')],

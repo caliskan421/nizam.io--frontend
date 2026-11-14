@@ -59,7 +59,10 @@ async function openChatReads(deps: ApplyDeps, event: CoalescedEvent, plan: Event
   for (const seq of seqs) jobs.push(messages.refreshMessage(seq))
   if (plan.refreshPeerRead) jobs.push(messages.refreshPeerRead())
   if (plan.recheckAccess) jobs.push(recheck(deps, event))
-  await Promise.all(jobs)
+  // Okuma ağ hatasıyla düşerse mesaj bir sonraki olaya dek görünmez kalmasın: "bekleyen uzlaştırma"
+  // bayrağı kalkar (`useChatStream`: online / odak / yeniden bağlanma → tek `reconcile`).
+  const results = await Promise.allSettled(jobs)
+  if (results.some((r) => r.status === 'rejected')) deps.onReadFailed()
 }
 
 export async function applyPlan(
@@ -83,16 +86,15 @@ export function dispatchEvent(deps: DispatchDeps, event: CoalescedEvent): void {
     meAccountId: deps.meAccountId,
     hasLocal: (id) => messages !== null && seqOf(messages.window.value, id) !== null,
   })
-  void applyPlan(
-    {
-      client: deps.client,
-      scope: deps.scope,
-      openChatId: open,
-      messages,
-      alive: deps.alive,
-      onChatLost: (id) => deps.options.onChatLost?.(id),
-    },
-    event,
-    plan,
-  )
+  const applyDeps: ApplyDeps = {
+    client: deps.client,
+    scope: deps.scope,
+    openChatId: open,
+    messages,
+    alive: deps.alive,
+    onChatLost: (id) => deps.options.onChatLost?.(id),
+    onReadFailed: deps.onReadFailed,
+  }
+  // Reddedilen plan yakalanmamış red olmaz (`pageerror` yok); sessizce bekleyen uzlaştırmaya döner.
+  applyPlan(applyDeps, event, plan).catch(() => deps.onReadFailed())
 }

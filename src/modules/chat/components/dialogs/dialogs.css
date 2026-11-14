@@ -32,6 +32,28 @@
     letter-spacing: 0.06em;
     color: var(--ink-muted);
   }
+  /* "Gruptan ayrıl": tasarımda tehlike tonlu METİN bağlantısı (`rp-linkbtn`); onay penceresi kalır. */
+  .chat-dlg__leave {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--danger);
+    font: var(--text-button);
+    cursor: pointer;
+  }
+  .chat-dlg__leave:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+  .chat-dlg__leave:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
+    outline-offset: var(--ui-focus-width);
+    border-radius: var(--radius-xs);
+  }
+  .chat-dlg__leave:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
   .chat-dlg__row2 {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

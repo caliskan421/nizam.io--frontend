@@ -100,8 +100,10 @@ describe('kabuk içeriği (K7)', () => {
     })
   })
 
-  it('F2 yönetim rotaları "programa departman katılmamış" durumundan muaf (W22 devri)', () => {
+  it('F2 yönetim rotaları ve Mesajlar (KUSUR 6) "programa departman katılmamış" durumundan muaf', () => {
     expect([...NO_DEPARTMENT_EXEMPT_ROUTES].sort()).toEqual([
+      'collaboration.chat',
+      'collaboration.chats',
       'organization.coordinatorship',
       'organization.coordinatorships',
       'organization.user',
@@ -119,7 +121,7 @@ describe('kabuk içeriği (K7)', () => {
       }
     }
     // Muaf olmayan rotalar durum ekranını görür.
-    for (const routeName of ['home', 'work.tasks'] as const) {
+    for (const routeName of ['home', 'work.tasks', 'collaboration.meetings'] as const) {
       expect(
         resolveShellContent({ ...base, routeScope: 'S2', routeName, departmentGap: 'empty' }),
       ).toEqual({ kind: 'open-state', name: 'state.no-department' })
