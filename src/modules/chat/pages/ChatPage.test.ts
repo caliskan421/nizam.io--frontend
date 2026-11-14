@@ -4,6 +4,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
+import ChatDialogs from '../components/ChatDialogs.vue'
+
 import type * as SseModule from '@/shared/sse'
 
 import { pageCrumb } from '@/shared/navigation/page-crumb'
@@ -48,7 +50,27 @@ afterEach(resetAll)
 afterAll(() => server.close())
 beforeEach(signIn)
 
-function serve() {
+function summary(chatId: string, name: string) {
+  return {
+    auto_kind: null,
+    chat_id: chatId,
+    counterpart_account_id: null,
+    counterpart_name: null,
+    created_at: '2026-11-01T08:00:00Z',
+    created_by_account_id: null,
+    kind: 'group',
+    last_message: null,
+    last_message_at: null,
+    last_seq: 0,
+    mentioned: false,
+    name,
+    source: 'none',
+    source_department_id: null,
+    unread_count: 0,
+  }
+}
+
+function serve(items: unknown[] = []) {
   sse.opened = 0
   sse.closed = 0
   server.use(
@@ -62,7 +84,7 @@ function serve() {
         { headers: { 'Content-Type': 'text/event-stream' } },
       )
     }),
-    http.get(`${ORIGIN}/v1/chats`, () => json({ items: [], next_cursor: '' })),
+    http.get(`${ORIGIN}/v1/chats`, () => json({ items, next_cursor: '' })),
     http.get(`${ORIGIN}/v1/me/chat-unread`, () => json({ items: [] })),
     http.get(`${ORIGIN}/v1/chats/:id/messages`, () =>
       json({ items: range(1, 3), peer_read_seq: null }),
@@ -83,7 +105,7 @@ function serve() {
   )
 }
 
-async function mountAt(path: string) {
+async function mountAt(path: string, attach = false) {
   const pinia = createPinia()
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p1', lens: 'admin', departmentId: null })
@@ -97,6 +119,7 @@ async function mountAt(path: string) {
   const wrapper = mount(
     { template: '<RouterView />' },
     {
+      attachTo: attach ? document.body : undefined,
       global: { plugins: [pinia, router, [VueQueryPlugin, { queryClient: client }]] },
     },
   )
@@ -170,5 +193,132 @@ describe('ChatPage (sayfa sahibi)', () => {
     const { wrapper } = await mountAt('/mesajlar/yok')
     expect(wrapper.find('[data-testid="chat-page"]').exists()).toBe(true)
     expect(pageCrumb.value).toBeNull()
+  })
+})
+
+const LIST = [summary('c1', 'Eğitim Grubu'), summary('c2', 'Fuar kurulum')]
+
+function stubNarrow(narrow: boolean) {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: narrow,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+  }))
+}
+const active = () => document.activeElement as HTMLElement | null
+const row = (id: string) => document.querySelector<HTMLElement>(`[data-chat-id="${id}"].chat-row`)
+
+describe('ChatPage — kabuk, dar ekran ve odak (E-10-04, N-10-40, N-10-42)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    document.body.innerHTML = ''
+  })
+
+  it("iki sütun: liste her zaman, konuşma yuvası yanında; geniş ekranda Geri düğmesi DOM'da yok", async () => {
+    serve(LIST)
+    stubNarrow(false)
+    const { wrapper } = await mountAt('/mesajlar/c1')
+    expect(wrapper.find('[data-testid="chat-list-pane"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="conversation-pane"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="chat-back"]').exists()).toBe(false)
+    expect(wrapper.get('.chat-row[aria-current="true"]').attributes('data-chat-id')).toBe('c1')
+  })
+
+  it('satır tıklaması sohbeti açar, süzgeç korunur, hedef mesaj sorgusu düşer', async () => {
+    serve(LIST)
+    const { wrapper, router } = await mountAt('/mesajlar?filtre=gruplar&mesaj=5')
+    await wrapper.get('[data-chat-id="c2"]').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('collaboration.chat')
+    expect(router.currentRoute.value.params.chatId).toBe('c2')
+    expect(router.currentRoute.value.query).toEqual({ filtre: 'gruplar' })
+    expect(wrapper.get('[data-testid="chat-page"]').attributes('data-pane')).toBe('conversation')
+  })
+
+  it('dar ekranda: Geri düğmesi listeye döner, süzgeç korunur ve odak o konuşmanın satırına gider', async () => {
+    serve(LIST)
+    stubNarrow(true)
+    const { wrapper, router } = await mountAt('/mesajlar/c2?filtre=gruplar', true)
+    const back = wrapper.get('[data-testid="chat-back"]')
+    expect(back.text()).toBe('Geri')
+    await back.trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.fullPath).toBe('/mesajlar?filtre=gruplar')
+    expect(wrapper.get('[data-testid="chat-page"]').attributes('data-pane')).toBe('list')
+    expect(active()).toBe(row('c2'))
+  })
+
+  it('tarayıcı geri tuşu da aynı: odak satıra döner', async () => {
+    serve(LIST)
+    const { router } = await mountAt('/mesajlar', true)
+    await router.push('/mesajlar/c1')
+    await flushPromises()
+    router.back()
+    await flushPromises()
+    await flushPromises()
+    expect(router.currentRoute.value.fullPath).toBe('/mesajlar')
+    expect(active()).toBe(row('c1'))
+  })
+
+  it('kapanan sohbetin satırı listede yoksa odak aramaya düşer (gövdeye değil)', async () => {
+    serve(LIST)
+    const { router } = await mountAt('/mesajlar/c9', true)
+    await router.push('/mesajlar')
+    await flushPromises()
+    await flushPromises()
+    expect(active()?.getAttribute('data-testid')).toBe('chat-search')
+  })
+
+  it('dar ekranda satır seçince odak konuşma bölgesine geçer (liste gizlenir, odak gövdede kalmaz)', async () => {
+    serve(LIST)
+    stubNarrow(true)
+    const { wrapper } = await mountAt('/mesajlar', true)
+    ;(row('c1') as HTMLElement).focus()
+    await wrapper.get('[data-chat-id="c1"]').trigger('click')
+    await flushPromises()
+    await flushPromises()
+    expect(active()).toBe(wrapper.get('[data-testid="chat-thread"]').element)
+  })
+
+  it('dar ekranda sohbet seçili değilken Geri düğmesi yok; yalnız liste', async () => {
+    serve(LIST)
+    stubNarrow(true)
+    const { wrapper } = await mountAt('/mesajlar')
+    expect(wrapper.find('[data-testid="chat-back"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="chat-page"]').attributes('data-pane')).toBe('list')
+  })
+
+  it('Yeni konuşma: pencere isteği açılır, kapanınca odak düğmeye döner', async () => {
+    serve(LIST)
+    const { wrapper } = await mountAt('/mesajlar', true)
+    await wrapper.get('[data-testid="chat-new"]').trigger('click')
+    const dialogs = wrapper.getComponent(ChatDialogs)
+    expect(dialogs.props('request')).toEqual({ dialog: 'newGroup', mode: 'group' })
+    ;(active() as HTMLElement).blur()
+    dialogs.vm.$emit('close')
+    await flushPromises()
+    expect(dialogs.props('request')).toBeNull()
+    expect(active()).toBe(wrapper.get('[data-testid="chat-new"]').element)
+  })
+
+  it('program değişince açık sohbet kapanır (liste yeni programdan okunur); süzgeç korunur', async () => {
+    serve(LIST)
+    const { wrapper, router, client } = await mountAt('/mesajlar/c1?filtre=gruplar')
+    useScopeStore().commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    await flushPromises()
+    await settleQueries(client)
+    expect(router.currentRoute.value.fullPath).toBe('/mesajlar?filtre=gruplar')
+    expect(wrapper.get('[data-testid="chat-page"]').attributes('data-pane')).toBe('list')
+  })
+
+  it('geçersiz kimlik (404): "Bu konuşma bulunamadı" + listeye dön; konuşma bölmesi çizilmez', async () => {
+    serve(LIST)
+    const { wrapper, router } = await mountAt('/mesajlar/yok')
+    const lost = wrapper.get('[data-testid="chat-not-found"]')
+    expect(lost.text()).toContain('Bu konuşma bulunamadı')
+    expect(wrapper.find('[data-testid="conversation-pane"]').exists()).toBe(false)
+    await lost.get('button').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('collaboration.chats')
   })
 })
