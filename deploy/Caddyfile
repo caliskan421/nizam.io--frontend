@@ -46,6 +46,13 @@
 		file_server
 	}
 
+	# Web Push service worker (public/sw.js): tarayıcı güncelleme denetimi için her istekte
+	# yeniden doğrulanır (ETag/Last-Modified); eski worker önbellekte yaşamaz (W159, E-14-77).
+	handle /sw.js {
+		header Cache-Control "no-cache"
+		file_server
+	}
+
 	# public/ altındaki diğer gerçek dosyalar (favicon vb.): şablonlanmaz, kısa önbellek.
 	@static {
 		file
@@ -66,7 +73,7 @@
 	handle {
 		rewrite * /index.html
 		header Cache-Control "no-store"
-		header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'nonce-{http.request.uuid}'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'nonce-{http.request.uuid}'; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 		templates {
 			mime text/html
 		}
