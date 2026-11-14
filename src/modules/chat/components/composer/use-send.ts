@@ -70,6 +70,30 @@ interface SendState {
   refresh: () => void
 }
 
+function applySent(thread: ThreadContext, state: SendState): void {
+  chatDrafts.clear(thread.draftKey.value)
+  clearChips(thread.draftKey.value)
+  state.notice.value = null
+  thread.stickBottom.value += 1
+  if (state.retried) state.refresh()
+}
+
+function applyFailed(
+  thread: ThreadContext,
+  state: SendState,
+  verdict: Failed,
+  outcome: SendOutcome,
+): void {
+  if (verdict.reason === 'peer_left') state.peerLeft.value = true
+  if (verdict.reason === 'reply_gone') chatDrafts.setReplyTo(thread.draftKey.value, null)
+  if (verdict.reason === 'unknown' && outcome.kind === 'unknown_outcome')
+    state.retry = outcome.retry
+  state.notice.value = noticeOf(verdict, outcome)
+  if (state.notice.value === null && outcome.kind !== 'failed' && verdict.reason !== 'peer_left') {
+    notifyOutcome(outcome)
+  }
+}
+
 /** Sonucu ekrana uygular: başarıda taslak temizlenir; başarısızlıkta bildirim/alan kapanması. */
 function applySend(
   thread: ThreadContext,
@@ -84,22 +108,10 @@ function applySend(
   })
   state.retry = null
   if (verdict.state === 'sent') {
-    chatDrafts.clear(thread.draftKey.value)
-    clearChips(thread.draftKey.value)
-    state.notice.value = null
-    thread.stickBottom.value += 1
+    applySent(thread, state)
     onSent(verdict.message)
-    if (state.retried) state.refresh()
-    return
-  }
-  if (verdict.state !== 'failed') return
-  if (verdict.reason === 'peer_left') state.peerLeft.value = true
-  if (verdict.reason === 'reply_gone') chatDrafts.setReplyTo(thread.draftKey.value, null)
-  if (verdict.reason === 'unknown' && outcome.kind === 'unknown_outcome')
-    state.retry = outcome.retry
-  state.notice.value = noticeOf(verdict, outcome)
-  if (state.notice.value === null && outcome.kind !== 'failed' && verdict.reason !== 'peer_left') {
-    notifyOutcome(outcome)
+  } else if (verdict.state === 'failed') {
+    applyFailed(thread, state, verdict, outcome)
   }
 }
 

@@ -172,7 +172,12 @@ function useLinkAndDownload(ctx: ThreadContext) {
         if (GONE_CODES.includes(result.error.code)) gone.value = new Set(gone.value).add(request.id)
         toast.push({ message: errorText(result.error), tone: 'danger' })
       } else if (result.kind === 'ticket_failed') {
-        notifyOutcome(result.outcome)
+        // Bilet aşamasında 404 (mesaj silindi / üyelik düştü): kart "artık yok" olur.
+        const o = result.outcome
+        if (o.kind === 'failed' && GONE_CODES.includes(o.error.code)) {
+          gone.value = new Set(gone.value).add(request.id)
+        }
+        notifyOutcome(o)
       }
     },
   }

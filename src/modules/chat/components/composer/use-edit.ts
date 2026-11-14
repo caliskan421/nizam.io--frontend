@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 
 import { errorText } from '@/shared/i18n'
+import type { MutationOutcome } from '@/shared/http/mutation'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { resolveDraft, useConflictResolver } from '@/shared/ui/conflict'
 
@@ -39,6 +40,26 @@ async function askConflict(
   return resolveDraft({ body: mine }, { body: server.body }, choices).body === undefined
     ? 'theirs'
     : 'mine'
+}
+
+type EditOutcome = MutationOutcome<unknown, ChatMessage, ChatMessage | null>
+
+/** Sonucu işler: `done` düzenleme bitti, mesaj = çözülecek çakışma, `null` bildirim yapıldı. */
+function handleEdit(
+  outcome: EditOutcome,
+  again: boolean,
+  setNotice: (n: Notice | null) => void,
+): 'done' | ChatMessage | null {
+  if (outcome.kind === 'success') return 'done'
+  if (outcome.kind === 'failed' && outcome.error.code === 'messaging.message_not_found') {
+    return 'done'
+  }
+  const conflict = outcome.kind === 'edit_conflict' && !again ? outcome.server : null
+  if (conflict === null) {
+    if (outcome.kind === 'failed') setNotice({ kind: 'error', text: errorText(outcome.error) })
+    else notifyOutcome(outcome)
+  }
+  return conflict
 }
 
 export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null) => void) {
@@ -79,27 +100,25 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
     const seq = thread.findMessage(edit.messageId)?.seq ?? 0
     saving.value = true
     setNotice(null)
-    let conflict: ChatMessage | null = null
+    let result: 'done' | ChatMessage | null
     try {
-      const outcome = await mutation.submit({
-        programId: thread.programId.value,
-        chatId: thread.chatId.value,
-        messageId: edit.messageId,
-        seq,
-        body: edit.body.trim(),
-        expectedRevision: edit.expectedRevision,
-      })
-      if (outcome.kind === 'success') return finish()
-      if (outcome.kind === 'edit_conflict') {
-        conflict = again ? null : outcome.server
-        if (conflict === null) notifyOutcome(outcome)
-      } else if (outcome.kind !== 'failed') notifyOutcome(outcome)
-      else if (outcome.error.code === 'messaging.message_not_found') return finish()
-      else setNotice({ kind: 'error', text: errorText(outcome.error) })
+      result = handleEdit(
+        await mutation.submit({
+          programId: thread.programId.value,
+          chatId: thread.chatId.value,
+          messageId: edit.messageId,
+          seq,
+          body: edit.body.trim(),
+          expectedRevision: edit.expectedRevision,
+        }),
+        again,
+        setNotice,
+      )
     } finally {
       saving.value = false
     }
-    if (conflict !== null) await resolveConflict(conflict, edit, seq)
+    if (result === 'done') finish()
+    else if (result !== null) await resolveConflict(result, edit, seq)
   }
 
   return { saving, conflict: resolver, submit, cancel: finish }
