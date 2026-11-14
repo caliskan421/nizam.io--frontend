@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import './bubble.css'
 
-import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import { UiAvatar, UiIcon } from '@/shared/ui'
 
@@ -98,6 +98,18 @@ function openInfo(): void {
     messageId: props.message.message_id,
   })
 }
+
+// Akışın altındaki mesajlarda açılır yüzey (menü / tepki seçici) kaydırma kabında kırpılır; açılınca
+// görünür olana dek kaydırılır (KUSUR 9: "Göreve dönüştür"ün altındaki öğeler görünmüyordu).
+watch(
+  () => props.menu,
+  (open) => {
+    if (open === null) return
+    void nextTick(() =>
+      root.value?.querySelector<HTMLElement>('.chat-pop')?.scrollIntoView?.({ block: 'nearest' }),
+    )
+  },
+)
 
 function pick(kind: ReactionKind): void {
   closeMenu(true)
