@@ -81,8 +81,12 @@ function usePendingReconcile(options: ChatStreamOptions, alive: () => boolean) {
     mark: () => {
       pending = true
     },
-    clear: () => {
+    /** Yeniden bağlanma uzlaştırması bekleyeni de karşılar. */
+    reconnected: () => {
       pending = false
+      options.messages?.reconcile().catch(() => {
+        pending = true
+      })
     },
   }
 }
@@ -126,10 +130,7 @@ export function useChatStream(options: ChatStreamOptions) {
       onOpen: ({ reconnect }) => {
         if (!current()) return
         reconcileLists(client, scope)
-        if (reconnect) {
-          pending.clear()
-          options.messages?.reconcile().catch(pending.mark)
-        }
+        if (reconnect) pending.reconnected()
       },
       deps: options.deps,
       onEvent: (event) =>
