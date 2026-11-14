@@ -2,7 +2,7 @@ import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { h, nextTick } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import { useScopeStore } from '@/shared/scope/store'
@@ -10,7 +10,6 @@ import { useScopeStore } from '@/shared/scope/store'
 import {
   errorEnvelope,
   http,
-  HttpResponse,
   json,
   noContent,
   ORIGIN,
@@ -127,7 +126,7 @@ function serve({ pages = [[GENERAL, DEPT, DIRECT, FREE]], unread = 3 }: Serve = 
   )
 }
 
-const Stub = defineComponent({ render: () => null })
+const Stub = { render: () => null }
 
 async function mountPane(url = '/mesajlar', selectedId?: string) {
   const pinia = createPinia()
@@ -526,12 +525,12 @@ describe('ChatListPane — başlık, odak, okundu uzlaştırması', () => {
     await router.push('/mesajlar')
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     let mark!: ReturnType<typeof useMarkChatRead>
-    const Host = defineComponent({
+    const Host = {
       setup() {
         mark = useMarkChatRead()
         return () => h(ChatListPane)
       },
-    })
+    }
     const wrapper = mount(Host, {
       global: { plugins: [pinia, router, [VueQueryPlugin, { queryClient: client }]] },
     })
