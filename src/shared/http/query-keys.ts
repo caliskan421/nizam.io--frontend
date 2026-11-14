@@ -48,7 +48,15 @@ export type ArchiveFacet = 'folders' | 'tasks' | 'attachments' | 'uploaders' | '
 /** §6 tablosu: kaynak → anahtar. */
 export const queryKeys = {
   instance: { profile: () => ['instance', 'profile'] as const },
-  notifications: { unreadCount: () => ['notifications', 'unread-count'] as const },
+  /**
+   * Bildirimler (F7; hesap geneli, KAPSAMSIZ — `scoped()` kullanılmaz, 14 `backend.md` §5):
+   * `list` imleçli panel listesi (sayfa boyu anahtara girmez), `pushKey` VAPID açık anahtarı.
+   */
+  notifications: {
+    unreadCount: () => ['notifications', 'unread-count'] as const,
+    list: () => ['notifications', 'list'] as const,
+    pushKey: () => ['notifications', 'push-key'] as const,
+  },
   chatsUnread: { overview: () => ['chats', 'unread-overview'] as const },
   programs: {
     all: () => ['programs'] as const,
@@ -172,9 +180,22 @@ export const queryKeys = {
     agenda: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', id, 'agenda']),
     notes: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', id, 'notes']),
   },
+  /**
+   * Sohbet (F7, 10 `backend.md` §5; hepsi S2 → kapsamlı). `list`/`candidates`/`ref` ikinci
+   * konumdaki AYRILMIŞ sözcüklerdir (`chat_id` opak kimliktir, bunlarla çakışmaz; test sınar).
+   * `messages` elle birleştirilen pencere tutar (`modules/chat/model/window.ts`).
+   */
   chats: {
     all: (s: ScopeSnapshot) => scoped(s, ['chats']),
+    list: (s: ScopeSnapshot, q: string) => scoped(s, ['chats', 'list', { q }]),
+    detail: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'detail']),
     messages: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'messages']),
+    pins: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'pins']),
+    members: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'members']),
+    refs: (s: ScopeSnapshot, id: string, kind: string) => scoped(s, ['chats', id, 'refs', kind]),
+    candidates: (s: ScopeSnapshot, purpose: string, chatId = '') =>
+      scoped(s, ['chats', 'candidates', purpose, chatId]),
+    refSummary: (s: ScopeSnapshot, refId: string) => scoped(s, ['chats', 'ref', refId]),
   },
 } as const
 
@@ -182,6 +203,8 @@ export const queryKeys = {
 export type QueryResource =
   | 'instance.profile'
   | 'notifications.unreadCount'
+  | 'notifications.list'
+  | 'notifications.pushKey'
   | 'chats.unreadOverview'
   | 'programs'
   | 'me'
@@ -206,7 +229,14 @@ export type QueryResource =
   | 'report.task'
   | 'archive'
   | 'meetings'
-  | 'chats'
+  | 'chats.list'
+  | 'chats.detail'
+  | 'chats.messages'
+  | 'chats.pins'
+  | 'chats.members'
+  | 'chats.refs'
+  | 'chats.candidates'
+  | 'chats.refSummary'
   | 'users'
 
 // "Görev oluştur/güncelle/sil/geçiş/ata; tarih uçları" (§6 görev satırları).
@@ -364,8 +394,15 @@ const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly Opera
 export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]>> = {
   // Yalnız yeniden yükleme.
   'instance.profile': [],
+  // Bildirim okundu yazmaları sayaç + panel listesini BİRLİKTE yeniler (KESİN 29; rozet ↔ sekme
+  // sayacı uyumu). Görev/toplantı yazmaları bildirim listesini geçersizlemez: kaydı sunucu üretir
+  // (tazeleme kuralı: staleTime + odak + aralık). Cihaz kaydı (`registerPushTarget`) okuma yenilemez.
   'notifications.unreadCount': ['markNotificationRead', 'markAllNotificationsRead'],
-  'chats.unreadOverview': ['markChatRead', 'markAllChatsRead'],
+  'notifications.list': ['markNotificationRead', 'markAllNotificationsRead'],
+  'notifications.pushKey': [],
+  // Sohbet okundu yazmaları rozet kaynağını (`getChatUnreadOverview`) yeniler; gruptan ayrılma ve
+  // grup silme okunmamış sohbet sayısını değiştirir.
+  'chats.unreadOverview': ['markChatRead', 'markAllChatsRead', 'removeChatMember', 'deleteChat'],
   programs: [
     'createProgram',
     'updateProgram',
@@ -474,29 +511,30 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // (RECORDS; 12 Silinen kayıtlar, W128).
   archive: unique(FILE_WRITES, ['restoreWorkItem', 'permanentDeleteWorkItem']),
   meetings: [...MEETING_CONTENT_WRITES, 'startConference', 'endConference'],
-  chats: [
+  // Sohbet (parçalı; "tek önek aşırı geçersizleme" giderildi). Mesaj penceresi (`chats.messages`)
+  // yazmayla geçersizlenmez: gönderim/düzenleme/silme/mesajdan görev cevabı pencereye yerel
+  // işlenir, tepki/oy/sabit/anket bitirme `around` okumasıyla tazelenir (`modules/chat/api`);
+  // SSE olayları ve yeniden bağlanma uzlaştırması da aynı yoldur.
+  'chats.list': [
     'openDirectChat',
     'createGroupChat',
     'updateChat',
     'deleteChat',
-    'grantChatAdmin',
-    'revokeChatAdmin',
-    'addChatMembers',
     'removeChatMember',
     'sendChatMessage',
     'sendChatAttachment',
     'editChatMessage',
     'deleteChatMessage',
-    'pinChatMessage',
-    'unpinChatMessage',
-    'closeChatPoll',
-    'voteChatPoll',
-    'setChatReaction',
-    'deleteChatReaction',
-    'createTaskFromChatMessage',
     'markChatRead',
     'markAllChatsRead',
   ],
+  'chats.detail': ['updateChat', 'grantChatAdmin', 'revokeChatAdmin'],
+  'chats.messages': [],
+  'chats.pins': ['pinChatMessage', 'unpinChatMessage', 'deleteChatMessage'],
+  'chats.members': ['addChatMembers', 'removeChatMember', 'grantChatAdmin', 'revokeChatAdmin'],
+  'chats.refs': ['sendChatMessage', 'deleteChatMessage'],
+  'chats.candidates': ['addChatMembers', 'removeChatMember'],
+  'chats.refSummary': [],
   users: unique(
     [
       'createUser',
@@ -521,6 +559,8 @@ export interface InvalidationContext {
   workItemId?: string
   /** Hedef toplantı (rapor ayrıntısı `report.meeting`); verilmezse programdaki bütün toplantı raporları. */
   meetingId?: string
+  /** Hedef sohbet (`chats.detail|pins|members|refs`); verilmezse programdaki bütün sohbetler. */
+  chatId?: string
 }
 
 /** TanStack `invalidateQueries` filtresi (yalnız kullandığımız alanlar). */
@@ -547,6 +587,25 @@ function departmentChild(scope: ScopeSnapshot, child: string): InvalidationFilte
   return {
     queryKey: queryKeys.departments.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 5 && queryKey[4] === child,
+  }
+}
+
+/** `scoped(['chats', <id>, <alt>, …])` anahtarları (alt = detail | pins | members | refs). */
+function chatChild(scope: ScopeSnapshot, child: string, chatId?: string): InvalidationFilter {
+  return {
+    queryKey: queryKeys.chats.all(scope),
+    predicate: ({ queryKey }) =>
+      queryKey[4] === child &&
+      queryKey[2] === 'chats' &&
+      (chatId === undefined || queryKey[3] === chatId),
+  }
+}
+
+/** `scoped(['chats', <ayrılmış sözcük>, …])` anahtarları (list | candidates | ref). */
+function chatReserved(scope: ScopeSnapshot, word: string): InvalidationFilter {
+  return {
+    queryKey: queryKeys.chats.all(scope),
+    predicate: ({ queryKey }) => queryKey[3] === word,
   }
 }
 
@@ -604,6 +663,8 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'report.task': reportOfProgram(['task'], (ctx) => ctx.workItemId),
   'report.meeting': reportOfProgram(['meeting'], (ctx) => ctx.meetingId),
   'notifications.unreadCount': prefix(() => queryKeys.notifications.unreadCount()),
+  'notifications.list': prefix(() => queryKeys.notifications.list()),
+  'notifications.pushKey': prefix(() => queryKeys.notifications.pushKey()),
   'chats.unreadOverview': prefix(() => queryKeys.chatsUnread.overview()),
   programs: prefix(() => queryKeys.programs.all()),
   // ['me'] öneki ['me','departments']'ı da kapsar.
@@ -644,7 +705,14 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   dateRequests: prefix(queryKeys.dateRequests.all),
   archive: archiveOfProgram,
   meetings: prefix(queryKeys.meetings.all),
-  chats: prefix(queryKeys.chats.all),
+  'chats.list': (scope) => chatReserved(scope, 'list'),
+  'chats.detail': (scope, ctx) => chatChild(scope, 'detail', ctx.chatId),
+  'chats.messages': (scope, ctx) => chatChild(scope, 'messages', ctx.chatId),
+  'chats.pins': (scope, ctx) => chatChild(scope, 'pins', ctx.chatId),
+  'chats.members': (scope, ctx) => chatChild(scope, 'members', ctx.chatId),
+  'chats.refs': (scope, ctx) => chatChild(scope, 'refs', ctx.chatId),
+  'chats.candidates': (scope) => chatReserved(scope, 'candidates'),
+  'chats.refSummary': (scope) => chatReserved(scope, 'ref'),
 }
 
 /** Bir mutasyonun geçersizlediği §6 kaynakları. */

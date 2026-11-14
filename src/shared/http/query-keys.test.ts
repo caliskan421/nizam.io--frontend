@@ -230,10 +230,64 @@ const TABLE: Array<{
     ],
   },
   {
-    resource: 'chats',
+    resource: 'notifications.list',
+    key: queryKeys.notifications.list(),
+    expected: ['notifications', 'list'],
+    mustInvalidate: ['markNotificationRead', 'markAllNotificationsRead'],
+  },
+  {
+    resource: 'notifications.pushKey',
+    key: queryKeys.notifications.pushKey(),
+    expected: ['notifications', 'push-key'],
+    mustInvalidate: [],
+  },
+  {
+    resource: 'chats.list',
+    key: queryKeys.chats.list(S, ''),
+    expected: [...root(S), 'chats', 'list', { q: '' }],
+    mustInvalidate: ['sendChatMessage', 'createGroupChat', 'deleteChat', 'markChatRead'],
+  },
+  {
+    resource: 'chats.detail',
+    key: queryKeys.chats.detail(S, 'c1'),
+    expected: [...root(S), 'chats', 'c1', 'detail'],
+    mustInvalidate: ['updateChat', 'grantChatAdmin'],
+  },
+  {
+    resource: 'chats.messages',
     key: queryKeys.chats.messages(S, 'c1'),
     expected: [...root(S), 'chats', 'c1', 'messages'],
-    mustInvalidate: ['sendChatMessage', 'createGroupChat', 'deleteChat'],
+    mustInvalidate: [],
+  },
+  {
+    resource: 'chats.pins',
+    key: queryKeys.chats.pins(S, 'c1'),
+    expected: [...root(S), 'chats', 'c1', 'pins'],
+    mustInvalidate: ['pinChatMessage', 'unpinChatMessage', 'deleteChatMessage'],
+  },
+  {
+    resource: 'chats.members',
+    key: queryKeys.chats.members(S, 'c1'),
+    expected: [...root(S), 'chats', 'c1', 'members'],
+    mustInvalidate: ['addChatMembers', 'removeChatMember'],
+  },
+  {
+    resource: 'chats.refs',
+    key: queryKeys.chats.refs(S, 'c1', 'task'),
+    expected: [...root(S), 'chats', 'c1', 'refs', 'task'],
+    mustInvalidate: ['sendChatMessage', 'deleteChatMessage'],
+  },
+  {
+    resource: 'chats.candidates',
+    key: queryKeys.chats.candidates(S, 'group', 'c1'),
+    expected: [...root(S), 'chats', 'candidates', 'group', 'c1'],
+    mustInvalidate: ['addChatMembers'],
+  },
+  {
+    resource: 'chats.refSummary',
+    key: queryKeys.chats.refSummary(S, 'r1'),
+    expected: [...root(S), 'chats', 'ref', 'r1'],
+    mustInvalidate: [],
   },
   {
     resource: 'users',
@@ -264,13 +318,17 @@ describe('query-keys — §6 tablosu', () => {
     for (const op of mustInvalidate) expect(resourcesInvalidatedBy(op), op).toContain(resource)
   })
 
-  it.each(TABLE.filter((row) => row.resource !== 'report' && row.resource !== 'instance.profile'))(
-    '$resource: geçersizleme filtresi bu anahtarı gerçekten vurur',
-    ({ key, mustInvalidate }) => {
-      const op = mustInvalidate[0]!
-      expect(hits(op, [key], { workItemId: 'w1' }), op).toEqual([key])
-    },
-  )
+  it.each(
+    TABLE.filter(
+      (row) =>
+        row.resource !== 'report' &&
+        row.resource !== 'instance.profile' &&
+        row.mustInvalidate.length > 0,
+    ),
+  )('$resource: geçersizleme filtresi bu anahtarı gerçekten vurur', ({ key, mustInvalidate }) => {
+    const op = mustInvalidate[0]!
+    expect(hits(op, [key], { workItemId: 'w1' }), op).toEqual([key])
+  })
 
   it('kurulum profili hiçbir yazmayla geçersizlenmez; pano görev/tarih yazmalarıyla geçersizlenir (WP3: Admin rozeti)', () => {
     expect(INVALIDATED_BY['instance.profile']).toEqual([])
@@ -344,6 +402,67 @@ describe('query-keys — §6 tablosu', () => {
     for (const [resource, ops] of Object.entries(INVALIDATED_BY)) {
       for (const op of ops) expect(writes.has(op), `${resource}: ${op}`).toBe(true)
     }
+  })
+})
+
+describe('query-keys — F7 sohbet ve bildirim', () => {
+  const all = [
+    queryKeys.chats.list(S, ''),
+    queryKeys.chats.detail(S, 'c1'),
+    queryKeys.chats.detail(S, 'c2'),
+    queryKeys.chats.messages(S, 'c1'),
+    queryKeys.chats.pins(S, 'c1'),
+    queryKeys.chats.pins(S, 'c2'),
+    queryKeys.chats.members(S, 'c1'),
+    queryKeys.chats.refs(S, 'c1', 'file'),
+    queryKeys.chats.candidates(S, 'group', 'c1'),
+    queryKeys.chats.refSummary(S, 'r1'),
+  ]
+
+  it('mesaj yazması yalnız sohbet listesini ve bağlı kaynakları yeniler; mesaj penceresine dokunmaz', () => {
+    expect(hits('sendChatMessage', all)).toEqual([all[0], all[7]])
+    expect(hits('editChatMessage', all)).toEqual([all[0]])
+    expect(hits('deleteChatMessage', all)).toEqual([all[0], all[4], all[5], all[7]])
+  })
+
+  it('sohbet kimliği verilince yalnız o sohbetin alt kaynağı', () => {
+    expect(hits('pinChatMessage', all, { chatId: 'c2' })).toEqual([all[5]])
+    expect(hits('updateChat', all, { chatId: 'c1' })).toEqual([all[0], all[1]])
+    expect(hits('grantChatAdmin', all, { chatId: 'c2' })).toEqual([all[2]])
+  })
+
+  it('üyelik yazması üyeler ve aday listelerini yeniler, listeyi (gruptan ayrılma) de', () => {
+    expect(hits('removeChatMember', all)).toEqual([all[0], all[6], all[8]])
+    expect(hits('addChatMembers', all)).toEqual([all[6], all[8]])
+  })
+
+  it('okundu yazmaları liste + rozet kaynağını birlikte yeniler (KESİN 29)', () => {
+    for (const op of ['markChatRead', 'markAllChatsRead'] as const) {
+      expect(resourcesInvalidatedBy(op)).toEqual(['chats.unreadOverview', 'chats.list'])
+    }
+    for (const op of ['markNotificationRead', 'markAllNotificationsRead'] as const) {
+      expect(resourcesInvalidatedBy(op).sort()).toEqual([
+        'notifications.list',
+        'notifications.unreadCount',
+      ])
+    }
+  })
+
+  it('bildirim anahtarları hesap geneli (kapsamsız); görev yazması bildirim listesini yenilemez', () => {
+    expect(isScopedQueryKey(queryKeys.notifications.list())).toBe(false)
+    expect(isScopedQueryKey(queryKeys.notifications.pushKey())).toBe(false)
+    for (const op of ['createWorkItem', 'createMeeting', 'transferWorkItems'] as const) {
+      expect(resourcesInvalidatedBy(op)).not.toContain('notifications.list')
+    }
+    expect(resourcesInvalidatedBy('registerPushTarget')).toEqual([])
+  })
+
+  it('ayrılmış sözcükler (list, candidates, ref) sohbet kimliğiyle çakışmaz: kimlik anahtarı ayrı konumdadır', () => {
+    const detail = queryKeys.chats.detail(S, 'c1')
+    const list = queryKeys.chats.list(S, 'x')
+    expect(detail[3]).toBe('c1')
+    expect(list[3]).toBe('list')
+    expect(hits('createGroupChat', [detail, list])).toEqual([list])
   })
 })
 
