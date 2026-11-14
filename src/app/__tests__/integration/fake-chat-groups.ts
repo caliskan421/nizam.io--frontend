@@ -118,6 +118,13 @@ function buildGroup(
   return chat
 }
 
+/** Bir kez: işlem yapıldı ama yanıt kayboldu (ağ hatası). */
+function lost(state: ChatState): Response | null {
+  if (state.keyedFault !== 'lost-response') return null
+  state.keyedFault = 'ok'
+  return HttpResponse.error()
+}
+
 function groupHandler(db: OrgDb, state: ChatState) {
   return http.post(`${ORIGIN}/v1/chats/groups`, async ({ request }) => {
     const me = fakeOrg.actorOf(db, request)
@@ -135,7 +142,7 @@ function groupHandler(db: OrgDb, state: ChatState) {
     }
     const chat = buildGroup(db, state, me, program, body)
     state.keys.set(`group:${key}`, chat)
-    return json(chatView(db, chat, me.account_id), 201)
+    return lost(state) ?? json(chatView(db, chat, me.account_id), 201)
   })
 }
 
@@ -276,13 +283,12 @@ function taskHandler(db: OrgDb, state: ChatState) {
         messageId: message.base.message_id,
         actor: account.account_id,
       })
-      return json({ message: viewOf(message, account.account_id), work_item_id: id }, 201)
+      return (
+        lost(state) ?? json({ message: viewOf(message, account.account_id), work_item_id: id }, 201)
+      )
     },
   )
 }
-
-const captionOf = (value: FormDataEntryValue | null): string =>
-  typeof value === 'string' ? value : ''
 
 function attachmentHandler(db: OrgDb, state: ChatState) {
   return http.post(`${ORIGIN}/v1/chats/:chatId/attachments`, async ({ request, params }) => {
@@ -293,17 +299,14 @@ function attachmentHandler(db: OrgDb, state: ChatState) {
     const clientId = query.get('client_message_id') ?? ''
     const existing = chat.messages.find((m) => m.base.client_message_id === clientId)
     if (existing) return json(viewOf(existing, account.account_id), 200)
-    const form = await request.formData()
-    const upload = form.get('file')
-    if (!(upload instanceof File)) return invalid()
-    const message = addMessage(chat, account, captionOf(form.get('body')), {
+    const message = addMessage(chat, account, '', {
       client_message_id: clientId,
       attachments: [
         {
           attachment_id: nextId(state, 'att'),
-          content_type: upload.type || 'application/octet-stream',
-          file_name: upload.name,
-          size_bytes: upload.size,
+          content_type: state.upload.content_type,
+          file_name: state.upload.file_name,
+          size_bytes: 8,
         },
       ],
     })

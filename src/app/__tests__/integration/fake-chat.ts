@@ -41,6 +41,8 @@ export interface FakeChat {
 }
 
 export type SendFault = 'ok' | 'unavailable' | 'lost-response'
+/** Sonraki grup kurma / görev oluşturma: işlenir ama yanıt yolda kaybolur (aynı anahtarla tekrar). */
+export type KeyedFault = 'ok' | 'lost-response'
 
 export interface ChatState {
   chats: FakeChat[]
@@ -49,6 +51,12 @@ export interface ChatState {
   keys: Map<string, unknown>
   /** Sonraki mesaj gönderimi (bir kez): 503 ya da işlenip yanıtı kaybolur. */
   sendFault: SendFault
+  keyedFault: KeyedFault
+  /**
+   * Sonraki ek yüklemenin sunucuda görünen dosya bilgisi: jsdom `FormData` gövdesi `msw`'de
+   * okunmaz (work `files.test.ts` kalıbı); gövde yerine bu bilgi kullanılır.
+   */
+  upload: { file_name: string; content_type: string }
   /** `GET /v1/chats/stream` yanıtı: `null` = akış açılır; sayı = o durum kodu. */
   streamReject: number | null
   /** Sıradaki bu kadar akış isteği 401 alır (belirteç yenileme senaryosu). */
@@ -77,6 +85,8 @@ export function createChatState(): ChatState {
     seq: 0,
     keys: new Map(),
     sendFault: 'ok',
+    keyedFault: 'ok',
+    upload: { file_name: 'rapor.pdf', content_type: 'application/pdf' },
     streamReject: null,
     stream401: 0,
     streams: [],

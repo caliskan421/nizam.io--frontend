@@ -262,3 +262,60 @@ export const liveStreams = () => streamCalls.filter((c) => !c.aborted && c.statu
 /** Akış açılana dek bekler (istek + yanıt). */
 export const streamOpen = (count = 1) =>
   until(() => liveStreams().length >= count, `açık akış ≥ ${count}`)
+
+// --- Dar ekran (390) ve pencereler -------------------------------------------------------------
+
+/** 390 px: yalnız `max-width` sorguları eşleşir (hover/pointer sorguları geniş davranışta kalır). */
+export function narrowViewport(): void {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query.includes('max-width'),
+    media: query,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+  }))
+}
+
+/** Açık pencere (`role="dialog"`); yoksa `null`. */
+export const dialogEl = () => $('[role="dialog"]')
+
+/** Pencere kapanana dek bekler. */
+export const dialogClosed = () =>
+  until(() => !dialogEl() && !$('[data-testid="chat-dialogs"]'), 'pencere kapandı')
+
+/** Esc tuşu (odaktaki öğeye; `UiModal` belge düzeyinde de dinler). */
+export function pressEscape(): void {
+  const target = document.activeElement ?? document.body
+  target.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+  )
+}
+
+/** Tek `File` ile dosya girdisini besler (`change` olayı). */
+export async function pickFile(input: HTMLInputElement, file: File): Promise<void> {
+  Object.defineProperty(input, 'files', { configurable: true, value: [file] })
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  await flushPromises()
+}
+
+/** Tarayıcıda `structuredClone(File)` yine `File`; jsdom'da değil (arşiv yükleme testiyle aynı kalıp). */
+export function stubBrowserClone(): void {
+  const native = globalThis.structuredClone
+  const clone = (value: unknown): unknown => {
+    if (value instanceof Blob) return value
+    if (Array.isArray(value)) return value.map(clone)
+    const plain =
+      value !== null &&
+      typeof value === 'object' &&
+      Object.getPrototypeOf(value) === Object.prototype
+    if (plain) return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, clone(v)]))
+    return native(value)
+  }
+  vi.stubGlobal('structuredClone', clone)
+}
+
+/** Görünür metni `text`'i İÇEREN öğe (avatar baş harfleri gibi önekler için). */
+export function withText(selector: string, text: string, root: ParentNode = document.body) {
+  return $$(selector, root).find((el) => (el.textContent ?? '').includes(text)) ?? null
+}
