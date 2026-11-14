@@ -21,13 +21,11 @@ import {
   MEMBER,
   menuItem,
   messageEls,
-  narrowViewport,
   pickFile,
   resetChats,
   rowOf,
   sent,
   teardown,
-  toasts,
   tool,
   typeText,
   until,
@@ -298,18 +296,35 @@ describe('yeni grup', () => {
 })
 
 describe('üye çıkarma', () => {
-  it('yönetici üyeyi çıkarır: ortak onay → DELETE; vazgeç istek atmaz', async () => {
+  const memberRow = (name: string) =>
+    $$('[data-testid="dlg-members"] li').find((li) => li.textContent?.includes(name)) ?? null
+  const deletes = () =>
+    backend.requests.filter(
+      (r) => r.method === 'DELETE' && r.path.startsWith(`/v1/chats/${GROUP}/members/`),
+    )
+
+  it('yönetici üyeyi çıkarır: ortak onay → DELETE → üye listeden düşer; vazgeç istek atmaz', async () => {
     const app = await boot({ ...COORD, path: `/mesajlar/${GROUP}` })
     await until(() => rowOf(60), 'mesajlar')
     await userClick('.chat-thread__who')
-    await until(() => $('[data-testid="dlg-members"]'), 'üyeler')
-    const remove = () =>
-      byText('[data-testid="dlg-members"] button', 'Çıkar') ??
-      $('[data-testid="dlg-member-remove"]')
-    await userClick(remove)
+    await until(() => memberRow('Cem Tan'), 'üyeler')
+    await userClick(() =>
+      withText('[data-testid="dlg-member-remove"]', 'Çıkar', memberRow('Cem Tan')!),
+    )
     await until(() => $('[data-testid="confirm-dialog"]'), 'onay')
+    expect($('[data-testid="confirm-dialog"]')!.textContent).toContain('Cem Tan')
     await userClick(() => $('[data-testid="confirm-dialog"] [data-autofocus]'))
     await idle(app.queryClient)
-    expect(sent('DELETE', new RegExp('x') as never)).toHaveLength(0)
+    expect(deletes()).toHaveLength(0)
+    await userClick(() =>
+      withText('[data-testid="dlg-member-remove"]', 'Çıkar', memberRow('Cem Tan')!),
+    )
+    await until(() => $('[data-testid="confirm-dialog"]'), 'onay')
+    await userClick('[data-testid="confirm-accept"]')
+    await until(() => memberRow('Cem Tan') === null, 'üye düştü')
+    await idle(app.queryClient)
+    expect(deletes()).toHaveLength(1)
+    expect(deletes()[0]!.path).toBe(`/v1/chats/${GROUP}/members/${WHO.second.account_id}`)
+    expect(chatOf(GROUP).members.some((m) => m.account_id === WHO.second.account_id)).toBe(false)
   })
 })

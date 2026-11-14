@@ -7,6 +7,7 @@ import { http, HttpResponse } from 'msw'
 import { envelope, fakeOrg, item, json, ORIGIN, type Account, type OrgDb } from './fake-org'
 import {
   addMessage,
+  canDirect,
   chatView,
   inProgram,
   isManager,
@@ -54,6 +55,7 @@ function directHandler(db: OrgDb, state: ChatState) {
     const body = await bodyOf<{ account_id: string }>(request)
     const peer = db.accounts.find((a) => a.account_id === body.account_id && !a.deleted)
     if (!peer || peer.account_id === me.account_id) return invalid()
+    if (!canDirect(db, me, peer, program)) return notAuthorized()
     const existing = state.chats.find(
       (c) =>
         c.kind === 'direct' &&
@@ -125,6 +127,13 @@ function lost(state: ChatState): Response | null {
   return HttpResponse.error()
 }
 
+/** 422 alan hatası; kaynak seçimi yalnız ŞY ve koordinatörde (403). */
+function refuseGroup(db: OrgDb, me: Account, program: string, body: Partial<GroupBody>) {
+  if (!body.name?.trim() || (body.member_account_ids ?? []).length === 0) return invalid()
+  const sourced = body.source !== undefined && body.source !== 'none'
+  return sourced && coordinates(db, me, program).length === 0 ? notAuthorized() : null
+}
+
 function groupHandler(db: OrgDb, state: ChatState) {
   return http.post(`${ORIGIN}/v1/chats/groups`, async ({ request }) => {
     const me = fakeOrg.actorOf(db, request)
@@ -136,10 +145,8 @@ function groupHandler(db: OrgDb, state: ChatState) {
     const prior = state.keys.get(`group:${key}`) as FakeChat | undefined
     if (prior) return json(chatView(db, prior, me.account_id), 200)
     const body = await bodyOf<GroupBody>(request)
-    if (!body.name?.trim() || (body.member_account_ids ?? []).length === 0) return invalid()
-    if (body.source && body.source !== 'none' && coordinates(db, me, program).length === 0) {
-      return notAuthorized()
-    }
+    const refused = refuseGroup(db, me, program, body)
+    if (refused) return refused
     const chat = buildGroup(db, state, me, program, body)
     state.keys.set(`group:${key}`, chat)
     return lost(state) ?? json(chatView(db, chat, me.account_id), 201)
@@ -291,7 +298,7 @@ function taskHandler(db: OrgDb, state: ChatState) {
 }
 
 function attachmentHandler(db: OrgDb, state: ChatState) {
-  return http.post(`${ORIGIN}/v1/chats/:chatId/attachments`, async ({ request, params }) => {
+  return http.post(`${ORIGIN}/v1/chats/:chatId/attachments`, ({ request, params }) => {
     const found = resolveChat(db, state, request, String(params.chatId))
     if (isResponse(found)) return found
     const { account, chat } = found

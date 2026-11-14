@@ -265,6 +265,18 @@ export function inProgram(db: OrgDb, account: Account, programId: string): boole
   return account.admin || fakeOrg.rowsOf(db, account.account_id, programId).length > 0
 }
 
+/**
+ * Birebir yalnız koordinatörlük zinciri içinde açılır (istemci-akislari §10.6): ŞY herkesle,
+ * diğerleri yalnız aynı birimde üyeliği olanlarla. Aday listesi ve `openDirectChat` aynı kuralı izler.
+ */
+export function canDirect(db: OrgDb, a: Account, b: Account, programId: string): boolean {
+  if (a.admin || b.admin) return true
+  const units = (who: Account) =>
+    new Set(fakeOrg.rowsOf(db, who.account_id, programId).map((r) => r.department_id))
+  const mine = units(a)
+  return [...units(b)].some((id) => mine.has(id))
+}
+
 /** Çağıran + program başlığı; sohbet çözümü: üye değilse 404 (varlık sızdırılmaz). */
 export function resolveChat(
   db: OrgDb,

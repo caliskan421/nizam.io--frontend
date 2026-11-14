@@ -7,6 +7,7 @@ import type { ChatMessage } from '@/modules/chat/public'
 
 import { envelope, fakeOrg, json, ORIGIN, type OrgDb } from './fake-org'
 import {
+  canDirect,
   chatView,
   inProgram,
   isFounder,
@@ -169,6 +170,11 @@ function auxHandlers(db: OrgDb, state: ChatState) {
       const items = db.accounts
         .filter((a) => a.account_id !== me.account_id && !a.deleted && !already.has(a.account_id))
         .filter((a) => inProgram(db, a, program))
+        .filter(
+          (a) =>
+            new URL(request.url).searchParams.get('purpose') !== 'direct' ||
+            canDirect(db, me, a, program),
+        )
         .map((a) => ({
           account_id: a.account_id,
           full_name: a.full_name,
