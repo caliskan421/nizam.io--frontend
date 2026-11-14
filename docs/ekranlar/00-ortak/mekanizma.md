@@ -133,7 +133,7 @@ Kaynak: `Sidebar.dc.html` (v85, `groups`/`koordGroups`/`uyeGroups`), `Kenar-Roll
 
 **Menü seçimi (kural).** Menü grubu **yetki olgusundan** seçilir, mercek yalnız içeriği daraltır (P1/P11): `company_admin` → yönetici menüsü (mercek Admin/Koordinatör/Üye olsa da; Yönetim grubu kaybolmaz, K/Ü merceğinde yalnız sayfa içeriği ve rozet sayıları merceğe göre süzülür, P53); `company_admin` değilse mercek Koordinatör → koordinatör menüsü, mercek Üye → üye menüsü. Birleşik rolde (hem koordinatör hem üye) mercek karar verir. Gizleme güvenlik değildir; sunucu her istekte denetler.
 
-**Ortak kural.** F6 dışı ya da fazı gelmemiş girdiler **menüde gizlidir** (ortak-kurallar §5): Takvim, Kurumsal hafıza, Mesajlar (F7), Tablolar, Simülasyon, Birimim, Ekibim. **"Raporlar" öğesi hiçbir menüde yoktur (P47).**
+**Ortak kural.** F6 dışı ya da fazı gelmemiş girdiler **menüde gizlidir** (ortak-kurallar §5): Takvim, Kurumsal hafıza, Mesajlar (F6'da; **F7'de görünür**, aşağıdaki §9 tablolarında), Tablolar, Simülasyon, Birimim, Ekibim. **"Raporlar" öğesi hiçbir menüde yoktur (P47).**
 
 ### 9.1 Yönetici menüsü (admin)
 | Etiket | Hedef rota | Rozet kaynağı | Görünürlük (F6) |
@@ -145,7 +145,7 @@ Kaynak: `Sidebar.dc.html` (v85, `groups`/`koordGroups`/`uyeGroups`), `Kenar-Roll
 | Kurumsal hafıza | — | — | **gizli** (F6 dışı; BE-033) |
 | Arşiv | `/arsiv` | — | görünür (F5) |
 | Toplantılar | `/toplantilar` | — | görünür (F4) |
-| Mesajlar | — | `unread_chats` (F7) | **gizli** (F7) |
+| Mesajlar | `/mesajlar` | `unread_chats` (F7; P59 taslak) | **görünür (F7)** — F6'da gizliydi; tek menü tanımı W154 |
 | Tablolar | — | — | **gizli** (F6 dışı; BE-031) |
 | Kullanıcılar | `/kullanicilar` | — | görünür; Yönetim grubu `company_admin` ile (P1) |
 | Koordinatörlükler | `/koordinatorlukler` | — | görünür; Yönetim |
@@ -166,7 +166,7 @@ Kaynak: `Sidebar.dc.html` (v85, `groups`/`koordGroups`/`uyeGroups`), `Kenar-Roll
 | Kurumsal hafıza | — | — | **gizli** |
 | Toplantılar | `/toplantilar` | — | görünür (F4) |
 | Arşiv | `/arsiv` (P40: doğrudan kendi klasörüne) | — | görünür; etiket "Arşiv" |
-| Mesajlar | — | `unread_chats` (F7) | **gizli** (F7) |
+| Mesajlar | `/mesajlar` | `unread_chats` (F7; P59 taslak) | **görünür (F7)** — F6'da gizliydi; tek menü tanımı W154 |
 | Tablolar | — | — | **gizli** |
 | Yönetim grubu | — | — | **yok** (`company_admin` değil); yönetici bu mercekte yönetici menüsünü korur (P1) |
 | **Raporlar** | **YOK** | — | menüde öğe yok (P47); K1'de rapor girişi yok (P53); K7/K3 düğmeleri |
@@ -181,7 +181,7 @@ Kaynak: `Sidebar.dc.html` (v85, `groups`/`koordGroups`/`uyeGroups`), `Kenar-Roll
 | Kurumsal hafıza | — | — | **gizli** |
 | Toplantılar | `/toplantilar` | — | görünür (F4) |
 | **Dosyalarım** | `/arsiv` → `/arsiv/my-tasks` (P40) | — | görünür; etiket "Dosyalarım" (rol etiketi; F5 borcu #6 kapanır) |
-| Mesajlar | — | `unread_chats` (F7) | **gizli** (F7) |
+| Mesajlar | `/mesajlar` | `unread_chats` (F7; P59 taslak) | **görünür (F7)** — F6'da gizliydi; tek menü tanımı W154 |
 | Yönetim, Birim grupları | — | — | **yok**; görev oluşturma, ekip ve yönetim girişleri yok |
 | **Raporlar** | **YOK** | — | üye hiçbir rapor görmez (REPORTING-K01/K07) |
 
