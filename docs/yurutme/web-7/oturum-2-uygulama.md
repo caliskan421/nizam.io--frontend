@@ -9,6 +9,6 @@
 | **W156** | Konuşma akışı + yazma (10b, mesaj gönderme/okundu, SSE tüketimi, P61 kararları) | 10-mesajlar |
 | **W157** | Pencereler + ekler + anket (10c; tepki 4 tür, mesajdan görev `?gorev=`, toplantı planla yönlendirme) | 10-mesajlar |
 | **W158** | Bildirim paneli + zil (E-00-38 canlı; P57 satır şablonları, hedef çözümleme §9 K3, statikler) | 14-bildirimler |
-| **W159** | **Web Push** (izin akışı, `public/sw.js`, CSP `worker-src 'self'`): **P58 onayına bağlı**; son işçi; "ertelensin" ise düşer | 14-bildirimler; P58 |
+| **W159** | **Web Push** (izin akışı, `public/sw.js`, CSP `worker-src 'self'`): **P58 dahil** (ürün sahibi 2026-11-14); son işçi; zaman yetmezse F7 kapanışında "geçici kabul: F8" | 14-bildirimler; P58 |
 
 **Paylaşılan dosyalar** W154'te sözleşmeli (query-keys, i18n ağacı `trChat`/`trNotifications`, `icons.ts`, `shared/sse`); diğerleri yalnız kendi bloğu (KESİN 23–24, 28). Dal zinciriyle uyarlanır (KESİN 25); her W ayrı `web7/<oturum>-<wid>` ve `nizam.io--frontend-wt-<wid>`. Bu dallar henüz oluşturulmadı. Backend paketi açılmadığı için hiçbir W yeni BE kimliği vermez; `YENİ-EKSİK` satırları koordinatöre gider.

@@ -9,7 +9,7 @@ Ek doğrulama (yetkili kaynak, sözleşme sayılmaz): `internal/modules/messagin
 - Kimlikler opak dizedir (`chat_id`, `message_id`, `ref_id`, `attachment_id`); rota parametresi `sohbetId` = `chat_id`. Mesaj imleci sohbet içi `seq` (int64) — rota sorgusu `?mesaj=<seq>` bununla tutarlı (§10.3).
 - **Erişilemeyen sohbet 404 `messaging.chat_not_found`** (varlık gizlenir); sohbeti gören ama yetkisi olmayan 403 `messaging.not_authorized` (§10.6).
 - Sohbet için **bildirim yoktur** (ADR-0026 "Bildirim yok": push, bahsetme bildirimi, sessize alma kapsam dışı); gerçek zamanlı tek kanal SSE'dir (K8).
-- Sohbete paylaşılan öğe (görev / koordinatörlük / dosya referansı) **her sohbet üyesine** sınırlı özetle açıktır; paylaşılan dosya her üyece indirilir (MESSAGING-K31/K32, `TestF59S10GorevOzetiYetkisizUyeyeAcik`). Tasarımdaki "okuyana göre kilitli kart" sözleşmede yoktur (eksikler §4; P60* ürün sahibi onayı bekler, F7 davranışı iki sonuçta da aynıdır).
+- Sohbete paylaşılan öğe (görev / koordinatörlük / dosya referansı) **her sohbet üyesine** sınırlı özetle açıktır; paylaşılan dosya her üyece indirilir (MESSAGING-K31/K32, `TestF59S10GorevOzetiYetkisizUyeyeAcik`). Tasarımdaki "okuyana göre kilitli kart" sözleşmede yoktur (eksikler §4; P60 KESİN: backend kazanır, ürün sahibi 2026-11-14).
 - Hız bütçesi (hesap başına, ADR-0028): okuma 600/dk, yazma ve akış açılışı 60/dk, ucuz sinyal 180/dk; 429 `platform.rate_limited` + `Retry-After`, otomatik tekrar yok (K5).
 
 ## 1. Okuma uçları
