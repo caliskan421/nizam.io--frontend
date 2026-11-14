@@ -294,8 +294,16 @@
           "value": "420px",
           "usage": "Bildirim paneli genişliği (Bildirimler.dc.html .nb-panel)."
         },
-        { "name": "chat-bub-min-w", "value": "120px", "usage": "Mesaj balonu alt genişliği (Mesajlar.dc.html .rp-bub min-width)." },
-        { "name": "chat-att-min-w", "value": "240px", "usage": "Dosya/anket kartı alt genişliği (Mesajlar.dc.html .rp-att min-width); balon dar metinle kart adını \"V…\"ye kırpmasın." }
+        {
+          "name": "chat-bub-min-w",
+          "value": "120px",
+          "usage": "Mesaj balonu alt genişliği (Mesajlar.dc.html .rp-bub min-width)."
+        },
+        {
+          "name": "chat-att-min-w",
+          "value": "240px",
+          "usage": "Dosya/anket kartı alt genişliği (Mesajlar.dc.html .rp-att min-width); balon dar metinle kart adını \"V…\"ye kırpmasın."
+        }
       ]
     },
     "work": {
