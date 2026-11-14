@@ -89,7 +89,7 @@ describe('PollDialog (E-10-93…100)', () => {
     await vi.waitFor(() => expect($$('.chat-dlg__option')).toHaveLength(9))
   })
 
-  it('doğrulama: eksik seçenek istek atmaz; "Gizli" (BE-161) devre dışı, "İsimli" sabit', async () => {
+  it('doğrulama: eksik seçenek istek atmaz; "Anonim" (BE-161) devre dışı, "İsimli" sabit', async () => {
     serve()
     mountDialog(PollDialog, { chatId: 'c1' })
     setValue('input[name="question"]', 'Soru')
@@ -101,7 +101,7 @@ describe('PollDialog (E-10-93…100)', () => {
       $('[data-testid="dlg-anonymous"]')!.closest('[data-design-stub="BE-161"]'),
     ).not.toBeNull()
     expect($('[data-testid="dlg-visibility"] button')!.getAttribute('aria-pressed')).toBe('true')
-    expect(document.body.textContent).not.toMatch(/anonim/i)
+    expect($('[data-testid="dlg-anonymous"]')!.textContent?.trim()).toBe('Anonim')
   })
 
   it('son tarih geçmişteyse alan hatası; ileri tarih closes_at olarak gider', async () => {

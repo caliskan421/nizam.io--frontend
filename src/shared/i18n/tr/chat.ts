@@ -112,7 +112,7 @@ export const trChat = {
         tasks: 'Görevler',
         pins: 'Sabitli',
         meeting: 'Toplantı planla',
-        mute: 'Sesi kapat',
+        mute: 'Sessize al',
       },
       members: {
         admin: 'Yönetici',
@@ -192,7 +192,7 @@ export const trChat = {
         multi: 'Çoklu',
         visibility: 'Oylar',
         named: 'İsimli',
-        secret: 'Gizli',
+        secret: 'Anonim',
         closes: 'Son tarih',
         closesHint: 'Son tarihten sonra oy verilemez, sonuçlar herkese açılır.',
         send: 'Anketi gönder',

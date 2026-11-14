@@ -3,7 +3,7 @@
  * "Grup bilgisi" / "Konuşma bilgisi" (E-10-18/20 → E-10-62…71): `getChat` taze okunur. Birebirde
  * yalnız karşı taraf (Üyeler/Dosyalar yok). Grupta: ad (yönetici/kurucu ve `auto_kind == null`
  * için düzenlenir, `updateChat`), alt bilgi "Grup · n üye · kuran ad", hızlı eylemler (Üye ekle,
- * Toplantı planla → `/toplantilar`; Sesi kapat devre dışı + BE-027) ve sekmeler Üyeler / Dosyalar
+ * Toplantı planla → `/toplantilar`; Sessize al devre dışı + BE-027) ve sekmeler Üyeler / Dosyalar
  * / Görevler / Sabitli (`rp-ctabs` ≙ `UiTabs`). Eylem görünürlüğü grup rolünden (`capabilities`);
  * mercek etkisizdir (P1). 404 → "Bu konuşma bulunamadı".
  */
