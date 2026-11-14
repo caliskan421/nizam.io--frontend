@@ -11,7 +11,8 @@
 | 2b   | W145 düzeltmeleri: KUSUR 1 (`/oturum?next=`), KUSUR 3 (01 kutucukları 09/05'e), KUSUR 5a (K1 şeridi flex-wrap); 660 dosya / 4599 test, duman 0/0/0 | W145 (Sonnet 5.5) | Birleşti (#130, `136da28`) |
 | 3a   | Codex tur 1 (HEAD `633d9d2`): **KOŞULLU UYGUN**; hüküm [WEB-6-codex.md](../../reviews/WEB-6-codex.md) | Codex | Tamam |
 | 3b   | Koşullar: W146 (E-01, E-02, E-05, E-06; reports), W147 (E-03, E-04, K-01, KUSUR 4 mercek listesi; home/work), W148 (K-02 gerçek backend e2e nedeni) | W146/W147/W148 | **Tamam:** W146 (#132), W148 (#131), W147 (#133, main `47739fe`) birleşti; bütün koşullar kapandı |
-| 3c   | Codex tur 2 | Codex | **Bekliyor** |
+| 3c   | Codex tur 2 (HEAD `d98b409`): **KOŞULLU UYGUN**; yeni E-07, E-08 → W149; K-09 belge düzeltmesi W143 | Codex | Tamam |
+| 3d   | W149 (E-07, E-08) ve Codex tur 3 | W149 / Codex | **Bekliyor** |
 | 3    | Nihai kapı: Codex `gpt-6.1-sol` medium `-s read-only` tek koşum; hüküm `docs/reviews/WEB-6-codex.md`                                                                                                                                         | Codex              | **Bekliyor**                                                                 |
 | 4    | Koşullar işçiyle kapatılır; gerekirse ikinci tur                                                                                                                                                                                             | işçi + koordinatör | Bekliyor                                                                     |
 | 5    | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla)                                                                                                                                                       | koordinatör        | **Bekliyor**                                                                 |

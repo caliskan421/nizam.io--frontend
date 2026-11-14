@@ -85,12 +85,64 @@ Atamalar: **W146** (E-01, E-02, E-05, E-06; reports), **W147** (E-03, E-04, K-01
 
 ### W147 sonucu (PR #133, main `47739fe`)
 
-- **KUSUR 4:** süzgeç kaynakta **zaten var**, kod değişmedi. Tanık `home-lens-filter.test.ts` (5 test): `company_admin` koordinatör merceğinde 03 liste/sayaç/rozet istekleri `department_id=X`, üye merceğinde `assignee_account_id=ben`; W144 ham izi eski imajdandı (`a3b31e3`). P53 metniyle çelişki yok. Derin bağlantı: admin merceğinde panel açılır (görevin kendi birim başlığıyla); koordinatör merceğinde seçili birimden çözülür → sunucu 404 → panel kapanır (P1 korunur). Kalan **açık UX sorusu** yalnız: yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi.
+- **KUSUR 4:** süzgeç kaynakta **zaten var**, kod değişmedi. Tanık `home-lens-filter.test.ts` (5 test): `company_admin` koordinatör merceğinde 03 liste/sayaç/rozet istekleri `department_id=X`, üye merceğinde `assignee_account_id=ben`; **Düzeltme (tur 2 K-09):** "W144 ham izi eski imajdan" açıklaması geçersizdir; W144 betiği gezinme sonrası Admin merceğine dönmüştü (aşağıda). P53 metniyle çelişki yok. Derin bağlantı: admin merceğinde panel açılır (görevin kendi birim başlığıyla); koordinatör merceğinde seçili birimden çözülür → sunucu 404 → panel kapanır (P1 korunur). Kalan **açık UX sorusu** yalnız: yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi.
 - **K-02 390 px konsol 404:** `GET /v1/work-items/w3` — duman betiğinin sahte `/v1`'inde tanımsız uç (K1 "Süre uzat" talep satırı görev ayrıntısı); ürün hatası değil, kapandı.
 - Varsayım kabul: tavan 5 sayfa korunur. CI notu: `archive/api/lifecycle.test.ts` 5 sn zaman aşımıyla bir kez düştü (W147 dışı), rerun yeşil.
 
 **Bütün tur 1 koşulları (E-01…06, K-01, K-02) kapandı.** K-02'nin "HEAD CI sonucu" ayağı kapanış PR CI'sı ile kapanır.
 
-## Tur 2
+## Tur 2 — 2026-11-14, HEAD d98b409
 
-**Bekliyor.** Bütün koşullar kapandı; Codex tur 2 kapanış dalında koşar.
+HEAD: `d98b4095e27c737d55c09fcae7520d9d2afbea8e`
+
+**KOŞULLU UYGUN.** İncelenen yollarda engelleyici yetki sızıntısı, pin uyumsuzluğu veya oturum değişiminden sonra dosya kaydetme kusuru saptanmadı. İki davranış boşluğu ve bir kanıt açıklaması kapanıştan önce giderilmeli. **F6 kapanmış sayılmaz.** Codex dosya değiştirmedi, test yazmadı/koşmadı (corepack salt okunur ortamda önbellek oluşturamadı; güncel HEAD için test/CI yeşil iddiası yok), push/PR yapmadı.
+
+### Tur 1 kapanışlarının denetimi (kod ve test gövdeleri; bu turda test koşumu değil)
+
+| Bulgu | Tur 2 sonucu |
+| --- | --- |
+| E-01 | Kayıt kimliği değişiminde iptal ve eski sonuç yayımını kesen epoch var; bilet/tüketim beklerken A→B ve B'nin bağımsız indirmesi testleri anlamlı |
+| E-02 | `bindGateToSession` hem indirme hem ağır okuyucuda bağlı; sahte saatli hesap değişimi, kilit/kuyruk temizliği ve refresh korunumu testleri anlamlı (üretim bağı kaynakta ayrıca doğrulandı) |
+| E-03 | Ü1 ikinci sayfa hatası, altıncı sayfadaki öncelikli görev, devam yolu ve sayaç yokluğunda `≥` testleri anlamlı; K1 birleşik hata boşluğu E-07'de |
+| E-04 | Açık toplam `mine.length` üzerinden; başlamamış, sıra, tamamlananların dışlanması, çoklu atama testleri eski hesabı yakalar |
+| E-05 | `applyCooldown` ortak; başlıklı/başlıksız yanıtlar, bitimde otomatik istek olmaması, aynı sayfada tekrar/PDF kilidi sınanıyor; yeniden açılış boşluğu E-08'de |
+| E-06 | İlk GET 404, sonradan yeniden okumada 404 ve PDF tüketiminde 404 için kapatma yolu var; 500 ayrı; `useMeetingGone` listeyi geçersizleyip `replace` + bildirim işletiyor |
+| K-01 | Sabit 50 ms bekleme kalktı; test uçuşta olduğunu, yanıt salındıktan sonra bittiğini ve bildirim çıkmadığını denetliyor |
+| K-02 | W148 neden kaydı ve ham yeşil koşum (`expected=5`, `unexpected=0`, `skipped=0`, `flaky=0`); idempotent tohum yeni program eklemiyor; güncel HEAD CI bağı ayrı kapanış koşulu |
+
+### Yeni bulgular
+
+| Bulgu | Önem | Konum | Bağ | Atanan | Durum |
+| --- | --- | --- | --- | --- | --- |
+| CX-F6-E-07 K1 sayaç hatası kısmi listeyi sürdürme yolunu da kapatıyor | Orta | `src/modules/home/pages/CoordinatorHomePage.vue:88`, `src/modules/home/components/k1/UnitStrip.vue:155` | P4, ortak-kurallar §10, KESİN 21; E-K1-07/14 | W149 | açık |
+| CX-F6-E-08 Önizlemeyi yeniden açmak ortak 429 beklemesini aşabiliyor | Orta | `src/modules/reports/api/queries.ts:69`, `src/modules/reports/model/gate.ts:71` | REPORTING-K10, E-13-40/69/70 | W149 | açık |
+| CX-F6-K-09 W144 KUSUR 4 izinin "eski imaj" açıklaması doğru kanıtlanmış değil | Orta | `docs/backend-eksikleri/rapor-F6.md` (~satır 76), `web6-w144/betik/pw.mjs:18`, `deeplink7.mjs:18–21` | P1/P53, kanıt izlenebilirliği | W143 | belge düzeltildi (bu kayıt) |
+
+**CX-F6-E-07.** Sayaç ilk okumada başarısız olurken görev listesi ilk sayfayı yükleyip sonraki sayfada hata alır veya beş sayfa tavanına ulaşırsa `summary=null` olur ve listeyi sürdüren tek etkileşimli `ScopeNote` gizlenir; diğer kartlardaki notlar `compact` olduğundan eylem sunmaz. Görünen "Yeniden dene" yalnız sayaç sorgusunu yeniler; ayrıca onay kartı `approvals.length` değerini kesin sayı gösterir. *Düzeltme:* liste kapsamını ve devam/yeniden deneme eylemini sayaç başarısından bağımsız çizmek; kesin sayaç yoksa kısmi türevleri alt sınır olarak göstermek. *Doğrulama:* K1'de sayaç hatası + sonraki sayfa hatası ve sayaç hatası + beş sayfa tavanı ayrı sınanmalı; liste eylemi görünmeli, aynı imleci sürdürmeli (mevcut `role-partial.test.ts` K1 senaryosu başarılı sayaç kullanıyor).
+
+**CX-F6-E-08.** 01f başlıklı 429 aldıktan sonra sayaç sürerken "Kapat" → Arşiv → "Önizle" yapılırsa yeni gözlemde sorgu etkin ve bayattır; `acquireWhenFree()` yalnız mevcut kiralamaya bakar, `cooldown` denetlemez; PDF düğmesi "Bekleyin" gösterirken ikinci ağır GET başlayabilir. *Düzeltme:* ağır okuyucunun başlatılmasını da ortak bekleme politikasına bağlamak; sayacın bitmesi kendiliğinden istek başlatmamalı. *Doğrulama:* sahte saatle 60 sn'lik 429 sonrası önizlemeyi söküp yeniden aç; süre dolmadan GET sayısı artmamalı, dolunca da otomatik istek olmamalı, açık yeniden deneme tek istek üretmeli.
+
+**CX-F6-K-09.** W144 betiği K/Ü merceğini seçip mercek/kabuk kaydını alıyor, ardından `page.goto` yapıyor; ortak başlangıç betiği yeni belgede yönetici personasının `scope.lens=admin` tercihini yeniden yazıp departmanı kaldırıyor. Rapor, gezinme öncesi K/Ü etiketini ve gezinme sonrası Admin isteklerini birleştirmişti: süzgeçsiz istekler K/Ü davranışının tanığı değildir. `a3b31e3…HEAD` arasında ilgili liste/rozet/hedef dosyalarında fark da yok; "eski imaj" gerekçesi geçersiz. *Düzeltme (yapıldı):* [rapor-F6 §5](../backend-eksikleri/rapor-F6.md), ilerleme ve bu belgede açıklama düzeltildi; `dogrulama-F6.md` W144'ündür, dokunulmadı; W144 §4 K/Ü merceği kanıtı sayılmaz. *Kalan borç:* gerçek backend'de mercek parametreleri, tercihleri yeniden yazmayan başlangıçla, gezinme SONRASI kayıt ([ilerleme #23](../yurutme/web-6/ilerleme.md)).
+
+### KUSUR 4 değerlendirmesi (tur 2)
+
+`home-lens-filter.test.ts`, yönetici K merceğinde `department_id`, Ü merceğinde `assignee_account_id=ben` parametrelerini liste ve sayaç isteklerinde denetliyor; parametreler kalkarsa test kırılır — **liste/sayaç merceği için anlamlı tanık**. Ancak **sahte sunucudur**, gerçek backend tanığı değildir ve yönetici Ü merceğinde dolu veriyle sayısal liste/rozet eşitliğini ayrıca kanıtlamaz. Yönetici sayfasının/menüsünün korunması ve rapor düğmesi P1/P53 ile tutarlı; başka birim panelinin açılması yetki sızıntısı değildir. Soğuk bağlantıda hedef birimin bulunamayıp seçili birime düşmesi **hedef/kapsam çözümleme UX borcudur** (önbellek düzeltmesi bunu bütünüyle kapatmaz); yönetici yetkisini daraltmak çözüm değildir ([ilerleme #22](../yurutme/web-6/ilerleme.md), [web-7 soru 6](../yurutme/web-7/README.md)).
+
+### Kanıt sınırları (tur 2)
+
+- Ham dumanlar (W146 12, W147 32 kayıt) "bütün konsol hataları sıfır" diye **sunulmamalı**: W147'de `GET /v1/work-items/w3` 404 sahte uç eksiğidir; kısmi küme senaryolarındaki 500'ler kasıtlıdır. Doğru ifade: "konsol: sahte uç 404 + kasıtlı 500; CSP/pageerror 0".
+- Güncel HEAD için test/CI yeşil iddiası yok; HEAD CI sonucu kapanış PR'ında. Codex test koşmadı (corepack salt okunur).
+- W144 gerçek Docker/backend matrisi, W148 gerçek e2e koşumu ve sahte `/v1` dumanları farklı kanıtlardır. Gerçek 503 kapasite tanığı, VoiceOver ve kullanıcı görsel onayı yok. `../program/` bulunamadı; satır satır/PNG kapsamı iddiası yok.
+- Sınıf taraması (yetki, bilet/yaşam, modül/faz, pin) yeni somut kusur çıkarmadı; sınır testi dolaylı bütün import döngülerini kanıtlamıyor.
+
+Atama: **W149** (E-07, E-08). K-09 belge düzeltmesi bu kayıtla yapıldı.
+
+| Bulgu | Kapanış | Hash / PR |
+| --- | --- | --- |
+| CX-F6-E-07 | W149 | açık |
+| CX-F6-E-08 | W149 | açık |
+| CX-F6-K-09 | W143 belge düzeltmesi | bu kayıt (hash kapanış PR'ında) |
+
+## Tur 3
+
+**Bekliyor.** W149 birleşip E-07/E-08 durumları işlendikten sonra koşar.
