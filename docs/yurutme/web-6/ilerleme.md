@@ -143,6 +143,7 @@ Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 b
 | 21  | Ü1 iade/onay/tarih notları ve K1 ApprovalsCard sayacı pending dışı kısmi kümede "≥" almıyor (dar kapsam) | W147 |
 | 22  | Soğuk derin bağlantıda hedef birim/kapsam çözümleme UX borcu (Codex tur 2): önbellekte olmayan başka birim görevinde hedef seçili birime düşebilir; yetki daraltma çözüm değil. [web-7 soru 6](../web-7/README.md) ile bağlı (karar bekler) | Codex tur 2 / W142 |
 | 23  | Gerçek backend'de mercek parametreleri tanığı yok: `home-lens-filter.test.ts` sahte sunucudur; W144 §4 K/Ü kanıtı sayılmaz. Tekrar tanık: tercihleri yeniden yazmayan başlangıç, gezinme SONRASI mercek/birim + istek parametreleri birlikte kaydı | Codex tur 2 K-09 |
+| 24  | Ağır okuyucu bekleme denetimi `useReportSeason` içinde (`gate.cooldown`); `acquireWhenFree` değişmedi — gelecekte eklenecek ağır okuyucu aynı denetimi kendisi yapmalı (uygulama notu) | W149 |
 
 **F7 AÇILMAZ — kullanıcı onayı.** Onay otomatik geçti sayılmaz; "F6 kapandı" ifadesi gerçek sunucu tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz.
 
@@ -156,3 +157,4 @@ Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 b
 - **Codex** `gpt-6.1-sol` medium `-s read-only` nihai kapı: **bekliyor** (`docs/reviews/WEB-6-codex.md` henüz yok). Hüküm ve kapanış PR satırı hükümden sonra eklenir: **bekliyor**.
 - **W147** (#133, `47739fe`): E-04 `9a5f4b6`, K-01 `917fbb9`, E-03 `0158c07` KAPANDI; KUSUR 4 doğrulandı (kod değişmedi); K-02 390 konsol 404 ürün hatası değil. **Codex tur 1 koşullarının hepsi kapandı**; tur 2 bekliyor ([WEB-6-codex](../../reviews/WEB-6-codex.md)). F6 KAPANMADI.
 - **Codex tur 2** (HEAD `d98b409`): **KOŞULLU UYGUN**; tur 1 kapanışları anlamlı; yeni CX-F6-E-07, E-08 (W149) ve K-09 (belge, W143 — bu kayıtla düzeltildi). Tur 3 bekliyor. F6 KAPANMADI.
+- **W149** (#134, `c18d4ab`): E-07 `037548e`, E-08 `c464cad` KAPANDI; 664 dosya / 4633 test; duman K1 sayaç hatası + 01f × 3 × 2 tema taşma/CSP/pageerror 0 (konsol: kasıtlı 500 ve sahte uç 404 listelendi). **Codex tur 2 koşullarının hepsi kapandı**; tur 3 (nihai) bekliyor. F6 KAPANMADI.

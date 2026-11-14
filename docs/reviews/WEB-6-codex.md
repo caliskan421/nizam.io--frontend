@@ -114,9 +114,9 @@ HEAD: `d98b4095e27c737d55c09fcae7520d9d2afbea8e`
 
 | Bulgu | Önem | Konum | Bağ | Atanan | Durum |
 | --- | --- | --- | --- | --- | --- |
-| CX-F6-E-07 K1 sayaç hatası kısmi listeyi sürdürme yolunu da kapatıyor | Orta | `src/modules/home/pages/CoordinatorHomePage.vue:88`, `src/modules/home/components/k1/UnitStrip.vue:155` | P4, ortak-kurallar §10, KESİN 21; E-K1-07/14 | W149 | açık |
-| CX-F6-E-08 Önizlemeyi yeniden açmak ortak 429 beklemesini aşabiliyor | Orta | `src/modules/reports/api/queries.ts:69`, `src/modules/reports/model/gate.ts:71` | REPORTING-K10, E-13-40/69/70 | W149 | açık |
-| CX-F6-K-09 W144 KUSUR 4 izinin "eski imaj" açıklaması doğru kanıtlanmış değil | Orta | `docs/backend-eksikleri/rapor-F6.md` (~satır 76), `web6-w144/betik/pw.mjs:18`, `deeplink7.mjs:18–21` | P1/P53, kanıt izlenebilirliği | W143 | belge düzeltildi (bu kayıt) |
+| CX-F6-E-07 K1 sayaç hatası kısmi listeyi sürdürme yolunu da kapatıyor | Orta | `src/modules/home/pages/CoordinatorHomePage.vue:88`, `src/modules/home/components/k1/UnitStrip.vue:155` | P4, ortak-kurallar §10, KESİN 21; E-K1-07/14 | W149 | kapandı (W149) |
+| CX-F6-E-08 Önizlemeyi yeniden açmak ortak 429 beklemesini aşabiliyor | Orta | `src/modules/reports/api/queries.ts:69`, `src/modules/reports/model/gate.ts:71` | REPORTING-K10, E-13-40/69/70 | W149 | kapandı (W149) |
+| CX-F6-K-09 W144 KUSUR 4 izinin "eski imaj" açıklaması doğru kanıtlanmış değil | Orta | `docs/backend-eksikleri/rapor-F6.md` (~satır 76), `web6-w144/betik/pw.mjs:18`, `deeplink7.mjs:18–21` | P1/P53, kanıt izlenebilirliği | W143 | kapandı (W143 `4d52719`) |
 
 **CX-F6-E-07.** Sayaç ilk okumada başarısız olurken görev listesi ilk sayfayı yükleyip sonraki sayfada hata alır veya beş sayfa tavanına ulaşırsa `summary=null` olur ve listeyi sürdüren tek etkileşimli `ScopeNote` gizlenir; diğer kartlardaki notlar `compact` olduğundan eylem sunmaz. Görünen "Yeniden dene" yalnız sayaç sorgusunu yeniler; ayrıca onay kartı `approvals.length` değerini kesin sayı gösterir. *Düzeltme:* liste kapsamını ve devam/yeniden deneme eylemini sayaç başarısından bağımsız çizmek; kesin sayaç yoksa kısmi türevleri alt sınır olarak göstermek. *Doğrulama:* K1'de sayaç hatası + sonraki sayfa hatası ve sayaç hatası + beş sayfa tavanı ayrı sınanmalı; liste eylemi görünmeli, aynı imleci sürdürmeli (mevcut `role-partial.test.ts` K1 senaryosu başarılı sayaç kullanıyor).
 
@@ -135,14 +135,18 @@ HEAD: `d98b4095e27c737d55c09fcae7520d9d2afbea8e`
 - W144 gerçek Docker/backend matrisi, W148 gerçek e2e koşumu ve sahte `/v1` dumanları farklı kanıtlardır. Gerçek 503 kapasite tanığı, VoiceOver ve kullanıcı görsel onayı yok. `../program/` bulunamadı; satır satır/PNG kapsamı iddiası yok.
 - Sınıf taraması (yetki, bilet/yaşam, modül/faz, pin) yeni somut kusur çıkarmadı; sınır testi dolaylı bütün import döngülerini kanıtlamıyor.
 
-Atama: **W149** (E-07, E-08). K-09 belge düzeltmesi bu kayıtla yapıldı.
+Atama: **W149** (E-07, E-08). K-09 belge düzeltmesi W143 `4d52719` ile yapıldı.
+
+### W149 sonucu (PR #134, main `c18d4ab`, CI ilk koşumda yeşil)
+
+E-07 `037548e` ve E-08 `c464cad` kapandı. Kapı 664 dosya / 4633 test; duman K1 sayaç hatası senaryosu + 01f × 3 genişlik × iki tema: taşma, CSP, pageerror 0; konsol listelendi (kasıtlı 500'ler, sahte uç 404: `work-items/w3`, `reports/dashboard`) — "konsol hatası 0" diye sunulmaz. Kanıt `.git/koordinator/web6-w149/` (yerel). **Uygulama notu:** sayaç denetimi `useReportSeason` içindedir, `acquireWhenFree` değişmedi; gelecekte eklenecek ağır okuyucu aynı denetimi kendisi yapmalıdır. **Tur 2 koşullarının hepsi kapandı.**
 
 | Bulgu | Kapanış | Hash / PR |
 | --- | --- | --- |
-| CX-F6-E-07 | W149 | açık |
-| CX-F6-E-08 | W149 | açık |
-| CX-F6-K-09 | W143 belge düzeltmesi | bu kayıt (hash kapanış PR'ında) |
+| CX-F6-E-07 | W149 | kapandı — W149 PR #134, `037548e` (`UnitStrip` ScopeNote sayaç durumundan bağımsız; "Yeniden dene" sayaç, ScopeNote eylemi liste, aynı imleç; `ApprovalsCard` kesin sayaç yokken "≥N"; `role-partial.test` K1 iki senaryo: sayaç hatası + 2. sayfa hatası / + 5 sayfa tavanı), main `c18d4ab` |
+| CX-F6-E-08 | W149 | kapandı — W149 PR #134, `c464cad` (`useReportSeason` `gate.cooldown>0` iken ağa çıkmaz, istemci kaynaklı sayaçlı `export_in_progress`; Kapat → Arşiv → Önizle ikinci GET yok; sayaç bitince otomatik istek yok, "Yeniden dene" tek istek; `queries.test` + `reports-season-preview` entegrasyon) |
+| CX-F6-K-09 | W143 belge düzeltmesi | kapandı — W143 `4d52719` |
 
-## Tur 3
+## Tur 3 (nihai)
 
-**Bekliyor.** W149 birleşip E-07/E-08 durumları işlendikten sonra koşar.
+**Bekliyor.** Tur 2 koşulları kapandı; Codex tur 3 kapanış dalında koşar.
