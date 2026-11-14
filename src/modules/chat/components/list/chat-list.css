@@ -66,7 +66,7 @@
   align-items: center;
   gap: var(--ui-gap-xs);
   height: var(--ui-pill-h);
-  padding: 0 var(--space-3);
+  padding: 0 var(--ui-gap-sm);
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
