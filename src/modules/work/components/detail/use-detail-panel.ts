@@ -22,7 +22,7 @@ import { routeLocationKey } from 'vue-router'
 
 import { toApiError } from '@/shared/errors/api-error'
 import { queryKeys } from '@/shared/http/query-keys'
-import { errorText } from '@/shared/i18n'
+import { i18n } from '@/shared/i18n'
 import { hasErrorCode } from '@/shared/scope/authority-loss'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
@@ -44,7 +44,6 @@ import type { WorkTarget } from '../../model/types'
 import { parseTasksQuery } from '../../pages/tasks/url-state'
 import type { WorkDetailCloseReason } from '../index'
 import { FALLBACK_TIME_ZONE, kickerText } from './format'
-import { detailText } from './messages'
 
 /** Liste sorgusu mu: `scoped([..., 'work-items', filters])` (son öğe süzgeç nesnesi). */
 function isListQuery(query: Query): boolean {
@@ -99,6 +98,13 @@ function useCloseOnce(workItemId: () => string, close: (reason: WorkDetailCloseR
  * `work.item_not_found` → bir kez bildirim + `close('not_found')`. Bu istemcideki silme
  * sürerken bekçi susar (kapanış `deleted` ile gelir).
  */
+/**
+ * Çözülemeyen hedefin TEK ortak bildirimi (14 E-14-46): "Bu görev bu kapsamda bulunamadı"
+ * (`trNotifications.target.workNotFound`; bildirimden, bağlantıdan ya da başka sekmede silinmiş
+ * görevden gelen `?gorev=`). Sunucu `message` alanı kullanılmaz.
+ */
+const workNotFound = (): string => i18n.global.t('notifications.target.workNotFound')
+
 function watchMissing(sources: MissingSources, closeOnce: (r: WorkDetailCloseReason) => boolean) {
   const toast = useToast()
   const deleting = () => isDeletingWorkItem(sources.workItemId())
@@ -110,13 +116,13 @@ function watchMissing(sources: MissingSources, closeOnce: (r: WorkDetailCloseRea
     [sources.target, sources.listFetching, sources.programId],
     ([resolved, fetching, programId]) => {
       if (resolved === null && programId !== null && fetching === 0) {
-        closeWith(detailText('workDetail.scopeUnknown'))
+        closeWith(workNotFound())
       }
     },
     { immediate: true },
   )
   watch(sources.itemError, (error) => {
-    if (hasErrorCode(error, 'work.item_not_found')) closeWith(errorText(toApiError(error)))
+    if (hasErrorCode(error, 'work.item_not_found')) closeWith(workNotFound())
   })
 }
 

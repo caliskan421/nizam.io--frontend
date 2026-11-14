@@ -122,8 +122,6 @@ export const trWorkDetail = {
     panel: 'Görev ayrıntısı',
     loading: 'Görev yükleniyor',
     close: 'Paneli kapat',
-    // useWorkItemTarget null (Admin merceği, görev yüklenen listede yok): istek atılmaz.
-    scopeUnknown: 'Görevin kapsamı bilinmiyor; görevi listeden açın.',
     tabs: {
       label: 'Görev ayrıntısı sekmeleri',
       summary: 'Özet',
