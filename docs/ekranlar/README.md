@@ -97,7 +97,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `06-arsiv` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | uygulandı (F5), Codex UYGUN (WEB-5) |
 | `08-koordinatorlukler` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `09-toplantilar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
-| `10-mesajlar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
+| `10-mesajlar` | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | öz denetim (W151); bağımsız denetçi bekliyor | koşullu uygun; F7 eki Codex bekliyor |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex UYGUN (WEB-5)** | UYGUN (WEB-5) |
 | `13-raporlar` | **kabul** (P46–P53; öneri satırları açık sorularda) | **kabul** | **kabul** | **kabul** | öz denetim (W134); bağımsız denetçi bekliyor; gerçek sunucu tanığı W144 bekliyor | **uygulandı (F6)** (#122–#134); Codex WEB-6 3 tur UYGUN, F6 KAPANDI (2026-11-14) |
