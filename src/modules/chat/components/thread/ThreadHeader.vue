@@ -1,27 +1,23 @@
 <script setup lang="ts">
 import './thread.css'
 
-import { computed, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 
 import { UiIconButton } from '@/shared/ui'
 
 import { useChatPage } from '../../model/context'
 import { chatText } from '../../messages'
-import { CHATS_ROUTE } from '../../routes'
 import { avatarText } from './avatar'
 import { useThread } from './use-thread'
 
 /**
  * Konuşma başlığı (E-10-18..20): avatar + ad düğmesi (Grup/konuşma bilgisi penceresini açar) ve ⓘ;
  * alt satır "<Ad> yazıyor…" (SSE `typing`; çoklu yazanda "<n> kişi yazıyor…") ya da tür
- * ("Sistem grubu" / "Grup" / "Birebir"). Dar ekranda (P62) Geri düğmesi `/mesajlar`'a döner ve
- * odağı o konuşmanın liste satırına taşır (`data-chat-id`; yoksa liste bölgesi). Çevrimiçi/son
+ * ("Sistem grubu" / "Grup" / "Birebir"). Dar ekranda Geri düğmesi sayfa sahibindedir (`ChatPage`, başlık üstü). Çevrimiçi/son
  * görülme çizilmez (tasarımda yok).
  */
 const thread = useThread()
 const page = useChatPage()
-const router = useRouter()
 
 const chat = computed(() => thread.chat.value)
 const title = computed(() => chat.value?.name ?? chat.value?.counterpart_name ?? '')
@@ -56,24 +52,10 @@ const sub = computed(() => {
 function info(): void {
   thread.openDialog({ dialog: 'groupInfo', chatId: thread.chatId.value })
 }
-
-async function back(): Promise<void> {
-  const id = thread.chatId.value
-  await router.push({ name: CHATS_ROUTE.name })
-  await nextTick()
-  const rows = [...document.querySelectorAll<HTMLElement>('[data-chat-id]')]
-  rows.find((el) => el.dataset.chatId === id)?.focus()
-}
 </script>
 
 <template>
   <header class="chat-thread__head">
-    <UiIconButton
-      class="chat-thread__back"
-      icon="back"
-      :label="chatText('chat.thread.back')"
-      @click="void back()"
-    />
     <button
       type="button"
       class="chat-thread__who"

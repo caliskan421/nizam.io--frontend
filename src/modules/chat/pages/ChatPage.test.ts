@@ -11,6 +11,7 @@ import type * as SseModule from '@/shared/sse'
 import { pageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 
+import { conversationHandlers } from '../__tests__/conversation-handlers'
 import { range } from '../__tests__/fixtures'
 import {
   errorEnvelope,
@@ -102,6 +103,7 @@ function serve(items: unknown[] = []) {
       }),
     ),
     http.get(`${ORIGIN}/v1/chats/yok`, () => errorEnvelope('messaging.chat_not_found', 404)),
+    ...conversationHandlers(),
   )
 }
 

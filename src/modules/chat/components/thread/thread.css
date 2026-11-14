@@ -62,9 +62,6 @@
   color: var(--ink-muted);
   font: var(--text-caption);
 }
-.chat-thread__back {
-  display: none;
-}
 .chat-thread__grow {
   flex: 1 1 auto;
   min-width: 0;
@@ -112,7 +109,7 @@
 }
 
 /* Akış */
-.chat-list {
+.msg-list {
   position: relative;
   display: flex;
   flex: 1 1 0;
@@ -130,21 +127,21 @@
       0 0 / var(--space-5) var(--space-5),
     var(--bg-base);
 }
-.chat-list:focus-visible {
+.msg-list:focus-visible {
   outline: var(--ui-focus-width) solid var(--focus-ring);
   outline-offset: calc(var(--ui-focus-width) * -1);
 }
-.chat-list__more {
+.msg-list__more {
   align-self: center;
   margin: var(--space-2) 0;
 }
-.chat-list__status {
+.msg-list__status {
   align-self: center;
   margin: var(--space-2) 0;
   color: var(--ink-muted);
   font: var(--text-caption);
 }
-.chat-list__state {
+.msg-list__state {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -193,10 +190,7 @@
 }
 
 @media (max-width: 900px) {
-  .chat-thread__back {
-    display: inline-flex;
-  }
-  .chat-list {
+  .msg-list {
     padding-inline: var(--space-3);
   }
 }

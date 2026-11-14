@@ -125,25 +125,25 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="root"
-    class="chat-row"
+    class="msg-row"
     :class="{
-      'chat-row--me': mine,
-      'chat-row--them': !mine,
-      'chat-row--first': first,
-      'chat-row--last': last,
-      'chat-row--focus': focused,
-      'chat-row--edit': editing,
-      'chat-row--tools': tools || menu !== null,
+      'msg-row--me': mine,
+      'msg-row--them': !mine,
+      'msg-row--first': first,
+      'msg-row--last': last,
+      'msg-row--focus': focused,
+      'msg-row--edit': editing,
+      'msg-row--tools': tools || menu !== null,
     }"
     :data-seq="message.seq"
     :data-message-id="message.message_id"
     data-testid="chat-message"
     @click="onRowClick"
   >
-    <span class="chat-row__av" :style="{ visibility: last ? 'visible' : 'hidden' }">
+    <span class="msg-row__av" :style="{ visibility: last ? 'visible' : 'hidden' }">
       <UiAvatar v-if="!mine" :name="senderName" />
     </span>
-    <div class="chat-row__col">
+    <div class="msg-row__col">
       <div class="chat-bub">
         <span v-if="showName" class="chat-bub__name">{{ senderName }}</span>
         <QuoteBlock v-if="message.reply_to" :quote="message.reply_to" />
@@ -163,7 +163,7 @@ onBeforeUnmount(() => {
       </div>
       <ReactionBar :message="message" :busy="busy" @toggle="pick" />
     </div>
-    <div class="chat-row__tools" role="toolbar" :aria-label="chatText('chat.thread.tools')">
+    <div class="msg-row__tools" role="toolbar" :aria-label="chatText('chat.thread.tools')">
       <button
         ref="reactBtn"
         type="button"

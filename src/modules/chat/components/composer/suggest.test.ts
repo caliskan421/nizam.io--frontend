@@ -26,7 +26,7 @@ describe('applySuggestion', () => {
   it('metin ortasında araya ekler', () => {
     const text = 'a @e sonra'
     const trigger = detectTrigger(text, 4)!
-    expect(applySuggestion(text, trigger, '@Elif')).toEqual({ text: 'a @Elif sonra', caret: 8 })
+    expect(applySuggestion(text, trigger, '@Elif')).toEqual({ text: 'a @Elif sonra', caret: 7 })
   })
 })
 

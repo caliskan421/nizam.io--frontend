@@ -115,7 +115,7 @@ watch(
   },
 )
 function onDocumentPointer(event: PointerEvent): void {
-  if (open.value && !(event.target as HTMLElement).closest('.chat-row')) open.value = null
+  if (open.value && !(event.target as HTMLElement).closest('.msg-row')) open.value = null
 }
 watch(open, (now, was) => {
   if (now && !was) document.addEventListener('pointerdown', onDocumentPointer)
@@ -126,31 +126,31 @@ watch(open, (now, was) => {
 <template>
   <div
     ref="list"
-    class="chat-list"
+    class="msg-list"
     tabindex="-1"
     role="log"
     :aria-label="chatText('chat.thread.region')"
     :aria-busy="loading"
-    data-testid="chat-list"
+    data-testid="msg-list"
     @scroll.passive="onScroll"
   >
-    <div v-if="loading && entries.length === 0" class="chat-list__state" role="status">
+    <div v-if="loading && entries.length === 0" class="msg-list__state" role="status">
       <span class="chat-skeleton" />
       <span class="chat-skeleton chat-skeleton--me" />
       <span class="chat-skeleton" />
       <span>{{ chatText('chat.thread.loading') }}</span>
     </div>
-    <div v-else-if="failed && entries.length === 0" class="chat-list__state" role="alert">
+    <div v-else-if="failed && entries.length === 0" class="msg-list__state" role="alert">
       <span>{{ chatText('chat.thread.error') }}</span>
       <UiButton @click="emit('retry')">{{ chatText('chat.thread.retry') }}</UiButton>
     </div>
-    <div v-else-if="entries.length === 0" class="chat-list__state" data-testid="chat-empty">
+    <div v-else-if="entries.length === 0" class="msg-list__state" data-testid="chat-empty">
       <span>{{ chatText('chat.thread.empty') }}</span>
     </div>
     <template v-else>
       <UiButton
         v-if="win.hasOlder"
-        class="chat-list__more"
+        class="msg-list__more"
         :disabled="follow.loadingOlder.value"
         @click="void follow.older()"
       >
@@ -186,7 +186,7 @@ watch(open, (now, was) => {
       </template>
       <UiButton
         v-if="win.hasNewer"
-        class="chat-list__more"
+        class="msg-list__more"
         :disabled="follow.loadingNewer.value"
         @click="void follow.newer()"
       >
