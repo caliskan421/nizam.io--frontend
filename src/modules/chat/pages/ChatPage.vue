@@ -51,7 +51,9 @@ const stream = useChatStream({
   chatId,
   messages,
   // Açık sohbetten düşüldü (404): sessiz konum değişimi olmasın → tek bildirim + listeye dön.
-  onChatLost: () => {
+  // Gecikmiş sonuç başka sohbetin kapanışını getirmez (CX-F7-Ö-05): yalnız GÜNCEL açık sohbet.
+  onChatLost: (lostId) => {
+    if (lostId !== chatId.value) return
     toast.push({ message: chatText('chat.states.notFound') })
     void router.replace({ name: CHATS_ROUTE.name, query: keptQuery() })
   },
