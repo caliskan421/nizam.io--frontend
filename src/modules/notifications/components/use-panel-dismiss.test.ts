@@ -114,4 +114,20 @@ describe('usePanelDismiss', () => {
     await flushPromises()
     expect(h1.api().narrow.value).toBe(false)
   })
+
+  it('dış tık kapatır; panelin ÜSTÜNDEKİ pencerenin (aria-modal) içindeki basış kapatmaz', async () => {
+    const h1 = host()
+    h1.open.value = true
+    await flushPromises()
+    const modal = document.createElement('div')
+    modal.setAttribute('aria-modal', 'true')
+    const inside = document.createElement('button')
+    modal.append(inside)
+    const outside = document.createElement('button')
+    document.body.append(modal, outside)
+    inside.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    expect(h1.close).not.toHaveBeenCalled()
+    outside.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    expect(h1.close).toHaveBeenCalledTimes(1)
+  })
 })
