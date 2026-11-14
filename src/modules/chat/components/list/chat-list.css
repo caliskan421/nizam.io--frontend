@@ -1,0 +1,253 @@
+/* Sohbet listesi (10 · Mesajlar › sol sütun): Mesajlar.dc.html son geçerli kural; yalnız token. */
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-right: var(--ui-hairline) solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+.chat-list__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+.chat-list__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chat-list__h1 {
+  margin: 0;
+  font: var(--text-heading-2);
+  letter-spacing: -0.015em;
+}
+.chat-list__head .t-input {
+  height: var(--control-md);
+  border-radius: var(--radius-full);
+}
+.chat-list__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--ui-gap-2xs) var(--space-2) var(--space-4);
+}
+.chat-list__items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chat-list__hint,
+.chat-list__status {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  color: var(--ink-faint);
+  font: var(--text-caption);
+}
+.chat-list__more {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3);
+}
+
+/* Süzgeç sekmeleri (`rp-ctabs`) */
+.chat-tabs {
+  display: flex;
+  gap: var(--ui-gap-2xs);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chat-tabs button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-gap-xs);
+  height: var(--ui-pill-h);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink-muted);
+  font: var(--ui-text-sm-medium);
+  cursor: pointer;
+}
+.chat-tabs button:hover {
+  background: var(--bg-raised);
+  color: var(--ink);
+}
+.chat-tabs button[aria-selected='true'] {
+  background: var(--ink);
+  color: var(--bg-base);
+}
+.chat-tabs button:focus-visible,
+.chat-row:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+}
+.chat-tabs__n,
+.chat-row__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 var(--ui-gap-xs);
+  border-radius: var(--radius-full);
+  background: var(--accent-text);
+  color: var(--accent-ink);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.chat-tabs__n {
+  min-width: var(--ui-count-size);
+  height: var(--ui-count-size);
+  font-size: var(--list-fs-2xs);
+}
+.chat-tabs button[aria-selected='true'] .chat-tabs__n {
+  background: var(--bg-base);
+  color: var(--ink);
+}
+
+/* Konuşma satırı (`rp-conv`) */
+.chat-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--control-md) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  margin: var(--list-gap-3xs) 0;
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.chat-row:hover {
+  background: var(--bg-raised);
+}
+.chat-row[aria-current='true'] {
+  background: var(--bg-overlay);
+}
+li + li > .chat-row::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--list-gap-3xs) * -1);
+  left: calc(var(--control-md) + var(--space-4));
+  right: var(--space-3);
+  height: var(--ui-hairline);
+  background: var(--border-subtle);
+  pointer-events: none;
+}
+li + li > .chat-row:hover::before,
+li + li > .chat-row[aria-current='true']::before,
+li:has(+ li > .chat-row:hover) + li > .chat-row::before,
+li:has(> .chat-row:hover) + li > .chat-row::before,
+li:has(> .chat-row[aria-current='true']) + li > .chat-row::before {
+  opacity: 0;
+}
+.chat-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--list-gap-3xs);
+  min-width: 0;
+}
+.chat-row__top {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-gap-xs);
+  min-width: 0;
+}
+.chat-row__name {
+  flex: 1 1 auto;
+  font: var(--text-body-strong);
+}
+.chat-row__time {
+  flex: none;
+  color: var(--ink-faint);
+  font-size: var(--list-fs-2xs);
+}
+.chat-row__prev {
+  flex: 1 1 auto;
+  color: var(--ink-muted);
+  font-size: var(--ui-fs-sm);
+}
+.chat-row--unread .chat-row__prev {
+  font-weight: 600;
+}
+.chat-row__pin {
+  flex: none;
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+.chat-row__badge {
+  flex: none;
+  min-width: var(--icon-md);
+  height: var(--icon-md);
+  font-size: var(--list-fs-2xs);
+}
+
+/* Konuşma avatarı (`rp-cav`): grup türleri boşluklu ince halka; seçilide mürekkep dolgu */
+.chat-av {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--control-md);
+  height: var(--control-md);
+  border-radius: var(--radius-full);
+  background: var(--bg-overlay);
+  color: var(--ink);
+  font: var(--text-body-strong);
+  transition: color 0.1s linear;
+}
+.chat-av::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ink);
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 0.1s linear;
+}
+.chat-row[aria-current='true'] .chat-av {
+  color: var(--bg-base);
+}
+.chat-row[aria-current='true'] .chat-av::before {
+  clip-path: circle(72% at 50% 50%);
+}
+.chat-av--code {
+  font: var(--text-label);
+}
+.chat-av--sys,
+.chat-av--grp,
+.chat-av--code {
+  overflow: visible;
+  outline: calc(var(--ui-hairline) * 2) solid var(--bg-overlay);
+  outline-offset: var(--ui-gap-2xs);
+}
+.chat-row[aria-current='true'] .chat-av--sys,
+.chat-row[aria-current='true'] .chat-av--grp,
+.chat-row[aria-current='true'] .chat-av--code {
+  outline-color: var(--ink);
+}
+.chat-av--sys::before,
+.chat-av--grp::before,
+.chat-av--code::before {
+  border-radius: var(--radius-full);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-av,
+  .chat-av::before {
+    transition: none;
+  }
+}
