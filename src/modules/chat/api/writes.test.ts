@@ -191,12 +191,15 @@ describe('mesaj gönder', () => {
     const m = await ready()
     let release!: () => void
     const gate = new Promise<void>((r) => (release = r))
+    let arrive!: () => void
+    const arrived = new Promise<void>((r) => (arrive = r))
     on('post', '/v1/chats/c1/messages', async () => {
+      arrive()
       await gate
       return json(msg(6), 201)
     })
     const pending = m.result.send.submit({ ...CHAT, body })
-    await new Promise((r) => setTimeout(r, 10))
+    await arrived // istek sunucuya ULAŞTI (önkoşul), yanıt henüz yok
     expect(seqs(win(m).items)).toEqual([1, 2, 3, 4, 5])
     release()
     await pending

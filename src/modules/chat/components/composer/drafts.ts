@@ -42,6 +42,17 @@ export function clearChips(key: string): void {
   chips.delete(key)
 }
 
+/**
+ * Gönderim sonucu: YALNIZ gönderilen sürümün anahtarını temizler. Gönderim sürerken aynı alanda
+ * metin değiştiyse (gövde artık gönderilenden farklı) yeni taslak ve çipleri korunur.
+ */
+export function settleSent(key: string, sentBody: string): void {
+  const now = chatDrafts.get(key)
+  if (now !== null && now.body !== sentBody) return
+  chatDrafts.clear(key)
+  clearChips(key)
+}
+
 /** Düzenleme başladığındaki gövde: çakışmada "ilk okunan taban" (K5 alan alan seçim). */
 const editBases = new Map<string, string>()
 export const editBase = {

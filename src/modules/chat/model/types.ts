@@ -140,8 +140,10 @@ export interface ChatStreamMessages {
 /** `applyPlan` bağımlılıkları (SSE olayının uygulanması). */
 export interface ApplyDeps {
   client: QueryClient
-  /** Akışın açıldığı kapsam (olay bu kapsamın önbelleğine uygulanır). */
+  /** Olayın işlendiği andaki GÜNCEL kapsam (program + departman + mercek); olay bu önbelleğe uygulanır. */
   scope: ScopeSnapshot
+  /** Anlık güncel kapsam: gecikmiş sonuç, kapsam değiştiyse eski kapsama bağlı kalır ve uygulanmaz. */
+  currentScope: () => ScopeSnapshot
   openChatId: string | null
   messages: ChatStreamMessages | null
   alive: () => boolean
@@ -166,7 +168,8 @@ export interface ChatStreamOptions {
 /** `dispatchEvent` bağımlılıkları (olay → plan → uygulama). */
 export interface DispatchDeps {
   client: QueryClient
-  scope: ScopeSnapshot
+  /** Her olayda güncel kapsamdan okunur (akış programa bağlı kalır; sorgu kapsamı değişebilir). */
+  scope: () => ScopeSnapshot
   options: ChatStreamOptions
   meAccountId: string | null
   alive: () => boolean

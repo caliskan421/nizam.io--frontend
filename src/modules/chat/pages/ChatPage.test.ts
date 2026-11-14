@@ -175,10 +175,23 @@ describe('ChatPage (sayfa sahibi)', () => {
   it('program değişince akış kapanır ve yeni programla açılır; sohbet gizlenmez', async () => {
     serve()
     const { wrapper, client } = await mountAt('/mesajlar')
+    // p2 akış isteğinin sunucuya ulaşması bariyeri (gerçek süre beklemesi yok).
+    const p2Arrived = new Promise<void>((resolve) => {
+      const listener = ({ request }: { request: Request }) => {
+        if (
+          new URL(request.url).pathname === '/v1/chats/stream' &&
+          request.headers.get('X-Nizamio-Program') === 'p2'
+        ) {
+          server.events.removeListener('request:start', listener)
+          resolve()
+        }
+      }
+      server.events.on('request:start', listener)
+    })
     useScopeStore().commit({ programId: 'p2', lens: 'admin', departmentId: null })
     await flushPromises()
     await settleQueries(client)
-    await new Promise((r) => setTimeout(r, 20))
+    await p2Arrived
     const streams = sent('GET', '/v1/chats/stream')
     expect(streams.map((s) => s.headers.get('X-Nizamio-Program'))).toEqual(['p1', 'p2'])
     expect(sse.opened).toBe(2)

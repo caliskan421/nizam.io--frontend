@@ -4,7 +4,7 @@
  * "Gönderim doğrulanamadı — Tekrar dene" (AYNI `client_message_id` + AYNI gövde; gövde değişirse
  * yeni eylem). Sonuç sınıflandırması `classifySend` (model/message-state).
  */
-import { ref, watch, type Ref } from 'vue'
+import { computed, ref, watch, type Ref } from 'vue'
 
 import { errorText } from '@/shared/i18n'
 import type { MutationOutcome } from '@/shared/http/mutation'
@@ -16,7 +16,7 @@ import { classifySend, type SendVerdict } from '../../model/message-state'
 import type { ChatMessage, SendChatMessageRequest } from '../../model/types'
 import type { ThreadContext } from '../thread/use-thread'
 import { buildSendBody } from './send-body'
-import { chatDrafts, chipsOf, clearChips } from './drafts'
+import { chatDrafts, chipsOf, settleSent } from './drafts'
 import type { Draft } from '../../model/draft'
 
 export type Notice =
@@ -50,18 +50,29 @@ function noticeOf(verdict: Failed, outcome: SendOutcome): Notice | null {
   }
 }
 
-function requestOf(thread: ThreadContext, draft: Draft): SendChatMessageRequest {
+function requestOf(thread: ThreadContext, key: string, draft: Draft): SendChatMessageRequest {
   return buildSendBody({
     body: draft.body,
     clientMessageId: draft.clientMessageId,
     replyTo: draft.replyTo,
-    chips: chipsOf(thread.draftKey.value),
+    chips: chipsOf(key),
     allowAll: thread.caps.value?.mentionAll === true,
   })
 }
 
+/** Gönderimin başladığı an: sonuç yalnız bu anahtara/sohbete bağlanır (geç sonuç başka sohbete işlemez). */
+interface Origin {
+  key: string
+  chatId: string
+  /** Gönderilen taslak gövdesi (ham): yalnız bu sürüm temizlenir. */
+  body: string
+  /** Sohbet türü gönderim anındaki (sonuç sınıflandırması güncel sohbete bakmaz). */
+  chatKind: 'direct' | 'group'
+}
+
 interface SendState {
-  sending: Ref<boolean>
+  /** Gönderimi süren taslak anahtarı (başka sohbette "Gönderiliyor" görünmez). */
+  sendingKey: Ref<string | null>
   notice: Ref<Notice | null>
   peerLeft: Ref<boolean>
   retry: (() => Promise<SendOutcome>) | null
@@ -70,9 +81,10 @@ interface SendState {
   refresh: () => void
 }
 
-function applySent(thread: ThreadContext, state: SendState): void {
-  chatDrafts.clear(thread.draftKey.value)
-  clearChips(thread.draftKey.value)
+/** Veri: yalnız gönderilen anahtar/sürüm temizlenir; UI: yalnız hâlâ o sohbet açıksa. */
+function applySent(thread: ThreadContext, state: SendState, origin: Origin): void {
+  settleSent(origin.key, origin.body)
+  if (thread.draftKey.value !== origin.key) return
   state.notice.value = null
   thread.stickBottom.value += 1
   if (state.retried) state.refresh()
@@ -81,11 +93,14 @@ function applySent(thread: ThreadContext, state: SendState): void {
 function applyFailed(
   thread: ThreadContext,
   state: SendState,
+  origin: Origin,
   verdict: Failed,
   outcome: SendOutcome,
 ): void {
+  if (verdict.reason === 'reply_gone') chatDrafts.setReplyTo(origin.key, null)
+  // Geç sonuç güncel sohbetin UI durumuna işlemez (KESİN 26); veri yukarıda anahtarına yazıldı.
+  if (thread.draftKey.value !== origin.key) return
   if (verdict.reason === 'peer_left') state.peerLeft.value = true
-  if (verdict.reason === 'reply_gone') chatDrafts.setReplyTo(thread.draftKey.value, null)
   if (verdict.reason === 'unknown' && outcome.kind === 'unknown_outcome')
     state.retry = outcome.retry
   state.notice.value = noticeOf(verdict, outcome)
@@ -98,35 +113,43 @@ function applyFailed(
 function applySend(
   thread: ThreadContext,
   state: SendState,
+  origin: Origin,
   outcome: SendOutcome,
   request: SendChatMessageRequest,
   onSent: (message: ChatMessage) => void,
 ): void {
   const verdict = classifySend(outcome, {
-    chatKind: thread.chat.value?.kind ?? 'group',
+    chatKind: origin.chatKind,
     body: request,
   })
-  state.retry = null
+  const current = thread.draftKey.value === origin.key
+  if (current) state.retry = null
   if (verdict.state === 'sent') {
-    applySent(thread, state)
-    onSent(verdict.message)
+    applySent(thread, state, origin)
+    if (current) onSent(verdict.message)
   } else if (verdict.state === 'failed') {
-    applyFailed(thread, state, verdict, outcome)
+    applyFailed(thread, state, origin, verdict, outcome)
   }
 }
 
-export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) => void) {
-  const mutation = useSendChatMessage()
-  const page = useChatPage()
+function originOf(thread: ThreadContext, key: string, draft: Draft): Origin {
+  return {
+    key,
+    chatId: thread.chatId.value,
+    body: draft.body,
+    chatKind: thread.chat.value?.kind ?? 'group',
+  }
+}
+
+function createState(thread: ThreadContext, refresh: () => void): SendState {
   const state: SendState = {
-    sending: ref(false),
+    sendingKey: ref(null),
     notice: ref(null),
     peerLeft: ref(false),
     retry: null,
     retried: false,
-    refresh: () => void page.messages.loadNewer(),
+    refresh,
   }
-
   watch(
     () => thread.chatId.value,
     () => {
@@ -135,34 +158,51 @@ export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) =>
       state.retry = null
     },
   )
+  return state
+}
 
-  async function run(start: () => Promise<SendOutcome>, request: SendChatMessageRequest) {
-    state.sending.value = true
+export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) => void) {
+  const mutation = useSendChatMessage()
+  const page = useChatPage()
+  const state = createState(thread, () => void page.messages.loadNewer())
+
+  const sending = computed(() => state.sendingKey.value === thread.draftKey.value)
+
+  async function run(
+    start: () => Promise<SendOutcome>,
+    origin: Origin,
+    request: SendChatMessageRequest,
+  ) {
+    state.sendingKey.value = origin.key
     try {
-      applySend(thread, state, await start(), request, onSent)
+      applySend(thread, state, origin, await start(), request, onSent)
     } finally {
-      state.sending.value = false
+      if (state.sendingKey.value === origin.key) state.sendingKey.value = null
     }
   }
 
   /** Taslağı gönderir (yeni kullanıcı eylemi: taslakla bağlı `client_message_id`). */
   async function submit(): Promise<void> {
-    const draft = chatDrafts.get(thread.draftKey.value)
-    if (state.sending.value || !draft || draft.body.trim() === '') return
-    const request = requestOf(thread, draft)
+    const key = thread.draftKey.value
+    const draft = chatDrafts.get(key)
+    if (sending.value || !draft || draft.body.trim() === '') return
+    const origin = originOf(thread, key, draft)
+    const request = requestOf(thread, origin.key, draft)
     state.notice.value = null
-    const body = { programId: thread.programId.value, chatId: thread.chatId.value, body: request }
-    await run(() => mutation.submit(body), request)
+    const body = { programId: thread.programId.value, chatId: origin.chatId, body: request }
+    await run(() => mutation.submit(body), origin, request)
   }
 
   /** "Tekrar dene": AYNI kimlik + AYNI gövde (K5). */
   async function retryUnknown(): Promise<void> {
     const again = state.retry
-    const draft = chatDrafts.get(thread.draftKey.value)
-    if (!again || state.sending.value || !draft) return
+    const key = thread.draftKey.value
+    const draft = chatDrafts.get(key)
+    if (!again || sending.value || !draft) return
+    const origin = originOf(thread, key, draft)
     state.retried = true
     try {
-      await run(again, requestOf(thread, draft))
+      await run(again, origin, requestOf(thread, origin.key, draft))
     } finally {
       state.retried = false
     }
@@ -176,7 +216,7 @@ export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) =>
   }
 
   return {
-    sending: state.sending,
+    sending,
     notice: state.notice,
     peerLeft: state.peerLeft,
     submit,
