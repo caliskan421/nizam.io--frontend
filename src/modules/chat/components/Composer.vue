@@ -107,6 +107,7 @@ const {
         </button>
         <textarea
           ref="field"
+          data-chat-composer-input
           class="chat-composer__field"
           rows="1"
           :value="text"

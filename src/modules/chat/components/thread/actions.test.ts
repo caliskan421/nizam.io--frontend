@@ -14,7 +14,7 @@ import {
 } from '../../__tests__/harness'
 import { mountPane, servePane, settle } from '../__tests__/pane-harness'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   resetAll()
   document.body.innerHTML = ''

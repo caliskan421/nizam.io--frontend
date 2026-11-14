@@ -4,7 +4,7 @@ import { msg } from '../../__tests__/fixtures'
 import { resetAll, server, signIn } from '../../__tests__/harness'
 import { mountPane, servePane } from '../__tests__/pane-harness'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   resetAll()
   document.body.innerHTML = ''
