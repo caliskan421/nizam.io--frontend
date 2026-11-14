@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
+import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useToast } from '@/shared/ui'
 import { ConfirmHost, useConfirm } from '@/shared/ui/confirm'
 
@@ -144,9 +145,12 @@ describe('K1/Ü1 yazmaları (use-role-writes)', () => {
     await vi.waitFor(() =>
       expect(sent('/v1/work-items/' + ITEM.work_item_id + '/transitions')).toHaveLength(1),
     )
+    // Yazma uçuşta; sahip sökülür, yanıt salınır, yazmanın GERÇEKTEN bitmesi beklenir (CX-F6-K-01).
+    expect(page.queryClient.isMutating()).toBe(1)
     page.wrapper.unmount()
     release()
-    await new Promise((r) => setTimeout(r, 50))
+    await settleQueries(page.queryClient)
+    expect(page.queryClient.isMutating()).toBe(0)
     expect(useToast().current.value).toBeNull()
   })
 })

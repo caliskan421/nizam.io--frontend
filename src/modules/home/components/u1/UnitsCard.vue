@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { UiCount } from '@/shared/ui'
 
+import type { RoleLoadScope } from '../../model/role/common'
+
 import { homeText } from '../../model/messages'
 import { shortName } from '../../model/role/meetings'
 import { unitWidths, type UnitRow } from '../../model/u1/departments'
 import BarSeg from '../k1/BarSeg.vue'
 import RegionBody from '../k1/RegionBody.vue'
+import ScopeNote from '../k1/ScopeNote.vue'
 
 /**
  * "Koordinatörlüklerim ‹n›" (E-Ü1-30…32): `myDepartments` üyelik satırları + AYNI yükleme
@@ -13,7 +16,14 @@ import RegionBody from '../k1/RegionBody.vue'
  * başlamadı/devam/onayda/iade; ikinci satır durum özeti. "Koordinatör: ‹ad›" gizli (BE-141:
  * üyeye okunamaz); kod yerine ad kısaltması. Altnot sözleşme bilgisidir.
  */
-defineProps<{ rows: readonly UnitRow[]; loading?: boolean }>()
+const props = defineProps<{
+  rows: readonly UnitRow[]
+  loading?: boolean
+  /** Kısmi yükleme (`null` = tam): birim sayıları "≥" ve "ilk N görev" etiketi (CX-F6-E-03). */
+  scope?: RoleLoadScope | null
+  loaded?: number
+}>()
+const count = (n: number): string | number => (props.scope ? `≥${n}` : n)
 </script>
 
 <template>
@@ -33,9 +43,9 @@ defineProps<{ rows: readonly UnitRow[]; loading?: boolean }>()
         <span class="rh-line">
           <span class="rh-code" :title="row.name">{{ shortName(row.name) }}</span>
           <span class="rh-title">{{ row.name }}</span>
-          <span class="rh-cap">{{ homeText('home.u1.depts.tasks', { n: row.open }) }}</span>
+          <span class="rh-cap">{{ homeText('home.u1.depts.tasks', { n: count(row.open) }) }}</span>
           <span v-if="row.overdue > 0" class="rh-cap rh-danger rh-link">
-            {{ homeText('home.u1.depts.late', { n: row.overdue }) }}
+            {{ homeText('home.u1.depts.late', { n: count(row.overdue) }) }}
           </span>
         </span>
         <span class="rh-bar rh-bar--thick" aria-hidden="true">
@@ -49,15 +59,16 @@ defineProps<{ rows: readonly UnitRow[]; loading?: boolean }>()
             row.open === 0
               ? homeText('home.u1.depts.none')
               : homeText('home.u1.depts.segments', {
-                  doing: row.doing,
-                  review: row.review,
-                  back: row.back,
-                  todo: row.notStarted,
+                  doing: count(row.doing),
+                  review: count(row.review),
+                  back: count(row.back),
+                  todo: count(row.notStarted),
                 })
           }}
         </span>
       </div>
     </RegionBody>
+    <ScopeNote v-if="scope" compact :scope="scope" :loaded="loaded ?? 0" />
     <p class="rh-foot">{{ homeText('home.u1.depts.foot') }}</p>
   </section>
 </template>

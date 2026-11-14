@@ -90,9 +90,10 @@ const summary = computed(() =>
     ? unitSummary(load.counts.data.value, items.value, load.complete.value)
     : null,
 )
-const partial = computed(
-  () => !load.complete.value && !load.loadingMore.value && !listLoading.value,
-)
+// Kısmi küme (CX-F6-E-03): yüklenirken de, tavanda ve hatada da türevler "≥" + kapsam etiketi.
+const partial = computed(() => load.partial.value)
+const scope = computed(() => load.scope.value)
+const loaded = computed(() => load.loaded.value)
 const approvals = computed(() => approvalsOf(items.value))
 const unassigned = computed(() => unassignedOf(items.value))
 const members = computed(() =>
@@ -162,7 +163,10 @@ const retryCounts = () => void load.counts.refetch()
         :loading="!summary && !countsError"
         :error="countsError"
         :retrying="load.counts.isFetching.value"
+        :scope="scope"
+        :loaded="loaded"
         @retry="retryCounts"
+        @more="load.loadMore()"
       />
       <div class="rh-col">
         <ApprovalsCard
@@ -185,6 +189,8 @@ const retryCounts = () => void load.counts.refetch()
         />
         <AttentionCard
           :rows="attention"
+          :scope="scope"
+          :loaded="loaded"
           :loading="listLoading"
           :error="listError"
           :retrying="load.list.isFetching.value"
@@ -194,6 +200,8 @@ const retryCounts = () => void load.counts.refetch()
           :rows="members"
           :assigned="assignedOpenCount(items)"
           :partial="partial"
+          :scope="scope"
+          :loaded="loaded"
           :loading="roster.query.isLoading.value || listLoading"
           :error="rosterError ?? listError"
           :retrying="roster.query.isFetching.value || load.list.isFetching.value"

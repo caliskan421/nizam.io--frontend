@@ -3,10 +3,13 @@ import { computed, ref } from 'vue'
 
 import { UiIconButton } from '@/shared/ui'
 
+import type { RoleLoadScope } from '../../model/role/common'
+
 import type { WorkRow } from '../../model/role/common'
 import { homeText } from '../../model/messages'
 import { monthOf, shiftMonth } from '../../model/role/dates'
 import { calendarLegend, monthGrid } from '../../model/u1/calendar'
+import ScopeNote from '../k1/ScopeNote.vue'
 
 /**
  * "Son tarihlerim · ‹Ay›" takvimi (E-Ü1-25…27): yüklenen kümedeki açık görevlerin `end_on`
@@ -15,11 +18,19 @@ import { calendarLegend, monthGrid } from '../../model/u1/calendar'
  * ", geciken son tarih" / ", yaklaşan son tarih". Lejant: geciken = açık ve `is_overdue`;
  * yaklaşan = açık ve `end_on` ≥ bugün (küme geneli, ay değil).
  */
-const props = defineProps<{ items: readonly WorkRow[]; today: string; timeZone: string }>()
+const props = defineProps<{
+  items: readonly WorkRow[]
+  today: string
+  timeZone: string
+  /** Kısmi yükleme (`null` = tam): lejant "≥" ve "ilk N görev" etiketi (CX-F6-E-03). */
+  scope?: RoleLoadScope | null
+  loaded?: number
+}>()
 
 const month = ref(monthOf(props.today))
 const grid = computed(() => monthGrid(month.value, props.today, props.items))
 const legend = computed(() => calendarLegend(props.items, props.today))
+const count = (n: number): string | number => (props.scope ? `≥${n}` : n)
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
 
 const monthLabel = computed(() => {
@@ -93,13 +104,14 @@ function label(cell: { day: string; today: boolean; overdue: boolean; upcoming: 
       <p class="rh-legend rh-cap" data-testid="u1-cal-legend">
         <span>
           <i class="rh-dot rh-dot--late" aria-hidden="true" />
-          {{ homeText('home.u1.calendar.legendOverdue', { n: legend.overdue }) }}
+          {{ homeText('home.u1.calendar.legendOverdue', { n: count(legend.overdue) }) }}
         </span>
         <span>
           <i class="rh-dot rh-dot--doing" aria-hidden="true" />
-          {{ homeText('home.u1.calendar.legendUpcoming', { n: legend.upcoming }) }}
+          {{ homeText('home.u1.calendar.legendUpcoming', { n: count(legend.upcoming) }) }}
         </span>
       </p>
+      <ScopeNote v-if="scope" compact :scope="scope" :loaded="loaded ?? 0" />
     </div>
   </section>
 </template>

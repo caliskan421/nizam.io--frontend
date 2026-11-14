@@ -6,6 +6,7 @@ import type { WorkItem } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
 import { DesignStub, UiButton, UiCount } from '@/shared/ui'
 
+import type { RoleLoadScope } from '../../model/role/common'
 import { useRoleFacts } from '../../api/role/use-facts'
 import { useRoleWrites } from '../k1/use-role-writes'
 import { homeText } from '../../model/messages'
@@ -15,6 +16,7 @@ import { actionTarget, queueActions, todayQueue, type QueueAction } from '../../
 import { possessiveSuffix } from '../../model/turkish'
 import DueText from '../k1/DueText.vue'
 import RegionBody from '../k1/RegionBody.vue'
+import ScopeNote from '../k1/ScopeNote.vue'
 
 /**
  * "Bugünün sırası" (E-Ü1-09…17): bana atananların (tek yükleme, KESİN 21) önceliğe ve son
@@ -33,13 +35,21 @@ const props = defineProps<{
   loading?: boolean
   error?: Pick<ApiError, 'messageKey' | 'requestId'> | null
   retrying?: boolean
+  /** Sunucu sayacından kesin açık görev sayısı (varsa); yoksa türev, kısmi kümede "≥". */
+  openTotal?: number | null
+  /** Kısmi yükleme durumu (`null` = tam); "ilk N görev" etiketi + devam/yeniden deneme. */
+  scope?: RoleLoadScope | null
+  loaded?: number
 }>()
-const emit = defineEmits<{ retry: []; evidence: [item: WorkItem] }>()
+const emit = defineEmits<{ retry: []; more: []; evidence: [item: WorkItem] }>()
 
 const facts = useRoleFacts()
 const writes = useRoleWrites({ requestEvidence: (item) => emit('evidence', item) })
 
 const queue = computed(() => todayQueue(props.items))
+// Kesin sunucu özeti varsa o; kısmi kümede türev alt sınırdır (sahte toplam yok).
+const total = computed(() => props.openTotal ?? queue.value.open)
+const approximate = computed(() => props.scope != null && props.openTotal == null)
 const needsEvidence = computed(() => queue.value.shown.some((i) => i.completion_evidence_required))
 
 const LABEL = {
@@ -78,18 +88,19 @@ const DOT = {
       <h2 id="u1-queue" class="rh-cardtitle">{{ homeText('home.u1.queue.title') }}</h2>
       <RouterLink class="rh-link" :to="tasksLocation()" data-testid="u1-queue-all">
         {{ homeText('home.u1.queue.all') }}
-        <UiCount :value="queue.open" />
+        <UiCount :value="approximate ? `≥${total}` : total" />
       </RouterLink>
     </div>
-    <p v-if="queue.open > 0" class="rh-note" data-testid="u1-queue-sub">
+    <p v-if="total > 0" class="rh-note" data-testid="u1-queue-sub">
       {{
         homeText('home.u1.queue.sub', {
-          open: queue.open,
+          open: approximate ? `≥${total}` : total,
           shown: queue.shown.length,
           suffix: possessiveSuffix(queue.shown.length),
         })
       }}
     </p>
+    <ScopeNote v-if="scope" :scope="scope" :loaded="loaded ?? 0" @more="emit('more')" />
     <RegionBody
       :loading="loading"
       :error="error"

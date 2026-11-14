@@ -7,8 +7,10 @@ import type { ApiError } from '@/shared/errors/api-error'
 import { UiErrorState, UiIcon } from '@/shared/ui'
 
 import { homeText } from '../../model/messages'
+import type { RoleLoadScope } from '../../model/role/common'
 import type { UnitSummary } from '../../model/k1/summary'
 import { tasksLocation } from '../../model/role/links'
+import ScopeNote from './ScopeNote.vue'
 
 /**
  * Birim satırı + "Birim özeti" şeridi (E-K1-05…13). Altı kutu tek yüklemden: açık / geciken /
@@ -22,8 +24,11 @@ const props = defineProps<{
   loading?: boolean
   error?: Pick<ApiError, 'messageKey' | 'requestId'> | null
   retrying?: boolean
+  /** Kısmi yükleme (`null` = tam): "ilk N görev" etiketi + devam/yeniden deneme (CX-F6-E-03). */
+  scope?: RoleLoadScope | null
+  loaded?: number
 }>()
-const emit = defineEmits<{ retry: [] }>()
+const emit = defineEmits<{ retry: []; more: [] }>()
 
 interface Cell {
   key: 'open' | 'overdue' | 'pending' | 'returned' | 'unassigned' | 'dateRequests'
@@ -147,8 +152,15 @@ const cells = computed<Cell[]>(() => {
         </div>
       </template>
     </section>
-    <p v-if="summary?.partial && !loading && !error" class="rh-cap" data-partial>
-      {{ homeText('home.k1.partial') }}
-    </p>
+    <template v-if="summary?.partial && !loading && !error">
+      <ScopeNote
+        v-if="scope"
+        :scope="scope"
+        :loaded="loaded ?? 0"
+        data-partial
+        @more="emit('more')"
+      />
+      <p v-else class="rh-cap" data-partial>{{ homeText('home.k1.partial') }}</p>
+    </template>
   </div>
 </template>

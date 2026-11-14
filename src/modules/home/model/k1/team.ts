@@ -1,7 +1,8 @@
 /**
- * K1 ekip yükü (E-K1-26…28, mekanizma §9.2): üye başına açık = devam + onayda + geciken + iade
- * (atanmış, tamamlanmamış); çubuk dilimi görev sayısı × %25 (kişi başı 4 görev = %100; tasarım
- * sabiti). Atanmamış görev kimsenin yüküne girmez. Sıra: açık azalan, eşitlikte ad.
+ * K1 ekip yükü (E-K1-26…28, mekanizma §9.2): üye başına açık = açık-atama kümesinin uzunluğu
+ * (`tamamlandi` dışı tüm durumlar; `baslanmadi` dahil — CX-F6-E-04); çubuk dilimleri yalnız
+ * görünümdür (devam / onayda / geciken / iade; başlanmamış çizilmez ama toplamdan düşmez);
+ * dilim genişliği görev sayısı × %25 (kişi başı 4 görev = %100; tasarım sabiti). Atanmamış görev kimsenin yüküne girmez. Sıra: açık azalan, eşitlikte ad.
  */
 import { collator, isOpen, type WorkRow } from '../role/common'
 
@@ -72,7 +73,7 @@ export function teamLoad(
         member,
         me: meId !== null && member.accountId === meId,
         ...c,
-        open: c.doing + c.review + c.late + c.back,
+        open: mine.length,
         widths: widthsOf(c),
       }
     })

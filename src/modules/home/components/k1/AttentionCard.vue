@@ -8,6 +8,7 @@ import { targetOf } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
 import { DesignStub, UiButton, UiCount, useToast } from '@/shared/ui'
 
+import type { RoleLoadScope } from '../../model/role/common'
 import { useRoleFacts } from '../../api/role/use-facts'
 import { homeText } from '../../model/messages'
 import type { AttentionRow } from '../../model/k1/queues'
@@ -15,6 +16,7 @@ import type { WorkRow } from '../../model/role/common'
 import { formatDayShort } from '../../model/role/dates'
 import { taskLocation } from '../../model/role/links'
 import RegionBody from './RegionBody.vue'
+import ScopeNote from './ScopeNote.vue'
 
 /**
  * "Dikkat gerektirenler ‹n›" (E-K1-23…25): geciken açık görevler (yüklenen küme; en uzun
@@ -24,6 +26,9 @@ import RegionBody from './RegionBody.vue'
  */
 defineProps<{
   rows: readonly AttentionRow[]
+  /** Kısmi yükleme (`null` = tam): sayı "≥" + "ilk N görev" etiketi (CX-F6-E-03). */
+  scope?: RoleLoadScope | null
+  loaded?: number
   loading?: boolean
   error?: Pick<ApiError, 'messageKey' | 'requestId'> | null
   retrying?: boolean
@@ -50,13 +55,14 @@ function sent(): void {
     <div class="rh-cardhead">
       <h2 id="k1-att-title" class="rh-cardtitle">
         {{ homeText('home.k1.attention.title') }}
-        <UiCount :value="rows.length" />
+        <UiCount :value="scope ? `≥${rows.length}` : rows.length" />
       </h2>
       <RouterLink class="rh-link" :to="{ path: TIMELINE_ROUTE.path }">
         {{ homeText('home.k1.attention.timeline') }}
       </RouterLink>
     </div>
     <p class="rh-note">{{ homeText('home.k1.attention.note', { n: rows.length }) }}</p>
+    <ScopeNote v-if="scope" compact :scope="scope" :loaded="loaded ?? 0" />
     <RegionBody
       :loading="loading"
       :error="error"
