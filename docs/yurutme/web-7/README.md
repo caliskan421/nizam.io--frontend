@@ -1,6 +1,6 @@
 # WEB-7 — sohbet, bildirim paneli ve gerçek zamanlı altyapı
 
-**F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P55/P56 kayıtlı; P57–P66 KESİN (koordinatör varsayılanı, ürün sahibi onayı 2026-11-14: "Web Push dahil olsun, kilitli kart backend, bildirim sade liste tamam"; **P58 Web Push dahil, P60 backend kazanır, P57 sade liste**). [WEB-6](../web-6/README.md) KAPANDI (2026-11-14; Codex 3 tur UYGUN). **Backend dursun:** yalnız pin `v0.15.0-api` uçları; sohbet ve bildirim sözleşmesi v0.11→v0.17 değişmedi, pin yükseltmesi yok; eksikler statik/devre dışı/gizli + BE kaydı (bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan); backend paketi açılmaz (§3 `designStub` koşulu, §4 statik ≠ sahte veri). Ortak sözleşme: [ortak-sozlesme.md](ortak-sozlesme.md) (KESİN 1–34). İlerleme: [ilerleme.md](ilerleme.md).
+**F7 KAPANMADI — Codex bekliyor (2026-11-14).** O1–O3 main'de (PR #137–#147, son kod `76e4345`, 758 dosya / 5478 test); O4: W161 belgeler yazıldı, W162 gerçek sunucu tanığı bekliyor, Codex 2–3 tur bekliyor ([hüküm iskeleti](../../reviews/WEB-7-codex.md)), kapanış PR'ı bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)). **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P55/P56 kayıtlı; P57–P66 KESİN (koordinatör varsayılanı, ürün sahibi onayı 2026-11-14: "Web Push dahil olsun, kilitli kart backend, bildirim sade liste tamam"; **P58 Web Push dahil, P60 backend kazanır, P57 sade liste**). [WEB-6](../web-6/README.md) KAPANDI (2026-11-14; Codex 3 tur UYGUN). **Backend dursun:** yalnız pin `v0.15.0-api` uçları; sohbet ve bildirim sözleşmesi v0.11→v0.17 değişmedi, pin yükseltmesi yok; eksikler statik/devre dışı/gizli + BE kaydı (bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan); backend paketi açılmaz (§3 `designStub` koşulu, §4 statik ≠ sahte veri). Ortak sözleşme: [ortak-sozlesme.md](ortak-sozlesme.md) (KESİN 1–34). İlerleme: [ilerleme.md](ilerleme.md).
 
 ## Kapsam (P54)
 
@@ -58,9 +58,13 @@ Bu belge karar vermez; yalnız kararın gerektiği yerleri listeler.
 
 | Dosya | İçerik |
 | --- | --- |
-| [ilerleme.md](ilerleme.md) | Durum: F7 AÇILDI, O1 sürüyor; borç listesi başlangıcı |
+| [ilerleme.md](ilerleme.md) | Durum: F7 KAPANMADI (Codex bekliyor); O1–O3 hash'ler, P54–P66, 26 numaralı borç |
 | [ortak-sozlesme.md](ortak-sozlesme.md) | Her uygulayıcı isteminin başına eklenen sözleşme (KESİN 1–34) |
 | [oturum-1-hazirlik.md](oturum-1-hazirlik.md) | O1 adımları |
-| [oturum-2-uygulama.md](oturum-2-uygulama.md) | O2a/O2b iş listesi iskeleti (bekliyor) |
-| [oturum-3-entegrasyon.md](oturum-3-entegrasyon.md) | O3 W160 iskeleti (bekliyor) |
-| [oturum-4-kapanis.md](oturum-4-kapanis.md) | O4 akış tablosu iskeleti (bekliyor) |
+| [oturum-2-uygulama.md](oturum-2-uygulama.md) | O2a/O2b iş listesi (uygulandı) |
+| [oturum-3-entegrasyon.md](oturum-3-entegrasyon.md) | O3 W160 sonucu: 125 entegrasyon testi, 13 kusur, e2e 3/3, duman |
+| [oturum-4-kapanis.md](oturum-4-kapanis.md) | O4 akış tablosu (W161, W162, Codex, kapanış PR) ve kapı sonuçları |
+| [Backend devir raporu](../../backend-eksikleri/rapor-F7.md) | F7'de bağlanan uçlar, BE-027/028/029, 080…086, 142…156, 160…162 durumları, öneri sırası, deploy notları |
+| [WEB-7-codex.md](../../reviews/WEB-7-codex.md) | Codex nihai kapı hükmü (iskelet; tur bölümleri bekliyor) |
+| [web-8](../web-8/README.md) | F8 iskeleti (F8 AÇILMADI; adaylar) |
+| `dogrulama-F7.md` | W162 gerçek imaj + gerçek backend tanığı (ayrı dalda, bekliyor) |
