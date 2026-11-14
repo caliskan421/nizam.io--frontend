@@ -98,7 +98,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `10-mesajlar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex UYGUN (WEB-5)** | UYGUN (WEB-5) |
-| `13-raporlar` | **kabul** (P46–P53; öneri satırları açık sorularda) | **kabul** | **kabul** | **kabul** | öz denetim (W134); bağımsız denetçi bekliyor; gerçek sunucu tanığı W144 bekliyor | **uygulandı (F6)** (#122–#128, `a3b31e3`); Codex WEB-6 bekliyor |
+| `13-raporlar` | **kabul** (P46–P53; öneri satırları açık sorularda) | **kabul** | **kabul** | **kabul** | öz denetim (W134); bağımsız denetçi bekliyor; gerçek sunucu tanığı W144 bekliyor | **uygulandı (F6)** (#122–#134); Codex WEB-6 3 tur UYGUN, F6 KAPANDI (2026-11-14) |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,

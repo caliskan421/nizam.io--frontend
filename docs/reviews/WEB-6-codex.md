@@ -1,6 +1,6 @@
 # WEB-6 — Codex nihai kapı
 
-Faz: F6 (raporlar, yönetici panosu, K1/Ü1, rol menüleri). Codex gpt-6.1-sol medium, `-s read-only`. Hüküm durumu: **tur 1 KOŞULLU UYGUN; tur 2 bekliyor; F6 KAPANMADI.** Ham çıktı koordinatör kaydındadır (`.git/koordinator/web6-codex-tur1.md`, yerel).
+Faz: F6 (raporlar, yönetici panosu, K1/Ü1, rol menüleri). Codex gpt-6.1-sol medium, `-s read-only`. Hüküm durumu: **tur 1 KOŞULLU UYGUN → tur 2 KOŞULLU UYGUN → tur 3 (nihai) UYGUN; F6 KAPANDI** (kapanış PR'ı ile birleşir; kapanış PR'ının CI'sı ve birleşme adımı ayrıca tamamlanır). Ham çıktılar koordinatör kaydındadır (`.git/koordinator/web6-codex-tur{1,2,3}.md`, yerel).
 
 ## Tur 1 — 2026-11-14, HEAD 633d9d2
 
@@ -147,6 +147,58 @@ E-07 `037548e` ve E-08 `c464cad` kapandı. Kapı 664 dosya / 4633 test; duman K1
 | CX-F6-E-08 | W149 | kapandı — W149 PR #134, `c464cad` (`useReportSeason` `gate.cooldown>0` iken ağa çıkmaz, istemci kaynaklı sayaçlı `export_in_progress`; Kapat → Arşiv → Önizle ikinci GET yok; sayaç bitince otomatik istek yok, "Yeniden dene" tek istek; `queries.test` + `reports-season-preview` entegrasyon) |
 | CX-F6-K-09 | W143 belge düzeltmesi | kapandı — W143 `4d52719` |
 
-## Tur 3 (nihai)
+## Tur 3 (nihai) — 2026-11-14, HEAD 0c56f7d
 
-**Bekliyor.** Tur 2 koşulları kapandı; Codex tur 3 kapanış dalında koşar.
+HEAD: `0c56f7d73220b2a16b953de5f90d4bcd2c52324f`
+
+**UYGUN — Tur 3 nihai salt okunur hükmü.**
+
+İncelenen kapsamda F6 kapanışını engelleyen yeni yetki, pin veya yaşam döngüsü kusuru saptanmadı. Tur 2 koşulları kapanmış. **Codex notu (aynen):** bu hüküm, güncel HEAD'in CI'sının doğrulandığı veya F6'nın süreç bakımından kapandığı anlamına gelmez; kapanış PR'ının CI ve birleşme adımları ayrıca tamamlanmalıdır. Codex dosya değiştirmedi, uygulama/test yazmadı, test veya geri-alma deneyi koşmadı, push/PR yapmadı; çalışma ağacı temiz kaldı.
+
+### Tur 2 kapanışlarının doğrulanması (kod ve test gövdesi denetimi)
+
+| Bulgu | Kod ve test değerlendirmesi |
+| --- | --- |
+| E-07 kapandı | `UnitStrip.vue:156` kapsam notunu sayaç başarısından bağımsız çiziyor; `CoordinatorHomePage.vue:174` kesin sayaç yokken kısmi onay sayısını `≥N` gösteriyor; `role-partial.test.ts:192` ve `:227` sayaç hatası + ikinci sayfa hatası ve beş sayfa tavanını ayrı kuruyor, `c2`/`c6` imlecinden devamı, sayaç sorgusundan bağımsızlığı ve yeni görevlerin görünmesini denetliyor; düzeltme geri alınırsa beklentiler kırılır |
+| E-08 kapandı | `queries.ts:81` ve `:84` hem kilide girmeden önce hem sıradan çıktıktan sonra beklemeyi denetliyor (ikinci yolda kiralama bırakılıyor); `queries.test.ts:143` ve `reports-season-preview.test.ts:65` söküp yeniden açılışta GET sayısının artmamasını, süre sonunda otomatik istek olmamasını ve açık yeniden denemenin tek istek üretmesini sınıyor |
+| K-09 kapandı | `rapor-F6.md` §5 ve ilerleme doğru açıklamayı taşıyor; ham `pw.mjs:18–31` her yeni belgede persona tercihini yeniden yazıyor, `deeplink7.mjs:18–21` K/Ü kaydından sonra `page.goto` yapıyor; W144'ün bu izi K/Ü merceğinin tanığı değildir, "eski imaj" açıklaması kullanılmaz |
+
+### W149 regresyon taraması ve bağımsız sınıflar
+
+- **Yaşam döngüsü:** W149 indirme yeniden düzenlemesini, kayıt değişimi iptalini veya `bindGateToSession` bağlarını değiştirmiyor; `useReportDownloads`, `applyCooldown`, `useMeetingGone`, `sessionBound` ve sinyal zincirinde önceki kapanışları yeniden açacak regresyon yok; yeni bekleme hatası ağı kullanmıyor ve sayacı yeniden başlatmıyor.
+- **Kısmi kümeler:** `useRoleLoad` ve `ScopeNote` devam yolu korunmuş; E-07 düzeltmesi sayaç hatasında bu yolu erişilebilir yapıyor, K1/Ü1'in mevcut kapsam etiketlerini kaldırmıyor.
+- **Yetki:** üyede rapor eylemleri gizli; koordinatörde dönem/iş yükü ve önizleme kapalı; görev/toplantı PDF görünürlüğü seçili programdaki koordinatörlük olgularına bağlı; yönetici merceği yetkiyi kaldırmıyor; REPORTING-K01/K07 ile yeni uyumsuzluk yok.
+- **Bilet:** program başlığı, CSRF, POST hedefinde `member_ids`, anahtarsız üretim ve hemen tüketim korunmuş; bilet sonucu sıfırlanıyor; iptal edilen tüketim dosya kaydetmiyor.
+- **Modül/faz:** bağlamalar `public.ts` üzerinden; doğrudan `reports → work` bağı yok; iki rapor rotasının gövdesi mevcut; `/raporlar` ve menü öğesi yok; açıklamasız gövdesiz parça yok.
+- **Pin:** backend pini `v0.15.0-api`; token kopyasının blob'u `75d4a46f14e97718c2de934d34f60580352bcc93`; salt okunur `generate()` karşılaştırmasında üç üretilmiş dosya birebir eşleşti; W149 lint/boyut kurallarını gevşetmiyor.
+
+### KUSUR 4 nihai yorumu
+
+`home-lens-filter.test.ts:65–118`, gerçek router/kabuk üzerinden koordinatör liste ve sayaçlarında `department_id`, üye merceğinde `assignee_account_id=ben` gönderimini denetliyor; süzgeçsiz isteğe dönüş bu beklentileri kırar. **Liste/sayaç merceğini kanıtlıyor; gerçek backend tanığı değildir.** Yöneticinin kendi yetkisiyle başka birim kaydını açması ve rapor düğmesini görmesi P1/P53'e aykırı değildir. Soğuk `?gorev=` bağlantısında hedefin seçili birime düşmesi **hedef kapsamını çözümleme sınıfında UX borcudur**: `work/api/queries.ts:227–230` yalnız yüklenmiş/önbellekteki satırlardan gerçek birimi bulabiliyor. Yetki sızıntısı veya W149 regresyonu sayılmaz; kapanış sonrası borç ([ilerleme #22](../yurutme/web-6/ilerleme.md)).
+
+### Yeni bulgu — kapanış sonrası borç
+
+| Bulgu | Önem | Konum | Bağ | Durum |
+| --- | --- | --- | --- | --- |
+| CX-F6-K-10 Ham duman kanıtının üzerine yazılması | Düşük | `.git/koordinator/web6-w149/duman-k1.mjs:113`, `duman-01f.mjs:78` | KESİN 17/30, kanıt izlenebilirliği | **kapanış sonrası borç** ([ilerleme #25](../yurutme/web-6/ilerleme.md)); F6 kapanışını engellemez |
+
+İki betik aynı `results.json`'a yazıyor; dosyada yalnız 01f'nin 12 kaydı var, K1 ölçümleri ham kayıttan doğrulanamıyor (K1 PNG'sinde sayaç hatası, kapsam notu, yeniden deneme ve `≥` görülebiliyor). Ürün davranış kusuru değildir. *Düzeltme:* senaryo başına ayrı sonuç dosyası ve HEAD/koşum kimliği. *Doğrulama:* iki duman sırayla koşunca iki senaryonun ölçümleri de kalıcı kalmalı. Öneri: [web-7](../yurutme/web-7/README.md) ortak sözleşme/KESİN kuralı — "duman betikleri senaryo başına ayrı results dosyası".
+
+### Kanıt sınırları (tur 3)
+
+- Güncel HEAD için test/CI yeşil iddiası yok (GitHub API bağlantısı kurulamadı); **HEAD CI kapanış PR'ındadır**.
+- W144 gerçek Docker/backend matrisi, W148 gerçek e2e neden/yeniden kullanım kaydı ve sahte `/v1` dumanları ayrı kanıttır; idempotent tohum eşleşen tek programı yeniden kullanır, kirli DB'de açık hata verir.
+- Gerçek backend'de gezinme **sonrası** K/Ü mercek-parametre tanığı eksik ([ilerleme #23](../yurutme/web-6/ilerleme.md)). Gerçek 503 kapasite, VoiceOver ve kullanıcı görsel onayı doğrulanmış sayılmadı.
+- Kasıtlı 500'ler ve sahte uç 404'leri nedeniyle dumanlar "konsol hatası sıfır" diye genellenemez.
+- Bildirilmiş ZIP, dosya boyutu, iade gerekçesi ve tasarım sapmaları kapanış sonrası borçtur. `acquireWhenFree`'ın gelecekteki okuyuculara bekleme politikasını kendiliğinden uygulamaması mevcut F6 kusuru değildir.
+- `../program/` belirtilen konumda yoktu; satır satır/PNG kapsamı iddiası yok.
+
+## Koşulların kapanışı (özet)
+
+| Tur | Hüküm | HEAD | Koşullar |
+| --- | --- | --- | --- |
+| 1 | KOŞULLU UYGUN | `633d9d2` | E-01, E-02, E-05, E-06 (W146 #132), E-03, E-04, K-01 (W147 #133), K-02 (W148 #131) — kapandı |
+| 2 | KOŞULLU UYGUN | `d98b409` | E-07, E-08 (W149 #134), K-09 (W143 `4d52719`) — kapandı |
+| 3 (nihai) | **UYGUN** | `0c56f7d` | koşul yok; CX-F6-K-10 kapanış sonrası borç |
+
+**F6 KAPANDI.** Süreç bakımından kapanış, kapanış PR'ının CI'sı yeşil olup birleşince tamamlanır; kapanış PR'ı: bekliyor.

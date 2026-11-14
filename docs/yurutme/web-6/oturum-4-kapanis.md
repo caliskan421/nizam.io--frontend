@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**Durum (2026-11-14):** O1–O3 PR'ları main'de (#119–#128), W144 tanığı #129 (`66c1708`) ve W145 düzeltme turu #130 (`136da28`) birleşti; **O4 düzeltme turu KAPANDI**. Belge işi (W143) yazıldı; Codex tur 1 ve kapanış PR'ı **bekliyor**. F6 henüz KAPANMADI. F7 AÇILMADI ([web-7](../web-7/README.md)).
+**Durum (2026-11-14): F6 KAPANDI.** O1–O3 (#119–#128), W144 tanığı #129, W145 #130, W148 #131, W146 #132, W147 #133, W149 #134 main'de (son kod `c18d4ab`); Codex 3 tur (KOŞULLU UYGUN → KOŞULLU UYGUN → UYGUN, [hüküm](../../reviews/WEB-6-codex.md)). Kapanış PR'ı ile birleşir; kapanış PR'ı: bekliyor (CI ve birleşme ayrıca). F7 AÇILMADI ([web-7](../web-7/README.md)).
 
 ## Gerçekleşen akış
 
@@ -13,10 +13,10 @@
 | 3b   | Koşullar: W146 (E-01, E-02, E-05, E-06; reports), W147 (E-03, E-04, K-01, KUSUR 4 mercek listesi; home/work), W148 (K-02 gerçek backend e2e nedeni) | W146/W147/W148 | **Tamam:** W146 (#132), W148 (#131), W147 (#133, main `47739fe`) birleşti; bütün koşullar kapandı |
 | 3c   | Codex tur 2 (HEAD `d98b409`): **KOŞULLU UYGUN**; yeni E-07, E-08 → W149; K-09 belge düzeltmesi W143 | Codex | Tamam |
 | 3d   | W149 (E-07 `037548e`, E-08 `c464cad`; PR #134, main `c18d4ab`) | W149 | Tamam |
-| 3e   | Codex tur 3 (nihai) | Codex | **Bekliyor** |
-| 3    | Nihai kapı: Codex `gpt-6.1-sol` medium `-s read-only` tek koşum; hüküm `docs/reviews/WEB-6-codex.md`                                                                                                                                         | Codex              | **Bekliyor**                                                                 |
-| 4    | Koşullar işçiyle kapatılır; gerekirse ikinci tur                                                                                                                                                                                             | işçi + koordinatör | Bekliyor                                                                     |
-| 5    | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla)                                                                                                                                                       | koordinatör        | **Bekliyor**                                                                 |
+| 3e   | Codex tur 3 (nihai, HEAD `0c56f7d`): **UYGUN**; CX-F6-K-10 kapanış sonrası borç | Codex | Tamam |
+| 3    | Nihai kapı: Codex `gpt-6.1-sol` medium `-s read-only` tek koşum; hüküm `docs/reviews/WEB-6-codex.md`                                                                                                                                         | Codex              | Tamam (3 tur, tur 3 UYGUN)                                                                 |
+| 4    | Koşullar işçiyle kapatılır; gerekirse ikinci tur                                                                                                                                                                                             | işçi + koordinatör | Tamam (W146–W149)                                                                     |
+| 5    | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla)                                                                                                                                                       | koordinatör        | **Bekliyor** (kapanış PR'ı ile birleşir)                                                                 |
 
 ## Roller
 
@@ -32,7 +32,7 @@ Koordinatör Fable (kod yazmaz, işçi çıktısı okumaz; özet alır, birleşt
 | Entegrasyon / e2e                                     | 97 entegrasyon testi geçti; `e2e/reports.spec.ts` 3/3 (**sahte** `/v1`)                                                                                                                                      |
 | Belge kapısı (W143)                                   | `prettier --check` değişen dosyalar, `pnpm lint`, stubs/design-stub testleri: sonuç W143 teslim raporunda                                                                                                    |
 | Gerçek imaj + gerçek backend (W144)                   | [`dogrulama-F6.md`](dogrulama-F6.md) — **alındı** (503 ve VoiceOver hariç)                                                                                                                                                                             |
-| Codex nihai hüküm                                     | **Bekliyor**                                                                                                                                                                                                 |
+| Codex nihai hüküm                                     | **UYGUN** (tur 3, HEAD `0c56f7d`)                                                                                                                                                                                                 |
 | Kapanış PR                                            | **Bekliyor**                                                                                                                                                                                                 |
 
 ## Codex istem notları
@@ -42,3 +42,7 @@ Kabul ölçütleri: [13-raporlar](../../ekranlar/13-raporlar/README.md), [01](..
 ## Sonrası
 
 **F7 AÇILMAZ — kullanıcı onayı** ([web-7](../web-7/README.md)). Pin yükseltmesi de ayrı onay ister ([plan](../web-5/pin-yukseltme-plani.md)). "F6 kapandı" ifadesi W144 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz.
+
+## F6 KAPANDI — 2026-11-14
+
+Codex tur 3: **UYGUN**. Hüküm HEAD CI'sını doğrulamaz; kapanış PR'ının CI'sı ve birleşmesi ayrıca tamamlanır (PR'ı: bekliyor). F7 ve pin yükseltmesi AÇILMAZ — kullanıcı onayı.

@@ -1,6 +1,6 @@
 # WEB-7 — iskelet (F7 AÇILMADI)
 
-**F7 AÇILMADI.** Bu klasör yalnız hazırlıktır; faz, kapsam ve sıra ürün sahibinin açık kararına kadar belirsizdir. Onay otomatik geçti sayılmaz: F7 ancak (1) kullanıcının açık "F7'yi aç" onayıyla, (2) [WEB-6](../web-6/README.md) KAPANDI kaydıyla (W144 gerçek sunucu tanığı, Codex hükmü, kapanış PR MERGED) ve (3) pin yeterliliğinin doğrulanmasıyla açılır. Hiçbir işçi, bu klasöre dayanarak kod, belge PR'ı veya backend isteği başlatmaz.
+**F7 AÇILMADI — karar bekler.** (WEB-6 KAPANDI 2026-11-14, kapanış PR'ı ile birleşir.) Bu klasör yalnız hazırlıktır; faz, kapsam ve sıra ürün sahibinin açık kararına kadar belirsizdir. Onay otomatik geçti sayılmaz: F7 ancak (1) kullanıcının açık "F7'yi aç" onayıyla, (2) [WEB-6](../web-6/README.md) KAPANDI kaydıyla (W144 gerçek sunucu tanığı, Codex hükmü, kapanış PR MERGED) ve (3) pin yeterliliğinin doğrulanmasıyla açılır. Hiçbir işçi, bu klasöre dayanarak kod, belge PR'ı veya backend isteği başlatmaz.
 
 **Kural (aynen F5/F6 kalıbı):** web yeni faza kendiliğinden geçmez; faz geçişi ürün sahibinin kararıdır. "Backend dursun" (P46) F6 için verilmiş karardır ve F7'ye otomatik taşınmaz; F7 açılırken ayrıca sorulur (backend paketi açılsın mı, hangi sırayla — [rapor-F6 §6](../../backend-eksikleri/rapor-F6.md), [rapor-F5 §1](../../backend-eksikleri/rapor-F5.md)).
 
@@ -31,6 +31,8 @@ Hiçbiri seçilmedi; yol haritası [§4](../../architecture/yol-haritasi-web.md)
 5. "Backend dursun" kuralı sürecek mi? Süreceyse F7 kapsamı yalnız mevcut uçlarla sınırlıdır; sürmeyecekse önce [rapor-F6 §6](../../backend-eksikleri/rapor-F6.md) önceliği (BE-122/123/124/125) ve pin yükseltmesi sıralanır.
 
 6. **Karar bekler (W144 KUSUR 4, W147 ile daraltıldı):** liste/sayaç mercek süzgeci doğrulandı; yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi? (admin merceğinde panel açılır; koordinatör merceğinde 404; soğuk derin bağlantıda hedef/kapsam çözümleme UX borcu (Codex tur 2, [ilerleme #22](../web-6/ilerleme.md)); varsayılan P1/P53 korunur; [rapor-F6 §5](../../backend-eksikleri/rapor-F6.md).)
+
+7. **Süreç önerisi (CX-F6-K-10):** ortak sözleşmeye/KESİN kurallarına "duman betikleri senaryo başına ayrı results dosyası (HEAD/koşum kimliğiyle)" eklensin mi? ([ilerleme #25](../web-6/ilerleme.md))
 
 Bu belge karar vermez; yalnız kararın gerektiği yerleri listeler.
 

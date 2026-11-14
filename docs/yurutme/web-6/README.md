@@ -2,7 +2,7 @@
 
 **F6 AÇILDI 2026-11-13 (kullanıcı onayı; pin `v0.15.0-api` yeterli — eksikler kayıt; backend paketi açılmaz).** Ürün sahibi F6 geçişini onayladı ve P46–P53 kararlarını verdi ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)). Backend dursun: bütün eksikler `kayit.md` + `rapor-F6.md`'ye yazılır, ekranda statik/devre dışı kalır (§3 `designStub` koşulu). Pin değişmez; yükseltme ayrı karar ([plan](../web-5/pin-yukseltme-plani.md)). [WEB-5](../web-5/README.md) 2026-11-13'te kapandı (Codex tur 3 UYGUN).
 
-**Durum (2026-11-14):** O1–O3 tamam, F6 kodu main'de (#119–#128, son main `a3b31e3`, 658 dosya / 4590 test). O4 kapanış sürüyor: belgeler (W143) yazıldı, gerçek sunucu tanığı (W144) yazılıyor, Codex ve kapanış PR'ı bekliyor — **F6 henüz KAPANMADI**. **F7 AÇILMADI** ([web-7](../web-7/README.md)); kullanıcı onayı gerekir.
+**F6 KAPANDI — 2026-11-14.** Codex 3 tur (KOŞULLU UYGUN → KOŞULLU UYGUN → UYGUN, [hüküm](../../reviews/WEB-6-codex.md)); PR'lar #119–#134; son kod main `c18d4ab`, 664 dosya / 4633 test. Kapanış PR'ı ile birleşir (kapanış PR'ı: bekliyor; CI ve birleşme ayrıca). **F7 AÇILMADI** ([web-7](../web-7/README.md)); kullanıcı onayı gerekir. Borç listesi: [ilerleme](ilerleme.md).
 
 **Kapsam (P46):**
 - **(a) 01 ana sayfa tam (yönetici):** kabul tablosunun F6 satırları E-01-12 ve E-01-19…39 — ekip şeridi, koordinatörlük kartları (arama/süzgeç/sırala), alt bilgi, "Rapor oluştur" yönlendirme menüsü ([01 README](../../ekranlar/01-ana-sayfa/README.md)).

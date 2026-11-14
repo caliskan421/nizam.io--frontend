@@ -1,6 +1,6 @@
 # Backend devir raporu — F6 (WEB-6), 2026-11-14
 
-**Durum:** F6 kodu main'de (#119–#128 ve O4 düzeltme turu #129–#130; son main `136da28`); gerçek sunucu tanığı alındı (W144, §5); Codex nihai kapısı ve kapanış PR'ı **bekliyor** (F6 henüz KAPANMADI). Web pini `v0.15.0-api` (F6 boyunca yükseltilmedi). **"Backend dursun" kuralı (P46) geçerli kaldı: F6 için backend paketi açılmadı**; bu raporun bütün satırları açık eksiktir ve ekranda statik/devre dışı/gizli çalışır. Bu rapor F7'yi veya pin yükseltmesini açmaz.
+**Durum:** **F6 kapandı; Codex 3 tur (KOŞULLU → KOŞULLU → UYGUN)**, [hüküm](../reviews/WEB-6-codex.md); PR'lar #119–#134, son kod main `c18d4ab`; kapanış PR'ı ile birleşir (kapanış PR'ı: bekliyor; HEAD CI'sı o PR'da). Web pini `v0.15.0-api` (F6 boyunca yükseltilmedi). **"Backend dursun" kuralı (P46) geçerli kaldı: F6 için backend paketi açılmadı**; bu raporun bütün satırları açık eksiktir ve ekranda statik/devre dışı/gizli çalışır. Bu rapor F7'yi veya pin yükseltmesini açmaz.
 
 Kaynaklar: [kayıt](kayit.md) (BE-120, BE-122…BE-141), [13 Raporlar tespiti](../ekranlar/13-raporlar/README.md), [01 ana sayfa](../ekranlar/01-ana-sayfa/README.md), [ortak-kurallar §12 P46–P53](../ekranlar/ortak-kurallar.md), [F6 ilerleme](../yurutme/web-6/ilerleme.md), [F5 raporu](rapor-F5.md), [gerçek sunucu tanığı](../yurutme/web-6/dogrulama-F6.md) (W144, #129). Uç/alan önerileri sözleşme yayımlanana ve web pini yükselene kadar uygulama yetkisi değildir.
 
@@ -106,3 +106,5 @@ Sıra BE-072/BE-119 gibi F5 önceliklerinin yerine geçmez; ürün sahibi sıral
 **Codex tur 2 sonrası (W149 #134, main `c18d4ab`):** E-07 ve E-08 kapandı, K-09 belge düzeltmesi W143'te; 664 dosya / 4633 test; duman taşma/CSP/pageerror 0, konsol: kasıtlı 500 ve sahte uç 404 listelendi. Uygulama notu: ağır okuyucu bekleme denetimi `useReportSeason` içindedir, `acquireWhenFree` değişmedi.
 
 **Kalan borçlar:** gerçek cihaz ekran okuyucu (W136–W142); E-13-72 dosya boyutu; yönetici üye merceğinde başka birim görevine derin bağlantı: W144 sonucu "404 değil, panel açılır", KUSUR 4: liste/sayaç merceği doğrulandı, yalnız yönetici merceği derin bağlantı UX sorusu açık (§5); E-13-10 ZIP onayı (BE-120/124 ile); 390 px ZIP/yükle düğmesi genişliği; E-K1-17/18 iade gerekçesi (BE-139); kâğıt 880/10,5 pt; gerçek backend e2e ilk CI koşumu (smoke/two-tabs gerçek sunucuda düşüyor, yukarıda). Tam liste: [ilerleme "F7'ye devredilenler / borçlar"](../yurutme/web-6/ilerleme.md).
+
+**Kapanış (2026-11-14):** Codex tur 3 UYGUN (HEAD `0c56f7d`). Kanıt sınırları: HEAD CI kapanış PR'ında; gerçek backend'de gezinme sonrası K/Ü mercek tanığı eksik (ilerleme #23); 503/VoiceOver/görsel onay yok; dumanlar "konsol hatası 0" diye sunulmaz; CX-F6-K-10 (duman results.json üzerine yazma) kapanış sonrası borç (#25).

@@ -2,7 +2,7 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz.
 
-**F6 AÇILDI 2026-11-13** (kullanıcı onayı; pin `v0.15.0-api` yeterli — eksikler kayıt; backend paketi açılmaz). Kararlar P46–P53 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)). **F6 kodu main'de (#119–#128, son main `a3b31e3`, 658 dosya / 4590 test); O4 kapanış sürüyor: belgeler (W143), gerçek sunucu tanığı (W144), Codex ve kapanış PR'ı bekliyor — F6 henüz KAPANMADI.** F7 AÇILMADI ([web-7](../web-7/README.md)).
+**F6 AÇILDI 2026-11-13** (kullanıcı onayı; pin `v0.15.0-api` yeterli — eksikler kayıt; backend paketi açılmaz). Kararlar P46–P53 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)). **F6 KAPANDI — 2026-11-14.** Codex 3 tur (KOŞULLU UYGUN → KOŞULLU UYGUN → UYGUN, [hüküm](../../reviews/WEB-6-codex.md)); PR'lar #119–#134 (W135, W134, WT1, W136, W141, W139, W137, W138, W140, W142, W144, W145, W146, W148, W147, W149); son kod main `c18d4ab`, 664 dosya / 4633 test; kapanış PR'ı ile birleşir (kapanış PR'ı: bekliyor). **F7 AÇILMADI — kullanıcı onayı** ([web-7](../web-7/README.md)). Codex notu: hüküm, HEAD CI'sının doğrulandığı veya sürecin kapandığı anlamına gelmez; kapanış PR'ının CI ve birleşme adımı ayrıca tamamlanır.
 
 ## Durum
 
@@ -12,7 +12,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W136             | Birleşti: #122 (rapor veri katmanı, paylaşılan bilet indirme, F6 rotaları, `CURRENT_PHASE` F6)                                            | `76bc9ab` |
 | O2b W137–W141        | Birleşti: #123 (W141), #124 (W139), #125 (W137), #126 (W138), #127 (W140)                                                                 | `21e49a5` |
 | O3 W142              | Birleşti: #128 (97 entegrasyon testi, 5 kusur düzeltmesi, e2e/reports.spec.ts)                                                            | `a3b31e3` |
-| O4 kapanış           | W143 belgeler (`web6/o4-kapanis`); W144 tanığı birleşti (#129, `66c1708`); W145 düzeltme turu birleşti (#130, `136da28`) — **O4 düzeltme turu KAPANDI**; F6 KAPANMADI, Codex tur 1 ve kapanış PR bekliyor | `136da28` |
+| O4 kapanış           | Tamam: W143 belgeler, W144 tanığı (#129), W145 (#130), W146 (#132), W148 (#131), W147 (#133), W149 (#134); Codex 3 tur UYGUN; kapanış PR'ı ile birleşir (bekliyor) | `c18d4ab` |
 
 ## Kayıtlar
 
@@ -118,36 +118,37 @@ Zincir: W141 ve W139 önce, W137 sonra; W138 main'i sonradan birleştirdi (`repo
 
 Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 borç listesinden F6'ya geçenler [web-5 ilerleme](../web-5/ilerleme.md) tablosunda kalır; aşağıdakiler F6'nın kendi borçlarıdır.
 
-| #   | Borç                                                                                                                                                                                                                                                                | Kaynak / sahip                                  |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| 1   | Gerçek cihaz ekran okuyucu (VoiceOver) kabulü: W136–W142 yapılmadı; kullanıcı görsel onayı otomatik geçti sayılmaz                                                                                                                                                  | W136–W142 raporları                             |
-| 2   | Gerçek sunucu bilet tanığı: **KAPANDI** (W144, #129, `66c1708`; [dogrulama-F6](dogrulama-F6.md)): bilet gövdesi, `Content-Disposition`, 429 `Retry-After` 1 / 60 doğrulandı; 78 + 6 + 35 koşum 0 başarısız. Kalan: 503 `capacity_full` tetiklenmedi, VoiceOver ve görsel onay yapılmadı (doğrulanamadı) | W136 / W144 |
-| 3   | E-13-72 "indirildi · ‹boyut›": boyut gösterilmiyor (`Blob.size` yolu kurulmadı), yalnız dosya adı                                                                                                                                                                  | W136                                            |
-| 4   | `reports ↔ work` import döngüsü: **kapandı** (W142 KUSUR 4, `2d00088`; `module-boundary.test` korur). Bilerek kalan: `reports` `work/public` pencere bileşenlerini kullanmıyor                                                                                      | W138 / W142                                     |
-| 5   | Ü1 → 03 hedefi / yönetici merceği derin bağlantı: **liste/sayaç merceği doğrulandı** (W147: süzgeç kaynakta vardı, tanık `home-lens-filter.test.ts`; W144 izi K/Ü merceği kanıtı sayılmaz: betik gezinme sonrası Admin merceğine dönüyordu, bkz. [WEB-6-codex tur 2 K-09](../../reviews/WEB-6-codex.md)). Derin bağlantı: admin merceğinde panel açılır, koordinatör merceğinde seçili birimden çözülür → 404 → panel kapanır (P1 tutarlı). Açık UX sorusu yalnız: yönetici merceğinde başka birimin görevi derin bağlantıyla açılabilsin mi (karar bekler) | W140 / W142 / W144 / W147 |
-| 6   | `MEETINGS_ROUTE`/`MEETING_ROUTE` ihracı: **kapandı** (`a677af3`, `home` yerel sabitleri kaldırıldı). `work/public.ts` pencere bileşenleri dışa açılırsa K1/Ü1 onlara geçer (hâlâ yerel kopya)                                                                         | W137 / W140 / W142                              |
-| 7   | ZIP onay penceresi (E-13-10): kodlanmadı (düğme devre dışı, ulaşılamaz); BE-120/BE-124 açılınca                                                                                                                                                                     | W138                                            |
-| 8   | 390 px'te ZIP ve "Dosya yükle" düğmeleri tam genişlikte değil (E-13-12, geçici kabul); bölüm penceresi KUSUR 5 ile kapandı                                                                                                                                         | W142                                            |
-| 9   | K1 iade gerekçesi yok (E-K1-17/18, BE-139); gerçek backend e2e ilk CI koşumu                                                                                                                                                                                        | W142                                            |
-| 10  | Kâğıt genişliği 880 px / tasarım 820, 10,5 pt için token yok (rapor-F6 tasarım farkı)                                                                                                                                                                               | W138                                            |
-| 11  | Prototip/tuval notları: 01h hücre kicker'ında "sekmesi" ifadesi, 01i penceresinde "kayda geçer"; kanonik "Raporlar sayfasına dön" bağları; önemsiz, tasarım turunda toplanır                                                                                       | koordinatör (f5-notlar)                         |
-| 12  | K1/Ü1 uçsuz alanlar BE-137…141, BE-005 (görev kodu), BE-078/079 (kart dilimi/avatar) açık; "backend dursun" (P46) sürüyor                                                                                                                                          | [rapor-F6](../../backend-eksikleri/rapor-F6.md) |
-| 13  | **F7 adayları** (karar ister; [web-7](../web-7/README.md)): Kurumsal hafıza, Takvim, Bildirimler, Asistan panelleri (tuvalde var, F6 dışı); profil sayfası (Ü7); Ü2–Ü7, K2–K8; 01b işlem geçmişi                                                                         | P46 / [web-7](../web-7/README.md)               |
-| 14  | Pin yükseltmesi ve "Şimdilik" yollarının kaldırılması hâlâ ayrı karar                                                                                                                                                                                               | [pin-yukseltme-plani](../web-5/pin-yukseltme-plani.md) |
-| 15  | Gerçek `v0.15.0-api` backend e2e (`smoke`/`two-tabs`): **KAPANDI** (W148, #131; neden test donanımı: `global-setup` her koşumda yeni program → 2 programlı DB'de seçici açık + saydam `side-scrim`; tohum idempotent; gerçek backend 5/5 yeşil taze DB ve yeniden kullanımla) | W145 / W148 |
-| 16  | 390 px dumanda konsol hatası 1: **KAPANDI** (W147: `GET /v1/work-items/w3`, duman betiğinin sahte `/v1`'inde tanımsız uç — K1 "Süre uzat" talep satırı görev ayrıntısı; ürün hatası değil) | W140 / W145 / W147 |
-| 17  | KUSUR 3 sonrası 01 kutucukları liste sayfasına gider; pencereyi doğrudan açan URL parametresi yok → **F7 adayı:** 09/05 sayfalarına oluşturma parametresi | W145 |
-| 18  | e2e/backend `up.sh`/compose sabit adlar kullanıyor (parametrik değil) | W148 |
-| 19  | `password.test.ts` `force_password_change` yük altında 3 kez düştü (W146/W147/W148; tek başına geçiyor); `archive/api/lifecycle.test.ts` 5 sn zaman aşımı (W147 CI, rerun yeşil) — iki kararsız test; KESİN 32 bölme adayı | W146–W148 |
-| 20  | UX sorusu (**karar bekler**): ≥2 programlı kullanıcıda program seçici kendiliğinden açık + saydam perde | W148 |
-| 21  | Ü1 iade/onay/tarih notları ve K1 ApprovalsCard sayacı pending dışı kısmi kümede "≥" almıyor (dar kapsam) | W147 |
-| 22  | Soğuk derin bağlantıda hedef birim/kapsam çözümleme UX borcu (Codex tur 2): önbellekte olmayan başka birim görevinde hedef seçili birime düşebilir; yetki daraltma çözüm değil. [web-7 soru 6](../web-7/README.md) ile bağlı (karar bekler) | Codex tur 2 / W142 |
-| 23  | Gerçek backend'de mercek parametreleri tanığı yok: `home-lens-filter.test.ts` sahte sunucudur; W144 §4 K/Ü kanıtı sayılmaz. Tekrar tanık: tercihleri yeniden yazmayan başlangıç, gezinme SONRASI mercek/birim + istek parametreleri birlikte kaydı | Codex tur 2 K-09 |
-| 24  | Ağır okuyucu bekleme denetimi `useReportSeason` içinde (`gate.cooldown`); `acquireWhenFree` değişmedi — gelecekte eklenecek ağır okuyucu aynı denetimi kendisi yapmalı (uygulama notu) | W149 |
+| #   | Borç / not | Sınıf | Kaynak / sahip |
+| --- | --- | --- | --- |
+| 1   | Gerçek cihaz ekran okuyucu (VoiceOver) kabulü: W136–W142 yapılmadı; kullanıcı görsel onayı otomatik geçti sayılmaz | kapanış sonrası borç | W136–W142 |
+| 2   | Gerçek sunucu bilet tanığı: **KAPANDI** (W144, #129; 503 `capacity_full` tetiklenmedi, VoiceOver/görsel onay yok) | kapandı | W136 / W144 |
+| 3   | E-13-72 "indirildi · ‹boyut›": boyut gösterilmiyor (`Blob.size` yolu kurulmadı) | kapanış sonrası borç | W136 |
+| 4   | `reports ↔ work` import döngüsü: **kapandı** (`2d00088`; `module-boundary.test` korur) | kapandı | W138 / W142 |
+| 5   | Ü1 → 03 hedefi / yönetici merceği derin bağlantı: liste/sayaç merceği doğrulandı (`home-lens-filter.test.ts`, sahte sunucu); kalan UX → #22, gerçek backend tanığı → #23; yönetici merceğinde başka birimin görevini açabilme sorusu karar bekler ([web-7 soru 6](../web-7/README.md)) | karar bekler | W140 / W142 / W147 |
+| 6   | `MEETINGS_ROUTE`/`MEETING_ROUTE` ihracı: **kapandı** (`a677af3`) | kapandı | W142 |
+| 7   | ZIP onay penceresi (E-13-10) kodlanmadı; BE-120/BE-124 açılınca | kapanış sonrası borç (BE'ye bağlı) | W138 |
+| 8   | 390 px'te ZIP ve "Dosya yükle" düğmeleri tam genişlikte değil (E-13-12, geçici kabul) | kapanış sonrası borç | W142 |
+| 9   | K1 iade gerekçesi yok (E-K1-17/18, BE-139); gerçek backend e2e ilk CI koşumu = kapanış PR'ının CI'sı | kapanış sonrası borç | W142 |
+| 10  | Kâğıt genişliği 880 px / tasarım 820, 10,5 pt için token yok | kapanış sonrası borç (tasarım farkı) | W138 |
+| 11  | Prototip/tuval notları: 01h kicker "sekmesi", 01i "kayda geçer", "Raporlar sayfasına dön" bağları | kapanış sonrası borç (önemsiz) | koordinatör |
+| 12  | K1/Ü1 uçsuz alanlar BE-137…141, BE-005, BE-078/079 açık; "backend dursun" (P46) | açık BE ([rapor-F6](../../backend-eksikleri/rapor-F6.md)) | P46 |
+| 13  | F7 adayları (Kurumsal hafıza, Takvim, Bildirimler, Asistan, profil sayfası, Ü2–Ü7, K2–K8, 01b) | F7 adayı, karar ister ([web-7](../web-7/README.md)) | P46 |
+| 14  | Pin yükseltmesi ve "Şimdilik" yollarının kaldırılması | ayrı karar ([plan](../web-5/pin-yukseltme-plani.md)) | F5 |
+| 15  | Gerçek backend e2e (`smoke`/`two-tabs`): **KAPANDI** (W148: test donanımı) | kapandı | W148 |
+| 16  | 390 px dumanda konsol 404: **KAPANDI** (sahte uç `work-items/w3`) | kapandı | W147 |
+| 17  | 01 kutucukları liste sayfasına gider; pencereyi açan URL parametresi yok → 09/05'e oluşturma parametresi | F7 adayı | W145 |
+| 18  | e2e/backend `up.sh`/compose sabit adlar (parametrik değil) | kapanış sonrası borç | W148 |
+| 19  | Kararsız testler: `password.test.ts` `force_password_change` yük altında 3 kez; `archive/api/lifecycle.test.ts` 5 sn zaman aşımı; KESİN 32 bölme adayı | kapanış sonrası borç | W146–W148 |
+| 20  | ≥2 programlı kullanıcıda program seçici kendiliğinden açık + saydam perde (UX) | karar bekler | W148 |
+| 21  | Ü1 iade/onay/tarih notları ve K1 ApprovalsCard sayacı pending dışı kısmi kümede "≥" almıyor (dar kapsam) | kapanış sonrası borç | W147 |
+| 22  | Soğuk `?gorev=` derin bağlantıda hedef birim/kapsam çözümleme UX borcu (`work/api/queries.ts:227–230` yalnız önbellek); yetki daraltma çözüm değil | kapanış sonrası borç (web-7 soru 6 ile bağlı) | Codex tur 2–3 |
+| 23  | Gerçek backend'de gezinme SONRASI K/Ü mercek-parametre tanığı yok (tercihleri yeniden yazmayan başlangıç; mercek/birim + istek parametreleri birlikte kayıt) | kapanış sonrası borç | Codex K-09 |
+| 24  | Ağır okuyucu bekleme denetimi `useReportSeason` içinde; `acquireWhenFree` değişmedi — gelecekte eklenecek ağır okuyucu aynı denetimi kendisi yapmalı | uygulama notu | W149 |
+| 25  | CX-F6-K-10: `web6-w149/duman-k1.mjs:113` ve `duman-01f.mjs:78` aynı `results.json`'a yazıyor → K1 ham ölçümleri yok (PNG var); düzeltme: senaryo başına ayrı sonuç dosyası + HEAD/koşum kimliği; web-7 ortak sözleşmeye "duman betikleri senaryo başına ayrı results dosyası" önerisi | kapanış sonrası borç (düşük) | Codex tur 3 |
 
-**F7 AÇILMAZ — kullanıcı onayı.** Onay otomatik geçti sayılmaz; "F6 kapandı" ifadesi gerçek sunucu tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz.
+**F7 AÇILMAZ — kullanıcı onayı.** Onay otomatik geçti sayılmaz. "F6 kapandı" Codex tur 3 UYGUN (HEAD `0c56f7d`) ile yazılır; kapanış PR'ının CI'sı ve birleşmesi ayrıca tamamlanır.
 
-### O4 — kapanış (W143, W144, W145; Codex tur 1 bekliyor)
+### O4 — kapanış (W143–W149; Codex 3 tur UYGUN)
 
 - **W143** (`web6/o4-kapanis`): rapor-F6, bu kayıt, oturum-3-entegrasyon, oturum-4-kapanis, 13-raporlar mekanizma §4.3 (KESİN 26 hizası), 01/13/00 README kabul kanıtları, `ekranlar/README` durum, web-7 iskeleti, yol haritası §4 ve tasarım README sürüm notu (yalnız belge; kod yok).
 - **W144** (#129, `66c1708`): [dogrulama-F6.md](dogrulama-F6.md) — gerçek imaj + gerçek backend, 78 görünüm / 6 tıklama bağlamı / 35 API koşumu 0 başarısız. Kusurlar: 1 → W145; 2 kusur değil; 3 → W145; 4 ürün kararı (karar bekler); 5a → W145; 5b kusur değil.
@@ -158,3 +159,7 @@ Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 b
 - **W147** (#133, `47739fe`): E-04 `9a5f4b6`, K-01 `917fbb9`, E-03 `0158c07` KAPANDI; KUSUR 4 doğrulandı (kod değişmedi); K-02 390 konsol 404 ürün hatası değil. **Codex tur 1 koşullarının hepsi kapandı**; tur 2 bekliyor ([WEB-6-codex](../../reviews/WEB-6-codex.md)). F6 KAPANMADI.
 - **Codex tur 2** (HEAD `d98b409`): **KOŞULLU UYGUN**; tur 1 kapanışları anlamlı; yeni CX-F6-E-07, E-08 (W149) ve K-09 (belge, W143 — bu kayıtla düzeltildi). Tur 3 bekliyor. F6 KAPANMADI.
 - **W149** (#134, `c18d4ab`): E-07 `037548e`, E-08 `c464cad` KAPANDI; 664 dosya / 4633 test; duman K1 sayaç hatası + 01f × 3 × 2 tema taşma/CSP/pageerror 0 (konsol: kasıtlı 500 ve sahte uç 404 listelendi). **Codex tur 2 koşullarının hepsi kapandı**; tur 3 (nihai) bekliyor. F6 KAPANMADI.
+
+### F6 KAPANDI — 2026-11-14
+
+Codex tur 3 (nihai, HEAD `0c56f7d`): **UYGUN**; tur 2 koşulları (E-07, E-08, K-09) kapandı; yeni CX-F6-K-10 düşük, kapanış sonrası borç (#25). Borç listesi yukarıdaki son hâliyle korunur. Kapanış PR'ı ile birleşir; kapanış PR'ı: bekliyor. F7 AÇILMADI.
