@@ -48,3 +48,9 @@ export function byTitle(a: Pick<WorkRow, 'title'>, b: Pick<WorkRow, 'title'>): n
 export interface LoadScope {
   complete: boolean
 }
+
+/**
+ * Kısmi yükleme durumu (CX-F6-E-03): `loading` sürüyor, `capped` sayfa tavanına dayandı,
+ * `failed` sonraki sayfa hatası. `null` = küme tam. Kısmi kümede türevler "≥" + "ilk N görev".
+ */
+export type RoleLoadScope = 'loading' | 'capped' | 'failed'

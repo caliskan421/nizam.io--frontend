@@ -26,6 +26,16 @@ export const trHome = {
       selectTitle: 'Kapsam seçin',
       selectText: 'Görev özeti için kenar menüsünden koordinatörlük seçin.',
     },
+    scope: {
+      loading:
+        'İlk {n} görev yüklendi, devam ediyor · bu bölümdeki sayılar yüklenen kayıtlara göre',
+      capped: 'Yalnız ilk {n} görev yüklendi · bu bölümdeki sayılar yüklenen kayıtlara göre',
+      failed:
+        'İlk {n} görev yüklendi, sonraki sayfa yüklenemedi · bu bölümdeki sayılar eksik olabilir',
+      more: 'Devam et',
+      retry: 'Yeniden dene',
+      short: 'İlk {n} görev içinde',
+    },
     quick: {
       title: 'Hızlı işlemler',
       newTask: 'Yeni görev',

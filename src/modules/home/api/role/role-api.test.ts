@@ -131,6 +131,12 @@ describe('useRoleLoad — tek yükleme (KESİN 21)', () => {
     expect(sent(LIST)).toHaveLength(ROLE_LOAD_MAX_PAGES)
     expect(probe.get().complete.value).toBe(false)
     expect(probe.get().loadingMore.value).toBe(false)
+    // CX-F6-E-03: tavanda kısmi küme açıkça bildirilir; devam kullanıcı eylemidir (tek sayfa).
+    expect(probe.get().partial.value).toBe(true)
+    expect(probe.get().scope.value).toBe('capped')
+    expect(probe.get().loaded.value).toBe(ROLE_LOAD_MAX_PAGES)
+    probe.get().loadMore()
+    await vi.waitFor(() => expect(sent(LIST)).toHaveLength(ROLE_LOAD_MAX_PAGES + 1))
   })
 
   it('kapalıyken istek yok', async () => {

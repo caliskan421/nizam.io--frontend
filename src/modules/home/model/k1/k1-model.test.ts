@@ -169,6 +169,34 @@ describe('K1 ekip yükü (E-K1-26…28)', () => {
     expect(assignedOpenCount(items)).toBe(4)
   })
 
+  it('kişi başı açık = açık-atama kümesi (başlanmamış dahil); sıra buna dayanır (CX-F6-E-04)', () => {
+    const members = [
+      { accountId: 'a', fullName: 'Ayşe', coordinator: false },
+      { accountId: 'b', fullName: 'Burak', coordinator: false },
+      { accountId: 'c', fullName: 'Can', coordinator: false },
+    ]
+    const items = [
+      item({ assignee_account_ids: ['a'], status: 'baslanmadi' }),
+      item({ assignee_account_ids: ['a'], status: 'baslanmadi' }),
+      item({ assignee_account_ids: ['a'], status: 'baslanmadi' }),
+      item({ assignee_account_ids: ['b'], status: 'devam_ediyor' }),
+      item({ assignee_account_ids: ['b'], status: 'onaya_sunuldu' }),
+      item({ assignee_account_ids: ['b', 'c'], status: 'iade_edildi' }),
+      item({ assignee_account_ids: ['c'], status: 'tamamlandi' }),
+    ]
+    const rows = teamLoad(members, items, null)
+    // Ayşe yalnız başlanmamış görevli: 0 değil 3; Burak 3 (çoklu atama korunur); Can 1.
+    expect(rows.map((r) => [r.member.fullName, r.open])).toEqual([
+      ['Ayşe', 3],
+      ['Burak', 3],
+      ['Can', 1],
+    ])
+    expect(rows[0]).toMatchObject({ doing: 0, review: 0, late: 0, back: 0 })
+    expect(rows[0]!.widths).toEqual({ doing: 0, review: 0, late: 0, back: 0 })
+    expect(rows[1]).toMatchObject({ doing: 1, review: 1, back: 1 })
+    expect(assignedOpenCount(items)).toBe(6)
+  })
+
   it('dilim genişlikleri toplam %100’ü aşmaz', () => {
     const items = Array.from({ length: 6 }, () => item({ assignee_account_ids: ['a'] }))
     const [row] = teamLoad([{ accountId: 'a', fullName: 'A', coordinator: false }], items, null)
