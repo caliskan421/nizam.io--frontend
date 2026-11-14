@@ -1,7 +1,7 @@
 /**
  * Gönderim (E-10-60): optimistik balon YOK — balon yalnız 201/200 ile akışa girer (yazma katmanı
  * pencereye işler). Gönderilirken düğme "Gönderiliyor" olur ve taslak alanda kalır. Ağ/5xx →
- * "Gönderim doğrulanamadı — Tekrar dene" (AYNI `client_message_id` + AYNI gövde; gövde değişirse
+ * "Gönderim doğrulanamadı — Tekrar dene" (AYNI `client_message_id` + AYNI gönderim; gövde değişirse
  * yeni eylem). Sonuç sınıflandırması `classifySend` (model/message-state).
  */
 import { computed, ref, watch, type Ref } from 'vue'
@@ -75,7 +75,12 @@ interface SendState {
   sendingKey: Ref<string | null>
   notice: Ref<Notice | null>
   peerLeft: Ref<boolean>
-  retry: (() => Promise<SendOutcome>) | null
+  /** Aynı isteğin tekrarı ilk payload ve taslak sahibini korur (CX-F7-Ö-07). */
+  retry: {
+    start: () => Promise<SendOutcome>
+    origin: Origin
+    request: SendChatMessageRequest
+  } | null
   /** Tekrarla gelen başarı yazma katmanının yerel yamasından geçmez: pencere yeniden okunur. */
   retried: boolean
   refresh: () => void
@@ -101,8 +106,6 @@ function applyFailed(
   // Geç sonuç güncel sohbetin UI durumuna işlemez (KESİN 26); veri yukarıda anahtarına yazıldı.
   if (thread.draftKey.value !== origin.key) return
   if (verdict.reason === 'peer_left') state.peerLeft.value = true
-  if (verdict.reason === 'unknown' && outcome.kind === 'unknown_outcome')
-    state.retry = outcome.retry
   state.notice.value = noticeOf(verdict, outcome)
   if (state.notice.value === null && outcome.kind !== 'failed' && verdict.reason !== 'peer_left') {
     notifyOutcome(outcome)
@@ -129,6 +132,14 @@ function applySend(
     if (current) onSent(verdict.message)
   } else if (verdict.state === 'failed') {
     applyFailed(thread, state, origin, verdict, outcome)
+    if (
+      current &&
+      verdict.reason === 'unknown' &&
+      outcome.kind === 'unknown_outcome' &&
+      outcome.retry
+    ) {
+      state.retry = { start: outcome.retry, origin, request }
+    }
   }
 }
 
@@ -196,13 +207,10 @@ export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) =>
   /** "Tekrar dene": AYNI kimlik + AYNI gövde (K5). */
   async function retryUnknown(): Promise<void> {
     const again = state.retry
-    const key = thread.draftKey.value
-    const draft = chatDrafts.get(key)
-    if (!again || sending.value || !draft) return
-    const origin = originOf(thread, key)
+    if (!again || sending.value) return
     state.retried = true
     try {
-      await run(again, origin, requestOf(thread, origin.key, draft))
+      await run(again.start, again.origin, again.request)
     } finally {
       state.retried = false
     }

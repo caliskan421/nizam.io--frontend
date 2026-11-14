@@ -3,7 +3,7 @@
  * anahtar listesi yalnız kapsam + tema). Sohbet başına bir taslak; sohbet değişince korunur,
  * program/oturum değişince ve sayfa yenilenince kaybolur. Düzenleme kipinin taslağı ayrıdır
  * (düzenleme bitince önceki taslak geri gelir). Gönderim kimliği taslakla birlikte korunur
- * (ağ tekrarında aynı kimlik, K5); gövde değişince yeni kimlik.
+ * (ağ tekrarında aynı kimlik, K5); gönderim içeriği (gövde/yanıt/çip) değişince yeni kimlik.
  */
 import { shallowReactive } from 'vue'
 
@@ -13,7 +13,7 @@ export interface Draft {
   body: string
   /** Yanıtlanan mesaj kimliği (`reply_to_message_id`). */
   replyTo: string | null
-  /** Bu taslağın gönderim kimliği; `body` değişince yenilenir. */
+  /** Bu taslağın gönderim kimliği; gönderim içeriği değişince yenilenir. */
   clientMessageId: string
 }
 
@@ -36,7 +36,7 @@ export interface DraftStore {
    * başında yakalanır, sonuç yalnız AYNI sürüm için temizlik yapar (eski metne dönüş yeni sürümdür).
    */
   version: (chatId: string) => number
-  /** Çip dizisi değişti (ekle/çıkar): taslak sürümünü artırır (CX-F7-Ö-04). */
+  /** Çip dizisi değişti (ekle/çıkar): sürümü ve gönderim kimliğini yeniler (Ö-04/Ö-06). */
   touch: (chatId: string) => void
   /** Düzenleme taslağının nesli (başlat / metin / bitir her seferinde artar). */
   editVersion: (chatId: string) => number
@@ -44,6 +44,14 @@ export interface DraftStore {
   startEdit: (chatId: string, edit: EditDraft) => void
   setEditBody: (chatId: string, body: string) => void
   endEdit: (chatId: string) => void
+}
+
+function withReply(prev: Draft | undefined, replyTo: string | null, newId: () => string): Draft {
+  return {
+    body: prev?.body ?? '',
+    replyTo,
+    clientMessageId: prev && prev.replyTo === replyTo ? prev.clientMessageId : newId(),
+  }
 }
 
 export function createDraftStore(newId: () => string = newClientMessageId): DraftStore {
@@ -56,7 +64,11 @@ export function createDraftStore(newId: () => string = newClientMessageId): Draf
   const bump = (map: Map<string, number>, chatId: string) => void map.set(chatId, ++counter)
   return {
     version: (chatId) => versions.get(chatId) ?? 0,
-    touch: (chatId) => bump(versions, chatId),
+    touch(chatId) {
+      const prev = drafts.get(chatId)
+      if (prev) drafts.set(chatId, { ...prev, clientMessageId: newId() })
+      bump(versions, chatId)
+    },
     editVersion: (chatId) => editVersions.get(chatId) ?? 0,
     get: (chatId) => drafts.get(chatId) ?? null,
     setBody(chatId, body) {
@@ -72,11 +84,7 @@ export function createDraftStore(newId: () => string = newClientMessageId): Draf
     },
     setReplyTo(chatId, messageId) {
       const prev = drafts.get(chatId)
-      drafts.set(chatId, {
-        body: prev?.body ?? '',
-        replyTo: messageId,
-        clientMessageId: prev?.clientMessageId ?? newId(),
-      })
+      drafts.set(chatId, withReply(prev, messageId, newId))
       if ((prev?.replyTo ?? null) !== messageId) bump(versions, chatId)
     },
     clear(chatId) {
