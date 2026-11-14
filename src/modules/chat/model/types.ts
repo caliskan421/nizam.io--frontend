@@ -146,6 +146,8 @@ export interface ApplyDeps {
   messages: ChatStreamMessages | null
   alive: () => boolean
   onChatLost: (chatId: string) => void
+  /** Açık sohbet okuması başarısız oldu: sonraki tetikte (online/odak/yeniden bağlanma) uzlaştırılır. */
+  onReadFailed: () => void
 }
 
 /** `useChatStream` girdisi. */
@@ -168,4 +170,5 @@ export interface DispatchDeps {
   options: ChatStreamOptions
   meAccountId: string | null
   alive: () => boolean
+  onReadFailed: () => void
 }

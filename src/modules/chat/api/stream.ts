@@ -56,6 +56,37 @@ function useTypingState(options: ChatStreamOptions, selfId: () => string | null)
   return { accountIds, touch, clear }
 }
 
+/** Bekleyen uzlaştırma: başarısız olay okuması için tek tetikte tek `reconcile` (tekrar döngüsü yok). */
+function usePendingReconcile(options: ChatStreamOptions, alive: () => boolean) {
+  let pending = false
+  function run(): void {
+    if (!pending || !alive()) return
+    pending = false
+    options.messages?.reconcile().catch(() => {
+      pending = true
+    })
+  }
+  function onVisible(): void {
+    if (globalThis.document?.visibilityState !== 'hidden') run()
+  }
+  globalThis.addEventListener?.('online', run)
+  globalThis.addEventListener?.('focus', run)
+  globalThis.document?.addEventListener('visibilitychange', onVisible)
+  onScopeDispose(() => {
+    globalThis.removeEventListener?.('online', run)
+    globalThis.removeEventListener?.('focus', run)
+    globalThis.document?.removeEventListener('visibilitychange', onVisible)
+  })
+  return {
+    mark: () => {
+      pending = true
+    },
+    clear: () => {
+      pending = false
+    },
+  }
+}
+
 export function useChatStream(options: ChatStreamOptions) {
   const client = useQueryClient()
   const scopeStore = useScopeStore()
@@ -63,6 +94,7 @@ export function useChatStream(options: ChatStreamOptions) {
   const owner = ownerLife()
   const state = ref<StreamState>('closed')
   const typing = useTypingState(options, () => session.accountId)
+  const pending = usePendingReconcile(options, owner.alive)
   let handle: ReturnType<typeof openEventStream> | null = null
   let generation = 0
 
@@ -94,13 +126,23 @@ export function useChatStream(options: ChatStreamOptions) {
       onOpen: ({ reconnect }) => {
         if (!current()) return
         reconcileLists(client, scope)
-        if (reconnect) void options.messages?.reconcile()
+        if (reconnect) {
+          pending.clear()
+          options.messages?.reconcile().catch(pending.mark)
+        }
       },
       deps: options.deps,
       onEvent: (event) =>
         current() &&
         dispatchEvent(
-          { client, scope, options, meAccountId: session.accountId, alive: owner.alive },
+          {
+            client,
+            scope,
+            options,
+            meAccountId: session.accountId,
+            alive: owner.alive,
+            onReadFailed: () => current() && pending.mark(),
+          },
           event,
         ),
     })
