@@ -12,12 +12,12 @@ import {
   server,
   signIn,
 } from '../../__tests__/harness'
-import { mountPane, servePane, settle } from '../__tests__/pane-harness'
+import { mountPane, servePane, settle, unmountAll } from '../__tests__/pane-harness'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   resetAll()
-  document.body.innerHTML = ''
+  unmountAll()
 })
 afterAll(() => server.close())
 beforeEach(signIn)

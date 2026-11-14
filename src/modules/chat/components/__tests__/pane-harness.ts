@@ -63,6 +63,8 @@ export function servePane(options: PaneOptions = {}) {
       }),
     ),
     http.get(`${ORIGIN}/v1/me/chat-unread`, () => json({ items: [] })),
+    http.post(`${ORIGIN}/v1/chats/:id/read`, () => new HttpResponse(null, { status: 204 })),
+    http.post(`${ORIGIN}/v1/chats/:id/typing`, () => new HttpResponse(null, { status: 204 })),
     http.get(`${ORIGIN}/v1/chats/${chat.chat_id}`, () => json(chat)),
     http.get(`${ORIGIN}/v1/chats/:id/messages`, ({ request }) => {
       const q = new URL(request.url).searchParams
@@ -75,6 +77,14 @@ export function servePane(options: PaneOptions = {}) {
     ...conversationHandlers({ ...options, accountId: options.accountId ?? 'acc-1' }),
   )
   return { chat, fake }
+}
+
+const mounted: VueWrapper[] = []
+
+/** afterEach: gövdeyi silmeden önce bütün bağlı örnekleri söker (geç güncelleme DOM'u bozmasın). */
+export function unmountAll(): void {
+  for (const w of mounted.splice(0)) w.unmount()
+  document.body.innerHTML = ''
 }
 
 export async function mountPane(options: PaneOptions & { chatId?: string } = {}) {
@@ -103,6 +113,7 @@ export async function mountPane(options: PaneOptions & { chatId?: string } = {})
     attachTo: document.body,
     global: { plugins: [pinia, router, [VueQueryPlugin, { queryClient: client }]] },
   })
+  mounted.push(wrapper)
   await flushPromises()
   await settleQueries(client)
   await flushPromises()

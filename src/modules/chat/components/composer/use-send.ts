@@ -11,6 +11,7 @@ import type { MutationOutcome } from '@/shared/http/mutation'
 import { notifyOutcome } from '@/shared/ui/confirm'
 
 import { useSendChatMessage } from '../../api/writes'
+import { useChatPage } from '../../model/context'
 import { classifySend, type SendVerdict } from '../../model/message-state'
 import type { ChatMessage, SendChatMessageRequest } from '../../model/types'
 import type { ThreadContext } from '../thread/use-thread'
@@ -64,6 +65,9 @@ interface SendState {
   notice: Ref<Notice | null>
   peerLeft: Ref<boolean>
   retry: (() => Promise<SendOutcome>) | null
+  /** Tekrarla gelen başarı yazma katmanının yerel yamasından geçmez: pencere yeniden okunur. */
+  retried: boolean
+  refresh: () => void
 }
 
 /** Sonucu ekrana uygular: başarıda taslak temizlenir; başarısızlıkta bildirim/alan kapanması. */
@@ -85,6 +89,7 @@ function applySend(
     state.notice.value = null
     thread.stickBottom.value += 1
     onSent(verdict.message)
+    if (state.retried) state.refresh()
     return
   }
   if (verdict.state !== 'failed') return
@@ -100,11 +105,14 @@ function applySend(
 
 export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) => void) {
   const mutation = useSendChatMessage()
+  const page = useChatPage()
   const state: SendState = {
     sending: ref(false),
     notice: ref(null),
     peerLeft: ref(false),
     retry: null,
+    retried: false,
+    refresh: () => void page.messages.loadNewer(),
   }
 
   watch(
@@ -140,7 +148,12 @@ export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) =>
     const again = state.retry
     const draft = chatDrafts.get(thread.draftKey.value)
     if (!again || state.sending.value || !draft) return
-    await run(again, requestOf(thread, draft))
+    state.retried = true
+    try {
+      await run(again, requestOf(thread, draft))
+    } finally {
+      state.retried = false
+    }
   }
 
   /** Gövde değişti: bekleyen "doğrulanamadı" tekrarı ve bildirim yeni eyleme yer verir. */

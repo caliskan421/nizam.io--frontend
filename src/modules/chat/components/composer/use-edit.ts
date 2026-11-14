@@ -69,10 +69,11 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
     }
     chatDrafts.startEdit(key(), next)
     editBase.set(key(), server.body)
-    await submit()
+    await submit(true)
   }
 
-  async function submit(): Promise<void> {
+  /** `again`: çakışma çözümünden sonraki TEK yeniden gönderim (döngü yok). */
+  async function submit(again = false): Promise<void> {
     const edit = chatDrafts.getEdit(key())
     if (saving.value || !edit || edit.body.trim() === '') return
     const seq = thread.findMessage(edit.messageId)?.seq ?? 0
@@ -90,7 +91,7 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
       })
       if (outcome.kind === 'success') return finish()
       if (outcome.kind === 'edit_conflict') {
-        conflict = outcome.server
+        conflict = again ? null : outcome.server
         if (conflict === null) notifyOutcome(outcome)
       } else if (outcome.kind !== 'failed') notifyOutcome(outcome)
       else if (outcome.error.code === 'messaging.message_not_found') return finish()

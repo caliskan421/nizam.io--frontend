@@ -2,12 +2,12 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import { msg } from '../../__tests__/fixtures'
 import { resetAll, server, signIn } from '../../__tests__/harness'
-import { mountPane, servePane } from '../__tests__/pane-harness'
+import { mountPane, servePane, unmountAll } from '../__tests__/pane-harness'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   resetAll()
-  document.body.innerHTML = ''
+  unmountAll()
 })
 afterAll(() => server.close())
 beforeEach(signIn)
