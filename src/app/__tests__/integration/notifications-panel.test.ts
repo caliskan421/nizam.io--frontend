@@ -46,8 +46,6 @@ beforeEach(() => resetNotifications())
 afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
-const rowText = (i: number) => panelRows()[i]?.textContent ?? ''
-
 describe('zil ve liste', () => {
   it('sayaç rozeti (1–9 sayı, ≥10 "9+"); okunamazsa gizli; aç → grup başlıkları + sekmeler', async () => {
     for (let i = 0; i < 3; i += 1) addFor('member', 'work.item.created', WORK('w1'), {}, 5 + i)
