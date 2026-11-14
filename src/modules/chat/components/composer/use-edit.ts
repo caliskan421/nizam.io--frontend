@@ -5,7 +5,7 @@
  * olarak gönderilir, "güncel değer" düzenlemeyi bırakır (otomatik tekrar yok). Bahsetme ve
  * referanslar düzenlemeyle değişmez.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { errorText } from '@/shared/i18n'
 import type { MutationOutcome } from '@/shared/http/mutation'
@@ -77,11 +77,21 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
   const mutation = useEditChatMessage()
   const resolver = useConflictResolver()
   const page = useChatPage()
-  const saving = ref(false)
+  // Kayıt anahtar başınadır: vazgeçip başka mesajı düzenlemek serbest, ilk kayıt yeni kipi ezmez.
+  const savingKey = ref<string | null>(null)
   const key = () => thread.draftKey.value
+  const targetOf = (at: string, messageId: string | undefined) => `${at}:${messageId ?? ''}`
+  const saving = computed(
+    () => savingKey.value === targetOf(key(), chatDrafts.getEdit(key())?.messageId),
+  )
 
-  /** Düzenlemeyi bitirir: veri verilen ANAHTARA; bildirim yalnız hâlâ o sohbet açıksa (KESİN 26). */
-  function finish(at: string = key()): void {
+  /**
+   * Düzenlemeyi bitirir: veri verilen ANAHTARA; bildirim yalnız hâlâ o sohbet açıksa (KESİN 26).
+   * `version` verilmişse YALNIZ o düzenleme sürümü biter (CX-F7-Ö-04): geç başarı, sonradan
+   * başlayan düzenlemeyi ve metnini silmez.
+   */
+  function finish(at: string = key(), version?: number): void {
+    if (version !== undefined && chatDrafts.editVersion(at) !== version) return
     chatDrafts.endEdit(at)
     editBase.clear(at)
     if (key() === at) setNotice(null)
@@ -92,13 +102,15 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
     edit: EditDraft,
     seq: number,
     at: string,
+    version: number,
   ): Promise<void> {
     const mine = edit.body.trim()
     const choice = await askConflict(resolver, editBase.get(at), mine, server)
-    if (choice === null) return
+    // Çakışma sorulurken düzenleme değiştiyse (vazgeçildi / başkası başladı) karar eskidir.
+    if (choice === null || chatDrafts.editVersion(at) !== version) return
     if (choice === 'theirs') {
       await page.messages.refreshMessage(seq)
-      return finish(at)
+      return finish(at, version)
     }
     const next = {
       messageId: server.message_id,
@@ -113,10 +125,12 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
   /** `again`: çakışma çözümünden sonraki TEK yeniden gönderim (döngü yok). */
   async function submit(again = false, at: string = key()): Promise<void> {
     const edit = chatDrafts.getEdit(at)
-    if (saving.value || !edit || edit.body.trim() === '') return
+    if (!edit || savingKey.value === targetOf(at, edit.messageId) || edit.body.trim() === '') return
     const seq = thread.findMessage(edit.messageId)?.seq ?? 0
     const chatId = thread.chatId.value
-    saving.value = true
+    const version = chatDrafts.editVersion(at)
+    const target = targetOf(at, edit.messageId)
+    savingKey.value = target
     setNotice(null)
     // Geç sonuç güncel sohbetin bildirimine işlemez (KESİN 26); veri `at` anahtarına yazılır.
     const guarded = (notice: Notice | null) => {
@@ -130,10 +144,10 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
         guarded,
       )
     } finally {
-      saving.value = false
+      if (savingKey.value === target) savingKey.value = null
     }
-    if (result === 'done') finish(at)
-    else if (result !== null && key() === at) await resolveConflict(result, edit, seq, at)
+    if (result === 'done') finish(at, version)
+    else if (result !== null && key() === at) await resolveConflict(result, edit, seq, at, version)
   }
 
   return { saving, conflict: resolver, submit: () => submit(), cancel: () => finish() }

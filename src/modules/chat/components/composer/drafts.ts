@@ -43,12 +43,12 @@ export function clearChips(key: string): void {
 }
 
 /**
- * Gönderim sonucu: YALNIZ gönderilen sürümün anahtarını temizler. Gönderim sürerken aynı alanda
- * metin değiştiyse (gövde artık gönderilenden farklı) yeni taslak ve çipleri korunur.
+ * Gönderim sonucu: YALNIZ gönderilen SÜRÜMÜN anahtarını temizler (CX-F7-Ö-04). Gönderim sürerken
+ * gövde, yanıt bağlamı ya da temizlik taslağı değiştirdiyse (sürüm artmıştır; eski metne dönüş de
+ * yeni sürümdür) yeni taslak ve çipleri korunur.
  */
-export function settleSent(key: string, sentBody: string): void {
-  const now = chatDrafts.get(key)
-  if (now !== null && now.body !== sentBody) return
+export function settleSent(key: string, sentVersion: number): void {
+  if (chatDrafts.version(key) !== sentVersion) return
   chatDrafts.clear(key)
   clearChips(key)
 }

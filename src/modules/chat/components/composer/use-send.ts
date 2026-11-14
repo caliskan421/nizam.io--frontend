@@ -64,8 +64,8 @@ function requestOf(thread: ThreadContext, key: string, draft: Draft): SendChatMe
 interface Origin {
   key: string
   chatId: string
-  /** Gönderilen taslak gövdesi (ham): yalnız bu sürüm temizlenir. */
-  body: string
+  /** Gönderimin başladığı taslak sürümü: yalnız bu sürüm temizlenir (CX-F7-Ö-04). */
+  version: number
   /** Sohbet türü gönderim anındaki (sonuç sınıflandırması güncel sohbete bakmaz). */
   chatKind: 'direct' | 'group'
 }
@@ -83,7 +83,7 @@ interface SendState {
 
 /** Veri: yalnız gönderilen anahtar/sürüm temizlenir; UI: yalnız hâlâ o sohbet açıksa. */
 function applySent(thread: ThreadContext, state: SendState, origin: Origin): void {
-  settleSent(origin.key, origin.body)
+  settleSent(origin.key, origin.version)
   if (thread.draftKey.value !== origin.key) return
   state.notice.value = null
   thread.stickBottom.value += 1
@@ -136,7 +136,7 @@ function originOf(thread: ThreadContext, key: string, draft: Draft): Origin {
   return {
     key,
     chatId: thread.chatId.value,
-    body: draft.body,
+    version: chatDrafts.version(key),
     chatKind: thread.chat.value?.kind ?? 'group',
   }
 }

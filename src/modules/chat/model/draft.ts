@@ -31,6 +31,13 @@ export interface DraftStore {
   setReplyTo: (chatId: string, messageId: string | null) => void
   clear: (chatId: string) => void
   clearAll: () => void
+  /**
+   * Taslak nesli (CX-F7-Ö-04): her değişiklikte (gövde, yanıt bağlamı, temizlik) ARTAN sayaç. Eylem
+   * başında yakalanır, sonuç yalnız AYNI sürüm için temizlik yapar (eski metne dönüş yeni sürümdür).
+   */
+  version: (chatId: string) => number
+  /** Düzenleme taslağının nesli (başlat / metin / bitir her seferinde artar). */
+  editVersion: (chatId: string) => number
   getEdit: (chatId: string) => EditDraft | null
   startEdit: (chatId: string, edit: EditDraft) => void
   setEditBody: (chatId: string, body: string) => void
@@ -40,7 +47,14 @@ export interface DraftStore {
 export function createDraftStore(newId: () => string = newClientMessageId): DraftStore {
   const drafts = shallowReactive(new Map<string, Draft>())
   const edits = shallowReactive(new Map<string, EditDraft>())
+  // Tek artan sayaç: silinip yeniden oluşan taslak eski sürüme DÖNMEZ.
+  const versions = new Map<string, number>()
+  const editVersions = new Map<string, number>()
+  let counter = 0
+  const bump = (map: Map<string, number>, chatId: string) => void map.set(chatId, ++counter)
   return {
+    version: (chatId) => versions.get(chatId) ?? 0,
+    editVersion: (chatId) => editVersions.get(chatId) ?? 0,
     get: (chatId) => drafts.get(chatId) ?? null,
     setBody(chatId, body) {
       const prev = drafts.get(chatId)
@@ -50,6 +64,7 @@ export function createDraftStore(newId: () => string = newClientMessageId): Draf
         clientMessageId: prev && prev.body === body ? prev.clientMessageId : newId(),
       }
       drafts.set(chatId, next)
+      if (!prev || prev.body !== body) bump(versions, chatId)
       return next
     },
     setReplyTo(chatId, messageId) {
@@ -59,18 +74,32 @@ export function createDraftStore(newId: () => string = newClientMessageId): Draf
         replyTo: messageId,
         clientMessageId: prev?.clientMessageId ?? newId(),
       })
+      if ((prev?.replyTo ?? null) !== messageId) bump(versions, chatId)
     },
-    clear: (chatId) => void drafts.delete(chatId),
+    clear(chatId) {
+      drafts.delete(chatId)
+      bump(versions, chatId)
+    },
     clearAll() {
       drafts.clear()
       edits.clear()
+      for (const id of [...versions.keys()]) bump(versions, id)
+      for (const id of [...editVersions.keys()]) bump(editVersions, id)
     },
     getEdit: (chatId) => edits.get(chatId) ?? null,
-    startEdit: (chatId, edit) => void edits.set(chatId, edit),
+    startEdit(chatId, edit) {
+      edits.set(chatId, edit)
+      bump(editVersions, chatId)
+    },
     setEditBody(chatId, body) {
       const prev = edits.get(chatId)
-      if (prev) edits.set(chatId, { ...prev, body })
+      if (!prev) return
+      edits.set(chatId, { ...prev, body })
+      if (prev.body !== body) bump(editVersions, chatId)
     },
-    endEdit: (chatId) => void edits.delete(chatId),
+    endEdit(chatId) {
+      edits.delete(chatId)
+      bump(editVersions, chatId)
+    },
   }
 }
