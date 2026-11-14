@@ -25,6 +25,7 @@ import ChatListPane from '../ChatListPane.vue'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
+  vi.useRealTimers()
   resetAll()
   document.body.innerHTML = ''
 })
@@ -157,6 +158,8 @@ const tab = (w: VueWrapper, filter: string) => w.get(`[role="tab"][data-filter="
 
 describe('ChatListPane — satırlar (E-10-08…E-10-15)', () => {
   it('sunucu sırasıyla çizilir (istemci yeniden sıralamaz); role=list; ad, zaman, önizleme', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-14T12:00:00Z'))
     serve()
     const { wrapper } = await mountPane()
     expect(names(wrapper)).toEqual([
