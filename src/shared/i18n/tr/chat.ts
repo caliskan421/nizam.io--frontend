@@ -11,8 +11,11 @@ export const trChat = {
   chat: {
     list: {
       title: 'Mesajlar',
+      listLabel: 'Konuşmalar',
       newChat: 'Yeni konuşma',
-      search: 'Konuşma ara…',
+      newChatLabel: 'Yeni konuşma veya grup',
+      search: 'Ara: kişi, grup ya da mesaj',
+      searchLabel: 'Ara',
       filterLabel: 'Konuşma süzgeci',
       filterAll: 'Tümü',
       filterUnread: 'Okunmamış',
@@ -231,6 +234,8 @@ export const trChat = {
       loading: 'Konuşmalar yükleniyor…',
       error: 'Konuşmalar yüklenemedi.',
       retry: 'Yeniden dene',
+      loadingMore: 'Yükleniyor…',
+      backToList: 'Listeye dön',
       empty: 'Henüz konuşma yok',
       noMatch: 'Eşleşen konuşma yok',
       notFound: 'Bu konuşma bulunamadı',

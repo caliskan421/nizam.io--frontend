@@ -1,0 +1,67 @@
+/*
+ * Mesajlar sayfa kabuğu (10 · Mesajlar; `rp-msgapp`): geniş ekranda iki sütun (liste + konuşma),
+ * dar ekranda (P62; tasarımda 390 px yok → en sade akış yerleşimi) tek sütun — `data-pane`
+ * liste ↔ konuşma ROTA durumudur. Yalnız token; medya eşiği `--rp-narrow-max` (900) ile aynı
+ * (eşitlik shared/tokens/media-thresholds.test.ts).
+ */
+.chat-page {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: var(--rp-aside-basis) minmax(0, 1fr);
+  min-height: 0;
+  height: calc(100vh - var(--rp-topbar-h));
+  border-top: var(--ui-hairline) solid var(--border-subtle);
+}
+.chat-page > * {
+  min-height: 0;
+}
+.chat-page__thread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
+}
+.chat-page__thread > * {
+  min-height: 0;
+}
+.chat-page__thread > .conversation-pane {
+  flex: 1 1 auto;
+}
+.chat-page__empty {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--ink-faint);
+  font: var(--text-body);
+}
+.chat-page__lost {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+.chat-page__back {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--ui-hairline) solid var(--border-subtle);
+}
+@media (max-width: 900px) {
+  .chat-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .chat-page[data-pane='list'] .chat-page__thread,
+  .chat-page[data-pane='conversation'] .chat-list {
+    display: none;
+  }
+  .chat-list {
+    border-right: 0;
+  }
+}
+/* Pencere sahibi (W157 gövdesi modal/üst katman): ızgara hücresi tutmaz. */
+.chat-page > .chat-dialogs {
+  position: absolute;
+}
