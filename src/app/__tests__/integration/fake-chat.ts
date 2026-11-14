@@ -51,6 +51,8 @@ export interface ChatState {
   sendFault: SendFault
   /** `GET /v1/chats/stream` yanıtı: `null` = akış açılır; sayı = o durum kodu. */
   streamReject: number | null
+  /** Sıradaki bu kadar akış isteği 401 alır (belirteç yenileme senaryosu). */
+  stream401: number
   /** Açık ve kapanmış akış istemcileri (`fake-chat-stream.ts`). */
   streams: StreamClient[]
   opened: number
@@ -76,6 +78,7 @@ export function createChatState(): ChatState {
     keys: new Map(),
     sendFault: 'ok',
     streamReject: null,
+    stream401: 0,
     streams: [],
     opened: 0,
     cancelled: 0,

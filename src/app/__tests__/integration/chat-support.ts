@@ -6,7 +6,7 @@ import { vi } from 'vitest'
 import { createBackend, seedWorld, until, $, $$, click } from './harness'
 import { addMessage, createChatState, makeChat, member, type ChatState } from './fake-chat'
 import { chatHandlers } from './fake-chat-server'
-import { emit, type ChatEventName, type EmitOptions } from './fake-chat-stream'
+import { emit, serveStream, type ChatEventName, type EmitOptions } from './fake-chat-stream'
 import { PEOPLE } from './world'
 
 export {
@@ -211,3 +211,54 @@ export async function confirmDialog(answer: 'accept' | 'cancel' = 'accept'): Pro
   const selector = answer === 'accept' ? '[data-testid="confirm-accept"]' : '[data-autofocus]'
   await userClick(() => $(selector, $('[data-testid="confirm-dialog"]')!))
 }
+
+// --- Akış (SSE) yardımcıları -----------------------------------------------------------------
+
+export { dropStreams, openStreams, pushRaw } from './fake-chat-stream'
+
+/** İstemcinin açtığı her akış isteği: kapanış, `signal` iptalinden İSTEMCİ tarafında okunur. */
+export interface StreamCall {
+  program: string | null
+  authorization: string | null
+  lastEventId: string | null
+  aborted: boolean
+  status: number | null
+}
+export const streamCalls: StreamCall[] = []
+
+/**
+ * Akış isteklerini `fetch` çevresinde yakalar: sahte sunucu (`serveStream`) yanıtı doğrudan verir
+ * (msw/undici soket katmanı atlanır — zamanlayıcı kaynaklı iptalde test sürecini düşürüyordu) ve
+ * kapanış `signal` iptalinden İSTEMCİ tarafında okunur. `teardown` (unstubAllGlobals) izlemeyi
+ * söker; her testte yeniden kurulur.
+ */
+export function watchStreams(): void {
+  streamCalls.length = 0
+  const original = globalThis.fetch
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+    const request = input instanceof Request ? input : new Request(input, init)
+    if (new URL(request.url).pathname !== '/v1/chats/stream') return original(input, init)
+    const call: StreamCall = {
+      program: request.headers.get('X-Nizamio-Program'),
+      authorization: request.headers.get('Authorization'),
+      lastEventId: request.headers.get('Last-Event-ID'),
+      aborted: request.signal.aborted,
+      status: null,
+    }
+    streamCalls.push(call)
+    request.signal.addEventListener('abort', () => void (call.aborted = true), { once: true })
+    const response = serveStream(backend.db, chat.state, request)
+    call.status = response.status
+    return response
+  })
+}
+
+/** Akış istekleri. */
+export const streamRequests = () => streamCalls
+
+/** Hâlâ açık (iptal edilmemiş, 200 dönmüş) akışlar. */
+export const liveStreams = () => streamCalls.filter((c) => !c.aborted && c.status === 200)
+
+/** Akış açılana dek bekler (istek + yanıt). */
+export const streamOpen = (count = 1) =>
+  until(() => liveStreams().length >= count, `açık akış ≥ ${count}`)

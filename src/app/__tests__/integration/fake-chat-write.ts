@@ -279,7 +279,7 @@ function readHandlers(db: OrgDb, state: ChatState) {
       for (const chat of state.chats) {
         if (chat.program_id !== program || !(me.account_id in chat.reads)) continue
         chat.reads[me.account_id] = chat.last_seq
-        emit(state, chat, 'read.updated', { actor: me.account_id })
+        emit(state, chat, 'read.updated', { actor: me.account_id, exclude: me.account_id })
       }
       return noContent()
     }),
@@ -295,7 +295,7 @@ function readHandlers(db: OrgDb, state: ChatState) {
         chat.reads[account.account_id] ?? 0,
         message.base.seq,
       )
-      emit(state, chat, 'read.updated', { actor: account.account_id })
+      emit(state, chat, 'read.updated', { actor: account.account_id, exclude: account.account_id })
       return noContent()
     }),
     http.post(`${ORIGIN}/v1/chats/:chatId/typing`, ({ request, params }) => {
