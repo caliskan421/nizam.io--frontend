@@ -1,4 +1,6 @@
-# O2 — Raporlar, ana sayfa, K1/Ü1 ve rol menüleri uygulama planı (taslak, başlatılmadı)
+# O2 — Raporlar, ana sayfa, K1/Ü1 ve rol menüleri uygulama planı (uygulandı)
+
+**Durum (2026-11-14):** uygulandı — O2a #122, O2b #123–#127, O3 #128 ([ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md)).
 
 Bu iş listesi O1 kararlarıyla (P46–P53) daraltılmıştır; W136 başında pin yeterliliği yeniden doğrulanır. Her W istemindeki **Tespit** satırı aşağıdaki dosyalara bağlanır; istemleri koordinatör üretir (O1 MERGED sonrası). Her teslim typecheck/tam lint/format/test/gen/build; UI'da üretim+Caddy CSP+Playwright 390/1024/1440 × iki tema ve dar etkileşim gerekir (KESİN 17, 30).
 

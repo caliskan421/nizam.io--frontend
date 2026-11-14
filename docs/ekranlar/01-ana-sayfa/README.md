@@ -26,7 +26,7 @@ Oturum açan kişinin seçili kapsamdaki genel durumunu tek sayfada gösterir: s
 | E-01-40…47 Çizilmeyen öğeler | uygulanmaz | uygulanmaz | tasarımda çizilmiyor; P3 (yeni kuyruk/kısayol icat edilmez) |
 
 ## Dosyalar
-**Durum: kabul** (2026-11-08, ürün kararı P6; F1 kapsamı KPI + sade özet; F6 satırları F1'de gizli). **F6 açılışı (2026-11-13, W135):** F6 satırlarının (E-01-12, 19–39) karar hücreleri P46–P53 ve koordinatör varsayılanlarıyla kapatıldı (`kabul` 9, `geçici kabul` 13; "Koordinatör varsayılanı" = ilerleme notu); K1/Ü1 tespiti bu dosyanın sonundadır. Yeni BE kimliği verilmez; eksikler `W134 kayıt bloğuna aday` diye işaretlidir.
+**Durum: kabul** (2026-11-08, ürün kararı P6; F1 kapsamı KPI + sade özet; F6 satırları F1'de gizli). **F6 açılışı (2026-11-13, W135):** F6 satırlarının (E-01-12, 19–39) karar hücreleri P46–P53 ve koordinatör varsayılanlarıyla kapatıldı (`kabul` 9, `geçici kabul` 13; "Koordinatör varsayılanı" = ilerleme notu); K1/Ü1 tespiti bu dosyanın sonundadır. Yeni BE kimliği verilmez; eksikler `W134 kayıt bloğuna aday` diye işaretlidir. **F6 uygulaması (2026-11-14, W143):** E-01-12, 19–39, K1 ve Ü1 satırları uygulandı; durum `kabul`, kanıt dosyanın sonundaki "F6 uygulama kanıtı" bölümünde.
 
 | Dosya | Durum | Son güncelleme | Üreten |
 |---|---|---|---|
@@ -214,3 +214,22 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 | E-Ü1-33 | Rapor girişi (çizilmeyen) — — (artboard'da yok) | uygulanmaz | — | `kabul` (P47, REPORTING-K01/K07): üye hiçbir rapor görmez |
 
 **Özet:** 33 satır; canlı 29, devre dışı 1 (E-Ü1-21), statik 2 (E-Ü1-23 sayaç canlı, E-Ü1-24), uygulanmaz 1 (E-Ü1-33). Uçsuz/kısmi öğeler: görev satırında dosya sayısı/iade sebebi (E-Ü1-08/11), bağımlılık kilidi (E-Ü1-15), koordinatör adı (E-Ü1-21/31), bildirim listesi (F7, E-Ü1-23/24), kısa kod (BE-005).
+
+## F6 uygulama kanıtı (W143, 2026-11-14)
+
+**Uygulama durumu: `kabul`** — E-01-12, E-01-19…39, K1 (E-K1-01…41) ve Ü1 (E-Ü1-01…33) satırları uygulandı (PR #125 W137, #127 W140, #128 W142; `main` `a3b31e3`). Karar hücreleri (`kabul` / `geçici kabul`) karar kaydıdır ve değişmedi; geçici kabuller W137/W140/W142 varsayımlarıyla kabul edildi ([ilerleme](../../yurutme/web-6/ilerleme.md)). Gerçek sunucu kanıtı W144 `dogrulama-F6.md`'de (**bekliyor**); testler sahte `/v1` ile koşar. Test dosyaları `src/modules/home/` altındadır (`int` = `src/app/__tests__/integration`).
+
+| Satırlar | Konu | Kanıt (dosya · test adı / akış) |
+|---|---|---|
+| E-01-10/11 | "Toplantı oluştur" / "Kullanıcı davet et" kutucukları (W145, KUSUR 3) | `components/QuickActions.test.ts` ("toplantı ve kullanıcı kutucukları canlı bağlantıdır: faz etiketi yok, 09/05 listelerine gider (KUSUR 3)", "yalnız verilen kutucuklar çizilir"); PR #130 |
+| E-01-12 | "Rapor oluştur" yönlendirme menüsü | `components/ReportCreateMenu.test.ts`, `components/QuickActions.test.ts`, `model/report-targets.test.ts`; `int/home-admin.test.ts` ("yönetici: kutucuk menüyü açar; dört seçenek tasarım sırasında; menü ağ isteği atmaz", "Esc menüyü kapatır…", "yönetici K merceğinde de kutucuğu görür") |
+| E-01-19/20 | Ekip şeridi, rol kartı → 05 `?rol=` | `components/TeamStrip.test.ts`, `components/TeamKpis.test.ts`, `model/team.test.ts`; `int/home-admin.test.ts` ("ekip şeridi ve koordinatörlük kartları dashboard alanlarından; dashboard TEK kez okunur") |
+| E-01-21…27 | Başlık, "Tümünü gör", arama, süzgeç, sıralama, boş durum | `components/CoordToolbar.test.ts`, `components/CoordSortMenu.test.ts`, `components/CoordinatorshipsSection.test.ts`, `model/use-coord-controls.test.ts`, `model/turkish.test.ts`; `int/home-admin.test.ts` ("arama süzer: mek yalnız Mekanik kartını bırakır; sonuç yoksa boş durum") |
+| E-01-28…38 | Koordinatörlük kartı (4 dilim, avatar yığını, geciken, arşiv `—`, son yükleme gizli) | `components/CoordinatorshipCard.test.ts`, `model/coordinatorships.test.ts`, `model/stubs.test.ts`, `components/AdminKpis.test.ts`; `int/home-admin.test.ts` ("yönetici K merceğinde program geneli kalır (P53)…", "dashboard 403 (yetki düştü): bölgeler bölge içi hata + Yeniden dene…") |
+| E-01-39 | Alt bilgi | `components/HomeFooter.test.ts` |
+| Sayfa seçici | Admin / K1 / Ü1 / bekleyen | `pages/HomePage.test.ts` ("sayfa seçici (P53): yönetici → yönetici; Koordinatör merceği → K1; Üye merceği → Ü1; yönetici K/Ü merceğinde yönetici kalır"), `pages/AdminHomePage.test.ts`, `pages/CoordinatorHomePage.test.ts`, `pages/MemberHomePage.test.ts` |
+| E-K1-01…41 | K1 koordinatör ana sayfası (9 kart, yazmalar) | `components/k1/k1-parts.test.ts`, `components/k1/use-role-writes.test.ts`, `model/k1/k1-model.test.ts`, `model/role/role-model.test.ts`, `api/role/role-api.test.ts`, `model/capabilities-role.test.ts`, `components/role-styles.test.ts`; `int/home-roles.test.ts` ("sayfa seçici K1 açar; özet hücreleri, kuyruklar ve listeler AYNI kümeden", "Onayla: özet, kuyruk VE kenar menüsü rozetleri önce/sonra", "İade et…", "Üstlen…", "mercek d1 → başka birim: gövde yeniden kurulur…") |
+| E-Ü1-01…33 | Ü1 üye ana sayfası (7 bölge) | `components/u1/u1-parts.test.ts`, `model/u1/u1-model.test.ts`, `model/role/role-model.test.ts`; `int/home-roles.test.ts` ("sayfa seçici Ü1 açar; kuyruk ve hücreler atanan = ben kümesinden (tek yüklem)", "Tekrar başla (own-status)…", "başka birimdeki görevin bağlantısı 03 paneli açar") |
+| BE stub tutarlılığı | BE-137…141, BE-010, BE-025/078/079 | `model/stubs.test.ts`, `tests/lint/design-stub.test.ts`, `src/shared/design-stub/index.test.ts` |
+
+**Açık/borç** (karar kaydı değil, uygulama notu): Ü1 → 03 başka birim görevi derin bağlantısı (W142 KUSUR 3 yalnız önbellekteki satırlar; yönetici üye merceği araştırılmadı), K1 iade gerekçesi yok (BE-139), uçsuz alanlar BE-137…141, gerçek cihaz ekran okuyucu. 01b işlem geçmişi F6 dışıdır (P46).

@@ -1,6 +1,6 @@
 # 13 · Raporlar — her rapor kendi yerinde
 
-**Codex kapısı:** bekliyor (tespit yeni). **Tespit durumu:** tespit W134 (WEB-6 O1), 2026-11-13; kararlar **P46–P53** (`../ortak-kurallar.md` §12; W135 işler, bu grup yalnız `P47` vb. diye atıf yapar) ve koordinatör varsayılanları işlendi · öz denetim `dogrulama.md`. Ortak kurallar `../ortak-kurallar.md`.
+**Codex kapısı:** bekliyor (WEB-6 nihai kapısı). **Uygulama:** F6'da uygulandı (#122, #124, #126, #128; `main` `a3b31e3`), aşağıdaki "F6 uygulama kanıtı" bölümü. **Tespit durumu:** tespit W134 (WEB-6 O1), 2026-11-13; kararlar **P46–P53** (`../ortak-kurallar.md` §12; W135 işler, bu grup yalnız `P47` vb. diye atıf yapar) ve koordinatör varsayılanları işlendi · öz denetim `dogrulama.md`. Ortak kurallar `../ortak-kurallar.md`.
 
 **Artboard'lar (tasarım v85, `Rapor-*.dc.html`):**
 - `Rapor-Noktalar.dc.html` — `01i · Raporlar › Her rapor kendi yerinde` (**ana referans**: Arşiv başlığı, bölüm seçimi penceresi, toplantı detayı başlığı, Kullanıcılar iş yükü, görev paneli, Hızlı işlemler menüsü, dar ekran, durum/denetim notu)
@@ -19,11 +19,11 @@ Bu grup **ayrı bir sayfa değil**: dört mevcut ekrana eklenen rapor eylemleri 
 ## Dosyalar
 | Dosya | Durum | Son güncelleme | Üreten |
 |---|---|---|---|
-| ozellikler.md | taslak | 2026-11-13 | tasarım analisti (W134) |
-| mekanizma.md | taslak | 2026-11-13 | tasarım analisti (W134) |
-| backend.md | taslak | 2026-11-13 | backend analisti (W134) |
-| eksikler.md | taslak | 2026-11-13 | backend analisti (W134) |
-| dogrulama.md | öz denetim; bağımsız denetçi bekliyor | 2026-11-13 | W134 |
+| ozellikler.md | **kabul** (uygulandı F6) | 2026-11-14 | tasarım analisti (W134) |
+| mekanizma.md | **kabul** (uygulandı F6) | 2026-11-14 | tasarım analisti (W134) |
+| backend.md | **kabul** (uygulandı F6) | 2026-11-14 | backend analisti (W134) |
+| eksikler.md | **kabul** (uygulandı F6) | 2026-11-14 | backend analisti (W134) |
+| dogrulama.md | öz denetim; bağımsız denetçi bekliyor; gerçek sunucu tanığı W144 `dogrulama-F6.md` bekliyor | 2026-11-13 | W134 |
 
 ## Uygulanmayanlar (kapsam dışı — değişmez)
 - **Menüde "Raporlar" öğesi ve `/raporlar` rotası yok** (P47): her rapor kendi alanından iner. Kenar menüsü ve rol menüleri (`Kenar-Roller`) bu grup yüzünden değişmez.
@@ -171,3 +171,22 @@ Toplam **86** satır. `kabul` **35** · `geçici kabul` **41** · `öneri` **4**
 - Dönem PDF şablonunun 01f'ye göre yeniden yazımı (BE-123, L) ve bölüm seçimi parametresi (BE-122) backend'de hangi sırayla? "Backend dursun" kararı sürdükçe tam rapor dışındaki seçimler statik kalır.
 - Dönem ZIP'inde rapor ve klasör yapısı (BE-124) ile yönetici için başlıksız ZIP (BE-120) birlikte mi planlansın?
 - Tuval geri bildirimi (ürün sahibi/tasarım): 01f/01g kırıntısındaki "Raporlar" bağlantısı, 01g "Tetikleyiciler" kartı ve 01h'deki "(15 sn)"/"27 saniye" örnekleri pin gerçeğiyle uyuşmuyor (`dogrulama.md`).
+
+## F6 uygulama kanıtı (W143, 2026-11-14)
+
+**Uygulama durumu: `kabul`** — E-13-01…86 satırlarının uygulanan hâli aşağıdaki testlerle sabittir (PR #122, #124, #126, #128; `main` `a3b31e3`; 658 dosya / 4590 test). "Karar" sütunundaki `kabul` / `geçici kabul` / `öneri` / `ret` karar kaydıdır ve **değişmedi**; `geçici kabul` satırları (koordinatör varsayılanları) W136–W142 varsayımlarıyla birlikte kabul edilip [ilerleme](../../yurutme/web-6/ilerleme.md)'de raporlandı. Gerçek sunucu kanıtı yoktur: bütün testler ve e2e sahte `/v1` ile koşar; gerçek bilet/`Content-Disposition`/`Retry-After` sonucu W144 [`dogrulama-F6.md`](../../yurutme/web-6/dogrulama-F6.md) ile gelir (**doğrulanamadı**).
+
+Test dosyaları `src/` altındadır (kısaltma: `rp` = `src/modules/reports`, `int` = `src/app/__tests__/integration`). Entegrasyon testlerinde ayrıca sınanan akışın adı verilir.
+
+| Satırlar | Konu | Kanıt (dosya · test adı / akış) |
+|---|---|---|
+| E-13-01…12 | 06 Arşiv eylem şeridi, bölüm seçimi, ZIP stub | `rp/components/SeasonReportActions.test.ts`, `rp/components/picker-styles.test.ts`, `rp/model/sections.test.ts`, `modules/archive/components/zip/PeriodZipButton.test.ts`; `int/reports-season-picker.test.ts` ("hepsi seçili açılır: Seçilenleri indir düz dönem PDF indirmesini başlatır…", "bir kutu kaldırılınca indirme devre dışı + açıklama + yakında…", "koordinatörlük çipleri programdan, devre dışı…", "Dönem arşivi (ZIP) devre dışı BE-120 stub…"); `e2e/reports.spec.ts` (390 px bölüm seçimi tam ekran) |
+| E-13-13…40 | 01f dönem raporu önizleme | `rp/pages/SeasonReportPage.test.ts`, `rp/model/season-view.test.ts`, `rp/model/paper-context.test.ts`, `rp/model/format.test.ts`, `rp/routes.test.ts`, `app/routes.reports.test.ts`; `int/reports-season-preview.test.ts` ("reportSeason yalnız sayfa açılınca okunur…", "canlı bölümler veriden…; statik bölümler stub ve sahte sayı yok", "yükleniyor…", "boş dönem: kâğıt yine çizilir, PDF indirilebilir", "önizleme okuması sürerken PDF indir kilitli", "Kapat Arşiv'e döner ve odak Önizle bağlantısına gider") |
+| E-13-41…54 | 09b/K7 toplantı raporu düğmesi, 01g önizleme | `rp/components/MeetingReportButton.test.ts`, `rp/pages/MeetingReportPage.test.ts`, `rp/model/meeting-view.test.ts`, `modules/meetings/pages/MeetingDetailPage.test.ts`; `int/reports-meeting.test.ts` ("yönetici: PDF + Önizle; bilet yolu /v1/reports/meetings/m1/pdf…", "sahip departman koordinatörü (K7): yalnız PDF, Önizle yok", "dahil departman koordinatörü görür; başka departmanın koordinatörü görmez", "üye düğme görmez", "tasarım notu Tetikleyiciler kartı çizilmez (E-13-54 ret…)", "koordinatör adresi yazarsa 01g okunmaz…") |
+| E-13-55…58 | 03/K3 görev raporu düğmesi | `rp/components/TaskReportButton.test.ts`, `modules/work/components/detail/DetailActions.test.ts`; `int/reports-task.test.ts` ("yönetici: bilet yolu /v1/reports/tasks/w1/pdf…", "K3: görevin birim koordinatörü görür", "mercek ≠ yetki: d1 koordinatörü d2'de üye merceğinde (w3) görmez", "üye görmez", "panel kapanınca uçuştaki istek bilet tüketmez…") |
+| E-13-59…64 | 05/05b iş yükü raporu | `modules/organization/components/users/WorkloadReportButton.test.ts`, `WorkloadSelectionBar.test.ts`, `use-workload-selection.test.ts`, `modules/organization/pages/UsersPage.workload.test.ts`, `modules/organization/api/reports.test.ts`, `modules/organization/components/tracking/TrackingHead.test.ts`; `int/reports-workload.test.ts` ("seçim yokken açık boş dizi…", "çoklu seçim: etiket Seçilenlerin iş yükü (PDF) · N…", "422 reporting.input_invalid: seçim temizlenir…", "program değişince seçim temizlenir", "Kişisel rapor member_ids: [hesap]") |
+| E-13-65…67 | 01 "Rapor oluştur" menüsü | `modules/home/components/ReportCreateMenu.test.ts`, `modules/home/model/report-targets.test.ts`; `int/home-admin.test.ts` ("yönetici: kutucuk menüyü açar; dört seçenek tasarım sırasında; menü ağ isteği atmaz", "Esc menüyü kapatır ve odak kutucuğa döner", "dış tıklama menüyü kapatır…") |
+| E-13-68…75 | Durum kartları, hata eşlemesi, bilet kuralı, odak | `rp/components/ReportStateCard.test.ts`, `rp/components/ReportActionButton.test.ts`, `rp/model/action-state.test.ts`, `rp/model/failure.test.ts`, `rp/model/gate.test.ts`, `rp/model/settle.test.ts`, `rp/model/return-focus.test.ts`, `rp/api/downloads.test.ts`, `shared/download/flow.test.ts`, `redeem.test.ts`, `save.test.ts`; `int/reports-season-download.test.ts` ("bilet program başlığı + CSRF ile üretilir, tüketilir…", "hazırlanırken düğme kilitli…", "429 export_in_progress (Retry-After 1)…", "429 platform.rate_limited…", "503 capacity_full…", "403 not_authorized…", "bilet 404…"); `int/reports-lifecycle.test.ts` (söküm, kapsam/hesap değişimi, 401 tek refresh) |
+| E-13-76…86 | Uygulanmayanlar, üye, statik/yok satırları | `app/routes.reports.test.ts` ("menüsüz; … /raporlar rotası yok (E-13-76)"), `app/shell/side/menu-definition.test.ts` ("hiçbir rolde Raporlar öğesi ve /raporlar rotası yok"), `rp/model/capabilities.test.ts` (üye yok), `rp/model/stubs.test.ts` ve `tests/lint/design-stub.test.ts` (BE kayıt ↔ kod tutarlılığı), `modules/home/model/report-targets.test.ts` |
+
+**Uygulanmayan/yok kalanlar** (kod yok, test yok; karar kaydı): E-13-54, 57, 63, 67, 76–79 (ret); E-13-81…85 (yer yok, BE-126…130/BE-128); E-13-86 (Gantt dışa aktarım, BE-057). **Bilinen sapmalar** (rapor-F6 §4): kâğıt 880 px / 10,5 pt, boyut gösterimi (E-13-72), E-13-10 ZIP onayı kodlanmadı, 390 px ZIP/yükle düğmesi genişliği.

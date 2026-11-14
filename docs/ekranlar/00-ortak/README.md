@@ -92,3 +92,18 @@ Kapananlar: Arşiv/Mesajlar menüde gizli → kabul (P2) · Yardım gizli → ka
 ## F6: menü tanımı rol taşır
 
 Ayrıntı ve öğe tabloları: [mekanizma.md §9](mekanizma.md). Özet: menü grubu yetki olgusundan (`company_admin`) ve mercekten seçilir; yönetici K/Ü merceğinde yönetici menüsünü korur (P1/P11); koordinatör menüsü Ana sayfa · Görevler · Zaman çizelgesi · Toplantılar · Arşiv; üye menüsü Ana sayfa · Görevlerim · Zaman çizelgem · Toplantılar · Dosyalarım; **Raporlar öğesi yoktur (P47)**; Takvim, Kurumsal hafıza, Mesajlar, Tablolar, Birimim, Ekibim gizlidir. Kaynak artboard'lar `Sidebar.dc.html` (v85) ve `Kenar-Roller.dc.html`.
+
+## F6 uygulama kanıtı (W143, 2026-11-14)
+
+**Uygulama durumu: `kabul`** — E-00-41…47 (rol menüleri) W141 (PR #123, `ad91368`) ile uygulandı ve W142 (#128) entegrasyon turunda üç rol × 390 px ile sınandı; `main` `a3b31e3`. Karar hücreleri (`kabul` / `geçici kabul`) karar kaydıdır ve değişmedi. Gerçek cihaz ekran okuyucu ve gerçek sunucu kanıtı yapılmadı (W144 `dogrulama-F6.md` bekliyor; **doğrulanamadı**). Test dosyaları `src/app/` altındadır.
+
+| Satırlar | Konu | Kanıt (dosya · test adı / akış) |
+|---|---|---|
+| E-00-41 | Rol menüsü seçimi (mercek ≠ yetki) | `shell/side/menu-definition.test.ts` (rol × öğe matrisi, mercek değişimi); `__tests__/integration/menu-roles-shell.test.ts` ("yönetici K/Ü merceğine geçince menü sabit kalır (mercek ≠ yetki; P1)") |
+| E-00-42 | "Raporlar" öğesi hiçbir menüde yok | `shell/side/menu-definition.test.ts` ("hiçbir rolde Raporlar öğesi ve /raporlar rotası yok (E-00-42, P47)"); `__tests__/integration/menu-roles-shell.test.ts` ("yönetici: üç grup, rozet tarih talebi + geciken; Raporlar öğesi yok"); `routes.reports.test.ts` |
+| E-00-43 | Üye etiketleri (Görevlerim, Dosyalarım) | `shell/side/menu-definition.test.ts`; `__tests__/integration/menu-roles-shell.test.ts` ("üye: kendi adlarıyla öğeler; yalnız kendi gecikenleri rozeti…") |
+| E-00-44…46 | Koordinatör menü sırası, onay rozeti, 03c girişi | `shell/side/menu-definition.test.ts`, `shell/side/menu.test.ts`; `__tests__/integration/menu-roles-shell.test.ts` ("koordinatör: Yönetim yok; Görevler onay + geciken, Zaman çizelgesi tarih talebi rozeti") |
+| E-00-47 | Profilim kartı (rol halkası + "‹rol› · ‹e-posta›", tıklanamaz) | `shell/side/SideAccount.test.ts` |
+| 390 px rail | Kabuk menüsü gerçek tıklama + odak | `menu-definition.test.ts` (390 rail); `__tests__/integration/menu-roles-shell.test.ts` ("düğme menüyü açar, odak menüye girer…", "Esc menüyü kapatır ve odak tetikleyiciye döner", "perdeye tıklama menüyü kapatır; arka içerik açıkken etkisiz (inert)") |
+
+**Not:** E-00-47 oturum kartı tasarımın "Profilim" düğmesinden sapar (e-posta; profil sayfası F6 dışı) — [rapor-F6 §4](../../backend-eksikleri/rapor-F6.md). Takvim / Kurumsal hafıza menüde gizlidir (F7 adayı).
