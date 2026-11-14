@@ -119,6 +119,8 @@ export function useChatStream(options: ChatStreamOptions) {
     const mine = generation
     const scope = { ...scopeStore.snapshot }
     const current = () => mine === generation && owner.alive()
+    const onReadFailed = () => current() && pending.mark()
+    const base = { client, scope, options, meAccountId: session.accountId, alive: owner.alive }
     handle = openEventStream({
       path: '/v1/chats/stream',
       programId,
@@ -133,19 +135,7 @@ export function useChatStream(options: ChatStreamOptions) {
         if (reconnect) pending.reconnected()
       },
       deps: options.deps,
-      onEvent: (event) =>
-        current() &&
-        dispatchEvent(
-          {
-            client,
-            scope,
-            options,
-            meAccountId: session.accountId,
-            alive: owner.alive,
-            onReadFailed: () => current() && pending.mark(),
-          },
-          event,
-        ),
+      onEvent: (event) => current() && dispatchEvent({ ...base, onReadFailed }, event),
     })
   }
 
