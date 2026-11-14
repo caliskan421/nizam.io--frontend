@@ -24,6 +24,7 @@ import ChatDialogs from '../components/ChatDialogs.vue'
 import ChatListPane from '../components/ChatListPane.vue'
 import type { ChatListHandle } from '../components/list/handle'
 import ConversationPane from '../components/ConversationPane.vue'
+import { bindDraftLifetime } from '../components/composer/drafts'
 import { CHAT_DIALOG_OPENER } from '../components/thread/dialog-opener'
 import { CHAT_PAGE_KEY } from '../model/context'
 import type { DialogRequest } from '../model/dialogs'
@@ -43,6 +44,7 @@ const chatId = computed(() => {
 })
 
 const toast = useToast()
+bindDraftLifetime()
 const chat = useChat(chatId)
 const messages = useChatMessages(chatId)
 const stream = useChatStream({
