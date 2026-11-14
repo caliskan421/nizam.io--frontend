@@ -26,6 +26,7 @@ import {
   signIn,
 } from '../__tests__/harness'
 import { chatRoutes } from '../routes'
+import ChatPage from './ChatPage.vue'
 
 // Akışın KAPATILDIĞI `shared/sse` tutamacından izlenir (msw akış iptalini güvenilir iletmez).
 const sse = vi.hoisted(() => ({ opened: 0, closed: 0 }))
@@ -317,6 +318,22 @@ describe('ChatPage — kabuk, dar ekran ve odak (E-10-04, N-10-40, N-10-42)', ()
     await flushPromises()
     expect(dialogs.props('request')).toBeNull()
     expect(active()).toBe(wrapper.get('[data-testid="chat-new"]').element)
+  })
+
+  it('diğer pencereler kapanınca odak düğmeye ZORLANMAZ (ChatDialogs tetikleyiciye döndürür)', async () => {
+    serve(LIST)
+    const { wrapper } = await mountAt('/mesajlar', true)
+    ;(
+      wrapper.getComponent(ChatPage).vm as unknown as { openDialog: (r: unknown) => void }
+    ).openDialog({ dialog: 'poll', chatId: 'c1' })
+    await flushPromises()
+    const dialogs = wrapper.getComponent(ChatDialogs)
+    expect(dialogs.props('request')).toEqual({ dialog: 'poll', chatId: 'c1' })
+    ;(active() as HTMLElement).blur()
+    dialogs.vm.$emit('close')
+    await flushPromises()
+    expect(dialogs.props('request')).toBeNull()
+    expect(active()).not.toBe(wrapper.get('[data-testid="chat-new"]').element)
   })
 
   it('program değişince açık sohbet kapanır (liste yeni programdan okunur); süzgeç korunur', async () => {

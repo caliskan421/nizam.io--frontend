@@ -267,12 +267,13 @@ describe('GroupInfoDialog — grup (E-10-62…71)', () => {
     await vi.waitFor(() => expect($('[data-testid="dlg-add-members"]')).toBeNull())
   })
 
-  it("Toplantı planla (ŞY/K) /toplantilar'a yönlendirir; Sesi kapat devre dışı + BE-027", async () => {
+  it("Toplantı planla (ŞY/K) /toplantilar'a yönlendirir; Sessize al devre dışı + BE-027", async () => {
     serve()
     const { wrapper, router } = mountDialog(GroupInfoDialog, props, { who: ADMIN })
     await ready()
     const mute = $('[data-testid="dlg-mute"]') as HTMLButtonElement
     expect(mute.disabled).toBe(true)
+    expect(mute.textContent?.trim()).toBe('Sessize al')
     expect(mute.closest('[data-design-stub="BE-027"]')).not.toBeNull()
     click('[data-testid="dlg-plan-meeting"]')
     await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/toplantilar'))
