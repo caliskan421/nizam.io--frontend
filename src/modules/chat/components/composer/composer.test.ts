@@ -259,7 +259,7 @@ describe('yazma çubuğu', () => {
     expect(document.activeElement).toBe(plus.element)
     await plus.trigger('click')
     await wrapper.findAll('.chat-plus__item')[0]!.trigger('click')
-    expect(dialogs).toEqual([{ dialog: 'shareFile', chatId: 'c1' }])
+    expect(dialogs).toEqual([{ dialog: 'shareFile', chatId: 'c1', tab: 'archive' }])
   })
 
   it('birebirde Anket öğesi yok', async () => {

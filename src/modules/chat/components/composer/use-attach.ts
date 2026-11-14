@@ -24,8 +24,9 @@ export function useAttach(
 
   function onAttach(name: AttachName): void {
     closeMenu(name === 'archive' || name === 'poll')
-    if (name === 'archive') thread.openDialog({ dialog: 'shareFile', chatId: chatId() })
-    else if (name === 'poll') thread.openDialog({ dialog: 'poll', chatId: chatId() })
+    if (name === 'archive') {
+      thread.openDialog({ dialog: 'shareFile', chatId: chatId(), tab: 'archive' })
+    } else if (name === 'poll') thread.openDialog({ dialog: 'poll', chatId: chatId() })
     else if (name === 'upload') fileInput.value?.click()
     else {
       const gap = text.value === '' || /\s$/.test(text.value) ? '' : ' '

@@ -35,7 +35,7 @@ import ArchivePane from './ArchivePane.vue'
 import { sizeKb, type PickedArchiveFile } from './forms'
 import { useDialogWrite } from './use-dialog-write'
 
-const props = defineProps<{ chatId: string }>()
+const props = defineProps<{ chatId: string; tab?: 'archive' | 'upload' }>()
 const emit = defineEmits<{ close: [] }>()
 
 const store = useScopeStore()
@@ -44,7 +44,7 @@ const sendAttachment = useSendChatAttachment()
 const sendMessage = useSendChatMessage()
 const write = useDialogWrite()
 
-const tab = ref<'upload' | 'archive'>('upload')
+const tab = ref<'upload' | 'archive'>(props.tab ?? 'upload')
 const file = ref<File | null>(null)
 const fileError = ref<'type' | 'required' | null>(null)
 const note = ref('')
