@@ -112,10 +112,17 @@ const dialog = ref<DialogRequest | null>(null)
 function openCreate(mode: 'group' | 'direct'): void {
   dialog.value = { dialog: 'newGroup', mode }
 }
+/** Komşu tetikleyiciler (mesaj menüsü, yazma çubuğu) pencereyi bu girişle açar. */
+function openDialog(request: DialogRequest): void {
+  dialog.value = request
+}
+defineExpose({ openDialog })
 function closeDialog(): void {
+  const closed = dialog.value
   dialog.value = null
-  // Kapanış yolu ne olursa olsun odak tetikleyiciye (Yeni konuşma düğmesi) döner (KESİN 27).
-  void nextTick(() => list.value?.focusCreate())
+  // Yeni konuşma penceresinin tetikleyicisi bu sayfadır (liste düğmesi); diğer pencerelerde
+  // odak dönüşünü `ChatDialogs` (tetikleyici saklama) yönetir (KESİN 27).
+  if (closed?.dialog === 'newGroup') void nextTick(() => list.value?.focusCreate())
 }
 </script>
 
