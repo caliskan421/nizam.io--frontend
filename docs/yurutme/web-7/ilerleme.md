@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 (sohbet + bildirimler); P55/P56 kayıtlı; P57–P66 KESİN (ürün sahibi onayı 2026-11-14: P58 Web Push dahil, P60 backend kazanır, P57 bildirim sade liste). WEB-6 KAPANDI (Codex 3 tur UYGUN). Pin `v0.15.0-api` değişmez; backend paketi açılmaz. Plan [README](README.md)'de.
 
-**F7 KAPANMADI — Codex bekliyor (2026-11-14).** O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), sonra Codex 2–3 tur ([iskelet](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
+**F7 KAPANMADI — Codex tur 1 UYGUN DEĞİL, W164 düzeltiyor (2026-11-14).** O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), sonra Codex 2–3 tur ([iskelet](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Durum
 
@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W154 | **Birleşti:** #141 (veri katmanı: `shared/sse`, `modules/chat`, `modules/notifications`, `query-keys`, F7 rotaları, `CURRENT_PHASE` F7, menü Mesajlar + rozet) | `e9b1cce` |
 | O2b W155–W159 | **Birleşti:** #142 (W158 bildirim paneli + zil), #143 (W155 liste + kabuk), #144 (W157 pencereler), #146 (W156 konuşma + yazma), #145 (W159 Web Push) | `5ae9bf8` |
 | O3 W160 | **Birleşti:** #147 (125 entegrasyon testi, 13 kusur düzeltmesi, `e2e/chat.spec.ts` + `e2e/notifications.spec.ts`) | `76e4345` |
-| O4 W161 ‖ W162 → W163 → Codex → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); **W162 tanığı main'de** (#148, `4457bd3`); **W163 KUSUR 1–6 main'de** (#149, `a56e291`); Codex bekliyor; kapanış PR bekliyor | `a56e291` |
+| O4 W161 ‖ W162 → W163 → Codex tur 1 (UYGUN DEĞİL) → W164 → Codex tur 2 → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); **W162 tanığı main'de** (#148, `4457bd3`); **W163 KUSUR 1–6 main'de** (#149, `a56e291`); Codex bekliyor; kapanış PR bekliyor | `a56e291` |
 
 ## Kayıtlar
 
@@ -60,6 +60,10 @@ Zincir: W158 bağımsız birleşti; W155 → W157 → W156 ve W158 → W159. **#
 ### O4 — W163 düzeltmeleri (#149 `a56e291`)
 
 KUSUR 1–6 **KAPANDI** (W163, #149, main `a56e291`): 1+2 `5a4ed87`/`c129cfc`/`6fb00d1` (`usePendingReconcile` + catch; online/odak/görünür/yeniden bağlanma tek reconcile, otomatik döngü yok); 3 `4613745` (kök neden flex daralması, W162'nin "yapışkan başlık" teşhisi değil: sekme satırı `flex:none` + üst katman); 4 `614ece1` (ölü editConflict anahtarları kaldırıldı); 5 `bbba694` (anket sorusu yalnız kartta; 390 araç şeridi satırın üst şeridinde); 6 `633d70d` (`collaboration.chats`/`chat` `NO_DEPARTMENT_EXEMPT_ROUTES`, entegrasyon testi `chat-no-department`; yalnız departmentGap kapısı kalkar, no_lens değişmez); "Gruptan ayrıl" metin bağlantısı `97158da`. Kapı 761 dosya / 5491 test; duman gerçek Caddy CSP + sahte /v1 4 senaryo × 3 × 2 tema 0/0/0 (kanıt `web7-w163/`, yerel). Varsayımlar kabul: anket gövdesinde zengin metin çizilmez (PollDialog düz soru); 390 anket araç şeridi kısa yerleşim kayması. **Açık:** KUSUR 1 için gerçek ağ kopukluğu kanıtı yok (birim + entegrasyon).
+
+### O4 — Codex tur 1: UYGUN DEĞİL → W164 (HEAD `a6cea6b`)
+
+[Hüküm](../../reviews/WEB-7-codex.md): CX-F7-E-01 (yüksek/engelleyici: SSE olay uygulama bağlamı eski kapsamda, aynı programda birim/mercek değişince çıkarılma kapanmaz), Ö-01 (yüksek: geç gönderim sonucu başka taslağı siliyor), Ö-02 (orta: önbellekli sohbete dönüşte uzlaştırma yok), Ö-03 (orta: odak dönüşünde okundu tetiklenmiyor), K-01 (orta: sohbet testlerinde gerçek zaman beklemeleri) → **W164 düzeltiyor** (`web7/o4-w164`); K-02 (düşük belge) W161'de kapandı. Tur 2 bekliyor.
 
 ## Kararlar P54–P66 (özet; metinler [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md))
 

@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**Durum (2026-11-14): F7 KAPANMADI — Codex bekliyor.** O1–O3 (#137–#147) main'de (son kod `76e4345`; 758 dosya / 5478 test). Bu belgeler W161 (yalnız belge, `web7/o4-kapanis`); gerçek sunucu tanığı W162 (`web7/o4-w162`) ve Codex nihai kapısı ([hüküm](../../reviews/WEB-7-codex.md), iskelet) tamamlanmadı; kapanış PR'ı: bekliyor (CI ve birleşme ayrıca). F8 AÇILMADI ([web-8](../web-8/README.md)).
+**Durum (2026-11-14): F7 KAPANMADI — Codex tur 1 UYGUN DEĞİL, W164 düzeltiyor.** O1–O3 (#137–#147) main'de (son kod `76e4345`; 758 dosya / 5478 test). Bu belgeler W161 (yalnız belge, `web7/o4-kapanis`); gerçek sunucu tanığı W162 (`web7/o4-w162`) ve Codex nihai kapısı ([hüküm](../../reviews/WEB-7-codex.md), iskelet) tamamlanmadı; kapanış PR'ı: bekliyor (CI ve birleşme ayrıca). F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Planlanan akış
 
@@ -9,8 +9,8 @@
 | 1 | Belgeler: [rapor-F7](../../backend-eksikleri/rapor-F7.md) (bağlanan uçlar, BE kayıt durumları, tasarım farkları, öneri sırası, deploy notları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), 10/14/00 "F7 uygulama kanıtı", ekranlar README durumu, [WEB-7-codex](../../reviews/WEB-7-codex.md) ve [web-8](../web-8/README.md) iskeletleri, yol haritası §4 ve tasarım README notu | W161 (Sonnet 5.5) | Yazıldı (`web7/o4-kapanis`), yalnız belge; kod yok; PR bekliyor |
 | 2 | `dogrulama-F7.md`: gerçek Docker üretim imajı + Caddy CSP (`worker-src`, `/sw.js` no-cache) + gerçek backend (pin `v0.15.0-api`); SSE gerçek akış, çift gönderim/`edit_conflict`, ek yükleme + bilet indirme, anket, mesajdan görev, bildirim türü sözlüğü ↔ gerçek `type`, Web Push gerçek abonelik (headful), 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W162 (Sonnet 5.5) | **Tamam** (#148, main `4457bd3`; [dogrulama-F7](dogrulama-F7.md): 18 bağlam 0/0/0, SSE/yazma/bildirim/Web Push gerçek; KUSUR 1–6 → W163) |
 | 2b | W163 düzeltmeleri: KUSUR 1–6 (KUSUR 6: `/mesajlar` departman kapısından muaf, koordinatör kararı P54) + "Gruptan ayrıl" metin bağlantısı | W163 (Sonnet 5.5) | **Tamam** (#149, main `a56e291`; KUSUR 1–6 kapandı, 761 dosya / 5491 test) |
-| 3a | Codex tur 1 (HEAD: W163 sonrası kapanış dalı main birleşik): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | Bekliyor |
-| 3b | Koşullar işçiyle kapatılır | işçi + koordinatör | Bekliyor |
+| 3a | Codex tur 1 (HEAD `a6cea6b`): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | **Tamam: UYGUN DEĞİL** (E-01 engelleyici, Ö-01/02/03, K-01, K-02) |
+| 3b | W164: E-01, Ö-01, Ö-02, Ö-03, K-01 düzeltmeleri (K-02 W161'de kapandı) | W164 (Sonnet 5.5) | **Sürüyor** (`web7/o4-w164`; "W164 main'de" bekleniyor) |
 | 3c | Codex tur 2 (ve gerekirse tur 3) | Codex | Bekliyor |
 | 4 | Koşullar işçiyle kapatılır; gerekirse sonraki tur | işçi + koordinatör | Bekliyor |
 | 5 | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla) | koordinatör | Bekliyor |
