@@ -77,10 +77,13 @@ function keptQuery(): LocationQuery {
 const list = ref<ChatListHandle | null>(null)
 const thread = ref<HTMLElement | null>(null)
 
-function select(id: string): void {
-  void router.push({ name: CHAT_ROUTE.name, params: { chatId: id }, query: keptQuery() })
-  // Dar ekranda liste kaybolur: odak konuşma bölgesine taşınır (gövdeye düşmez).
-  if (narrow.value) void nextTick(() => thread.value?.focus())
+async function select(id: string): Promise<void> {
+  await router.push({ name: CHAT_ROUTE.name, params: { chatId: id }, query: keptQuery() })
+  // Dar ekranda liste kaybolur: odak, konuşma bölgesi GÖRÜNÜR olduktan sonra (rota çözülünce)
+  // oraya taşınır; gizliyken odaklanamaz ve odak gövdeye düşerdi.
+  if (!narrow.value) return
+  await nextTick()
+  thread.value?.focus()
 }
 
 function back(): void {

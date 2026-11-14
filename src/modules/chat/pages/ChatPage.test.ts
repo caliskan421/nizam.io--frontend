@@ -280,6 +280,22 @@ describe('ChatPage — kabuk, dar ekran ve odak (E-10-04, N-10-40, N-10-42)', ()
     expect(active()).toBe(wrapper.get('[data-testid="chat-thread"]').element)
   })
 
+  it('dar ekranda odak, rota çözüldükten SONRA (bölge görünürken) taşınır', async () => {
+    serve(LIST)
+    stubNarrow(true)
+    const { wrapper, router } = await mountAt('/mesajlar', true)
+    const thread = wrapper.get('[data-testid="chat-thread"]').element as HTMLElement
+    const seen: (string | undefined)[] = []
+    const real = thread.focus.bind(thread)
+    thread.focus = () => {
+      seen.push(router.currentRoute.value.params.chatId as string | undefined)
+      real()
+    }
+    await wrapper.get('[data-chat-id="c2"]').trigger('click')
+    await flushPromises()
+    expect(seen).toEqual(['c2'])
+  })
+
   it('dar ekranda sohbet seçili değilken Geri düğmesi yok; yalnız liste', async () => {
     serve(LIST)
     stubNarrow(true)
