@@ -1,8 +1,8 @@
 # WEB-7 — Codex nihai kapı
 
-Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Tarihsel tur 1–2: Codex `gpt-6.1-sol` medium, `-s read-only`. Güncel durum (2026-11-15): **tur 3 KOŞULLU UYGUN (HEAD `58b4d27`); W165 düzeltmeleri PR #151 ile main `db7252c` içinde; W166 sonrası bağımsız düzeltme doğrulaması bekliyor. F7 KAPANMADI.** Tur 1 koşulları W164 (#150, main `8742269`) ve W161 ile kapandı. Ham çıktılar `.git/koordinator/web7-codex-tur{1,2,3}.md` (yerel); tur 3 kaydı hazır. Tur 3 bağımsız salt okunur ajan incelemesidir; CLI sandbox koşumu yapılmış sayılmaz. İstem: koordinatör `web7-codex-prompt-tur3.md` ve [oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md).
+Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Tarihsel tur 1–2: Codex `gpt-6.1-sol` medium, `-s read-only`. Güncel durum (2026-11-15): **tur 3 KOŞULLU UYGUN (HEAD `58b4d27`); W165 düzeltmeleri PR #151 ile main `db7252c` içinde; tur 4 Ö-06/Ö-07 düzeltme doğrulaması UYGUN; W166 tam kapı/PR/CI/main bekliyor. F7 KAPANMADI.** Tur 1 koşulları W164 (#150, main `8742269`) ve W161 ile kapandı. Ham çıktılar `.git/koordinator/web7-codex-tur{1,2,3,4}.md` (yerel); tur 3 kaydı hazır. Tur 3 bağımsız salt okunur ajan incelemesidir; CLI sandbox koşumu yapılmış sayılmaz. İstem: koordinatör `web7-codex-prompt-tur3.md` ve [oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md).
 
-Girdiler: W162 gerçek sunucu tanığı (#148, main `4457bd3`; kanıt HEAD `76e4345`), W163 (#149), W164 (#150), W165 (#151, main `db7252c`) ve W161 kapanış belgeleri. Tur 3 inceleme HEAD’i `58b4d2765f90a17b4119b060d44dff919ce0ea02`; W166 `web7/o4-w166` dalında Ö-06/Ö-07 düzeltmesini yapıyor. Kabul ölçütleri: 10/14/00 uygulama kanıtları, P54–P66, KESİN 17/21/22/26/27/29/30/33/34. Araç izi olmayan çıktı kapı sayılmaz; kapanış PR CI'sı ve birleşmesi ayrıca gerekir.
+Girdiler: W162 gerçek sunucu tanığı (#148, main `4457bd3`; kanıt HEAD `76e4345`), W163 (#149), W164 (#150), W165 (#151, main `db7252c`) ve W161 kapanış belgeleri. Tur 3 inceleme HEAD’i `58b4d2765f90a17b4119b060d44dff919ce0ea02`; W166 `web7/o4-w166` HEAD `68deaa9` düzeltmeleri tur 4’te doğrulandı; tam kapı/PR/CI/main bekliyor. Kabul ölçütleri: 10/14/00 uygulama kanıtları, P54–P66, KESİN 17/21/22/26/27/29/30/33/34. Araç izi olmayan çıktı kapı sayılmaz; kapanış PR CI'sı ve birleşmesi ayrıca gerekir.
 
 ## Tur 1 — 2026-11-14, HEAD a6cea6b
 
@@ -82,7 +82,7 @@ Tur 1'in engelleyici eski kapsam kusuru (E-01) kapanmış; incelenen yollarda ye
 
 | Bulgu | Önem | Konum | Bağ | Atanan | Durum |
 | --- | --- | --- | --- | --- | --- |
-| CX-F7-Ö-04 Taslak anahtarı korunuyor, taslak nesli/sürümü bütünüyle korunmuyor (düzenleme kaydı beklerken vazgeç + başka mesaj düzenle → ilk başarı yeni taslağı siliyor; `settleSent` yalnız gövde eşitliği → Yanıtla bağlamı/çip değişimi temizleniyor) | Yüksek | `composer/drafts.ts:49`, `use-edit.ts:84`, `:135` | E-10-46/51/60, K5, KESİN 26 | W165 | düzeltme main’de (#151); tur 3 doğrudan başarı temizliğini kapattı; devam/retry Ö-06/Ö-07 W166’da |
+| CX-F7-Ö-04 Taslak anahtarı korunuyor, taslak nesli/sürümü bütünüyle korunmuyor (düzenleme kaydı beklerken vazgeç + başka mesaj düzenle → ilk başarı yeni taslağı siliyor; `settleSent` yalnız gövde eşitliği → Yanıtla bağlamı/çip değişimi temizleniyor) | Yüksek | `composer/drafts.ts:49`, `use-edit.ts:84`, `:135` | E-10-46/51/60, K5, KESİN 26 | W165 | düzeltme main’de (#151); tur 3 doğrudan başarı temizliğini kapattı; devam/retry Ö-06/Ö-07 tur 4’te kapandı |
 | CX-F7-Ö-05 A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` üretiyor; sayfa B'yi listeye atıyor ve yanlış "bulunamadı" bildirimi çıkıyor | Orta | `api/stream-apply.ts:41`, `:79`; `pages/ChatPage.vue:54` | N-10-14, KESİN 26 | W165 | kapandı — tur 3 kimlik korumalarını doğruladı (#151) |
 
 ### Bulgu ayrıntıları
@@ -109,7 +109,7 @@ PR [#151](https://github.com/caliskan421/nizam.io--frontend/pull/151) main `db72
 
 | Bulgu | Düzeltme ve test kanıtı | Durum |
 | --- | --- | --- |
-| CX-F7-Ö-04 | `0fa33c2`: normal/düzenleme taslağı sürümü; gönderim, yükleme ve düzenlemenin geç başarısı yalnız kendi sürümünü temizler. `e2e7875`: lint/bölme. `chat-edit-late.test.ts`: bekleyen PATCH → vazgeç → başka mesaj düzenle; aynı gövdeyle Yanıtla hedefi değişimi; metni değiştirip eski hâline dönme. `settle-sent.test.ts` sürüm/yanıt/düzenleme beklentileri. `58bd639`: `addMention`/`addRef` sürümü artırır; aynı testte çip ekleme korunması | Doğrudan başarı yolu tur 3’te kapandı; devam/retry Ö-06/Ö-07 açık |
+| CX-F7-Ö-04 | `0fa33c2`: normal/düzenleme taslağı sürümü; gönderim, yükleme ve düzenlemenin geç başarısı yalnız kendi sürümünü temizler. `e2e7875`: lint/bölme. `chat-edit-late.test.ts`: bekleyen PATCH → vazgeç → başka mesaj düzenle; aynı gövdeyle Yanıtla hedefi değişimi; metni değiştirip eski hâline dönme. `settle-sent.test.ts` sürüm/yanıt/düzenleme beklentileri. `58bd639`: `addMention`/`addRef` sürümü artırır; aynı testte çip ekleme korunması | Doğrudan başarı yolu tur 3’te kapandı; devam/retry Ö-06/Ö-07 tur 4’te kapandı |
 | CX-F7-Ö-05 | `6359c3b`: erişim sonucu öncesi `currentOpenChatId`, sayfada `onChatLost(id)` kimlik denetimi. `chat-stream-late.test.ts`: A ayrıntısı 404, liste bariyerde → B aç → yanıtı bırak → B açık, yanlış bildirim yok; A’ya dönüş 404 | Tur 3’te kapandı |
 
 767 dosya / 5508 test ve düzeltme geri alınınca kırmızı teyidi **W165 geçmiş teslim kaydıdır** (`f5-notlar.md`); W161b bu testleri veya geri alma deneyini yeniden çalıştırmadı. Son çip commit’i `58bd639` duman sonrasıdır; bu ek için duman tekrarı iddia edilmez.
@@ -127,12 +127,12 @@ HEAD: `58b4d2765f90a17b4119b060d44dff919ce0ea02`; başlangıçta/son kontrolde t
 - **Ö-04 doğrudan başarı yolu kapandı:** normal/düzenleme taslağının sürümü, yanıt/metin/çip değişimi korunuyor; `chat-edit-late.test.ts` ve `settle-sent.test.ts` anlamlı. Korunan taslağın devam gönderimi ve retry yolları aşağıdaki Ö-06/Ö-07 nedeniyle eksik.
 - **Ö-05 kapandı:** güncel açık sohbet kimliği ve sayfa callback kimliği korumaları doğru; `chat-stream-late.test.ts` A 404/liste bariyeri → B → yanlış bildirim yok → A’ya dönüş 404 davranışını sınar. İki koruma birbirini yedeklediğinden her birini tek başına kaldırmanın aynı testi mutlaka kıracağı iddia edilmez.
 
-### Yeni koşullar — W166 (`web7/o4-w166`) çalışıyor
+### Tur 3 koşulları — W166 (`web7/o4-w166`); tur 4’te kapandı
 
 | Bulgu | Önem / konum | Tetikleyici ve sonuç | Gerekli düzeltme ve anlamlı doğrulama | Durum |
 | --- | --- | --- | --- | --- |
-| CX-F7-Ö-06 | Orta; `model/draft.ts:73–80`, `composer/drafts.ts:42–49`, `use-send.ts:185–193` | İlk POST beklerken aynı metinle Yanıtla/etkin çip değişir. Taslak korunur fakat eski `clientMessageId` ile yeni içerik gönderilir; pin §10.2 gereği 409 `messaging.idempotency_key_reused` | Kimlik bütün etkin gönderim içeriğine bağlı olmalı; farklı içerik yeni kimlik, özdeş ağ tekrarı ilk kimlik/gövde. İlk başarıdan sonra korunan taslağı gönder → farklı kimlik/yanıt hedefi, sunucuda iki mesaj, yalnız kendi taslağı temizlenir; etkin çip değişimi de sınanır. `fake-chat-write.ts` aynı kimliğe farklı içerikte 409 uygulamalı | Açık — W166 |
-| CX-F7-Ö-07 | Yüksek; `composer/use-send.ts:104–105`, `:197–205`, `:85–86`; `use-composer.ts:34–38` | İlk mesaj sunucuda kayıtlı, yanıt kayıp. Kullanıcı Yanıtla hedefini değiştirir; retry eski isteği gönderirken `originOf` güncel taslak sürümünü yakalar; eski başarı yeni taslağı siler | Retry ile ilk `Origin` ve istek snapshot’ı saklanmalı; sonuç ilk bağlamla işlenmeli. Kaydet → yanıtı kaybettir → Yanıtla değiştir → retry: ilk kimlik/gövde, tek ilk mesaj, yeni metin/bant korunur; sonra yeni taslak ayrı gönderilir | Açık — W166 |
+| CX-F7-Ö-06 | Orta; `model/draft.ts:73–80`, `composer/drafts.ts:42–49`, `use-send.ts:185–193` | İlk POST beklerken aynı metinle Yanıtla/etkin çip değişir. Taslak korunur fakat eski `clientMessageId` ile yeni içerik gönderilir; pin §10.2 gereği 409 `messaging.idempotency_key_reused` | Kimlik bütün etkin gönderim içeriğine bağlı olmalı; farklı içerik yeni kimlik, özdeş ağ tekrarı ilk kimlik/gövde. İlk başarıdan sonra korunan taslağı gönder → farklı kimlik/yanıt hedefi, sunucuda iki mesaj, yalnız kendi taslağı temizlenir; etkin çip değişimi de sınanır. `fake-chat-write.ts` aynı kimliğe farklı içerikte 409 uygulamalı | Tur 4’te kapandı; W166 tam kapı/PR/CI/main bekliyor |
+| CX-F7-Ö-07 | Yüksek; `composer/use-send.ts:104–105`, `:197–205`, `:85–86`; `use-composer.ts:34–38` | İlk mesaj sunucuda kayıtlı, yanıt kayıp. Kullanıcı Yanıtla hedefini değiştirir; retry eski isteği gönderirken `originOf` güncel taslak sürümünü yakalar; eski başarı yeni taslağı siler | Retry ile ilk `Origin` ve istek snapshot’ı saklanmalı; sonuç ilk bağlamla işlenmeli. Kaydet → yanıtı kaybettir → Yanıtla değiştir → retry: ilk kimlik/gövde, tek ilk mesaj, yeni metin/bant korunur; sonra yeni taslak ayrı gönderilir | Tur 4’te kapandı; W166 tam kapı/PR/CI/main bekliyor |
 
 Ö-06 kimlik düzeltmesi tek başına Ö-07 sahiplik kusurunu kapatmaz. Bağ: K5, E-10-50/51/60, KESİN 26; pin `v0.15.0-api` §10.2 ve `openapi.yaml:9992`. Mevcut devam testinin yalnız alan/bant korunmasında bitmesi ve sahte ucun farklı içeriği denetlememesi test kör noktasıdır.
 
@@ -144,4 +144,21 @@ Tur 1 E-01/Ö-01/Ö-02/Ö-03 korumaları sürüyor; retry istisnası Ö-07. Sohb
 
 `db7252c` → inceleme HEAD’i farkı yalnız belgeler: ayrı ajanın 7 dosya / 25 test PASS tanığı aynı kaynaklarla ilişkilendirilebilir; tur 3 denetçisinin koşumu değildir ve yeni devam/retry senaryolarını kapsamaz. W165 dumanı `e2e7875` HEAD’inde, `58bd639` veya inceleme HEAD’inde yeniden koşulmuş değildir; 18 beklenen 404 sıfır konsol kaydı sayılmaz. W161b’nin exit 130 ile kesilen yanlış tam paket girişimi PASS değildir; kapanış PR CI’sı gerekir. W162 gerçek backend/FCM tanığı ayrı tarihsel kanıttır; bu tur tekrarlanmadı.
 
-VoiceOver, kullanıcı görsel onayı, OS bildirimine tıklama, gerçek mobil cihaz, Safari/iOS/Firefox push, CDN arkası SSE ve diğer kayıtlı borçlar doğrulanmış sayılmadı. Bütün dosya/tasarım/kabul satırlarını eksiksiz kapsama iddiası yok. **Ö-06/Ö-07 sözleşmeye sadık hedefli testlerle giderilmeli; W166 sonrası bağımsız düzeltme doğrulaması ve kapanış PR CI/birleşmesi bekliyor. F7 KAPANMADI; F8 AÇILMADI.**
+VoiceOver, kullanıcı görsel onayı, OS bildirimine tıklama, gerçek mobil cihaz, Safari/iOS/Firefox push, CDN arkası SSE ve diğer kayıtlı borçlar doğrulanmış sayılmadı. Bütün dosya/tasarım/kabul satırlarını eksiksiz kapsama iddiası yok. **Tur 3 anındaki koşul:** Ö-06/Ö-07 sözleşmeye sadık hedefli testlerle giderilmeli. **Güncelleme:** iki bulgu aşağıdaki tur 4’te kapandı; W166 tam kapı/PR/CI/main ve kapanış PR CI/birleşmesi bekliyor. F7 KAPANMADI; F8 AÇILMADI.
+
+## Tur 4 — Ö-06/Ö-07 düzeltme doğrulaması, HEAD 68deaa9
+
+**UYGUN** — yalnız tur 3’ün CX-F7-Ö-06 ve CX-F7-Ö-07 düzeltmelerinin bağımsız kod/test incelemesi. Önceki F7 kapsamı baştan denetlenmedi; tur 3 genel incelemesi KOŞULLU UYGUN olarak tarihsel kayıttır. Bu hüküm test/build/CI başarısı veya F7 kapanışı değildir. Ham rapor `.git/koordinator/web7-codex-tur4.md` (yerel).
+
+İnceleme temiz `b0631bd2815cb3a8ef54aca1c2bb967aac233813` HEAD’inde başladı; son nullable retry daraltması yeniden incelendi. Nihai hüküm temiz HEAD `68deaa9f4d6a207bbe1bc756981a7d779f1c1d33` içindir; başlangıç HEAD’i sabit kalmış gibi sunulmaz.
+
+| W166 teslimi | Commit / davranış | Bağımsız değerlendirme | Birleşme kapısı |
+| --- | --- | --- | --- |
+| Ö-06 | `35638a2`: yanıt değişimi/iptali ve etkin çip değişiminde yeni gönderim kimliği; aynı yanıt hedefinde kimlik korunur | **Kapandı.** `chat-send-identity-late.test.ts` ikinci POST farklı kimlik/doğru hedef, iki mesaj ve taslak temizliğini sınar; `settle-sent.test.ts` bahsetme/ref payload ve sürümünü sınar | Tam kapı sürüyor; PR/CI/main bekliyor |
+| Ö-07 | `b0631bd`: retry ilk `origin` ve ilk `request` ile; `68deaa9`: nullable `outcome.retry` daraltması | **Kapandı.** İlk kayıt + kayıp yanıt → Yanıtla değiştir → retry: ilk iki gövde eşit, tek mesaj, yeni alan/bant korunur; üçüncü POST yeni kimlikle ikinci mesajdır. Mutasyon motoru ilk değişkenleri `structuredClone` ile saklar | Tam kapı sürüyor; PR/CI/main bekliyor |
+
+Fixture yeni gönderimin normalize izini mesaj nesnesine bağlı `WeakMap` ile saklar; sonradan düzenleme ilk izi değiştirmez. Özdeş tekrar 200; beş farklı içerik değişimi 409 ve `messaging.idempotency_key_reused` test edilir. Bu, bütün backend normalizasyon/tombstone davranışlarının eksiksiz kopyası değildir; iki bulgu için gerekli gönderim izi semantiğini temsil eder.
+
+`db7252c..68deaa9` altı üretim/test/fixture dosyasıyla sınırlı; SSE/yetki/rota/bağımlılık/kapı kuralı değişmedi. Önceki taslak sürümü koruması, sohbet değişiminde retry sıfırlaması ve bariyerli testler korunuyor. Denetçinin diff kontrolü temiz; yeni somut bulgu yok.
+
+Denetçi test, geri alma deneyi, typecheck, lint, build, görsel duman veya CI koşmadı. Geri alma duyarlılığı bilgisi uygulayıcı/koordinatör kaydıdır; denetçinin koşumu değildir. Tur 3 kanıt sınırları ve kapanış sonrası borçlar sürer. **W166 tam kapı sonucu, PR/CI ve main birleşmesi henüz yok; F7 KAPANMADI; F8 AÇILMADI.**
