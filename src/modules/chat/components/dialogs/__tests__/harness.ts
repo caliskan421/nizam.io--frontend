@@ -4,7 +4,7 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { shallowRef, type Component } from 'vue'
+import { shallowRef, type Component, type ShallowRef } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { queryKeys } from '@/shared/http/query-keys'
@@ -126,18 +126,7 @@ export interface MountOptions {
   window?: Partial<MessageWindow>
 }
 
-export function mountDialog<P extends Record<string, unknown>>(
-  component: Component,
-  props: P,
-  options: MountOptions = {},
-) {
-  const who = options.who ?? { companyAdmin: true }
-  const pinia = createPinia()
-  setActivePinia(pinia)
-  useScopeStore().commit({ programId: 'p1', lens: 'admin', departmentId: null })
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, retryDelay: 0 } },
-  })
+function seedStanding(client: QueryClient, who: WhoSeed): void {
   client.setQueryData(queryKeys.me.root(), {
     account_id: who.accountId ?? ME,
     company_admin: who.companyAdmin === true,
@@ -157,9 +146,10 @@ export function mountDialog<P extends Record<string, unknown>>(
     truncated: false,
   })
   client.setQueryData(queryKeys.programs.all(), { programs: [], truncated: false })
+}
 
-  const win = shallowRef<MessageWindow>({ ...emptyWindow(), ...options.window })
-  const context: ChatPageContext = {
+function fakeContext(win: ShallowRef<MessageWindow>): ChatPageContext {
+  return {
     chatId: () => 'c1',
     messages: {
       window: win,
@@ -172,10 +162,13 @@ export function mountDialog<P extends Record<string, unknown>>(
     },
     typingAccountIds: () => [],
   }
+}
+
+function fakeRouter() {
   const stub = { template: '<div />' }
   const history = createMemoryHistory()
   history.replace('/mesajlar/c1')
-  const router = createRouter({
+  return createRouter({
     history,
     routes: [
       { name: 'collaboration.chats', path: '/mesajlar', component: stub },
@@ -184,12 +177,26 @@ export function mountDialog<P extends Record<string, unknown>>(
       { name: 'collaboration.meetings', path: '/toplantilar', component: stub },
     ],
   })
+}
+
+export function mountDialog<P extends Record<string, unknown>>(
+  component: Component,
+  props: P,
+  options: MountOptions = {},
+) {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useScopeStore().commit({ programId: 'p1', lens: 'admin', departmentId: null })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  seedStanding(client, options.who ?? { companyAdmin: true })
+  const win = shallowRef<MessageWindow>({ ...emptyWindow(), ...options.window })
+  const router = fakeRouter()
   const wrapper = mount(component, {
     props,
     attachTo: document.body,
     global: {
       plugins: [pinia, router, [VueQueryPlugin, { queryClient: client }]],
-      provide: { [CHAT_PAGE_KEY as symbol]: context },
+      provide: { [CHAT_PAGE_KEY as symbol]: fakeContext(win) },
     },
   })
   wrappers.push(wrapper)

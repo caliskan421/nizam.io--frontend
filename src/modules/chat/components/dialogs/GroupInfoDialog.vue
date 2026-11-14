@@ -57,7 +57,9 @@ const caps = computed(() =>
     : null,
 )
 const title = computed(() =>
-  isGroup.value ? chatText('chat.dialogs.info.group') : chatText('chat.dialogs.info.direct'),
+  data.value?.kind === 'direct'
+    ? chatText('chat.dialogs.info.direct')
+    : chatText('chat.dialogs.info.group'),
 )
 const name = computed(() => data.value?.name ?? data.value?.counterpart_name ?? '')
 const founder = computed(() => {
