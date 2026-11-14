@@ -25,7 +25,6 @@ import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
-import { useSessionStore } from '@/shared/session/store'
 
 import { injectScopeLifecycle } from './scope-key'
 
@@ -34,11 +33,6 @@ export type DashboardCounts = Pick<DashboardReport, 'overdue_tasks' | 'pending_d
 
 export async function fetchDashboardCounts(signal?: AbortSignal): Promise<DashboardCounts> {
   return unwrap(api.GET('/v1/reports/dashboard', { signal }))
-}
-
-export async function fetchUnreadNotificationCount(signal?: AbortSignal): Promise<number> {
-  const result = await unwrap(api.GET('/v1/notifications/unread-count', { signal }))
-  return result.count
 }
 
 type WorkItemCounts = components['schemas']['ProgramWorkItemCounts']
@@ -184,22 +178,8 @@ export function useTaskBadges(
   return { badges }
 }
 
-/** Kenar menüsünde ortak bildirim sayacı anahtarı (ortak-kurallar §6). */
-export const UNREAD_NOTIFICATIONS_KEY = queryKeys.notifications.unreadCount()
-
-/** Okunmamış bildirim sayısı (E-00-38; zil paneli F7'ye kadar devre dışı). Hata → `null`. */
-export function useUnreadNotifications(
-  fetcher: (signal?: AbortSignal) => Promise<number> = fetchUnreadNotificationCount,
-) {
-  const session = useSessionStore()
-  const query = useQuery({
-    queryKey: UNREAD_NOTIFICATIONS_KEY,
-    queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetcher(signal)),
-    enabled: computed(() => session.isAuthenticated),
-    staleTime: 30_000,
-  })
-  const count = computed<number | null>(() =>
-    query.isError.value ? null : (query.data.value ?? null),
-  )
-  return { count }
-}
+/**
+ * Bildirim sayacı F7'den beri `notifications` modülündedir (tek kaynak; davranış değişmedi,
+ * tazeleme: staleTime 30 sn + odak + 60 sn aralık). Kabuk burada yeniden dışa aktarır.
+ */
+export { UNREAD_NOTIFICATIONS_KEY, useUnreadNotifications } from '@/modules/notifications/public'
