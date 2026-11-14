@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W154 | **Birleşti:** #141 (veri katmanı: `shared/sse`, `modules/chat`, `modules/notifications`, `query-keys`, F7 rotaları, `CURRENT_PHASE` F7, menü Mesajlar + rozet) | `e9b1cce` |
 | O2b W155–W159 | **Birleşti:** #142 (W158 bildirim paneli + zil), #143 (W155 liste + kabuk), #144 (W157 pencereler), #146 (W156 konuşma + yazma), #145 (W159 Web Push) | `5ae9bf8` |
 | O3 W160 | **Birleşti:** #147 (125 entegrasyon testi, 13 kusur düzeltmesi, `e2e/chat.spec.ts` + `e2e/notifications.spec.ts`) | `76e4345` |
-| O4 W161 ‖ W162 → W163 → Codex → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); **W162 tanığı main'de** (#148, `4457bd3`); W163 KUSUR 1–6 düzeltmeleri sürüyor (`web7/o4-w163`); Codex bekliyor; kapanış PR bekliyor | `4457bd3` |
+| O4 W161 ‖ W162 → W163 → Codex → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); **W162 tanığı main'de** (#148, `4457bd3`); **W163 KUSUR 1–6 main'de** (#149, `a56e291`); Codex bekliyor; kapanış PR bekliyor | `a56e291` |
 
 ## Kayıtlar
 
@@ -55,7 +55,11 @@ Zincir: W158 bağımsız birleşti; W155 → W157 → W156 ve W158 → W159. **#
 
 ### O4 — W162 gerçek sunucu tanığı (#148 `4457bd3`; yalnız `dogrulama-F7.md`)
 
-[dogrulama-F7](dogrulama-F7.md): gerçek Docker imajı + üretim Caddy CSP + backend kenar Caddy + `v0.15.0-api`. 18 görünüm bağlamı 0/0/0; SSE gerçek (A→B 1,34 sn, `: ping` 25 sn, kenar tamponlamıyor, bütçe kapanışı 241–281 sn + yeniden bağlanma, 429 açılış `Retry-After: 60`); yazmalar gerçek; bildirim türleri 12/12; **Web Push gerçek teslim** (Chrome 157 + FCM, 9,1 sn; `registerPushTarget` 200). **KUSUR 1–6 → W163 düzeltiyor:** 1 SSE sonrası okuma ağ hatasında tazelenmez; 2 yakalanmamış red; 3 panel sekme satırı yapışkan başlık altında; 4 ölü editConflict anahtarları; 5 anket sorusu iki kez + 390 araç satırı; 6 departmansız program kapısı `/mesajlar`'ı kapatıyor (**koordinatör kararı: `/mesajlar` muaf**, P54: sohbet program kapsamlı). Tasarım farkları: "Gruptan ayrıl" dolu düğme (W163 metin bağlantısı); tarih yereli `mm/dd/yyyy` ve ön seçimsiz koordinatörlük not. **Kanıtlanamayanlar:** VoiceOver, görsel onay, `notificationclick` OS bildirimi, Safari/iOS/Firefox push, `typing` hız kovası.
+[dogrulama-F7](dogrulama-F7.md): gerçek Docker imajı + üretim Caddy CSP + backend kenar Caddy + `v0.15.0-api`. 18 görünüm bağlamı 0/0/0; SSE gerçek (A→B 1,34 sn, `: ping` 25 sn, kenar tamponlamıyor, bütçe kapanışı 241–281 sn + yeniden bağlanma, 429 açılış `Retry-After: 60`); yazmalar gerçek; bildirim türleri 12/12; **Web Push gerçek teslim** (Chrome 157 + FCM, 9,1 sn; `registerPushTarget` 200). **KUSUR 1–6 (W163 kapattı, aşağıdaki kayıt):** 1 SSE sonrası okuma ağ hatasında tazelenmez; 2 yakalanmamış red; 3 panel sekme satırı yapışkan başlık altında; 4 ölü editConflict anahtarları; 5 anket sorusu iki kez + 390 araç satırı; 6 departmansız program kapısı `/mesajlar`'ı kapatıyor (**koordinatör kararı: `/mesajlar` muaf**, P54: sohbet program kapsamlı). Tasarım farkları: "Gruptan ayrıl" dolu düğme (W163 metin bağlantısı); tarih yereli `mm/dd/yyyy` ve ön seçimsiz koordinatörlük not. **Kanıtlanamayanlar:** VoiceOver, görsel onay, `notificationclick` OS bildirimi, Safari/iOS/Firefox push, `typing` hız kovası.
+
+### O4 — W163 düzeltmeleri (#149 `a56e291`)
+
+KUSUR 1–6 **KAPANDI** (W163, #149, main `a56e291`): 1+2 `5a4ed87`/`c129cfc`/`6fb00d1` (`usePendingReconcile` + catch; online/odak/görünür/yeniden bağlanma tek reconcile, otomatik döngü yok); 3 `4613745` (kök neden flex daralması, W162'nin "yapışkan başlık" teşhisi değil: sekme satırı `flex:none` + üst katman); 4 `614ece1` (ölü editConflict anahtarları kaldırıldı); 5 `bbba694` (anket sorusu yalnız kartta; 390 araç şeridi satırın üst şeridinde); 6 `633d70d` (`collaboration.chats`/`chat` `NO_DEPARTMENT_EXEMPT_ROUTES`, entegrasyon testi `chat-no-department`; yalnız departmentGap kapısı kalkar, no_lens değişmez); "Gruptan ayrıl" metin bağlantısı `97158da`. Kapı 761 dosya / 5491 test; duman gerçek Caddy CSP + sahte /v1 4 senaryo × 3 × 2 tema 0/0/0 (kanıt `web7-w163/`, yerel). Varsayımlar kabul: anket gövdesinde zengin metin çizilmez (PollDialog düz soru); 390 anket araç şeridi kısa yerleşim kayması. **Açık:** KUSUR 1 için gerçek ağ kopukluğu kanıtı yok (birim + entegrasyon).
 
 ## Kararlar P54–P66 (özet; metinler [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md))
 
@@ -120,7 +124,7 @@ Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç*
 | 26 | Duman konsolu: sahte uç `GET /v1/meetings/m-1` 404 ve Chrome incognito Push API uyarısı ürün hatası değil; "konsol hatası 0" diye sunulmaz | uygulama notu | W160 |
 
 | 27 | `unregisterPushTarget` çıkışta çağrılmıyor: `target_id` tutulmuyor, yalnız yerel `unsubscribe()`; sunucu ulaşılamayan hedefi kendisi düşürüyor (W162) | kapanış sonrası borç | W162 |
-| 28 | KUSUR 1–6 (dogrulama-F7): W163 düzeltiyor; KUSUR 6 koordinatör kararı `/mesajlar` departman kapısından muaf (P54) | W163'te | W162 |
+| 28 | KUSUR 1–6 (dogrulama-F7): **kapandı** (W163, #149 `a56e291`); KUSUR 1 gerçek ağ kopukluğu kanıtı yok (birim + entegrasyon) | kapandı; kalan: gerçek kopukluk kanıtı | W162/W163 |
 | 29 | Kanıtlanamayanlar: VoiceOver, kullanıcı görsel onayı, `notificationclick` OS bildirimi, Safari/iOS/Firefox push, `typing` hız kovası, CDN arkası SSE | kapanış sonrası borç | W162 |
 
 ## F7 durumu ve sonraki adım

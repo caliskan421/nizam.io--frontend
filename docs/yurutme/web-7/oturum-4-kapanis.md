@@ -8,8 +8,8 @@
 | ---- | -- | ---------- | ----- |
 | 1 | Belgeler: [rapor-F7](../../backend-eksikleri/rapor-F7.md) (bağlanan uçlar, BE kayıt durumları, tasarım farkları, öneri sırası, deploy notları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), 10/14/00 "F7 uygulama kanıtı", ekranlar README durumu, [WEB-7-codex](../../reviews/WEB-7-codex.md) ve [web-8](../web-8/README.md) iskeletleri, yol haritası §4 ve tasarım README notu | W161 (Sonnet 5.5) | Yazıldı (`web7/o4-kapanis`), yalnız belge; kod yok; PR bekliyor |
 | 2 | `dogrulama-F7.md`: gerçek Docker üretim imajı + Caddy CSP (`worker-src`, `/sw.js` no-cache) + gerçek backend (pin `v0.15.0-api`); SSE gerçek akış, çift gönderim/`edit_conflict`, ek yükleme + bilet indirme, anket, mesajdan görev, bildirim türü sözlüğü ↔ gerçek `type`, Web Push gerçek abonelik (headful), 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W162 (Sonnet 5.5) | **Tamam** (#148, main `4457bd3`; [dogrulama-F7](dogrulama-F7.md): 18 bağlam 0/0/0, SSE/yazma/bildirim/Web Push gerçek; KUSUR 1–6 → W163) |
-| 2b | W163 düzeltmeleri: KUSUR 1–6 (KUSUR 6: `/mesajlar` departman kapısından muaf, koordinatör kararı P54) + "Gruptan ayrıl" metin bağlantısı | W163 (Sonnet 5.5) | **Sürüyor** (`web7/o4-w163`; "W163 main'de" bekleniyor) |
-| 3a | Codex tur 1 (HEAD: W162 sonrası kapanış dalı main birleşik): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | Bekliyor |
+| 2b | W163 düzeltmeleri: KUSUR 1–6 (KUSUR 6: `/mesajlar` departman kapısından muaf, koordinatör kararı P54) + "Gruptan ayrıl" metin bağlantısı | W163 (Sonnet 5.5) | **Tamam** (#149, main `a56e291`; KUSUR 1–6 kapandı, 761 dosya / 5491 test) |
+| 3a | Codex tur 1 (HEAD: W163 sonrası kapanış dalı main birleşik): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | Bekliyor |
 | 3b | Koşullar işçiyle kapatılır | işçi + koordinatör | Bekliyor |
 | 3c | Codex tur 2 (ve gerekirse tur 3) | Codex | Bekliyor |
 | 4 | Koşullar işçiyle kapatılır; gerekirse sonraki tur | işçi + koordinatör | Bekliyor |
