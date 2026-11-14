@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import {
   $,
   boot,
+  chat,
   chatOf,
   GROUP,
   hold,
@@ -113,5 +114,35 @@ describe('geç başarıdan sonra yeni semantik taslak (Ö-06)', () => {
     expect(second!.client_message_id).not.toBe(first!.client_message_id)
     expect(copies('Aynı gövde')).toHaveLength(2)
     expect($('[data-testid="chat-composer-band"]')).toBeNull()
+  })
+})
+
+describe('belirsiz gönderimin ilk taslak sahipliği (Ö-07)', () => {
+  it('eski özdeş retry tek mesaj bırakır, yeni yanıt taslağını korur ve yeni taslak ayrı gönderilir', async () => {
+    chat.state.sendFault = 'lost-response'
+    const app = await open()
+    await typeText('Kaybolan yanıt')
+    await pressEnter()
+    await until(() => $('.chat-composer__notice button'), 'Tekrar dene')
+    expect(copies('Kaybolan yanıt')).toHaveLength(1)
+    await userClick(() => tool(rowOf(60)!, 'Yanıtla'))
+    await until(() => $('[data-testid="chat-composer-band"]'), 'yeni yanıt taslağı')
+    await userClick(() => $('.chat-composer__notice button'))
+    await until(() => !$('.chat-composer__notice'), 'retry başarı')
+    await idle(app.queryClient)
+    expect(posts()).toHaveLength(2)
+    expect(posts()[1]!.body).toEqual(posts()[0]!.body)
+    expect(copies('Kaybolan yanıt')).toHaveLength(1)
+    expect(field().value).toBe('Kaybolan yanıt')
+    expect($('[data-testid="chat-composer-band"]')).not.toBeNull()
+    await pressEnter()
+    await until(() => field().value === '', 'yeni taslağın başarısı')
+    await idle(app.queryClient)
+    expect(posts()).toHaveLength(3)
+    const first = posts()[0]!.body as Record<string, unknown>
+    const next = posts()[2]!.body as Record<string, unknown>
+    expect(next).toMatchObject({ body: first.body, reply_to_message_id: `${GROUP}-m60` })
+    expect(next.client_message_id).not.toBe(first.client_message_id)
+    expect(copies('Kaybolan yanıt')).toHaveLength(2)
   })
 })
