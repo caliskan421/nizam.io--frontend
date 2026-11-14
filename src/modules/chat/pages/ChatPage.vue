@@ -24,6 +24,7 @@ import ChatDialogs from '../components/ChatDialogs.vue'
 import ChatListPane from '../components/ChatListPane.vue'
 import type { ChatListHandle } from '../components/list/handle'
 import ConversationPane from '../components/ConversationPane.vue'
+import { CHAT_DIALOG_OPENER } from '../components/thread/dialog-opener'
 import { CHAT_PAGE_KEY } from '../model/context'
 import type { DialogRequest } from '../model/dialogs'
 import { chatText } from '../messages'
@@ -109,6 +110,8 @@ watch(
 )
 
 const dialog = ref<DialogRequest | null>(null)
+// Konuşma/yazma çubuğu pencere ister (10c): açıcı `ChatDialogs.request`'e bağlanır (W156 bağlaması).
+provide(CHAT_DIALOG_OPENER, (request) => void (dialog.value = request))
 function openCreate(mode: 'group' | 'direct'): void {
   dialog.value = { dialog: 'newGroup', mode }
 }

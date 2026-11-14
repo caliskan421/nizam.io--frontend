@@ -99,6 +99,19 @@ export const ICONS = {
   'step-forward': 'M4 12h12M12 8l4 4-4 4M20 5v14',
   // Arşiv klasörü (Arsiv-Klasor.dc.html, W123): yükle düğmesi ve ızgara görünümü
   grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  // Mesajlar › konuşma ve yazma çubuğu (Mesajlar.dc.html, Mesajlar-Uye.dc.html; W156)
+  'chat-reply': 'M10 9V5l-7 7 7 7v-4c5 0 8 1.5 11 5-1-5-4-10-11-11z',
+  'chat-forward': 'M14 9V5l7 7-7 7v-4c-5 0-8 1.5-11 5 1-5 4-10 11-11z',
+  'chat-react': 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.5 14a4 4 0 0 0 7 0M9 9.5h.01M15 9.5h.01',
+  'chat-pin': 'M9 4h6l-1 6 4 3H6l4-3zM12 13v7',
+  'chat-info': 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8h.01M11 12h1v5h1',
+  'chat-link':
+    'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  'chat-tick': 'M2 12.5 6 16.5 14 8M10 16.5 18 8',
+  'chat-send': 'M4 12 20 4l-6 16-3-7z',
+  'chat-poll': 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  'chat-hash': 'M5 9h14M5 15h14M10 3 8 21M16 3l-2 18',
+  'chat-at': 'M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1',
 } as const
 
 export type IconName = keyof typeof ICONS
