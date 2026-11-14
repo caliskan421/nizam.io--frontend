@@ -117,7 +117,7 @@ export function useChatStream(options: ChatStreamOptions) {
       return
     }
     const mine = generation
-    const scope = { ...scopeStore.snapshot }
+    const scope = () => ({ ...scopeStore.snapshot })
     const current = () => mine === generation && owner.alive()
     const onReadFailed = () => current() && pending.mark()
     const base = { client, scope, options, meAccountId: session.accountId, alive: owner.alive }
@@ -131,7 +131,7 @@ export function useChatStream(options: ChatStreamOptions) {
       onTyping: (event) => current() && typing.touch(event),
       onOpen: ({ reconnect }) => {
         if (!current()) return
-        reconcileLists(client, scope)
+        reconcileLists(client, scope())
         if (reconnect) pending.reconnected()
       },
       deps: options.deps,

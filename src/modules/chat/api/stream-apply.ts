@@ -7,6 +7,7 @@
 import { toValue } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
+import { sameScope } from '@/shared/http/mutation'
 import { queryKeys, resourceFilter } from '@/shared/http/query-keys'
 import type { CoalescedEvent } from '@/shared/sse'
 
@@ -40,6 +41,8 @@ function invalidate(deps: ApplyDeps, event: CoalescedEvent, plan: EventPlan): Pr
 async function recheck(deps: ApplyDeps, event: CoalescedEvent): Promise<void> {
   const key = queryKeys.chats.detail(deps.scope, event.chatId)
   await deps.client.invalidateQueries({ queryKey: key, exact: true })
+  // Gecikmiş denetim: kapsam bu arada değiştiyse sonuç eski kapsama aittir, güncel ekrana uygulanmaz.
+  if (!deps.alive() || !sameScope(deps.scope, deps.currentScope())) return
   const error = deps.client.getQueryState(key)?.error
   if (error instanceof ApiError && error.code === 'messaging.chat_not_found') {
     deps.onChatLost(event.chatId)
@@ -88,7 +91,8 @@ export function dispatchEvent(deps: DispatchDeps, event: CoalescedEvent): void {
   })
   const applyDeps: ApplyDeps = {
     client: deps.client,
-    scope: deps.scope,
+    scope: { ...deps.scope() },
+    currentScope: deps.scope,
     openChatId: open,
     messages,
     alive: deps.alive,
