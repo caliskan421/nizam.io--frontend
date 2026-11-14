@@ -1,7 +1,7 @@
 // Playwright global setup: fixture verisi YALNIZ API çağrılarıyla kurulur (backend seed yüzü
 // yok, D-0162). Yönetici girişi → program → departman → programa bağlama → üye oluşturma.
 // İstekler `vite preview` proxy'si üzerinden gider (tarayıcıyla aynı yol).
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
 import { request, type APIResponse, type FullConfig } from '@playwright/test'
@@ -34,6 +34,37 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   )
   if (!login.token) throw new Error('global-setup: web girişinde token yok')
   const auth = { ...csrf, Authorization: `Bearer ${login.token}` }
+
+  // İdempotent tohum (W148): fixture YALNIZ bir kez kurulur. Programları ≥2 olan veritabanında
+  // kenar menüsü program seçicisini kendiliğinden açar ve saydam perde tıklamaları engeller
+  // (smoke/two-tabs "perde tıklamayı yakalıyor" düşüşü); bu yüzden her koşumda yeni program
+  // açılmaz — önceki koşumun fixture'ı hâlâ tek program ise yeniden kullanılır, değilse
+  // (kirli veritabanı) neden açık bir hatayla durulur.
+  const existing = await json<Schemas['ProgramList']>(
+    await api.get('/v1/programs', { headers: auth }),
+    'program listesi',
+  )
+  if (existing.programs.length > 0) {
+    const previous = existsSync(FIXTURE_PATH)
+      ? (JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as E2eFixture)
+      : null
+    const [only] = existing.programs
+    if (
+      existing.programs.length === 1 &&
+      previous &&
+      only?.program_id === previous.programId &&
+      previous.adminAccountId === login.account_id
+    ) {
+      await api.post('/v1/auth/logout', { headers: auth })
+      await api.dispose()
+      return
+    }
+    throw new Error(
+      `global-setup: veritabanında ${existing.programs.length} program var ve fixture ile eşleşmiyor; ` +
+        'e2e tek program varsayar (≥2 programda program seçici açık kalır). ' +
+        'Temiz başlangıç için: pnpm e2e:backend:down && pnpm e2e:backend:up',
+    )
+  }
   const run = Date.now().toString(36)
 
   const program = await json<Schemas['Program']>(
