@@ -1,6 +1,6 @@
 # WEB-7 — sohbet, bildirim paneli ve gerçek zamanlı altyapı
 
-**F7 KAPANMADI — Codex tur 1 UYGUN DEĞİL, W164 düzeltiyor (2026-11-14).** W162 tanığı #148 ve W163 düzeltmeleri #149 (`a56e291`) main'de. O1–O3 main'de (PR #137–#147, son kod `76e4345`, 758 dosya / 5478 test); O4: W161 belgeler yazıldı, W162 gerçek sunucu tanığı alındı (#148, `4457bd3`), Codex 2–3 tur bekliyor ([hüküm iskeleti](../../reviews/WEB-7-codex.md)), kapanış PR'ı bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)). **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P55/P56 kayıtlı; P57–P66 KESİN (koordinatör varsayılanı, ürün sahibi onayı 2026-11-14: "Web Push dahil olsun, kilitli kart backend, bildirim sade liste tamam"; **P58 Web Push dahil, P60 backend kazanır, P57 sade liste**). [WEB-6](../web-6/README.md) KAPANDI (2026-11-14; Codex 3 tur UYGUN). **Backend dursun:** yalnız pin `v0.15.0-api` uçları; sohbet ve bildirim sözleşmesi v0.11→v0.17 değişmedi, pin yükseltmesi yok; eksikler statik/devre dışı/gizli + BE kaydı (bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan); backend paketi açılmaz (§3 `designStub` koşulu, §4 statik ≠ sahte veri). Ortak sözleşme: [ortak-sozlesme.md](ortak-sozlesme.md) (KESİN 1–34). İlerleme: [ilerleme.md](ilerleme.md).
+**F7 KAPANMADI — Codex tur 2 (2026-11-14).** W162 tanığı #148 ve W163 düzeltmeleri #149 (`a56e291`) main'de. O1–O3 main'de (PR #137–#147, son kod `76e4345`, 758 dosya / 5478 test); O4: W161 belgeler yazıldı, W162 gerçek sunucu tanığı alındı (#148, `4457bd3`), Codex 2–3 tur bekliyor ([hüküm iskeleti](../../reviews/WEB-7-codex.md)), kapanış PR'ı bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)). **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P55/P56 kayıtlı; P57–P66 KESİN (koordinatör varsayılanı, ürün sahibi onayı 2026-11-14: "Web Push dahil olsun, kilitli kart backend, bildirim sade liste tamam"; **P58 Web Push dahil, P60 backend kazanır, P57 sade liste**). [WEB-6](../web-6/README.md) KAPANDI (2026-11-14; Codex 3 tur UYGUN). **Backend dursun:** yalnız pin `v0.15.0-api` uçları; sohbet ve bildirim sözleşmesi v0.11→v0.17 değişmedi, pin yükseltmesi yok; eksikler statik/devre dışı/gizli + BE kaydı (bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan); backend paketi açılmaz (§3 `designStub` koşulu, §4 statik ≠ sahte veri). Ortak sözleşme: [ortak-sozlesme.md](ortak-sozlesme.md) (KESİN 1–34). İlerleme: [ilerleme.md](ilerleme.md).
 
 ## Kapsam (P54)
 
@@ -58,7 +58,7 @@ Bu belge karar vermez; yalnız kararın gerektiği yerleri listeler.
 
 | Dosya | İçerik |
 | --- | --- |
-| [ilerleme.md](ilerleme.md) | Durum: F7 KAPANMADI (Codex tur 1 UYGUN DEĞİL, W164); O1–O3 hash'ler, P54–P66, 26 numaralı borç |
+| [ilerleme.md](ilerleme.md) | Durum: F7 KAPANMADI (Codex tur 2); O1–O3 hash'ler, P54–P66, 26 numaralı borç |
 | [ortak-sozlesme.md](ortak-sozlesme.md) | Her uygulayıcı isteminin başına eklenen sözleşme (KESİN 1–34) |
 | [oturum-1-hazirlik.md](oturum-1-hazirlik.md) | O1 adımları |
 | [oturum-2-uygulama.md](oturum-2-uygulama.md) | O2a/O2b iş listesi (uygulandı) |

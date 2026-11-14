@@ -1,6 +1,6 @@
 # WEB-7 — Codex nihai kapı
 
-Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Codex `gpt-6.1-sol` medium, `-s read-only`. Hüküm durumu: **tur 1 UYGUN DEĞİL** (HEAD `a6cea6b`; E-01 engelleyici, W164 düzeltiyor; tur 2 bekliyor). F7 **KAPANMADI** — Codex bekliyor. Ham çıktılar koordinatör kaydında tutulacak (`.git/koordinator/web7-codex-tur{1,2,3}.md`, yerel). İstem: koordinatör `web7-codex-prompt.md` ([oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md) "Codex istem notları").
+Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Codex `gpt-6.1-sol` medium, `-s read-only`. Hüküm durumu: **tur 1 UYGUN DEĞİL** (HEAD `a6cea6b`; koşullar W164'te kapandı, main `8742269`; tur 2 bekliyor). F7 **KAPANMADI** — Codex bekliyor. Ham çıktılar koordinatör kaydında tutulacak (`.git/koordinator/web7-codex-tur{1,2,3}.md`, yerel). İstem: koordinatör `web7-codex-prompt.md` ([oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md) "Codex istem notları").
 
 Girdiler: main `76e4345` (W160 birleşik) + W161 belgeleri + W162 `dogrulama-F7.md` (bekliyor); kapı HEAD'i W162 main'e girince belirlenir. Kabul ölçütleri: 10/14/00 "F7 uygulama kanıtı" bölümleri, P54–P66, KESİN 17/21/22/26/27/29/30/33/34. Araç izi olmayan çıktı kapı sayılmaz; hüküm HEAD CI'sını doğrulamaz (kapanış PR'ı ayrıca).
 
@@ -16,11 +16,11 @@ Mercek/birim değişiminden sonra sohbetten çıkarılma olayının güncel ekra
 
 | Bulgu | Önem | Konum | Bağ | Atanan | Durum |
 | --- | --- | --- | --- | --- | --- |
-| CX-F7-E-01 SSE olay uygulama bağlamı eski kapsamda: aynı programda birim/mercek değişince çıkarılma kapanmaz | Yüksek / engelleyici | `src/modules/chat/api/stream.ts:120`, `stream-apply.ts:40` | P65, N-10-11/14, K2 | W164 | açık |
-| CX-F7-Ö-01 Geç gönderim sonucu başka taslağı siliyor | Yüksek | `src/modules/chat/components/composer/use-send.ts:73`, `:139` | E-10-60, K5, KESİN 26 | W164 | açık |
-| CX-F7-Ö-02 Önbellekli sohbete dönüşte kaçan değişiklikler uzlaştırılmıyor (`staleTime: Infinity`) | Orta | `api/message-window.ts:66`, `api/stream.ts:132` | N-10-13/14, P65, backend §10.5 | W164 | açık |
-| CX-F7-Ö-03 Odak geri gelince okundu tetiklenmiyor | Orta | `components/thread/use-read-marker.ts:68`, `MessageList.vue:75` | N-10-01, KESİN 29 | W164 | açık |
-| CX-F7-K-01 Sohbet testlerinde gerçek zaman beklemeleri | Orta (doğrulama disiplini) | `pages/ChatPage.test.ts:181` (20 ms), `api/message-window.test.ts:115` (5 ms), `api/writes.test.ts:199` (10 ms) | KESİN 11/26/32 | W164 | açık |
+| CX-F7-E-01 SSE olay uygulama bağlamı eski kapsamda: aynı programda birim/mercek değişince çıkarılma kapanmaz | Yüksek / engelleyici | `src/modules/chat/api/stream.ts:120`, `stream-apply.ts:40` | P65, N-10-11/14, K2 | W164 | kapandı — W164 PR #150, `354a2ed` (olay uygulama bağlamı her olayda güncel kapsamdan; geç recheck kapsam değiştiyse atılır; `chat-stream-scope.test` 2 test) |
+| CX-F7-Ö-01 Geç gönderim sonucu başka taslağı siliyor | Yüksek | `src/modules/chat/components/composer/use-send.ts:73`, `:139` | E-10-60, K5, KESİN 26 | W164 | kapandı — W164 PR #150, `a5dc176` (`settleSent` anahtar/sürüm; use-edit/use-upload aynı sınıf; `chat-send-late.test` + `settle-sent.test`) |
+| CX-F7-Ö-02 Önbellekli sohbete dönüşte kaçan değişiklikler uzlaştırılmıyor (`staleTime: Infinity`) | Orta | `api/message-window.ts:66`, `api/stream.ts:132` | N-10-13/14, P65, backend §10.5 | W164 | kapandı — W164 PR #150, `797830e` (`useActivationReconcile`; `chat-stream-return.test` 2 test, `after` +1) |
+| CX-F7-Ö-03 Odak geri gelince okundu tetiklenmiyor | Orta | `components/thread/use-read-marker.ts:68`, `MessageList.vue:75` | N-10-01, KESİN 29 | W164 | kapandı — W164 PR #150, `7efd68c` (odak/görünürlük → touch; `chat-window.test` 999/1000 ms) |
+| CX-F7-K-01 Sohbet testlerinde gerçek zaman beklemeleri | Orta (doğrulama disiplini) | `pages/ChatPage.test.ts:181` (20 ms), `api/message-window.test.ts:115` (5 ms), `api/writes.test.ts:199` (10 ms) | KESİN 11/26/32 | W164 | kapandı — W164 PR #150, `16f52eb` (üç bariyer; chat altında gerçek bekleme yok) |
 | CX-F7-K-02 Belge ve kanıt tutarsızlığı (rapor-F7 §8, 10/14 kanıt bölümleri "gerçek kanıt yok") | Düşük | `rapor-F7.md:115`, `14-bildirimler/README.md:207`, `10-mesajlar/README.md:263` | P66, KESİN 33 | W161 | kapandı (W161 bu belge commit'inde; tarihsel test kapsamı ile güncel W162 tanığı ayrıldı) |
 
 ### Bulgu ayrıntıları
@@ -55,9 +55,11 @@ Mercek/birim değişiminden sonra sohbetten çıkarılma olayının güncel ekra
 
 ## Koşulların kapanışı
 
-W164 (`web7/o4-w164`): E-01, Ö-01, Ö-02, Ö-03, K-01; K-02 W161'de kapandı. "W164 main'de" sonrası bu tablo hash'lerle doldurulur, tur 2 koşulur.
+Atamalar W164'te (`web7/o4-w164`) kapandı; K-02 W161'de. Kapanış hash'leri yukarıdaki tabloda.
 
-## Tur 2 — bekliyor (W164 sonrası)
+W164 (PR #150, main `8742269`): Kapı 765 dosya / 5501 test; duman gerçek SSE + Caddy 2 senaryo × 3 × 2 tema 0/0/0 (kanıt `web7-w164/`, yerel); her düzeltme geri alınınca ilgili test kırmızı teyit edildi. Varsayımlar kabul: önbellek ölçütü `getQueryData`; `saving` genel bayrak kalır; geç recheck atılır. Açık borçlar: pin olayı için ayrı test yok; Ö-03 sökülme birim testi yok.
+
+## Tur 2 — bekliyor
 
 _(gerekirse)_
 
