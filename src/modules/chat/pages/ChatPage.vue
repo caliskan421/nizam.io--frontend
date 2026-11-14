@@ -15,7 +15,7 @@ import { useRoute, useRouter, type LocationQuery } from 'vue-router'
 import { ApiError } from '@/shared/errors/api-error'
 import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
-import { UiButton, UiEmptyState } from '@/shared/ui'
+import { UiButton, UiEmptyState, useToast } from '@/shared/ui'
 
 import { useChat } from '../api/queries'
 import { useChatMessages } from '../api/message-window'
@@ -42,13 +42,17 @@ const chatId = computed(() => {
   return typeof raw === 'string' && raw !== '' ? raw : null
 })
 
+const toast = useToast()
 const chat = useChat(chatId)
 const messages = useChatMessages(chatId)
 const stream = useChatStream({
   chatId,
   messages,
-  // Açık sohbetten düşüldü (404): listeye dön.
-  onChatLost: () => void router.replace({ name: CHATS_ROUTE.name, query: keptQuery() }),
+  // Açık sohbetten düşüldü (404): sessiz konum değişimi olmasın → tek bildirim + listeye dön.
+  onChatLost: () => {
+    toast.push({ message: chatText('chat.states.notFound') })
+    void router.replace({ name: CHATS_ROUTE.name, query: keptQuery() })
+  },
 })
 
 provide(CHAT_PAGE_KEY, {
