@@ -16,13 +16,13 @@ HEAD: `633d9d22f7be472e417e75d583658231b0cf1fa2`
 | --- | --- | --- | --- | --- | --- |
 | CX-F6-E-01 Kayıt değişince devam eden rapor sonucu yeni kayda taşınabiliyor | Orta | `src/modules/reports/components/ReportActionButton.vue:100`, `src/modules/reports/pages/MeetingReportPage.vue:87` | E-13-47/68/74, KESİN 26 | W146 | kapandı (W146) |
 | CX-F6-E-02 Hesaba ait bekleme sayacı sonraki hesaba kalıyor | Orta | `src/modules/reports/model/gate.ts:98`, `src/modules/reports/api/cancellation.ts:25` | REPORTING-K09/K10, E-13-69/70 | W146 | kapandı (W146) |
-| CX-F6-E-03 Ü1 eksik kümeyi tam küme gibi sunuyor | Orta | `src/modules/home/api/role/use-role-load.ts:16`, `src/modules/home/pages/MemberHomePage.vue:132` | P4, ortak-kurallar §10, KESİN 21; E-Ü1-09/10/25–27/31 | W147 | açık |
-| CX-F6-E-04 K1 kişi başı açık görev sayısı başlamamış atamaları dışlıyor | Orta | `src/modules/home/model/k1/team.ts:65` | E-K1-08/27/28, KESİN 21 | W147 | açık |
+| CX-F6-E-03 Ü1 eksik kümeyi tam küme gibi sunuyor | Orta | `src/modules/home/api/role/use-role-load.ts:16`, `src/modules/home/pages/MemberHomePage.vue:132` | P4, ortak-kurallar §10, KESİN 21; E-Ü1-09/10/25–27/31 | W147 | kapandı (W147) |
+| CX-F6-E-04 K1 kişi başı açık görev sayısı başlamamış atamaları dışlıyor | Orta | `src/modules/home/model/k1/team.ts:65` | E-K1-08/27/28, KESİN 21 | W147 | kapandı (W147) |
 | CX-F6-E-05 Ağır önizlemenin 429 yanıtı ortak bekleme politikasına katılmıyor | Orta | `src/modules/reports/api/queries.ts:58`, `src/modules/reports/pages/SeasonReportPage.vue:82` | REPORTING-K10, E-13-39/40/69/70 | W146 | kapandı (W146) |
 | CX-F6-E-06 01g'de 404, kabul edilen kayıp-kayıt akışını işletmiyor | Orta | `src/modules/reports/pages/MeetingReportPage.vue:98`, `src/app/__tests__/integration/reports-meeting.test.ts:163` | E-13-73, 13 mekanizma §2 | W146 | kapandı (W146) |
-| CX-F6-K-01 Yeni testte gerçek zaman beklemesi var | Düşük | `src/modules/home/components/k1/use-role-writes.test.ts:149` | KESİN 11/26(c) | W147 | açık |
+| CX-F6-K-01 Yeni testte gerçek zaman beklemesi var | Düşük | `src/modules/home/components/k1/use-role-writes.test.ts:149` | KESİN 11/26(c) | W147 | kapandı (W147) |
 | CX-F6-K-02 Belge ve kanıt sınırları (CI/HEAD bağı, gerçek e2e, 404 URL'si) | Orta | `docs/yurutme/web-6/oturum-4-kapanis.md:25`, `docs/backend-eksikleri/rapor-F6.md` §7, W142/W144/W145 kayıtları | kanıt izlenebilirliği | W148 (+ koordinatör CI) | W148 kapandı; HEAD CI → kapanış PR CI'sı ile kapanır |
-| KUSUR 4 yorumu: mercek liste/sayaç süzgeci doğrulanmalı | — (karar kaydı yetmez) | Ü/K merceğinde 03 listesi/sayaç | P1/P53 | W147 | açık |
+| KUSUR 4 yorumu: mercek liste/sayaç süzgeci doğrulanmalı | — (karar kaydı yetmez) | Ü/K merceğinde 03 listesi/sayaç | P1/P53 | W147 | kapandı (W147) |
 
 ### Bulgu ayrıntıları
 
@@ -69,20 +69,28 @@ Yöneticinin başka birim panelini açması ve rapor düğmesini görmesi **yetk
 
 ## Koşulların kapanışı
 
-Atamalar: **W146** (E-01, E-02, E-05, E-06; reports), **W147** (E-03, E-04, K-01, KUSUR 4 mercek liste/sayaç süzgeci; home/work), **W148** (K-02: `smoke`/`two-tabs` gerçek backend nedeni; 390 px 404 URL'si W147 dumanında yakalanır). W146 (#132, main `6c7a66c`) ve W148 (#131) main'de (`4859b81`); W146 varsayımları kabul: 404 → `collaboration.meetings` geçersizlenir, `report.meeting` geçersizlenmez (döngü önlenir). W146 4617 test; duman 429/404 rotaları 0/0/0 (kanıt `.git/koordinator/web6-w146/`). W148: K-02'nin nedeni **test donanımı**: `global-setup` her koşumda yeni program yaratır; 2 programlı DB'de program seçici kendiliğinden açılır ve saydam `side-scrim` tıklamaları yakalar — istemci/backend kusuru değil. Tohum idempotent yapıldı; gerçek backend e2e 5/5 yeşil (taze DB + yeniden kullanım); README fixture notu. W147 (E-03, E-04, K-01, KUSUR 4) bekliyor.
+Atamalar: **W146** (E-01, E-02, E-05, E-06; reports), **W147** (E-03, E-04, K-01, KUSUR 4 mercek liste/sayaç süzgeci; home/work), **W148** (K-02: `smoke`/`two-tabs` gerçek backend nedeni; 390 px 404 URL'si W147 dumanında yakalanır). W146 (#132, main `6c7a66c`) ve W148 (#131) main'de (`4859b81`); W146 varsayımları kabul: 404 → `collaboration.meetings` geçersizlenir, `report.meeting` geçersizlenmez (döngü önlenir). W146 4617 test; duman 429/404 rotaları 0/0/0 (kanıt `.git/koordinator/web6-w146/`). W148: K-02'nin nedeni **test donanımı**: `global-setup` her koşumda yeni program yaratır; 2 programlı DB'de program seçici kendiliğinden açılır ve saydam `side-scrim` tıklamaları yakalar — istemci/backend kusuru değil. Tohum idempotent yapıldı; gerçek backend e2e 5/5 yeşil (taze DB + yeniden kullanım); README fixture notu. 
 
 | Bulgu | Kapanış | Hash / PR |
 | --- | --- | --- |
 | CX-F6-E-01 | W146 | kapandı — W146 PR #132, `a10e6fd` (düğme kimliği `kind` + `targetId` + `memberIds`; değişince iptal + epoch; bağlama noktalarının hepsi tek bileşen), main `6c7a66c` |
 | CX-F6-E-02 | W146 | kapandı — W146 PR #132, `8f39011` (`bindGateToSession`; hesap/nesil değişiminde reset, refresh korur; `gate-session.test`) |
-| CX-F6-E-03 | W147 | açık |
-| CX-F6-E-04 | W147 | açık |
+| CX-F6-E-03 | W147 | kapandı — W147 PR #133, `0158c07` (`useRoleLoad` partial/scope/loaded/loadMore; `ScopeNote` "Yalnız ilk N görev yüklendi" + Devam et/Yeniden dene; Ü1 "Tümü N" sunucu sayacından, yoksa "≥N"; takvim/kırılım/K1 şerit-ekip yükü-dikkat kuyruğu kısmi kümede "≥"; `role-partial.test`, `ScopeNote.test`; tavan 5 sayfa korunur, aşmak kullanıcı eylemi) |
+| CX-F6-E-04 | W147 | kapandı — W147 PR #133, `9a5f4b6` (K1 kişi başı açık = açık-atama kümesi, `baslanmadi` dahil; sıralama; `k1-model.test`) |
 | CX-F6-E-05 | W146 | kapandı — W146 PR #132, `227e832` (ortak `applyCooldown`; başlıklı 429 sayaç; başlıksız 429/503/500 sayaç yok; 01f tekrar + PDF kapalı; otomatik istek yok) |
 | CX-F6-E-06 | W146 | kapandı — W146 PR #132, `f9b9df1` (`useMeetingGone`: 404 → toplantı listesine `replace`, `meetings.all` geçersiz, tek bildirim; 01g araç çubuğu PDF düğmesine eksik 404 işleyicisi; 500 kapatmaz) |
-| CX-F6-K-01 | W147 | açık |
+| CX-F6-K-01 | W147 | kapandı — W147 PR #133, `917fbb9` (`setTimeout(50)` kalktı; `settleQueries`) |
 | CX-F6-K-02 | W148 (+ koordinatör: CI/HEAD bağı) | kapandı (neden) — W148 PR #131, `e9b838a`/`148f2ef`; "HEAD CI sonucu" satırı kapanış PR CI'sı ile kapanır |
-| KUSUR 4 mercek listesi | W147 | açık |
+| KUSUR 4 mercek listesi | W147 | kapandı (doğrulama) — W147: süzgeç kaynakta zaten vardı, kod değişmedi; tanık `home-lens-filter.test.ts` (5) |
+
+### W147 sonucu (PR #133, main `47739fe`)
+
+- **KUSUR 4:** süzgeç kaynakta **zaten var**, kod değişmedi. Tanık `home-lens-filter.test.ts` (5 test): `company_admin` koordinatör merceğinde 03 liste/sayaç/rozet istekleri `department_id=X`, üye merceğinde `assignee_account_id=ben`; W144 ham izi eski imajdandı (`a3b31e3`). P53 metniyle çelişki yok. Derin bağlantı: admin merceğinde panel açılır (görevin kendi birim başlığıyla); koordinatör merceğinde seçili birimden çözülür → sunucu 404 → panel kapanır (P1 korunur). Kalan **açık UX sorusu** yalnız: yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi.
+- **K-02 390 px konsol 404:** `GET /v1/work-items/w3` — duman betiğinin sahte `/v1`'inde tanımsız uç (K1 "Süre uzat" talep satırı görev ayrıntısı); ürün hatası değil, kapandı.
+- Varsayım kabul: tavan 5 sayfa korunur. CI notu: `archive/api/lifecycle.test.ts` 5 sn zaman aşımıyla bir kez düştü (W147 dışı), rerun yeşil.
+
+**Bütün tur 1 koşulları (E-01…06, K-01, K-02) kapandı.** K-02'nin "HEAD CI sonucu" ayağı kapanış PR CI'sı ile kapanır.
 
 ## Tur 2
 
-**Bekliyor.** W146/W147/W148 birleşip bulgu durumları işlendikten sonra koşar.
+**Bekliyor.** Bütün koşullar kapandı; Codex tur 2 kapanış dalında koşar.

@@ -30,7 +30,7 @@ Hiçbiri seçilmedi; yol haritası [§4](../../architecture/yol-haritasi-web.md)
 4. 01b işlem geçmişi için audit okuma backend paketi (BE-030/BE-091/BE-010) açılsın mı?
 5. "Backend dursun" kuralı sürecek mi? Süreceyse F7 kapsamı yalnız mevcut uçlarla sınırlıdır; sürmeyecekse önce [rapor-F6 §6](../../backend-eksikleri/rapor-F6.md) önceliği (BE-122/123/124/125) ve pin yükseltmesi sıralanır.
 
-6. **Karar bekler (W144 KUSUR 4):** yönetici Ü/K merceğindeyken 03 listesi program geneli kalıyor ve başka birimin `?gorev=` derin bağlantısı panel açıyor (gerçek K/Ü'de 404). Mercek liste kapsamını daraltmalı mı? Varsayılan P1/P53 korunur ([rapor-F6 §5](../../backend-eksikleri/rapor-F6.md)).
+6. **Karar bekler (W144 KUSUR 4, W147 ile daraltıldı):** liste/sayaç mercek süzgeci doğrulandı; yönetici merceğinde başka birimin görevini derin bağlantıyla açabilmesi istenir mi? (admin merceğinde panel açılır; koordinatör merceğinde 404; varsayılan P1/P53 korunur; [rapor-F6 §5](../../backend-eksikleri/rapor-F6.md).)
 
 Bu belge karar vermez; yalnız kararın gerektiği yerleri listeler.
 
