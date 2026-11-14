@@ -91,6 +91,8 @@ export const ICONS = {
    * gövdesi + sağ kolu açık halka.
    */
   unlock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 7.5-2',
+  /** İğne (Mesajlar.dc.html konuşma satırı: sistem grubu işareti). */
+  pin: 'M9 4h6l-1 6 4 3H6l4-3zM12 13v7',
   // Zaman çizelgesi (Gorevler-Zaman.dc.html): uzaklaştır, tam ekran, tarih değişimi bildirimi
   minus: 'M5 12h14',
   expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
