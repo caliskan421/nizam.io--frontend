@@ -2,7 +2,7 @@
 
 **Durum (2026-11-14):** birleşti. Dal `web7/o3-w160` (29 commit, uç `a7a509b`), taban main `5ae9bf8` (O2b birleşik). İstem ve senaryo listesi [oturum-2-uygulama](oturum-2-uygulama.md) O3 satırı; tespit [10-mesajlar](../../ekranlar/10-mesajlar/README.md), [14-bildirimler](../../ekranlar/14-bildirimler/README.md), [00-ortak mekanizma §9](../../ekranlar/00-ortak/mekanizma.md).
 
-Gerçek router/AppShell/oturum ve durumlu sahte sunucuyla (sunucu görünürlüğü **süzmeden** döner; süzme istemcide sınanır) ve gerçek bileşenlerle koşar; sahte SSE akışı `fetch` çevresinden karşılanır. Sahte `/v1` kullanıldığı için gerçek backend kanıtı değildir; o W162'dedir ([dogrulama-F7](dogrulama-F7.md), bekliyor). e2e ise gerçek backend'e karşı koşar (aşağıda).
+Gerçek router/AppShell/oturum ve durumlu sahte sunucuyla (sunucu görünürlüğü **süzmeden** döner; süzme istemcide sınanır) ve gerçek bileşenlerle koşar; sahte SSE akışı `fetch` çevresinden karşılanır. Sahte `/v1` kullanıldığı için gerçek backend kanıtı değildir; o W162'dedir ([dogrulama-F7](dogrulama-F7.md), alındı). e2e ise gerçek backend'e karşı koşar (aşağıda).
 
 ## Sonuç
 

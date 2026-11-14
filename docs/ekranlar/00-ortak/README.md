@@ -120,7 +120,7 @@ Ayrıntı ve öğe tabloları: [mekanizma.md §9](mekanizma.md). Özet: menü gr
 
 ## F7 uygulama kanıtı (W161, 2026-11-14)
 
-**Uygulama durumu: `kabul` (sahte `/v1` ile; gerçek sunucu W162 bekliyor)** — E-00-20 (Mesajlar menü öğesi), E-00-21 (Mesajlar rozeti) ve E-00-38 (bildirim zili, panel canlı) W154 (PR #141, `e9b1cce`), W155 (#143), W158 (#142) ile uygulandı ve W160 (#147) entegrasyon turunda üç rol × 390 px ile sınandı; `main` `76e4345`. Karar hücreleri (`geçici kabul` / `kabul`) karar kaydıdır ve değişmedi; E-00-21 sohbet sayısı varsayılanı (P59) KESİN'dir. Gerçek cihaz ekran okuyucu ve gerçek sunucu kanıtı yapılmadı (**doğrulanamadı**; W162 bekliyor). Test dosyaları `src/app/` altındadır.
+**Uygulama durumu: `kabul` (sahte `/v1` ile; gerçek sunucu tanığı: [dogrulama-F7](../../yurutme/web-7/dogrulama-F7.md) — W162, #148 `4457bd3`)** — E-00-20 (Mesajlar menü öğesi), E-00-21 (Mesajlar rozeti) ve E-00-38 (bildirim zili, panel canlı) W154 (PR #141, `e9b1cce`), W155 (#143), W158 (#142) ile uygulandı ve W160 (#147) entegrasyon turunda üç rol × 390 px ile sınandı; `main` `76e4345`. Karar hücreleri (`geçici kabul` / `kabul`) karar kaydıdır ve değişmedi; E-00-21 sohbet sayısı varsayılanı (P59) KESİN'dir. Gerçek cihaz ekran okuyucu ve gerçek sunucu kanıtı yapılmadı (**doğrulanamadı**; W162 bekliyor). Test dosyaları `src/app/` altındadır.
 
 | Satırlar | Konu | Kanıt (dosya · test adı / akış) |
 |---|---|---|

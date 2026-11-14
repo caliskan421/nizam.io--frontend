@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 (sohbet + bildirimler); P55/P56 kayıtlı; P57–P66 KESİN (ürün sahibi onayı 2026-11-14: P58 Web Push dahil, P60 backend kazanır, P57 bildirim sade liste). WEB-6 KAPANDI (Codex 3 tur UYGUN). Pin `v0.15.0-api` değişmez; backend paketi açılmaz. Plan [README](README.md)'de.
 
-**F7 KAPANMADI — Codex bekliyor (2026-11-14).** O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (`web7/o4-w162`, bekliyor), sonra Codex 2–3 tur ([iskelet](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
+**F7 KAPANMADI — Codex bekliyor (2026-11-14).** O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), sonra Codex 2–3 tur ([iskelet](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Durum
 
@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W154 | **Birleşti:** #141 (veri katmanı: `shared/sse`, `modules/chat`, `modules/notifications`, `query-keys`, F7 rotaları, `CURRENT_PHASE` F7, menü Mesajlar + rozet) | `e9b1cce` |
 | O2b W155–W159 | **Birleşti:** #142 (W158 bildirim paneli + zil), #143 (W155 liste + kabuk), #144 (W157 pencereler), #146 (W156 konuşma + yazma), #145 (W159 Web Push) | `5ae9bf8` |
 | O3 W160 | **Birleşti:** #147 (125 entegrasyon testi, 13 kusur düzeltmesi, `e2e/chat.spec.ts` + `e2e/notifications.spec.ts`) | `76e4345` |
-| O4 W161 ‖ W162 → Codex → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); W162 tanığı bekliyor; Codex bekliyor; kapanış PR bekliyor | — |
+| O4 W161 ‖ W162 → W163 → Codex → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); **W162 tanığı main'de** (#148, `4457bd3`); W163 KUSUR 1–6 düzeltmeleri sürüyor (`web7/o4-w163`); Codex bekliyor; kapanış PR bekliyor | `4457bd3` |
 
 ## Kayıtlar
 
@@ -52,6 +52,10 @@ Zincir: W158 bağımsız birleşti; W155 → W157 → W156 ve W158 → W159. **#
 ### O4 — belgeler (W161, `web7/o4-kapanis`)
 
 `rapor-F7`, bu kayıt, `oturum-3-entegrasyon`, `oturum-4-kapanis`, README durumu, 10/14/00 "F7 uygulama kanıtı" bölümleri, ekranlar README, `WEB-7-codex` iskeleti, `web-8` iskeleti, yol haritası §4 ve tasarım README notu (yalnız belge; kod yok). W162 `dogrulama-F7.md` ayrı dalda.
+
+### O4 — W162 gerçek sunucu tanığı (#148 `4457bd3`; yalnız `dogrulama-F7.md`)
+
+[dogrulama-F7](dogrulama-F7.md): gerçek Docker imajı + üretim Caddy CSP + backend kenar Caddy + `v0.15.0-api`. 18 görünüm bağlamı 0/0/0; SSE gerçek (A→B 1,34 sn, `: ping` 25 sn, kenar tamponlamıyor, bütçe kapanışı 241–281 sn + yeniden bağlanma, 429 açılış `Retry-After: 60`); yazmalar gerçek; bildirim türleri 12/12; **Web Push gerçek teslim** (Chrome 157 + FCM, 9,1 sn; `registerPushTarget` 200). **KUSUR 1–6 → W163 düzeltiyor:** 1 SSE sonrası okuma ağ hatasında tazelenmez; 2 yakalanmamış red; 3 panel sekme satırı yapışkan başlık altında; 4 ölü editConflict anahtarları; 5 anket sorusu iki kez + 390 araç satırı; 6 departmansız program kapısı `/mesajlar`'ı kapatıyor (**koordinatör kararı: `/mesajlar` muaf**, P54: sohbet program kapsamlı). Tasarım farkları: "Gruptan ayrıl" dolu düğme (W163 metin bağlantısı); tarih yereli `mm/dd/yyyy` ve ön seçimsiz koordinatörlük not. **Kanıtlanamayanlar:** VoiceOver, görsel onay, `notificationclick` OS bildirimi, Safari/iOS/Firefox push, `typing` hız kovası.
 
 ## Kararlar P54–P66 (özet; metinler [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md))
 
@@ -98,15 +102,15 @@ Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç*
 
 | # | Borç / not | Sınıf | Kaynak |
 | --- | --- | --- | --- |
-| 11 | Gerçek push teslimi ve gerçek `PushManager.subscribe` kanıtı yok (headless'ta Push API yok; dumanlarda `STUB_SUBSCRIBE` sarmalı; Chrome incognito Push API konsol hatası düzenek). W162 headful kanıtı dener; teslim kanıtlanamazsa "kanıtlanamadı" yazılır | kapanış sonrası borç (W162'ye bağlı) | W159, W160 |
+| 11 | Gerçek push teslimi ve `subscribe`: **kapandı (W162)** — Chrome 157 + FCM 9,1 sn, `registerPushTarget` 200. Kalan: Safari/iOS/Firefox push ve `notificationclick` OS bildirimi kanıtlanmadı | kapandı; kalan kapanış sonrası borç | W159, W162 |
 | 12 | `up.sh` / compose adları parametrik değil (paralel işçilerde geçici kopya kalıbı); e2e/backend CI'da sabit adlarla koşar | kapanış sonrası borç | W148, W154 |
 | 13 | `manifest.webmanifest` ve `apple-touch-icon` yok: iOS/iPadOS Web Push ana ekran uygulaması ister; "ana ekrana ekle" yönergesi gerçek PWA vermez | kapanış sonrası borç (deploy) | W152, W159 |
-| 14 | SSE bütçe kesintisi (~5 dk) gerçek tanığı yok; sahte sunucuda kopma + `reconcile` sınandı (W160 chat-stream); gerçek kesinti, `: ping` 25 sn ve Caddy tamponu W162'de | kapanış sonrası borç (W162'ye bağlı) | W154, W160 |
-| 15 | Ters vekil `flush_interval -1` + ≥6 dk okuma zaman aşımı (SSE akışı tamponlanır / kesilir); bu depodaki Caddyfile yalnız statik web | deploy borcu (SAHİPLİK-DIŞI) | W151, W154 |
-| 16 | `read.updated` olayının kendi hesaba gönderilmediği varsayımı yalnız sahte sunucuda | kapanış sonrası borç (W162'ye bağlı) | W160 varsayım 3 |
+| 14 | SSE bütçe kesintisi gerçek tanığı **alındı (W162)**: kapanış 241–281 sn + yeniden bağlanma; `: ping` 25 sn; kenar Caddy tamponlamıyor. CDN arkası denenmedi. Okuma ağ hatasında tazelenmeme = KUSUR 1 (W163) | kapandı; kalan: CDN | W154, W162 |
+| 15 | Ters vekil `flush_interval -1` + ≥6 dk okuma zaman aşımı (SSE akışı tamponlanır / kesilir); W162: backend kenar Caddy'si varsayılanla tamponlamıyor (teyit), CDN arkası denenmedi; bu depodaki Caddyfile yalnız statik web | deploy borcu (SAHİPLİK-DIŞI) | W151, W154, W162 |
+| 16 | `read.updated` varsayımı: W162 gerçek akışta birebir okundu tiki "Gönderildi" → "Okundu" ≈3 sn gözlendi | kapandı (W162) | W160 varsayım 3 |
 | 17 | Ek önizleme yok (yalnız bilet indirme); `DialogRequest`'te ek önizleme adı yok | F8 adayı (tasarım farkı) | W156 |
 | 18 | `ChatPageContext.messages.query` tipli açıldı ve N-10-15 "Bağlantı yeniden kuruluyor…" göstergesi akış durumundan çiziliyor | kapandı (KUSUR 5/6, `697fda0`) | W156 → W160 |
-| 19 | N-10-15 gerçek zamanlı tanık: kopukluk > 10 sn göstergesi sahte akışta sınandı (`chat-stream`), gerçek kopma W162 | kapanış sonrası borç (W162'ye bağlı) | W160 |
+| 19 | N-10-15 gerçek kopma W162'de gözlendi (yeniden bağlanma + `reconcile`); KUSUR 1 W163'te | kapandı (W162) | W160 |
 | 20 | Okunmamış ayırıcı `unread_count`'tan yaklaşık (kozmetik; BE-082); sahte akış düzeneği `watchStreams` entegrasyon altyapısı | kapanış sonrası borç (düşük) | W160 |
 | 21 | `topbar-dot*` token'ları (`--topbar-dot`, `-top`, `-right`) kullanılmıyor (F7 sayılı rozet) → `design/web-tokens.json` + `pnpm gen:tokens` temizliği | kapanış sonrası borç (düşük) | W158 |
 | 22 | Panel açıkken ConfirmDialog tıkı dış tık sayılıyordu | kapandı (KUSUR 3, `4956d15`) | W158 → W160 |
@@ -114,6 +118,10 @@ Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç*
 | 24 | Çoklu program seçici P56 kalır; programlar arası bildirimde program bilgisi yok (BE-143) | karar (P56) + açık BE | W152, W148 |
 | 25 | Tüm F7 BE kayıtları açık, "backend dursun": BE-027/028/029, BE-080…086, BE-142…156, BE-160…162 | açık BE | [rapor-F7](../../backend-eksikleri/rapor-F7.md) |
 | 26 | Duman konsolu: sahte uç `GET /v1/meetings/m-1` 404 ve Chrome incognito Push API uyarısı ürün hatası değil; "konsol hatası 0" diye sunulmaz | uygulama notu | W160 |
+
+| 27 | `unregisterPushTarget` çıkışta çağrılmıyor: `target_id` tutulmuyor, yalnız yerel `unsubscribe()`; sunucu ulaşılamayan hedefi kendisi düşürüyor (W162) | kapanış sonrası borç | W162 |
+| 28 | KUSUR 1–6 (dogrulama-F7): W163 düzeltiyor; KUSUR 6 koordinatör kararı `/mesajlar` departman kapısından muaf (P54) | W163'te | W162 |
+| 29 | Kanıtlanamayanlar: VoiceOver, kullanıcı görsel onayı, `notificationclick` OS bildirimi, Safari/iOS/Firefox push, `typing` hız kovası, CDN arkası SSE | kapanış sonrası borç | W162 |
 
 ## F7 durumu ve sonraki adım
 

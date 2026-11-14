@@ -26,7 +26,7 @@ _(bekliyor)_
 
 ### Kanıt sınırları (tur 1)
 
-Codex'e baştan bildirilenler: gerçek cihaz ekran okuyucu yok; gerçek push teslimi ve gerçek `subscribe` kanıtı yok; SSE ~5 dk bütçe kesintisi ve Caddy tamponu gerçek tanığı W162'ye bağlı; W160 duman konsolu 12 kayıt (6 Chrome incognito Push API + 6 sahte `meetings/m-1` 404) ürün hatası değil; HEAD CI kapanış PR'ında; "konsol hatası 0" iddiası yok.
+Codex'e baştan bildirilenler: gerçek cihaz ekran okuyucu yok; gerçek push teslimi ve `subscribe` W162'de Chrome 157 + FCM ile kanıtlandı (Safari/iOS/Firefox push ve OS bildirimi kanıtlanmadı); SSE bütçe kesintisi ve kenar Caddy W162'de gözlendi (CDN arkası denenmedi); W163 KUSUR 1–6'yı düzeltiyor; W160 duman konsolu 12 kayıt (6 Chrome incognito Push API + 6 sahte `meetings/m-1` 404) ürün hatası değil; HEAD CI kapanış PR'ında; "konsol hatası 0" iddiası yok.
 
 ## Koşulların kapanışı
 
