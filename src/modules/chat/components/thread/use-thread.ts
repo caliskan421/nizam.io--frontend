@@ -59,6 +59,8 @@ export interface ThreadContext {
   focusRequest: Ref<number>
   /** Kendi gönderimimden sonra akış en alta iner (sayaç; `MessageList` izler). */
   stickBottom: Ref<number>
+  /** Akış bölgesi (odak yedeği: eylem sonrası söküm gövdeye düşmesin, KESİN 27). */
+  listEl: Ref<HTMLElement | null>
   draftKey: ComputedRef<string>
   openDialog: (request: DialogRequest) => void
   findMessage: (messageId: string) => ChatMessage | null
@@ -138,6 +140,7 @@ function useThreadNav(key: ComputedRef<string>) {
   const highlightSeq = ref<number | null>(null)
   const focusRequest = ref(0)
   const stickBottom = ref(0)
+  const listEl = ref<HTMLElement | null>(null)
   let timer: ReturnType<typeof setTimeout> | null = null
 
   function highlight(seq: number): void {
@@ -158,6 +161,7 @@ function useThreadNav(key: ComputedRef<string>) {
     highlightSeq,
     focusRequest,
     stickBottom,
+    listEl,
     peerReadSeq: computed(() => page.messages.window.value.peerReadSeq),
     findMessage: find,
     startReply(message: ChatMessage): void {

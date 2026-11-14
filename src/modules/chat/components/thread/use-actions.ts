@@ -5,7 +5,7 @@
  * Başarısızlık ortak bildirimle (`notifyOutcome`, hata kodu → i18n; sunucu `message` gösterilmez)
  * bildirilir. Silme ve anketi bitirme ortak onaydan (`confirmWrite`) geçer.
  */
-import { inject, provide, ref, type InjectionKey, type Ref } from 'vue'
+import { inject, nextTick, provide, ref, type InjectionKey, type Ref } from 'vue'
 
 import { errorText } from '@/shared/i18n'
 import { confirmText, notifyOutcome, useConfirm } from '@/shared/ui/confirm'
@@ -115,8 +115,8 @@ function useConfirmedWrites(ctx: ThreadContext, guard: ReturnType<typeof useGuar
   const target = useTarget(ctx)
   const cancelLabel = () => confirmText('confirm.cancel')
   return {
-    remove: (message: ChatMessage) =>
-      guard.guarded(message.message_id, () =>
+    remove: async (message: ChatMessage) => {
+      await guard.guarded(message.message_id, () =>
         confirmWrite(
           {
             title: chatText('chat.thread.confirm.deleteTitle'),
@@ -127,7 +127,13 @@ function useConfirmedWrites(ctx: ThreadContext, guard: ReturnType<typeof useGuar
           },
           (context) => del.submit(target(message), { context }),
         ),
-      ),
+      )
+      // Satır sökülünce onay penceresi odağı sökülmüş tetikleyiciye iade eder: akışa taşı.
+      if (!document.activeElement || document.activeElement === document.body) {
+        await nextTick()
+        ctx.listEl.value?.focus()
+      }
+    },
     closePoll: (message: ChatMessage) =>
       guard.guarded(message.message_id, () =>
         confirmWrite(

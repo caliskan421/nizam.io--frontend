@@ -32,6 +32,7 @@ const list = ref<HTMLElement | null>(null)
 const open = ref<{ id: string; kind: 'react' | 'more' } | null>(null)
 const toolsId = ref<string | null>(null)
 
+watch(list, (el) => void (thread.listEl.value = el), { immediate: true })
 const win = computed(() => page.messages.window.value)
 const unread = useUnreadAnchor()
 const entries = computed(() =>
