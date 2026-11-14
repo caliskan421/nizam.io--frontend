@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**Durum (2026-11-15): F7 KAPANMADI — W165 #151 main’de (`db7252c`), bağımsız nihai Codex tur 3 bekliyor.** W162 gerçek sunucu tanığı #148, W163 #149 ve W164 #150 tamamlandı. Tur 2 KOŞULLU UYGUN bulguları Ö-04/Ö-05 için uygulayıcı düzeltmeleri teslim; nihai kabul henüz yok ([hüküm](../../reviews/WEB-7-codex.md)). W161/W161b belgeleri `web7/o4-kapanis` dalında; kapanış PR CI’sı ve birleşmesi bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)).
+**Durum (2026-11-15): F7 KAPANMADI — W165 #151 main’de (`db7252c`), Codex tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız düzeltme doğrulaması bekliyor.** W162 gerçek sunucu tanığı #148, W163 #149 ve W164 #150 tamamlandı. Tur 3 (HEAD `58b4d27`) Ö-04 doğrudan başarı yolunu ve Ö-05’i kapattı; yeni Ö-06/Ö-07 W166’da açık ([hüküm](../../reviews/WEB-7-codex.md)). W161/W161b belgeleri `web7/o4-kapanis` dalında; kapanış PR CI’sı ve birleşmesi bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Planlanan akış
 
@@ -12,8 +12,9 @@
 | 3a | Codex tur 1 (HEAD `a6cea6b`): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | **Tamam: UYGUN DEĞİL** (E-01 engelleyici, Ö-01/02/03, K-01, K-02) |
 | 3b | W164: E-01, Ö-01, Ö-02, Ö-03, K-01 düzeltmeleri (K-02 W161'de kapandı) | W164 (Sonnet 5.5) | **Tamam** (#150, main `8742269`; 765 dosya / 5501 test) |
 | 3c | Codex tur 2 (HEAD `35b7de9`) | Codex | **Tamam: KOŞULLU UYGUN** (Ö-04 yüksek, Ö-05 orta) |
-| 3d | W165: Ö-04, Ö-05 düzeltmeleri | W165 (Sonnet 5.5) | **Teslim main’de** (#151, `db7252c`; nihai tur 3 teyidi bekliyor) |
-| 3e | Güncellenmiş kapanış HEAD’inde bağımsız nihai tur 3 | Codex Sol medium | **Bekliyor** (salt okunur ajan; CLI sandbox koşumu iddia edilmez) |
+| 3d | W165: Ö-04, Ö-05 düzeltmeleri | W165 (Sonnet 5.5) | **Teslim main’de** (#151, `db7252c`; tur 3 doğrudan başarı yolu/Ö-05 kapanışını doğruladı; yeni Ö-06/Ö-07 W166’da) |
+| 3e | HEAD `58b4d27` bağımsız tur 3 | Codex Sol medium | **KOŞULLU UYGUN**; Ö-04 doğrudan başarı/Ö-05 kapandı; Ö-06 orta, Ö-07 yüksek |
+| 3f | Ö-06 semantik taslak kimliği, Ö-07 retry origin sahipliği | W166, `web7/o4-w166` | **Çalışıyor**; ardından bağımsız düzeltme doğrulaması bekliyor |
 | 4 | Koşullar işçiyle kapatılır; gerekirse sonraki tur | işçi + koordinatör | Bekliyor |
 | 5 | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla) | koordinatör | Bekliyor |
 
@@ -34,7 +35,7 @@ Tarihsel O1–O4 dağılımı: koordinatör Fable (kod yazmaz, işçi çıktıs�
 | Belge kapısı (W161b, 2026-11-15) | Altı değişen dosyada Prettier check, `pnpm lint`, design-stub kapısı 5 dosya / 42 test: **PASS**. Typecheck/build/e2e yeniden koşulmadı; UI yok |
 | Gerçek imaj + gerçek backend (W162) | [`dogrulama-F7.md`](dogrulama-F7.md) — **alındı** (#148, `4457bd3`); kanıtlanamayanlar: VoiceOver, görsel onay, OS bildirimi, Safari/iOS/Firefox push |
 | W165 teslim kaydı | #151, main `db7252c`; Ö-04 `0fa33c2`/`e2e7875` + çip `58bd639`, Ö-05 `6359c3b`. 767 dosya / 5508 test ve geri alma kırmızı teyidi geçmiş teslimdir; bu oturumda yeniden koşulmadı. Duman HEAD `e2e7875`: 18 beklenen 404 / 0 beklenmeyen; `58bd639` duman sonrası. [Ayrıntı](../../reviews/WEB-7-codex.md) |
-| Codex nihai hüküm | **Tur 3 bekliyor** |
+| Codex nihai hüküm | **Tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız doğrulama bekliyor** |
 | Kapanış PR | **Bekliyor** |
 
 W161b koşum sınırı: `pnpm test -- <dosyalar>` filtresi uygulanmayınca yanlışlıkla tam paket başladı; `deleted-records.test.ts`, `password.test.ts`, `home-admin.test.ts`, `chat-dialogs.test.ts` içinde zaman aşımı/başarısızlık görüldü. Koşum Ctrl-C ile durduruldu (exit 130); süreç kontrolünde Vitest kalmadığı doğrulandı. Bu yarım girişim tam paket doğrulaması değildir. Ardından `pnpm exec vitest run <beş design-stub dosyası>` ile hedefli kapı 42/42 geçti. Tam paket kapanış CI’sında doğrulanacak.

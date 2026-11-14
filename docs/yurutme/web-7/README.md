@@ -1,10 +1,10 @@
 # WEB-7 — sohbet, bildirim paneli ve gerçek zamanlı altyapı
 
-**F7 KAPANMADI — W165 #151 main’de (`db7252c`), bağımsız Codex nihai tur 3 bekliyor (2026-11-15).** W162 tanığı #148 ve W163 düzeltmeleri #149 (`a56e291`) main'de. O1–O3 main'de (PR #137–#147, son kod `76e4345`, 758 dosya / 5478 test); O4: W161 belgeler yazıldı, W162 gerçek sunucu tanığı alındı (#148, `4457bd3`), Codex tur 1–2 tamam; Ö-04/Ö-05 uygulayıcı düzeltmeleri teslim, nihai tur 3 bekliyor ([hüküm](../../reviews/WEB-7-codex.md)), kapanış PR'ı bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)). **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P55/P56 kayıtlı; P57–P66 KESİN (koordinatör varsayılanı, ürün sahibi onayı 2026-11-14: "Web Push dahil olsun, kilitli kart backend, bildirim sade liste tamam"; **P58 Web Push dahil, P60 backend kazanır, P57 sade liste**). [WEB-6](../web-6/README.md) KAPANDI (2026-11-14; Codex 3 tur UYGUN). **Backend dursun:** yalnız pin `v0.15.0-api` uçları; sohbet ve bildirim sözleşmesi v0.11→v0.17 değişmedi, pin yükseltmesi yok; eksikler statik/devre dışı/gizli + BE kaydı (bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan); backend paketi açılmaz (§3 `designStub` koşulu, §4 statik ≠ sahte veri). Ortak sözleşme: [ortak-sozlesme.md](ortak-sozlesme.md) (KESİN 1–34). İlerleme: [ilerleme.md](ilerleme.md).
+**F7 KAPANMADI — W165 #151 main’de (`db7252c`), Codex tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız düzeltme doğrulaması bekliyor (2026-11-15).** W162 tanığı #148 ve W163 düzeltmeleri #149 (`a56e291`) main'de. O1–O3 main'de (PR #137–#147, son kod `76e4345`, 758 dosya / 5478 test); O4: W161 belgeler yazıldı, W162 gerçek sunucu tanığı alındı (#148, `4457bd3`), Codex tur 1–3 tamam; Ö-04 doğrudan başarı yolu ve Ö-05 kapandı; Ö-06/Ö-07 W166’da açık; ardından bağımsız düzeltme doğrulaması bekliyor ([hüküm](../../reviews/WEB-7-codex.md)), kapanış PR'ı bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)). **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P55/P56 kayıtlı; P57–P66 KESİN (koordinatör varsayılanı, ürün sahibi onayı 2026-11-14: "Web Push dahil olsun, kilitli kart backend, bildirim sade liste tamam"; **P58 Web Push dahil, P60 backend kazanır, P57 sade liste**). [WEB-6](../web-6/README.md) KAPANDI (2026-11-14; Codex 3 tur UYGUN). **Backend dursun:** yalnız pin `v0.15.0-api` uçları; sohbet ve bildirim sözleşmesi v0.11→v0.17 değişmedi, pin yükseltmesi yok; eksikler statik/devre dışı/gizli + BE kaydı (bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan); backend paketi açılmaz (§3 `designStub` koşulu, §4 statik ≠ sahte veri). Ortak sözleşme: [ortak-sozlesme.md](ortak-sozlesme.md) (KESİN 1–34). İlerleme: [ilerleme.md](ilerleme.md).
 
 ## Kapsam (P54)
 
-- **(a) Sohbet — 10, 10b, 10c** ([10-mesajlar](../../ekranlar/10-mesajlar/README.md), W151 tespiti): sohbet listesi + kabuk, konuşma akışı + yazma, pencereler + ekler + anket; SSE ile canlı akış (K8); 10-mesajlar açık sorularının koordinatör varsayılanı P61, yönetici merceği P64, dar ekran P62, kilitli kart P60 (SORU).
+- **(a) Sohbet — 10, 10b, 10c** ([10-mesajlar](../../ekranlar/10-mesajlar/README.md), W151 tespiti): sohbet listesi + kabuk, konuşma akışı + yazma, pencereler + ekler + anket; SSE ile canlı akış (K8); 10-mesajlar açık sorularının koordinatör varsayılanı P61, yönetici merceği P64, dar ekran P62, kilitli kart P60 (onaylandı: backend kazanır, kilit çizilmez).
 - **(b) Bildirim paneli — 14** ([14-bildirimler](../../ekranlar/14-bildirimler/README.md), W152 tespiti): `listNotifications` imleçli, okundu/tümünü okundu; metinsiz yanıt için istemci sözlüğü şablonu (P57); "Senden bekleyen", satır içi karar, tercihler, cihazlar, sessiz saatler statik/devre dışı/gizli.
 - **(c) Kabuk:** menüde **Mesajlar** öğesi üç rolde görünür + `unread_chats` rozeti (E-00-20/21, P59); zil paneli canlı (E-00-38); **SSE altyapısı** (`shared/sse`, KESİN 34); bildirimlerde SSE yok.
 - **(d) Web Push (P58 dahil) ve DIŞI listesi:** panel içi Web Push önerme kutusu + izin akışı + `public/sw.js` F7'ye DAHİL (W159, O2b'nin son işçisi; zaman yetmezse F7 kapanışında "geçici kabul: F8"). **F7 DIŞI:** Takvim, Kurumsal hafıza, profil sayfası (Ü7) ve bildirim tercihleri/cihazlar/sessiz saatler (P63), Ü2–Ü7, K2–K8, Asistan, 01b işlem geçmişi, Tablolar, pin yükseltmesi.
@@ -13,7 +13,7 @@
 
 ## Sıra ve roller
 
-Koordinatör Fable (kod yazmaz; özet alır, birleştirir, kaydeder); işçiler Sonnet 5.5; Codex yalnız nihai salt okunur kapıda. Her W ayrı worktree/dal (`web7/<oturum>-<wid>`), kalıcı W-PROMPT.md; [ortak sözleşme](ortak-sozlesme.md) her isteme aynen eklenir. Her geçiş öncekinin yeşil CI ve MERGED kanıtını bekler.
+Güncel kullanıcı onaylı Codex devralma ve tarihsel Fable/Sonnet dağılımı [O4 Roller](oturum-4-kapanis.md#roller) bölümünde kayıtlıdır. Her W ayrı worktree/dal (`web7/<oturum>-<wid>`); [ortak sözleşme](ortak-sozlesme.md) geçerlidir. Her geçiş öncekinin yeşil CI ve MERGED kanıtını bekler.
 
 | Oturum | İş | İşçi |
 | --- | --- | --- |
@@ -58,13 +58,13 @@ Bu belge karar vermez; yalnız kararın gerektiği yerleri listeler.
 
 | Dosya | İçerik |
 | --- | --- |
-| [ilerleme.md](ilerleme.md) | Durum: F7 KAPANMADI (Codex tur 2 KOŞULLU, W165); O1–O3 hash'ler, P54–P66, 26 numaralı borç |
+| [ilerleme.md](ilerleme.md) | Durum: F7 KAPANMADI (Codex tur 3 KOŞULLU UYGUN, W166); O1–O3 hash'ler, P54–P66, numaralı borçlar |
 | [ortak-sozlesme.md](ortak-sozlesme.md) | Her uygulayıcı isteminin başına eklenen sözleşme (KESİN 1–34) |
 | [oturum-1-hazirlik.md](oturum-1-hazirlik.md) | O1 adımları |
 | [oturum-2-uygulama.md](oturum-2-uygulama.md) | O2a/O2b iş listesi (uygulandı) |
 | [oturum-3-entegrasyon.md](oturum-3-entegrasyon.md) | O3 W160 sonucu: 125 entegrasyon testi, 13 kusur, e2e 3/3, duman |
 | [oturum-4-kapanis.md](oturum-4-kapanis.md) | O4 akış tablosu (W161, W162, Codex, kapanış PR) ve kapı sonuçları |
 | [Backend devir raporu](../../backend-eksikleri/rapor-F7.md) | F7'de bağlanan uçlar, BE-027/028/029, 080…086, 142…156, 160…162 durumları, öneri sırası, deploy notları |
-| [WEB-7-codex.md](../../reviews/WEB-7-codex.md) | Codex tur 1–2 hükümleri; W165 teslim kaydı; nihai tur 3 bekliyor |
+| [WEB-7-codex.md](../../reviews/WEB-7-codex.md) | Codex tur 1–3 hükümleri; W165 teslim kaydı; tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız doğrulama bekliyor |
 | [web-8](../web-8/README.md) | F8 iskeleti (F8 AÇILMADI; adaylar) |
 | [dogrulama-F7.md](dogrulama-F7.md) | W162 gerçek imaj + gerçek backend tanığı (main `4457bd3`) |

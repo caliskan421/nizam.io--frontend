@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F7 AÇILDI 2026-11-14 (ürün sahibi: "F7'yi aç, backend dursun").** Kapsam P54 (sohbet + bildirimler); P55/P56 kayıtlı; P57–P66 KESİN (ürün sahibi onayı 2026-11-14: P58 Web Push dahil, P60 backend kazanır, P57 bildirim sade liste). WEB-6 KAPANDI (Codex 3 tur UYGUN). Pin `v0.15.0-api` değişmez; backend paketi açılmaz. Plan [README](README.md)'de.
 
-**F7 KAPANMADI — W165 #151 main’de (`db7252c`), bağımsız Codex nihai tur 3 bekliyor (2026-11-15).** Tur 1 UYGUN DEĞİL koşulları W164'te kapandı (#150, `8742269`). O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), Codex tur 1–2 tamam, nihai tur 3 bekliyor ([hüküm](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
+**F7 KAPANMADI — W165 #151 main’de (`db7252c`), Codex tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız düzeltme doğrulaması bekliyor (2026-11-15).** Tur 1 UYGUN DEĞİL koşulları W164'te kapandı (#150, `8742269`). O1–O3 main'de (PR #137–#147, son kod `76e4345`; 758 dosya / 5478 test). O4: W161 belgeler (bu dal `web7/o4-kapanis`, yalnız belge), W162 gerçek imaj + gerçek backend tanığı (#148, main `4457bd3`; tamam), Codex tur 1–3 tamam, tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız doğrulama bekliyor ([hüküm](../../reviews/WEB-7-codex.md)), kapanış PR'ı. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz. F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Durum
 
@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W154 | **Birleşti:** #141 (veri katmanı: `shared/sse`, `modules/chat`, `modules/notifications`, `query-keys`, F7 rotaları, `CURRENT_PHASE` F7, menü Mesajlar + rozet) | `e9b1cce` |
 | O2b W155–W159 | **Birleşti:** #142 (W158 bildirim paneli + zil), #143 (W155 liste + kabuk), #144 (W157 pencereler), #146 (W156 konuşma + yazma), #145 (W159 Web Push) | `5ae9bf8` |
 | O3 W160 | **Birleşti:** #147 (125 entegrasyon testi, 13 kusur düzeltmesi, `e2e/chat.spec.ts` + `e2e/notifications.spec.ts`) | `76e4345` |
-| O4 W161 ‖ W162 → W163 → Codex tur 1 → W164 → Codex tur 2 → W165 → tur 3 → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); W162 #148, W163 #149, W164 #150, **W165 #151 main’de**; bağımsız nihai tur 3 ve kapanış PR bekliyor | `db7252c` |
+| O4 W161 ‖ W162 → W163 → Codex tur 1 → W164 → Codex tur 2 → W165 → tur 3 → kapanış | W161 belgeler yazıldı (`web7/o4-kapanis`; PR bekliyor); W162 #148, W163 #149, W164 #150, **W165 #151 main’de**; tur 3 KOŞULLU UYGUN; W166 ve bağımsız düzeltme doğrulaması/kapanış PR bekliyor | `db7252c` |
 
 ## Kayıtlar
 
@@ -69,13 +69,17 @@ KUSUR 1–6 **KAPANDI** (W163, #149, main `a56e291`): 1+2 `5a4ed87`/`c129cfc`/`6
 
 ### O4 — Codex tur 2: KOŞULLU UYGUN → W165 (HEAD `35b7de9`)
 
-[Hüküm](../../reviews/WEB-7-codex.md): tur 1 kapanışları anlamlı bulundu (E-01, Ö-01, Ö-02, Ö-03, K-01, K-02). Yeni: **CX-F7-Ö-04** (yüksek: taslak nesli/sürümü bütünüyle korunmuyor — düzenleme kaydı beklerken vazgeç + başka mesaj düzenle ilk başarıyla yeni taslağı siliyor; `settleSent` gövde eşitliği Yanıtla bağlamı/çip değişimini temizliyor) ve **Ö-05** (orta: A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` ile B'yi listeye atıyor) → **W165 teslim etti** (#151, main `db7252c`); nihai tur 3 teyidi bekliyor. Notlar/borç: pin olayı ve gecikmiş kapsam değişimi için ayrı test yok; Ö-03 görünürlük dönüşü/sökülme sınanmadı; gerçek uyku geri gelmesini reddeden otomatik kural yok. Kanıt sınırı: Codex test koşamadı (EPERM); W164 ham konsol 70 kayıt (sahte uç 404'leri, "konsol temiz" değil). Tur 3 bekliyor.
+[Hüküm](../../reviews/WEB-7-codex.md): tur 1 kapanışları anlamlı bulundu (E-01, Ö-01, Ö-02, Ö-03, K-01, K-02). Yeni: **CX-F7-Ö-04** (yüksek: taslak nesli/sürümü bütünüyle korunmuyor — düzenleme kaydı beklerken vazgeç + başka mesaj düzenle ilk başarıyla yeni taslağı siliyor; `settleSent` gövde eşitliği Yanıtla bağlamı/çip değişimini temizliyor) ve **Ö-05** (orta: A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` ile B'yi listeye atıyor) → **W165 teslim etti** (#151, main `db7252c`); tur 3 doğrudan başarı yolu/Ö-05 kapanışını doğruladı; yeni Ö-06/Ö-07 W166’da. Notlar/borç: pin olayı ve gecikmiş kapsam değişimi için ayrı test yok; Ö-03 görünürlük dönüşü/sökülme sınanmadı; gerçek uyku geri gelmesini reddeden otomatik kural yok. Kanıt sınırı: Codex test koşamadı (EPERM); W164 ham konsol 70 kayıt (sahte uç 404'leri, "konsol temiz" değil). Tur 3 KOŞULLU UYGUN; W166 sonrası bağımsız doğrulama bekliyor.
 
-### O4 — W165 main’de; nihai tur 3 bekliyor (2026-11-15)
+### O4 — W165 main’de (2026-11-15)
 
 PR #151 → main `db7252c`. Ö-04: `0fa33c2` taslak/düzenleme sürümü, `e2e7875` lint/bölme, `58bd639` çip ekleme sürümü; `chat-edit-late.test.ts` ve `settle-sent.test.ts`. Ö-05: `6359c3b` güncel sohbet sahipliği, `chat-stream-late.test.ts`. 767 dosya / 5508 test ve geri alma kırmızı teyidi geçmiş W165 teslim kaydıdır; bu belge oturumunda yeniden koşulmadı. Devir kaydı #151 CI SUCCESS bilgisini doğruladı.
 
-Duman HEAD `e2e7875` (`web7-w165/`, yerel): gerçek Caddy CSP + sahte `/v1`, 2 senaryo × 3 genişlik × 2 tema, taşma/CSP/pageerror 0; konsol 18 beklenen 404 / 0 beklenmeyen. `58bd639` duman sonrası; son çip değişikliği için bu dumanın yeniden koşulduğu iddia edilmez. Uygulayıcı düzeltmesi teslimi nihai hüküm değildir; [tur 3](../../reviews/WEB-7-codex.md) ve kapanış PR CI/birleşmesi bekliyor.
+Duman HEAD `e2e7875` (`web7-w165/`, yerel): gerçek Caddy CSP + sahte `/v1`, 2 senaryo × 3 genişlik × 2 tema, taşma/CSP/pageerror 0; konsol 18 beklenen 404 / 0 beklenmeyen. `58bd639` duman sonrası; son çip değişikliği için bu dumanın yeniden koşulduğu iddia edilmez. [Tur 3](../../reviews/WEB-7-codex.md) KOŞULLU UYGUN; W166 sonrası bağımsız düzeltme doğrulaması ve kapanış PR CI/birleşmesi bekliyor.
+
+### O4 — Codex tur 3 KOŞULLU UYGUN → W166 (HEAD `58b4d27`)
+
+Bağımsız salt okunur ajan turu Ö-04 doğrudan geç başarı temizliği ve Ö-05 yanlış sohbet kapanmasını kapattı. Yeni **Ö-06 orta:** korunan yanıt/etkin çip taslağı eski `clientMessageId` ile gönderilip pin gereği 409 alır; sahte uç farklı içerik kuralını sınamıyor. **Ö-07 yüksek:** belirsiz ilk isteğin retry sonucu güncel taslak sürümünü sahiplenip yeni yanıt taslağını silebilir. W166 (`web7/o4-w166`) düzeltmeleri yapıyor; henüz teslim/test/commit kanıtı yok. Sonrasında bağımsız düzeltme doğrulaması bekliyor. Denetçi test/geri alma/Docker koşmadı; önceki tanıklar sınırlarıyla korunur. **F7 KAPANMADI.** [Hüküm](../../reviews/WEB-7-codex.md).
 
 ## Kararlar P54–P66 (özet; metinler [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md))
 
@@ -145,4 +149,4 @@ Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç*
 
 ## F7 durumu ve sonraki adım
 
-W162 `dogrulama-F7.md` #148 ile main’de; W165 #151 sonrası bağımsız Codex nihai tur 3 ([WEB-7-codex](../../reviews/WEB-7-codex.md)); koşullar işçiyle kapatılır; kapanış PR'ı MERGED olunca "F7 KAPANDI" yazılır. **F8 AÇILMAZ — kullanıcı onayı** ([web-8](../web-8/README.md)).
+W162 `dogrulama-F7.md` #148 ile main’de; tur 3 KOŞULLU UYGUN sonrası W166 ve bağımsız düzeltme doğrulaması ([WEB-7-codex](../../reviews/WEB-7-codex.md)); koşullar işçiyle kapatılır; kapanış PR'ı MERGED olunca "F7 KAPANDI" yazılır. **F8 AÇILMAZ — kullanıcı onayı** ([web-8](../web-8/README.md)).
