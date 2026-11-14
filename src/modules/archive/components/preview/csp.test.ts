@@ -33,6 +33,7 @@ describe('üretim CSP (deploy/Caddyfile)', () => {
       'style-src': "'self' 'nonce-{http.request.uuid}'",
       'img-src': "'self' data: blob:",
       'font-src': "'self'",
+      'worker-src': "'self'",
       'connect-src': "'self'",
       'frame-src': 'https://challenges.cloudflare.com',
       'frame-ancestors': "'none'",
