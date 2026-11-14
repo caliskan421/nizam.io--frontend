@@ -77,6 +77,8 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 
 - Dil Türkçe; backend kimlikleri (`operationId`, alan adı, hata kodu) ve CSS sınıfları olduğu gibi.
 - Örnek veriler (`renderVals()`) **gerçek veri değildir**: biçim/şekil kanıtı olarak kullanılır, değerler kopyalanmaz.
+**Durum notu (2026-11-14): F7 açıldı** ("F7'yi aç, backend dursun"; kapsam P54: sohbet 10/10b/10c + bildirimler `14-bildirimler` + kabuk Mesajlar/zil paneli; Web Push P58 onayına bağlı). F6 KAPANDI. P57–P66 koordinatör varsayılanı olarak [ortak-kurallar §12](ortak-kurallar.md)'de taslaktır; §5 F7 eki matrisi verir. Yürütme: [web-7](../yurutme/web-7/README.md).
+
 - Her tespit konumlanır: `ozellikler.md` bölge adı ↔ `mekanizma.md` davranış ↔ `backend.md` uç ↔ `eksikler.md` satır, aynı **öğe kimliği** ile (`E-<grup>-NN`, ör. `E-03-07`).
 - Varsayım yazılırsa `**Varsayım:** … (doğrulanacak: …)` biçimindedir ve neyin doğrulanacağı söylenir. Bilinmeyen "bilinmiyor" diye yazılır, uydurulmaz. Varsayımın uygulama durumu (öneri / kabul / ret) grup README'sindeki tabloda tutulur, dosya içinde değil.
 - Ortak kural (sorgu anahtarı, capability, hata davranışı, faz görünürlüğü) grup dosyasında **yeniden yazılmaz**; `ortak-kurallar.md`'ye başvurulur.

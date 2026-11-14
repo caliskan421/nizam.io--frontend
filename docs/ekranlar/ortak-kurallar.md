@@ -45,7 +45,7 @@ Karar (sentez §4 soru 2): yeni modüller ve henüz başlamamış fazların **me
 | Menü: Arşiv | gizli | gizli | gizli | gizli | gizli | F5 canlı |
 | Menü: Mesajlar + okunmamış rozeti | gizli | … | | | | F7 canlı |
 | Menü: İşlem geçmişi, Tablolar, Takvim, Kurumsal hafıza, Simülasyon | gizli (K14) | | | | | ayrı faz |
-| Üst çubuk: bildirim zili | sayaç canlı, panel F7'ye kadar tıklanamaz (devre dışı) | | | | | |
+| Üst çubuk: bildirim zili | sayaç canlı, panel F7'ye kadar tıklanamaz (devre dışı); **F7'de panel canlı** (aşağıda F7 eki) | | | | | |
 | Üst çubuk: Asistan, Yardım | gizli (hedef yok) | | | | | F8 |
 | Ekran içi bağlantılar (ör. 03 → Arşiv klasörü, 01 → İşlem geçmişi, 08b → Ekibe mesaj) | devre dışı + faz notu | | | | | ilgili fazda canlı |
 | Tarih talebi düğmeleri (03 panel, 03c) | — | **okuma göstergesi canlı** (`pending_date_request`), gönder/onayla devre dışı "F3'te" | | canlı | | |
@@ -65,6 +65,23 @@ Karar (sentez §4 soru 2): yeni modüller ve henüz başlamamış fazların **me
 | Ü2–Ü7, K2–K8, Bildirimler, Asistan, Takvim, Kurumsal hafıza | F6 kapsamı DIŞI (sonraki fazlar) |
 
 Bağ: §3 `designStub` koşulu F6 statikleri için aynen geçerlidir (P48/P49/P51 statikleri `designStub`, yeni BE kayıtları W134 bloğunda, backend paketi açılmaz); §4 statik ≠ sahte veri.
+
+**F7 eki (P54–P66, 2026-11-14).** F7 açıldı ("F7'yi aç, backend dursun", kullanıcı 2026-11-14); kapsam sohbet (10, 10b, 10c) + bildirimler. Matris F7 sütunuyla okunur. P57–P66 koordinatör varsayılanıdır (aşağıda §12 "F7 koordinatör varsayılanları"): satırlarda **geçici kabul (P5x taslak)** diye anılır; P58 ve P60 ürün sahibi onayını bekler.
+
+| Öğe | F7 |
+|---|---|
+| Menü: **Mesajlar** | **canlı, üç rolde görünür** (yönetici, koordinatör, üye; E-00-20, `/mesajlar`; `routes.catalog.ts` menü girdisi W154). Rozet kaynağı `getChatUnreadOverview.unread_chats` (E-00-21): okunmamış **sohbet** sayısı, seçili program, `mentioned` ise vurgu (geçici kabul, P59 taslak); `['chats','unread-overview']` (§6) |
+| Üst çubuk: **bildirim zili** | sayaç canlı (mevcut, hesap geneli); **panel canlı** (E-00-38 "panel devre dışı" F7'de kalkar): `listNotifications` imleçli + `markNotificationRead` / `markAllNotificationsRead`; 14-bildirimler satır satır statik/devre dışı/gizli kararı (geçici kabul, P57 taslak). Bildirimlerde SSE YOK: pencere odağı + aralıklı tazeleme (P65 taslak) |
+| Sohbet gerçek zamanı | SSE yalnız sohbet, `shared/sse` tek modül, `fetch` akışı (`EventSource` yasak), olay → içeriksiz sorgu geçersizleme; kapsam/oturum değişiminde iptal (geçici kabul, P65 taslak; KESİN 34) |
+| **Web Push** önerme kutusu + izin akışı + `public/sw.js` | **P58 SORU:** dahil → canlı (O2b son işçisi W159; `enabled=false` ise kutu gizli; "Deneme gönder", cihaz listesi, "ulaşılamıyor" statik BE) · ertelendi → kutu gizli, F8'e kalır (W159 düşer). Onay gelene kadar kodlanmaz |
+| Sohbet "okuyana göre kilitli kart" | **P60 SORU:** onay (koordinatör önerisi) → backend kazanır, kilit çizilmez (MESSAGING-K31/K32) · onaylanmazsa → tasarım kazanır, kilitli kart yalnız görünüm olarak çizilir, sunucu özeti zaten tüm üyelere açıktır (yeni BE kaydı ve ayrı karar gerekir). Onay gelene kadar kilit çizilmez |
+| Dar ekran (390) sohbet | tek sütun akış, liste ↔ konuşma, pencereler tam ekran (geçici kabul, P62 taslak; KESİN 30) |
+| Profil (Ü7), bildirim tercihleri/cihazlar/sessiz saatler | **DIŞI** (P54, P63 taslak): yalnız panel içi izin kutusu (P58) |
+| Takvim, Kurumsal hafıza, Ü2–Ü7, K2–K8, Asistan, 01b İşlem geçmişi, Tablolar | **DIŞI** (P54; sonraki fazlar) |
+
+Bağ: §3 `designStub` koşulu F7 statikleri için aynen geçerlidir (yeni BE kimlikleri: bildirimler BE-142…BE-159, 10-mesajlar yeni satırlar BE-160'tan; backend paketi açılmaz, pin `v0.15.0-api` değişmez; sohbet/bildirim sözleşmesi v0.11→v0.17 değişmedi); §4 statik ≠ sahte veri (bildirim satırında aktör adı/konu başlığı uydurulmaz).
+
+**Bildirim hedef çözümlemesi ve §9 K3 fan-out kuralı.** Bildirim yanıtı metinsizdir (`{id, type, subject_ref{kind,id}, is_read, created_at}`); hedefe gidiş `subject_ref.kind` → rota. Departman bilgisi yoksa hedef çözümlemesi için departmanları ayrı çağrılarla gezip birleştirmek ya da panel açılırken her satır için ayrı okuma yapmak **yasaktır** (K3, §9): yalnız kullanıcının tıkladığı tek kaydın ek okuması (`getWorkItem`, §9'un izin verdiği "tek kaydın ek okuması") ve önbellekteki `locatedItems`/P55 derin bağlantı kalıbı kullanılır; çözülemeyen hedefte düz satır, bağlantı yok.
 
 ## 6. Ortak sorgu anahtarları (CX-T-01)
 
@@ -133,7 +150,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12; P46–P53 2026-11-13) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12; P46–P53 2026-11-13; P54–P56 2026-11-14; P57–P66 TASLAK 2026-11-14) — bağlayıcı (P57–P66 hariç: taslak)
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -191,6 +208,26 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P51 | 01f tek artboard; [BE] statikler (2026-11-13) | **Ürün sahibi kararı (bölme koordinatöre bırakıldı → bölünmez).** 01f dönem raporu önizlemesi tek uzun artboard kalır (PDF'in web önizlemesi tek akıştır). Çizilmiş ama v0.15'te uçsuz öğeler **statik** (§3): HTML sürüm düğmesi, tarih aralığı/koordinatörlük süzgeci, CSV/XLSX, "Son raporlar" listesi, asenkron üretim ilerlemesi, koordinatör birim raporu. Her biri `kayit.md`'de yeni kimlik alır (W134 bloğu BE-122…); sahte veri gösterilmez (§4). |
 | P52 | Rapor listeleri/sekmeleri (2026-11-13) | **Koordinatör kararı (P47 sonucu).** Ayrı sayfa olmadığı için 01e'deki sekmeler (Dönem raporu · İş yükü · Görev raporları · Toplantı raporları) uygulanmaz; `reportDashboardTasks/Meetings` listeleri F6'da kullanılmaz (görev/toplantı raporları kendi detaylarından iner). İş yükü: 05 listesi + `reportWorkloadPdf` (`member_ids`); 05'te ek `reportWorkload` JSON okuma yok (öneri, sonraki faz). Ağır uçlar (`reportSeason` JSON) yalnız 01f önizleme açıldığında okunur. |
 | P53 | K1/Ü1 ve rol menüleri (2026-11-13) | **Ürün sahibi kararı (kapsam) + koordinatör varsayılanları (içerik).** K1'de rapor girişi/kutucuğu yok (ürün sahibi). K1 `Koord-Ana` ve Ü1 `Uye-Ana` birebir uygulanır; pano uçları K/Ü'ye 403 → veri mevcut görev/toplantı/tarih-talebi uçlarından (K14, BE-009 kalıbı), istemci türetimi tek yüklemden (KESİN 21). Çizili ama uçsuz parçalar (ör. kişisel kısayollar/dikkat kuyrukları için sunucu sayaçları, bildirim özeti) statik + kayıt. Kenar menüsü: menü tanımı rol taşır (`Kenar-Roller` üç sütun); yönetici K/Ü merceğine geçince **menü yönetici menüsü kalır**, yalnız içerik merceğe göre süzülür (P1/P11). Koordinatör merceğinde 01 koordinatörlük kartları: yönetici için **program geneli kalır** (E-01-28 açık sorusu — koordinatör varsayılanı; K1 zaten kendi birimini gösterir). |
+| P54 | F7 kapsamı (2026-11-14) | **Ürün sahibi kararı.** F7 = sohbet (10-mesajlar: 10, 10b, 10c) + bildirimler (00-ortak E-00-38 bildirim paneli ve rozet; Bildirimler). Takvim, Kurumsal hafıza, profil sayfası, Ü2–Ü7 ve K2–K8 panelleri, Asistan F7 DIŞI (sonraki fazlar; web-7 README aday listesinde kalır). F7'nin açılışı ayrıca açık onay ister; bu karar yalnız kapsamdır. |
+| P55 | Yönetici merceğinde derin bağlantı (2026-11-14) | **Ürün sahibi kararı.** `company_admin` koordinatör/üye merceğindeyken başka birimin görevi `?gorev=` derin bağlantısıyla AÇILIR (mevcut davranış korunur; P1 "mercek ≠ yetki"). Liste/sayaç içerik merceği P53 gereği süzülü kalır. Soğuk bağlantıda hedefin seçili birime düşmesi (Codex tur 2/3, `work/api/queries.ts` yalnız önbellek) teknik borç olarak kalır (web-6 ilerleme #22: "karar verildi; UX borcu açık"). |
+| P56 | Çoklu program seçici (2026-11-14) | **Ürün sahibi kararı.** Birden çok programı olan kullanıcıda kapsam seçili değilken kenar menüsü program seçicisi kendiliğinden açık ve perde saydam KALIR (W148 tespiti; web-6 ilerleme #20 → "karar: böyle kalır", kapandı). |
+
+### F7 koordinatör varsayılanları (2026-11-14, taslak — ürün sahibi onayı: P58, P60 SORU)
+
+Aşağıdakiler **ürün sahibi kararı değildir**; koordinatör varsayılanıdır (§2 durumu: "geçici kabul"). Uygulayıcı bunları "geçici kabul (P5x taslak)" diye anar. Kesinleşince W-? bu bölümü günceller (taslak etiketi kalkar, tarih ve kaynak yazılır). Kaynak: web-7 kararlar kaydı (koordinatör, 2026-11-14). **"Backend dursun" F7'de de sürer** (kullanıcı 2026-11-14): yalnız `v0.15.0-api` uçları; eksikler statik/devre dışı/gizli + BE kaydı.
+
+| # | Konu | Taslak karar |
+|---|---|---|
+| P57 | Bildirim paneli F7'de canlı | `listNotifications` (imleç, `unread_count`), `markNotificationRead`, `markAllNotificationsRead`; zil sayacı `countUnreadNotifications` (mevcut). Yanıt metinsiz: satır metni istemci sözlüğünden `type` → Türkçe şablon (events.md türleri); aktör adı/konu başlığı YOK (BE-14x). Hedefe gidiş `subject_ref.kind` → rota (work item → 03 `?gorev=`; meeting → 09b; program → 01; departman bilgisi yoksa P55 kalıbı, §5 F7 eki). "Senden bekleyen" sekmesi/sayacı, satır içi Onayla/Reddet/"başkası karar verdi", gruplama, 30 gün saklama metni, tercih matrisi, cihaz listesi, sessiz saatler → statik/devre dışı `designStub('BE-14x')` ya da gizli (§3 koşuluna göre W152 satır satır karar verir); sahte veri yok (§4) |
+| **P58 \*** | Web Push (**SORU**) | Koordinatör önerisi: F7 kapsamına **dahil**. Backend `pushPublicKey/registerPushTarget/unregisterPushTarget` var; panel içi "Web Push önerme kutusu" + izin akışı (portal önce sorar, tarayıcı penceresi, engellendi yönergesi, iOS ana ekran şartı, "Şimdi değil" 14 gün), service worker (`public/sw.js`, CSP `worker-src 'self'`), `enabled=false` → kutu gizli. "Deneme gönder", cihaz listesi, "30 gündür ulaşılamıyor" statik (BE). O2'nin son işçisi (W159); zaman yetmezse F7 kapanışında "geçici kabul: F8". **İki sonuç:** *dahil* → W159 uygulanır · *ertelensin* → kutu ve izin akışı gizli, W159 düşer, F8'e devir. Onay gelene kadar kodlanmaz |
+| P59 | Mesajlar rozeti | E-00-21 = okunmamış **sohbet** sayısı (`getChatUnreadOverview.unread_chats`, seçili program); `mentioned` ise vurgu (tasarımdaki gibi). Zil rozeti hesap geneli (mevcut) |
+| **P60 \*** | "Okuyana göre kilitli kart" (**SORU**) | Tasarım ↔ MESSAGING-K31/K32 (paylaşılan özet tüm sohbet üyelerine açık). Koordinatör önerisi: **backend kazanır**, kilit çizilmez, sözleşme uydurulmaz. **İki sonuç:** *onay* → kilit yok · *ret (tasarım kazanır)* → kilitli kart yalnız görünüm olarak çizilir, sunucu özeti yine açıktır; yeni BE kaydı ve ayrı karar. Onay gelene kadar kilit çizilmez |
+| P61 | 10-mesajlar README açık soruları (8) | MSG-043 "başka hesabın gözünden" → **ret** (uç yok); grupta tik/kim okudu → BE-028 statik (yalnız kendi `read_seq`); tepki kümesi backend K36 **4 tür** (tasarımdaki 6 → 4, fazla ikisi çizilmez); "sessize al" → BE-027 devre dışı; anonim anket → spec `vote`/poll alanlarına göre W151 karar (yoksa BE); "toplantı planla" → 09c formuna yönlendirme (mesaj bağlamı taşınmaz; BE yoksa); mesajdan açılan görev → 03 paneli `?gorev=` (K8 `/messages/{id}/tasks`); birebir alt satır = son mesaj özeti (`last_message`, BE-086 tür yoksa düz metin) |
+| P62 | Dar ekran (390) | Tasarım yok → KESİN 30: tek sütun akışta yerleşim (liste ↔ konuşma rota/durumla, geri düğmesi), pencereler tam ekran (E-13-12 kalıbı) |
+| P63 | Bildirim tercihleri / cihazlar / sessiz saatler (Ü7 profil bölümü) | F7 **DIŞI** (profil sayfası sonraki faz); yalnız panel içi izin kutusu (P58) |
+| P64 | Yönetici merceğinde koordinatörlük grupları | Sunucunun `listChats` döndürdüğü (yetki sunucuda; istemci süzmez; mercek yalnız program kapsamı). "Koordinatörler" sistem grubu backend'de yoksa BE kaydı, çizilmez |
+| P65 | SSE | Yalnız sohbet (K8), `fetch` akışı (`Authorization`), `shared/sse` tek modül; ≥1 sn birleştirme, 0–5 sn jitter, üstel ≤60 sn, `: ping` 25 sn; olay → içeriksiz sorgu geçersizleme; kapsam/oturum değişiminde iptal (`sessionBound`); **bildirimlerde SSE YOK** (pencere odağı + aralıklı tazeleme). Web-7 ortak sözleşme KESİN 34 |
+| P66 | Duman betikleri | Senaryo başına ayrı `results-<senaryo>.json` + HEAD/koşum kimliği (web-6 CX-F6-K-10; web-7 soru 7 kapandı). Web-7 ortak sözleşme KESİN 33 |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 
