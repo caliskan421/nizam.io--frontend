@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**Durum (2026-11-14): F7 KAPANMADI — Codex tur 2 KOŞULLU UYGUN, W165 düzeltiyor.** Tur 1 koşulları W164'te kapandı. O1–O3 (#137–#147) main'de (son kod `76e4345`; 758 dosya / 5478 test). Bu belgeler W161 (yalnız belge, `web7/o4-kapanis`); gerçek sunucu tanığı W162 (`web7/o4-w162`) ve Codex nihai kapısı ([hüküm](../../reviews/WEB-7-codex.md), iskelet) tamamlanmadı; kapanış PR'ı: bekliyor (CI ve birleşme ayrıca). F8 AÇILMADI ([web-8](../web-8/README.md)).
+**Durum (2026-11-15): F7 KAPANMADI — W165 #151 main’de (`db7252c`), bağımsız nihai Codex tur 3 bekliyor.** W162 gerçek sunucu tanığı #148, W163 #149 ve W164 #150 tamamlandı. Tur 2 KOŞULLU UYGUN bulguları Ö-04/Ö-05 için uygulayıcı düzeltmeleri teslim; nihai kabul henüz yok ([hüküm](../../reviews/WEB-7-codex.md)). W161/W161b belgeleri `web7/o4-kapanis` dalında; kapanış PR CI’sı ve birleşmesi bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)).
 
 ## Planlanan akış
 
@@ -12,13 +12,16 @@
 | 3a | Codex tur 1 (HEAD `a6cea6b`): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | **Tamam: UYGUN DEĞİL** (E-01 engelleyici, Ö-01/02/03, K-01, K-02) |
 | 3b | W164: E-01, Ö-01, Ö-02, Ö-03, K-01 düzeltmeleri (K-02 W161'de kapandı) | W164 (Sonnet 5.5) | **Tamam** (#150, main `8742269`; 765 dosya / 5501 test) |
 | 3c | Codex tur 2 (HEAD `35b7de9`) | Codex | **Tamam: KOŞULLU UYGUN** (Ö-04 yüksek, Ö-05 orta) |
-| 3d | W165: Ö-04, Ö-05 düzeltmeleri; sonra Codex tur 3 | W165 (Sonnet 5.5) | **Sürüyor** ("W165 main'de" bekleniyor) |
+| 3d | W165: Ö-04, Ö-05 düzeltmeleri | W165 (Sonnet 5.5) | **Teslim main’de** (#151, `db7252c`; nihai tur 3 teyidi bekliyor) |
+| 3e | Güncellenmiş kapanış HEAD’inde bağımsız nihai tur 3 | Codex Sol medium | **Bekliyor** (salt okunur ajan; CLI sandbox koşumu iddia edilmez) |
 | 4 | Koşullar işçiyle kapatılır; gerekirse sonraki tur | işçi + koordinatör | Bekliyor |
 | 5 | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla) | koordinatör | Bekliyor |
 
 ## Roller
 
-Koordinatör Fable (kod yazmaz, işçi çıktısı okumaz; özet alır, birleştirir, kaydeder). İşçiler Sonnet 5.5, her biri ayrı worktree/dal. W161 yalnız belge sahibidir (W162'nin `dogrulama-F7.md` dosyasına dokunmaz, yalnız bağ verir); Codex salt okunur ve yalnız nihai kapıdadır. Gerçek cihaz/kullanıcı onayı otomatik geçti sayılmaz; yapılamayan kanıt baştan "yapılamadı" yazılır (KESİN 32).
+Tarihsel O1–O4 dağılımı: koordinatör Fable (kod yazmaz, işçi çıktısı okumaz; özet alır, birleştirir, kaydeder). İşçiler Sonnet 5.5, her biri ayrı worktree/dal. W161 yalnız belge sahibidir (W162'nin `dogrulama-F7.md` dosyasına dokunmaz, yalnız bağ verir); Codex salt okunur ve yalnız nihai kapıdadır. Gerçek cihaz/kullanıcı onayı otomatik geçti sayılmaz; yapılamayan kanıt baştan "yapılamadı" yazılır (KESİN 32).
+
+2026-11-15 kullanıcı onaylı Codex devralma: ana Codex koordinatör; Sol medium belge/test ve ayrı bağımsız tur 3 incelemesi; gerekirse Sol high düzeltme, Astra high zor kusur. Uygulayıcı kendi değişikliğine nihai onay vermez. Yönetim kaydının gerçek yolu `../nizam.io--program/program`; bu belge işi yönetim veya backend deposuna yazmaz.
 
 ## Kapı sonuçları
 
@@ -28,10 +31,13 @@ Koordinatör Fable (kod yazmaz, işçi çıktısı okumaz; özet alır, birleşt
 | main CI | #137–#147 birleşme sırasıyla; #141 ve #145 ilk koşumda kırmızı (düzenek/anlık görüntü), düzeltilip yeniden koşuldu; her PR için üç denetimin tek tek sonucu bu kayıtta **doğrulanamadı** (koordinatör kaydı: CI yeşilken birleştirildi) |
 | Görsel ölçümler | W154–W160 duman: taşma 0, CSP 0, pageerror 0 (W160 68 ölçüm); ham kanıt `.git/koordinator/web7-w154…w160/` (yerel) |
 | Entegrasyon / e2e | 125 entegrasyon testi geçti; gerçek backend e2e 3/3 (`chat`, `notifications`, `smoke`) |
-| Belge kapısı (W161) | `prettier --check` değişen dosyalar, `pnpm lint`, design-stub testleri: sonuç W161 teslim raporunda |
+| Belge kapısı (W161b, 2026-11-15) | Altı değişen dosyada Prettier check, `pnpm lint`, design-stub kapısı 5 dosya / 42 test: **PASS**. Typecheck/build/e2e yeniden koşulmadı; UI yok |
 | Gerçek imaj + gerçek backend (W162) | [`dogrulama-F7.md`](dogrulama-F7.md) — **alındı** (#148, `4457bd3`); kanıtlanamayanlar: VoiceOver, görsel onay, OS bildirimi, Safari/iOS/Firefox push |
-| Codex nihai hüküm | **Bekliyor** |
+| W165 teslim kaydı | #151, main `db7252c`; Ö-04 `0fa33c2`/`e2e7875` + çip `58bd639`, Ö-05 `6359c3b`. 767 dosya / 5508 test ve geri alma kırmızı teyidi geçmiş teslimdir; bu oturumda yeniden koşulmadı. Duman HEAD `e2e7875`: 18 beklenen 404 / 0 beklenmeyen; `58bd639` duman sonrası. [Ayrıntı](../../reviews/WEB-7-codex.md) |
+| Codex nihai hüküm | **Tur 3 bekliyor** |
 | Kapanış PR | **Bekliyor** |
+
+W161b koşum sınırı: `pnpm test -- <dosyalar>` filtresi uygulanmayınca yanlışlıkla tam paket başladı; `deleted-records.test.ts`, `password.test.ts`, `home-admin.test.ts`, `chat-dialogs.test.ts` içinde zaman aşımı/başarısızlık görüldü. Koşum Ctrl-C ile durduruldu (exit 130); süreç kontrolünde Vitest kalmadığı doğrulandı. Bu yarım girişim tam paket doğrulaması değildir. Ardından `pnpm exec vitest run <beş design-stub dosyası>` ile hedefli kapı 42/42 geçti. Tam paket kapanış CI’sında doğrulanacak.
 
 ## Codex istem notları
 

@@ -1,8 +1,8 @@
 # WEB-7 — Codex nihai kapı
 
-Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Codex `gpt-6.1-sol` medium, `-s read-only`. Hüküm durumu: **tur 1 UYGUN DEĞİL** (HEAD `a6cea6b`; koşullar W164'te kapandı, main `8742269`; tur 2 KOŞULLU UYGUN, W165; tur 3 bekliyor). F7 **KAPANMADI** — Codex bekliyor. Ham çıktılar koordinatör kaydında tutulacak (`.git/koordinator/web7-codex-tur{1,2,3}.md`, yerel). İstem: koordinatör `web7-codex-prompt.md` ([oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md) "Codex istem notları").
+Faz: F7 (sohbet 10/10b/10c, bildirim paneli ve zil, Web Push, `shared/sse`, kabuk Mesajlar menüsü ve rozeti). Tarihsel tur 1–2: Codex `gpt-6.1-sol` medium, `-s read-only`. Güncel durum (2026-11-15): **tur 2 KOŞULLU UYGUN; W165 düzeltmeleri PR #151 ile main `db7252c` içinde; bağımsız nihai tur 3 bekliyor. F7 KAPANMADI.** Tur 1 koşulları W164 (#150, main `8742269`) ve W161 ile kapandı. Ham çıktılar `.git/koordinator/web7-codex-tur{1,2,3}.md` (yerel); tur 3 henüz yok. Yeni tur bağımsız salt okunur ajan incelemesidir; CLI sandbox koşumu yapılmış sayılmaz. İstem: koordinatör `web7-codex-prompt-tur3.md` ve [oturum-4-kapanis](../yurutme/web-7/oturum-4-kapanis.md).
 
-Girdiler: main `76e4345` (W160 birleşik) + W161 belgeleri + W162 `dogrulama-F7.md` (bekliyor); kapı HEAD'i W162 main'e girince belirlenir. Kabul ölçütleri: 10/14/00 "F7 uygulama kanıtı" bölümleri, P54–P66, KESİN 17/21/22/26/27/29/30/33/34. Araç izi olmayan çıktı kapı sayılmaz; hüküm HEAD CI'sını doğrulamaz (kapanış PR'ı ayrıca).
+Girdiler: W162 gerçek sunucu tanığı (#148, main `4457bd3`; kanıt HEAD `76e4345`), W163 (#149), W164 (#150), W165 (#151, main `db7252c`) ve W161 kapanış belgeleri. Tur 3 inceleme HEAD'i güncellenmiş kapanış dalında ayrıca kaydedilecek. Kabul ölçütleri: 10/14/00 uygulama kanıtları, P54–P66, KESİN 17/21/22/26/27/29/30/33/34. Araç izi olmayan çıktı kapı sayılmaz; kapanış PR CI'sı ve birleşmesi ayrıca gerekir.
 
 ## Tur 1 — 2026-11-14, HEAD a6cea6b
 
@@ -82,8 +82,8 @@ Tur 1'in engelleyici eski kapsam kusuru (E-01) kapanmış; incelenen yollarda ye
 
 | Bulgu | Önem | Konum | Bağ | Atanan | Durum |
 | --- | --- | --- | --- | --- | --- |
-| CX-F7-Ö-04 Taslak anahtarı korunuyor, taslak nesli/sürümü bütünüyle korunmuyor (düzenleme kaydı beklerken vazgeç + başka mesaj düzenle → ilk başarı yeni taslağı siliyor; `settleSent` yalnız gövde eşitliği → Yanıtla bağlamı/çip değişimi temizleniyor) | Yüksek | `composer/drafts.ts:49`, `use-edit.ts:84`, `:135` | E-10-46/51/60, K5, KESİN 26 | W165 | açık |
-| CX-F7-Ö-05 A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` üretiyor; sayfa B'yi listeye atıyor ve yanlış "bulunamadı" bildirimi çıkıyor | Orta | `api/stream-apply.ts:41`, `:79`; `pages/ChatPage.vue:54` | N-10-14, KESİN 26 | W165 | açık |
+| CX-F7-Ö-04 Taslak anahtarı korunuyor, taslak nesli/sürümü bütünüyle korunmuyor (düzenleme kaydı beklerken vazgeç + başka mesaj düzenle → ilk başarı yeni taslağı siliyor; `settleSent` yalnız gövde eşitliği → Yanıtla bağlamı/çip değişimi temizleniyor) | Yüksek | `composer/drafts.ts:49`, `use-edit.ts:84`, `:135` | E-10-46/51/60, K5, KESİN 26 | W165 | düzeltme main’de (#151); bağımsız tur 3 teyidi bekliyor |
+| CX-F7-Ö-05 A'nın gecikmiş erişim sonucu B açıkken `onChatLost(A)` üretiyor; sayfa B'yi listeye atıyor ve yanlış "bulunamadı" bildirimi çıkıyor | Orta | `api/stream-apply.ts:41`, `:79`; `pages/ChatPage.vue:54` | N-10-14, KESİN 26 | W165 | düzeltme main’de (#151); bağımsız tur 3 teyidi bekliyor |
 
 ### Bulgu ayrıntıları
 
@@ -103,6 +103,21 @@ Temiz: yetki/pin (`v0.15.0-api`, program/grup rolü ayrı, yeni sızıntı yok),
 - Gerçek FCM aboneliği ve teslim W162 ham kaydıyla desteklenir (sarmallı W159 dumanından ayrı).
 - VoiceOver, kullanıcı görsel onayı, OS bildirimine tıklama, gerçek mobil cihaz doğrulanmadı; bilinen borçlar tekrarlanmadı. `../program/` komşu yolda bulunamadı; tam kapsama iddiası yok.
 
-## Tur 3 (nihai) — bekliyor (W165 sonrası)
+## W165 teslimi — 2026-11-15 kaydı, bağımsız teyit bekliyor
 
-_(gerekirse)_
+PR [#151](https://github.com/caliskan421/nizam.io--frontend/pull/151) main `db7252c` ile birleşti. Devir kaydı PR CI denetimlerini (tsc/lint/vitest/build, web imajı, gerçek backend Playwright) SUCCESS olarak doğruladı; bu belge oturumunda yeniden çalıştırılmadı.
+
+| Bulgu | Düzeltme ve test kanıtı | Durum |
+| --- | --- | --- |
+| CX-F7-Ö-04 | `0fa33c2`: normal/düzenleme taslağı sürümü; gönderim, yükleme ve düzenlemenin geç başarısı yalnız kendi sürümünü temizler. `e2e7875`: lint/bölme. `chat-edit-late.test.ts`: bekleyen PATCH → vazgeç → başka mesaj düzenle; aynı gövdeyle Yanıtla hedefi değişimi; metni değiştirip eski hâline dönme. `settle-sent.test.ts` sürüm/yanıt/düzenleme beklentileri. `58bd639`: `addMention`/`addRef` sürümü artırır; aynı testte çip ekleme korunması | Uygulayıcı düzeltmesi main’de; nihai tur 3 bekliyor |
+| CX-F7-Ö-05 | `6359c3b`: erişim sonucu öncesi `currentOpenChatId`, sayfada `onChatLost(id)` kimlik denetimi. `chat-stream-late.test.ts`: A ayrıntısı 404, liste bariyerde → B aç → yanıtı bırak → B açık, yanlış bildirim yok; A’ya dönüş 404 | Uygulayıcı düzeltmesi main’de; nihai tur 3 bekliyor |
+
+767 dosya / 5508 test ve düzeltme geri alınınca kırmızı teyidi **W165 geçmiş teslim kaydıdır** (`f5-notlar.md`); W161b bu testleri veya geri alma deneyini yeniden çalıştırmadı. Son çip commit’i `58bd639` duman sonrasıdır; bu ek için duman tekrarı iddia edilmez.
+
+W165 dumanı: `.git/koordinator/web7-w165/` içindeki `results-sohbet-a-b-a.json`, `results-sohbet-birim-degisimi.json`, `results-konsol.json`; HEAD `e2e78758ed9e7bab70a7cc4c8d74b4b5cbb92242`, koşum `2026-11-14T19:57:44.259Z#a481a8b6`. Gerçek Caddy CSP + sahte `/v1`, iki senaryo × 390/1024/1440 × iki tema; taşma/CSP/pageerror 0. Konsol **18 beklenen sohbet/üye 404, 0 beklenmeyen**; sıfır konsol kaydı değildir. Gerçek backend veya son kapanış HEAD’i dumanı sayılmaz.
+
+**Güncel hedefli doğrulama (Codex devralma):** koordinatörün ayrı test ajanı main `db7252cf70a881d4b277655f2fb3bc0126ec838f` (`58bd639` dahil) üzerinde 7 dosya / 25 testi geçirdi (exit 0; 37,71 sn): `chat-edit-late`, `chat-stream-late`, `chat-send-late`, `chat-stream-scope`, `chat-stream-return`, `chat-window`, `settle-sent`. Yerel kanıt `.git/koordinator/web7-codex-devralma-test.log`. Tek Vitest koşumu; tam paket, Docker veya yeni duman değildir. Nihai tur 3 hükmünün yerine geçmez.
+
+## Tur 3 (nihai) — bekliyor
+
+Güncellenmiş kapanış HEAD’inde bağımsız salt okunur inceleme yapılacak; henüz hüküm yok. W165 düzeltmelerinin nihai kabulü ve kapanış PR CI/birleşmesi tamamlanana kadar **F7 KAPANMADI; F8 AÇILMADI**.
