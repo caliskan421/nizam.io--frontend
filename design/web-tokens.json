@@ -288,7 +288,12 @@
         { "name": "topbar-crumb-fs", "value": "13px" },
         { "name": "topbar-dot", "value": "7px" },
         { "name": "topbar-dot-top", "value": "6px" },
-        { "name": "topbar-dot-right", "value": "7px" }
+        { "name": "topbar-dot-right", "value": "7px" },
+        {
+          "name": "notif-panel-w",
+          "value": "420px",
+          "usage": "Bildirim paneli genişliği (Bildirimler.dc.html .nb-panel)."
+        }
       ]
     },
     "work": {

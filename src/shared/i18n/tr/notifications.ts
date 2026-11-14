@@ -11,6 +11,9 @@ export const trNotifications = {
       unread: 'Bildirimler, {n} okunmamış',
       overflow: 'Bildirimler, 9’dan fazla okunmamış',
       badgeOverflow: '9+',
+      open: 'Bildirim panelini aç',
+      close: 'Bildirim panelini kapat',
+      live: '{n} okunmamış bildirim',
     },
     panel: {
       title: 'Bildirimler',
@@ -28,6 +31,9 @@ export const trNotifications = {
       markedAll: '{n} bildirim okundu sayıldı',
       markedNone: 'Okunmamış bildirim yok',
       soon: 'Yakında',
+      close: 'Bildirim panelini kapat',
+      olderError: 'Daha eski bildirimler yüklenemedi.',
+      listLabel: 'Bildirim listesi',
     },
     rows: {
       unreadDot: 'okunmamış',
@@ -39,6 +45,11 @@ export const trNotifications = {
       groupToday: 'Bugün',
       groupYesterday: 'Dün',
       groupOlder: 'Daha eski',
+      time: {
+        now: 'şimdi',
+        minutes: '{n} dk',
+        hours: '{n} sa',
+      },
       types: {
         work_item_created: { label: 'Görev', text: 'Yeni görev oluşturuldu' },
         work_item_transitioned: { label: 'Görev', text: 'Bir görevin durumu değişti' },
