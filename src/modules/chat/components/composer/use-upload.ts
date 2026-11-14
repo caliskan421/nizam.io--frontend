@@ -22,14 +22,14 @@ function applyUpload(
   outcome: UploadOutcome,
   at: {
     key: string
-    body: string | null
+    version: number | null
     thread: ThreadContext
     setNotice: (notice: Notice | null) => void
   },
 ): void {
   const current = at.thread.draftKey.value === at.key
   if (outcome.kind === 'success') {
-    if (at.body !== null) settleSent(at.key, at.body)
+    if (at.version !== null) settleSent(at.key, at.version)
     if (current) at.thread.stickBottom.value += 1
   } else if (outcome.kind === 'failed') {
     if (current) at.setNotice({ kind: 'error', text: errorText(outcome.error) })
@@ -48,6 +48,7 @@ export function useUpload(thread: ThreadContext, setNotice: (notice: Notice | nu
     const key = thread.draftKey.value
     const chatId = thread.chatId.value
     const draft = chatDrafts.get(key)
+    const version = draft ? chatDrafts.version(key) : null
     const caption = draft?.body.trim() || undefined
     uploadingKey.value = key
     setNotice(null)
@@ -60,7 +61,7 @@ export function useUpload(thread: ThreadContext, setNotice: (notice: Notice | nu
         ...(caption ? { caption } : {}),
         ...(draft?.replyTo ? { replyToMessageId: draft.replyTo } : {}),
       })
-      applyUpload(outcome, { key, body: draft?.body ?? null, thread, setNotice })
+      applyUpload(outcome, { key, version, thread, setNotice })
     } finally {
       if (uploadingKey.value === key) uploadingKey.value = null
     }

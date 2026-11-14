@@ -145,6 +145,8 @@ export interface ApplyDeps {
   /** Anlık güncel kapsam: gecikmiş sonuç, kapsam değiştiyse eski kapsama bağlı kalır ve uygulanmaz. */
   currentScope: () => ScopeSnapshot
   openChatId: string | null
+  /** Anlık açık sohbet: gecikmiş erişim sonucu, sohbet bu arada değiştiyse atılır (CX-F7-Ö-05). */
+  currentOpenChatId: () => string | null
   messages: ChatStreamMessages | null
   alive: () => boolean
   onChatLost: (chatId: string) => void

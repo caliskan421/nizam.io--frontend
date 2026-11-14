@@ -43,6 +43,8 @@ async function recheck(deps: ApplyDeps, event: CoalescedEvent): Promise<void> {
   await deps.client.invalidateQueries({ queryKey: key, exact: true })
   // Gecikmiş denetim: kapsam bu arada değiştiyse sonuç eski kapsama aittir, güncel ekrana uygulanmaz.
   if (!deps.alive() || !sameScope(deps.scope, deps.currentScope())) return
+  // Planın yakaladığı açık sohbet artık açık değilse (A → B) sonuç A'ya aittir; B'ye uygulanmaz.
+  if (deps.currentOpenChatId() !== event.chatId) return
   const error = deps.client.getQueryState(key)?.error
   if (error instanceof ApiError && error.code === 'messaging.chat_not_found') {
     deps.onChatLost(event.chatId)
@@ -94,6 +96,7 @@ export function dispatchEvent(deps: DispatchDeps, event: CoalescedEvent): void {
     scope: { ...deps.scope() },
     currentScope: deps.scope,
     openChatId: open,
+    currentOpenChatId: () => toValue(deps.options.chatId),
     messages,
     alive: deps.alive,
     onChatLost: (id) => deps.options.onChatLost?.(id),

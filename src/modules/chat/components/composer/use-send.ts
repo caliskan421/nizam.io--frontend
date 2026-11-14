@@ -64,8 +64,8 @@ function requestOf(thread: ThreadContext, key: string, draft: Draft): SendChatMe
 interface Origin {
   key: string
   chatId: string
-  /** Gönderilen taslak gövdesi (ham): yalnız bu sürüm temizlenir. */
-  body: string
+  /** Gönderimin başladığı taslak sürümü: yalnız bu sürüm temizlenir (CX-F7-Ö-04). */
+  version: number
   /** Sohbet türü gönderim anındaki (sonuç sınıflandırması güncel sohbete bakmaz). */
   chatKind: 'direct' | 'group'
 }
@@ -83,7 +83,7 @@ interface SendState {
 
 /** Veri: yalnız gönderilen anahtar/sürüm temizlenir; UI: yalnız hâlâ o sohbet açıksa. */
 function applySent(thread: ThreadContext, state: SendState, origin: Origin): void {
-  settleSent(origin.key, origin.body)
+  settleSent(origin.key, origin.version)
   if (thread.draftKey.value !== origin.key) return
   state.notice.value = null
   thread.stickBottom.value += 1
@@ -132,11 +132,11 @@ function applySend(
   }
 }
 
-function originOf(thread: ThreadContext, key: string, draft: Draft): Origin {
+function originOf(thread: ThreadContext, key: string): Origin {
   return {
     key,
     chatId: thread.chatId.value,
-    body: draft.body,
+    version: chatDrafts.version(key),
     chatKind: thread.chat.value?.kind ?? 'group',
   }
 }
@@ -186,7 +186,7 @@ export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) =>
     const key = thread.draftKey.value
     const draft = chatDrafts.get(key)
     if (sending.value || !draft || draft.body.trim() === '') return
-    const origin = originOf(thread, key, draft)
+    const origin = originOf(thread, key)
     const request = requestOf(thread, origin.key, draft)
     state.notice.value = null
     const body = { programId: thread.programId.value, chatId: origin.chatId, body: request }
@@ -199,7 +199,7 @@ export function useSend(thread: ThreadContext, onSent: (message: ChatMessage) =>
     const key = thread.draftKey.value
     const draft = chatDrafts.get(key)
     if (!again || sending.value || !draft) return
-    const origin = originOf(thread, key, draft)
+    const origin = originOf(thread, key)
     state.retried = true
     try {
       await run(again, origin, requestOf(thread, origin.key, draft))
