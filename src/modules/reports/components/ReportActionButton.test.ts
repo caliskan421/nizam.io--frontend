@@ -228,3 +228,105 @@ describe('W138 ek yüzey (trailing yuvası, start(), kartlar)', () => {
     await flushPromises()
   })
 })
+
+describe('CX-F6-E-01: kayıt/tür/seçim değişince süren kiralama iptal edilir', () => {
+  const deferred = () => {
+    let release!: () => void
+    const open = new Promise<void>((resolve) => (release = resolve))
+    return { open, release }
+  }
+
+  it("A bileti beklerken B'ye geçiş: tüketim yok, kaydetme/bildirim/olay yok; B bağımsız indirir", async () => {
+    const hold = deferred()
+    let redeemed = 0
+    server.use(
+      http.post(`${ORIGIN}/v1/download-tickets`, async () => {
+        await hold.open
+        return json({
+          ticket: 'tk_1',
+          url: '/v1/downloads/tk_1',
+          expires_at: '2026-11-13T10:01:00Z',
+        })
+      }),
+      http.get(`${ORIGIN}/v1/downloads/:ticket`, () => {
+        redeemed += 1
+        return new Response(Uint8Array.from([37, 80, 68, 70]), {
+          headers: { 'Content-Type': 'application/pdf' },
+        })
+      }),
+    )
+    const { wrapper } = mountButton({ kind: 'meeting', targetId: 'a' })
+    await wrapper.get('button').trigger('click')
+    await vi.waitFor(() => expect(sent('POST', '/v1/download-tickets')).toHaveLength(1))
+    await wrapper.setProps({ targetId: 'b' })
+    hold.release()
+    await flushPromises()
+    await vi.waitFor(() => expect(wrapper.get('button').attributes('disabled')).toBeUndefined())
+    expect(redeemed).toBe(0)
+    expect(saved.clicked).toEqual([])
+    expect(wrapper.emitted('done')).toBeUndefined()
+    expect(wrapper.emitted('failed')).toBeUndefined()
+    expect(useToast().current.value).toBeNull()
+    expect(wrapper.find('[data-testid="report-card"]').exists()).toBe(false)
+
+    // B'nin bağımsız indirmesi çalışır (kapı serbest, durum temiz).
+    server.use(ticketOk(), pdf())
+    await wrapper.get('button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.emitted('done')).toHaveLength(1))
+    expect(saved.clicked).toHaveLength(1)
+    expect(sent('POST', '/v1/download-tickets').at(-1)!.body).toEqual({
+      method: 'GET',
+      path: '/v1/reports/meetings/b/pdf',
+    })
+  })
+
+  it("A tüketimi beklerken B'ye geçiş: kaydetme ve bildirim yok; B bağımsız indirir", async () => {
+    const hold = deferred()
+    server.use(
+      ticketOk(),
+      http.get(`${ORIGIN}/v1/downloads/:ticket`, async () => {
+        await hold.open
+        return new Response(Uint8Array.from([37, 80, 68, 70]), {
+          headers: { 'Content-Type': 'application/pdf' },
+        })
+      }),
+    )
+    const { wrapper } = mountButton({ kind: 'task', targetId: 'a' })
+    await wrapper.get('button').trigger('click')
+    await vi.waitFor(() => expect(sent('GET', '/v1/downloads/tk_1').length).toBeGreaterThan(0))
+    await wrapper.setProps({ targetId: 'b' })
+    hold.release()
+    await flushPromises()
+    expect(saved.clicked).toEqual([])
+    expect(wrapper.emitted('done')).toBeUndefined()
+    expect(useToast().current.value).toBeNull()
+    await vi.waitFor(() => expect(wrapper.get('button').attributes('disabled')).toBeUndefined())
+
+    server.use(ticketOk(), pdf())
+    await wrapper.get('button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.emitted('done')).toHaveLength(1))
+    expect(saved.clicked).toHaveLength(1)
+  })
+
+  it('aynı içerikli yeni memberIds dizisi iptal ETMEZ; farklı seçim eder', async () => {
+    const hold = deferred()
+    server.use(
+      http.post(`${ORIGIN}/v1/download-tickets`, async () => {
+        await hold.open
+        return json({
+          ticket: 'tk_1',
+          url: '/v1/downloads/tk_1',
+          expires_at: '2026-11-13T10:01:00Z',
+        })
+      }),
+      pdf(),
+    )
+    const { wrapper } = mountButton({ kind: 'workload', memberIds: ['x'] })
+    await wrapper.get('button').trigger('click')
+    await vi.waitFor(() => expect(sent('POST', '/v1/download-tickets')).toHaveLength(1))
+    await wrapper.setProps({ memberIds: ['x'] })
+    hold.release()
+    await vi.waitFor(() => expect(wrapper.emitted('done')).toHaveLength(1))
+    expect(saved.clicked).toHaveLength(1)
+  })
+})

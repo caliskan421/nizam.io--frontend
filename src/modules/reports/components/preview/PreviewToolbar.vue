@@ -22,7 +22,7 @@ const props = defineProps<{
   goTo?: RouteLocationRaw
   lead?: string
 }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; failed: [code: string] }>()
 const zoom = defineModel<number>('zoom', { default: 100 })
 
 const STEP = 25
@@ -69,6 +69,7 @@ function change(delta: number): void {
         variant="primary"
         :size="small ? 'sm' : 'md'"
         data-testid="preview-pdf"
+        @failed="emit('failed', $event)"
         >{{ t('reports.season.toolbar.pdf') }}</ReportActionButton
       >
       <RouterLink

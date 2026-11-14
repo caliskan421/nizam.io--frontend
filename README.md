@@ -108,6 +108,10 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   `setup` bulunduğunu denetler.
 - **Fixture:** `e2e/global-setup.ts` yalnız API çağrılarıyla (yönetici girişi → program →
   departman → programa bağlama → üye) kurar; backend seed yüzü yoktur (D-0162).
+  Tohum idempotenttir: DB'de önceki koşumun fixture'ıyla eşleşen tek program varsa yeniden
+  kullanılır; eşleşmeyen ≥2 program varsa açık hatayla durur (≥2 programda kenar menüsü program
+  seçiciyi açar, saydam perde tıklamaları yakalar). Yerelde kirli DB için:
+  `pnpm e2e:backend:down && pnpm e2e:backend:up`.
 - **Duman:** `e2e/smoke.spec.ts` — giriş → `/v1/me` → sayfa yenileme sonrası sessiz refresh
   → çıkış; tarayıcı depolarının boş ve yenileme çerezinin HttpOnly olduğu denetlenir.
 - **Raporlar (F6):** `e2e/reports.spec.ts` — 06 dönem PDF bileti + indirme, "Bölüm seç…" (390 px tam ekran), önizleme, 05 iş yükü PDF, "Rapor oluştur" menüsü; üretim CSP ihlali 0.

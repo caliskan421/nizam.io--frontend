@@ -97,26 +97,31 @@ const failureStatus = computed(() =>
   failure.value ? FAILURE_STATUS[failure.value.kind] : undefined,
 )
 
-// Başka kayda/seçime geçilince önceki sonuç gösterilmez.
-watch(
-  () => [props.kind, props.targetId, props.memberIds],
-  () => {
-    if (!downloads.isPending.value) {
-      phase.value = 'idle'
-      failure.value = null
-    }
-  },
+// Başka kayda/seçime geçilince önceki sonuç gösterilmez ve süren kiralama iptal edilir (bilet
+// tüketilmez, dosya kaydedilmez, bildirim çıkmaz; CX-F6-E-01). Kimlik içerikten türer: üst
+// bileşen her çizimde yeni dizi verse de yalnız gerçek değişim iptal eder.
+const subject = computed(
+  () => `${props.kind}|${props.targetId ?? ''}|${(props.memberIds ?? []).join(',')}`,
 )
+let epoch = 0
+watch(subject, () => {
+  epoch += 1
+  downloads.cancel()
+  phase.value = 'idle'
+  failure.value = null
+})
 
 async function start(): Promise<void> {
   if (!canStart(state.value)) return
   phase.value = 'idle'
   failure.value = null
+  const mine = epoch
   const result = await downloads.run({
     kind: props.kind,
     targetId: props.targetId,
     memberIds: props.memberIds,
   })
+  if (mine !== epoch) return
   if (result.kind === 'saved') {
     phase.value = 'downloaded'
     fileName.value = result.fileName

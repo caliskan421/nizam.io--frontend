@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { useDashboard } from '@/modules/home/public'
 import { authSession } from '@/shared/http'
@@ -116,6 +116,41 @@ describe('reportSeason (01f önizleme)', () => {
     expect(result.error.value).toMatchObject({ code: 'reporting.capacity_full' })
     // Otomatik tekrar yok.
     expect(sent('GET', SEASON_PATH)).toHaveLength(1)
+  })
+
+  it('CX-F6-E-05: başlıklı 429 ortak sayacı başlatır; süre bitince otomatik istek yok', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      server.use(
+        http.get(`${ORIGIN}${SEASON_PATH}`, () =>
+          errorEnvelope('platform.rate_limited', 429, { 'Retry-After': '3' }),
+        ),
+      )
+      const gate = createReportGate()
+      const h = harness(ADMIN)
+      h.run(() => useReportSeason(true, gate))
+      await settleQueries(h.queryClient)
+      expect(gate.cooldown.value).toBe(3)
+      vi.advanceTimersByTime(3000)
+      expect(gate.cooldown.value).toBe(0)
+      await settleQueries(h.queryClient)
+      expect(sent('GET', SEASON_PATH)).toHaveLength(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it.each([
+    ['429 başlıksız', () => errorEnvelope('reporting.export_in_progress', 429)],
+    ['503 capacity_full', () => errorEnvelope('reporting.capacity_full', 503)],
+    ['500', () => errorEnvelope('platform.internal', 500)],
+  ] as const)('CX-F6-E-05: %s → sayaç yok', async (_label, reply) => {
+    server.use(http.get(`${ORIGIN}${SEASON_PATH}`, () => reply()))
+    const gate = createReportGate()
+    const h = harness(ADMIN)
+    h.run(() => useReportSeason(true, gate))
+    await settleQueries(h.queryClient)
+    expect(gate.cooldown.value).toBe(0)
   })
 
   it('429 export_in_progress: tek istek, Retry-After ApiError üzerinde', async () => {
