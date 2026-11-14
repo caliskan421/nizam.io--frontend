@@ -11,6 +11,7 @@ import { UiEmptyState } from '@/shared/ui'
 import { UiButton } from '@/shared/ui'
 
 import { useRoleFacts } from '../api/role/use-facts'
+import { openCount } from '../model/role/common'
 import { useRoleLoad } from '../api/role/use-role-load'
 import { useToday } from '../api/role/use-today'
 import { useUnreadCount } from '../api/role/use-unread-count'
@@ -75,6 +76,12 @@ const meetingsError = computed(() =>
   meetings.query.isError.value ? toApiError(meetings.query.error.value) : null,
 )
 const units = computed(() => unitBreakdown(myUnits.departments.value, items.value))
+// Kısmi küme (CX-F6-E-03): sunucu sayacı varsa kesin açık toplam o; yoksa türev "≥".
+const openTotal = computed(() =>
+  load.counts.data.value ? openCount(load.counts.data.value) : null,
+)
+const scope = computed(() => load.scope.value)
+const loaded = computed(() => load.loaded.value)
 
 const openItems = computed(() => items.value.filter(isOpen))
 const uploadable = computed(() => openItems.value.filter((i) => facts.canUpload(i)))
@@ -136,7 +143,11 @@ function openUpload(preset: string | null = null): void {
           :loading="listLoading"
           :error="listError"
           :retrying="load.list.isFetching.value"
+          :open-total="openTotal"
+          :scope="scope"
+          :loaded="loaded"
           @retry="() => load.list.refetch()"
+          @more="load.loadMore()"
           @evidence="(item) => openUpload(item.work_item_id)"
         />
         <QuickTiles
@@ -149,7 +160,13 @@ function openUpload(preset: string | null = null): void {
         <NotificationsCard :unread="unread.data.value ?? null" />
       </div>
       <aside class="rh-aside" :aria-label="homeText('home.u1.calendar.legendUpcoming', { n: 0 })">
-        <DeadlineCalendar :items="items" :today="today" :time-zone="timeZone" />
+        <DeadlineCalendar
+          :items="items"
+          :today="today"
+          :time-zone="timeZone"
+          :scope="scope"
+          :loaded="loaded"
+        />
         <MeetingsCard
           member
           :views="meetings.views.value"
@@ -160,7 +177,12 @@ function openUpload(preset: string | null = null): void {
           :retrying="meetings.query.isFetching.value"
           @retry="() => meetings.query.refetch()"
         />
-        <UnitsCard :rows="units" :loading="listLoading || myUnits.query.isLoading.value" />
+        <UnitsCard
+          :rows="units"
+          :loading="listLoading || myUnits.query.isLoading.value"
+          :scope="scope"
+          :loaded="loaded"
+        />
       </aside>
     </div>
     <UploadDialog v-model:open="uploadOpen" :items="uploadable" :preset="uploadPreset" />
