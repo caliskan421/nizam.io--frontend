@@ -160,18 +160,52 @@ describe('MeetingReportPage (01g; E-13-46…53)', () => {
     })
   })
 
-  it('hata: bölge içi metin + yeniden dene; 404 sunucu iletisi göstermez', async () => {
+  it('CX-F6-E-06: 404 reporting.not_found → önizleme kapanır (liste), liste geçersizlenir, TEK bildirim', async () => {
+    server.use(
+      ...standing({ admin: true }),
+      http.get(`${ORIGIN}/v1/reports/meetings/m1`, () => errorEnvelope('reporting.not_found', 404)),
+    )
+    const { wrapper, router, queryClient } = await mountWith(MeetingReportPage, { path: PATH })
+    const invalidated = vi.spyOn(queryClient, 'invalidateQueries')
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('collaboration.meetings'))
+    await settleQueries(queryClient)
+    expect(useToast().current.value?.message).toBe('Kayıt bulunamadı.')
+    expect(invalidated).toHaveBeenCalledTimes(1)
+    expect(wrapper.text()).not.toContain('sunucu iletisi')
+    expect(router.currentRoute.value.fullPath).toBe('/toplantilar')
+  })
+
+  it('CX-F6-E-06: açıkken silinen kayıt (yeniden okumada 404) önizlemeyi kapatır; tek bildirim', async () => {
+    let gone = false
+    server.use(
+      ...standing({ admin: true }),
+      http.get(`${ORIGIN}/v1/reports/meetings/m1`, () =>
+        gone ? errorEnvelope('reporting.not_found', 404) : json(meetingFixture()),
+      ),
+    )
+    const { router, queryClient } = await mountWith(MeetingReportPage, { path: PATH })
+    await vi.waitFor(() => expect(sent('GET', '/v1/reports/meetings/m1')).toHaveLength(1))
+    await settleQueries(queryClient)
+    gone = true
+    await queryClient.invalidateQueries()
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('collaboration.meetings'))
+    expect(useToast().current.value?.message).toBe('Kayıt bulunamadı.')
+  })
+
+  it('CX-F6-E-06: geçici hata (500) 404 gibi kapatmaz: bölge içi metin + "Yeniden dene"', async () => {
     let calls = 0
     server.use(
       ...standing({ admin: true }),
       http.get(`${ORIGIN}/v1/reports/meetings/m1`, () => {
         calls += 1
-        return calls === 1 ? errorEnvelope('reporting.not_found', 404) : json(meetingFixture())
+        // Geçici hata üç denemeyi de tüketir (tekrar sınırı 2); sonraki okuma başarılıdır.
+        return calls <= 3 ? errorEnvelope('platform.internal', 500) : json(meetingFixture())
       }),
     )
-    const { wrapper } = await mountWith(MeetingReportPage, { path: PATH })
-    await vi.waitFor(() => expect(wrapper.find('[role="alert"]').exists()).toBe(true))
-    expect(wrapper.text()).not.toContain('sunucu iletisi')
+    const { wrapper, router } = await mountWith(MeetingReportPage, { path: PATH })
+    await vi.waitFor(() => expect(wrapper.find('[role="alert"] button').exists()).toBe(true))
+    expect(router.currentRoute.value.path).toBe(PATH)
+    expect(useToast().current.value).toBeNull()
     await wrapper.get('[role="alert"] button').trigger('click')
     await vi.waitFor(() =>
       expect(wrapper.find('[data-testid="meeting-stage"]').exists()).toBe(true),

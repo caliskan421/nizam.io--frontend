@@ -160,8 +160,24 @@ describe('01g toplantı raporu önizlemesi', () => {
     expect(backend.sent('GET', '/v1/reports/meetings/m1')).toHaveLength(0)
   })
 
-  it('silinmiş/kapsam dışı toplantı 404: bölge içi hata', async () => {
-    await boot({ ...ADMIN, path: '/toplantilar/yok/rapor' })
-    await until(() => document.body.textContent?.includes('Toplantı raporu okunamadı'), 'hata')
+  it('CX-F6-E-06: silinmiş/kapsam dışı toplantı 404 (ilk açılış): önizleme kapanır, liste yenilenir, TEK bildirim', async () => {
+    const app = await boot({ ...ADMIN, path: '/toplantilar/yok/rapor' })
+    await until(() => app.router.currentRoute.value.name === 'collaboration.meetings', 'liste')
+    await until(() => toasts().includes('Kayıt bulunamadı'), 'bildirim')
+    await until(() => backend.sent('GET', '/v1/meetings').length > 0, 'liste okundu')
+    await idle(app.queryClient)
+    expect(STAGE()).toBeNull()
+    expect(toasts().match(/Kayıt bulunamadı/g)).toHaveLength(1)
+  })
+
+  it('CX-F6-E-06: önizlemedeki PDF 404 reporting.not_found (kayıt sonradan silindi): aynı kayıp-kayıt akışı', async () => {
+    const app = await boot({ ...ADMIN, path: '/toplantilar/m1/rapor' })
+    await until(STAGE, 'önizleme')
+    reports.state.redeem = 'not_found'
+    await userClick('[data-testid="preview-pdf"] button')
+    await until(() => app.router.currentRoute.value.name === 'collaboration.meetings', 'liste')
+    await idle(app.queryClient)
+    expect(toasts().match(/Kayıt bulunamadı/g)).toHaveLength(1)
+    expect(saved).toHaveLength(0)
   })
 })
