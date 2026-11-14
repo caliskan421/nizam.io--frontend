@@ -15,7 +15,6 @@ import {
   MEMBER,
   messageEls,
   resetChats,
-  sent,
   serverEmit,
   streamOpen,
   teardown,

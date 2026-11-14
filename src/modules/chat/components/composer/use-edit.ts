@@ -73,17 +73,33 @@ function editVars(thread: ThreadContext, chatId: string, edit: EditDraft, seq: n
   }
 }
 
+/** Geç sonuç güncel sohbetin bildirimine işlemez (KESİN 26); veri `at` anahtarına yazılır. */
+function guard(thread: ThreadContext, at: string, setNotice: (notice: Notice | null) => void) {
+  return (notice: Notice | null) => {
+    if (thread.draftKey.value === at) setNotice(notice)
+  }
+}
+
+/**
+ * Kayıt durumu düzenleme HEDEFİ başınadır (anahtar + mesaj): vazgeçip başka mesajı düzenlemek serbest,
+ * ilk kaydın sonucu yeni kipi ezmez (CX-F7-Ö-04).
+ */
+function useSaving(thread: ThreadContext) {
+  const savingKey = ref<string | null>(null)
+  const targetOf = (at: string, messageId: string | undefined) => `${at}:${messageId ?? ''}`
+  const saving = computed(() => {
+    const at = thread.draftKey.value
+    return savingKey.value === targetOf(at, chatDrafts.getEdit(at)?.messageId)
+  })
+  return { savingKey, saving, targetOf }
+}
+
 export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null) => void) {
   const mutation = useEditChatMessage()
   const resolver = useConflictResolver()
   const page = useChatPage()
-  // Kayıt anahtar başınadır: vazgeçip başka mesajı düzenlemek serbest, ilk kayıt yeni kipi ezmez.
-  const savingKey = ref<string | null>(null)
+  const { savingKey, saving, targetOf } = useSaving(thread)
   const key = () => thread.draftKey.value
-  const targetOf = (at: string, messageId: string | undefined) => `${at}:${messageId ?? ''}`
-  const saving = computed(
-    () => savingKey.value === targetOf(key(), chatDrafts.getEdit(key())?.messageId),
-  )
 
   /**
    * Düzenlemeyi bitirir: veri verilen ANAHTARA; bildirim yalnız hâlâ o sohbet açıksa (KESİN 26).
@@ -132,10 +148,7 @@ export function useEdit(thread: ThreadContext, setNotice: (notice: Notice | null
     const target = targetOf(at, edit.messageId)
     savingKey.value = target
     setNotice(null)
-    // Geç sonuç güncel sohbetin bildirimine işlemez (KESİN 26); veri `at` anahtarına yazılır.
-    const guarded = (notice: Notice | null) => {
-      if (key() === at) setNotice(notice)
-    }
+    const guarded = guard(thread, at, setNotice)
     let result: 'done' | ChatMessage | null
     try {
       result = handleEdit(
