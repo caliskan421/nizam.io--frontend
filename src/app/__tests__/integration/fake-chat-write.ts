@@ -90,7 +90,19 @@ function refuseSend(chat: FakeChat, account: string, body: Partial<SendBody>, te
   return everyone && !isManager(chat, account) ? notAuthorized() : null
 }
 
+/** Pin §10.2 / SendFingerprint: bahsetme ve ref sırası önemsiz, anket sırası anlamlıdır. */
+function sendShape(body: Partial<SendBody>): string {
+  return JSON.stringify([
+    (body.body ?? '').trim(),
+    body.reply_to_message_id ?? '',
+    (body.mentions ?? []).map((m) => `${m.kind}:${m.target_id ?? ''}`).sort(),
+    (body.refs ?? []).map((r) => `${r.kind}:${r.target_id}`).sort(),
+    body.poll ? [body.poll.options, body.poll.multi ?? false, body.poll.closes_at ?? ''] : null,
+  ])
+}
+
 function sendHandler(db: OrgDb, state: ChatState) {
+  const shapes = new WeakMap<FakeMessage, string>()
   return http.post(`${ORIGIN}/v1/chats/:chatId/messages`, async ({ request, params }) => {
     const found = resolveChat(db, state, request, String(params.chatId))
     if (isResponse(found)) return found
@@ -105,8 +117,15 @@ function sendHandler(db: OrgDb, state: ChatState) {
       return envelope('platform.unavailable', 503)
     }
     const existing = chat.messages.find((m) => m.base.client_message_id === body.client_message_id)
-    if (existing) return json(viewOf(existing, account.account_id), 200)
+    if (existing) {
+      const original = shapes.get(existing)
+      if (original !== undefined && original !== sendShape(body)) {
+        return envelope('messaging.idempotency_key_reused', 409)
+      }
+      return json(viewOf(existing, account.account_id), 200)
+    }
     const message = create(state, chat, account, { ...body, body: text })
+    shapes.set(message, sendShape(body))
     if (fault === 'lost-response') {
       state.sendFault = 'ok'
       return HttpResponse.error()

@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { addMention, addRef, chatDrafts, chipsOf, resetDrafts, settleSent } from './drafts'
+import { buildSendBody } from './send-body'
 
 afterEach(() => resetDrafts())
 
@@ -71,6 +72,30 @@ describe('settleSent', () => {
     expect(chatDrafts.get('k1')?.body).toBe('merhaba')
     expect(chipsOf('k1').mentions).toHaveLength(1)
   })
+
+  it.each(['mention', 'ref'] as const)(
+    '%s çipi aynı metnin etkin payload ve kimliğini yeniler; eski başarıdan sonra gönderilebilir',
+    (kind) => {
+      chatDrafts.setBody('k1', '@Cem #G1')
+      const request = () => {
+        const draft = chatDrafts.get('k1')!
+        return buildSendBody({ ...draft, chips: chipsOf('k1'), allowAll: true })
+      }
+      const first = request()
+      const version = chatDrafts.version('k1')
+      if (kind === 'mention') addMention('k1', chip)
+      else addRef('k1', { token: '#G1', kind: 'task', targetId: 't1' })
+      settleSent('k1', version)
+      const second = request()
+      expect(second.body).toBe(first.body)
+      expect(second.client_message_id).not.toBe(first.client_message_id)
+      if (kind === 'mention')
+        expect(second.mentions).toEqual([{ kind: 'account', target_id: 'a2' }])
+      else expect(second.refs).toEqual([{ kind: 'task', target_id: 't1' }])
+      settleSent('k1', chatDrafts.version('k1'))
+      expect(chatDrafts.get('k1')).toBeNull()
+    },
+  )
 
   it('görev çipi (ref) eklemek de sürümü artırır', () => {
     chatDrafts.setBody('k1', 'bak')
