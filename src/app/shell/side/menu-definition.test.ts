@@ -59,6 +59,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
         [
           ['meetings', 'Toplantılar'],
           ['archive', 'Arşiv'],
+          ['messages', 'Mesajlar'],
         ],
       ],
       [
@@ -87,6 +88,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
         [
           ['meetings', 'Toplantılar'],
           ['archive', 'Arşiv'],
+          ['messages', 'Mesajlar'],
         ],
       ],
     ])
@@ -107,6 +109,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
         [
           ['meetings', 'Toplantılar'],
           ['archive', 'Dosyalarım'],
+          ['messages', 'Mesajlar'],
         ],
       ],
     ])
@@ -123,22 +126,13 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
     )
   })
 
-  it('Takvim, Kurumsal hafıza, Mesajlar, Tablolar, Birimim, Ekibim, Simülasyon hiçbir rolde yok', () => {
+  it('Takvim, Kurumsal hafıza, Tablolar, Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
     const keys = new Set(
       MENU_ROLES.flatMap((role) =>
         layout(role).flatMap(([, items]) => (items as string[][]).map((i) => i[0])),
       ),
     )
-    for (const hidden of [
-      'calendar',
-      'memory',
-      'messages',
-      'sheets',
-      'unit',
-      'team',
-      'sim',
-      'dates',
-    ]) {
+    for (const hidden of ['calendar', 'memory', 'sheets', 'unit', 'team', 'sim', 'dates']) {
       expect(keys.has(hidden), hidden).toBe(false)
     }
   })
@@ -235,7 +229,14 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       { companyAdmin: false, coordinator: true, member: true },
       'coordinator',
     )
-    expect(keys()).toEqual(['Ana sayfa', 'Görevler', 'Zaman çizelgesi', 'Toplantılar', 'Arşiv'])
+    expect(keys()).toEqual([
+      'Ana sayfa',
+      'Görevler',
+      'Zaman çizelgesi',
+      'Toplantılar',
+      'Arşiv',
+      'Mesajlar',
+    ])
     lifecycle.selectLens('member')
     await flushPromises()
     expect(keys()).toEqual([
@@ -244,6 +245,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Zaman çizelgem',
       'Toplantılar',
       'Dosyalarım',
+      'Mesajlar',
     ])
     lifecycle.selectLens('coordinator')
     await flushPromises()
@@ -260,7 +262,13 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
   })
 })
 
-const NO_BADGES: TaskBadges = { overdue: null, pendingDates: null, awaitingApproval: null }
+const NO_BADGES: TaskBadges = {
+  overdue: null,
+  pendingDates: null,
+  awaitingApproval: null,
+  unreadChats: null,
+  unreadMentioned: false,
+}
 
 function mountNav(role: MenuRole, badges: TaskBadges, props: Record<string, unknown> = {}) {
   return sideContext('/gorevler').then((ctx) => {
@@ -271,7 +279,7 @@ function mountNav(role: MenuRole, badges: TaskBadges, props: Record<string, unkn
 }
 
 describe('rozet yerleşimi (E-00-45)', () => {
-  const FULL: TaskBadges = { overdue: 3, pendingDates: 2, awaitingApproval: 5 }
+  const FULL: TaskBadges = { ...NO_BADGES, overdue: 3, pendingDates: 2, awaitingApproval: 5 }
   const kinds = (el: Element) =>
     [...el.querySelectorAll('[data-badge]')].map((b) => [
       b.getAttribute('data-badge'),
@@ -311,6 +319,28 @@ describe('rozet yerleşimi (E-00-45)', () => {
     expect(w.find('[data-badge="approval"]').exists()).toBe(false)
   })
 
+  it('Mesajlar (F7): üç rolde okunmamış sohbet rozeti; mentioned ise vurgulu ve etiket farklı', async () => {
+    for (const role of MENU_ROLES) {
+      const plain = await mountNav(role, { ...NO_BADGES, unreadChats: 3 })
+      expect(kinds(item(plain, 'Mesajlar').element), role).toEqual([['unread', '3']])
+      const badge = plain.get('[data-badge="unread"]')
+      expect(badge.attributes('aria-label')).toBe('3 okunmamış sohbet')
+      expect(badge.classes()).not.toContain('t-badge--danger')
+      const mention = await mountNav(role, { ...NO_BADGES, unreadChats: 3, unreadMentioned: true })
+      const hot = mention.get('[data-badge="unread"]')
+      expect(hot.attributes('aria-label')).toBe('Sizi anan mesaj var, 3 okunmamış sohbet')
+      expect(hot.classes()).toContain('t-badge--danger')
+    }
+  })
+
+  it('Mesajlar rozeti 0/null iken çizilmez; diğer öğelere rozet taşmaz', async () => {
+    const w = await mountNav('admin', { ...FULL, unreadChats: null })
+    expect(kinds(item(w, 'Mesajlar').element)).toEqual([])
+    const withChat = await mountNav('admin', { ...FULL, unreadChats: 4 })
+    expect(kinds(item(withChat, 'Toplantılar').element)).toEqual([])
+    expect(kinds(item(withChat, 'Arşiv').element)).toEqual([])
+  })
+
   it('0 / null sayıda rozet çizilmez; dar menüde rozet yok', async () => {
     const empty = await mountNav('coordinator', { ...NO_BADGES, overdue: 0 })
     expect(empty.find('[data-badge]').exists()).toBe(false)
@@ -329,6 +359,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Zaman çizelgem',
       'Toplantılar',
       'Dosyalarım',
+      'Mesajlar',
     ])
     expect(
       links.filter((a) => a.attributes('aria-current') === 'page').map((a) => a.text()),
@@ -348,6 +379,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Zaman çizelgem',
       'Toplantılar',
       'Dosyalarım',
+      'Mesajlar',
     ])
     expect(links.map((a) => a.attributes('title'))).toEqual(
       links.map((a) => a.attributes('aria-label')),

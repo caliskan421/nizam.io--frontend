@@ -20,12 +20,12 @@ import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { CURRENT_PHASE, type Phase, visibilityOf } from '@/app/routes.catalog'
+import { fetchUnreadOverview, useChatUnreadOverview } from '@/modules/chat/public'
 import type { components } from '@/shared/api/schema'
 import { api, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
-import { useSessionStore } from '@/shared/session/store'
 
 import { injectScopeLifecycle } from './scope-key'
 
@@ -34,11 +34,6 @@ export type DashboardCounts = Pick<DashboardReport, 'overdue_tasks' | 'pending_d
 
 export async function fetchDashboardCounts(signal?: AbortSignal): Promise<DashboardCounts> {
   return unwrap(api.GET('/v1/reports/dashboard', { signal }))
-}
-
-export async function fetchUnreadNotificationCount(signal?: AbortSignal): Promise<number> {
-  const result = await unwrap(api.GET('/v1/notifications/unread-count', { signal }))
-  return result.count
 }
 
 type WorkItemCounts = components['schemas']['ProgramWorkItemCounts']
@@ -81,6 +76,13 @@ export interface TaskBadges {
   pendingDates: number | null
   /** Koordinatör merceği: onay bekleyen görevler (`by_status.onaya_sunuldu`; E-00-45). */
   awaitingApproval: number | null
+  /**
+   * Mesajlar (F7, E-00-21): seçili programın okunmamış SOHBET sayısı (`getChatUnreadOverview`,
+   * hesap geneli S1; mercekten bağımsız). Satır yok / hata / 0 → `null` (rozet gizli).
+   */
+  unreadChats: number | null
+  /** Okunmamış mesajlardan biri çağıranı anıyor (`mentioned`): rozet vurgulu (P59 taslak). */
+  unreadMentioned: boolean
 }
 
 function positive(value: number | undefined): number | null {
@@ -130,6 +132,19 @@ function useLensCounts(
   return lensCounts
 }
 
+/** Mesajlar rozeti (E-00-21): seçili programın okunmamış sohbet sayısı + `mentioned` vurgusu. */
+function useChatBadge(phase: Phase, chatFetcher: typeof fetchUnreadOverview) {
+  const live = visibilityOf('collaboration.chats', phase) === 'canli'
+  const chat = useChatUnreadOverview(() => live, chatFetcher)
+  return computed(() => {
+    const unreadChats = live ? positive(chat.selected.value?.unread_chats) : null
+    return {
+      unreadChats,
+      unreadMentioned: unreadChats !== null && chat.selected.value?.mentioned === true,
+    }
+  })
+}
+
 export function useTaskBadges(
   phase: Phase = CURRENT_PHASE,
   fetcher: (signal?: AbortSignal) => Promise<DashboardCounts> = fetchDashboardCounts,
@@ -137,6 +152,7 @@ export function useTaskBadges(
     request: ShellCountsRequest,
     signal?: AbortSignal,
   ) => Promise<ShellWorkCounts> = fetchShellWorkCounts,
+  chatFetcher: typeof fetchUnreadOverview = fetchUnreadOverview,
 ) {
   const lifecycle = injectScopeLifecycle()
   const store = useScopeStore()
@@ -163,7 +179,9 @@ export function useTaskBadges(
     adminView.value && !query.isError.value ? (query.data.value ?? null) : null,
   )
 
-  const badges = computed<TaskBadges>(() => {
+  const unread = useChatBadge(phase, chatFetcher)
+
+  const taskBadges = computed(() => {
     if (!live || store.lens === null) {
       return { overdue: null, pendingDates: null, awaitingApproval: null }
     }
@@ -181,25 +199,12 @@ export function useTaskBadges(
       awaitingApproval: coordinator ? positive(lensCounts.value?.by_status?.onaya_sunuldu) : null,
     }
   })
+  const badges = computed<TaskBadges>(() => ({ ...taskBadges.value, ...unread.value }))
   return { badges }
 }
 
-/** Kenar menüsünde ortak bildirim sayacı anahtarı (ortak-kurallar §6). */
-export const UNREAD_NOTIFICATIONS_KEY = queryKeys.notifications.unreadCount()
-
-/** Okunmamış bildirim sayısı (E-00-38; zil paneli F7'ye kadar devre dışı). Hata → `null`. */
-export function useUnreadNotifications(
-  fetcher: (signal?: AbortSignal) => Promise<number> = fetchUnreadNotificationCount,
-) {
-  const session = useSessionStore()
-  const query = useQuery({
-    queryKey: UNREAD_NOTIFICATIONS_KEY,
-    queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetcher(signal)),
-    enabled: computed(() => session.isAuthenticated),
-    staleTime: 30_000,
-  })
-  const count = computed<number | null>(() =>
-    query.isError.value ? null : (query.data.value ?? null),
-  )
-  return { count }
-}
+/**
+ * Bildirim sayacı F7'den beri `notifications` modülündedir (tek kaynak; davranış değişmedi,
+ * tazeleme: staleTime 30 sn + odak + 60 sn aralık). Kabuk burada yeniden dışa aktarır.
+ */
+export { UNREAD_NOTIFICATIONS_KEY, useUnreadNotifications } from '@/modules/notifications/public'

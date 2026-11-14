@@ -44,12 +44,15 @@ export const trSide = {
       F4: 'F4’te',
       F5: 'F5’te',
       F6: 'F6’da',
+      F7: 'F7’de',
     },
     disabled: '{title} — {phase} açılacak',
     badge: {
       overdue: '{n} geciken görev',
       dates: '{n} tarih değişikliği talebi bekliyor',
       approval: '{n} görev onay bekliyor',
+      unread: '{n} okunmamış sohbet',
+      unreadMentioned: 'Sizi anan mesaj var, {n} okunmamış sohbet',
     },
     logout: 'Çıkış yap',
   },
@@ -70,7 +73,6 @@ export const trTopbar = {
     theme: 'Temayı değiştir',
     bell: 'Bildirimler',
     bellUnread: 'Bildirimler, {n} okunmamış',
-    // ortak-kurallar §5: zil paneli F7'ye kadar devre dışı (sayaç canlı).
-    bellPanelLater: 'Bildirim paneli F7’de açılacak',
+    bellPanel: 'Bildirim panelini aç',
   },
 } as const
