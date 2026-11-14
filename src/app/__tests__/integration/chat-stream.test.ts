@@ -32,6 +32,7 @@ import {
   watchStreams,
   switchScope,
   teardown,
+  toasts,
   typeText,
   until,
   useChatBackend,
@@ -260,6 +261,7 @@ describe('olaylar', () => {
     })
     await advance(1000)
     await until(() => app.router.currentRoute.value.path === '/mesajlar', 'listeye döndü')
+    expect(toasts()).toContain('Bu konuşma bulunamadı')
     await idle(app.queryClient)
     expect($('[data-chat-id="' + GROUP + '"]')).toBeNull()
     expect(rowEls().length).toBe(2)
