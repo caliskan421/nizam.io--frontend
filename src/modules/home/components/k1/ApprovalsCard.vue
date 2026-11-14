@@ -21,7 +21,8 @@ import RegionBody from './RegionBody.vue'
  */
 defineProps<{
   items: readonly WorkRow[]
-  count: number
+  /** Sunucu sayacı; sayaç yokken kısmi kümede alt sınır ("≥N", CX-F6-E-07). */
+  count: number | string
   today: string
   loading?: boolean
   error?: Pick<ApiError, 'messageKey' | 'requestId'> | null

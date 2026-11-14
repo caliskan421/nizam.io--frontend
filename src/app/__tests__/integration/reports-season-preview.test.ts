@@ -1,7 +1,7 @@
 // W142 · O3 senaryo 1 (c): 01f dönem raporu önizlemesi — yalnız sayfa açılınca okunur, canlı bölümler
 // veriden, statik bölümler stub (sahte sayı yok), yükleniyor/boş/hata/429/503, "Kapat" → Arşiv + odak.
 import { flushPromises } from '@vue/test-utils'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   $,
@@ -59,6 +59,43 @@ describe('önizleme okuması', () => {
       expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(0)
     },
   )
+
+  // CX-F6-E-08: sayaç sürerken "Kapat" → Arşiv → "Önizle" ağır GET başlatmaz; sayaç bitince
+  // otomatik istek yok; açık "Yeniden dene" tek istektir.
+  it('429 sayacı sürerken önizlemeyi kapatıp yeniden açmak ikinci GET başlatmaz; süre dolunca otomatik istek yok; "Yeniden dene" tek istek', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      reports.state.season = 'rate_limited'
+      const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+      await until(() => document.body.textContent?.includes('Dönem raporu okunamadı'), 'hata')
+      await idle(app.queryClient)
+      expect(sent()).toHaveLength(1)
+      reports.state.season = 'ok'
+
+      await userClick('[data-action="close"]')
+      await until(() => $('[data-action="preview-season"]'), 'arşiv')
+      await userClick('[data-action="preview-season"]')
+      await until(() => document.body.textContent?.includes('Dönem raporu okunamadı'), 'hata')
+      await idle(app.queryClient)
+      expect(sent()).toHaveLength(1)
+      expect(document.body.textContent).toContain('Bekleyin (')
+      const retry = () => byText('button', 'Yeniden dene') as HTMLButtonElement | null
+      expect(retry()!.disabled).toBe(true)
+      expect(STAGE()).toBeNull()
+
+      await vi.advanceTimersByTimeAsync(61_000)
+      await idle(app.queryClient)
+      expect(document.body.textContent).not.toContain('Bekleyin (')
+      expect(sent()).toHaveLength(1)
+      expect(retry()!.disabled).toBe(false)
+
+      await userClick(() => retry())
+      await until(STAGE, 'yeniden okundu')
+      expect(sent()).toHaveLength(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 
   it('başlıksız 503 (capacity_full): sayaç yok, "Yeniden dene" açık', async () => {
     reports.state.season = 'capacity_full'

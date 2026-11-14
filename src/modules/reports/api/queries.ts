@@ -8,7 +8,10 @@
  *    `reportGate`'ten geçer (hesap başına tek eşzamanlı üretim; JSON da korumadadır,
  *    REPORTING-K10); `staleTime: 0`, odakta/yeniden bağlanmada otomatik tazeleme YOK (E-13-40);
  *    otomatik tekrar YOK (429/503 için "Yeniden dene" kullanıcıdadır). Başlıklı 429 ortak
- *    `reportGate` sayacını başlatır (indirme yoluyla aynı politika; CX-F6-E-05).
+ *    `reportGate` sayacını başlatır (indirme yoluyla aynı politika; CX-F6-E-05). Sayaç sürerken
+ *    (önizleme kapatılıp yeniden açılsa da) okuyucu AĞA ÇIKMAZ: istek atmadan sayaçlı
+ *    `export_in_progress` hatasıyla biter; sayaç bitince otomatik istek yok, "Yeniden dene"
+ *    kullanıcı eylemidir ve tek istektir (CX-F6-E-08).
  *  - `reportMeetingDetail` (01g): hafif, kilitsiz; yalnız ŞY (K için 403).
  *  - `reportTaskDetail`: hafif, kilitsiz.
  */
@@ -16,7 +19,7 @@ import { useQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { linkSignals } from '@/shared/download'
-import { toApiError } from '@/shared/errors/api-error'
+import { ApiError, toApiError } from '@/shared/errors/api-error'
 import { api, authSession, unwrap } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import { retryTransient } from '@/shared/http/retry'
@@ -52,6 +55,15 @@ export function fetchTaskDetail(programId: string, id: string, signal?: AbortSig
   )
 }
 
+/** Sayaç sürerken ağır okuma başlamaz: PDF düğmesiyle tutarlı, ağa çıkmayan sayaçlı hata. */
+function cooldownError(gate: ReportGate): ApiError {
+  return new ApiError({
+    code: 'reporting.export_in_progress',
+    status: 429,
+    retryAfter: gate.cooldown.value,
+  })
+}
+
 /** Dönem raporu JSON'u (01f). Kilit sırası beklenirken `signal` iptali sıradan düşürür. */
 export function useReportSeason(enabled: MaybeRefOrGetter<boolean>, gate: ReportGate = reportGate) {
   const store = useScopeStore()
@@ -66,7 +78,13 @@ export function useReportSeason(enabled: MaybeRefOrGetter<boolean>, gate: Report
             generation: authSession.generation,
             accountId: authSession.snapshot.accountId,
           }
+          if (gate.cooldown.value > 0) throw cooldownError(gate)
           const lease = await gate.acquireWhenFree(signal)
+          // Sırada beklerken başka bir yol sayaç başlatmış olabilir (CX-F6-E-08).
+          if (gate.cooldown.value > 0) {
+            lease.release()
+            throw cooldownError(gate)
+          }
           try {
             return await fetchSeason(scope.programId ?? '', linkSignals(signal, lease.signal))
           } catch (cause) {
