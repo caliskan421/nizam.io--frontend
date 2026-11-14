@@ -5,7 +5,7 @@ import { vi } from 'vitest'
 
 import { createBackend, seedWorld, until, $, $$, click } from './harness'
 import { addMessage, createChatState, makeChat, member, type ChatState } from './fake-chat'
-import { chatHandlers } from './fake-chat-server'
+import { chatHandlers, holdChat } from './fake-chat-server'
 import { emit, serveStream, type ChatEventName, type EmitOptions } from './fake-chat-stream'
 import { PEOPLE } from './world'
 
@@ -319,3 +319,6 @@ export function stubBrowserClone(): void {
 export function withText(selector: string, text: string, root: ParentNode = document.body) {
   return $$(selector, root).find((el) => (el.textContent ?? '').includes(text)) ?? null
 }
+
+/** Sohbet isteğini sunucuya ulaştığı anda bekletir (`holdChat`; bir kez). */
+export const hold = (method: string, test: RegExp) => holdChat(chat.state, method, test)

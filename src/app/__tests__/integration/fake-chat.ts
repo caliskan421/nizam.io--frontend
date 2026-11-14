@@ -69,6 +69,8 @@ export interface ChatState {
   /** Alınan okundu istekleri (sırayla `chat_id:message_id`). */
   reads: string[]
   typing: string[]
+  /** Yanıtı bekletilen istekler (geç sonuç senaryoları; gerçek süre yok). */
+  holds: Array<{ method: string; test: RegExp; gate: Promise<void>; arrived: () => void }>
 }
 
 export interface StreamClient {
@@ -94,6 +96,7 @@ export function createChatState(): ChatState {
     cancelled: 0,
     reads: [],
     typing: [],
+    holds: [],
   }
 }
 
