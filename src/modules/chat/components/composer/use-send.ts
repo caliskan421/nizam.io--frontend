@@ -132,7 +132,12 @@ function applySend(
     if (current) onSent(verdict.message)
   } else if (verdict.state === 'failed') {
     applyFailed(thread, state, origin, verdict, outcome)
-    if (current && verdict.reason === 'unknown' && outcome.kind === 'unknown_outcome') {
+    if (
+      current &&
+      verdict.reason === 'unknown' &&
+      outcome.kind === 'unknown_outcome' &&
+      outcome.retry
+    ) {
       state.retry = { start: outcome.retry, origin, request }
     }
   }
