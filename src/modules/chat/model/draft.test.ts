@@ -19,21 +19,39 @@ describe('sohbet taslağı (bellekte)', () => {
     expect(d.setBody('c2', 'x').clientMessageId).not.toBe(changed.clientMessageId)
   })
 
-  it('yanıt bağlamı gövdeyi ve kimliği bozmaz; gövde değişince bağlam kalır', () => {
+  it('yanıt bağlamı değişince kimlik yenilenir; aynı bağlam kimliği korur', () => {
     const d = store()
     const base = d.setBody('c1', 'a')
     d.setReplyTo('c1', 'm5')
     expect(d.get('c1')).toMatchObject({
       body: 'a',
       replyTo: 'm5',
-      clientMessageId: base.clientMessageId,
     })
+    const replied = d.get('c1')!.clientMessageId
+    expect(replied).not.toBe(base.clientMessageId)
+    d.setReplyTo('c1', 'm5')
+    expect(d.get('c1')?.clientMessageId).toBe(replied)
     d.setBody('c1', 'ab')
     expect(d.get('c1')?.replyTo).toBe('m5')
+    const withReply = d.get('c1')!.clientMessageId
     d.setReplyTo('c1', null)
+    expect(d.get('c1')?.clientMessageId).not.toBe(withReply)
     expect(d.get('c1')?.replyTo).toBeNull()
     d.setReplyTo('c9', 'm1')
     expect(d.get('c9')).toMatchObject({ body: '', replyTo: 'm1' })
+  })
+
+  it('çip değişimi gövde sabitken sürümü ve gönderim kimliğini yeniler', () => {
+    const d = store()
+    const base = d.setBody('c1', '@Ayşe #G1')
+    const version = d.version('c1')
+    d.touch('c1')
+    expect(d.get('c1')?.body).toBe(base.body)
+    expect(d.get('c1')?.clientMessageId).not.toBe(base.clientMessageId)
+    expect(d.version('c1')).toBeGreaterThan(version)
+    const firstChip = d.get('c1')!.clientMessageId
+    d.touch('c1')
+    expect(d.get('c1')?.clientMessageId).not.toBe(firstChip)
   })
 
   it('düzenleme taslağı ayrıdır: bitince önceki taslak geri gelir', () => {
