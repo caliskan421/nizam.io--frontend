@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { CHAT_QUERY_KEYS } from '@/modules/chat/public'
 import {
   COORDINATORSHIP_QUERY_KEYS,
   COORDINATORSHIP_TABS,
@@ -614,6 +615,12 @@ describe('F7 Mesajlar rotaları (W154)', () => {
     expect(Object.keys(routeSpec('collaboration.chat').params)).toEqual(['chatId'])
     expect(liveRouteNames('F6')).not.toContain('collaboration.chat')
     expect(visibilityOf('collaboration.chats', 'F6')).toBe('gizli')
+  })
+
+  it('modül sorgu anahtarları sabiti katalogla aynı küme; modül kaydı router’da (ad/yol/kapsam)', () => {
+    expect(Object.keys(routeSpec('collaboration.chat').query).sort()).toEqual(
+      [...CHAT_QUERY_KEYS].sort(),
+    )
   })
 
   it('menü: İçerik grubunda, Toplantılar ve Arşiv’den sonra; konuşma rotası da Mesajlar’ı etkin yapar', () => {

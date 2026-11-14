@@ -3,6 +3,7 @@ import type { MaybeRefOrGetter } from 'vue'
 
 import type { components, operations } from '@/shared/api/schema'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
+import type { ConnectionDeps } from '@/shared/sse'
 
 import type { MessageWindow } from './window'
 
@@ -156,6 +157,8 @@ export interface ChatStreamOptions {
   enabled?: MaybeRefOrGetter<boolean>
   /** Açık sohbetten düşüldü (404 `messaging.chat_not_found`): sayfa listeye döner. */
   onChatLost?: (chatId: string) => void
+  /** Test dikişi: taşıyıcı/zamanlama değişimi (üretimde verilmez). */
+  deps?: Partial<ConnectionDeps>
 }
 
 /** `dispatchEvent` bağımlılıkları (olay → plan → uygulama). */

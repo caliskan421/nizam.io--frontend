@@ -96,6 +96,7 @@ export function useChatStream(options: ChatStreamOptions) {
         reconcileLists(client, scope)
         if (reconnect) void options.messages?.reconcile()
       },
+      deps: options.deps,
       onEvent: (event) =>
         current() &&
         dispatchEvent(

@@ -1,6 +1,22 @@
 // Sohbet test fikstürleri: sürümlü, `seq` sıralı sahte mesaj ve sunucu belleği.
 import type { ChatMessage, ChatHistory, MessageQuery } from '../model/types'
 
+/** `on()` yardımcısının kaydettiği istek (yazma testleri). */
+export interface RecordedCall {
+  method: string
+  path: string
+  headers: Headers
+  query: URLSearchParams
+  body: unknown
+}
+export type WriteMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
+export type FakeChatServer = ReturnType<typeof fakeChatServer>
+/** SSE testi: yalnız ihtiyaç duyulan istek biçimi. */
+export interface OpenRequestLike {
+  programId: string
+}
+export type FrameExtra = Record<string, unknown>
+
 export function msg(seq: number, over: Partial<ChatMessage> = {}): ChatMessage {
   return {
     attachments: [],
@@ -70,4 +86,10 @@ export function fakeChatServer(initial: ChatMessage[], peerReadSeq: number | nul
 
 export function range(from: number, to: number): ChatMessage[] {
   return Array.from({ length: to - from + 1 }, (_, i) => msg(from + i))
+}
+
+/** İstek gövdesinden `client_message_id` (gövde `unknown` kaydedilir). */
+export function clientMessageIdOf(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null || !('client_message_id' in body)) return null
+  return String(body.client_message_id)
 }

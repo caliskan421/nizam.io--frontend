@@ -6,8 +6,10 @@ import { describe, expect, it } from 'vitest'
 import NotificationPanel from './NotificationPanel.vue'
 import PushOptInCard from './PushOptInCard.vue'
 
-const emitsOf = (c: { emits?: unknown }) => [...((c.emits as string[] | undefined) ?? [])].sort()
-const propsOf = (c: { props?: unknown }) => Object.keys((c.props as object | undefined) ?? {})
+const emitsOf = (c: unknown) =>
+  [...(((c as { emits?: unknown }).emits as string[] | undefined) ?? [])].sort()
+const propsOf = (c: unknown) =>
+  Object.keys(((c as { props?: unknown }).props as object | undefined) ?? {})
 
 describe('NotificationPanel sözleşmesi', () => {
   it('props: open; emits: close, navigate', () => {

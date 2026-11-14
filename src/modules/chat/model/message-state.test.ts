@@ -16,8 +16,10 @@ import {
 import type { ChatMessage } from './types'
 
 type Out = MutationOutcome<unknown, ChatMessage>
-const failed = (code: string, status = 403): Out =>
-  ({ kind: 'failed', error: new ApiError({ code, status }) }) as Out
+const failed = (code: string, status = 403): Out => ({
+  kind: 'failed',
+  error: new ApiError({ code, status }),
+})
 const GROUP: SendContext = { chatKind: 'group', body: {} }
 const DIRECT: SendContext = { chatKind: 'direct', body: {} }
 
