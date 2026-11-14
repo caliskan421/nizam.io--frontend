@@ -22,9 +22,8 @@ import {
   useRevokeChatAdmin,
 } from '../../api/writes'
 import { chatText } from '../../messages'
-import type { ChatCapabilities } from '../../model/capabilities'
+import { memberRoleFacts, type ChatCapabilities } from '../../model/capabilities'
 import type { Chat, ChatMember } from '../../model/types'
-import { MEMBER_ROLE_ROWS } from './member-roles'
 
 const props = defineProps<{
   chatId: string
@@ -55,8 +54,8 @@ const busy = computed(
     openDirect.isPending.value,
 )
 const roleLabel = (m: ChatMember): string => {
-  const key = MEMBER_ROLE_ROWS[m.role].label
-  return key === null ? '' : chatText(key)
+  const badge = memberRoleFacts(m.role).badge
+  return badge === null ? '' : chatText(`chat.dialogs.members.${badge}`)
 }
 
 function target(accountId: string) {
@@ -134,7 +133,7 @@ async function setAdmin(m: ChatMember, on: boolean): Promise<void> {
             {{ chatText('chat.dialogs.members.message') }}
           </UiButton>
           <UiButton
-            v-if="capabilities.grantAdmin && MEMBER_ROLE_ROWS[m.role].adminAction === 'grant'"
+            v-if="capabilities.grantAdmin && memberRoleFacts(m.role).adminAction === 'grant'"
             variant="ghost"
             size="sm"
             :disabled="busy"
@@ -143,7 +142,7 @@ async function setAdmin(m: ChatMember, on: boolean): Promise<void> {
             {{ chatText('chat.dialogs.members.makeAdmin') }}
           </UiButton>
           <UiButton
-            v-if="capabilities.grantAdmin && MEMBER_ROLE_ROWS[m.role].adminAction === 'revoke'"
+            v-if="capabilities.grantAdmin && memberRoleFacts(m.role).adminAction === 'revoke'"
             variant="ghost"
             size="sm"
             :disabled="busy"

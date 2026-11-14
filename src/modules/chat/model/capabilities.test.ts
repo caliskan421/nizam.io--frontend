@@ -4,6 +4,7 @@ import type { Standing } from '@/shared/scope/standing-facts'
 
 import { msg } from '../__tests__/fixtures'
 import {
+  memberRoleFacts,
   canChooseSource,
   canCreateGroup,
   canCreateTaskFromMessage,
@@ -186,5 +187,13 @@ describe('mesaj eylemleri', () => {
     const none = chatCapabilities(NOBODY, group('member'))
     expect(none.editMessage(messageFacts(msg(1, { sender_account_id: 'me' })))).toBe(false)
     expect(none.deleteMessage(messageFacts(msg(1, { sender_account_id: 'me' })))).toBe(false)
+  })
+})
+
+describe('üye satırı olguları (grup rolü)', () => {
+  it('rozet ve yönetici eylemi: üye → yap, yönetici → al, kurucu → yok', () => {
+    expect(memberRoleFacts('member')).toEqual({ badge: null, adminAction: 'grant' })
+    expect(memberRoleFacts('admin')).toEqual({ badge: 'admin', adminAction: 'revoke' })
+    expect(memberRoleFacts('founder')).toEqual({ badge: 'founder', adminAction: null })
   })
 })

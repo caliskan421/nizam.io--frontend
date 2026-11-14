@@ -141,3 +141,17 @@ export function chatCapabilities(actor: ChatActor, chat: ChatFacts): ChatCapabil
     warnSecondTask: (m) => taskRole && m.taskIds.length > 0,
   }
 }
+
+/** Üye satırı olguları (grup rolü; mercek etkisiz): rozet gösterilir mi ve yönetici eylemi. */
+export interface MemberRoleFacts {
+  /** Satırda grup rolü rozeti ("Yönetici"/"Kurucu"); düz üyede yok. */
+  badge: 'admin' | 'founder' | null
+  /** Yönetici yetkisi olan çağıranın bu satıra uygulayabileceği eylem (kurucuya yok). */
+  adminAction: 'grant' | 'revoke' | null
+}
+
+export function memberRoleFacts(role: ChatRole): MemberRoleFacts {
+  if (role === 'admin') return { badge: 'admin', adminAction: 'revoke' }
+  if (role === 'founder') return { badge: 'founder', adminAction: null }
+  return { badge: null, adminAction: 'grant' }
+}
