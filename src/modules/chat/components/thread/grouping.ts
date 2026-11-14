@@ -44,17 +44,29 @@ function continues(prev: ChatMessage, next: ChatMessage): boolean {
   return Date.parse(next.created_at) - Date.parse(prev.created_at) <= GROUP_GAP_MS
 }
 
+/** Mesajdan ÖNCE gelen ayırıcılar (gün, okunmamış); hangileri çıktığı bilgisini döndürür. */
+function pushSeparators(
+  out: ThreadEntry[],
+  prev: ChatMessage | null,
+  message: ChatMessage,
+  opts: EntryOptions,
+): boolean {
+  const newDay = prev === null || dayKey(prev.created_at) !== dayKey(message.created_at)
+  if (newDay) {
+    out.push({ type: 'day', key: `day-${dayKey(message.created_at)}`, iso: message.created_at })
+  }
+  const divider = opts.unreadAnchor === message.seq && opts.unreadCount > 0
+  if (divider) out.push({ type: 'unread', key: 'unread', count: opts.unreadCount })
+  return newDay || divider
+}
+
 export function buildEntries(items: readonly ChatMessage[], opts: EntryOptions): ThreadEntry[] {
   const out: ThreadEntry[] = []
   let prev: ChatMessage | null = null
   let lastMessage: MessageEntry | null = null
   for (const message of items) {
-    const newDay = prev === null || dayKey(prev.created_at) !== dayKey(message.created_at)
-    if (newDay)
-      out.push({ type: 'day', key: `day-${dayKey(message.created_at)}`, iso: message.created_at })
-    const divider = opts.unreadAnchor === message.seq && opts.unreadCount > 0
-    if (divider) out.push({ type: 'unread', key: 'unread', count: opts.unreadCount })
-    const joins = prev !== null && !newDay && !divider && continues(prev, message)
+    const separated = pushSeparators(out, prev, message, opts)
+    const joins = prev !== null && !separated && continues(prev, message)
     if (lastMessage && !joins) lastMessage.last = true
     const entry: MessageEntry = {
       type: 'message',

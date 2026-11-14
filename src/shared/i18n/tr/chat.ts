@@ -49,6 +49,7 @@ export const trChat = {
       loading: 'Mesajlar yükleniyor…',
       error: 'Mesajlar yüklenemedi.',
       retry: 'Yeniden dene',
+      backToList: 'Konuşmalara dön',
       olderLoading: 'Daha eski mesajlar yükleniyor…',
       older: 'Daha eski mesajlar',
       newer: 'Daha yeni mesajlar',
