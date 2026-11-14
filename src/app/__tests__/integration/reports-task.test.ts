@@ -123,4 +123,22 @@ describe('görev raporu düğmesi (sunucu görevi SÜZMEDEN döner; süzme istem
     await idle(app.queryClient)
     expect(backend.sent('GET', '/v1/work-items/w1').length).toBeGreaterThan(before)
   })
+
+  // CX-F6-E-01 (03/K3): panel aynı bileşenle başka göreve geçince süren kiralama iptal edilir.
+  it('A tüketimi beklerken B görevine geç: kaydetme/bildirim yok; B bağımsız indirir', async () => {
+    const app = await boot({ ...ADMIN, path: '/gorevler?gorev=w1' })
+    const gate = hold('GET', '/v1/downloads/rt-1')
+    await userClick(BUTTON)
+    await gate.arrived
+    await app.router.push('/gorevler?gorev=w2')
+    await until(() => app.router.currentRoute.value.query.gorev === 'w2', 'w2')
+    gate.release()
+    await idle(app.queryClient)
+    expect(saved).toHaveLength(0)
+    expect(toasts()).not.toContain('indirildi')
+    await until(() => (BUTTON() as HTMLButtonElement | null)?.disabled === false, 'B düğmesi')
+    await userClick(BUTTON)
+    await until(() => saved.length === 1, 'B kaydedildi')
+    expect(issued().at(-1)!.body).toEqual({ method: 'GET', path: '/v1/reports/tasks/w2/pdf' })
+  })
 })

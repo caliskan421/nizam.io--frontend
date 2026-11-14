@@ -12,12 +12,14 @@ import {
   COORD,
   idle,
   issued,
+  MEETING,
   MEMBER,
   OTHER_COORD,
   reports,
   resetReports,
   teardown,
   toasts,
+  hold,
   until,
   useReportsBackend,
   userClick,
@@ -179,5 +181,59 @@ describe('01g toplantı raporu önizlemesi', () => {
     await idle(app.queryClient)
     expect(toasts().match(/Kayıt bulunamadı/g)).toHaveLength(1)
     expect(saved).toHaveLength(0)
+  })
+})
+
+// CX-F6-E-01: aynı rota kaydı üzerinden A → B geçişinde süren kiralama iptal edilir.
+describe('01g kayıt değişimi (m1 → m2) süren PDF eylemini iptal eder', () => {
+  const PDF_BUTTON = '[data-testid="preview-pdf"] button'
+  const toolbarPdf = () => $(PDF_BUTTON) as HTMLButtonElement | null
+  const openPair = async () => {
+    reports.state.meetings.push({ ...MEETING, meeting_id: 'm2', title: 'İkinci toplantı' })
+    const app = await boot({ ...ADMIN, path: '/toplantilar/m1/rapor' })
+    await until(STAGE, 'önizleme m1')
+    return app
+  }
+  const toM2 = async (app: Awaited<ReturnType<typeof boot>>) => {
+    await app.router.push('/toplantilar/m2/rapor')
+    await until(
+      () => $('.report-page__sub')?.textContent?.includes('İkinci toplantı'),
+      'm2 yüklendi',
+    )
+  }
+
+  it("A bileti beklerken B'ye geç: bilet tüketilmez, dosya/bildirim yok; B bağımsız indirir", async () => {
+    const app = await openPair()
+    const gate = hold('POST', '/v1/download-tickets')
+    await userClick(PDF_BUTTON)
+    await gate.arrived
+    await toM2(app)
+    gate.release()
+    await idle(app.queryClient)
+    expect(reports.state.redeemed).toHaveLength(0)
+    expect(saved).toHaveLength(0)
+    expect(toasts()).not.toContain('indirildi')
+    await until(() => toolbarPdf()?.disabled === false, 'B düğmesi açık')
+    await userClick(PDF_BUTTON)
+    await until(() => saved.length === 1, 'B kaydedildi')
+    expect(issued().at(-1)!.body).toEqual({ method: 'GET', path: '/v1/reports/meetings/m2/pdf' })
+    expect(reports.state.redeemed).toHaveLength(1)
+  })
+
+  it("A tüketimi beklerken B'ye geç: kaydetme ve bildirim yok; B bağımsız indirir", async () => {
+    const app = await openPair()
+    const gate = hold('GET', '/v1/downloads/rt-1')
+    await userClick(PDF_BUTTON)
+    await gate.arrived
+    await toM2(app)
+    gate.release()
+    await idle(app.queryClient)
+    expect(saved).toHaveLength(0)
+    expect(toasts()).not.toContain('indirildi')
+    expect(document.body.textContent).not.toContain('indirildi')
+    await until(() => toolbarPdf()?.disabled === false, 'B düğmesi açık')
+    await userClick(PDF_BUTTON)
+    await until(() => saved.length === 1, 'B kaydedildi')
+    expect(issued().at(-1)!.body).toEqual({ method: 'GET', path: '/v1/reports/meetings/m2/pdf' })
   })
 })

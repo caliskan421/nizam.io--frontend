@@ -37,14 +37,26 @@ export function useReportDownloads(gate: ReportGate = reportGate) {
   const flow = useDownloadFlow<ReportRequest>(reportTarget)
   const pending = ref(false)
   let held: ReportLease | null = null
+  let runId = 0
+  // İptal edilen önceki eylemin çözülmesi beklenir (ortak bilet mutasyonu sıfırlanırken yeni
+  // eylemi ezmesin; CX-F6-E-01).
+  let unwinding: Promise<unknown> = Promise.resolve()
   const cancel = bindLeaseCancellation(() => held)
 
-  async function run(input: ReportRunInput): Promise<ReportRunResult> {
+  function run(input: ReportRunInput): Promise<ReportRunResult> {
+    if (held !== null && !held.signal.aborted) return execute(input)
+    const next = unwinding.then(() => execute(input))
+    unwinding = next.catch(() => undefined)
+    return next
+  }
+
+  async function execute(input: ReportRunInput): Promise<ReportRunResult> {
     const programId = store.programId
     if (programId === null) return { kind: 'unavailable' }
     const lease = gate.acquire()
     if (lease === null) return { kind: 'locked' }
     held = lease
+    const id = ++runId
     cancel.stamp()
     pending.value = true
     try {
@@ -58,7 +70,7 @@ export function useReportDownloads(gate: ReportGate = reportGate) {
     } finally {
       lease.release()
       if (held === lease) held = null
-      pending.value = false
+      if (id === runId) pending.value = false
     }
   }
 
