@@ -124,7 +124,7 @@ Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 b
 | 2   | Gerçek sunucu bilet tanığı: **KAPANDI** (W144, #129; 503 `capacity_full` tetiklenmedi, VoiceOver/görsel onay yok) | kapandı | W136 / W144 |
 | 3   | E-13-72 "indirildi · ‹boyut›": boyut gösterilmiyor (`Blob.size` yolu kurulmadı) | kapanış sonrası borç | W136 |
 | 4   | `reports ↔ work` import döngüsü: **kapandı** (`2d00088`; `module-boundary.test` korur) | kapandı | W138 / W142 |
-| 5   | Ü1 → 03 hedefi / yönetici merceği derin bağlantı: liste/sayaç merceği doğrulandı (`home-lens-filter.test.ts`, sahte sunucu); kalan UX → #22, gerçek backend tanığı → #23; yönetici merceğinde başka birimin görevini açabilme sorusu karar bekler ([web-7 soru 6](../web-7/README.md)) | karar bekler | W140 / W142 / W147 |
+| 5   | Ü1 → 03 hedefi / yönetici merceği derin bağlantı: liste/sayaç merceği doğrulandı (`home-lens-filter.test.ts`, sahte sunucu); kalan UX → #22, gerçek backend tanığı → #23; yönetici merceğinde başka birimin görevini açabilme sorusu: karar verildi P55 ([web-7 soru 6](../web-7/README.md)) | karar verildi P55; UX borcu açık (F7 sonrası) | W140 / W142 / W147 |
 | 6   | `MEETINGS_ROUTE`/`MEETING_ROUTE` ihracı: **kapandı** (`a677af3`) | kapandı | W142 |
 | 7   | ZIP onay penceresi (E-13-10) kodlanmadı; BE-120/BE-124 açılınca | kapanış sonrası borç (BE'ye bağlı) | W138 |
 | 8   | 390 px'te ZIP ve "Dosya yükle" düğmeleri tam genişlikte değil (E-13-12, geçici kabul) | kapanış sonrası borç | W142 |
@@ -139,9 +139,9 @@ Yeni bir faz açılmadan izlenir; hiçbiri F7'yi kendiliğinden başlatmaz. F5 b
 | 17  | 01 kutucukları liste sayfasına gider; pencereyi açan URL parametresi yok → 09/05'e oluşturma parametresi | F7 adayı | W145 |
 | 18  | e2e/backend `up.sh`/compose sabit adlar (parametrik değil) | kapanış sonrası borç | W148 |
 | 19  | Kararsız testler: `password.test.ts` `force_password_change` yük altında 3 kez; `archive/api/lifecycle.test.ts` 5 sn zaman aşımı; KESİN 32 bölme adayı | kapanış sonrası borç | W146–W148 |
-| 20  | ≥2 programlı kullanıcıda program seçici kendiliğinden açık + saydam perde (UX) | karar bekler | W148 |
+| 20  | ≥2 programlı kullanıcıda program seçici kendiliğinden açık + saydam perde (UX) | kapandı (P56: böyle kalır) | W148 |
 | 21  | Ü1 iade/onay/tarih notları ve K1 ApprovalsCard sayacı pending dışı kısmi kümede "≥" almıyor (dar kapsam) | kapanış sonrası borç | W147 |
-| 22  | Soğuk `?gorev=` derin bağlantıda hedef birim/kapsam çözümleme UX borcu (`work/api/queries.ts:227–230` yalnız önbellek); yetki daraltma çözüm değil | kapanış sonrası borç (web-7 soru 6 ile bağlı) | Codex tur 2–3 |
+| 22  | Soğuk `?gorev=` derin bağlantıda hedef birim/kapsam çözümleme UX borcu (`work/api/queries.ts:227–230` yalnız önbellek); yetki daraltma çözüm değil | karar verildi P55; UX borcu açık (F7 sonrası) | Codex tur 2–3 |
 | 23  | Gerçek backend'de gezinme SONRASI K/Ü mercek-parametre tanığı yok (tercihleri yeniden yazmayan başlangıç; mercek/birim + istek parametreleri birlikte kayıt) | kapanış sonrası borç | Codex K-09 |
 | 24  | Ağır okuyucu bekleme denetimi `useReportSeason` içinde; `acquireWhenFree` değişmedi — gelecekte eklenecek ağır okuyucu aynı denetimi kendisi yapmalı | uygulama notu | W149 |
 | 25  | CX-F6-K-10: `web6-w149/duman-k1.mjs:113` ve `duman-01f.mjs:78` aynı `results.json`'a yazıyor → K1 ham ölçümleri yok (PNG var); düzeltme: senaryo başına ayrı sonuç dosyası + HEAD/koşum kimliği; web-7 ortak sözleşmeye "duman betikleri senaryo başına ayrı results dosyası" önerisi | kapanış sonrası borç (düşük) | Codex tur 3 |
