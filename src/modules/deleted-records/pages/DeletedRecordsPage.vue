@@ -10,6 +10,7 @@ import {
   BatchSummary,
   BulkBar,
   DetailPanel,
+  ExportCard,
   FilterBar,
   KindSegment,
   ListState,
@@ -44,6 +45,7 @@ const {
   selection,
   batch,
   purgeAll,
+  exporter,
   busy,
   act,
   clearSelection,
@@ -62,7 +64,9 @@ const {
       :purge-all-on="supportsPurgeAll(filters.kind)"
       :purge-all-open="purgeAll.panel.value || purgeAll.running.value"
       :busy="busy"
+      :exporting="exporter.state.value.kind === 'running'"
       @purge-all="purgeAll.open"
+      @export-csv="exporter.start"
     />
     <div class="rp-body">
       <div class="rp-col">
@@ -84,6 +88,14 @@ const {
             @update="view.update"
           />
         </div>
+        <ExportCard
+          v-if="exporter.state.value.kind !== 'idle'"
+          :running="exporter.state.value.kind === 'running'"
+          :failure="exporter.state.value.kind === 'failed' ? exporter.state.value.failure : null"
+          @cancel="exporter.cancel"
+          @retry="exporter.start"
+          @dismiss="exporter.dismiss"
+        />
         <PurgeAllPanel
           v-if="(purgeAll.panel.value || purgeAll.running.value) && supportsPurgeAll(filters.kind)"
           :kind="filters.kind"

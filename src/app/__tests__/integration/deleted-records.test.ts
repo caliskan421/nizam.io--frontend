@@ -4,7 +4,7 @@
 // GERÇEK uygulama kökü (kabuk, router, onay yuvası) + durumlu sahte backend; silinen uçları bu
 // dosyada eklenir (durum: `deleted`).
 import { http, HttpResponse } from 'msw'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   $,
@@ -506,6 +506,60 @@ describe('çöpü boşalt → özet, listeler ve ana sayfa rozeti (BE-115, KESİ
     await until(() => $('[data-kind="gorev"] .rp-count')?.textContent === '0', 'özet sayacı')
     await app.router.push('/')
     await until(() => counter() === '3', 'rozet sonra')
+  })
+})
+
+describe('CSV indir: bilet akışı (BE-116)', () => {
+  const tickets = new Map<string, string>()
+  const saved: string[] = []
+  beforeEach(() => {
+    tickets.clear()
+    saved.length = 0
+    URL.createObjectURL = vi.fn(() => 'blob:test')
+    URL.revokeObjectURL = vi.fn()
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      saved.push(this.download)
+    })
+    backend.server.use(
+      http.post(`${ORIGIN}/v1/download-tickets`, async ({ request }) => {
+        const { path } = (await request.json()) as { path: string }
+        tickets.set('tk-1', path)
+        return HttpResponse.json(
+          { ticket: 'tk-1', url: '/v1/downloads/tk-1', expires_at: '2026-11-12T10:01:00Z' },
+          { status: 201 },
+        )
+      }),
+      http.get(
+        `${ORIGIN}/v1/downloads/:ticket`,
+        () =>
+          new HttpResponse('\uFEFFTür;Kimlik\r\n', {
+            headers: {
+              'Content-Type': 'text/csv',
+              'Content-Disposition': 'attachment; filename="silinen-kayitlar-2026-11-12.csv"',
+            },
+          }),
+      ),
+    )
+  })
+
+  it('arama süzgeciyle seçili türün hedefi bilete yazılır, bilet tüketilir ve CSV kaydedilir; tekil ucu yok', async () => {
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=toplanti&q=silinmis' })
+    await until(() => $('[data-record-key="toplanti:md"]'), 'silinen toplantı')
+    await click(() => $('[data-testid="dr-csv"]'))
+    await until(() => saved.length === 1, 'CSV kaydedildi')
+    await idle(app.queryClient)
+    expect(tickets.get('tk-1')).toBe(
+      '/v1/admin/deleted/export?kinds=meetings&scope=program&q=silinmis',
+    )
+    const [issue] = backend.sent('POST', '/v1/download-tickets')
+    expect(issue!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(backend.sent('GET', '/v1/downloads/tk-1')).toHaveLength(1)
+    expect(saved).toEqual(['silinen-kayitlar-2026-11-12.csv'])
+    expect(toasts()).toContain('silinen-kayitlar-2026-11-12.csv indirildi.')
+    // Dört liste istemcide birleştirilmez: yalnız seçili türün listesi okundu.
+    expect(backend.sent('GET', '/v1/admin/deleted/work-items')).toHaveLength(0)
   })
 })
 

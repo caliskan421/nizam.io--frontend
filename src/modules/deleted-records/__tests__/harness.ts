@@ -76,6 +76,12 @@ export interface World {
   itemFailures: Map<string, string>
   /** Çöpü boşalt çağrısını bekleten kapı (senaryo: durdur / kapsam değişimi). */
   purgeGate: ((call: number) => Promise<void>) | null
+  /** CSV bilet akışı: bilet üretimi ve tüketimi senaryosu + üretilen biletler (`path` gövdesi). */
+  download: {
+    ticket: 'ok' | 'rate-limited' | 'target-invalid'
+    redeem: 'ok' | 'too-large' | 'in-progress' | 'capacity-full' | 'truncated'
+    tickets: Map<string, { path: string; program: string | null }>
+  }
 }
 
 export const world: World = {
@@ -88,6 +94,7 @@ export const world: World = {
   failures: new Map(),
   itemFailures: new Map(),
   purgeGate: null,
+  download: { ticket: 'ok', redeem: 'ok', tickets: new Map() },
 }
 
 export function resetWorld(): void {
@@ -102,6 +109,7 @@ export function resetWorld(): void {
   world.failures.clear()
   world.itemFailures.clear()
   world.purgeGate = null
+  world.download = { ticket: 'ok', redeem: 'ok', tickets: new Map() }
   purgeCalls = 0
 }
 
@@ -380,8 +388,78 @@ function purgeAllHandlers() {
   )
 }
 
+/** CSV gövdesi: UTF-8 BOM, `;` ayraç, CRLF (sözleşme; içerik burada sınanmaz, yalnız akış). */
+const CSV_HEAD = '\uFEFFTür;Kimlik;Ad;Koordinatörlük;Silinme zamanı;Silen;Silen kimliği\r\n'
+
+const limited = (code: string, seconds?: string) =>
+  HttpResponse.json(
+    { code, message: 'sunucu iletisi', request_id: 'req-9', fields: [] },
+    {
+      status: code === 'reporting.capacity_full' ? 503 : 429,
+      headers: seconds ? { 'Retry-After': seconds } : {},
+    },
+  )
+
+/**
+ * İndirme bileti (ADR-0013): `POST /v1/download-tickets` hedefi (`path` + kapsam başlığı) kaydeder,
+ * `GET /v1/downloads/{ticket}` CSV'yi `Content-Length` OLMADAN (chunked) akıtır; `truncated`
+ * akışı ortasında kesilir (eksik gövde).
+ */
+function downloadHandlers() {
+  return [
+    http.post(`${ORIGIN}/v1/download-tickets`, async ({ request }) => {
+      if (world.download.ticket === 'rate-limited') return limited('platform.rate_limited', '17')
+      if (world.download.ticket === 'target-invalid') {
+        return errorEnvelope('identity.download_target_invalid', 422)
+      }
+      const body = (await request.json()) as { path: string }
+      const ticket = `tk-${world.download.tickets.size + 1}`
+      world.download.tickets.set(ticket, {
+        path: body.path,
+        program: request.headers.get('X-Nizamio-Program'),
+      })
+      return json(
+        { ticket, url: `/v1/downloads/${ticket}`, expires_at: '2026-11-12T10:01:00Z' },
+        201,
+      )
+    }),
+    http.get(`${ORIGIN}/v1/downloads/:ticket`, ({ params }) => {
+      if (!world.download.tickets.has(String(params.ticket))) {
+        return errorEnvelope('identity.download_ticket_invalid', 404)
+      }
+      const mode = world.download.redeem
+      if (mode === 'too-large') return errorEnvelope('reporting.export_too_large', 422)
+      if (mode === 'in-progress') return limited('reporting.export_in_progress', '1')
+      if (mode === 'capacity-full') return limited('reporting.capacity_full')
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encoder.encode(CSV_HEAD))
+          if (mode === 'truncated') controller.error(new Error('bağlantı kesildi'))
+          else {
+            controller.enqueue(encoder.encode('Görev;w1;Saha;Mekanik;2026-11-12 13:42;Reha;a7\r\n'))
+            controller.close()
+          }
+        },
+      })
+      return new HttpResponse(stream, {
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="silinen-kayitlar-2026-11-12.csv"',
+        },
+      })
+    }),
+  ]
+}
+
 export function backendHandlers() {
-  return [...listHandlers(), ...lifecycleHandlers(), ...batchHandlers(), ...purgeAllHandlers()]
+  return [
+    ...listHandlers(),
+    ...lifecycleHandlers(),
+    ...batchHandlers(),
+    ...purgeAllHandlers(),
+    ...downloadHandlers(),
+  ]
 }
 
 export function standingHandlers(options: {

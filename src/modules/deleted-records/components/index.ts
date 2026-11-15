@@ -4,6 +4,7 @@
 export { default as BatchSummary } from './BatchSummary.vue'
 export { default as BulkBar } from './BulkBar.vue'
 export { default as DetailPanel } from './DetailPanel.vue'
+export { default as ExportCard } from './ExportCard.vue'
 export { default as FilterBar } from './FilterBar.vue'
 export { default as FilterMenu } from './FilterMenu.vue'
 export { default as KindSegment } from './KindSegment.vue'

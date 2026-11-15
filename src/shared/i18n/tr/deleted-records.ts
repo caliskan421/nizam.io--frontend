@@ -190,6 +190,19 @@ export const trDeletedRecords = {
       generic: 'Bu kayıt işlenemedi.',
       dismiss: 'Kapat',
     },
+    // CSV indir (E-12-05; BE-116): bilet akışı durum kartı.
+    export: {
+      hint: 'Ekrandaki süzgeçlerle eşleşen silinmiş kayıtları CSV olarak indirir.',
+      preparing: 'CSV hazırlanıyor; büyük listelerde biraz sürebilir.',
+      cancel: 'İptal',
+      saved: '{name} indirildi.',
+      tooLarge:
+        'Süzgece uyan kayıt sayısı CSV sınırını (10.000 satır) aşıyor. Süzgeci daraltıp yeniden deneyin.',
+      truncated: 'Bağlantı kesildi: CSV tamamlanamadı ve kaydedilmedi. Yeniden deneyin.',
+      failed: 'CSV oluşturulamadı. Yeniden deneyin.',
+      retryIn: '{n} sn sonra yeniden deneyebilirsiniz.',
+      retry: 'Yeniden dene',
+    },
     // Çöpü boşalt (E-12-06; BE-115): tür adı yazılarak onay, ardından ilerleme/sonuç.
     purgeAll: {
       title: '{n} {kind} kalıcı olarak silinecek',

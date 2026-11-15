@@ -11,6 +11,7 @@ import { useStanding } from '@/shared/scope/standing'
 import { deletedRecordsCapabilities } from '../model/capabilities'
 import type { DeletedRow } from '../model/types'
 import { useBatchActions } from './use-batch-actions'
+import { useDeletedExport } from './use-export'
 import { useDeletedView } from './use-deleted-view'
 import { usePageCounts } from './use-page-counts'
 import { usePageFocus } from './use-page-focus'
@@ -74,10 +75,14 @@ function usePageWrites({ view, filters, list, focus }: PageState) {
       void focus.toTrashButton()
     },
   })
+  const exporter = useDeletedExport({
+    kind: () => filters.value.kind,
+    query: () => view.query.value,
+  })
   const busy = computed(
     () => actions.pending.value || batch.pending.value || purgeAll.pending.value,
   )
-  return { actions, selection, batch, purgeAll, busy }
+  return { actions, selection, batch, purgeAll, exporter, busy }
 }
 
 /** Şablonun çağırdığı küçük eylemler: odak dönüşü her kapanış yolunda (KESİN 27). */

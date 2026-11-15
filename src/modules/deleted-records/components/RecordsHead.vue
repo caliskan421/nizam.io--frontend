@@ -5,7 +5,7 @@ import { deletedText } from '../model/messages'
 
 /**
  * Sayfa başlığı (E-12-03/04/05/06): H1, alt başlık ("‹N› ‹tür› · yalnız yönetici görür", özet
- * sayısı kesin) ve başlık eylemleri (CSV indir, Çöpü boşalt). Çöpü boşalt görev, toplantı ve
+ * sayısı kesin) ve başlık eylemleri (CSV indir: bilet akışı, BE-116; Çöpü boşalt: BE-115). Çöpü boşalt görev, toplantı ve
  * kullanıcıda etkindir; koordinatörlükte devre dışı kalır (uç şirket geneli çalışır ve programa
  * bağlı silinmişleri silemez: sekme kümesiyle örtüşmez; kalan stub BE-115).
  */
@@ -17,8 +17,10 @@ defineProps<{
   purgeAllOpen: boolean
   /** Bir yazma sürüyor (çift tık kilidi). */
   busy: boolean
+  /** CSV hazırlanıyor (tek uçuş). */
+  exporting: boolean
 }>()
-const emit = defineEmits<{ purgeAll: [] }>()
+const emit = defineEmits<{ purgeAll: []; exportCsv: [] }>()
 </script>
 
 <template>
@@ -28,17 +30,16 @@ const emit = defineEmits<{ purgeAll: [] }>()
       <p class="rp-sub" data-testid="dr-sub">{{ subtitle }}</p>
     </div>
     <div class="rp-actions">
-      <DesignStub id="BE-116">
-        <button
-          type="button"
-          class="t-btn t-btn--secondary"
-          disabled
-          data-testid="dr-csv"
-          :title="deletedText('head.soonHint')"
-        >
-          <UiIcon name="download" size="sm" />{{ deletedText('head.csv') }}
-        </button>
-      </DesignStub>
+      <button
+        type="button"
+        class="t-btn t-btn--secondary"
+        :aria-disabled="exporting ? 'true' : undefined"
+        :title="deletedText('export.hint')"
+        data-testid="dr-csv"
+        @click="!exporting && emit('exportCsv')"
+      >
+        <UiIcon name="download" size="sm" />{{ deletedText('head.csv') }}
+      </button>
       <button
         v-if="purgeAllOn"
         type="button"

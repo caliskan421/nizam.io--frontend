@@ -157,7 +157,7 @@ async function userClick(selector: string): Promise<void> {
 }
 
 describe('sekmeler ve statik öğeler', () => {
-  it('dört canlı tür seçilebilir; statik türler/CSV/çöp boşalt devre dışı ve ağ isteği atmaz; saklama metni; "Kalan süre" yok', async () => {
+  it('dört canlı tür seçilebilir; statik türler devre dışı ve ağ isteği atmaz; CSV/çöp boşalt etkin (F8); saklama metni; "Kalan süre" yok', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
     await until(() => $('[data-record-key="gorev:wd"]'), 'görevler')
     const live = $$('[data-testid="dr-kinds"] [data-kind]:not([disabled])').map(
@@ -177,16 +177,16 @@ describe('sekmeler ve statik öğeler', () => {
     expect(document.body.textContent).not.toMatch(/Kalan süre|Yakında kalıcı silinecek/)
     await idle(app.queryClient)
     const before = backend.requests.length
-    for (const id of ['dr-csv', 'dr-empty-trash']) {
-      const el = $(`[data-testid="${id}"]`)
-      el?.click()
-      el?.querySelector('button')?.click()
-    }
+    // F8 (BE-115/116): CSV ve çöp boşalt etkin; çöp boşalt yalnız yerel paneli açar (ağ yok).
+    expect($('[data-testid="dr-csv"]')!.hasAttribute('disabled')).toBe(false)
+    expect($('[data-testid="dr-empty-trash"]')!.hasAttribute('disabled')).toBe(false)
+    $('[data-testid="dr-empty-trash"]')!.click()
     for (const kind of ['altgorev', 'dosya', 'notgundem']) {
       $(`[data-testid="dr-kinds"] [data-kind="${kind}"]`)!.click()
     }
     await idle(app.queryClient)
     expect(backend.requests.length).toBe(before)
+    await until(() => $('[data-testid="dr-purgeall"]'), 'çöp paneli')
     for (const kind of ['toplanti', 'koordinatorluk', 'kullanici', 'gorev']) {
       await click(() => $(`[data-testid="dr-kinds"] [data-kind="${kind}"]`))
       await until(
