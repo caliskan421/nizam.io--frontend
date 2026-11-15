@@ -172,6 +172,9 @@ export const trHome = {
         empty: 'Tarih talebi yok',
         dates: 'bitiş {from} → {to}',
         untitled: 'Görev',
+        sent: '{day} gönderildi',
+        decided: '{day} karar verildi',
+        reviewNote: 'Yönetici notu: {note}',
         status: { pending: 'Bekliyor', approved: 'Onaylandı', rejected: 'Reddedildi' },
       },
       activity: {

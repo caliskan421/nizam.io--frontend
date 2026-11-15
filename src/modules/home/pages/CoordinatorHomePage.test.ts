@@ -117,6 +117,11 @@ const REQUEST = {
   new_start_on: '2026-09-01',
   new_end_on: '2026-10-31',
   reason: 'Tedarik gecikti',
+  created_at: '2026-10-19T08:30:00Z',
+  requested_by: { account_id: 'acc-2', full_name: 'Ayşe Kaya' },
+  reviewed_at: '2026-10-21T09:00:00Z',
+  reviewed_by: { account_id: 'acc-1', full_name: 'Kadir Özbek' },
+  review_reason: '<i>tedarik</i> belgesi eksik',
 }
 
 function handlers() {
@@ -397,6 +402,12 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(req.text()).toContain('Geciken iş')
     expect(req.text()).toContain('Reddedildi')
     expect(req.text()).toContain('30.09 → 31.10')
+    // BE-140: gönderim/karar günü ve karar notu satır alanlarından; not kullanıcı metnidir.
+    expect(req.get('[data-parts="times"]').text()).toBe('19.10 gönderildi · 21.10 karar verildi')
+    expect(req.get('[data-parts="note"]').text()).toBe(
+      'Yönetici notu: <i>tedarik</i> belgesi eksik',
+    )
+    expect(req.find('i').exists()).toBe(false)
     expect(region(page, 'requests').text()).toContain('plan tarihini yönetici değiştirir')
   })
 

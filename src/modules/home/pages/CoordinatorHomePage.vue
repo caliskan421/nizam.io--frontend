@@ -223,6 +223,7 @@ const retryCounts = () => void load.counts.refetch()
         />
         <RequestsCard
           :rows="requestData.rows"
+          :time-zone="timeZone"
           :pending="requestData.pending"
           :decided="requestData.decided"
           :loading="requestsQuery.isLoading.value"

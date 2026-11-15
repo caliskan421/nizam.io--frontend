@@ -9,12 +9,5 @@ import { designStub } from '@/shared/design-stub'
 /** "Son etkinlik" (E-K1-40): audit okuma yok; rol kapsamlı okuma BE-091'e bağlı. */
 export const RECENT_ACTIVITY = designStub('BE-010', { available: false })
 
-/** Tarih talebi zaman damgaları ve yönetici karar notu (E-K1-39). */
-export const REQUEST_TIMES_AND_NOTE = designStub('BE-140', {
-  createdAt: false,
-  decidedAt: false,
-  decisionNote: false,
-})
-
 /** Üyeye birim koordinatör adı (E-Ü1-21/31): `MyDepartment.coordinators[]` yok. */
 export const UNIT_COORDINATOR_NAME = designStub('BE-141', { available: false })
