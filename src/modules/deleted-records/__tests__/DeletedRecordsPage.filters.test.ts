@@ -49,8 +49,8 @@ async function pick(page: Mounted, testId: string, label: string) {
   await settle()
 }
 
-describe('istemci süzgeçleri URL ile gidip gelir (P43)', () => {
-  it('arama gecikmeli URL q yazar; yüklenen kümede Türkçe katlamalı; sunucuya gitmez', async () => {
+describe('süzgeçler URL ile gidip gelir, sunucuya gider (P43, BE-117)', () => {
+  it('arama gecikmeli URL q yazar ve sunucuya q olarak gider (Türkçe katlamalı)', async () => {
     world.tasks = [[task('w1', { title: 'Işık hattı' }), task('w2', { title: 'İzmir saha' })]]
     const page = await mountPage()
     const input = page.wrapper.get('[data-testid="dr-search"]')
@@ -60,11 +60,11 @@ describe('istemci süzgeçleri URL ile gidip gelir (P43)', () => {
     await settle()
     expect(query(page).q).toBe('ışık')
     expect(ids(page)).toEqual(['w1'])
-    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe(
-      '1 kayıt gösteriliyor (yüklenen 2 içinde)',
-    )
-    expect(sent(PATHS.tasks)).toHaveLength(1)
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('1 kayıt')
+    // Yazım gecikmesi bitmeden sunucuya süzgeç gitmedi; sonra tek sorgu q taşır.
     expect(sent(PATHS.tasks)[0]!.query.get('q')).toBeNull()
+    expect(sent(PATHS.tasks).at(-1)!.query.get('q')).toBe('ışık')
+    expect(sent(PATHS.tasks)).toHaveLength(2)
   })
 
   it('URL ile açılış: q, koordinatorluk ve kayit durumu geri kurulur', async () => {
@@ -81,7 +81,7 @@ describe('istemci süzgeçleri URL ile gidip gelir (P43)', () => {
     expect(page.wrapper.get('[data-testid="dr-search"]').element).toHaveProperty('value', 'motor')
   })
 
-  it('koordinatörlük süzgeci menüden seçilir; adaylar yüklenen kümeden', async () => {
+  it('koordinatörlük süzgeci menüden seçilir; sunucuya department_id gider; adaylar sözlük + görülenler', async () => {
     world.tasks = [
       [
         task('w1', { department_id: 'd1' }),
@@ -100,22 +100,25 @@ describe('istemci süzgeçleri URL ile gidip gelir (P43)', () => {
     await page.wrapper.findAll('[role="menuitemradio"]')[3]!.trigger('click')
     await settle()
     expect(query(page).koordinatorluk).toBe('d2')
+    expect(sent(PATHS.tasks).at(-1)!.query.get('department_id')).toBe('d2')
     expect(ids(page)).toEqual(['w2'])
     expect(page.wrapper.get('[data-testid="dr-department"] button').text()).toBe(
       'Koordinatörlük: Yazılım',
     )
   })
 
-  it('süzgeç boş: "Bu filtrelerle kayıt yok." + Filtreleri temizle; imleç bitmediyse "daha fazla yükle" ipucu', async () => {
+  it('süzgeç boş: "Bu filtrelerle kayıt yok." + Filtreleri temizle (yüklenenlerde yok ayrımı yok)', async () => {
     world.tasks = [[task('w1', { title: 'Motor' })], [task('w2')]]
     const page = await mountPage({ path: '/silinen-kayitlar?q=zzz' })
     const state = page.wrapper.get('[data-testid="dr-state"]')
     expect(state.text()).toContain('Bu filtrelerle kayıt yok.')
-    expect(state.text()).toContain('Yüklenen kayıtlarda yok, daha fazla yükle.')
+    expect(state.text()).not.toMatch(/Yüklenen|daha fazla/)
     await state.get('[data-testid="dr-clear"]').trigger('click')
     await settle()
     expect(query(page).q).toBeUndefined()
     expect(ids(page)).toEqual(['w1'])
+    // İmleç sıfırlandı: temizlenen sorgu ilk sayfadan başladı (cursor yok).
+    expect(sent(PATHS.tasks).at(-1)!.query.has('cursor')).toBe(false)
   })
 
   it('hiç silinmiş kayıt yok: "Silinmiş görev yok."', async () => {
@@ -144,7 +147,7 @@ describe('istemci süzgeçleri URL ile gidip gelir (P43)', () => {
 })
 
 describe('Silen süzgeci yalnız toplantıda (E-12-18)', () => {
-  it('toplantıda adaylar deleted_by; bilinmeyen silen "Bilinmiyor"', async () => {
+  it('toplantıda adaylar görülen deleted_by; "Bilinmiyor" seçeneği sunulmaz; seçim sunucuya deleted_by gider', async () => {
     world.meetings = [
       [
         meeting('m1'),
@@ -158,12 +161,12 @@ describe('Silen süzgeci yalnız toplantıda (E-12-18)', () => {
       'Tümü',
       'Reha Koçak',
       'Mevlüt Kayacan',
-      'Bilinmiyor',
     ])
-    await page.wrapper.findAll('[role="menuitemradio"]')[3]!.trigger('click')
+    await page.wrapper.findAll('[role="menuitemradio"]')[2]!.trigger('click')
     await settle()
-    expect(ids(page)).toEqual(['m3'])
-    expect(query(page).silen).toBe('_bilinmiyor')
+    expect(sent(PATHS.meetings).at(-1)!.query.get('deleted_by')).toBe('acc-8')
+    expect(ids(page)).toEqual(['m2'])
+    expect(query(page).silen).toBe('acc-8')
   })
 
   it('görev, koordinatörlük ve kullanıcıda silen süzgeci devre dışı; hesapta aralık da', async () => {
@@ -184,23 +187,23 @@ describe('Silen süzgeci yalnız toplantıda (E-12-18)', () => {
   })
 })
 
-describe('tarih aralığı (E-12-17): sayfa yükleyerek istemci süzgeci', () => {
-  it('Son 7 gün: eşik aşılana kadar sayfa yüklenir, sonra durur', async () => {
+describe('tarih aralığı (E-12-17): sunucu deleted_from', () => {
+  it('Son 7 gün: tek istek, kurulum günü başı deleted_from; otomatik sayfa yükleme yok', async () => {
     world.tasks = [
       [task('w1', { deleted_at: '2026-11-12T08:00:00Z' })],
       [task('w2', { deleted_at: '2026-11-10T08:00:00Z' })],
       [task('w3', { deleted_at: '2026-10-01T08:00:00Z' })],
-      [task('w4', { deleted_at: '2026-09-01T08:00:00Z' })],
     ]
     const page = await mountPage({ path: '/silinen-kayitlar?aralik=7gun' })
     await settle()
-    expect(ids(page)).toEqual(['w1', 'w2'])
-    // w3 eşikten eski: yükleme orada durur, w4 istenmez.
-    expect(sent(PATHS.tasks).map((r) => r.query.get('cursor'))).toEqual([null, '1', '2'])
-    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toContain('gösteriliyor')
+    expect(ids(page)).toEqual(['w1'])
+    expect(sent(PATHS.tasks)).toHaveLength(1)
+    // Istanbul: 12 Kasım gününden önceki 6 gün → 6 Kasım değil 5 Kasım 21:00Z (UTC gün sınırı değil).
+    expect(sent(PATHS.tasks)[0]!.query.get('deleted_from')).toBe('2026-11-05T21:00:00Z')
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('1 / 2 kayıt gösteriliyor')
   })
 
-  it('menüden aralık seçilir ve URL aralik yazılır; Tümü ek yükleme yapmaz', async () => {
+  it('menüden aralık seçilir; URL aralik yazılır; Tümü deleted_from göndermez', async () => {
     world.tasks = [
       [
         task('w1', { deleted_at: '2026-11-12T08:00:00Z' }),
@@ -210,20 +213,36 @@ describe('tarih aralığı (E-12-17): sayfa yükleyerek istemci süzgeci', () =>
     const page = await mountPage()
     await pick(page, 'dr-range', 'Bugün')
     expect(query(page).aralik).toBe('bugun')
+    expect(sent(PATHS.tasks).at(-1)!.query.get('deleted_from')).toBe('2026-11-11T21:00:00Z')
     expect(ids(page)).toEqual(['w1'])
     await pick(page, 'dr-range', 'Tümü')
     expect(query(page).aralik).toBeUndefined()
+    expect(sent(PATHS.tasks).at(-1)!.query.has('deleted_from')).toBe(false)
     expect(ids(page)).toEqual(['w1', 'w2'])
   })
+})
 
-  it('en çok 5 ardışık otomatik sayfa, sonra elle "Daha fazla yükle"', async () => {
-    world.tasks = Array.from({ length: 9 }, (_, i) => [
-      task(`w${i}`, { deleted_at: '2026-11-12T08:00:00Z' }),
-    ])
-    const page = await mountPage({ path: '/silinen-kayitlar?aralik=bugun' })
+describe('sıralama başlığı (E-12-31)', () => {
+  it('başlık tıklanır: sunucu sort/order gider, sıra değişir, aria-sort işaretlenir', async () => {
+    world.tasks = [
+      [
+        task('w1', { title: 'Beta' }),
+        task('w2', { title: 'Alfa' }),
+        task('w3', { title: 'Çelik' }),
+      ],
+    ]
+    const page = await mountPage()
+    expect(sent(PATHS.tasks)[0]!.query.has('sort')).toBe(false)
+    await page.wrapper.get('[data-sort="name"]').trigger('click')
     await settle()
-    expect(sent(PATHS.tasks)).toHaveLength(6)
-    expect(page.wrapper.find('[data-testid="dr-more"]').exists()).toBe(true)
+    const last = sent(PATHS.tasks).at(-1)!.query
+    expect([last.get('sort'), last.get('order')]).toEqual(['name', 'asc'])
+    expect(ids(page)).toEqual(['w2', 'w1', 'w3'])
+    expect(page.wrapper.get('[aria-sort]').attributes('aria-sort')).toBe('ascending')
+    await page.wrapper.get('[data-sort="name"]').trigger('click')
+    await settle()
+    expect(sent(PATHS.tasks).at(-1)!.query.get('order')).toBe('desc')
+    expect(ids(page)).toEqual(['w3', 'w1', 'w2'])
   })
 })
 

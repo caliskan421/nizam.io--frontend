@@ -24,9 +24,9 @@ import { deletedText } from '../model/messages'
 import type { DeletedRow } from '../model/types'
 
 /**
- * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5; P36, P41…P45). Yalnız şirket yöneticisi
- * (`me.company_admin` olgusu; mercek değil). Dört canlı tür ayrı imleçli uçtur, açık sekmenin
- * ucu çağrılır; arama/koordinatörlük/aralık/silen yüklenen küme üzerinde istemci süzgecidir.
+ * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5, F8; P36, P41…P45). Yalnız şirket
+ * yöneticisi (`me.company_admin` olgusu; mercek değil). Dört canlı tür ayrı imleçli uçtur, açık
+ * sekmenin ucu çağrılır; arama/koordinatörlük/aralık/silen/sıra sunucu parametresidir (BE-117).
  * Kenar menüsünde giriş yoktur; giriş ana sayfa E-01-02 düğmesidir.
  */
 const { standing } = useStanding()
@@ -43,18 +43,17 @@ const allowed = computed(() => caps.value.view && !forbidden.value)
 const denied = computed(() => standing.value !== null && !allowed.value)
 
 const kindName = computed(() => deletedText(`kindNames.${filters.value.kind}`))
-const subtitle = computed(() => {
-  if (view.count.value === null) return deletedText('page.sub.idle')
-  return deletedText(list.hasMore.value ? 'page.sub.partial' : 'page.sub.loaded', {
-    n: list.rows.value.length,
-    kind: kindName.value,
-  })
-})
+const count = computed(() => (list.loading.value || list.error.value ? null : list.total.value))
+const subtitle = computed(() =>
+  count.value === null
+    ? deletedText('page.sub.idle')
+    : deletedText('page.sub.loaded', { n: count.value, kind: kindName.value }),
+)
 const listState = computed<'loading' | 'error' | 'empty' | 'filtered' | null>(() => {
   if (list.error.value) return 'error'
   if (list.loading.value) return 'loading'
-  if (list.rows.value.length === 0) return 'empty'
-  return view.visible.value.length === 0 ? 'filtered' : null
+  if (list.rows.value.length > 0) return null
+  return view.filtered.value ? 'filtered' : 'empty'
 })
 
 async function focusAfterRemoval(): Promise<void> {
@@ -75,7 +74,7 @@ const actions = useRecordActions({
 })
 
 function act(action: 'restore' | 'purge', row: DeletedRow): void {
-  focusIndex = view.visible.value.findIndex((candidate) => candidate.key === row.key)
+  focusIndex = list.rows.value.findIndex((candidate) => candidate.key === row.key)
   void (action === 'restore' ? actions.restore(row) : actions.purge(row))
 }
 /** Bildirim kalkınca odak gövdeye düşmez: verilen (yoksa seçili) tür düğmesine döner (KESİN 27). */
@@ -139,12 +138,13 @@ function dismissNotice(): void {
         <div class="dr-toolbar">
           <KindSegment
             :model-value="filters.kind"
-            :count="view.count.value"
+            :count="count === null ? null : String(count)"
             @update:model-value="view.setKind"
           />
           <FilterBar
             :filters="filters"
-            :rows="list.rows.value"
+            :actors="view.candidates.actors.value"
+            :departments="view.candidates.departments.value"
             :department-name="list.departmentName"
             @update="view.update"
           />
@@ -159,37 +159,34 @@ function dismissNotice(): void {
           @departments="openDepartments"
           @dismiss="dismissNotice"
         />
-        <p v-if="view.autoLoading.value" class="rp-cap" role="status">
-          {{ deletedText('filters.loadingRange') }}
-        </p>
         <ListState
           v-if="listState"
           :state="listState"
           :kind="filters.kind"
           :error="list.error.value"
           :retrying="false"
-          :has-more="list.hasMore.value"
           @retry="list.refetch()"
           @clear="view.clear()"
         />
         <RecordsTable
           v-else
-          :rows="view.visible.value"
+          :rows="list.rows.value"
           :selected-key="view.selected.value?.key ?? null"
+          :sort="view.sort.value"
           :busy="actions.pending.value"
           :timezone="list.timezone.value"
           :now="view.now.value"
           :can-restore="caps.restore"
           :can-purge="caps.purge"
           @select="(row) => view.update({ selected: row.id })"
+          @sort="view.setSort"
           @restore="(row) => act('restore', row)"
           @purge="(row) => act('purge', row)"
         />
         <RecordsFooter
           v-if="listState !== 'loading' && listState !== 'error'"
           :loaded="list.rows.value.length"
-          :shown="view.visible.value.length"
-          :filtered="view.filtered.value"
+          :total="list.total.value"
           :has-more="list.hasMore.value"
           :loading-more="list.loadingMore.value"
           @more="list.fetchMore()"

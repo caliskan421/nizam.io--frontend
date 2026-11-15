@@ -9,7 +9,7 @@ import {
   withMeetingDefaults,
 } from '@/shared/api/__tests__/defaults'
 
-import { accountRow, departmentRow, fold, meetingRow, taskRow, type RowContext } from './rows'
+import { accountRow, departmentRow, meetingRow, taskRow, type RowContext } from './rows'
 
 const CTX: RowContext = {
   timezone: 'Europe/Istanbul',
@@ -98,13 +98,6 @@ describe('E-12-67 toplantı satırı', () => {
     expect(row.subLine).toBe('24 Ekim 10:00 · Fuar')
     expect(row.actor).toEqual({ accountId: null, name: '' })
   })
-
-  it('arama metni başlık + silen + koordinatörlük adlarını kapsar', () => {
-    const { searchText } = meetingRow(meeting(), CTX)
-    expect(searchText).toContain('fuar')
-    expect(searchText).toContain('reha')
-    expect(searchText).toContain('mekanik')
-  })
 })
 
 describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
@@ -150,13 +143,5 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
       deletedAt: null,
       actor: null,
     })
-  })
-})
-
-describe('Türkçe katlama (E-12-20)', () => {
-  it('İ/ı farkı gözetilir', () => {
-    expect(fold('IŞIK')).toBe('ışık')
-    expect(fold('İzmir')).toBe('izmir')
-    expect(fold('ISIK')).not.toBe(fold('İŞİK'))
   })
 })

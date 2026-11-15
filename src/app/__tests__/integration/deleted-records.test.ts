@@ -125,7 +125,7 @@ function install(): void {
         })),
       }),
     ),
-    http.get(`${ORIGIN}/v1/meetings/deleted`, () =>
+    http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
       HttpResponse.json({ items: deleted.meetings.map(meetingRow), next_cursor: '' }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/departments`, () =>

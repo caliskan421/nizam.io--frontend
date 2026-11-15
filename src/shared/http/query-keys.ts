@@ -98,6 +98,8 @@ export const queryKeys = {
   /** Silinmiş departmanlar (`listDeletedDepartments`, S2, imleçli; K7 ad eşleşmesi). */
   deletedDepartments: {
     all: (s: ScopeSnapshot) => scoped(s, ['deleted-departments']),
+    /** 12 Silinen kayıtlar listesi: sunucu süzgeci/sırası `filters` içindedir (BE-117; W174). */
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-departments', filters]),
   },
   /**
    * Silinmiş görevler (`listDeletedWorkItems`, S2, imleçli; 12 Silinen kayıtlar, W128). Kapsamlı:
@@ -172,6 +174,9 @@ export const queryKeys = {
     all: (s: ScopeSnapshot) => scoped(s, ['meetings']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['meetings', 'list', filters]),
     deleted: (s: ScopeSnapshot) => scoped(s, ['meetings', 'deleted']),
+    /** 12 Silinen kayıtlar toplantı listesi: sunucu süzgeci/sırası `filters` içindedir (BE-117). */
+    deletedList: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['meetings', 'deleted', filters]),
     candidates: (s: ScopeSnapshot, filters: QueryFilters) =>
       scoped(s, ['meetings', 'candidates', filters]),
     detail: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', 'detail', id]),

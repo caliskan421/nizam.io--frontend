@@ -12,7 +12,6 @@ export function fixtureRow(over: Partial<DeletedRow> = {}): DeletedRow {
     deletedAt: '2026-11-12T10:42:00Z',
     actor: null,
     departmentIds: ['d1'],
-    searchText: 'saha pano montajı',
     status: 'devam_ediyor',
     fileCount: 2,
     place: null,

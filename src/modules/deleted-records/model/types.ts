@@ -41,8 +41,6 @@ export interface DeletedRow {
   actor: { accountId: string | null; name: string } | null
   /** Koordinatörlük süzgecinin eşleştiği kimlikler. */
   departmentIds: readonly string[]
-  /** Arama için Türkçe katlanmış birleşik metin. */
-  searchText: string
   /** Görev: durum anahtarı; diğer türlerde `null`. */
   status: string | null
   /** Görev: `file_count`; diğer türlerde `null`. */

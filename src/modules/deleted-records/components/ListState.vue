@@ -8,14 +8,13 @@ import { deletedText } from '../model/messages'
 /**
  * Liste durumları (E-12-60/61/62; tasarımda çizilmemiş, ortak K7 metinleri, P44): ilk yükleme,
  * okuma hatası (yeniden dene), hiç silinmiş kayıt yok, süzgeç sonucu boş (+ "Filtreleri
- * temizle"; imleç bitmediyse "Yüklenen kayıtlarda yok, daha fazla yükle").
+ * temizle"; süzgeç sunucuda çalıştığından "yüklenenlerde yok" ayrımı yoktur).
  */
 defineProps<{
   state: 'loading' | 'error' | 'empty' | 'filtered'
   kind: DeletedKind
   error: ApiError | null
   retrying: boolean
-  hasMore: boolean
 }>()
 const emit = defineEmits<{ retry: []; clear: [] }>()
 </script>
@@ -38,12 +37,7 @@ const emit = defineEmits<{ retry: []; clear: [] }>()
       icon="trash"
       :title="deletedText('states.empty', { kind: deletedText(`kindNames.${kind}`) })"
     />
-    <UiEmptyState
-      v-else
-      icon="search"
-      :title="deletedText('states.filteredEmpty')"
-      :text="hasMore ? deletedText('states.filteredEmptyMore') : undefined"
-    >
+    <UiEmptyState v-else icon="search" :title="deletedText('states.filteredEmpty')">
       <template #action>
         <button
           type="button"

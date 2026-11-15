@@ -11,7 +11,6 @@ export const trDeletedRecords = {
       sub: {
         idle: 'Yalnız yönetici görür',
         loaded: '{n} {kind} · yalnız yönetici görür',
-        partial: '{n}+ {kind} · yüklenen kayıtlar içinde · yalnız yönetici görür',
       },
       // E-12-07 / P37.
       retention: 'Silinen kayıtlar bir yönetici kalıcı olarak silene kadar saklanır.',
@@ -65,7 +64,7 @@ export const trDeletedRecords = {
       actor: {
         label: 'Silen',
         all: 'Tümü',
-        unknown: 'Bilinmiyor',
+        unnamed: 'Adı bilinmiyor',
         unsupported: 'Yalnız toplantılarda silen bilgisi var.',
       },
       department: {
@@ -74,9 +73,8 @@ export const trDeletedRecords = {
         unknown: 'Bilinmeyen koordinatörlük',
         unsupported: 'Bu türde koordinatörlük süzgeci yok.',
       },
-      search: { label: 'Silinen kayıtlarda ara', placeholder: 'Yüklenen kayıtlarda ara' },
+      search: { label: 'Silinen kayıtlarda ara', placeholder: 'Kayıt ara' },
       clear: 'Filtreleri temizle',
-      loadingRange: 'Aralık için kayıtlar yükleniyor',
     },
     table: {
       label: 'Silinen kayıtlar',
@@ -87,7 +85,7 @@ export const trDeletedRecords = {
         actor: 'silen',
         actions: 'işlemler',
       },
-      sortHint: 'En yeni üstte; sıralama değiştirilemez.',
+      sortHint: 'Sıralamak için tıklayın.',
       today: 'bugün',
       none: '—',
       unknownActor: 'Bilinmiyor',
@@ -103,9 +101,8 @@ export const trDeletedRecords = {
       meeting: '{when} · {department}',
     },
     footer: {
-      loaded: '{n} kayıt yüklendi',
-      loadedMore: '{n} kayıt yüklendi, daha var',
-      shown: '{m} kayıt gösteriliyor (yüklenen {n} içinde)',
+      loaded: '{n} kayıt',
+      of: '{m} / {n} kayıt gösteriliyor',
       more: 'Daha fazla yükle',
       moreBusy: 'Yükleniyor',
     },
@@ -172,7 +169,6 @@ export const trDeletedRecords = {
       loadFailed: 'Silinen kayıtlar yüklenemedi',
       empty: 'Silinmiş {kind} yok.',
       filteredEmpty: 'Bu filtrelerle kayıt yok.',
-      filteredEmptyMore: 'Yüklenen kayıtlarda yok, daha fazla yükle.',
     },
     home: {
       button: 'Silinen kayıtlar',

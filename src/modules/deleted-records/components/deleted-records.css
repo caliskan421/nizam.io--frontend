@@ -231,7 +231,10 @@
     color: var(--ink);
     font: inherit;
     letter-spacing: inherit;
-    cursor: not-allowed;
+    cursor: pointer;
+  }
+  .dr-page .dr-sorth:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
   }
   .dr-page .dr-sr {
     position: absolute;

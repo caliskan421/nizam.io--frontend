@@ -29,7 +29,7 @@ import DeletedRecordsPage from '../pages/DeletedRecordsPage.vue'
 export const ORIGIN = 'http://localhost'
 export const PATHS = {
   tasks: '/v1/admin/deleted/work-items',
-  meetings: '/v1/meetings/deleted',
+  meetings: '/v1/admin/deleted/meetings',
   departments: '/v1/admin/deleted/departments',
   accounts: '/v1/admin/deleted/accounts',
   dictionary: '/v1/program/departments',
@@ -108,11 +108,64 @@ function failure(method: string, path: string) {
   return forced ? errorEnvelope(forced.code, forced.status) : null
 }
 
-function page<T>(pages: T[][], request: Request, key: string, endEmpty = false) {
-  const cursor = new URL(request.url).searchParams.get('cursor')
+/** Sunucu süzgecinin okuduğu alanlar (kayıt türüne göre; v0.23 anlamı: `backend.md` §3). */
+interface Facets<T> {
+  /** Arama alanları (Türkçe katlamalı "içerir"). */
+  text: (item: T) => string[]
+  departments: (item: T) => string[]
+  actor: (item: T) => string | null
+  at: (item: T) => string
+  /** `sort=name` anahtarı. */
+  name: (item: T) => string
+}
+
+const fold = (text: string) => text.toLocaleLowerCase('tr-TR')
+
+/** Süzgeç + sıra parametrelerini sayfalara uygular (yeniden sayfalanır; imleç = dizin). */
+function shapePages<T>(pages: T[][], params: URLSearchParams, facets: Facets<T>) {
+  const needle = fold(params.get('q')?.trim() ?? '')
+  const [from, to, by, dept] = ['deleted_from', 'deleted_to', 'deleted_by', 'department_id'].map(
+    (name) => params.get(name),
+  )
+  const keep = (item: T): boolean =>
+    (!needle || facets.text(item).some((t) => fold(t).includes(needle))) &&
+    (!by || facets.actor(item) === by) &&
+    (!dept || facets.departments(item).includes(dept)) &&
+    (!from || facets.at(item) >= from) &&
+    (!to || facets.at(item) <= to)
+  const sort = params.get('sort') ?? 'deleted_at'
+  const sign = (params.get('order') ?? (sort === 'name' ? 'asc' : 'desc')) === 'asc' ? 1 : -1
+  const key = (item: T) => (sort === 'name' ? fold(facets.name(item)) : facets.at(item))
+  const flat = pages
+    .flat()
+    .filter(keep)
+    .sort((a, b) => (key(a) < key(b) ? -sign : key(a) > key(b) ? sign : 0))
+  const size = Math.max(1, ...pages.map((p) => p.length))
+  const shaped: T[][] = []
+  for (let i = 0; i < flat.length; i += size) shaped.push(flat.slice(i, i + size))
+  return { shaped, total: flat.length }
+}
+
+/**
+ * Durumlu sahte liste: `q`, `deleted_by`, `department_id`, `deleted_from`/`deleted_to`, `sort`/
+ * `order` parametrelerini gerçek sunucu gibi uygular, süzülmüş küme boyunu `total` verir.
+ * Süzgeç/sıra yoksa sayfa yapısı aynen korunur (imleç = sonraki sayfa dizini).
+ */
+function page<T>(pages: T[][], request: Request, key: string, facets: Facets<T>, endEmpty = false) {
+  const params = new URL(request.url).searchParams
+  const cursor = params.get('cursor')
+  const active = ['q', 'deleted_by', 'department_id', 'deleted_from', 'deleted_to', 'sort', 'order']
+  const filtering = active.some((name) => params.has(name))
+  const { shaped, total } = filtering
+    ? shapePages(pages, params, facets)
+    : { shaped: pages, total: pages.reduce((sum, p) => sum + p.length, 0) }
   const index = cursor ? Number(cursor) : 0
-  const next = index + 1 < pages.length ? String(index + 1) : endEmpty ? '' : undefined
-  return { [key]: pages[index] ?? [], ...(next !== undefined ? { next_cursor: next } : {}) }
+  const next = index + 1 < shaped.length ? String(index + 1) : endEmpty ? '' : undefined
+  return {
+    [key]: shaped[index] ?? [],
+    total,
+    ...(next !== undefined ? { next_cursor: next } : {}),
+  }
 }
 
 /** Kaydı ilgili listeden düşürür (geri yükleme / kalıcı silme sonrası liste yeniden okunur). */
@@ -122,6 +175,35 @@ function drop<T>(pages: T[][], matches: (item: T) => boolean): void {
 
 const FORBIDDEN = (code: string) => errorEnvelope(code, 403)
 
+const TASK_FACETS: Facets<DeletedWorkItem> = {
+  text: (t) => [t.title],
+  departments: (t) => [t.department_id],
+  actor: (t) => t.deleted_by?.account_id ?? null,
+  at: (t) => t.deleted_at,
+  name: (t) => t.title,
+}
+const MEETING_FACETS: Facets<Meeting> = {
+  text: (m) => [m.title],
+  departments: (m) => [m.owner_department_id, ...m.departments.map((d) => d.department_id)],
+  actor: (m) => m.deleted_by?.account_id ?? null,
+  at: (m) => m.deleted_at ?? '',
+  name: (m) => m.title,
+}
+const DEPARTMENT_FACETS: Facets<DeletedDepartment> = {
+  text: (d) => [d.name, d.code ?? ''],
+  departments: () => [],
+  actor: (d) => d.deleted_by?.account_id ?? null,
+  at: (d) => d.deleted_at,
+  name: (d) => d.name,
+}
+const ACCOUNT_FACETS: Facets<DeletedAccount> = {
+  text: (a) => [a.full_name],
+  departments: (a) => a.teams.map((team) => team.department_id),
+  actor: (a) => a.deleted_by?.account_id ?? null,
+  at: (a) => a.deleted_at,
+  name: (a) => a.full_name,
+}
+
 /** Silinen liste uçları (yetkili görünürlük: yönetici değilse 403). */
 function listHandlers() {
   const list = (path: string, code: string, answer: (request: Request) => JsonBodyType) =>
@@ -129,14 +211,16 @@ function listHandlers() {
       world.admin ? json(answer(request)) : FORBIDDEN(code),
     )
   return [
-    list(PATHS.tasks, 'work.not_authorized', (r) => page(world.tasks, r, 'items')),
+    list(PATHS.tasks, 'work.not_authorized', (r) => page(world.tasks, r, 'items', TASK_FACETS)),
     list(PATHS.meetings, 'collaboration.not_authorized', (r) =>
-      page(world.meetings, r, 'items', true),
+      page(world.meetings, r, 'items', MEETING_FACETS, true),
     ),
     list(PATHS.departments, 'organization.not_authorized', (r) =>
-      page(world.departments, r, 'departments'),
+      page(world.departments, r, 'departments', DEPARTMENT_FACETS),
     ),
-    list(PATHS.accounts, 'organization.not_authorized', (r) => page(world.accounts, r, 'accounts')),
+    list(PATHS.accounts, 'organization.not_authorized', (r) =>
+      page(world.accounts, r, 'accounts', ACCOUNT_FACETS),
+    ),
     http.get(`${ORIGIN}${PATHS.dictionary}`, () => json({ departments: world.dictionary })),
   ]
 }

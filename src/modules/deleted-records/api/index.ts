@@ -1,5 +1,16 @@
-export { DELETED_PAGE_LIMIT, fetchDeletedAccounts, fetchDeletedWorkItems } from './fetchers'
-export { useDeletedAccounts, useDeletedWorkItems } from './queries'
+export {
+  DELETED_PAGE_LIMIT,
+  fetchDeletedAccounts,
+  fetchDeletedDepartments,
+  fetchDeletedMeetings,
+  fetchDeletedWorkItems,
+} from './fetchers'
+export {
+  useDeletedAccounts,
+  useDeletedDepartments,
+  useDeletedMeetings,
+  useDeletedWorkItems,
+} from './queries'
 export {
   usePermanentDeleteAccount,
   usePermanentDeleteDepartment,

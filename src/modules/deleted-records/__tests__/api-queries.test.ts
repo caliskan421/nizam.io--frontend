@@ -45,8 +45,8 @@ function setup(enabled: { tasks: boolean; accounts: boolean }) {
     defineComponent({
       setup() {
         queries = {
-          tasks: useDeletedWorkItems(flags.tasks),
-          accounts: useDeletedAccounts(flags.accounts),
+          tasks: useDeletedWorkItems({}, flags.tasks),
+          accounts: useDeletedAccounts({}, flags.accounts),
         }
         return () => null
       },

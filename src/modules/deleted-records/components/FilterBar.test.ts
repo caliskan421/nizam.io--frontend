@@ -5,9 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
 
 import type { DeletedFilters } from '../model/filters'
-import type { DeletedRow } from '../model/types'
 import FilterBar from './FilterBar.vue'
-import { fixtureRow } from '../__tests__/fixtures'
+import type { ActorCandidate } from './use-filter-candidates'
 
 const FILTERS: DeletedFilters = {
   kind: 'toplanti',
@@ -17,20 +16,8 @@ const FILTERS: DeletedFilters = {
   actor: null,
   selected: null,
 }
-const ROWS: DeletedRow[] = [
-  fixtureRow({
-    kind: 'toplanti',
-    actor: { accountId: 'a7', name: 'Reha Koçak' },
-    departmentIds: ['d1'],
-  }),
-  fixtureRow({
-    id: 'w2',
-    key: 'toplanti:w2',
-    kind: 'toplanti',
-    actor: { accountId: null, name: '' },
-    departmentIds: ['d2', 'dx'],
-  }),
-]
+const ACTORS: ActorCandidate[] = [{ accountId: 'a7', name: 'Reha Koçak' }]
+const DEPARTMENTS = ['d1', 'd2', 'dx']
 const names = (id: string) => ({ d1: 'Mekanik', d2: 'Yazılım' })[id] ?? null
 
 function mountBar(filters: Partial<DeletedFilters> = {}) {
@@ -38,7 +25,12 @@ function mountBar(filters: Partial<DeletedFilters> = {}) {
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p1', lens: 'admin', departmentId: null })
   return mount(FilterBar, {
-    props: { filters: { ...FILTERS, ...filters }, rows: ROWS, departmentName: names },
+    props: {
+      filters: { ...FILTERS, ...filters },
+      actors: ACTORS,
+      departments: DEPARTMENTS,
+      departmentName: names,
+    },
     global: { plugins: [pinia] },
     attachTo: document.body,
   })
@@ -60,7 +52,7 @@ describe('FilterBar (E-12-17…20)', () => {
     expect(wrapper.emitted('update')).toBeUndefined()
     vi.advanceTimersByTime(200)
     expect(wrapper.emitted('update')).toEqual([[{ q: 'fuar' }]])
-    expect(input.attributes('placeholder')).toBe('Yüklenen kayıtlarda ara')
+    expect(input.attributes('placeholder')).toBe('Kayıt ara')
     wrapper.unmount()
   })
 
@@ -91,13 +83,12 @@ describe('FilterBar (E-12-17…20)', () => {
     wrapper.unmount()
   })
 
-  it('silen adayları yüklenen satırlardan; koordinatörlük adayları ad sırasıyla, adı olmayan "Bilinmeyen"', async () => {
+  it('silen adayları verilen listeden ("Bilinmiyor" seçeneği sunulmaz); koordinatörlük adayları ad sırasıyla, adı olmayan "Bilinmeyen"', async () => {
     const wrapper = mountBar()
     await wrapper.get('[data-testid="dr-actor"] button').trigger('click')
     expect(wrapper.findAll('[role="menuitemradio"]').map((i) => i.text())).toEqual([
       'Tümü',
       'Reha Koçak',
-      'Bilinmiyor',
     ])
     await wrapper.findAll('[role="menuitemradio"]')[1]!.trigger('click')
     expect(wrapper.emitted('update')![0]).toEqual([{ actor: 'a7' }])

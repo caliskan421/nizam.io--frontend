@@ -139,23 +139,22 @@ describe('sekmeler ve uçlar (P41, P42)', () => {
 })
 
 describe('sayaç, alt başlık ve notlar', () => {
-  it('sayaç yalnız açık sekmede; imleç bitince "n", bitmeyince "n+" ve "yüklenen kayıtlar içinde"', async () => {
+  it('sayaç yalnız açık sekmede ve kesin (sunucu total); "n+" ve "yüklenen kayıtlar içinde" yok', async () => {
     world.tasks = [[task('w1'), task('w2')], [task('w3')]]
     const page = await mountPage()
     const counts = page.wrapper.findAll('[data-testid="dr-kinds"] .rp-count')
-    expect(counts.map((c) => c.text())).toEqual(['2+'])
-    expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe(
-      '2+ görev · yüklenen kayıtlar içinde · yalnız yönetici görür',
-    )
-    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('2 kayıt yüklendi, daha var')
-    await page.wrapper.get('[data-testid="dr-more"]').trigger('click')
-    await settle()
-    expect(page.wrapper.get('[data-testid="dr-kinds"] .rp-count').text()).toBe('3')
+    expect(counts.map((c) => c.text())).toEqual(['3'])
     expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe(
       '3 görev · yalnız yönetici görür',
     )
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('2 / 3 kayıt gösteriliyor')
+    await page.wrapper.get('[data-testid="dr-more"]').trigger('click')
+    await settle()
+    expect(page.wrapper.get('[data-testid="dr-kinds"] .rp-count').text()).toBe('3')
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('3 kayıt')
     expect(page.wrapper.find('[data-testid="dr-more"]').exists()).toBe(false)
     expect(sent(PATHS.tasks)[1]!.query.get('cursor')).toBe('1')
+    expect(page.wrapper.text()).not.toMatch(/içinde|\d\+/)
   })
 
   it('saklama metni P37, iz kaydı cümlesi bağlantısız; kalan süre ve "Yakında" kartı yok', async () => {
@@ -187,7 +186,7 @@ describe('sayaç, alt başlık ve notlar', () => {
 })
 
 describe('statik başlık eylemleri ve toplu seçim', () => {
-  it('CSV indir ve Çöpü boşalt devre dışı + designStub; toplu seçim ve kalan süre yok', async () => {
+  it('CSV indir ve Çöpü boşalt devre dışı + designStub; toplu seçim ve kalan süre yok; sıralama stub değil', async () => {
     world.tasks = [[task('w1')]]
     const page = await mountPage()
     const csv = page.wrapper.get('[data-testid="dr-csv"]')
@@ -200,7 +199,7 @@ describe('statik başlık eylemleri ve toplu seçim', () => {
     )
     expect(page.wrapper.find('input[type="checkbox"]').exists()).toBe(false)
     expect(page.wrapper.find('[role="toolbar"]').exists()).toBe(false)
-    expect(page.wrapper.find('[data-design-stub="BE-117"]').exists()).toBe(true)
+    expect(page.wrapper.find('[data-design-stub="BE-117"]').exists()).toBe(false)
     expect(page.wrapper.find('[aria-sort="descending"]').exists()).toBe(true)
   })
 })

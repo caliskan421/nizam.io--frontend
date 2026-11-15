@@ -46,7 +46,7 @@ function install(): void {
     http.get(`${ORIGIN}/v1/admin/deleted/work-items`, () =>
       HttpResponse.json({ items: dead.tasks.map((id) => taskRow(id, id === 'wd' ? 'd1' : 'dd')) }),
     ),
-    http.get(`${ORIGIN}/v1/meetings/deleted`, () =>
+    http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
       HttpResponse.json({ items: [], next_cursor: '' }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/departments`, () =>

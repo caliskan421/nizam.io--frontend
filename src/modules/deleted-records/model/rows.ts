@@ -2,7 +2,8 @@
  * Tür bazında satır alanları (E-12-66…69; `12-silinen-kayitlar/backend.md` §4). Dört silinen
  * listesi (görev, toplantı, koordinatörlük, hesap) tek satır modeline (`DeletedRow`) çevrilir;
  * alanlar yalnız liste öğesinden gelir (satır başına ayrıntı okuması yok). Veri olmayan alan
- * `null` / boştur — sahte ad, sayı, tarih üretilmez (ortak-kurallar §4).
+ * `null` / boştur — sahte ad, sayı, tarih üretilmez (ortak-kurallar §4). Arama sunucudadır (`q`):
+ * satırda arama metni yoktur.
  */
 import type { Meeting } from '@/modules/meetings/public'
 
@@ -14,17 +15,6 @@ export interface RowContext {
   timezone: string
   /** Koordinatörlük adı: program sözlüğü, yoksa silinmiş departman listesi; yoksa `null`. */
   departmentName: (departmentId: string) => string | null
-}
-
-const TR = 'tr-TR'
-
-/** Arama katlaması (Türkçe: `İ`/`ı` farkı gözetilir). */
-export function fold(text: string): string {
-  return text.toLocaleLowerCase(TR)
-}
-
-function searchOf(...parts: ReadonlyArray<string | null | undefined>): string {
-  return fold(parts.filter((p): p is string => !!p).join(' '))
 }
 
 export function unknownDepartment(): string {
@@ -43,7 +33,6 @@ export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
     deletedAt: item.deleted_at || null,
     actor: null,
     departmentIds: [item.department_id],
-    searchText: searchOf(item.title),
     status: item.status,
     fileCount: item.file_count,
     place: null,
@@ -77,7 +66,6 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
     deletedAt: meeting.deleted_at || null,
     actor: { accountId: meeting.deleted_by?.account_id ?? null, name: actorName },
     departmentIds: ids,
-    searchText: searchOf(meeting.title, actorName, ...names),
     status: null,
     fileCount: null,
     place: meeting.place,
@@ -99,7 +87,6 @@ export function departmentRow(department: DeletedDepartment): DeletedRow {
     deletedAt: department.deleted_at || null,
     actor: null,
     departmentIds: [department.department_id],
-    searchText: searchOf(department.name, department.code),
     status: null,
     fileCount: null,
     place: null,
@@ -121,7 +108,6 @@ export function accountRow(account: DeletedAccount): DeletedRow {
     deletedAt: null,
     actor: null,
     departmentIds: [],
-    searchText: searchOf(account.full_name),
     status: null,
     fileCount: null,
     place: null,
