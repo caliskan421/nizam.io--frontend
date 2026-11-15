@@ -172,16 +172,17 @@ describe('sayaç, alt başlık ve notlar', () => {
     expect(text).not.toContain('gün saklanır')
   })
 
-  it('Koordinatörlük sekmesi: liste şirket geneli, sayaç programa bağlı — uyuşmazlık açıklanır (BE-119)', async () => {
+  it('Koordinatörlük sekmesi scope=program ile çağrılır; "şirket geneli ≠ sayaç" notu yok, scope=company sunulmaz (BE-119)', async () => {
     world.departments = [[department('d5')]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=koordinatorluk' })
-    expect(page.wrapper.get('[data-testid="dr-mismatch"]').text()).toContain('şirket genelindeki')
-    expect(page.wrapper.get('[data-testid="dr-mismatch"]').text()).toContain(
-      'iki sayı farklı olabilir',
-    )
-    await page.wrapper.get('[data-kind="gorev"]').trigger('click')
-    await settle()
+    const request = sent(PATHS.departments)[0]!
+    expect(request.query.get('scope')).toBe('program')
+    expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(page.wrapper.find('[data-testid="dr-mismatch"]').exists()).toBe(false)
+    expect(page.wrapper.text()).not.toMatch(
+      /şirket genelindeki silinmiş koordinatörlük|iki sayı farklı/,
+    )
+    expect(sent(PATHS.departments).every((r) => r.query.get('scope') === 'program')).toBe(true)
   })
 })
 

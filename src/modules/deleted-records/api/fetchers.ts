@@ -3,7 +3,7 @@
  * sunucu süzgeç/sıra parametrelerini alır (`q`, `deleted_from`, `deleted_by`, `department_id`,
  * `sort`/`order`; BE-117) ve zarfta süzgece uyan `total` döner. İmleç sıraya bağlıdır: süzgeç ya
  * da sıra değişince imleç gönderilmez (ilk sayfa; sorgu anahtarı yeni olur). Koordinatörlük
- * listesi `department_id` almaz (sunucu yok sayar).
+ * listesi `department_id` almaz (sunucu yok sayar) ve her zaman `scope=program` ile çağrılır.
  */
 import { programHeaders } from '@/modules/work/public'
 import { api, unwrap } from '@/shared/http'
@@ -47,7 +47,12 @@ export function fetchDeletedMeetings(
   )
 }
 
-/** `listDeletedDepartments` (S2 başlıklı; `department_id` süzgeci bu listede yoktur). */
+/**
+ * `listDeletedDepartments?scope=program` (S2 başlıklı; BE-119): yalnız başlıktaki programa bağlı
+ * silinmiş koordinatörlükler (`reportDeletedSummary.departments` ve pano `deleted_records` ile
+ * aynı küme); `scope=company` (şirket geneli, programa bağlı olmayanlar dahil) sunulmaz
+ * (varsayım 14). `department_id` süzgeci bu listede yoktur.
+ */
 export function fetchDeletedDepartments(
   programId: string,
   query: ListQuery,
@@ -58,7 +63,10 @@ export function fetchDeletedDepartments(
   delete rest.department_id
   return unwrap(
     api.GET('/v1/admin/deleted/departments', {
-      params: { header: programHeaders({ programId }), query: page(rest, cursor) },
+      params: {
+        header: programHeaders({ programId }),
+        query: { ...page(rest, cursor), scope: 'program' as const },
+      },
       signal,
     }),
   )

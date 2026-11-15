@@ -45,14 +45,6 @@ export const trDeletedRecords = {
       koordinatorluk: 'koordinatörlük',
       kullanici: 'kullanıcı',
     },
-    // Koordinatörlük sekmesi: liste şirket genelidir, ana sayfa sayacı yalnız seçili programa
-    // bağlı olanları sayar (BE-119); uyuşmazlık düzeltilmez, açıklanır.
-    mismatch: {
-      departments:
-        'Bu liste şirket genelindeki silinmiş koordinatörlükleri gösterir. Ana sayfadaki Silinen kayıtlar sayısı yalnız seçili programa bağlı olanları sayar; iki sayı farklı olabilir.',
-      counter:
-        'Sayı; seçili programdaki silinmiş görev ve toplantıları, programa bağlı silinmiş koordinatörlükleri ve şirket genelindeki silinmiş hesapları kapsar. Ekrandaki listelerle farklı olabilir.',
-    },
     filters: {
       range: {
         label: 'Silinme tarihi aralığı',
@@ -172,6 +164,10 @@ export const trDeletedRecords = {
     },
     home: {
       button: 'Silinen kayıtlar',
+      // Sayı özetin dört terimli toplamıdır (`reportDeletedSummary.total` = pano `deleted_records`);
+      // ekrandaki süzgeçli liste sayıları farklı olabilir.
+      counterHint:
+        'Seçili programdaki silinmiş görev ve toplantıları, programa bağlı silinmiş koordinatörlükleri ve şirket genelindeki silinmiş hesapları sayar; süzgeçli listelerdeki sayılardan farklı olabilir.',
     },
   },
 } as const

@@ -149,9 +149,6 @@ function dismissNotice(): void {
             @update="view.update"
           />
         </div>
-        <p v-if="filters.kind === 'koordinatorluk'" class="rp-cap" data-testid="dr-mismatch">
-          {{ deletedText('mismatch.departments') }}
-        </p>
         <NoticeBar
           v-if="actions.notice.value"
           :message="actions.notice.value.message"
