@@ -5,8 +5,18 @@ import type { TaskFolderCardsProps } from '../index'
 import TaskFolderCards from './TaskFolderCards.vue'
 
 const TASKS = [
-  { work_item_id: 'w1', title: 'Gölgelendirme çalışmaları (kamelya)', file_count: 2 },
-  { work_item_id: 'w2', title: 'İklimlendirme hesaplarının yapılması', file_count: 1 },
+  {
+    work_item_id: 'w1',
+    title: 'Gölgelendirme çalışmaları (kamelya)',
+    file_count: 2,
+    department_id: 'd1',
+  },
+  {
+    work_item_id: 'w2',
+    title: 'İklimlendirme hesaplarının yapılması',
+    file_count: 1,
+    department_id: 'd1',
+  },
 ]
 
 const mounted: ReturnType<typeof mount>[] = []

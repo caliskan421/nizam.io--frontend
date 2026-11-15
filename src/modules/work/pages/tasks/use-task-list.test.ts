@@ -31,7 +31,12 @@ beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetHarness())
 afterAll(() => server.close())
 
-const pending = { request_id: 'r1', new_start_on: '2026-11-01', new_end_on: '2026-11-20' }
+const pending = {
+  request_id: 'r1',
+  created_at: '2026-10-01T08:00:00Z',
+  new_start_on: '2026-11-01',
+  new_end_on: '2026-11-20',
+}
 const ROWS = [
   workItem({ work_item_id: 'a', department_id: 'd1', title: 'Rapor', is_overdue: true }),
   workItem({

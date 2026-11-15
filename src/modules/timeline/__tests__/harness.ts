@@ -9,6 +9,7 @@ import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, type App } from 'vue'
 
+import { withWorkItemDefaults } from '@/shared/api/__tests__/defaults'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -111,7 +112,7 @@ export const COORD_SCOPE: ScopeSelection = {
 export const MEMBER_SCOPE: ScopeSelection = { programId: 'p1', lens: 'member', departmentId: 'd1' }
 
 export function ganttTask(over: Partial<GanttTask> = {}): GanttTask {
-  return {
+  return withWorkItemDefaults({
     work_item_id: 'w1',
     title: 'Rapor',
     program_id: 'p1',
@@ -135,7 +136,7 @@ export function ganttTask(over: Partial<GanttTask> = {}): GanttTask {
       days_early: 0,
     },
     ...over,
-  }
+  })
 }
 
 export function gantt(over: Partial<Gantt> = {}): Gantt {

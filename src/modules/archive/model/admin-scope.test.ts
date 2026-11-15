@@ -72,7 +72,17 @@ describe('P33 — S3 başlığı kararı', () => {
   })
 
   it('klasör kimliği archiveFolders yanıtıyla doğrulanır', () => {
-    const folders = [{ folder_id: 'd1', name: 'A', file_count: 0, is_virtual: false }]
+    const folders = [
+      {
+        folder_id: 'd1',
+        name: 'A',
+        file_count: 0,
+        is_virtual: false,
+        task_count: 0,
+        total_bytes: 0,
+        last_uploaded_at: null,
+      },
+    ]
     expect(folderKnown(folders, 'd1')).toBe(true)
     expect(folderKnown(folders, 'd2')).toBe(false)
     expect(folderKnown(folders, null)).toBe(false)
@@ -88,8 +98,24 @@ describe('P33 — S3 başlığı kararı', () => {
 
 describe('P40 — /arsiv girişi', () => {
   const folders = [
-    { folder_id: 'd1', name: 'A', file_count: 1, is_virtual: false },
-    { folder_id: 'd2', name: 'B', file_count: 1, is_virtual: false },
+    {
+      folder_id: 'd1',
+      name: 'A',
+      file_count: 1,
+      is_virtual: false,
+      task_count: 0,
+      total_bytes: 0,
+      last_uploaded_at: null,
+    },
+    {
+      folder_id: 'd2',
+      name: 'B',
+      file_count: 1,
+      is_virtual: false,
+      task_count: 0,
+      total_bytes: 0,
+      last_uploaded_at: null,
+    },
   ]
   it('yönetici ızgarayı görür (klasör listesi beklenmez)', () => {
     expect(decideEntry({ admin: true, departmentId: null, folders: undefined })).toEqual({
@@ -108,7 +134,15 @@ describe('P40 — /arsiv girişi', () => {
         admin: false,
         departmentId: 'd1',
         folders: [
-          { folder_id: MEMBER_FOLDER_ID, name: 'Görevlerim', file_count: 0, is_virtual: true },
+          {
+            folder_id: MEMBER_FOLDER_ID,
+            name: 'Görevlerim',
+            file_count: 0,
+            is_virtual: true,
+            task_count: 0,
+            total_bytes: 0,
+            last_uploaded_at: null,
+          },
         ],
       }),
     ).toEqual({ kind: 'redirect', folderId: 'my-tasks' })

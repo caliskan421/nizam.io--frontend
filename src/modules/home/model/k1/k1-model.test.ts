@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { withDateChangeRequestDefaults } from '@/shared/api/__tests__/defaults'
+
 import { counts, item } from '../../__tests__/rows'
 import { approvalsOf, attentionOf, requestRows, unassignedOf } from './queues'
 import { longestOverdue, unitSummary } from './summary'
@@ -79,13 +81,14 @@ describe('K1 kuyrukları', () => {
       days_overdue: 9,
       pending_date_request: {
         request_id: 'r1',
+        created_at: '2026-10-01T08:00:00Z',
         new_start_on: '2026-11-01',
         new_end_on: '2026-11-09',
       },
     })
     const late3 = item({ is_overdue: true, days_overdue: 1 })
     const requests = [
-      {
+      withDateChangeRequestDefaults({
         request_id: 'q1',
         work_item_id: late1.work_item_id,
         status: 'rejected' as const,
@@ -93,7 +96,7 @@ describe('K1 kuyrukları', () => {
         old_end_on: '',
         new_start_on: '',
         new_end_on: '',
-      },
+      }),
     ]
     const rows = attentionOf(
       [late1, late2, late3, item({ status: 'tamamlandi', is_overdue: true })],
@@ -111,15 +114,16 @@ describe('K1 kuyrukları', () => {
 
   it('tarih talepleri: bekleyenler önde, başlık yalnız yüklenen kümeden', () => {
     const known = item({ title: 'Bilinen görev' })
-    const req = (id: string, work: string, status: 'pending' | 'approved' | 'rejected') => ({
-      request_id: id,
-      work_item_id: work,
-      status,
-      old_start_on: '2026-10-01',
-      old_end_on: '2026-10-30',
-      new_start_on: '2026-10-01',
-      new_end_on: '2026-11-30',
-    })
+    const req = (id: string, work: string, status: 'pending' | 'approved' | 'rejected') =>
+      withDateChangeRequestDefaults({
+        request_id: id,
+        work_item_id: work,
+        status,
+        old_start_on: '2026-10-01',
+        old_end_on: '2026-10-30',
+        new_start_on: '2026-10-01',
+        new_end_on: '2026-11-30',
+      })
     const out = requestRows(
       [req('1', known.work_item_id, 'approved'), req('2', 'bilinmeyen', 'pending')],
       [known],

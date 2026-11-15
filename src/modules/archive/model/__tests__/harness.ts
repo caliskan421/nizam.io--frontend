@@ -9,6 +9,11 @@ import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, type App } from 'vue'
 
+import {
+  makeArchiveFolder,
+  makeFileRecord,
+  withFileDefaults,
+} from '@/shared/api/__tests__/defaults'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -143,11 +148,16 @@ export const COORD: ScopeSelection = { programId: 'p1', lens: 'coordinator', dep
 export const MEMBER: ScopeSelection = { programId: 'p1', lens: 'member', departmentId: 'd1' }
 
 export function folder(over: object = {}) {
-  return { folder_id: 'd1', name: 'Koordinatörlük 1', file_count: 3, is_virtual: false, ...over }
+  return makeArchiveFolder({
+    folder_id: 'd1',
+    name: 'Koordinatörlük 1',
+    file_count: 3,
+    ...over,
+  })
 }
 
 export function archiveFile(over: object = {}) {
-  return {
+  return withFileDefaults({
     file_id: 'f1',
     work_item_id: 'w1',
     display_name: 'rapor.pdf',
@@ -156,14 +166,14 @@ export function archiveFile(over: object = {}) {
     tag: 'sonuc',
     uploaded_by_account_id: 'me-1',
     ...over,
-  }
+  })
 }
 
-export const fileRecord = {
+export const fileRecord = makeFileRecord({
   file_id: 'f1',
   work_item_id: 'w1',
   display_name: 'rapor.pdf',
   content_type: 'application/pdf',
   size_bytes: 3,
   tag: 'sonuc',
-}
+})

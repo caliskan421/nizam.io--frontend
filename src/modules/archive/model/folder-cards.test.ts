@@ -26,7 +26,15 @@ describe('06 klasör kartları', () => {
   it('K/Ü: archiveFolders sayılarıyla; sanal klasör işaretli', () => {
     expect(
       archiveFolderCards([
-        { folder_id: 'my-tasks', name: 'Görevlerim', file_count: 4, is_virtual: true },
+        {
+          folder_id: 'my-tasks',
+          name: 'Görevlerim',
+          file_count: 4,
+          is_virtual: true,
+          task_count: 0,
+          total_bytes: 0,
+          last_uploaded_at: null,
+        },
       ]),
     ).toEqual([{ folderId: 'my-tasks', name: 'Görevlerim', fileCount: 4, virtual: true }])
     expect(archiveFolderCards(undefined)).toEqual([])

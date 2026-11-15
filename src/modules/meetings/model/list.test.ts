@@ -1,23 +1,25 @@
 import { describe, expect, it } from 'vitest'
+import { makeMeetingDepartment, withMeetingDefaults } from '@/shared/api/__tests__/defaults'
 import type { components } from '@/shared/api/schema'
 import { groupMeetings, meetingDay, meetingDepartments, splitMeetings } from './list'
 
 type Meeting = components['schemas']['Meeting']
-const meeting = (id: string, date: string): Meeting => ({
-  meeting_id: id,
-  meeting_date: date,
-  title: id,
-  created_at: date,
-  updated_at: date,
-  created_by_account_id: 'a',
-  created_by_role: 'admin',
-  departments: [],
-  invite_mode: 'coordinatorship',
-  members_included: false,
-  owner_department_id: 'd',
-  place: null,
-  program_id: 'p',
-})
+const meeting = (id: string, date: string): Meeting =>
+  withMeetingDefaults({
+    meeting_id: id,
+    meeting_date: date,
+    title: id,
+    created_at: date,
+    updated_at: date,
+    created_by_account_id: 'a',
+    created_by_role: 'admin',
+    departments: [],
+    invite_mode: 'coordinatorship',
+    members_included: false,
+    owner_department_id: 'd',
+    place: null,
+    program_id: 'p',
+  })
 
 describe('meeting list model', () => {
   it('uses the installation day and keeps earlier times today upcoming', () => {
@@ -35,8 +37,8 @@ describe('meeting list model', () => {
     const m = {
       ...meeting('x', '2026-11-11T00:00:00Z'),
       departments: [
-        { department_id: 'other', department_name: 'İnsan Kaynakları' },
-        { department_id: 'd', department_name: 'Ana Ekip' },
+        makeMeetingDepartment({ department_id: 'other', department_name: 'İnsan Kaynakları' }),
+        makeMeetingDepartment({ department_id: 'd', department_name: 'Ana Ekip' }),
       ],
     }
     expect(

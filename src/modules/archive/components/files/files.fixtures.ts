@@ -1,8 +1,9 @@
 // Dosya bileşenleri test verisi (örnek veri değil: kimlikler/adlar yalnız test içindir).
+import { withFileDefaults } from '@/shared/api/__tests__/defaults'
 import type { ArchiveFile } from '../../model/types'
 
 export function file(over: Partial<ArchiveFile> = {}): ArchiveFile {
-  return {
+  return withFileDefaults({
     file_id: 'f1',
     work_item_id: 'w1',
     display_name: 'rapor.pdf',
@@ -11,7 +12,7 @@ export function file(over: Partial<ArchiveFile> = {}): ArchiveFile {
     tag: 'sonuc',
     uploaded_by_account_id: 'a1',
     ...over,
-  }
+  })
 }
 
 export const FILES: ArchiveFile[] = [

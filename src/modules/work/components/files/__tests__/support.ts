@@ -6,6 +6,7 @@ import { DOMWrapper, mount } from '@vue/test-utils'
 import { vi } from 'vitest'
 import type { Component } from 'vue'
 
+import { withFileDefaults } from '@/shared/api/__tests__/defaults'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { STANDING_KEYS } from '@/shared/scope/standing'
@@ -46,7 +47,7 @@ export function seedStanding(client: QueryClient, seed: StandingSeed | null): vo
 export const item = workItem()
 
 export function fileItem(over: Partial<WorkItemFile> = {}): WorkItemFile {
-  return {
+  return withFileDefaults({
     file_id: 'f1',
     work_item_id: 'w1',
     display_name: 'rapor.pdf',
@@ -56,7 +57,7 @@ export function fileItem(over: Partial<WorkItemFile> = {}): WorkItemFile {
     uploaded_by_account_id: 'acc-1',
     uploaded_by_full_name: 'Ayşe',
     ...over,
-  }
+  })
 }
 
 /**

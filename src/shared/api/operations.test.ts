@@ -8,8 +8,8 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('v0.15.0-api sözleşmesinin 189 ucu üretildi', () => {
-    expect(entries).toHaveLength(189)
+  it('v0.23.0-api sözleşmesinin 248 ucu üretildi', () => {
+    expect(entries).toHaveLength(248)
   })
 
   it.each(entries)('%s kapsam/CSRF/kimlik tutarlı', (key, meta) => {
@@ -28,9 +28,9 @@ describe('operations.gen', () => {
     expect(op.auth).toBe(op.scope !== 'S0')
   })
 
-  it('hata kataloğu 194 kod ve message_key = errors.<kod>', () => {
+  it('hata kataloğu 227 kod ve message_key = errors.<kod>', () => {
     const codes = Object.entries(ERROR_CODES)
-    expect(codes).toHaveLength(194)
+    expect(codes).toHaveLength(227)
     for (const [code, entry] of codes) expect(entry.messageKey).toBe(`errors.${code}`)
   })
 })
