@@ -56,9 +56,14 @@ export interface DistributionRow<K extends string> {
   width: number
 }
 
+/**
+ * Pin v0.23.0-api: `TaskStatusDistribution`/`TaskPriorityDistribution` kapalı şemadır (anahtar
+ * kümesi sabit, `additionalProperties` yok); kaynak anahtarları satır anahtarlarıyla sınırlıdır.
+ * Eksik anahtar sıfır sayılır (davranış pin öncesiyle aynı).
+ */
 export function distribution<K extends string>(
   keys: readonly K[],
-  source: Readonly<Record<string, number>>,
+  source: Readonly<Partial<Record<K, number>>>,
 ): { rows: DistributionRow<K>[]; total: number } {
   const total = keys.reduce((sum, key) => sum + (source[key] ?? 0), 0)
   return {
