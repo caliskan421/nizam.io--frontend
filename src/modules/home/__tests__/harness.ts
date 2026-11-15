@@ -68,7 +68,14 @@ export { http }
 export interface StandingFixture {
   companyAdmin: boolean
   /** Ekip satırları; rol dizeleri test dosyalarında yazılır (K1 lint). */
-  rows: { department_id: string; role: string }[]
+  rows: {
+    department_id: string
+    role: string
+    /** `MyDepartment.department_code` (BE-141); verilmezse null. */
+    department_code?: string | null
+    /** `MyDepartment.coordinators` (BE-141); verilmezse boş. */
+    coordinators?: { account_id: string; full_name: string | null }[]
+  }[]
   fullName?: string
 }
 
@@ -93,6 +100,8 @@ export function standingHandlers(fixture: StandingFixture) {
     http.get(`${ORIGIN}/v1/me/departments`, () =>
       json({
         departments: fixture.rows.map((r) => ({
+          department_code: null,
+          coordinators: [],
           ...r,
           program_id: 'p1',
           program_name: 'Program Bir',

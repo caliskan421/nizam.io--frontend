@@ -66,7 +66,7 @@ describe('Ü1 bölgeleri (bileşen sözleşmesi)', () => {
     expect(some.wrapper.get('[data-unread]').text()).toBe('2 yeni')
   })
 
-  it('UnitsCard: boş durum; "Koordinatör:" yok', async () => {
+  it('UnitsCard: boş durum; koordinatör adı yoksa "Koordinatör:" satırı yok', async () => {
     server.use(...standingHandlers(MEMBER))
     const empty = await mount(UnitsCard, { rows: [] })
     expect(empty.wrapper.get('[data-empty]').text()).toBe('Bir koordinatörlüğe üye değilsin')
@@ -74,6 +74,14 @@ describe('Ü1 bölgeleri (bileşen sözleşmesi)', () => {
     const one = await mount(UnitsCard, { rows })
     expect(one.wrapper.text()).toContain('Açık görev yok')
     expect(one.wrapper.text()).not.toContain('Koordinatör:')
+    // BE-141: kod ve koordinatör adı alanlardan; koordinatör adı yoksa satır yok
+    const withNames = unitBreakdown(
+      [{ departmentId: 'a', displayName: 'Altyapı', code: 'ALT', coordinators: ['Kadir Özbek'] }],
+      [],
+    )
+    const named = await mount(UnitsCard, { rows: withNames })
+    expect(named.wrapper.get('[data-unit-code]').text()).toBe('ALT')
+    expect(named.wrapper.get('[data-parts="coordinator"]').text()).toBe('Koordinatör: Kadir Özbek')
   })
 
   it('DeadlineCalendar: hücre etiketleri ve ağsız gezinme', async () => {

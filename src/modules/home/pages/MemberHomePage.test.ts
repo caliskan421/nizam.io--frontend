@@ -41,8 +41,18 @@ afterAll(() => server.close())
 const MEMBER = {
   companyAdmin: false,
   rows: [
-    { department_id: 'd1', role: 'uye' },
-    { department_id: 'd2', role: 'uye' },
+    {
+      department_id: 'd1',
+      role: 'uye',
+      department_code: 'ALT',
+      coordinators: [{ account_id: 'acc-9', full_name: 'Kadir Özbek' }],
+    },
+    {
+      department_id: 'd2',
+      role: 'uye',
+      department_code: null,
+      coordinators: [{ account_id: 'acc-8', full_name: null }],
+    },
   ],
 }
 
@@ -372,11 +382,31 @@ describe('Ü1 üye ana sayfası', () => {
     expect(notes[0]).toEqual([ITEMS[0]!.work_item_id, { content: 'İlerleme var' }])
   })
 
+  it('E-Ü1-30…32: birim kodu `department_code`, "Koordinatör: ‹ad›" alandan; ad null → satır gizli', async () => {
+    server.use(...handlers())
+    const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(page)
+    await vi.waitFor(() => expect(region(page, 'units').findAll('[data-row]')).toHaveLength(2))
+    const rows = region(page, 'units').findAll('[data-row]')
+    const byName = (name: string) => rows.find((r) => r.text().includes(name))!
+    const d1 = byName('Birim d1')
+    expect(d1.get('[data-unit-code]').text()).toBe('ALT')
+    expect(d1.get('[data-parts="coordinator"]').text()).toBe('Koordinatör: Kadir Özbek')
+    // d2: kod null → ad kısaltması; koordinatör adı null → ad/satır uydurulmaz
+    const d2 = byName('Birim d2')
+    expect(d2.get('[data-unit-code]').text()).toBe('BD')
+    expect(d2.find('[data-parts="coordinator"]').exists()).toBe(false)
+  })
+
   it('E-Ü1-21…24: koordinatöre yaz devre dışı; toplantı notu 09b’ye; bildirim sayacı canlı, liste yok', async () => {
     server.use(...handlers())
     const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
     await ready(page)
     expect(page.wrapper.get('[data-quick="message"]').attributes('aria-disabled')).toBe('true')
+    // BE-141: koordinatör adı alt satırı seçili birimin `coordinators` alanından.
+    await vi.waitFor(() =>
+      expect(page.wrapper.get('[data-parts="message-line"]').text()).toBe('Kadir Özbek · Birim d1'),
+    )
     await vi.waitFor(() =>
       expect(page.wrapper.get('[data-quick="meetingNote"]').attributes('href')).toBe(
         '/toplantilar/m9',
@@ -414,7 +444,7 @@ describe('Ü1 üye ana sayfası', () => {
     )
   })
 
-  it('E-Ü1-28…32: toplantılar, koordinatörlüklerim (birim kırılımı, koordinatör adı yok)', async () => {
+  it('E-Ü1-28…32: toplantılar, koordinatörlüklerim (birim kırılımı)', async () => {
     server.use(...handlers())
     const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
     await ready(page)
@@ -426,7 +456,6 @@ describe('Ü1 üye ana sayfası', () => {
     expect(units[0]!.text()).toContain('4 görev')
     expect(units[0]!.text()).toContain('1 gecikmiş')
     expect(units[1]!.text()).toContain('1 görev')
-    expect(region(page, 'units').text()).not.toContain('Koordinatör:')
     expect(region(page, 'units').text()).toContain('Koordinatörlük atamalarını yönetici yapar.')
   })
 

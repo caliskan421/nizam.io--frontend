@@ -300,6 +300,8 @@ export const trHome = {
       },
       depts: {
         title: 'Koordinatörlüklerim',
+        coordinator: 'Koordinatör: {name}',
+        coordinators: 'Koordinatörler: {name}',
         tasks: '{n} görev',
         late: '{n} gecikmiş',
         none: 'Açık görev yok',

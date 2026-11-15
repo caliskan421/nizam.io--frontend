@@ -30,6 +30,7 @@ import { lensAssignee } from '@/modules/work/public'
 import { isOpen } from '../model/role/common'
 import { latestReturnReason } from '../model/role/return-reason'
 import { unitBreakdown } from '../model/u1/departments'
+import { messageLine as messageLineOf, myUnits as myUnitsOf } from '../model/u1/units'
 
 /**
  * Ü1 · Üye ana sayfası (`Uye-Ana.dc.html`; E-Ü1-01…33; P53). `company_admin` olmayan hesabın
@@ -76,7 +77,13 @@ const listLoading = computed(() => !load.list.data.value && !listError.value)
 const meetingsError = computed(() =>
   meetings.query.isError.value ? toApiError(meetings.query.error.value) : null,
 )
-const units = computed(() => unitBreakdown(myUnits.departments.value, items.value))
+const unitSources = computed(() =>
+  myUnitsOf(myUnits.query.data.value?.data.departments ?? [], store.programId),
+)
+const units = computed(() => unitBreakdown(unitSources.value, items.value))
+const messageLine = computed(() =>
+  messageLineOf(unitSources.value.find((u) => u.departmentId === store.departmentId) ?? null),
+)
 // Kısmi küme (CX-F6-E-03): sunucu sayacı varsa kesin açık toplam o; yoksa türev "≥".
 const openTotal = computed(() =>
   load.counts.data.value ? openCount(load.counts.data.value) : null,
@@ -157,6 +164,7 @@ function openUpload(preset: string | null = null): void {
           :next-meeting="meetings.views.value[0] ?? null"
           :can-upload="uploadable.length > 0"
           :can-note="notable.length > 0"
+          :message-line="messageLine"
           @upload="openUpload()"
           @note="noteOpen = true"
         />
