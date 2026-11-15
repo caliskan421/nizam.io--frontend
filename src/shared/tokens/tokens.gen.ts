@@ -1730,24 +1730,6 @@ export const TOKENS = {
     "dark": "13px",
     "light": "13px"
   },
-  "topbar-dot": {
-    "group": "topbar",
-    "origin": "web",
-    "dark": "7px",
-    "light": "7px"
-  },
-  "topbar-dot-top": {
-    "group": "topbar",
-    "origin": "web",
-    "dark": "6px",
-    "light": "6px"
-  },
-  "topbar-dot-right": {
-    "group": "topbar",
-    "origin": "web",
-    "dark": "7px",
-    "light": "7px"
-  },
   "notif-panel-w": {
     "group": "topbar",
     "origin": "web",

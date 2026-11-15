@@ -111,7 +111,9 @@ async function bootWithLogin(path: string) {
   const { default: App } = await import('@/app/App.vue')
   const { createAppRouter } = await import('@/app/router')
   const { i18n } = await import('@/shared/i18n')
-  const queryClient = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity, retryDelay: 0 } },
+  })
   const router: Router = createAppRouter(createMemoryHistory())
   await router.push(path)
   const wrapper = mount(App, {
@@ -199,7 +201,7 @@ afterEach(async () => {
 afterAll(() => backend.server.close())
 
 describe('zorunlu parola değişimi (K-1; P14)', () => {
-  it('giriş force_password_change → form; kabuk ve diğer rotalar kapalı; değişim → yeni giriş → ana sayfa', async () => {
+  it('giriş force_password_change → form; kabuk ve diğer rotalar kapalı; istemci kuralları istek göndermez', async () => {
     const app = await bootWithLogin('/')
     await until(form, 'parola formu')
     await until(() => app.router.currentRoute.value.path === '/oturum', 'oturum rotası')
@@ -221,7 +223,11 @@ describe('zorunlu parola değişimi (K-1; P14)', () => {
     await until(() => fieldError('repeat_password') === 'Parolalar eşleşmiyor.', 'eşleşme hatası')
     expect(fieldError('current_password')).toBe('')
     expect(passwordPosts()).toHaveLength(0)
+  })
 
+  it('parola değişimi → oturum düşer, parola sızmaz → yeni giriş → ana sayfa', async () => {
+    const app = await bootWithLogin('/oturum')
+    await until(form, 'parola formu')
     await changePassword(PASSWORD, NEW_PASSWORD)
     await until(() => $('[data-testid="password-changed"]'), 'parola değişti bildirimi')
     const [post] = passwordPosts()

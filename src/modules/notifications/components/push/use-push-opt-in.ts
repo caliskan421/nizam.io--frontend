@@ -5,7 +5,7 @@
  */
 import { computed, onScopeDispose, ref } from 'vue'
 
-import { authSession } from '@/shared/http'
+import { preferences } from '@/shared/preferences'
 
 import { usePushPublicKey } from '../../api/queries'
 import { notificationText } from '../../messages'
@@ -18,19 +18,30 @@ import { usePushFacts } from './use-push-facts'
 ensurePushSignOutHook()
 
 /**
- * "Şimdi değil" yalnız oturum belleğindedir (E-14-72; kalıcı anahtar yok, K2 listesi genişlemez).
- * Panel kapanıp açılınca (bileşen yeniden kurulur) korunur, sayfa yenilenince kaybolur; hesap
- * kimliğine bağlıdır (başka hesapta geçersiz).
+ * "Şimdi değil" 14 gün kalıcıdır (E-14-72; koordinatör kararı 2026-11-15): `push.snoozeUntil` (UTC ISO,
+ * gizli değil — tema tercihi gibi K2 izinli anahtarı). Süre dolunca kutu yeniden önerilir. Tercih
+ * tarayıcıya bağlıdır (hesaba değil); çıkışta silinmez. Bellekteki kopya (`snoozeUntil`) aynı
+ * sayfadaki bileşenleri anında günceller; depolama erişilemezse oturum belleği olarak sürer.
  */
-const snoozedAccount = ref<string | null>(null)
+export const SNOOZE_DAYS = 14
+const DAY_MS = 86_400_000
+
+function readSnoozeUntil(): number | null {
+  const raw = preferences.read('push.snoozeUntil')
+  return raw === null ? null : Date.parse(raw)
+}
+
+const snoozeUntil = ref<number | null>(readSnoozeUntil())
 
 export function resetPushSnooze(): void {
-  snoozedAccount.value = null
+  preferences.remove('push.snoozeUntil')
+  snoozeUntil.value = null
 }
 
 export function usePushOptIn(emit: { enabled: () => void; dismissed: () => void }) {
   const key = usePushPublicKey()
-  const accountId = authSession.snapshot.accountId
+  // Başka sekme/örnek yazmış olabilir: kutu kurulurken depodan tazelenir.
+  snoozeUntil.value = readSnoozeUntil()
   let disposed = false
   onScopeDispose(() => {
     disposed = true
@@ -50,7 +61,7 @@ export function usePushOptIn(emit: { enabled: () => void; dismissed: () => void 
       support: facts.support,
       permission: facts.permission.value,
       subscribed: facts.subscribed.value,
-      snoozed: accountId !== null && snoozedAccount.value === accountId,
+      snoozed: snoozeUntil.value !== null && Date.now() < snoozeUntil.value,
       justEnabled: flow.justEnabled.value,
       deniedByUser: flow.deniedByUser.value,
       allowed: notificationCapabilities().pushOptIn,
@@ -62,9 +73,11 @@ export function usePushOptIn(emit: { enabled: () => void; dismissed: () => void 
       : notificationText(`notifications.push.errors.${flow.error.value}`),
   )
 
-  /** "Şimdi değil" (E-14-62): oturum belleği; kalıcı 14 gün F8 adayı. */
+  /** "Şimdi değil" (E-14-62, E-14-72): 14 gün gizli. */
   function later(): void {
-    snoozedAccount.value = accountId
+    const until = Date.now() + SNOOZE_DAYS * DAY_MS
+    preferences.write('push.snoozeUntil', new Date(until).toISOString())
+    snoozeUntil.value = until
     emit.dismissed()
   }
   /** Adım 3 kartı "Tamam": kart kapanır. */

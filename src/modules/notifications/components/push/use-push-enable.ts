@@ -20,6 +20,7 @@ import {
 import { useRegisterPushTarget } from '../../api/writes'
 import { notificationText } from '../../messages'
 import type { BrowserSubscription, PermissionState } from '../../model/push-browser'
+import { rememberPushTarget } from '../../model/push-target'
 import type { PushPublicKeyInfo } from '../../model/types'
 import { registrationResult, type PushErrorKey } from './push-errors'
 
@@ -72,7 +73,10 @@ export function usePushEnable(ctx: PushEnableContext) {
   async function finishRegistration(browser: BrowserSubscription): Promise<void> {
     const body = registrationBody(browser.subscription)
     if (!body) return fail('generic')
-    const result = registrationResult(await register.submit(body))
+    const outcome = await register.submit(body)
+    // `target_id` yalnız bellekte (E-14-79; K2): çıkışta sunucudan silinir.
+    if (outcome.kind === 'success') rememberPushTarget(outcome.data.target_id)
+    const result = registrationResult(outcome)
     if (result !== 'success') return fail(result === 'owner_disposed' ? null : result)
     if (ctx.isDisposed()) return
     void showLocalTest(

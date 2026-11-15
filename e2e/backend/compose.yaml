@@ -1,4 +1,4 @@
-# YALNIZ yerel web e2e veritabanı. Proje adı sabittir (paylaşılan makine kuralı):
+# YALNIZ yerel web e2e veritabanı. Proje adı varsayılan nizamio_web_e2e (NIZAMIO_E2E_PROJECT ile değişir; -p öncelikli, paylaşılan makine kuralı):
 #   docker compose -p nizamio_web_e2e -f e2e/backend/compose.yaml up -d --wait
 #   docker compose -p nizamio_web_e2e -f e2e/backend/compose.yaml down -v
 # CI'da bunun yerine GitHub Actions Postgres servis konteyneri kullanılır.

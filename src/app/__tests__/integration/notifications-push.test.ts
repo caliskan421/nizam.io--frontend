@@ -1,6 +1,6 @@
 // W160 · O3 senaryo 6: Web Push (P58 "dahil") — `enabled=false` kutu yok; `enabled=true` → izin
 // akışı (sahte `Notification`/`PushManager`) → `registerPushTarget` gövdesi → hata 409/422 → yerel
-// geri alma → çıkışta yerel unsubscribe (nesil değişimi). İzin ve `sw.js` kaydı YALNIZ kullanıcı
+// geri alma → çıkışta unregisterPushTarget + yerel unsubscribe. İzin ve `sw.js` kaydı YALNIZ kullanıcı
 // eyleminde. Gerçek `subscribe` kanıtı (push servisi) bu turda yoktur: W162 gerçek tarayıcı.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
@@ -81,13 +81,16 @@ describe('kutu görünürlüğü', () => {
     expect(browser.requestPermission).not.toHaveBeenCalled()
   })
 
-  it('"Şimdi değil" kutuyu küçültür; "Aç" yeniden başlatır (kalıcı anahtar yok)', async () => {
+  it('"Şimdi değil" kutuyu küçültür; "Aç" yeniden başlatır (14 gün kalıcı: push.snoozeUntil)', async () => {
     await openWith()
     await until(() => view() === 'prompt', 'önerme')
     await userClick('[data-testid="push-later"]')
     await until(() => view() === 'snoozed', 'küçük hâl')
     expect(browser.requestPermission).not.toHaveBeenCalled()
     expect(document.activeElement).toBe($('[data-testid="push-open"]'))
+    const { preferences } = await import('@/shared/preferences')
+    const stored = preferences.read('push.snoozeUntil')
+    expect(Date.parse(stored ?? '') - Date.now()).toBeGreaterThan(13 * 86_400_000)
   })
 })
 
@@ -167,16 +170,35 @@ describe('izin + kayıt akışı', () => {
 })
 
 describe('çıkış', () => {
-  it('çıkışta yerel unsubscribe (en iyi çaba); sunucu hedefi DELETE edilmez (K12)', async () => {
+  async function enabledApp() {
     const app = await openWith()
     await until(() => view() === 'prompt', 'önerme')
     await userClick('[data-testid="push-enable"]')
     await until(() => view() === 'enabled', 'açıldı')
     expect(browser.unsubscribe).not.toHaveBeenCalled()
+    return app
+  }
+
+  it('çıkışta bellekteki target_id DELETE edilir (gövdesiz) + yerel unsubscribe (E-14-79)', async () => {
+    const app = await enabledApp()
     await app.session.logout()
     await until(() => browser.unsubscribe.mock.calls.length === 1, 'yerel unsubscribe')
     expect(browser.subscribed).toBe(false)
-    expect(sent('DELETE', '/v1/notifications/targets/t1')).toHaveLength(0)
+    const [del] = sent('DELETE', '/v1/notifications/targets/t1')
+    expect(del).toBeDefined()
+    expect(del!.body).toBeUndefined()
+    expect(del!.headers.get('X-Requested-With')).toBeTruthy()
+    expect(sent('DELETE', '/v1/notifications/targets/t1')).toHaveLength(1)
+    expect(notifications.state.unregistered).toEqual(['t1'])
+  })
+
+  it('sunucuda hedef zaten yoksa (404) çıkış yine tamamlanır, hata gösterilmez', async () => {
+    const app = await enabledApp()
+    notifications.state.targets.clear()
+    await app.session.logout()
+    await until(() => browser.unsubscribe.mock.calls.length === 1, 'yerel unsubscribe')
+    expect(sent('DELETE', '/v1/notifications/targets/t1')).toHaveLength(1)
     expect(notifications.state.unregistered).toEqual([])
+    expect(app.session.status).toBe('anonymous')
   })
 })

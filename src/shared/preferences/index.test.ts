@@ -14,12 +14,13 @@ function setup() {
 }
 
 describe('preferences', () => {
-  it('izinli anahtar listesi K2 + tema; sidebar_collapsed yok (P10)', () => {
+  it('izinli anahtar listesi K2 + tema + push.snoozeUntil; sidebar_collapsed yok (P10)', () => {
     expect([...PREFERENCE_KEYS]).toEqual([
       'scope.programId',
       'scope.lens',
       'scope.departmentId',
       'ui.theme',
+      'push.snoozeUntil',
     ])
     expect(PREFERENCE_KEYS.some((k) => /sidebar|token/i.test(k))).toBe(false)
   })
@@ -40,6 +41,16 @@ describe('preferences', () => {
     // @ts-expect-error — tip sistemi de reddeder; çalışma anı denetimi ayrıca vardır.
     expect(() => prefs.write('ui.theme', 'system')).toThrow()
     expect(() => prefs.write('scope.programId', 'boşluklu kimlik')).toThrow()
+  })
+
+  it('push.snoozeUntil yalnız ISO UTC zaman damgası kabul eder; çıkışta (clearScope) kalır', () => {
+    const { prefs } = setup()
+    prefs.write('push.snoozeUntil', '2026-11-29T09:00:00.000Z')
+    expect(prefs.read('push.snoozeUntil')).toBe('2026-11-29T09:00:00.000Z')
+    expect(() => prefs.write('push.snoozeUntil', 'yarın')).toThrow()
+    expect(() => prefs.write('push.snoozeUntil', '2026-13-45T99:00:00Z')).toThrow()
+    prefs.clearScope()
+    expect(prefs.read('push.snoozeUntil')).toBe('2026-11-29T09:00:00.000Z')
   })
 
   it('depodaki bozuk değer okunurken düşer', () => {

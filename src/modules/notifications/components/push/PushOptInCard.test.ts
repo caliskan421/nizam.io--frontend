@@ -17,6 +17,8 @@ import {
   settleQueries,
   signIn,
 } from '../../__tests__/harness'
+import { preferences } from '@/shared/preferences'
+
 import PushOptInCard from '../PushOptInCard.vue'
 import { installBrowser, PUBLIC_KEY, type BrowserFake } from './__tests__/browser-fakes'
 import { resetPushSnooze } from './use-push-opt-in'
@@ -332,7 +334,11 @@ describe('hatalar (E-14-78): sunucu iletisi gösterilmez; yerel abonelik geri al
   })
 })
 
-describe('"Şimdi değil" (E-14-62, 72, 73): oturum belleği', () => {
+describe('"Şimdi değil" (E-14-62, 72, 73): 14 gün kalıcı', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
   it('kutu küçük hâle geçer, odak "Aç"a gider, olay yayılır; yeniden kurulumda da sürer', async () => {
     browser = installBrowser()
     const w = await mountCard()
@@ -350,12 +356,44 @@ describe('"Şimdi değil" (E-14-62, 72, 73): oturum belleği', () => {
     expect(view()).toBe('snoozed')
   })
 
-  it('hiçbir kalıcı depoya yazılmaz (localStorage/sessionStorage boş)', async () => {
+  it('push.snoozeUntil = şimdi + 14 gün (UTC ISO) yazılır; başka anahtar yazılmaz', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-15T09:00:00.000Z') })
     browser = installBrowser()
     await mountCard()
     const writes = vi.spyOn(Storage.prototype, 'setItem')
     await click('push-later')
-    expect(writes).not.toHaveBeenCalled()
+    expect(preferences.read('push.snoozeUntil')).toBe('2026-11-29T09:00:00.000Z')
+    expect(writes.mock.calls).toEqual([
+      ['nizamio.pref.push.snoozeUntil', '2026-11-29T09:00:00.000Z'],
+    ])
+  })
+
+  it('14 gün dolmadan kutu gizli (küçük hâl), süre dolunca yeniden önerilir', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-15T09:00:00.000Z') })
+    browser = installBrowser()
+    const w = await mountCard()
+    await click('push-later')
+    expect(view()).toBe('snoozed')
+
+    vi.setSystemTime(new Date('2026-11-29T08:59:59.000Z'))
+    w.unmount()
+    wrapper = null
+    const second = await mountCard()
+    expect(view()).toBe('snoozed')
+
+    vi.setSystemTime(new Date('2026-11-29T09:00:00.000Z'))
+    second.unmount()
+    wrapper = null
+    await mountCard()
+    expect(view()).toBe('prompt')
+    expect(browser.requestPermission).not.toHaveBeenCalled()
+  })
+
+  it('bozuk saklı değer yok sayılır (kutu önerir)', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('yarın')
+    browser = installBrowser()
+    await mountCard()
+    expect(view()).toBe('prompt')
   })
 
   it('"Aç" = "Bildirimleri aç": akışı başlatır', async () => {

@@ -29,6 +29,27 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
 }
 
+/**
+ * Çıkıştan ÖNCE (belirteç hâlâ geçerliyken) çalışan en-iyi-çaba kancalar; modüller kendini kaydeder
+ * (`shared` modül içe aktarmaz). Hata ve zaman aşımı çıkışı engellemez; sonuç beklenir ama süre
+ * çıkış zaman aşımıyla aynı sınırdadır. Örnek: Web Push hedefini sunucudan silmek (E-14-79).
+ */
+type BeforeSignOutHook = () => Promise<void>
+const beforeSignOutHooks = new Set<BeforeSignOutHook>()
+
+export function onBeforeSignOut(hook: BeforeSignOutHook): () => void {
+  beforeSignOutHooks.add(hook)
+  return () => void beforeSignOutHooks.delete(hook)
+}
+
+async function runBeforeHooks(timeoutMs: number): Promise<void> {
+  if (!authSession.token || beforeSignOutHooks.size === 0) return
+  const runs = [...beforeSignOutHooks].map((hook) =>
+    withTimeout(Promise.resolve().then(hook), timeoutMs).catch(() => undefined),
+  )
+  await Promise.all(runs)
+}
+
 async function callLogout(timeoutMs: number): Promise<SignOutOutcome> {
   // Belirteç yoksa sunucu oturumu kapatılamaz: çerezin durumu bilinmez.
   if (!authSession.token) return 'server_unverified'
@@ -44,7 +65,9 @@ export async function signOut(
   client: QueryClient | null,
   options: { timeoutMs?: number } = {},
 ): Promise<SignOutOutcome> {
-  const outcome = await callLogout(options.timeoutMs ?? SIGN_OUT_TIMEOUT_MS)
+  const timeoutMs = options.timeoutMs ?? SIGN_OUT_TIMEOUT_MS
+  await runBeforeHooks(timeoutMs)
+  const outcome = await callLogout(timeoutMs)
   authSession.clear({ serverUnverified: outcome === 'server_unverified' })
   if (client) {
     void client.cancelQueries()

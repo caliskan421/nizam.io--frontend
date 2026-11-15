@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="/layers.css" />
     <!-- CSP nonce: üretim imajında web Caddy'si (deploy/Caddyfile, templates) istek başı değeri yazar. -->
     <meta name="csp-nonce" content="{{placeholder `http.request.uuid`}}" />
+    <!-- PWA (W167): manifest + simgeler `node scripts/gen-pwa.ts` ile üretilir; theme-color değerleri
+         tasarım token kaynağındaki bg-base (koyu/açık) ile eşleşir (tests/pwa-assets.test.ts). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0b0b0b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eceef1" media="(prefers-color-scheme: light)" />
     <title>NIZAM.IO</title>
   </head>
   <body>
