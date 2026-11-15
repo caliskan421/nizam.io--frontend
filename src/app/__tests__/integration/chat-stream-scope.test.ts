@@ -109,4 +109,37 @@ describe('aynı programda kapsam değişimi (CX-F7-E-01)', () => {
       'silinen güncel pencereden kalktı',
     )
   })
+
+  it('sabitleme olayı (message.updated → pins geçersiz) güncel kapsamın anahtarıyla okunur; şerit güncellenir', async () => {
+    const app = await boot({ ...ADMIN, path: `/mesajlar/${GROUP}` })
+    fakeClock()
+    await streamOpen()
+    await until(() => messageEls().length > 0, 'mesajlar')
+    await idle(app.queryClient)
+    await sameProgramScopeChange(app)
+    await idle(app.queryClient)
+    await until(() => messageEls().length > 0, 'güncel kapsamda mesajlar')
+    expect($('[data-testid="chat-pinbar"]')).toBeNull()
+    const pins = `/v1/chats/${GROUP}/pins`
+    const before = sent('GET', pins).length
+
+    // Sunucuda biri sabitler; olay İÇERİKSİZdir, yalnız geçersizleme + yeniden okuma tetikler.
+    const pinned = chatOf(GROUP).messages.find((m) => m.base.seq === 59)!
+    pinned.base.pinned_at = pinned.base.created_at
+    serverEmit(GROUP, 'message.updated', {
+      messageId: pinned.base.message_id,
+      actor: WHO.second.account_id,
+    })
+    await advance(1000)
+    await until(() => $('[data-testid="chat-pinbar"]'), 'sabit şeridi (güncel kapsam)')
+    await idle(app.queryClient)
+    expect($('[data-testid="chat-pinbar"]')!.textContent).toContain('Mekanik mesaj 59')
+
+    const after = sent('GET', pins).slice(before)
+    expect(after.length).toBeGreaterThan(0)
+    // Okuma güncel program başlığıyla gitti (sohbet uçları S2: departman başlığı yok).
+    for (const request of after) {
+      expect(request.headers.get('X-Nizamio-Program')).toBe(app.scope.programId)
+    }
+  })
 })
