@@ -72,8 +72,8 @@ export interface ArchiveFileFilters {
   sort?: ArchiveSort
 }
 
-/** Klasör ızgarasının istemci sıralaması (06 `sirala`): yalnız sunucunun verdiği alanlar. */
-export type FolderSortField = 'ad' | 'dosya'
+/** Klasör ızgarasının istemci sıralaması (06 `sirala`): ad, dosya sayısı, son yükleme (BE-025). */
+export type FolderSortField = 'ad' | 'dosya' | 'son'
 export type FolderSortDirection = 'artan' | 'azalan'
 
 /** Görev klasörleri (07): `archiveTasks` / `programArchiveTasks?department_id`. */
@@ -168,6 +168,12 @@ export interface FolderCardView {
   name: string
   /** Canlı dosya sayısı. */
   fileCount: number
+  /** Dosyalı görev sayısı (`task_count`, BE-025). */
+  taskCount: number
+  /** Klasördeki dosyaların toplam boyutu (bayt; `total_bytes`, BE-025). */
+  totalBytes: number
+  /** Hâlen arşivde duran en yeni dosya metadata'sının oluşturulma anı (UTC); dosyasızda `null`. */
+  lastUploadedAt: string | null
   /** Üye sanal klasörü ("Görevlerim"). */
   virtual: boolean
 }

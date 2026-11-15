@@ -2,15 +2,15 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { DesignStub, UiButton, UiMenu, UiMenuItem } from '@/shared/ui'
+import { UiButton, UiMenu, UiMenuItem } from '@/shared/ui'
 
 import type { FolderSortDirection, FolderSortField } from '../../model/types'
 import './folders.css'
 import { FOLDER_SORT_OPTIONS, sortKey } from './sort-param'
 
 /**
- * "Sırala" düğmesi + menü (E-06-09). Seçenekler yalnız ada/dosya sayısına göre; "Son yükleme"
- * alan yokken devre dışı (BE-025). Esc, Tab, seçim ve dışarı tık menüyü kapatır; Esc/seçimde odak tetikleyiciye döner.
+ * "Sırala" düğmesi + menü (E-06-09). Seçenekler ada, dosya sayısına ve son yüklemeye göre
+ * (`last_uploaded_at`, BE-025). Esc, Tab, seçim ve dışarı tık menüyü kapatır; Esc/seçimde odak tetikleyiciye döner.
  */
 const props = defineProps<{
   field: FolderSortField
@@ -80,11 +80,6 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside, tru
       >
         {{ t(`archive.folders.sort.${option.key}`) }}
       </UiMenuItem>
-      <DesignStub id="BE-025" as="div">
-        <UiMenuItem :checked="false" disabled data-sort="sonYukleme">
-          {{ t('archive.folders.sort.sonYukleme') }}
-        </UiMenuItem>
-      </DesignStub>
     </UiMenu>
   </span>
 </template>

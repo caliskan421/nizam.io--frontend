@@ -6,12 +6,7 @@
  */
 import { onScopeDispose, ref, watch, type Ref } from 'vue'
 
-import {
-  coordSortDisabled,
-  DEFAULT_COORD_SORT,
-  type CoordFilter,
-  type CoordSortKey,
-} from './coordinatorships'
+import { DEFAULT_COORD_SORT, type CoordFilter, type CoordSortKey } from './coordinatorships'
 
 /** Arama gecikmesi (E-01-23; 03/08 ile aynı değer). */
 export const COORD_SEARCH_DEBOUNCE_MS = 300
@@ -40,9 +35,8 @@ export function useCoordControls(resetOn: () => unknown) {
     }, COORD_SEARCH_DEBOUNCE_MS)
   })
 
-  /** Ölçüt seçimi: `reversed=false` (mekanizma §3); devre dışı ölçüt seçilmez. */
+  /** Ölçüt seçimi: `reversed=false` (mekanizma §3). */
   function pickSort(key: CoordSortKey): void {
-    if (coordSortDisabled(key)) return
     sortKey.value = key
     reversed.value = false
   }

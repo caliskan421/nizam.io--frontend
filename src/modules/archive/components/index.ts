@@ -67,7 +67,7 @@ export interface FolderGridEmits {
   retry: []
 }
 
-/** W122 · E-06-10…15 — tek klasör kartı; sayılar `null` iken statik `—` (sahte veri yok). */
+/** W122 · E-06-10…15 — tek klasör kartı: dosya/görev sayısı, boyut, son yükleme (sunucudan; BE-025). */
 export interface FolderCardProps {
   card: FolderCardView
 }
@@ -83,9 +83,11 @@ export interface TagLegendEmits {
   select: [tag: ArchiveTag]
 }
 
-/** W122 · E-06-22…24 — depolama özeti; toplam dosya canlı (K/Ü), bayt/dağılım statik (BE-025). */
+/** W122 · E-06-22…24 — depolama özeti; toplam dosya ve bayt `totals`'tan (BE-025), dağılım statik. */
 export interface StorageSummaryProps {
   totalFiles: number | null
+  /** `totals.total_bytes`; okunana dek `null` → `—`. */
+  totalBytes: number | null
   loading: boolean
 }
 

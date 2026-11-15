@@ -1,6 +1,6 @@
 /**
  * 06 klasör kartları. Yönetici (BE-072): `programArchiveFolders` (S2) — programa bağlı bütün
- * koordinatörlükler, dosyasızlar 0 ile. Koordinatör/üye (P40): kart görünmez (06 atlanır); yine de
+ * koordinatörlükler, dosyasızlar 0 ile; kartta dosya/görev sayısı, boyut ve son yükleme (BE-025). Koordinatör/üye (P40): kart görünmez (06 atlanır); yine de
  * tek klasör `archiveFolders`'tan kurulabilir. "grup/çalışma grubu" rozeti yok (P39); sayılar
  * sunucudandır, örnek/sahte değer yoktur (§4).
  */
@@ -19,6 +19,9 @@ export function archiveFolderCards(
     folderId: f.folder_id,
     name: f.name,
     fileCount: f.file_count,
+    taskCount: f.task_count,
+    totalBytes: f.total_bytes,
+    lastUploadedAt: f.last_uploaded_at,
     virtual: f.is_virtual,
   }))
 }

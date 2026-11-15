@@ -121,8 +121,8 @@ describe('yönetici (S2, BE-072)', () => {
     expect(names(wrapper)).toEqual(['Ağ', 'Bilişim', 'Zemin'])
     expect(wrapper.findAll('[data-field="meta"]').map((n) => n.text())).toEqual([
       'Henüz dosya yok',
-      '9 dosya',
-      '4 dosya',
+      '9 dosya · 3 görev',
+      '4 dosya · 2 görev',
     ])
     expect(wrapper.get('.archive-coords__count').text()).toBe('3')
     expect(s3Requests()).toHaveLength(0)

@@ -2,9 +2,10 @@
 import { computed, useId } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { ARCHIVE_FOLDER_ROUTE, type ArchiveFolder } from '@/modules/archive/public'
+import { ARCHIVE_FOLDER_ROUTE, daysSince, type ArchiveFolder } from '@/modules/archive/public'
 import { coordinatorshipLocation } from '@/modules/organization/public'
 import { TASKS_ROUTE } from '@/modules/work/public'
+import { useInstanceStore } from '@/shared/instance/store'
 
 import {
   approvalRemainder,
@@ -22,8 +23,9 @@ import { homeText } from '../model/messages'
  * koordinatörler + "+N üye" (BE-079); görev toplamı + `%` bitti; çubuk 4 dilim — 4. dilim nötr
  * "onayda/iade" (BE-078); "geciken" → 03 süzgeci; "kullanıcı" = `member_count + coordinators.length`;
  * "arşiv" sayısı `programArchiveFolders` `file_count`'ıdır (`archive`; BE-072; okunana dek / hatada
- * nötr `—`) ve 07 klasörüne gider; "Son yükleme" satırı yok (BE-025). Dilim genişliği tek dinamik
- * bağdır (`--home-seg-w`).
+ * nötr `—`) ve 07 klasörüne gider; "Son yükleme ‹göreli›" satırı `last_uploaded_at`'tan (BE-025;
+ * kurulum saat diliminde; yükleme yoksa satır yok, `last_activity_at` yükleme sayılmaz). Dilim
+ * genişliği tek dinamik bağdır (`--home-seg-w`).
  */
 const props = withDefaults(
   defineProps<{ stat: CoordinatorshipStat; archive?: ArchiveFolder | null }>(),
@@ -60,6 +62,22 @@ const archiveTo = computed(() => ({
   params: { klasorId: id.value },
 }))
 const archiveCount = computed(() => props.archive?.file_count ?? '—')
+const instance = useInstanceStore()
+const lastUpload = computed(() => {
+  const days = daysSince(
+    props.archive?.last_uploaded_at ?? null,
+    new Date(),
+    instance.profile?.timezone,
+  )
+  if (days === null) return null
+  const rel =
+    days === 0
+      ? homeText('home.coords.card.relToday')
+      : days === 1
+        ? homeText('home.coords.card.relYesterday')
+        : homeText('home.coords.card.relDays', { n: days })
+  return homeText('home.coords.card.lastUpload', { rel })
+})
 </script>
 
 <template>
@@ -146,5 +164,8 @@ const archiveCount = computed(() => props.archive?.file_count ?? '—')
         <span class="rp-num home-ccard__stat-num" data-testid="archive">{{ archiveCount }}</span>
       </RouterLink>
     </div>
+    <span v-if="lastUpload" class="rp-cap rp-trunc" data-testid="last-upload">{{
+      lastUpload
+    }}</span>
   </article>
 </template>

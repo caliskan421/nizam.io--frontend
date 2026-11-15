@@ -46,12 +46,14 @@ const cards = (w: VueWrapper) =>
   w.findAll('[data-file-id]').map((e) => e.attributes('data-file-id'))
 
 describe('07 koordinatör: başlık, ağaç, görev klasörleri, dosyalar', () => {
-  it('klasör adı kırıntıda; meta canlı sayılar + statik bayt; ağaç tek düğüm; "grup" rozeti ve kişi adı yok', async () => {
+  it('klasör adı kırıntıda; meta canlı sayılar + bayt; ağaç tek düğüm; "grup" rozeti ve kişi adı yok', async () => {
     server.use(...K, ...archiveBackend({ files: FILES }))
     const { wrapper } = await mountPage('/arsiv/d1', COORD)
     expect(crumb()).toBe('Koordinatörlük 1')
     expect(wrapper.find('h1').text()).toBe('Koordinatörlük 1')
-    expect(wrapper.find('[data-testid="folder-meta"]').text()).toBe('2 görev klasörü · 3 dosya · —')
+    expect(wrapper.find('[data-testid="folder-meta"]').text()).toBe(
+      '2 görev klasörü · 3 dosya · 0 B',
+    )
     expect(wrapper.findAll('[data-folder-id]')).toHaveLength(1)
     expect(wrapper.find('[data-folder-id="d1"]').attributes('aria-current')).toBe('page')
     expect(wrapper.text()).not.toMatch(/çalışma grubu|\bgrup\b/i)

@@ -45,6 +45,7 @@ const shown = computed(() =>
     query: controls.query.value,
     key: controls.sortKey.value,
     reversed: controls.reversed.value,
+    uploads: archive.lastUploads.value,
   }),
 )
 const hint = computed(() =>

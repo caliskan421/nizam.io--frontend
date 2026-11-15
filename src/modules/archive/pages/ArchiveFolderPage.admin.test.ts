@@ -64,7 +64,9 @@ describe('07 yönetici (S2, BE-072)', () => {
         .map((n) => n.attributes('data-task-id')),
     ).toEqual(['w1', 'w2'])
     expect(wrapper.find('h1').text()).toBe('Altyapı')
-    expect(wrapper.find('[data-testid="folder-meta"]').text()).toBe('2 görev klasörü · 9 dosya · —')
+    expect(wrapper.find('[data-testid="folder-meta"]').text()).toBe(
+      '2 görev klasörü · 9 dosya · 0 B',
+    )
     // Klasör özeti süzgeçsiz; görevler/dosyalar `department_id` ile; hiçbirinde departman başlığı yok.
     expect(sent('GET', '/v1/program/archive/folders')[0]!.query.has('department_id')).toBe(false)
     expect(sent('GET', '/v1/program/archive/tasks')[0]!.query.get('department_id')).toBe('d7')

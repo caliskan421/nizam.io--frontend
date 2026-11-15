@@ -20,11 +20,10 @@ export const trArchive = {
       loading: 'Klasör yükleniyor',
       error: 'Klasör bilgisi yüklenemedi',
       meta: {
-        // E-06-33: kişi adları ve bayt toplamı gizli/statik (BE-025).
+        // E-06-33: kişi adları gizli; bayt toplamı `total_bytes` (BE-025).
         tasks: '{n} görev klasörü',
         tasksMore: '{n}+ görev klasörü',
         files: '{n} dosya',
-        bytes: '—',
       },
       upload: 'Yükle',
       search: {
@@ -53,7 +52,6 @@ export const trArchive = {
       sort: {
         ad: 'Ada göre',
         dosya: 'Dosya sayısına göre',
-        // Klasör "Son yükleme" sırası için alan yok (BE-025): seçenek devre dışı.
         sonYukleme: 'Son yükleme',
       },
       // Sunucu görev listesini 200'de kesti (`X-Result-Truncated`): bazı görev klasörleri eksik olabilir.
@@ -99,19 +97,24 @@ export const trArchive = {
         adAzalan: 'Ada göre (Z → A)',
         dosyaAzalan: 'Dosya sayısı (çoktan aza)',
         dosyaArtan: 'Dosya sayısı (azdan çoğa)',
-        sonYukleme: 'Son yükleme',
+        sonYukleme: 'Son yükleme (yeniden eskiye)',
         short: {
           adArtan: 'Ada göre',
           adAzalan: 'Ada göre (ters)',
           dosyaAzalan: 'Dosya sayısı',
           dosyaArtan: 'Dosya sayısı (ters)',
+          sonYukleme: 'Son yükleme',
         },
       },
       card: {
         emptyFolder: 'Henüz dosya yok',
         files: '{count} dosya',
+        filesAndTasks: '{count} dosya · {tasks} görev',
         size: 'Boyut',
         lastUpload: 'Son yükleme',
+        today: 'bugün',
+        yesterday: 'dün',
+        daysAgo: '{n} gün',
       },
       tags: {
         title: 'Etiketler',

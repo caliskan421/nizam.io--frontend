@@ -4,10 +4,16 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { FolderTreeProps } from '../index'
 import FolderTree from './FolderTree.vue'
 
-const FOLDERS = [
-  { folderId: 'd1', name: 'Altyapı ve tesisat', fileCount: 15, virtual: false },
-  { folderId: 'd2', name: 'Mekanik sistemler', fileCount: 38, virtual: false },
-]
+const card = (folderId: string, name: string, fileCount: number) => ({
+  folderId,
+  name,
+  fileCount,
+  taskCount: 0,
+  totalBytes: 0,
+  lastUploadedAt: null,
+  virtual: false,
+})
+const FOLDERS = [card('d1', 'Altyapı ve tesisat', 15), card('d2', 'Mekanik sistemler', 38)]
 const TASKS = [
   { work_item_id: 'w1', title: 'Gölgelendirme çalışmaları', file_count: 2, department_id: 'd1' },
   { work_item_id: 'w2', title: 'İklimlendirme hesapları', file_count: 1, department_id: 'd1' },

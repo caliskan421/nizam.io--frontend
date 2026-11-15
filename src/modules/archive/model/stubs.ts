@@ -6,13 +6,12 @@
  */
 import { designStub } from '@/shared/design-stub'
 
-/** Klasör özeti: görev sayısı, bayt toplamı, son yükleme, depolama dağılımı (E-06-12…14, 22…24). */
-export const FOLDER_SUMMARY = designStub('BE-025', {
-  taskCount: false,
-  totalBytes: false,
-  lastUploadedAt: false,
-  storageBreakdown: false,
-})
+/**
+ * Klasör özeti (BE-025, kısmi): görev sayısı, bayt toplamı ve son yükleme v0.21'de canlandı
+ * (`ArchiveFolder`/`totals`); KALAN: depolama dağılımı çubuğu/listesi (E-06-23/24) — tür/etiket
+ * bazlı bayt alanı yok (GAP-240 notu; `last_uploaded_at` da yükleme olay günlüğü değildir).
+ */
+export const FOLDER_SUMMARY = designStub('BE-025', { storageBreakdown: false })
 
 /** Göreve bağsız yükleme (E-06-05): görev seçilmeden yükleme yok → pencere görev seçtirir. */
 export const UNATTACHED_UPLOAD = designStub('BE-069', { available: false })

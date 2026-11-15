@@ -1,9 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { mountWith, resetAll, settle, stat } from '../__tests__/harness'
 import CoordinatorshipCard from './CoordinatorshipCard.vue'
 
-afterEach(resetAll)
+afterEach(() => {
+  vi.useRealTimers()
+  resetAll()
+})
 
 const STAT = stat('d1', 'Altyapı ve tesisat', {
   coordinators: [
@@ -109,12 +112,35 @@ describe('koordinatörlük kartı (E-01-28…38)', () => {
     expect(calm.wrapper.get('[data-stat="late"] .rp-num').classes()).not.toContain('rp-danger-text')
   })
 
-  it('"Son yükleme" satırı yok (BE-025); `last_activity_at` yükleme sayılmaz', async () => {
-    const { wrapper } = await mountWith(CoordinatorshipCard, null, {
-      stat: stat('d4', 'Sakin', { last_activity_at: '2026-11-10T10:00:00Z' }),
+  it('"Son yükleme ‹göreli›" `last_uploaded_at`\'tan (BE-025); `last_activity_at` yükleme sayılmaz, yükleme yoksa satır yok', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-16T10:00:00Z'))
+    const folder = (last: string | null) => ({
+      folder_id: 'd4',
+      name: 'Sakin',
+      file_count: 3,
+      task_count: 1,
+      total_bytes: 9,
+      last_uploaded_at: last,
+      is_virtual: false,
     })
-    expect(wrapper.text()).not.toContain('Son yükleme')
-    expect(wrapper.text()).not.toContain('bugün')
+    const text = async (last: string | null) =>
+      (
+        await mountWith(CoordinatorshipCard, null, {
+          stat: stat('d4', 'Sakin', { last_activity_at: '2026-11-15T10:00:00Z' }),
+          archive: folder(last),
+        })
+      ).wrapper.find('[data-testid="last-upload"]')
+    expect((await text('2026-11-16T08:00:00Z')).text()).toBe('Son yükleme bugün')
+    expect((await text('2026-11-15T08:00:00Z')).text()).toBe('Son yükleme dün')
+    expect((await text('2026-10-24T10:00:00Z')).text()).toBe('Son yükleme 23 gün önce')
+    // Yükleme yok: `last_activity_at` dolu olsa da satır hiç çizilmez.
+    expect((await text(null)).exists()).toBe(false)
+    const noArchive = await mountWith(CoordinatorshipCard, null, {
+      stat: stat('d4', 'Sakin', { last_activity_at: '2026-11-15T10:00:00Z' }),
+    })
+    expect(noArchive.wrapper.text()).not.toContain('Son yükleme')
+    vi.useRealTimers()
   })
 
   it('bağlantılar: ad → 08b, geciken → 03 süzgeci, kullanıcı → 08b üyeler, arşiv → 07 klasörü', async () => {

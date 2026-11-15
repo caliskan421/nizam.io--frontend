@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 
-import { DesignStub, UiButton, UiMenu, UiMenuItem } from '@/shared/ui'
+import { UiButton, UiMenu, UiMenuItem } from '@/shared/ui'
 
-import { COORD_SORT_KEYS, coordSortDisabled, type CoordSortKey } from '../model/coordinatorships'
+import { COORD_SORT_KEYS, type CoordSortKey } from '../model/coordinatorships'
 import { homeText } from '../model/messages'
 
 /**
@@ -11,7 +11,7 @@ import { homeText } from '../model/messages'
  * (ters sırada ↑). Menü: altı ölçüt (`menuitemradio`, ipucu satırlı), ayraç, "Sırayı ters çevir".
  * Ölçüt seçimi `reversed=false` yapar ve menüyü kapatır; ters çevirme de kapatır; Esc ve öğe
  * seçimi odağı düğmeye döndürür, dışarı tıklama ve Tab döndürmez (KESİN 27). "Son yükleme"
- * BE-025'e dek devre dışıdır (tıklanmaz). Menü yokken `aria-controls` verilmez.
+ * `programArchiveFolders.last_uploaded_at` ile sıralar (BE-025). Menü yokken `aria-controls` verilmez.
  */
 defineProps<{ sortKey: CoordSortKey; reversed: boolean }>()
 const emit = defineEmits<{ pick: [key: CoordSortKey]; flip: [] }>()
@@ -73,22 +73,18 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside, tru
       :label="homeText('home.coords.sortMenu')"
       @close="close($event === 'escape')"
     >
-      <template v-for="key in COORD_SORT_KEYS" :key="key">
-        <DesignStub v-if="coordSortDisabled(key)" id="BE-025" as="div">
-          <UiMenuItem :checked="false" disabled :data-sort="key">
-            <span class="home-sort__text">
-              <span>{{ homeText(`home.coords.sort.${key}.label`) }}</span>
-              <span class="rp-cap rp-trunc">{{ homeText('home.coords.lastUploadOff') }}</span>
-            </span>
-          </UiMenuItem>
-        </DesignStub>
-        <UiMenuItem v-else :checked="sortKey === key" :data-sort="key" @select="pick(key)">
-          <span class="home-sort__text">
-            <span>{{ homeText(`home.coords.sort.${key}.label`) }}</span>
-            <span class="rp-cap rp-trunc">{{ homeText(`home.coords.sort.${key}.hint`) }}</span>
-          </span>
-        </UiMenuItem>
-      </template>
+      <UiMenuItem
+        v-for="key in COORD_SORT_KEYS"
+        :key="key"
+        :checked="sortKey === key"
+        :data-sort="key"
+        @select="pick(key)"
+      >
+        <span class="home-sort__text">
+          <span>{{ homeText(`home.coords.sort.${key}.label`) }}</span>
+          <span class="rp-cap rp-trunc">{{ homeText(`home.coords.sort.${key}.hint`) }}</span>
+        </span>
+      </UiMenuItem>
       <div class="rp-menudiv" role="separator" />
       <UiMenuItem icon="sort" data-sort="flip" @select="flip">
         {{ homeText('home.coords.flip') }}

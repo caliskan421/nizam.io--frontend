@@ -73,6 +73,26 @@ describe('klasör sırası (istemci)', () => {
       'Zemin',
     ])
   })
+  it('son yüklemeye göre (BE-025): en yeni önce; yüklemesi olmayan klasör yönden bağımsız sonda', () => {
+    const list = [
+      { name: 'Boş', last_uploaded_at: null },
+      { name: 'Eski', last_uploaded_at: '2026-10-01T09:00:00Z' },
+      { name: 'Yeni', last_uploaded_at: '2026-11-10T09:00:00Z' },
+      { name: 'Hiç', last_uploaded_at: null },
+    ]
+    expect(sortFolders(list, 'son', 'azalan').map((f) => f.name)).toEqual([
+      'Yeni',
+      'Eski',
+      'Boş',
+      'Hiç',
+    ])
+    expect(sortFolders(list, 'son', 'artan').map((f) => f.name)).toEqual([
+      'Eski',
+      'Yeni',
+      'Boş',
+      'Hiç',
+    ])
+  })
   it('girdiyi değiştirmez', () => {
     const copy = [...folders]
     sortFolders(folders, 'dosya')

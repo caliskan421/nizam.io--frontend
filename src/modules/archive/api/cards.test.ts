@@ -44,8 +44,8 @@ describe('06 klasör kartları', () => {
     const { result } = h.run(() => useFolderCards(useArchiveContext(null)))
     await settleQueries(h.queryClient)
     expect(result.cards.value).toEqual([
-      { folderId: 'd1', name: 'Ağ', fileCount: 6, virtual: false },
-      { folderId: 'd2', name: 'Zemin', fileCount: 0, virtual: false },
+      expect.objectContaining({ folderId: 'd1', name: 'Ağ', fileCount: 6, virtual: false }),
+      expect.objectContaining({ folderId: 'd2', name: 'Zemin', fileCount: 0, virtual: false }),
     ])
     expect(s3Requests()).toHaveLength(0)
     expect(s2Requests().map((r) => r.path)).toEqual(['/v1/program/archive/folders'])
@@ -76,7 +76,15 @@ describe('06 klasör kartları', () => {
     const { result } = h.run(() => useFolderCards(useArchiveContext(null)))
     await settleQueries(h.queryClient)
     expect(result.cards.value).toEqual([
-      { folderId: 'd1', name: 'Koordinatörlük 1', fileCount: 3, virtual: false },
+      {
+        folderId: 'd1',
+        name: 'Koordinatörlük 1',
+        fileCount: 3,
+        taskCount: 0,
+        totalBytes: 0,
+        lastUploadedAt: null,
+        virtual: false,
+      },
     ])
     expect(result.loading.value).toBe(false)
     expect(result.error.value).toBe(false)

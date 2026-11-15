@@ -30,12 +30,8 @@ describe('arşiv designStub olguları', () => {
   })
 
   it('olgular yalnız "kullanılabilir değil" bilgisidir; sahte sayı/tarih/kişi taşımaz', () => {
-    expect(FOLDER_SUMMARY).toEqual({
-      taskCount: false,
-      totalBytes: false,
-      lastUploadedAt: false,
-      storageBreakdown: false,
-    })
+    // BE-025 kısmi: görev sayısı/bayt/son yükleme canlandı; yalnız depolama dağılımı kaldı.
+    expect(FOLDER_SUMMARY).toEqual({ storageBreakdown: false })
     for (const stub of [UNATTACHED_UPLOAD, CREATE_TAG, RETAG_FILE, MOVE_FILE]) {
       expect(stub).toEqual({ available: false })
     }

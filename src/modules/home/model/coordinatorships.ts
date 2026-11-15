@@ -6,7 +6,8 @@
  *  - Süzgeç sayıları aramadan bağımsız, toplam üzerinden (E-01-24).
  *  - Arama: ad üzerinde alt dize, Türkçe katlamalı (I/ı/İ/i, ç ğ ö ş ü; GAP-036).
  *  - Sıralama: ölçüt + ters; eşitlikte ikincil ölçüt ad A→Z `Intl.Collator('tr')` (E-01-26;
- *    sunucu sırası bayt sırasıdır). "Son yükleme" ölçütü BE-025'e kadar seçilemez.
+ *    sunucu sırası bayt sırasıdır). "Son yükleme" ölçütü `programArchiveFolders.last_uploaded_at`
+ *    ile (BE-025; yüklemesi olmayan birim yönden bağımsız sonda; `last_activity_at` yükleme sayılmaz).
  *  - Kart: "kullanıcı" = `member_count + coordinators.length` (E-01-36); durum çubuğunun 4.
  *    dilimi `total − başlamadı − devam − bitti` artığıdır ("onayda/iade", BE-078).
  */
@@ -28,11 +29,6 @@ export const COORD_SORT_KEYS = [
 export type CoordSortKey = (typeof COORD_SORT_KEYS)[number]
 
 export const DEFAULT_COORD_SORT: CoordSortKey = 'late'
-
-/** BE-025 kapanana dek seçilemeyen ölçüt (E-01-26). */
-export function coordSortDisabled(key: CoordSortKey): boolean {
-  return key === 'last_upload'
-}
 
 const collator = new Intl.Collator('tr')
 
@@ -99,8 +95,22 @@ export function completionPercent(stat: CoordinatorshipStat): number {
 
 const byName = (a: CoordinatorshipStat, b: CoordinatorshipStat) => collator.compare(a.name, b.name)
 
+/** Birim kimliği → son yükleme anı (UTC; yükleme yoksa `null`). */
+export type LastUploads = ReadonlyMap<string, string | null>
+
+/** Son yükleme: en yeni önce; yüklemesi olmayan (ya da özeti okunmamış) birim sonda. */
+function lastUploadOrder(a: string | null, b: string | null): number {
+  if (a === null || b === null) return a === b ? 0 : a === null ? 1 : -1
+  return Date.parse(b) - Date.parse(a)
+}
+
 /** Birincil karşılaştırma: negatif → `a` önce. */
-function primary(key: CoordSortKey, a: CoordinatorshipStat, b: CoordinatorshipStat): number {
+function primary(
+  key: CoordSortKey,
+  a: CoordinatorshipStat,
+  b: CoordinatorshipStat,
+  uploads: LastUploads,
+): number {
   switch (key) {
     case 'late':
       return b.overdue_tasks - a.overdue_tasks
@@ -111,6 +121,10 @@ function primary(key: CoordSortKey, a: CoordinatorshipStat, b: CoordinatorshipSt
     case 'members':
       return userCount(b) - userCount(a)
     case 'last_upload':
+      return lastUploadOrder(
+        uploads.get(a.department_id) ?? null,
+        uploads.get(b.department_id) ?? null,
+      )
     case 'name':
       return 0
   }
@@ -121,20 +135,27 @@ export function sortStats(
   stats: readonly CoordinatorshipStat[],
   key: CoordSortKey,
   reversed: boolean,
+  uploads: LastUploads = new Map(),
 ): CoordinatorshipStat[] {
-  const sorted = [...stats].sort((a, b) => primary(key, a, b) || byName(a, b))
+  const sorted = [...stats].sort((a, b) => primary(key, a, b, uploads) || byName(a, b))
   return reversed ? sorted.reverse() : sorted
 }
 
 /** Süzgeç + arama + sıralama (kart ızgarası). */
 export function visibleStats(
   stats: readonly CoordinatorshipStat[],
-  options: { filter: CoordFilter; query: string; key: CoordSortKey; reversed: boolean },
+  options: {
+    filter: CoordFilter
+    query: string
+    key: CoordSortKey
+    reversed: boolean
+    uploads?: LastUploads
+  },
 ): CoordinatorshipStat[] {
   const kept = stats.filter(
     (s) => matchesFilter(s, options.filter) && matchesQuery(s, options.query),
   )
-  return sortStats(kept, options.key, options.reversed)
+  return sortStats(kept, options.key, options.reversed, options.uploads)
 }
 
 export interface StatusBar {

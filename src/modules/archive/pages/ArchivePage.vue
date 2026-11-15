@@ -35,15 +35,12 @@ import { useArchiveSearch } from './use-archive-search'
 
 /**
  * 06 Arşiv (E-06-01…24; F5, F8). Koordinatör/üye `/arsiv`'e girince kendi klasörüne yönlenir (P40);
- * ızgara yalnız yöneticide görünür: `programArchiveFolders` (S2, BE-072) kartları dosya/görev
- * sayılarıyla. Arama ve tür segmenti yöneticide program geneli çalışır (`programArchiveAttachments`,
- * yalnız dosya adı, BE-077): süzgeç doluyken ızgaranın yerine sonuç listesi gelir, bir sonuç
- * dosyanın klasörünü ve önizlemesini açar. Süzgeçler URL'de (`q`, `tur`, `sirala`). Bağlama
- * (KESİN 28): `PeriodZipButton` (W126; ŞY, `target` yöneticide `null` → devre dışı, BE-120) ve
- * `UploadDialog` (W125; `tasks` = `uploadTasks`, görev seçici dosyasız görevleri de içerir —
- * `include_empty=true`, BE-121; başlık seçeneğin `department_id`'si). Etiket kartı yalnız
- * açıklayıcıdır (06'da gidilecek klasör bağlamı yok).
- */
+ * ızgara yalnız yöneticide: `programArchiveFolders` (S2, BE-072/BE-025) kartları. Yönetici araması
+ * program geneli (`programArchiveAttachments`, yalnız dosya adı): süzgeç doluyken sonuç listesi
+ * ızgaranın yerine gelir. Süzgeçler URL'de (`q`, `tur`, `sirala`). Bağlama (KESİN 28):
+ * `PeriodZipButton` (W126; `target` yöneticide `null` → devre dışı, BE-120) ve `UploadDialog`
+ * (W125; görevler `include_empty=true` ile dosyasızlar dahil, BE-121; başlık seçeneğin
+ * `department_id`'si). */
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -100,6 +97,7 @@ watch(
 
 const capabilities = computed(() => archiveCapabilities(context.standing.value, scope.programId))
 const totalFiles = computed(() => context.folders.data.value?.totals.file_count ?? null)
+const totalBytes = computed(() => context.folders.data.value?.totals.total_bytes ?? null)
 
 // Yükleme: görev seçicisi dosyasız canlı görevleri de içerir (`include_empty=true`, BE-121); yönetici
 // bütün programın görevlerini görür, başlık = seçeneğin `department_id`'si. Yönlendirilen roller
@@ -212,7 +210,11 @@ onScopeDispose(() => {
         </div>
         <aside class="rp-aside" :aria-label="t('archive.folders.tags.title')">
           <TagLegend />
-          <StorageSummary :total-files="totalFiles" :loading="folders.loading.value" />
+          <StorageSummary
+            :total-files="totalFiles"
+            :total-bytes="totalBytes"
+            :loading="folders.loading.value"
+          />
         </aside>
       </template>
       <UiEmptyState

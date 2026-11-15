@@ -5,9 +5,6 @@
  */
 import { designStub } from '@/shared/design-stub'
 
-/** Kart "Son yükleme" satırı (E-01-38) ve "Son yükleme" sıralama ölçütü (E-01-26). */
-export const CARD_LAST_UPLOAD = designStub('BE-025', { available: false })
-
 /** Kart durum çubuğu: "onayda" ve "iade" ayrı sayılamaz (E-01-33/34) → tek nötr artık dilim. */
 export const CARD_APPROVAL_SPLIT = designStub('BE-078', { separate: false })
 

@@ -68,17 +68,15 @@ describe('sıralama menüsü (E-01-25/26)', () => {
     expect(document.activeElement).toBe(button(page).element)
   })
 
-  it('"Son yükleme" devre dışı: tıklanınca olay yok, menü açık kalır (BE-025)', async () => {
+  it('"Son yükleme" seçilebilir (BE-025): pick yayar, stub/devre dışı yok', async () => {
     const page = await mountMenu()
     await button(page).trigger('click')
-    const off = page.wrapper.get('[data-sort="last_upload"]')
-    expect(off.attributes('disabled')).toBeDefined()
-    expect(page.wrapper.get('[data-design-stub="BE-025"]').text()).toContain(
-      'Son yükleme bu sürümde yok',
-    )
-    await off.trigger('click')
-    expect(page.wrapper.findComponent(CoordSortMenu).emitted('pick')).toBeUndefined()
-    expect(page.wrapper.find('[role="menu"]').exists()).toBe(true)
+    const item = page.wrapper.get('[data-sort="last_upload"]')
+    expect(item.attributes('disabled')).toBeUndefined()
+    expect(page.wrapper.find('[data-design-stub]').exists()).toBe(false)
+    await item.trigger('click')
+    expect(page.wrapper.findComponent(CoordSortMenu).emitted('pick')).toEqual([['last_upload']])
+    expect(page.wrapper.find('[role="menu"]').exists()).toBe(false)
   })
 
   it('Esc kapatır ve odağı döndürür; dışarı tıklama kapatır, odak taşınmaz', async () => {

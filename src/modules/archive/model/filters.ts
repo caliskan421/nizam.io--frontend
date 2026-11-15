@@ -49,8 +49,16 @@ export function toQuery(filters: ArchiveFileFilters, cursor?: string): ArchiveFi
 
 const collator = new Intl.Collator('tr-TR', { sensitivity: 'base' })
 
-/** 06 klasör sırası (istemci; "Son yükleme" için alan yok — BE-025): ada ya da dosya sayısına göre. */
-export function sortFolders<T extends Pick<ArchiveFolder, 'name'> & { file_count?: number }>(
+type Sortable = Pick<ArchiveFolder, 'name'> & {
+  file_count?: number
+  last_uploaded_at?: string | null
+}
+
+/**
+ * 06 klasör sırası (istemci): ada, dosya sayısına ya da son yüklemeye göre (BE-025). Son yükleme
+ * sıralamasında yüklemesi olmayan (`null`) klasör yönden bağımsız SONDA; eşitlikte ad A→Z.
+ */
+export function sortFolders<T extends Sortable>(
   folders: readonly T[],
   field: FolderSortField = 'ad',
   direction: FolderSortDirection = 'artan',
@@ -59,7 +67,16 @@ export function sortFolders<T extends Pick<ArchiveFolder, 'name'> & { file_count
   return [...folders].sort((a, b) => {
     const byName = collator.compare(a.name, b.name)
     if (field === 'ad') return sign * byName
+    if (field === 'son') return byLastUpload(a, b, sign) || byName
     const diff = (a.file_count ?? 0) - (b.file_count ?? 0)
     return diff !== 0 ? sign * diff : byName
   })
+}
+
+/** Son yükleme karşılaştırması: yüklemesiz (`null`) klasör yönden bağımsız sonda. */
+function byLastUpload(a: Sortable, b: Sortable, sign: number): number {
+  const left = a.last_uploaded_at ?? null
+  const right = b.last_uploaded_at ?? null
+  if (left === null || right === null) return left === right ? 0 : left === null ? 1 : -1
+  return sign * (Date.parse(left) - Date.parse(right))
 }

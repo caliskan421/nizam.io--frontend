@@ -2,13 +2,14 @@
 import { useI18n } from 'vue-i18n'
 
 import { FOLDER_SUMMARY } from '../../model/stubs'
+import { formatBytes } from '../../model/mime'
 import type { StorageSummaryProps } from '../index'
 import './folders.css'
 
 /**
- * Depolama özeti (E-06-22…24). Yalnız dosya adedi canlıdır (`totalFiles`; yönetici ızgarasında
- * bilinmez → `—`); toplam bayt, dağılım çubuğu ve en büyük klasörler listesi alanı olmadığı için
- * statik `—` (BE-025): örnek boyut/yüzde üretilmez, çubuk boş iz olarak durur.
+ * Depolama özeti (E-06-22…24). Toplam dosya ve toplam boyut `totals`'tan (BE-025; okunana dek
+ * `—`); dağılım çubuğu ve en büyük klasörler listesi için tür/etiket bazlı bayt alanı yok →
+ * statik `—` (BE-025 kısmi, GAP-240: istemci dağılım uydurmaz), çubuk boş iz olarak durur.
  */
 defineProps<StorageSummaryProps>()
 const { t } = useI18n()
@@ -30,10 +31,10 @@ const { t } = useI18n()
       :aria-label="t('archive.folders.storage.bar')"
     ></div>
     <dl class="rp-dl">
-      <template v-if="!FOLDER_SUMMARY.totalBytes">
-        <dt>{{ t('archive.folders.storage.total') }}</dt>
-        <dd class="rp-mono" data-field="bytes">{{ t('archive.shared.noValue') }}</dd>
-      </template>
+      <dt>{{ t('archive.folders.storage.total') }}</dt>
+      <dd class="rp-mono" data-field="bytes">
+        {{ loading || totalBytes === null ? t('archive.shared.noValue') : formatBytes(totalBytes) }}
+      </dd>
       <template v-if="!FOLDER_SUMMARY.storageBreakdown">
         <dt>{{ t('archive.folders.storage.breakdown') }}</dt>
         <dd class="rp-mono" data-field="breakdown">{{ t('archive.shared.noValue') }}</dd>

@@ -12,6 +12,9 @@ const cards = (n: number) =>
     folderId: `d${i}`,
     name: `Birim ${String(i).padStart(2, '0')}`,
     fileCount: i,
+    taskCount: i,
+    totalBytes: i * 1024,
+    lastUploadedAt: null,
     virtual: false,
   }))
 
@@ -105,7 +108,7 @@ describe('sıra düğmesi (E-06-09)', () => {
     await flushPromises()
   }
 
-  it('düğme geçerli sırayı söyler; menüde ad/dosya seçenekleri, "Son yükleme" devre dışı + BE-025', async () => {
+  it('düğme geçerli sırayı söyler; menüde ad/dosya/son yükleme seçenekleri (hepsi etkin, BE-025)', async () => {
     const w = grid()
     expect(w.get('.archive-sort__btn').text()).toBe('Sırala: Ada göre')
     expect(w.get('.archive-sort__btn').attributes('aria-expanded')).toBe('false')
@@ -118,10 +121,10 @@ describe('sıra düğmesi (E-06-09)', () => {
       'Ada göre (Z → A)',
       'Dosya sayısı (çoktan aza)',
       'Dosya sayısı (azdan çoğa)',
-      'Son yükleme',
+      'Son yükleme (yeniden eskiye)',
     ])
-    const last = w.get('[data-design-stub="BE-025"] [data-sort="sonYukleme"]')
-    expect(last.attributes('disabled')).toBeDefined()
+    expect(w.find('[data-design-stub]').exists()).toBe(false)
+    expect(w.get('[data-sort="sonYukleme"]').attributes('disabled')).toBeUndefined()
     expect(w.get('[data-sort="adArtan"]').attributes('aria-checked')).toBe('true')
   })
 

@@ -17,5 +17,9 @@ export function useArchiveSummary() {
   const byDepartment = computed<ReadonlyMap<string, ArchiveFolder>>(
     () => new Map((folders.data.value?.folders ?? []).map((f) => [f.folder_id, f])),
   )
-  return { byDepartment }
+  /** Birim kimliği → son yükleme anı (sıralama ölçütü; özeti olmayan birim girmez). */
+  const lastUploads = computed<ReadonlyMap<string, string | null>>(
+    () => new Map([...byDepartment.value].map(([id, f]) => [id, f.last_uploaded_at])),
+  )
+  return { byDepartment, lastUploads }
 }

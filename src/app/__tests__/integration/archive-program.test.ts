@@ -87,6 +87,41 @@ describe("yönetici (ŞY): S2 okuma, S3 dosya işlemi başlığı = satırın de
   })
 })
 
+describe('klasör özeti: görev sayısı, boyut, son yükleme (BE-025)', () => {
+  const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString()
+
+  it('06 kartları ve depolama toplamı sunucu alanlarından; "Son yükleme" sıralaması; 07 başlık bayt toplamı', async () => {
+    for (const f of archive.state.files) {
+      f.created_at = f.department_id === 'd1' ? daysAgo(5) : daysAgo(0)
+    }
+    const app = await boot({ ...ADMIN, path: '/arsiv' })
+    await until(() => $('[data-folder-id="d1"]'), 'klasör kartları')
+    const meta = (id: string, field: string) =>
+      $(`[data-folder-id="${id}"] [data-field="${field}"]`)?.textContent
+    expect(meta('d1', 'meta')).toBe('3 dosya · 2 görev')
+    expect(meta('d1', 'size')).toBe('6,0 KB')
+    expect(meta('d1', 'last')).toBe('5 gün')
+    expect(meta('d2', 'meta')).toBe('1 dosya · 1 görev')
+    expect(meta('d2', 'last')).toBe('bugün')
+    // Depolama toplamı `totals`: 4 dosya, 8 KB.
+    expect($('[data-field="files"]')?.textContent).toBe('4')
+    expect($('[data-field="bytes"]')?.textContent).toBe('8,0 KB')
+    expect($$('[data-folder-id]').map((e) => e.dataset.folderId)).toEqual(['d1', 'd2'])
+    await userClick(() => $('.archive-sort__btn'))
+    await userClick(() => $('[data-sort="sonYukleme"]'))
+    await until(() => app.router.currentRoute.value.query.sirala === 'son:azalan', 'sirala')
+    expect($$('[data-folder-id]').map((e) => e.dataset.folderId)).toEqual(['d2', 'd1'])
+    // Eski yol yok: boyut/son yükleme için ek okuma (fan-out) yok; tek `programArchiveFolders`.
+    expect(backend.sent('GET', '/v1/program/archive/folders')).toHaveLength(1)
+
+    await click(() => $('[data-folder-id="d1"]'))
+    await until(
+      () => $('[data-testid="folder-meta"]')?.textContent === '2 görev klasörü · 3 dosya · 6,0 KB',
+      'klasör başlığı meta satırı',
+    )
+  })
+})
+
 describe('01 yönetici kartı arşiv özeti (E-01-37)', () => {
   it('kart başına dosya sayısı programArchiveFolders tek isteğinden; fan-out ve S3 yok', async () => {
     const app = await boot({ ...ADMIN, path: '/' })
