@@ -17,6 +17,7 @@
  */
 import { computed, shallowRef, type ComputedRef, type Ref } from 'vue'
 
+import { workShortCode } from '@/modules/work/public'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -97,6 +98,7 @@ function plan(
     change: {
       workItemId: task.work_item_id,
       title: task.title,
+      code: workShortCode(task),
       policy,
       write,
       before,
@@ -133,7 +135,8 @@ function snackView(p: PendingSend<DateChange> | null): DateChangeSnackView | nul
     props: {
       // `face` YAZMA YOLUNU taşır: talep → coordinator, doğrudan → admin.
       face: payload.policy === 'request' ? 'coordinator' : 'admin',
-      title: payload.title,
+      // Bildirim başlığı görev KODUdur (E-03C-68, BE-005); kod yoksa görev başlığı.
+      title: payload.code || payload.title,
       before: payload.before,
       after: payload.after,
       remainingMs: p.remainingMs,

@@ -40,6 +40,8 @@ afterAll(() => server.close())
 const TASK = ganttTask({
   work_item_id: 'w1',
   title: 'Asfalt',
+  code: 'ALT-3',
+  sequence_no: 3,
   department_id: 'd1',
   start_on: '2026-06-16',
   end_on: '2026-08-31',
@@ -81,7 +83,7 @@ describe('Zaman çizelgesi — tarih sürükleme bağlantısı (W95)', () => {
     drop()
     await elapse(10)
     expect(ctx.wrapper.find('[data-testid="date-change-snack"]').text()).toContain(
-      'Asfalt süresi 4 gün uzatıldı',
+      'ALT-3 süresi 4 gün uzatıldı',
     )
     expect(ctx.wrapper.get('[data-testid="timeline-date-announce"]').text()).toContain(
       'bitiş 04 Eyl',
