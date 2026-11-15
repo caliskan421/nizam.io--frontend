@@ -274,7 +274,7 @@ describe('koordinatörlük türü: çöpü boşalt devre dışı (kalan stub BE-
     const page = await mountPage({ path: '/silinen-kayitlar?tur=koordinatorluk' })
     const button = trash(page)
     expect(button.attributes('disabled')).toBeDefined()
-    expect(page.wrapper.get('[data-design-stub="BE-115"]').element.contains(button.element)).toBe(
+    expect(page.wrapper.get('[data-design-stub="BE-163"]').element.contains(button.element)).toBe(
       true,
     )
     expect(button.attributes('title')).toContain('şirket geneli')
@@ -283,6 +283,6 @@ describe('koordinatörlük türü: çöpü boşalt devre dışı (kalan stub BE-
     await page.wrapper.get('[data-kind="gorev"]').trigger('click')
     await settle()
     expect(trash(page).attributes('disabled')).toBeUndefined()
-    expect(page.wrapper.find('[data-design-stub="BE-115"]').exists()).toBe(false)
+    expect(page.wrapper.find('[data-design-stub="BE-163"]').exists()).toBe(false)
   })
 })

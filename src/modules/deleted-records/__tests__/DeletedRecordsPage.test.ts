@@ -222,7 +222,7 @@ describe('başlık eylemleri', () => {
       page.wrapper.get('[data-testid="dr-empty-trash"]').attributes('disabled'),
     ).toBeUndefined()
     expect(page.wrapper.find('[data-design-stub="BE-116"]').exists()).toBe(false)
-    expect(page.wrapper.find('[data-design-stub="BE-115"]').exists()).toBe(false)
+    expect(page.wrapper.find('[data-design-stub="BE-163"]').exists()).toBe(false)
     expect(page.wrapper.find('[data-design-stub="BE-117"]').exists()).toBe(false)
     // Seçim kutuları vardır (BE-114) ama seçim yokken toplu çubuk çizilmez.
     expect(page.wrapper.find('[data-testid="dr-select-all"]').exists()).toBe(true)

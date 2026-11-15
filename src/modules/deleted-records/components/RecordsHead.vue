@@ -52,7 +52,7 @@ const emit = defineEmits<{ purgeAll: []; exportCsv: [] }>()
       >
         <UiIcon name="trash" size="sm" />{{ deletedText('head.trash') }}
       </button>
-      <DesignStub v-else id="BE-115">
+      <DesignStub v-else id="BE-163">
         <button
           type="button"
           class="t-btn t-btn--ghost dr-danger"
