@@ -26,6 +26,12 @@ export interface BatchTarget {
   ids: string[]
 }
 
+/** Çöpü boşaltmanın hedefi: program başlığı (S2 türler) + onay değeri (= tür yol adı). */
+export interface PurgeAllTarget {
+  programId: string
+  confirm: string
+}
+
 /** S1 (hesap) yaşam döngüsü yazmalarının hedefi. */
 export interface AccountRecordTarget {
   id: string

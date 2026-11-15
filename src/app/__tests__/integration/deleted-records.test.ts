@@ -92,7 +92,18 @@ function batchEndpoints(segment: string, list: keyof Deleted, onRestore?: (id: s
         return HttpResponse.json({ succeeded: ids, failed: [] })
       },
     )
-  return [handle(true), handle(false)]
+  const purgeAll = http.post(
+    `${ORIGIN}/v1/admin/deleted/${segment}/purge-all`,
+    async ({ request }) => {
+      const { confirm } = (await request.json()) as { confirm: string }
+      if (confirm !== segment)
+        return HttpResponse.json({ code: 'work.input_invalid' }, { status: 422 })
+      const succeeded = deleted[list].slice(0, 50)
+      deleted[list] = deleted[list].slice(50)
+      return HttpResponse.json({ succeeded, failed: [], remaining: deleted[list].length })
+    },
+  )
+  return [handle(true), handle(false), purgeAll]
 }
 
 /** Silinen listeleri + yaşam döngüsü uçları; pano sayacı bu duruma bağlıdır. */
@@ -467,6 +478,34 @@ describe('toplu geri yükle / kalıcı sil → türetilmiş kaynaklar (BE-114, K
     ).toBeNull()
     await app.router.push('/')
     await until(() => counter() === '2', 'rozet sonra')
+  })
+})
+
+describe('çöpü boşalt → özet, listeler ve ana sayfa rozeti (BE-115, KESİN 29)', () => {
+  it('tür adı yazılınca ortak onay, sonra purge-all; sayaçlar ve rozet düşer; tekil uçlar çağrılmaz', async () => {
+    deleted.tasks = ['wd', 'wd2', 'wd3']
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
+    await until(() => $('[data-record-key="gorev:wd3"]'), 'silinen görevler')
+    await click(() => $('[data-testid="dr-empty-trash"]'))
+    await until(() => $('[data-testid="dr-purgeall"]'), 'çöp paneli')
+    expect($('[data-testid="dr-purgeall"]')?.textContent).toContain(
+      '3 görev kalıcı olarak silinecek',
+    )
+    const input = $('[data-testid="dr-purgeall-input"]') as HTMLInputElement
+    input.value = 'görev'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    await click(() => $('[data-testid="dr-purgeall-confirm"]'))
+    await acceptConfirm()
+    await idle(app.queryClient)
+    const calls = backend.sent('POST', '/v1/admin/deleted/work-items/purge-all')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(toasts()).toContain('Çöp boşaltıldı: 3 kayıt kalıcı olarak silindi.')
+    await until(() => !$('[data-record-key]'), 'liste boşaldı')
+    expect(backend.sent('DELETE', '/v1/admin/permanent/work-items/wd')).toHaveLength(0)
+    await until(() => $('[data-kind="gorev"] .rp-count')?.textContent === '0', 'özet sayacı')
+    await app.router.push('/')
+    await until(() => counter() === '3', 'rozet sonra')
   })
 })
 

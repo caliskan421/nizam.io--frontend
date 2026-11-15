@@ -74,6 +74,8 @@ export interface World {
   failures: Map<string, { status: number; code: string }>
   /** Toplu işlemde kimlik → öğe hata kodu (`failed[]` satırı; kayıt listede kalır). */
   itemFailures: Map<string, string>
+  /** Çöpü boşalt çağrısını bekleten kapı (senaryo: durdur / kapsam değişimi). */
+  purgeGate: ((call: number) => Promise<void>) | null
 }
 
 export const world: World = {
@@ -85,6 +87,7 @@ export const world: World = {
   dictionary: [],
   failures: new Map(),
   itemFailures: new Map(),
+  purgeGate: null,
 }
 
 export function resetWorld(): void {
@@ -98,6 +101,8 @@ export function resetWorld(): void {
   })
   world.failures.clear()
   world.itemFailures.clear()
+  world.purgeGate = null
+  purgeCalls = 0
 }
 
 export const json = (body: JsonBodyType, status = 200) => HttpResponse.json(body, { status })
@@ -254,6 +259,8 @@ interface LifecycleSpec {
   idField: string
   purgeExtra?: JsonBodyType
   remove: (id: string) => void
+  /** Türün bütün silinmiş kimlikleri (çöpü boşalt adayları; sunucu sırası). */
+  all: () => string[]
 }
 
 const LIFECYCLES: LifecycleSpec[] = [
@@ -263,24 +270,28 @@ const LIFECYCLES: LifecycleSpec[] = [
     idField: 'work_item_id',
     purgeExtra: { files_deleted: 2 },
     remove: (id) => drop(world.tasks, (t) => t.work_item_id === id),
+    all: () => world.tasks.flat().map((t) => t.work_item_id),
   },
   {
     segment: 'meetings',
     code: 'collaboration.not_authorized',
     idField: 'meeting_id',
     remove: (id) => drop(world.meetings, (m) => m.meeting_id === id),
+    all: () => world.meetings.flat().map((m) => m.meeting_id),
   },
   {
     segment: 'departments',
     code: 'organization.not_authorized',
     idField: 'department_id',
     remove: (id) => drop(world.departments, (d) => d.department_id === id),
+    all: () => world.departments.flat().map((d) => d.department_id),
   },
   {
     segment: 'accounts',
     code: 'organization.not_authorized',
     idField: 'account_id',
     remove: (id) => drop(world.accounts, (a) => a.account_id === id),
+    all: () => world.accounts.flat().map((a) => a.account_id),
   },
 ]
 
@@ -337,8 +348,40 @@ function batchHandlers() {
   )
 }
 
+/**
+ * Çöpü boşalt (`POST …/purge-all`): `confirm` tür yol adı olmalı (aksi 422), çağrı başına en çok
+ * 50 kayıt silinmiş listesinin sırasıyla işlenir; `itemFailures` kayıtları `failed[]`'te kalır ve
+ * `remaining` onları da sayar. Bir çağrı bekletilebilir (`world.purgeGate`; gerçek süre yok).
+ */
+let purgeCalls = 0
+function purgeAllHandlers() {
+  return LIFECYCLES.map((spec) =>
+    http.post(`${ORIGIN}/v1/admin/deleted/${spec.segment}/purge-all`, async ({ request }) => {
+      const path = `/v1/admin/deleted/${spec.segment}/purge-all`
+      const forced = failure('POST', path)
+      if (forced) return forced
+      if (!world.admin) return FORBIDDEN(spec.code)
+      const body = (await request.json()) as { confirm?: string }
+      if (body.confirm !== spec.segment) return errorEnvelope('work.input_invalid', 422)
+      purgeCalls += 1
+      await world.purgeGate?.(purgeCalls)
+      const succeeded: string[] = []
+      const failed: Array<{ id: string; code: string }> = []
+      for (const id of spec.all().slice(0, 50)) {
+        const code = world.itemFailures.get(id)
+        if (code) failed.push({ id, code })
+        else {
+          spec.remove(id)
+          succeeded.push(id)
+        }
+      }
+      return json({ succeeded, failed, remaining: spec.all().length })
+    }),
+  )
+}
+
 export function backendHandlers() {
-  return [...listHandlers(), ...lifecycleHandlers(), ...batchHandlers()]
+  return [...listHandlers(), ...lifecycleHandlers(), ...batchHandlers(), ...purgeAllHandlers()]
 }
 
 export function standingHandlers(options: {

@@ -465,6 +465,33 @@
     color: var(--ink-muted);
   }
 
+  /* Çöpü boşalt paneli (BE-115) */
+  .dr-page .dr-purgeall {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+  }
+  .dr-page .dr-purgeall__text {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .dr-page .dr-purgeall__title {
+    margin: 0 0 var(--space-1);
+    font: var(--ui-text-sm-strong);
+  }
+  .dr-page .dr-purgeall__form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .dr-page .dr-purgeall__form .t-field {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
+  }
+
   /* Yetkisiz durum */
   .dr-page .dr-denied {
     padding: var(--space-12) var(--space-8);

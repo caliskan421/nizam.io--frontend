@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import '../components/deleted-records.css'
 
-import { computed, onScopeDispose } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { HOME_ROUTE } from '@/modules/home/public'
-import { useStanding } from '@/shared/scope/standing'
 import { UiEmptyState, UiIcon } from '@/shared/ui'
 
 import {
@@ -16,100 +14,56 @@ import {
   KindSegment,
   ListState,
   NoticeBar,
+  PurgeAllPanel,
   RecordsFooter,
   RecordsHead,
   RecordsTable,
 } from '../components'
-import { useBatchActions } from '../components/use-batch-actions'
-import { useDeletedView } from '../components/use-deleted-view'
-import { usePageCounts } from '../components/use-page-counts'
-import { usePageFocus } from '../components/use-page-focus'
-import { useRecordActions } from '../components/use-record-actions'
-import { useSelection } from '../components/use-selection'
-import { deletedRecordsCapabilities } from '../model/capabilities'
+import { useDeletedPage } from '../components/use-deleted-page'
 import { deletedText } from '../model/messages'
-import type { DeletedRow } from '../model/types'
+import { supportsPurgeAll } from '../model/purge-all'
 
 /**
  * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5, F8; P36, P41…P45). Yalnız şirket
  * yöneticisi (`me.company_admin` olgusu; mercek değil). Dört canlı tür ayrı imleçli uçtur, açık
  * sekmenin ucu çağrılır; arama/koordinatörlük/aralık/silen/sıra sunucu parametresidir (BE-117).
- * Kenar menüsünde giriş yoktur; giriş ana sayfa E-01-02 düğmesidir.
+ * Kenar menüsünde giriş yoktur; giriş ana sayfa E-01-02 düğmesidir. Bileşim `use-deleted-page`.
  */
-const { standing } = useStanding()
-const caps = computed(() => deletedRecordsCapabilities(standing.value))
-const view = useDeletedView(() => caps.value.view)
-const { filters, list } = view
-onScopeDispose(view.dispose)
-
-const focus = usePageFocus()
-const column = focus.column
-
-const forbidden = computed(() => list.error.value?.status === 403)
-const allowed = computed(() => caps.value.view && !forbidden.value)
-const denied = computed(() => standing.value !== null && !allowed.value)
-
-const { counts, subtitle } = usePageCounts(
-  () => caps.value.view,
-  () => filters.value.kind,
-)
-const listState = computed<'loading' | 'error' | 'empty' | 'filtered' | null>(() => {
-  if (list.error.value) return 'error'
-  if (list.loading.value) return 'loading'
-  if (list.rows.value.length > 0) return null
-  return view.filtered.value ? 'filtered' : 'empty'
-})
-
-const actions = useRecordActions({
-  refresh: () => list.refetch(),
-  removed: (row) => {
-    if (filters.value.selected === row.id) view.update({ selected: null })
-    void focus.afterRemoval()
-  },
-})
-
-const selection = useSelection(
-  () => list.rows.value,
-  // Dize anahtarı: yalnız tür/süzgeç/sıra gerçekten değişince sıfırlanır (kimlik değil değer).
-  () => `${filters.value.kind}|${JSON.stringify(view.query.value)}`,
-)
-onScopeDispose(selection.dispose)
-const batch = useBatchActions({
-  kind: () => filters.value.kind,
-  refresh: () => list.refetch(),
-  finished: (failedIds) => {
-    selection.keepOnly(failedIds)
-    void focus.afterRemoval()
-  },
-})
-const busy = computed(() => actions.pending.value || batch.pending.value)
-
-function act(action: 'restore' | 'purge', row: DeletedRow): void {
-  focus.remember(list.rows.value.findIndex((candidate) => candidate.key === row.key))
-  void (action === 'restore' ? actions.restore(row) : actions.purge(row))
-}
-function clearSelection(): void {
-  selection.clear()
-  void focus.toSelectAll()
-}
-function dismissBatchSummary(): void {
-  batch.dismissSummary()
-  void focus.toKindButton()
-}
-function openDepartments(): void {
-  actions.dismissNotice()
-  view.setKind('koordinatorluk')
-  void focus.toKindButton('koordinatorluk')
-}
-function dismissNotice(): void {
-  actions.dismissNotice()
-  void focus.toKindButton()
-}
+const {
+  caps,
+  view,
+  filters,
+  list,
+  column,
+  allowed,
+  denied,
+  counts,
+  subtitle,
+  listState,
+  actions,
+  selection,
+  batch,
+  purgeAll,
+  busy,
+  act,
+  clearSelection,
+  dismissBatchSummary,
+  openDepartments,
+  dismissNotice,
+  closePurgeAll,
+  dismissPurgeSummary,
+} = useDeletedPage()
 </script>
 
 <template>
   <section v-if="allowed" ref="column" class="dr-page" data-testid="deleted-records-page">
-    <RecordsHead :subtitle="subtitle" />
+    <RecordsHead
+      :subtitle="subtitle"
+      :purge-all-on="supportsPurgeAll(filters.kind)"
+      :purge-all-open="purgeAll.panel.value || purgeAll.running.value"
+      :busy="busy"
+      @purge-all="purgeAll.open"
+    />
     <div class="rp-body">
       <div class="rp-col">
         <div class="dr-note" data-testid="dr-retention">
@@ -130,6 +84,21 @@ function dismissNotice(): void {
             @update="view.update"
           />
         </div>
+        <PurgeAllPanel
+          v-if="(purgeAll.panel.value || purgeAll.running.value) && supportsPurgeAll(filters.kind)"
+          :kind="filters.kind"
+          :count="counts?.[filters.kind] ?? null"
+          :running="purgeAll.running.value"
+          :progress="purgeAll.progress.value"
+          @confirm="purgeAll.confirm"
+          @cancel="closePurgeAll"
+          @stop="purgeAll.stop"
+        />
+        <BatchSummary
+          v-if="purgeAll.summary.value"
+          :summary="purgeAll.summary.value"
+          @dismiss="dismissPurgeSummary"
+        />
         <BulkBar
           v-if="selection.count.value > 0"
           :count="selection.count.value"

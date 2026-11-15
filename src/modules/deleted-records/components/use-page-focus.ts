@@ -32,9 +32,14 @@ export function usePageFocus() {
       : kinds?.querySelector<HTMLElement>('[aria-pressed="true"]')
     target?.focus()
   }
+  /** Çöpü boşalt paneli kapanınca odak başlık düğmesine döner. */
+  async function toTrashButton(): Promise<void> {
+    await nextTick()
+    column.value?.querySelector<HTMLElement>('[data-testid="dr-empty-trash"]')?.focus()
+  }
   async function toSelectAll(): Promise<void> {
     await nextTick()
     column.value?.querySelector<HTMLElement>('[data-testid="dr-select-all"]')?.focus()
   }
-  return { column, remember, afterRemoval, toKindButton, toSelectAll }
+  return { column, remember, afterRemoval, toKindButton, toSelectAll, toTrashButton }
 }

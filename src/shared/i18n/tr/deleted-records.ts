@@ -190,6 +190,37 @@ export const trDeletedRecords = {
       generic: 'Bu kayıt işlenemedi.',
       dismiss: 'Kapat',
     },
+    // Çöpü boşalt (E-12-06; BE-115): tür adı yazılarak onay, ardından ilerleme/sonuç.
+    purgeAll: {
+      title: '{n} {kind} kalıcı olarak silinecek',
+      titleUnknown: 'Tüm silinmiş {kind} kayıtları kalıcı olarak silinecek',
+      scope: {
+        gorev:
+          'Seçili programdaki bütün silinmiş görevler silinir; ekrandaki süzgeçler dikkate alınmaz.',
+        toplanti:
+          'Seçili programdaki bütün silinmiş toplantılar silinir; ekrandaki süzgeçler dikkate alınmaz.',
+        kullanici:
+          'Şirket genelindeki bütün silinmiş hesaplar silinir; ekrandaki süzgeçler dikkate alınmaz. Başka kayıtlarca kullanılan hesaplar silinmez.',
+      },
+      irreversible: 'Bu işlem geri alınamaz.',
+      typeLabel: 'Onaylamak için "{kind}" yazın',
+      typePlaceholder: '{kind}',
+      confirm: 'Çöpü boşalt',
+      cancel: 'Vazgeç',
+      confirmTitle: 'Silinmiş {kind} kayıtları kalıcı olarak silinsin mi?',
+      confirmBody: 'Bu işlem geri alınamaz. Kayıtlar 50’şerli gruplar hâlinde silinir.',
+      running: '{n} kayıt silindi, silme sürüyor',
+      runningLeft: '{n} kayıt silindi, {left} kayıt kaldı',
+      stop: 'Durdur',
+      done: 'Çöp boşaltıldı: {n} kayıt kalıcı olarak silindi.',
+      left: '{n} kayıt silindi, {left} kayıt silinemedi.',
+      cancelled: 'Durduruldu: {n} kayıt silindi, kalanına dokunulmadı.',
+      interrupted:
+        'İşlem yarıda kaldı: {n} kayıt silindi, kalanının durumu bilinmiyor. Liste yenilendi.',
+      group: '{n} kayıt',
+      unsupported:
+        'Koordinatörlük türünde çöp boşaltılamaz: uç şirket geneli çalışır ve programa bağlı kayıtları silemez.',
+    },
     states: {
       loading: 'Silinen kayıtlar yükleniyor',
       loadFailed: 'Silinen kayıtlar yüklenemedi',
