@@ -38,3 +38,36 @@ export function adjacentFile<T extends { file_id: string }>(
   if (position === 0) return null
   return files[direction === 'next' ? position : position - 2] ?? null
 }
+
+const FALLBACK_TIME_ZONE = 'Europe/Istanbul'
+
+function parts(at: Date, timeZone: string): Record<string, string> {
+  const format = (zone: string) =>
+    new Intl.DateTimeFormat('tr-TR', {
+      timeZone: zone,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(at)
+  let list: Intl.DateTimeFormatPart[]
+  try {
+    list = format(timeZone)
+  } catch {
+    list = format(FALLBACK_TIME_ZONE)
+  }
+  return Object.fromEntries(list.map((part) => [part.type, part.value]))
+}
+
+/**
+ * Yükleme zamanı "GG.AA.YYYY · SS:DD" (E-06-55): kurulum saat diliminde (`instanceProfile.timezone`,
+ * istemcinin değil; WORK-K37). Çözümlenemeyen değer → `null` (tarih tahmin edilmez).
+ */
+export function formatUploadedAt(iso: string, timeZone: string | null | undefined): string | null {
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return null
+  const p = parts(at, timeZone ?? FALLBACK_TIME_ZONE)
+  return `${p.day}.${p.month}.${p.year} · ${p.hour}:${p.minute}`
+}

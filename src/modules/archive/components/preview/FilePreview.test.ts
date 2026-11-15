@@ -277,10 +277,16 @@ describe('FilePreview ayrıntıları (E-06-51…55)', () => {
     expect(text('preview-uploader')).not.toContain('me-1')
   })
 
-  it('Tarih statik "—" (BE-070), tahmin edilmez', () => {
-    preview({}, null)
+  it('Tarih `created_at` değerinden "GG.AA.YYYY · SS:DD" (kurulum saat diliminde); stub yok', () => {
+    preview({ file: file({ created_at: '2026-11-12T09:05:00Z' }) }, null)
+    // Varsayılan kurulum saat dilimi Europe/Istanbul (UTC+3).
+    expect(text('preview-date')).toBe('12.11.2026 · 12:05')
+    expect(q('preview-date')!.querySelector('[data-design-stub]')).toBeNull()
+  })
+
+  it('Tarih çözümlenemezse nötr "—" (tahmin edilmez)', () => {
+    preview({ file: file({ created_at: 'bozuk' }) }, null)
     expect(text('preview-date')).toBe('—')
-    expect(q('preview-date')!.querySelector('[data-design-stub="BE-070"]')).not.toBeNull()
   })
 
   it('alt görev bağlıysa adı alt görev listesinden (403 work.not_assigned → nötr)', async () => {

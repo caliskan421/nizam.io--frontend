@@ -14,7 +14,6 @@ import {
   THUMBNAIL,
   UNATTACHED_UPLOAD,
   UPLOADER_NAME_IN_LIST,
-  UPLOAD_DATE,
 } from './stubs'
 
 const REGISTRY = readFileSync('docs/backend-eksikleri/kayit.md', 'utf8')
@@ -29,7 +28,6 @@ describe('arşiv designStub olguları', () => {
         'BE-025',
         'BE-026',
         'BE-069',
-        'BE-070',
         'BE-071',
         'BE-072',
         'BE-073',
@@ -57,7 +55,6 @@ describe('arşiv designStub olguları', () => {
     })
     for (const stub of [
       UNATTACHED_UPLOAD,
-      UPLOAD_DATE,
       UPLOADER_NAME_IN_LIST,
       FILTERED_TOTAL,
       CREATE_TAG,
