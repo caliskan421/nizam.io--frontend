@@ -13,6 +13,7 @@ import { homeText } from '../../model/messages'
 import { shortName } from '../../model/role/meetings'
 import { taskLocation, tasksLocation } from '../../model/role/links'
 import { actionTarget, queueActions, todayQueue, type QueueAction } from '../../model/u1/queue'
+import { queueParts } from '../../model/u1/queue-parts'
 import { possessiveSuffix } from '../../model/turkish'
 import DueText from '../k1/DueText.vue'
 import RegionBody from '../k1/RegionBody.vue'
@@ -30,6 +31,8 @@ import ScopeNote from '../k1/ScopeNote.vue'
 const props = defineProps<{
   items: readonly WorkItem[]
   today: string
+  /** Kurulum saat dilimi: "gönderildi" günü (WORK-K37). */
+  timeZone: string
   /** `department_id` → görünen ad (`myDepartments`). */
   unitNames: ReadonlyMap<string, string>
   loading?: boolean
@@ -47,6 +50,9 @@ const facts = useRoleFacts()
 const writes = useRoleWrites({ requestEvidence: (item) => emit('evidence', item) })
 
 const queue = computed(() => todayQueue(props.items))
+const rows = computed(() =>
+  queue.value.shown.map((item) => ({ item, ...queueParts(item, props.timeZone) })),
+)
 // Kesin sunucu özeti varsa o; kısmi kümede türev alt sınırdır (sahte toplam yok).
 const total = computed(() => props.openTotal ?? queue.value.open)
 const approximate = computed(() => props.scope != null && props.openTotal == null)
@@ -109,7 +115,7 @@ const DOT = {
       @retry="emit('retry')"
     >
       <div
-        v-for="item in queue.shown"
+        v-for="{ item, files, sent } in rows"
         :key="item.work_item_id"
         class="rh-row rh-row--queue"
         data-row
@@ -143,6 +149,8 @@ const DOT = {
             >
               {{ shortName(unitNames.get(item.department_id) ?? '') }}
             </span>
+            <span v-if="files" data-parts="files">{{ files }}</span>
+            <span v-if="sent" data-parts="sent">{{ sent }}</span>
             <DueText :item="item" :today="today" />
           </span>
         </span>

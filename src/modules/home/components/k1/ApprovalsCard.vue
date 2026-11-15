@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { workShortCode } from '@/modules/work/public'
@@ -8,6 +9,7 @@ import { UiAvatar, UiButton, UiCount } from '@/shared/ui'
 import { useRoleFacts } from '../../api/role/use-facts'
 import { useRoleWrites } from './use-role-writes'
 import { homeText } from '../../model/messages'
+import { approvalRowParts, approvalsNote } from '../../model/k1/approvals'
 import { assigneeNames, type WorkRow } from '../../model/role/common'
 import { taskLocation, tasksLocation } from '../../model/role/links'
 import DueText from './DueText.vue'
@@ -16,15 +18,18 @@ import RegionBody from './RegionBody.vue'
 /**
  * "Onay bekleyen ‹n›" (E-K1-14…18): `status = onaya_sunuldu` satırları yüklenen kümeden; sayı
  * sunucu sayacıdır. "Onayla" / "İade et" 03'ün durum geçişidir (`transitionWorkItem`, K5):
- * yetki olgudan, iyimser güncelleme yok. Görev kodu sunucu `code` alanından (BE-005); "gönderildi" ve "dosya" gizli
- * (BE-137: satırda alan yok, görev başına dosya listesi yasak). İade sebebi sözleşmede yoktur
+ * yetki olgudan, iyimser güncelleme yok. Görev kodu sunucu `code` alanından (BE-005); "gönderildi ‹n› önce" ve "‹n› dosya" satırdan
+ * (BE-137: `submitted_at`, `file_count`; görev başına dosya listesi YASAK). İade sebebi bu kartta yoktur
  * (yalnız tamamlanmış görevi geri almada gerekçe istenir) — vaat edilmez.
  */
-defineProps<{
+const props = defineProps<{
   items: readonly WorkRow[]
   /** Sunucu sayacı; sayaç yokken kısmi kümede alt sınır ("≥N", CX-F6-E-07). */
   count: number | string
   today: string
+  /** Kurulum saat diliminde göreli zaman için an ve dilim (WORK-K37). */
+  now: Date
+  timeZone: string
   loading?: boolean
   error?: Pick<ApiError, 'messageKey' | 'requestId'> | null
   retrying?: boolean
@@ -32,6 +37,10 @@ defineProps<{
 const emit = defineEmits<{ retry: [] }>()
 
 const facts = useRoleFacts()
+const note = computed(() => approvalsNote(props.items, props.now, props.timeZone))
+const rows = computed(() =>
+  props.items.map((item) => ({ item, ...approvalRowParts(item, props.now, props.timeZone) })),
+)
 const writes = useRoleWrites()
 </script>
 
@@ -47,7 +56,7 @@ const writes = useRoleWrites()
         {{ homeText('home.k1.approvals.open') }}
       </RouterLink>
     </div>
-    <p class="rh-note">{{ homeText('home.k1.approvals.note') }}</p>
+    <p class="rh-note" data-testid="k1-approvals-note">{{ note }}</p>
     <RegionBody
       :loading="loading"
       :error="error"
@@ -55,7 +64,12 @@ const writes = useRoleWrites()
       :empty="items.length === 0 ? homeText('home.k1.approvals.empty') : null"
       @retry="emit('retry')"
     >
-      <div v-for="item in items" :key="item.work_item_id" class="rh-row rh-row--appr" data-row>
+      <div
+        v-for="{ item, sent, files } in rows"
+        :key="item.work_item_id"
+        class="rh-row rh-row--appr"
+        data-row
+      >
         <span class="rh-dot rh-dot--review" aria-hidden="true" />
         <span class="rh-stack">
           <span class="rh-line">
@@ -73,6 +87,14 @@ const writes = useRoleWrites()
             </span>
             <span aria-hidden="true">·</span>
             <DueText :item="item" :today="today" />
+            <template v-if="sent">
+              <span aria-hidden="true">·</span>
+              <span data-parts="sent">{{ sent }}</span>
+            </template>
+            <template v-if="files">
+              <span aria-hidden="true">·</span>
+              <span data-parts="files">{{ files }}</span>
+            </template>
           </span>
         </span>
         <span class="rh-btns">

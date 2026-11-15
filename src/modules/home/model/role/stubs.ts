@@ -9,12 +9,6 @@ import { designStub } from '@/shared/design-stub'
 /** "Son etkinlik" (E-K1-40): audit okuma yok; rol kapsamlı okuma BE-091'e bağlı. */
 export const RECENT_ACTIVITY = designStub('BE-010', { available: false })
 
-/** Görev satırında dosya sayısı ve onaya sunuş zamanı (E-K1-15/16, E-Ü1-11): alan yok. */
-export const ROW_FILES_AND_SUBMITTED = designStub('BE-137', {
-  fileCount: false,
-  submittedAt: false,
-})
-
 /** Görev satırında bekleyen bağımlılık özeti / kilit rozeti (E-K1-20/23/25, E-Ü1-15/17). */
 export const ROW_DEPENDENCY_LOCK = designStub('BE-138', { available: false })
 

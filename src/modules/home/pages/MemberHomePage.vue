@@ -139,6 +139,7 @@ function openUpload(preset: string | null = null): void {
         <TodayQueue
           :items="items"
           :today="today"
+          :time-zone="timeZone"
           :unit-names="unitNames"
           :loading="listLoading"
           :error="listError"

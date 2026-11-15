@@ -41,7 +41,7 @@ import { meetingsLocation } from '../model/role/links'
  */
 const store = useScopeStore()
 const { standing } = useStanding()
-const { today } = useToday()
+const { today, timeZone, now } = useToday()
 
 const unitId = computed(() => store.departmentId)
 const ready = computed(() => store.programId !== null && unitId.value !== null)
@@ -173,6 +173,8 @@ const retryCounts = () => void load.counts.refetch()
           :items="approvals"
           :count="summary?.pending ?? (partial ? `≥${approvals.length}` : approvals.length)"
           :today="today"
+          :now="now"
+          :time-zone="timeZone"
           :loading="listLoading"
           :error="listError"
           :retrying="load.list.isFetching.value"

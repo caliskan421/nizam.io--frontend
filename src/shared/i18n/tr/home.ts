@@ -49,6 +49,12 @@ export const trHome = {
       empty: 'Henüz işlem geçmişi yok',
     },
     // --- K1 koordinatör ana sayfası (E-K1-01…41; W140). Sayı/ad/tarih yalnız gerçek veriden. ---
+    ago: {
+      now: 'az önce',
+      minutes: '{n} dk önce',
+      hours: '{n} sa önce',
+      yesterday: 'dün {time}',
+    },
     k1: {
       subtitle: '{unit} · koordinatör olarak birimin tüm görevlerini görüyorsun',
       subtitleNoUnit: 'Koordinatör olarak birimin tüm görevlerini görüyorsun',
@@ -84,6 +90,10 @@ export const trHome = {
         title: 'Onay bekleyen',
         open: 'Görevlerde aç',
         note: 'Kararını bekliyor',
+        noteEvidence: 'Kanıt yüklendi, kararını bekliyor',
+        oldest: 'en eskisi {when}',
+        sent: 'gönderildi {when}',
+        files: '{n} dosya',
         empty: 'Onay bekleyen görev yok',
         approve: 'Onayla',
         return: 'İade et',
@@ -212,6 +222,8 @@ export const trHome = {
         all: 'Tümü',
         empty: 'Bugün için görev yok',
         subtasks: 'Alt görev {done}/{total}',
+        files: '{n} dosya',
+        sentOn: '{day}’da gönderildi',
         reviewBadge: 'Onayda',
         reviewTip: 'Koordinatör onayında',
         restart: 'Tekrar başla',

@@ -50,7 +50,12 @@ const ITEMS = [
   row('devam_ediyor', { title: 'Devam görev', end_on: '2099-01-10', priority: 'orta' }),
   row('iade_edildi', { title: 'İade görev', end_on: '2099-01-05', department_id: 'd2' }),
   row('baslanmadi', { title: 'Başlanmamış görev', end_on: '2099-02-01' }),
-  row('onaya_sunuldu', { title: 'Onaydaki görev', end_on: '2099-01-01' }),
+  row('onaya_sunuldu', {
+    title: 'Onaydaki görev',
+    end_on: '2099-01-01',
+    file_count: 3,
+    submitted_at: '2026-10-19T09:00:00Z',
+  }),
   row('devam_ediyor', {
     title: 'Geciken görev',
     code: 'MEK-12',
@@ -146,6 +151,9 @@ describe('Ü1 üye ana sayfası', () => {
     )
     expect(page.wrapper.get('[data-testid="u1-queue-all"]').text()).toContain('5')
     const review = rowsOf(page)[4]!
+    // BE-137: "‹n› dosya" ve "‹GG.AA›’da gönderildi" satır alanlarından.
+    expect(review.get('[data-parts="files"]').text()).toBe('3 dosya')
+    expect(review.get('[data-parts="sent"]').text()).toBe('19.10’da gönderildi')
     expect(review.get('[data-badge="review"]').attributes('title')).toBe('Koordinatör onayında')
     expect(review.findAll('button')).toHaveLength(0)
     const late = rowsOf(page)[1]!

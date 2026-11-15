@@ -38,6 +38,8 @@ const ITEMS = [
     title: 'Hidrofor',
     code: 'ALT-3',
     sequence_no: 3,
+    file_count: 4,
+    submitted_at: '2026-10-20T10:00:00Z',
     assignee_account_ids: ['acc-2'],
     assignees: [A],
   }),
@@ -182,12 +184,19 @@ describe('K1 koordinatör ana sayfası', () => {
   })
 
   it('E-K1-14…22: onay, atanmamış ve dikkat kuyrukları aynı kümeden', async () => {
+    // Yalnız `Date` sahte (göreli zaman 2026-10-20 15:00 İstanbul); zamanlayıcılar gerçek.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-20T12:00:00Z') })
     server.use(...handlers())
     const page = await mountRole(CoordinatorHomePage, COORD_SCOPE)
     await vi.waitFor(() => expect(region(page, 'approvals').findAll('[data-row]')).toHaveLength(1))
     expect(region(page, 'approvals').text()).toContain('Hidrofor')
-    expect(region(page, 'approvals').text()).toContain('Kararını bekliyor')
-    expect(region(page, 'approvals').text()).not.toContain('dosya')
+    // BE-137: alt yazı ve satır parçaları satır alanlarından (görev başına dosya listesi okunmaz).
+    expect(region(page, 'approvals').get('[data-testid="k1-approvals-note"]').text()).toBe(
+      'Kanıt yüklendi, kararını bekliyor · en eskisi 2 sa önce',
+    )
+    expect(region(page, 'approvals').get('[data-parts="sent"]').text()).toBe('gönderildi 2 sa önce')
+    expect(region(page, 'approvals').get('[data-parts="files"]').text()).toBe('4 dosya')
+    vi.useRealTimers()
     // Görev kodu sunucunun `code` alanından (BE-005; eski "—" yer tutucusu yok).
     expect(region(page, 'approvals').get('[data-task-code]').text()).toBe('ALT-3')
     expect(region(page, 'approvals').find('[data-design-stub]').exists()).toBe(false)
