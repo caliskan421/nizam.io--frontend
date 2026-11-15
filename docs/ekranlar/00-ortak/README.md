@@ -85,7 +85,7 @@ Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, 
 Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırlarını kodlar.
 
 ## Açık sorular (ürün sahibine)
-- **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? **F7 geçici kapandı:** sohbet sayısı (P59 taslak); v1'de (F0–F6) rozet gizliydi.
+- **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? **F7 kesin karar:** sohbet sayısı (P59 kesin); v1'de (F0–F6) rozet gizliydi.
 
 Kapananlar: Arşiv/Mesajlar menüde gizli → kabul (P2) · Yardım gizli → kabul (P2) · Asistan gizli → kabul (P2) · zil paneli F7'ye kadar devre dışı, sayaç canlı → kabul (§5) · Yönetim grubu `company_admin` ile, mercekten bağımsız → kabul (P1) · daraltılmış menüde kapsam simgeleri görünür, tık seçiciyi açar → kabul (P11) · daraltma yalnız oturum belleği → kabul (P10) · tek mercekte rol kartı salt gösterim → kabul (P11) · ürün adı sabit "RoketPortal" → kabul (P9).
 
@@ -117,3 +117,20 @@ Ayrıntı ve öğe tabloları: [mekanizma.md §9](mekanizma.md). Özet: menü gr
 | 390 px rail | Kabuk menüsü gerçek tıklama + odak | `menu-definition.test.ts` (390 rail); `__tests__/integration/menu-roles-shell.test.ts` ("düğme menüyü açar, odak menüye girer…", "Esc menüyü kapatır ve odak tetikleyiciye döner", "perdeye tıklama menüyü kapatır; arka içerik açıkken etkisiz (inert)") |
 
 **Not:** E-00-47 oturum kartı tasarımın "Profilim" düğmesinden sapar (e-posta; profil sayfası F6 dışı) — [rapor-F6 §4](../../backend-eksikleri/rapor-F6.md). Takvim / Kurumsal hafıza menüde gizlidir (F7 adayı).
+
+## F7 uygulama kanıtı (W161, 2026-11-14)
+
+**Kapanış güncellemesi (W161b):** **F7 KAPANDI — 2026-11-15 (bu kayıt kapanış PR’ının CI başarılı birleşmesiyle yürürlüğe girer).** W166 [#152](https://github.com/caliskan421/nizam.io--frontend/pull/152) main `ffc2937`; [CI](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43644068102) kalite/imaj/gerçek backend Playwright SUCCESS. Dört turun koşulları kapalı; tur 4 Ö-06/Ö-07 ve dc876ed ek incelemesiyle sınırlıdır. Aşağıdaki test toplamları/kanıtlar ilk W161 tesliminin tarihsel kayıtlarıdır; bu belge güncellemesinde yeniden koşulmadı. [Hüküm ve devam eden borçlar](../../reviews/WEB-7-codex.md).
+
+**Uygulama durumu: `kabul` (sahte `/v1` ile; gerçek sunucu tanığı: [dogrulama-F7](../../yurutme/web-7/dogrulama-F7.md) — W162, #148 `4457bd3`)** — E-00-20 (Mesajlar menü öğesi), E-00-21 (Mesajlar rozeti) ve E-00-38 (bildirim zili, panel canlı) W154 (PR #141, `e9b1cce`), W155 (#143), W158 (#142) ile uygulandı ve W160 (#147) entegrasyon turunda üç rol × 390 px ile sınandı; `main` `76e4345`. Karar hücreleri (`geçici kabul` / `kabul`) karar kaydıdır ve değişmedi; E-00-21 sohbet sayısı varsayılanı (P59) KESİN'dir. Gerçek sunucu tanığı W162’de alındı (#148, HEAD `76e4345`); bu tarihsel kanıt mevcut HEAD’de yeniden koşulmadı. Gerçek cihaz ekran okuyucu **doğrulanamadı**. Test dosyaları `src/app/` altındadır.
+
+| Satırlar | Konu | Kanıt (dosya · test adı / akış) |
+|---|---|---|
+| E-00-20 | "Mesajlar" menü öğesi üç rolde görünür, rota `/mesajlar` | `shell/side/menu-definition.test.ts` (rol × öğe matrisi); `routes.catalog.test.ts` (`CURRENT_PHASE` F7, Mesajlar rotaları); `__tests__/integration/menu-chat-shell.test.ts` ("faz F7; Mesajlar canlı ve menüde; üç rolde kayıtlı rota", "menüden Mesajlar tıklanır: gezinir, menü kapanır, odak gövdeye düşmez; liste tek sütun") |
+| E-00-21 | Mesajlar rozeti = `unread_chats` (seçili program); `mentioned` → danger | `__tests__/integration/menu-chat-shell.test.ts` ("anılma (`mentioned`): rozet danger tonunda, erişim adı anmayı söyler; okununca söner", "okunmamış yoksa rozet çizilmez", "1–9 sayı, ≥10 "9+"; erişim adı sayıyı söyler; zil ve menü rozeti birbirinden bağımsız sayılır"); `modules/chat/model/unread.test.ts`; `__tests__/integration/chat-window.test.ts` ("açılışta okunmamış ayırıcı 20; 1 sn sonra TEK markChatRead → liste rozeti ve menü rozeti düşer") ve `chat-writes.test.ts` ("uç bütün sohbetleri okunmuş yapar: liste rozetleri ve menü rozeti yeniden okunur") — KESİN 29 türev sayaç |
+| E-00-38 | Bildirim zili: sayaç hesap geneli, sayılı rozet 1–9 / "9+", panel canlı | `shell/topbar/TopbarBell.test.ts`, `shell/topbar/bell-target.test.ts`; `modules/notifications/api/queries.test.ts` ("hesap geneli anahtarla sayacı okur; kapsam başlığı gitmez", "hata → null (rozet gizli, zil açık)"); `__tests__/integration/notifications-panel.test.ts` ("sayaç rozeti (1–9 sayı, ≥10 "9+"); okunamazsa gizli; aç → grup başlıkları + sekmeler", "Esc kapatır ve odak zile döner", "kapsam (program) değişince panel kapanır…"); ayrıntı: [14-bildirimler F7 uygulama kanıtı](../14-bildirimler/README.md) |
+| 390 px kabuk menüsü | Mesajlar öğesi dar ekranda gerçek tıklama + odak | `__tests__/integration/menu-chat-shell.test.ts` ("menüden Mesajlar tıklanır: gezinir, menü kapanır, odak gövdeye düşmez; liste tek sütun"); W160 duman `kabuk-menu-390` (2 ölçüm: taşma 0, CSP 0; yerel kanıt) |
+
+**Kısmi / dolaylı kanıt (kabul değil, açık):** E-00-21 rozet değerini gerçek `getChatUnreadOverview` yanıtıyla gerçek backend e2e'si (`e2e/chat.spec.ts`: "rozetler") dolaylı sınar; gerçek sunucuda `mentioned` alanı ayrıca kanıtlanmadı. E-00-38 zil panelinin 390 px tam ekran yerleşimi tasarımda yoktur (P62/KESİN 30 en sade çözüm). `topbar-dot*` token'ları kullanılmıyor (temizlik borcu, [rapor-F7 §4](../../backend-eksikleri/rapor-F7.md)).
+
+**Not:** F7'de menüde görünür olanlar yalnız Mesajlar ve (zil) bildirim panelidir; Takvim, Kurumsal hafıza, Asistan, Yardım, Tablolar, Birimim, Ekibim gizli kalır (F7 dışı, P54).
