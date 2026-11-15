@@ -43,11 +43,19 @@ const ITEMS = [
     assignee_account_ids: ['acc-2'],
     assignees: [A],
   }),
-  row('baslanmadi', { title: 'Sahipsiz iş', assignee_account_ids: [], priority: 'yuksek' }),
+  row('baslanmadi', {
+    title: 'Sahipsiz iş',
+    assignee_account_ids: [],
+    priority: 'yuksek',
+    has_pending_dependency: true,
+    pending_dependency_count: 2,
+  }),
   row('devam_ediyor', {
     title: 'Geciken iş',
     code: 'ALT-8',
     sequence_no: 8,
+    has_pending_dependency: true,
+    pending_dependency_count: 1,
     assignee_account_ids: ['acc-2'],
     assignees: [A],
     is_overdue: true,
@@ -203,11 +211,17 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(region(page, 'unassigned').findAll('[data-row]')).toHaveLength(1)
     expect(region(page, 'unassigned').text()).toContain('Sahipsiz iş')
     expect(region(page, 'unassigned').text()).toContain('Yüksek')
+    // BE-138: kilit rozeti yalnız sayı; başlık notu ve "Bağımlılıklar" eylemi satır alanından.
+    expect(region(page, 'unassigned').get('[data-lock]').text()).toBe('2 görev bekleniyor')
     const att = region(page, 'attention')
     expect(att.text()).toContain('Geciken iş')
     expect(att.text()).toContain('21 gün gecikti')
     expect(att.text()).toContain('talep reddedildi')
     expect(att.find('[data-action="extend"]').exists()).toBe(true)
+    expect(att.get('[data-testid="k1-attention-note"]').text()).toBe(
+      '1 geciken görev · 1 görev bağımlılık bekliyor',
+    )
+    expect(att.get('[data-action="dependencies"]').text()).toBe('Bağımlılıklar')
   })
 
   it('E-K1-17: "Onayla" ve "İade et" transitionWorkItem (X-Requested-With); başarıda liste yeniden okunur', async () => {

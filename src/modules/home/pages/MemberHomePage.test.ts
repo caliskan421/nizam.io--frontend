@@ -171,6 +171,36 @@ describe('Ü1 üye ana sayfası', () => {
     expect(actions(rowsOf(page)[3]!)).toEqual(['start'])
   })
 
+  it('E-Ü1-15/17: kilitli satırda "Göreve başla" devre dışı + sayı ipucu; kilit cümlesi', async () => {
+    const calls: string[] = []
+    const locked = row('baslanmadi', {
+      title: 'Kilitli görev',
+      end_on: '2099-03-01',
+      has_pending_dependency: true,
+      pending_dependency_count: 2,
+    })
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/:id/transitions`, () => {
+        calls.push('tr')
+        return json({ work_item_id: 'x', from: 'x', to: 'y', actor: 'uye' })
+      }),
+      ...standingHandlers(MEMBER),
+      ...roleHandlers({ items: [locked], counts: COUNTS_BODY }),
+    )
+    const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(page)
+    const row0 = rowsOf(page)[0]!
+    expect(row0.get('[data-parts="lock"]').text()).toBe('2 görev bekleniyor')
+    const start = row0.get('[data-action="start"]')
+    expect(start.attributes('disabled')).toBeDefined()
+    expect(start.attributes('title')).toBe('Bağlı olduğu görevler tamamlanmadan başlatılamaz')
+    await start.trigger('click')
+    expect(calls).toEqual([])
+    expect(page.wrapper.get('[data-testid="u1-queue-lock"]').text()).toBe(
+      'Kilitli görevler, bağlı oldukları görev tamamlanınca açılır.',
+    )
+  })
+
   it('E-Ü1-12/14/15: "Tekrar başla" own-status; "Göreve başla" ve "Tamamlandı bildir" transitions', async () => {
     const calls: string[] = []
     server.use(

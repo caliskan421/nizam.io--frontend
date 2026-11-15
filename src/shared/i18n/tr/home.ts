@@ -49,6 +49,11 @@ export const trHome = {
       empty: 'Henüz işlem geçmişi yok',
     },
     // --- K1 koordinatör ana sayfası (E-K1-01…41; W140). Sayı/ad/tarih yalnız gerçek veriden. ---
+    lock: {
+      waiting: '{n} görev bekleniyor',
+      tip: 'Bağlı olduğu görevler tamamlanmadan başlatılamaz',
+      startLabel: '{title} göreve başla, kilitli',
+    },
     ago: {
       now: 'az önce',
       minutes: '{n} dk önce',
@@ -116,6 +121,9 @@ export const trHome = {
         title: 'Dikkat gerektirenler',
         timeline: 'Zaman çizelgesi',
         note: '{n} geciken görev',
+        noteWaiting: '{n} geciken görev · {m} görev bağımlılık bekliyor',
+        dependencies: 'Bağımlılıklar',
+        dependenciesLabel: '{title} için bağımlılıklar',
         empty: 'Dikkat gerektiren görev yok',
         late: '{n} gün gecikti',
         due: 'bitiş {date}',
@@ -235,6 +243,7 @@ export const trHome = {
         completeLabel: '{title} görevini tamamlandı bildir',
         startLabel: '{title} göreve başla',
         evidenceNote: 'Onaya göndermek için en az 1 kanıt dosyası gerekir.',
+        lockNote: 'Kilitli görevler, bağlı oldukları görev tamamlanınca açılır.',
         wrote: 'Görev durumu güncellendi',
         failed: 'Durum değiştirilemedi',
       },

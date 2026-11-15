@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 
 import { workShortCode, type WorkItem } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { UiButton, UiCount } from '@/shared/ui'
+import { UiButton, UiCount, UiIcon } from '@/shared/ui'
 
 import type { RoleLoadScope } from '../../model/role/common'
 import { useRoleFacts } from '../../api/role/use-facts'
@@ -24,8 +24,8 @@ import ScopeNote from '../k1/ScopeNote.vue'
  * tarihe göre ilk beşi. Satır: durum noktası + etiket, alt görev ilerlemesi, birim (ad
  * kısaltması; tam ad ipucunda), bitiş + göreli. Eylemler 03'ün yazma akışı: "Tekrar başla"
  * (`ownStatusWorkItem`), "Göreve başla" / "Tamamlandı bildir" (`transitionWorkItem`), "Kanıt
- * yükle" (yükleme penceresi, görev sabit). Kilit durumu ve iade sebebi gizli (BE-138/139);
- * bağımlılık engeli sunucu hatasıyla bildirilir. `onaya_sunuldu` satırında yalnız "Onayda"
+ * yükle" (yükleme penceresi, görev sabit). Kilitli satırda "Göreve başla" devre dışı + "‹n› görev bekleniyor" ipucu (BE-138; ad yok);
+ * engel yine sunucu hatasıyla bildirilir. İade sebebi gizli (BE-139); `onaya_sunuldu` satırında yalnız "Onayda"
  * rozeti (koordinatör adı üyeye okunamaz).
  */
 const props = defineProps<{
@@ -56,6 +56,7 @@ const rows = computed(() =>
 // Kesin sunucu özeti varsa o; kısmi kümede türev alt sınırdır (sahte toplam yok).
 const total = computed(() => props.openTotal ?? queue.value.open)
 const approximate = computed(() => props.scope != null && props.openTotal == null)
+const hasLocked = computed(() => queue.value.shown.some((i) => i.has_pending_dependency))
 const needsEvidence = computed(() => queue.value.shown.some((i) => i.completion_evidence_required))
 
 const LABEL = {
@@ -115,7 +116,7 @@ const DOT = {
       @retry="emit('retry')"
     >
       <div
-        v-for="{ item, files, sent } in rows"
+        v-for="{ item, files, sent, lock } in rows"
         :key="item.work_item_id"
         class="rh-row rh-row--queue"
         data-row
@@ -151,6 +152,10 @@ const DOT = {
             </span>
             <span v-if="files" data-parts="files">{{ files }}</span>
             <span v-if="sent" data-parts="sent">{{ sent }}</span>
+            <span v-if="lock" class="rh-lock" data-parts="lock">
+              <UiIcon name="lock" size="sm" />
+              {{ lock }}
+            </span>
             <DueText :item="item" :today="today" />
           </span>
         </span>
@@ -165,7 +170,20 @@ const DOT = {
           </span>
           <template v-for="action in queueActions(item)" :key="action">
             <UiButton
-              v-if="allowed(item, action)"
+              v-if="allowed(item, action) && action === 'start' && item.has_pending_dependency"
+              variant="secondary"
+              size="sm"
+              icon="lock"
+              disabled
+              :title="homeText('home.lock.tip')"
+              :aria-label="homeText('home.lock.startLabel', { title: item.title })"
+              data-action="start"
+              data-locked
+            >
+              {{ homeText('home.u1.queue.start') }}
+            </UiButton>
+            <UiButton
+              v-else-if="allowed(item, action)"
               :variant="action === 'complete' ? 'primary' : 'secondary'"
               size="sm"
               :icon="action === 'evidence' ? 'file-upload' : undefined"
@@ -179,6 +197,9 @@ const DOT = {
           </template>
         </span>
       </div>
+      <p v-if="hasLocked" class="rh-foot" data-testid="u1-queue-lock">
+        {{ homeText('home.u1.queue.lockNote') }}
+      </p>
       <p v-if="needsEvidence" class="rh-foot" data-testid="u1-queue-evidence">
         {{ homeText('home.u1.queue.evidenceNote') }}
       </p>

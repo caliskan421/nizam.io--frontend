@@ -6,10 +6,13 @@
 import { homeText } from '../messages'
 import { dayText } from '../role/ago'
 import type { WorkRow } from '../role/common'
+import { lockText } from '../role/lock'
 
 export interface QueueParts {
   files: string | null
   sent: string | null
+  /** "‹n› görev bekleniyor" (BE-138; ad/kod alanda yok → yalnız sayı). */
+  lock: string | null
 }
 
 export function queueParts(item: WorkRow, timeZone: string): QueueParts {
@@ -20,5 +23,6 @@ export function queueParts(item: WorkRow, timeZone: string): QueueParts {
   return {
     files: item.file_count > 0 ? homeText('home.u1.queue.files', { n: item.file_count }) : null,
     sent: day ? homeText('home.u1.queue.sentOn', { day }) : null,
+    lock: lockText(item),
   }
 }
