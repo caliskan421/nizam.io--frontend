@@ -33,6 +33,9 @@ afterAll(() => server.close())
 const COORD = { companyAdmin: false, rows: [{ department_id: 'd1', role: 'koordinator' }] }
 const A = { account_id: 'acc-2', full_name: 'Ayşe Kaya' }
 
+const dialog = <T extends Element = HTMLElement>(testId: string) =>
+  document.body.querySelector<T>(`[data-testid="${testId}"]`)
+
 const ITEMS = [
   row('onaya_sunuldu', {
     title: 'Hidrofor',
@@ -248,9 +251,92 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(bodies[0]).toEqual([ITEMS[0]!.work_item_id, { to: 'tamamlandi' }])
     expect(headers[0]).not.toBe('')
     await vi.waitFor(() => expect(sent(LIST).length).toBeGreaterThan(lists))
+    // BE-139: "İade et" önce isteğe bağlı gerekçe penceresini açar; boş gönderim gerekçesizdir.
     await page.wrapper.get('[data-action="return"]').trigger('click')
+    await vi.waitFor(() => expect(dialog('k1-return-submit')).not.toBeNull())
+    expect(bodies).toHaveLength(1)
+    dialog<HTMLButtonElement>('k1-return-submit')!.click()
     await vi.waitFor(() => expect(bodies).toHaveLength(2))
     expect(bodies[1]).toEqual([ITEMS[0]!.work_item_id, { to: 'iade_edildi' }])
+  })
+
+  describe('iade gerekçesi akışı (BE-139, WORK-K96)', () => {
+    const transitions = (bodies: unknown[]) =>
+      http.post(`${ORIGIN}/v1/work-items/:id/transitions`, async ({ request, params }) => {
+        bodies.push(await request.json())
+        return json({
+          work_item_id: params.id,
+          from: 'onaya_sunuldu',
+          to: 'iade_edildi',
+          actor: 'koordinator',
+        })
+      })
+
+    async function openReturn(bodies: unknown[]) {
+      server.use(...handlers(), transitions(bodies))
+      const page = await mountRole(CoordinatorHomePage, COORD_SCOPE)
+      await vi.waitFor(() => expect($(page, '[data-action="return"]').exists()).toBe(true))
+      const trigger = page.wrapper.get('[data-action="return"]')
+      ;(trigger.element as HTMLElement).focus()
+      await trigger.trigger('click')
+      await vi.waitFor(() => expect(dialog('k1-return-input')).not.toBeNull())
+      return { page, trigger }
+    }
+
+    function write(text: string): void {
+      const input = dialog<HTMLTextAreaElement>('k1-return-input')!
+      input.value = text
+      input.dispatchEvent(new Event('input'))
+    }
+
+    it('dolu gerekçe kırpılıp gövdeye `reason` olarak gider', async () => {
+      const bodies: unknown[] = []
+      await openReturn(bodies)
+      write('  imzalı liste eksik  ')
+      dialog<HTMLButtonElement>('k1-return-submit')!.click()
+      await vi.waitFor(() => expect(bodies).toHaveLength(1))
+      expect(bodies[0]).toEqual({ to: 'iade_edildi', reason: 'imzalı liste eksik' })
+    })
+
+    it('1–2 karakter geçersiz: istek gitmez, hata görünür; düzeltince gider', async () => {
+      const bodies: unknown[] = []
+      await openReturn(bodies)
+      write('ab')
+      dialog<HTMLButtonElement>('k1-return-submit')!.click()
+      await flushPromises()
+      expect(bodies).toHaveLength(0)
+      expect(document.body.textContent).toContain('Gerekçe 3–500 karakter olmalı')
+      write('abc')
+      dialog<HTMLButtonElement>('k1-return-submit')!.click()
+      await vi.waitFor(() => expect(bodies).toEqual([{ to: 'iade_edildi', reason: 'abc' }]))
+    })
+
+    it('Vazgeç, Esc ve ✕: istek yok, odak "İade et" düğmesine döner', async () => {
+      const bodies: unknown[] = []
+      const { trigger } = await openReturn(bodies)
+      const closers = [
+        () => dialog<HTMLButtonElement>('k1-return-cancel')!.click(),
+        () =>
+          document
+            .querySelector('[role="dialog"]')!
+            .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })),
+        () =>
+          document
+            .querySelector<HTMLButtonElement>('[role="dialog"] [aria-label="Kapat"]')!
+            .click(),
+      ]
+      for (const [index, close] of closers.entries()) {
+        if (index > 0) {
+          ;(trigger.element as HTMLElement).focus()
+          await trigger.trigger('click')
+          await vi.waitFor(() => expect(dialog('k1-return-input')).not.toBeNull())
+        }
+        close()
+        await vi.waitFor(() => expect(dialog('k1-return-input')).toBeNull())
+        await vi.waitFor(() => expect(document.activeElement).toBe(trigger.element))
+      }
+      expect(bodies).toHaveLength(0)
+    })
   })
 
   it('E-K1-22: "Üstlen" kendi hesabımı atar (addAssignments)', async () => {

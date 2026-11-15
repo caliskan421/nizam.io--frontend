@@ -48,7 +48,16 @@ const MEMBER = {
 
 const ITEMS = [
   row('devam_ediyor', { title: 'Devam görev', end_on: '2099-01-10', priority: 'orta' }),
-  row('iade_edildi', { title: 'İade görev', end_on: '2099-01-05', department_id: 'd2' }),
+  row('iade_edildi', {
+    title: 'İade görev',
+    end_on: '2099-01-05',
+    department_id: 'd2',
+    last_return: {
+      reason: '<b>imzalı</b> liste eksik',
+      returned_at: '2026-10-19T09:00:00Z',
+      returned_by: { account_id: 'acc-1', full_name: 'Kadir Özbek' },
+    },
+  }),
   row('baslanmadi', { title: 'Başlanmamış görev', end_on: '2099-02-01' }),
   row('onaya_sunuldu', {
     title: 'Onaydaki görev',
@@ -124,7 +133,10 @@ describe('Ü1 üye ana sayfası', () => {
     expect(open).toContain('2 devam · 1 onayda · 1 iade · 1 başlamadı')
     expect(page.wrapper.get('[data-cell="overdue"]').text()).toContain('Açık görevlerinin %20’si')
     expect(page.wrapper.get('[data-cell="pending"]').text()).toContain('Koordinatör onayında')
-    expect(page.wrapper.get('[data-cell="returned"]').text()).toContain('Tekrar başlayabilirsin')
+    // BE-139: `last_return.reason` varsa kart notu gerekçedir (yoksa aşağıdaki test: eski metin).
+    expect(page.wrapper.get('[data-cell="returned"]').text()).not.toContain(
+      'Tekrar başlayabilirsin',
+    )
     const list = sent(LIST)[0]!
     expect(list.query.has('department_id')).toBe(false)
     expect(list.query.getAll('assignee_account_id')).toEqual(['acc-1'])
@@ -150,6 +162,13 @@ describe('Ü1 üye ana sayfası', () => {
       'Önceliğe ve son tarihe göre sıralandı · 5 açık görevinden 5’i',
     )
     expect(page.wrapper.get('[data-testid="u1-queue-all"]').text()).toContain('5')
+    // BE-139: iade gerekçesi satırda ve kart notunda, KULLANICI METNİ olarak (işaretleme çizilmez).
+    const back = rowsOf(page)[0]!
+    expect(back.get('[data-parts="returned"]').text()).toBe('iade: <b>imzalı</b> liste eksik')
+    expect(back.find('b').exists()).toBe(false)
+    expect(region(page, 'summary').get('[data-cell="returned"]').text()).toContain(
+      '<b>imzalı</b> liste eksik',
+    )
     const review = rowsOf(page)[4]!
     // BE-137: "‹n› dosya" ve "‹GG.AA›’da gönderildi" satır alanlarından.
     expect(review.get('[data-parts="files"]').text()).toBe('3 dosya')
@@ -169,6 +188,31 @@ describe('Ü1 üye ana sayfası', () => {
     expect(actions(rowsOf(page)[0]!)).toEqual(['restart'])
     expect(actions(late)).toEqual(['evidence', 'complete'])
     expect(actions(rowsOf(page)[3]!)).toEqual(['start'])
+  })
+
+  it('E-Ü1-08: gerekçesiz/izsiz iade → mevcut "Tekrar başlayabilirsin" notu ve iade satırı yok', async () => {
+    const plain = row('iade_edildi', {
+      title: 'Gerekçesiz',
+      end_on: '2099-03-01',
+      last_return: null,
+    })
+    const blank = row('iade_edildi', {
+      title: 'Gerekçe null',
+      end_on: '2099-03-02',
+      last_return: {
+        reason: null,
+        returned_at: '2026-10-19T09:00:00Z',
+        returned_by: { account_id: 'acc-1', full_name: 'Kadir Özbek' },
+      },
+    })
+    server.use(
+      ...standingHandlers(MEMBER),
+      ...roleHandlers({ items: [plain, blank], counts: COUNTS_BODY }),
+    )
+    const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(page)
+    expect(page.wrapper.get('[data-cell="returned"]').text()).toContain('Tekrar başlayabilirsin')
+    expect(page.wrapper.find('[data-parts="returned"]').exists()).toBe(false)
   })
 
   it('E-Ü1-15/17: kilitli satırda "Göreve başla" devre dışı + sayı ipucu; kilit cümlesi', async () => {

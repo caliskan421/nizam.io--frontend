@@ -196,6 +196,14 @@ export const trHome = {
         loadFailed: 'Bu bölüm yüklenemedi',
         unknownPerson: 'Ad bilinmiyor',
       },
+      returnDialog: {
+        title: 'Görevi iade et',
+        description: '{title} görevi iade edilir; üye tekrar başlayabilir.',
+        label: 'Gerekçe (isteğe bağlı)',
+        error: 'Gerekçe 3–500 karakter olmalı ya da boş bırakılmalı',
+        cancel: 'Vazgeç',
+        submit: 'İade et',
+      },
       write: {
         approved: 'Görev onaylandı',
         returned: 'Görev iade edildi',
@@ -232,6 +240,7 @@ export const trHome = {
         subtasks: 'Alt görev {done}/{total}',
         files: '{n} dosya',
         sentOn: '{day}’da gönderildi',
+        returnedReason: 'iade: {reason}',
         reviewBadge: 'Onayda',
         reviewTip: 'Koordinatör onayında',
         restart: 'Tekrar başla',

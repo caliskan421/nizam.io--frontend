@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { workShortCode } from '@/modules/work/public'
@@ -14,12 +14,13 @@ import { assigneeNames, type WorkRow } from '../../model/role/common'
 import { taskLocation, tasksLocation } from '../../model/role/links'
 import DueText from './DueText.vue'
 import RegionBody from './RegionBody.vue'
+import ReturnReasonDialog from './ReturnReasonDialog.vue'
 
 /**
  * "Onay bekleyen ‹n›" (E-K1-14…18): `status = onaya_sunuldu` satırları yüklenen kümeden; sayı
  * sunucu sayacıdır. "Onayla" / "İade et" 03'ün durum geçişidir (`transitionWorkItem`, K5):
  * yetki olgudan, iyimser güncelleme yok. Görev kodu sunucu `code` alanından (BE-005); "gönderildi ‹n› önce" ve "‹n› dosya" satırdan
- * (BE-137: `submitted_at`, `file_count`; görev başına dosya listesi YASAK). İade sebebi bu kartta yoktur
+ * (BE-137: `submitted_at`, `file_count`; görev başına dosya listesi YASAK). İade et gerekçe penceresini açar (isteğe bağlı gerekçe, BE-139)
  * (yalnız tamamlanmış görevi geri almada gerekçe istenir) — vaat edilmez.
  */
 const props = defineProps<{
@@ -37,6 +38,26 @@ const props = defineProps<{
 const emit = defineEmits<{ retry: [] }>()
 
 const facts = useRoleFacts()
+const returning = ref<WorkRow | null>(null)
+const returnOpen = ref(false)
+
+function askReturn(item: WorkRow): void {
+  returning.value = item
+  returnOpen.value = true
+}
+
+function sendReturn(reason: string | null): void {
+  const item = returning.value
+  returnOpen.value = false
+  if (item)
+    void writes.move(
+      item,
+      'iade_edildi',
+      'transition',
+      'home.k1.write.returned',
+      reason ?? undefined,
+    )
+}
 const note = computed(() => approvalsNote(props.items, props.now, props.timeZone))
 const rows = computed(() =>
   props.items.map((item) => ({ item, ...approvalRowParts(item, props.now, props.timeZone) })),
@@ -106,7 +127,7 @@ const writes = useRoleWrites()
             :disabled="writes.pendingId.value === item.work_item_id"
             :aria-label="homeText('home.k1.approvals.returnLabel', { title: item.title })"
             data-action="return"
-            @click="writes.move(item, 'iade_edildi', 'transition', 'home.k1.write.returned')"
+            @click="askReturn(item)"
           >
             {{ homeText('home.k1.approvals.return') }}
           </UiButton>
@@ -125,5 +146,11 @@ const writes = useRoleWrites()
         </span>
       </div>
     </RegionBody>
+    <ReturnReasonDialog
+      v-model:open="returnOpen"
+      :title="returning?.title ?? ''"
+      :pending="returning !== null && writes.pendingId.value === returning.work_item_id"
+      @submit="sendReturn"
+    />
   </section>
 </template>

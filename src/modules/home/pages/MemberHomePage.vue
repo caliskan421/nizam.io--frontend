@@ -28,6 +28,7 @@ import UploadDialog from '../components/u1/UploadDialog.vue'
 import { homeText } from '../model/messages'
 import { lensAssignee } from '@/modules/work/public'
 import { isOpen } from '../model/role/common'
+import { latestReturnReason } from '../model/role/return-reason'
 import { unitBreakdown } from '../model/u1/departments'
 
 /**
@@ -130,6 +131,7 @@ function openUpload(preset: string | null = null): void {
     <div v-else class="rh-body">
       <SummaryStrip
         :counts="load.counts.data.value ?? null"
+        :return-reason="latestReturnReason(items)"
         :loading="!load.counts.data.value && !countsError"
         :error="countsError"
         :retrying="load.counts.isFetching.value"

@@ -3,6 +3,7 @@
  * koruması — hepsi `useProtectedMutation` (K5), iyimser güncelleme yok, sorgu anahtarları
  * geçersizleme listesinden. Yeni yazma ucu yoktur.
  *
+ *  - İade (`iade_edildi`) isteğe bağlı gerekçe taşır (`reason`, BE-139; boş ya da 3–500 karakter).
  *  - `to = tamamlandi` + 409 `work.subtasks_open` → ortak onay (`confirmWrite`) → AYNI hedef
  *    `close_subtasks: true` yeni eylem, ilk eylemin bağlamıyla (CX-F1-E-02).
  *  - 422 `work.attachment_required` → "önce kanıt yükleyin" + `requestEvidence` (Ü1 yükleme
@@ -90,12 +91,14 @@ function useMoves(hooks: RoleWriteHooks) {
     via: MoveVia,
     close: boolean,
     context?: ActionContext,
+    reason?: string,
   ): Promise<Outcome> {
     return (via === 'own' ? own : transition).submit(
       {
         target: targetOf(item),
         workItemId: item.work_item_id,
-        body: close ? { to, close_subtasks: true } : { to },
+        // İade gerekçesi isteğe bağlıdır (WORK-K96, BE-139); yalnız doluysa gönderilir.
+        body: { to, ...(close ? { close_subtasks: true } : {}), ...(reason ? { reason } : {}) },
       },
       { context },
     )
@@ -118,8 +121,14 @@ function useMoves(hooks: RoleWriteHooks) {
   }
 
   /** Başarıda `true`; sahibi sökülmüş sonuçta bildirim/yeniden okuma yok. */
-  async function run(item: WorkItem, to: WorkItemStatus, via: MoveVia, success: MoveSuccess) {
-    const first = await send(item, to, via, false)
+  async function run(
+    item: WorkItem,
+    to: WorkItemStatus,
+    via: MoveVia,
+    success: MoveSuccess,
+    reason?: string,
+  ) {
+    const first = await send(item, to, via, false, undefined, reason)
     if (!reachesOwner(first)) return false
     const final = first.kind === 'success' ? first : await settle(item, to, via, first)
     if (!reachesOwner(final)) return false
@@ -169,8 +178,13 @@ export function useRoleWrites(hooks: RoleWriteHooks = {}) {
 
   return {
     pendingId,
-    move: (item: WorkItem, to: WorkItemStatus, via: MoveVia, success: MoveSuccess) =>
-      guarded(item.work_item_id, () => run(item, to, via, success)),
+    move: (
+      item: WorkItem,
+      to: WorkItemStatus,
+      via: MoveVia,
+      success: MoveSuccess,
+      reason?: string,
+    ) => guarded(item.work_item_id, () => run(item, to, via, success, reason)),
     claim: (item: WorkItem, accountId: string) =>
       guarded(item.work_item_id, () => doClaim(item, accountId)),
   }
