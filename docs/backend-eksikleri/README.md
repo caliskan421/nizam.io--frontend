@@ -25,6 +25,10 @@ Tasarım birebir uygulanır ([yol haritası K13](../architecture/yol-haritasi-we
 
 Statik öğe kodda `designStub('BE-NNN', değer)` (ya da bileşende `<DesignStub id="BE-NNN">`) ile işaretlenir. `tests/lint/design-stub.test.ts`: koddaki her kimlik kayıtta `açık`/`backend'de` durumunda olmalı; `bağlandı` bir kimlik kodda kalmamalı. Statik öğe geliştirme yapısında kesikli çerçeveyle işaretlenir, üretimde normal görünür ama eylem tetiklemez (düğme devre dışı + "yakında" ipucu).
 
+## Karşılanan satır kuralı (F8)
+
+F5 ve F6 hiçbir satırı kapatmadı: `git log` ve Durum sütunu dağılımı gösterir ki F5/F6 yalnız yeni satır ekledi (BE-108…BE-141) ve Durum sütununu yalnız `açık` bıraktı (`c45db1c`: notlar Durum'dan Bağ sütununa taşındı). Satır kapatma kalıbı tek yerde var: WEB-P (pin v0.15.0-api) satırları silmeden Durum'u `bağlandı (pin vX.Y.Z-api, <iş>)` yaptı. F8 için kural: backend'de karşılığı gelen satır **silinmez**; (1) pini yükseltmeden önce (W168) Bağ sütununa "vX.Y'de karşılandı — F8 canlıya alma (W17x)" notu yazılır, **Durum `açık` kalır** (kodda `designStub` yaşadığı için `tests/lint/design-stub.test.ts` `bağlandı` kimliği kodda kabul etmez); (2) canlıya alma W'si stub'ı koddan kaldırınca ve gerçek uç testi yazılınca aynı PR'da Durum `bağlandı (pin v0.23.0-api, F8 W17x)` olur; (3) **kısmen** karşılananlarda Bağ'a "kısmen: … kaldı (GAP-2xx)" yazılır ve Durum `açık` kalır, kalan stub'lar sürer; (4) `backend'de (etiket)` durumu F8'de kullanılmaz (pin etiketi tek: `v0.23.0-api`; ara durum satır sayısını ikiye katlar). Biçim kuralı: Durum sütunu yalnız sabit sözcük/`bağlandı (…)` biçimindedir, notlar Bağ'a; hücrelerde `|` kullanılmaz (`tests/lint` 9 sütun denetler). Ayrıntı: [web-8 KESİN 35](../yurutme/web-8/ortak-sozlesme.md).
+
 ## Backend'e devir
 
 Web bu depodan backend'e yazmaz. Devir raporundaki paket, yönetim deposu sürecinde (`program/isler/FNN-*.md`) backend fazı olarak açılır; sonuç yeni API etiketi olur, web pin yükseltip satırı `bağlandı` yapar.

@@ -19,8 +19,10 @@ case "${1:-}" in
     ;;
   image)
     tag="$(node -p "require('$root/api-pin.json').backendTag")"
-    image="nizamio-web-e2e/backend:$tag"
-    name="nizamio_web_e2e-isocheck"
+    # shellcheck source=names.sh
+    source "$(dirname "$0")/names.sh"
+    image="$image_repo:$tag"
+    name="$isocheck_name"
     docker rm -f "$name" >/dev/null 2>&1 || true
     docker create --name "$name" "$image" >/dev/null
     trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT

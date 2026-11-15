@@ -154,4 +154,19 @@ describe('çıkış (E-00-29, ortak-kurallar §8)', () => {
     }
     expectCleared(ctx, true)
   })
+
+  it('çıkış öncesi kanca belirteç geçerliyken çalışır; hatası çıkışı engellemez', async () => {
+    const ctx = await signedIn()
+    const seen: Array<string | null> = []
+    const off = ctx.m.signOut.onBeforeSignOut(() => {
+      seen.push(ctx.m.http.authSession.token)
+      return Promise.reject(new Error('kanca hatası'))
+    })
+    const outcome = await ctx.m.session.useSessionStore().logout(ctx.queryClient)
+    off()
+    expect(seen).toHaveLength(1)
+    expect(seen[0]).toBeTruthy()
+    expect(outcome).toBe('verified')
+    expectCleared(ctx, false)
+  })
 })

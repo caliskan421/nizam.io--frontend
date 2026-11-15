@@ -13,6 +13,8 @@
 #                        konteynerler --network host.
 # Dokunulan kaynaklar adıyla: Compose projesi nizamio_web_e2e, konteyner
 # nizamio_web_e2e-server ve nizamio_web_e2e-server-shortttl, imajlar nizamio-web-e2e/*. Toplu docker müdahalesi YOKTUR.
+# Adlar ve portlar env ile geçersiz kılınabilir (paralel çalışma): NIZAMIO_E2E_PROJECT,
+# NIZAMIO_E2E_IMAGE_REPO, NIZAMIO_E2E_PORT_SERVER/_SHORT/_PG (e2e/backend/names.sh; varsayılanlar aynen).
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -21,11 +23,9 @@ mode="${NIZAMIO_E2E_MODE:-local}"
 backend_dir="${NIZAMIO_BACKEND_DIR:-$root/../nizam.io--backend}"
 case "$backend_dir" in /*) ;; *) backend_dir="$root/$backend_dir" ;; esac
 state="$root/e2e/.state"
-server_port="${NIZAMIO_E2E_SERVER_PORT:-18080}"
-server_name="nizamio_web_e2e-server"
-short_server_name="nizamio_web_e2e-server-shortttl"
-short_server_port="${NIZAMIO_E2E_SHORT_SERVER_PORT:-18081}"
-project="nizamio_web_e2e"
+# Proje/konteyner/imaj adları ve portlar (env ile geçersiz kılınır; varsayılanlar aynen): names.sh
+# shellcheck source=names.sh
+source "$here/names.sh"
 db_name="nizamio_e2e"
 admin_email="${NIZAMIO_E2E_ADMIN_EMAIL:-yonetici@e2e.nizamio.test}"
 # Yalnız atılabilir e2e veritabanına ait sabit test parolası (sır değildir).
@@ -79,7 +79,7 @@ go_version="${go_version%%-bookworm*}"
 echo "== taban: $golang_ref"
 echo "== taban: $distroless_ref"
 
-image="nizamio-web-e2e/backend:$tag"
+image="$image_repo:$tag"
 build_log="$state/backend-build.log"
 echo "== imaj: $image (etiketin build/Dockerfile'ı, digest'li FROM satırları denetlendi, Go $go_version)"
 docker build --progress=plain \

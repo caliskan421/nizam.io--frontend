@@ -83,6 +83,27 @@ Bağ: §3 `designStub` koşulu F7 statikleri için aynen geçerlidir (yeni BE ki
 
 **Bildirim hedef çözümlemesi ve §9 K3 fan-out kuralı.** Bildirim yanıtı metinsizdir (`{id, type, subject_ref{kind,id}, is_read, created_at}`); hedefe gidiş `subject_ref.kind` → rota. Departman bilgisi yoksa hedef çözümlemesi için departmanları ayrı çağrılarla gezip birleştirmek ya da panel açılırken her satır için ayrı okuma yapmak **yasaktır** (K3, §9): yalnız kullanıcının tıkladığı tek kaydın ek okuması (`getWorkItem`, §9'un izin verdiği "tek kaydın ek okuması") ve önbellekteki `locatedItems`/P55 derin bağlantı kalıbı kullanılır; çözülemeyen hedefte düz satır, bağlantı yok.
 
+**F8 eki (P67–P74, 2026-11-15).** F8 açıldı ("pin yükseltme + canlıya alma turu olsun", kullanıcı 2026-11-15; P67 KESİN). Kapsam: pin `v0.15.0-api` → `v0.23.0-api` (UI değişmez, P69) ve backend karşılığı gelen statik/devre dışı parçaların canlanması (P68, P70). Yeni ekran yok (P72). P68–P74 koordinatör varsayılanıdır (**geçici kabul**, ürün sahibi itiraz ederse değişir). Matris F8 sütunuyla okunur: "canlanır" = ilgili `designStub` kaldırılır, kayıt Bağ'ı güncellenir (KESİN 35); "değişmez" = F7 hâli korunur.
+
+| Öğe | F8 |
+|---|---|
+| 06 Arşiv: yönetici klasör kartları ve klasör içi (S2 `programArchive*`), P33 geçici yolu | **canlanır** (BE-072; geçici yol kaldırılır; yetki testleri kritik) |
+| 06 Arşiv: dönem tam ZIP "Tümünü indir", seçimli ZIP, ZIP'e raporlar (`include_reports`) | **canlanır** (BE-120, BE-124); bilet hedefi |
+| 06/07: klasör özeti, yükleme tarihi, yükleyen adı, süzülmüş toplam "‹i› / ‹N›", dosyasız göreve ilk yükleme, "Etiketi değiştir" | **canlanır** (BE-025, 070, 071, 073, 121, 074); "Yeni etiket" ve önizleme türevi **değişmez** (BE-024/026, GAP-233) |
+| 13 Raporlar: dönem raporu bölüm seçimi + koordinatörlük süzgeci, toplantı raporunda dönüştürülen görevler, 429/503 `Retry-After` geri sayımı, iş yükü üye sayaçları, kapalı dağılım şemaları | **canlanır** (BE-122, 124, 125, 132…135); dönem PDF şablonu ve dönem tarihi/konum **kısmi** (BE-123, 136; GAP-237/239) — yalnız gelen alan; "Son raporlar" listesi **değişmez** (BE-130 kısmi) |
+| 01 K1/Ü1 ve 03: görev satırı dosya sayısı/onaya sunuş, bekleyen bağımlılık, iade sebebi, tarih talebi zamanları/karar notu, birim koordinatör adı, **görev kodu** (`code`, `sequence_no`) | **canlanır** (BE-137…141, BE-005); sohbet görev özetinde kod **değişmez** (GAP-238) |
+| 12 Silinen kayıtlar: silen bilgisi, süzgeç/sıra/imleç/`total`, tür sayaçları, CSV, toplu geri yükle/kalıcı sil, çöpü boşalt, silinmiş görev ayrıntısı, silinen hesap alanları | **canlanır** (BE-108, 113…119); birleşik "Tümü" listesi **kısmi** (BE-110; GAP-234); BE-111/112 **değişmez** |
+| 09 Toplantılar: sekme sayaçları/`when`/`sort`/`total`, not süzgeçleri ve toplamlar, katılımcı adayları, departman kodu/silinmişlik/ad alanları, dönüşmüş not görev bağlantısı, `Idempotency-Key` (oluşturma, gündem, katılımcı) | **canlanır** (BE-021, 061, 063, 065, 067, 068) |
+| 05 Kullanıcılar "Dışa aktar (CSV)" | **canlanır** (BE-014, `exportUsersCsv`; bilet hedefi; GAP-241 kabul edilmiş sınır) |
+| 08b Birim görünürlük/kuruluş/etkinlik | **kısmi** (BE-018: katalog `created_at` ve `last_uploaded_at` canlanır; tarihsel kuruluş/görünürlük/etkinlik akışı değişmez, GAP-240) |
+| 03 "Hatırlat" düğmesi | **yalnız tasarımda çizildiyse** (BE-008: `remindWorkItem` elle hatırlatma var; zamanlı/otomatik değişmez, GAP-230) |
+| Bildirim türü sözlüğü | `work.task.reminder` eklenir (P74); diğer 12 tür ve bildirim stub'ları **değişmez** |
+| Sohbet (10, 10b, 10c), bildirim paneli satır içi karar/tercih/cihaz/sessiz saat, Web Push "Deneme gönder"/cihaz listesi | **değişmez** (BE-027/028/029, 080…086, 142…156, 160…162; bekleyen BE-F7, P68) |
+| 01b İşlem geçmişi | **DIŞI** (`listAuditEntries` yalnız şirket yöneticisi; BE-091 rol kapsamı yok); F9 adayı |
+| Takvim, Kurumsal hafıza, Tablolar (11), profil (Ü7), Ü2–Ü7, K2–K8, Asistan | **DIŞI** (P67; F9 adayları) — Tablolar ve asistan uçları backend'de var, web ekranı yok |
+
+Bağ: §3 `designStub` koşulu F8'de stub **kaldırma** yönünden de geçerlidir (KESİN 35); pin PR'ı hiçbir stub kaldırmaz (KESİN 36). Yeni BE kimlikleri BE-163'ten.
+
 ## 6. Ortak sorgu anahtarları (CX-T-01)
 
 Tek anahtar fabrikası `shared/http/query-keys.ts` (F0, `scopedKey()` üzerine). Gruplar anahtarı **kendisi yazmaz**, buradan başvurur:
@@ -150,7 +171,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12; P46–P53 2026-11-13; P54–P56 2026-11-14; P57–P66 2026-11-14) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12; P46–P53 2026-11-13; P54–P56 2026-11-14; P57–P66 2026-11-14; P67 2026-11-15; P68–P74 2026-11-15 koordinatör varsayılanı) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -164,7 +185,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 | P6 | Yönetici ana sayfası F1 | **KPI + sade özet; kartlar F6.** F1: selamlama, KPI şeridi, hızlı işlemler, nötr "Son işlemler" yer tutucusu; koordinatörlük kartları, ekip şeridi, raporlar F6. (P36 ile E-01-02 "Silinen kayıtlar" düğmesi F5'e alındı.) |
 | P7 | 03 "Kopyala" / toplu seçim | **Kopyala = görev bağlantısını panoya; toplu seçim kutuları gizli** (toplu uç yok). |
 | P9 | Marka satırı | **Sabit "RoketPortal"** (tasarım metni); `instanceProfile.display_name` kullanılmaz. |
-| P10 | Kenar menüsü daraltma | **Yalnız oturum belleği**; K2 izinli anahtar listesi genişlemez (Y9 düşer). |
+| P10 | Kenar menüsü daraltma | **Yalnız oturum belleği**; K2 izinli anahtar listesi genişlemez (Y9 düşer); **tek istisna (2026-11-15, koordinatör kararı): `push.snoozeUntil`** — Web Push "Şimdi değil" 14 gün (E-14-72), gizli değil, tema tercihi gibi `localStorage`, UTC ISO tarih, çıkışta silinmez. |
 | P11 | Tek mercekli kullanıcıda Rol kartı | **Salt gösterim** (kart görünür, menü açılmaz). Dar menüde kapsam simgeleri (E-00-40) tıklanınca kapsam seçicisini açar (koordinatör kararı). |
 | P12 | 05 rol düzenleme ve Kaydet (2026-11-09, #13) | **Çip başına anında.** Şirket Admin anahtarı ayrı; program/koordinatörlük çipinde tek üyelik rolü; her çip işlemi kendi onayı ve sonucuyla hemen uygulanır. Toplu atomik Kaydet yok. |
 | P13 | 05 liste kapsamı (2026-11-09, #14) | **Yalnız yönetici.** Yöneticiye şirket listesi, seçili program üyelikleri etiketli. Koordinatöre yönetim ekranı açılmaz; kişisel takip yalnız yetkili görev kümesini gösterir. |
@@ -228,6 +249,21 @@ P57–P66 koordinatör varsayılanı olarak önerildi; ürün sahibi 2026-11-14'
 | P64 | Yönetici merceğinde koordinatörlük grupları | Sunucunun `listChats` döndürdüğü (yetki sunucuda; istemci süzmez; mercek yalnız program kapsamı). "Koordinatörler" sistem grubu backend'de yoksa BE kaydı, çizilmez |
 | P65 | SSE | Yalnız sohbet (K8), `fetch` akışı (`Authorization`), `shared/sse` tek modül; ≥1 sn birleştirme, 0–5 sn jitter, üstel ≤60 sn, `: ping` 25 sn; olay → içeriksiz sorgu geçersizleme; kapsam/oturum değişiminde iptal (`sessionBound`); **bildirimlerde SSE YOK** (pencere odağı + aralıklı tazeleme). Web-7 ortak sözleşme KESİN 34 |
 | P66 | Duman betikleri | Senaryo başına ayrı `results-<senaryo>.json` + HEAD/koşum kimliği (web-6 CX-F6-K-10; web-7 soru 7 kapandı). Web-7 ortak sözleşme KESİN 33 |
+
+### F8 kararları P67–P74 (P67 kesin; P68–P74 koordinatör varsayılanı, geçici kabul)
+
+P67 ürün sahibi kararıdır (2026-11-15: "pin yükseltme + canlıya alma turu olsun"). P68–P74 koordinatör varsayılanı olarak önerildi; ürün sahibi onayına kadar **geçici kabul (P6x taslak)**. Kaynak: web-8 kararlar kaydı (koordinatör, 2026-11-15). Backend'i ürün sahibi arka planda ayrı yürütür; **BE-F7 paketi** (sohbet/bildirim) ayrı başlatılacaktır.
+
+| # | Konu | Karar |
+|---|---|---|
+| **P67** | F8 kapsamı | **KESİN:** F8 AÇILDI 2026-11-15 = pin `v0.15.0-api` → `v0.23.0-api` + "canlıya alma" turu (backend'de açılmış uçlarla web'deki statik/devre dışı/gizli parçaların canlanması). Yeni ekran yok: Takvim, Kurumsal hafıza, Tablolar, 01b, Ü7, paneller, Asistan F8 DIŞI (F9 adayı). F8 içinde kısmi pin yok |
+| P68 | Kapsam ölçütü (geçici kabul) | Yalnız v0.23'te karşılığı olan BE satırları canlanır (tam: BE-005/014/021/025/061/063/065/067/068/070/071/072/073/074/108/113…121/122/124/125/132…135/137…141; kısmi: BE-110/123/136/018/008/010-030-088-130/036 — kısmi satırda yalnız gelen alan canlanır, kalan stub ve kayıt sürer). Sohbet/bildirim stub'ları (BE-027/028/029/080…086/142…156/160…162) F8'de değişmez |
+| P69 | Pin tek PR (geçici kabul) | WP1: `api-pin.json` + `gen:api` + tip/fixture uyumu + kırıcı farklar (`actor` `sirket_yoneticisi`; `MyDepartment.role` daralması; kapalı dağılım şemaları; `createMeeting` 200/404; 33 yeni hata kodu → i18n). **UI davranışı değişmez** (KESİN 36); `pin-yukseltme-v023.md` WP0–WP4 |
+| P70 | Canlıya alma sırası (geçici kabul) | O2b modül bazlı: (a) arşiv + ZIP (W171; P33 yolu kalkar), (b) raporlar (W172), (c) K1/Ü1 + görev kodu (W173), (d) silinen kayıtlar (W174), (e) toplantılar + organizasyon CSV + bildirim sözlüğü (W175). Zincir/bağımsız kararı dosya kesişimine göre |
+| P71 | "Canlıya alma" tanımı (geçici kabul) | `designStub` kaldırılır; `kayit.md` Bağ'a "vX.Y'de karşılandı — F8 canlıya alma (W17x)"; stub kodda kalmayınca Durum `bağlandı (pin v0.23.0-api, F8 W17x)` (WEB-P WP2 kalıbı); satır silinmez; `design-stub.test.ts` bozulmaz. **W168 kararı:** [backend-eksikleri README](../backend-eksikleri/README.md) "Karşılanan satır kuralı (F8)"; KESİN 35 |
+| P72 | Tasarım (geçici kabul) | Birebir kuralı sürer; canlanan parçalar v85/v87'de çizili (yeni artboard yok); yalnız 01f dönem raporu yer tutucu bölümleri (Gantt/iş yükü/dosyalar) gerçek veriyle dolar |
+| P73 | Gerçek backend e2e/Docker tanığı (geçici kabul) | `v0.23.0-api` imajıyla; `e2e/backend` etiketi pinle birlikte |
+| P74 | Sohbet/bildirim ve BE-F7 (geçici kabul) | `work.task.reminder` dışında sohbet/bildirim testinde değişiklik yok; BE-F7 etiketi gelirse F9'da ya da F8 kapanışı sonrası ayrı "pin v0.24" turunda |
 
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 

@@ -137,6 +137,10 @@ roller tekrar → ilk yönetici → uygulama kimliğiyle server (`127.0.0.1:1808
   projesinde açar (`127.0.0.1:15432`); kapatma `pnpm e2e:backend:down`. Paylaşılan
   makinede başka projelerin kaynaklarına dokunulmaz. **CI:** Postgres servis konteyneri,
   `NIZAMIO_E2E_MODE=ci`.
+- **Paralel çalışma (adlar/portlar):** `NIZAMIO_E2E_PROJECT` (Compose projesi + konteyner/imaj öneki;
+  varsayılan `nizamio_web_e2e`, imaj `<proje>/backend`; `NIZAMIO_E2E_IMAGE_REPO` ile ayrıca) ve
+  `NIZAMIO_E2E_PORT_SERVER` / `_SHORT` / `_PG` (varsayılan 18080 / 18081 / 15432) hem `up.sh` hem `down.sh`
+  hem `check-isolation.sh image` için aynı değerlerle verilir (`e2e/backend/names.sh`); varsayılanlar aynen, CI değişmez.
 
 ## Statik imaj (teslim)
 

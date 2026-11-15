@@ -42,6 +42,20 @@ beforeAll(() => {
   vi.stubGlobal('structuredClone', browserLikeClone)
   server.listen({ onUnhandledFrame: 'error' })
 })
+// Isınma (KESİN 32): ilk yazma soğuk yolu (msw işleyici kaydı, mutasyon motoru) ilk testin 5 sn
+// bütçesinde ödenmesin; maliyet kanca zaman aşımıyla ödenir.
+beforeAll(async () => {
+  server.use(http.patch(`${ORIGIN}/v1/files/f1/name`, () => json(fileRecord)))
+  const h = harness(COORD)
+  const { result } = h.run(() => useRenameArchiveFile())
+  await result.submit({
+    target: { programId: 'p1', departmentId: 'd1' },
+    workItemId: 'w1',
+    fileId: 'f1',
+    displayName: 'x',
+  })
+  resetHarness()
+}, 30_000)
 afterEach(() => resetHarness())
 afterAll(() => {
   vi.unstubAllGlobals()
