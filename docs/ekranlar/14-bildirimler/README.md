@@ -226,3 +226,13 @@ Test dosyaları `src/` altındadır (kısaltma: `nt` = `src/modules/notification
 **Kısmi / dolaylı kanıt (kabul değil, açık):** E-14-72 "Şimdi değil" 14 gün kalıcıdır (W167 ile kapandı; ikinci kez sonra bitiş sayacı yok); E-14-77 yalnız Caddyfile anlık görüntüsü ve `check-image` ile sınanır, W159 dumanı gerçek Caddy CSP altında koştu (yerel kanıt), gerçek imaj üzerinde `/sw.js` `no-cache` ve CSP başlığı tanığı W162; E-14-67/68 gerçek `subscribe` yalnız sarmalı tarayıcıda sınandı; E-14-75/76 `sw.js` birim testle (sahte `self`) sınandı, gerçek OS bildirimi/teslim yok; E-14-27 satır metni 12 türlük sözlükten, gerçek `type` değerleriyle örtüşme W162; E-14-84 pencere odağı + aralık tazeleme `queries.test.ts`/`use-panel-clock`/menü rozeti testleriyle dolaylı. **`geçici kabul` kategorisi** (koordinatör kararı: değiştirilmez, kanıtla kabule döner) bu bölümün kanıtıyla O4'te kabul sayılır; Codex bunu yeniden sorabilir.
 
 **Uygulanmayan/yok kalanlar** (kod yok, test yok): E-14-05, 06, 12, 21, 33, 34, 39…41, 49…52, 56, 57, 80…82 (gizli), E-14-93…98 (kapsam dışı/ret); BE-142…156 [rapor-F7 §2.2](../../backend-eksikleri/rapor-F7.md)'de. **Bilinen sapmalar:** "Senden bekleyen" devre dışı (BE-144); satır aktör/başlık içermez (BE-142); (`topbar-dot*` ölü token'lar ve manifest/apple-touch-icon eksiği W167 borç turunda kapandı).
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W175. Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-14-27 Satır metni (tür → cümle); komşu E-14-26 / E-14-28 / E-14-48 | canlı → bildirim türü `work.task.reminder` sözlüğe eklenir (13. tür): simge/ton, "Hatırlatma" etiketi, konu `work_item`; `public/sw.js` kopyası eşleşir | geçici kabul (P68) | (yeni olay türü; BE yok) | W175 |
+
+**F8'de değişmeyenler (14 Bildirimler):** P74: `work.task.reminder` dışında sohbet/bildirim değişikliği yok (BE-144, BE-146 ve BE-027…086, 160…162 stub'ları kalır).

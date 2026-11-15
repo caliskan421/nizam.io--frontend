@@ -116,3 +116,16 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 - "Kopyala" düğmesi: görevi çoğaltmak mı, bağlantıyı panoya kopyalamak mı?
 - Toplu seçim kutuları var ama toplu işlem çubuğu çizilmemiş (`rp-bulk` sınıfı tanımlı, kullanılmıyor); v1'de toplu işlem var mı?
 - Öncelik verisi örnekte üretiliyor ama şablonda görünmüyor; öncelik bu ekranda gösterilecek mi?
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W173 (E-03-53 W175). Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-03-10 Arama | yüklenen kümede başlık + gerçek kod + atanan adı (sunucu araması yok: BE-004 değişmez) | kabul (P67) | BE-005 | W173 |
+| E-03-20 Görev kodu (satır) | canlı → `code` (`<departman kodu>-<sıra>`); kodsuz birimde gösterilmez; statik `—` sıra kalkar | kabul (P67) | BE-005 | W173 |
+| E-03-41 Ayrıntı paneli başlığı | canlı → `code` | kabul (P67) | BE-005 | W173 |
+| E-03-53 Hatırlat | canlı → `remindWorkItem` (koordinatör ve ŞY olgusu; üye devre dışı); 202 + "‹n› kişiye hatırlatıldı"; 409 / 422 / 429 iletileri | kabul (P67), P70-e | BE-008 | W175 |
+
+**F8'de değişmeyenler (03 Görevler › Liste):** E-03-16 sıralama (BE-040), E-03-30 / E-03-33 / E-03-36 / E-03-60 zorunlu alan kutuları (BE-006: P5), E-03-51 etkinlik (BE-007). 03c (E-03C-22/30/54/65/68), 05b takip tablosu ve 08b (E-08-83) kod/Hatırlat satırları bu işin sahipliğinde değildir (matris M-C01, M-E08).

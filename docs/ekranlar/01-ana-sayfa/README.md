@@ -233,3 +233,31 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 | BE stub tutarlılığı | BE-137…141, BE-010, BE-025/078/079 | `model/stubs.test.ts`, `tests/lint/design-stub.test.ts`, `src/shared/design-stub/index.test.ts` |
 
 **Açık/borç** (karar kaydı değil, uygulama notu): Ü1 → 03 başka birim görevi derin bağlantısı (W142 KUSUR 3 yalnız önbellekteki satırlar; yönetici üye merceği araştırılmadı), K1 iade gerekçesi yok (BE-139), uçsuz alanlar BE-137…141, gerçek cihaz ekran okuyucu. 01b işlem geçmişi F6 dışıdır (P46).
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W173 (E-01-26/37/38 W171, toplantı kodları W175). Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-01-26 Sıralama menüsü ("Son yükleme") | canlı → `programArchiveFolders[].last_uploaded_at`; ölçüt devre dışı kalkar | geçici kabul (P68) | BE-025 | W171 |
+| E-01-37 Kart "arşiv" | canlı → `file_count` (`programArchiveFolders`, tek istek) | kabul (P67) | BE-072 | W171 |
+| E-01-38 Kart "Son yükleme" | canlı → `last_uploaded_at` (satır görünür; `last_activity_at` kullanılmaz) | kabul (P67) | BE-025 | W171 |
+| E-K1-09 KPI "geciken" notu | "En uzunu ‹n› gün · ‹kod›" (kod eklenir) | geçici kabul (P68) | BE-005 | W173 |
+| E-K1-11 KPI "iade" notu | tek iade varsa kod + atanan adı | geçici kabul (P68) | BE-005 | W173 |
+| E-K1-15 Onay kartı alt yazısı | "Kanıt yüklendi, kararını bekliyor · en eskisi ‹göreli›" (`file_count`, `submitted_at`) | geçici kabul (P68) | BE-137 | W173 |
+| E-K1-16 Onay satırı | kod, "gönderildi ‹n› önce", "‹n› dosya" | kabul (P67) | BE-005, BE-137 | W173 |
+| E-K1-20 Atanmamış satırı | kod + kilit rozeti (`has_pending_dependency`, `pending_dependency_count`; bekleyen görev adı/kodu yok) | geçici kabul (Varsayım 9) | BE-005, BE-138 | W173 |
+| E-K1-23 Dikkat kartı başlığı | "‹n› görev bağımlılık bekliyor" sayısı | kabul (P67) | BE-138 | W173 |
+| E-K1-24 Dikkat satırı | kod | kabul (P67) | BE-005 | W173 |
+| E-K1-25 Dikkat eylemi "Bağımlılıklar" | yalnız bekleyen bağımlılığı olan satırda çizilir | geçici kabul (P68) | BE-138 | W173 |
+| E-K1-35 Toplantı satırı (koordinatörlük kodları) | canlı → `MeetingDepartment.department_code` (ad kısaltması yerine kod) | kabul (P67) | BE-063 | W175 |
+| E-K1-39 Tarih talebi satırı | kod, "‹gün› gönderildi", karar notu (`created_at`, `review_reason`) | kabul (P67) | BE-005, BE-140 | W173 |
+| E-Ü1-08 "İade edilen" kartı notu | `last_return.reason` varsa gerekçe notu; yoksa mevcut metin | geçici kabul (P68) | BE-139 | W173 |
+| E-Ü1-11 Kuyruk satırı | kod, "‹n› dosya", "iade: ‹gerekçe›" | kabul (P67) | BE-005, BE-137, BE-139 | W173 |
+| E-Ü1-15 / E-Ü1-17 Kilitli eylem ve altnotu | devre dışı "Göreve başla" + "‹n› görev bekleniyor" ipucu (ad yok) | geçici kabul (Varsayım 9) | BE-138 | W173 |
+| E-Ü1-21 "Koordinatörüme yaz" kutucuğu | alt satır koordinatör adı (`MyDepartment.coordinators`); kutucuğun davranışı değişmez | kabul (P67) | BE-141 | W173 |
+| E-Ü1-29 Toplantı satırı (kod) | canlı → `department_code` | kabul (P67) | BE-063 | W175 |
+| E-Ü1-31 Koordinatörlük satırı | kod (`department_code`) + "Koordinatör: ‹ad›" | kabul (P67) | BE-141 | W173 |
+
+**F8'de değişmeyenler (01 Ana sayfa (yönetici kartları, K1, Ü1)):** E-01-14 ve E-K1-40 "Son işlemler/Son etkinlik" (BE-010: `listAuditEntries` yalnız ŞY ve eylem sözlüğü yok; Varsayım 10), E-01-31 / E-01-33 / E-01-34 (BE-078/079: `CoordinatorshipStat` değişmedi).
