@@ -281,14 +281,11 @@
       ]
     },
     "topbar": {
-      "$description": "Üst çubuk ölçüleri — theme.css rp-navbtns, Main.dc.html zil noktası ölçek DIŞI değerleri (eski topbar-metrics.css; CX-F0-Ö-02).",
+      "$description": "Üst çubuk ölçüleri — theme.css rp-navbtns ölçek DIŞI değerleri (eski topbar-metrics.css; CX-F0-Ö-02).",
       "tokens": [
         { "name": "topbar-nav-size", "value": "30px" },
         { "name": "topbar-nav-icon", "value": "18px" },
         { "name": "topbar-crumb-fs", "value": "13px" },
-        { "name": "topbar-dot", "value": "7px" },
-        { "name": "topbar-dot-top", "value": "6px" },
-        { "name": "topbar-dot-right", "value": "7px" },
         {
           "name": "notif-panel-w",
           "value": "420px",
