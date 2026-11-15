@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/defaults'
+
 import {
   departmentOptions,
   lensOptions,
@@ -16,13 +18,15 @@ const me = (companyAdmin: boolean) => ({
   company_admin: companyAdmin,
 })
 
-const row = (program: string, department: string, role: string, name = department) => ({
-  program_id: program,
-  program_name: `Program ${program}`,
-  department_id: department,
-  display_name: name,
-  role,
-})
+const row = (program: string, department: string, role: string, name = department) =>
+  makeMyDepartment({
+    program_id: program,
+    program_name: `Program ${program}`,
+    department_id: department,
+    display_name: name,
+    // Bilinmeyen rol dizesi "yok sayılır" testi için kapalı enum'a bilerek dar atanır.
+    role: role as MyDepartmentRole,
+  })
 
 describe('standing olguları', () => {
   it('rol dizeleri tipe çevrilir; bilinmeyen rol yok sayılır; null liste boştur', () => {

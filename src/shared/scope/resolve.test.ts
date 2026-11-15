@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/defaults'
+
 import {
   EMPTY_SELECTION,
   programDepartmentGap,
@@ -9,13 +11,14 @@ import {
 } from './resolve'
 import { parseStanding, type ProgramOption } from './standing-facts'
 
-const row = (program: string, department: string, role: string) => ({
-  program_id: program,
-  program_name: `Program ${program}`,
-  department_id: department,
-  display_name: `Birim ${department}`,
-  role,
-})
+const row = (program: string, department: string, role: string) =>
+  makeMyDepartment({
+    program_id: program,
+    program_name: `Program ${program}`,
+    department_id: department,
+    display_name: `Birim ${department}`,
+    role: role as MyDepartmentRole,
+  })
 
 function input(
   opts: {

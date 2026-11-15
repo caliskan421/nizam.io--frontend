@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/defaults'
 import { parseStanding, type Standing } from '@/shared/scope/standing-facts'
 
 import { coordinatedUnitNames, isCoordinatorRole } from './capabilities'
@@ -8,13 +9,15 @@ function standing(companyAdmin: boolean, rows: Array<[string, string, string]> =
   return parseStanding(
     { account_id: 'acc-1', email: 'a@b.test', full_name: 'Ayşe', company_admin: companyAdmin },
     {
-      departments: rows.map(([program, department, role]) => ({
-        program_id: program,
-        program_name: `Program ${program}`,
-        department_id: department,
-        display_name: `Birim ${department}`,
-        role,
-      })),
+      departments: rows.map(([program, department, role]) =>
+        makeMyDepartment({
+          program_id: program,
+          program_name: `Program ${program}`,
+          department_id: department,
+          display_name: `Birim ${department}`,
+          role: role as MyDepartmentRole,
+        }),
+      ),
     },
   )
 }
