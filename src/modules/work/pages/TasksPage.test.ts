@@ -44,7 +44,12 @@ const MEMBER: StandingFixture = {
   rows: [{ department_id: 'd1', role: 'uye' }],
 }
 
-const pending = { request_id: 'r1', new_start_on: '2026-11-01', new_end_on: '2026-11-20' }
+const pending = {
+  request_id: 'r1',
+  created_at: '2026-10-01T08:00:00Z',
+  new_start_on: '2026-11-01',
+  new_end_on: '2026-11-20',
+}
 const item = (over: Partial<WorkItem>) => workItem(over) as WorkItem
 const ROWS = [
   item({ work_item_id: 'w1', title: 'Asfalt', department_id: 'd1', status: 'devam_ediyor' }),

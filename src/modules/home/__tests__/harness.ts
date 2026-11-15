@@ -9,6 +9,11 @@ import { createPinia, setActivePinia } from 'pinia'
 import type { Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import {
+  makeTaskPriorityDistribution,
+  makeTaskStatusDistribution,
+  withWorkItemDefaults,
+} from '@/shared/api/__tests__/defaults'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
@@ -118,8 +123,8 @@ export function dashboard(over: Partial<DashboardReport> = {}): DashboardReport 
     total_coordinators: 11,
     total_members: 30,
     total_coordinatorships: 11,
-    task_status_distribution: {},
-    priority_distribution: {},
+    task_status_distribution: makeTaskStatusDistribution(),
+    priority_distribution: makeTaskPriorityDistribution(),
     coordinatorship_stats: [],
     overdue_tasks_list: [],
     ...over,
@@ -157,7 +162,7 @@ let seq = 0
 /** Liste satırı: KPI alanları + şemanın zorunlu alanları. */
 export function row(status: KpiItem['status'], over: Partial<WorkItem> = {}): WorkItem {
   seq += 1
-  return {
+  return withWorkItemDefaults({
     work_item_id: `w${seq}`,
     program_id: 'p1',
     department_id: 'd1',
@@ -183,7 +188,7 @@ export function row(status: KpiItem['status'], over: Partial<WorkItem> = {}): Wo
     edit_revision: 1,
     dates_revision: 1,
     ...over,
-  }
+  })
 }
 
 /**

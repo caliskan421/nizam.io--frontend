@@ -4,8 +4,8 @@ import { adjacentFile, filePosition } from './preview'
 import { taskTitles, uploadTasks } from './tasks'
 
 const tasks = [
-  { work_item_id: 'w2', title: 'Zemin', file_count: 1 },
-  { work_item_id: 'w1', title: 'Ağ', file_count: 4 },
+  { work_item_id: 'w2', title: 'Zemin', file_count: 1, department_id: 'd1' },
+  { work_item_id: 'w1', title: 'Ağ', file_count: 4, department_id: 'd1' },
 ]
 
 describe('görev yardımcıları', () => {

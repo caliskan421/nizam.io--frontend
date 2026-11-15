@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/defaults'
 import { parseStanding } from '@/shared/scope/standing-facts'
 
 import { quickActions } from './quick-actions'
@@ -10,13 +11,13 @@ const standing = (companyAdmin: boolean, role?: string) =>
     {
       departments: role
         ? [
-            {
+            makeMyDepartment({
               program_id: 'p1',
               program_name: 'Bir',
               department_id: 'd1',
               display_name: 'Birim',
-              role,
-            },
+              role: role as MyDepartmentRole,
+            }),
           ]
         : [],
     },

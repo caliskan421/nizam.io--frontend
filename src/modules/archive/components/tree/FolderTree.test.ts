@@ -9,8 +9,8 @@ const FOLDERS = [
   { folderId: 'd2', name: 'Mekanik sistemler', fileCount: 38, virtual: false },
 ]
 const TASKS = [
-  { work_item_id: 'w1', title: 'Gölgelendirme çalışmaları', file_count: 2 },
-  { work_item_id: 'w2', title: 'İklimlendirme hesapları', file_count: 1 },
+  { work_item_id: 'w1', title: 'Gölgelendirme çalışmaları', file_count: 2, department_id: 'd1' },
+  { work_item_id: 'w2', title: 'İklimlendirme hesapları', file_count: 1, department_id: 'd1' },
 ]
 
 function props(over: Partial<FolderTreeProps> = {}): FolderTreeProps {

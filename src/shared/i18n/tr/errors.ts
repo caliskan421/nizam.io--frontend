@@ -5,6 +5,9 @@
 export const trErrors: Record<string, string> = {
   // audit
   'audit.entry_rejected': 'İşlem kaydı yazılamadığı için istek tamamlanamadı.',
+  'audit.input_invalid': 'Girilen bilgiler geçersiz.',
+  'audit.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
+  'audit.not_authorized': 'Bu işlem için yetkiniz yok.',
 
   // assistant
   'assistant.busy': 'Asistan şu anda meşgul; biraz sonra yeniden deneyin.',
@@ -76,6 +79,7 @@ export const trErrors: Record<string, string> = {
   'identity.weak_password': 'Parola yeterince güçlü değil.',
 
   // messaging
+  'messaging.auto_group_protected': 'Otomatik oluşturulan grup elle değiştirilemez.',
   'messaging.chat_deleted': 'Sohbet silinmiş; işlem yapılamaz.',
   'messaging.chat_not_found': 'Sohbet bulunamadı.',
   'messaging.edit_conflict':
@@ -113,19 +117,25 @@ export const trErrors: Record<string, string> = {
   'organization.assignment_not_found': 'Atama bulunamadı.',
   'organization.authority_unavailable':
     'Yetki bilgisi şu anda alınamıyor; biraz sonra yeniden deneyin.',
+  'organization.capacity_full': 'Sunucu kapasitesi dolu; biraz sonra yeniden deneyin.',
   'organization.company_exists': 'Şirket kaydı zaten var.',
   'organization.company_not_found': 'Şirket kaydı bulunamadı.',
   'organization.confirmation_required':
     'Bu değişiklik görevleri etkiliyor; devam etmek için onaylayın.',
   'organization.department_code_conflict': 'Bu departman kodu başka bir departmanda kullanılıyor.',
   'organization.department_exists': 'Bu adla bir departman zaten var.',
+  'organization.department_usage': 'Departman kullanımda olduğu için silinemez.',
   'organization.existing_department':
     'Bu adla bir departman zaten var; mevcut olan kullanılabilir.',
+  'organization.export_in_progress':
+    'Bir dışa aktarma sürüyor; bitmesini bekleyip yeniden deneyin.',
+  'organization.export_too_large': 'Dışa aktarılacak liste çok büyük; süzgeci daraltın.',
   'organization.idempotency_key_reused': 'Bu istek anahtarı farklı bir istekle kullanılmış.',
   'organization.department_in_use': 'Departman kullanımda olduğu için silinemez.',
   'organization.department_not_found': 'Departman bulunamadı.',
   'organization.department_not_linked': 'Departman bu programa bağlı değil.',
   'organization.input_invalid': 'Girilen bilgiler geçersiz.',
+  'organization.invalid_batch': 'Toplu işlem seçimi geçersiz.',
   'organization.invalid_code': 'Departman kodu geçersiz.',
   'organization.invalid_kind': 'Departman türü geçersiz.',
   'organization.invalid_name': 'Ad geçersiz.',
@@ -220,6 +230,7 @@ export const trErrors: Record<string, string> = {
   // reporting
   'reporting.capacity_full': 'Rapor kapasitesi dolu; biraz sonra yeniden deneyin.',
   'reporting.export_in_progress': 'Devam eden bir dışa aktarım var; tamamlanmasını bekleyin.',
+  'reporting.export_too_large': 'Rapor çok büyük; kapsamı daraltın.',
   'reporting.input_invalid': 'Girilen bilgiler geçersiz.',
   'reporting.not_authorized': 'Bu işlem için yetkiniz yok.',
   'reporting.not_found': 'Rapor bulunamadı.',
@@ -278,11 +289,39 @@ export const trErrors: Record<string, string> = {
   'work.stale_transition': 'Görev durumu değişti; yenileyip yeniden deneyin.',
   'work.subtask_assignee_not_assigned':
     'Alt görevin sorumlusu görevin atanmış kişilerinden biri olmalı.',
+  'work.subtask_attachment_required': 'Alt görevi tamamlamak için kanıt eki gerekli.',
   'work.subtask_limit_reached': 'Alt görev sınırına ulaşıldı.',
   'work.subtask_not_found': 'Alt görev bulunamadı.',
   'work.subtasks_open': 'Açık alt görevler var; önce bunları tamamlayın ya da kapatın.',
   'work.transfer_active': 'Devam eden bir aktarım nedeniyle görev değiştirilemez.',
   'work.transition_not_allowed': 'Bu durum geçişine izin verilmiyor.',
+
+  // tables
+  'tables.attachment_limit_reached': 'Ek sınırına ulaşıldı.',
+  'tables.attachment_rejected': 'Ek kabul edilmedi.',
+  'tables.attachment_too_large': 'Ek çok büyük.',
+  'tables.cell_conflict': 'Hücre başkası tarafından değiştirildi; yenileyip yeniden deneyin.',
+  'tables.conversion_lossy': 'Dönüştürme veri kaybına yol açacağı için yapılamadı.',
+  'tables.cursor_stale': 'Liste konumu eskidi; listeyi yenileyin.',
+  'tables.forbidden': 'Bu işlem için yetkiniz yok.',
+  'tables.idempotency_key_reused': 'Bu istek anahtarı farklı bir istekle kullanılmış.',
+  'tables.input_invalid': 'Girilen bilgiler geçersiz.',
+  'tables.limit_reached': 'Tablo sınırına ulaşıldı.',
+  'tables.not_found': 'Tablo kaydı bulunamadı.',
+  'tables.presence_throttled': 'Çok sık istek gönderildi; biraz bekleyin.',
+  'tables.proposal_decided': 'Öneri zaten karara bağlanmış.',
+  'tables.proposal_pending': 'Karar bekleyen bir öneri var.',
+  'tables.proposal_stale': 'Öneri güncelliğini yitirdi; yenileyip yeniden deneyin.',
+  'tables.query_too_broad': 'Sorgu çok geniş; süzgeci daraltın.',
+  'tables.reference_unavailable': 'Başvurulan kayıt kullanılamıyor.',
+  'tables.replay_expired': 'İstek tekrar süresi doldu; işlemi yeniden başlatın.',
+  'tables.request_key_invalid': 'İstek anahtarı geçersiz.',
+  'tables.request_key_required': 'İstek anahtarı gerekli.',
+  'tables.schema_conflict': 'Tablo yapısı değişti; yenileyip yeniden deneyin.',
+  'tables.source_changed': 'Kaynak değişti; yenileyip yeniden deneyin.',
+  'tables.stream_unavailable': 'Canlı akış şu anda kullanılamıyor.',
+  'tables.undo_conflict': 'Geri alma, sonraki değişikliklerle çakıştı.',
+  'tables.undo_expired': 'Geri alma süresi doldu.',
 
   // istemci kodları (sunucu kataloğunda yok)
   'client.network_error': 'Sunucuya ulaşılamadı; bağlantınızı denetleyip yeniden deneyin.',

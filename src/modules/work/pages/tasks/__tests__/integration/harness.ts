@@ -12,6 +12,11 @@ import { defineComponent, h, onScopeDispose } from 'vue'
 import { createMemoryHistory, createRouter, RouterView, type Router } from 'vue-router'
 
 import { homeRoutes } from '@/modules/home/public'
+import {
+  makeMyDepartment,
+  type MyDepartmentRole,
+  withFileDefaults,
+} from '@/shared/api/__tests__/defaults'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { purgeScopedQueries } from '@/shared/scope/lifecycle'
 import { parseStanding } from '@/shared/scope/standing-facts'
@@ -67,12 +72,15 @@ function serverAccess(fixture: StandingFixture) {
       full_name: 'Deneme Kişi',
     },
     {
-      departments: fixture.rows.map((r) => ({
-        ...r,
-        program_id: 'p1',
-        program_name: 'Program Bir',
-        display_name: r.department_id,
-      })),
+      departments: fixture.rows.map((r) =>
+        makeMyDepartment({
+          ...r,
+          role: r.role as MyDepartmentRole,
+          program_id: 'p1',
+          program_name: 'Program Bir',
+          display_name: r.department_id,
+        }),
+      ),
     },
   )
   const facts = (item: WorkItemDetail) => workActorFacts(standing, 'p1', item)
@@ -132,7 +140,7 @@ function writeHandlers(db: FakeWork) {
     http.post(`${ORIGIN}/v1/work-items/:id/files`, ({ params, request }) => {
       const id = String(params.id)
       const list = db.files.get(id) ?? []
-      const file: WorkItemFile = {
+      const file: WorkItemFile = withFileDefaults({
         file_id: `f-${list.length + 1}`,
         work_item_id: id,
         display_name: 'kanit.pdf',
@@ -141,7 +149,7 @@ function writeHandlers(db: FakeWork) {
         tag: new URL(request.url).searchParams.get('tag') as WorkItemFile['tag'],
         uploaded_by_account_id: ME,
         uploaded_by_full_name: 'Ayşe',
-      }
+      })
       db.files.set(id, [...list, file])
       return json({ ...file, created_at: '2026-11-09T08:00:00Z' }, 201)
     }),

@@ -21,6 +21,7 @@ const TYPE_TEXT = {
   'work.item.date_changed': 'Bir görevin tarihi değişti',
   'work.date_change.requested': 'Yeni tarih talebi',
   'work.date_change.reviewed': 'Tarih talebi sonuçlandı',
+  'work.task.reminder': 'Bir görev için hatırlatma var',
   'collaboration.meeting.created': 'Yeni toplantı',
   'collaboration.meeting.updated': 'Toplantı üyelere açıldı',
   'organization.membership.assigned': 'Ekibe yeni üye atandı',

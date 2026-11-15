@@ -1,6 +1,14 @@
 import type { Meeting } from '@/modules/meetings/public'
 import { describe, expect, it } from 'vitest'
 
+import {
+  makeMeetingDepartment,
+  withDeletedAccountDefaults,
+  withDeletedDepartmentDefaults,
+  withDeletedTaskDefaults,
+  withMeetingDefaults,
+} from '@/shared/api/__tests__/defaults'
+
 import { accountRow, departmentRow, fold, meetingRow, taskRow, type RowContext } from './rows'
 
 const CTX: RowContext = {
@@ -9,7 +17,7 @@ const CTX: RowContext = {
 }
 
 function meeting(over: Partial<Meeting> = {}): Meeting {
-  return {
+  return withMeetingDefaults({
     meeting_id: 'm1',
     program_id: 'p1',
     title: 'Fuar yürüyüşü',
@@ -22,26 +30,26 @@ function meeting(over: Partial<Meeting> = {}): Meeting {
     members_included: false,
     owner_department_id: 'd1',
     departments: [
-      { department_id: 'd1', department_name: 'Mekanik (eski ad)' },
-      { department_id: 'd9', department_name: 'Fuar' },
+      makeMeetingDepartment({ department_id: 'd1', department_name: 'Mekanik (eski ad)' }),
+      makeMeetingDepartment({ department_id: 'd9', department_name: 'Fuar' }),
     ],
     place: 'Fuar alanı',
     deleted_at: '2026-11-11T09:00:00Z',
     deleted_by: { account_id: 'a7', full_name: 'Reha Koçak' },
     ...over,
-  }
+  })
 }
 
 describe('E-12-66 görev satırı', () => {
   const row = taskRow(
-    {
+    withDeletedTaskDefaults({
       work_item_id: 'w1',
       title: 'Saha pano montajı',
       department_id: 'd1',
       status: 'devam_ediyor',
       deleted_at: '2026-11-11T10:42:00Z',
       file_count: 2,
-    },
+    }),
     CTX,
   )
 
@@ -62,10 +70,10 @@ describe('E-12-66 görev satırı', () => {
 
   it('silinmiş departmanın görevi: sözlükte yoksa "Bilinmeyen koordinatörlük"', () => {
     const orphan = taskRow(
-      {
+      withDeletedTaskDefaults({
         ...{ work_item_id: 'w2', title: 'T', status: 's', deleted_at: '', file_count: 0 },
         department_id: 'dx',
-      },
+      }),
       CTX,
     )
     expect(orphan.subLine).toBe('Bilinmeyen koordinatörlük › Görevler')
@@ -101,13 +109,15 @@ describe('E-12-67 toplantı satırı', () => {
 
 describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
   it('koordinatörlük: ad, kod, kind; silinme zamanı boş olabilir', () => {
-    const row = departmentRow({
-      department_id: 'd5',
-      name: 'Operasyon',
-      code: 'OPE',
-      kind: 'koordinatorluk',
-      deleted_at: '',
-    })
+    const row = departmentRow(
+      withDeletedDepartmentDefaults({
+        department_id: 'd5',
+        name: 'Operasyon',
+        code: 'OPE',
+        kind: 'koordinatorluk',
+        deleted_at: '',
+      }),
+    )
     expect(row).toMatchObject({
       kind: 'koordinatorluk',
       title: 'Operasyon',
@@ -117,12 +127,21 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
       departmentIds: ['d5'],
     })
     expect(
-      departmentRow({ department_id: 'd6', name: 'X', kind: '', deleted_at: 'x' }).subLine,
+      departmentRow(
+        withDeletedDepartmentDefaults({
+          department_id: 'd6',
+          name: 'X',
+          kind: '',
+          deleted_at: 'x',
+        }),
+      ).subLine,
     ).toBe('')
   })
 
   it('kullanıcı: yalnız ad; silinme tarihi ve silen yok', () => {
-    const row = accountRow({ account_id: 'a1', full_name: 'Gökhan Tanaydın' })
+    const row = accountRow(
+      withDeletedAccountDefaults({ account_id: 'a1', full_name: 'Gökhan Tanaydın' }),
+    )
     expect(row).toMatchObject({
       kind: 'kullanici',
       key: 'kullanici:a1',

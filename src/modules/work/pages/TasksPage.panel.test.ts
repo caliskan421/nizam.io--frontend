@@ -116,7 +116,12 @@ describe('Görevler › Liste — ayrıntı paneli (URL gorev)', () => {
 
 describe('Görevler › Liste — kapsam değişimi (README satır dışı varsayım)', () => {
   it('arama/sekme/talep/sıralama korunur; koordinatörlük, panel, imleç ve açık bloklar sıfırlanır', async () => {
-    const pending = { request_id: 'r1', new_start_on: '2026-11-01', new_end_on: '2026-11-20' }
+    const pending = {
+      request_id: 'r1',
+      created_at: '2026-10-01T08:00:00Z',
+      new_start_on: '2026-11-01',
+      new_end_on: '2026-11-20',
+    }
     const requested = { ...ROWS[0]!, pending_date_request: pending }
     server.use(...standingHandlers(ADMIN), listHandler([requested], 'c1'))
     const ctx = await mountPage(

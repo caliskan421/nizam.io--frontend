@@ -10,6 +10,13 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 import { defineComponent, h } from 'vue'
 
+import {
+  makeMeetingDepartment,
+  withDeletedAccountDefaults,
+  withDeletedDepartmentDefaults,
+  withDeletedTaskDefaults,
+  withMeetingDefaults,
+} from '@/shared/api/__tests__/defaults'
 import { ConfirmHost } from '@/shared/ui/confirm'
 
 import type { Meeting } from '@/modules/meetings/public'
@@ -226,52 +233,53 @@ export function standingHandlers(options: {
 
 // --- Fikstürler ---------------------------------------------------------------------------
 
-export const task = (id: string, over: Partial<DeletedWorkItem> = {}): DeletedWorkItem => ({
-  work_item_id: id,
-  title: `Görev ${id}`,
-  department_id: 'd1',
-  status: 'devam_ediyor',
-  deleted_at: '2026-11-12T10:42:00Z',
-  file_count: 0,
-  ...over,
-})
+export const task = (id: string, over: Partial<DeletedWorkItem> = {}): DeletedWorkItem =>
+  withDeletedTaskDefaults({
+    work_item_id: id,
+    title: `Görev ${id}`,
+    department_id: 'd1',
+    status: 'devam_ediyor',
+    deleted_at: '2026-11-12T10:42:00Z',
+    file_count: 0,
+    ...over,
+  })
 
-export const meeting = (id: string, over: Partial<Meeting> = {}): Meeting => ({
-  meeting_id: id,
-  program_id: 'p1',
-  title: `Toplantı ${id}`,
-  meeting_date: '2026-10-24T07:00:00Z',
-  created_at: '2026-10-01T07:00:00Z',
-  updated_at: '2026-10-01T07:00:00Z',
-  created_by_account_id: 'acc-9',
-  created_by_role: 'admin',
-  invite_mode: 'coordinatorship',
-  members_included: false,
-  owner_department_id: 'd1',
-  departments: [{ department_id: 'd1', department_name: 'Mekanik' }],
-  place: null,
-  deleted_at: '2026-11-12T09:00:00Z',
-  deleted_by: { account_id: 'acc-7', full_name: 'Reha Koçak' },
-  ...over,
-})
+export const meeting = (id: string, over: Partial<Meeting> = {}): Meeting =>
+  withMeetingDefaults({
+    meeting_id: id,
+    program_id: 'p1',
+    title: `Toplantı ${id}`,
+    meeting_date: '2026-10-24T07:00:00Z',
+    created_at: '2026-10-01T07:00:00Z',
+    updated_at: '2026-10-01T07:00:00Z',
+    created_by_account_id: 'acc-9',
+    created_by_role: 'admin',
+    invite_mode: 'coordinatorship',
+    members_included: false,
+    owner_department_id: 'd1',
+    departments: [makeMeetingDepartment({ department_id: 'd1', department_name: 'Mekanik' })],
+    place: null,
+    deleted_at: '2026-11-12T09:00:00Z',
+    deleted_by: { account_id: 'acc-7', full_name: 'Reha Koçak' },
+    ...over,
+  })
 
-export const department = (
-  id: string,
-  over: Partial<DeletedDepartment> = {},
-): DeletedDepartment => ({
-  department_id: id,
-  name: `Birim ${id}`,
-  kind: 'koordinatorluk',
-  code: id.toUpperCase(),
-  deleted_at: '2026-11-11T08:00:00Z',
-  ...over,
-})
+export const department = (id: string, over: Partial<DeletedDepartment> = {}): DeletedDepartment =>
+  withDeletedDepartmentDefaults({
+    department_id: id,
+    name: `Birim ${id}`,
+    kind: 'koordinatorluk',
+    code: id.toUpperCase(),
+    deleted_at: '2026-11-11T08:00:00Z',
+    ...over,
+  })
 
-export const account = (id: string, over: Partial<DeletedAccount> = {}): DeletedAccount => ({
-  account_id: id,
-  full_name: `Kişi ${id}`,
-  ...over,
-})
+export const account = (id: string, over: Partial<DeletedAccount> = {}): DeletedAccount =>
+  withDeletedAccountDefaults({
+    account_id: id,
+    full_name: `Kişi ${id}`,
+    ...over,
+  })
 
 // --- Bağlama ------------------------------------------------------------------------------
 

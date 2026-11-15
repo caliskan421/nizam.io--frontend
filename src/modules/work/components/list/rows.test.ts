@@ -15,7 +15,12 @@ import {
 } from './rows'
 
 const item = (over: Partial<WorkItem>) => workItem(over) as WorkItem
-const pending = { request_id: 'r1', new_start_on: '2026-11-01', new_end_on: '2026-11-20' }
+const pending = {
+  request_id: 'r1',
+  created_at: '2026-10-01T08:00:00Z',
+  new_start_on: '2026-11-01',
+  new_end_on: '2026-11-20',
+}
 
 describe('istemci arama (BE-004, GAP-036)', () => {
   it('Türkçe katlama: İ/ı', () => {

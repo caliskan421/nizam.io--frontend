@@ -1,8 +1,9 @@
 // Gantt çekirdeği testleri için fikstürler (örnek veri, gerçek veri DEĞİLDİR).
+import { withWorkItemDefaults } from '@/shared/api/__tests__/defaults'
 import type { GanttLink, GanttTask } from '../types'
 
 export function task(over: Partial<GanttTask> = {}): GanttTask {
-  return {
+  return withWorkItemDefaults({
     work_item_id: 'w1',
     title: 'Rapor',
     program_id: 'p1',
@@ -26,7 +27,7 @@ export function task(over: Partial<GanttTask> = {}): GanttTask {
       days_early: 0,
     },
     ...over,
-  }
+  })
 }
 
 export function link(over: Partial<GanttLink> = {}): GanttLink {

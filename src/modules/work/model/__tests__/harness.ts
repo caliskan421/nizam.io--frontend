@@ -8,6 +8,7 @@ import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, type App } from 'vue'
 
+import { withSubtaskDefaults, withWorkItemDefaults } from '@/shared/api/__tests__/defaults'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -110,7 +111,7 @@ export const COORD_SCOPE: ScopeSelection = {
 }
 
 export function workItem(over: Partial<WorkItemDetail> = {}): WorkItemDetail {
-  return {
+  return withWorkItemDefaults({
     description: '',
     work_item_id: 'w1',
     program_id: 'p1',
@@ -137,11 +138,11 @@ export function workItem(over: Partial<WorkItemDetail> = {}): WorkItemDetail {
     edit_revision: 3,
     dates_revision: 7,
     ...over,
-  }
+  })
 }
 
 export function subtask(over: Partial<WorkItemSubtask> = {}): WorkItemSubtask {
-  return {
+  return withSubtaskDefaults({
     subtask_id: 's1',
     work_item_id: 'w1',
     title: 'Taslak',
@@ -154,7 +155,7 @@ export function subtask(over: Partial<WorkItemSubtask> = {}): WorkItemSubtask {
     updated_at: '2026-11-01T08:00:00Z',
     edit_revision: 5,
     ...over,
-  }
+  })
 }
 
 export function note(over: Partial<WorkItemNote> = {}): WorkItemNote {

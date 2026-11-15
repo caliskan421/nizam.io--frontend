@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/defaults'
 import { parseStanding, type Standing } from '@/shared/scope/standing-facts'
 
 import {
@@ -14,13 +15,13 @@ function standing(companyAdmin: boolean, role?: string): Standing {
     {
       departments: role
         ? [
-            {
+            makeMyDepartment({
               program_id: 'p1',
               program_name: 'Program',
               department_id: 'd1',
               display_name: 'Birim',
-              role,
-            },
+              role: role as MyDepartmentRole,
+            }),
           ]
         : [],
     },

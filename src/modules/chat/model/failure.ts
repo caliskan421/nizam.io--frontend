@@ -1,6 +1,7 @@
 /**
  * `messaging.*` hata kodları → sınıf + i18n anahtarı (10 `backend.md` §7; `error-codes.json`
- * `catalog_version` 1: 17 zarf kodu + `messaging.input_invalid` altındaki 4 alan kodu = 21).
+ * `catalog_version` 1: 18 zarf kodu (pin v0.23.0-api `messaging.auto_group_protected` ekledi) +
+ * `messaging.input_invalid` altındaki 4 alan kodu = 22).
  * Sunucu `message` alanı gösterilmez: metin `errors.<kod>` anahtarından gelir (`errorText`).
  * `effect` ekranın uyguladığı davranıştır (liste tazele, sohbeti kapat …); karar bileşenindir.
  */
@@ -47,6 +48,7 @@ const f = (cls: ChatFailureClass, code: string, effect: ChatFailureEffect): Chat
 })
 
 export const CHAT_FAILURES: Readonly<Record<string, ChatFailure>> = {
+  'messaging.auto_group_protected': f('conflict', 'messaging.auto_group_protected', 'generic'),
   'messaging.chat_deleted': f('deleted', 'messaging.chat_deleted', 'generic'),
   'messaging.chat_not_found': f('gone', 'messaging.chat_not_found', 'close_chat'),
   'messaging.edit_conflict': f('conflict', 'messaging.edit_conflict', 'reread_message'),

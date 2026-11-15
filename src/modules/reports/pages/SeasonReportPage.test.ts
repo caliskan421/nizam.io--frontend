@@ -1,6 +1,11 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import {
+  makeTaskPriorityDistribution,
+  makeTaskStatusDistribution,
+  withDateChangeDefaults,
+} from '@/shared/api/__tests__/defaults'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useToast } from '@/shared/ui'
 
@@ -186,9 +191,9 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
       coordinatorship_performance: [],
       tasks: [],
       monthly_activity: [],
-      task_status_distribution: {},
-      priority_distribution: {},
-      date_change_stats: { approved: 0, pending: 0, rejected: 0, total: 0 },
+      task_status_distribution: makeTaskStatusDistribution(),
+      priority_distribution: makeTaskPriorityDistribution(),
+      date_change_stats: withDateChangeDefaults({ approved: 0, pending: 0, rejected: 0, total: 0 }),
     })
     const { wrapper } = await open(SEASON(empty))
     expect(wrapper.text()).toContain('Koordinatörlük verisi bulunamadı.')

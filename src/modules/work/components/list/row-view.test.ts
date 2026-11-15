@@ -47,6 +47,7 @@ describe('satır gösterimi', () => {
         end_on: '2026-09-05',
         pending_date_request: {
           request_id: 'r',
+          created_at: '2026-10-01T08:00:00Z',
           new_start_on: '2026-09-01',
           new_end_on: '2026-11-15',
         },

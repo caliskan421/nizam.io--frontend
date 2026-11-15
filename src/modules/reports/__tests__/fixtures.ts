@@ -1,4 +1,16 @@
 // Önizleme testleri için gerçekçi `reportSeason` / `reportMeetingDetail` gövdeleri (şemaya uygun).
+import {
+  makeTaskPriorityDistribution,
+  makeTaskStatusDistribution,
+  withDateChangeDefaults,
+  withMonthlyActivityDefaults,
+  withReportNoteDefaults,
+  withReportTaskDefaults,
+  withSeasonDepartmentDefaults,
+  withSeasonReportDefaults,
+  withSeasonStatsDefaults,
+} from '@/shared/api/__tests__/defaults'
+
 import type { ReportMeetingDetail, SeasonReport } from '../model/types'
 
 type Task = SeasonReport['tasks'][number]
@@ -6,7 +18,7 @@ type Task = SeasonReport['tasks'][number]
 const person = (id: string, name: string) => ({ account_id: id, full_name: name })
 
 export function seasonTask(over: Partial<Task> = {}): Task {
-  return {
+  return withReportTaskDefaults({
     assignees: [person('u1', 'Bahar Kılıç')],
     completed_on: null,
     created_at: '2026-03-01T08:00:00Z',
@@ -30,28 +42,29 @@ export function seasonTask(over: Partial<Task> = {}): Task {
     title: 'Kablo kanalı kazısı',
     work_item_id: 'w1',
     ...over,
-  }
+  })
 }
 
-const stat = (id: string, name: string, over: Record<string, unknown> = {}) => ({
-  completed_tasks: 1,
-  completion_rate: 50,
-  coordinators: [person('c1', 'Abdullah Ateş')],
-  department_id: id,
-  description: 'Fuar alanı altyapısı',
-  in_progress_tasks: 1,
-  kind: 'koordinatorluk',
-  last_activity_at: null,
-  meeting_count: 4,
-  member_count: 3,
-  name,
-  not_started_tasks: 0,
-  overdue_tasks: 1,
-  total_tasks: 2,
-  ...over,
-})
+const stat = (id: string, name: string, over: Record<string, unknown> = {}) =>
+  withSeasonDepartmentDefaults({
+    completed_tasks: 1,
+    completion_rate: 50,
+    coordinators: [person('c1', 'Abdullah Ateş')],
+    department_id: id,
+    description: 'Fuar alanı altyapısı',
+    in_progress_tasks: 1,
+    kind: 'koordinatorluk',
+    last_activity_at: null,
+    meeting_count: 4,
+    member_count: 3,
+    name,
+    not_started_tasks: 0,
+    overdue_tasks: 1,
+    total_tasks: 2,
+    ...over,
+  })
 
-const STATS = {
+const STATS = withSeasonStatsDefaults({
   completed_tasks: 1,
   completion_rate: 33,
   overdue_tasks: 1,
@@ -63,7 +76,7 @@ const STATS = {
   total_notes: 118,
   total_tasks: 3,
   total_users: 18,
-}
+})
 
 const ACTIVITY = [
   { completed_tasks: 4, count: 20, created_tasks: 6, meetings: 5, messages: 5, month: '2026-05' },
@@ -75,7 +88,7 @@ const ACTIVITY = [
     messages: 20,
     month: '2026-06',
   },
-]
+].map(withMonthlyActivityDefaults)
 
 const EMPTY_DEPARTMENT = {
   description: undefined,
@@ -114,12 +127,12 @@ function seasonTasks(): Task[] {
 }
 
 export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
-  return {
+  return withSeasonReportDefaults({
     coordinatorship_performance: [
       stat('d2', 'Operasyon', EMPTY_DEPARTMENT),
       stat('d1', 'Altyapı ve tesisat'),
     ],
-    date_change_stats: { approved: 5, pending: 3, rejected: 1, total: 9 },
+    date_change_stats: withDateChangeDefaults({ approved: 5, pending: 3, rejected: 1, total: 9 }),
     generated_at: '2026-10-21T11:05:00Z',
     meeting_stats: {
       converted_to_task: 2,
@@ -129,20 +142,18 @@ export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
     },
     message_stats: { from_admins: 3, from_others: 4, total: 7 },
     monthly_activity: ACTIVITY,
-    priority_distribution: { acil: 1, yuksek: 1, orta: 1, dusuk: 0 },
+    priority_distribution: makeTaskPriorityDistribution({ acil: 1, yuksek: 1, orta: 1 }),
     program_id: 'p1',
     program_name: 'Şanlıurfa Teknofest',
     stats: STATS,
-    task_status_distribution: {
-      baslanmadi: 0,
+    task_status_distribution: makeTaskStatusDistribution({
       devam_ediyor: 1,
-      onaya_sunuldu: 0,
       iade_edildi: 1,
       tamamlandi: 1,
-    },
+    }),
     tasks: seasonTasks(),
     ...over,
-  }
+  })
 }
 
 export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportMeetingDetail {
@@ -168,7 +179,7 @@ export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportM
       title: 'Haftalık koordinasyon toplantısı',
     },
     notes: [
-      {
+      withReportNoteDefaults({
         author: person('u9', 'Ali Avcı'),
         author_role: 'admin',
         content: 'Kazı yüzde 60 tamamlandı.',
@@ -176,8 +187,8 @@ export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportM
         converted_to_task_id: null,
         created_at: '2026-10-14T11:05:00Z',
         note_id: 'n1',
-      },
-      {
+      }),
+      withReportNoteDefaults({
         author: person('u1', 'Bahar Kılıç'),
         author_role: 'member',
         content: 'Beton için ek ekip gerekli.',
@@ -185,7 +196,7 @@ export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportM
         converted_to_task_id: 't9',
         created_at: '2026-10-14T12:30:00Z',
         note_id: 'n2',
-      },
+      }),
     ],
     participants: [
       { account_id: 'u1', full_name: 'Bahar Kılıç', role: 'member' },

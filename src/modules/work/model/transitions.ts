@@ -5,6 +5,8 @@
  * atanmışsa **kendi görevi**, atanmamış koordinatörse **koordinatör**, yalnız atanmış üyeyse
  * **üye**. Şirket yöneticiliği tek başına aktör değildir (P1: mercek de değildir).
  */
+import type { components } from '@/shared/api/schema'
+
 import type { WorkActorFacts } from './capabilities'
 import type { WorkItemStatus } from './types'
 
@@ -66,4 +68,20 @@ export function isValidReason(reason: string): boolean {
 /** `close_subtasks` yalnız `to = tamamlandi` hedefinde geçerlidir (§7). */
 export function canCloseSubtasks(to: WorkItemStatus): boolean {
   return to === 'tamamlandi'
+}
+
+/**
+ * Sunucunun hesapladığı aktör (`TransitionResult.actor`; pin v0.23.0-api `sirket_yoneticisi` ekledi,
+ * ADR-0041) → istemci aktörü. Kayıt tamdır (`Record`): yeni sunucu değeri derlemeyi kırar. İstemci
+ * matrisi DEĞİŞMEZ: `sirket_yoneticisi` hâlâ aktör sayılmaz (`null`; "ŞY aktör değildir" kuralı F8
+ * dışı, ürün kararı bekler); yanıt yalnız sunucunun hesabını bildirir, istemci eylem kümesini ondan
+ * türetmez (`transitionActor` görev olgularından hesaplar).
+ */
+export const SERVER_ACTOR_TO_CLIENT: Readonly<
+  Record<components['schemas']['TransitionResult']['actor'], TransitionActor | null>
+> = {
+  uye: 'member',
+  koordinator: 'coordinator',
+  koordinator_kendi_gorevi: 'own',
+  sirket_yoneticisi: null,
 }

@@ -1,11 +1,12 @@
 // Saf model testleri için görev satırı fikstürü (msw'siz). Şemanın zorunlu alanları tam.
+import { withWorkItemDefaults } from '@/shared/api/__tests__/defaults'
 import type { WorkItem } from '@/modules/work/public'
 
 let seq = 0
 
 export function item(over: Partial<WorkItem> = {}): WorkItem {
   seq += 1
-  return {
+  return withWorkItemDefaults({
     work_item_id: `w${seq}`,
     program_id: 'p1',
     department_id: 'd1',
@@ -31,7 +32,7 @@ export function item(over: Partial<WorkItem> = {}): WorkItem {
     edit_revision: 1,
     dates_revision: 1,
     ...over,
-  }
+  })
 }
 
 export function counts(

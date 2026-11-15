@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { withFileDefaults } from '@/shared/api/__tests__/defaults'
 import { workItem } from '../../model/__tests__/harness'
 import type { WorkItemFile } from '../../model/types'
 import DetailSummary from './DetailSummary.vue'
@@ -8,7 +9,7 @@ import DetailSummary from './DetailSummary.vue'
 const TZ = 'Europe/Istanbul'
 
 function file(name: string): WorkItemFile {
-  return {
+  return withFileDefaults({
     file_id: name,
     work_item_id: 'w1',
     display_name: name,
@@ -17,7 +18,7 @@ function file(name: string): WorkItemFile {
     tag: 'plan',
     uploaded_by_account_id: 'acc-1',
     uploaded_by_full_name: 'Ayşe',
-  }
+  })
 }
 
 function mountSummary(files: WorkItemFile[] | null, over = {}) {

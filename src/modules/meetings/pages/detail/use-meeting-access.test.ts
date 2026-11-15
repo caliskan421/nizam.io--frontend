@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { computed } from 'vue'
 import { expect, it, vi } from 'vitest'
+import { withNoteListDefaults } from '@/shared/api/__tests__/defaults'
 import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
 import { useMeetingAccess } from './use-meeting-access'
@@ -21,12 +22,13 @@ it('derives management from standing and the meeting facts', () => {
     owner_department_id: 'd',
     departments: [],
     created_by_account_id: 'a',
+    created_by_full_name: null,
     created_by_role: 'admin',
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     place: null,
     agenda: [],
-    notes: { items: [], next_cursor: '' },
+    notes: withNoteListDefaults({ items: [], next_cursor: '' }),
     conference: null,
     conference_available: false,
     last_conference: null,

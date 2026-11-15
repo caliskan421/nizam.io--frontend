@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { withReportTaskDefaults } from '@/shared/api/__tests__/defaults'
+
 import {
   activity,
   type ReportTask,
@@ -14,7 +16,7 @@ import {
 import type { SeasonReport } from './types'
 
 export function task(over: Partial<ReportTask> = {}): ReportTask {
-  return {
+  return withReportTaskDefaults({
     assignees: [],
     completed_on: null,
     created_at: '2026-03-01T08:00:00Z',
@@ -38,7 +40,7 @@ export function task(over: Partial<ReportTask> = {}): ReportTask {
     title: 'Görev',
     work_item_id: 'w1',
     ...over,
-  }
+  })
 }
 
 describe('görev sayımları', () => {
