@@ -40,8 +40,12 @@ function handlers() {
     http.get('http://localhost/v1/meetings/deleted', () =>
       HttpResponse.json({ items: [], next_cursor: '' }),
     ),
-    http.get('http://localhost/v1/meetings', () =>
-      HttpResponse.json({ items: [meeting], next_cursor: '' }),
+    // Toplantı 2020'dedir: sunucu `when=upcoming` sekmesinde döndürmez (BE-021).
+    http.get('http://localhost/v1/meetings', ({ request }) =>
+      HttpResponse.json({
+        items: new URL(request.url).searchParams.get('when') === 'upcoming' ? [] : [meeting],
+        next_cursor: '',
+      }),
     ),
     http.get('http://localhost/v1/meetings/m1', () => HttpResponse.json(meeting)),
     http.get('http://localhost/v1/meetings/m1/notes', () =>

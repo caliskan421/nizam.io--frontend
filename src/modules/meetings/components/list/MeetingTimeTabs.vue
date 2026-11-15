@@ -4,28 +4,27 @@ import { useI18n } from 'vue-i18n'
 type Tab = 'yaklasan' | 'gecmis' | 'silinenler'
 const props = defineProps<{
   selected: Tab
-  upcoming: number
-  past: number
-  complete: boolean
+  /** `tab_counts` (BE-021); okuma gelene dek `null` (sayı gösterilmez). */
+  upcoming: number | null
+  past: number | null
   admin: boolean
-  deletedCount: number | null
-  deletedMore: boolean
+  /** Yalnız ŞY'de dolu. */
+  deleted: number | null
 }>()
 const emit = defineEmits<{ select: [tab: Tab] }>()
 const { t } = useI18n()
 const root = ref<HTMLElement | null>(null)
 const tabs = computed(() => {
-  const suffix = props.complete ? '' : '+'
+  const show = (count: number | null) => (count === null ? '' : String(count))
   const result: { id: Tab; label: string; count: string }[] = [
-    { id: 'yaklasan', label: t('meetings.list.upcoming'), count: `${props.upcoming}${suffix}` },
-    { id: 'gecmis', label: t('meetings.list.past'), count: `${props.past}${suffix}` },
+    { id: 'yaklasan', label: t('meetings.list.upcoming'), count: show(props.upcoming) },
+    { id: 'gecmis', label: t('meetings.list.past'), count: show(props.past) },
   ]
   if (props.admin)
     result.push({
       id: 'silinenler',
       label: t('meetings.list.deleted'),
-      count:
-        props.deletedCount === null ? '' : `${props.deletedCount}${props.deletedMore ? '+' : ''}`,
+      count: show(props.deleted),
     })
   return result
 })

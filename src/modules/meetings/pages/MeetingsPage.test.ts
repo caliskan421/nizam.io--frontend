@@ -39,7 +39,7 @@ beforeEach(() =>
 )
 afterAll(() => server.close())
 
-it('stops after a page error and offers a user retry', async () => {
+it('loads one server page, no automatic drain, and retries the next page on user action', async () => {
   let pages = 0
   let fail = true
   server.use(
@@ -50,11 +50,16 @@ it('stops after a page error and offers a user retry', async () => {
   server.use(
     http.get('http://localhost/v1/meetings', ({ request }) => {
       if (!new URL(request.url).searchParams.has('cursor'))
-        return HttpResponse.json({ items: [], next_cursor: 'next' })
+        return HttpResponse.json({
+          items: [],
+          next_cursor: 'next',
+          total: 4,
+          tab_counts: { upcoming: 4, past: 9, deleted: 1 },
+        })
       pages++
       return fail
         ? HttpResponse.json({ code: 'error' }, { status: 500 })
-        : HttpResponse.json({ items: [], next_cursor: '' })
+        : HttpResponse.json({ items: [], next_cursor: '', total: 4 })
     }),
   )
   const pinia = createPinia()
@@ -71,15 +76,23 @@ it('stops after a page error and offers a user retry', async () => {
     global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
   })
   await settleQueries(client)
-  expect(wrapper.text()).toContain('Diğer toplantılar yüklenemedi')
+  expect(pages).toBe(0)
+  expect(wrapper.text()).toContain('Yaklaşan 4')
+  expect(wrapper.text()).toContain('Geçmiş 9')
   expect(wrapper.text()).toContain('Silinenler 1')
-  expect(pages).toBe(3)
-  fail = false
-  const button = wrapper.findAll('button').find((b) => b.text() === 'Yeniden dene')
-  await button!.trigger('click')
+  expect(wrapper.text()).toContain('4 yaklaşan, 9 geçmiş toplantı')
+  expect(wrapper.text()).not.toContain('+')
+  const more = () => wrapper.findAll('button').find((b) => b.text() === 'Daha fazla göster')!
+  await more().trigger('click')
   await settleQueries(client)
+  expect(wrapper.text()).toContain('Diğer toplantılar yüklenemedi')
+  const failedPages = pages
+  fail = false
+  await more().trigger('click')
+  await settleQueries(client)
+  expect(pages).toBe(failedPages + 1)
   expect(wrapper.text()).not.toContain('Diğer toplantılar yüklenemedi')
-  expect(pages).toBe(4)
+  expect(wrapper.text()).not.toContain('Daha fazla göster')
   wrapper.unmount()
   client.clear()
 })
@@ -96,7 +109,7 @@ it('blocks invalid URL dates before the first request and starts with corrected 
   server.use(
     http.get('http://localhost/v1/meetings', ({ request }) => {
       urls.push(new URL(request.url))
-      return HttpResponse.json({ items: [], next_cursor: '' })
+      return HttpResponse.json({ items: [], next_cursor: '', total: 0 })
     }),
   )
   const pinia = createPinia()
@@ -123,7 +136,8 @@ it('blocks invalid URL dates before the first request and starts with corrected 
   expect(urls).toHaveLength(1)
   expect(urls[0]?.searchParams.get('from')).toBe('2026-02-28')
   expect(urls[0]?.searchParams.get('to')).toBe('2026-03-01')
-  expect(wrapper.text()).toContain('yüklenen kayıtlar içinde')
+  expect(wrapper.text()).not.toContain('yüklenen kayıtlar içinde')
+  expect(urls[0]?.searchParams.get('when')).toBe('upcoming')
   expect(wrapper.get('.meetings-foot').text()).toContain('0 yaklaşan toplantı')
   expect(wrapper.get('.meetings-foot').text()).not.toContain('0 0 yaklaşan')
   await wrapper
@@ -146,6 +160,10 @@ it('blocks invalid URL dates before the first request and starts with corrected 
   await upcoming.trigger('keydown', { key: 'ArrowRight' })
   await flushPromises()
   expect(router.currentRoute.value.query.zaman).toBe('gecmis')
+  await until(
+    () => urls.some((url) => url.searchParams.get('when') === 'past'),
+    (notify) => client.getQueryCache().subscribe(notify),
+  )
   expect(wrapper.get('#meeting-list-panel').attributes('aria-labelledby')).toBe(
     'meeting-tab-gecmis',
   )

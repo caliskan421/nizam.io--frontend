@@ -15,19 +15,6 @@ export function meetingDay(date: string | Date, timezone: string): string {
   return `${part('year')}-${part('month')}-${part('day')}`
 }
 
-/** Bugünün geçmiş saatleri de yaklaşan kümesindedir; sonuç yalnız yüklenen kayıtları kapsar. */
-export function splitMeetings(meetings: readonly Meeting[], now: Date, timezone: string) {
-  const today = meetingDay(now, timezone)
-  const upcoming: Meeting[] = []
-  const past: Meeting[] = []
-  for (const meeting of meetings) {
-    ;(meetingDay(meeting.meeting_date, timezone) >= today ? upcoming : past).push(meeting)
-  }
-  upcoming.sort((a, b) => Date.parse(a.meeting_date) - Date.parse(b.meeting_date))
-  past.sort((a, b) => Date.parse(b.meeting_date) - Date.parse(a.meeting_date))
-  return { upcoming, past }
-}
-
 /** Sahip önde; kod yoksa bağdaki adın baş harfleri kullanılır. */
 export function meetingDepartments(meeting: Meeting, departments: readonly Department[]) {
   const codes = new Map(departments.map((d) => [d.department_id, d.code]))

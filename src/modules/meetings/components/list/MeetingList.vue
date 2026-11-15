@@ -12,7 +12,7 @@ import { useNow } from '../../pages/meetings/use-now'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const props = defineProps<{ items: Meeting[]; complete: boolean }>()
+const props = defineProps<{ items: Meeting[] }>()
 const emit = defineEmits<{ create: []; openDeleted: []; select: [id: string] }>()
 function select(event: MouseEvent, id: string) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return

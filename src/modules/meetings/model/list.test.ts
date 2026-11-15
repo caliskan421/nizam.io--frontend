@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { makeMeetingDepartment, withMeetingDefaults } from '@/shared/api/__tests__/defaults'
 import type { components } from '@/shared/api/schema'
-import { groupMeetings, meetingDay, meetingDepartments, splitMeetings } from './list'
+import { groupMeetings, meetingDay, meetingDepartments } from './list'
 
 type Meeting = components['schemas']['Meeting']
 const meeting = (id: string, date: string): Meeting =>
@@ -22,16 +22,9 @@ const meeting = (id: string, date: string): Meeting =>
   })
 
 describe('meeting list model', () => {
-  it('uses the installation day and keeps earlier times today upcoming', () => {
-    const now = new Date('2026-11-10T22:30:00Z')
-    expect(meetingDay(now, 'Europe/Istanbul')).toBe('2026-11-11')
-    const result = splitMeetings(
-      [meeting('today', '2026-11-10T21:01:00Z'), meeting('past', '2026-11-10T20:59:00Z')],
-      now,
-      'Europe/Istanbul',
-    )
-    expect(result.upcoming.map((m) => m.meeting_id)).toEqual(['today'])
-    expect(result.past.map((m) => m.meeting_id)).toEqual(['past'])
+  it('uses the installation calendar day', () => {
+    expect(meetingDay(new Date('2026-11-10T22:30:00Z'), 'Europe/Istanbul')).toBe('2026-11-11')
+    expect(meetingDay('2026-11-10T20:59:00Z', 'Europe/Istanbul')).toBe('2026-11-10')
   })
   it('places the owner first and falls back to initials for missing codes', () => {
     const m = {
