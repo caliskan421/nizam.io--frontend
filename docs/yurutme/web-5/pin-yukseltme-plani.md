@@ -1,5 +1,7 @@
 # Pin yükseltme planı — v0.15.0-api → hedef
 
+> **GÜNCELLENDİ (2026-11-15, W168): bu plan v0.23.0-api için [web-8/pin-yukseltme-v023.md](../web-8/pin-yukseltme-v023.md) ile değiştirildi** (F8 açıldı, P67; hedef `v0.23.0-api`, WP2 raporlar/K1/Ü1/BE-005/BE-014 eklendi). Aşağıdaki metin tarihsel kayıttır (hedefler v0.17/v0.18 idi).
+
 **Durum (2026-11-12): HAZIRLIK; BAŞLATMA KULLANICI ONAYINA BAĞLI.** Bu belge bir başlatma yetkisi değildir; yeni backend etiketinin varlığı pin yükseltme yetkisi sayılmaz. Mevcut pin `api-pin.json` = `v0.15.0-api` (F4 ve F5 boyunca yükseltilmedi). Kalıp: [WEB-4 "Pin aşaması" (WEB-P)](../web-4/ilerleme.md); kaynak envanterleri: [rapor-F4](../../backend-eksikleri/rapor-F4.md) §3 (K79–K84) ve [rapor-F5](../../backend-eksikleri/rapor-F5.md) §3.
 
 ## Hedef seçimi
