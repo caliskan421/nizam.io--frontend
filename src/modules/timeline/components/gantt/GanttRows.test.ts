@@ -228,3 +228,11 @@ describe('tıklama ve klavye', () => {
     expect(row(rows, 'a').classes()).not.toContain('is-hover')
   })
 })
+
+describe('eski görev kodu yolu yok (BE-005, derlenmiş props)', () => {
+  it('departman kodu sözlüğü yok; yalnız kod sütunu bayrağı', () => {
+    const names = Object.keys(GanttRows.props as object)
+    expect(names).not.toContain('departmentCodes')
+    expect(names).toContain('showCodes')
+  })
+})

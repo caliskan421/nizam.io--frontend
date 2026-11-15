@@ -17,3 +17,10 @@ describe('workShortCode', () => {
     expect(workShortCode(undefined)).toBe('')
   })
 })
+
+describe('eski yol yok (KESİN 35d)', () => {
+  it('statik "—" sıra üretilmez: kod yoksa #sıra, o da yoksa boş', () => {
+    expect(workShortCode({ code: null, sequence_no: 2 })).not.toContain('—')
+    expect(workShortCode({ code: null, sequence_no: null })).toBe('')
+  })
+})

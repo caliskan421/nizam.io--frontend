@@ -90,3 +90,9 @@ describe('gruplu görev tablosu (E-05-59…67)', () => {
     expect(loading.find('[role="table"]').attributes('aria-busy')).toBe('true')
   })
 })
+
+describe('eski görev kodu yolu yok (BE-005, derlenmiş props)', () => {
+  it('departman kodu sözlüğü yok', () => {
+    expect(Object.keys(TrackingTable.props as object)).not.toContain('codes')
+  })
+})

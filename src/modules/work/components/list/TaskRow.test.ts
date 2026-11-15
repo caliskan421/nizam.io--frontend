@@ -152,3 +152,9 @@ describe('görev satırı (E-03-18…29)', () => {
     expect(row.find('[data-stub="subtasks"]').exists()).toBe(false)
   })
 })
+
+describe('eski görev kodu yolu yok (BE-005, derlenmiş props)', () => {
+  it('satır departman kodu almaz; kod görevin kendi alanından', () => {
+    expect(Object.keys(TaskRow.props as object)).not.toContain('code')
+  })
+})
