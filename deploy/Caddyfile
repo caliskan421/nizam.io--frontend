@@ -53,6 +53,15 @@
 		file_server
 	}
 
+	# Web uygulama bildirimi (public/manifest.webmanifest): Caddy'nin MIME tablosu `.webmanifest`i
+	# bilmeyebilir (salt okunur imajda /etc/mime.types yok); tür açıkça yazılır. Simgeler dosya adı
+	# sabit olduğundan manifest her istekte yeniden doğrulanır (W167).
+	handle /manifest.webmanifest {
+		header Content-Type "application/manifest+json"
+		header Cache-Control "no-cache"
+		file_server
+	}
+
 	# public/ altındaki diğer gerçek dosyalar (favicon vb.): şablonlanmaz, kısa önbellek.
 	@static {
 		file

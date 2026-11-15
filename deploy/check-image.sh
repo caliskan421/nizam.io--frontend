@@ -7,7 +7,8 @@
 # olmayan kullanıcı, bütün yetenekler düşük, no-new-privileges. Denetlenen: süreç kimliği,
 # SPA belgesi ve fallback (200), istek başı CSP nonce'u başlıkta ve <meta>'da AYNI ve her
 # istekte farklı, 'unsafe-inline'/'unsafe-eval' yok, belge no-store, parmak izli varlık uzun
-# önbellekli ve şablonlanmamış, eksik varlık 404, imajda kaynak/bağımlılık/.env yok.
+# önbellekli ve şablonlanmamış, /sw.js no-cache, manifest (doğru tür + no-cache) ve PNG simgeler,
+# eksik varlık 404, imajda kaynak/bağımlılık/.env yok.
 # Dokunulan kaynak adıyla: konteyner nizamio-web-imagecheck. Toplu docker müdahalesi YOKTUR.
 set -euo pipefail
 
@@ -68,6 +69,14 @@ grep -qi '^content-security-policy:' "$tmp/ah" && fail "varlık yanıtı belge C
 curl -fsS -D "$tmp/sh" -o /dev/null "$base/sw.js" || fail "/sw.js okunamadı"
 grep -qi '^cache-control: no-cache' "$tmp/sh" || fail "/sw.js Cache-Control no-cache değil"
 grep -qi "worker-src 'self'" "$tmp/h" || fail "belge CSP'sinde worker-src 'self' yok"
+curl -fsS -D "$tmp/mh" -o "$tmp/mb" "$base/manifest.webmanifest" || fail "/manifest.webmanifest okunamadı"
+grep -qi '^content-type: application/manifest+json' "$tmp/mh" || fail "/manifest.webmanifest Content-Type application/manifest+json değil"
+grep -qi '^cache-control: no-cache' "$tmp/mh" || fail "/manifest.webmanifest Cache-Control no-cache değil"
+grep -q '"display": *"standalone"' "$tmp/mb" || fail "/manifest.webmanifest gövdesi manifest değil (SPA belgesine düşmüş olabilir)"
+for icon in /icon-192.png /icon-512.png /apple-touch-icon.png; do
+  curl -fsS -D "$tmp/ih" -o /dev/null "$base$icon" || fail "$icon okunamadı"
+  grep -qi '^content-type: image/png' "$tmp/ih" || fail "$icon image/png değil"
+done
 code="$(curl -s -o /dev/null -w '%{http_code}' "$base/assets/olmayan-dosya.js")"
 [[ "$code" == "404" ]] || fail "eksik varlık $code döndü (404 beklenir)"
 echo "varlık: $asset uzun önbellekli, şablonlanmamış; eksik varlık 404"
