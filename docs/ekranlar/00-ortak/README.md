@@ -85,7 +85,7 @@ Kabuk her ekranın çerçevesidir: solda 272 px kenar menüsü (logo, daraltma, 
 Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırlarını kodlar.
 
 ## Açık sorular (ürün sahibine)
-- **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? **F7 geçici kapandı:** sohbet sayısı (P59 taslak); v1'de (F0–F6) rozet gizliydi.
+- **Mesajlar okunmamış rozeti (E-00-21, F7):** sayı okunmamış **sohbet** mi (`unread_chats`, varsayılan) yoksa okunmamış **mesaj** mı (`eksikler.md` yeni-1)? **F7 kesin karar:** sohbet sayısı (P59 kesin); v1'de (F0–F6) rozet gizliydi.
 
 Kapananlar: Arşiv/Mesajlar menüde gizli → kabul (P2) · Yardım gizli → kabul (P2) · Asistan gizli → kabul (P2) · zil paneli F7'ye kadar devre dışı, sayaç canlı → kabul (§5) · Yönetim grubu `company_admin` ile, mercekten bağımsız → kabul (P1) · daraltılmış menüde kapsam simgeleri görünür, tık seçiciyi açar → kabul (P11) · daraltma yalnız oturum belleği → kabul (P10) · tek mercekte rol kartı salt gösterim → kabul (P11) · ürün adı sabit "RoketPortal" → kabul (P9).
 
@@ -120,7 +120,9 @@ Ayrıntı ve öğe tabloları: [mekanizma.md §9](mekanizma.md). Özet: menü gr
 
 ## F7 uygulama kanıtı (W161, 2026-11-14)
 
-**Uygulama durumu: `kabul` (sahte `/v1` ile; gerçek sunucu tanığı: [dogrulama-F7](../../yurutme/web-7/dogrulama-F7.md) — W162, #148 `4457bd3`)** — E-00-20 (Mesajlar menü öğesi), E-00-21 (Mesajlar rozeti) ve E-00-38 (bildirim zili, panel canlı) W154 (PR #141, `e9b1cce`), W155 (#143), W158 (#142) ile uygulandı ve W160 (#147) entegrasyon turunda üç rol × 390 px ile sınandı; `main` `76e4345`. Karar hücreleri (`geçici kabul` / `kabul`) karar kaydıdır ve değişmedi; E-00-21 sohbet sayısı varsayılanı (P59) KESİN'dir. Gerçek cihaz ekran okuyucu ve gerçek sunucu kanıtı yapılmadı (**doğrulanamadı**; W162 bekliyor). Test dosyaları `src/app/` altındadır.
+**Kapanış güncellemesi (W161b):** **F7 KAPANDI — 2026-11-15 (bu kayıt kapanış PR’ının CI başarılı birleşmesiyle yürürlüğe girer).** W166 [#152](https://github.com/caliskan421/nizam.io--frontend/pull/152) main `ffc2937`; [CI](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43644068102) kalite/imaj/gerçek backend Playwright SUCCESS. Dört turun koşulları kapalı; tur 4 Ö-06/Ö-07 ve dc876ed ek incelemesiyle sınırlıdır. Aşağıdaki test toplamları/kanıtlar ilk W161 tesliminin tarihsel kayıtlarıdır; bu belge güncellemesinde yeniden koşulmadı. [Hüküm ve devam eden borçlar](../../reviews/WEB-7-codex.md).
+
+**Uygulama durumu: `kabul` (sahte `/v1` ile; gerçek sunucu tanığı: [dogrulama-F7](../../yurutme/web-7/dogrulama-F7.md) — W162, #148 `4457bd3`)** — E-00-20 (Mesajlar menü öğesi), E-00-21 (Mesajlar rozeti) ve E-00-38 (bildirim zili, panel canlı) W154 (PR #141, `e9b1cce`), W155 (#143), W158 (#142) ile uygulandı ve W160 (#147) entegrasyon turunda üç rol × 390 px ile sınandı; `main` `76e4345`. Karar hücreleri (`geçici kabul` / `kabul`) karar kaydıdır ve değişmedi; E-00-21 sohbet sayısı varsayılanı (P59) KESİN'dir. Gerçek sunucu tanığı W162’de alındı (#148, HEAD `76e4345`); bu tarihsel kanıt mevcut HEAD’de yeniden koşulmadı. Gerçek cihaz ekran okuyucu **doğrulanamadı**. Test dosyaları `src/app/` altındadır.
 
 | Satırlar | Konu | Kanıt (dosya · test adı / akış) |
 |---|---|---|

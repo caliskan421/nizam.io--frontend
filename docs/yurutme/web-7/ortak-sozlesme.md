@@ -2,7 +2,7 @@
 
 > Koordinatör `---` çizgisinden sonraki kısmı kopyalar, `<W-ID>`, `<WORKTREE>`, `<DAL>` yer tutucularını doldurur, altına uygulayıcıya özel istemi ekler. Kaynak: `../web-6/ortak-sozlesme.md` — **KESİN 1–32 aynen** (tarihsel aktarımda WEB-6 → WEB-7; commit öneki `WEB-7`; dal adı `web7/<oturum>-<wid>`; bağlam 2, 2a, 5 F7 için güncellendi) + **yeni KESİN 33 ve 34** (aşağıda). KESİN 16'daki entegrasyon turu O3 = W160.
 >
-> **F7 açılışı ürün sahibince 2026-11-14 onaylandı ("F7'yi aç, backend dursun").** Backend paketi **açılmaz**, pin `v0.15.0-api` değişmez (P54; sohbet/bildirim sözleşmesi v0.11→v0.17 değişmedi); eksikler `kayit.md` + `rapor-F7.md`'ye yazılır, ekranda statik/devre dışı/gizli kalır (§3 `designStub` koşulu). P57–P66 ürün sahibi onayıyla 2026-11-14 kesinleşti: P58 Web Push dahil, P60 backend kazanır (kilit çizilmez), P57 sade liste. Güncel kapanış (2026-11-15): W165 #151 main `db7252c`; tur 3 KOŞULLU UYGUN; tur 4 Ö-06/Ö-07 düzeltme doğrulaması UYGUN; W166 tam kapı/PR/CI/main bekliyor, F7 KAPANMADI.
+> **F7 açılışı ürün sahibince 2026-11-14 onaylandı ("F7'yi aç, backend dursun").** Backend paketi **açılmaz**, pin `v0.15.0-api` değişmez (P54; sohbet/bildirim sözleşmesi v0.11→v0.17 değişmedi); eksikler `kayit.md` + `rapor-F7.md`'ye yazılır, ekranda statik/devre dışı/gizli kalır (§3 `designStub` koşulu). P57–P66 ürün sahibi onayıyla 2026-11-14 kesinleşti: P58 Web Push dahil, P60 backend kazanır (kilit çizilmez), P57 sade liste. Güncel kapanış: F7 KAPANDI — 2026-11-15 (bu kayıt kapanış belge PR’ının CI başarılı birleşmesiyle yürürlüğe girer). W166 #152 main `ffc2937`, CI 43644068102 üç iş SUCCESS; tur 3 koşulları kapalı, tur 4 Ö-06/Ö-07 sınırlı doğrulaması ve dc876ed test-only ek incelemesi UYGUN. F8 AÇILMADI.
 
 ---
 

@@ -1,12 +1,12 @@
 # O4 — Kapanış
 
-**Durum (2026-11-15): F7 KAPANMADI — W165 #151 main’de (`db7252c`), Codex tur 3 KOŞULLU UYGUN; tur 4 Ö-06/Ö-07 düzeltme doğrulaması UYGUN; W166 tam kapı/PR/CI/main bekliyor.** W162 gerçek sunucu tanığı #148, W163 #149 ve W164 #150 tamamlandı. Tur 3 (HEAD `58b4d27`) Ö-04 doğrudan başarı yolunu ve Ö-05’i kapattı; Ö-06/Ö-07 W166 HEAD `68deaa9` üzerinde tur 4 sınırlı düzeltme incelemesinde UYGUN ile kapandı; tam kapı/PR/CI/main bekliyor ([hüküm](../../reviews/WEB-7-codex.md)). W161/W161b belgeleri `web7/o4-kapanis` dalında; kapanış PR CI’sı ve birleşmesi bekliyor. F8 AÇILMADI ([web-8](../web-8/README.md)).
+**F7 KAPANDI — 2026-11-15 (bu kayıt kapanış PR’ının CI başarılı birleşmesiyle yürürlüğe girer).** W166 [#152](https://github.com/caliskan421/nizam.io--frontend/pull/152) main `ffc29374465e78c8da08ff43f4bf5d2b185144bb` ile birleşti; [CI 43644068102](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43644068102) kalite, web imajı ve gerçek backend Playwright işlerinin üçünde de **SUCCESS**. CI test toplamı ayrıca alınamadı; sayı iddia edilmez. Codex dört turu: tur 1 UYGUN DEĞİL; tur 2 ve tur 3 KOŞULLU UYGUN; tur 4 yalnız Ö-06/Ö-07 düzeltme doğrulaması UYGUN (`68deaa9`), test-only `dc876ed` ek incelemesinde UYGUN korundu. Önceki koşullar kapalı; tur 4 bütün F7’yi baştan denetlemedi. Kapanış kaydı bu belge PR’ı ile teslim edilir; geçerlilik şartı CI SUCCESS ve MERGED, birleşme kanıtı GitHub PR kaydıdır. F8 AÇILMADI; backend paketi ve pin `v0.15.0-api` değişmedi. [Hüküm](../../reviews/WEB-7-codex.md).
 
 ## Planlanan akış
 
 | Adım | İş | İşçi / rol | Durum |
 | ---- | -- | ---------- | ----- |
-| 1 | Belgeler: [rapor-F7](../../backend-eksikleri/rapor-F7.md) (bağlanan uçlar, BE kayıt durumları, tasarım farkları, öneri sırası, deploy notları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), 10/14/00 "F7 uygulama kanıtı", ekranlar README durumu, [WEB-7-codex](../../reviews/WEB-7-codex.md) ve [web-8](../web-8/README.md) iskeletleri, yol haritası §4 ve tasarım README notu | W161 (Sonnet 5.5) | Yazıldı (`web7/o4-kapanis`), yalnız belge; kod yok; PR bekliyor |
+| 1 | Belgeler: [rapor-F7](../../backend-eksikleri/rapor-F7.md) (bağlanan uçlar, BE kayıt durumları, tasarım farkları, öneri sırası, deploy notları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), 10/14/00 "F7 uygulama kanıtı", ekranlar README durumu, [WEB-7-codex](../../reviews/WEB-7-codex.md) ve [web-8](../web-8/README.md) iskeletleri, yol haritası §4 ve tasarım README notu | W161 (Sonnet 5.5) | Bu belge PR’ı ile teslim edilir (`web7/o4-kapanis`), yalnız belge; kod yok |
 | 2 | `dogrulama-F7.md`: gerçek Docker üretim imajı + Caddy CSP (`worker-src`, `/sw.js` no-cache) + gerçek backend (pin `v0.15.0-api`); SSE gerçek akış, çift gönderim/`edit_conflict`, ek yükleme + bilet indirme, anket, mesajdan görev, bildirim türü sözlüğü ↔ gerçek `type`, Web Push gerçek abonelik (headful), 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W162 (Sonnet 5.5) | **Tamam** (#148, main `4457bd3`; [dogrulama-F7](dogrulama-F7.md): 18 bağlam 0/0/0, SSE/yazma/bildirim/Web Push gerçek; KUSUR 1–6 → W163) |
 | 2b | W163 düzeltmeleri: KUSUR 1–6 (KUSUR 6: `/mesajlar` departman kapısından muaf, koordinatör kararı P54) + "Gruptan ayrıl" metin bağlantısı | W163 (Sonnet 5.5) | **Tamam** (#149, main `a56e291`; KUSUR 1–6 kapandı, 761 dosya / 5491 test) |
 | 3a | Codex tur 1 (HEAD `a6cea6b`): nihai kapı, `gpt-6.1-sol` medium `-s read-only`; hüküm `docs/reviews/WEB-7-codex.md` | Codex | **Tamam: UYGUN DEĞİL** (E-01 engelleyici, Ö-01/02/03, K-01, K-02) |
@@ -14,10 +14,10 @@
 | 3c | Codex tur 2 (HEAD `35b7de9`) | Codex | **Tamam: KOŞULLU UYGUN** (Ö-04 yüksek, Ö-05 orta) |
 | 3d | W165: Ö-04, Ö-05 düzeltmeleri | W165 (Sonnet 5.5) | **Teslim main’de** (#151, `db7252c`; tur 3 doğrudan başarı yolu/Ö-05 kapanışını doğruladı; yeni Ö-06/Ö-07 W166’da) |
 | 3e | HEAD `58b4d27` bağımsız tur 3 | Codex Sol medium | **KOŞULLU UYGUN**; Ö-04 doğrudan başarı/Ö-05 kapandı; Ö-06 orta, Ö-07 yüksek |
-| 3f | Ö-06 semantik taslak kimliği, Ö-07 retry origin sahipliği | W166, `web7/o4-w166` | **Tur 4 UYGUN** (HEAD `68deaa9`; `35638a2`, `b0631bd`, `68deaa9`); tam kapı/PR/CI/main bekliyor |
+| 3f | Ö-06 semantik taslak kimliği, Ö-07 retry origin sahipliği | W166, `web7/o4-w166` | **Tur 4 UYGUN** (HEAD `68deaa9`; `35638a2`, `b0631bd`, `68deaa9`); PR #152 main’de; üç CI işi SUCCESS |
 | 3g | Ö-06/Ö-07 bağımsız düzeltme incelemesi | Codex | **UYGUN** (tur 4, HEAD `68deaa9`); bütün F7 yeniden denetlenmedi, test/build/CI koşulmadı |
-| 4 | W166 tam kapı, PR/CI ve main birleşmesi | işçi + koordinatör | Bekliyor |
-| 5 | Kapanış PR, MERGED ve kayıt (ilerleme, `../program/DURUM.md` yönetim deposu kuralıyla) | koordinatör | Bekliyor |
+| 4 | W166 PR/CI ve main birleşmesi | işçi + koordinatör | **Tamam** (#152, `ffc2937`; CI 43644068102 üç iş SUCCESS) |
+| 5 | Bu dalın kapanış belge PR’ı, başarılı CI ve main birleşmesi | koordinatör | Bu belge PR’ı ile teslim edilir; geçerlilik şartı CI SUCCESS ve MERGED, birleşme kanıtı GitHub PR kaydıdır; yönetim deposuna bu işten yazılmaz |
 
 ## Roller
 
@@ -36,10 +36,12 @@ Tarihsel O1–O4 dağılımı: koordinatör Fable (kod yazmaz, işçi çıktıs�
 | Belge kapısı (W161b, 2026-11-15) | Altı değişen dosyada Prettier check, `pnpm lint`, design-stub kapısı 5 dosya / 42 test: **PASS**. Typecheck/build/e2e yeniden koşulmadı; UI yok |
 | Gerçek imaj + gerçek backend (W162) | [`dogrulama-F7.md`](dogrulama-F7.md) — **alındı** (#148, `4457bd3`); kanıtlanamayanlar: VoiceOver, görsel onay, OS bildirimi, Safari/iOS/Firefox push |
 | W165 teslim kaydı | #151, main `db7252c`; Ö-04 `0fa33c2`/`e2e7875` + çip `58bd639`, Ö-05 `6359c3b`. 767 dosya / 5508 test ve geri alma kırmızı teyidi geçmiş teslimdir; bu oturumda yeniden koşulmadı. Duman HEAD `e2e7875`: 18 beklenen 404 / 0 beklenmeyen; `58bd639` duman sonrası. [Ayrıntı](../../reviews/WEB-7-codex.md) |
-| Codex nihai hüküm | **Tur 3 KOŞULLU UYGUN; tur 4 Ö-06/Ö-07 doğrulaması UYGUN; W166 tam kapı/PR/CI/main bekliyor** |
-| Kapanış PR | **Bekliyor** |
+| Codex nihai hüküm | **Tur 3 KOŞULLU UYGUN; tur 4 Ö-06/Ö-07 doğrulaması UYGUN; W166 PR #152 main’de; üç CI işi SUCCESS** |
+| W166 yerel/CI ayrımı | W166 tarihsel yerel tam koşum (`68deaa9`): 768 dosyada 5515/5516 test PASS, tek gün değişimi testi FAIL; bu sonuç tam PASS sayılmaz. Test-only `dc876ed` sonrası hedef 2 dosya/28 test, hedef lint/format ve build PASS; tam paket yerelde yeniden koşulmadı. Başarılı tam CI sonucu bu ayrı yerel kayıtları geriye dönük değiştirmez. |
+| W166 main CI | W166 [#152](https://github.com/caliskan421/nizam.io--frontend/pull/152) main `ffc29374465e78c8da08ff43f4bf5d2b185144bb` ile birleşti; [CI 43644068102](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43644068102) kalite, web imajı ve gerçek backend Playwright işlerinin üçünde de **SUCCESS**. CI test toplamı ayrıca alınamadı; sayı iddia edilmez. |
+| Kapanış belge PR | Bu belge PR’ı ile teslim edilir; geçerlilik şartı CI SUCCESS ve MERGED, birleşme kanıtı GitHub PR kaydıdır |
 
-W161b koşum sınırı: `pnpm test -- <dosyalar>` filtresi uygulanmayınca yanlışlıkla tam paket başladı; `deleted-records.test.ts`, `password.test.ts`, `home-admin.test.ts`, `chat-dialogs.test.ts` içinde zaman aşımı/başarısızlık görüldü. Koşum Ctrl-C ile durduruldu (exit 130); süreç kontrolünde Vitest kalmadığı doğrulandı. Bu yarım girişim tam paket doğrulaması değildir. Ardından `pnpm exec vitest run <beş design-stub dosyası>` ile hedefli kapı 42/42 geçti. Tam paket kapanış CI’sında doğrulanacak.
+W161b koşum sınırı: `pnpm test -- <dosyalar>` filtresi uygulanmayınca yanlışlıkla tam paket başladı; `deleted-records.test.ts`, `password.test.ts`, `home-admin.test.ts`, `chat-dialogs.test.ts` içinde zaman aşımı/başarısızlık görüldü. Koşum Ctrl-C ile durduruldu (exit 130); süreç kontrolünde Vitest kalmadığı doğrulandı. Bu yarım girişim tam paket doğrulaması değildir. Ardından `pnpm exec vitest run <beş design-stub dosyası>` ile hedefli kapı 42/42 geçti. Bu yarım koşum PASS sayılmaz; daha sonra W166 #152 CI’sı başarılı oldu, kapanış belge PR CI’sı ayrıca koşacak.
 
 ## Codex istem notları
 
@@ -47,4 +49,4 @@ Kabul ölçütleri: [10-mesajlar](../../ekranlar/10-mesajlar/README.md) ve [14-b
 
 ## Sonrası
 
-**F8 AÇILMAZ — kullanıcı onayı** ([web-8](../web-8/README.md)). Pin yükseltmesi ve BE paketi de ayrı onay ister ([plan](../web-5/pin-yukseltme-plani.md)); "backend dursun" sürüyor. "F7 kapandı" ifadesi W162 tanığı, Codex hükmü ve kapanış PR'ı MERGED olana kadar kullanılmaz.
+**F8 AÇILMAZ — kullanıcı onayı** ([web-8](../web-8/README.md)). Pin yükseltmesi ve BE paketi de ayrı onay ister ([plan](../web-5/pin-yukseltme-plani.md)); "backend dursun" sürüyor. Bu kapanış kaydı yalnız kapanış belge PR’ının başarılı CI ile main birleşmesinde yürürlüğe girer.

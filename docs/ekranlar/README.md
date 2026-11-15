@@ -78,7 +78,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 
 - Dil Türkçe; backend kimlikleri (`operationId`, alan adı, hata kodu) ve CSS sınıfları olduğu gibi.
 - Örnek veriler (`renderVals()`) **gerçek veri değildir**: biçim/şekil kanıtı olarak kullanılır, değerler kopyalanmaz.
-**Durum notu (2026-11-14): F7 uygulandı, KAPANMADI — Codex bekliyor** (O1–O3 main'de, PR #137–#147, `76e4345`; 10/14/00 "F7 uygulama kanıtı" bölümleri W161; W162 gerçek sunucu tanığı alındı (#148, `4457bd3`)). **F7 açıldı** ("F7'yi aç, backend dursun"; kapsam P54: sohbet 10/10b/10c + bildirimler `14-bildirimler` + kabuk Mesajlar/zil paneli; Web Push P58 dahil, ürün sahibi 2026-11-14). F6 KAPANDI. P57–P66 [ortak-kurallar §12](ortak-kurallar.md)'de KESİNDİR (ürün sahibi onayı 2026-11-14); §5 F7 eki matrisi verir. Yürütme: [web-7](../yurutme/web-7/README.md).
+**F7 KAPANDI — 2026-11-15 (bu kayıt kapanış PR’ının CI başarılı birleşmesiyle yürürlüğe girer).** W166 [#152](https://github.com/caliskan421/nizam.io--frontend/pull/152) main `ffc29374465e78c8da08ff43f4bf5d2b185144bb` ile birleşti; [CI 43644068102](https://github.com/caliskan421/nizam.io--frontend/actions/runs/43644068102) kalite, web imajı ve gerçek backend Playwright işlerinin üçünde de **SUCCESS**. CI test toplamı ayrıca alınamadı; sayı iddia edilmez. Codex dört turu: tur 1 UYGUN DEĞİL; tur 2 ve tur 3 KOŞULLU UYGUN; tur 4 yalnız Ö-06/Ö-07 düzeltme doğrulaması UYGUN (`68deaa9`), test-only `dc876ed` ek incelemesinde UYGUN korundu. Önceki koşullar kapalı; tur 4 bütün F7’yi baştan denetlemedi. Kapanış kaydı bu belge PR’ı ile teslim edilir; geçerlilik şartı CI SUCCESS ve MERGED, birleşme kanıtı GitHub PR kaydıdır. F8 AÇILMADI; backend paketi ve pin `v0.15.0-api` değişmedi. W162 gerçek sunucu tanığı #148 ile alındı. 10/14/00 uygulama kanıtları kendi tarihsel HEAD ve kapsamlarıyla korunur. P57–P66 [ortak-kurallar §12](ortak-kurallar.md) kesin; [yürütme](../yurutme/web-7/README.md).
 
 - Her tespit konumlanır: `ozellikler.md` bölge adı ↔ `mekanizma.md` davranış ↔ `backend.md` uç ↔ `eksikler.md` satır, aynı **öğe kimliği** ile (`E-<grup>-NN`, ör. `E-03-07`).
 - Varsayım yazılırsa `**Varsayım:** … (doğrulanacak: …)` biçimindedir ve neyin doğrulanacağı söylenir. Bilinmeyen "bilinmiyor" diye yazılır, uydurulmaz. Varsayımın uygulama durumu (öneri / kabul / ret) grup README'sindeki tabloda tutulur, dosya içinde değil.
@@ -89,7 +89,7 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 
 | Klasör | ozellikler | mekanizma | backend | eksikler | dogrulama | Codex |
 |---|---|---|---|---|---|---|
-| `00-ortak` | **kabul** | **kabul** | **kabul** | **kabul** | denetlendi | koşullu uygun; rol menüleri (E-00-41…47) **uygulandı (F6)**, Mesajlar menü/rozeti ve zil paneli (E-00-20/21/38) **uygulandı (F7)**, kanıt grup README; F7 Codex bekliyor |
+| `00-ortak` | **kabul** | **kabul** | **kabul** | **kabul** | denetlendi | koşullu uygun; rol menüleri (E-00-41…47) **uygulandı (F6)**, Mesajlar menü/rozeti ve zil paneli (E-00-20/21/38) **uygulandı (F7)**, kanıt grup README; WEB-7 koşulları kapalı; F7 kapanışı bu belge PR’ının CI başarılı birleşmesiyle yürürlüğe girer |
 | `01-ana-sayfa` | **kabul** | **kabul** | **kabul** | **kabul** | denetlendi | koşullu uygun; F6 satırları + K1/Ü1 **uygulandı (F6)**, kanıt grup README |
 | `01b-islem-gecmisi` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `03-gorevler-liste` | **kabul** | **kabul** | **kabul** | **kabul** | denetlendi | koşullu uygun |
@@ -98,11 +98,11 @@ Bir ekranı yapan uygulayıcıya istemde şu sıra verilir: `ortak-kurallar.md` 
 | `06-arsiv` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | uygulandı (F5), Codex UYGUN (WEB-5) |
 | `08-koordinatorlukler` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `09-toplantilar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
-| `10-mesajlar` | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | öz denetim (W151); bağımsız denetçi bekliyor; gerçek sunucu tanığı alındı (W162, dogrulama-F7) | **uygulandı (F7)** (#141, #143, #144, #146, #147); koşullu uygun (tespit); Codex WEB-7 bekliyor, F7 KAPANMADI |
+| `10-mesajlar` | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | **kabul** (F7 eki W151) | öz denetim (W151); WEB-7 dört tur tamam (son tur yalnız Ö-06/Ö-07); gerçek sunucu tanığı alındı (W162, dogrulama-F7) | **uygulandı (F7)** (#141, #143, #144, #146, #147); koşullu uygun (tespit); WEB-7 koşulları kapalı; F7 KAPANDI — bu belge PR’ının CI başarılı birleşmesiyle yürürlüğe girer |
 | `11-tablolar` | denetlendi | denetlendi | denetlendi | denetlendi | denetlendi | koşullu uygun |
 | `12-silinen-kayitlar` | tespit (W119) | tespit (W119) | tespit (W119) | tespit (W119) | öz denetim (W119); **uygulandı (F5), Codex UYGUN (WEB-5)** | UYGUN (WEB-5) |
 | `13-raporlar` | **kabul** (P46–P53; öneri satırları açık sorularda) | **kabul** | **kabul** | **kabul** | öz denetim (W134); bağımsız denetçi bekliyor; gerçek sunucu tanığı W144 bekliyor | **uygulandı (F6)** (#122–#134); Codex WEB-6 3 tur UYGUN, F6 KAPANDI (2026-11-14) |
-| `14-bildirimler` | **kabul** (W152; P54–P66 kesin, ürün sahibi onayı 2026-11-14; F7 kanıtı W161) | **kabul** | **kabul** | **kabul** | öz denetim (W152); bağımsız denetçi bekliyor; gerçek sunucu tanığı alındı (W162, dogrulama-F7) | **uygulandı (F7)** (#141, #142, #145, #147); Codex WEB-7 bekliyor, F7 KAPANMADI |
+| `14-bildirimler` | **kabul** (W152; P54–P66 kesin, ürün sahibi onayı 2026-11-14; F7 kanıtı W161) | **kabul** | **kabul** | **kabul** | öz denetim (W152); WEB-7 dört tur tamam (son tur yalnız Ö-06/Ö-07); gerçek sunucu tanığı alındı (W162, dogrulama-F7) | **uygulandı (F7)** (#141, #142, #145, #147); WEB-7 koşulları kapalı; F7 KAPANDI — bu belge PR’ının CI başarılı birleşmesiyle yürürlüğe girer |
 
 Durum değerleri (CX-M-01): `—` yok · `taslak` · `denetlendi` (denetçi + Codex bulguları işlendi; **tespit tamam**) ·
 `karar bekliyor` (ürün sahibi soruları açık — `sentez.md` §4) · `kabul` (faz açılışında koordinatör: uygulama kararı tablosu dolu,

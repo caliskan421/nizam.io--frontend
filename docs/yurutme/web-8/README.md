@@ -1,6 +1,6 @@
 # WEB-8 — F8 (iskelet)
 
-**F8 AÇILMADI.** Bu klasör yalnız iskelettir; F8'in kapsamı, sırası ve backend durumu **kullanıcı kararıdır** (F7'de olduğu gibi: "F8'i aç, backend dursun / aç" gibi açık bir onay gerekir). Onay otomatik geçti sayılmaz. [WEB-7](../web-7/README.md) KAPANMADI (Codex bekliyor); F8 hazırlığı F7 kapanışını beklemez ama başlayamaz. Pin `v0.15.0-api`; yükseltme ayrı karar ([plan](../web-5/pin-yukseltme-plani.md)).
+**F8 AÇILMADI.** Bu klasör yalnız iskelettir; F8'in kapsamı, sırası ve backend durumu **kullanıcı kararıdır** (F7'de olduğu gibi: "F8'i aç, backend dursun / aç" gibi açık bir onay gerekir). Onay otomatik geçti sayılmaz. [WEB-7](../web-7/README.md) kapanış kaydı: **F7 KAPANDI — 2026-11-15; bu kayıt kapanış belge PR’ının CI başarılı birleşmesiyle yürürlüğe girer.** W166 #152 main `ffc2937`, üç CI işi SUCCESS; F8 ayrıca kullanıcı onayı olmadan başlayamaz. Pin `v0.15.0-api`; yükseltme ayrı karar ([plan](../web-5/pin-yukseltme-plani.md)).
 
 ## Aday kapsam (karar ister; kaynak [web-7 README "Aday kapsam"](../web-7/README.md) ve [yol haritası §4](../../architecture/yol-haritasi-web.md))
 
@@ -18,7 +18,7 @@
 ## F7'den devreden (ilerleme borçları; hiçbiri F8'i kendiliğinden başlatmaz)
 
 - **"Şimdi değil" 14 gün kalıcı** (Web Push kutusu): şimdi oturum belleği; kalıcı saklama K2 anahtar listesine yeni anahtar ister (`push.snoozeUntil`) → F8 adayı ([ilerleme #8](../web-7/ilerleme.md)).
-- 09/05 sayfalarına "oluştur" URL parametresi (01 kutucukları), ek önizleme penceresi, `manifest.webmanifest` + `apple-touch-icon` (iOS push), `topbar-dot*` token temizliği, `up.sh` parametrik, gerçek push teslimi kanıtı, gerçek cihaz ekran okuyucu.
+- 09/05 sayfalarına "oluştur" URL parametresi (01 kutucukları), ek önizleme penceresi, `manifest.webmanifest` + `apple-touch-icon` (iOS push), `topbar-dot*` token temizliği, `up.sh` parametrik, gerçek cihaz ekran okuyucu. **Gerçek Chrome/FCM push teslimi ve abonelik W162 ile kanıtlandı** (HEAD `76e4345`, 9,1 sn, register 200); bu borç kapalıdır. Safari/iOS/Firefox push ve OS bildirimi tıklama kanıtı hâlâ kapanış sonrası borçtur.
 - Otomatik izin tetiği (03/03c kancası; E-14-64) F8 adayı.
 
 ## Dosyalar
