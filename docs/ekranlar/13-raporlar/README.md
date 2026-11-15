@@ -190,3 +190,33 @@ Test dosyaları `src/` altındadır (kısaltma: `rp` = `src/modules/reports`, `i
 | E-13-76…86 | Uygulanmayanlar, üye, statik/yok satırları | `app/routes.reports.test.ts` ("menüsüz; … /raporlar rotası yok (E-13-76)"), `app/shell/side/menu-definition.test.ts` ("hiçbir rolde Raporlar öğesi ve /raporlar rotası yok"), `rp/model/capabilities.test.ts` (üye yok), `rp/model/stubs.test.ts` ve `tests/lint/design-stub.test.ts` (BE kayıt ↔ kod tutarlılığı), `modules/home/model/report-targets.test.ts` |
 
 **Uygulanmayan/yok kalanlar** (kod yok, test yok; karar kaydı): E-13-54, 57, 63, 67, 76–79 (ret); E-13-81…85 (yer yok, BE-126…130/BE-128); E-13-86 (Gantt dışa aktarım, BE-057). **Bilinen sapmalar** (rapor-F6 §4): kâğıt 880 px / 10,5 pt, boyut gösterimi (E-13-72), E-13-10 ZIP onayı kodlanmadı, 390 px ZIP/yükle düğmesi genişliği.
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W172 (ZIP satırları W171). Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-13-03 / E-13-04 "Bölüm seç…" ve pencere | canlı → her kutu kombinasyonunda "Seçilenleri indir" `reportSeasonPdf?sections=…`; hiç kutu seçili değilken engellenir (sunucu boşu "tam rapor" sayar) | kabul (P67); engel geçici kabul (Varsayım 6) | BE-122 | W172 |
+| E-13-05 Koordinatörlük süzgeci çipleri | canlı → `department_ids` (çip kaynağı `listProgramDepartments`); "yakında" kalkar | kabul (P67) | BE-122, BE-127 | W172 |
+| E-13-06 Pencere özeti | koordinatörlük sayısı seçime göre; sayfa tahmini gizli kalır (veri yok) | geçici kabul (P68) | BE-122 | W172 |
+| E-13-09 "Dönem arşivi (ZIP)" düğmesi | canlı → `programArchiveZip` (S2); `designStub('BE-120')` kalkar | kabul (P67) | BE-120 | W171 |
+| E-13-10 ZIP onay penceresi | canlı → klasör ağacı satırları (`00-Genel/Donem-Raporu.pdf`, `NN-Departman/Koordinatorluk-Raporu.pdf`, `EKSIK-DOSYALAR.txt`) ve `X-Result-Truncated` uyarısı kodlanır | kabul (P67) | BE-124 | W171 |
+| E-13-11 ZIP "Kayda geçer (denetim)" rozeti | canlı (yalnız `include_reports=true`) → audit `kind=season_archive` akıştan önce | geçici kabul (P68) | BE-124 | W171 |
+| E-13-14 / E-13-18 Başlık ve alt not | "indirilen PDF daha sadedir" notu kalkar (şablon 01f'ye göre yeniden yazıldı); Gantt okları ve içindekiler sayfa numarası yok notu kalır (GAP-239) | geçici kabul (P68) | BE-123 | W172 |
+| E-13-20 / E-13-21 Kapak bandı ve "dönemin özeti" aralığı | canlı → `period` (görevlerden türetilmiş aralık, notlu); konum yazılmaz (GAP-237) | geçici kabul (Varsayım 7) | BE-136 | W172 |
+| E-13-24 İçindekiler | canlı → detay/toplantı/dosya bölüm bağlantıları | kabul (P67) | BE-136 | W172 |
+| E-13-26 Durum ve öncelik dağılımı | kapalı şema (beş durum, dört öncelik); "eksik anahtar 0" savunması sadeleşir | kabul (P67) | BE-133 | W172 |
+| E-13-27 Koordinatörlük karşılaştırması: DOSYA sütunu | canlı → `file_count` / `file_bytes` | kabul (P67) | BE-136 | W172 |
+| E-13-28 Gantt bölümü | canlı → `reportSeason.tasks` ile çizilir (bağımlılık okları çizilmez; P72) | kabul (P67), P72 | BE-123 | W172 |
+| E-13-29 Aylık aktivite | canlı → `monthly_activity` `notes`, `files`, `date_requests` serileri (tasarımdaki tanım kullanılır) | geçici kabul (P68) | BE-136 | W172 |
+| E-13-30 Tarih değişikliği talepleri | canlı → "ortalama kayma" ve "en çok talep alan görevler" | geçici kabul (P68) | BE-136 | W172 |
+| E-13-31 İş yükü bölümü | canlı → `workload_summary` (ikinci ağır JSON okunmaz) | kabul (P67), P72 | BE-134 | W172 |
+| E-13-32 / E-13-33 Koordinatörlük bandı/künye ve görev tablosu | canlı → koordinatörlük `file_count`, `members[]` adları; görev tablosunda "#" = `sequence_no` / `code` | kabul (P67) | BE-136, BE-005 | W172 |
+| E-13-34 / E-13-35 / E-13-36 Görev detay kartları, toplantılar, dosyalar | canlı → `tasks[].detail`, `meetings[]`, `files[]` (yer tutucular kalkar; not bayrağı/paylaşılan işareti çizilmez, GAP-237) | kabul (P67), P72 | BE-136 | W172 |
+| E-13-39 / E-13-40 Durumlar ve ağır okuma | kesme olduğunda "gösterilen / toplam" dipnotu (`limits`, `X-Result-Truncated`); slot ve tazeleme kuralı aynı | geçici kabul (Varsayım 4) | BE-132 | W172 |
+| E-13-51 / E-13-52 Toplantı notları ve "Göreve dönüştürülenler" | canlı → `converted_task_code` (kod) ve `converted_task_status` (DURUM sütunu); silinmiş görevde "Silinmiş görev" | kabul (P67) | BE-125, BE-005 | W172 |
+| E-13-69 429 kartı | canlı → `Retry-After` gerçek kalan süre tahmini (1-60 sn, ipucu) | kabul (P67) | BE-135 | W172 |
+| E-13-71 503 kartı | canlı → `Retry-After` sayaç (1-30 sn); otomatik tekrar yok | kabul (P67) | BE-135 | W172 |
+
+**F8'de değişmeyenler (13 Raporlar):** E-13-07 (dosya adı/boyut/sayfa bilgisi), E-13-12, E-13-68 (BE-131), E-13-81…86 (BE-126…130, BE-057; BE-127 yalnız `department_ids` yarısı E-13-05 ile canlanır), E-13-54/57/63/67/76-79 (ret).

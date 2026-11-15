@@ -147,3 +147,22 @@ Uygulayıcı yalnız `kabul` ve **geçici kabul** satırlarını kodlar; `öneri
 W101–W107 PR #89–#95 ve #97 birleşti; kayıt [ilerleme.md](../../yurutme/web-4/ilerleme.md). Tablodaki kısa test adları `src/modules/meetings/` altında; `meetings-*.test.ts` entegrasyonları `src/app/__tests__/integration/` altındadır. W102/W103 birim testlerinde taslaklanan alt bileşenler W107 gerçek router/AppShell turuyla karşılandı. Geçici koordinatör kararları P3/P32 ve uygulanmış testlerle yeniden değerlendirildi; ürün sahibi görsel onayı olarak yükseltilmedi. S3 açılmış kaynak çizimi bulunmadı; [P32 türetilmiş özel modal kararı](../../yurutme/web-4/s3-kisi-secici-karari.md) uygulandı.
 
 Yerel tam kapı `4bf32fa`: 484 dosya/3252 test; üretim+Caddy altı genişlik/tema koşulu, gerçek dar ekran etkileşimleri ve odak dönüşleri geçti. Kaynak/görüntüler `.git/koordinator/web4-w102`…`web4-w107` altında. O4 gerçek backend/imaj tanığı [doğrulama kaydında](../../yurutme/web-4/dogrulama-F4.md) ayrıntılıdır: son kaynak `707fd07`, 484 dosya/3259 test, iki tema × üç genişlikte iç/dış modal odağı ve taşma/CSP/sayfa hatası sıfır. W111/#99 ve W112/#100 nihai koşulları giderdi: not gönderim kilidi, create/PATCH satır içi alan hataları ve departman çipleri. Son birleşik kaynak `bbfde3d`: 487 dosyada 3266 test; ayrı üretim+Caddy altı görünüm turları geçti. [Nihai Codex tur 2](../../reviews/WEB-4-codex.md) KOŞULLU UYGUN, üç teknik bulgu kapalı; #100 üç CI SUCCESS ile `9065517` main başına birleşti. Son main `9065517` tam kapısı 487 dosyada 3266 testle geçti; süreç koşulları tamamlandı. **F4 KAPANDI — 2026-11-12.** Gerçek VoiceOver ve E-03C-27/41 kullanıcı görsel kabulü açık.
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W175. Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-09-02 / E-09-04 / E-09-19 Alt başlık, zaman sekmeleri, alt sayaç | canlı → `listMeetings` `when`, `total`, `tab_counts.upcoming/past`; "n+" ve istemci bölme kalkar | kabul (P67) | BE-021 | W175 |
+| E-09-05 "Silinenler" sekmesi | canlı → `tab_counts.deleted` (yalnız ŞY, süzgeçsiz) | kabul (P67) | BE-021 | W175 |
+| E-09-12 / E-09-22 / E-09-52 Koordinatörlük kodları | canlı → `MeetingDepartment.department_code` ve `deleted` ("silinmiş" işareti); kod null → ad baş harfleri | kabul (P67) | BE-063 | W175 |
+| E-09-33 İşaretleyen bilgisi | canlı → `AgendaItem.checked_by_full_name` (katılımcı olmasa da) | kabul (P67) | BE-063 | W175 |
+| E-09-35 / E-09-73 Madde ekleme, "Toplantıyı oluştur" | `Idempotency-Key` gönderilir; belirsiz sonuçta aynı anahtarla güvenli tekrar; "anahtar yok" notları kalkar | kabul (P67) | BE-068 | W175 |
+| E-09-36 / E-09-37 / E-09-44 Notlar başlığı, süzgeç, "daha fazla" | canlı → `listMeetingNotes` `converted` / `author`, `total`, `counts`; "n+" kalkar | kabul (P67) | BE-061 | W175 |
+| E-09-40 "Göreve dönüştü" bağlantısı | canlı → `converted_work_item_department_id` ile görev bağlantısı; eski notlarda (alan null) bağlantısız kalır; kod/ek bilgi gösterilmez | geçici kabul (P68) | BE-065 | W175 |
+| E-09-45 Katılımcılar + "Ekle" (kişi seçici) | canlı → `listMeetingParticipantCandidates` (fan-out kalkar); ekip satırı olmayan ŞY listede yok (GAP-223) | kabul (P67) | BE-067 | W175 |
+| E-09-54 Bilgi listesi "Açan" | canlı → `created_by_full_name` | kabul (P67) | BE-063 | W175 |
+| E-09-83 Silinen satırı | koordinatörlük kodu ve "silinmiş" işareti; silen adı değişmez (K77 zaten canlı) | geçici kabul (P68) | BE-063 | W175 |
+
+**F8'de değişmeyenler (09 Toplantılar):** E-09-06 / E-09-06a (sunucu süzgeçleri zaten canlı), E-09-45 ekleme kuralları (K21/K74), konferans alanları.

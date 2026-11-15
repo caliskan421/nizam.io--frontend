@@ -138,3 +138,13 @@ Uygulayıcı yalnız `kabul` ve **geçici kabul** satırlarını kodlar; `öneri
 - **Silinmiş kullanıcılar:** Backend'de silinenler/geri yükleme var; tasarımda karşılığı yok. v1'de gerekli mi?
 - **05b erişimi:** Koordinatör kendi departmanındaki üyenin kişisel takibini görebilir mi? Üye kendi sayfasını görür mü?
 - **05b başlık eylemleri:** "Mesaj" (F7, v1 dışı), "Kişisel rapor" (biçimi bilinmiyor, F6?), "Görev ata" (hangi departmanda?), "Profili düzenle" (05 yan paneliyle aynı mı?) — v1'de hangileri etkin?
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W175. Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-05-04 Dışa aktar | canlı → `exportUsersCsv` (aynı süzgeç/sıra, ≤10 000 hesap; 422 `organization.export_too_large`, 429 `organization.export_in_progress`, 503 `organization.capacity_full`); bilet hedefi sorgu dizesiyle | kabul (P67) | BE-014 | W175 |
+
+**F8'de değişmeyenler (05 Kullanıcılar):** E-05-34 (BE-013), E-05-54 (BE-046: anlam kararı yok), E-05-55 (BE-015). E-05-04 dışında 05 ekranında F8 değişikliği yoktur.

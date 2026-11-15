@@ -97,3 +97,31 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 
 ## Açık sorular (ürün sahibine)
 Öneri satırlarının hepsi 2026-11-12'de cevaplandı (P42–P45, `../ortak-kurallar.md` §12); tabloda `öneri` kalmadı. Açık kalan yalnız ertelenen backend kararlarıdır (P45, rapor-F5 "karar bekler"): saklama politikası (BE-112), alt görev silinenleri (BE-109), not ve gündem silinenleri (BE-111), dosya çöp kutusu (BE-076). Birleşik silinenler listesi BE-110 açık kalır.
+
+## F8 eki — canlıya alma (WEB-8 O1, W169)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W174. Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-12-04 Alt başlık | canlı → liste `total` / özet: "‹N› ‹tür›" kesin; "yüklenen kayıtlar içinde" kalkar | kabul (P67) | BE-110, BE-119 | W174 |
+| E-12-05 CSV indir | canlı → `exportDeletedRecords` (ekran süzgeçleri + etkin tür, `scope=program`); 422 `reporting.export_too_large` iletisi | kabul (P67) | BE-116 | W174 |
+| E-12-06 Çöpü boşalt | canlı → `purgeAll*` (`confirm` = tür yol adı, ≤50/çağrı, `remaining` döngüsü); onay penceresinde tür adı yazılır | kabul (P67); onay biçimi geçici kabul (Varsayım 11) | BE-115 | W174 |
+| E-12-08 Tür segmenti | canlı → sayaçlar `reportDeletedSummary` (kesin; etkin olmayan tür de sayı gösterir) | kabul (P67) | BE-110 | W174 |
+| E-12-14 / E-12-69 Kullanıcı seçeneği ve satır alanları | canlı → `deleted_at`, `deleted_by`, `company_admin`, `teams`; varsayılan `sort=deleted_at&order=desc` | geçici kabul (Varsayım 13) | BE-118 | W174 |
+| E-12-16 / E-12-68 Koordinatörlük seçeneği | canlı → `scope=program`; ana sayfa sayacı ≠ liste kapsam notu kalkar | geçici kabul (Varsayım 14) | BE-119 | W174 |
+| E-12-17 Silinme tarihi aralığı | canlı → sunucu `deleted_from` / `deleted_to` (hesapta da); "5 sayfa yükle" yolu kalkar | kabul (P67) | BE-117, BE-118 | W174 |
+| E-12-18 Silen süzgeci | canlı → `deleted_by` dört türde (görev, toplantı, koordinatörlük, kullanıcı) | geçici kabul (Varsayım 12) | BE-108, BE-117 | W174 |
+| E-12-19 Koordinatörlük süzgeci | canlı → sunucu `department_id` | kabul (P67) | BE-117 | W174 |
+| E-12-20 Arama | canlı → sunucu `q` (Türkçe katlamalı); yer tutucu metni "Yüklenen kayıtlarda ara" kalkar | kabul (P67) | BE-117 | W174 |
+| E-12-21 / E-12-22 / E-12-23 Toplu işlem çubuğu, satır seçimi, tümünü seç | canlı → `batchRestore*` / `batchPurge*` (≤100 kimlik; `failed[{id, code}]` satır başına gösterilir) | kabul (P67) | BE-114 | W174 |
+| E-12-30 / E-12-45 Silinme tarihi hücresi ve panel (hesap) | canlı → `DeletedAccount.deleted_at` | kabul (P67) | BE-118 | W174 |
+| E-12-31 Silinme tarihi başlığı (sıralama) | canlı → sunucu `sort` (`deleted_at` / `name`) ve `order`; yalnız varsayılan göstergesi kalkar | kabul (P67) | BE-117 | W174 |
+| E-12-32 / E-12-44 Silen hücresi ve panel | canlı → `deleted_by.full_name` dört türde (`null` → "Bilinmiyor") | kabul (P67) | BE-108 | W174 |
+| E-12-35 / E-12-36 Satır eylemi iletileri | 409 `work.department_unavailable` ("Önce koordinatörlüğü geri yükleyin") ve 409 `organization.department_in_use` iletileri | geçici kabul (P68) | BE-119 (ADR-0043) | W174 |
+| E-12-38 Sayaç satırı | canlı → "‹m› / ‹toplam›" biçimi uygulanabilir (liste `total`) | kabul (P67) | BE-110, BE-117 | W174 |
+| E-12-47 / E-12-48 Panel Durum yüzdesi, Atananlar | canlı → `subtask_counts` ilerleme, `assignees[]` | kabul (P67) | BE-113 | W174 |
+| E-12-49 / E-12-51 / E-12-52 Birlikte geri gelecek (alt görev, yorum, tarih talebi) | canlı → `subtask_counts`, `note_count`, `pending_date_request` | kabul (P67) | BE-113 | W174 |
+| E-12-63 Ana sayfadan giriş | canlı → sayaç = özet `total` (`deleted_records` ile aynı hesap) | kabul (P67) | BE-110, BE-119 | W174 |
+
+**F8'de değişmeyenler (12 Silinen kayıtlar):** E-12-09 "Tümü" (GAP-234), E-12-11 / E-12-12 / E-12-15 (BE-109, BE-076, BE-111), E-12-07 / E-12-33 / E-12-34 / E-12-46 / E-12-55…57 (BE-112), E-12-26 / E-12-42 kod (`DeletedWorkItem` kod taşımaz), E-12-29 uyarı rozeti.
