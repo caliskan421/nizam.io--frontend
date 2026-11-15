@@ -59,7 +59,7 @@ function render({ who, face, item = {}, task = {}, files = 1 }: Options) {
   )
   const h = panelHarness(SCOPES[face], WHO[who])
   const wrapper = h.mount(SelectedTaskPanel, {
-    task: ganttTask(task),
+    task: ganttTask({ code: 'ALT-5', sequence_no: 5, ...task }),
     face,
     departmentName: 'Altyapı',
   })
@@ -87,7 +87,7 @@ describe('açılış: taze okuma, başlık, özet (E-03C-54…62)', () => {
   it('üst satır: Admin yüzünde "KOD · koordinatörlük", başlık, durum, kanıt dosyası sayısı', async () => {
     const { h } = render({ who: 'admin', face: 'admin', files: 2 })
     await settleQueries(h.queryClient)
-    expect(text('tp-kicker')).toBe('ALT · Altyapı')
+    expect(text('tp-kicker')).toBe('ALT-5 · Altyapı')
     expect(text('tp-title')).toBe('Rapor')
     expect(text('tp-status')).toBe('Devam ediyor')
     expect(text('tp-files')).toBe('2 dosya')

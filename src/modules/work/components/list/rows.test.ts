@@ -26,24 +26,25 @@ describe('istemci arama (BE-004, GAP-036)', () => {
   it('Türkçe katlama: İ/ı', () => {
     expect(foldTr('İSTANBUL')).toBe('istanbul')
     expect(foldTr('ISPARTA')).toBe('ısparta')
-    const row = item({ title: 'İzmir Işık Planı' })
-    expect(matchesSearch(row, 'izmir', null)).toBe(true)
-    expect(matchesSearch(row, 'IŞIK', null)).toBe(true)
-    expect(matchesSearch(row, 'isik', null)).toBe(false)
+    const row = item({ title: 'İzmir Işık Planı', code: null, sequence_no: 1 })
+    expect(matchesSearch(row, 'izmir')).toBe(true)
+    expect(matchesSearch(row, 'IŞIK')).toBe(true)
+    expect(matchesSearch(row, 'isik')).toBe(false)
   })
 
   it('başlık + kısa kod öneki + atanan adı; boş arama her şeyi geçirir', () => {
     const row = item({
       title: 'Rapor',
+      code: 'MEK-7',
       assignees: [
         { account_id: 'a1', full_name: 'Şule Öz' },
         { account_id: 'a2', full_name: null },
       ],
     })
-    expect(matchesSearch(row, 'mek', 'MEK')).toBe(true)
-    expect(matchesSearch(row, 'şule', null)).toBe(true)
-    expect(matchesSearch(row, 'yok', 'MEK')).toBe(false)
-    expect(matchesSearch(row, '  ', null)).toBe(true)
+    expect(matchesSearch(row, 'mek-7')).toBe(true)
+    expect(matchesSearch(row, 'şule')).toBe(true)
+    expect(matchesSearch(row, 'yok')).toBe(false)
+    expect(matchesSearch(row, '  ')).toBe(true)
   })
 })
 

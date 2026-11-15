@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import type { WorkItem } from '@/modules/work/public'
+import { workShortCode, type WorkItem } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiButton, UiCount } from '@/shared/ui'
+import { UiButton, UiCount } from '@/shared/ui'
 
 import type { RoleLoadScope } from '../../model/role/common'
 import { useRoleFacts } from '../../api/role/use-facts'
@@ -120,9 +120,9 @@ const DOT = {
             <RouterLink class="rh-title" :to="taskLocation(item.work_item_id)">
               {{ item.title }}
             </RouterLink>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="workShortCode(item)" class="rh-kicker" data-task-code>{{
+              workShortCode(item)
+            }}</span>
           </span>
           <span class="rh-meta">
             <span class="rh-pill" data-status>

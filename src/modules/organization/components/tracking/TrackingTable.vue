@@ -18,29 +18,23 @@ import {
 
 /**
  * E-05-59…67 — gruplu görev tablosu (`role="table"`, sıralama yok). Başlık ve "görevi aç" 03
- * paneline gider (`/gorevler?gorev=<id>`). Kısa kod: önek `ProgramDepartment.code` (yoksa yok),
- * sıra numarası statik `—` (BE-005). Kanıt sütunu statik nötr "—" (satır başına dosya okuması
+ * paneline gider (`/gorevler?gorev=<id>`). Kısa kod: sunucunun `code` alanı (BE-005; kodsuz
+ * departmanda `#<sıra>`). Kanıt sütunu statik nötr "—" (satır başına dosya okuması
  * yok; `istemci-akislari.md` §7, stub değil). Bitiş: tarih + "gün gecikti" (sunucu) / "gün kaldı".
  */
 const props = defineProps<{
   name: string
   groups: readonly RowGroup<TrackingItem>[]
-  codes: ReadonlyMap<string, string>
   today: string
   loading: boolean
 }>()
-
-function shortCode(departmentId: string): string {
-  const code = props.codes.get(departmentId)
-  return workShortCode(code)
-}
 
 const view = computed(() =>
   props.groups.map((group) => ({
     ...group,
     rows: group.rows.map((item) => ({
       item,
-      code: shortCode(item.department_id),
+      code: workShortCode(item),
       note: dueNote(item, props.today),
     })),
   })),

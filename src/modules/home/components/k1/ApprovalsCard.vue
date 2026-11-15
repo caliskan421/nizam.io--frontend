@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
+import { workShortCode } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiAvatar, UiButton, UiCount } from '@/shared/ui'
+import { UiAvatar, UiButton, UiCount } from '@/shared/ui'
 
 import { useRoleFacts } from '../../api/role/use-facts'
 import { useRoleWrites } from './use-role-writes'
@@ -15,7 +16,7 @@ import RegionBody from './RegionBody.vue'
 /**
  * "Onay bekleyen ‹n›" (E-K1-14…18): `status = onaya_sunuldu` satırları yüklenen kümeden; sayı
  * sunucu sayacıdır. "Onayla" / "İade et" 03'ün durum geçişidir (`transitionWorkItem`, K5):
- * yetki olgudan, iyimser güncelleme yok. Kod `—` (BE-005); "gönderildi" ve "dosya" gizli
+ * yetki olgudan, iyimser güncelleme yok. Görev kodu sunucu `code` alanından (BE-005); "gönderildi" ve "dosya" gizli
  * (BE-137: satırda alan yok, görev başına dosya listesi yasak). İade sebebi sözleşmede yoktur
  * (yalnız tamamlanmış görevi geri almada gerekçe istenir) — vaat edilmez.
  */
@@ -61,9 +62,9 @@ const writes = useRoleWrites()
             <RouterLink class="rh-title" :to="taskLocation(item.work_item_id)">
               {{ item.title }}
             </RouterLink>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="workShortCode(item)" class="rh-kicker" data-task-code>{{
+              workShortCode(item)
+            }}</span>
           </span>
           <span class="rh-meta">
             <span class="rh-who">

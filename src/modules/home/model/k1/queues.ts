@@ -3,6 +3,7 @@
  * ek istek yok). Sıralar kararlıdır (bitiş günü, sonra başlık).
  */
 import type { DateChangeRequest } from '@/modules/timeline/public'
+import { workShortCode } from '@/modules/work/public'
 
 import { byTitle, isOpen, type WorkRow } from '../role/common'
 
@@ -56,6 +57,8 @@ export interface RequestRow {
   request: DateChangeRequest
   /** Başlık yüklenen görev kümesinden; bulunamazsa `null` (başlık uydurulmaz). */
   title: string | null
+  /** Görev kodu yüklenen kümeden (talepte kod alanı yok); bulunamazsa boş (kod uydurulmaz). */
+  code: string
 }
 
 /** Tarih taleplerim (E-K1-38/39): bekleyenler önde; başlık yüklenen kümeden. */
@@ -63,10 +66,13 @@ export function requestRows(
   requests: readonly DateChangeRequest[],
   items: readonly WorkRow[],
 ): { rows: RequestRow[]; pending: number; decided: number } {
-  const titles = new Map(items.map((i) => [i.work_item_id, i.title]))
+  const byId = new Map(items.map((i) => [i.work_item_id, i]))
   const rank = (r: DateChangeRequest) => (r.status === 'pending' ? 0 : 1)
   const rows = requests
-    .map((request) => ({ request, title: titles.get(request.work_item_id) ?? null }))
+    .map((request) => {
+      const task = byId.get(request.work_item_id)
+      return { request, title: task?.title ?? null, code: workShortCode(task) }
+    })
     .sort((a, b) => rank(a.request) - rank(b.request))
   const pending = requests.filter((r) => r.status === 'pending').length
   return { rows, pending, decided: requests.length - pending }

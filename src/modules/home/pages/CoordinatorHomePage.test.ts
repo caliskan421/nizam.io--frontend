@@ -34,17 +34,31 @@ const COORD = { companyAdmin: false, rows: [{ department_id: 'd1', role: 'koordi
 const A = { account_id: 'acc-2', full_name: 'Ayşe Kaya' }
 
 const ITEMS = [
-  row('onaya_sunuldu', { title: 'Hidrofor', assignee_account_ids: ['acc-2'], assignees: [A] }),
+  row('onaya_sunuldu', {
+    title: 'Hidrofor',
+    code: 'ALT-3',
+    sequence_no: 3,
+    assignee_account_ids: ['acc-2'],
+    assignees: [A],
+  }),
   row('baslanmadi', { title: 'Sahipsiz iş', assignee_account_ids: [], priority: 'yuksek' }),
   row('devam_ediyor', {
     title: 'Geciken iş',
+    code: 'ALT-8',
+    sequence_no: 8,
     assignee_account_ids: ['acc-2'],
     assignees: [A],
     is_overdue: true,
     days_overdue: 21,
     end_on: '2026-09-30',
   }),
-  row('iade_edildi', { title: 'İade iş', assignee_account_ids: ['acc-2'], assignees: [A] }),
+  row('iade_edildi', {
+    title: 'İade iş',
+    code: 'ALT-4',
+    sequence_no: 4,
+    assignee_account_ids: ['acc-2'],
+    assignees: [A],
+  }),
 ]
 
 const MEMBERS = [
@@ -134,8 +148,8 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(
       ['open', 'overdue', 'pending', 'returned', 'unassigned', 'dateRequests'].map(value),
     ).toEqual(['4', '1', '1', '1', '1', '2'])
-    expect(page.wrapper.get('[data-cell="overdue"]').text()).toContain('En uzunu 21 gün')
-    expect(page.wrapper.get('[data-cell="returned"]').text()).toContain('Ayşe Kaya')
+    expect(page.wrapper.get('[data-cell="overdue"]').text()).toContain('En uzunu 21 gün · ALT-8')
+    expect(page.wrapper.get('[data-cell="returned"]').text()).toContain('ALT-4 · Ayşe Kaya')
     expect(page.wrapper.get('[data-cell="pending"]').attributes('href')).toBe(
       '/gorevler?durum=onaya_sunuldu',
     )
@@ -174,7 +188,9 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(region(page, 'approvals').text()).toContain('Hidrofor')
     expect(region(page, 'approvals').text()).toContain('Kararını bekliyor')
     expect(region(page, 'approvals').text()).not.toContain('dosya')
-    expect(region(page, 'approvals').find('[data-design-stub="BE-005"]').exists()).toBe(true)
+    // Görev kodu sunucunun `code` alanından (BE-005; eski "—" yer tutucusu yok).
+    expect(region(page, 'approvals').get('[data-task-code]').text()).toBe('ALT-3')
+    expect(region(page, 'approvals').find('[data-design-stub]').exists()).toBe(false)
     expect(region(page, 'unassigned').findAll('[data-row]')).toHaveLength(1)
     expect(region(page, 'unassigned').text()).toContain('Sahipsiz iş')
     expect(region(page, 'unassigned').text()).toContain('Yüksek')

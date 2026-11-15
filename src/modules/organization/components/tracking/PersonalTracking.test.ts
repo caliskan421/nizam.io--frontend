@@ -38,6 +38,8 @@ const OTHER: [string, string] = ['u9', 'Başka Kişi']
 
 const ITEMS = [
   workItem('w1', [U1], {
+    code: 'MEK-7',
+    sequence_no: 7,
     status: 'devam_ediyor',
     end_on: '2026-11-04',
     is_overdue: true,
@@ -203,12 +205,12 @@ describe('kartlar, sekmeler, liste (E-05-49…67)', () => {
     ])
   })
 
-  it('satır: kod öneki + statik sıra, bitiş notu, kanıt "—", görev bağlantısı 03 paneline', async () => {
+  it('satır: görev kodu (kodsuzda #sıra), bitiş notu, kanıt "—", görev bağlantısı 03 paneline', async () => {
     setup()
     const { wrapper } = await mountAt(PersonalTracking, { accountId: 'u1' })
     const row = wrapper.find('[data-work-item="w1"]')
-    expect(row.find('[data-code]').text()).toBe('MEK')
-    expect(wrapper.find('[data-work-item="w5"] [data-code]').text()).toBe('')
+    expect(row.find('[data-code]').text()).toBe('MEK-7')
+    expect(wrapper.find('[data-work-item="w5"] [data-code]').text()).toBe('#1')
     expect(row.find('[data-due-note]').text()).toBe('7 gün gecikti')
     expect(wrapper.find('[data-work-item="w2"] [data-due-note]').text()).toBe('2 gün kaldı')
     expect(row.find('[data-evidence]').text()).toBe('—')

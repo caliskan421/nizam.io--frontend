@@ -53,6 +53,8 @@ const ITEMS = [
   row('onaya_sunuldu', { title: 'Onaydaki görev', end_on: '2099-01-01' }),
   row('devam_ediyor', {
     title: 'Geciken görev',
+    code: 'MEK-12',
+    sequence_no: 12,
     end_on: '2020-01-01',
     is_overdue: true,
     days_overdue: 9,
@@ -149,7 +151,8 @@ describe('Ü1 üye ana sayfası', () => {
     const late = rowsOf(page)[1]!
     expect(late.text()).toContain('Alt görev 2/4')
     expect(late.text()).toContain('9 gün geç')
-    expect(late.find('[data-design-stub="BE-005"]').exists()).toBe(true)
+    expect(late.get('[data-task-code]').text()).toBe('MEK-12')
+    expect(late.find('[data-design-stub]').exists()).toBe(false)
     // Kanıt cümlesi yalnız o alan true olan görev kuyrukta varken.
     expect(page.wrapper.find('[data-testid="u1-queue-evidence"]').exists()).toBe(true)
     // Satır eylemleri durumdan.

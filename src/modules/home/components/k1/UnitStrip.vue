@@ -8,6 +8,7 @@ import { UiErrorState, UiIcon } from '@/shared/ui'
 
 import { homeText } from '../../model/messages'
 import type { RoleLoadScope } from '../../model/role/common'
+import { longestNote, returnedNote } from '../../model/k1/notes'
 import type { UnitSummary } from '../../model/k1/summary'
 import { tasksLocation } from '../../model/role/links'
 import ScopeNote from './ScopeNote.vue'
@@ -41,18 +42,6 @@ interface Cell {
 const cells = computed<Cell[]>(() => {
   const s = props.summary
   if (!s) return []
-  const returnedNote =
-    s.returnedNote.kind === 'none'
-      ? homeText('home.k1.notes.none')
-      : s.returnedNote.kind === 'one' && s.returnedNote.names.length > 0
-        ? s.returnedNote.names.join(', ')
-        : homeText('home.k1.notes.returnedMany', { n: s.returned })
-  const longest =
-    s.longestOverdue === null
-      ? homeText('home.k1.notes.none')
-      : homeText(s.partial ? 'home.k1.notes.longestAtLeast' : 'home.k1.notes.longest', {
-          n: s.longestOverdue,
-        })
   return [
     {
       key: 'open',
@@ -64,7 +53,7 @@ const cells = computed<Cell[]>(() => {
     {
       key: 'overdue',
       value: String(s.overdue),
-      note: longest,
+      note: longestNote(s),
       danger: true,
       to: tasksLocation('geciken'),
     },
@@ -78,7 +67,7 @@ const cells = computed<Cell[]>(() => {
     {
       key: 'returned',
       value: String(s.returned),
-      note: returnedNote,
+      note: returnedNote(s),
       danger: false,
       to: tasksLocation('iade_edildi'),
     },

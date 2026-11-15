@@ -39,19 +39,23 @@ describe('K1 birim özeti (E-K1-07…13)', () => {
   it('küme tam değilse partial; en uzun gecikme yalnız açık gecikenlerden', () => {
     const items = [
       item({ is_overdue: true, days_overdue: 4 }),
-      item({ is_overdue: true, days_overdue: 21 }),
+      item({ is_overdue: true, days_overdue: 21, code: 'SİS-9', sequence_no: 9 }),
       item({ status: 'tamamlandi', is_overdue: true, days_overdue: 99 }),
     ]
     expect(longestOverdue(items)).toBe(21)
     expect(longestOverdue([item()])).toBeNull()
     expect(unitSummary(counts(), items, false).partial).toBe(true)
+    // En uzun gecikmeli görevin kodu (E-K1-09); gecikme yoksa boş.
+    expect(unitSummary(counts(), items, true).longestCode).toBe('SİS-9')
+    expect(unitSummary(counts(), [item()], true).longestCode).toBe('')
   })
 
-  it('iade notu: tek iade → atanan adı; birden çok → sayı; yok → none', () => {
-    const one = [item({ status: 'iade_edildi', assignees: [A] })]
+  it('iade notu: tek iade → kod + atanan adı; birden çok → sayı; yok → none', () => {
+    const one = [item({ status: 'iade_edildi', assignees: [A], code: 'ALT-3', sequence_no: 3 })]
     expect(unitSummary(counts({ by: { iade_edildi: 1 } }), one, true).returnedNote).toEqual({
       kind: 'one',
       names: ['Ayşe Kaya'],
+      code: 'ALT-3',
       count: 1,
     })
     expect(unitSummary(counts({ by: { iade_edildi: 3 } }), one, true).returnedNote.kind).toBe(

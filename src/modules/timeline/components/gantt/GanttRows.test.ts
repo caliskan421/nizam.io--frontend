@@ -12,6 +12,8 @@ const TASKS: GanttTask[] = [
   task({
     work_item_id: 'a',
     department_id: 'd1',
+    code: 'MEK-1',
+    sequence_no: 1,
     title: 'Hidrofor',
     start_on: '2026-11-04',
     end_on: '2026-11-20',
@@ -28,6 +30,8 @@ const TASKS: GanttTask[] = [
   task({
     work_item_id: 'c',
     department_id: 'd2',
+    code: null,
+    sequence_no: 7,
     title: 'Boru hattı',
     start_on: '2026-11-03',
     end_on: '2026-11-05',
@@ -120,10 +124,10 @@ describe('sol sütun treegrid (E-03C-21, 28, 30…32, 35)', () => {
     expect(row(rows, 'b').get('.gantt-dot').classes()).not.toContain('gantt-dot--late')
   })
 
-  it('kod sütunu: kodlu birimde "KOD" (statik sıra), kodsuzda ve diğer yüzlerde boş', () => {
-    const withCodes = mountRows({ departmentCodes: new Map([['d1', 'MEK']]) })
-    expect(row(withCodes, 'a').get('.gantt-row__code').text()).toBe('MEK')
-    expect(row(withCodes, 'c').get('.gantt-row__code').text()).toBe('')
+  it('kod sütunu: görevin `code` alanı, kodsuz departmanda #sıra; kod sütunu olmayan yüzde yok', () => {
+    const withCodes = mountRows({ showCodes: true })
+    expect(row(withCodes, 'a').get('.gantt-row__code').text()).toBe('MEK-1')
+    expect(row(withCodes, 'c').get('.gantt-row__code').text()).toBe('#7')
     // K-7: kod sütunu olmayan yüzde (Koordinatör/Üye) boş sütun çizilmez, etiket dar kalır
     const bare = row(mountRows(), 'a')
     expect(bare.find('.gantt-row__code').exists()).toBe(false)

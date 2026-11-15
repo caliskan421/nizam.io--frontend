@@ -72,6 +72,8 @@ export const trHome = {
         open: '{doing} devam · {todo} başlamadı',
         longest: 'En uzunu {n} gün',
         longestAtLeast: 'En uzunu ≥{n} gün',
+        longestCode: 'En uzunu {n} gün · {code}',
+        longestAtLeastCode: 'En uzunu ≥{n} gün · {code}',
         pending: 'Kararını bekliyor',
         returnedMany: '{n} görev',
         unassigned: 'Sorumlu bekliyor',
@@ -160,7 +162,6 @@ export const trHome = {
         soon: 'yakında',
       },
       common: {
-        code: '—',
         priority: { acil: 'Acil', yuksek: 'Yüksek', orta: 'Orta', dusuk: 'Düşük' },
         status: {
           baslanmadi: 'Başlanmadı',

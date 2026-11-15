@@ -4,7 +4,7 @@
  * kurulum saat diliminde güne indirilir (ana sayfa `today.ts` ile aynı ilke). Biçim dışı değer
  * gösterilmez (uydurma yok).
  */
-import { workShortCode } from '../../model/short-code'
+import { workShortCode, type ShortCodeSource } from '../../model/short-code'
 
 import type { WorkItem, WorkItemStatus } from '../../model/types'
 import { detailText } from './messages'
@@ -79,15 +79,16 @@ export function personName(fullName: string | null | undefined): string {
 }
 
 /**
- * Üst bilgi "‹kod› · ‹koordinatörlük›" (E-03-41). Kod öneki `ProgramDepartment.code` (yoksa
- * gösterilmez); görev sıra numarası sözleşmede yok → statik "—" (BE-005, E-03-20 ile aynı).
+ * Üst bilgi "‹kod› · ‹koordinatörlük›" (E-03-41). Kod görevin `code` alanıdır (BE-005; kodsuz
+ * departmanda `#<sıra>`); koordinatörlük adı yoksa gösterilmez.
  */
 export function kickerText(
-  code: string | null | undefined,
+  task: ShortCodeSource | null | undefined,
   departmentName: string | null | undefined,
 ): string {
   const parts: string[] = []
-  if (code) parts.push(workShortCode(code))
+  const code = workShortCode(task)
+  if (code) parts.push(code)
   if (departmentName) parts.push(departmentName)
   return parts.join(' · ')
 }

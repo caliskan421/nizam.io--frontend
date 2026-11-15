@@ -19,9 +19,8 @@ const SubtaskBlockStub = defineComponent({
 function mountRow(over: Partial<WorkItem> = {}, props: Record<string, unknown> = {}) {
   return mount(TaskRow, {
     props: {
-      item: workItem(over),
+      item: workItem({ code: 'MEK-4', sequence_no: 4, ...over }),
       departmentName: 'Mekanik sistemler',
-      code: 'MEK',
       href: '/gorevler?gorev=w1',
       selected: false,
       expanded: false,
@@ -38,11 +37,11 @@ afterEach(() => {
 })
 
 describe('görev satırı (E-03-18…29)', () => {
-  it('başlık bağlantısı, kısa kod (önek + statik —), departman, durum, bitiş, kalan', () => {
+  it('başlık bağlantısı, görev kodu (sunucu `code`), departman, durum, bitiş, kalan', () => {
     const row = mountRow({ title: 'Faz3 asfalt', status: 'devam_ediyor', end_on: '2026-11-12' })
     expect(row.get('a.rp-title').text()).toBe('Faz3 asfalt')
     expect(row.get('a.rp-title').attributes('href')).toBe('/gorevler?gorev=w1')
-    expect(row.get('.task-row__code').text()).toBe('MEK')
+    expect(row.get('.task-row__code').text()).toBe('MEK-4')
     expect(row.get('.task-row__dept').text()).toBe('Mekanik sistemler')
     expect(row.get('.rp-status').text()).toBe('Devam ediyor')
     expect(row.get('.rp-dot').classes()).toContain('rp-dot--doing')
@@ -50,8 +49,8 @@ describe('görev satırı (E-03-18…29)', () => {
     expect(row.get('.task-row__note').text()).toBe('3 gün kaldı')
   })
 
-  it('kodsuz departmanda kısa kod gösterilmez (E-03-20)', () => {
-    expect(mountRow({}, { code: null }).get('.task-row__code').text()).toBe('')
+  it('kodsuz departmanda #sıra (WORK-K97, E-03-20)', () => {
+    expect(mountRow({ code: null, sequence_no: 5 }).get('.task-row__code').text()).toBe('#5')
   })
 
   it('iade_edildi satırda Geri gönderildi (rp-dot--back); gecikme kırmızı', () => {

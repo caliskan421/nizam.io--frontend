@@ -29,7 +29,6 @@ import {
 } from '../../components/list/rows'
 import { lensAssignee } from '../../model/assignment'
 import { listDepartmentFilter } from '../../model/target'
-import type { WorkItem } from '../../model/types'
 import type { TasksUrlState } from './url-state'
 import { useTaskCounts } from './use-task-counts'
 
@@ -50,7 +49,6 @@ export function useTaskList(state: Ref<TasksUrlState>, showRequests: Ref<boolean
   const departments = useProgramDepartments()
   const byId = departments.byId
 
-  const codeOf = (item: WorkItem) => byId.value.get(item.department_id)?.code ?? null
   const requestsOn = computed(() => showRequests.value && state.value.requests)
 
   /** Sunucunun süzdüğü yüklenen satırlar (Üye merceğinde zaten yalnız bana atananlar). */
@@ -60,8 +58,7 @@ export function useTaskList(state: Ref<TasksUrlState>, showRequests: Ref<boolean
   const base = computed(() =>
     items.value.filter(
       (item) =>
-        (!requestsOn.value || hasDateRequest(item)) &&
-        matchesSearch(item, state.value.search, codeOf(item)),
+        (!requestsOn.value || hasDateRequest(item)) && matchesSearch(item, state.value.search),
     ),
   )
   const counting = useTaskCounts({

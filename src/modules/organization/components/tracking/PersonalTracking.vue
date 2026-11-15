@@ -77,11 +77,6 @@ const units = computed(() =>
 const roles = computed(() =>
   profile.user.value ? orderedRoles(programRoles(profile.user.value, store.programId)) : [],
 )
-const codes = computed(() => {
-  const map = new Map<string, string>()
-  for (const d of departments.departments.value) if (d.code) map.set(d.department_id, d.code)
-  return map
-})
 const personName = computed(
   () =>
     profile.name.value ?? (profile.resolved.value ? trackingText('tracking.unknownPerson') : null),
@@ -198,7 +193,6 @@ onBeforeUnmount(() => (document.title = previousTitle))
                   <TrackingTable
                     :name="personName ?? ''"
                     :groups="groups"
-                    :codes="codes"
                     :today="today"
                     :loading="loading"
                   />

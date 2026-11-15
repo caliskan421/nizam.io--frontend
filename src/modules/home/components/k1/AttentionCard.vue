@@ -4,9 +4,9 @@ import { RouterLink } from 'vue-router'
 
 import { DateRequestForm } from '@/modules/timeline/public'
 import { TIMELINE_ROUTE } from '@/modules/timeline/public'
-import { targetOf } from '@/modules/work/public'
+import { targetOf, workShortCode } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiButton, UiCount, useToast } from '@/shared/ui'
+import { UiButton, UiCount, useToast } from '@/shared/ui'
 
 import type { RoleLoadScope } from '../../model/role/common'
 import { useRoleFacts } from '../../api/role/use-facts'
@@ -22,7 +22,7 @@ import ScopeNote from './ScopeNote.vue'
  * "Dikkat gerektirenler ‹n›" (E-K1-23…25): geciken açık görevler (yüklenen küme; en uzun
  * gecikme önde). Satır eylemi: bekleyen talep varsa "Talebi gör" (03 paneli), yoksa koordinatör
  * için "Süre uzat" → ortak `DateRequestForm` (timeline, F3). "talep reddedildi" yalnız
- * yüklenen talep listesinde eşleşirse. Bağımlılık göstergesi/eylemi gizli (BE-138); kod `—`.
+ * yüklenen talep listesinde eşleşirse. Bağımlılık göstergesi/eylemi gizli (BE-138); görev kodu sunucu `code` alanından (BE-005).
  */
 defineProps<{
   rows: readonly AttentionRow[]
@@ -77,9 +77,9 @@ function sent(): void {
             <RouterLink class="rh-title" :to="taskLocation(row.item.work_item_id)">
               {{ row.item.title }}
             </RouterLink>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="workShortCode(row.item)" class="rh-kicker" data-task-code>{{
+              workShortCode(row.item)
+            }}</span>
           </span>
           <span class="rh-cap rh-trunc">
             {{

@@ -3,7 +3,7 @@ import { RouterLink } from 'vue-router'
 
 import { TIMELINE_ROUTE } from '@/modules/timeline/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiCount } from '@/shared/ui'
+import { UiCount } from '@/shared/ui'
 
 import { homeText } from '../../model/messages'
 import type { RequestRow } from '../../model/k1/queues'
@@ -13,7 +13,7 @@ import RegionBody from './RegionBody.vue'
 /**
  * "Tarih taleplerim ‹n›" (E-K1-38/39): `myDateChangeRequests`. Başlık yüklenen görev
  * kümesinden (bulunamazsa nötr "Görev"; başlık uydurulmaz). "gönderildi" tarihi ve "Yönetici
- * notu" gizli (BE-140: alan yok); kod `—` (BE-005). Metin P18: plan tarihini yönetici değiştirir.
+ * notu" gizli (BE-140: alan yok); kod yüklenen görev kümesinden (BE-005). Metin P18: plan tarihini yönetici değiştirir.
  */
 defineProps<{
   rows: readonly RequestRow[]
@@ -59,9 +59,7 @@ const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-
         <span class="rh-stack">
           <span class="rh-line">
             <span class="rh-title">{{ r.title ?? homeText('home.k1.requests.untitled') }}</span>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="r.code" class="rh-kicker" data-task-code>{{ r.code }}</span>
           </span>
           <span class="rh-cap">
             {{

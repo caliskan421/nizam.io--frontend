@@ -30,6 +30,3 @@ export const REQUEST_TIMES_AND_NOTE = designStub('BE-140', {
 
 /** Üyeye birim koordinatör adı (E-Ü1-21/31): `MyDepartment.coordinators[]` yok. */
 export const UNIT_COORDINATOR_NAME = designStub('BE-141', { available: false })
-
-/** Görev kısa kodu (E-K1-16/20/24/39, E-Ü1-11): kod yerine `—`. */
-export const TASK_SHORT_CODE = designStub('BE-005', { available: false })
