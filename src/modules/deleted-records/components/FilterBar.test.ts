@@ -116,15 +116,20 @@ describe('FilterBar (E-12-17…20)', () => {
     wrapper.unmount()
   })
 
-  it('tür desteklemiyorsa ilgili menü devre dışı', () => {
-    const task = mountBar({ kind: 'gorev' })
-    expect(task.get('[data-testid="dr-actor"] button').attributes('disabled')).toBeDefined()
-    expect(task.get('[data-testid="dr-department"] button').attributes('disabled')).toBeUndefined()
-    const account = mountBar({ kind: 'kullanici' })
-    for (const id of ['dr-range', 'dr-actor', 'dr-department']) {
-      expect(account.get(`[data-testid="${id}"] button`).attributes('disabled'), id).toBeDefined()
+  it('tür desteklemiyorsa ilgili menü devre dışı: silen yalnız toplantıda, koordinatörlük süzgeci koordinatörlükte yok, aralık hep etkin', () => {
+    const disabled = (kind: DeletedFilters['kind'], id: string) => {
+      const bar = mountBar({ kind })
+      const value = bar.get(`[data-testid="${id}"] button`).attributes('disabled') !== undefined
+      bar.unmount()
+      return value
     }
-    task.unmount()
-    account.unmount()
+    expect(disabled('gorev', 'dr-actor')).toBe(true)
+    expect(disabled('toplanti', 'dr-actor')).toBe(false)
+    expect(disabled('kullanici', 'dr-actor')).toBe(true)
+    expect(disabled('koordinatorluk', 'dr-department')).toBe(true)
+    expect(disabled('kullanici', 'dr-department')).toBe(false)
+    for (const kind of ['gorev', 'toplanti', 'koordinatorluk', 'kullanici'] as const) {
+      expect(disabled(kind, 'dr-range'), kind).toBe(false)
+    }
   })
 })

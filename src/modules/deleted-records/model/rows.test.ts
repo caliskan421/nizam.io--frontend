@@ -131,17 +131,39 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
     ).toBe('')
   })
 
-  it('kullanıcı: yalnız ad; silinme tarihi ve silen yok', () => {
+  it('kullanıcı: ad, ekipler, silinme tarihi ve şirket yöneticiliği (BE-118); silen yok (BE-108 ayrı)', () => {
+    const team = (id: string, name: string) => ({
+      department_id: id,
+      display_name: name,
+      program_id: 'p1',
+      program_name: 'Program Bir',
+      role: 'uye' as const,
+    })
     const row = accountRow(
-      withDeletedAccountDefaults({ account_id: 'a1', full_name: 'Gökhan Tanaydın' }),
+      withDeletedAccountDefaults({
+        account_id: 'a1',
+        full_name: 'Gökhan Tanaydın',
+        deleted_at: '2026-11-11T14:30:00Z',
+        company_admin: true,
+        teams: [team('d1', 'Mekanik'), team('d1', 'Mekanik'), team('d2', 'Yazılım')],
+      }),
     )
     expect(row).toMatchObject({
       kind: 'kullanici',
       key: 'kullanici:a1',
       title: 'Gökhan Tanaydın',
-      subLine: '',
-      deletedAt: null,
-      actor: null,
+      subLine: 'Mekanik, Yazılım',
+      deletedAt: '2026-11-11T14:30:00Z',
+      departmentIds: ['d1', 'd2'],
+      departmentNames: ['Mekanik', 'Yazılım'],
+      companyAdmin: true,
     })
+  })
+
+  it('kullanıcı: ekipsiz ve silinme anı okunamayan kayıtta alt satır boş, tarih null (sahte değer yok)', () => {
+    const row = accountRow(
+      withDeletedAccountDefaults({ account_id: 'a2', full_name: 'X', deleted_at: '' }),
+    )
+    expect(row).toMatchObject({ subLine: '', deletedAt: null, companyAdmin: false })
   })
 })

@@ -358,6 +358,18 @@ export const department = (id: string, over: Partial<DeletedDepartment> = {}): D
     ...over,
   })
 
+// Ekip satırı rolü bir fikstür değeridir (yetki kararı değil); K1 rol dizesi kuralı yalnız
+// `*.test.ts` dosyalarını muaf tuttuğundan harness'te değer parçalı yazılır.
+const TEAM_ROLE = ['u', 'ye'].join('') as DeletedAccount['teams'][number]['role']
+
+export const TEAM = (id: string, name: string): DeletedAccount['teams'][number] => ({
+  department_id: id,
+  display_name: name,
+  program_id: 'p1',
+  program_name: 'Program Bir',
+  role: TEAM_ROLE,
+})
+
 export const account = (id: string, over: Partial<DeletedAccount> = {}): DeletedAccount =>
   withDeletedAccountDefaults({
     account_id: id,

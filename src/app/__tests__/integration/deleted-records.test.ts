@@ -21,6 +21,8 @@ import {
   toasts,
   until,
 } from './harness'
+import { withDeletedAccountDefaults } from '@/shared/api/__tests__/defaults'
+
 import { item, ORIGIN } from './fake-org'
 
 const backend = createBackend({ coordinator: 'koordinator', member: 'uye' })
@@ -141,7 +143,10 @@ function install(): void {
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () =>
       HttpResponse.json({
-        accounts: deleted.accounts.map((id) => ({ account_id: id, full_name: 'Silinmiş Kişi' })),
+        accounts: deleted.accounts.map((id) =>
+          withDeletedAccountDefaults({ account_id: id, full_name: 'Silinmiş Kişi' }),
+        ),
+        total: deleted.accounts.length,
       }),
     ),
     http.get(`${ORIGIN}/v1/meetings`, () =>

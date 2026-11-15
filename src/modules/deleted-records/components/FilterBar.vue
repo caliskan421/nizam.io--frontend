@@ -10,7 +10,6 @@ import {
   DELETED_RANGES,
   supportsActorFilter,
   supportsDepartmentFilter,
-  supportsRange,
   type DeletedRange,
 } from '../model/kinds'
 import { deletedText } from '../model/messages'
@@ -113,8 +112,6 @@ onBeforeUnmount(() => {
       icon="calendar"
       :options="rangeOptions"
       :model-value="filters.range"
-      :disabled="!supportsRange(filters.kind)"
-      :hint="deletedText('filters.range.unsupported')"
       data-testid="dr-range"
       @update:model-value="emit('update', { range: $event })"
     />

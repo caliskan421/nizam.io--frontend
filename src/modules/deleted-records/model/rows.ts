@@ -7,6 +7,7 @@
  */
 import type { Meeting } from '@/modules/meetings/public'
 
+import { accountHoldsCompanyAdmin } from './capabilities'
 import { formatMeetingWhen } from './format'
 import { deletedText } from './messages'
 import type { DeletedAccount, DeletedDepartment, DeletedRow, DeletedWorkItem } from './types'
@@ -39,6 +40,7 @@ export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
     inviteMode: null,
     departmentNames: [department],
     departmentKind: null,
+    companyAdmin: false,
   }
 }
 
@@ -72,6 +74,7 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
     inviteMode: meeting.invite_mode,
     departmentNames: names,
     departmentKind: null,
+    companyAdmin: false,
   }
 }
 
@@ -93,26 +96,31 @@ export function departmentRow(department: DeletedDepartment): DeletedRow {
     inviteMode: null,
     departmentNames: [],
     departmentKind: department.kind || null,
+    companyAdmin: false,
   }
 }
 
 export function accountRow(account: DeletedAccount): DeletedRow {
+  const teams = [...new Map(account.teams.map((team) => [team.department_id, team])).values()]
+  const names = teams.map((team) => team.display_name)
   return {
     kind: 'kullanici',
     id: account.account_id,
     key: `kullanici:${account.account_id}`,
     title: account.full_name,
     code: null,
-    subLine: '',
-    // Hesap satırında silinme tarihi ve silen yok (`created_at DESC` sırası; BE-118).
-    deletedAt: null,
+    // Silmede korunan ekip satırları (canlı departmanlar; ekipsiz hesapta boş).
+    subLine: names.join(', '),
+    // `deleted_at` boşsa (okunamadı) tarih "—" kalır; sunucu o satırı son güncelleme anına göre sıralar.
+    deletedAt: account.deleted_at || null,
     actor: null,
-    departmentIds: [],
+    departmentIds: teams.map((team) => team.department_id),
     status: null,
     fileCount: null,
     place: null,
     inviteMode: null,
-    departmentNames: [],
+    departmentNames: names,
     departmentKind: null,
+    companyAdmin: accountHoldsCompanyAdmin(account),
   }
 }

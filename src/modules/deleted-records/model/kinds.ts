@@ -31,17 +31,16 @@ export function parseKind(value: unknown): DeletedKind {
   return isDeletedKind(value) ? value : DEFAULT_KIND
 }
 
-/** Koordinatörlük süzgeci yalnız görev ve toplantıda anlamlıdır (E-12-19). */
+/**
+ * Koordinatörlük süzgeci (`department_id`): görevde departman, toplantıda sahip/bağlı departman,
+ * hesapta "herhangi bir programdaki ekip satırı" (BE-117/118, matris M-D07). Koordinatörlük
+ * türünde sunucu `department_id`'yi yok sayar: süzgeç sunulmaz.
+ */
 export function supportsDepartmentFilter(kind: DeletedKind): boolean {
-  return kind === 'gorev' || kind === 'toplanti'
+  return kind !== 'koordinatorluk'
 }
 
 /** Silen süzgeci yalnız toplantıda canlıdır (`deleted_by`; E-12-18, BE-108). */
 export function supportsActorFilter(kind: DeletedKind): boolean {
   return kind === 'toplanti'
-}
-
-/** Tarih aralığı hesapta devre dışıdır (`deleted_at` alanı yok; E-12-17, BE-118). */
-export function supportsRange(kind: DeletedKind): boolean {
-  return kind !== 'kullanici'
 }

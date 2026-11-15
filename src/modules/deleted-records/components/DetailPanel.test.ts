@@ -73,7 +73,7 @@ describe('DetailPanel (E-12-41…54)', () => {
     expect(text).not.toContain('birlikte geri gelecek')
   })
 
-  it('koordinatörlük: tür ve kod; hesap: silinme satırı yok', () => {
+  it('koordinatörlük: tür ve kod', () => {
     const department = mount(DetailPanel, {
       props: {
         ...base,
@@ -87,19 +87,28 @@ describe('DetailPanel (E-12-41…54)', () => {
       },
     })
     expect(department.text()).toContain('OPE')
-    const account = mount(DetailPanel, {
-      props: {
-        ...base,
-        row: fixtureRow({
-          kind: 'kullanici',
-          status: null,
-          fileCount: null,
-          deletedAt: null,
-          subLine: '',
-        }),
-      },
+  })
+
+  it('hesap: silinme tarihi, ekip koordinatörlükleri ve şirket yöneticiliği (BE-118); tarih yoksa satır yok', () => {
+    const row = fixtureRow({
+      kind: 'kullanici',
+      status: null,
+      fileCount: null,
+      subLine: 'Mekanik',
+      departmentNames: ['Mekanik'],
+      companyAdmin: true,
     })
-    expect(account.text()).not.toContain('Silinme')
+    const text = mount(DetailPanel, { props: { ...base, row } }).text()
+    expect(text).toContain('Silinme')
+    expect(text).toContain('12.11.2026 · 13:42')
+    expect(text).toContain('Mekanik')
+    expect(text).toContain('Şirket yöneticisi')
+    expect(text).not.toContain('Silen')
+    const undated = mount(DetailPanel, {
+      props: { ...base, row: { ...row, deletedAt: null, companyAdmin: false } },
+    }).text()
+    expect(undated).not.toContain('Silinme')
+    expect(undated).not.toContain('Şirket yöneticisi')
   })
 
   it('eylemler: Geri yükle birincil, Kalıcı sil; uçuşta ve yetkisizde engellenir', async () => {

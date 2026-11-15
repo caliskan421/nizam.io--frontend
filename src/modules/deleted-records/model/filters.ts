@@ -12,7 +12,6 @@ import {
   parseKind,
   supportsActorFilter,
   supportsDepartmentFilter,
-  supportsRange,
   type DeletedKind,
   type DeletedRange,
 } from './kinds'
@@ -45,7 +44,7 @@ export function parseFilters(query: Query): DeletedFilters {
     kind,
     q: text(query, 'q').trim(),
     department: supportsDepartmentFilter(kind) ? text(query, 'koordinatorluk') || null : null,
-    range: supportsRange(kind) && isDeletedRange(range) ? range : DEFAULT_RANGE,
+    range: isDeletedRange(range) ? range : DEFAULT_RANGE,
     actor: supportsActorFilter(kind) ? text(query, 'silen') || null : null,
     selected: text(query, 'kayit') || null,
   }
@@ -65,7 +64,7 @@ export function filtersToQuery(filters: DeletedFilters): Record<string, string> 
 
 /**
  * Tür değişimi (mekanizma §3): `kayit` ve `silen` temizlenir; `q` ve `aralik` korunur;
- * `koordinatorluk` yalnız desteklenen türde korunur.
+ * `koordinatorluk` yalnız desteklenen türde (görev, toplantı, kullanıcı) korunur.
  */
 export function changeKind(filters: DeletedFilters, kind: DeletedKind): DeletedFilters {
   return {
@@ -74,7 +73,6 @@ export function changeKind(filters: DeletedFilters, kind: DeletedKind): DeletedF
     selected: null,
     actor: null,
     department: supportsDepartmentFilter(kind) ? filters.department : null,
-    range: supportsRange(kind) ? filters.range : DEFAULT_RANGE,
   }
 }
 
@@ -159,9 +157,12 @@ export function toListQuery(
     query.department_id = filters.department
   }
   if (supportsActorFilter(filters.kind) && filters.actor) query.deleted_by = filters.actor
-  const from = supportsRange(filters.kind) ? rangeFrom(filters.range, ctx) : undefined
+  const from = rangeFrom(filters.range, ctx)
   if (from) query.deleted_from = from
-  if (sort.key !== DEFAULT_SORT.key || sort.order !== DEFAULT_SORT.order) {
+  // Hesap listesinin parametresiz sırası oluşturma tarihidir (`created_at`): "en yeni silinen
+  // üstte" için `sort=deleted_at&order=desc` açıkça istenir (Varsayım 13, BE-118).
+  const explicit = filters.kind === 'kullanici'
+  if (explicit || sort.key !== DEFAULT_SORT.key || sort.order !== DEFAULT_SORT.order) {
     query.sort = sort.key
     query.order = sort.order
   }

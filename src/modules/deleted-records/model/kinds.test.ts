@@ -10,7 +10,6 @@ import {
   parseKind,
   supportsActorFilter,
   supportsDepartmentFilter,
-  supportsRange,
 } from './kinds'
 
 describe('silinen kayıt türleri (P41, P42)', () => {
@@ -37,7 +36,11 @@ describe('silinen kayıt türleri (P41, P42)', () => {
 
   it('süzgeç desteği türe göre (E-12-17/18/19)', () => {
     expect(DELETED_KINDS.filter(supportsActorFilter)).toEqual(['toplanti'])
-    expect(DELETED_KINDS.filter(supportsDepartmentFilter)).toEqual(['gorev', 'toplanti'])
-    expect(DELETED_KINDS.filter((kind) => !supportsRange(kind))).toEqual(['kullanici'])
+    // Koordinatörlük türünde sunucu department_id'yi yok sayar; hesapta "herhangi bir ekip satırı".
+    expect(DELETED_KINDS.filter(supportsDepartmentFilter)).toEqual([
+      'gorev',
+      'toplanti',
+      'kullanici',
+    ])
   })
 })

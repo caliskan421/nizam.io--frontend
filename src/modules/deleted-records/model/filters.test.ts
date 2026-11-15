@@ -62,10 +62,11 @@ describe('URL ⇄ süzgeç (K10; P43)', () => {
     expect(parseFilters({ aralik: '30gun' }).range).toBe('tumu')
   })
 
-  it('türe uymayan süzgeç yok sayılır: hesapta aralık/koordinatörlük/silen, görevde silen', () => {
+  it('türe uymayan süzgeç yok sayılır: koordinatörlükte department_id, görevde silen', () => {
+    // Hesapta tarih aralığı ve "herhangi bir ekip satırı" koordinatörlük süzgeci canlıdır (BE-118).
     expect(
       parseFilters({ tur: 'kullanici', aralik: 'bugun', koordinatorluk: 'd1', silen: 'a1' }),
-    ).toMatchObject({ range: 'tumu', department: null, actor: null })
+    ).toMatchObject({ range: 'bugun', department: 'd1', actor: null })
     expect(parseFilters({ tur: 'koordinatorluk', koordinatorluk: 'd1' }).department).toBeNull()
     expect(parseFilters({ silen: 'a1' }).actor).toBeNull()
     expect(parseFilters({ tur: 'toplanti', silen: 'a1' }).actor).toBe('a1')
@@ -95,9 +96,9 @@ describe('tür değişimi (mekanizma §3)', () => {
     })
   })
 
-  it('koordinatorluk yalnız görev/toplantıda korunur', () => {
+  it('koordinatorluk koordinatörlük türünde temizlenir; hesapta ve aralık korunur', () => {
     expect(changeKind(full, 'koordinatorluk').department).toBeNull()
-    expect(changeKind(full, 'kullanici')).toMatchObject({ department: null, range: 'tumu' })
+    expect(changeKind(full, 'kullanici')).toMatchObject({ department: 'd1', range: 'bugun' })
   })
 
   it('Filtreleri temizle: tür ve seçim korunur', () => {
@@ -139,6 +140,16 @@ describe('sunucu sorgusu (BE-117)', () => {
   it('koordinatörlük türünde department_id gitmez', () => {
     const filters: DeletedFilters = { ...BASE, kind: 'koordinatorluk', department: 'd1' }
     expect(toListQuery(filters, DEFAULT_SORT, CTX)).toEqual({})
+  })
+
+  it('hesap listesi varsayılan sırada da sort=deleted_at&order=desc ister (oluşturma sırası değil)', () => {
+    expect(toListQuery({ ...BASE, kind: 'kullanici' }, DEFAULT_SORT, CTX)).toEqual({
+      sort: 'deleted_at',
+      order: 'desc',
+    })
+    expect(
+      toListQuery({ ...BASE, kind: 'kullanici', range: '7gun' }, DEFAULT_SORT, CTX),
+    ).toMatchObject({ deleted_from: '2026-11-05T21:00:00Z', sort: 'deleted_at' })
   })
 
   it('sıra yalnız varsayılandan farklıysa yazılır', () => {

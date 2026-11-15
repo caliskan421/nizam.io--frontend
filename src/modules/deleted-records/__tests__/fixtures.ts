@@ -18,6 +18,7 @@ export function fixtureRow(over: Partial<DeletedRow> = {}): DeletedRow {
     inviteMode: null,
     departmentNames: ['Mekanik'],
     departmentKind: null,
+    companyAdmin: false,
     ...over,
   }
 }

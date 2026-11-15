@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import {
   account,
+  TEAM,
   department,
   meeting,
   mountPage,
@@ -128,7 +129,7 @@ describe('süzgeçler URL ile gidip gelir, sunucuya gider (P43, BE-117)', () => 
     expect(page.wrapper.find('[data-testid="dr-clear"]').exists()).toBe(false)
   })
 
-  it('tür değişimi: kayit ve silen temizlenir; q ve aralik korunur; koordinatorluk hesapta düşer', async () => {
+  it('tür değişimi: kayit ve silen temizlenir; q ve aralik korunur; koordinatorluk koordinatörlük türünde düşer', async () => {
     world.meetings = [[meeting('m1')]]
     world.accounts = [[account('a1')]]
     const page = await mountPage({
@@ -142,6 +143,10 @@ describe('süzgeçler URL ile gidip gelir, sunucuya gider (P43, BE-117)', () => 
     await page.wrapper.get('[data-kind="kullanici"]').trigger('click')
     await settle()
     expect(query(page).q).toBe('a')
+    // Hesapta "herhangi bir programdaki ekip satırı" süzgeci canlıdır (BE-118).
+    expect(query(page).koordinatorluk).toBe('d1')
+    await page.wrapper.get('[data-kind="koordinatorluk"]').trigger('click')
+    await settle()
     expect(query(page).koordinatorluk).toBeUndefined()
   })
 })
@@ -169,21 +174,66 @@ describe('Silen süzgeci yalnız toplantıda (E-12-18)', () => {
     expect(query(page).silen).toBe('acc-8')
   })
 
-  it('görev, koordinatörlük ve kullanıcıda silen süzgeci devre dışı; hesapta aralık da', async () => {
+  it('görev, koordinatörlük ve kullanıcıda silen süzgeci devre dışı; aralık dört türde etkin; koordinatörlük süzgeci koordinatörlükte devre dışı', async () => {
     world.accounts = [[account('a1')]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=kullanici' })
-    for (const id of ['dr-actor', 'dr-department', 'dr-range']) {
-      expect(
-        page.wrapper.get(`[data-testid="${id}"] button`).attributes('disabled'),
-        id,
-      ).toBeDefined()
-    }
+    const disabled = (id: string) =>
+      page.wrapper.get(`[data-testid="${id}"] button`).attributes('disabled') !== undefined
+    expect([disabled('dr-actor'), disabled('dr-department'), disabled('dr-range')]).toEqual([
+      true,
+      false,
+      false,
+    ])
+    await page.wrapper.get('[data-kind="koordinatorluk"]').trigger('click')
+    await settle()
+    expect([disabled('dr-actor'), disabled('dr-department'), disabled('dr-range')]).toEqual([
+      true,
+      true,
+      false,
+    ])
     await page.wrapper.get('[data-kind="gorev"]').trigger('click')
     await settle()
-    expect(page.wrapper.get('[data-testid="dr-actor"] button').attributes('disabled')).toBeDefined()
-    expect(
-      page.wrapper.get('[data-testid="dr-range"] button').attributes('disabled'),
-    ).toBeUndefined()
+    expect([disabled('dr-actor'), disabled('dr-department'), disabled('dr-range')]).toEqual([
+      true,
+      false,
+      false,
+    ])
+  })
+
+  it('kullanıcı: varsayılan sıra sort=deleted_at&order=desc; aralık ve koordinatörlük sunucuya gider (BE-118)', async () => {
+    world.accounts = [
+      [
+        account('a1', {
+          full_name: 'Eski',
+          deleted_at: '2026-09-01T10:00:00Z',
+          teams: [TEAM('d1', 'Mekanik')],
+        }),
+        account('a2', {
+          full_name: 'Yeni',
+          deleted_at: '2026-11-12T08:00:00Z',
+          teams: [TEAM('d2', 'Yazılım')],
+        }),
+        account('a3', {
+          full_name: 'Orta',
+          deleted_at: '2026-11-10T08:00:00Z',
+          teams: [TEAM('d2', 'Yazılım')],
+        }),
+      ],
+    ]
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=kullanici' })
+    const first = sent(PATHS.accounts)[0]!.query
+    expect([first.get('sort'), first.get('order')]).toEqual(['deleted_at', 'desc'])
+    expect(ids(page)).toEqual(['a2', 'a3', 'a1'])
+    await pick(page, 'dr-range', 'Son 7 gün')
+    expect(sent(PATHS.accounts).at(-1)!.query.get('deleted_from')).toBe('2026-11-05T21:00:00Z')
+    expect(ids(page)).toEqual(['a2', 'a3'])
+    await pick(page, 'dr-department', 'Mekanik')
+    expect(sent(PATHS.accounts).at(-1)!.query.get('department_id')).toBe('d1')
+    expect(ids(page)).toEqual([])
+    // Hesap satırında silinme tarihi hücresi dolu (eskiden "—" idi).
+    await page.wrapper.get('[data-testid="dr-clear"]').trigger('click')
+    await settle()
+    expect(page.wrapper.findAll('.dr-dt__d')[0]!.text()).toContain('12.11.2026')
   })
 })
 
@@ -287,11 +337,13 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     expect(panel).not.toContain('birlikte geri gelecek')
   })
 
-  it('hesap paneli: silinme ve silen satırı yok', async () => {
-    world.accounts = [[account('a1')]]
+  it('hesap paneli: silinme tarihi ve ekipler var; silen satırı yok (BE-108 öncesi)', async () => {
+    world.accounts = [[account('a1', { teams: [TEAM('d1', 'Mekanik')], company_admin: true })]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=kullanici&kayit=a1' })
     const panel = page.wrapper.get('[data-testid="dr-panel"]').text()
-    expect(panel).not.toContain('Silinme')
+    expect(panel).toContain('Silinme')
+    expect(panel).toContain('Mekanik')
+    expect(panel).toContain('Şirket yöneticisi')
     expect(panel).not.toContain('Silen')
   })
 

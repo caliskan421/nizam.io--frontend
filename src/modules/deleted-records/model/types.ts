@@ -51,4 +51,6 @@ export interface DeletedRow {
   departmentNames: readonly string[]
   /** Koordinatörlük `kind` değeri (değer kümesi sözleşmede yok). */
   departmentKind: string | null
+  /** Kullanıcı: şirket yöneticiliği ataması (silmede korunur); diğer türlerde `false`. */
+  companyAdmin: boolean
 }

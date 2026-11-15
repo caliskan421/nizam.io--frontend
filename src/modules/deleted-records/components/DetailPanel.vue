@@ -82,9 +82,15 @@ function act(action: 'restore' | 'purge'): void {
           <dt>{{ deletedText('panel.fields.invite') }}</dt>
           <dd>{{ invite }}</dd>
         </template>
-        <template v-if="row.kind === 'toplanti' && row.departmentNames.length">
+        <template
+          v-if="(row.kind === 'toplanti' || row.kind === 'kullanici') && row.departmentNames.length"
+        >
           <dt>{{ deletedText('panel.fields.departments') }}</dt>
           <dd>{{ row.departmentNames.join(', ') }}</dd>
+        </template>
+        <template v-if="row.companyAdmin">
+          <dt>{{ deletedText('panel.fields.admin') }}</dt>
+          <dd>{{ deletedText('panel.adminValue') }}</dd>
         </template>
         <template v-if="row.departmentKind">
           <dt>{{ deletedText('panel.fields.kind') }}</dt>

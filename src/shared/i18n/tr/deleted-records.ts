@@ -59,7 +59,6 @@ export const trDeletedRecords = {
         today: 'Bugün',
         week: 'Son 7 gün',
         all: 'Tümü',
-        unsupported: 'Kullanıcı kayıtlarında silinme tarihi yok.',
       },
       actor: {
         label: 'Silen',
@@ -119,7 +118,9 @@ export const trDeletedRecords = {
         departments: 'Koordinatörlükler',
         kind: 'Tür',
         code: 'Kod',
+        admin: 'Yetki',
       },
+      adminValue: 'Şirket yöneticisi',
       invite: { coordinatorship: 'Koordinatörlük', person: 'Kişiler' },
       together: 'birlikte geri gelecek',
       files: 'Kanıt dosyası',
