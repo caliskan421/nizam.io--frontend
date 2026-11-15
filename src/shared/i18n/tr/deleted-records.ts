@@ -88,6 +88,7 @@ export const trDeletedRecords = {
     // Satır alt satırı (E-12-28, P44).
     sub: {
       task: '{department} › Görevler',
+      taskByDepartment: '{department} › Görevler · koordinatörlükle birlikte silindi',
       meeting: '{when} · {department}',
     },
     footer: {
@@ -104,6 +105,7 @@ export const trDeletedRecords = {
         actor: 'Silen',
         deletedAt: 'Silinme',
         status: 'Durumu',
+        assignees: 'Atananlar',
         place: 'Yer',
         invite: 'Davet',
         departments: 'Koordinatörlükler',
@@ -114,7 +116,11 @@ export const trDeletedRecords = {
       adminValue: 'Şirket yöneticisi',
       invite: { coordinatorship: 'Koordinatörlük', person: 'Kişiler' },
       together: 'birlikte geri gelecek',
+      subtasks: 'Alt görev',
       files: 'Kanıt dosyası',
+      notes: 'Yorum',
+      dateRequest: 'Tarih talebi',
+      unknownAssignee: 'Bilinmeyen kişi',
       // Durum adları (03 sözlüğü; geçmiş zaman biçimi istemci metnidir, E-12-47).
       status: {
         baslanmadi: 'Başlanmamıştı',

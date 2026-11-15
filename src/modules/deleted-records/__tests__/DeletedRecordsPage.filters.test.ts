@@ -329,18 +329,51 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     expect(panel).toContain('Devam ediyordu')
     expect(panel).toContain('birlikte geri gelecek')
     expect(panel).toContain('Kanıt dosyası')
-    // Veri olmayan satırlar DOM'da yok.
-    for (const absent of [
-      'Atananlar',
-      'Alt görev',
-      'Yorum',
-      'Tarih talebi',
-      'Kalıcı silinme',
-      '%',
-    ]) {
+    // Alt görev/yorum/tarih talebi sayıları liste öğesinden gelir (BE-113); kalıcı silinme yok.
+    for (const present of ['Alt görev', 'Yorum', 'Tarih talebi']) {
+      expect(panel, present).toContain(present)
+    }
+    for (const absent of ['Kalıcı silinme', '%']) {
       expect(panel, absent).not.toContain(absent)
     }
     // Silinmiş görevde ayrıntı okuması yok.
+    expect(sent('/v1/work-items/w1')).toHaveLength(0)
+  })
+
+  it('görev paneli (BE-113): atananlar, yüzde, birlikte geri gelecek sayıları; koordinatörlükle silinen not taşır', async () => {
+    world.tasks = [
+      [
+        task('w1', {
+          title: 'Saha pano montajı',
+          deleted_by_department: true,
+          assignees: [
+            { account_id: 'a1', full_name: 'Reha Koçak' },
+            { account_id: 'a2', full_name: 'Ali Avcı' },
+          ],
+          subtask_counts: { total: 5, done: 2 },
+          note_count: 7,
+          file_count: 2,
+          pending_date_request: {
+            request_id: 'r1',
+            created_at: '2026-11-10T08:00:00Z',
+            new_start_on: '2026-12-01',
+            new_end_on: '2026-12-10',
+          },
+        }),
+      ],
+    ]
+    const page = await mountPage({ path: '/silinen-kayitlar?kayit=w1' })
+    const panel = page.wrapper.get('[data-testid="dr-panel"]')
+    expect(panel.get('[data-testid="dr-assignees"]').text()).toBe('Reha Koçak, Ali Avcı')
+    expect(panel.text()).toContain('Devam ediyordu · %40')
+    expect(panel.text()).toContain('koordinatörlükle birlikte silindi')
+    const counts = Object.fromEntries(
+      panel
+        .findAll('[data-linked]')
+        .map((li) => [li.attributes('data-linked'), li.get('.rp-count').text()]),
+    )
+    expect(counts).toEqual({ subtasks: '5', files: '2', notes: '7', dateRequest: '1' })
+    // Silinmiş görevde ayrıntı okuması yok: sayılar liste öğesinden gelir.
     expect(sent('/v1/work-items/w1')).toHaveLength(0)
   })
 

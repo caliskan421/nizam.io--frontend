@@ -10,7 +10,13 @@ import type { Meeting } from '@/modules/meetings/public'
 import { accountHoldsCompanyAdmin } from './capabilities'
 import { formatMeetingWhen } from './format'
 import { deletedText } from './messages'
-import type { DeletedAccount, DeletedDepartment, DeletedRow, DeletedWorkItem } from './types'
+import type {
+  DeletedAccount,
+  DeletedDepartment,
+  DeletedRow,
+  DeletedTaskFacts,
+  DeletedWorkItem,
+} from './types'
 
 export interface RowContext {
   timezone: string
@@ -27,6 +33,22 @@ function actorOf(deletedBy: { account_id: string; full_name: string } | null) {
   return { accountId: deletedBy?.account_id ?? null, name: deletedBy?.full_name ?? '' }
 }
 
+/** Alt görev tamamlanma yüzdesi (yuvarlanmış); alt görev yoksa ilerleme uydurulmaz. */
+function progressOf(counts: { total: number; done: number }): number | null {
+  return counts.total > 0 ? Math.round((counts.done / counts.total) * 100) : null
+}
+
+function taskFacts(item: DeletedWorkItem): DeletedTaskFacts {
+  return {
+    assignees: item.assignees.map((assignee) => assignee.full_name ?? ''),
+    progress: progressOf(item.subtask_counts),
+    subtasks: item.subtask_counts.total,
+    notes: item.note_count,
+    dateRequest: item.pending_date_request !== null,
+    byDepartment: item.deleted_by_department,
+  }
+}
+
 export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
   const department = ctx.departmentName(item.department_id) ?? unknownDepartment()
   return {
@@ -35,12 +57,15 @@ export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
     key: `gorev:${item.work_item_id}`,
     title: item.title,
     code: null,
-    subLine: deletedText('sub.task', { department }),
+    subLine: deletedText(item.deleted_by_department ? 'sub.taskByDepartment' : 'sub.task', {
+      department,
+    }),
     deletedAt: item.deleted_at || null,
     actor: actorOf(item.deleted_by),
     departmentIds: [item.department_id],
     status: item.status,
     fileCount: item.file_count,
+    task: taskFacts(item),
     place: null,
     inviteMode: null,
     departmentNames: [department],
@@ -74,6 +99,7 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
     departmentIds: ids,
     status: null,
     fileCount: null,
+    task: null,
     place: meeting.place,
     inviteMode: meeting.invite_mode,
     departmentNames: names,
@@ -96,6 +122,7 @@ export function departmentRow(department: DeletedDepartment): DeletedRow {
     departmentIds: [department.department_id],
     status: null,
     fileCount: null,
+    task: null,
     place: null,
     inviteMode: null,
     departmentNames: [],
@@ -121,6 +148,7 @@ export function accountRow(account: DeletedAccount): DeletedRow {
     departmentIds: teams.map((team) => team.department_id),
     status: null,
     fileCount: null,
+    task: null,
     place: null,
     inviteMode: null,
     departmentNames: names,

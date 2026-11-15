@@ -9,9 +9,9 @@ import type { DeletedRow } from '../model/types'
 
 /**
  * Seçili kayıt paneli (E-12-41…54). Alanlar YALNIZ liste öğesinden gelir; satır başına ayrıntı
- * okuması yoktur (silinmiş görevde `getWorkItem` 409 `work.item_deleted`). Veri olmayan satır
- * (atananlar, ilerleme %, kalıcı silinme tarihi, alt görev/yorum/tarih talebi sayıları)
- * DOM'da yoktur (BE-113, BE-112); "birlikte geri gelecek" yalnız görevde `file_count` ile canlıdır.
+ * okuması yoktur (silinmiş görevde `getWorkItem` 409 `work.item_deleted`). Görevde atananlar,
+ * durum yüzdesi ve "birlikte geri gelecek" (alt görev, kanıt dosyası, yorum, tarih talebi) liste
+ * öğesinden dolar (BE-113); kalıcı silinme tarihi yoktur (BE-112), DOM'da çizilmez.
  */
 const props = defineProps<{
   row: DeletedRow | null
@@ -30,7 +30,23 @@ const statusLabel = computed(() => {
   if (!status) return null
   const known = (STATUS as readonly string[]).includes(status)
   // Bilinmeyen değer nötr gösterilir (şemada düz string).
-  return known ? deletedText(`panel.status.${status as (typeof STATUS)[number]}`) : status
+  const name = known ? deletedText(`panel.status.${status as (typeof STATUS)[number]}`) : status
+  const progress = props.row?.task?.progress ?? null
+  return progress === null ? name : `${name} · %${progress}`
+})
+const assignees = computed(() =>
+  (props.row?.task?.assignees ?? []).map((name) => name || deletedText('panel.unknownAssignee')),
+)
+/** "Birlikte geri gelecek" satırları (görev): geri yüklenince dönecek sayılar. */
+const together = computed(() => {
+  const row = props.row
+  if (!row?.task) return []
+  return [
+    { id: 'subtasks', icon: 'list', n: row.task.subtasks },
+    { id: 'files', icon: 'file', n: row.fileCount ?? 0 },
+    { id: 'notes', icon: 'messages', n: row.task.notes },
+    { id: 'dateRequest', icon: 'calendar', n: row.task.dateRequest ? 1 : 0 },
+  ] as const
 })
 const deletedAt = computed(() => {
   const date = formatDate(props.row?.deletedAt, props.timezone)
@@ -72,6 +88,10 @@ function act(action: 'restore' | 'purge'): void {
           <dt>{{ deletedText('panel.fields.status') }}</dt>
           <dd>{{ statusLabel }}</dd>
         </template>
+        <template v-if="assignees.length">
+          <dt>{{ deletedText('panel.fields.assignees') }}</dt>
+          <dd data-testid="dr-assignees">{{ assignees.join(', ') }}</dd>
+        </template>
         <template v-if="row.place">
           <dt>{{ deletedText('panel.fields.place') }}</dt>
           <dd>{{ row.place }}</dd>
@@ -99,12 +119,12 @@ function act(action: 'restore' | 'purge'): void {
           <dd class="dr-mono">{{ row.code }}</dd>
         </template>
       </dl>
-      <template v-if="row.fileCount !== null">
+      <template v-if="together.length">
         <p class="dr-kicker dr-together">{{ deletedText('panel.together') }}</p>
         <ul class="dr-linked">
-          <li>
-            <UiIcon name="file" size="sm" />{{ deletedText('panel.files')
-            }}<span class="rp-count">{{ row.fileCount }}</span>
+          <li v-for="line in together" :key="line.id" :data-linked="line.id">
+            <UiIcon :name="line.icon" size="sm" />{{ deletedText(`panel.${line.id}`)
+            }}<span class="rp-count">{{ line.n }}</span>
           </li>
         </ul>
       </template>

@@ -21,7 +21,7 @@ describe('DetailPanel (E-12-41…54)', () => {
     )
   })
 
-  it('görev: durum (geçmiş zaman), silinme, birlikte geri gelecek yalnız dosya; atananlar/yüzde/kalıcı silinme yok', () => {
+  it('görev: durum (geçmiş zaman), silinme, silen; veri olmayan yüzde/atanan yok; kalıcı silinme yok', () => {
     const wrapper = mount(DetailPanel, { props: { ...base, row: fixtureRow() } })
     const text = wrapper.text()
     expect(text).toContain('Devam ediyordu')
@@ -30,19 +30,41 @@ describe('DetailPanel (E-12-41…54)', () => {
     expect(text).toContain('Silen')
     expect(text).toContain('Bilinmiyor')
     expect(text).toContain('birlikte geri gelecek')
-    expect(wrapper.get('.dr-linked').text()).toContain('Kanıt dosyası')
-    expect(wrapper.get('.dr-linked .rp-count').text()).toBe('2')
-    expect(wrapper.findAll('.dr-linked li')).toHaveLength(1)
-    for (const absent of [
-      'Atananlar',
-      'Kalıcı silinme',
-      '%',
-      'Yorum',
-      'Tarih talebi',
-      'Alt görev',
-    ]) {
+    expect(wrapper.find('[data-testid="dr-assignees"]').exists()).toBe(false)
+    for (const absent of ['Atananlar', 'Kalıcı silinme', '%']) {
       expect(text, absent).not.toContain(absent)
     }
+  })
+
+  it('görev (BE-113): atananlar, durum yüzdesi ve birlikte geri gelecek dört satır sayısıyla', () => {
+    const row = fixtureRow({
+      task: {
+        assignees: ['Reha Koçak', 'Ali Avcı', ''],
+        progress: 40,
+        subtasks: 3,
+        notes: 5,
+        dateRequest: true,
+        byDepartment: false,
+      },
+    })
+    const wrapper = mount(DetailPanel, { props: { ...base, row } })
+    expect(wrapper.text()).toContain('Devam ediyordu · %40')
+    expect(wrapper.get('[data-testid="dr-assignees"]').text()).toBe(
+      'Reha Koçak, Ali Avcı, Bilinmeyen kişi',
+    )
+    const lines = wrapper
+      .findAll('.dr-linked li')
+      .map((li) => `${li.text().replace(/[0-9]+$/, '')} ${li.get('.rp-count').text()}`)
+    expect(lines).toEqual(['Alt görev 3', 'Kanıt dosyası 2', 'Yorum 5', 'Tarih talebi 1'])
+  })
+
+  it('görev: bekleyen tarih talebi yoksa 0; alt görev yoksa yüzde uydurulmaz', () => {
+    const wrapper = mount(DetailPanel, { props: { ...base, row: fixtureRow() } })
+    const lines = wrapper
+      .findAll('.dr-linked li')
+      .map((li) => `${li.text().replace(/[0-9]+$/, '')} ${li.get('.rp-count').text()}`)
+    expect(lines).toEqual(['Alt görev 0', 'Kanıt dosyası 2', 'Yorum 0', 'Tarih talebi 0'])
+    expect(wrapper.text()).not.toContain('%')
   })
 
   it('bilinmeyen görev durumu nötr gösterilir', () => {
@@ -58,6 +80,7 @@ describe('DetailPanel (E-12-41…54)', () => {
         ...base,
         row: fixtureRow({
           kind: 'toplanti',
+          task: null,
           status: null,
           fileCount: null,
           actor: { accountId: 'a', name: 'Reha Koçak' },

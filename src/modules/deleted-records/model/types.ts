@@ -23,6 +23,20 @@ export interface AccountRecordTarget {
   id: string
 }
 
+/** Silinmiş görevin liste öğesinden gelen ek alanları (BE-113; ek istek yok). */
+export interface DeletedTaskFacts {
+  /** Atananların görünen adları (ad çözülemediyse boş dize; sıra sunucu sırası). */
+  assignees: readonly string[]
+  /** Silmede korunan alt görevlerin tamamlanma yüzdesi (0–100); alt görev yoksa `null`. */
+  progress: number | null
+  /** Geri yüklenince dönecek alt görev, yorum (not) sayısı ve bekleyen tarih talebi. */
+  subtasks: number
+  notes: number
+  dateRequest: boolean
+  /** Görev koordinatörlüğüyle birlikte silindi (ADR-0043). */
+  byDepartment: boolean
+}
+
 /** Tek tür-bağımsız satır modeli (tablo + panel); alanlar liste öğesinden gelir, ek istek yok. */
 export interface DeletedRow {
   kind: DeletedKind
@@ -45,6 +59,8 @@ export interface DeletedRow {
   status: string | null
   /** Görev: `file_count`; diğer türlerde `null`. */
   fileCount: number | null
+  /** Görev: BE-113 ek alanları; diğer türlerde `null`. */
+  task: DeletedTaskFacts | null
   /** Panel ek alanları (türe özgü). */
   place: string | null
   inviteMode: string | null

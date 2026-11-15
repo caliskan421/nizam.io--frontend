@@ -82,6 +82,56 @@ describe('E-12-66 görev satırı', () => {
   })
 })
 
+describe('E-12-47…52 görev ek alanları (BE-113)', () => {
+  const full = withDeletedTaskDefaults({
+    work_item_id: 'w1',
+    title: 'T',
+    department_id: 'd1',
+    status: 'devam_ediyor',
+    deleted_at: '2026-11-11T10:42:00Z',
+    file_count: 2,
+    assignees: [
+      { account_id: 'a1', full_name: 'Reha Koçak' },
+      { account_id: 'a2', full_name: null },
+    ],
+    subtask_counts: { total: 3, done: 1 },
+    note_count: 5,
+    pending_date_request: {
+      request_id: 'r1',
+      created_at: '2026-11-10T08:00:00Z',
+      new_start_on: '2026-12-01',
+      new_end_on: '2026-12-10',
+    },
+    deleted_by_department: true,
+  })
+
+  it('atananlar, yüzde (yuvarlanmış), alt görev/yorum/tarih talebi liste öğesinden', () => {
+    expect(taskRow(full, CTX).task).toEqual({
+      assignees: ['Reha Koçak', ''],
+      progress: 33,
+      subtasks: 3,
+      notes: 5,
+      dateRequest: true,
+      byDepartment: true,
+    })
+  })
+
+  it('koordinatörlüğüyle silinen görevin satırı "birlikte silindi" notu taşır', () => {
+    expect(taskRow(full, CTX).subLine).toBe(
+      'Mekanik › Görevler · koordinatörlükle birlikte silindi',
+    )
+    expect(taskRow({ ...full, deleted_by_department: false }, CTX).subLine).toBe(
+      'Mekanik › Görevler',
+    )
+  })
+
+  it('alt görev yoksa yüzde null (uydurulmaz); diğer türlerde task null', () => {
+    const none = taskRow({ ...full, subtask_counts: { total: 0, done: 0 } }, CTX)
+    expect(none.task?.progress).toBeNull()
+    expect(meetingRow(meeting(), CTX).task).toBeNull()
+  })
+})
+
 describe('E-12-67 toplantı satırı', () => {
   it('alt satır "tarih saat · sahip koordinatörlük"; silen deleted_by', () => {
     const row = meetingRow(meeting(), CTX)
