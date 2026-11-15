@@ -1,4 +1,4 @@
-import { QueryClient, QueryObserver, VueQueryPlugin } from '@tanstack/vue-query'
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { mount } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -7,7 +7,6 @@ import { computed } from 'vue'
 import { afterAll, afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { authSession } from '@/shared/http'
-import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
 import MeetingAgenda from './MeetingAgenda.vue'
@@ -121,34 +120,31 @@ it('clears the draft and menu when the meeting changes', async () => {
   wrapper.unmount()
 })
 
-it('does not retry an unknown add outcome and rereads the detail', async () => {
-  let requests = 0
+it('offers one resend with the same key after an unknown add outcome and keeps the draft', async () => {
+  const seen: { key: string | null; body: unknown }[] = []
   server.use(
-    http.post('http://localhost/v1/meetings/m/agenda', () => {
-      requests += 1
-      return HttpResponse.error()
+    http.post('http://localhost/v1/meetings/m/agenda', async ({ request }) => {
+      seen.push({ key: request.headers.get('Idempotency-Key'), body: await request.json() })
+      return seen.length === 1
+        ? HttpResponse.error()
+        : HttpResponse.json({ agenda_item_id: 'n' }, { status: 200 })
     }),
   )
   const wrapper = setup(true)
-  let reads = 0
-  const observer = new QueryObserver(queryClient, {
-    queryKey: queryKeys.meetings.detail(useScopeStore().snapshot, 'm'),
-    queryFn: () => {
-      reads += 1
-      return Promise.resolve(meeting)
-    },
-    retry: false,
-  })
-  const unsubscribe = observer.subscribe(() => undefined)
-  await observer.refetch()
-  reads = 0
   await wrapper.get('input[placeholder]').setValue('Yeni madde')
   await wrapper.get('form').trigger('submit')
   await settleQueries(queryClient)
-  expect(requests).toBe(1)
-  expect(reads).toBeGreaterThan(0)
+  expect(seen).toHaveLength(1)
   expect((wrapper.get('input[placeholder]').element as HTMLInputElement).value).toBe('Yeni madde')
-  unsubscribe()
+  expect((wrapper.get('input[placeholder]').element as HTMLInputElement).disabled).toBe(true)
+  await wrapper.get('[data-testid="outcome-retry"]').trigger('click')
+  await settleQueries(queryClient)
+  expect(seen).toHaveLength(2)
+  expect(seen[1]).toEqual(seen[0])
+  expect(seen[0]!.key).toMatch(/^[A-Za-z0-9_-]{22}$/)
+  expect(wrapper.emitted('refresh')).toHaveLength(1)
+  expect((wrapper.get('input[placeholder]').element as HTMLInputElement).value).toBe('')
+  expect(wrapper.find('[data-testid="outcome-notice"]').exists()).toBe(false)
   wrapper.unmount()
 })
 it('focuses the edit field and restores its trigger on Escape', async () => {

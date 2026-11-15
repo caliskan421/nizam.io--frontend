@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import { useSessionReset } from '../../pages/detail/use-session-reset'
 import { pushAppNotice } from '@/shared/ui/use-toast'
 import { useMeetingCandidates } from '../../api/queries'
@@ -8,8 +8,13 @@ import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail } from '../../model/types'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
-import { reachesOwner, runWithFollowUps, useActionContext } from '@/shared/http/mutation'
-import { notifyOutcome } from '@/shared/ui/confirm'
+import {
+  reachesOwner,
+  runWithFollowUps,
+  useActionContext,
+  type MutationOutcome,
+} from '@/shared/http/mutation'
+import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { UiAvatar, UiIcon } from '@/shared/ui'
 import MeetingPersonSelector from './MeetingPersonSelector.vue'
@@ -25,6 +30,8 @@ const trigger = ref<HTMLButtonElement | null>(null)
 const section = ref<HTMLElement | null>(null)
 const failed = ref<string[]>([])
 const uncertain = ref(false)
+// Belirsiz ekleme sonucu: aynı anahtarla "Yeniden gönder" (BE-068).
+const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 const busy = ref(false)
 let version = 0
 const add = useAddMeetingParticipant()
@@ -68,6 +75,7 @@ function reset() {
   opened.value = false
   failed.value = []
   uncertain.value = false
+  notice.value = null
   busy.value = false
 }
 watch(() => [scope.programId, scope.departmentId, scope.lens, props.meeting.meeting_id], reset, {
@@ -104,7 +112,8 @@ async function select(ids: string[]) {
     else {
       stopped = true
       uncertain.value = outcome.kind === 'unknown_outcome'
-      notifyOutcome(outcome)
+      if (outcome.kind === 'unknown_outcome') notice.value = outcome
+      else notifyOutcome(outcome)
     }
     return outcome
   }
@@ -133,6 +142,14 @@ async function select(ids: string[]) {
   busy.value = false
   if (success || uncertain.value) emit('refresh')
 }
+function settleRetry(outcome: MutationOutcome<unknown, unknown, unknown>) {
+  if (!reachesOwner(outcome)) return
+  notice.value = null
+  uncertain.value = outcome.kind === 'unknown_outcome'
+  if (outcome.kind === 'unknown_outcome') notice.value = outcome
+  else if (outcome.kind === 'success') emit('refresh')
+  else notifyOutcome(outcome)
+}
 async function removePerson(id: string) {
   if (!scope.programId || busy.value) return
   const started = version
@@ -158,7 +175,7 @@ async function removePerson(id: string) {
         v-if="access.manageParticipants"
         ref="trigger"
         type="button"
-        :disabled="busy"
+        :disabled="busy || !!notice"
         class="t-btn t-btn--secondary t-btn--sm"
         @click="openSelector"
       >
@@ -171,6 +188,7 @@ async function removePerson(id: string) {
       <button type="button" @click="failed = []">{{ text.dismiss }}</button>
     </div>
     <p v-if="uncertain" role="status">{{ text.uncertain }}</p>
+    <UiOutcomeNotice :outcome="notice" @resolved="settleRetry" />
     <div v-for="person in meeting.participants" :key="person.account_id" class="meeting-person-row">
       <UiAvatar :name="person.full_name" size="sm" />
       <span class="meeting-person-row__name">{{ person.full_name }}</span>

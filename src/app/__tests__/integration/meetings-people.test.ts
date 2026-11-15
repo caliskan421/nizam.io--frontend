@@ -133,6 +133,17 @@ it('katılımcı serisi belirsiz sonuçta durur ve sonraki kişiye istek gönder
   await click(() => byText('[role="dialog"] button', 'Uygula'))
   await until(() => $('.meeting-people [role="status"]'), 'belirsizlik uyarısı')
   expect(backend.sent('POST', '/v1/meetings/m1/participants')).toHaveLength(2)
+  const [first, second] = backend.sent('POST', '/v1/meetings/m1/participants')
+  expect(first?.headers.get('Idempotency-Key')).toMatch(/^[A-Za-z0-9_-]{22}$/)
+  expect(second?.headers.get('Idempotency-Key')).not.toBe(first?.headers.get('Idempotency-Key'))
+  // Belirsiz kişi için aynı anahtarla yeniden gönder sunulur; ekleme düğmesi sonuç çözülene dek kilitli.
+  expect($('.meeting-people [data-testid="outcome-retry"]')).not.toBeNull()
+  expect(byText('.meeting-people button', 'Ekle')?.hasAttribute('disabled')).toBe(true)
+  await click('.meeting-people [data-testid="outcome-retry"]')
+  await until(() => backend.sent('POST', '/v1/meetings/m1/participants').length === 3, 'tekrar')
+  expect(
+    backend.sent('POST', '/v1/meetings/m1/participants')[2]?.headers.get('Idempotency-Key'),
+  ).toBe(second?.headers.get('Idempotency-Key'))
 })
 
 it('seçici adayları tek uçtan okur: meeting_id gider, kadro/kullanıcı taraması yok', async () => {

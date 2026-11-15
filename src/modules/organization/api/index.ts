@@ -16,7 +16,12 @@ export {
   useUpdateDepartment,
 } from './departments'
 export { isTruncated, programHeader, USER_PAGE_LIMIT } from './http'
-export { ALREADY_APPLIED_CODES, isAlreadyApplied, useKeylessMutation } from './keyless'
+export {
+  ALREADY_APPLIED_CODES,
+  isAlreadyApplied,
+  useKeyedOrgMutation,
+  useKeylessMutation,
+} from './keyless'
 export {
   fetchAssignable,
   fetchRoster,

@@ -1,4 +1,4 @@
-import { useKeylessMutation } from '@/modules/organization/public'
+import { useKeyedOrgMutation, useKeylessMutation } from '@/modules/organization/public'
 import { programHeaders } from '@/modules/work/public'
 import { api } from '@/shared/http'
 import type {
@@ -10,12 +10,16 @@ import type {
   UpdateAgendaInput,
 } from '../model/types'
 
+/** `addAgendaItem` (BE-068): eylem başına `Idempotency-Key`; belirsiz sonuçta aynı anahtarla tekrar. */
 export function useAddAgendaItem() {
-  return useKeylessMutation<AddAgendaInput, AgendaItem>({
+  return useKeyedOrgMutation<AddAgendaInput, AgendaItem>({
     operation: 'addAgendaItem',
     send: (vars, ctx) =>
       api.POST('/v1/meetings/{id}/agenda', {
-        params: { header: programHeaders(vars), path: { id: vars.id } },
+        params: {
+          header: { ...programHeaders(vars), 'Idempotency-Key': ctx.idempotencyKey },
+          path: { id: vars.id },
+        },
         body: vars.body,
         signal: ctx.signal,
       }),
@@ -42,12 +46,16 @@ export function useDeleteAgendaItem() {
       }),
   })
 }
+/** `addMeetingParticipant` (BE-068): eylem (kişi) başına `Idempotency-Key`. */
 export function useAddMeetingParticipant() {
-  return useKeylessMutation<ParticipantInput, ParticipantResult>({
+  return useKeyedOrgMutation<ParticipantInput, ParticipantResult>({
     operation: 'addMeetingParticipant',
     send: (vars, ctx) =>
       api.POST('/v1/meetings/{id}/participants', {
-        params: { header: programHeaders(vars), path: { id: vars.id } },
+        params: {
+          header: { ...programHeaders(vars), 'Idempotency-Key': ctx.idempotencyKey },
+          path: { id: vars.id },
+        },
         body: { user_id: vars.userId },
         signal: ctx.signal,
       }),
