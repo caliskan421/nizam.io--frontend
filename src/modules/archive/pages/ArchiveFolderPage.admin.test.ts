@@ -94,7 +94,7 @@ describe('07 yönetici merceği (P33)', () => {
     expect(
       wrapper.find('input[data-testid="folder-search"]').attributes('disabled'),
     ).toBeUndefined()
-    expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('3')
+    expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('2')
   })
 
   it('kesişimde olmayan görev (başka departman) yok sayılır: dosya isteği çıkmaz', async () => {

@@ -93,11 +93,6 @@ const folderError = computed(() =>
 const taskCount = computed(() => (data.tasksLoading.value ? null : data.taskList.value.length))
 const View = computed(() => (url.state.value.view === 'liste' ? FileList : FileGrid))
 
-/** Devam yoksa toplam yüklenen sayıdır (son dosyada "sonraki" ölü kalmaz). */
-const previewTotal = computed(() =>
-  attachments.hasMore.value ? data.total.value : attachments.files.value.length,
-)
-
 function closeUpload(): void {
   uploading.value = false
   void nextTick(() => head.value?.focusUpload())
@@ -202,7 +197,6 @@ function openTask(workItemId: string): void {
               :view="url.state.value.view"
               :loaded="attachments.files.value.length"
               :total="data.total.value"
-              :has-more="attachments.hasMore.value"
               @update:tag="url.update({ tag: $event, file: null })"
               @update:view="url.update({ view: $event })"
             />
@@ -225,7 +219,7 @@ function openTask(workItemId: string): void {
           <FilePreview
             :file="selection.selected.value"
             :position="selection.position.value"
-            :total="previewTotal"
+            :total="data.total.value"
             :has-more="attachments.hasMore.value"
             :target="target"
             :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"

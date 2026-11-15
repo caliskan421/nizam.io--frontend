@@ -104,14 +104,15 @@ export function archiveBackend(b: Backend = {}) {
           (!taskId || (f as { work_item_id: string }).work_item_id === taskId) &&
           (!tag || (f as { tag: string }).tag === tag),
       )
+      const total = list.length
       const size = b.pageSize
       const start = Number(url.searchParams.get('cursor') ?? 0)
       if (size) {
         const next = start + size < list.length ? String(start + size) : undefined
         list = list.slice(start, start + size)
-        return json({ files: list, ...(next ? { next_cursor: next } : {}) })
+        return json({ files: list, total, ...(next ? { next_cursor: next } : {}) })
       }
-      return json({ files: list })
+      return json({ files: list, total })
     }),
     // FilePreview yan okumaları (yükleyen adı / alt görev adı).
     http.get(`${ORIGIN}/v1/work-items/:id/files`, () => json({ files: [] })),

@@ -5,15 +5,13 @@
  *    (yönetici için dosyanın departmanı bilinemez).
  *  - Yöneticide dosyalar yalnız doğrulanmış görev seçiliyken okunur; aksi `needsTask`
  *    ("Görev klasörü seçin", BE-072) ve S3 dosya isteği YOK.
- *  - Toplam yalnız süzgeçsizde klasör, yalnız görev süzgecinde görev sayacından bilinir
- *    (`knownTotal`); diğerinde "n+" (BE-073).
+ *  - Toplam sunucunun süzgece uyan küme boyudur (`ArchiveFileList.total`, BE-073).
  */
 import { computed, type Ref } from 'vue'
 
 import { useArchiveTaskFolders } from '../../api/admin-tasks'
 import { useArchiveContext } from '../../api/context'
 import { useArchiveAttachments } from '../../api/queries'
-import { knownTotal } from '../../model/filters'
 import { archiveFolderCards } from '../../model/folder-cards'
 import { taskTitles, uploadTasks } from '../../model/tasks'
 import type { ArchiveFileFilters } from '../../model/types'
@@ -70,12 +68,6 @@ export function useFolderData(folderId: Ref<string | null>, url: Ref<FolderUrlSt
   const attachments = useArchiveAttachments(ctx.target, filters, filesEnabled)
   const query = attachments.query
 
-  const total = computed(() =>
-    knownTotal(filters.value, {
-      folder: folder.value?.file_count ?? null,
-      task: taskList.value.find((t) => t.work_item_id === activeTask.value)?.file_count ?? null,
-    }),
-  )
   const filesLoading = computed(
     () =>
       !needsTask.value &&
@@ -90,7 +82,7 @@ export function useFolderData(folderId: Ref<string | null>, url: Ref<FolderUrlSt
     folder,
     treeFolders,
     attachments,
-    total,
+    total: attachments.total,
     titles: computed(() => taskTitles(taskList.value)),
     uploads: computed(() => uploadTasks(taskList.value, ctx.target.value?.departmentId ?? null)),
     filesLoading,

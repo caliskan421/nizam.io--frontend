@@ -24,7 +24,7 @@ export function fetchArchiveTasks(target: ArchiveTarget, signal?: AbortSignal) {
   )
 }
 
-/** `archiveAttachments` — bir sayfa (imleçli; toplam sayı yok, BE-073). */
+/** `archiveAttachments` — bir sayfa (imleçli; `total` süzgeçli kesin toplam, BE-073). */
 export function fetchArchiveAttachments(
   target: ArchiveTarget,
   filters: ArchiveFileFilters,

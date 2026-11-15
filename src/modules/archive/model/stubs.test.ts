@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest'
 import {
   ADMIN_FOLDER_LEVEL,
   CREATE_TAG,
-  FILTERED_TOTAL,
   FOLDER_SUMMARY,
   MOVE_FILE,
   RESTORE_FILE,
@@ -28,7 +27,6 @@ describe('arşiv designStub olguları', () => {
         'BE-026',
         'BE-069',
         'BE-072',
-        'BE-073',
         'BE-074',
         'BE-075',
         'BE-076',
@@ -51,7 +49,7 @@ describe('arşiv designStub olguları', () => {
       lastUploadedAt: false,
       storageBreakdown: false,
     })
-    for (const stub of [UNATTACHED_UPLOAD, FILTERED_TOTAL, CREATE_TAG, RETAG_FILE, MOVE_FILE]) {
+    for (const stub of [UNATTACHED_UPLOAD, CREATE_TAG, RETAG_FILE, MOVE_FILE]) {
       expect(stub).toEqual({ available: false })
     }
     expect(THUMBNAIL).toEqual({ grid: false, fullscreen: false })

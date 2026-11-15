@@ -61,11 +61,11 @@ const text = (id: string) => q(id)?.textContent?.replace(/\s+/g, ' ').trim()
 const btn = (id: string) => q(id) as HTMLButtonElement
 
 describe('FilePreview başlık ve gezinme (E-06-46…48)', () => {
-  it('"i / N", toplam bilinmiyorsa "i / i+", devam varsa "N+"', async () => {
+  it('"i / N" kesin toplamla (devam olsa da "N+" yok); toplam bilinmiyorsa "i / i+"', async () => {
     const { wrapper } = preview({}, null)
     expect(text('preview-position')).toBe('2 / 15')
     await wrapper.setProps({ hasMore: true })
-    expect(text('preview-position')).toBe('2 / 15+')
+    expect(text('preview-position')).toBe('2 / 15')
     await wrapper.setProps({ total: null })
     expect(text('preview-position')).toBe('2 / 2+')
   })

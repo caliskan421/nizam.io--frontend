@@ -25,9 +25,6 @@ export const FOLDER_SUMMARY = designStub('BE-025', {
 /** Göreve bağsız yükleme (E-06-05): görev seçilmeden yükleme yok → pencere görev seçtirir. */
 export const UNATTACHED_UPLOAD = designStub('BE-069', { available: false })
 
-/** Süzülmüş toplam (E-06-38/46): süzgeçlide "n+" yaklaşık. */
-export const FILTERED_TOTAL = designStub('BE-073', { available: false })
-
 /** Etiket oluşturma (E-06-19…21): kapalı küme, ağ isteği yok. */
 export const CREATE_TAG = designStub('BE-024', { available: false })
 

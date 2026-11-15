@@ -61,7 +61,7 @@ describe('önizleme bağlama (FilePreview ?dosya)', () => {
     await settle()
     expect(sent('GET', '/v1/records/archive/attachments').at(-1)!.query.get('cursor')).toBe('2')
     expect(router.currentRoute.value.query.dosya).toBe('f3')
-    expect(wrapper.find('[data-testid="preview-position"]').text()).toBe('3 / 5+')
+    expect(wrapper.find('[data-testid="preview-position"]').text()).toBe('3 / 5')
   })
 
   it('derin bağlantı: dosya ilk sayfada yoksa sayfalar yüklenerek bulunur', async () => {
@@ -81,7 +81,7 @@ describe('önizleme bağlama (FilePreview ?dosya)', () => {
     expect(wrapper.find('[data-testid="file-preview"]').exists()).toBe(false)
   })
 
-  it('devam yoksa total yüklenen sayıdır; devam varsa bilinen toplam/null', async () => {
+  it('konum toplamı sunucunun süzgeç toplamıdır (devam olsa da "N+" yok)', async () => {
     server.use(...K, ...archiveBackend({ files: FILES }))
     const { wrapper } = await mountPage('/arsiv/d1?etiket=sonuc&dosya=f1', COORD)
     expect(wrapper.find('[data-testid="preview-position"]').text()).toMatch(/^1 \/ \d+$/)

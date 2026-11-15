@@ -22,11 +22,7 @@ const CONTRACT = {
     'W123',
   ],
   TaskFolderCards: [['tasks', 'selectedTaskId', 'truncated', 'loading'], ['select'], 'W123'],
-  FileFilterBar: [
-    ['tag', 'view', 'loaded', 'total', 'hasMore'],
-    ['update:tag', 'update:view'],
-    'W123',
-  ],
+  FileFilterBar: [['tag', 'view', 'loaded', 'total'], ['update:tag', 'update:view'], 'W123'],
   FileGrid: [
     ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error', 'needsTask'],
     ['select', 'loadMore', 'retry'],

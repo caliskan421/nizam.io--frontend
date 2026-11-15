@@ -85,8 +85,9 @@ export function useArchiveUploaders(target: MaybeTarget, enabled: MaybeFlag = tr
 }
 
 /**
- * `archiveAttachments` — imleçli sonsuz sorgu. `hasMore` → "n+" olgusu (toplam yok, BE-073);
- * "daha fazla yükle" = `loadMore()` (aynı uç, aynı süzgeç). Yönetici dosya okuması yalnız
+ * `archiveAttachments` — imleçli sonsuz sorgu. `total` sunucunun süzgece uyan küme boyudur
+ * (`ArchiveFileList.total`, BE-073; imleçten bağımsız, her sayfada aynı); süzgeç değişince yeniden
+ * okunur, sayfalardan türetilmez. "daha fazla yükle" = `loadMore()` (aynı uç, aynı süzgeç). Yönetici dosya okuması yalnız
  * `workItemId` süzgeciyle etkinleştirilir (`enabled`'ı çağıran kurar).
  */
 export function useArchiveAttachments(
@@ -115,8 +116,12 @@ export function useArchiveAttachments(
   )
   const files = computed(() => query.data.value?.pages.flatMap((page) => page.files) ?? [])
   const hasMore = computed(() => query.hasNextPage.value === true)
+  const total = computed<number | null>(() => {
+    const value = query.data.value?.pages.at(-1)?.total
+    return typeof value === 'number' ? value : null
+  })
   async function loadMore() {
     if (query.hasNextPage.value && !query.isFetchingNextPage.value) await query.fetchNextPage()
   }
-  return { query, files, hasMore, loadMore }
+  return { query, files, hasMore, total, loadMore }
 }

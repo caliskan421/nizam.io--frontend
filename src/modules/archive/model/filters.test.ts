@@ -3,10 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   ARCHIVE_PAGE_LIMIT,
   ARCHIVE_SORTS,
-  countLabel,
   filterKey,
   isArchiveSort,
-  knownTotal,
   sortFolders,
   toQuery,
 } from './filters'
@@ -51,23 +49,6 @@ describe('süzgeç → sunucu sorgusu', () => {
   it('süzgeç anahtarı imleci taşımaz: süzgeç değişince anahtar değişir (imleç sıfırlanır)', () => {
     expect(filterKey({ tag: 'plan' })).not.toEqual(filterKey({ tag: 'girdi' }))
     expect(filterKey({ tag: 'plan' })).toEqual(filterKey({ tag: 'plan' }))
-  })
-})
-
-describe('sayaç ("n+") ve kesin toplam', () => {
-  it('kesin toplam yalnız süzgeçsiz ya da yalnız görev süzgecinde', () => {
-    expect(knownTotal({}, { folder: 9, task: 4 })).toBe(9)
-    expect(knownTotal({ sort: 'size' }, { folder: 9 })).toBe(9)
-    expect(knownTotal({ workItemId: 'w1' }, { folder: 9, task: 4 })).toBe(4)
-    expect(knownTotal({ workItemId: 'w1', tag: 'plan' }, { folder: 9, task: 4 })).toBeNull()
-    expect(knownTotal({ search: 'x' }, { folder: 9 })).toBeNull()
-    expect(knownTotal({}, {})).toBeNull()
-  })
-
-  it('toplam yoksa yüklenen sayı + devam varsa yaklaşık', () => {
-    expect(countLabel(50, true, null)).toEqual({ value: 50, approximate: true })
-    expect(countLabel(7, false, null)).toEqual({ value: 7, approximate: false })
-    expect(countLabel(7, true, 30)).toEqual({ value: 30, approximate: false })
   })
 })
 

@@ -124,9 +124,8 @@ export interface FileFilterBarProps {
   tag: ArchiveTag | null
   view: ArchiveView
   loaded: number
-  /** Kesin toplam (`knownTotal`); süzgeçlide `null` → "n+" (hasMore). */
+  /** Süzgece uyan kümenin kesin boyu (`ArchiveFileList.total`); gelene dek `null` → yüklenen sayı. */
   total: number | null
-  hasMore: boolean
 }
 export interface FileFilterBarEmits {
   'update:tag': [value: ArchiveTag | null]

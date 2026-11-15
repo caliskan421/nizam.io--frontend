@@ -190,7 +190,6 @@ export const trArchive = {
       region: 'Dosya önizleme',
       title: 'Önizleme',
       position: '{position} / {total}',
-      positionMore: '{position} / {total}+',
       positionUnknown: '{position} / {position}+',
       previous: 'Önceki dosya',
       next: 'Sonraki dosya',

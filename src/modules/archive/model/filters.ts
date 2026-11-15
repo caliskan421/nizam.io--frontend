@@ -63,27 +63,3 @@ export function sortFolders<T extends Pick<ArchiveFolder, 'name'> & { file_count
     return diff !== 0 ? sign * diff : byName
   })
 }
-
-/** Dosya sayacı: süzgeçsizde kesin (`file_count`), süzgeçlide yüklenen sayı + devam varsa "n+". */
-export function countLabel(
-  loaded: number,
-  hasMore: boolean,
-  total: number | null,
-): { value: number; approximate: boolean } {
-  if (total !== null) return { value: total, approximate: false }
-  return { value: loaded, approximate: hasMore }
-}
-
-/**
- * Kesin toplam yalnız süzgeçsizde (klasör `file_count`) ya da yalnız görev süzgecinde (görev
- * `file_count`) bilinir; diğer süzgeçlerde toplam yok (BE-073) → `null` ("n+" gösterimi).
- */
-export function knownTotal(
-  filters: ArchiveFileFilters,
-  counts: { folder?: number | null; task?: number | null },
-): number | null {
-  const keys = Object.keys(filterKey({ ...filters, sort: undefined }))
-  if (keys.length === 0) return counts.folder ?? null
-  if (keys.length === 1 && keys[0] === 'work_item_id') return counts.task ?? null
-  return null
-}

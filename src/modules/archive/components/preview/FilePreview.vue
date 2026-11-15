@@ -49,12 +49,9 @@ const uploadedAt = computed(() =>
 )
 
 const positionText = computed(() => {
-  const { position, total, hasMore } = props
+  const { position, total } = props
   if (total === null) return previewText('archive.preview.positionUnknown', { position })
-  return previewText(hasMore ? 'archive.preview.positionMore' : 'archive.preview.position', {
-    position,
-    total,
-  })
+  return previewText('archive.preview.position', { position, total })
 })
 const previousDisabled = computed(() => props.position <= 1)
 // Son yüklenen dosyada devam varsa "sonraki" etkindir (üst sayfa bir sayfa daha yükler).

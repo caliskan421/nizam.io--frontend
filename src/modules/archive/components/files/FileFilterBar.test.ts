@@ -7,7 +7,7 @@ import FileFilterBar from './FileFilterBar.vue'
 const mounted: ReturnType<typeof mount>[] = []
 function mountBar(over: Partial<FileFilterBarProps> = {}) {
   const wrapper = mount(FileFilterBar, {
-    props: { tag: null, view: 'izgara', loaded: 15, total: 15, hasMore: false, ...over },
+    props: { tag: null, view: 'izgara', loaded: 15, total: 15, ...over },
     attachTo: document.body,
   })
   mounted.push(wrapper)
@@ -18,13 +18,13 @@ afterEach(() => {
 })
 
 describe('FileFilterBar (E-06-38…40/46)', () => {
-  it('başlık ve kesin sayaç; süzgeçlide "n+" (devam var), tek sayfada kesin', async () => {
+  it('başlık ve sunucunun kesin toplamı (yüklenenden büyük olsa da "n+" yok); toplam gelene dek yüklenen sayı', async () => {
     const w = mountBar()
     expect(w.find('h2').text()).toContain('Son eklenen dosyalar')
     expect(w.find('.rp-count').text()).toBe('15')
-    await w.setProps({ total: null, loaded: 50, hasMore: true })
-    expect(w.find('.rp-count').text()).toBe('50+')
-    await w.setProps({ total: null, loaded: 3, hasMore: false })
+    await w.setProps({ total: 137, loaded: 50 })
+    expect(w.find('.rp-count').text()).toBe('137')
+    await w.setProps({ total: null, loaded: 3 })
     expect(w.find('.rp-count').text()).toBe('3')
   })
 
