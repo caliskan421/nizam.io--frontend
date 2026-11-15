@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
+import { workShortCode } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiButton, UiCount } from '@/shared/ui'
+import { UiButton, UiCount, UiIcon } from '@/shared/ui'
 
 import { useRoleFacts } from '../../api/role/use-facts'
 import { useRoleWrites } from './use-role-writes'
@@ -10,13 +11,14 @@ import { homeText } from '../../model/messages'
 import type { WorkRow } from '../../model/role/common'
 import { dueView } from '../../model/role/due'
 import { taskLocation } from '../../model/role/links'
+import { lockText } from '../../model/role/lock'
 import RegionBody from './RegionBody.vue'
 
 /**
  * "Atanmamış ‹n›" (E-K1-12, 19…22): açık ve `assignee_account_ids = []` satırları (yüklenen
  * kümeden istemci türetimi; küme tam değilse "≥", P4). "Ata" 03 panelini açar; "Üstlen"
  * `addAssignments` (kendi hesabım; başarıda satır listeden düşer — yeniden okuma). Kilit rozeti
- * gizli (BE-138); kod `—` (BE-005).
+ * BE-138: "‹n› görev bekleniyor" (ad yok); görev kodu sunucu `code` alanından (BE-005).
  */
 const props = defineProps<{
   items: readonly WorkRow[]
@@ -65,12 +67,21 @@ const days = (item: WorkRow) => dueView(item, props.today)
             <RouterLink class="rh-title" :to="taskLocation(item.work_item_id)">
               {{ item.title }}
             </RouterLink>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="workShortCode(item)" class="rh-kicker" data-task-code>{{
+              workShortCode(item)
+            }}</span>
           </span>
           <span class="rh-meta">
             <span class="rh-pill rh-pill--gold">{{ homeText('home.k1.free.tag') }}</span>
+            <span
+              v-if="lockText(item)"
+              class="rh-lock"
+              :title="homeText('home.lock.tip')"
+              data-lock
+            >
+              <UiIcon name="lock" size="sm" />
+              {{ lockText(item) }}
+            </span>
           </span>
         </span>
         <span class="rh-prio rh-hide" :class="`rh-prio--${item.priority}`">

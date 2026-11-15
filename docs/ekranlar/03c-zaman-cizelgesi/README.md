@@ -140,3 +140,15 @@ Uygulayıcı yalnız `kabul` ve **geçici kabul** satırlarını kodlar; `öneri
 - Üye yüzü ve Admin yüzü tasarımda yok: üyede sürükleme/tarih paneli kapalı mı, admin panelinde "Tarih talebi gönder" yerine ne var (doğrudan kaydet, bekleyen talebi onayla/reddet)? (mekanizma §2)
 - 03d'deki alt görev satırları/çubukları ve "ana görevin dışına taşmaz" kuralı ADR-0024 ile çelişir; v1'de statik gösterim mi, tamamen gizleme mi? (BE-020)
 - "Atanana hatırlat", "PDF olarak dışa aktar", "Görsel olarak indir", sezon şeridi: v1'de etkin mi statik mi? (ozellikler §7)
+
+## F8 eki — canlıya alma (WEB-8 W173, pin `v0.23.0-api`)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) M-C01 (BE-005, `kabul (P67)`). **Uygulayıcı:** W173. Yukarıdaki satırların kararı değişmedi; F8 davranışı yalnız burada yazılıdır.
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-03C-22 Yalnız kodları göster | kod sütunu Admin yüzünde canlı (`GanttTask.code`); düğme KURULMAZ (tasarım düğmesi bu işte çizilmez; kod sütunu zaten açıktır) — karar bekler | geçici kabul (P68) | BE-005 | W173 — `components/gantt/GanttRows.test.ts` («kod sütunu») |
+| E-03C-30 Görev kodu | Admin yüzünde `GanttTask.code` (`<DEPARTMAN>-<sıra>`; kodsuzda `#<sıra>`); K/Ü yüzünde sütun yok; statik "‹KOD›-—" ve `departmentCodes` sözlüğü kalktı (`showCodes`) | kabul (P67) | BE-005 | W173 — `components/gantt/GanttRows.test.ts`, `pages/TimelinePage.test.ts` (`showCodes`) |
+| E-03C-54 Panel üst satırı | Admin yüzünde "‹görev kodu› · ‹koordinatörlük›" (`GanttTask.code`) | kabul (P67) | BE-005 | W173 — `components/panel/SelectedTaskPanel.test.ts` («ALT-5 · Altyapı»; K/Ü yüzünde kod yok) |
+| E-03C-65 Atanana hatırlat | `remindWorkItem` canlanır (BE-008) — bu satırın uygulaması W175'indir (matris M-E08); W173 yazmaz | kabul (P67), P70-e | BE-008 | W175 |
+| E-03C-68 Geri alma bildirim başlığı | görev kodu (`code`) ile başlık; kod yoksa kodsuz başlık | kabul (P67) | BE-005 | W173 — `composables/useDateChange.test.ts` (bildirim başlığı `ARGE-1`), `pages/TimelinePage.drag.test.ts` («ALT-3 süresi 4 gün uzatıldı») |

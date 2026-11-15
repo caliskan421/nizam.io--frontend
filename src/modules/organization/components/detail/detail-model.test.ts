@@ -136,29 +136,34 @@ describe('KPI hücreleri (E-08-64…69)', () => {
 })
 
 describe('Dikkat gerektirenler (E-08-83)', () => {
-  it('yalnız geciken; days_overdue azalan; ilk 3; kod + atananlar + tarih talebi', () => {
+  it('yalnız geciken; days_overdue azalan; ilk 3; görev kodu (kodsuzda #sıra) + atananlar + tarih talebi', () => {
     const pending = { request_id: 'r', new_start_on: '2026-01-01', new_end_on: '2026-01-02' }
-    const rows = attentionRows(
-      [
-        item({ title: 'a', is_overdue: true, days_overdue: 1 }),
-        item({
-          title: 'b',
-          is_overdue: true,
-          days_overdue: 30,
-          assignees: [
-            { account_id: 'x', full_name: 'Ayşe' },
-            { account_id: 'y', full_name: null },
-          ],
-        }),
-        item({ title: 'c', days_overdue: 99 }),
-        item({ title: 'd', is_overdue: true, days_overdue: 7, pending_date_request: pending }),
-        item({ title: 'e', is_overdue: true, days_overdue: 3 }),
-      ],
-      'ALT',
-    )
+    const rows = attentionRows([
+      item({ title: 'a', is_overdue: true, days_overdue: 1 }),
+      item({
+        title: 'b',
+        code: 'ALT-2',
+        is_overdue: true,
+        days_overdue: 30,
+        assignees: [
+          { account_id: 'x', full_name: 'Ayşe' },
+          { account_id: 'y', full_name: null },
+        ],
+      }),
+      item({ title: 'c', days_overdue: 99 }),
+      item({
+        title: 'd',
+        code: 'ALT-4',
+        is_overdue: true,
+        days_overdue: 7,
+        pending_date_request: pending,
+      }),
+      item({ title: 'e', code: null, sequence_no: 5, is_overdue: true, days_overdue: 3 }),
+    ])
     expect(rows.map((r) => r.title)).toEqual(['b', 'd', 'e'])
-    expect(rows[0]).toMatchObject({ who: 'ALT · Ayşe', late: '30 gün gecikti' })
-    expect(rows[1]!.who).toBe('ALT · tarih talebi var')
+    expect(rows[0]).toMatchObject({ who: 'ALT-2 · Ayşe', late: '30 gün gecikti' })
+    expect(rows[1]!.who).toBe('ALT-4 · tarih talebi var')
+    expect(rows[2]!.who).toBe('#5')
   })
 })
 

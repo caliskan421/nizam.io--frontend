@@ -11,14 +11,15 @@ import type { MeetingView } from '../../model/role/meetings'
 /**
  * "Hızlı işlemler" (E-Ü1-18…22; P3: çizilen dört kutucuk). "Kanıt yükle" ve "Not yaz" ortak
  * pencereleri açar (görev seçici = bana atananlar); "Koordinatörüme yaz" F7'ye kadar
- * açıklamalı devre dışı (10 Mesajlar; koordinatör adı satırı gizli — BE-141, `designStub` yok:
- * faz ertelemesi); "Toplantı notu ekle" en yakın yaklaşan toplantının 09b ayrıntısına gider,
+ * açıklamalı devre dışı (10 Mesajlar; alt satır koordinatör adı — BE-141; kutucuğun davranışı değişmez); "Toplantı notu ekle" en yakın yaklaşan toplantının 09b ayrıntısına gider,
  * toplantı yoksa devre dışı. 90 MB sınırı çizilmez (sözleşmede boyut sınırı yok).
  */
 const props = defineProps<{
   nextMeeting: MeetingView | null
   canUpload: boolean
   canNote: boolean
+  /** "‹koordinatör› · ‹birim›" (BE-141); koordinatör adı yoksa `null` (satır gizli). */
+  messageLine?: string | null
 }>()
 const emit = defineEmits<{ upload: []; note: [] }>()
 
@@ -70,7 +71,12 @@ const meetingSub = computed(() =>
           <UiIcon name="messages" />
           <span class="rh-quick__phase">{{ homeText('home.u1.quick.messagePhase') }}</span>
         </span>
-        <span class="rh-quick__label">{{ homeText('home.u1.quick.message') }}</span>
+        <span class="rh-quick__label">
+          {{ homeText('home.u1.quick.message') }}
+          <span v-if="messageLine" class="rh-quick__sub" data-parts="message-line">{{
+            messageLine
+          }}</span>
+        </span>
       </button>
       <RouterLink
         v-if="nextMeeting"

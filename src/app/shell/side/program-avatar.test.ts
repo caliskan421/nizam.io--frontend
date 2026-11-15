@@ -106,7 +106,7 @@ describe('program avatarı (BE-001: sunucu alanı, yoksa türetme)', () => {
     expect(programAvatar(p, [{ programId: 'other', name: 'Başka' }]).initials).toBe('PB')
   })
 
-  it('birim kodu: ProgramDepartment.code, yoksa baş harf', () => {
+  it('birim kodu: MyDepartment.department_code, yoksa baş harf', () => {
     expect(departmentCode('SİS', 'Sistem koordinatörlüğü')).toBe('SİS')
     expect(departmentCode('  ', 'altyapı ve tesisat')).toBe('AV')
     expect(departmentCode(undefined, 'Operasyon')).toBe('O')

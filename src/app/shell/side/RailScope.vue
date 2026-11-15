@@ -9,7 +9,7 @@ import { useSideScope } from './scope-view'
 
 /**
  * Dar menü kapsam simgeleri (E-00-40; Kenar-Secici kural notu, P11): program harfleri
- * (BE-001), rol noktası, birim kodu (`ProgramDepartment.code`, yoksa baş harf). Admin
+ * (BE-001), rol noktası, birim kodu (`MyDepartment.department_code`, yoksa baş harf). Admin
  * merceğinde birim simgesi yok. Tık (klavyeyle de) → menü genişler ve ilgili seçici açılır;
  * tek mercekte rol noktası salt gösterimdir.
  */

@@ -317,13 +317,15 @@ describe('E-08-70…77 Hakkında', () => {
 })
 
 describe('E-08-82…90 yan sütun', () => {
-  it('Dikkat: geciken, days_overdue azalan, ilk 3; kısa kod ALT; tarih talebi eki; Tümü', async () => {
+  it('Dikkat: geciken, days_overdue azalan, ilk 3; görev kodu ALT-2; tarih talebi eki; Tümü', async () => {
     server.use(
       ...serverHandlers({
         items: [
           workItem({ title: 'A', is_overdue: true, days_overdue: 21 }),
           workItem({
             title: 'B',
+            code: 'ALT-2',
+            sequence_no: 2,
             is_overdue: true,
             days_overdue: 98,
             assignees: [{ account_id: 'a2', full_name: 'Ali Avcı' }],
@@ -347,7 +349,7 @@ describe('E-08-82…90 yan sütun', () => {
     const { wrapper } = await mountDetail()
     const rows = wrapper.findAll('[data-attention]')
     expect(rows.map((r) => r.find('a').text())).toEqual(['B', 'D', 'A'])
-    expect(rows[0]!.text()).toContain('ALT · Ali Avcı')
+    expect(rows[0]!.text()).toContain('ALT-2 · Ali Avcı')
     expect(rows[0]!.text()).toContain('98 gün gecikti')
     expect(rows[1]!.text()).toContain('tarih talebi var')
     expect(wrapper.get('[data-action="attention-all"]').attributes('href')).toBe(

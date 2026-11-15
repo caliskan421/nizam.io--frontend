@@ -134,3 +134,11 @@ Ayrıntı ve öğe tabloları: [mekanizma.md §9](mekanizma.md). Özet: menü gr
 **Kısmi / dolaylı kanıt (kabul değil, açık):** E-00-21 rozet değerini gerçek `getChatUnreadOverview` yanıtıyla gerçek backend e2e'si (`e2e/chat.spec.ts`: "rozetler") dolaylı sınar; gerçek sunucuda `mentioned` alanı ayrıca kanıtlanmadı. E-00-38 zil panelinin 390 px tam ekran yerleşimi tasarımda yoktur (P62/KESİN 30 en sade çözüm). `topbar-dot*` token'ları kullanılmıyordu; W167 borç turunda kaldırıldı ([rapor-F7 §4](../../backend-eksikleri/rapor-F7.md)).
 
 **Not:** F7'de menüde görünür olanlar yalnız Mesajlar ve (zil) bildirim panelidir; Takvim, Kurumsal hafıza, Asistan, Yardım, Tablolar, Birimim, Ekibim gizli kalır (F7 dışı, P54).
+
+## F8 eki — canlıya alma (WEB-8 W173, pin `v0.23.0-api`)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) M-C01 (BE-005, `kabul (P67)`). **Uygulayıcı:** W173. Yukarıdaki satırların kararı değişmedi; F8 davranışı yalnız burada yazılıdır.
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-00-40 Dar menü kapsam simgeleri (birim kodu) | canlı → `MyDepartment.department_code` (`GET /v1/me/departments`, standing ile aynı anahtar ve okuyucu; ek istek yok); kod null/okuma hatası → birim adı baş harfleri; S2 `listProgramDepartments` yolu KALDIRILDI | kabul (P67) | BE-005 | W173 — `app/shell/side/department-code.test.ts` (kod alandan; «eski yol yok»: `/v1/program/departments` istenmez) |

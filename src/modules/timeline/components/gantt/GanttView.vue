@@ -32,8 +32,8 @@ import { ganttText } from './messages'
  */
 const props = defineProps<
   GanttViewProps & {
-    /** Departman kimliği → kod öneki (yalnız Admin yüzünde verilir; E-03C-30). */
-    departmentCodes?: ReadonlyMap<string, string>
+    /** Görev kodu sütunu (yalnız Admin yüzünde; E-03C-30). */
+    showCodes?: boolean
     /** W95 uzantı noktası: klavyeyle tarih değiştirme (Shift / Alt+Shift + ←/→). */
     dateKeyHandler?: (request: DateKeyRequest) => boolean | void
   }
@@ -232,7 +232,7 @@ defineExpose({ scrollToDay })
             :layout="layout"
             :window="win"
             :page-size="pageSize"
-            :department-codes="departmentCodes"
+            :show-codes="showCodes"
             :date-key-handler="dateKeyHandler"
             :open-subtasks="subtasks.open.value"
             @subtasks="subtasks.toggle"

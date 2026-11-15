@@ -16,6 +16,8 @@ function item(id: string, patch: Partial<TrackingItem> = {}): TrackingItem {
     end_on: '2026-11-20',
     is_overdue: false,
     days_overdue: 0,
+    code: null,
+    sequence_no: 1,
     ...patch,
   }
 }
@@ -27,7 +29,6 @@ async function render(items: TrackingItem[], loading = false) {
     props: {
       name: 'Bahar Kılıç',
       groups: groupRows(items, 'son-tarih', TODAY),
-      codes: new Map([['d1', 'MEK']]),
       today: TODAY,
       loading,
     },
@@ -70,10 +71,13 @@ describe('gruplu görev tablosu (E-05-59…67)', () => {
     expect(wrapper.find('[data-work-item="e"] [data-due-note]').exists()).toBe(false)
   })
 
-  it('kodsuz birimde kod boş; kanıt statik "—" (stub yok)', async () => {
-    const wrapper = await render([item('a'), item('b', { department_id: 'd2' })])
-    expect(wrapper.find('[data-work-item="a"] [data-code]').text()).toBe('MEK')
-    expect(wrapper.find('[data-work-item="b"] [data-code]').text()).toBe('')
+  it('görev kodu sunucudan; kodsuz birimde #sıra; kanıt statik "—" (stub yok)', async () => {
+    const wrapper = await render([
+      item('a', { code: 'MEK-7', sequence_no: 7 }),
+      item('b', { department_id: 'd2', code: null, sequence_no: 3 }),
+    ])
+    expect(wrapper.find('[data-work-item="a"] [data-code]').text()).toBe('MEK-7')
+    expect(wrapper.find('[data-work-item="b"] [data-code]').text()).toBe('#3')
     expect(wrapper.find('[data-evidence]').text()).toBe('—')
     expect(wrapper.find('[data-evidence]').attributes('data-design-stub')).toBeUndefined()
   })
@@ -84,5 +88,11 @@ describe('gruplu görev tablosu (E-05-59…67)', () => {
     const loading = await render([], true)
     expect(loading.findAll('[data-skeleton]')).toHaveLength(3)
     expect(loading.find('[role="table"]').attributes('aria-busy')).toBe('true')
+  })
+})
+
+describe('eski görev kodu yolu yok (BE-005, derlenmiş props)', () => {
+  it('departman kodu sözlüğü yok', () => {
+    expect(Object.keys(TrackingTable.props as object)).not.toContain('codes')
   })
 })

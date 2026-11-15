@@ -1,22 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { TIMELINE_ROUTE } from '@/modules/timeline/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiCount } from '@/shared/ui'
+import { UiCount } from '@/shared/ui'
 
 import { homeText } from '../../model/messages'
 import type { RequestRow } from '../../model/k1/queues'
+import { requestParts } from '../../model/k1/request-parts'
 import { formatDayShort } from '../../model/role/dates'
 import RegionBody from './RegionBody.vue'
 
 /**
  * "Tarih taleplerim ‹n›" (E-K1-38/39): `myDateChangeRequests`. Başlık yüklenen görev
  * kümesinden (bulunamazsa nötr "Görev"; başlık uydurulmaz). "gönderildi" tarihi ve "Yönetici
- * notu" gizli (BE-140: alan yok); kod `—` (BE-005). Metin P18: plan tarihini yönetici değiştirir.
+ * notu" satır alanından (BE-140: `created_at`, `reviewed_at`, `review_reason`); kod yüklenen görev kümesinden (BE-005). Metin P18: plan tarihini yönetici değiştirir.
  */
-defineProps<{
+const props = defineProps<{
   rows: readonly RequestRow[]
+  /** Kurulum saat dilimi: gönderim/karar günü (WORK-K37). */
+  timeZone: string
   pending: number
   decided: number
   loading?: boolean
@@ -24,6 +28,10 @@ defineProps<{
   retrying?: boolean
 }>()
 const emit = defineEmits<{ retry: [] }>()
+
+const view = computed(() =>
+  props.rows.map((r) => ({ r, parts: requestParts(r.request, props.timeZone) })),
+)
 
 const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-pill--no' } as const
 </script>
@@ -49,7 +57,7 @@ const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-
       @retry="emit('retry')"
     >
       <RouterLink
-        v-for="r in rows"
+        v-for="{ r, parts } in view"
         :key="r.request.request_id"
         class="rh-req"
         :class="{ 'rh-req--wait': r.request.status === 'pending' }"
@@ -59,9 +67,7 @@ const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-
         <span class="rh-stack">
           <span class="rh-line">
             <span class="rh-title">{{ r.title ?? homeText('home.k1.requests.untitled') }}</span>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="r.code" class="rh-kicker" data-task-code>{{ r.code }}</span>
           </span>
           <span class="rh-cap">
             {{
@@ -71,7 +77,11 @@ const PILL = { pending: 'rh-pill--gold', approved: 'rh-pill--ok', rejected: 'rh-
               })
             }}
           </span>
+          <span v-if="parts.sent || parts.decided" class="rh-cap" data-parts="times">
+            {{ [parts.sent, parts.decided].filter(Boolean).join(' · ') }}
+          </span>
           <span v-if="r.request.reason" class="rh-cap rh-clamp2">{{ r.request.reason }}</span>
+          <span v-if="parts.note" class="rh-cap rh-clamp2" data-parts="note">{{ parts.note }}</span>
         </span>
         <span class="rh-pill" :class="PILL[r.request.status]">
           {{ homeText(`home.k1.requests.status.${r.request.status}`) }}

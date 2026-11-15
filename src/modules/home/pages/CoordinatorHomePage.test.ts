@@ -33,18 +33,45 @@ afterAll(() => server.close())
 const COORD = { companyAdmin: false, rows: [{ department_id: 'd1', role: 'koordinator' }] }
 const A = { account_id: 'acc-2', full_name: 'Ayşe Kaya' }
 
+const dialog = <T extends Element = HTMLElement>(testId: string) =>
+  document.body.querySelector<T>(`[data-testid="${testId}"]`)
+
 const ITEMS = [
-  row('onaya_sunuldu', { title: 'Hidrofor', assignee_account_ids: ['acc-2'], assignees: [A] }),
-  row('baslanmadi', { title: 'Sahipsiz iş', assignee_account_ids: [], priority: 'yuksek' }),
+  row('onaya_sunuldu', {
+    title: 'Hidrofor',
+    code: 'ALT-3',
+    sequence_no: 3,
+    file_count: 4,
+    submitted_at: '2026-10-20T10:00:00Z',
+    assignee_account_ids: ['acc-2'],
+    assignees: [A],
+  }),
+  row('baslanmadi', {
+    title: 'Sahipsiz iş',
+    assignee_account_ids: [],
+    priority: 'yuksek',
+    has_pending_dependency: true,
+    pending_dependency_count: 2,
+  }),
   row('devam_ediyor', {
     title: 'Geciken iş',
+    code: 'ALT-8',
+    sequence_no: 8,
+    has_pending_dependency: true,
+    pending_dependency_count: 1,
     assignee_account_ids: ['acc-2'],
     assignees: [A],
     is_overdue: true,
     days_overdue: 21,
     end_on: '2026-09-30',
   }),
-  row('iade_edildi', { title: 'İade iş', assignee_account_ids: ['acc-2'], assignees: [A] }),
+  row('iade_edildi', {
+    title: 'İade iş',
+    code: 'ALT-4',
+    sequence_no: 4,
+    assignee_account_ids: ['acc-2'],
+    assignees: [A],
+  }),
 ]
 
 const MEMBERS = [
@@ -90,6 +117,11 @@ const REQUEST = {
   new_start_on: '2026-09-01',
   new_end_on: '2026-10-31',
   reason: 'Tedarik gecikti',
+  created_at: '2026-10-19T08:30:00Z',
+  requested_by: { account_id: 'acc-2', full_name: 'Ayşe Kaya' },
+  reviewed_at: '2026-10-21T09:00:00Z',
+  reviewed_by: { account_id: 'acc-1', full_name: 'Kadir Özbek' },
+  review_reason: '<i>tedarik</i> belgesi eksik',
 }
 
 function handlers() {
@@ -134,8 +166,8 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(
       ['open', 'overdue', 'pending', 'returned', 'unassigned', 'dateRequests'].map(value),
     ).toEqual(['4', '1', '1', '1', '1', '2'])
-    expect(page.wrapper.get('[data-cell="overdue"]').text()).toContain('En uzunu 21 gün')
-    expect(page.wrapper.get('[data-cell="returned"]').text()).toContain('Ayşe Kaya')
+    expect(page.wrapper.get('[data-cell="overdue"]').text()).toContain('En uzunu 21 gün · ALT-8')
+    expect(page.wrapper.get('[data-cell="returned"]').text()).toContain('ALT-4 · Ayşe Kaya')
     expect(page.wrapper.get('[data-cell="pending"]').attributes('href')).toBe(
       '/gorevler?durum=onaya_sunuldu',
     )
@@ -168,21 +200,36 @@ describe('K1 koordinatör ana sayfası', () => {
   })
 
   it('E-K1-14…22: onay, atanmamış ve dikkat kuyrukları aynı kümeden', async () => {
+    // Yalnız `Date` sahte (göreli zaman 2026-10-20 15:00 İstanbul); zamanlayıcılar gerçek.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-20T12:00:00Z') })
     server.use(...handlers())
     const page = await mountRole(CoordinatorHomePage, COORD_SCOPE)
     await vi.waitFor(() => expect(region(page, 'approvals').findAll('[data-row]')).toHaveLength(1))
     expect(region(page, 'approvals').text()).toContain('Hidrofor')
-    expect(region(page, 'approvals').text()).toContain('Kararını bekliyor')
-    expect(region(page, 'approvals').text()).not.toContain('dosya')
-    expect(region(page, 'approvals').find('[data-design-stub="BE-005"]').exists()).toBe(true)
+    // BE-137: alt yazı ve satır parçaları satır alanlarından (görev başına dosya listesi okunmaz).
+    expect(region(page, 'approvals').get('[data-testid="k1-approvals-note"]').text()).toBe(
+      'Kanıt yüklendi, kararını bekliyor · en eskisi 2 sa önce',
+    )
+    expect(region(page, 'approvals').get('[data-parts="sent"]').text()).toBe('gönderildi 2 sa önce')
+    expect(region(page, 'approvals').get('[data-parts="files"]').text()).toBe('4 dosya')
+    vi.useRealTimers()
+    // Görev kodu sunucunun `code` alanından (BE-005; eski "—" yer tutucusu yok).
+    expect(region(page, 'approvals').get('[data-task-code]').text()).toBe('ALT-3')
+    expect(region(page, 'approvals').find('[data-design-stub]').exists()).toBe(false)
     expect(region(page, 'unassigned').findAll('[data-row]')).toHaveLength(1)
     expect(region(page, 'unassigned').text()).toContain('Sahipsiz iş')
     expect(region(page, 'unassigned').text()).toContain('Yüksek')
+    // BE-138: kilit rozeti yalnız sayı; başlık notu ve "Bağımlılıklar" eylemi satır alanından.
+    expect(region(page, 'unassigned').get('[data-lock]').text()).toBe('2 görev bekleniyor')
     const att = region(page, 'attention')
     expect(att.text()).toContain('Geciken iş')
     expect(att.text()).toContain('21 gün gecikti')
     expect(att.text()).toContain('talep reddedildi')
     expect(att.find('[data-action="extend"]').exists()).toBe(true)
+    expect(att.get('[data-testid="k1-attention-note"]').text()).toBe(
+      '1 geciken görev · 1 görev bağımlılık bekliyor',
+    )
+    expect(att.get('[data-action="dependencies"]').text()).toBe('Bağımlılıklar')
   })
 
   it('E-K1-17: "Onayla" ve "İade et" transitionWorkItem (X-Requested-With); başarıda liste yeniden okunur', async () => {
@@ -209,9 +256,92 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(bodies[0]).toEqual([ITEMS[0]!.work_item_id, { to: 'tamamlandi' }])
     expect(headers[0]).not.toBe('')
     await vi.waitFor(() => expect(sent(LIST).length).toBeGreaterThan(lists))
+    // BE-139: "İade et" önce isteğe bağlı gerekçe penceresini açar; boş gönderim gerekçesizdir.
     await page.wrapper.get('[data-action="return"]').trigger('click')
+    await vi.waitFor(() => expect(dialog('k1-return-submit')).not.toBeNull())
+    expect(bodies).toHaveLength(1)
+    dialog<HTMLButtonElement>('k1-return-submit')!.click()
     await vi.waitFor(() => expect(bodies).toHaveLength(2))
     expect(bodies[1]).toEqual([ITEMS[0]!.work_item_id, { to: 'iade_edildi' }])
+  })
+
+  describe('iade gerekçesi akışı (BE-139, WORK-K96)', () => {
+    const transitions = (bodies: unknown[]) =>
+      http.post(`${ORIGIN}/v1/work-items/:id/transitions`, async ({ request, params }) => {
+        bodies.push(await request.json())
+        return json({
+          work_item_id: params.id,
+          from: 'onaya_sunuldu',
+          to: 'iade_edildi',
+          actor: 'koordinator',
+        })
+      })
+
+    async function openReturn(bodies: unknown[]) {
+      server.use(...handlers(), transitions(bodies))
+      const page = await mountRole(CoordinatorHomePage, COORD_SCOPE)
+      await vi.waitFor(() => expect($(page, '[data-action="return"]').exists()).toBe(true))
+      const trigger = page.wrapper.get('[data-action="return"]')
+      ;(trigger.element as HTMLElement).focus()
+      await trigger.trigger('click')
+      await vi.waitFor(() => expect(dialog('k1-return-input')).not.toBeNull())
+      return { page, trigger }
+    }
+
+    function write(text: string): void {
+      const input = dialog<HTMLTextAreaElement>('k1-return-input')!
+      input.value = text
+      input.dispatchEvent(new Event('input'))
+    }
+
+    it('dolu gerekçe kırpılıp gövdeye `reason` olarak gider', async () => {
+      const bodies: unknown[] = []
+      await openReturn(bodies)
+      write('  imzalı liste eksik  ')
+      dialog<HTMLButtonElement>('k1-return-submit')!.click()
+      await vi.waitFor(() => expect(bodies).toHaveLength(1))
+      expect(bodies[0]).toEqual({ to: 'iade_edildi', reason: 'imzalı liste eksik' })
+    })
+
+    it('1–2 karakter geçersiz: istek gitmez, hata görünür; düzeltince gider', async () => {
+      const bodies: unknown[] = []
+      await openReturn(bodies)
+      write('ab')
+      dialog<HTMLButtonElement>('k1-return-submit')!.click()
+      await flushPromises()
+      expect(bodies).toHaveLength(0)
+      expect(document.body.textContent).toContain('Gerekçe 3–500 karakter olmalı')
+      write('abc')
+      dialog<HTMLButtonElement>('k1-return-submit')!.click()
+      await vi.waitFor(() => expect(bodies).toEqual([{ to: 'iade_edildi', reason: 'abc' }]))
+    })
+
+    it('Vazgeç, Esc ve ✕: istek yok, odak "İade et" düğmesine döner', async () => {
+      const bodies: unknown[] = []
+      const { trigger } = await openReturn(bodies)
+      const closers = [
+        () => dialog<HTMLButtonElement>('k1-return-cancel')!.click(),
+        () =>
+          document
+            .querySelector('[role="dialog"]')!
+            .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })),
+        () =>
+          document
+            .querySelector<HTMLButtonElement>('[role="dialog"] [aria-label="Kapat"]')!
+            .click(),
+      ]
+      for (const [index, close] of closers.entries()) {
+        if (index > 0) {
+          ;(trigger.element as HTMLElement).focus()
+          await trigger.trigger('click')
+          await vi.waitFor(() => expect(dialog('k1-return-input')).not.toBeNull())
+        }
+        close()
+        await vi.waitFor(() => expect(dialog('k1-return-input')).toBeNull())
+        await vi.waitFor(() => expect(document.activeElement).toBe(trigger.element))
+      }
+      expect(bodies).toHaveLength(0)
+    })
   })
 
   it('E-K1-22: "Üstlen" kendi hesabımı atar (addAssignments)', async () => {
@@ -272,6 +402,12 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(req.text()).toContain('Geciken iş')
     expect(req.text()).toContain('Reddedildi')
     expect(req.text()).toContain('30.09 → 31.10')
+    // BE-140: gönderim/karar günü ve karar notu satır alanlarından; not kullanıcı metnidir.
+    expect(req.get('[data-parts="times"]').text()).toBe('19.10 gönderildi · 21.10 karar verildi')
+    expect(req.get('[data-parts="note"]').text()).toBe(
+      'Yönetici notu: <i>tedarik</i> belgesi eksik',
+    )
+    expect(req.find('i').exists()).toBe(false)
     expect(region(page, 'requests').text()).toContain('plan tarihini yönetici değiştirir')
   })
 

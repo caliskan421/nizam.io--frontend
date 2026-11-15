@@ -93,8 +93,8 @@ export const trTimeline = {
         here: 'Baktığın yer',
       },
     },
-    // W95 — geri alınabilir bildirim (E-03C-67…72). Başlıkta görev kodu BE-005 gelene dek
-    // görev BAŞLIĞIDIR.
+    // W95 — geri alınabilir bildirim (E-03C-67…72). Başlıkta görev KODU (BE-005, W173);
+    // kod yoksa görev başlığı.
     snack: {
       title: {
         extended: '{title} süresi {days} gün uzatıldı',

@@ -148,3 +148,11 @@ Uygulayıcı yalnız `kabul` ve **geçici kabul** satırlarını kodlar; `öneri
 | E-05-04 Dışa aktar | canlı → `exportUsersCsv` (aynı süzgeç/sıra, ≤10 000 hesap; 422 `organization.export_too_large`, 429 `organization.export_in_progress`, 503 `organization.capacity_full`); bilet hedefi sorgu dizesiyle | kabul (P67) | BE-014 | W175 |
 
 **F8'de değişmeyenler (05 Kullanıcılar):** E-05-34 (BE-013), E-05-54 (BE-046: anlam kararı yok), E-05-55 (BE-015). E-05-04 dışında 05 ekranında F8 değişikliği yoktur.
+
+## F8 eki — canlıya alma (WEB-8 W173, pin `v0.23.0-api`)
+
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) M-C01 (BE-005, `kabul (P67)`). **Uygulayıcı:** W173. Yukarıdaki satırların kararı değişmedi; F8 davranışı yalnız burada yazılıdır.
+
+| E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
+| --- | --- | --- | --- | --- |
+| E-05-63 Görev anahtarı (05b takip tablosu) | canlı → `WorkItem.code` (kodsuzda `#<sıra>`); statik "‹KOD›-—" ve `codes` sözlüğü kalktı | kabul (P67) | BE-005 | W173 — `components/tracking/TrackingTable.test.ts`, `components/tracking/PersonalTracking.test.ts` («MEK-7», `#1`) |

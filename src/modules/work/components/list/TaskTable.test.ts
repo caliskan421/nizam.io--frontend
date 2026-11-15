@@ -21,8 +21,8 @@ function mountTable(props: Record<string, unknown> = {}) {
   return mount(TaskTable, {
     props: {
       items: [
-        workItem({ work_item_id: 'w1', department_id: 'd1' }),
-        workItem({ work_item_id: 'w2', department_id: 'd2' }),
+        workItem({ work_item_id: 'w1', department_id: 'd1', code: 'MEK-1', sequence_no: 1 }),
+        workItem({ work_item_id: 'w2', department_id: 'd2', code: null, sequence_no: 2 }),
       ] as WorkItem[],
       departments,
       selectedId: null,
@@ -51,10 +51,10 @@ describe('görev tablosu', () => {
     expect(heads[1]!.attributes('aria-sort')).toBe('none')
   })
 
-  it('satırlar departman adı ve kodu sözlükten (G13)', () => {
+  it('satırlar departman adı sözlükten, görev kodu satırdan (G13, BE-005)', () => {
     const rows = mountTable().findAll('.rp-tr--body')
     expect(rows.map((r) => r.get('.task-row__dept').text())).toEqual(['Mekanik', 'İdari işler'])
-    expect(rows.map((r) => r.get('.task-row__code').text())).toEqual(['MEK', ''])
+    expect(rows.map((r) => r.get('.task-row__code').text())).toEqual(['MEK-1', '#2'])
   })
 
   it('etkin sıralama aria-sort; düğme sort yayar', async () => {

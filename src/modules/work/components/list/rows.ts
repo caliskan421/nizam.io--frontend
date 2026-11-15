@@ -6,6 +6,7 @@
  * `countsFromServer`); istemci sayımı (`tabCounts`) yalnız arama/talep daraltmasında ve sayaç
  * ucu yokken yedektir.
  */
+import { workShortCode } from '../../model/short-code'
 import type { WorkItem, WorkItemCounts, WorkItemStatus } from '../../model/types'
 import { WORK_ITEM_STATUSES } from '../../model/types'
 
@@ -24,15 +25,15 @@ export function foldTr(text: string): string {
   return text.toLocaleLowerCase('tr-TR').trim()
 }
 
-/** Satırın aranan metinleri: başlık + kısa kod öneki (BE-005) + atanan adları (BE-004). */
-export function searchHaystack(item: WorkItem, code: string | null): string {
+/** Satırın aranan metinleri: başlık + görev kodu (BE-005) + atanan adları (BE-004). */
+export function searchHaystack(item: WorkItem): string {
   const names = item.assignees.map((a) => a.full_name ?? '')
-  return foldTr([item.title, code ?? '', ...names].join(' '))
+  return foldTr([item.title, workShortCode(item), ...names].join(' '))
 }
 
-export function matchesSearch(item: WorkItem, needle: string, code: string | null): boolean {
+export function matchesSearch(item: WorkItem, needle: string): boolean {
   const folded = foldTr(needle)
-  return folded === '' || searchHaystack(item, code).includes(folded)
+  return folded === '' || searchHaystack(item).includes(folded)
 }
 
 /** Bekleyen tarih talebi var mı (WORK-K82; üyede hep `null`). */

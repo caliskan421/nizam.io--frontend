@@ -46,14 +46,6 @@ function useDepartmentLists() {
     departmentNames: computed(
       () => new Map(list.value.map((d) => [d.department_id, d.display_name])),
     ),
-    departmentCodes: computed(
-      () =>
-        new Map(
-          list.value.flatMap((d) =>
-            d.code ? [[d.department_id, d.code] as [string, string]] : [],
-          ),
-        ),
-    ),
     departmentOptions: computed(() =>
       list.value.map((d) => ({ departmentId: d.department_id, displayName: d.display_name })),
     ),
@@ -71,8 +63,7 @@ export function useTimelinePage(onReset: () => void) {
   const allTasks = gantt.tasks
   const ready = computed(() => gantt.query.isSuccess.value)
 
-  const { departmentNames, departmentCodes, departmentOptions, departmentsLoaded } =
-    useDepartmentLists()
+  const { departmentNames, departmentOptions, departmentsLoaded } = useDepartmentLists()
 
   const state = useEffectiveState(url.state, adminFace, departmentNames, departmentsLoaded)
   const tasks = computed(() =>
@@ -107,7 +98,6 @@ export function useTimelinePage(onReset: () => void) {
     range,
     selected,
     departmentNames,
-    departmentCodes,
     departmentOptions,
     today: useTodayIso(),
     counts: computed(() => taskCounts(allTasks.value)),

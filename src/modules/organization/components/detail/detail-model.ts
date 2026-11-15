@@ -217,18 +217,14 @@ export interface AttentionRow {
   late: string
 }
 
-export function attentionRows(
-  items: readonly WorkItem[],
-  code: string,
-  limit = ATTENTION_LIMIT,
-): AttentionRow[] {
+export function attentionRows(items: readonly WorkItem[], limit = ATTENTION_LIMIT): AttentionRow[] {
   return items
     .filter((i) => i.is_overdue)
     .sort((a, b) => b.days_overdue - a.days_overdue)
     .slice(0, limit)
     .map((i) => {
       const names = i.assignees.map((a) => a.full_name).filter((n): n is string => Boolean(n))
-      const parts = [workShortCode(code), ...names].filter(Boolean)
+      const parts = [workShortCode(i), ...names].filter(Boolean)
       if (i.pending_date_request !== null) {
         parts.push(detailText('coordinatorship.attention.dateRequest'))
       }

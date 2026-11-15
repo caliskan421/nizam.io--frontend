@@ -13,6 +13,8 @@ function item(id: string, patch: Partial<TrackingItem> = {}): TrackingItem {
     end_on: '2026-10-23',
     is_overdue: false,
     days_overdue: 0,
+    code: null,
+    sequence_no: 1,
     ...patch,
   }
 }
