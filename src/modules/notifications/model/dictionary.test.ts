@@ -9,7 +9,7 @@ import {
   describeNotification,
 } from './dictionary'
 
-// 14 `backend.md` §4.1: events.md'de "kuyruğa → notifications" işaretli 12 tür.
+// 14 `backend.md` §4.1: events.md'de "kuyruğa → notifications" işaretli 12 tür + F8 (pin v0.23.0-api) `work.task.reminder`.
 const TWELVE = [
   'work.item.created',
   'work.item.transitioned',
@@ -17,6 +17,7 @@ const TWELVE = [
   'work.item.date_changed',
   'work.date_change.requested',
   'work.date_change.reviewed',
+  'work.task.reminder',
   'collaboration.meeting.created',
   'collaboration.meeting.updated',
   'organization.membership.assigned',
@@ -32,6 +33,7 @@ const SENTENCES: Record<string, [string, string]> = {
   'work.item.date_changed': ['Tarih', 'Bir görevin tarihi değişti'],
   'work.date_change.requested': ['Tarih talebi', 'Yeni tarih talebi'],
   'work.date_change.reviewed': ['Tarih talebi', 'Tarih talebi sonuçlandı'],
+  'work.task.reminder': ['Hatırlatma', 'Bir görev için hatırlatma var'],
   'collaboration.meeting.created': ['Toplantı', 'Yeni toplantı'],
   'collaboration.meeting.updated': ['Toplantı', 'Toplantı üyelere açıldı'],
   'organization.membership.assigned': ['Ekip', 'Ekibe yeni üye atandı'],
@@ -40,8 +42,8 @@ const SENTENCES: Record<string, [string, string]> = {
   'program.transfer.completed': ['Aktarım', 'Görev aktarımı tamamlandı'],
 }
 
-describe('bildirim sözlüğü (12 tür)', () => {
-  it('tam 12 tür; backend.md §4.1 ile aynı küme', () => {
+describe('bildirim sözlüğü (13 tür)', () => {
+  it('tam 13 tür; backend.md §4.1 + events.md work.task.reminder ile aynı küme', () => {
     expect([...KNOWN_NOTIFICATION_TYPES].sort()).toEqual([...TWELVE].sort())
   })
 

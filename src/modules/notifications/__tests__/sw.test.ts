@@ -104,7 +104,7 @@ describe('push olayı (E-14-75): metinsiz yük → sözlükten genel cümle', ()
     },
   )
 
-  it('sözlüğün sw.js kopyası tam 12 tür, model ile aynı küme', () => {
+  it('sözlüğün sw.js kopyası tam 13 tür, model ile aynı küme', () => {
     const block = /const TYPE_TEXT = \{([\s\S]*?)\n\}/.exec(SOURCE)![1]!
     const types = [...block.matchAll(/'([a-z_.]+)':/g)].map((m) => m[1])
     expect([...types].sort()).toEqual([...KNOWN_NOTIFICATION_TYPES].sort())

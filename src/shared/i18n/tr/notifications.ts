@@ -57,6 +57,7 @@ export const trNotifications = {
         work_item_date_changed: { label: 'Tarih', text: 'Bir görevin tarihi değişti' },
         work_date_change_requested: { label: 'Tarih talebi', text: 'Yeni tarih talebi' },
         work_date_change_reviewed: { label: 'Tarih talebi', text: 'Tarih talebi sonuçlandı' },
+        work_task_reminder: { label: 'Hatırlatma', text: 'Bir görev için hatırlatma var' },
         meeting_created: { label: 'Toplantı', text: 'Yeni toplantı' },
         meeting_updated: { label: 'Toplantı', text: 'Toplantı üyelere açıldı' },
         membership_assigned: { label: 'Ekip', text: 'Ekibe yeni üye atandı' },

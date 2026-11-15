@@ -1,5 +1,5 @@
 /**
- * `type` → etiket / cümle / simge / ton sözlüğü (14 `backend.md` §4.1; 12 tür). Yanıt metinsizdir
+ * `type` → etiket / cümle / simge / ton sözlüğü (14 `backend.md` §4.1; 12 tür + F8 `work.task.reminder`, pin v0.23.0-api). Yanıt metinsizdir
  * (K15/K29): aktör adı, konu başlığı, kod, tarih UYDURULMAZ; cümle yalnız türü söyler. Bilinmeyen
  * tür (yeni etiket) genel satıra düşer — sessiz düşürme yok. Metinler `trNotifications.rows`
  * ağacında; burada yalnız anahtar kimliği. Service worker (W159) sözlüğün ayrı bir kopyasını
@@ -50,6 +50,7 @@ export const NOTIFICATION_DICTIONARY: Readonly<Record<string, DictionaryEntry>> 
     'review',
   ),
   'work.date_change.reviewed': entry('work_date_change_reviewed', 'work_item', 'calendar', 'gold'),
+  'work.task.reminder': entry('work_task_reminder', 'work_item', 'bell', 'gold'),
   'collaboration.meeting.created': entry(
     'meeting_created',
     'meeting',
