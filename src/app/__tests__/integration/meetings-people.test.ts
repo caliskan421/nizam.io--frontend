@@ -33,8 +33,24 @@ const meeting = {
   notes: { items: [], next_cursor: '' },
   viewer_role: 'admin',
 }
+const candidate = (id: string, name: string, participant = false) => ({
+  account_id: id,
+  full_name: name,
+  is_participant: participant,
+  teams: [],
+})
 function handlers() {
   backend.server.use(
+    http.get('http://localhost/v1/meetings/participant-candidates', () =>
+      HttpResponse.json({
+        items: [
+          candidate('x', 'Ada Örnek'),
+          candidate('y', 'Bora Örnek'),
+          candidate('z', 'Cem Örnek'),
+        ],
+        next_cursor: '',
+      }),
+    ),
     http.get('http://localhost/v1/meetings/deleted', () =>
       HttpResponse.json({ items: [], next_cursor: '' }),
     ),
@@ -119,12 +135,50 @@ it('katılımcı serisi belirsiz sonuçta durur ve sonraki kişiye istek gönder
   expect(backend.sent('POST', '/v1/meetings/m1/participants')).toHaveLength(2)
 })
 
-it('koordinatör seçicisi kendi ekibi ve kesilme uyarılarını ayrı gösterir', async () => {
+it('seçici adayları tek uçtan okur: meeting_id gider, kadro/kullanıcı taraması yok', async () => {
+  await boot({
+    email: PEOPLE.coord.email,
+    scope: { programId: 'p1', lens: 'coordinator', departmentId: 'd1' },
+    path: '/toplantilar/m1',
+  })
+  await click(() => byText('.meeting-people button', 'Ekle'))
+  await until(() => $('[role="dialog"]')?.textContent?.includes('Ada Örnek'), 'adaylar')
+  expect($('[role="dialog"]')?.textContent).not.toContain('Yalnız koordine ettiğin')
+  expect($('[role="dialog"]')?.textContent).not.toContain('Liste eksik olabilir')
+  expect(
+    backend.sent('GET', '/v1/meetings/participant-candidates').at(-1)?.query.get('meeting_id'),
+  ).toBe('m1')
+  expect(backend.sent('GET', '/v1/departments/d1/members')).toHaveLength(0)
+  expect(backend.sent('GET', '/v1/admin/users')).toHaveLength(0)
+})
+
+it('ŞY adayları da aynı uçtan gelir; sayfa boşken imleç sürer', async () => {
+  let calls = 0
   backend.server.use(
-    http.get('http://localhost/v1/departments/:id/members', () =>
+    http.get('http://localhost/v1/meetings/participant-candidates', () => {
+      calls++
+      return calls === 1
+        ? HttpResponse.json({ items: [], next_cursor: 'c1' })
+        : HttpResponse.json({ items: [candidate('x', 'Ada Örnek')], next_cursor: '' })
+    }),
+  )
+  await boot({
+    email: PEOPLE.admin.email,
+    scope: { programId: 'p1', lens: 'admin' },
+    path: '/toplantilar/m1',
+  })
+  await click(() => byText('.meeting-people button', 'Ekle'))
+  await until(() => $('[role="dialog"]')?.textContent?.includes('Ada Örnek'), 'adaylar')
+  expect(backend.sent('GET', '/v1/meetings/participant-candidates')).toHaveLength(2)
+  expect(backend.sent('GET', '/v1/admin/users')).toHaveLength(0)
+})
+
+it('üye adayları okuyamaz: 403 hata durumu gösterilir', async () => {
+  backend.server.use(
+    http.get('http://localhost/v1/meetings/participant-candidates', () =>
       HttpResponse.json(
-        { members: [{ account_id: 'x', full_name: 'Ada Örnek', status: 'active' }] },
-        { headers: { 'X-Result-Truncated': 'true' } },
+        { code: 'collaboration.not_authorized', message: 'secret', request_id: 'r', fields: [] },
+        { status: 403 },
       ),
     ),
   )
@@ -134,41 +188,8 @@ it('koordinatör seçicisi kendi ekibi ve kesilme uyarılarını ayrı gösterir
     path: '/toplantilar/m1',
   })
   await click(() => byText('.meeting-people button', 'Ekle'))
-  await until(() => $('[role="dialog"]')?.textContent?.includes('Ada Örnek'), 'adaylar')
-  expect($('[role="dialog"]')?.textContent).toContain('Yalnız koordine ettiğin')
-  expect($('[role="dialog"]')?.textContent).toContain('Liste eksik olabilir')
-  expect(backend.sent('GET', '/v1/departments/d1/members').length).toBeGreaterThan(0)
-  expect(backend.sent('GET', '/v1/departments/d2/members')).toHaveLength(0)
-})
-
-it('yönetici seçicisi program adaylarını ve yalnız kesilme uyarısını gösterir', async () => {
-  backend.server.use(
-    http.get('http://localhost/v1/admin/users', () =>
-      HttpResponse.json(
-        {
-          users: [
-            { account_id: 'x', full_name: 'Ada Örnek', teams: [{ program_id: 'p1' }] },
-            { account_id: 'y', full_name: 'Başka Program', teams: [{ program_id: 'p2' }] },
-          ],
-          next_cursor: '',
-          total: 2,
-          role_counts: {},
-        },
-        { headers: { 'X-Result-Truncated': 'true' } },
-      ),
-    ),
-  )
-  await boot({
-    email: PEOPLE.admin.email,
-    scope: { programId: 'p1', lens: 'admin' },
-    path: '/toplantilar/m1',
-  })
-  await click(() => byText('.meeting-people button', 'Ekle'))
-  await until(() => $('[role="dialog"]')?.textContent?.includes('Ada Örnek'), 'adaylar')
-  expect($('[role="dialog"]')?.textContent).not.toContain('Başka Program')
-  expect($('[role="dialog"]')?.textContent).not.toContain('Yalnız koordine ettiğin')
-  expect($('[role="dialog"]')?.textContent).toContain('Liste eksik olabilir')
-  expect(backend.sent('GET', '/v1/admin/users').at(-1)?.query.get('program_id')).toBe('p1')
+  await until(() => $('[role="dialog"]')?.textContent?.includes('Kişiler yüklenemedi'), 'hata')
+  expect(document.body.textContent).not.toContain('secret')
 })
 
 it('seçici filtrede seçimi korur, kilitli katılımcıyı saymaz ve arama Enter göndermez', async () => {
@@ -177,12 +198,10 @@ it('seçici filtrede seçimi korur, kilitli katılımcıyı saymaz ve arama Ente
     http.get('http://localhost/v1/meetings/m1', () =>
       HttpResponse.json({ ...meeting, participants }),
     ),
-    http.get('http://localhost/v1/departments/:id/members', () =>
+    http.get('http://localhost/v1/meetings/participant-candidates', () =>
       HttpResponse.json({
-        members: [
-          { account_id: 'x', full_name: 'Ada Örnek', status: 'active' },
-          { account_id: 'y', full_name: 'Bora Örnek', status: 'active' },
-        ],
+        items: [candidate('x', 'Ada Örnek', true), candidate('y', 'Bora Örnek')],
+        next_cursor: '',
       }),
     ),
   )

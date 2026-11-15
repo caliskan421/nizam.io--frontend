@@ -30,14 +30,18 @@ let version = 0
 const add = useAddMeetingParticipant()
 const remove = useRemoveMeetingParticipant()
 const capture = useActionContext()
-const query = useMeetingCandidates(standing, opened)
+const query = useMeetingCandidates(() => props.meeting.meeting_id, opened)
 const locked = computed(() => props.meeting.participants.map((p) => p.account_id))
 const candidates = computed(() => {
-  const data = query.data.value ?? { people: [], partial: false, truncated: false }
+  const data = query.data.value ?? { people: [] }
   const people = [...data.people]
   for (const participant of props.meeting.participants)
     if (!people.some((p) => p.accountId === participant.account_id))
-      people.push({ accountId: participant.account_id, fullName: participant.full_name })
+      people.push({
+        accountId: participant.account_id,
+        fullName: participant.full_name,
+        isParticipant: true,
+      })
   return { ...data, people }
 })
 const access = computed(() =>
@@ -195,7 +199,6 @@ async function removePerson(id: string) {
       :selected-ids="[]"
       :locked-ids="locked"
       :candidates="candidates"
-      :scope-limited="!standing?.companyAdmin"
       :loading="query.isPending.value"
       :error="query.isError.value"
       mode="add"

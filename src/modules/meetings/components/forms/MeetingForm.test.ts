@@ -48,9 +48,7 @@ vi.mock('@/shared/scope/standing', () => ({
 vi.mock('../../api/queries', () => ({
   useMeetingCandidates: () => ({
     data: ref({
-      people: [{ accountId: 'a1', fullName: 'Ada Örnek' }],
-      partial: false,
-      truncated: false,
+      people: [{ accountId: 'a1', fullName: 'Ada Örnek', isParticipant: false }],
     }),
     isPending: ref(false),
     isError: ref(false),

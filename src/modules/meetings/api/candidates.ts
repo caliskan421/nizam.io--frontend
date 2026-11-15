@@ -1,58 +1,50 @@
-import { fetchRoster, fetchUserPage } from '@/modules/organization/public'
+import { programHeaders } from '@/modules/work/public'
+import { api, unwrap } from '@/shared/http'
 import { sessionBound } from '@/shared/session/query-session'
-import { isListTruncated } from '@/shared/http/truncation'
 import type { MeetingCandidate, MeetingCandidates } from '../model/types'
 
-/** ŞY: program ekip satırı olan hesapların bütün imleç sayfaları. */
-export async function adminCandidates(
+/** Kimlik sırasıyla (sayfa sırası) tekrar eden imleç sonsuz döngüyü önlemek için hata sayılır. */
+const PAGE_LIMIT = 200
+
+/**
+ * Katılımcı adayları (BE-067, `listMeetingParticipantCandidates`, S2): kuruluş kapısı
+ * (`meetingId` yok) ya da var olan toplantıya ekleme yetkisi sunucu kararıdır. Kısa/boş sayfa
+ * `next_cursor` taşıyabilir; imleç boşalana dek ilerlenir. Ad sırası istemcidedir.
+ */
+export async function fetchMeetingCandidates(
   programId: string,
+  meetingId: string | null,
   signal: AbortSignal,
 ): Promise<MeetingCandidates> {
   const people = new Map<string, MeetingCandidate>()
   const seen = new Set<string>()
   let cursor: string | undefined
-  let truncated = false
   do {
     signal.throwIfAborted()
     const read = sessionBound(({ signal: requestSignal }) =>
-      fetchUserPage({ search: null, sortOrder: 'asc', programId }, cursor, requestSignal),
+      unwrap(
+        api.GET('/v1/meetings/participant-candidates', {
+          params: {
+            header: programHeaders({ programId }),
+            query: { meeting_id: meetingId ?? undefined, cursor, limit: PAGE_LIMIT },
+          },
+          signal: requestSignal,
+        }),
+      ),
     )
-    const result = await read({ signal })
-    truncated ||= result.truncated
-    for (const user of result.page.users ?? []) {
-      if (user.teams.some((team) => team.program_id === programId)) {
-        people.set(user.account_id, { accountId: user.account_id, fullName: user.full_name })
-      }
+    const page = await read({ signal })
+    for (const item of page.items) {
+      people.set(item.account_id, {
+        accountId: item.account_id,
+        fullName: item.full_name,
+        isParticipant: item.is_participant,
+      })
     }
-    cursor = result.page.next_cursor || undefined
-    if (cursor && seen.has(cursor)) throw new Error('Tekrarlanan kullanıcı imleci')
+    cursor = page.next_cursor || undefined
+    if (cursor && seen.has(cursor)) throw new Error('Tekrarlanan aday imleci')
     if (cursor) seen.add(cursor)
   } while (cursor)
-  return { people: [...people.values()], truncated, partial: truncated }
-}
-
-/** K: yalnız yetkili departmanlar; başka departmanlar kapsam dışıdır (BE-067). */
-export async function coordinatorCandidates(
-  programId: string,
-  departmentIds: readonly string[],
-  signal: AbortSignal,
-): Promise<MeetingCandidates> {
-  const people = new Map<string, string>()
-  let truncated = false
-  for (const departmentId of new Set(departmentIds)) {
-    signal.throwIfAborted()
-    const read = sessionBound(({ signal: requestSignal }) =>
-      fetchRoster(programId, departmentId, requestSignal),
-    )
-    const result = await read({ signal })
-    truncated ||= isListTruncated(result)
-    for (const member of result.members ?? []) {
-      if (member.status === 'active') people.set(member.account_id, member.full_name)
-    }
-  }
   return {
-    people: [...people].map(([accountId, fullName]) => ({ accountId, fullName })),
-    truncated,
-    partial: true,
+    people: [...people.values()].sort((a, b) => a.fullName.localeCompare(b.fullName, 'tr-TR')),
   }
 }

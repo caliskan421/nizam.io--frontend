@@ -6,13 +6,12 @@ export type MeetingDetail = components['schemas']['MeetingDetail']
 export interface MeetingCandidate {
   accountId: string
   fullName: string
+  /** Aday toplantıya zaten katılımcıdır (yalnız `meeting_id` verilen okumada anlamlı). */
+  isParticipant: boolean
 }
 
 export interface MeetingCandidates {
   people: MeetingCandidate[]
-  truncated: boolean
-  /** K yolu yalnız kendi koordinatörlüklerini kapsar. */
-  partial: boolean
 }
 
 export type CreateMeetingRequest = components['schemas']['CreateMeetingRequest']

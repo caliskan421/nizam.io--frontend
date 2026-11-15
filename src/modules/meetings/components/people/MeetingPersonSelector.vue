@@ -12,9 +12,8 @@ const props = withDefaults(
     loading: boolean
     error: boolean
     mode: 'draft' | 'add'
-    scopeLimited?: boolean
   }>(),
-  { lockedIds: () => [], scopeLimited: false },
+  { lockedIds: () => [] },
 )
 const emit = defineEmits<{ close: []; select: [ids: string[]]; retry: [] }>()
 const text = trMeetings.meetings.people
@@ -28,6 +27,8 @@ const shown = computed(() => {
   const term = search.value.trim().toLocaleLowerCase('tr-TR')
   return props.candidates.people.filter((p) => p.fullName.toLocaleLowerCase('tr-TR').includes(term))
 })
+const isLocked = (person: { accountId: string; isParticipant: boolean }) =>
+  locked.value.has(person.accountId) || person.isParticipant
 function toggle(id: string) {
   const next = new Set(selected.value)
   if (next.has(id)) next.delete(id)
@@ -46,8 +47,6 @@ onMounted(() => void nextTick(() => input.value?.focus()))
       >{{ text.search
       }}<input ref="input" v-model="search" class="t-input" type="search" @keydown.enter.prevent
     /></label>
-    <p v-if="scopeLimited">{{ text.partial }}</p>
-    <p v-if="candidates.truncated">{{ text.truncated }}</p>
     <p v-if="loading">{{ text.loading }}</p>
     <p v-else-if="error">
       {{ text.error }} <button type="button" @click="emit('retry')">{{ text.retry }}</button>
@@ -59,11 +58,11 @@ onMounted(() => void nextTick(() => input.value?.focus()))
         class="t-check"
         type="checkbox"
         :checked="selected.has(person.accountId)"
-        :disabled="locked.has(person.accountId)"
+        :disabled="isLocked(person)"
         @change="toggle(person.accountId)"
       />
       <UiAvatar :name="person.fullName" size="sm" /><span>{{ person.fullName }}</span
-      ><small v-if="locked.has(person.accountId)">{{ text.participant }}</small>
+      ><small v-if="isLocked(person)">{{ text.participant }}</small>
     </label>
     <button v-if="mode === 'draft'" type="button" @click="selected = new Set(locked)">
       {{ text.clear }}

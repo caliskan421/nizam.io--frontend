@@ -131,9 +131,6 @@ export const trMeetings = {
       selectorTitle: 'Katılımcı ekle',
       draftTitle: 'Kişi seç',
       search: 'Ad ile ara',
-      partial:
-        'Yalnız koordine ettiğin koordinatörlüklerin üyeleri listelenir. Diğer kişiler burada görünmez.',
-      truncated: 'Liste eksik olabilir; tüm adaylar yüklenemedi.',
       loading: 'Kişiler yükleniyor…',
       error: 'Kişiler yüklenemedi.',
       retry: 'Tekrar dene',

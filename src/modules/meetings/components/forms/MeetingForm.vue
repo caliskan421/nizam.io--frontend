@@ -40,7 +40,7 @@ const create = useCreateMeeting()
 const update = useUpdateMeeting()
 const toast = useToast()
 const selectorOpen = ref(false)
-const candidates = useMeetingCandidates(standing, selectorOpen)
+const candidates = useMeetingCandidates(null, selectorOpen)
 const title = ref(props.meeting?.title ?? '')
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul'),
   clock = useNow()
@@ -231,11 +231,10 @@ async function submit() {
   <MeetingPersonSelector
     v-if="selectorOpen"
     :selected-ids="participantIds"
-    :candidates="candidates.data.value ?? { people: [], truncated: false, partial: false }"
+    :candidates="candidates.data.value ?? { people: [] }"
     :loading="candidates.isPending.value"
     :error="candidates.isError.value"
     mode="draft"
-    :scope-limited="standing?.companyAdmin === false"
     @close="selectorOpen = false"
     @select="
       (ids) => {

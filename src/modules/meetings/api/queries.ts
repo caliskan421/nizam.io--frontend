@@ -6,15 +6,13 @@ import {
 } from '@tanstack/vue-query'
 import { computed, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { retryTransient } from '@/modules/work/public'
-import { coordinatorDepartmentIds } from '../model/capabilities'
 import type { MeetingDetail, MeetingFilters } from '../model/types'
 import { authSession } from '@/shared/http'
 import { ownerLife } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
-import type { Standing } from '@/shared/scope/standing-facts'
 import { sessionBound } from '@/shared/session/query-session'
-import { adminCandidates, coordinatorCandidates } from './candidates'
+import { fetchMeetingCandidates } from './candidates'
 import { fetchDeletedMeetings, fetchMeeting, fetchMeetingNotes, fetchMeetings } from './fetchers'
 
 function useListLifetime(
@@ -163,27 +161,22 @@ export function useDeletedMeetings(enabled: MaybeRefOrGetter<boolean>) {
   )
 }
 
-/** Aday kümesi seçili programın standing olgularından okunur. */
+/** Aday kümesi tek uçtan (BE-067); `meetingId` null ise yeni toplantı taslağı (kuruluş kapısı). */
 export function useMeetingCandidates(
-  standing: MaybeRefOrGetter<Standing | null>,
+  meetingId: MaybeRefOrGetter<string | null>,
   enabled: MaybeRefOrGetter<boolean>,
 ) {
   const store = useScopeStore()
   return useQuery(
     computed(() => {
       const scope = store.snapshot
-      const actor = toValue(standing)
-      const isAdmin = actor?.companyAdmin === true
-      const departments = coordinatorDepartmentIds(actor, scope.programId)
+      const id = toValue(meetingId)
       return {
-        queryKey: queryKeys.meetings.candidates(scope, { admin: isAdmin, departments }),
+        queryKey: queryKeys.meetings.candidates(scope, { meetingId: id }),
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
-          isAdmin
-            ? adminCandidates(scope.programId!, signal)
-            : coordinatorCandidates(scope.programId!, departments, signal),
+          fetchMeetingCandidates(scope.programId!, id, signal),
         ),
-        enabled:
-          scope.programId !== null && toValue(enabled) && (isAdmin || departments.length > 0),
+        enabled: scope.programId !== null && toValue(enabled),
         retry: retryTransient,
       }
     }),
