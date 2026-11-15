@@ -6,7 +6,7 @@
  *    (başkasının/olmayan) sonuç `failed` döner AMA satır düşsün diye liste ve sayaç yine
  *    yeniden okunur (sessiz).
  *  - Cihaz kaydı (`registerPushTarget`/`unregisterPushTarget`) yalnız api katmanıdır; service
- *    worker ve izin arayüzü W159'dadır. `target_id` yerelde saklanmaz (depolama listesi dışı).
+ *    worker ve izin arayüzü W159'dadır. `target_id` yalnız bellekte (depolama listesi dışı); çıkış silmesi `model/push-signout.ts`.
  */
 import { useQueryClient } from '@tanstack/vue-query'
 

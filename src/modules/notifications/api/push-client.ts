@@ -7,10 +7,10 @@
  *  - `applicationServerKey` = `pushPublicKey.public_key` (base64url) → `Uint8Array`.
  *  - Kayıt gövdesi `PushSubscription.toJSON()`'dan (`keys` base64url, olduğu gibi) kurulur;
  *    `user_agent` 200 karakterle kırpılır (uzunluk sınırı belgede yok; dogrulama.md #13).
- *  - `target_id` yerelde SAKLANMAZ (depolama listesi dışı, K2): çıkışta `unregisterPushTarget`
- *    kullanılmaz; yalnız yerel `unsubscribe()` (en iyi çaba), sunucu hedefi sonraki teslimde
- *    404/410 ile düşürür (K12). Paylaşılan tarayıcıda önceki hesabın bildirimi gelmesin, yeni
- *    hesabın kaydı 409 almasın diye (E-14-79).
+ *  - `target_id` yerelde SAKLANMAZ (depolama yok, K2); yalnız oturum belleğinde tutulur
+ *    (`model/push-target.ts`) ve çıkışta `unregisterPushTarget` + yerel `unsubscribe()` çalışır
+ *    (`model/push-signout.ts`; en iyi çaba, 404 sessiz). Paylaşılan tarayıcıda önceki hesabın
+ *    bildirimi gelmesin, yeni hesabın kaydı 409 almasın diye (E-14-79).
  */
 import {
   PushClientError,
