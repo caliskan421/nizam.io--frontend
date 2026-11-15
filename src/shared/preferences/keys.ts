@@ -2,7 +2,8 @@
  * Kalıcı tercihlerin İZİNLİ anahtar listesi (yol haritası K2; tek depolama istisnası).
  *
  * Yalnız kapsam KİMLİKLERİ ve tema hatırlanır. Belirteç, kullanıcı verisi, sunucu yanıtı
- * ASLA buraya girmez. `sidebar_collapsed` bilinçli olarak yoktur (ortak-kurallar §12 P10:
+ * ASLA buraya girmez. `push.snoozeUntil` (Web Push "Şimdi değil" 14 gün, E-14-72; koordinatör
+ * kararı 2026-11-15) gizli değildir, tema tercihi gibidir: yalnız ISO zaman damgası. `sidebar_collapsed` bilinçli olarak yoktur (ortak-kurallar §12 P10:
  * daraltma yalnız oturum belleği; sentez Y9 düştü). Liste genişletmesi ürün kararı ister.
  */
 export const PREFERENCE_KEYS = [
@@ -10,6 +11,7 @@ export const PREFERENCE_KEYS = [
   'scope.lens',
   'scope.departmentId',
   'ui.theme',
+  'push.snoozeUntil',
 ] as const
 
 export type PreferenceKey = (typeof PREFERENCE_KEYS)[number]
@@ -23,6 +25,8 @@ export interface PreferenceValues {
   'scope.lens': (typeof LENS_VALUES)[number]
   'scope.departmentId': string
   'ui.theme': (typeof THEME_VALUES)[number]
+  /** UTC ISO 8601 (`toISOString()` biçimi): bu andan önce kutu gizli kalır. */
+  'push.snoozeUntil': string
 }
 
 /** Kapsam anahtarları: çıkışta silinir (E-00-29), `ui.theme` kalır. */
@@ -44,6 +48,12 @@ function id(raw: string): string | null {
   return ID_PATTERN.test(raw) ? raw : null
 }
 
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/
+
+function isoInstant(raw: string): string | null {
+  return ISO_INSTANT.test(raw) && !Number.isNaN(Date.parse(raw)) ? raw : null
+}
+
 /** Her anahtarın okuma doğrulayıcısı: geçersiz değer `null` (ve depodan düşer). */
 export const PREFERENCE_PARSERS: {
   [K in PreferenceKey]: (raw: string) => PreferenceValues[K] | null
@@ -52,6 +62,7 @@ export const PREFERENCE_PARSERS: {
   'scope.lens': oneOf(LENS_VALUES),
   'scope.departmentId': id,
   'ui.theme': oneOf(THEME_VALUES),
+  'push.snoozeUntil': isoInstant,
 }
 
 export function isPreferenceKey(key: string): key is PreferenceKey {

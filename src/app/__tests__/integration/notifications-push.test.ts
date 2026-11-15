@@ -81,13 +81,16 @@ describe('kutu görünürlüğü', () => {
     expect(browser.requestPermission).not.toHaveBeenCalled()
   })
 
-  it('"Şimdi değil" kutuyu küçültür; "Aç" yeniden başlatır (kalıcı anahtar yok)', async () => {
+  it('"Şimdi değil" kutuyu küçültür; "Aç" yeniden başlatır (14 gün kalıcı: push.snoozeUntil)', async () => {
     await openWith()
     await until(() => view() === 'prompt', 'önerme')
     await userClick('[data-testid="push-later"]')
     await until(() => view() === 'snoozed', 'küçük hâl')
     expect(browser.requestPermission).not.toHaveBeenCalled()
     expect(document.activeElement).toBe($('[data-testid="push-open"]'))
+    const { preferences } = await import('@/shared/preferences')
+    const stored = preferences.read('push.snoozeUntil')
+    expect(Date.parse(stored ?? '') - Date.now()).toBeGreaterThan(13 * 86_400_000)
   })
 })
 
