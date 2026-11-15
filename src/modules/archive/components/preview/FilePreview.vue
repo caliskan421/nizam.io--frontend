@@ -10,7 +10,7 @@ import { UiIconButton } from '@/shared/ui'
 
 import { usePreviewDetails } from '../../api/preview'
 import { formatBytes, typeBadge } from '../../model/mime'
-import { formatUploadedAt } from '../../model/preview'
+import { formatUploadedAt, uploaderName } from '../../model/preview'
 import { tagView } from '../../model/tags'
 import type { FilePreviewEmits, FilePreviewProps } from '../index'
 import FileActions from './FileActions.vue'
@@ -24,7 +24,7 @@ import { previewText } from './messages'
  * Esc, ✕, silme/ad değişimi). Önizleme alanı yalnız raster görselde ve ≤ 20 MiB'de aynı kökenden
  * `Authorization`'lı okunan `blob:` URL'sidir (HTML/SVG/PDF gömülmez; diğer türlerde nötr tür
  * simgesi); tam ekran devre dışı (designStub BE-026). Ayrıntılar: ad, tür · boyut, Görev
- * (`openTask`), Etiket (P34), Yükleyen (`listWorkItemFiles`; null → nötr, BE-071), Tarih
+ * (`openTask`), Etiket (P34), Yükleyen (`uploaded_by_full_name`; null → nötr), Tarih
  * (`created_at`, kurulum saat diliminde). İndir / yeniden adlandır / sil `FileActions`'tadır. 390 px'te panel akışta durur.
  */
 const props = defineProps<FilePreviewProps>()
@@ -189,7 +189,7 @@ function onKeydown(event: KeyboardEvent): void {
       </dd>
       <dt>{{ previewText('archive.preview.uploader') }}</dt>
       <dd data-testid="preview-uploader">
-        {{ details.uploaderName.value ?? previewText('archive.preview.noValue') }}
+        {{ uploaderName(file) ?? previewText('archive.preview.noValue') }}
       </dd>
       <dt>{{ previewText('archive.preview.date') }}</dt>
       <dd class="fp-mono" data-testid="preview-date">

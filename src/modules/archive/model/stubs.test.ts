@@ -13,7 +13,6 @@ import {
   SEARCH_SCOPE,
   THUMBNAIL,
   UNATTACHED_UPLOAD,
-  UPLOADER_NAME_IN_LIST,
 } from './stubs'
 
 const REGISTRY = readFileSync('docs/backend-eksikleri/kayit.md', 'utf8')
@@ -28,7 +27,6 @@ describe('arşiv designStub olguları', () => {
         'BE-025',
         'BE-026',
         'BE-069',
-        'BE-071',
         'BE-072',
         'BE-073',
         'BE-074',
@@ -53,14 +51,7 @@ describe('arşiv designStub olguları', () => {
       lastUploadedAt: false,
       storageBreakdown: false,
     })
-    for (const stub of [
-      UNATTACHED_UPLOAD,
-      UPLOADER_NAME_IN_LIST,
-      FILTERED_TOTAL,
-      CREATE_TAG,
-      RETAG_FILE,
-      MOVE_FILE,
-    ]) {
+    for (const stub of [UNATTACHED_UPLOAD, FILTERED_TOTAL, CREATE_TAG, RETAG_FILE, MOVE_FILE]) {
       expect(stub).toEqual({ available: false })
     }
     expect(THUMBNAIL).toEqual({ grid: false, fullscreen: false })

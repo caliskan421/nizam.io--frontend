@@ -25,9 +25,6 @@ export const FOLDER_SUMMARY = designStub('BE-025', {
 /** Göreve bağsız yükleme (E-06-05): görev seçilmeden yükleme yok → pencere görev seçtirir. */
 export const UNATTACHED_UPLOAD = designStub('BE-069', { available: false })
 
-/** Yükleyen adı arşiv listesinde yok (E-06-54): yalnız önizlemede `listWorkItemFiles` ile. */
-export const UPLOADER_NAME_IN_LIST = designStub('BE-071', { available: false })
-
 /** Süzülmüş toplam (E-06-38/46): süzgeçlide "n+" yaklaşık. */
 export const FILTERED_TOTAL = designStub('BE-073', { available: false })
 

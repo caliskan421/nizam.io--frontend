@@ -9,7 +9,6 @@ import {
   errorEnvelope,
   http,
   HttpResponse,
-  json,
   ORIGIN,
   resetHarness,
   sent,
@@ -23,8 +22,6 @@ let urls: ReturnType<typeof stubObjectUrls>
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 beforeEach(() => {
   urls = stubObjectUrls()
-  // Varsayılan yan okuma (yükleyen adı); testler gerektiğinde üzerine yazar.
-  server.use(taskFiles('Ali Avcı'))
 })
 afterEach(() => {
   resetHarness()
@@ -41,24 +38,6 @@ const png = () =>
       headers: { 'Content-Type': 'image/png' },
     }),
   )
-const taskFiles = (name: string | null) =>
-  http.get(`${ORIGIN}/v1/work-items/w1/files`, () =>
-    json({
-      files: [
-        {
-          file_id: 'f1',
-          work_item_id: 'w1',
-          display_name: 'foto.png',
-          content_type: 'image/png',
-          size_bytes: 10,
-          tag: 'sonuc',
-          uploaded_by_account_id: 'me-1',
-          uploaded_by_full_name: name,
-        },
-      ],
-    }),
-  )
-
 function preview(
   props: Record<string, unknown> = {},
   standing: object | null = { companyAdmin: true },
@@ -262,19 +241,21 @@ describe('FilePreview ayrıntıları (E-06-51…55)', () => {
     expect(text('preview-tag')).toBe('ozel')
   })
 
-  it('Yükleyen listWorkItemFiles adından; null → nötr "—" (kimlikten ad uydurulmaz)', async () => {
-    server.use(png(), taskFiles('Ali Avcı'))
-    const first = preview({}, null)
-    await settleQueries(first.h.queryClient)
+  it('Yükleyen liste satırındaki `uploaded_by_full_name` değerinden; null → nötr "—"', () => {
+    preview({ file: file({ uploaded_by_full_name: 'Ali Avcı' }) }, null)
     expect(text('preview-uploader')).toBe('Ali Avcı')
-    first.wrapper.unmount()
     document.body.innerHTML = ''
 
-    server.use(png(), taskFiles(null))
-    const second = preview({}, null)
-    await settleQueries(second.h.queryClient)
+    preview({ file: file({ uploaded_by_full_name: null }) }, null)
     expect(text('preview-uploader')).toBe('—')
     expect(text('preview-uploader')).not.toContain('me-1')
+  })
+
+  it('eski yol yok: yükleyen için listWorkItemFiles okunmaz (BE-071)', async () => {
+    server.use(png())
+    const { h } = preview({ file: file({ uploaded_by_full_name: 'Ali Avcı' }) }, null)
+    await settleQueries(h.queryClient)
+    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(0)
   })
 
   it('Tarih `created_at` değerinden "GG.AA.YYYY · SS:DD" (kurulum saat diliminde); stub yok', () => {
@@ -302,10 +283,10 @@ describe('FilePreview ayrıntıları (E-06-51…55)', () => {
   })
 
   it('görev/alt görev/yükleyen okumaları yalnız seçili dosya için (liste fan-out yok)', async () => {
-    server.use(png(), taskFiles('Ali Avcı'))
+    server.use(png())
     const { h } = preview({}, null)
     await settleQueries(h.queryClient)
-    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(1)
+    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(0)
     expect(sent('GET', '/v1/work-items/w1/subtasks')).toHaveLength(0)
   })
 })

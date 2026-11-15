@@ -28,8 +28,6 @@ export type AttachFileForm =
   paths['/v1/work-items/{id}/files']['post']['requestBody']['content']['multipart/form-data']
 /** `archiveAttachments` sorgu parametreleri (sunucu adlarıyla). */
 export type ArchiveFileQuery = NonNullable<operations['archiveAttachments']['parameters']['query']>
-/** `listWorkItemFiles` öğesi: önizlemede yükleyen adı (`uploaded_by_full_name`, null olabilir). */
-export type PreviewFileInfo = Schemas['WorkItemFileListItem']
 export type PreviewSubtask = Schemas['WorkItemSubtask']
 
 /**

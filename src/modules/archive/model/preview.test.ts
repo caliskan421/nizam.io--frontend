@@ -16,11 +16,10 @@ const file = (over: Record<string, unknown>) =>
   }) as never
 
 describe('önizleme yan okumaları', () => {
-  it('yükleyen adı: satır yoksa ya da null ise nötr (kimlikten ad uydurulmaz)', () => {
-    expect(uploaderName([file({})], 'f1')).toBe('Ayşe Yılmaz')
-    expect(uploaderName([file({ uploaded_by_full_name: null })], 'f1')).toBeNull()
-    expect(uploaderName([file({})], 'baska')).toBeNull()
-    expect(uploaderName(undefined, 'f1')).toBeNull()
+  it('yükleyen adı: null/boş ise nötr (kimlikten ad uydurulmaz)', () => {
+    expect(uploaderName(file({}))).toBe('Ayşe Yılmaz')
+    expect(uploaderName(file({ uploaded_by_full_name: null }))).toBeNull()
+    expect(uploaderName(file({ uploaded_by_full_name: '  ' }))).toBeNull()
   })
 
   it('alt görev adı: kimlik yok / liste yok / eşleşme yok → nötr', () => {
