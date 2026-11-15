@@ -2,17 +2,17 @@
  * 12 Silinen kayıtlar sayfa görünümü — Silinen-Kayitlar-Tarih.dc.html (01d) birebir karşılığı.
  * Kural: yalnız token; px yok (medya koşulu hariç: değer `--rp-narrow-max` ile aynı). Izgara
  * ölçüleri yeni token açmadan mevcut ölçek katlarıyla yazılır (seçim kutusu 36 = 9 x space-1,
- * tür 96 = 2 x space-12, tarih 120 = 3 x space-10, silen 140 = 3,5 x space-10, işlemler 150 =
+ * tür 96 = 2 x space-12, tarih 112 = 2,8 x space-10, silen 128 = 3,2 x space-10, işlemler 150 =
  * 3,75 x space-10; tasarım 36, 96, 118, 180, 150). "Kalan süre" sütunu yok (P37, E-12-24 "ızgara
- * yeniden hesaplanır"): ızgara altı sütundur, kayıt sütunu kalan genişliği alır ve silen sütunu
- * 180'den 140'a iner — 1440 px'te panel yanındayken tablo kaydırmasız sığar. Katman: components
- * (CSS katman sırası #37-#43 dersi, KESİN 17).
+ * yeniden hesaplanır"): ızgara altı sütundur ve kayıt sütunu kalan genişliği alır; en küçük tablo
+ * genişliği 736'dır (1440 px'te panel yanındayken kaydırmasız sığar, dar ekranda tablo kendi
+ * içinde kayar, sayfa taşmaz). Katman: components (CSS katman sırası #37-#43 dersi, KESİN 17).
  */
 @layer components {
   .dr-page {
     --dr-cols: calc(var(--space-1) * 9) calc(var(--space-12) * 2) minmax(0, 1fr)
-      calc(var(--space-10) * 3) calc(var(--space-10) * 3.5) calc(var(--space-10) * 3.75);
-    --dr-min-w: calc(var(--space-16) * 10);
+      calc(var(--space-10) * 2.8) calc(var(--space-10) * 3.2) calc(var(--space-10) * 3.75);
+    --dr-min-w: calc(var(--space-16) * 11.5);
     display: flex;
     flex-direction: column;
     min-width: 0;
