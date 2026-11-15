@@ -25,6 +25,7 @@ export {
   useAttachArchiveFile,
   useDeleteArchiveFile,
   useRenameArchiveFile,
+  useRetagArchiveFile,
 } from './api/writes'
 export * from './model/admin-scope'
 export * from './model/capabilities'

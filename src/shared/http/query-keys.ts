@@ -287,6 +287,7 @@ const LIFECYCLE_WORK_ITEM_WRITES = ['restoreWorkItem', 'permanentDeleteWorkItem'
 const FILE_WRITES = [
   'attachFile',
   'renameFile',
+  'retagFile',
   'deleteFile',
 ] as const satisfies readonly OperationId[]
 

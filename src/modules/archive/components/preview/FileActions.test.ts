@@ -58,44 +58,44 @@ const has = (id: string) => q(id) !== null
 const toastMessages = () => useToast().queue.value.map((t) => t.message)
 
 describe('FileActions görünürlüğü (K1, yalnız capability olguları)', () => {
-  it('yönetici: yükleyen kendisiyse indir + adlandır + sil; stub düğmeler devre dışı', () => {
+  it('yönetici: yükleyen kendisiyse indir + adlandır + etiket + sil; yalnız taşıma devre dışı stub', () => {
     actions(ADMIN_SEED)
-    expect(['file-download', 'file-rename', 'file-delete'].every(has)).toBe(true)
-    expect(q('file-retag')!.disabled).toBe(true)
+    expect(['file-download', 'file-rename', 'file-retag', 'file-delete'].every(has)).toBe(true)
+    expect(q('file-retag')!.disabled).toBe(false)
     expect(q('file-move')!.disabled).toBe(true)
-    expect(document.body.querySelector('[data-design-stub="BE-074"]')).not.toBeNull()
+    // BE-074 canlandı: etiket düğmesinde stub çerçevesi yok; taşıma (BE-075) devre dışı kalır.
+    expect(document.body.querySelector('[data-design-stub="BE-074"]')).toBeNull()
     expect(document.body.querySelector('[data-design-stub="BE-075"]')).not.toBeNull()
   })
 
-  it('yönetici başkasının dosyasını silemez (gizli), adlandırabilir', () => {
+  it('yönetici başkasının dosyasını silemez (gizli), adlandırabilir ve etiketini değiştirebilir', () => {
     actions(ADMIN_SEED, { file: file({ uploaded_by_account_id: 'baska' }) })
-    expect(has('file-rename')).toBe(true)
+    expect(has('file-rename') && has('file-retag')).toBe(true)
     expect(has('file-delete')).toBe(false)
   })
 
   it('koordinatör başkasının dosyasını adlandırır ama silemez', () => {
     actions(COORD_SEED, { file: file({ uploaded_by_account_id: 'baska' }) })
-    expect(has('file-rename')).toBe(true)
+    expect(has('file-rename') && has('file-retag')).toBe(true)
     expect(has('file-delete')).toBe(false)
   })
 
   it('üye yalnız kendi dosyasında adlandırır/siler; başkasınınkinde yalnız indirir', () => {
     actions(MEMBER_SEED)
-    expect(has('file-rename') && has('file-delete')).toBe(true)
+    expect(has('file-rename') && has('file-retag') && has('file-delete')).toBe(true)
     document.body.innerHTML = ''
     actions(MEMBER_SEED, { file: file({ uploaded_by_account_id: 'baska' }) })
     expect(has('file-download')).toBe(true)
-    expect(has('file-rename') || has('file-delete')).toBe(false)
+    expect(has('file-rename') || has('file-retag') || has('file-delete')).toBe(false)
   })
 
   it('mercek yetki değildir: ekip satırı olmayan üye ekip eylemi görmez', () => {
     actions({ rows: [] })
-    expect(has('file-rename') || has('file-delete')).toBe(false)
+    expect(has('file-rename') || has('file-retag') || has('file-delete')).toBe(false)
   })
 
-  it('stub düğmeler tıklanınca hiçbir istek atılmaz (sıfır yazma)', async () => {
+  it('taşıma stub düğmesi tıklanınca hiçbir istek atılmaz (sıfır yazma)', async () => {
     const { h } = actions(ADMIN_SEED)
-    q('file-retag')!.click()
     q('file-move')!.click()
     await settleQueries(h.queryClient)
     expect(sent('PATCH', '/v1/files/f1')).toHaveLength(0)
@@ -329,5 +329,107 @@ describe('Yeniden adlandır bağlantısı', () => {
     document.body.querySelector<HTMLButtonElement>('[data-testid="rename-submit"]')!.click()
     await settleQueries(h.queryClient)
     expect(calls.renamed).toEqual(['f1'])
+  })
+})
+
+describe('Etiketi değiştir (retagFile, BE-074; E-06-58/64)', () => {
+  const patch = (tag: string) =>
+    http.patch(`${ORIGIN}/v1/files/f1/tag`, () => json({ ...fileRecordFor(tag) }))
+  const fileRecordFor = (tag: string) => ({
+    file_id: 'f1',
+    work_item_id: 'w1',
+    display_name: 'rapor.pdf',
+    content_type: 'application/pdf',
+    size_bytes: 2048,
+    created_at: '2026-11-10T09:00:00Z',
+    tag,
+  })
+  const open = async () => {
+    q('file-retag')!.focus()
+    q('file-retag')!.click()
+    await nextTick()
+  }
+  const items = () => [...document.body.querySelectorAll<HTMLElement>('[data-retag]')]
+
+  it('menü: altı etiket (P34 adları), geçerli işaretli; kapalıyken aria-controls yok', async () => {
+    actions(ADMIN_SEED, { file: file({ tag: 'plan' }) })
+    expect(q('file-retag')!.getAttribute('aria-controls')).toBeNull()
+    await open()
+    expect(items().map((i) => i.textContent?.trim())).toEqual([
+      'İster',
+      'Plan',
+      'Girdi',
+      'Analiz',
+      'Çıktı',
+      'Sonuç',
+    ])
+    expect(items().map((i) => i.getAttribute('aria-checked'))).toEqual([
+      'false',
+      'true',
+      'false',
+      'false',
+      'false',
+      'false',
+    ])
+    expect(q('file-retag')!.getAttribute('aria-controls')).toBe('af-retag-menu')
+  })
+
+  it('seçim: PATCH {tag} anahtarsız, dosyanın departman başlığıyla; bildirim; odak tetikleyiciye döner', async () => {
+    server.use(patch('girdi'))
+    const { h } = actions(ADMIN_SEED, { file: file({ tag: 'plan' }) })
+    await open()
+    document.body.querySelector<HTMLElement>('[data-retag="girdi"]')!.click()
+    await settleQueries(h.queryClient)
+    const [req] = sent('PATCH', '/v1/files/f1/tag')
+    expect(req!.body).toEqual({ tag: 'girdi' })
+    expect(req!.headers.get('Idempotency-Key')).toBeNull()
+    expect(req!.headers.get('X-Nizamio-Department')).toBe('d1')
+    expect(toastMessages()).toContain('Etiket “Girdi” olarak değiştirildi.')
+    expect(document.body.querySelector('[role="menu"]')).toBeNull()
+    expect(document.activeElement).toBe(q('file-retag'))
+  })
+
+  it('aynı etiket: istek atılmaz, "zaten bu etiketli" bildirimi', async () => {
+    const { h } = actions(ADMIN_SEED, { file: file({ tag: 'plan' }) })
+    await open()
+    document.body.querySelector<HTMLElement>('[data-retag="plan"]')!.click()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', '/v1/files/f1/tag')).toHaveLength(0)
+    expect(toastMessages()).toContain('Dosya zaten “Plan” etiketli.')
+  })
+
+  it('403 records.not_authorized: ortak hata bildirimi, etiket değişmiş gösterilmez', async () => {
+    server.use(
+      http.patch(`${ORIGIN}/v1/files/f1/tag`, () => errorEnvelope('records.not_authorized', 403)),
+    )
+    const { h } = actions(COORD_SEED, { file: file({ tag: 'plan' }) })
+    await open()
+    document.body.querySelector<HTMLElement>('[data-retag="cikti"]')!.click()
+    await settleQueries(h.queryClient)
+    expect(toastMessages().some((m) => m.includes('olarak değiştirildi'))).toBe(false)
+    expect(toastMessages().length).toBeGreaterThan(0)
+  })
+
+  it('Esc menüyü kapatır ve odağı tetikleyiciye döndürür; istek yok', async () => {
+    actions(ADMIN_SEED, { file: file({ tag: 'plan' }) })
+    await open()
+    document.body
+      .querySelector('[role="menu"]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await nextTick()
+    await nextTick()
+    expect(document.body.querySelector('[role="menu"]')).toBeNull()
+    expect(document.activeElement).toBe(q('file-retag'))
+    expect(sent('PATCH', '/v1/files/f1/tag')).toHaveLength(0)
+  })
+
+  it('dışarı tıklama menüyü kapatır, odak taşınmaz', async () => {
+    actions(ADMIN_SEED, { file: file({ tag: 'plan' }) })
+    await open()
+    ;(document.activeElement as HTMLElement).blur()
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    await nextTick()
+    expect(document.body.querySelector('[role="menu"]')).toBeNull()
+    expect(document.activeElement).not.toBe(q('file-retag'))
   })
 })

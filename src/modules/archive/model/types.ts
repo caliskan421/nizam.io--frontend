@@ -113,6 +113,11 @@ export interface RenameArchiveFileInput extends ArchiveFileRef {
   displayName: string
 }
 
+/** `retagFile` değişkenleri: kapalı küme etiketi (BE-074). */
+export interface RetagArchiveFileInput extends ArchiveFileRef {
+  tag: ArchiveTag
+}
+
 /** İndirme türü: tek dosya, klasör ZIP'i, dönem ZIP'i (seçim ZIP'i kullanılmaz). */
 export type ArchiveDownloadKind = 'file' | 'folder' | 'period'
 

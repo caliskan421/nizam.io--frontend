@@ -22,9 +22,6 @@ export const CREATE_TAG = designStub('BE-024', { available: false })
 /** Küçük resim / önizleme türevi (E-06-41, 49, 50): ızgarada yok; tam ekran devre dışı. */
 export const THUMBNAIL = designStub('BE-026', { grid: false, fullscreen: false })
 
-/** Etiketi değiştir (E-06-58). */
-export const RETAG_FILE = designStub('BE-074', { available: false })
-
 /** Başka göreve/klasöre taşı (E-06-59). */
 export const MOVE_FILE = designStub('BE-075', { available: false })
 
