@@ -40,10 +40,13 @@ describe('arşiv rota kataloğu (F5)', () => {
     expect(menuEntries('F4').map((e) => e.key)).not.toContain('archive')
   })
 
-  it('06 süzgeçleri: tur yalnız Tümü/Görsel/Belge (PDF yok), sirala yalnız ad/dosya', () => {
+  it('06 süzgeçleri: tur yalnız Tümü/Görsel/Belge (PDF yok), sirala ad/dosya/son', () => {
     expect(
       parseRouteQuery('archive.folders', { q: 'rapor', tur: 'belge', sirala: 'dosya:azalan' }),
     ).toEqual({ q: 'rapor', tur: 'belge', sirala: 'dosya:azalan' })
+    expect(parseRouteQuery('archive.folders', { sirala: 'son:azalan' })).toEqual({
+      sirala: 'son:azalan',
+    })
     expect(parseRouteQuery('archive.folders', { tur: 'pdf', sirala: 'sonYukleme:azalan' })).toEqual(
       {},
     )
