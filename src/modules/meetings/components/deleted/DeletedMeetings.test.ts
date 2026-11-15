@@ -29,11 +29,6 @@ afterAll(() => server.close())
 it('restores and confirms permanent deletion using the actual endpoints', async () => {
   const calls: string[] = []
   server.use(
-    http.get('http://localhost/v1/program/departments', () =>
-      HttpResponse.json({
-        departments: [{ department_id: 'd', display_name: 'Birim', code: 'BRM' }],
-      }),
-    ),
     http.patch('http://localhost/v1/admin/restore/meetings/m', () => {
       calls.push('restore')
       return HttpResponse.json({ meeting_id: 'm', status: 'restored' })
@@ -54,7 +49,9 @@ it('restores and confirms permanent deletion using the actual endpoints', async 
     meeting_id: 'm',
     program_id: 'p',
     title: 'Toplantı',
-    departments: [],
+    departments: [
+      { department_id: 'd', department_name: 'Birim', department_code: 'BRM', deleted: false },
+    ],
     owner_department_id: 'd',
     created_at: '2026-11-11T10:00:00Z',
     updated_at: '2026-11-11T10:00:00Z',

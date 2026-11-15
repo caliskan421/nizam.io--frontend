@@ -9,3 +9,11 @@ it('uses participant names and the unknown fallback', () => {
   expect(checker(item, participants, 'UTC', 'Bilinmeyen kişi')).toBe('Ada Y. · 12:00')
   expect(checker(item, [], 'UTC', 'Bilinmeyen kişi')).toBe('Bilinmeyen kişi · 12:00')
 })
+it('prefers the server-provided checker name over the participant list', () => {
+  const item = {
+    checked_by_account_id: 'x',
+    checked_by_full_name: 'Bora Kaya',
+    checked_at: '2026-01-01T12:00:00Z',
+  } as AgendaItem
+  expect(checker(item, [], 'UTC', 'Bilinmeyen kişi')).toBe('Bora K. · 12:00')
+})

@@ -32,6 +32,7 @@ export const trMeetings = {
       footerPast: '{count} geçmiş toplantı',
       deletedTitle: 'Yalnız yönetici görebilir',
       extraDepartments: '+ {count} koordinatörlük',
+      deletedDepartment: 'silinmiş',
       agenda: 'Gündem',
       notes: 'Notlar',
       participants: 'Katılımcılar',
@@ -145,6 +146,7 @@ export const trMeetings = {
       departments: 'Koordinatörlükler',
       change: 'Değiştir',
       owner: 'Sahip',
+      deletedDepartment: 'silinmiş',
       departmentHint:
         'İlk koordinatörlük sahiptir. Bir koordinatörlük silinse de adı bu toplantıda kalır.',
       information: 'Bilgi',

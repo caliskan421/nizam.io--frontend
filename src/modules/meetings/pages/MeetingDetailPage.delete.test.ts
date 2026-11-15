@@ -23,7 +23,6 @@ vi.mock('@/modules/reports/public', () => ({
     template: '<span data-testid="meeting-report" :data-meeting="meeting.meeting_id" />',
   },
 }))
-vi.mock('./detail/use-departments', () => ({ useDepartments: () => ref([]) }))
 vi.mock('../api/queries', () => ({
   useMeeting: () => ({
     data: ref({

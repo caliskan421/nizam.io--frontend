@@ -26,19 +26,23 @@ describe('meeting list model', () => {
     expect(meetingDay(new Date('2026-11-10T22:30:00Z'), 'Europe/Istanbul')).toBe('2026-11-11')
     expect(meetingDay('2026-11-10T20:59:00Z', 'Europe/Istanbul')).toBe('2026-11-10')
   })
-  it('places the owner first and falls back to initials for missing codes', () => {
+  it('places the owner first, takes the code from the bind copy and falls back to initials', () => {
     const m = {
       ...meeting('x', '2026-11-11T00:00:00Z'),
       departments: [
-        makeMeetingDepartment({ department_id: 'other', department_name: 'İnsan Kaynakları' }),
-        makeMeetingDepartment({ department_id: 'd', department_name: 'Ana Ekip' }),
+        makeMeetingDepartment({
+          department_id: 'other',
+          department_name: 'İnsan Kaynakları',
+          department_code: null,
+        }),
+        makeMeetingDepartment({
+          department_id: 'd',
+          department_name: 'Ana Ekip',
+          department_code: 'ANA',
+        }),
       ],
     }
-    expect(
-      meetingDepartments(m, [{ department_id: 'd', display_name: 'Ana', code: 'ANA' }]).map(
-        (d) => d.code,
-      ),
-    ).toEqual(['ANA', 'İK'])
+    expect(meetingDepartments(m).map((d) => d.code)).toEqual(['ANA', 'İK'])
   })
   it('groups records by the installation calendar day', () => {
     const groups = groupMeetings(

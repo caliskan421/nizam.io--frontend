@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import './deleted.css'
 import { nextTick, ref } from 'vue'
-import { useProgramDepartments } from '@/modules/work/public'
 import { usePermanentDeleteMeeting, useRestoreMeeting } from '../../api/meeting-writes'
+import { meetingDepartments } from '../../model/list'
 import type { Meeting } from '../../model/types'
 import { reachesOwner } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
@@ -23,13 +23,8 @@ const purge = usePermanentDeleteMeeting()
 const { confirmWrite } = useConfirm()
 const section = ref<HTMLElement | null>(null)
 const instance = useInstanceStore()
-const departments = useProgramDepartments()
 function ownerCode(item: Meeting) {
-  return (
-    departments.byId.value.get(item.owner_department_id)?.code ||
-    item.departments.find((d) => d.department_id === item.owner_department_id)?.department_name ||
-    text.unknownDepartment
-  )
+  return meetingDepartments(item)[0]?.code || text.unknownDepartment
 }
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('tr-TR', {

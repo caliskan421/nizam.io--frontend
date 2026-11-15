@@ -1,7 +1,6 @@
 import type { components } from '@/shared/api/schema'
 
 type Meeting = components['schemas']['Meeting']
-type Department = components['schemas']['ProgramDepartment']
 
 /** Kurulum saat dilimindeki takvim günü; ISO sırası karşılaştırmaya uygundur. */
 export function meetingDay(date: string | Date, timezone: string): string {
@@ -15,9 +14,11 @@ export function meetingDay(date: string | Date, timezone: string): string {
   return `${part('year')}-${part('month')}-${part('day')}`
 }
 
-/** Sahip önde; kod yoksa bağdaki adın baş harfleri kullanılır. */
-export function meetingDepartments(meeting: Meeting, departments: readonly Department[]) {
-  const codes = new Map(departments.map((d) => [d.department_id, d.code]))
+/**
+ * Sahip önde; kod bağ anı kopyasıdır (BE-063 `department_code`), kodsuz/eski bağda adın baş
+ * harfleri kullanılır. `deleted` okuma anı olgusudur (silinmiş koordinatörlük işareti).
+ */
+export function meetingDepartments(meeting: Meeting) {
   return [...meeting.departments]
     .sort(
       (a, b) =>
@@ -27,7 +28,7 @@ export function meetingDepartments(meeting: Meeting, departments: readonly Depar
     .map((department) => ({
       ...department,
       code:
-        codes.get(department.department_id) ||
+        department.department_code ||
         department.department_name
           .trim()
           .split(/\s+/)

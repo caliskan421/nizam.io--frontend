@@ -4,7 +4,6 @@ import './detail/detail.css'
 import { useRoute, useRouter } from 'vue-router'
 import { useMeeting } from '../api/queries'
 import { listQuery } from './detail/list-query'
-import { useDepartments } from './detail/use-departments'
 import { useDeleteMeeting } from '../api/meeting-writes'
 import { useMeetingAccess } from './detail/use-meeting-access'
 import { useMeetingLoss } from './detail/use-meeting-loss'
@@ -38,10 +37,7 @@ const id = computed(() =>
 const query = useMeeting(id)
 useMeetingLoss(query.error, id)
 const meeting = computed(() => query.data.value)
-const departments = useDepartments()
-const displayDepartments = computed(() =>
-  meeting.value ? meetingDepartments(meeting.value, departments.value) : [],
-)
+const displayDepartments = computed(() => (meeting.value ? meetingDepartments(meeting.value) : []))
 usePageCrumb(() => meeting.value?.title ?? null)
 const remove = useDeleteMeeting()
 const { confirmWrite } = useConfirm()

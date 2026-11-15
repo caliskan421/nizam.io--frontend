@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useProgramDepartments } from '@/modules/work/public'
 import { useInstanceStore } from '@/shared/instance/store'
 import { UiEmptyState, UiIcon } from '@/shared/ui'
 import { groupMeetings, meetingDepartments } from '../../model/list'
@@ -19,7 +18,6 @@ function select(event: MouseEvent, id: string) {
   event.preventDefault()
   emit('select', id)
 }
-const departments = useProgramDepartments()
 const instance = useInstanceStore()
 const now = useNow()
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
@@ -37,7 +35,7 @@ function format(date: string, options: Intl.DateTimeFormatOptions) {
   )
 }
 function codes(item: Meeting) {
-  return meetingDepartments(item, departments.query.data.value?.departments ?? [])
+  return meetingDepartments(item)
 }
 </script>
 <template>
@@ -67,7 +65,11 @@ function codes(item: Meeting) {
               :key="department.department_id"
               class="meeting-code"
               :class="{ 'meeting-code-own': index === 0 }"
-              :title="department.department_name"
+              :title="
+                department.deleted
+                  ? `${department.department_name} (${t('meetings.list.deletedDepartment')})`
+                  : department.department_name
+              "
               >{{ department.code }}</span
             ><span
               >{{ codes(item)[0]?.department_name }}{{ ' '

@@ -1,7 +1,7 @@
 /**
  * Yaklaşan toplantı satırı (E-K1-34/35, E-Ü1-28/29): `Meeting` alanlarından türetilir; tarih ve
- * saat KURULUM saat diliminde. Kod rozetleri yok (BE-005): departman adı kısaltması (tam ad
- * ipucunda). "Canlı" göstergesi ve anlık toplantı çizilmez (P21).
+ * saat KURULUM saat diliminde. Kod rozeti toplantının bağ anı kopyasıdır (BE-063
+ * `department_code`); kodsuz/eski bağda departman adı kısaltması (tam ad ipucunda). "Canlı" göstergesi ve anlık toplantı çizilmez (P21).
  */
 import type { Meeting } from '@/modules/meetings/public'
 
@@ -53,7 +53,7 @@ export function meetingView(meeting: Meeting, timeZone: string, today: string): 
   const units = meeting.departments
     .map((d) => ({
       id: d.department_id,
-      short: shortName(d.department_name),
+      short: d.department_code || shortName(d.department_name),
       name: d.department_name,
       owner: d.department_id === meeting.owner_department_id,
     }))
