@@ -238,6 +238,7 @@ function openTask(workItemId: string): void {
       <UploadDialog
         v-if="uploading"
         :tasks="data.uploads.value"
+        :truncated="data.uploadsTruncated.value"
         :default-task-id="data.activeTask.value"
         @close="closeUpload"
       />

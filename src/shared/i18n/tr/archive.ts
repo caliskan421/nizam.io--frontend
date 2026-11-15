@@ -240,10 +240,10 @@ export const trArchive = {
       task: {
         label: 'Görev',
         placeholder: 'Görev seçin',
-        // BE-121: arşiv görev listesi yalnız dosyası olan görevleri verir.
-        hint: 'Yalnız arşivde görünen görevler listelenir; henüz dosyası olmayan bir görev burada yoktur.',
         required: 'Görev seçin.',
-        none: 'Dosya yükleyebileceğiniz görev yok. Henüz dosyası olmayan görevler bu listede görünmez.',
+        none: 'Dosya yükleyebileceğiniz görev yok.',
+        // Sunucu seçenek listesini 200'de kesti (`X-Result-Truncated`, RECORDS-K42).
+        truncated: 'Görev listesi kesildi: bazı görevler burada görünmüyor.',
       },
       tag: {
         label: 'Etiket',

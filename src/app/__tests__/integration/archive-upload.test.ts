@@ -2,6 +2,7 @@
 // izinli tekrar, başarıda arşiv/görev türevlerinin yenilenmesi (KESİN 29), sökülmüş sahipte UI yok.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { item } from './fake-org'
 import {
   $,
   ADMIN,
@@ -159,6 +160,72 @@ describe('yükleme', () => {
     await click(() => $('[data-testid="upload-submit"]'))
     await idle(app.queryClient)
     expect(backend.sent('POST', '/v1/work-items/w1/files')).toHaveLength(0)
+  })
+})
+
+describe('dosyasız göreve ilk yükleme (BE-121, include_empty)', () => {
+  it("ŞY 06'dan program geneli seçiciden dosyasız görevi seçer; başlık = seçeneğin department_id'si (d2)", async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv' })
+    await until(
+      () =>
+        $('[data-action="upload"]') && !($('[data-action="upload"]') as HTMLButtonElement).disabled,
+      'etkin düğme',
+    )
+    await userClick(() => $('[data-action="upload"]'))
+    await until(() => $('[data-testid="upload-task"]'), 'pencere')
+    // w4 ("Arayüz taslağı", d2) hiç dosyası olmayan canlı görev.
+    const options = [...($('[data-testid="upload-task"]') as HTMLSelectElement).options].map(
+      (o) => o.value,
+    )
+    expect(options).toEqual(expect.arrayContaining(['w1', 'w3', 'w4']))
+    const picker = backend
+      .sent('GET', '/v1/program/archive/tasks')
+      .filter((r) => r.query.get('include_empty') === 'true')
+    expect(picker).toHaveLength(1)
+    expect(picker[0]!.query.has('department_id')).toBe(false)
+    await fill('[data-testid="upload-task"]', 'w4')
+    await fill('[data-testid="upload-tag"]', 'plan')
+    await choose('ilk.pdf')
+    const folders = backend.sent('GET', '/v1/program/archive/folders').length
+    await click(() => $('[data-testid="upload-submit"]'))
+    await until(() => !$('[data-testid="upload-task"]'), 'kapandı')
+    await idle(app.queryClient)
+    const posts = backend.sent('POST', '/v1/work-items/w4/files')
+    expect(posts).toHaveLength(1)
+    expect(posts[0]!.headers.get('X-Nizamio-Department')).toBe('d2')
+    expect(posts[0]!.headers.get('Idempotency-Key')).toBeTruthy()
+    expect(archive.state.files.some((f) => f.work_item_id === 'w4')).toBe(true)
+    // Başarıda S2 klasör özeti yeniden okunur (arşiv geçersizlenir).
+    expect(backend.sent('GET', '/v1/program/archive/folders').length).toBeGreaterThan(folders)
+  })
+
+  it('koordinatör kendi klasöründe dosyasız göreve yükler (S3 include_empty); başlık d1', async () => {
+    backend.db.items.push(item('w5', 'p1', 'd1', null, { title: 'Dosyasız d1 görevi' }))
+    await boot({ ...COORD, path: '/arsiv/d1' })
+    await userClick(() => $('[data-testid="folder-upload"]'))
+    await until(() => $('[data-testid="upload-task"]'), 'pencere')
+    const picker = backend
+      .sent('GET', '/v1/records/archive/tasks')
+      .filter((r) => r.query.get('include_empty') === 'true')
+    expect(picker).toHaveLength(1)
+    await fill('[data-testid="upload-task"]', 'w5')
+    await fill('[data-testid="upload-tag"]', 'girdi')
+    await choose('koord-ilk.pdf')
+    await click(() => $('[data-testid="upload-submit"]'))
+    await until(() => !$('[data-testid="upload-task"]'), 'kapandı')
+    const posts = backend.sent('POST', '/v1/work-items/w5/files')
+    expect(posts).toHaveLength(1)
+    expect(posts[0]!.headers.get('X-Nizamio-Department')).toBe('d1')
+  })
+
+  it('klasör görevleri (parametresiz) dosyasızı içermez; include_empty yalnız yükleme seçicisine gider', async () => {
+    backend.db.items.push(item('w5', 'p1', 'd1', null, { title: 'Dosyasız d1 görevi' }))
+    await boot({ ...ADMIN, path: '/arsiv/d1' })
+    await until(() => $('[data-task-id="w1"]'), 'görev klasörleri')
+    expect($('[data-task-id="w5"]')).toBeNull()
+    const calls = backend.sent('GET', '/v1/program/archive/tasks')
+    expect(calls.filter((r) => r.query.has('include_empty'))).toHaveLength(1)
+    expect(calls.filter((r) => !r.query.has('include_empty'))).toHaveLength(1)
   })
 })
 

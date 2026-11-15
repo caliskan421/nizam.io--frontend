@@ -16,14 +16,14 @@ import { archiveCapabilities } from '../../model/capabilities'
 import { ARCHIVE_TAGS, isArchiveTag, TAG_LABELS } from '../../model/tags'
 import type { FileRecord } from '../../model/types'
 import type { UploadDialogEmits, UploadDialogProps } from '../index'
-import { errorField, type UploadField } from './model'
+import { errorField, taskHintKey, type UploadField } from './model'
 import UploadDropZone from './UploadDropZone.vue'
 import { useSubtaskOptions } from './use-subtask-options'
 
 /**
- * W125 · E-06-05/35/62 — görev seçtiren yükleme penceresi (P35; pencere çizilmemiş → P3 ile
- * `shared/ui` modal + form). Görev listesi yalnız yükleme yetkili görevlerdir (`upload`
- * capability; sunucu yine denetler). Etiket ZORUNLU, varsayılan yok (P34 sözlüğü). Alt görev
+ * W125 · E-06-05/35/62 — görev seçtiren yükleme penceresi (P35; P3 ile `shared/ui` modal + form).
+ * Görevler `include_empty=true` seçenekleridir (dosyasızlar dahil, BE-121); yükleme yetkili olanlar
+ * (`upload` capability; sunucu yine denetler). Etiket ZORUNLU, varsayılan yok (P34). Alt görev
  * yalnız seçili görevin `listWorkItemSubtasks` okumasıyla. `attachFile`: eylem başına anahtar,
  * belirsizlikte aynı anahtarla TEK tekrar (`UiOutcomeNotice`). `fetch` yükleme bayt ilerlemesi
  * vermez → ilerleme durumu belirsiz (indeterminate). Sökülmüş sahipte geç sonuç UI başlatmaz.
@@ -53,6 +53,7 @@ const allowed = computed(() => {
   const caps = archiveCapabilities(standing.value, store.snapshot.programId)
   return props.tasks.filter((task) => caps.upload(task.departmentId))
 })
+const hintKey = computed(() => taskHintKey(allowed.value.length, props.truncated))
 const selected = computed(() => allowed.value.find((task) => task.workItemId === taskId.value))
 const target = computed(() => {
   const programId = store.snapshot.programId
@@ -169,7 +170,7 @@ async function submit(): Promise<void> {
     <form :id="formId" class="au-form" novalidate @submit.prevent="submit">
       <UiField
         :label="t('archive.upload.task.label')"
-        :hint="allowed.length === 0 ? t('archive.upload.task.none') : t('archive.upload.task.hint')"
+        :hint="hintKey ? t(hintKey) : undefined"
         :error="taskError"
       >
         <UiSelect

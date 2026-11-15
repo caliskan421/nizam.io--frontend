@@ -8,6 +8,8 @@
  */
 import { computed, type Ref } from 'vue'
 
+import { isListTruncated } from '@/shared/http/truncation'
+
 import { useArchiveTaskFolders } from '../../api/admin-tasks'
 import { useArchiveContext } from '../../api/context'
 import { useArchiveAttachments, useArchiveUploadTasks } from '../../api/queries'
@@ -80,6 +82,7 @@ export function useFolderData(folderId: Ref<string | null>, url: Ref<FolderUrlSt
     total: attachments.total,
     titles: computed(() => taskTitles(taskList.value)),
     uploads: computed(() => uploadTasks(uploadSource.data.value?.tasks)),
+    uploadsTruncated: computed(() => isListTruncated(uploadSource.data.value)),
     filesLoading,
     filesError: computed(() => query.isError.value && filesEnabled.value),
     /** Dosya sayfaları yerleşti (hata yok, uçuşta istek yok). */

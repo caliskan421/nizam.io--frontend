@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { SeasonReportActions } from '@/modules/reports/public'
 import { authSession } from '@/shared/http'
+import { isListTruncated } from '@/shared/http/truncation'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiButton, UiCount, UiEmptyState } from '@/shared/ui'
 
@@ -99,18 +100,15 @@ const capabilities = computed(() => archiveCapabilities(context.standing.value, 
 const totalFiles = computed(() => context.folders.data.value?.totals.file_count ?? null)
 const totalBytes = computed(() => context.folders.data.value?.totals.total_bytes ?? null)
 
-// Yükleme: görev seçicisi dosyasız canlı görevleri de içerir (`include_empty=true`, BE-121); yönetici
-// bütün programın görevlerini görür, başlık = seçeneğin `department_id`'si. Yönlendirilen roller
-// (P40) 06'da görev okumaz: 07 kendi okumasını açar (W121 temizliği).
+// Yükleme: seçici `include_empty=true` (dosyasızlar dahil, BE-121), yönetici bütün programı görür;
+// yönlendirilen roller (P40) 06'da görev okumaz (07 kendi okumasını açar).
 const gridActive = computed(() => context.entry.value.kind === 'grid')
 const uploadTaskList = useArchiveUploadTasks(context.source, gridActive)
 const uploadList = computed(() => uploadTasks(uploadTaskList.data.value?.tasks))
+const uploadTruncated = computed(() => isListTruncated(uploadTaskList.data.value))
 const uploading = ref(false)
 const uploadButton = ref<ComponentPublicInstance | null>(null)
 const uploadDisabled = computed(() => uploadList.value.length === 0)
-const uploadHint = computed(() =>
-  uploadDisabled.value ? t('archive.folders.actions.uploadNoTasks') : undefined,
-)
 
 // Arama (yönetici, program geneli): süzgeç doluyken sonuç listesi ızgaranın yerine geçer.
 const {
@@ -155,7 +153,7 @@ onScopeDispose(() => {
           variant="primary"
           icon="upload"
           :disabled="uploadDisabled"
-          :title="uploadHint"
+          :title="uploadDisabled ? t('archive.folders.actions.uploadNoTasks') : undefined"
           data-action="upload"
           @click="uploading = true"
         >
@@ -244,6 +242,7 @@ onScopeDispose(() => {
     <UploadDialog
       v-if="uploading && capabilities.canOpenUpload"
       :tasks="uploadList"
+      :truncated="uploadTruncated"
       @close="closeUpload"
     />
   </section>

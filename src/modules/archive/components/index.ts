@@ -202,8 +202,11 @@ export interface RenameFileDialogEmits {
 
 /** W125 · E-06-05/35/62 — görev seçtiren yükleme penceresi (zorunlu etiket, sürükle-bırak). */
 export interface UploadDialogProps {
+  /** `include_empty=true` görev seçenekleri (dosyasızlar dahil; başlık = seçeneğin `department_id`'si). */
   tasks: readonly UploadTask[]
   defaultTaskId?: string | null
+  /** Sunucu seçenek listesini 200'de kesti (`X-Result-Truncated`). */
+  truncated?: boolean
 }
 export interface UploadDialogEmits {
   close: []

@@ -40,7 +40,7 @@ const CONTRACT = {
   ],
   FileActions: [['file', 'target'], ['deleted', 'renamed'], 'W124'],
   RenameFileDialog: [['open', 'file', 'target'], ['update:open', 'renamed'], 'W124'],
-  UploadDialog: [['tasks', 'defaultTaskId'], ['close', 'uploaded'], 'W125'],
+  UploadDialog: [['tasks', 'defaultTaskId', 'truncated'], ['close', 'uploaded'], 'W125'],
   FolderZipButton: [['target', 'folder'], [], 'W126'],
   PeriodZipButton: [['target'], [], 'W126'],
 } as const
@@ -73,7 +73,7 @@ describe('arşiv bileşen iskeleti (W121 → O2b)', () => {
   it('yükleme penceresi sözleşmesi: emits close/uploaded, props tasks/defaultTaskId (W125)', () => {
     const dialog = skeleton.UploadDialog as Declared
     expect(names(dialog.emits).sort()).toEqual(['close', 'uploaded'])
-    expect(names(dialog.props).sort()).toEqual(['defaultTaskId', 'tasks'])
+    expect(names(dialog.props).sort()).toEqual(['defaultTaskId', 'tasks', 'truncated'])
   })
 
   it('bileşenler yetkiyi kendileri hesaplamaz: rol/yönetici olgusu prop adında taşınmaz', () => {
