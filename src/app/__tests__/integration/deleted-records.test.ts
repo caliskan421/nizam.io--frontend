@@ -75,6 +75,26 @@ const meetingRow = (id: string) => ({
 })
 let restoredMeetings: string[] = []
 
+function restoreTask(id: string): void {
+  const member = backend.db.accounts.find((a) => a.account_id === PEOPLE.member.account_id)!
+  backend.db.items.push(item(id, 'p1', 'd1', member, { title: 'Silinmiş görev' }))
+}
+
+/** Toplu uçlar (ADR-0045): kısmi başarı zarfı; kimlikleri silinen durumdan düşer. */
+function batchEndpoints(segment: string, list: keyof Deleted, onRestore?: (id: string) => void) {
+  const handle = (restore: boolean) =>
+    http.post(
+      `${ORIGIN}/v1/admin/deleted/${segment}/${restore ? 'restore' : 'purge'}`,
+      async ({ request }) => {
+        const { ids } = (await request.json()) as { ids: string[] }
+        deleted[list] = deleted[list].filter((x) => !ids.includes(x))
+        if (restore) ids.forEach((id) => onRestore?.(id))
+        return HttpResponse.json({ succeeded: ids, failed: [] })
+      },
+    )
+  return [handle(true), handle(false)]
+}
+
 /** Silinen listeleri + yaşam döngüsü uçları; pano sayacı bu duruma bağlıdır. */
 function install(): void {
   const lifecycle = (
@@ -182,10 +202,11 @@ function install(): void {
         next_cursor: '',
       }),
     ),
-    ...lifecycle('work-items', 'tasks', 'work_item_id', (id) => {
-      const member = backend.db.accounts.find((a) => a.account_id === PEOPLE.member.account_id)!
-      backend.db.items.push(item(id, 'p1', 'd1', member, { title: 'Silinmiş görev' }))
-    }),
+    ...batchEndpoints('work-items', 'tasks', restoreTask),
+    ...batchEndpoints('meetings', 'meetings', (id) => restoredMeetings.push(id)),
+    ...batchEndpoints('departments', 'departments'),
+    ...batchEndpoints('accounts', 'accounts'),
+    ...lifecycle('work-items', 'tasks', 'work_item_id', restoreTask),
     ...lifecycle('meetings', 'meetings', 'meeting_id', (id) => restoredMeetings.push(id)),
     ...lifecycle('departments', 'departments', 'department_id'),
     ...lifecycle('accounts', 'accounts', 'account_id'),
@@ -394,6 +415,58 @@ describe('özet sayaçları ↔ ana sayfa rozeti (BE-110, KESİN 29)', () => {
     await idle(app.queryClient)
     await until(() => segment().kullanici === '0', 'hesap sayacı düştü')
     expect(segment().gorev).toBe('1')
+  })
+})
+
+describe('toplu geri yükle / kalıcı sil → türetilmiş kaynaklar (BE-114, KESİN 29)', () => {
+  it('görev listesi, özet sayaçları ve ana sayfa rozeti birlikte yenilenir; ikinci kayıt kalıcı silinir', async () => {
+    deleted.tasks = ['wd', 'wd2']
+    const app = await boot({ ...ADMIN, path: '/gorevler' })
+    await until(() => $('[data-work-item="w1"]'), 'görev listesi')
+    expect($('[data-work-item="wd"]')).toBeNull()
+    await app.router.push('/silinen-kayitlar')
+    await until(() => $('[data-record-key="gorev:wd2"]'), 'silinen görevler')
+    await click(() => $('[data-testid="dr-select-all"]'))
+    await until(() => $('[data-testid="dr-bulk"]'), 'toplu çubuk')
+    expect($('[data-testid="dr-bulk"] [role="status"]')?.textContent).toBe('2 kayıt seçildi')
+    const lists = backend.sent('GET', '/v1/program/work-items').length
+    const summaries = backend.sent('GET', '/v1/admin/deleted/summary').length
+    await click(() => $('[data-testid="dr-bulk"] [data-action="bulk-restore"]'))
+    await acceptConfirm()
+    await idle(app.queryClient)
+    const posts = backend.sent('POST', '/v1/admin/deleted/work-items/restore')
+    expect(posts).toHaveLength(1)
+    expect(posts[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(toasts()).toContain('2 kayıt geri yüklendi.')
+    await until(() => !$('[data-record-key]'), 'satırlar düştü')
+    expect(backend.sent('GET', '/v1/admin/deleted/summary').length).toBeGreaterThan(summaries)
+    await app.router.push('/')
+    await until(() => counter() === '3', 'rozet = özet toplamı')
+    await app.router.push('/gorevler')
+    await until(() => $('[data-work-item="wd"]'), 'geri yüklenen görev listede')
+    expect(backend.sent('GET', '/v1/program/work-items').length).toBeGreaterThan(lists)
+  })
+
+  it('kalıcı silme: toplantı + hesap sayaçları ve rozet düşer; eski tekil uç çağrılmaz', async () => {
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=toplanti' })
+    await until(() => $('[data-record-key="toplanti:md"]'), 'silinen toplantı')
+    await click(() => $('[data-testid="dr-select-all"]'))
+    await click(() => $('[data-testid="dr-bulk"] [data-action="bulk-purge"]'))
+    await acceptConfirm()
+    await idle(app.queryClient)
+    expect(backend.sent('POST', '/v1/admin/deleted/meetings/purge')).toHaveLength(1)
+    expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/md')).toHaveLength(0)
+    await tab('kullanici')
+    await until(() => $('[data-record-key="kullanici:acc-dead"]'), 'silinen hesap')
+    await click(() => $('[data-testid="dr-select-all"]'))
+    await click(() => $('[data-testid="dr-bulk"] [data-action="bulk-purge"]'))
+    await acceptConfirm()
+    await idle(app.queryClient)
+    expect(
+      backend.sent('POST', '/v1/admin/deleted/accounts/purge')[0]!.headers.get('X-Nizamio-Program'),
+    ).toBeNull()
+    await app.router.push('/')
+    await until(() => counter() === '2', 'rozet sonra')
   })
 })
 

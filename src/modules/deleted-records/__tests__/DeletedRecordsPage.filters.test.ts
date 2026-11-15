@@ -426,7 +426,8 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     await page.wrapper.get('[data-kind="koordinatorluk"]').trigger('click')
     await settle()
     const cells = page.wrapper.findAll('[data-record-key] [role="cell"]')
-    expect(cells[2]!.text()).toBe('—')
-    expect(cells[3]!.text()).toBe('Bilinmiyor')
+    // Hücreler: seçim kutusu, tür, kayıt, silinme tarihi, silen, işlemler.
+    expect(cells[3]!.text()).toBe('—')
+    expect(cells[4]!.text()).toBe('Bilinmiyor')
   })
 })

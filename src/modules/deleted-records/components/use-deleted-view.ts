@@ -68,6 +68,7 @@ export function useDeletedView(enabled: () => boolean) {
 
   return {
     filters,
+    query,
     list,
     sort,
     filtered: computed(() => isFiltered(filters.value)),

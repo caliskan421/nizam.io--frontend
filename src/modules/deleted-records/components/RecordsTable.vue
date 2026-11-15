@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UiIcon } from '@/shared/ui'
+import { UiCheck, UiIcon } from '@/shared/ui'
 
 import { deletedText } from '../model/messages'
 import type { DeletedSort, SortKey } from '../model/filters'
@@ -7,8 +7,8 @@ import type { DeletedRow } from '../model/types'
 import RecordRow from './RecordRow.vue'
 
 /**
- * Silinen kayıtlar tablosu (E-12-24; 01d): `role="table"`, sütunlar tür · kayıt · silinme tarihi
- * · silen · işlemler. "Kalan süre" sütunu yoktur (saklama süresi yok; P37, BE-112). "Kayıt" ve
+ * Silinen kayıtlar tablosu (E-12-22/23/24; 01d): `role="table"`, sütunlar seçim · tür · kayıt ·
+ * silinme tarihi · silen · işlemler (başlıkta "tümünü seç"; BE-114). "Kalan süre" sütunu yoktur (saklama süresi yok; P37, BE-112). "Kayıt" ve
  * "silinme tarihi" başlıkları sunucu sıralamasını değiştirir (`sort=name|deleted_at`, `order`;
  * BE-117); etkin eksen `aria-sort` taşır. Dar ekranda tablo yatay kaydırılır (390 px; panel
  * akışta aşağıdadır).
@@ -16,6 +16,10 @@ import RecordRow from './RecordRow.vue'
 const props = defineProps<{
   rows: readonly DeletedRow[]
   selectedKey: string | null
+  /** Toplu işlem için onay kutusu işaretli kimlikler (BE-114). */
+  checkedIds: ReadonlySet<string>
+  allChecked: boolean
+  someChecked: boolean
   sort: DeletedSort
   busy: boolean
   timezone: string
@@ -28,6 +32,8 @@ const emit = defineEmits<{
   restore: [row: DeletedRow]
   purge: [row: DeletedRow]
   sort: [key: SortKey]
+  toggle: [row: DeletedRow]
+  toggleAll: []
 }>()
 
 function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
@@ -41,6 +47,15 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
     <div class="rp-scroll">
       <div role="table" class="dr-grid" :aria-label="deletedText('table.label')">
         <div role="row" class="rp-tr rp-tr--head">
+          <span role="columnheader" class="dr-check">
+            <UiCheck
+              :model-value="allChecked"
+              :indeterminate="someChecked"
+              :label="deletedText('bulk.selectAll')"
+              data-testid="dr-select-all"
+              @update:model-value="emit('toggleAll')"
+            />
+          </span>
           <span role="columnheader">{{ deletedText('table.columns.kind') }}</span>
           <span role="columnheader" :aria-sort="ariaSort('name')">
             <button
@@ -76,6 +91,7 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
           :key="row.key"
           :row="row"
           :selected="row.key === selectedKey"
+          :checked="checkedIds.has(row.id)"
           :busy="busy"
           :timezone="timezone"
           :now="now"
@@ -84,6 +100,7 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
           @select="emit('select', row)"
           @restore="emit('restore', row)"
           @purge="emit('purge', row)"
+          @toggle="emit('toggle', row)"
         />
       </div>
     </div>

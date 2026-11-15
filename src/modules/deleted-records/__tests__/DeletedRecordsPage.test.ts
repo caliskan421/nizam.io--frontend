@@ -214,7 +214,7 @@ describe('sayaç, alt başlık ve notlar', () => {
 })
 
 describe('statik başlık eylemleri ve toplu seçim', () => {
-  it('CSV indir ve Çöpü boşalt devre dışı + designStub; toplu seçim ve kalan süre yok; sıralama stub değil', async () => {
+  it('CSV indir ve Çöpü boşalt devre dışı + designStub; kalan süre yok; sıralama stub değil', async () => {
     world.tasks = [[task('w1')]]
     const page = await mountPage()
     const csv = page.wrapper.get('[data-testid="dr-csv"]')
@@ -225,7 +225,8 @@ describe('statik başlık eylemleri ve toplu seçim', () => {
     expect(page.wrapper.get('[data-design-stub="BE-115"]').element.contains(trash.element)).toBe(
       true,
     )
-    expect(page.wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+    // Seçim kutuları vardır (BE-114) ama seçim yokken toplu çubuk çizilmez.
+    expect(page.wrapper.find('[data-testid="dr-select-all"]').exists()).toBe(true)
     expect(page.wrapper.find('[role="toolbar"]').exists()).toBe(false)
     expect(page.wrapper.find('[data-design-stub="BE-117"]').exists()).toBe(false)
     expect(page.wrapper.find('[aria-sort="descending"]').exists()).toBe(true)

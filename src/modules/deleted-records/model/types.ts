@@ -11,12 +11,19 @@ export type DeletedDepartment = components['schemas']['DeletedDepartment']
 export type WorkItemLifecycleResult = components['schemas']['WorkItemLifecycleResult']
 export type WorkItemPurgeResult = components['schemas']['WorkItemPurgeResult']
 export type DepartmentLifecycleResult = components['schemas']['DepartmentLifecycleResult']
+export type DeletedBatchResult = components['schemas']['DeletedBatchResult']
 export type AccountLifecycleResult = components['schemas']['AccountLifecycleResult']
 
 /** S2 yaşam döngüsü yazmalarının hedefi: program başlığı + kayıt kimliği (eylemle dondurulur). */
 export interface ProgramRecordTarget {
   programId: string
   id: string
+}
+
+/** Toplu yazmanın hedefi (≤100 kimlik; S2 türlerde program başlığı eylemle dondurulur). */
+export interface BatchTarget {
+  programId: string
+  ids: string[]
 }
 
 /** S1 (hesap) yaşam döngüsü yazmalarının hedefi. */

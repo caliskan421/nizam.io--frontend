@@ -1,29 +1,31 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { UiAvatar, UiIcon } from '@/shared/ui'
+import { UiAvatar, UiCheck, UiIcon } from '@/shared/ui'
 
 import { formatClock, formatDate, formatLong, isToday } from '../model/format'
 import { deletedText } from '../model/messages'
 import type { DeletedRow } from '../model/types'
 
 /**
- * Tablo satırı (E-12-24…37; 01d). Tür rozeti, kayıt (kod + başlık + alt satır), silinme tarihi
- * (gg.aa.yyyy + SS:DD + "bugün"), silen (`deleted_by`; eski kayıtta "Bilinmiyor") ve işlemler.
- * Seçim kutusu, uyarı rozeti ve kalan süre yoktur (toplu uç ve saklama süresi yok; P36/P37).
+ * Tablo satırı (E-12-22…37; 01d). Seçim kutusu (toplu işlem; BE-114), tür rozeti, kayıt (kod +
+ * başlık + alt satır), silinme tarihi (gg.aa.yyyy + SS:DD + "bugün"), silen (`deleted_by`; eski
+ * kayıtta "Bilinmiyor") ve işlemler. Uyarı rozeti ve kalan süre yoktur (P36/P37).
  * Tıklama ya da Enter/Boşluk satırı seçer; ↑/↓ komşu satıra geçer. Uçuşta eylem düğmeleri
  * `aria-disabled` olur (odak kaybolmaz).
  */
 const props = defineProps<{
   row: DeletedRow
   selected: boolean
+  /** Toplu işlem için onay kutusu işaretli mi. */
+  checked: boolean
   busy: boolean
   timezone: string
   now: Date
   canRestore: boolean
   canPurge: boolean
 }>()
-const emit = defineEmits<{ select: []; restore: []; purge: [] }>()
+const emit = defineEmits<{ select: []; restore: []; purge: []; toggle: [] }>()
 
 const date = computed(() => formatDate(props.row.deletedAt, props.timezone))
 const clock = computed(() => formatClock(props.row.deletedAt, props.timezone))
@@ -64,6 +66,14 @@ function act(action: 'restore' | 'purge'): void {
     @click="emit('select')"
     @keydown="onKeydown"
   >
+    <span role="cell" class="dr-check" @click.stop>
+      <UiCheck
+        :model-value="checked"
+        :label="deletedText('bulk.selectRow', { title: row.title })"
+        data-testid="dr-row-check"
+        @update:model-value="emit('toggle')"
+      />
+    </span>
     <span role="cell">
       <span class="dr-logtype" :data-kind="row.kind">{{ deletedText(`kinds.${row.kind}`) }}</span>
     </span>

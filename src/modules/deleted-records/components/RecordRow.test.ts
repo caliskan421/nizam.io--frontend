@@ -8,6 +8,7 @@ const NOW = new Date('2026-11-12T12:00:00Z')
 const base = {
   row: fixtureRow(),
   selected: false,
+  checked: false,
   busy: false,
   timezone: 'Europe/Istanbul',
   now: NOW,
@@ -26,9 +27,22 @@ describe('RecordRow (E-12-25…37)', () => {
     expect(wrapper.get('.dr-today').text()).toBe('bugün')
     expect(wrapper.get('.dr-dt__t').text()).toBe('13:42')
     expect(wrapper.get('.dr-dt').attributes('title')).toContain('12 Kasım 2026')
-    // Kod yok (BE-005), uyarı rozeti yok, seçim kutusu yok.
+    // Kod yok (BE-005), uyarı rozeti yok.
     expect(wrapper.find('.dr-code').exists()).toBe(false)
-    expect(wrapper.find('input').exists()).toBe(false)
+  })
+
+  it('seçim kutusu (BE-114): erişim adı kayıt adını içerir; işaret checked ile; tıklama yalnız toggle yayar, satırı seçmez', async () => {
+    const wrapper = mount(RecordRow, { props: base })
+    const box = wrapper.get('[data-testid="dr-row-check"]')
+    expect(box.attributes('aria-label')).toBe('Saha pano montajı seç')
+    expect((box.element as HTMLInputElement).checked).toBe(false)
+    await box.setValue(true)
+    expect(wrapper.emitted('toggle')).toHaveLength(1)
+    expect(wrapper.emitted('select')).toBeUndefined()
+    await wrapper.setProps({ checked: true })
+    expect((wrapper.get('[data-testid="dr-row-check"]').element as HTMLInputElement).checked).toBe(
+      true,
+    )
   })
 
   it('eski tarihte "bugün" etiketi yok; tarihsiz satırda "—"', () => {

@@ -7,6 +7,9 @@ import { fixtureRow } from '../__tests__/fixtures'
 const props = {
   rows: [fixtureRow(), fixtureRow({ id: 'w2', key: 'gorev:w2', title: 'İkinci' })],
   selectedKey: 'gorev:w2',
+  checkedIds: new Set<string>(),
+  allChecked: false,
+  someChecked: false,
   sort: { key: 'deleted_at' as const, order: 'desc' as const },
   busy: false,
   timezone: 'Europe/Istanbul',
@@ -16,20 +19,45 @@ const props = {
 }
 
 describe('RecordsTable (E-12-24; 01d)', () => {
-  it('tablo rolü, beş sütun; seçim kutusu / kalan süre / toplu çubuk yok', () => {
+  it('tablo rolü, seçim + beş sütun; kalan süre sütunu yok', () => {
     const wrapper = mount(RecordsTable, { props })
     expect(wrapper.get('[role="table"]').attributes('aria-label')).toBe('Silinen kayıtlar')
     const headers = wrapper.findAll('[role="columnheader"]').map((h) => h.text())
     expect(headers.map((h) => h.replace(/\s+/g, ' ').trim())).toEqual([
+      '',
       'tür',
       'kayıt',
       'silinme tarihi',
       'silen',
       'işlemler',
     ])
-    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('kalan süre')
-    expect(wrapper.find('[role="toolbar"]').exists()).toBe(false)
+    // Başlıkta "tümünü seç" + her satırda bir kutu (BE-114).
+    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(3)
+    expect(wrapper.get('[data-testid="dr-select-all"]').attributes('aria-label')).toBe('Tümünü seç')
+  })
+
+  it('seçim: işaretli satır kutusu, tümünü seç tri-state ve olaylar (BE-114)', async () => {
+    const wrapper = mount(RecordsTable, {
+      props: { ...props, checkedIds: new Set(['w2']), someChecked: true },
+    })
+    const boxes = wrapper.findAll('[data-testid="dr-row-check"]')
+    expect(boxes.map((b) => (b.element as HTMLInputElement).checked)).toEqual([false, true])
+    expect(
+      (wrapper.get('[data-testid="dr-select-all"]').element as HTMLInputElement).indeterminate,
+    ).toBe(true)
+    await wrapper.get('[data-testid="dr-select-all"]').setValue(true)
+    expect(wrapper.emitted('toggleAll')).toHaveLength(1)
+    await boxes[0]!.setValue(true)
+    expect(wrapper.emitted('toggle')![0]![0]).toMatchObject({ id: 'w1' })
+    await wrapper.setProps({
+      checkedIds: new Set(['w1', 'w2']),
+      allChecked: true,
+      someChecked: false,
+    })
+    expect((wrapper.get('[data-testid="dr-select-all"]').element as HTMLInputElement).checked).toBe(
+      true,
+    )
   })
 
   it('sıralama başlıkları tıklanır: etkin eksen aria-sort taşır, olay ekseni yayar (BE-117)', async () => {

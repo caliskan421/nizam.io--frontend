@@ -72,6 +72,8 @@ export interface World {
   dictionary: Array<{ department_id: string; display_name: string; code?: string }>
   /** `METHOD /yol` → zorunlu hata. */
   failures: Map<string, { status: number; code: string }>
+  /** Toplu işlemde kimlik → öğe hata kodu (`failed[]` satırı; kayıt listede kalır). */
+  itemFailures: Map<string, string>
 }
 
 export const world: World = {
@@ -82,6 +84,7 @@ export const world: World = {
   accounts: [],
   dictionary: [],
   failures: new Map(),
+  itemFailures: new Map(),
 }
 
 export function resetWorld(): void {
@@ -94,6 +97,7 @@ export function resetWorld(): void {
     dictionary: [],
   })
   world.failures.clear()
+  world.itemFailures.clear()
 }
 
 export const json = (body: JsonBodyType, status = 200) => HttpResponse.json(body, { status })
@@ -301,8 +305,40 @@ function lifecycleHandlers() {
   )
 }
 
+/**
+ * Toplu uçlar (`POST …/deleted/<tür>/{restore|purge}`; ADR-0045): gerçek zarf biçimiyle kısmi
+ * başarı. Tekrarlı kimlik bir kez işlenir; `world.itemFailures`'taki kimlik `failed[]`'e düşer ve
+ * kayıt listede kalır; öteki kayıtlar listeden düşer. 1–100 sınırı sunucu gibi doğrulanır.
+ */
+function batchHandlers() {
+  return LIFECYCLES.flatMap((spec) =>
+    (['restore', 'purge'] as const).map((action) =>
+      http.post(`${ORIGIN}/v1/admin/deleted/${spec.segment}/${action}`, async ({ request }) => {
+        const path = `/v1/admin/deleted/${spec.segment}/${action}`
+        const forced = failure('POST', path)
+        if (forced) return forced
+        if (!world.admin) return FORBIDDEN(spec.code)
+        const body = (await request.json()) as { ids: string[] }
+        const ids = [...new Set(body.ids)]
+        if (ids.length < 1 || ids.length > 100) return errorEnvelope('work.input_invalid', 422)
+        const succeeded: string[] = []
+        const failed: Array<{ id: string; code: string }> = []
+        for (const id of ids) {
+          const code = world.itemFailures.get(id)
+          if (code) failed.push({ id, code })
+          else {
+            spec.remove(id)
+            succeeded.push(id)
+          }
+        }
+        return json({ succeeded, failed })
+      }),
+    ),
+  )
+}
+
 export function backendHandlers() {
-  return [...listHandlers(), ...lifecycleHandlers()]
+  return [...listHandlers(), ...lifecycleHandlers(), ...batchHandlers()]
 }
 
 export function standingHandlers(options: {
