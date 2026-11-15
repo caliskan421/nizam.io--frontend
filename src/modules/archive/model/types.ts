@@ -118,14 +118,26 @@ export interface RetagArchiveFileInput extends ArchiveFileRef {
   tag: ArchiveTag
 }
 
-/** İndirme türü: tek dosya, klasör ZIP'i, dönem ZIP'i (seçim ZIP'i kullanılmaz). */
-export type ArchiveDownloadKind = 'file' | 'folder' | 'period'
+/** S3 indirme türü: tek dosya ya da klasör ZIP'i (dönem ZIP'i S2'dir: `PeriodZipRequest`). */
+export type ArchiveDownloadKind = 'file' | 'folder'
 
 export interface ArchiveDownloadRequest {
   target: ArchiveTarget
   kind: ArchiveDownloadKind
-  /** `file` için dosya, `folder` için klasör kimliği; `period` için yok. */
-  id?: string
+  /** `file` için dosya, `folder` için klasör kimliği. */
+  id: string
+  /** Sunucu `Content-Disposition` vermezse kaydedilecek ad. */
+  fallbackName: string
+}
+
+/**
+ * Dönem arşivi ZIP'i (`programArchiveZip`, S2; BE-120): yalnız program başlığı, departman başlığı
+ * YOK. `includeReports` → `include_reports=true` (BE-124: `00-Genel/Donem-Raporu.pdf`, birim
+ * raporları, `EKSIK-DOSYALAR.txt`).
+ */
+export interface PeriodZipRequest {
+  programId: string
+  includeReports: boolean
   /** Sunucu `Content-Disposition` vermezse kaydedilecek ad. */
   fallbackName: string
 }
@@ -134,6 +146,8 @@ export interface ArchiveDownloadRequest {
 export interface ArchiveDownloadSaved {
   kind: 'saved'
   fileName: string
+  /** Yanıt `X-Result-Truncated: true` taşıdı (raporlu ZIP'te gömülü rapor kesildi; BE-124). */
+  truncated?: boolean
 }
 /** Tüketimde hedefin hatası (422 `identity.download_target_invalid`, 429, `records.*`). */
 export interface ArchiveDownloadFailed {
@@ -142,7 +156,9 @@ export interface ArchiveDownloadFailed {
   /** 429 `Retry-After` (saniye) — otomatik tekrar yok. */
   retryAfter: number | null
 }
-export type TicketOutcome = MutationOutcome<ArchiveDownloadRequest, DownloadTicket, unknown>
+export type TicketOutcome =
+  | MutationOutcome<ArchiveDownloadRequest, DownloadTicket, unknown>
+  | MutationOutcome<PeriodZipRequest, DownloadTicket, unknown>
 /** Bilet ÜRETİMİ başarısız (429 açık bilet tavanı, 403, ağ …): ortak yazma sonucu. */
 export interface ArchiveDownloadTicketFailed {
   kind: 'ticket_failed'

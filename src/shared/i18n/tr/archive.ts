@@ -285,9 +285,28 @@ export const trArchive = {
         busy: 'ZIP hazırlanıyor…',
         saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
         tooLarge: 'Dönem arşivi tek ZIP için çok büyük; klasörleri ayrı ayrı indirin.',
-        // BE-120: `archiveFullZip` S3 (departman başlığı ister); yönetici /arsiv'te departman seçili değil.
-        unavailable:
-          "Dönem ZIP'i bu görünümde henüz indirilemiyor; bir klasörü açıp klasör ZIP'ini kullanın.",
+        // BE-124: gömülü rapor satır/not sınırında kesildi (`X-Result-Truncated`).
+        truncated:
+          'İndirildi; gömülü raporların bazı bölümleri sınır nedeniyle kesildi (ayrıntı rapor içindeki uyarıdadır).',
+        // Onay penceresi (E-13-10, 01h): klasör ağacı önizlemesi (BE-124).
+        dialog: {
+          kicker: '{program} · {year} sezonu',
+          title: 'Dönem arşivi (ZIP)',
+          summary: '{files} dosya · {size} · birkaç dakika sürebilir',
+          loading: 'Arşiv bilgisi okunuyor…',
+          error: 'Arşiv bilgisi okunamadı. Birazdan yeniden deneyin.',
+          tree: 'Arşiv klasör yapısı',
+          general: 'dönem raporu (PDF)',
+          unitReport: 'birim raporu · {n} dosya',
+          unitReportEmpty: 'birim raporu',
+          missing: 'yalnız eksik dosya varsa',
+          notice: 'birim raporları ayrı PDF olarak eklenmez ({limit}’ten fazla koordinatörlük)',
+          more: '… ve {from}–{to} arası diğer {n} koordinatörlük klasörü.',
+          wait: 'İndirme başladıktan sonra sayfayı kapatmayın veya yenilemeyin. Arşiv tamamlanınca tek dosya olarak iner.',
+          audit: 'Raporlu dönem arşivi indirmesi kayda geçer (denetim).',
+          cancel: 'Vazgeç',
+          confirm: 'Hazırla ve indir',
+        },
       },
       // Akış ortasında kopma: gövde yarım kalmış olabilir (GAP-041).
       partial: 'Bağlantı kesildi; indirme yarım kalmış olabilir. Tekrar deneyin.',

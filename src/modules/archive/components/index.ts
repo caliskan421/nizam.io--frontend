@@ -221,11 +221,6 @@ export interface FolderZipButtonProps {
   folder: Pick<ArchiveFolder, 'folder_id' | 'name' | 'is_virtual'>
 }
 
-/** W126 · E-06-04 — dönem ZIP'i (yalnız ŞY); `target` `null` iken devre dışı (06, BE-072). */
-export interface PeriodZipButtonProps {
-  target: ArchiveTarget | null
-}
-
 // --- Bileşenler (gövdeler O2b'de) ------------------------------------------------------------
 
 export { default as ArchiveSearchBar } from './folders/ArchiveSearchBar.vue'

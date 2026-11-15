@@ -146,7 +146,7 @@ onScopeDispose(() => {
       </div>
       <div class="rp-actions">
         <SeasonReportActions />
-        <PeriodZipButton v-if="capabilities.periodZip()" :target="context.target.value" />
+        <PeriodZipButton v-if="capabilities.periodZip()" />
         <UiButton
           v-if="capabilities.canOpenUpload"
           ref="uploadButton"

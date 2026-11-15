@@ -1,4 +1,4 @@
-// W142 · O3 senaryo 1 (b): "Bölüm seç…" penceresi (statik, BE-122), dönem ZIP'i (BE-120 stub) ve
+// W142 · O3 senaryo 1 (b): "Bölüm seç…" penceresi (statik, BE-122), dönem ZIP'i (BE-120 canlı, W171) ve
 // odak dönüşü; gerçek router/AppShell/oturum.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
@@ -113,12 +113,13 @@ describe('bölüm seçimi penceresi', () => {
 })
 
 describe('dönem ZIP ve eylem şeridi', () => {
-  it('"Dönem arşivi (ZIP)" devre dışı BE-120 stub; tıklama ağ isteği üretmez', async () => {
+  it('"Dönem arşivi (ZIP)" etkin (BE-120 stub yok); tıklama yalnız onay penceresini açar, bilet/indirme üretmez', async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv' })
     const zip = await until(() => byText('button', 'Dönem arşivi (ZIP)'), 'ZIP düğmesi')
-    expect((zip as HTMLButtonElement).disabled).toBe(true)
-    expect(zip.closest('[data-design-stub="BE-120"]')).not.toBeNull()
+    expect((zip as HTMLButtonElement).disabled).toBe(false)
+    expect(zip.closest('[data-design-stub="BE-120"]')).toBeNull()
     zip.click()
+    await until(() => $('[data-testid="period-zip-dialog"]'), 'onay penceresi')
     await idle(app.queryClient)
     expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(0)
     expect(reports.state.redeemed).toHaveLength(0)

@@ -42,7 +42,7 @@ const CONTRACT = {
   RenameFileDialog: [['open', 'file', 'target'], ['update:open', 'renamed'], 'W124'],
   UploadDialog: [['tasks', 'defaultTaskId', 'truncated'], ['close', 'uploaded'], 'W125'],
   FolderZipButton: [['target', 'folder'], [], 'W126'],
-  PeriodZipButton: [['target'], [], 'W126'],
+  PeriodZipButton: [[], [], 'W126'],
 } as const
 
 type Declared = {

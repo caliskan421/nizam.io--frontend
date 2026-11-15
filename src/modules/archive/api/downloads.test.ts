@@ -57,15 +57,12 @@ const zip = (headers: HeadersInit = {}) =>
   )
 
 describe('bilet hedefleri (kapalı liste)', () => {
-  it('tek dosya, klasör ZIP, dönem ZIP yolları; seçim ZIP kullanılmaz', () => {
+  it("tek dosya ve klasör ZIP yolları (S3); dönem ZIP S2'dir (`period-zip.ts`); seçim ZIP kullanılmaz", () => {
     expect(downloadPath({ target, kind: 'file', id: 'f 1', fallbackName: 'a' })).toBe(
       '/v1/files/f%201/download',
     )
     expect(downloadPath({ target, kind: 'folder', id: 'd7', fallbackName: 'a' })).toBe(
       '/v1/records/archive/folders/d7/download-zip',
-    )
-    expect(downloadPath({ target, kind: 'period', fallbackName: 'a' })).toBe(
-      '/v1/records/archive/period/download-zip',
     )
   })
 })
@@ -100,23 +97,22 @@ describe('issueDownloadTicket → redeemDownloadTicket', () => {
     expect(revoked).toEqual(['blob:1'])
   })
 
-  it('dönem ZIP ve tek dosya aynı akıştan; ad yoksa yedek ad', async () => {
+  it('tek dosya aynı akıştan; ad yoksa yedek ad; eski dönem ZIP yolu (archiveFullZip) hiç istenmez', async () => {
     server.use(ticketOk(), zip())
     const h = harness(ADMIN)
     const { result } = h.run(() => useArchiveDownload())
-    expect(await result.start({ target, kind: 'period', fallbackName: 'donem.zip' })).toEqual({
-      kind: 'saved',
-      fileName: 'donem.zip',
-    })
+    expect(
+      await result.start({ target, kind: 'file', id: 'f1', fallbackName: 'rapor.pdf' }),
+    ).toEqual({ kind: 'saved', fileName: 'rapor.pdf' })
     expect(sent('POST', '/v1/download-tickets')[0]!.body).toEqual({
-      method: 'GET',
-      path: '/v1/records/archive/period/download-zip',
-    })
-    await result.start({ target, kind: 'file', id: 'f1', fallbackName: 'rapor.pdf' })
-    expect(sent('POST', '/v1/download-tickets')[1]!.body).toEqual({
       method: 'GET',
       path: '/v1/files/f1/download',
     })
+    expect(
+      sent('POST', '/v1/download-tickets').some((r) =>
+        JSON.stringify(r.body).includes('/v1/records/archive/period/download-zip'),
+      ),
+    ).toBe(false)
   })
 
   it('bilet bellekte kalmaz: mutasyon önbelleği boşalır', async () => {

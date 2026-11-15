@@ -1,5 +1,6 @@
 // W127 · O3 senaryo 5: indirme / ZIP bilet akışı (bilet → tüketim), 429 Retry-After, 422 çok büyük,
-// dönem ZIP'i yalnız yönetici ve /arsiv'te BE-120 ile devre dışı.
+// dönem ZIP'i yalnız yönetici: S2 `programArchiveZip` (BE-120) ve onay penceresi; raporlu ZIP'in
+// kesme başlığı/rapor kotası hataları `archive-zip-reports.test.ts` (BE-124).
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -110,20 +111,71 @@ describe('klasör ZIP', () => {
   })
 })
 
-describe('dönem ZIP', () => {
-  it('yönetici /arsiv: düğme görünür ama devre dışı + BE-120 işareti, ağ isteği yok', async () => {
+describe('dönem ZIP (BE-120/BE-124)', () => {
+  const DIALOG = '[data-testid="period-zip-dialog"]'
+  const openDialog = async () => {
+    await userClick(() => $('[data-testid="period-zip-button"]'))
+    await until(() => $(DIALOG), 'onay penceresi')
+    await until(() => !($('[data-testid="zip-confirm"]') as HTMLButtonElement).disabled, 'veri')
+  }
+
+  it('yönetici /arsiv: düğme etkin (departman seçimi yok); onay penceresi özet + klasör ağacı; vazgeç istek atmaz', async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv' })
     await until(() => $('[data-testid="period-zip-button"]'), 'düğme')
-    expect(($('[data-testid="period-zip-button"]') as HTMLButtonElement).disabled).toBe(true)
-    expect($('[data-design-stub="BE-120"] [data-testid="period-zip-button"]')).not.toBeNull()
-    $('[data-testid="period-zip-button"]')!.click()
+    expect(($('[data-testid="period-zip-button"]') as HTMLButtonElement).disabled).toBe(false)
+    expect($('[data-design-stub="BE-120"]')).toBeNull()
+    await openDialog()
+    // Sunucu özeti: 4 dosya, 8 KB; birimler ada göre (Mekanik, Yazılım).
+    expect($('.t-modal__desc')?.textContent).toBe('4 dosya · 8,0 KB · birkaç dakika sürebilir')
+    expect($('[data-testid="zip-kicker"]')?.textContent).toBe('Teknofest 2026 · 2026 sezonu')
+    expect($('[data-testid="zip-root"]')?.textContent).toMatch(
+      /^Teknofest-2026-Donem-Arsivi-\d{4}-\d{2}-\d{2}\/$/,
+    )
+    expect($('[data-testid="zip-unit"]')?.textContent).toContain('01-Mekanik/')
+    expect($('[data-testid="zip-unit"]')?.textContent).toContain('birim raporu · 3 dosya')
+    expect($('[data-testid="zip-more"]')?.textContent).toBe(
+      '… ve 02–02 arası diğer 1 koordinatörlük klasörü.',
+    )
+    await userClick(() => $('[data-testid="zip-cancel"]'))
+    await until(() => !$(DIALOG), 'kapandı')
     await idle(app.queryClient)
     expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(0)
+    expect(document.activeElement).toBe($('[data-testid="period-zip-button"]'))
   })
 
-  it('koordinatör ve üye: dönem ZIP hiçbir yüzde yok', async () => {
+  it('onay → bilet S2 hedefi + yalnız program başlığı → tüketim → Content-Disposition adıyla kayıt', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv' })
+    await until(() => $('[data-testid="period-zip-button"]'), 'düğme')
+    await openDialog()
+    await userClick(() => $('[data-testid="zip-confirm"]'))
+    await until(() => saved.length === 1, 'kaydedildi')
+    await idle(app.queryClient)
+    expect(saved).toEqual(['paket.zip'])
+    const [issue] = backend.sent('POST', '/v1/download-tickets')
+    expect(issue!.body).toEqual({
+      method: 'GET',
+      path: '/v1/program/archive/download-zip?include_reports=true',
+    })
+    expect(issue!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(issue!.headers.get('X-Nizamio-Department')).toBeNull()
+    expect(archive.state.redeemed).toEqual([
+      {
+        path: '/v1/program/archive/download-zip?include_reports=true',
+        program: 'p1',
+        department: '',
+      },
+    ])
+    // Eski yol yok: S3 `archiveFullZip` hedefi hiç istenmedi.
+    expect(archive.state.redeemed.some((r) => r.path.includes('/records/archive/period'))).toBe(
+      false,
+    )
+    expect(note('period-zip-note')).toMatch(/ZIP indirildi/)
+  })
+
+  it('koordinatör ve üye: dönem ZIP hiçbir yüzde yok; S2 hedefi hiç istenmez', async () => {
     await boot({ ...COORD, path: '/arsiv/d1' })
     await until(() => $('[data-testid="archive-folder-page"]'), 'sayfa')
     expect($('[data-testid="period-zip"]')).toBeNull()
+    expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(0)
   })
 })

@@ -199,12 +199,13 @@ describe('yönetici (S2, BE-072)', () => {
     expect(wrapper.get('[data-testid="period-zip-button"]').text()).toBe('Dönem arşivi (ZIP)')
   })
 
-  it('"Dönem arşivi (ZIP)" bağlı ve hedefsiz (null → devre dışı, BE-120); "Dosya yükle" etkin: yönetici bütün programın görevlerini görür', async () => {
+  it('"Dönem arşivi (ZIP)" bağlı ve etkin (departman seçimi gerekmez, BE-120); "Dosya yükle" etkin: yönetici bütün programın görevlerini görür', async () => {
     server.use(...adminHandlers)
     const { wrapper } = await mountPage(ADMIN)
     const zip = wrapper.findComponent({ name: 'PeriodZipButton' })
     expect(zip.exists()).toBe(true)
-    expect(zip.props('target')).toBeNull()
+    expect(zip.get('button').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('[data-design-stub="BE-120"]').exists()).toBe(false)
     const upload = wrapper.get('[data-action="upload"]')
     expect(upload.attributes('disabled')).toBeUndefined()
     expect(wrapper.find('[data-design-stub="BE-072"]').exists()).toBe(false)
