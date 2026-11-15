@@ -22,6 +22,11 @@ export function unknownDepartment(): string {
   return deletedText('filters.department.unknown')
 }
 
+/** Silen: `deleted_by` (silen bilgisi tutulmadan önce silinmiş kayıtta null → ad boş). */
+function actorOf(deletedBy: { account_id: string; full_name: string } | null) {
+  return { accountId: deletedBy?.account_id ?? null, name: deletedBy?.full_name ?? '' }
+}
+
 export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
   const department = ctx.departmentName(item.department_id) ?? unknownDepartment()
   return {
@@ -32,7 +37,7 @@ export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
     code: null,
     subLine: deletedText('sub.task', { department }),
     deletedAt: item.deleted_at || null,
-    actor: null,
+    actor: actorOf(item.deleted_by),
     departmentIds: [item.department_id],
     status: item.status,
     fileCount: item.file_count,
@@ -54,7 +59,6 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
     unknownDepartment()
   const names = ids.map(nameOf)
   const owner = nameOf(meeting.owner_department_id)
-  const actorName = meeting.deleted_by?.full_name ?? ''
   return {
     kind: 'toplanti',
     id: meeting.meeting_id,
@@ -66,7 +70,7 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
       department: owner,
     }),
     deletedAt: meeting.deleted_at || null,
-    actor: { accountId: meeting.deleted_by?.account_id ?? null, name: actorName },
+    actor: actorOf(meeting.deleted_by ?? null),
     departmentIds: ids,
     status: null,
     fileCount: null,
@@ -88,7 +92,7 @@ export function departmentRow(department: DeletedDepartment): DeletedRow {
     subLine: department.kind || '',
     // "Silinme zamanı okunamazsa boş" (şema): boş dize `null` olur.
     deletedAt: department.deleted_at || null,
-    actor: null,
+    actor: actorOf(department.deleted_by),
     departmentIds: [department.department_id],
     status: null,
     fileCount: null,
@@ -113,7 +117,7 @@ export function accountRow(account: DeletedAccount): DeletedRow {
     subLine: names.join(', '),
     // `deleted_at` boşsa (okunamadı) tarih "—" kalır; sunucu o satırı son güncelleme anına göre sıralar.
     deletedAt: account.deleted_at || null,
-    actor: null,
+    actor: actorOf(account.deleted_by),
     departmentIds: teams.map((team) => team.department_id),
     status: null,
     fileCount: null,

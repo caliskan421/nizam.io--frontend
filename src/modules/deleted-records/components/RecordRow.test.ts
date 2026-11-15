@@ -48,7 +48,7 @@ describe('RecordRow (E-12-25…37)', () => {
     expect(wrapper.find('.dr-record .rp-cap').exists()).toBe(false)
   })
 
-  it('silen: toplantıda ad (+ avatar), bilinmeyende "Bilinmiyor", diğer türlerde "—"', () => {
+  it('silen: dört türde ad (+ avatar); silen bilinmeyen eski kayıtta "Bilinmiyor" (BE-108)', () => {
     const named = mount(RecordRow, {
       props: {
         ...base,
@@ -65,7 +65,13 @@ describe('RecordRow (E-12-25…37)', () => {
     })
     expect(unknown.get('.dr-actor').text()).toBe('Bilinmiyor')
     expect(unknown.find('.rp-av').exists()).toBe(false)
-    expect(mount(RecordRow, { props: base }).get('.dr-actor').text()).toBe('—')
+    for (const kind of ['gorev', 'koordinatorluk', 'kullanici'] as const) {
+      const other = mount(RecordRow, {
+        props: { ...base, row: fixtureRow({ kind, actor: { accountId: 'a9', name: 'Ali Avcı' } }) },
+      })
+      expect(other.get('.dr-actor').text()).toContain('Ali Avcı')
+    }
+    expect(mount(RecordRow, { props: base }).get('.dr-actor').text()).toBe('Bilinmiyor')
   })
 
   it('seçili satır işaretlenir; tıklama, Enter ve Boşluk seçer; eylem düğmeleri seçmez', async () => {

@@ -151,7 +151,7 @@ describe('süzgeçler URL ile gidip gelir, sunucuya gider (P43, BE-117)', () => 
   })
 })
 
-describe('Silen süzgeci yalnız toplantıda (E-12-18)', () => {
+describe('Silen süzgeci dört türde (E-12-18, BE-108)', () => {
   it('toplantıda adaylar görülen deleted_by; "Bilinmiyor" seçeneği sunulmaz; seçim sunucuya deleted_by gider', async () => {
     world.meetings = [
       [
@@ -174,30 +174,47 @@ describe('Silen süzgeci yalnız toplantıda (E-12-18)', () => {
     expect(query(page).silen).toBe('acc-8')
   })
 
-  it('görev, koordinatörlük ve kullanıcıda silen süzgeci devre dışı; aralık dört türde etkin; koordinatörlük süzgeci koordinatörlükte devre dışı', async () => {
+  it('silen ve aralık süzgeci dört türde etkin; koordinatörlük süzgeci yalnız koordinatörlükte devre dışı', async () => {
     world.accounts = [[account('a1')]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=kullanici' })
     const disabled = (id: string) =>
       page.wrapper.get(`[data-testid="${id}"] button`).attributes('disabled') !== undefined
     expect([disabled('dr-actor'), disabled('dr-department'), disabled('dr-range')]).toEqual([
-      true,
+      false,
       false,
       false,
     ])
     await page.wrapper.get('[data-kind="koordinatorluk"]').trigger('click')
     await settle()
     expect([disabled('dr-actor'), disabled('dr-department'), disabled('dr-range')]).toEqual([
-      true,
+      false,
       true,
       false,
     ])
-    await page.wrapper.get('[data-kind="gorev"]').trigger('click')
-    await settle()
-    expect([disabled('dr-actor'), disabled('dr-department'), disabled('dr-range')]).toEqual([
-      true,
-      false,
-      false,
-    ])
+  })
+
+  it('silen süzgeci görev, koordinatörlük ve kullanıcıda da sunucuya deleted_by gider', async () => {
+    const by = { account_id: 'acc-7', full_name: 'Reha Koçak' }
+    const other = { account_id: 'acc-8', full_name: 'Ali Avcı' }
+    world.tasks = [[task('w1', { deleted_by: by }), task('w2', { deleted_by: other })]]
+    world.departments = [
+      [department('d5', { deleted_by: by }), department('d6', { deleted_by: other })],
+    ]
+    world.accounts = [[account('a1', { deleted_by: by }), account('a2', { deleted_by: other })]]
+    const page = await mountPage()
+    const expected = {
+      gorev: [PATHS.tasks, ['w1']],
+      koordinatorluk: [PATHS.departments, ['d5']],
+      kullanici: [PATHS.accounts, ['a1']],
+    } as const
+    for (const [kind, [path, shown]] of Object.entries(expected)) {
+      await page.wrapper.get(`[data-kind="${kind}"]`).trigger('click')
+      await settle()
+      await pick(page, 'dr-actor', 'Reha Koçak')
+      expect(sent(path).at(-1)!.query.get('deleted_by'), kind).toBe('acc-7')
+      expect(ids(page), kind).toEqual(shown)
+      expect(query(page).silen).toBe('acc-7')
+    }
   })
 
   it('kullanıcı: varsayılan sıra sort=deleted_at&order=desc; aralık ve koordinatörlük sunucuya gider (BE-118)', async () => {
@@ -337,14 +354,14 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     expect(panel).not.toContain('birlikte geri gelecek')
   })
 
-  it('hesap paneli: silinme tarihi ve ekipler var; silen satırı yok (BE-108 öncesi)', async () => {
+  it('hesap paneli: silen, silinme tarihi ve ekipler', async () => {
     world.accounts = [[account('a1', { teams: [TEAM('d1', 'Mekanik')], company_admin: true })]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=kullanici&kayit=a1' })
     const panel = page.wrapper.get('[data-testid="dr-panel"]').text()
     expect(panel).toContain('Silinme')
     expect(panel).toContain('Mekanik')
     expect(panel).toContain('Şirket yöneticisi')
-    expect(panel).not.toContain('Silen')
+    expect(panel).toContain('Silen')
   })
 
   it('kayit yüklenen sayfalarda yoksa ipucu; seçim sessizce temizlenmez', async () => {
@@ -368,7 +385,7 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     expect(query(page).kayit).toBe('w2')
   })
 
-  it('toplantı satırında silen "Bilinmiyor", diğer türlerde "—" (sahte ad yok)', async () => {
+  it('silen bilinmeyen eski kayıtlarda "Bilinmiyor" (sahte ad yok); silinme tarihi boşsa "—"', async () => {
     world.meetings = [[meeting('m1', { deleted_by: null })]]
     world.departments = [[department('d5', { deleted_at: '' })]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=toplanti' })
@@ -377,6 +394,6 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     await settle()
     const cells = page.wrapper.findAll('[data-record-key] [role="cell"]')
     expect(cells[2]!.text()).toBe('—')
-    expect(cells[3]!.text()).toBe('—')
+    expect(cells[3]!.text()).toBe('Bilinmiyor')
   })
 })

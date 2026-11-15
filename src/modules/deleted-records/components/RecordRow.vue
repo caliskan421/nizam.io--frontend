@@ -9,7 +9,7 @@ import type { DeletedRow } from '../model/types'
 
 /**
  * Tablo satırı (E-12-24…37; 01d). Tür rozeti, kayıt (kod + başlık + alt satır), silinme tarihi
- * (gg.aa.yyyy + SS:DD + "bugün"), silen (yalnız toplantıda dolu; diğerlerinde "—") ve işlemler.
+ * (gg.aa.yyyy + SS:DD + "bugün"), silen (`deleted_by`; eski kayıtta "Bilinmiyor") ve işlemler.
  * Seçim kutusu, uyarı rozeti ve kalan süre yoktur (toplu uç ve saklama süresi yok; P36/P37).
  * Tıklama ya da Enter/Boşluk satırı seçer; ↑/↓ komşu satıra geçer. Uçuşta eylem düğmeleri
  * `aria-disabled` olur (odak kaybolmaz).
@@ -29,9 +29,7 @@ const date = computed(() => formatDate(props.row.deletedAt, props.timezone))
 const clock = computed(() => formatClock(props.row.deletedAt, props.timezone))
 const today = computed(() => isToday(props.row.deletedAt, props.now, props.timezone))
 const long = computed(() => formatLong(props.row.deletedAt, props.timezone) ?? undefined)
-const actorName = computed(() =>
-  props.row.actor ? props.row.actor.name || deletedText('table.unknownActor') : null,
-)
+const actorName = computed(() => props.row.actor.name || deletedText('table.unknownActor'))
 
 function onKeydown(event: KeyboardEvent): void {
   if (event.target !== event.currentTarget) return
@@ -87,11 +85,8 @@ function act(action: 'restore' | 'purge'): void {
       <span v-else class="dr-faint">{{ deletedText('table.none') }}</span>
     </span>
     <span role="cell" class="dr-actor">
-      <template v-if="actorName">
-        <UiAvatar v-if="row.actor?.name" :name="row.actor.name" size="sm" />
-        <span class="rp-trunc">{{ actorName }}</span>
-      </template>
-      <span v-else class="dr-faint">{{ deletedText('table.none') }}</span>
+      <UiAvatar v-if="row.actor.name" :name="row.actor.name" size="sm" />
+      <span class="rp-trunc" :class="{ 'dr-faint': !row.actor.name }">{{ actorName }}</span>
     </span>
     <span role="cell" class="dr-rowact">
       <button

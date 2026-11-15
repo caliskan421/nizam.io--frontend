@@ -62,14 +62,15 @@ describe('URL ⇄ süzgeç (K10; P43)', () => {
     expect(parseFilters({ aralik: '30gun' }).range).toBe('tumu')
   })
 
-  it('türe uymayan süzgeç yok sayılır: koordinatörlükte department_id, görevde silen', () => {
+  it('türe uymayan süzgeç yok sayılır: koordinatörlükte department_id; silen dört türde geçerli (BE-108)', () => {
     // Hesapta tarih aralığı ve "herhangi bir ekip satırı" koordinatörlük süzgeci canlıdır (BE-118).
     expect(
       parseFilters({ tur: 'kullanici', aralik: 'bugun', koordinatorluk: 'd1', silen: 'a1' }),
-    ).toMatchObject({ range: 'bugun', department: 'd1', actor: null })
+    ).toMatchObject({ range: 'bugun', department: 'd1', actor: 'a1' })
     expect(parseFilters({ tur: 'koordinatorluk', koordinatorluk: 'd1' }).department).toBeNull()
-    expect(parseFilters({ silen: 'a1' }).actor).toBeNull()
-    expect(parseFilters({ tur: 'toplanti', silen: 'a1' }).actor).toBe('a1')
+    for (const tur of ['gorev', 'toplanti', 'koordinatorluk', 'kullanici']) {
+      expect(parseFilters({ tur, silen: 'a1' }).actor, tur).toBe('a1')
+    }
   })
 
   it('dizi değeri ilk öğe; aranan metin kırpılır', () => {
@@ -135,6 +136,13 @@ describe('sunucu sorgusu (BE-117)', () => {
       // 12 Kasım 2026 Istanbul günü 00:00 = 11 Kasım 21:00 UTC (UTC gün sınırı DEĞİL).
       deleted_from: '2026-11-11T21:00:00Z',
     })
+  })
+
+  it('silen dört türde deleted_by olarak gider (BE-108)', () => {
+    for (const kind of ['gorev', 'toplanti', 'koordinatorluk', 'kullanici'] as const) {
+      const query = toListQuery({ ...BASE, kind, actor: 'a7' }, DEFAULT_SORT, CTX)
+      expect(query.deleted_by, kind).toBe('a7')
+    }
   })
 
   it('koordinatörlük türünde department_id gitmez', () => {

@@ -39,8 +39,3 @@ export function parseKind(value: unknown): DeletedKind {
 export function supportsDepartmentFilter(kind: DeletedKind): boolean {
   return kind !== 'koordinatorluk'
 }
-
-/** Silen süzgeci yalnız toplantıda canlıdır (`deleted_by`; E-12-18, BE-108). */
-export function supportsActorFilter(kind: DeletedKind): boolean {
-  return kind === 'toplanti'
-}

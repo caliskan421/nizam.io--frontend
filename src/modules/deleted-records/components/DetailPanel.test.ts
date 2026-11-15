@@ -26,13 +26,15 @@ describe('DetailPanel (E-12-41…54)', () => {
     const text = wrapper.text()
     expect(text).toContain('Devam ediyordu')
     expect(text).toContain('12.11.2026 · 13:42')
+    // Silen dört türde canlıdır (BE-108); silen bilgisi tutulmadan önce silinmişse "Bilinmiyor".
+    expect(text).toContain('Silen')
+    expect(text).toContain('Bilinmiyor')
     expect(text).toContain('birlikte geri gelecek')
     expect(wrapper.get('.dr-linked').text()).toContain('Kanıt dosyası')
     expect(wrapper.get('.dr-linked .rp-count').text()).toBe('2')
     expect(wrapper.findAll('.dr-linked li')).toHaveLength(1)
     for (const absent of [
       'Atananlar',
-      'Silen',
       'Kalıcı silinme',
       '%',
       'Yorum',
@@ -103,7 +105,7 @@ describe('DetailPanel (E-12-41…54)', () => {
     expect(text).toContain('12.11.2026 · 13:42')
     expect(text).toContain('Mekanik')
     expect(text).toContain('Şirket yöneticisi')
-    expect(text).not.toContain('Silen')
+    expect(text).toContain('Silen')
     const undated = mount(DetailPanel, {
       props: { ...base, row: { ...row, deletedAt: null, companyAdmin: false } },
     }).text()

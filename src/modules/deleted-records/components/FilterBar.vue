@@ -6,19 +6,14 @@ import { useScopeStore } from '@/shared/scope/store'
 import { UiInput } from '@/shared/ui'
 
 import type { DeletedFilters } from '../model/filters'
-import {
-  DELETED_RANGES,
-  supportsActorFilter,
-  supportsDepartmentFilter,
-  type DeletedRange,
-} from '../model/kinds'
+import { DELETED_RANGES, supportsDepartmentFilter, type DeletedRange } from '../model/kinds'
 import { deletedText } from '../model/messages'
 import { unknownDepartment } from '../model/rows'
 import type { ActorCandidate } from './use-filter-candidates'
 import FilterMenu from './FilterMenu.vue'
 
 /**
- * Süzgeç çubuğu (E-12-17…20; P43; BE-117): tarih aralığı, Silen, Koordinatörlük, arama. Hepsi
+ * Süzgeç çubuğu (E-12-17…20; P43; BE-117, BE-108): tarih aralığı, Silen, Koordinatörlük, arama. Hepsi
  * sunucu süzgecidir (URL → sorgu parametresi). Adaylar çağıranın biriktirdiği listelerdir
  * (`use-filter-candidates`); "Bilinmiyor" silen seçeneği sunulmaz (sunucuya gönderilemez).
  * Arama yazarken gecikmeli URL'ye yazılır; bekleyen yazım sahip sökülünce, kapsam ve oturum
@@ -120,8 +115,6 @@ onBeforeUnmount(() => {
       :trigger="selectedLabel(actorOptions, filters.actor, deletedText('filters.actor.label'))"
       :options="actorOptions"
       :model-value="filters.actor"
-      :disabled="!supportsActorFilter(filters.kind)"
-      :hint="deletedText('filters.actor.unsupported')"
       data-testid="dr-actor"
       @update:model-value="emit('update', { actor: $event })"
     />

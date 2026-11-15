@@ -63,7 +63,8 @@ describe('E-12-66 görev satırı', () => {
       subLine: 'Mekanik › Görevler',
       status: 'devam_ediyor',
       fileCount: 2,
-      actor: null,
+      // Silen bilgisi tutulmadan önce silinmiş görevde deleted_by null → ad boş.
+      actor: { accountId: null, name: '' },
       departmentIds: ['d1'],
     })
   })
@@ -131,7 +132,7 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
     ).toBe('')
   })
 
-  it('kullanıcı: ad, ekipler, silinme tarihi ve şirket yöneticiliği (BE-118); silen yok (BE-108 ayrı)', () => {
+  it('kullanıcı: ad, ekipler, silinme tarihi ve şirket yöneticiliği (BE-118); silen deleted_by (BE-108)', () => {
     const team = (id: string, name: string) => ({
       department_id: id,
       display_name: name,
@@ -144,6 +145,7 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
         account_id: 'a1',
         full_name: 'Gökhan Tanaydın',
         deleted_at: '2026-11-11T14:30:00Z',
+        deleted_by: { account_id: 'a7', full_name: 'Reha Koçak' },
         company_admin: true,
         teams: [team('d1', 'Mekanik'), team('d1', 'Mekanik'), team('d2', 'Yazılım')],
       }),
@@ -154,6 +156,7 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
       title: 'Gökhan Tanaydın',
       subLine: 'Mekanik, Yazılım',
       deletedAt: '2026-11-11T14:30:00Z',
+      actor: { accountId: 'a7', name: 'Reha Koçak' },
       departmentIds: ['d1', 'd2'],
       departmentNames: ['Mekanik', 'Yazılım'],
       companyAdmin: true,

@@ -10,7 +10,7 @@ export function fixtureRow(over: Partial<DeletedRow> = {}): DeletedRow {
     code: null,
     subLine: 'Mekanik › Görevler',
     deletedAt: '2026-11-12T10:42:00Z',
-    actor: null,
+    actor: { accountId: null, name: '' },
     departmentIds: ['d1'],
     status: 'devam_ediyor',
     fileCount: 2,

@@ -10,7 +10,6 @@ import {
   DEFAULT_RANGE,
   isDeletedRange,
   parseKind,
-  supportsActorFilter,
   supportsDepartmentFilter,
   type DeletedKind,
   type DeletedRange,
@@ -45,7 +44,7 @@ export function parseFilters(query: Query): DeletedFilters {
     q: text(query, 'q').trim(),
     department: supportsDepartmentFilter(kind) ? text(query, 'koordinatorluk') || null : null,
     range: isDeletedRange(range) ? range : DEFAULT_RANGE,
-    actor: supportsActorFilter(kind) ? text(query, 'silen') || null : null,
+    actor: text(query, 'silen') || null,
     selected: text(query, 'kayit') || null,
   }
 }
@@ -156,7 +155,7 @@ export function toListQuery(
   if (supportsDepartmentFilter(filters.kind) && filters.department) {
     query.department_id = filters.department
   }
-  if (supportsActorFilter(filters.kind) && filters.actor) query.deleted_by = filters.actor
+  if (filters.actor) query.deleted_by = filters.actor
   const from = rangeFrom(filters.range, ctx)
   if (from) query.deleted_from = from
   // Hesap listesinin parametresiz sırası oluşturma tarihidir (`created_at`): "en yeni silinen

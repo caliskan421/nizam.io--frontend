@@ -62,10 +62,8 @@ function act(action: 'restore' | 'purge'): void {
       </h2>
       <p v-if="row.subLine" class="rp-cap">{{ row.subLine }}</p>
       <dl class="rp-dl">
-        <template v-if="row.actor">
-          <dt>{{ deletedText('panel.fields.actor') }}</dt>
-          <dd>{{ row.actor.name || deletedText('table.unknownActor') }}</dd>
-        </template>
+        <dt>{{ deletedText('panel.fields.actor') }}</dt>
+        <dd>{{ row.actor.name || deletedText('table.unknownActor') }}</dd>
         <template v-if="deletedAt">
           <dt>{{ deletedText('panel.fields.deletedAt') }}</dt>
           <dd class="dr-mono">{{ deletedAt }}</dd>

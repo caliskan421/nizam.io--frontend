@@ -64,7 +64,6 @@ export const trDeletedRecords = {
         label: 'Silen',
         all: 'Tümü',
         unnamed: 'Adı bilinmiyor',
-        unsupported: 'Yalnız toplantılarda silen bilgisi var.',
       },
       department: {
         label: 'Koordinatörlük',

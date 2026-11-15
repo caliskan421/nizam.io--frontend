@@ -37,8 +37,8 @@ export interface DeletedRow {
   subLine: string
   /** RFC 3339 `deleted_at`; hesapta ve boş tarihte `null`. */
   deletedAt: string | null
-  /** Toplantıda silen (`deleted_by`; `name` boşsa bilinmiyor); diğer türlerde `null`. */
-  actor: { accountId: string | null; name: string } | null
+  /** Silen (`deleted_by`; eski kayıtta `accountId` null ve `name` boş → "Bilinmiyor"). */
+  actor: { accountId: string | null; name: string }
   /** Koordinatörlük süzgecinin eşleştiği kimlikler. */
   departmentIds: readonly string[]
   /** Görev: durum anahtarı; diğer türlerde `null`. */
