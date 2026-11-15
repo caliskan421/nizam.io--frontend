@@ -2,6 +2,8 @@ import type { components, operations } from '@/shared/api/schema'
 
 export type MeetingFilters = NonNullable<operations['listMeetings']['parameters']['query']>
 export type MeetingDetail = components['schemas']['MeetingDetail']
+/** Not süzgeci (BE-061): sunucuda `converted`/`author`; URL `notlar` ile eşli. */
+export type NoteFilter = 'all' | 'converted' | 'mine'
 
 export interface MeetingCandidate {
   accountId: string

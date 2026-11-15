@@ -17,7 +17,7 @@ import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
 import NoteFilters from './NoteFilters.vue'
 import NoteComposer from './NoteComposer.vue'
-import { noteCount, noteTime, noteFacts, noteFocus, selectNotes } from './notes-view'
+import { noteTime, noteFacts, noteFocus } from './notes-view'
 import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
 import { useNoteDelete } from './use-note-delete'
@@ -26,12 +26,13 @@ const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
 const scope = useScopeStore()
 const instance = useInstanceStore()
 const { standing } = useStanding()
-const query = useMeetingNotes(() => props.meeting.meeting_id)
+const { filter, setFilter } = useNoteFilter()
+const query = useMeetingNotes(() => props.meeting.meeting_id, filter)
 const add = useAddMeetingNote()
 const draft = ref('')
 const unknownDraft = ref<string | null>(null)
-const { filter, setFilter } = useNoteFilter()
-const count = (value: number) => noteCount(value, query.hasNextPage.value)
+// Sayaçlar süzgeç ve imleçten bağımsızdır, her sayfada aynıdır (BE-061).
+const counts = computed(() => query.data.value?.pages[0]?.counts ?? null)
 const time = (value: string) => noteTime(value, instance.profile?.timezone)
 const openMenu = ref<string | null>(null)
 const section = ref<HTMLElement | null>(null)
@@ -43,7 +44,6 @@ const convertedLabel = designStub('BE-065', text.convertedLabel)
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
 const mine = (note: MeetingNote) =>
   !!standing.value && note.author_account_id === standing.value.accountId
-const shown = computed(() => selectNotes(notes.value, filter.value, standing.value?.accountId))
 const access = computed(() =>
   meetingCapabilities(standing.value, scope.programId ?? '', {
     inviteMode: props.meeting.invite_mode,
@@ -133,9 +133,9 @@ function deleteNote(note: MeetingNote) {
   <section ref="section" class="t-card meeting-notes" :aria-label="text.title">
     <NoteFilters
       :filter="filter"
-      :all="count(notes.length)"
-      :converted="count(notes.filter(converted).length)"
-      :mine="count(notes.filter(mine).length)"
+      :all="counts?.all ?? null"
+      :converted="counts?.converted ?? null"
+      :mine="counts?.mine ?? null"
       @change="setFilter"
     />
     <NoteComposer
@@ -150,7 +150,7 @@ function deleteNote(note: MeetingNote) {
     <p v-else-if="query.isError.value">
       {{ text.error }} <button type="button" @click="query.refetch()">{{ text.retry }}</button>
     </p>
-    <article v-for="note in shown" :key="note.note_id" class="meeting-notes__item">
+    <article v-for="note in notes" :key="note.note_id" class="meeting-notes__item">
       <UiAvatar :name="note.author_name" />
       <div class="meeting-notes__content">
         <strong>{{ note.author_name }}</strong>

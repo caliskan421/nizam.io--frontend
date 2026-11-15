@@ -1,9 +1,6 @@
 import { nextTick, onScopeDispose, type Ref } from 'vue'
 import type { MeetingNote } from '../../model/types'
 import { useScopeStore } from '@/shared/scope/store'
-export function noteCount(count: number, hasMore: boolean): string {
-  return `${count}${hasMore ? '+' : ''}`
-}
 export function noteTime(value: string, timeZone?: string | null): string {
   return new Intl.DateTimeFormat('tr-TR', {
     timeZone: timeZone ?? 'Europe/Istanbul',
@@ -52,18 +49,4 @@ export function noteFocus(root: Ref<HTMLElement | null>, version: () => number) 
       else buttons.delete(id)
     },
   }
-}
-
-export function selectNotes(
-  notes: readonly MeetingNote[],
-  filter: 'all' | 'converted' | 'mine',
-  accountId?: string,
-): MeetingNote[] {
-  return notes.filter(
-    (note) =>
-      filter === 'all' ||
-      (filter === 'converted'
-        ? !!note.converted_to_work_item_id
-        : !!accountId && note.author_account_id === accountId),
-  )
 }

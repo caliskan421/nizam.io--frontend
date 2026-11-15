@@ -6,7 +6,7 @@ import {
 } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { retryTransient } from '@/modules/work/public'
-import type { MeetingDetail, MeetingFilters } from '../model/types'
+import type { MeetingDetail, MeetingFilters, NoteFilter } from '../model/types'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
@@ -65,16 +65,22 @@ export function useMeeting(id: MaybeRefOrGetter<string | null>) {
   )
 }
 
-export function useMeetingNotes(id: MaybeRefOrGetter<string | null>) {
+/** Detay tohumu (süzgeçsiz) yalnız `all` okumasına girer; süzgeçli okuma ayrı anahtardır (BE-061). */
+export function useMeetingNotes(
+  id: MaybeRefOrGetter<string | null>,
+  filter: MaybeRefOrGetter<NoteFilter> = 'all',
+) {
   const client = useQueryClient()
   const store = useScopeStore()
   return useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
       const meetingId = toValue(id)
+      const selected = toValue(filter)
       return {
-        queryKey: queryKeys.meetings.noteList(scope, meetingId ?? ''),
+        queryKey: queryKeys.meetings.noteList(scope, meetingId ?? '', selected),
         initialData: () => {
+          if (selected !== 'all') return undefined
           const detail = client.getQueryData<MeetingDetail>(
             queryKeys.meetings.detail(scope, meetingId ?? ''),
           )
@@ -82,7 +88,13 @@ export function useMeetingNotes(id: MaybeRefOrGetter<string | null>) {
         },
         queryFn: sessionBound(
           ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
-            fetchMeetingNotes(scope.programId!, meetingId!, pageParam || undefined, signal),
+            fetchMeetingNotes(
+              scope.programId!,
+              meetingId!,
+              pageParam || undefined,
+              signal,
+              selected,
+            ),
         ),
         initialPageParam: '',
         getNextPageParam: (page: Awaited<ReturnType<typeof fetchMeetingNotes>>) =>

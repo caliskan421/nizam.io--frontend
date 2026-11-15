@@ -50,7 +50,7 @@ const meeting = {
   members_included: true,
   viewer_role: 'member',
   participants: [{ account_id: 'a' }],
-  notes: { items: [note], next_cursor: '' },
+  notes: { items: [note], next_cursor: '', total: 1, counts: { all: 1, converted: 1, mine: 1 } },
 } as MeetingDetail
 function setup(admin: boolean, role: string) {
   actor.admin = admin
@@ -111,10 +111,11 @@ it('filters the loaded notes and submits a note with an idempotency key', async 
   client.clear()
 })
 
-it('marks loaded counts as partial and writes the filter into the URL', async () => {
+it('shows exact counts even when more pages exist and writes the filter into the URL', async () => {
   meeting.notes.next_cursor = 'next'
   const { wrapper, client } = setup(false, 'member')
-  expect(wrapper.text()).toContain('Tümü 1+')
+  expect(wrapper.text()).toContain('Tümü 1')
+  expect(wrapper.text()).not.toContain('1+')
   expect(wrapper.text()).toContain('Daha fazla not göster')
   await wrapper.get('button[aria-pressed="false"]').trigger('click')
   expect(actor.replace).toHaveBeenCalledWith({ query: { notlar: 'gorev' } })

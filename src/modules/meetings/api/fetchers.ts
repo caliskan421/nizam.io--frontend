@@ -1,6 +1,6 @@
 import { programHeaders } from '@/modules/work/public'
 import { api, unwrap } from '@/shared/http'
-import type { MeetingFilters } from '../model/types'
+import type { MeetingFilters, NoteFilter } from '../model/types'
 
 /** Tüm toplantı uçları S2'dir; yalnız yakalanmış program başlığı taşır. */
 export function fetchMeetings(programId: string, filters: MeetingFilters, signal?: AbortSignal) {
@@ -24,13 +24,19 @@ export function fetchMeetingNotes(
   id: string,
   cursor?: string,
   signal?: AbortSignal,
+  filter: NoteFilter = 'all',
 ) {
   return unwrap(
     api.GET('/v1/meetings/{id}/notes', {
       params: {
         header: programHeaders({ programId }),
         path: { id },
-        query: { cursor, limit: 200 },
+        query: {
+          cursor,
+          limit: 200,
+          ...(filter === 'converted' ? { converted: 'true' as const } : {}),
+          ...(filter === 'mine' ? { author: 'me' as const } : {}),
+        },
       },
       signal,
     }),

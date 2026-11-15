@@ -30,7 +30,7 @@ const meeting = {
   place: null,
   agenda: [],
   participants: [],
-  notes: { items: [], next_cursor: '' },
+  notes: { items: [], next_cursor: '', total: 0, counts: { all: 0, converted: 0, mine: 0 } },
   viewer_role: 'admin',
 }
 function handlers() {
@@ -43,7 +43,12 @@ function handlers() {
     ),
     http.get('http://localhost/v1/meetings/m1', () => HttpResponse.json(meeting)),
     http.get('http://localhost/v1/meetings/m1/notes', () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
+      HttpResponse.json({
+        items: [],
+        next_cursor: '',
+        total: 0,
+        counts: { all: 0, converted: 0, mine: 0 },
+      }),
     ),
   )
 }
@@ -72,7 +77,15 @@ it('gerçek not düzenleme çakışmasında taslak ve sunucu sürümü gösteril
   }
   backend.server.use(
     http.get('http://localhost/v1/meetings/m1', () =>
-      HttpResponse.json({ ...meeting, notes: { items: [note], next_cursor: '' } }),
+      HttpResponse.json({
+        ...meeting,
+        notes: {
+          items: [note],
+          next_cursor: '',
+          total: 1,
+          counts: { all: 1, converted: 0, mine: 0 },
+        },
+      }),
     ),
     http.get('http://localhost/v1/meetings/m1/notes', () =>
       HttpResponse.json({
@@ -193,7 +206,12 @@ it('gerçek not menüsünden silme onayla yapılır ve not listeden kalkar', asy
     edit_revision: 1,
   }
   let deleted = false
-  const notes = () => ({ items: deleted ? [] : [note], next_cursor: '' })
+  const notes = () => ({
+    items: deleted ? [] : [note],
+    next_cursor: '',
+    total: deleted ? 0 : 1,
+    counts: { all: deleted ? 0 : 1, converted: 0, mine: 0 },
+  })
   backend.server.use(
     http.get('http://localhost/v1/meetings/m1', () =>
       HttpResponse.json({ ...meeting, notes: notes() }),

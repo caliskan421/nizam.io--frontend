@@ -20,7 +20,7 @@ const meeting = {
   place: null,
   agenda: [],
   participants: [],
-  notes: { items: [], next_cursor: '' },
+  notes: { items: [], next_cursor: '', total: 0, counts: { all: 0, converted: 0, mine: 0 } },
   viewer_role: 'admin',
 }
 function handlers() {
@@ -33,7 +33,12 @@ function handlers() {
     ),
     http.get('http://localhost/v1/meetings/m1', () => HttpResponse.json(meeting)),
     http.get('http://localhost/v1/meetings/m1/notes', () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
+      HttpResponse.json({
+        items: [],
+        next_cursor: '',
+        total: 0,
+        counts: { all: 0, converted: 0, mine: 0 },
+      }),
     ),
   )
 }
