@@ -3,7 +3,7 @@
 // bulunamadı"; meeting → 09b; program_transfer → 01; membership → gezinme yok) → sayaç + liste
 // geçersizleme (KESİN 29) → "Tümünü okundu say" → 404 satır kalkar → kapsam/oturum değişiminde
 // kapanır. Gerçek router/AppShell/oturum + durumlu sahte sunucu.
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   $,
@@ -43,11 +43,17 @@ beforeAll(async () => {
   teardown()
 }, 60_000)
 beforeEach(() => resetNotifications())
-afterEach(() => teardown())
+afterEach(() => {
+  vi.useRealTimers()
+  teardown()
+})
 afterAll(() => backend.server.close())
 
 describe('zil ve liste', () => {
   it('sayaç rozeti (1–9 sayı, ≥10 "9+"); okunamazsa gizli; aç → grup başlıkları + sekmeler', async () => {
+    // "Bugün/Dün" gruplaması gerçek takvime bağlı olmasın: yalnız Date sabit (zamanlayıcılar gerçek).
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-14T12:00:00Z'))
     for (let i = 0; i < 3; i += 1) addFor('member', 'work.item.created', WORK('w1'), {}, 5 + i)
     addFor('member', 'work.item.transitioned', WORK('w1'), { is_read: true }, 60 * 24 * 3)
     const app = await boot({ ...MEMBER, path: '/gorevler' })
