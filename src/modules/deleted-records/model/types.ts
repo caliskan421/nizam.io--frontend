@@ -4,6 +4,7 @@ import type { DeletedKind } from './kinds'
 
 export type DeletedWorkItem = components['schemas']['DeletedWorkItem']
 export type DeletedWorkItemList = components['schemas']['DeletedWorkItemList']
+export type DeletedSummary = components['schemas']['DeletedSummary']
 export type DeletedAccount = components['schemas']['DeletedAccount']
 export type DeletedAccountList = components['schemas']['DeletedAccountList']
 export type DeletedDepartment = components['schemas']['DeletedDepartment']

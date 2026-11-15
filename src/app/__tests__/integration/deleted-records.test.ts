@@ -21,7 +21,11 @@ import {
   toasts,
   until,
 } from './harness'
-import { withDeletedAccountDefaults } from '@/shared/api/__tests__/defaults'
+import {
+  withDeletedAccountDefaults,
+  withDeletedDepartmentDefaults,
+  withDeletedTaskDefaults,
+} from '@/shared/api/__tests__/defaults'
 
 import { item, ORIGIN } from './fake-org'
 
@@ -117,28 +121,47 @@ function install(): void {
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/work-items`, () =>
       HttpResponse.json({
-        items: deleted.tasks.map((id) => ({
-          work_item_id: id,
-          title: 'Silinmiş görev',
-          department_id: 'd1',
-          status: 'devam_ediyor',
-          deleted_at: '2026-11-11T10:00:00Z',
-          file_count: 0,
-        })),
+        items: deleted.tasks.map((id) =>
+          withDeletedTaskDefaults({
+            work_item_id: id,
+            title: 'Silinmiş görev',
+            department_id: 'd1',
+            status: 'devam_ediyor',
+            deleted_at: '2026-11-11T10:00:00Z',
+            file_count: 0,
+          }),
+        ),
+        total: deleted.tasks.length,
       }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
-      HttpResponse.json({ items: deleted.meetings.map(meetingRow), next_cursor: '' }),
+      HttpResponse.json({
+        items: deleted.meetings.map(meetingRow),
+        next_cursor: '',
+        total: deleted.meetings.length,
+      }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/departments`, () =>
       HttpResponse.json({
-        departments: deleted.departments.map((id) => ({
-          department_id: id,
-          name: 'Silinmiş birim',
-          kind: 'koordinatorluk',
-          code: 'SIL',
-          deleted_at: '2026-11-10T09:00:00Z',
-        })),
+        departments: deleted.departments.map((id) =>
+          withDeletedDepartmentDefaults({
+            department_id: id,
+            name: 'Silinmiş birim',
+            kind: 'koordinatorluk',
+            code: 'SIL',
+            deleted_at: '2026-11-10T09:00:00Z',
+          }),
+        ),
+        total: deleted.departments.length,
+      }),
+    ),
+    http.get(`${ORIGIN}/v1/admin/deleted/summary`, () =>
+      HttpResponse.json({
+        tasks: deleted.tasks.length,
+        meetings: deleted.meetings.length,
+        departments: deleted.departments.length,
+        accounts: deleted.accounts.length,
+        total: total(),
       }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () =>
@@ -328,6 +351,49 @@ describe('geri yükle → türetilmiş kaynaklar önce/sonra (KESİN 29)', () =>
     expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/md')).toHaveLength(1)
     await app.router.push('/')
     await until(() => counter() === '2', 'kalıcı silme sonrası sayaç')
+  })
+})
+
+describe('özet sayaçları ↔ ana sayfa rozeti (BE-110, KESİN 29)', () => {
+  const segment = () =>
+    Object.fromEntries(
+      $$('[data-testid="dr-kinds"] button[data-kind]')
+        .map((b) => [b.dataset.kind, b.querySelector('.rp-count')?.textContent])
+        .filter(([, n]) => n !== undefined),
+    )
+
+  it('segment sayaçları özet (dört tür kesin) ve toplamı ana sayfa rozetiyle aynı hesap', async () => {
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
+    await until(() => $('[data-record-key="gorev:wd"]'), 'görev satırı')
+    await until(() => segment().gorev, 'özet sayaçları')
+    expect(segment()).toEqual({ gorev: '1', toplanti: '1', koordinatorluk: '1', kullanici: '1' })
+    expect(backend.sent('GET', '/v1/admin/deleted/summary')).toHaveLength(1)
+    expect(
+      backend.sent('GET', '/v1/admin/deleted/summary')[0]!.headers.get('X-Nizamio-Program'),
+    ).toBe('p1')
+    await app.router.push('/')
+    await until(() => counter() === '4', 'rozet = özet toplamı')
+  })
+
+  it('geri yükleme özeti, listeyi ve ana sayfa rozetini birlikte yeniler; kalıcı silme de', async () => {
+    const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=toplanti' })
+    await until(() => segment().toplanti === '1', 'önce')
+    const summaries = backend.sent('GET', '/v1/admin/deleted/summary').length
+    await restore('toplanti:md')
+    await acceptConfirm()
+    await idle(app.queryClient)
+    await until(() => segment().toplanti === '0', 'özet sayacı düştü')
+    expect(backend.sent('GET', '/v1/admin/deleted/summary').length).toBeGreaterThan(summaries)
+    expect(segment()).toEqual({ gorev: '1', toplanti: '0', koordinatorluk: '1', kullanici: '1' })
+    await app.router.push('/')
+    await until(() => counter() === '3', 'rozet sonra')
+    await app.router.push('/silinen-kayitlar?tur=kullanici')
+    await until(() => $('[data-record-key="kullanici:acc-dead"]'), 'silinen hesap')
+    await click(() => $('[data-record-key="kullanici:acc-dead"] [data-action="purge"]'))
+    await acceptConfirm()
+    await idle(app.queryClient)
+    await until(() => segment().kullanici === '0', 'hesap sayacı düştü')
+    expect(segment().gorev).toBe('1')
   })
 })
 

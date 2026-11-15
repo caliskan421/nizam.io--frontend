@@ -5,6 +5,11 @@
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
+import {
+  withDeletedDepartmentDefaults,
+  withDeletedTaskDefaults,
+} from '@/shared/api/__tests__/defaults'
+
 import { envelope, item, ORIGIN } from './fake-org'
 import {
   $,
@@ -32,35 +37,53 @@ interface Dead {
 }
 let dead: Dead = { tasks: [], departments: [], deptRestored: false }
 
-const taskRow = (id: string, department: string) => ({
-  work_item_id: id,
-  title: id === 'wd' ? 'Silinmiş görev' : 'Silinmiş görev (kapalı birim)',
-  department_id: department,
-  status: 'devam_ediyor',
-  deleted_at: '2026-11-11T10:00:00Z',
-  file_count: 0,
-})
+const taskRow = (id: string, department: string) =>
+  withDeletedTaskDefaults({
+    work_item_id: id,
+    title: id === 'wd' ? 'Silinmiş görev' : 'Silinmiş görev (kapalı birim)',
+    department_id: department,
+    status: 'devam_ediyor',
+    deleted_at: '2026-11-11T10:00:00Z',
+    file_count: 0,
+  })
 
 function install(): void {
   backend.server.use(
     http.get(`${ORIGIN}/v1/admin/deleted/work-items`, () =>
-      HttpResponse.json({ items: dead.tasks.map((id) => taskRow(id, id === 'wd' ? 'd1' : 'dd')) }),
+      HttpResponse.json({
+        items: dead.tasks.map((id) => taskRow(id, id === 'wd' ? 'd1' : 'dd')),
+        total: dead.tasks.length,
+      }),
+    ),
+    http.get(`${ORIGIN}/v1/admin/deleted/summary`, () =>
+      HttpResponse.json({
+        tasks: dead.tasks.length,
+        meetings: 0,
+        departments: dead.departments.length,
+        accounts: 0,
+        total: dead.tasks.length + dead.departments.length,
+      }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
+      HttpResponse.json({ items: [], next_cursor: '', total: 0 }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/departments`, () =>
       HttpResponse.json({
-        departments: dead.departments.map((id) => ({
-          department_id: id,
-          name: 'Kapalı birim',
-          kind: 'koordinatorluk',
-          code: 'KAP',
-          deleted_at: '2026-11-10T09:00:00Z',
-        })),
+        departments: dead.departments.map((id) =>
+          withDeletedDepartmentDefaults({
+            department_id: id,
+            name: 'Kapalı birim',
+            kind: 'koordinatorluk',
+            code: 'KAP',
+            deleted_at: '2026-11-10T09:00:00Z',
+          }),
+        ),
+        total: dead.departments.length,
       }),
     ),
-    http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () => HttpResponse.json({ accounts: [] })),
+    http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () =>
+      HttpResponse.json({ accounts: [], total: 0 }),
+    ),
     http.patch(`${ORIGIN}/v1/admin/restore/work-items/:id`, async ({ params }) => {
       const id = String(params.id)
       if (restoreGate) {

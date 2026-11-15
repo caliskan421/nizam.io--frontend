@@ -39,3 +39,13 @@ export function parseKind(value: unknown): DeletedKind {
 export function supportsDepartmentFilter(kind: DeletedKind): boolean {
   return kind !== 'koordinatorluk'
 }
+
+/** Özet (`DeletedSummary`) alan adı ↔ tür: segment sayaçları (E-12-08, BE-110). */
+export const SUMMARY_FIELD: Readonly<
+  Record<DeletedKind, 'tasks' | 'meetings' | 'departments' | 'accounts'>
+> = {
+  gorev: 'tasks',
+  toplanti: 'meetings',
+  koordinatorluk: 'departments',
+  kullanici: 'accounts',
+}

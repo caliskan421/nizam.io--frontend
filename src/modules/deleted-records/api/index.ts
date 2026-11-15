@@ -11,6 +11,7 @@ export {
   useDeletedMeetings,
   useDeletedWorkItems,
 } from './queries'
+export { fetchDeletedSummary, useDeletedSummary } from './summary'
 export {
   usePermanentDeleteAccount,
   usePermanentDeleteDepartment,

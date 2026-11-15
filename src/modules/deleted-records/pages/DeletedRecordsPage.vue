@@ -17,9 +17,11 @@ import {
   RecordsFooter,
   RecordsTable,
 } from '../components'
+import { useDeletedSummary } from '../api/summary'
 import { useDeletedView } from '../components/use-deleted-view'
 import { useRecordActions } from '../components/use-record-actions'
 import { deletedRecordsCapabilities } from '../model/capabilities'
+import { SUMMARY_FIELD, type DeletedKind } from '../model/kinds'
 import { deletedText } from '../model/messages'
 import type { DeletedRow } from '../model/types'
 
@@ -43,7 +45,16 @@ const allowed = computed(() => caps.value.view && !forbidden.value)
 const denied = computed(() => standing.value !== null && !allowed.value)
 
 const kindName = computed(() => deletedText(`kindNames.${filters.value.kind}`))
-const count = computed(() => (list.loading.value || list.error.value ? null : list.total.value))
+const summary = useDeletedSummary(() => caps.value.view)
+/** Tür sayaçları: özet (kesin; süzgeçten bağımsız). Özet gelmediyse sayaç çizilmez. */
+const counts = computed<Record<DeletedKind, number> | null>(() => {
+  const data = summary.data.value
+  if (!data) return null
+  const out = {} as Record<DeletedKind, number>
+  for (const [kind, field] of Object.entries(SUMMARY_FIELD)) out[kind as DeletedKind] = data[field]
+  return out
+})
+const count = computed(() => counts.value?.[filters.value.kind] ?? null)
 const subtitle = computed(() =>
   count.value === null
     ? deletedText('page.sub.idle')
@@ -138,7 +149,7 @@ function dismissNotice(): void {
         <div class="dr-toolbar">
           <KindSegment
             :model-value="filters.kind"
-            :count="count === null ? null : String(count)"
+            :counts="counts"
             @update:model-value="view.setKind"
           />
           <FilterBar

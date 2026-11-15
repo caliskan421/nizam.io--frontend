@@ -139,22 +139,49 @@ describe('sekmeler ve uçlar (P41, P42)', () => {
 })
 
 describe('sayaç, alt başlık ve notlar', () => {
-  it('sayaç yalnız açık sekmede ve kesin (sunucu total); "n+" ve "yüklenen kayıtlar içinde" yok', async () => {
+  it('sayaçlar özetten ve kesin: dört tür de sayı gösterir, "n+" ve "yüklenen kayıtlar içinde" yok (BE-110)', async () => {
     world.tasks = [[task('w1'), task('w2')], [task('w3')]]
+    world.meetings = [[meeting('m1')]]
+    world.accounts = [[account('a1'), account('a2')]]
     const page = await mountPage()
     const counts = page.wrapper.findAll('[data-testid="dr-kinds"] .rp-count')
-    expect(counts.map((c) => c.text())).toEqual(['3'])
+    expect(counts.map((c) => c.text())).toEqual(['3', '1', '0', '2'])
     expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe(
       '3 görev · yalnız yönetici görür',
     )
+    // Özet S2: program başlığı taşır, süzgeç almaz.
+    const summary = sent(PATHS.summary)
+    expect(summary).toHaveLength(1)
+    expect(summary[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect([...summary[0]!.query.keys()]).toEqual([])
+    // Alt sayaç satırı süzülmüş listenin total'idir: "m / toplam".
     expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('2 / 3 kayıt gösteriliyor')
     await page.wrapper.get('[data-testid="dr-more"]').trigger('click')
     await settle()
-    expect(page.wrapper.get('[data-testid="dr-kinds"] .rp-count').text()).toBe('3')
     expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('3 kayıt')
     expect(page.wrapper.find('[data-testid="dr-more"]').exists()).toBe(false)
     expect(sent(PATHS.tasks)[1]!.query.get('cursor')).toBe('1')
     expect(page.wrapper.text()).not.toMatch(/içinde|\d\+/)
+  })
+
+  it('süzgeç özet sayaçlarını değiştirmez; alt sayaç süzülmüş küme boyunu gösterir', async () => {
+    world.tasks = [[task('w1', { title: 'Motor' }), task('w2', { title: 'Şasi' })]]
+    const page = await mountPage({ path: '/silinen-kayitlar?q=motor' })
+    expect(page.wrapper.get('[data-testid="dr-kinds"] [data-kind="gorev"] .rp-count').text()).toBe(
+      '2',
+    )
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('1 kayıt')
+    expect(sent(PATHS.summary)).toHaveLength(1)
+    expect(sent(PATHS.summary)[0]!.query.has('q')).toBe(false)
+  })
+
+  it('özet okunamazsa sayaç çizilmez (sahte sayı yok); liste yine çalışır', async () => {
+    world.tasks = [[task('w1')]]
+    world.failures.set(`GET ${PATHS.summary}`, { status: 500, code: 'platform.internal' })
+    const page = await mountPage()
+    expect(page.wrapper.find('[data-testid="dr-kinds"] .rp-count').exists()).toBe(false)
+    expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe('Yalnız yönetici görür')
+    expect(page.wrapper.findAll('[data-record-key]')).toHaveLength(1)
   })
 
   it('saklama metni P37, iz kaydı cümlesi bağlantısız; kalan süre ve "Yakında" kartı yok', async () => {

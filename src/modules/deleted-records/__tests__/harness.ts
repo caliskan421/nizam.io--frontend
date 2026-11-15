@@ -32,6 +32,7 @@ export const PATHS = {
   meetings: '/v1/admin/deleted/meetings',
   departments: '/v1/admin/deleted/departments',
   accounts: '/v1/admin/deleted/accounts',
+  summary: '/v1/admin/deleted/summary',
   dictionary: '/v1/program/departments',
   dashboard: '/v1/reports/dashboard',
 } as const
@@ -204,6 +205,19 @@ const ACCOUNT_FACETS: Facets<DeletedAccount> = {
   name: (a) => a.full_name,
 }
 
+const size = (pages: unknown[][]) => pages.reduce((sum, p) => sum + p.length, 0)
+
+/** Özet: dört türün tüm silinmişleri (süzgeç almaz; `total` dört terimin toplamı, REPORTING-K15). */
+function summaryOf() {
+  const counts = {
+    tasks: size(world.tasks),
+    meetings: size(world.meetings),
+    departments: size(world.departments),
+    accounts: size(world.accounts),
+  }
+  return { ...counts, total: Object.values(counts).reduce((a, b) => a + b, 0) }
+}
+
 /** Silinen liste uçları (yetkili görünürlük: yönetici değilse 403). */
 function listHandlers() {
   const list = (path: string, code: string, answer: (request: Request) => JsonBodyType) =>
@@ -221,6 +235,11 @@ function listHandlers() {
     list(PATHS.accounts, 'organization.not_authorized', (r) =>
       page(world.accounts, r, 'accounts', ACCOUNT_FACETS),
     ),
+    http.get(`${ORIGIN}${PATHS.summary}`, () => {
+      const forced = failure('GET', PATHS.summary)
+      if (forced) return forced
+      return world.admin ? json(summaryOf()) : FORBIDDEN('work.not_authorized')
+    }),
     http.get(`${ORIGIN}${PATHS.dictionary}`, () => json({ departments: world.dictionary })),
   ]
 }

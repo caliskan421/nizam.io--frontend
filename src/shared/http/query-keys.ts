@@ -118,6 +118,14 @@ export const queryKeys = {
     all: () => ['deleted-accounts'] as const,
     list: (filters: QueryFilters) => ['deleted-accounts', filters] as const,
   },
+  /**
+   * Silinenler özeti (`reportDeletedSummary`, S2, yalnız ŞY; BE-110): tür başına sayaçlar; süzgeç
+   * almaz. Kapsamlı: program değişince düşer. Dört silinen listesinin yaşam döngüsü yazmalarıyla
+   * (silme, geri yükleme, kalıcı silme, toplu ve çöp boşaltma) birlikte yenilenir.
+   */
+  deletedSummary: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-summary']),
+  },
   workItems: {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['work-items', filters]),
@@ -220,6 +228,7 @@ export type QueryResource =
   | 'deletedDepartments'
   | 'deletedWorkItems'
   | 'deletedAccounts'
+  | 'deletedSummary'
   | 'workItems.list'
   | 'workItems.item'
   | 'workItems.counts'
@@ -447,6 +456,19 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // yeniden okutur.
   deletedWorkItems: ['deleteWorkItem', 'restoreWorkItem', 'permanentDeleteWorkItem'],
   deletedAccounts: [...ACCOUNT_LIFECYCLE_WRITES],
+  // Özet sayaçları dört türün silme/geri yükleme/kalıcı silme yazmalarıyla değişir (12, BE-110).
+  deletedSummary: [
+    'deleteWorkItem',
+    'restoreWorkItem',
+    'permanentDeleteWorkItem',
+    'deleteMeeting',
+    'restoreMeeting',
+    'permanentDeleteMeeting',
+    'deleteDepartment',
+    'restoreDepartment',
+    'permanentDeleteDepartment',
+    ...ACCOUNT_LIFECYCLE_WRITES,
+  ],
   'workItems.list': unique(
     WORK_ITEM_WRITES,
     DATE_WRITES,
@@ -682,6 +704,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   deletedDepartments: prefix(queryKeys.deletedDepartments.all),
   deletedWorkItems: prefix(queryKeys.deletedWorkItems.all),
   deletedAccounts: prefix(() => queryKeys.deletedAccounts.all()),
+  deletedSummary: prefix(queryKeys.deletedSummary.all),
   'workItems.list': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),
