@@ -36,12 +36,6 @@ describe('klasör kartı (E-06-10…15)', () => {
     expect(w.text()).not.toMatch(/görev|MB|KB|\bgün\b/)
   })
 
-  it('yönetici (sayı null): meta statik —, sahte sayı yok', () => {
-    const w = card({ fileCount: null })
-    expect(w.get('[data-field="meta"]').text()).toBe('—')
-    expect(w.classes()).not.toContain('archive-folder--empty')
-  })
-
   it('boş klasör (0): "Henüz dosya yok", soluk ama bağlantı', () => {
     const w = card({ fileCount: 0 })
     expect(w.get('[data-field="meta"]').text()).toBe('Henüz dosya yok')

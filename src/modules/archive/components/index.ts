@@ -46,8 +46,6 @@ import type {
 export interface ArchiveSearchBarProps {
   q: string
   kind: ArchiveKind
-  /** Yönetici (P33): arama statik/boş durum — "Görev klasörü seçin" (designStub BE-072). */
-  disabled: boolean
 }
 export interface ArchiveSearchBarEmits {
   'update:q': [value: string]
@@ -141,8 +139,6 @@ export interface FileGridProps {
   hasMore: boolean
   loading: boolean
   error: boolean
-  /** Yönetici, görev seçilmemiş: "Görev klasörü seçin" boş durumu (BE-072). */
-  needsTask: boolean
 }
 export interface FileGridEmits {
   select: [fileId: string]

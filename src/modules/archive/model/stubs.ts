@@ -6,14 +6,6 @@
  */
 import { designStub } from '@/shared/design-stub'
 
-/** Yönetici merceği: klasör düzeyi "Son eklenen dosyalar" ve "Tüm arşivde ara" (P33, E-06-06/26/38). */
-export const ADMIN_FOLDER_LEVEL = designStub('BE-072', {
-  recentFiles: false,
-  globalSearch: false,
-  /** Boş durum metni anahtarı: "Görev klasörü seçin". */
-  emptyKey: 'archive.shared.selectTask',
-})
-
 /** Klasör özeti: görev sayısı, bayt toplamı, son yükleme, depolama dağılımı (E-06-12…14, 22…24). */
 export const FOLDER_SUMMARY = designStub('BE-025', {
   taskCount: false,

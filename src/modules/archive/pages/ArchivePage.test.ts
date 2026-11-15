@@ -9,14 +9,17 @@ import { settleQueries } from '@/shared/http/__tests__/settle'
 
 import {
   ADMIN,
+  archiveFile,
   COORD,
   folder,
+  folderBody,
   harness,
   http,
   json,
   MEMBER,
   ORIGIN,
   resetHarness,
+  s2Requests,
   s3Requests,
   sent,
   server,
@@ -39,15 +42,34 @@ it('sayfa bildirimi gövdeden bağımsız: prop/emit yok (KESİN 22)', () => {
   expect(ArchivePage.emits ?? []).toEqual([])
 })
 
-const departments = (...rows: Array<[string, string]>) =>
-  http.get(`${ORIGIN}/v1/program/departments`, () =>
-    json({ departments: rows.map(([id, name]) => ({ department_id: id, display_name: name })) }),
+/** S2 `programArchiveFolders` (yönetici): kartlar + toplamlar. */
+const programFolders = (...cards: Array<ReturnType<typeof folder>>) =>
+  http.get(`${ORIGIN}/v1/program/archive/folders`, () => json(folderBody(...cards)))
+const programTasks = (...items: Array<{ id: string; title: string; department: string }>) =>
+  http.get(`${ORIGIN}/v1/program/archive/tasks`, () =>
+    json({
+      tasks: items.map((t) => ({
+        work_item_id: t.id,
+        title: t.title,
+        department_id: t.department,
+        file_count: 0,
+      })),
+    }),
   )
-const folders = (...items: object[]) =>
-  http.get(`${ORIGIN}/v1/records/archive/folders`, () => json({ folders: items }))
+const programFiles = (...files: object[]) =>
+  http.get(`${ORIGIN}/v1/program/archive/attachments`, () => json({ files, total: files.length }))
+const folders = (...items: Array<ReturnType<typeof folder>>) =>
+  http.get(`${ORIGIN}/v1/records/archive/folders`, () => json(folderBody(...items)))
 const tasks = (...items: Array<{ id: string; title: string }>) =>
   http.get(`${ORIGIN}/v1/records/archive/tasks`, () =>
-    json({ tasks: items.map((t) => ({ work_item_id: t.id, title: t.title, file_count: 1 })) }),
+    json({
+      tasks: items.map((t) => ({
+        work_item_id: t.id,
+        title: t.title,
+        department_id: 'd1',
+        file_count: 1,
+      })),
+    }),
   )
 
 async function mountPage(selection: Parameters<typeof harness>[0], url = '/arsiv') {
@@ -78,32 +100,88 @@ async function mountPage(selection: Parameters<typeof harness>[0], url = '/arsiv
 const names = (w: { findAll: (s: string) => Array<{ text: () => string }> }) =>
   w.findAll('.archive-folder__name').map((n) => n.text())
 
-describe('yönetici (P33)', () => {
+describe('yönetici (S2, BE-072)', () => {
+  const cards = [
+    folder({ folder_id: 'd2', name: 'Zemin', file_count: 4, task_count: 2 }),
+    folder({ folder_id: 'd1', name: 'Ağ', file_count: 0 }),
+    folder({ folder_id: 'd3', name: 'Bilişim', file_count: 9, task_count: 3 }),
+  ]
   const adminHandlers = [
     ...standing({ admin: true }),
-    departments(['d2', 'Zemin'], ['d1', 'Ağ'], ['d3', 'Bilişim']),
+    programFolders(...cards),
+    programTasks({ id: 'w1', title: 'Boş görev', department: 'd1' }),
   ]
 
-  it('başlık, P38 alt başlığı; koordinatörlük adları S2’den, sayılar —, S3 isteği YOK', async () => {
+  it('başlık, P38 alt başlığı; kartlar programArchiveFolders sayılarıyla (—/statik yok), S3 isteği YOK', async () => {
     server.use(...adminHandlers)
     const { wrapper } = await mountPage(ADMIN)
     expect(wrapper.get('h1').text()).toBe('Arşiv')
     expect(wrapper.get('.rp-sub').text()).toBe('Görevlere yüklenen dosyalar')
     expect(wrapper.text()).not.toMatch(/Kurumsal hafıza/)
     expect(names(wrapper)).toEqual(['Ağ', 'Bilişim', 'Zemin'])
-    expect(wrapper.findAll('[data-field="meta"]').map((n) => n.text())).toEqual(['—', '—', '—'])
+    expect(wrapper.findAll('[data-field="meta"]').map((n) => n.text())).toEqual([
+      'Henüz dosya yok',
+      '9 dosya',
+      '4 dosya',
+    ])
     expect(wrapper.get('.archive-coords__count').text()).toBe('3')
     expect(s3Requests()).toHaveLength(0)
+    // Eski yol yok (P33 geçici yolu): departman adları için `listProgramDepartments` okunmaz.
+    expect(sent('GET', '/v1/program/departments')).toHaveLength(0)
+    for (const call of s2Requests()) {
+      expect(call.headers.get('X-Nizamio-Department')).toBeNull()
+    }
     expect(wrapper.text()).not.toMatch(/grup/i)
   })
 
-  it('arama ve segment statik (BE-072) + "Görev klasörü seçin"; depolama yalnız —', async () => {
+  it('arama ve segment etkin (stub/"Görev klasörü seçin" yok); depolama toplamı sunucudan', async () => {
     server.use(...adminHandlers)
     const { wrapper } = await mountPage(ADMIN)
-    expect(wrapper.get('input[type="search"]').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('[data-design-stub="BE-072"] .rp-seg').exists()).toBe(true)
-    expect(wrapper.get('.archive-searchbar [role="status"]').text()).toBe('Görev klasörü seçin')
-    expect(wrapper.get('[data-field="files"]').text()).toBe('—')
+    expect(wrapper.get('input[type="search"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('[data-design-stub="BE-072"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Görev klasörü seçin')
+    expect(wrapper.get('[data-field="files"]').text()).toBe('13')
+  })
+
+  it('arama: program geneli programArchiveAttachments (department_id yok); sonuç listesi ızgaranın yerine gelir; sonuca tık dosyanın klasörünü açar', async () => {
+    server.use(
+      programTasks({ id: 'w9', title: 'Şartname', department: 'd2' }),
+      ...adminHandlers,
+      programFiles(
+        archiveFile({
+          file_id: 'f9',
+          work_item_id: 'w9',
+          department_id: 'd2',
+          display_name: 'rapor.pdf',
+        }),
+      ),
+    )
+    const { wrapper, router } = await mountPage(ADMIN, '/arsiv?q=rapor&tur=belge')
+    const [call] = sent('GET', '/v1/program/archive/attachments')
+    expect(call!.query.get('search')).toBe('rapor')
+    expect(call!.query.get('mime_category')).toBe('belge')
+    expect(call!.query.has('department_id')).toBe(false)
+    expect(call!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(call!.headers.get('X-Nizamio-Department')).toBeNull()
+    expect(wrapper.find('.archive-grid').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="archive-search-results"]').text()).toContain(
+      'Arama sonuçları',
+    )
+    expect(wrapper.get('[data-file-id="f9"]').text()).toBe('rapor.pdf')
+    expect(wrapper.get('[data-testid="archive-search-results"] td:nth-child(2)').text()).toBe(
+      'Şartname',
+    )
+    await wrapper.get('[data-file-id="f9"]').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/arsiv/d2')
+    expect(router.currentRoute.value.query).toMatchObject({ dosya: 'f9', gorev: 'w9' })
+  })
+
+  it('arama süzgeci boşken dosya okuması yok (ızgara görünür)', async () => {
+    server.use(...adminHandlers)
+    const { wrapper } = await mountPage(ADMIN)
+    expect(sent('GET', '/v1/program/archive/attachments')).toHaveLength(0)
+    expect(wrapper.find('[data-testid="archive-search-results"]').exists()).toBe(false)
   })
 
   it('rapor eylemleri bağlı (W138, KESİN 28): PDF + "Bölüm seç…" + "Önizle" ZIP düğmesinden önce', async () => {
@@ -121,17 +199,24 @@ describe('yönetici (P33)', () => {
     expect(wrapper.get('[data-testid="period-zip-button"]').text()).toBe('Dönem arşivi (ZIP)')
   })
 
-  it('"Dönem arşivi (ZIP)" bağlı ve hedefsiz (null → devre dışı, BE-120); "Dosya yükle" devre dışı + BE-072', async () => {
+  it('"Dönem arşivi (ZIP)" bağlı ve hedefsiz (null → devre dışı, BE-120); "Dosya yükle" etkin: yönetici bütün programın görevlerini görür', async () => {
     server.use(...adminHandlers)
     const { wrapper } = await mountPage(ADMIN)
     const zip = wrapper.findComponent({ name: 'PeriodZipButton' })
     expect(zip.exists()).toBe(true)
     expect(zip.props('target')).toBeNull()
     const upload = wrapper.get('[data-action="upload"]')
-    expect(upload.attributes('disabled')).toBeDefined()
-    expect(upload.attributes('title')).toBe('Yüklemek için önce bir koordinatörlük klasörü açın.')
-    expect(wrapper.find('[data-design-stub="BE-072"] [data-action="upload"]').exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'UploadDialog' }).exists()).toBe(false)
+    expect(upload.attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('[data-design-stub="BE-072"]').exists()).toBe(false)
+    const [call] = sent('GET', '/v1/program/archive/tasks')
+    expect(call!.query.get('include_empty')).toBe('true')
+    expect(call!.query.has('department_id')).toBe(false)
+    await upload.trigger('click')
+    const dialog = wrapper.findComponent({ name: 'UploadDialog' })
+    expect(dialog.exists()).toBe(true)
+    expect(dialog.props('tasks')).toEqual([
+      { workItemId: 'w1', title: 'Boş görev', departmentId: 'd1' },
+    ])
   })
 
   it('sirala URL’den okunur; geçersiz tur Tümü; sıra menüsü URL’yi yazar, varsayılan parametreyi kaldırır', async () => {
@@ -161,41 +246,27 @@ describe('yönetici (P33)', () => {
   it('13’ten fazla koordinatörlükte "N koordinatörlük daha"', async () => {
     server.use(
       ...standing({ admin: true }),
-      departments(
-        ...Array.from({ length: 14 }, (_, i): [string, string] => [`d${i}`, `Birim ${i + 10}`]),
+      programFolders(
+        ...Array.from({ length: 14 }, (_, i) =>
+          folder({ folder_id: `d${i}`, name: `Birim ${i + 10}` }),
+        ),
       ),
+      programTasks(),
     )
     const { wrapper } = await mountPage(ADMIN)
     expect(wrapper.findAll('.rp-folder')).toHaveLength(12)
     expect(wrapper.get('.archive-more').text()).toBe('2 koordinatörlük daha')
   })
 
-  it('liste kesilmişse (X-Result-Truncated) ekran söyler', async () => {
-    server.use(
-      ...standing({ admin: true }),
-      http.get(
-        `${ORIGIN}/v1/program/departments`,
-        () =>
-          new Response(
-            JSON.stringify({ departments: [{ department_id: 'd1', display_name: 'Ağ' }] }),
-            {
-              headers: { 'Content-Type': 'application/json', 'X-Result-Truncated': 'true' },
-            },
-          ),
-      ),
-    )
-    const { wrapper } = await mountPage(ADMIN)
-    expect(wrapper.text()).toContain('Koordinatörlük listesi kesildi')
-  })
-
-  it('departman listesi yüklenemezse hata durumu; Yeniden dene yeniden okur', async () => {
+  it('klasör özeti yüklenemezse hata durumu; Yeniden dene yeniden okur', async () => {
     let fail = true
     server.use(
       ...standing({ admin: true }),
-      http.get(`${ORIGIN}/v1/program/departments`, () =>
+      programTasks(),
+      http.get(`${ORIGIN}/v1/program/archive/folders`, () =>
         fail
           ? json({ code: 'platform.internal', message: 'x', request_id: 'r', fields: [] }, 500)
-          : json({ departments: [{ department_id: 'd1', display_name: 'Ağ' }] }),
+          : json(folderBody(folder({ folder_id: 'd1', name: 'Ağ' }))),
       ),
     )
     const { wrapper, h } = await mountPage(ADMIN)
@@ -215,7 +286,6 @@ describe('koordinatör / üye (P40)', () => {
   it('koordinatör /arsiv → kendi klasörü; arama metni taşınır; ızgara görünmez', async () => {
     server.use(
       ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      departments(),
       tasks(),
       folders(folder({ folder_id: 'd1' })),
     )
@@ -229,7 +299,6 @@ describe('koordinatör / üye (P40)', () => {
   it('üye /arsiv → sanal klasör my-tasks', async () => {
     server.use(
       ...standing({ rows: [['p1', 'd1', 'uye']] }),
-      departments(),
       tasks(),
       folders(folder({ folder_id: 'my-tasks', name: 'Görevlerim', is_virtual: true })),
     )
@@ -241,12 +310,7 @@ describe('koordinatör / üye (P40)', () => {
   })
 
   it('klasör listesi gelene dek yönlendirme yok; boş listede boş durum (yönlendirilecek klasör yok)', async () => {
-    server.use(
-      ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      departments(),
-      tasks(),
-      folders(),
-    )
+    server.use(...standing({ rows: [['p1', 'd1', 'koordinator']] }), tasks(), folders())
     const { wrapper, router } = await mountPage(COORD)
     expect(router.currentRoute.value.path).toBe('/arsiv')
     expect(wrapper.text()).toContain('Görüntülenecek klasör yok')
@@ -256,12 +320,11 @@ describe('koordinatör / üye (P40)', () => {
     let fail = true
     server.use(
       ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      departments(),
       tasks(),
       http.get(`${ORIGIN}/v1/records/archive/folders`, () =>
         fail
           ? json({ code: 'platform.internal', message: 'x', request_id: 'r', fields: [] }, 500)
-          : json({ folders: [folder({ folder_id: 'd1' })] }),
+          : json(folderBody(folder({ folder_id: 'd1' }))),
       ),
     )
     const { wrapper, router, h } = await mountPage(COORD)
@@ -281,7 +344,6 @@ describe('Dosya yükle (E-06-05; W125 bağlama noktası)', () => {
   const setup = () =>
     server.use(
       ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      departments(),
       folders(),
       tasks({ id: 'w2', title: 'Zeytin' }, { id: 'w1', title: 'Ağ planı' }),
     )
@@ -301,12 +363,7 @@ describe('Dosya yükle (E-06-05; W125 bağlama noktası)', () => {
   })
 
   it('yüklenebilir görev yoksa düğme devre dışı ve nedenini söyler', async () => {
-    server.use(
-      ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      departments(),
-      folders(),
-      tasks(),
-    )
+    server.use(...standing({ rows: [['p1', 'd1', 'koordinator']] }), folders(), tasks())
     const { wrapper } = await mountPage(COORD)
     const button = wrapper.get('[data-action="upload"]')
     expect(button.attributes('disabled')).toBeDefined()

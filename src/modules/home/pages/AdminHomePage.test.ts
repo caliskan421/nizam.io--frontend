@@ -3,6 +3,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import {
   ADMIN_SCOPE,
   COORD_SCOPE,
+  ARCHIVE_FOLDERS,
+  archiveFolders,
   COUNTS,
   countsHandler,
   dashboard,
@@ -92,11 +94,30 @@ describe('01 yönetici sayfası — F6 bölgeleri (E-01-12, 19…39; P53)', () =
     expect(sent(DASHBOARD)).toHaveLength(1)
   })
 
-  it('arşiv sayısı için ikinci istek yok (S3 başlığı yok, BE-072); kartta "—"', async () => {
-    server.use(...standingHandlers(ADMIN), dashboardOk())
+  it('arşiv sayısı programArchiveFolders tek isteğinden (S2, departman başlığı yok); kart başına dosya sayısı (BE-072)', async () => {
+    server.use(
+      http.get(`${ORIGIN}${ARCHIVE_FOLDERS}`, () =>
+        Response.json(
+          archiveFolders(
+            { folder_id: 'a', file_count: 7 },
+            { folder_id: 'b', file_count: 0 },
+            { folder_id: 'zzz-programda-olmayan', file_count: 99 },
+          ),
+        ),
+      ),
+      ...standingHandlers(ADMIN),
+      dashboardOk(),
+    )
     const { wrapper } = await mountWith(AdminHomePage, ADMIN_SCOPE)
+    await settle()
+    const calls = requests.filter((r) => r.path.includes('/archive'))
+    expect(calls.map((r) => r.path)).toEqual([ARCHIVE_FOLDERS])
+    expect(calls[0]!.headers.get('X-Nizamio-Department')).toBeNull()
+    expect(calls[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    // Kartlar: a=7, b=0; programda arşiv klasörü olmayan kart (c) nötr "—".
+    expect(wrapper.findAll('[data-testid="archive"]').map((n) => n.text())).toEqual(['7', '0', '—'])
+    // Eski yol yok (P33 geçici yolu): S3 arşiv okuması yok.
     expect(requests.filter((r) => r.path.includes('/records/archive'))).toHaveLength(0)
-    expect(wrapper.findAll('[data-testid="archive"]').map((n) => n.text())).toEqual(['—', '—', '—'])
   })
 
   it('"Rapor oluştur" kutucuğu yöneticide görünür; menü açılır, ağ isteği atmaz (E-01-12)', async () => {

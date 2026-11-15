@@ -7,11 +7,11 @@ import { i18n } from '@/shared/i18n'
 
 import FolderGrid from './FolderGrid.vue'
 
-const cards = (n: number, counts = true) =>
+const cards = (n: number) =>
   Array.from({ length: n }, (_, i) => ({
     folderId: `d${i}`,
     name: `Birim ${String(i).padStart(2, '0')}`,
-    fileCount: counts ? i : null,
+    fileCount: i,
     virtual: false,
   }))
 
@@ -173,11 +173,11 @@ describe('sıra düğmesi (E-06-09)', () => {
     expect(w.find('[role="menu"]').exists()).toBe(false)
   })
 
-  it('yönetici ızgarası (sayılar null): dosya sayısı seçenekleri devre dışı', async () => {
-    const w = grid({ cards: cards(3, false) })
+  it('yönetici ızgarası da sunucu sayılarıyla: dosya sayısı seçenekleri etkin (BE-072)', async () => {
+    const w = grid({ cards: cards(3) })
     await open(w)
-    expect(w.get('[data-sort="dosyaAzalan"]').attributes('disabled')).toBeDefined()
-    expect(w.get('[data-sort="dosyaArtan"]').attributes('disabled')).toBeDefined()
+    expect(w.get('[data-sort="dosyaAzalan"]').attributes('disabled')).toBeUndefined()
+    expect(w.get('[data-sort="dosyaArtan"]').attributes('disabled')).toBeUndefined()
     expect(w.get('[data-sort="adAzalan"]').attributes('disabled')).toBeUndefined()
   })
 })

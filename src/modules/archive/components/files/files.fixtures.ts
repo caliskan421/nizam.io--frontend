@@ -31,5 +31,4 @@ export const BASE = {
   hasMore: false,
   loading: false,
   error: false,
-  needsTask: false,
 }

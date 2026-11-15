@@ -97,8 +97,8 @@ describe('yükleme', () => {
     await choose()
     expect(($('[data-testid="upload-task"]') as HTMLSelectElement).value).toBe('w1')
     await idle(app.queryClient)
-    const folders = backend.sent('GET', '/v1/records/archive/folders').length
-    const lists = backend.sent('GET', '/v1/records/archive/attachments').length
+    const folders = backend.sent('GET', '/v1/program/archive/folders').length
+    const lists = backend.sent('GET', '/v1/program/archive/attachments').length
     const detail = backend.sent('GET', '/v1/work-items/w1').length
 
     await click(() => $('[data-testid="upload-submit"]'))
@@ -111,8 +111,8 @@ describe('yükleme', () => {
     expect(posts[0]!.headers.get('X-Nizamio-Department')).toBe('d1')
     expect(posts[0]!.query.get('tag')).toBe('cikti')
     await until(() => $('[data-file-id="fu-1"]'), 'yeni dosya listede')
-    expect(backend.sent('GET', '/v1/records/archive/folders').length).toBeGreaterThan(folders)
-    expect(backend.sent('GET', '/v1/records/archive/attachments').length).toBeGreaterThan(lists)
+    expect(backend.sent('GET', '/v1/program/archive/folders').length).toBeGreaterThan(folders)
+    expect(backend.sent('GET', '/v1/program/archive/attachments').length).toBeGreaterThan(lists)
     // Görev ayrıntısı arşiv ekranında gözlenmez: geçersizlenir, görev ekranına dönünce yeniden okunur.
     await app.router.push('/gorevler?gorev=w1')
     await idle(app.queryClient)
@@ -170,12 +170,12 @@ describe('sökülmüş sahip', () => {
     await gate.arrived
     await app.router.push('/')
     await until(() => $('[data-testid="home-page"]'), 'ana sayfa')
-    const before = backend.sent('GET', '/v1/records/archive/attachments').length
+    const before = backend.sent('GET', '/v1/program/archive/attachments').length
     gate.release()
     await idle(app.queryClient)
     expect($('[data-testid="upload-task"]')).toBeNull()
     expect($$toast()).toBe('')
-    expect(backend.sent('GET', '/v1/records/archive/attachments').length).toBe(before)
+    expect(backend.sent('GET', '/v1/program/archive/attachments').length).toBe(before)
   })
 })
 

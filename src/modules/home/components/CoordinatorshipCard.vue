@@ -2,7 +2,7 @@
 import { computed, useId } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { ARCHIVE_FOLDER_ROUTE } from '@/modules/archive/public'
+import { ARCHIVE_FOLDER_ROUTE, type ArchiveFolder } from '@/modules/archive/public'
 import { coordinatorshipLocation } from '@/modules/organization/public'
 import { TASKS_ROUTE } from '@/modules/work/public'
 
@@ -15,17 +15,20 @@ import {
   type CoordinatorshipStat,
 } from '../model/coordinatorships'
 import { homeText } from '../model/messages'
-import { CARD_ARCHIVE_COUNT } from '../model/stubs'
 
 /**
  * Koordinatörlük kartı (E-01-28…38; `Main.dc.html` `article.t-card`). Veri yalnız `stat`'tan
  * (`reportDashboard.coordinatorship_stats[]`): ad → 08b; koordinatörler; avatar yığını =
  * koordinatörler + "+N üye" (BE-079); görev toplamı + `%` bitti; çubuk 4 dilim — 4. dilim nötr
  * "onayda/iade" (BE-078); "geciken" → 03 süzgeci; "kullanıcı" = `member_count + coordinators.length`;
- * "arşiv" sayısı `—` (S3 başlığı yok, BE-072) ve 07 klasörüne gider; "Son yükleme" satırı yok
- * (BE-025). Dilim genişliği tek dinamik bağdır (`--home-seg-w`).
+ * "arşiv" sayısı `programArchiveFolders` `file_count`'ıdır (`archive`; BE-072; okunana dek / hatada
+ * nötr `—`) ve 07 klasörüne gider; "Son yükleme" satırı yok (BE-025). Dilim genişliği tek dinamik
+ * bağdır (`--home-seg-w`).
  */
-const props = defineProps<{ stat: CoordinatorshipStat }>()
+const props = withDefaults(
+  defineProps<{ stat: CoordinatorshipStat; archive?: ArchiveFolder | null }>(),
+  { archive: null },
+)
 const titleId = `home-ccard-${useId()}`
 
 const id = computed(() => props.stat.department_id)
@@ -56,7 +59,7 @@ const archiveTo = computed(() => ({
   name: ARCHIVE_FOLDER_ROUTE.name,
   params: { klasorId: id.value },
 }))
-const archiveCount = CARD_ARCHIVE_COUNT.available ? '' : '—'
+const archiveCount = computed(() => props.archive?.file_count ?? '—')
 </script>
 
 <template>

@@ -9,6 +9,7 @@ import { UiErrorState, UiIcon } from '@/shared/ui'
 
 import { filterCounts, visibleStats } from '../model/coordinatorships'
 import { homeText } from '../model/messages'
+import { useArchiveSummary } from '../model/use-archive-summary'
 import { useCoordControls } from '../model/use-coord-controls'
 import type { DashboardReport } from '../model/types'
 import CoordinatorshipCard from './CoordinatorshipCard.vue'
@@ -33,6 +34,7 @@ const props = withDefaults(
 const emit = defineEmits<{ retry: [] }>()
 
 const store = useScopeStore()
+const archive = useArchiveSummary()
 const controls = useCoordControls(() => `${store.programId}|${store.lens}|${store.departmentId}`)
 
 const all = computed(() => props.report?.coordinatorship_stats ?? [])
@@ -95,7 +97,12 @@ const hint = computed(() =>
         {{ homeText('home.coords.empty') }}
       </div>
       <div v-else class="home-ccards">
-        <CoordinatorshipCard v-for="stat in shown" :key="stat.department_id" :stat="stat" />
+        <CoordinatorshipCard
+          v-for="stat in shown"
+          :key="stat.department_id"
+          :stat="stat"
+          :archive="archive.byDepartment.value.get(stat.department_id) ?? null"
+        />
       </div>
     </template>
   </section>

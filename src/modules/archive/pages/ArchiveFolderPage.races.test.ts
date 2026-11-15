@@ -88,39 +88,38 @@ describe('önizleme: bekleyen sayfa yanıtı seçim nesline bağlı (CX-F5-Ö-01
   })
 })
 
-describe('yönetici görev kesişimi: iki kaynağın hatası birlikte (CX-F5-Ö-02)', () => {
+describe('yönetici görev listesi hatası (S2, BE-072; CX-F5-Ö-02)', () => {
   const FOLDERS = [folder({ folder_id: 'd7', name: 'Altyapı', file_count: 9 })]
-  const TASKS = [{ work_item_id: 'w1', title: 'Gölgelendirme', file_count: 2 }]
-  const WORK = [{ work_item_id: 'w1', department_id: 'd7', title: 'w1' }]
+  const TASKS = [{ work_item_id: 'w1', title: 'Gölgelendirme', department_id: 'd7', file_count: 2 }]
   const backend = () =>
-    archiveBackend({ folders: FOLDERS, tasks: TASKS, files: manyFiles(2), workItems: WORK })
-
-  for (const [source, path] of [
-    ['archiveTasks', `${ORIGIN}/v1/records/archive/tasks`],
-    ['listProgramWorkItems', `${ORIGIN}/v1/program/work-items`],
-  ] as const) {
-    it(`${source} başarısız: iskelet biter, hata + Yeniden dene; yeniden denemeyle liste gelir; dosya isteği yok`, async () => {
-      server.use(...A, ...backend())
-      let failing = true
-      server.use(
-        http.get(path, () => (failing ? errorEnvelope('platform.internal', 500) : undefined)),
-      )
-      const { wrapper, settle } = await mountPage('/arsiv/d7?gorev=w1', ADMIN)
-      await vi.waitFor(() =>
-        expect(wrapper.find('[data-testid="task-folders-error"]').exists()).toBe(true),
-      )
-      expect(wrapper.find('[data-testid="task-folders-error"]').text()).toContain(
-        'Görev klasörleri yüklenemedi',
-      )
-      expect(wrapper.find('.arch-tasks__skel').exists()).toBe(false)
-      expect(wrapper.find('[data-testid="task-folders"]').exists()).toBe(false)
-      expect(sent('GET', '/v1/records/archive/attachments')).toHaveLength(0)
-      failing = false
-      await wrapper.find('[data-testid="task-folders-error"] button').trigger('click')
-      await vi.waitFor(() => expect(wrapper.find('[data-task-id="w1"]').exists()).toBe(true))
-      await settle()
-      expect(wrapper.find('[data-testid="task-folders-error"]').exists()).toBe(false)
-      expect(sent('GET', '/v1/records/archive/attachments')).toHaveLength(1)
+    archiveBackend({
+      folders: FOLDERS,
+      tasks: TASKS,
+      files: manyFiles(2).map((f) => ({ ...f, department_id: 'd7' })),
     })
-  }
+
+  it('programArchiveTasks başarısız: iskelet biter, hata + Yeniden dene; yeniden denemeyle liste gelir', async () => {
+    server.use(...A, ...backend())
+    let failing = true
+    server.use(
+      http.get(`${ORIGIN}/v1/program/archive/tasks`, () =>
+        failing ? errorEnvelope('platform.internal', 500) : undefined,
+      ),
+    )
+    const { wrapper, settle } = await mountPage('/arsiv/d7?gorev=w1', ADMIN)
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-testid="task-folders-error"]').exists()).toBe(true),
+    )
+    expect(wrapper.find('[data-testid="task-folders-error"]').text()).toContain(
+      'Görev klasörleri yüklenemedi',
+    )
+    expect(wrapper.find('.arch-tasks__skel').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="task-folders"]').exists()).toBe(false)
+    failing = false
+    await wrapper.find('[data-testid="task-folders-error"] button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-task-id="w1"]').exists()).toBe(true))
+    await settle()
+    expect(wrapper.find('[data-testid="task-folders-error"]').exists()).toBe(false)
+    expect(sent('GET', '/v1/records/archive/attachments')).toHaveLength(0)
+  })
 })

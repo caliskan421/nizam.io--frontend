@@ -5,9 +5,6 @@
  */
 import { designStub } from '@/shared/design-stub'
 
-/** Kart "arşiv" sayısı (E-01-37): yönetici için S3 başlığı yok (P33) → sayı `—`, bağlantı 06/07. */
-export const CARD_ARCHIVE_COUNT = designStub('BE-072', { available: false })
-
 /** Kart "Son yükleme" satırı (E-01-38) ve "Son yükleme" sıralama ölçütü (E-01-26). */
 export const CARD_LAST_UPLOAD = designStub('BE-025', { available: false })
 

@@ -6,23 +6,16 @@ import { UiButton, UiEmptyState } from '@/shared/ui'
 import { folderText } from './messages'
 
 /**
- * Dosya alanı durumları (ızgara ve liste ortak): yönetici görev seçmemiş (BE-072 stub olgusu,
- * P33), hata (yeniden dene), ilk yükleme (iskelet) ve boş. Dolu listede çizilmez.
+ * Dosya alanı durumları (ızgara ve liste ortak): hata (yeniden dene), ilk yükleme (iskelet) ve
+ * boş. Dolu listede çizilmez. (Yönetici "Görev klasörü seçin" durumu BE-072 ile kalktı.)
  */
-defineProps<{ needsTask: boolean; error: boolean; loading: boolean; empty: boolean }>()
+defineProps<{ error: boolean; loading: boolean; empty: boolean }>()
 defineEmits<{ retry: [] }>()
 </script>
 
 <template>
   <UiEmptyState
-    v-if="needsTask"
-    icon="archive"
-    :title="folderText('shared.selectTask')"
-    :text="folderText('files.empty.selectTaskText')"
-    data-testid="files-needs-task"
-  />
-  <UiEmptyState
-    v-else-if="error"
+    v-if="error"
     icon="alert"
     :title="folderText('files.error')"
     role="alert"

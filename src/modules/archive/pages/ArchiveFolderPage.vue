@@ -58,12 +58,14 @@ const { ctx, attachments } = data
 usePageCrumb(() => data.folder.value?.name ?? null)
 
 const caps = computed(() => archiveCapabilities(standing.value, store.programId))
+/** Klasör-başlıklı eylemler (klasör ZIP'i); dosya işlemlerinin başlığı satırın `department_id`'sidir. */
 const target = computed(() => ctx.target.value)
+const folderDepartment = computed(() => ctx.source.value?.departmentId ?? null)
 const canUpload = computed(
   () =>
-    target.value !== null &&
+    folderDepartment.value !== null &&
     caps.value.canOpenUpload &&
-    caps.value.upload(target.value.departmentId),
+    caps.value.upload(folderDepartment.value),
 )
 const canZip = computed(() => (data.folder.value ? caps.value.folderZip(data.folder.value) : false))
 
@@ -71,7 +73,6 @@ const search = useDebouncedSearch(
   computed(() => url.state.value.q),
   (q) => url.update({ q, file: null }),
 )
-const searchDisabled = computed(() => data.needsTask.value)
 
 const removing = ref(false)
 const selection = useFileSelection({
@@ -84,6 +85,14 @@ const selection = useFileSelection({
   settled: data.filesSettled,
   fileId: computed(() => url.state.value.file),
   select: (file, mode) => url.update({ file }, mode),
+})
+
+/** Seçili dosyanın S3 hedefi: başlık dosyanın departmanıdır (yönetici için de; RECORDS-K39). */
+const previewTarget = computed(() => {
+  const file = selection.selected.value
+  return store.programId !== null && file
+    ? { programId: store.programId, departmentId: file.department_id }
+    : null
 })
 
 const missing = computed(() => ctx.folderMissing.value)
@@ -147,13 +156,8 @@ function openTask(workItemId: string): void {
               type="search"
               icon="search"
               size="sm"
-              :disabled="searchDisabled"
               :aria-label="folderText('folder.search.label')"
-              :placeholder="
-                searchDisabled
-                  ? folderText('folder.search.needsTask')
-                  : folderText('folder.search.placeholder')
-              "
+              :placeholder="folderText('folder.search.placeholder')"
               data-testid="folder-search"
               @keydown.enter="search.flush"
             />
@@ -208,20 +212,19 @@ function openTask(workItemId: string): void {
               :has-more="attachments.hasMore.value"
               :loading="data.filesLoading.value"
               :error="data.filesError.value"
-              :needs-task="data.needsTask.value"
               @select="url.update({ file: $event }, 'push')"
               @load-more="attachments.loadMore"
               @retry="attachments.query.refetch()"
             />
           </section>
         </div>
-        <div v-if="selection.selected.value && target" class="arch-explorer__aside">
+        <div v-if="selection.selected.value && previewTarget" class="arch-explorer__aside">
           <FilePreview
             :file="selection.selected.value"
             :position="selection.position.value"
             :total="data.total.value"
             :has-more="attachments.hasMore.value"
-            :target="target"
+            :target="previewTarget"
             :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"
             @removing="removing = $event"
             @close="selection.close"

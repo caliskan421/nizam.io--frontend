@@ -31,10 +31,28 @@ export type ArchiveFileQuery = NonNullable<operations['archiveAttachments']['par
 export type PreviewSubtask = Schemas['WorkItemSubtask']
 
 /**
- * Her S3 isteğinin kapsam başlıkları: program + departman. Yöneticide departman rotadaki
- * `klasorId`'den (P33, `model/admin-scope.ts`), koordinatör/üyede seçili kapsamdan gelir.
+ * Her S3 isteğinin kapsam başlıkları: program + departman. Dosya/görev işlemlerinde başlık
+ * dosyanın (görev seçeneğinin) `department_id`'sidir (RECORDS-K39); koordinatör/üye okumalarında
+ * seçili kapsamdan gelir.
  */
 export type ArchiveTarget = WorkTarget
+
+/**
+ * Yönetici program arşivi (S2, `/v1/program/archive/*`; RECORDS-K39): yalnız program başlığı,
+ * isteğe bağlı `department_id` sorgu süzgeci (başlık DEĞİL). Okuma kaynağı S3 hedefi
+ * (`ArchiveTarget`) ya da bu program kaynağıdır (`isProgramSource`).
+ */
+export interface ProgramArchiveSource {
+  programId: string
+  /** `department_id` süzgeci (klasör); `null` = bütün program. */
+  departmentId: string | null
+  program: true
+}
+export type ArchiveSource = ArchiveTarget | ProgramArchiveSource
+
+export function isProgramSource(source: ArchiveSource): source is ProgramArchiveSource {
+  return 'program' in source && source.program === true
+}
 
 /** `mime_category` kümesi (sözleşme; PDF ayrı kategori DEĞİL, `belge` içindedir — E-06-07). */
 export type ArchiveMimeCategory = 'belge' | 'tablo' | 'gorsel' | 'arsiv' | 'metin'
@@ -58,18 +76,12 @@ export interface ArchiveFileFilters {
 export type FolderSortField = 'ad' | 'dosya'
 export type FolderSortDirection = 'artan' | 'azalan'
 
-/** Bir yönetici ızgara öğesi: `listProgramDepartments` adı + sayılar statik (BE-072/BE-025). */
-export interface AdminFolderCard {
-  folderId: string
-  name: string
-}
-
-/** Yönetici görev klasörleri: `archiveTasks` ∩ `listProgramWorkItems(department_id)`. */
-export interface AdminTaskFolders {
+/** Görev klasörleri (07): `archiveTasks` / `programArchiveTasks?department_id`. */
+export interface TaskFolders {
   tasks: ArchiveTask[]
-  /** 200 tavanına çarpıldı (sonraki sayfa var): kesişim eksik olabilir. */
+  /** Sunucu listeyi 200'de kesti (`X-Result-Truncated`): liste eksik olabilir. */
   truncated: boolean
-  /** Görev listesi (kesişim) henüz tamamlandı mı. */
+  /** Görev listesi okundu mu. */
   ready: boolean
 }
 
@@ -150,19 +162,16 @@ export type ArchiveAccess =
   | { mode: 'admin-folder'; target: ArchiveTarget; folderId: string }
   | { mode: 'scoped'; target: ArchiveTarget }
 
-/** 06 klasör kartı: sayılar yönetici merceğinde `null` (statik `—`; BE-072/BE-025). */
+/** 06 klasör kartı (`archiveFolders` / `programArchiveFolders`). */
 export interface FolderCardView {
   folderId: string
   name: string
-  /** Canlı dosya sayısı (K/Ü `archiveFolders.file_count`); yöneticide `null`. */
-  fileCount: number | null
+  /** Canlı dosya sayısı. */
+  fileCount: number
   /** Üye sanal klasörü ("Görevlerim"). */
   virtual: boolean
 }
 
-/** `listProgramDepartments` öğesinden gerekli alanlar (yönetici ızgarası). */
-export type ProgramDepartmentRow = Schemas['ProgramDepartment']
-
-/** Reaktif hedef ve etkinleştirme girdileri (okuyucu composable'ları). */
-export type MaybeTarget = MaybeRefOrGetter<ArchiveTarget | null>
+/** Reaktif okuma kaynağı ve etkinleştirme girdileri (okuyucu composable'ları). */
+export type MaybeTarget = MaybeRefOrGetter<ArchiveSource | null>
 export type MaybeFlag = MaybeRefOrGetter<boolean>

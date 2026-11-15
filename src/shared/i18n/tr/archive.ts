@@ -30,8 +30,6 @@ export const trArchive = {
       search: {
         label: 'Tüm arşivde ara',
         placeholder: 'Tüm arşivde ara…',
-        // Yönetici, görev seçilmemiş: arama statik (BE-072).
-        needsTask: 'Görev klasörü seçin',
       },
       missing: {
         // K6: klasör yok ya da erişim kaybı.
@@ -58,9 +56,7 @@ export const trArchive = {
         // Klasör "Son yükleme" sırası için alan yok (BE-025): seçenek devre dışı.
         sonYukleme: 'Son yükleme',
       },
-      // Yönetici merceği (P33, BE-072): klasör düzeyi "Son eklenen dosyalar" ve "Tüm arşivde ara".
-      selectTask: 'Görev klasörü seçin',
-      // Yönetici görev listesi 200 tavanında kesildi: kesişim eksik olabilir.
+      // Sunucu görev listesini 200'de kesti (`X-Result-Truncated`): bazı görev klasörleri eksik olabilir.
       tasksTruncated: 'Görev listesi kesildi: bazı görev klasörleri gösterilemiyor.',
       unknownUploader: 'Bilinmeyen kişi',
       noValue: '—',
@@ -83,6 +79,7 @@ export const trArchive = {
         // BE-077: arama yalnız dosya adında; kişi/görev/etiket araması vaadi yok.
         placeholder: 'Dosya adı ara…',
         shortcut: 'Aramaya git',
+        results: 'Arama sonuçları',
       },
       coordinatorships: {
         title: 'Koordinatörlükler',
@@ -94,7 +91,6 @@ export const trArchive = {
         retry: 'Yeniden dene',
         more: '{count} koordinatörlük daha',
         less: 'Daha az göster',
-        truncated: 'Koordinatörlük listesi kesildi: bazı klasörler gösterilemiyor.',
       },
       sort: {
         button: 'Sırala: {field}',
@@ -145,8 +141,6 @@ export const trArchive = {
       },
       actions: {
         upload: 'Dosya yükle',
-        // BE-072 / BE-121: yönetici 06'da klasör seçmeden yükleyemez; seçici arşiv görevleriyle sınırlı.
-        uploadNeedsFolder: 'Yüklemek için önce bir koordinatörlük klasörü açın.',
         uploadNoTasks: 'Yüklenebilecek görev bulunamadı.',
       },
       noFolders: 'Görüntülenecek klasör yok',
@@ -181,7 +175,6 @@ export const trArchive = {
       empty: {
         title: 'Gösterilecek dosya yok',
         text: 'Seçili görev klasöründe, etikette ya da aramada dosya bulunamadı.',
-        selectTaskText: 'Dosyalar seçilen görev klasörüne göre listelenir.',
       },
       column: { name: 'Ad', task: 'Görev', type: 'Tür', size: 'Boyut', tag: 'Etiket' },
     },

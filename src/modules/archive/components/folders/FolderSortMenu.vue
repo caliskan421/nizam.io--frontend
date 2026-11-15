@@ -10,13 +10,11 @@ import { FOLDER_SORT_OPTIONS, sortKey } from './sort-param'
 
 /**
  * "Sırala" düğmesi + menü (E-06-09). Seçenekler yalnız ada/dosya sayısına göre; "Son yükleme"
- * alan yokken devre dışı (BE-025). Dosya sayısı bilinmiyorsa (yönetici ızgarası, BE-072) sayı
- * seçenekleri devre dışı. Esc, Tab, seçim ve dışarı tık menüyü kapatır; Esc/seçimde odak tetikleyiciye döner.
+ * alan yokken devre dışı (BE-025). Esc, Tab, seçim ve dışarı tık menüyü kapatır; Esc/seçimde odak tetikleyiciye döner.
  */
 const props = defineProps<{
   field: FolderSortField
   direction: FolderSortDirection
-  hasCounts: boolean
 }>()
 const emit = defineEmits<{
   'update:sort': [field: FolderSortField, direction: FolderSortDirection]
@@ -77,7 +75,6 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside, tru
         v-for="option in FOLDER_SORT_OPTIONS"
         :key="option.key"
         :checked="current === option.key"
-        :disabled="option.field === 'dosya' && !hasCounts"
         :data-sort="option.key"
         @select="pick(option.field, option.direction)"
       >

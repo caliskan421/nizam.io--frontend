@@ -1,34 +1,14 @@
 /**
- * 06 klasör kartları. Yönetici (P33): `listProgramDepartments` (S2) adlarından, sayılar `null`
- * (statik `—`; klasör özeti alanları yok — BE-025, departman başlığı yok — BE-072). Koordinatör/
- * üye (P40): kart görünmez (06 atlanır); yine de tek klasör `archiveFolders`'tan kurulabilir.
- * "grup/çalışma grubu" rozeti yok (P39); sayılar örnek/sahte değer taşımaz (§4).
+ * 06 klasör kartları. Yönetici (BE-072): `programArchiveFolders` (S2) — programa bağlı bütün
+ * koordinatörlükler, dosyasızlar 0 ile. Koordinatör/üye (P40): kart görünmez (06 atlanır); yine de
+ * tek klasör `archiveFolders`'tan kurulabilir. "grup/çalışma grubu" rozeti yok (P39); sayılar
+ * sunucudandır, örnek/sahte değer yoktur (§4).
  */
 import { sortFolders } from './filters'
-import type {
-  ArchiveFolder,
-  FolderCardView,
-  FolderSortDirection,
-  FolderSortField,
-  ProgramDepartmentRow,
-} from './types'
+import type { ArchiveFolder, FolderCardView, FolderSortDirection, FolderSortField } from './types'
 
 /** İlk gösterilen kart sayısı; kalanı "‹N› koordinatörlük daha" (E-06-16, istemci "daha fazla"). */
 export const FOLDER_CARD_PAGE = 12
-
-export function adminFolderCards(
-  departments: readonly ProgramDepartmentRow[] | undefined,
-  field: FolderSortField = 'ad',
-  direction: FolderSortDirection = 'artan',
-): FolderCardView[] {
-  const sorted = sortFolders(
-    (departments ?? []).map((d) => ({ name: d.display_name, id: d.department_id })),
-    // Dosya sayısı yönetici ızgarasında bilinmez: sayıya göre sıra ada düşer.
-    field === 'dosya' ? 'ad' : field,
-    direction,
-  )
-  return sorted.map((d) => ({ folderId: d.id, name: d.name, fileCount: null, virtual: false }))
-}
 
 export function archiveFolderCards(
   folders: readonly ArchiveFolder[] | undefined,

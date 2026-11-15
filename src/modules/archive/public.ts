@@ -15,6 +15,7 @@ export {
   useArchiveAttachments,
   useArchiveFolders,
   useArchiveTasks,
+  useArchiveUploadTasks,
   useArchiveUploaders,
 } from './api/queries'
 export { useFilePreview, usePreviewDetails } from './api/preview'

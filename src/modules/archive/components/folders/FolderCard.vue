@@ -9,8 +9,9 @@ import './folders.css'
 import { FOLDER_SUMMARY } from '../../model/stubs'
 
 /**
- * Klasör kartı (E-06-10…15). Sayılar `null` iken statik `—` (yönetici, BE-072/BE-025); boyut ve
- * son yükleme alanı yokken (BE-025) her zaman `—`: örnek boyut/tarih üretilmez. "grup" rozeti yok
+ * Klasör kartı (E-06-10…15). Dosya sayısı sunucudandır (K/Ü `archiveFolders`, yönetici
+ * `programArchiveFolders`, BE-072); boyut ve son yükleme alanı yokken (BE-025) her zaman `—`: örnek
+ * boyut/tarih üretilmez. "grup" rozeti yok
  * (P39). Boş klasör (`fileCount === 0`) soluk ama listede. Gerçek bağlantıdır (yeni sekmede
  * açılır); düz sol tık `open` yayar.
  */
@@ -26,11 +27,9 @@ const href = computed(
 )
 const empty = computed(() => props.card.fileCount === 0)
 const meta = computed(() =>
-  props.card.fileCount === null
-    ? t('archive.shared.noValue')
-    : empty.value
-      ? t('archive.folders.card.emptyFolder')
-      : t('archive.folders.card.files', { count: props.card.fileCount }),
+  empty.value
+    ? t('archive.folders.card.emptyFolder')
+    : t('archive.folders.card.files', { count: props.card.fileCount }),
 )
 
 function onClick(event: MouseEvent): void {

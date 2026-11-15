@@ -1,9 +1,10 @@
 /**
  * Arşiv okuyucuları (TanStack Query). Anahtarlar YALNIZ `shared/http/query-keys.ts`'ten ve
- * seçili kapsamın anlık görüntüsüyle kurulur; yöneticide departman alanı rotadaki klasörle
- * doldurulur (`keyScope`, P33) — kapsam değişince hepsi düşer (K2). Her okuyucu `sessionBound`
- * kapısından geçer ve `signal`'i iletir (KESİN 26b). S3 başlığı olmayan (hedefsiz) kipte sorgu
- * etkinleşmez: başlıksız istek yoktur. Süzgeç değişince anahtar değişir → imleç sıfırlanır.
+ * seçili kapsamın anlık görüntüsüyle kurulur; departman alanı kaynağın süzgeciyle doldurulur
+ * (`keyScope`; yöneticide S2 `department_id`, K/Ü S3 başlığı) ve S2 kaynağı süzgece işaret koyar
+ * (`sourceFilters`) — kapsam değişince hepsi düşer (K2). Her okuyucu `sessionBound` kapısından
+ * geçer ve `signal`'i iletir (KESİN 26b). Kaynağı olmayan (`null`) kipte sorgu etkinleşmez:
+ * başlıksız istek yoktur. Süzgeç değişince anahtar değişir → imleç sıfırlanır.
  */
 import {
   useInfiniteQuery,
@@ -20,11 +21,11 @@ import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
 import { filterKey } from '../model/filters'
-import { keyScope } from '../model/admin-scope'
+import { keyScope, sourceFilters } from '../model/admin-scope'
 import type {
   ArchiveFileFilters,
   ArchiveFilePage,
-  ArchiveTarget,
+  ArchiveSource,
   MaybeFlag,
   MaybeTarget,
 } from '../model/types'
@@ -37,29 +38,31 @@ import {
 
 export const ARCHIVE_STALE_MS = 30_000
 
-/** Hedefin (yöneticide klasörün) kapsamıyla ayrışmış anahtar. */
+/** Kaynağın (yöneticide klasörün / program süzgecinin) kapsamıyla ayrışmış anahtar. */
 function archiveKey(
   scope: ScopeSnapshot,
-  target: ArchiveTarget | null,
+  source: ArchiveSource | null,
   facet: ArchiveFacet,
   filters: QueryFilters = {},
 ): QueryKey {
-  return queryKeys.archive.list(target ? keyScope(scope, target) : scope, facet, filters)
+  if (source === null) return queryKeys.archive.list(scope, facet, filters)
+  return queryKeys.archive.list(keyScope(scope, source), facet, sourceFilters(source, filters))
 }
 
 function plainReader<D>(
-  target: MaybeTarget,
+  source: MaybeTarget,
   enabled: MaybeFlag,
   facet: ArchiveFacet,
-  fetcher: (target: ArchiveTarget, signal?: AbortSignal) => Promise<D>,
+  fetcher: (source: ArchiveSource, signal?: AbortSignal) => Promise<D>,
+  filters: QueryFilters = {},
 ) {
   const store = useScopeStore()
   return useQuery(
     computed(() => {
       const scope = store.snapshot
-      const resolved = toValue(target)
+      const resolved = toValue(source)
       return {
-        queryKey: archiveKey(scope, resolved, facet),
+        queryKey: archiveKey(scope, resolved, facet, filters),
         queryFn: sessionBound(({ signal }: QueryFunctionContext) => fetcher(resolved!, signal)),
         enabled: resolved !== null && toValue(enabled),
         retry: retryTransient,
@@ -69,29 +72,39 @@ function plainReader<D>(
   )
 }
 
-/** `archiveFolders` — klasör özeti; yöneticide `klasorId` doğrulamasının ilk adımı. */
-export function useArchiveFolders(target: MaybeTarget, enabled: MaybeFlag = true) {
-  return plainReader(target, enabled, 'folders', fetchArchiveFolders)
+/** `archiveFolders` / `programArchiveFolders` — klasör özeti + toplamlar; `klasorId` doğrulaması. */
+export function useArchiveFolders(source: MaybeTarget, enabled: MaybeFlag = true) {
+  return plainReader(source, enabled, 'folders', fetchArchiveFolders)
 }
 
-/** `archiveTasks` — dosyalı görevler (görev adı sözlüğü de buradan). */
-export function useArchiveTasks(target: MaybeTarget, enabled: MaybeFlag = true) {
-  return plainReader(target, enabled, 'tasks', fetchArchiveTasks)
-}
-
-/** `archiveUploaders` — yükleyen hesap kimlikleri (ad yok; kişi araması kurulmaz, BE-071). */
-export function useArchiveUploaders(target: MaybeTarget, enabled: MaybeFlag = true) {
-  return plainReader(target, enabled, 'uploaders', fetchArchiveUploaders)
+/** `archiveTasks` / `programArchiveTasks` — dosyalı görevler (görev adı sözlüğü de buradan). */
+export function useArchiveTasks(source: MaybeTarget, enabled: MaybeFlag = true) {
+  return plainReader(source, enabled, 'tasks', (s, signal) => fetchArchiveTasks(s, false, signal))
 }
 
 /**
- * `archiveAttachments` — imleçli sonsuz sorgu. `total` sunucunun süzgece uyan küme boyudur
- * (`ArchiveFileList.total`, BE-073; imleçten bağımsız, her sayfada aynı); süzgeç değişince yeniden
- * okunur, sayfalardan türetilmez. "daha fazla yükle" = `loadMore()` (aynı uç, aynı süzgeç). Yönetici dosya okuması yalnız
- * `workItemId` süzgeciyle etkinleştirilir (`enabled`'ı çağıran kurar).
+ * Yükleme seçicisinin görevleri: `include_empty=true` ile dosyasız canlı görevler de (BE-121).
+ * Klasör görevlerinden ve seçimli ZIP kümesinden AYRI anahtardır (onlar parametresizdir).
+ */
+export function useArchiveUploadTasks(source: MaybeTarget, enabled: MaybeFlag = true) {
+  return plainReader(source, enabled, 'tasks', (s, signal) => fetchArchiveTasks(s, true, signal), {
+    include_empty: 'true',
+  })
+}
+
+/** `archiveUploaders` — yükleyen kimlikleri + `uploader_details` adları (BE-071). */
+export function useArchiveUploaders(source: MaybeTarget, enabled: MaybeFlag = true) {
+  return plainReader(source, enabled, 'uploaders', fetchArchiveUploaders)
+}
+
+/**
+ * `archiveAttachments` / `programArchiveAttachments` — imleçli sonsuz sorgu. `total` sunucunun
+ * süzgece uyan küme boyudur (`ArchiveFileList.total`, BE-073; imleçten bağımsız, her sayfada aynı);
+ * süzgeç değişince yeniden okunur, sayfalardan türetilmez. "daha fazla yükle" = `loadMore()`
+ * (aynı uç, aynı süzgeç).
  */
 export function useArchiveAttachments(
-  target: MaybeTarget,
+  source: MaybeTarget,
   filters: MaybeRefOrGetter<ArchiveFileFilters>,
   enabled: MaybeFlag = true,
 ) {
@@ -99,7 +112,7 @@ export function useArchiveAttachments(
   const query = useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
-      const resolved = toValue(target)
+      const resolved = toValue(source)
       const selected = toValue(filters)
       return {
         queryKey: archiveKey(scope, resolved, 'attachments', filterKey(selected)),

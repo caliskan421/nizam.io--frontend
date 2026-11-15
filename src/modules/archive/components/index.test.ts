@@ -7,7 +7,7 @@ import * as skeleton from './index'
 // nesnesindeki `props` / `emits` bildirimleri denetlenir; yer tutucu ya da dolu gövdeyle aynı
 // sonuç (KESİN 22; web-1 W41b, web-2 W72 dersi).
 const CONTRACT = {
-  ArchiveSearchBar: [['q', 'kind', 'disabled'], ['update:q', 'update:kind'], 'W122'],
+  ArchiveSearchBar: [['q', 'kind'], ['update:q', 'update:kind'], 'W122'],
   FolderGrid: [
     ['cards', 'sortField', 'sortDirection', 'loading', 'error'],
     ['open', 'update:sort', 'retry'],
@@ -24,12 +24,12 @@ const CONTRACT = {
   TaskFolderCards: [['tasks', 'selectedTaskId', 'truncated', 'loading'], ['select'], 'W123'],
   FileFilterBar: [['tag', 'view', 'loaded', 'total'], ['update:tag', 'update:view'], 'W123'],
   FileGrid: [
-    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error', 'needsTask'],
+    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error'],
     ['select', 'loadMore', 'retry'],
     'W123',
   ],
   FileList: [
-    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error', 'needsTask'],
+    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error'],
     ['select', 'loadMore', 'retry'],
     'W123',
   ],

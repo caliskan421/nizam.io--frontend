@@ -70,12 +70,39 @@ describe('koordinatörlük kartı (E-01-28…38)', () => {
     expect(wrapper.find('[data-testid="more"]').exists()).toBe(false)
   })
 
-  it('sayılar: geciken (danger), kullanıcı = üye + koordinatör, arşiv statik "—" (BE-072)', async () => {
+  it('sayılar: geciken (danger), kullanıcı = üye + koordinatör, arşiv `file_count` (yoksa nötr "—"; BE-072)', async () => {
     const { wrapper } = await mountWith(CoordinatorshipCard, null, { stat: STAT })
     expect(wrapper.get('[data-stat="late"]').text()).toContain('3')
     expect(wrapper.get('[data-stat="late"] .rp-num').classes()).toContain('rp-danger-text')
     expect(wrapper.get('[data-stat="users"]').text()).toContain('5')
+    // Arşiv özeti okunmadıysa sayı uydurulmaz.
     expect(wrapper.get('[data-testid="archive"]').text()).toBe('—')
+    const live = await mountWith(CoordinatorshipCard, null, {
+      stat: STAT,
+      archive: {
+        folder_id: 'd1',
+        name: 'Mekanik',
+        file_count: 12,
+        task_count: 3,
+        total_bytes: 9,
+        last_uploaded_at: null,
+        is_virtual: false,
+      },
+    })
+    expect(live.wrapper.get('[data-testid="archive"]').text()).toBe('12')
+    const empty = await mountWith(CoordinatorshipCard, null, {
+      stat: STAT,
+      archive: {
+        folder_id: 'd1',
+        name: 'Mekanik',
+        file_count: 0,
+        task_count: 0,
+        total_bytes: 0,
+        last_uploaded_at: null,
+        is_virtual: false,
+      },
+    })
+    expect(empty.wrapper.get('[data-testid="archive"]').text()).toBe('0')
     const calm = await mountWith(CoordinatorshipCard, null, {
       stat: stat('d3', 'Sakin', { overdue_tasks: 0 }),
     })

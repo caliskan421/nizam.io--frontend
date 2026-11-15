@@ -53,10 +53,10 @@ describe('FolderTree (E-06-27…30)', () => {
     expect(order[3]).toContain('Mekanik sistemler')
   })
 
-  it('sayaçlar: klasör dosya sayısı, görev dosya sayısı; sayı yoksa statik —', () => {
-    const w = mountTree({ folders: [{ ...FOLDERS[0]!, fileCount: null }] })
+  it('sayaçlar: klasör dosya sayısı, görev dosya sayısı (sunucu değerleri)', () => {
+    const w = mountTree({ folders: [{ ...FOLDERS[0]!, fileCount: 7 }] })
     const counts = w.findAll('.rp-count').map((c) => c.text())
-    expect(counts).toEqual(['—', '2', '1'])
+    expect(counts).toEqual(['7', '2', '1'])
   })
 
   it('aria-current: görev yokken klasör, görev seçiliyken yalnız görev düğümü', async () => {
