@@ -8,7 +8,7 @@
 | ---- | -- | ---------- | ----- |
 | 1 | Belgeler: [rapor-F8](../../backend-eksikleri/rapor-F8.md) (pin envanteri, canlanan/kısmi/açık satırlar, v0.24 farkı, §6 web F9 işi + backend paket adayları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), ekran README "F8 uygulama kanıtı" ve Sürüm satırları, `kayit.md` v0.24 Bağ notları, [WEB-8-codex](../../reviews/WEB-8-codex.md) ve [web-9](../web-9/README.md) iskeletleri, yol haritası §4, tasarım README notu | W177 (Sonnet 5.5) | `web8/o4-kapanis`; yalnız belge, kod yok; kapı prettier + lint + `tests/lint` |
 | 2 | **Tamam (#165).** `dogrulama-F8.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend **`v0.23.0-api` imajı** (P73); P33 yolu yok kanıtı, ZIP/CSV bilet indirme, rapor bölüm seçimi, silinenler toplu, toplantı katılımcı adayları, görev kodu, `X-Result-Truncated` deneme, 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W178 (`web8/o4-w178`) | birleşti |
-| 3 | Kusur düzeltmeleri W179 (KUSUR 1/3/4/5) | işçi (`web8/o4-w179`) | PR #166 CI'da |
+| 3 | **Tamam.** Kusur düzeltmeleri W179 (KUSUR 1/3/4/5) | işçi (`web8/o4-w179`) | **Tamam (#166, `dd71bd6`)**: KUSUR 1 `2361f99`, 3 `f083886`, 4 `fea8f02`, 5 `16ef2ff`; CI üç iş yeşil |
 | 4 | Codex tur 1…2 (3) (`gpt-6.1-sol` medium `-s read-only`; ilk eylem HEAD, araç izi); sınıf soruları: yetki/kapsam sızıntısı (P33 kaldırıldı; S2/S3 başlıkları), bilet hedefi (14 desen), `Idempotency-Key` yaşam döngüsü (üç oluşturma ucu), pin ↔ fixture uyumu (zorunlu alan uydurma, `defaults.ts`), "eski yol yok" kanıtı, ŞY aktör (ADR-0041) | Codex | bekliyor |
 | 5 | Kapanış belge PR'ı, CI SUCCESS ve MERGED | koordinatör | bekliyor |
 

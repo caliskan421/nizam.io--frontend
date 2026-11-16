@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W170 | **Birleşti:** #158 (pin `v0.23.0-api`, UI değişmedi) | `b141713` |
 | O2b W171–W175 | **Birleşti:** #159 (W173), #160 (W174), #161 (W171), #162 (W172), #163 (W175) | `6e09d7a` |
 | O3 W176 | **Birleşti:** #164 (entegrasyon turu + gerçek backend e2e) | `b9aab8c` |
-| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** (KUSUR 1/3/4/5) PR #166 CI'da; W177 belgeler sürüyor; Codex bekliyor | `30a4f14` |
+| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** birleşti (#166, `dd71bd6`; KUSUR 1/3/4/5); W177 belgeler sürüyor; Codex bekliyor | `dd71bd6` |
 
 ## Kararlar
 
@@ -109,7 +109,8 @@ Hiçbiri F8'in kapanışını kendiliğinden engellemez. Sınıflar: **kapandı*
 | 28 | BE-163 yeni kayıt (program kapsamlı departman purge, ADR-0045); BE-164 öneri (departman silme etki özeti) | açık BE | W174, W177 |
 | 29 | Kısmi satırlar: BE-025 (dağılım), 018 (GAP-240), 110 (GAP-234), 115 (BE-163), 123 (GAP-239), 127 (GAP-236), 136 (GAP-237), 010/030/088/130 (BE-091), 036 | açık BE ([rapor-F8 §2.2](../../backend-eksikleri/rapor-F8.md)) | W171–W175 |
 | 30 | F8 gerçek cihaz/üretim kanıtları: VoiceOver, Safari/iOS, CDN SSE F8'de de **yapılamadı**; W178 yalnız Docker + Chrome tanığıdır | kapanış sonrası borç | W177 |
-| 31 | W178 kusurları: KUSUR 1 (01f 390 px taşma), 3 (silinenler dar ekran), 4 (Ü1 son bildirimler/"Koordinatörüme yaz", K1 son etkinlik metni), 5 (iki küçük görsel) | W179 düzeltiyor (`web8/o4-w179`, PR #166) | W178 |
+| 31 | W178 kusurları: KUSUR 1 (01f 390 px taşma), 3 (silinenler dar ekran), 4 (Ü1 son bildirimler/"Koordinatörüme yaz", K1 son etkinlik metni), 5 (iki küçük görsel) | **kapandı (W179, #166, main `dd71bd6`)**: KUSUR 1 `2361f99`, 3 `f083886`, 4 `fea8f02`, 5 `16ef2ff`; etkilenen testler ve CI yeşil. KUSUR 1 yan etkisi: 01f kâğıdındaki görev kartları 1440'ta tam genişlik → tasarım farkı (#35) | W178, W179 |
+| 35 | 01f dönem raporu kâğıdında görev kartları 1440'ta tam genişlik (KUSUR 1 düzeltmesinin yan etkisi; tasarımda yan yana) | tasarım farkı (kabul/karar bekler) | W179 |
 | 32 | KUSUR 2: dönem ZIP onay ağacı ASCII adlar, gerçek ZIP Türkçe/boşluklu | tasarım farkı (W171 varsayımı, kabul) | W178 |
 | 33 | BE-165 (silinmiş görev dosyaları arşiv/ZIP'te), BE-166 (görev PDF'inde kod yok) | açık BE | W178 |
 | 34 | 503 `reporting.capacity_full`, `reporting.export_too_large` üretilemedi; ölçülü piksel karşılaştırması yapılmadı | kapanış sonrası borç | W178 |

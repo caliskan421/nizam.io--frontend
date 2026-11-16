@@ -29,9 +29,9 @@
 - **Bu belgenin yazıldığı oturumda** (W177, yalnız belge) kod, tam paket, build ve e2e koşulmadı; kapı: prettier, lint, `tests/lint`.
 - Duman PNG'leri ve ham sonuç dosyaları yerel (`.git/koordinator/web8-w17N/`); git'e girmez.
 
-## Tur 1 — (bekliyor)
+## Tur 1 — bekliyor (girdi main `dd71bd6`)
 
-HEAD: _(Codex ilk eylemi: HEAD teyidi)_
+HEAD: _(Codex ilk eylemi: HEAD teyidi; girdi main `dd71bd6` = W179 #166 birleşik)_
 
 **Hüküm:** _bekliyor_
 
