@@ -33,6 +33,7 @@ export {
   useRemoveMember,
   useUpdateMembershipRole,
 } from './members'
+export { useUsersExport, usersExportTarget } from './users-export'
 export { fetchDashboard, useCoordinatorships, useOrganizationDashboard } from './reports'
 export {
   fetchUserPage,

@@ -32,7 +32,7 @@ import {
   userRoleFilterOf,
   type UserRoleTab,
 } from '../../model/capabilities'
-import type { SortOrder } from '../../model/types'
+import type { SortOrder, UserListFilters } from '../../model/types'
 import { rowFromUser, type UserRow } from './user-rows'
 
 export interface UsersViewInput {
@@ -60,13 +60,15 @@ export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
     departmentId.value !== null || scopedTab.value ? store.programId : null,
   )
 
-  const list = useUserList(() => ({
+  // Liste ve CSV dışa aktarma (BE-014) AYNI süzgeçleri kullanır.
+  const listFilters = computed<UserListFilters>(() => ({
     search: search.value || null,
     sortOrder: sortOrder.value,
     role: userRoleFilterOf(tab.value),
     programId: programId.value,
     departmentId: departmentId.value,
   }))
+  const list = useUserList(() => listFilters.value)
   const departments = useProgramDepartmentIndex()
 
   // Sayaçlar sekmeden bağımsız ayrı okumalardan: sekme değişince titremez (`useUserCounts`).
@@ -83,6 +85,7 @@ export function useUsersView(input: MaybeRefOrGetter<UsersViewInput>) {
   return {
     ...viewStatus(list),
     sortOrder,
+    exportFilters: listFilters,
     departments,
     source,
     rows: source,
