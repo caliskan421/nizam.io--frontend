@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F8 AÇILDI 2026-11-15** (ürün sahibi: "pin yükseltme + canlıya alma turu olsun"; P67 kesin). Kapsam [README](README.md)'de; kararlar P67 kesin, **P68–P74 koordinatör varsayılanı = geçici kabul** ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P75–P76 süreç kararları. F7 [KAPANDI](../web-7/ilerleme.md) (main `31c6ccc`). Pin `v0.23.0-api` (main'de, #158).
 
-**F8 KAPANMADI — Codex tur 1 UYGUN DEĞİL, W180 düzeltiyor (2026-11-16).** O1–O3 kod ve belge işleri main `b9aab8c`'de tamamdır; O4 sürüyor: W177 (bu belgeler), W178 (gerçek Docker + backend `v0.23.0-api` tanığı), Codex 2–3 tur, kapanış belge PR'ı. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) "yapılamadı" kalır (KESİN 32). **Güncel olgu:** backend `v0.24.0-api` çıktı (BE-F7: sohbet/bildirim); F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8](../../backend-eksikleri/rapor-F8.md) §6'da, F9 önerisi [web-9](../web-9/README.md)'dadır.
+**F8 KAPANMADI — Codex tur 2 (2026-11-16; tur 1 UYGUN DEĞİL, koşullar W180 #167 ile kapandı, girdi main `d183dc7`).** O1–O3 kod ve belge işleri main `b9aab8c`'de tamamdır; O4 sürüyor: W177 (bu belgeler), W178 (gerçek Docker + backend `v0.23.0-api` tanığı), Codex 2–3 tur, kapanış belge PR'ı. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) "yapılamadı" kalır (KESİN 32). **Güncel olgu:** backend `v0.24.0-api` çıktı (BE-F7: sohbet/bildirim); F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8](../../backend-eksikleri/rapor-F8.md) §6'da, F9 önerisi [web-9](../web-9/README.md)'dadır.
 
 ## Durum
 
@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W170 | **Birleşti:** #158 (pin `v0.23.0-api`; UI değişmedi, tek istisna `work.task.reminder` sözlük girişi `9a8ed02`, aşağıda #37) | `b141713` |
 | O2b W171–W175 | **Birleşti:** #159 (W173), #160 (W174), #161 (W171), #162 (W172), #163 (W175) | `6e09d7a` |
 | O3 W176 | **Birleşti:** #164 (entegrasyon turu + gerçek backend e2e) | `b9aab8c` |
-| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** birleşti (#166, `dd71bd6`; KUSUR 1/3/4/5); W177 belgeler sürüyor; Codex bekliyor; **Codex tur 1 UYGUN DEĞİL** (HEAD `27587d2`: CX-F8-E-01 engelleyici, Ö-01, K-01, K-02) → W180 düzeltiyor | `dd71bd6` |
+| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** birleşti (#166, `dd71bd6`; KUSUR 1/3/4/5); W177 belgeler sürüyor; Codex bekliyor; **Codex tur 1 UYGUN DEĞİL** (HEAD `27587d2`: CX-F8-E-01 engelleyici, Ö-01, K-01, K-02) → **W180 düzeltti (#167, `d183dc7`)** | `d183dc7` |
 
 ## Kararlar
 
@@ -66,6 +66,10 @@ Ayrıntı [oturum-3-entegrasyon](oturum-3-entegrasyon.md). KUSUR 1 (period-zip k
 
 Bulgular: CX-F8-E-01 (yüksek/engelleyici: ortak indirme akışında kapsam/oturum/sökülme iptali yok → W180), CX-F8-Ö-01 (orta: tüketim hatasında `Retry-After` yok → W180), CX-F8-K-01 (belge: W178 kota sayıları → düzeltildi), CX-F8-K-02 (süreç: W170 "UI değişmedi" daraltıldı, #37). Sınıf taraması temiz (yetki, bilet hedefleri, stub/kayıt, pin birebir 248/227, türevler, faz). Ayrıntı: [WEB-8-codex](../../reviews/WEB-8-codex.md).
 
+### O4 — W180 (#167, main `d183dc7`): Codex tur 1 koşulları kapandı
+
+CX-F8-E-01 (`207aa629`: `shared/download` `isCurrent()` + `useDownloadLife()`; dönem ZIP, klasör ZIP, kullanıcı CSV, silinenler CSV; kapsam/oturum/hesap/söküm → abort) ve CX-F8-Ö-01 (`0cdde4cc`: `cooldown.ts`, yalnız `Retry-After` taşıyan 429/503 sayaç, otomatik tekrar yok) kapandı; testler `PeriodZipButton.life` 7, `flow.current` 3, `PeriodZipButton.cooldown` 5, `UsersExportButton` 2 (geri alınca kırmızı); etkilenen 414 dosya / 3202 test + CI yeşil (ilk koşum geç 401 işlenmemiş red ile kırmızı, rerun yeşil: #38); duman 390 koyu ZIP 503 RA 7 / CSV 429 RA 9. Ayrıntı: [WEB-8-codex](../../reviews/WEB-8-codex.md).
+
 ### O4 — belgeler (W177, `web8/o4-kapanis`)
 
 `rapor-F8` (pin envanteri, canlanan/kısmi satırlar, v0.24 farkı, §6 F9 web işi + backend paket adayları), bu kayıt (borçlar numaralı), `oturum-3-entegrasyon`, `oturum-4-kapanis`, README durumu, ekran README kanıt/Sürüm satırları, `kayit.md` v0.24 Bağ notları, `WEB-8-codex` iskeleti, `web-9` iskeleti, yol haritası §4, tasarım README notu. Yalnız belge; kod yok. W178 `dogrulama-F8.md` ayrı ve kendisinindir.
@@ -116,6 +120,7 @@ Hiçbiri F8'in kapanışını kendiliğinden engellemez. Sınıflar: **kapandı*
 | 31 | W178 kusurları: KUSUR 1 (01f 390 px taşma), 3 (silinenler dar ekran), 4 (Ü1 son bildirimler/"Koordinatörüme yaz", K1 son etkinlik metni), 5 (iki küçük görsel) | **kapandı (W179, #166, main `dd71bd6`)**: KUSUR 1 `2361f99`, 3 `f083886`, 4 `fea8f02`, 5 `16ef2ff`; etkilenen testler ve CI yeşil. KUSUR 1 yan etkisi: 01f kâğıdındaki görev kartları 1440'ta tam genişlik → tasarım farkı (#35) | W178, W179 |
 | 36 | Hedefli gerçek backend kota koşumu: `reporting.export_in_progress`, `organization.export_in_progress` modüle özgü kota tanığı genel hız kovasına (`platform.rate_limited`, `Retry-After: 60`) takıldığı için doğrulanmadı (Codex K-01) | kapanış sonrası borç / W180 sonrası hedefli koşum | W178, Codex |
 | 37 | `work.task.reminder` sözlük girişi (`9a8ed02`, W170): özel metin/simge/ton ve push metni görünür davranış değişikliği; pin planı W175'e ayırmıştı. P69/KESİN 36'dan sapma, ürün kusuru değil (Codex K-02) | not | W170 |
+| 38 | Tam pakette seyrek işlenmemiş red: geç 401 (`ApiError: platform.unauthenticated`) — PR #167 ilk CI koşumu vitest 825/825 dosya geçtiği halde kırmızı (W170/W174 raporlarındaki `chat-writes` geç 401 sınıfı); kök neden (teardown sonrası sızan istek, muhtemelen `chat-writes` anket senaryosu) bulunup await/iptal eklenmeli | F9 başında (uygulama notu / kapanış sonrası borç) | W170, W174, W180 |
 | 35 | 01f dönem raporu kâğıdında görev kartları 1440'ta tam genişlik (KUSUR 1 düzeltmesinin yan etkisi; tasarımda yan yana) | tasarım farkı (kabul/karar bekler) | W179 |
 | 32 | KUSUR 2: dönem ZIP onay ağacı ASCII adlar, gerçek ZIP Türkçe/boşluklu | tasarım farkı (W171 varsayımı, kabul) | W178 |
 | 33 | BE-165 (silinmiş görev dosyaları arşiv/ZIP'te), BE-166 (görev PDF'inde kod yok) | açık BE | W178 |

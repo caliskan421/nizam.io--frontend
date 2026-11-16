@@ -63,9 +63,20 @@ HEAD: `27587d26f4449857ca87ba0ecb09f2fd9a10e192` (girdi main `dd71bd6`; ham çı
 - VoiceOver, kullanıcı görsel onayı, Safari/iOS push, ölçülü son görsel eşitlik doğrulanmış sayılmadı. Bilinen kapsam dışı borçlar yeniden bulgu sayılmadı. Tüm dosyaların satır satır kapsandığı iddiası yoktur.
 - K-02 kaydı: W170'in "UI değişmedi" ifadesi `work.task.reminder` sözlük girişi (`9a8ed02`) hariç doğrudur; bu görünür değişiklik P69/KESİN 36'dan sapmadır, ürün kusuru değildir.
 
-## Tur 2 — bekliyor
+### Tur 1 koşullarının kapanışı — W180 (#167, main `d183dc7`)
 
-_(W180 birleşince; kapsam: E-01 ve Ö-01 düzeltme doğrulaması + yeniden sınıf taraması; P76: en çok 2 tur, UYGUN DEĞİL → 3)_
+- **CX-F8-E-01 KAPANDI** (`207aa629`): `shared/download` akışına `isCurrent()` doğrulayıcı ve `life.ts` `useDownloadLife()` (program, oturum nesli/hesap ve sökülme → abort; bilet yanıtı, tüketim ve kaydetmeden önce bağlam denetimi). Bağlanan tüketiciler: dönem ZIP, klasör ZIP, kullanıcı CSV, silinenler CSV. Testler: `PeriodZipButton.life` 7, `flow.current` 3; düzeltme geri alınınca 5/7 ve 2/3 kırmızı.
+- **CX-F8-Ö-01 KAPANDI** (`0cdde4cc`): `shared/download/cooldown.ts`; yalnız `Retry-After` taşıyan 429/503 için bekleme sayacı (ZIP `aria-disabled`, CSV `disabled`; otomatik tekrar yok). Testler: `PeriodZipButton.cooldown` 5, `UsersExportButton` 2; geri alınınca kırmızı. Varsayımlar kabul: ZIP `aria-disabled` (KESİN 27), klasör ZIP de sayaç kullanır, silinenler CSV süre metni.
+- **Kapı (işçi, P76):** etkilenen 414 dosya / 3202 test + CI yeşil; duman 390 koyu: ZIP 503 `Retry-After: 7`, CSV 429 `Retry-After: 9` (`.git/koordinator/web8-w180/`, yerel). PR #167 ilk CI koşumu vitest 825/825 dosya geçtiği halde seyrek işlenmemiş red `ApiError: platform.unauthenticated` (geç 401) ile kırmızı çıktı; W180 değişikliğiyle ilgisiz, rerun yeşil; borç ilerleme #38.
+- K-01 ve K-02 tur 1'de W177 tarafından işlendi (yukarıda).
+
+## Tur 2 — bekliyor (girdi main `d183dc7`)
+
+_(Kapsam: E-01 ve Ö-01 düzeltme doğrulaması + yeniden sınıf taraması; P76: en çok 2 tur, UYGUN DEĞİL → 3)_
+
+HEAD: _(Codex ilk eylemi: HEAD teyidi)_
+
+**Hüküm:** _bekliyor_
 
 ## Koşulların kapanışı
 
