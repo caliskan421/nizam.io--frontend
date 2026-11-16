@@ -1,48 +1,23 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  actorCandidates,
-  actorValue,
-  applyFilters,
   changeKind,
   clearFilters,
-  countLabel,
-  departmentCandidates,
+  DEFAULT_SORT,
   filtersToQuery,
+  firstOrder,
   isFiltered,
   parseFilters,
-  rangeFloor,
-  rangeNeedsMore,
-  UNKNOWN_ACTOR,
+  rangeFrom,
+  toggleSort,
+  toListQuery,
   type DeletedFilters,
 } from './filters'
-import type { DeletedRow } from './types'
 
 const TZ = 'Europe/Istanbul'
 // Istanbul: 12 Kasım 2026 15:00.
 const NOW = new Date('2026-11-12T12:00:00Z')
 const CTX = { now: NOW, timezone: TZ }
-
-function row(over: Partial<DeletedRow> & { id: string }): DeletedRow {
-  return {
-    kind: 'gorev',
-    key: `gorev:${over.id}`,
-    title: over.id,
-    code: null,
-    subLine: '',
-    deletedAt: '2026-11-12T08:00:00Z',
-    actor: null,
-    departmentIds: [],
-    searchText: over.id.toLocaleLowerCase('tr-TR'),
-    status: null,
-    fileCount: null,
-    place: null,
-    inviteMode: null,
-    departmentNames: [],
-    departmentKind: null,
-    ...over,
-  }
-}
 
 const BASE: DeletedFilters = {
   kind: 'gorev',
@@ -87,13 +62,15 @@ describe('URL ⇄ süzgeç (K10; P43)', () => {
     expect(parseFilters({ aralik: '30gun' }).range).toBe('tumu')
   })
 
-  it('türe uymayan süzgeç yok sayılır: hesapta aralık/koordinatörlük/silen, görevde silen', () => {
+  it('türe uymayan süzgeç yok sayılır: koordinatörlükte department_id; silen dört türde geçerli (BE-108)', () => {
+    // Hesapta tarih aralığı ve "herhangi bir ekip satırı" koordinatörlük süzgeci canlıdır (BE-118).
     expect(
       parseFilters({ tur: 'kullanici', aralik: 'bugun', koordinatorluk: 'd1', silen: 'a1' }),
-    ).toMatchObject({ range: 'tumu', department: null, actor: null })
+    ).toMatchObject({ range: 'bugun', department: 'd1', actor: 'a1' })
     expect(parseFilters({ tur: 'koordinatorluk', koordinatorluk: 'd1' }).department).toBeNull()
-    expect(parseFilters({ silen: 'a1' }).actor).toBeNull()
-    expect(parseFilters({ tur: 'toplanti', silen: 'a1' }).actor).toBe('a1')
+    for (const tur of ['gorev', 'toplanti', 'koordinatorluk', 'kullanici']) {
+      expect(parseFilters({ tur, silen: 'a1' }).actor, tur).toBe('a1')
+    }
   })
 
   it('dizi değeri ilk öğe; aranan metin kırpılır', () => {
@@ -120,9 +97,9 @@ describe('tür değişimi (mekanizma §3)', () => {
     })
   })
 
-  it('koordinatorluk yalnız görev/toplantıda korunur', () => {
+  it('koordinatorluk koordinatörlük türünde temizlenir; hesapta ve aralık korunur', () => {
     expect(changeKind(full, 'koordinatorluk').department).toBeNull()
-    expect(changeKind(full, 'kullanici')).toMatchObject({ department: null, range: 'tumu' })
+    expect(changeKind(full, 'kullanici')).toMatchObject({ department: 'd1', range: 'bugun' })
   })
 
   it('Filtreleri temizle: tür ve seçim korunur', () => {
@@ -138,103 +115,100 @@ describe('tür değişimi (mekanizma §3)', () => {
   })
 })
 
-describe('istemci süzgeci (yüklenen küme)', () => {
-  const rows = [
-    row({ id: 'Işık hattı', searchText: 'ışık hattı', departmentIds: ['d1'] }),
-    row({
-      id: 'İzmir',
-      searchText: 'izmir',
-      departmentIds: ['d2'],
-      deletedAt: '2026-11-09T08:00:00Z',
-    }),
-    row({
-      id: 'Eski',
-      searchText: 'eski',
-      departmentIds: ['d1', 'd2'],
-      deletedAt: '2026-10-01T08:00:00Z',
-    }),
-    row({ id: 'Tarihsiz', searchText: 'tarihsiz', deletedAt: null }),
-  ]
-
-  it('arama Türkçe katlamalı', () => {
-    const ids = (q: string) => applyFilters(rows, { ...BASE, q }, CTX).map((r) => r.id)
-    expect(ids('IŞIK')).toEqual(['Işık hattı'])
-    expect(ids('izm')).toEqual(['İzmir'])
-    expect(ids('ISIK')).toEqual([])
+describe('sunucu sorgusu (BE-117)', () => {
+  it('varsayılan süzgeç ve sıra parametresiz gider', () => {
+    expect(toListQuery(BASE, DEFAULT_SORT, CTX)).toEqual({})
   })
 
-  it('koordinatörlük süzgeci departman kimliği eşitliği', () => {
-    expect(applyFilters(rows, { ...BASE, department: 'd2' }, CTX).map((r) => r.id)).toEqual([
-      'İzmir',
-      'Eski',
-    ])
+  it('arama, koordinatörlük, silen ve aralık sunucu parametresine eşlenir', () => {
+    const filters: DeletedFilters = {
+      ...BASE,
+      kind: 'toplanti',
+      q: 'fuar',
+      department: 'd1',
+      actor: 'a7',
+      range: 'bugun',
+    }
+    expect(toListQuery(filters, DEFAULT_SORT, CTX)).toEqual({
+      q: 'fuar',
+      department_id: 'd1',
+      deleted_by: 'a7',
+      // 12 Kasım 2026 Istanbul günü 00:00 = 11 Kasım 21:00 UTC (UTC gün sınırı DEĞİL).
+      deleted_from: '2026-11-11T21:00:00Z',
+    })
   })
 
-  it('aralık: Bugün / Son 7 gün (kurulum saat dilimi takvim günü); tarihsiz satır düşer', () => {
-    expect(applyFilters(rows, { ...BASE, range: 'bugun' }, CTX).map((r) => r.id)).toEqual([
-      'Işık hattı',
-    ])
-    expect(applyFilters(rows, { ...BASE, range: '7gun' }, CTX).map((r) => r.id)).toEqual([
-      'Işık hattı',
-      'İzmir',
-    ])
-    expect(applyFilters(rows, BASE, CTX)).toHaveLength(4)
+  it('silen dört türde deleted_by olarak gider (BE-108)', () => {
+    for (const kind of ['gorev', 'toplanti', 'koordinatorluk', 'kullanici'] as const) {
+      const query = toListQuery({ ...BASE, kind, actor: 'a7' }, DEFAULT_SORT, CTX)
+      expect(query.deleted_by, kind).toBe('a7')
+    }
   })
 
-  it('aralık eşikleri takvim günüdür (gece yarısı sınırı)', () => {
-    expect(rangeFloor('bugun', CTX)).toBe('2026-11-12')
-    expect(rangeFloor('7gun', CTX)).toBe('2026-11-06')
-    expect(rangeFloor('tumu', CTX)).toBeNull()
-    // 5 Kasım 23:30 UTC = 6 Kasım 02:30 Istanbul: Son 7 gün içinde.
-    const edge = row({ id: 'sinir', deletedAt: '2026-11-05T23:30:00Z' })
-    expect(applyFilters([edge], { ...BASE, range: '7gun' }, CTX)).toHaveLength(1)
-    const out = row({ id: 'dis', deletedAt: '2026-11-05T20:30:00Z' })
-    expect(applyFilters([out], { ...BASE, range: '7gun' }, CTX)).toHaveLength(0)
+  it('koordinatörlük türünde department_id gitmez', () => {
+    const filters: DeletedFilters = { ...BASE, kind: 'koordinatorluk', department: 'd1' }
+    expect(toListQuery(filters, DEFAULT_SORT, CTX)).toEqual({})
   })
 
-  it('silen süzgeci: bilinmeyen silen ayrı aday', () => {
-    const meetings = [
-      row({ id: 'a', kind: 'toplanti', actor: { accountId: 'a7', name: 'Reha' } }),
-      row({ id: 'b', kind: 'toplanti', actor: { accountId: null, name: '' } }),
-      row({ id: 'c', kind: 'toplanti', actor: { accountId: 'a7', name: 'Reha' } }),
-    ]
-    expect(actorCandidates(meetings)).toEqual([
-      { accountId: 'a7', name: 'Reha' },
-      { accountId: null, name: '' },
-    ])
-    expect(actorValue({ accountId: null })).toBe(UNKNOWN_ACTOR)
-    expect(applyFilters(meetings, { ...BASE, kind: 'toplanti', actor: 'a7' }, CTX)).toHaveLength(2)
+  it('hesap listesi varsayılan sırada da sort=deleted_at&order=desc ister (oluşturma sırası değil)', () => {
+    expect(toListQuery({ ...BASE, kind: 'kullanici' }, DEFAULT_SORT, CTX)).toEqual({
+      sort: 'deleted_at',
+      order: 'desc',
+    })
     expect(
-      applyFilters(meetings, { ...BASE, kind: 'toplanti', actor: UNKNOWN_ACTOR }, CTX).map(
-        (r) => r.id,
-      ),
-    ).toEqual(['b'])
+      toListQuery({ ...BASE, kind: 'kullanici', range: '7gun' }, DEFAULT_SORT, CTX),
+    ).toMatchObject({ deleted_from: '2026-11-05T21:00:00Z', sort: 'deleted_at' })
   })
 
-  it('koordinatörlük adayları tekil kimlikler', () => {
-    expect(departmentCandidates(rows)).toEqual(['d1', 'd2'])
+  it('sıra yalnız varsayılandan farklıysa yazılır', () => {
+    expect(toListQuery(BASE, { key: 'deleted_at', order: 'asc' }, CTX)).toEqual({
+      sort: 'deleted_at',
+      order: 'asc',
+    })
+    expect(toListQuery(BASE, { key: 'name', order: 'asc' }, CTX)).toEqual({
+      sort: 'name',
+      order: 'asc',
+    })
   })
 })
 
-describe('aralık için sayfa yükleme ve sayaç', () => {
-  const recent = row({ id: 'r', deletedAt: '2026-11-12T08:00:00Z' })
-  const older = row({ id: 'o', deletedAt: '2026-11-01T08:00:00Z' })
-  const f = { ...BASE, range: '7gun' as const }
-
-  it('eşik aşılmadıysa ve imleç sürüyorsa daha yükle', () => {
-    expect(rangeNeedsMore([recent], f, true, CTX)).toBe(true)
-    expect(rangeNeedsMore([], f, true, CTX)).toBe(true)
+describe('aralık sınırı (kurulum saat dilimi gün başlangıcı)', () => {
+  it('Bugün = bugünün başı; Son 7 gün = bugün ve önceki 6 gün; Tümü = sınır yok', () => {
+    expect(rangeFrom('bugun', CTX)).toBe('2026-11-11T21:00:00Z')
+    expect(rangeFrom('7gun', CTX)).toBe('2026-11-05T21:00:00Z')
+    expect(rangeFrom('tumu', CTX)).toBeUndefined()
   })
 
-  it('eşikten eski satır görününce ya da imleç bitince durur; "tümü" ek yükleme yapmaz', () => {
-    expect(rangeNeedsMore([recent, older], f, true, CTX)).toBe(false)
-    expect(rangeNeedsMore([recent], f, false, CTX)).toBe(false)
-    expect(rangeNeedsMore([recent], BASE, true, CTX)).toBe(false)
+  it('gece yarısı sonrası (UTC hâlâ önceki gün) kurulum gününe göre hesaplanır', () => {
+    // 11 Kasım 22:30 UTC = 12 Kasım 01:30 Istanbul.
+    const late = { now: new Date('2026-11-11T22:30:00Z'), timezone: TZ }
+    expect(rangeFrom('bugun', late)).toBe('2026-11-11T21:00:00Z')
   })
 
-  it('sayaç: imleç bitmediyse "n+" (yaklaşık)', () => {
-    expect(countLabel(12, false)).toBe('12')
-    expect(countLabel(200, true)).toBe('200+')
-    expect(countLabel(0, false)).toBe('0')
+  it('saat ilerlese de gün içinde aynı sınır (sorgu anahtarı değişmez)', () => {
+    const a = rangeFrom('bugun', { now: new Date('2026-11-12T01:00:00Z'), timezone: TZ })
+    const b = rangeFrom('bugun', { now: new Date('2026-11-12T20:00:00Z'), timezone: TZ })
+    expect(a).toBe(b)
+  })
+
+  it('UTC saat diliminde gün sınırı UTC gece yarısıdır', () => {
+    expect(rangeFrom('bugun', { now: NOW, timezone: 'UTC' })).toBe('2026-11-12T00:00:00Z')
+  })
+})
+
+describe('sıralama (E-12-31)', () => {
+  it('ilk yön: zaman azalan, ad artan', () => {
+    expect(firstOrder('deleted_at')).toBe('desc')
+    expect(firstOrder('name')).toBe('asc')
+  })
+
+  it('etkin eksen yön çevirir; başka eksen kendi ilk yönüyle açılır', () => {
+    expect(toggleSort(DEFAULT_SORT, 'deleted_at')).toEqual({ key: 'deleted_at', order: 'asc' })
+    expect(toggleSort({ key: 'deleted_at', order: 'asc' }, 'deleted_at')).toEqual(DEFAULT_SORT)
+    expect(toggleSort(DEFAULT_SORT, 'name')).toEqual({ key: 'name', order: 'asc' })
+    expect(toggleSort({ key: 'name', order: 'asc' }, 'name')).toEqual({
+      key: 'name',
+      order: 'desc',
+    })
   })
 })

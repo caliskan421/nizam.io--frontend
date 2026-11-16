@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest'
 
 import KindSegment from './KindSegment.vue'
 
-function mountSegment(count: string | null = '12') {
+const COUNTS = { gorev: 12, toplanti: 3, koordinatorluk: 0, kullanici: 127 }
+
+function mountSegment(counts: typeof COUNTS | null = COUNTS) {
   return mount(KindSegment, {
-    props: { modelValue: 'gorev', count },
+    props: { modelValue: 'gorev', counts },
     attachTo: document.body,
   })
 }
@@ -14,7 +16,7 @@ describe('KindSegment (E-12-08…16, P41, P42)', () => {
   it('canlı dört tür + devre dışı üç tür; sıra ve "Tümü" yok', () => {
     const wrapper = mountSegment()
     const buttons = wrapper.findAll('button')
-    expect(buttons.map((b) => b.text().replace(/\s*\d+\+?$/, ''))).toEqual([
+    expect(buttons.map((b) => b.text().replace(/\s*\d+$/, ''))).toEqual([
       'Görev',
       'Toplantı',
       'Koordinatörlük',
@@ -50,11 +52,13 @@ describe('KindSegment (E-12-08…16, P41, P42)', () => {
     wrapper.unmount()
   })
 
-  it('sayaç yalnız açık sekmede; yoksa hiç çizilmez', async () => {
-    const wrapper = mountSegment('12+')
-    expect(wrapper.findAll('.rp-count').map((c) => c.text())).toEqual(['12+'])
-    expect(wrapper.get('[data-kind="gorev"] .rp-count').text()).toBe('12+')
-    await wrapper.setProps({ count: null })
+  it('sayaçlar özetten ve kesin: etkin olmayan tür de sayı gösterir ("n+" yok); özet yoksa hiç çizilmez', async () => {
+    const wrapper = mountSegment()
+    expect(wrapper.findAll('.rp-count').map((c) => c.text())).toEqual(['12', '3', '0', '127'])
+    expect(wrapper.get('[data-kind="kullanici"] .rp-count').text()).toBe('127')
+    // Sıfır gerçek bir sayıdır ve gösterilir.
+    expect(wrapper.get('[data-kind="koordinatorluk"] .rp-count').text()).toBe('0')
+    await wrapper.setProps({ counts: null })
     expect(wrapper.find('.rp-count').exists()).toBe(false)
     wrapper.unmount()
   })

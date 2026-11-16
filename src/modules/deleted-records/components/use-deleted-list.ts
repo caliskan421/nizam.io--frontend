@@ -1,22 +1,27 @@
 /**
  * Açık sekmenin silinen kayıt listesi (12; P42/P43): dört okuyucudan YALNIZ açık türünkü
- * etkindir (fan-out yok, birleşik liste yok). Satırlar liste öğelerinden türetilir (`model/rows`);
- * koordinatörlük adı program sözlüğünden (`listProgramDepartments`, kabukla ortak anahtar), yoksa
- * önbellekte yüklü silinmiş departman listesinden (ek istek yok; yalnız okunur, abonelik yok),
- * yoksa "Bilinmeyen koordinatörlük".
+ * etkindir (fan-out yok, birleşik liste yok; GAP-234). Süzgeç/sıra sunucuya gider (`query`,
+ * BE-117); satırlar liste öğelerinden türetilir (`model/rows`), istemci süzmez. `total` süzgece
+ * uyan kayıt sayısıdır (imleçten bağımsız). Koordinatörlük adı program sözlüğünden
+ * (`listProgramDepartments`, kabukla ortak anahtar), yoksa önbellekte yüklü silinmiş departman
+ * listelerinden (ek istek yok; yalnız okunur, abonelik yok), yoksa "Bilinmeyen koordinatörlük".
  */
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter, type Ref } from 'vue'
 
-import { useDeletedMeetings } from '@/modules/meetings/public'
-import { useDeletedDepartments } from '@/modules/organization/public'
 import { useProgramDepartments } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { useDeletedAccounts, useDeletedWorkItems } from '../api/queries'
+import {
+  useDeletedAccounts,
+  useDeletedDepartments,
+  useDeletedMeetings,
+  useDeletedWorkItems,
+} from '../api/queries'
+import type { ListQuery } from '../model/filters'
 import type { DeletedKind } from '../model/kinds'
 import { accountRow, departmentRow, meetingRow, taskRow, type RowContext } from '../model/rows'
 import type { DeletedDepartment, DeletedRow } from '../model/types'
@@ -41,53 +46,78 @@ function useDepartmentNames(timezone: Ref<string>) {
   const dictionary = useProgramDepartments()
   return computed<RowContext>(() => {
     const names = new Map<string, string>()
-    const cached = client.getQueryData<{ pages: Array<{ departments: DeletedDepartment[] }> }>(
-      queryKeys.deletedDepartments.all(scope.snapshot),
-    )
-    for (const row of cached?.pages.flatMap((page) => page.departments) ?? []) {
-      names.set(row.department_id, row.name)
+    const cached = client.getQueriesData<{ pages: Array<{ departments: DeletedDepartment[] }> }>({
+      queryKey: queryKeys.deletedDepartments.all(scope.snapshot),
+    })
+    for (const [, data] of cached) {
+      for (const row of data?.pages.flatMap((page) => page.departments) ?? []) {
+        names.set(row.department_id, row.name)
+      }
     }
     for (const [id, d] of dictionary.byId.value) names.set(id, d.display_name)
     return { timezone: timezone.value, departmentName: (id) => names.get(id) ?? null }
   })
 }
 
+type Queries = {
+  gorev: ReturnType<typeof useDeletedWorkItems>
+  toplanti: ReturnType<typeof useDeletedMeetings>
+  koordinatorluk: ReturnType<typeof useDeletedDepartments>
+  kullanici: ReturnType<typeof useDeletedAccounts>
+}
+
+const pagesOf = <T>(data: { pages: T[] } | undefined) => data?.pages ?? []
+
+function rowsOf(kind: DeletedKind, q: Queries, ctx: RowContext): DeletedRow[] {
+  switch (kind) {
+    case 'toplanti':
+      return pagesOf(q.toplanti.data.value).flatMap((p) => p.items.map((i) => meetingRow(i, ctx)))
+    case 'koordinatorluk':
+      return pagesOf(q.koordinatorluk.data.value).flatMap((p) => p.departments.map(departmentRow))
+    case 'kullanici':
+      return pagesOf(q.kullanici.data.value).flatMap((p) => p.accounts.map(accountRow))
+    default:
+      return pagesOf(q.gorev.data.value).flatMap((p) => p.items.map((i) => taskRow(i, ctx)))
+  }
+}
+
+/** Süzülmüş küme boyu: son yüklenen sayfanın zarfı (imleçten bağımsız). */
+function totalOf(kind: DeletedKind, q: Queries): number | null {
+  const last = pagesOf(q[kind].data.value as { pages: Array<{ total?: number }> } | undefined).at(
+    -1,
+  )
+  return typeof last?.total === 'number' ? last.total : null
+}
+
+/** Kurulum saat dilimi (gün sınırı ve tarih biçimleri; profil yoksa varsayılan). */
+export function useDeletedTimezone() {
+  const instance = useInstanceStore()
+  return computed(() => instance.profile?.timezone ?? DEFAULT_TIMEZONE)
+}
+
 export function useDeletedList(
   kind: MaybeRefOrGetter<DeletedKind>,
+  query: MaybeRefOrGetter<ListQuery>,
   enabled: MaybeRefOrGetter<boolean>,
 ) {
   const on = (wanted: DeletedKind) => () => toValue(enabled) && toValue(kind) === wanted
-  const tasks = useDeletedWorkItems(on('gorev'))
-  const meetings = useDeletedMeetings(on('toplanti'))
-  const departments = useDeletedDepartments(on('koordinatorluk'))
-  const accounts = useDeletedAccounts(on('kullanici'))
-  const instance = useInstanceStore()
-  const timezone = computed(() => instance.profile?.timezone ?? DEFAULT_TIMEZONE)
+  const tasks = useDeletedWorkItems(query, on('gorev'))
+  const meetings = useDeletedMeetings(query, on('toplanti'))
+  const departments = useDeletedDepartments(query, on('koordinatorluk'))
+  const accounts = useDeletedAccounts(query, on('kullanici'))
+  const timezone = useDeletedTimezone()
   const context = useDepartmentNames(timezone)
 
-  const pages = <T>(data: { pages: T[] } | undefined) => data?.pages ?? []
-  const paged = computed<PagedQuery>(() => {
-    const active: Record<DeletedKind, PagedQuery> = {
-      gorev: tasks,
-      toplanti: meetings,
-      koordinatorluk: departments.query,
-      kullanici: accounts,
-    }
-    return active[toValue(kind)]
-  })
-  const rows = computed<DeletedRow[]>(() => {
-    const ctx = context.value
-    switch (toValue(kind)) {
-      case 'toplanti':
-        return pages(meetings.data.value).flatMap((p) => p.items.map((i) => meetingRow(i, ctx)))
-      case 'koordinatorluk':
-        return departments.departments.value.map(departmentRow)
-      case 'kullanici':
-        return pages(accounts.data.value).flatMap((p) => p.accounts.map(accountRow))
-      default:
-        return pages(tasks.data.value).flatMap((p) => p.items.map((i) => taskRow(i, ctx)))
-    }
-  })
+  const queries = {
+    gorev: tasks,
+    toplanti: meetings,
+    koordinatorluk: departments,
+    kullanici: accounts,
+  }
+  const paged = computed<PagedQuery>(() => queries[toValue(kind)])
+  const rows = computed<DeletedRow[]>(() => rowsOf(toValue(kind), queries, context.value))
+  /** Süzgece uyan kayıt sayısı (son yüklenen sayfanın zarfı; toplantıda alan isteğe bağlıdır). */
+  const total = computed(() => totalOf(toValue(kind), queries))
   const error = computed(() =>
     paged.value.isError.value && rows.value.length === 0
       ? toApiError(paged.value.error.value)
@@ -96,6 +126,7 @@ export function useDeletedList(
 
   return {
     rows,
+    total,
     timezone,
     error,
     departmentName: (id: string) => context.value.departmentName(id),

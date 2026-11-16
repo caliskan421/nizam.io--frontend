@@ -139,23 +139,49 @@ describe('sekmeler ve uçlar (P41, P42)', () => {
 })
 
 describe('sayaç, alt başlık ve notlar', () => {
-  it('sayaç yalnız açık sekmede; imleç bitince "n", bitmeyince "n+" ve "yüklenen kayıtlar içinde"', async () => {
+  it('sayaçlar özetten ve kesin: dört tür de sayı gösterir, "n+" ve "yüklenen kayıtlar içinde" yok (BE-110)', async () => {
     world.tasks = [[task('w1'), task('w2')], [task('w3')]]
+    world.meetings = [[meeting('m1')]]
+    world.accounts = [[account('a1'), account('a2')]]
     const page = await mountPage()
     const counts = page.wrapper.findAll('[data-testid="dr-kinds"] .rp-count')
-    expect(counts.map((c) => c.text())).toEqual(['2+'])
-    expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe(
-      '2+ görev · yüklenen kayıtlar içinde · yalnız yönetici görür',
-    )
-    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('2 kayıt yüklendi, daha var')
-    await page.wrapper.get('[data-testid="dr-more"]').trigger('click')
-    await settle()
-    expect(page.wrapper.get('[data-testid="dr-kinds"] .rp-count').text()).toBe('3')
+    expect(counts.map((c) => c.text())).toEqual(['3', '1', '0', '2'])
     expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe(
       '3 görev · yalnız yönetici görür',
     )
+    // Özet S2: program başlığı taşır, süzgeç almaz.
+    const summary = sent(PATHS.summary)
+    expect(summary).toHaveLength(1)
+    expect(summary[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect([...summary[0]!.query.keys()]).toEqual([])
+    // Alt sayaç satırı süzülmüş listenin total'idir: "m / toplam".
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('2 / 3 kayıt gösteriliyor')
+    await page.wrapper.get('[data-testid="dr-more"]').trigger('click')
+    await settle()
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('3 kayıt')
     expect(page.wrapper.find('[data-testid="dr-more"]').exists()).toBe(false)
     expect(sent(PATHS.tasks)[1]!.query.get('cursor')).toBe('1')
+    expect(page.wrapper.text()).not.toMatch(/içinde|\d\+/)
+  })
+
+  it('süzgeç özet sayaçlarını değiştirmez; alt sayaç süzülmüş küme boyunu gösterir', async () => {
+    world.tasks = [[task('w1', { title: 'Motor' }), task('w2', { title: 'Şasi' })]]
+    const page = await mountPage({ path: '/silinen-kayitlar?q=motor' })
+    expect(page.wrapper.get('[data-testid="dr-kinds"] [data-kind="gorev"] .rp-count').text()).toBe(
+      '2',
+    )
+    expect(page.wrapper.get('[data-testid="dr-count"]').text()).toBe('1 kayıt')
+    expect(sent(PATHS.summary)).toHaveLength(1)
+    expect(sent(PATHS.summary)[0]!.query.has('q')).toBe(false)
+  })
+
+  it('özet okunamazsa sayaç çizilmez (sahte sayı yok); liste yine çalışır', async () => {
+    world.tasks = [[task('w1')]]
+    world.failures.set(`GET ${PATHS.summary}`, { status: 500, code: 'platform.internal' })
+    const page = await mountPage()
+    expect(page.wrapper.find('[data-testid="dr-kinds"] .rp-count').exists()).toBe(false)
+    expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe('Yalnız yönetici görür')
+    expect(page.wrapper.findAll('[data-record-key]')).toHaveLength(1)
   })
 
   it('saklama metni P37, iz kaydı cümlesi bağlantısız; kalan süre ve "Yakında" kartı yok', async () => {
@@ -173,34 +199,35 @@ describe('sayaç, alt başlık ve notlar', () => {
     expect(text).not.toContain('gün saklanır')
   })
 
-  it('Koordinatörlük sekmesi: liste şirket geneli, sayaç programa bağlı — uyuşmazlık açıklanır (BE-119)', async () => {
+  it('Koordinatörlük sekmesi scope=program ile çağrılır; "şirket geneli ≠ sayaç" notu yok, scope=company sunulmaz (BE-119)', async () => {
     world.departments = [[department('d5')]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=koordinatorluk' })
-    expect(page.wrapper.get('[data-testid="dr-mismatch"]').text()).toContain('şirket genelindeki')
-    expect(page.wrapper.get('[data-testid="dr-mismatch"]').text()).toContain(
-      'iki sayı farklı olabilir',
-    )
-    await page.wrapper.get('[data-kind="gorev"]').trigger('click')
-    await settle()
+    const request = sent(PATHS.departments)[0]!
+    expect(request.query.get('scope')).toBe('program')
+    expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(page.wrapper.find('[data-testid="dr-mismatch"]').exists()).toBe(false)
+    expect(page.wrapper.text()).not.toMatch(
+      /şirket genelindeki silinmiş koordinatörlük|iki sayı farklı/,
+    )
+    expect(sent(PATHS.departments).every((r) => r.query.get('scope') === 'program')).toBe(true)
   })
 })
 
-describe('statik başlık eylemleri ve toplu seçim', () => {
-  it('CSV indir ve Çöpü boşalt devre dışı + designStub; toplu seçim ve kalan süre yok', async () => {
+describe('başlık eylemleri', () => {
+  it('CSV indir ve Çöpü boşalt görevde etkin (stub yok); kalan süre yok; sıralama stub değil; toplu çubuk seçimsiz yok', async () => {
     world.tasks = [[task('w1')]]
     const page = await mountPage()
-    const csv = page.wrapper.get('[data-testid="dr-csv"]')
-    const trash = page.wrapper.get('[data-testid="dr-empty-trash"]')
-    expect(csv.attributes('disabled')).toBeDefined()
-    expect(trash.attributes('disabled')).toBeDefined()
-    expect(page.wrapper.get('[data-design-stub="BE-116"]').element.contains(csv.element)).toBe(true)
-    expect(page.wrapper.get('[data-design-stub="BE-115"]').element.contains(trash.element)).toBe(
-      true,
-    )
-    expect(page.wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+    expect(page.wrapper.get('[data-testid="dr-csv"]').attributes('disabled')).toBeUndefined()
+    expect(
+      page.wrapper.get('[data-testid="dr-empty-trash"]').attributes('disabled'),
+    ).toBeUndefined()
+    expect(page.wrapper.find('[data-design-stub="BE-116"]').exists()).toBe(false)
+    expect(page.wrapper.find('[data-design-stub="BE-163"]').exists()).toBe(false)
+    expect(page.wrapper.find('[data-design-stub="BE-117"]').exists()).toBe(false)
+    // Seçim kutuları vardır (BE-114) ama seçim yokken toplu çubuk çizilmez.
+    expect(page.wrapper.find('[data-testid="dr-select-all"]').exists()).toBe(true)
     expect(page.wrapper.find('[role="toolbar"]').exists()).toBe(false)
-    expect(page.wrapper.find('[data-design-stub="BE-117"]').exists()).toBe(true)
     expect(page.wrapper.find('[aria-sort="descending"]').exists()).toBe(true)
+    expect(page.wrapper.text()).not.toContain('kalan süre')
   })
 })

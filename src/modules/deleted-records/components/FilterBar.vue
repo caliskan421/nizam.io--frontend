@@ -5,33 +5,24 @@ import { authSession } from '@/shared/http'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiInput } from '@/shared/ui'
 
-import {
-  actorCandidates,
-  actorValue,
-  departmentCandidates,
-  type DeletedFilters,
-} from '../model/filters'
-import {
-  DELETED_RANGES,
-  supportsActorFilter,
-  supportsDepartmentFilter,
-  supportsRange,
-  type DeletedRange,
-} from '../model/kinds'
+import type { DeletedFilters } from '../model/filters'
+import { DELETED_RANGES, supportsDepartmentFilter, type DeletedRange } from '../model/kinds'
 import { deletedText } from '../model/messages'
 import { unknownDepartment } from '../model/rows'
-import type { DeletedRow } from '../model/types'
+import type { ActorCandidate } from './use-filter-candidates'
 import FilterMenu from './FilterMenu.vue'
 
 /**
- * Süzgeç çubuğu (E-12-17…20; P43): tarih aralığı, Silen (yalnız toplantı), Koordinatörlük (görev
- * ve toplantı), arama. Hepsi YÜKLENEN KÜME üzerinde istemci süzgecidir; sunucuya gitmez. Adaylar
- * yüklenen satırlardan türer. Arama yazarken gecikmeli URL'ye yazılır; bekleyen yazım sahip
- * sökülünce, kapsam ve oturum değişince iptal edilir (KESİN 26a).
+ * Süzgeç çubuğu (E-12-17…20; P43; BE-117, BE-108): tarih aralığı, Silen, Koordinatörlük, arama. Hepsi
+ * sunucu süzgecidir (URL → sorgu parametresi). Adaylar çağıranın biriktirdiği listelerdir
+ * (`use-filter-candidates`); "Bilinmiyor" silen seçeneği sunulmaz (sunucuya gönderilemez).
+ * Arama yazarken gecikmeli URL'ye yazılır; bekleyen yazım sahip sökülünce, kapsam ve oturum
+ * değişince iptal edilir (KESİN 26a).
  */
 const props = defineProps<{
   filters: DeletedFilters
-  rows: readonly DeletedRow[]
+  actors: readonly ActorCandidate[]
+  departments: readonly string[]
   departmentName: (departmentId: string) => string | null
 }>()
 const emit = defineEmits<{ update: [patch: Partial<DeletedFilters>] }>()
@@ -50,14 +41,14 @@ const rangeOptions = computed(() =>
 )
 const actorOptions = computed(() => [
   { value: null, label: deletedText('filters.actor.all') },
-  ...actorCandidates(props.rows).map((actor) => ({
-    value: actorValue(actor),
-    label: actor.name || deletedText('filters.actor.unknown'),
+  ...props.actors.map((actor) => ({
+    value: actor.accountId,
+    label: actor.name || deletedText('filters.actor.unnamed'),
   })),
 ])
 const departmentOptions = computed(() => {
   const collator = new Intl.Collator('tr-TR')
-  const named = departmentCandidates(props.rows).map((id) => ({
+  const named = props.departments.map((id) => ({
     value: id,
     label: props.departmentName(id) ?? unknownDepartment(),
   }))
@@ -116,8 +107,6 @@ onBeforeUnmount(() => {
       icon="calendar"
       :options="rangeOptions"
       :model-value="filters.range"
-      :disabled="!supportsRange(filters.kind)"
-      :hint="deletedText('filters.range.unsupported')"
       data-testid="dr-range"
       @update:model-value="emit('update', { range: $event })"
     />
@@ -126,8 +115,6 @@ onBeforeUnmount(() => {
       :trigger="selectedLabel(actorOptions, filters.actor, deletedText('filters.actor.label'))"
       :options="actorOptions"
       :model-value="filters.actor"
-      :disabled="!supportsActorFilter(filters.kind)"
-      :hint="deletedText('filters.actor.unsupported')"
       data-testid="dr-actor"
       @update:model-value="emit('update', { actor: $event })"
     />

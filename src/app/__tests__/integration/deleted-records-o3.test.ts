@@ -5,6 +5,11 @@
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
+import {
+  withDeletedDepartmentDefaults,
+  withDeletedTaskDefaults,
+} from '@/shared/api/__tests__/defaults'
+
 import { envelope, item, ORIGIN } from './fake-org'
 import {
   $,
@@ -32,35 +37,53 @@ interface Dead {
 }
 let dead: Dead = { tasks: [], departments: [], deptRestored: false }
 
-const taskRow = (id: string, department: string) => ({
-  work_item_id: id,
-  title: id === 'wd' ? 'Silinmiş görev' : 'Silinmiş görev (kapalı birim)',
-  department_id: department,
-  status: 'devam_ediyor',
-  deleted_at: '2026-11-11T10:00:00Z',
-  file_count: 0,
-})
+const taskRow = (id: string, department: string) =>
+  withDeletedTaskDefaults({
+    work_item_id: id,
+    title: id === 'wd' ? 'Silinmiş görev' : 'Silinmiş görev (kapalı birim)',
+    department_id: department,
+    status: 'devam_ediyor',
+    deleted_at: '2026-11-11T10:00:00Z',
+    file_count: 0,
+  })
 
 function install(): void {
   backend.server.use(
     http.get(`${ORIGIN}/v1/admin/deleted/work-items`, () =>
-      HttpResponse.json({ items: dead.tasks.map((id) => taskRow(id, id === 'wd' ? 'd1' : 'dd')) }),
+      HttpResponse.json({
+        items: dead.tasks.map((id) => taskRow(id, id === 'wd' ? 'd1' : 'dd')),
+        total: dead.tasks.length,
+      }),
     ),
-    http.get(`${ORIGIN}/v1/meetings/deleted`, () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
+    http.get(`${ORIGIN}/v1/admin/deleted/summary`, () =>
+      HttpResponse.json({
+        tasks: dead.tasks.length,
+        meetings: 0,
+        departments: dead.departments.length,
+        accounts: 0,
+        total: dead.tasks.length + dead.departments.length,
+      }),
+    ),
+    http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
+      HttpResponse.json({ items: [], next_cursor: '', total: 0 }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/departments`, () =>
       HttpResponse.json({
-        departments: dead.departments.map((id) => ({
-          department_id: id,
-          name: 'Kapalı birim',
-          kind: 'koordinatorluk',
-          code: 'KAP',
-          deleted_at: '2026-11-10T09:00:00Z',
-        })),
+        departments: dead.departments.map((id) =>
+          withDeletedDepartmentDefaults({
+            department_id: id,
+            name: 'Kapalı birim',
+            kind: 'koordinatorluk',
+            code: 'KAP',
+            deleted_at: '2026-11-10T09:00:00Z',
+          }),
+        ),
+        total: dead.departments.length,
       }),
     ),
-    http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () => HttpResponse.json({ accounts: [] })),
+    http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () =>
+      HttpResponse.json({ accounts: [], total: 0 }),
+    ),
     http.patch(`${ORIGIN}/v1/admin/restore/work-items/:id`, async ({ params }) => {
       const id = String(params.id)
       if (restoreGate) {
@@ -134,7 +157,7 @@ async function userClick(selector: string): Promise<void> {
 }
 
 describe('sekmeler ve statik öğeler', () => {
-  it('dört canlı tür seçilebilir; statik türler/CSV/çöp boşalt devre dışı ve ağ isteği atmaz; saklama metni; "Kalan süre" yok', async () => {
+  it('dört canlı tür seçilebilir; statik türler devre dışı ve ağ isteği atmaz; CSV/çöp boşalt etkin (F8); saklama metni; "Kalan süre" yok', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
     await until(() => $('[data-record-key="gorev:wd"]'), 'görevler')
     const live = $$('[data-testid="dr-kinds"] [data-kind]:not([disabled])').map(
@@ -154,16 +177,16 @@ describe('sekmeler ve statik öğeler', () => {
     expect(document.body.textContent).not.toMatch(/Kalan süre|Yakında kalıcı silinecek/)
     await idle(app.queryClient)
     const before = backend.requests.length
-    for (const id of ['dr-csv', 'dr-empty-trash']) {
-      const el = $(`[data-testid="${id}"]`)
-      el?.click()
-      el?.querySelector('button')?.click()
-    }
+    // F8 (BE-115/116): CSV ve çöp boşalt etkin; çöp boşalt yalnız yerel paneli açar (ağ yok).
+    expect($('[data-testid="dr-csv"]')!.hasAttribute('disabled')).toBe(false)
+    expect($('[data-testid="dr-empty-trash"]')!.hasAttribute('disabled')).toBe(false)
+    $('[data-testid="dr-empty-trash"]')!.click()
     for (const kind of ['altgorev', 'dosya', 'notgundem']) {
       $(`[data-testid="dr-kinds"] [data-kind="${kind}"]`)!.click()
     }
     await idle(app.queryClient)
     expect(backend.requests.length).toBe(before)
+    await until(() => $('[data-testid="dr-purgeall"]'), 'çöp paneli')
     for (const kind of ['toplanti', 'koordinatorluk', 'kullanici', 'gorev']) {
       await click(() => $(`[data-testid="dr-kinds"] [data-kind="${kind}"]`))
       await until(
