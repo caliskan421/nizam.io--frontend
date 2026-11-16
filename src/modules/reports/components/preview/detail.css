@@ -14,6 +14,14 @@
     box-shadow: inset var(--space-1) 0 0 var(--report-tone, var(--accent-text));
     min-width: 0;
   }
+  /* `.report-card` aynı adla durum kartında da (reports.css: grid, `align-items: start`, `max-inline-size`)
+     tanımlıdır; kâğıt içinde kart sütun akışında yayılır, yoksa kesilen başlık satırı içeriğin
+     doğal genişliğine açılıp sayfayı taşırır (W178 KUSUR 1). */
+  .report-paper .report-card {
+    align-items: stretch;
+    inline-size: auto;
+    max-inline-size: none;
+  }
   .report-card + .report-card {
     margin-top: var(--space-3);
   }
