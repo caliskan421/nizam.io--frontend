@@ -95,6 +95,11 @@ function pick(to: (typeof targets.value)[number]): void {
         </UiMenuItem>
       </UiMenu>
     </template>
-    <RevertReasonDialog v-model:open="reasonOpen" :pending="isPending" @submit="submitReason" />
+    <RevertReasonDialog
+      v-model:open="reasonOpen"
+      :pending="isPending"
+      :variant="reasonFor === 'iade_edildi' ? 'return' : 'revert'"
+      @submit="submitReason"
+    />
   </div>
 </template>

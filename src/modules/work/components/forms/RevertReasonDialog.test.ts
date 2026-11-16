@@ -42,3 +42,27 @@ describe('RevertReasonDialog (geri alma gerekçesi, ≥ 3 bayt)', () => {
     wrapper.unmount()
   })
 })
+
+describe('RevertReasonDialog variant="return" (iade gerekçesi, isteğe bağlı 3–500; BE-139)', () => {
+  const mountReturn = () =>
+    mount(RevertReasonDialog, { props: { open: true, variant: 'return' }, attachTo: document.body })
+
+  it('boş gönderim gerekçesiz iade eder; 1–2 ve 500 üstü karakter engellenir', async () => {
+    const wrapper = mountReturn()
+    expect(document.body.textContent).toContain('Görevi iade et')
+    input('ab')
+    $('[data-testid="wf-revert-submit"]')!.click()
+    await flushPromises()
+    expect(wrapper.emitted('submit')).toBeUndefined()
+    expect(document.body.textContent).toContain('Gerekçe 3–500 karakter olmalı')
+    input('x'.repeat(501))
+    $('[data-testid="wf-revert-submit"]')!.click()
+    await flushPromises()
+    expect(wrapper.emitted('submit')).toBeUndefined()
+    input('   ')
+    $('[data-testid="wf-revert-submit"]')!.click()
+    await flushPromises()
+    expect(wrapper.emitted('submit')).toEqual([['   ']])
+    wrapper.unmount()
+  })
+})

@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { WorkActorFacts } from './capabilities'
 import {
   canCloseSubtasks,
+  checkReturnReason,
   isValidReason,
+  offersReturnReason,
   requiresReason,
   TRANSITION_MATRIX,
   transitionActor,
@@ -76,5 +78,17 @@ describe('durum geçişi matrisi (istemci-akislari §5)', () => {
     expect(isValidReason('çş')).toBe(true) // 4 bayt
     expect(canCloseSubtasks('tamamlandi')).toBe(true)
     expect(canCloseSubtasks('onaya_sunuldu')).toBe(false)
+  })
+})
+
+describe('iade gerekçesi (BE-139)', () => {
+  it('yalnız iade_edildi hedefi sorar; boş → null, 3–500 karakter geçerli, dışı geçersiz', () => {
+    expect(offersReturnReason('iade_edildi')).toBe(true)
+    expect(offersReturnReason('devam_ediyor')).toBe(false)
+    expect(checkReturnReason('  ')).toEqual({ ok: true, reason: null })
+    expect(checkReturnReason(' ab ')).toEqual({ ok: false })
+    expect(checkReturnReason(' abc ')).toEqual({ ok: true, reason: 'abc' })
+    expect(checkReturnReason('ğ'.repeat(500))).toMatchObject({ ok: true })
+    expect(checkReturnReason('ğ'.repeat(501))).toEqual({ ok: false })
   })
 })
