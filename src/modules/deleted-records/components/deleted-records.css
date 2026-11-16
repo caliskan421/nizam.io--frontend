@@ -511,6 +511,61 @@
     .dr-page .dr-tgroup {
       justify-content: flex-start;
     }
+
+    /* Dar ekranda tablo satır kartına döner (W178 KUSUR 3; tasarımda dar yerleşim yok, en sade
+       çözüm): yatay kaydırma yok, işlemler her satırın üst sağında görünür, kayıt adı kırpılmaz
+       (satıra sarar). Başlıkta yalnız seçim kutusu ve iki sıralama düğmesi görünür; öteki
+       başlıklar ekran okuyucuya açık kalır. */
+    .dr-page .dr-grid {
+      min-width: 0;
+    }
+    .dr-page .rp-tr--body {
+      grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+      grid-template-areas:
+        'check kind act'
+        'check record record'
+        'check dt actor';
+      align-items: center;
+      row-gap: var(--space-2);
+    }
+    .dr-page .rp-tr--head {
+      grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+    }
+    .dr-page .rp-tr--body > .dr-check {
+      grid-area: check;
+      align-self: start;
+    }
+    .dr-page .rp-tr--body > .dr-kind {
+      grid-area: kind;
+      justify-self: start;
+    }
+    .dr-page .rp-tr--body > .dr-rowact {
+      grid-area: act;
+    }
+    .dr-page .rp-tr--body > .dr-record {
+      grid-area: record;
+    }
+    .dr-page .rp-tr--body > .dr-dt {
+      grid-area: dt;
+    }
+    .dr-page .rp-tr--body > .dr-actor {
+      grid-area: actor;
+      justify-self: end;
+    }
+    .dr-page .rp-tr--body .dr-title {
+      overflow: visible;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .dr-page .rp-tr--head > :nth-child(2),
+    .dr-page .rp-tr--head > :nth-child(5),
+    .dr-page .rp-tr--head > :nth-child(6) {
+      position: absolute;
+      width: var(--ui-hairline);
+      height: var(--ui-hairline);
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
   }
 }
 @layer components {

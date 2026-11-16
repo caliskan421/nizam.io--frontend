@@ -77,4 +77,12 @@ describe('silinen kayıtlar görünüm kuralları', () => {
     expect(all).toMatch(/\.dr-bulk\b/)
     expect(all).toMatch(/\.dr-check\b/)
   })
+
+  it('dar ekranda satır kartı: tablo en küçük genişliği kalkar, işlemler satır içinde, kayıt adı sarar (W178 KUSUR 3)', () => {
+    const all = stripComments(css.map((f) => f.text).join('\n'))
+    const narrow = all.slice(all.indexOf('@media (max-width: 900px)'))
+    expect(narrow).toMatch(/\.dr-grid \{\s*min-width: 0;/)
+    expect(narrow).toMatch(/grid-template-areas:[^;]*'check kind act'/)
+    expect(narrow).toMatch(/\.dr-title \{[^}]*white-space: normal/)
+  })
 })
