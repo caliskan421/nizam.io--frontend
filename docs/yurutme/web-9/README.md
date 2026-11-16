@@ -1,6 +1,6 @@
 # WEB-9 — pin v0.24.0-api ve sohbet/bildirim canlıya alma (öneri)
 
-**F9 AÇILMADI.** Bu belge iskelettir ve bir başlatma yetkisi değildir: F9 kapsamı, sırası ve açılışı **kullanıcı kararıdır**. Önkoşul: F8 KAPANDI (Codex hükmü + kapanış PR CI SUCCESS ve MERGED) — şu an **F8 KAPANMADI, Codex bekliyor** ([web-8](../web-8/README.md)). Pin şimdi `v0.23.0-api`.
+**F9 AÇILMADI.** Bu belge iskelettir ve bir başlatma yetkisi değildir: F9 kapsamı, sırası ve açılışı **kullanıcı kararıdır**. **F9 AÇILMADI — karar bekler.** Önerilen kapsam: pin `v0.24.0-api` + sohbet/bildirim canlıya alma; ikinci sırada Tablolar hizalama, 01b (BE-091 gelirse), Ü7 profil, Takvim/Kurumsal hafıza (backend yok); backend sonraki paket adayları [rapor-F8 §6b](../../backend-eksikleri/rapor-F8.md). Önkoşul: F8 KAPANDI (Codex 2 tur UYGUN; kapanış PR CI SUCCESS ve MERGED, [web-8](../web-8/README.md)). Pin şimdi `v0.23.0-api`.
 
 ## Neden bu tur
 

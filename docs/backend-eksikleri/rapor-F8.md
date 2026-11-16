@@ -1,6 +1,6 @@
 # Backend devir raporu — F8 (WEB-8), 2026-11-16
 
-**F8 KAPANMADI — Codex bekliyor.** F8 (P67: pin `v0.15.0-api` → `v0.23.0-api` + canlıya alma turu) kod bakımından main `b9aab8c`'de tamdır (O1 #154–#157, O2a #158, O2b #159–#163, O3 #164). Gerçek backend `v0.23.0-api` tanığı (W178) ve Codex 2–3 tur sürüyor; "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır ([oturum-4](../yurutme/web-8/oturum-4-kapanis.md)). Web pini **`v0.23.0-api`** (`api-pin.json`).
+**F8 KAPANDI — 2026-11-16 (kapanış PR'ının CI başarılı birleşmesiyle yürürlüğe girer).** F8 kodu main `d183dc7`'de (#154–#167); Codex 2 tur (UYGUN DEĞİL → UYGUN, HEAD `cadf4af`); kapanış belge PR'ı bekliyor, geçerlilik şartı CI SUCCESS ve MERGED. Kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS push, CDN arkası SSE, W179/W180 sonrası canlı yeniden koşum) yapılamadı kalır. Web pini **`v0.23.0-api`** (`api-pin.json`).
 
 **Güncel olgu (2026-11-16): backend `v0.24.0-api` çıktı** (BE-F7 paketi, backend PR #10: sohbet + bildirim; `openapi.yaml` +939 satır, 29 commit). F8'in pini v0.23'te kalır (P69/P74: kısmi pin yok, F8 sırasında yeni etiket alınmaz); v0.24 karşılıkları kayıt Bağ sütununa "v0.24'te karşılandı — F9 canlıya alma" diye işlendi, **Durum `açık` kalır** (kodda `designStub` yaşıyor). §6 bu raporun asıl devir bölümüdür: (a) web tarafı sıradaki iş, (b) backend'e sonraki paket adayları. Kullanıcı backend'i ayrı yürütüyor; §6(b) onun girdisidir.
 

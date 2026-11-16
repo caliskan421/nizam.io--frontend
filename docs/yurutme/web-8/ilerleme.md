@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F8 AÇILDI 2026-11-15** (ürün sahibi: "pin yükseltme + canlıya alma turu olsun"; P67 kesin). Kapsam [README](README.md)'de; kararlar P67 kesin, **P68–P74 koordinatör varsayılanı = geçici kabul** ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P75–P76 süreç kararları. F7 [KAPANDI](../web-7/ilerleme.md) (main `31c6ccc`). Pin `v0.23.0-api` (main'de, #158).
 
-**F8 KAPANMADI — Codex tur 2 (2026-11-16; tur 1 UYGUN DEĞİL, koşullar W180 #167 ile kapandı, girdi main `d183dc7`).** O1–O3 kod ve belge işleri main `b9aab8c`'de tamamdır; O4 sürüyor: W177 (bu belgeler), W178 (gerçek Docker + backend `v0.23.0-api` tanığı), Codex 2–3 tur, kapanış belge PR'ı. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) "yapılamadı" kalır (KESİN 32). **Güncel olgu:** backend `v0.24.0-api` çıktı (BE-F7: sohbet/bildirim); F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8](../../backend-eksikleri/rapor-F8.md) §6'da, F9 önerisi [web-9](../web-9/README.md)'dadır.
+**F8 KAPANDI — 2026-11-16 (kapanış PR'ının CI başarılı birleşmesiyle yürürlüğe girer).** Codex iki tur (P76 hızlı mod, en fazla 2 tur): tur 1 UYGUN DEĞİL (HEAD `27587d2`) → W180 (#167, main `d183dc7`) E-01 ve Ö-01'i kapattı → tur 2 **UYGUN** (HEAD `cadf4af`, nihai). Uygulama PR'ları #154–#167 (O1 #154–#157, O2a #158, O2b #159–#163, O3 #164, O4 #165–#167); kapanış belge PR'ı **bekliyor**. P75 yerel CI penceresi (00:12–07:17) ve main `6e09d7a` CI SUCCESS ile doğrulama, P76 hızlı mod kayıtlıdır. Geçerlilik şartı CI SUCCESS ve MERGED. O1–O3 kod ve belge işleri main `b9aab8c`'de tamamdır; O4 sürüyor: W177 (bu belgeler), W178 (gerçek Docker + backend `v0.23.0-api` tanığı), Codex 2–3 tur, kapanış belge PR'ı. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) "yapılamadı" kalır (KESİN 32). **Güncel olgu:** backend `v0.24.0-api` çıktı (BE-F7: sohbet/bildirim); F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8](../../backend-eksikleri/rapor-F8.md) §6'da, F9 önerisi [web-9](../web-9/README.md)'dadır.
 
 ## Durum
 
@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W170 | **Birleşti:** #158 (pin `v0.23.0-api`; UI değişmedi, tek istisna `work.task.reminder` sözlük girişi `9a8ed02`, aşağıda #37) | `b141713` |
 | O2b W171–W175 | **Birleşti:** #159 (W173), #160 (W174), #161 (W171), #162 (W172), #163 (W175) | `6e09d7a` |
 | O3 W176 | **Birleşti:** #164 (entegrasyon turu + gerçek backend e2e) | `b9aab8c` |
-| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** birleşti (#166, `dd71bd6`; KUSUR 1/3/4/5); W177 belgeler sürüyor; Codex bekliyor; **Codex tur 1 UYGUN DEĞİL** (HEAD `27587d2`: CX-F8-E-01 engelleyici, Ö-01, K-01, K-02) → **W180 düzeltti (#167, `d183dc7`)** | `d183dc7` |
+| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** birleşti (#166, `dd71bd6`; KUSUR 1/3/4/5); W177 belgeler sürüyor; Codex bekliyor; **Codex tur 1 UYGUN DEĞİL** (HEAD `27587d2`: CX-F8-E-01 engelleyici, Ö-01, K-01, K-02) → **W180 düzeltti (#167, `d183dc7`)** | `d183dc7`; Codex tur 2 UYGUN (HEAD `cadf4af`) |
 
 ## Kararlar
 
@@ -69,6 +69,10 @@ Bulgular: CX-F8-E-01 (yüksek/engelleyici: ortak indirme akışında kapsam/otur
 ### O4 — W180 (#167, main `d183dc7`): Codex tur 1 koşulları kapandı
 
 CX-F8-E-01 (`207aa629`: `shared/download` `isCurrent()` + `useDownloadLife()`; dönem ZIP, klasör ZIP, kullanıcı CSV, silinenler CSV; kapsam/oturum/hesap/söküm → abort) ve CX-F8-Ö-01 (`0cdde4cc`: `cooldown.ts`, yalnız `Retry-After` taşıyan 429/503 sayaç, otomatik tekrar yok) kapandı; testler `PeriodZipButton.life` 7, `flow.current` 3, `PeriodZipButton.cooldown` 5, `UsersExportButton` 2 (geri alınca kırmızı); etkilenen 414 dosya / 3202 test + CI yeşil (ilk koşum geç 401 işlenmemiş red ile kırmızı, rerun yeşil: #38); duman 390 koyu ZIP 503 RA 7 / CSV 429 RA 9. Ayrıntı: [WEB-8-codex](../../reviews/WEB-8-codex.md).
+
+### O4 — Codex tur 2: UYGUN (2026-11-16, HEAD `cadf4af`)
+
+E-01, Ö-01 kapandı (kod ve anlamlı regresyon testleri); K-01, K-02 belge düzeltmeleri doğrulandı; sınıf taraması temiz (pin 248/227 birebir, 35 kimlikte stub yok). Kanıt sınırları: Codex test koşamadı (EPERM), W178 tanığı `b9aab8c` HEAD'inde (W179/W180 sonrası canlı yeniden koşum yok), W180 duman konsolunda sahte uç dashboard 404 (temiz konsol sayılmaz), CI bağımsız doğrulanmadı. Hüküm kapanış PR'ının CI SUCCESS ve MERGED koşullarının yerine geçmez. Ayrıntı: [WEB-8-codex](../../reviews/WEB-8-codex.md).
 
 ### O4 — belgeler (W177, `web8/o4-kapanis`)
 
@@ -125,6 +129,15 @@ Hiçbiri F8'in kapanışını kendiliğinden engellemez. Sınıflar: **kapandı*
 | 32 | KUSUR 2: dönem ZIP onay ağacı ASCII adlar, gerçek ZIP Türkçe/boşluklu | tasarım farkı (W171 varsayımı, kabul) | W178 |
 | 33 | BE-165 (silinmiş görev dosyaları arşiv/ZIP'te), BE-166 (görev PDF'inde kod yok) | açık BE | W178 |
 | 34 | 503 `reporting.capacity_full`, `reporting.export_too_large` üretilemedi; ölçülü piksel karşılaştırması yapılmadı | kapanış sonrası borç | W178 |
+
+## Borç özeti (kapanış durumu; numaralar yukarıdaki tablolardadır)
+
+- **Kapandı:** #2, #7, #9 (W167/W171–W173), #24 (W178), #31 (W179).
+- **Kapanış sonrası borç:** #1, #3, #5, #10, #19, #20, #23, #25, #30, #34, #36; #12 F9'da kapanır.
+- **Karar bekler:** #17 (ADR-0041), #18 (E-03C-22), #21, #27.
+- **F9 adayı:** #8, #13, #16, #35 (tasarım farkı); #4 UX borcu (bildirim hedef çözümlemesi ile kısmen).
+- **Uygulama notu:** #6, #15, #26, #32, #37, #38 (geç 401 işlenmemiş red, F9 başında).
+- **Açık BE / deploy:** #14 (v0.24 ile büyük kısmı karşılandı), #11 (deploy), #22, #28, #29, #33.
 
 ## Açık sorular
 

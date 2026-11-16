@@ -1,6 +1,6 @@
 # O4 — Kapanış
 
-**F8 KAPANMADI — Codex tur 2 (2026-11-16; tur 1 UYGUN DEĞİL, W180 #167 `d183dc7` ile koşullar kapandı).** O1–O3 main `b9aab8c`'de; O4 sürüyor. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) açıkça "yapılamadı" kalır, otomatik tamamlanmış sayılmaz (KESİN 32). P76 hızlı mod yürürlüktedir (yerelde yalnız etkilenen testler; tam paket CI'da; Codex en çok 2 tur, UYGUN DEĞİL → 3).
+**F8 KAPANDI — 2026-11-16 (kapanış PR'ının CI başarılı birleşmesiyle yürürlüğe girer).** Codex iki tur (P76 hızlı mod, en fazla 2 tur): tur 1 UYGUN DEĞİL (HEAD `27587d2`) → W180 (#167, main `d183dc7`) E-01 ve Ö-01'i kapattı → tur 2 **UYGUN** (HEAD `cadf4af`, nihai). O1–O3 main `b9aab8c`'de; O4 sürüyor. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) açıkça "yapılamadı" kalır, otomatik tamamlanmış sayılmaz (KESİN 32). P76 hızlı mod yürürlüktedir (yerelde yalnız etkilenen testler; tam paket CI'da; Codex en çok 2 tur, UYGUN DEĞİL → 3).
 
 ## Planlanan akış
 
@@ -9,8 +9,8 @@
 | 1 | Belgeler: [rapor-F8](../../backend-eksikleri/rapor-F8.md) (pin envanteri, canlanan/kısmi/açık satırlar, v0.24 farkı, §6 web F9 işi + backend paket adayları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), ekran README "F8 uygulama kanıtı" ve Sürüm satırları, `kayit.md` v0.24 Bağ notları, [WEB-8-codex](../../reviews/WEB-8-codex.md) ve [web-9](../web-9/README.md) iskeletleri, yol haritası §4, tasarım README notu | W177 (Sonnet 5.5) | `web8/o4-kapanis`; yalnız belge, kod yok; kapı prettier + lint + `tests/lint` |
 | 2 | **Tamam (#165).** `dogrulama-F8.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend **`v0.23.0-api` imajı** (P73); P33 yolu yok kanıtı, ZIP/CSV bilet indirme, rapor bölüm seçimi, silinenler toplu, toplantı katılımcı adayları, görev kodu, `X-Result-Truncated` deneme, 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W178 (`web8/o4-w178`) | birleşti |
 | 3 | **Tamam.** Kusur düzeltmeleri W179 (KUSUR 1/3/4/5) | işçi (`web8/o4-w179`) | **Tamam (#166, `dd71bd6`)**: KUSUR 1 `2361f99`, 3 `f083886`, 4 `fea8f02`, 5 `16ef2ff`; CI üç iş yeşil |
-| 4 | **Tur 1 UYGUN DEĞİL → W180 (#167, `d183dc7`) kapattı; tur 2 koşuyor.** Codex tur 1…2 (3) (`gpt-6.1-sol` medium `-s read-only`; ilk eylem HEAD, araç izi); sınıf soruları: yetki/kapsam sızıntısı (P33 kaldırıldı; S2/S3 başlıkları), bilet hedefi (14 desen), `Idempotency-Key` yaşam döngüsü (üç oluşturma ucu), pin ↔ fixture uyumu (zorunlu alan uydurma, `defaults.ts`), "eski yol yok" kanıtı, ŞY aktör (ADR-0041) | Codex | bekliyor |
-| 5 | Kapanış belge PR'ı, CI SUCCESS ve MERGED | koordinatör | bekliyor |
+| 4 | **Tamam: tur 1 UYGUN DEĞİL → W180 (#167, `d183dc7`) → tur 2 UYGUN.** Codex tur 1…2 (3) (`gpt-6.1-sol` medium `-s read-only`; ilk eylem HEAD, araç izi); sınıf soruları: yetki/kapsam sızıntısı (P33 kaldırıldı; S2/S3 başlıkları), bilet hedefi (14 desen), `Idempotency-Key` yaşam döngüsü (üç oluşturma ucu), pin ↔ fixture uyumu (zorunlu alan uydurma, `defaults.ts`), "eski yol yok" kanıtı, ŞY aktör (ADR-0041) | Codex | bekliyor |
+| 5 | Kapanış belge PR'ı, CI SUCCESS ve MERGED | koordinatör | bekliyor (PR numarası ve birleşme hash'i açılınca eklenir) |
 
 ## Roller
 
@@ -27,7 +27,7 @@ Koordinatör Claude Code işi bölüştürür; W177 yalnız belge sahibidir (`do
 | Entegrasyon / e2e | W176: yeni entegrasyon testleri + gerçek backend e2e (arşiv 4, kayıtlar 3, raporlar, Ü1); tam e2e 14/14 × 3 ardışık |
 | Belge kapısı (W177, 2026-11-16) | Prettier check, `pnpm lint`, `tests/lint`: sonuç W177 raporunda; typecheck/test/build/e2e koşulmadı (UI yok, P76) |
 | Gerçek imaj + gerçek backend (W178) | **alındı** (#165, main `30a4f14`; [dogrulama-F8](dogrulama-F8.md)): `check-image.sh` geçti; 28+3 ŞY, 14 K/Ü görünüm, 4 dokunma etkileşimi: taşma 0 (KUSUR 1, 3 hariç), CSP 0, pageerror 0; F7 regresyonu A→B 1514 ms; 5 kusur (KUSUR 1/3/4/5 → W179 PR #166, KUSUR 2 tasarım farkı), BE-165/166; `X-Result-Truncated` doğrulandı; 503 `capacity_full`, `export_too_large`, VoiceOver, piksel yapılamadı |
-| Codex nihai hüküm | **tur 1 UYGUN DEĞİL** (HEAD `27587d2`): E-01 engelleyici (ortak indirme akışı iptal yaşamı), Ö-01, K-01 (belge düzeltildi), K-02 (daraltıldı); W180 (#167, `d183dc7`) E-01 ve Ö-01'i kapattı; tur 2 sürüyor ([WEB-8-codex](../../reviews/WEB-8-codex.md)) |
+| Codex nihai hüküm | **tur 1 UYGUN DEĞİL** (`27587d2`) → W180 (#167, `d183dc7`) → **tur 2 UYGUN** (HEAD `cadf4af`, nihai); kanıt sınırları: test koşulamadı (EPERM), W178 `b9aab8c`'de, sahte uç dashboard 404; hüküm kapanış PR CI SUCCESS + MERGED yerine geçmez ([WEB-8-codex](../../reviews/WEB-8-codex.md)) |
 | Kapanış belge PR | bekliyor; geçerlilik şartı CI SUCCESS ve MERGED |
 
 ## Codex istem notları
@@ -36,4 +36,4 @@ Kabul ölçütleri: ekran README'lerinin F8 eki tabloları (`kabul`/`geçici kab
 
 ## Sonrası
 
-**F9 AÇILMAZ — kullanıcı onayı** ([web-9](../web-9/README.md) iskeleti: pin `v0.24.0-api` + sohbet/bildirim canlıya alma önerisi). Backend sonraki paket adayları [rapor-F8 §6b](../../backend-eksikleri/rapor-F8.md)'dedir; kullanıcı backend'i ayrı yürütür.
+**F9 AÇILMADI — karar bekler (kullanıcı onayı)** ([web-9](../web-9/README.md) iskeleti: pin `v0.24.0-api` + sohbet/bildirim canlıya alma önerisi). Backend sonraki paket adayları [rapor-F8 §6b](../../backend-eksikleri/rapor-F8.md)'dedir; kullanıcı backend'i ayrı yürütür.
