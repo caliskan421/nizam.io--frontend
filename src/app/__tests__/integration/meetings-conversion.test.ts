@@ -43,6 +43,16 @@ function handlers() {
   )
 }
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+// Isınma: ilk önyükleme tembel modülleri yükler (soğuk başlangıç testlerden birinin süresini
+// şişirmesin; KESİN 32). Sonuç atılır.
+beforeAll(async () => {
+  backend.reset()
+  seedWorld(backend.db)
+  handlers()
+  await boot({ email: PEOPLE.admin.email, scope: { programId: 'p1', lens: 'admin' }, path: '/' })
+  await until(() => $('[data-kpi="open"] [data-kpi-value]'), 'ısınma')
+  teardown()
+}, 60_000)
 beforeEach(() => {
   backend.reset()
   seedWorld(backend.db)
@@ -51,7 +61,9 @@ beforeEach(() => {
 afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
-it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet doğru kalır', async () => {
+// KESİN 32: tek test 5 sn sınırına dayanmasın diye üçe bölündü; her biri kurulumu (`convertSetup`)
+// paylaşır, yalnız kendi iddiasını sınar.
+async function convertSetup() {
   const note = {
     note_id: 'n1',
     meeting_id: 'm1',
@@ -95,22 +107,16 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
       return HttpResponse.json({})
     }),
   )
-  const app = await boot({
+  return boot({
     email: PEOPLE.admin.email,
     scope: { programId: 'p1', lens: 'admin' },
     path: '/',
   })
-  await until(
-    () => $('[data-kpi="open"] [data-kpi-value]')?.textContent?.trim() === '4',
-    'pano önce',
-  )
-  const badge = $('aside a[href="/gorevler"]')?.textContent
-  const reportReads = backend.sent('GET', '/v1/reports/dashboard').length
-  await app.router.push('/gorevler')
-  await until(
-    () => document.querySelectorAll('[data-work-item]').length === 4,
-    'görev listesi önce',
-  )
+}
+
+type App = Awaited<ReturnType<typeof convertSetup>>
+
+async function convertNote(app: App) {
   await app.router.push('/toplantilar/m1')
   await click(
     () =>
@@ -130,7 +136,24 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
     new Event('submit', { bubbles: true, cancelable: true }),
   )
   await until(() => $('a.meeting-notes__converted'), 'dönüşüm etiketi bağlantı')
+}
+
+const kpiOpen = () => $('[data-kpi="open"] [data-kpi-value]')?.textContent?.trim()
+
+it('nottan görev üretimi: dönüşüm etiketi görev bağlantısı, tek POST', async () => {
+  const app = await convertSetup()
+  await until(() => kpiOpen() === '4', 'pano önce')
+  await convertNote(app)
   expect($('a.meeting-notes__converted')?.getAttribute('href')).toBe('/gorevler?gorev=w-new')
+  expect(backend.sent('POST', '/v1/meeting-notes/n1/convert-to-task')).toHaveLength(1)
+})
+
+it('nottan görev üretimi pano sayacını yeniler, menü rozeti doğru kalır', async () => {
+  const app = await convertSetup()
+  await until(() => kpiOpen() === '4', 'pano önce')
+  const badge = $('aside a[href="/gorevler"]')?.textContent
+  const reportReads = backend.sent('GET', '/v1/reports/dashboard').length
+  await convertNote(app)
   await until(
     () => backend.sent('GET', '/v1/reports/dashboard').length > reportReads,
     'pano ve rozet yeniden okuma',
@@ -144,12 +167,18 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
     'yeni pano yanıtı',
   )
   expect($('aside a[href="/gorevler"]')?.textContent).toBe(badge)
+  await app.router.push('/')
+  await until(() => kpiOpen() === '5', 'pano sonra')
+})
+
+it('nottan görev üretimi gerçek görev listesini yeniler', async () => {
+  const app = await convertSetup()
+  await app.router.push('/gorevler')
+  await until(
+    () => document.querySelectorAll('[data-work-item]').length === 4,
+    'görev listesi önce',
+  )
+  await convertNote(app)
   await app.router.push('/gorevler')
   await until(() => $('[data-work-item="w-new"]'), 'yeni görev listede')
-  await app.router.push('/')
-  await until(
-    () => $('[data-kpi="open"] [data-kpi-value]')?.textContent?.trim() === '5',
-    'pano sonra',
-  )
-  expect(backend.sent('POST', '/v1/meeting-notes/n1/convert-to-task')).toHaveLength(1)
 })

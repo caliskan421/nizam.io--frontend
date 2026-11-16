@@ -6,7 +6,7 @@
 import { http, HttpResponse } from 'msw'
 
 import { envelope, fakeOrg, json, ORIGIN, type Account, type OrgDb } from './fake-org'
-import { meetingBody, seasonBody } from './fake-reports-data'
+import { largeSeasonBody, meetingBody, seasonBody } from './fake-reports-data'
 
 export type IssueFault = 'ok' | 'rate_limited' | 'target_invalid'
 export type RedeemFault =
@@ -22,6 +22,7 @@ export type SeasonFault =
   | 'ok'
   | 'empty'
   | 'truncated'
+  | 'large'
   | 'export_in_progress'
   | 'rate_limited'
   | 'capacity_full'
@@ -265,6 +266,7 @@ function seasonResponse(f: Fake, request: Request, adminOnly: AdminGuard): Respo
   const program = fakeOrg.programOf(request)
   const base = seasonBody(program, db.programs.find((p) => p.program_id === program)?.name ?? '')
   if (state.season === 'ok') return json(base)
+  if (state.season === 'large') return json(largeSeasonBody(program, base.program_name))
   if (state.season === 'truncated') {
     // Büyük dönem (BE-132): görev satırı 5000'de, dosya satırı 2000'de kesilir; başlık gelir.
     const limits = { ...base.limits, tasks_total: 5200, files_total: 2400 }

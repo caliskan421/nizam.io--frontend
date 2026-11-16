@@ -292,6 +292,20 @@ function standingHandlers(db: OrgDb) {
           department_id: m.department_id,
           display_name: linkOf(db, m.program_id, m.department_id)?.display_name ?? '',
           role: db.roles[m.team],
+          // v0.23 (ORGANIZATION-K63): katalog kodu + (program, departman) ekibinin koordinatörleri.
+          department_code:
+            db.catalog.find((c) => c.department_id === m.department_id)?.code ?? null,
+          coordinators: db.memberships
+            .filter(
+              (c) =>
+                c.program_id === m.program_id &&
+                c.department_id === m.department_id &&
+                c.team === 'coordinator',
+            )
+            .map((c) => ({
+              account_id: c.account_id,
+              full_name: db.accounts.find((a) => a.account_id === c.account_id)?.full_name ?? null,
+            })),
         })),
       })
     }),

@@ -237,6 +237,47 @@ const WORKLOAD = [
   },
 ]
 
+/** Sözleşme tavanındaki büyük dönem (BE-132): 5000 görev satırı + 2000 dosya satırı, kesilmemiş. */
+export function largeSeasonBody(programId: string, programName: string) {
+  const base = seasonBody(programId, programName)
+  const statuses = ['baslanmadi', 'devam_ediyor', 'onaya_sunuldu', 'iade_edildi', 'tamamlandi']
+  const priorities = ['acil', 'yuksek', 'orta', 'dusuk']
+  const tasks = Array.from({ length: 5000 }, (_, i) => {
+    const day = String((i % 28) + 1).padStart(2, '0')
+    return task(`wl${i}`, {
+      code: `ALT-${i + 1}`,
+      sequence_no: i + 1,
+      title: `Büyük dönem görevi ${i + 1}`,
+      status: statuses[i % statuses.length],
+      priority: priorities[i % priorities.length],
+      department_id: i % 2 === 0 ? 'd1' : 'd2',
+      start_on: `2026-09-${day}`,
+      end_on: `2026-10-${day}`,
+      is_overdue: i % 7 === 0,
+      days_overdue: i % 7 === 0 ? 3 : 0,
+      file_count: i % 3 === 0 ? 1 : 0,
+    })
+  })
+  const files = Array.from({ length: 2000 }, (_, i) => ({
+    ...FILES[0]!,
+    file_id: `fl${i}`,
+    work_item_id: `wl${i % 5000}`,
+    display_name: `dosya-${i + 1}.pdf`,
+  }))
+  return {
+    ...base,
+    tasks,
+    files,
+    limits: {
+      files_returned: 2000,
+      files_total: 2000,
+      notes_per_task: 5,
+      tasks_returned: 5000,
+      tasks_total: 5000,
+    },
+  }
+}
+
 export function seasonBody(programId: string, programName: string) {
   const tasks = seasonTasks()
   return {

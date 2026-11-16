@@ -121,6 +121,8 @@ app_url="postgres://$app_role:$role_password@$db_host:5432/$db_name?sslmode=disa
 
 # Video (ADR-0015): varsayılan livekit NIZAMIO_LIVEKIT_* alanlarını zorunlu kılar; web e2e konferans
 # kullanmaz, none ile kapalı. Yalnız bu e2e ortamı; ürün varsayılanı değişmez.
+# Dışa aktarım kotası (ZIP/PDF/CSV, hesap başına): üretim varsayılanı 5/dk, non-prod 30 (backend
+# schema.go RecordsExportPerMinute); e2e/export-quota.ts bekçisi 30'a göre yedek olarak kalır.
 env_file="$state/backend.env"
 umask 077
 cat >"$env_file" <<ENV
@@ -143,6 +145,7 @@ NIZAMIO_LOGIN_ATTEMPT_RETENTION=48h
 NIZAMIO_LOGIN_ATTEMPT_CLEANUP_INTERVAL=1m
 NIZAMIO_DISCOVERY_RATE_LIMIT_PER_MINUTE=60
 NIZAMIO_VIDEO_PROVIDER=none
+NIZAMIO_RECORDS_EXPORT_PER_MINUTE=30
 ENV
 
 echo "== migrate up (migrator kimliği; yedek kontrolü: atılabilir e2e DB için 'migrate verify')"

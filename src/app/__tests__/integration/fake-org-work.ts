@@ -37,10 +37,42 @@ function lateness(db: OrgDb, i: Item): Item {
   return late ? { ...i, is_overdue: true } : { ...i, is_overdue: false }
 }
 
+/**
+ * v0.23 `WorkItem` alanları (WORK-K95/K97): `(program, departman)` içi sıra numarası (oluşturma
+ * sırası), kısa kod (`<katalog kodu>-<no>`; kodsuz birimde `null`), bekleyen ön görev sayısı.
+ * `submitted_*`, `last_return`, `file_count` görev satırından gelir (geçiş uçları yazar).
+ */
+function v023Fields(db: OrgDb, i: Item): Record<string, unknown> {
+  const siblings = db.items.filter(
+    (x) => x.program_id === i.program_id && x.department_id === i.department_id,
+  )
+  const seq = siblings.findIndex((x) => x.work_item_id === i.work_item_id) + 1
+  const prefix = db.catalog.find((c) => c.department_id === i.department_id)?.code
+  const pending = db.dependencies.filter(
+    (d) =>
+      d.work_item_id === i.work_item_id &&
+      db.items.some(
+        (x) => x.work_item_id === d.depends_on_work_item_id && x.status !== 'tamamlandi',
+      ),
+  ).length
+  return {
+    sequence_no: seq,
+    code: prefix ? `${prefix}-${seq}` : null,
+    file_count: 0,
+    submitted_at: null,
+    submitted_by: null,
+    last_return: null,
+    extension_count: null,
+    extended_days_total: null,
+    pending_dependency_count: pending,
+    has_pending_dependency: pending > 0,
+  }
+}
+
 /** Bekleyen talep ayrıntısı yalnız yöneticiye ve görevin koordinatörüne dolar; üyede `null` (WORK-K82). */
 function maskedItem(db: OrgDb, me: Account, i: Item): Item {
   const team = o.teamIn(db, me.account_id, i.program_id, i.department_id)
-  const shaped = lateness(db, i)
+  const shaped = { ...v023Fields(db, i), ...lateness(db, i) }
   return me.admin || team === 'coordinator' ? shaped : { ...shaped, pending_date_request: null }
 }
 
@@ -136,10 +168,27 @@ async function transition(
   if (!me) return envelope('platform.unauthenticated', 401)
   const found = db.items.find((i) => i.work_item_id === params.id)
   if (!found || !visible(db, me, found)) return denied(db, me, found)
-  const body = (await request.json()) as { to: string }
+  const body = (await request.json()) as { to: string; reason?: string }
   const from = found.status
   found.status = body.to
   found.edit_revision = Number(found.edit_revision) + 1
+  // v0.23 (WORK-K95/K96): gönderim anı + gönderen; iade `last_return` yazar, gönderimi sıfırlar.
+  const who = { account_id: me.account_id, full_name: me.full_name }
+  if (body.to === 'onaya_sunuldu') {
+    found.submitted_at = '2026-11-10T09:00:00Z'
+    found.submitted_by = who
+  } else if (body.to === 'iade_edildi') {
+    found.submitted_at = null
+    found.submitted_by = null
+    found.last_return = {
+      reason: body.reason ?? null,
+      returned_at: '2026-11-10T10:00:00Z',
+      returned_by: who,
+    }
+  } else {
+    found.submitted_at = null
+    found.submitted_by = null
+  }
   const team = o.teamIn(db, me.account_id, found.program_id, found.department_id)
   const actor =
     own || (team !== 'coordinator' && !me.admin) ? db.roles.member : db.roles.coordinator

@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
+import {
+  checkReturnReason as workCheck,
+  RETURN_REASON_MAX,
+  RETURN_REASON_MIN,
+} from '@/modules/work/public'
+
 import { item } from '../../__tests__/rows'
-import { checkReturnReason, latestReturnReason, shownReason } from './return-reason'
+import {
+  checkReturnReason,
+  latestReturnReason,
+  RETURN_REASON_MAX as HOME_MAX,
+  RETURN_REASON_MIN as HOME_MIN,
+  shownReason,
+} from './return-reason'
 
 const returned = (reason: string | null, at = '2026-10-19T09:00:00Z') => ({
   reason,
@@ -10,6 +22,11 @@ const returned = (reason: string | null, at = '2026-10-19T09:00:00Z') => ({
 })
 
 describe('iade gerekçesi (BE-139)', () => {
+  it('tek kaynak: home denetimi ve sınırları work/public ile AYNI (kopya yok)', () => {
+    expect(checkReturnReason).toBe(workCheck)
+    expect([HOME_MIN, HOME_MAX]).toEqual([RETURN_REASON_MIN, RETURN_REASON_MAX])
+  })
+
   it('gönderim: boş geçerli (gerekçesiz); 3–500 karakter geçerli; 1–2 ve >500 geçersiz', () => {
     expect(checkReturnReason('   ')).toEqual({ ok: true, reason: null })
     expect(checkReturnReason('  imzalı liste eksik ')).toEqual({
