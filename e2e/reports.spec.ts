@@ -66,8 +66,19 @@ test('F6 raporlar: dönem PDF indirme, bölüm seçimi, önizleme, iş yükü PD
   await expect(page.getByTestId('report-card').getByText(/\.pdf indirildi/)).toBeVisible()
   await expectNoViolations(page, '/arsiv')
 
-  // "Dönem arşivi (ZIP)" yönetici için BE-120 ile devre dışıdır (ağ isteği yok).
-  await expect(page.getByRole('button', { name: 'Dönem arşivi (ZIP)' })).toBeDisabled()
+  // "Dönem arşivi (ZIP)" (BE-120 canlı): etkin; tıklayınca yalnız onay penceresi açılır, Vazgeç'te
+  // bilet istenmez.
+  const zipButton = page.getByRole('button', { name: 'Dönem arşivi (ZIP)' })
+  await expect(zipButton).toBeEnabled()
+  let zipTickets = 0
+  page.on('request', (r) => {
+    if (r.url().endsWith('/v1/download-tickets') && r.method() === 'POST') zipTickets += 1
+  })
+  await zipButton.click()
+  await expect(page.getByTestId('period-zip-dialog')).toBeVisible()
+  await page.getByTestId('zip-cancel').click()
+  await expect(page.getByTestId('period-zip-dialog')).toBeHidden()
+  expect(zipTickets).toBe(0)
 
   // 390 px: "Bölüm seç…" penceresi tam ekran, alt düğmeler yapışık (E-13-12).
   await page.setViewportSize({ width: 390, height: 844 })
