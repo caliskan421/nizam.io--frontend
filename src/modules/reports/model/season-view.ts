@@ -2,7 +2,9 @@
  * 01f dönem sonu raporu önizlemesinin saf türetimleri (`ozellikler.md` §2.5, `README` (b)). Kaynak
  * yalnız `reportSeason` JSON'udur (`SeasonReport`); JSON'da olmayan değer (dosya boyutu, dönem
  * tarih aralığı, "ortalama kayma", sıra numarası …) HİÇ türetilmez, çağıran çizmez (§4).
- * Eksik anahtar sıfır sayılır (savunma: `task_status_distribution` beş anahtarı daima doldurur).
+ * Sunucu dağılımları (`task_status_distribution`, `priority_distribution`) kapalı şemadır (BE-133,
+ * pin v0.23.0-api: beş durum, dört öncelik, sıfırlar dahil); eksik anahtar savunması yalnız
+ * bölüm şeridinin görev sayımı içindir (`departmentSections`).
  */
 import { formatShortDay, share } from './format'
 import type { SeasonReport } from './types'
@@ -59,7 +61,7 @@ export interface DistributionRow<K extends string> {
 /**
  * Pin v0.23.0-api: `TaskStatusDistribution`/`TaskPriorityDistribution` kapalı şemadır (anahtar
  * kümesi sabit, `additionalProperties` yok); kaynak anahtarları satır anahtarlarıyla sınırlıdır.
- * Eksik anahtar sıfır sayılır (davranış pin öncesiyle aynı).
+ * Kısmi kaynak (bölüm şeridi sayımı) için eksik anahtar sıfır sayılır.
  */
 export function distribution<K extends string>(
   keys: readonly K[],
