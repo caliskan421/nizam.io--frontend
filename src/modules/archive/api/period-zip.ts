@@ -7,7 +7,7 @@
  * TÜKETİLMEZ (`disposed`).
  */
 import { programHeaders } from '@/modules/work/public'
-import { useDownloadFlow, type DownloadTarget } from '@/shared/download'
+import { useDownloadFlow, type DownloadStartOptions, type DownloadTarget } from '@/shared/download'
 
 import type { ArchiveDownloadResult, PeriodZipRequest } from '../model/types'
 
@@ -24,7 +24,9 @@ export function periodZipTarget(request: PeriodZipRequest): DownloadTarget {
 
 export function usePeriodZipDownload() {
   const flow = useDownloadFlow<PeriodZipRequest>(periodZipTarget)
-  const start = (request: PeriodZipRequest, signal?: AbortSignal): Promise<ArchiveDownloadResult> =>
-    flow.start(request, { signal })
+  const start = (
+    request: PeriodZipRequest,
+    options?: DownloadStartOptions,
+  ): Promise<ArchiveDownloadResult> => flow.start(request, options)
   return { start, isPending: flow.isPending }
 }

@@ -37,6 +37,12 @@ export function ticketBody(target: DownloadTarget) {
 export interface DownloadStartOptions {
   /** Eylem iptali (sahip sökülmesi, kapsam/oturum değişimi, "İptal"). */
   signal?: AbortSignal
+  /**
+   * Bağlam doğrulayıcısı (kapsam/program, oturum nesli/hesap, sahip canlı): bilet yanıtından sonra
+   * tüketimden ÖNCE ve dosya kaydından ÖNCE yeniden sorulur; `false` ise tüketim isteği atılmaz /
+   * dosya kaydedilmez (`disposed`, bildirim yok; KESİN 26). Verilmezse yalnız `signal` geçerlidir.
+   */
+  isCurrent?: () => boolean
 }
 
 export function useDownloadFlow<V>(toTarget: (vars: V) => DownloadTarget) {
@@ -56,17 +62,19 @@ export function useDownloadFlow<V>(toTarget: (vars: V) => DownloadTarget) {
   const owner = ownerLife()
 
   async function start(request: V, options: DownloadStartOptions = {}): Promise<DownloadResult<V>> {
-    const { signal } = options
+    const { signal, isCurrent } = options
     if (signal?.aborted) return { kind: 'disposed' }
     external = signal
+    const stale = () => signal?.aborted === true || isCurrent?.() === false
     const fallbackName = toTarget(request).fallbackName
     const outcome = await ticket.submit(request)
     try {
-      if (signal?.aborted && outcome.kind !== 'success') return { kind: 'disposed' }
+      if (outcome.kind !== 'success' && stale()) return { kind: 'disposed' }
       if (outcome.kind !== 'success') return { kind: 'ticket_failed', outcome }
       // Sahip söküldü ya da eylem iptal: bilet tüketilmez, indirme açılmaz.
-      if (!owner.alive() || signal?.aborted) return { kind: 'disposed' }
-      return await redeemAndSave(outcome.data.url, fallbackName, signal)
+      const current = () => owner.alive() && isCurrent?.() !== false
+      if (stale() || !current()) return { kind: 'disposed' }
+      return await redeemAndSave(outcome.data.url, fallbackName, signal, current)
     } finally {
       // Bilet bellekte kalmaz (hata yolunda ve söküm sonrasında da).
       ticket.reset()

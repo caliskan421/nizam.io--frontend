@@ -8,6 +8,7 @@
  */
 import { computed, ref, watch } from 'vue'
 
+import { useDownloadLife } from '@/shared/download'
 import { ownerLife } from '@/shared/http/mutation'
 
 import { useArchiveDownload } from '../../api/downloads'
@@ -19,11 +20,13 @@ export type ZipPhase = 'idle' | 'busy' | 'saved' | 'failed'
 export function useZipDownload(scope: ZipScope, identity: () => string) {
   const download = useArchiveDownload()
   const life = ownerLife()
+  const downloadLife = useDownloadLife()
   const phase = ref<ZipPhase>('idle')
   const error = ref<string | null>(null)
   let generation = 0
 
   watch(identity, () => {
+    downloadLife.cancel()
     generation += 1
     phase.value = 'idle'
     error.value = null
@@ -34,7 +37,7 @@ export function useZipDownload(scope: ZipScope, identity: () => string) {
     const mine = ++generation
     phase.value = 'busy'
     error.value = null
-    const result = await download.start(request)
+    const result = await download.start(request, downloadLife.begin())
     if (!life.alive() || mine !== generation) return
     const text = zipFailureText(result, scope)
     if (result.kind === 'saved') phase.value = 'saved'
