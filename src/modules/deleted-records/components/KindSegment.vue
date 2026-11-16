@@ -10,10 +10,11 @@ import { deletedText } from '../model/messages'
 /**
  * Tür segmenti (E-12-08…16; P41, P42): Görev (varsayılan) · Toplantı · Koordinatörlük ·
  * Kullanıcı canlı; Alt görev · Dosya · Not ve gündem devre dışı statik (BE-109, BE-076, BE-111).
- * "Tümü" yoktur. Sayaç yalnız açık sekmede ("n" ya da bitmediyse "n+"); diğer türlerde sayı
- * gösterilmez (ek istek yok). Klavye: ←/→, Home/End odağı taşır; Enter/Boşluk seçer.
+ * "Tümü" yoktur (birleşik liste yok; GAP-234). Sayaçlar `reportDeletedSummary` değeridir (kesin;
+ * etkin olmayan tür de sayı gösterir, BE-110); özet gelmediyse sayaç çizilmez, sahte sayı yok.
+ * Klavye: ←/→, Home/End odağı taşır; Enter/Boşluk seçer.
  */
-defineProps<{ modelValue: DeletedKind; count: string | null }>()
+defineProps<{ modelValue: DeletedKind; counts: Readonly<Record<DeletedKind, number>> | null }>()
 const emit = defineEmits<{ 'update:modelValue': [kind: DeletedKind] }>()
 const root = ref<HTMLElement | null>(null)
 
@@ -41,7 +42,7 @@ function onKeydown(event: KeyboardEvent): void {
       @click="emit('update:modelValue', kind)"
     >
       {{ deletedText(`kinds.${kind}`) }}
-      <UiCount v-if="modelValue === kind && count !== null" :value="count" :parens="false" />
+      <UiCount v-if="counts !== null" :value="String(counts[kind])" :parens="false" />
     </button>
     <DesignStub id="BE-109">
       <button

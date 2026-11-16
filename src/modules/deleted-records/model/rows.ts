@@ -2,13 +2,21 @@
  * Tür bazında satır alanları (E-12-66…69; `12-silinen-kayitlar/backend.md` §4). Dört silinen
  * listesi (görev, toplantı, koordinatörlük, hesap) tek satır modeline (`DeletedRow`) çevrilir;
  * alanlar yalnız liste öğesinden gelir (satır başına ayrıntı okuması yok). Veri olmayan alan
- * `null` / boştur — sahte ad, sayı, tarih üretilmez (ortak-kurallar §4).
+ * `null` / boştur — sahte ad, sayı, tarih üretilmez (ortak-kurallar §4). Arama sunucudadır (`q`):
+ * satırda arama metni yoktur.
  */
 import type { Meeting } from '@/modules/meetings/public'
 
+import { accountHoldsCompanyAdmin } from './capabilities'
 import { formatMeetingWhen } from './format'
 import { deletedText } from './messages'
-import type { DeletedAccount, DeletedDepartment, DeletedRow, DeletedWorkItem } from './types'
+import type {
+  DeletedAccount,
+  DeletedDepartment,
+  DeletedRow,
+  DeletedTaskFacts,
+  DeletedWorkItem,
+} from './types'
 
 export interface RowContext {
   timezone: string
@@ -16,19 +24,29 @@ export interface RowContext {
   departmentName: (departmentId: string) => string | null
 }
 
-const TR = 'tr-TR'
-
-/** Arama katlaması (Türkçe: `İ`/`ı` farkı gözetilir). */
-export function fold(text: string): string {
-  return text.toLocaleLowerCase(TR)
-}
-
-function searchOf(...parts: ReadonlyArray<string | null | undefined>): string {
-  return fold(parts.filter((p): p is string => !!p).join(' '))
-}
-
 export function unknownDepartment(): string {
   return deletedText('filters.department.unknown')
+}
+
+/** Silen: `deleted_by` (silen bilgisi tutulmadan önce silinmiş kayıtta null → ad boş). */
+function actorOf(deletedBy: { account_id: string; full_name: string } | null) {
+  return { accountId: deletedBy?.account_id ?? null, name: deletedBy?.full_name ?? '' }
+}
+
+/** Alt görev tamamlanma yüzdesi (yuvarlanmış); alt görev yoksa ilerleme uydurulmaz. */
+function progressOf(counts: { total: number; done: number }): number | null {
+  return counts.total > 0 ? Math.round((counts.done / counts.total) * 100) : null
+}
+
+function taskFacts(item: DeletedWorkItem): DeletedTaskFacts {
+  return {
+    assignees: item.assignees.map((assignee) => assignee.full_name ?? ''),
+    progress: progressOf(item.subtask_counts),
+    subtasks: item.subtask_counts.total,
+    notes: item.note_count,
+    dateRequest: item.pending_date_request !== null,
+    byDepartment: item.deleted_by_department,
+  }
 }
 
 export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
@@ -39,17 +57,20 @@ export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
     key: `gorev:${item.work_item_id}`,
     title: item.title,
     code: null,
-    subLine: deletedText('sub.task', { department }),
+    subLine: deletedText(item.deleted_by_department ? 'sub.taskByDepartment' : 'sub.task', {
+      department,
+    }),
     deletedAt: item.deleted_at || null,
-    actor: null,
+    actor: actorOf(item.deleted_by),
     departmentIds: [item.department_id],
-    searchText: searchOf(item.title),
     status: item.status,
     fileCount: item.file_count,
+    task: taskFacts(item),
     place: null,
     inviteMode: null,
     departmentNames: [department],
     departmentKind: null,
+    companyAdmin: false,
   }
 }
 
@@ -63,7 +84,6 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
     unknownDepartment()
   const names = ids.map(nameOf)
   const owner = nameOf(meeting.owner_department_id)
-  const actorName = meeting.deleted_by?.full_name ?? ''
   return {
     kind: 'toplanti',
     id: meeting.meeting_id,
@@ -75,15 +95,16 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
       department: owner,
     }),
     deletedAt: meeting.deleted_at || null,
-    actor: { accountId: meeting.deleted_by?.account_id ?? null, name: actorName },
+    actor: actorOf(meeting.deleted_by ?? null),
     departmentIds: ids,
-    searchText: searchOf(meeting.title, actorName, ...names),
     status: null,
     fileCount: null,
+    task: null,
     place: meeting.place,
     inviteMode: meeting.invite_mode,
     departmentNames: names,
     departmentKind: null,
+    companyAdmin: false,
   }
 }
 
@@ -97,36 +118,41 @@ export function departmentRow(department: DeletedDepartment): DeletedRow {
     subLine: department.kind || '',
     // "Silinme zamanı okunamazsa boş" (şema): boş dize `null` olur.
     deletedAt: department.deleted_at || null,
-    actor: null,
+    actor: actorOf(department.deleted_by),
     departmentIds: [department.department_id],
-    searchText: searchOf(department.name, department.code),
     status: null,
     fileCount: null,
+    task: null,
     place: null,
     inviteMode: null,
     departmentNames: [],
     departmentKind: department.kind || null,
+    companyAdmin: false,
   }
 }
 
 export function accountRow(account: DeletedAccount): DeletedRow {
+  const teams = [...new Map(account.teams.map((team) => [team.department_id, team])).values()]
+  const names = teams.map((team) => team.display_name)
   return {
     kind: 'kullanici',
     id: account.account_id,
     key: `kullanici:${account.account_id}`,
     title: account.full_name,
     code: null,
-    subLine: '',
-    // Hesap satırında silinme tarihi ve silen yok (`created_at DESC` sırası; BE-118).
-    deletedAt: null,
-    actor: null,
-    departmentIds: [],
-    searchText: searchOf(account.full_name),
+    // Silmede korunan ekip satırları (canlı departmanlar; ekipsiz hesapta boş).
+    subLine: names.join(', '),
+    // `deleted_at` boşsa (okunamadı) tarih "—" kalır; sunucu o satırı son güncelleme anına göre sıralar.
+    deletedAt: account.deleted_at || null,
+    actor: actorOf(account.deleted_by),
+    departmentIds: teams.map((team) => team.department_id),
     status: null,
     fileCount: null,
+    task: null,
     place: null,
     inviteMode: null,
-    departmentNames: [],
+    departmentNames: names,
     departmentKind: null,
+    companyAdmin: accountHoldsCompanyAdmin(account),
   }
 }

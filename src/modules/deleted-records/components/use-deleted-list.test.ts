@@ -23,6 +23,7 @@ import {
   task,
   world,
 } from '../__tests__/harness'
+import type { ListQuery } from '../model/filters'
 import type { DeletedKind } from '../model/kinds'
 import { useDeletedList } from './use-deleted-list'
 
@@ -46,17 +47,18 @@ function setup(initial: DeletedKind, enabled = true) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
   const kind = ref<DeletedKind>(initial)
   const on = ref(enabled)
+  const query = ref<ListQuery>({})
   let list!: ReturnType<typeof useDeletedList>
   const app = createApp(
     defineComponent({
       setup() {
-        list = useDeletedList(kind, on)
+        list = useDeletedList(kind, query, on)
         return () => null
       },
     }),
   )
   app.use(pinia).use(VueQueryPlugin, { queryClient: client }).mount(document.createElement('div'))
-  return { list, kind, on, client, app }
+  return { list, kind, on, query, client, app }
 }
 
 describe('useDeletedList (P42/P43: açık sekme, fan-out yok)', () => {
@@ -102,10 +104,13 @@ describe('useDeletedList (P42/P43: açık sekme, fan-out yok)', () => {
   it('koordinatörlük adı: sözlükte yoksa önbellekteki silinmiş departmanlardan, o da yoksa bilinmeyen', async () => {
     world.tasks = [[task('w1', { department_id: 'd5' }), task('w2', { department_id: 'dx' })]]
     const { list, client, app } = setup('gorev')
-    client.setQueryData(queryKeys.deletedDepartments.all(useScopeStore().snapshot), {
-      pages: [{ departments: [department('d5', { name: 'Operasyon' })] }],
-      pageParams: [undefined],
-    })
+    client.setQueryData(
+      queryKeys.deletedDepartments.list(useScopeStore().snapshot, { limit: 200 }),
+      {
+        pages: [{ departments: [department('d5', { name: 'Operasyon' })] }],
+        pageParams: [undefined],
+      },
+    )
     await settleQueries(client)
     expect(list.rows.value.map((r) => r.subLine)).toEqual([
       'Operasyon › Görevler',
@@ -142,6 +147,37 @@ describe('useDeletedList (P42/P43: açık sekme, fan-out yok)', () => {
     expect(list.rows.value).toHaveLength(1)
     expect(list.moreFailed.value).toBe(true)
     expect(list.error.value).toBeNull()
+    app.unmount()
+  })
+
+  it('süzgeç sunucuya gider, istemci satır süzmez; total süzülmüş küme boyudur (BE-117)', async () => {
+    world.tasks = [[task('w1', { title: 'Motor' }), task('w2', { title: 'Şasi' })]]
+    const { list, query, client, app } = setup('gorev')
+    await settleQueries(client)
+    expect(list.rows.value).toHaveLength(2)
+    expect(list.total.value).toBe(2)
+    query.value = { q: 'motor' }
+    await settleQueries(client)
+    expect(sent(PATHS.tasks).at(-1)!.query.get('q')).toBe('motor')
+    expect(list.rows.value.map((r) => r.id)).toEqual(['w1'])
+    expect(list.total.value).toBe(1)
+    app.unmount()
+  })
+
+  it('süzgeç/sıra değişince imleç sıfırlanır: yeni sorgu ilk sayfadan başlar, eski imleç gitmez', async () => {
+    world.tasks = [[task('w1', { title: 'Motor A' })], [task('w2', { title: 'Motor B' })]]
+    const { list, query, client, app } = setup('gorev')
+    await settleQueries(client)
+    await list.fetchMore()
+    expect(sent(PATHS.tasks).at(-1)!.query.get('cursor')).toBe('1')
+    query.value = { q: 'motor', sort: 'name', order: 'asc' }
+    await settleQueries(client)
+    const last = sent(PATHS.tasks).at(-1)!
+    expect(last.query.has('cursor')).toBe(false)
+    expect(last.query.get('sort')).toBe('name')
+    expect(last.query.get('order')).toBe('asc')
+    expect(list.rows.value.map((r) => r.id)).toEqual(['w1'])
+    expect(list.hasMore.value).toBe(true)
     app.unmount()
   })
 })

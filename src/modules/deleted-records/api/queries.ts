@@ -1,8 +1,10 @@
 /**
- * Silinen görev ve hesap okuyucuları (imleçli sonsuz sorgu; P4 "daha fazla yükle"). Her
- * okuyucu `sessionBound` kapısından geçer ve `signal`'i iletir (KESİN 26b). Görev anahtarı
- * kapsamlıdır (program değişince düşer, K2); hesap anahtarı hesap geneli olduğundan düşmez.
- * `enabled` yalnız açık sekme için doğrudur: etkin olmayan türün ucu çağrılmaz (fan-out yok).
+ * Silinen kayıt listeleri (imleçli sonsuz sorgu; P4 "daha fazla yükle"). Her okuyucu
+ * `sessionBound` kapısından geçer ve `signal`'i iletir (KESİN 26b). Sunucu süzgeci ve sırası
+ * sorgu anahtarına girer (BE-117): süzgeç değişince yeni anahtar → ilk sayfa, eski imleç
+ * kullanılmaz. Görev/toplantı/koordinatörlük anahtarları kapsamlıdır (program değişince düşer,
+ * K2); hesap anahtarı hesap geneli olduğundan düşmez. `enabled` yalnız açık sekme için
+ * doğrudur: etkin olmayan türün ucu çağrılmaz (fan-out yok).
  */
 import { useInfiniteQuery, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
@@ -12,20 +14,31 @@ import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
-import { DELETED_PAGE_LIMIT, fetchDeletedAccounts, fetchDeletedWorkItems } from './fetchers'
+import type { ListQuery } from '../model/filters'
+import {
+  DELETED_PAGE_LIMIT,
+  fetchDeletedAccounts,
+  fetchDeletedDepartments,
+  fetchDeletedMeetings,
+  fetchDeletedWorkItems,
+} from './fetchers'
 
-const LIST_FILTERS = { limit: DELETED_PAGE_LIMIT }
+const filtersOf = (query: ListQuery) => ({ limit: DELETED_PAGE_LIMIT, ...query })
 
-export function useDeletedWorkItems(enabled: MaybeRefOrGetter<boolean>) {
+export function useDeletedWorkItems(
+  query: MaybeRefOrGetter<ListQuery>,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
   const store = useScopeStore()
   return useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
+      const q = toValue(query)
       return {
-        queryKey: queryKeys.deletedWorkItems.list(scope, LIST_FILTERS),
+        queryKey: queryKeys.deletedWorkItems.list(scope, filtersOf(q)),
         queryFn: sessionBound(
           ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
-            fetchDeletedWorkItems(scope.programId!, pageParam || undefined, signal),
+            fetchDeletedWorkItems(scope.programId!, q, pageParam || undefined, signal),
         ),
         initialPageParam: '',
         getNextPageParam: (page: Awaited<ReturnType<typeof fetchDeletedWorkItems>>) =>
@@ -37,19 +50,75 @@ export function useDeletedWorkItems(enabled: MaybeRefOrGetter<boolean>) {
   )
 }
 
-export function useDeletedAccounts(enabled: MaybeRefOrGetter<boolean>) {
+export function useDeletedMeetings(
+  query: MaybeRefOrGetter<ListQuery>,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
+  const store = useScopeStore()
   return useInfiniteQuery(
-    computed(() => ({
-      queryKey: queryKeys.deletedAccounts.list(LIST_FILTERS),
-      queryFn: sessionBound(
-        ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
-          fetchDeletedAccounts(pageParam || undefined, signal),
-      ),
-      initialPageParam: '',
-      getNextPageParam: (page: Awaited<ReturnType<typeof fetchDeletedAccounts>>) =>
-        page.next_cursor || undefined,
-      enabled: toValue(enabled),
-      retry: retryTransient,
-    })),
+    computed(() => {
+      const scope = store.snapshot
+      const q = toValue(query)
+      return {
+        queryKey: queryKeys.meetings.deletedList(scope, filtersOf(q)),
+        queryFn: sessionBound(
+          ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
+            fetchDeletedMeetings(scope.programId!, q, pageParam || undefined, signal),
+        ),
+        initialPageParam: '',
+        getNextPageParam: (page: Awaited<ReturnType<typeof fetchDeletedMeetings>>) =>
+          page.next_cursor || undefined,
+        enabled: scope.programId !== null && toValue(enabled),
+        retry: retryTransient,
+      }
+    }),
+  )
+}
+
+export function useDeletedDepartments(
+  query: MaybeRefOrGetter<ListQuery>,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
+  const store = useScopeStore()
+  return useInfiniteQuery(
+    computed(() => {
+      const scope = store.snapshot
+      const q = toValue(query)
+      return {
+        queryKey: queryKeys.deletedDepartments.list(scope, filtersOf(q)),
+        queryFn: sessionBound(
+          ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
+            fetchDeletedDepartments(scope.programId!, q, pageParam || undefined, signal),
+        ),
+        initialPageParam: '',
+        getNextPageParam: (page: Awaited<ReturnType<typeof fetchDeletedDepartments>>) =>
+          page.next_cursor || undefined,
+        enabled: scope.programId !== null && toValue(enabled),
+        retry: retryTransient,
+      }
+    }),
+  )
+}
+
+export function useDeletedAccounts(
+  query: MaybeRefOrGetter<ListQuery>,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
+  return useInfiniteQuery(
+    computed(() => {
+      const q = toValue(query)
+      return {
+        queryKey: queryKeys.deletedAccounts.list(filtersOf(q)),
+        queryFn: sessionBound(
+          ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
+            fetchDeletedAccounts(q, pageParam || undefined, signal),
+        ),
+        initialPageParam: '',
+        getNextPageParam: (page: Awaited<ReturnType<typeof fetchDeletedAccounts>>) =>
+          page.next_cursor || undefined,
+        enabled: toValue(enabled),
+        retry: retryTransient,
+      }
+    }),
   )
 }

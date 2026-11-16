@@ -1,135 +1,73 @@
 <script setup lang="ts">
 import '../components/deleted-records.css'
 
-import { computed, nextTick, onScopeDispose, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { HOME_ROUTE } from '@/modules/home/public'
-import { useStanding } from '@/shared/scope/standing'
-import { DesignStub, UiEmptyState, UiIcon } from '@/shared/ui'
+import { UiEmptyState, UiIcon } from '@/shared/ui'
 
 import {
+  BatchSummary,
+  BulkBar,
   DetailPanel,
+  ExportCard,
   FilterBar,
   KindSegment,
   ListState,
   NoticeBar,
+  PurgeAllPanel,
   RecordsFooter,
+  RecordsHead,
   RecordsTable,
 } from '../components'
-import { useDeletedView } from '../components/use-deleted-view'
-import { useRecordActions } from '../components/use-record-actions'
-import { deletedRecordsCapabilities } from '../model/capabilities'
+import { useDeletedPage } from '../components/use-deleted-page'
 import { deletedText } from '../model/messages'
-import type { DeletedRow } from '../model/types'
+import { supportsPurgeAll } from '../model/purge-all'
 
 /**
- * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5; P36, P41…P45). Yalnız şirket yöneticisi
- * (`me.company_admin` olgusu; mercek değil). Dört canlı tür ayrı imleçli uçtur, açık sekmenin
- * ucu çağrılır; arama/koordinatörlük/aralık/silen yüklenen küme üzerinde istemci süzgecidir.
- * Kenar menüsünde giriş yoktur; giriş ana sayfa E-01-02 düğmesidir.
+ * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5, F8; P36, P41…P45). Yalnız şirket
+ * yöneticisi (`me.company_admin` olgusu; mercek değil). Dört canlı tür ayrı imleçli uçtur, açık
+ * sekmenin ucu çağrılır; arama/koordinatörlük/aralık/silen/sıra sunucu parametresidir (BE-117).
+ * Kenar menüsünde giriş yoktur; giriş ana sayfa E-01-02 düğmesidir. Bileşim `use-deleted-page`.
  */
-const { standing } = useStanding()
-const caps = computed(() => deletedRecordsCapabilities(standing.value))
-const view = useDeletedView(() => caps.value.view)
-const { filters, list } = view
-onScopeDispose(view.dispose)
-
-const column = ref<HTMLElement | null>(null)
-let focusIndex = -1
-
-const forbidden = computed(() => list.error.value?.status === 403)
-const allowed = computed(() => caps.value.view && !forbidden.value)
-const denied = computed(() => standing.value !== null && !allowed.value)
-
-const kindName = computed(() => deletedText(`kindNames.${filters.value.kind}`))
-const subtitle = computed(() => {
-  if (view.count.value === null) return deletedText('page.sub.idle')
-  return deletedText(list.hasMore.value ? 'page.sub.partial' : 'page.sub.loaded', {
-    n: list.rows.value.length,
-    kind: kindName.value,
-  })
-})
-const listState = computed<'loading' | 'error' | 'empty' | 'filtered' | null>(() => {
-  if (list.error.value) return 'error'
-  if (list.loading.value) return 'loading'
-  if (list.rows.value.length === 0) return 'empty'
-  return view.visible.value.length === 0 ? 'filtered' : null
-})
-
-async function focusAfterRemoval(): Promise<void> {
-  await nextTick()
-  const rows = [...(column.value?.querySelectorAll<HTMLElement>('[data-record-key]') ?? [])]
-  const target =
-    rows[Math.min(Math.max(focusIndex, 0), rows.length - 1)] ??
-    column.value?.querySelector<HTMLElement>('[data-testid="dr-kinds"] [aria-pressed="true"]')
-  target?.focus()
-}
-
-const actions = useRecordActions({
-  refresh: () => list.refetch(),
-  removed: (row) => {
-    if (filters.value.selected === row.id) view.update({ selected: null })
-    void focusAfterRemoval()
-  },
-})
-
-function act(action: 'restore' | 'purge', row: DeletedRow): void {
-  focusIndex = view.visible.value.findIndex((candidate) => candidate.key === row.key)
-  void (action === 'restore' ? actions.restore(row) : actions.purge(row))
-}
-/** Bildirim kalkınca odak gövdeye düşmez: verilen (yoksa seçili) tür düğmesine döner (KESİN 27). */
-async function focusKindButton(kind?: string): Promise<void> {
-  await nextTick()
-  const kinds = column.value?.querySelector('[data-testid="dr-kinds"]')
-  const target = kind
-    ? kinds?.querySelector<HTMLElement>(`[data-kind="${kind}"]`)
-    : kinds?.querySelector<HTMLElement>('[aria-pressed="true"]')
-  target?.focus()
-}
-function openDepartments(): void {
-  actions.dismissNotice()
-  view.setKind('koordinatorluk')
-  void focusKindButton('koordinatorluk')
-}
-function dismissNotice(): void {
-  actions.dismissNotice()
-  void focusKindButton()
-}
+const {
+  caps,
+  view,
+  filters,
+  list,
+  column,
+  allowed,
+  denied,
+  counts,
+  subtitle,
+  listState,
+  actions,
+  selection,
+  batch,
+  purgeAll,
+  exporter,
+  busy,
+  act,
+  clearSelection,
+  dismissBatchSummary,
+  openDepartments,
+  dismissNotice,
+  closePurgeAll,
+  dismissPurgeSummary,
+} = useDeletedPage()
 </script>
 
 <template>
   <section v-if="allowed" ref="column" class="dr-page" data-testid="deleted-records-page">
-    <div class="rp-head">
-      <div>
-        <h1 class="rp-h1">{{ deletedText('page.title') }}</h1>
-        <p class="rp-sub" data-testid="dr-sub">{{ subtitle }}</p>
-      </div>
-      <div class="rp-actions">
-        <DesignStub id="BE-116">
-          <button
-            type="button"
-            class="t-btn t-btn--secondary"
-            disabled
-            data-testid="dr-csv"
-            :title="deletedText('head.soonHint')"
-          >
-            <UiIcon name="download" size="sm" />{{ deletedText('head.csv') }}
-          </button>
-        </DesignStub>
-        <DesignStub id="BE-115">
-          <button
-            type="button"
-            class="t-btn t-btn--ghost dr-danger"
-            disabled
-            data-testid="dr-empty-trash"
-            :title="deletedText('head.soonHint')"
-          >
-            <UiIcon name="trash" size="sm" />{{ deletedText('head.trash') }}
-          </button>
-        </DesignStub>
-      </div>
-    </div>
+    <RecordsHead
+      :subtitle="subtitle"
+      :purge-all-on="supportsPurgeAll(filters.kind)"
+      :purge-all-open="purgeAll.panel.value || purgeAll.running.value"
+      :busy="busy"
+      :exporting="exporter.state.value.kind === 'running'"
+      @purge-all="purgeAll.open"
+      @export-csv="exporter.start"
+    />
     <div class="rp-body">
       <div class="rp-col">
         <div class="dr-note" data-testid="dr-retention">
@@ -139,19 +77,55 @@ function dismissNotice(): void {
         <div class="dr-toolbar">
           <KindSegment
             :model-value="filters.kind"
-            :count="view.count.value"
+            :counts="counts"
             @update:model-value="view.setKind"
           />
           <FilterBar
             :filters="filters"
-            :rows="list.rows.value"
+            :actors="view.candidates.actors.value"
+            :departments="view.candidates.departments.value"
             :department-name="list.departmentName"
             @update="view.update"
           />
         </div>
-        <p v-if="filters.kind === 'koordinatorluk'" class="rp-cap" data-testid="dr-mismatch">
-          {{ deletedText('mismatch.departments') }}
-        </p>
+        <ExportCard
+          v-if="exporter.state.value.kind !== 'idle'"
+          :running="exporter.state.value.kind === 'running'"
+          :failure="exporter.state.value.kind === 'failed' ? exporter.state.value.failure : null"
+          @cancel="exporter.cancel"
+          @retry="exporter.start"
+          @dismiss="exporter.dismiss"
+        />
+        <PurgeAllPanel
+          v-if="(purgeAll.panel.value || purgeAll.running.value) && supportsPurgeAll(filters.kind)"
+          :kind="filters.kind"
+          :count="counts?.[filters.kind] ?? null"
+          :running="purgeAll.running.value"
+          :progress="purgeAll.progress.value"
+          @confirm="purgeAll.confirm"
+          @cancel="closePurgeAll"
+          @stop="purgeAll.stop"
+        />
+        <BatchSummary
+          v-if="purgeAll.summary.value"
+          :summary="purgeAll.summary.value"
+          @dismiss="dismissPurgeSummary"
+        />
+        <BulkBar
+          v-if="selection.count.value > 0"
+          :count="selection.count.value"
+          :busy="busy"
+          :can-restore="caps.restore"
+          :can-purge="caps.purge"
+          @restore="batch.restore(selection.selectedRows.value)"
+          @purge="batch.purge(selection.selectedRows.value)"
+          @clear="clearSelection"
+        />
+        <BatchSummary
+          v-if="batch.summary.value"
+          :summary="batch.summary.value"
+          @dismiss="dismissBatchSummary"
+        />
         <NoticeBar
           v-if="actions.notice.value"
           :message="actions.notice.value.message"
@@ -159,37 +133,39 @@ function dismissNotice(): void {
           @departments="openDepartments"
           @dismiss="dismissNotice"
         />
-        <p v-if="view.autoLoading.value" class="rp-cap" role="status">
-          {{ deletedText('filters.loadingRange') }}
-        </p>
         <ListState
           v-if="listState"
           :state="listState"
           :kind="filters.kind"
           :error="list.error.value"
           :retrying="false"
-          :has-more="list.hasMore.value"
           @retry="list.refetch()"
           @clear="view.clear()"
         />
         <RecordsTable
           v-else
-          :rows="view.visible.value"
+          :rows="list.rows.value"
           :selected-key="view.selected.value?.key ?? null"
-          :busy="actions.pending.value"
+          :sort="view.sort.value"
+          :busy="busy"
+          :checked-ids="selection.ids.value"
+          :all-checked="selection.allSelected.value"
+          :some-checked="selection.some.value"
           :timezone="list.timezone.value"
           :now="view.now.value"
           :can-restore="caps.restore"
           :can-purge="caps.purge"
           @select="(row) => view.update({ selected: row.id })"
+          @sort="view.setSort"
+          @toggle="(row) => selection.toggle(row.id)"
+          @toggle-all="selection.toggleAll"
           @restore="(row) => act('restore', row)"
           @purge="(row) => act('purge', row)"
         />
         <RecordsFooter
           v-if="listState !== 'loading' && listState !== 'error'"
           :loaded="list.rows.value.length"
-          :shown="view.visible.value.length"
-          :filtered="view.filtered.value"
+          :total="list.total.value"
           :has-more="list.hasMore.value"
           :loading-more="list.loadingMore.value"
           @more="list.fetchMore()"
@@ -200,7 +176,7 @@ function dismissNotice(): void {
         <DetailPanel
           :row="view.selected.value"
           :missing="filters.selected !== null && view.selected.value === null"
-          :busy="actions.pending.value"
+          :busy="busy"
           :timezone="list.timezone.value"
           :can-restore="caps.restore"
           :can-purge="caps.purge"

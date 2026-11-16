@@ -1,79 +1,41 @@
 /**
- * Silinen kayıtlar sayfasının görünüm mantığı: URL ⇄ süzgeçler, istemci süzgeci, aralık için
- * otomatik sayfa yükleme (en çok 5 ardışık sayfa, sonra elle "Daha fazla yükle"; mekanizma §4) ve
- * seçili kayıt. Sayfa bileşeni yalnız çizer (250 satır kapısı).
+ * Silinen kayıtlar sayfasının görünüm mantığı: URL ⇄ süzgeçler, sıralama (bellekte), sunucu
+ * sorgusu ve seçili kayıt. Süzgeç, arama, aralık ve sıra SUNUCUDA çalışır (BE-117): görünür
+ * küme listenin kendisidir, istemci süzmez ve aralık için sayfa yüklemez. Sayfa bileşeni yalnız
+ * çizer (250 satır kapısı).
  */
-import { computed, ref, watch, type ComputedRef } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { authSession } from '@/shared/http'
-import { useScopeStore } from '@/shared/scope/store'
-
 import {
-  applyFilters,
   changeKind,
   clearFilters,
-  countLabel,
+  DEFAULT_SORT,
   filtersToQuery,
   isFiltered,
   parseFilters,
-  rangeNeedsMore,
+  toggleSort,
+  toListQuery,
   type DeletedFilters,
+  type SortKey,
 } from '../model/filters'
-import { DELETED_RECORDS_QUERY_KEYS } from '../routes'
-import { useDeletedList } from './use-deleted-list'
 import type { DeletedKind } from '../model/kinds'
-
-/** Aralık için ardışık otomatik sayfa tavanı. */
-export const MAX_AUTO_PAGES = 5
-
-/**
- * Aralık: eşik aşılana ya da imleç bitene kadar sayfa yükle (aynı uç); tavan sonrası elle
- * "Daha fazla yükle". Kapsam ve oturum değişiminde sayaç sıfırlanır.
- */
-function useRangePages(
-  list: ReturnType<typeof useDeletedList>,
-  filters: ComputedRef<DeletedFilters>,
-  context: ComputedRef<{ now: Date; timezone: string }>,
-) {
-  const scope = useScopeStore()
-  const autoPages = ref(0)
-  const resetAuto = () => {
-    autoPages.value = 0
-  }
-  watch(() => [filters.value.kind, filters.value.range], resetAuto)
-  const stopScope = scope.onChange(resetAuto)
-  const stopSession = authSession.subscribe(resetAuto)
-  const needsMore = computed(() =>
-    rangeNeedsMore(list.rows.value, filters.value, list.hasMore.value, context.value),
-  )
-  const autoLoading = computed(
-    () => needsMore.value && !list.moreFailed.value && autoPages.value < MAX_AUTO_PAGES,
-  )
-  watch(
-    () => [needsMore.value, list.loadingMore.value, list.loading.value, list.rows.value.length],
-    () => {
-      if (!autoLoading.value || list.loadingMore.value || list.loading.value) return
-      autoPages.value += 1
-      void list.fetchMore()
-    },
-    { immediate: true },
-  )
-  return {
-    autoLoading,
-    dispose: () => {
-      stopScope()
-      stopSession()
-    },
-  }
-}
+import { DELETED_RECORDS_QUERY_KEYS } from '../routes'
+import { useFilterCandidates } from './use-filter-candidates'
+import { useDeletedList, useDeletedTimezone } from './use-deleted-list'
 
 export function useDeletedView(enabled: () => boolean) {
   const route = useRoute()
   const router = useRouter()
   const filters = computed(() => parseFilters(route.query))
-  const list = useDeletedList(() => filters.value.kind, enabled)
+  const sort = ref(DEFAULT_SORT)
   const now = ref(new Date())
+  const timezone = useDeletedTimezone()
+  // Sorgu anahtarı gün anahtarından türer (`rangeFrom`): `now` saniyeler içinde değişse de aynı.
+  const query = computed(() =>
+    toListQuery(filters.value, sort.value, { now: now.value, timezone: timezone.value }),
+  )
+  const list = useDeletedList(() => filters.value.kind, query, enabled)
   watch(list.rows, () => {
     now.value = new Date()
   })
@@ -87,35 +49,36 @@ export function useDeletedView(enabled: () => boolean) {
     void router.replace({ query: { ...keep, ...filtersToQuery(next) } })
   }
   const update = (patch: Partial<DeletedFilters>) => navigate({ ...filters.value, ...patch })
-  const setKind = (kind: DeletedKind) => navigate(changeKind(filters.value, kind))
+  const setKind = (kind: DeletedKind) => {
+    sort.value = DEFAULT_SORT
+    navigate(changeKind(filters.value, kind))
+  }
   const clear = () => navigate(clearFilters(filters.value))
+  const setSort = (key: SortKey) => {
+    sort.value = toggleSort(sort.value, key)
+  }
 
-  const context = computed(() => ({ now: now.value, timezone: list.timezone.value }))
-  const visible = computed(() => applyFilters(list.rows.value, filters.value, context.value))
-  const filtered = computed(() => isFiltered(filters.value))
   const selected = computed(
     () => list.rows.value.find((row) => row.id === filters.value.selected) ?? null,
   )
-  const count = computed(() =>
-    list.loading.value || list.error.value
-      ? null
-      : countLabel(list.rows.value.length, list.hasMore.value),
+  const candidates = useFilterCandidates(
+    () => filters.value.kind,
+    () => list.rows.value,
   )
-
-  const auto = useRangePages(list, filters, context)
 
   return {
     filters,
+    query,
     list,
-    visible,
-    filtered,
+    sort,
+    filtered: computed(() => isFiltered(filters.value)),
     selected,
-    count,
     now,
-    autoLoading: auto.autoLoading,
+    candidates,
     update,
     setKind,
+    setSort,
     clear,
-    dispose: auto.dispose,
+    dispose: candidates.dispose,
   }
 }
