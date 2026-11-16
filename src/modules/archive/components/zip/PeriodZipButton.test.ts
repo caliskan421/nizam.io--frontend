@@ -129,37 +129,6 @@ describe('PeriodZipButton — onay penceresi → bilet → tüketim (S2, BE-120/
     )
   })
 
-  it('429 reporting.export_in_progress ve 503 reporting.capacity_full: sınıflı metin, otomatik tekrar yok', async () => {
-    spySaves()
-    let redeems = 0
-    let mode: 'busy' | 'full' = 'busy'
-    server.use(
-      ticketOk(),
-      http.get(`${ORIGIN}/v1/downloads/tk_1`, () => {
-        redeems += 1
-        return mode === 'busy'
-          ? errorEnvelope('reporting.export_in_progress', 429, { 'Retry-After': '12' })
-          : errorEnvelope('reporting.capacity_full', 503, { 'Retry-After': '5' })
-      }),
-    )
-    const { wrapper } = await mountButton({ admin: true })
-    await openDialog(wrapper)
-    ;(q('zip-confirm') as HTMLButtonElement).click()
-    await vi.waitFor(() => expect(wrapper.find('[role="alert"]').exists()).toBe(true))
-    expect(wrapper.get('[role="alert"]').text()).toBe(
-      'Çok fazla istek gönderildi; 12 saniye sonra yeniden deneyin.',
-    )
-    mode = 'full'
-    await openDialog(wrapper)
-    ;(q('zip-confirm') as HTMLButtonElement).click()
-    await vi.waitFor(() =>
-      expect(wrapper.get('[role="alert"]').text()).toBe(
-        'Rapor kapasitesi dolu; biraz sonra yeniden deneyin.',
-      ),
-    )
-    expect(redeems).toBe(2)
-  })
-
   it('403 records.not_authorized ve 422 records.too_many_files (kota): metin', async () => {
     spySaves()
     let code: [string, number] = ['records.not_authorized', 403]

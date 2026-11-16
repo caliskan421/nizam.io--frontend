@@ -29,7 +29,9 @@ const visible = computed(() =>
 const zip = useZipDownload('folder', () => props.folder.folder_id)
 
 const label = zipText('folder.label')
+const waiting = computed(() => zip.cooldown.value > 0)
 const noteText = computed(() => {
+  if (waiting.value) return zipText('cooldown', { seconds: zip.cooldown.value })
   if (zip.phase.value === 'busy') return zipText('folder.busy')
   if (zip.phase.value === 'saved') return zipText('folder.saved')
   return zip.error.value
@@ -52,6 +54,7 @@ function onClick(): void {
       size="md"
       :label="label"
       :aria-busy="zip.busy.value"
+      :aria-disabled="waiting ? 'true' : undefined"
       :aria-describedby="noteText ? 'folder-zip-note' : undefined"
       data-testid="folder-zip-button"
       @click="onClick"

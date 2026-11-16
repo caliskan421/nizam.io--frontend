@@ -8,7 +8,7 @@
  */
 import { computed, ref, watch } from 'vue'
 
-import { useDownloadLife } from '@/shared/download'
+import { cooldownSeconds, useDownloadCooldown, useDownloadLife } from '@/shared/download'
 import { ownerLife } from '@/shared/http/mutation'
 
 import { useArchiveDownload } from '../../api/downloads'
@@ -23,6 +23,13 @@ export function useZipDownload(scope: ZipScope, identity: () => string) {
   const downloadLife = useDownloadLife()
   const phase = ref<ZipPhase>('idle')
   const error = ref<string | null>(null)
+  // Süre bitince düğme açılır ve not kalkar; kendiliğinden yeni bilet YOK (CX-F8-Ö-01).
+  const cooldown = useDownloadCooldown(() => {
+    if (phase.value === 'failed') {
+      phase.value = 'idle'
+      error.value = null
+    }
+  })
   let generation = 0
 
   watch(identity, () => {
@@ -33,12 +40,14 @@ export function useZipDownload(scope: ZipScope, identity: () => string) {
   })
 
   async function start(request: ArchiveDownloadRequest): Promise<void> {
-    if (phase.value === 'busy') return
+    if (phase.value === 'busy' || cooldown.seconds.value > 0) return
     const mine = ++generation
     phase.value = 'busy'
     error.value = null
     const result = await download.start(request, downloadLife.begin())
     if (!life.alive() || mine !== generation) return
+    const wait = cooldownSeconds(result)
+    if (wait !== null) cooldown.start(wait)
     const text = zipFailureText(result, scope)
     if (result.kind === 'saved') phase.value = 'saved'
     else if (text !== null) phase.value = 'failed'
@@ -46,5 +55,11 @@ export function useZipDownload(scope: ZipScope, identity: () => string) {
     error.value = text
   }
 
-  return { phase, error, busy: computed(() => phase.value === 'busy'), start }
+  return {
+    phase,
+    error,
+    busy: computed(() => phase.value === 'busy'),
+    cooldown: cooldown.seconds,
+    start,
+  }
 }

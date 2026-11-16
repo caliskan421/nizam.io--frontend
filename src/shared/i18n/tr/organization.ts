@@ -355,6 +355,8 @@ export const trOrganization = {
       exportState: {
         preparing: 'Kullanıcı listesi CSV olarak hazırlanıyor…',
         saved: '{name} indirildi.',
+        // CX-F8-Ö-01: `Retry-After` taşıyan 429/503 sonrası geri sayım (otomatik tekrar yok).
+        cooldown: 'Bekleyin ({seconds} s)',
       },
       create: 'Kullanıcı oluştur',
       tabs: {

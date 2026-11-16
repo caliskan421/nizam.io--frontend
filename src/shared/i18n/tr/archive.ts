@@ -274,6 +274,8 @@ export const trArchive = {
       submit: 'Yükle',
     },
     zip: {
+      // CX-F8-Ö-01: `Retry-After` taşıyan 429/503 sonrası geri sayım (otomatik tekrar yok).
+      cooldown: 'Bekleyin ({seconds} s)',
       folder: {
         label: 'Klasörü ZIP olarak indir',
         busy: 'ZIP hazırlanıyor…',

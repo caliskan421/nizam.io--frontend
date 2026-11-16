@@ -84,7 +84,7 @@ describe('raporlu dönem ZIP (BE-124)', () => {
     await until(() => $('[data-testid="period-zip-button"]'), 'düğme')
     await openDialog()
     await userClick(() => $('[data-testid="zip-confirm"]'))
-    await until(() => note().includes('12 saniye'), 'rapor üretimi sürüyor')
+    await until(() => note().includes('Bekleyin (12 s)'), 'rapor üretimi sürüyor')
     await idle(app.queryClient)
     expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(1)
     expect(saved).toHaveLength(0)

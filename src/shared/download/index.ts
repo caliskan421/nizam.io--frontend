@@ -1,6 +1,7 @@
 // Ortak indirme: bilet akışı (arşiv dosya/ZIP + rapor PDF'leri). `shared/http/mutation` üstüne
 // kuruludur; modüller bu dosyadan içe aktarır.
 export { linkSignals, ticketBody, useDownloadFlow, type DownloadStartOptions } from './flow'
+export { cooldownSeconds, useDownloadCooldown } from './cooldown'
 export { useDownloadLife, type DownloadLife } from './life'
 export { redeemAndSave } from './redeem'
 export { DOWNLOAD_PATH, dispositionName, safeFileName, saveBlob, ticketOf } from './save'
