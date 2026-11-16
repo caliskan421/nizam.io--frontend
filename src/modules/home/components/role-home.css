@@ -567,6 +567,29 @@
   .role-home .rh-mrow:hover {
     border-color: var(--border-strong);
   }
+  /* Bildirim satırı (E-Ü1-24): toplantı satırının düğme biçimi; simge + metin */
+  .role-home .rh-nrow {
+    grid-template-columns: auto minmax(0, 1fr);
+    inline-size: 100%;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  .role-home .rh-nrow[data-unread='true'] .rh-title {
+    color: var(--ink);
+  }
+  .role-home .rh-nrow:not([data-unread='true']) .rh-title {
+    color: var(--ink-muted);
+  }
+  .role-home .rh-nicon {
+    display: grid;
+    place-items: center;
+    inline-size: var(--home-chip);
+    block-size: var(--home-chip);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    color: var(--ink-muted);
+  }
   .role-home .rh-mdate {
     display: flex;
     flex-direction: column;

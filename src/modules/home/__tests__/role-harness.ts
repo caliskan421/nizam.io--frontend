@@ -33,6 +33,8 @@ export function roleHandlers(
     members?: unknown[]
     requests?: unknown[]
     unread?: number
+    /** Bildirim listesi (`GET /v1/notifications`); verilmezse boş. */
+    notifications?: unknown[]
   } = {},
 ) {
   const items = over.items ?? []
@@ -53,6 +55,9 @@ export function roleHandlers(
       json({ requests: over.requests ?? [], total: (over.requests ?? []).length }),
     ),
     http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: over.unread ?? 0 })),
+    http.get(`${ORIGIN}/v1/notifications`, () =>
+      json({ items: over.notifications ?? [], next_cursor: '', unread_count: over.unread ?? 0 }),
+    ),
   ]
 }
 
@@ -84,6 +89,7 @@ export async function mountRole(
       { path: '/', name: 'home', component: empty },
       { path: '/gorevler', name: 'work.tasks', component: empty },
       { path: '/zaman-cizelgesi', name: 'work.timeline', component: empty },
+      { path: '/mesajlar/:chatId', name: 'collaboration.chat', component: empty },
       { path: '/toplantilar', component: empty },
       { path: '/toplantilar/:id', component: empty },
     ],
