@@ -6,6 +6,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { cspViolations, describeViolations, enforceCaddyCsp } from './csp-check'
+import { reserveExport } from './export-quota'
 import { ADMIN, readFixture } from './fixture'
 import { storageHasOnlyAllowedKeys } from './storage-check'
 
@@ -44,6 +45,8 @@ async function open(page: Page, path: string): Promise<void> {
 test('F6 raporlar: dönem PDF indirme, bölüm seçimi, önizleme, iş yükü PDF, Rapor oluştur menüsü', async ({
   page,
 }) => {
+  // Kota beklemesi (en çok ~60 sn, e2e/export-quota.ts) test süresine dahildir.
+  test.setTimeout(120_000)
   const fixture = readFixture()
   await enforceCaddyCsp(page)
   await rememberScope(page, fixture.programId)
@@ -53,6 +56,10 @@ test('F6 raporlar: dönem PDF indirme, bölüm seçimi, önizleme, iş yükü PD
   await open(page, '/arsiv')
   const pdfButton = page.getByRole('button', { name: 'Dönem sonu raporu (PDF)' })
   await expect(pdfButton).toBeVisible()
+  // Hesap başına dakikalık dışa aktarım kotası (e2e/export-quota.ts): ardışık koşumda 429 + geri
+  // sayım kartı indirmeyi başlatmaz (W176: kararsızlığın kök nedeni). Beklemeler olay
+  // dinleyicilerinden ÖNCE: dinleyici zaman aşımı kota beklemesini yemesin.
+  await reserveExport()
   const ticket = page.waitForRequest(
     (r) => r.url().endsWith('/v1/download-tickets') && r.method() === 'POST',
   )
@@ -115,6 +122,7 @@ test('F6 raporlar: dönem PDF indirme, bölüm seçimi, önizleme, iş yükü PD
   await open(page, '/kullanicilar')
   const workload = page.getByRole('button', { name: 'İş yükü raporu (PDF)' })
   await expect(workload).toBeVisible()
+  await reserveExport()
   const workloadTicket = page.waitForRequest(
     (r) => r.url().endsWith('/v1/download-tickets') && r.method() === 'POST',
   )
