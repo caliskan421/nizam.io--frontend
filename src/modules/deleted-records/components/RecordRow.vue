@@ -74,7 +74,7 @@ function act(action: 'restore' | 'purge'): void {
         @update:model-value="emit('toggle')"
       />
     </span>
-    <span role="cell">
+    <span role="cell" class="dr-kind">
       <span class="dr-logtype" :data-kind="row.kind">{{ deletedText(`kinds.${row.kind}`) }}</span>
     </span>
     <span role="cell" class="dr-record">

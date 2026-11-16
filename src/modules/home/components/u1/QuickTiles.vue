@@ -10,8 +10,9 @@ import type { MeetingView } from '../../model/role/meetings'
 
 /**
  * "Hızlı işlemler" (E-Ü1-18…22; P3: çizilen dört kutucuk). "Kanıt yükle" ve "Not yaz" ortak
- * pencereleri açar (görev seçici = bana atananlar); "Koordinatörüme yaz" F7'ye kadar
- * açıklamalı devre dışı (10 Mesajlar; alt satır koordinatör adı — BE-141; kutucuğun davranışı değişmez); "Toplantı notu ekle" en yakın yaklaşan toplantının 09b ayrıntısına gider,
+ * pencereleri açar (görev seçici = bana atananlar); "Koordinatörüme yaz" koordinatörle birebir
+ * sohbeti açar (10 Mesajlar, `openDirectChat`; alt satır koordinatör adı — BE-141); birimde
+ * koordinatör yoksa açıklamalı devre dışı; "Toplantı notu ekle" en yakın yaklaşan toplantının 09b ayrıntısına gider,
  * toplantı yoksa devre dışı. 90 MB sınırı çizilmez (sözleşmede boyut sınırı yok).
  */
 const props = defineProps<{
@@ -20,8 +21,11 @@ const props = defineProps<{
   canNote: boolean
   /** "‹koordinatör› · ‹birim›" (BE-141); koordinatör adı yoksa `null` (satır gizli). */
   messageLine?: string | null
+  /** Koordinatör yazışması açılabilir mi (birimde hesabı bilinen koordinatör var). */
+  canMessage?: boolean
+  messagePending?: boolean
 }>()
-const emit = defineEmits<{ upload: []; note: [] }>()
+const emit = defineEmits<{ upload: []; note: []; message: [] }>()
 
 const meetingSub = computed(() =>
   props.nextMeeting
@@ -62,15 +66,13 @@ const meetingSub = computed(() =>
       <button
         type="button"
         class="rh-quick"
-        aria-disabled="true"
-        :title="homeText('home.u1.quick.messagePhase')"
+        :aria-disabled="canMessage ? undefined : 'true'"
+        :aria-busy="messagePending ? 'true' : undefined"
+        :title="canMessage ? undefined : homeText('home.u1.quick.messageNone')"
         data-quick="message"
-        @click.prevent
+        @click="canMessage && !messagePending ? emit('message') : undefined"
       >
-        <span class="rh-quick__top">
-          <UiIcon name="messages" />
-          <span class="rh-quick__phase">{{ homeText('home.u1.quick.messagePhase') }}</span>
-        </span>
+        <span class="rh-quick__top"><UiIcon name="messages" /></span>
         <span class="rh-quick__label">
           {{ homeText('home.u1.quick.message') }}
           <span v-if="messageLine" class="rh-quick__sub" data-parts="message-line">{{

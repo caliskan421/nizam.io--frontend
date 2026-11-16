@@ -398,11 +398,11 @@ describe('Ü1 üye ana sayfası', () => {
     expect(d2.find('[data-parts="coordinator"]').exists()).toBe(false)
   })
 
-  it('E-Ü1-21…24: koordinatöre yaz devre dışı; toplantı notu 09b’ye; bildirim sayacı canlı, liste yok', async () => {
+  it('E-Ü1-21/22/23: koordinatörüme yaz etkin; toplantı notu 09b’ye; bildirim sayacı canlı; "F7’de" metni yok', async () => {
     server.use(...handlers())
     const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
     await ready(page)
-    expect(page.wrapper.get('[data-quick="message"]').attributes('aria-disabled')).toBe('true')
+    expect(page.wrapper.get('[data-quick="message"]').attributes('aria-disabled')).toBeUndefined()
     // BE-141: koordinatör adı alt satırı seçili birimin `coordinators` alanından.
     await vi.waitFor(() =>
       expect(page.wrapper.get('[data-parts="message-line"]').text()).toBe('Kadir Özbek · Birim d1'),
@@ -416,12 +416,99 @@ describe('Ü1 üye ana sayfası', () => {
       'Hidrofor teslim kontrolü',
     )
     await vi.waitFor(() => expect(region(page, 'notifications').text()).toContain('3 yeni'))
-    expect(region(page, 'notifications').text()).toContain('Henüz bildirim yok')
     expect(page.wrapper.get('[data-testid="u1-notif-all"]').attributes('aria-disabled')).toBe(
       'true',
     )
+    expect(page.wrapper.text()).not.toContain('F7’de')
     expect(page.wrapper.text()).not.toContain('Rapor')
     expect(page.wrapper.text()).not.toContain('90 MB')
+  })
+
+  it('E-Ü1-21 (KUSUR 4): koordinatörüme yaz → openDirectChat (201/200) → /mesajlar/:id; koordinatörsüz birimde devre dışı', async () => {
+    let body: unknown = null
+    server.use(
+      ...handlers(),
+      http.post(`${ORIGIN}/v1/chats/direct`, async ({ request }) => {
+        body = await request.json()
+        return json({ chat_id: 'ch-7', kind: 'direct' }, 201)
+      }),
+    )
+    const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(page)
+    await page.wrapper.get('[data-quick="message"]').trigger('click')
+    await vi.waitFor(() => expect(page.router.currentRoute.value.path).toBe('/mesajlar/ch-7'))
+    const posts = sent('/v1/chats/direct')
+    expect(posts).toHaveLength(1)
+    expect(body).toEqual({ account_id: 'acc-9' })
+    expect(posts[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
+    resetRole()
+    server.use(
+      ...standingHandlers({
+        ...MEMBER,
+        rows: [{ department_id: 'd1', role: 'uye', department_code: 'ALT', coordinators: [] }],
+      }),
+      ...roleHandlers({ items: ITEMS, counts: COUNTS_BODY }),
+    )
+    const none = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(none)
+    const tile = none.wrapper.get('[data-quick="message"]')
+    expect(tile.attributes('aria-disabled')).toBe('true')
+    expect(tile.attributes('title')).toBe('Biriminde atanmış koordinatör yok')
+    await tile.trigger('click')
+    expect(sent('/v1/chats/direct')).toHaveLength(0)
+  })
+
+  it('E-Ü1-24 (KUSUR 4): "Son bildirimler" gövdesi gerçek listenin ilk 3 satırı; tıkla → okundu + hedef; boşta nötr metin', async () => {
+    const notification = (id: string, type: string, kind: string, read: boolean) => ({
+      id,
+      type,
+      is_read: read,
+      created_at: '2026-11-16T09:00:00Z',
+      subject_ref: { kind, id: `${kind}-${id}` },
+    })
+    server.use(
+      ...standingHandlers(MEMBER),
+      ...roleHandlers({
+        items: ITEMS,
+        counts: COUNTS_BODY,
+        unread: 2,
+        notifications: [
+          notification('n1', 'work.item.transitioned', 'work_item', false),
+          notification('n2', 'collaboration.meeting.created', 'meeting', false),
+          notification('n3', 'organization.membership.assigned', 'membership', true),
+          notification('n4', 'work.item.created', 'work_item', true),
+        ],
+      }),
+      http.post(`${ORIGIN}/v1/notifications/:id/read`, () => new Response(null, { status: 204 })),
+    )
+    const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(page)
+    await vi.waitFor(() =>
+      expect(region(page, 'notifications').findAll('[data-row]')).toHaveLength(3),
+    )
+    const card = region(page, 'notifications')
+    expect(card.text()).toContain('2 yeni')
+    expect(card.text()).not.toContain('Henüz bildirim yok')
+    expect(card.text()).toContain('Bir görevin durumu değişti')
+    await card.findAll('[data-row]')[0]!.trigger('click')
+    await vi.waitFor(() =>
+      expect(page.router.currentRoute.value.fullPath).toBe('/gorevler?gorev=work_item-n1'),
+    )
+    await vi.waitFor(() => expect(sent('/v1/notifications/n1/read')).toHaveLength(1))
+    // Hedefsiz satır (membership): yalnız okundu (zaten okunmuş → istek yok), gezinme yok.
+    await card.findAll('[data-row]')[2]!.trigger('click')
+    expect(page.router.currentRoute.value.fullPath).toBe('/gorevler?gorev=work_item-n1')
+    expect(sent('/v1/notifications/n3/read')).toHaveLength(0)
+  })
+
+  it('E-Ü1-24 (KUSUR 4): bildirim yoksa nötr "Henüz bildirim yok"; "yakında" sözü yok', async () => {
+    server.use(...handlers())
+    const page = await mountRole(MemberHomePage, MEMBER_SCOPE)
+    await ready(page)
+    await vi.waitFor(() =>
+      expect(region(page, 'notifications').text()).toContain('Henüz bildirim yok'),
+    )
+    expect(region(page, 'notifications').text()).not.toContain('yakında')
   })
 
   it('E-Ü1-25…27: takvim — ay gezinmesi ağsız, lejant, hücre etiketleri', async () => {

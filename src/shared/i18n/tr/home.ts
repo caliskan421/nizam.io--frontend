@@ -180,7 +180,7 @@ export const trHome = {
       activity: {
         title: 'Son etkinlik',
         empty: 'Henüz işlem geçmişi yok',
-        soon: 'yakında',
+        reason: 'Koordinatör için işlem geçmişi okuması henüz yok; yönetici görür',
       },
       common: {
         priority: { acil: 'Acil', yuksek: 'Yüksek', orta: 'Orta', dusuk: 'Düşük' },
@@ -266,7 +266,7 @@ export const trHome = {
         note: 'Not yaz',
         noteSub: 'Görevine ilerleme notu düş',
         message: 'Koordinatörüme yaz',
-        messagePhase: 'F7’de açılacak',
+        messageNone: 'Biriminde atanmış koordinatör yok',
         meetingNote: 'Toplantı notu ekle',
         meetingNoteSub: '{when} · {title}',
         meetingNoteNone: 'Yaklaşan toplantı yok',
@@ -275,9 +275,8 @@ export const trHome = {
         title: 'Son bildirimler',
         unread: '{n} yeni',
         all: 'Tümü',
-        allLater: 'Bildirimler sonraki fazda açılacak',
+        allLater: 'Tüm bildirimler zil panelindedir',
         empty: 'Henüz bildirim yok',
-        soon: 'yakında',
       },
       calendar: {
         title: 'Son tarihlerim · {month}',

@@ -44,25 +44,28 @@ function onSubmit(): void {
     :description="homeText('home.k1.returnDialog.description', { title })"
     :dismissible="!pending"
   >
-    <form :id="formId" class="rh-form" novalidate @submit.prevent="onSubmit">
-      <UiField
-        :label="homeText('home.k1.returnDialog.label')"
-        :error="invalid ? homeText('home.k1.returnDialog.error') : undefined"
-      >
-        <template #default="{ id, describedBy, invalid: bad }">
-          <textarea
-            :id="id"
-            v-model="reason"
-            class="rh-textarea"
-            data-testid="k1-return-input"
-            :aria-describedby="describedBy"
-            :aria-invalid="bad ? 'true' : undefined"
-            :disabled="pending"
-            @input="invalid = false"
-          />
-        </template>
-      </UiField>
-    </form>
+    <!-- Ortak diyalog kapsamı: `.rh-textarea` iç boşluğu ve odak halkası (W178 KUSUR 5). -->
+    <div class="role-home-dialog">
+      <form :id="formId" class="rh-form" novalidate @submit.prevent="onSubmit">
+        <UiField
+          :label="homeText('home.k1.returnDialog.label')"
+          :error="invalid ? homeText('home.k1.returnDialog.error') : undefined"
+        >
+          <template #default="{ id, describedBy, invalid: bad }">
+            <textarea
+              :id="id"
+              v-model="reason"
+              class="rh-textarea"
+              data-testid="k1-return-input"
+              :aria-describedby="describedBy"
+              :aria-invalid="bad ? 'true' : undefined"
+              :disabled="pending"
+              @input="invalid = false"
+            />
+          </template>
+        </UiField>
+      </form>
+    </div>
     <template #footer>
       <UiButton :disabled="pending" data-testid="k1-return-cancel" @click="open = false">
         {{ homeText('home.k1.returnDialog.cancel') }}

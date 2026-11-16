@@ -11,7 +11,7 @@ export interface MyUnitSource {
   department_id: string
   display_name: string
   department_code: string | null
-  coordinators?: readonly { full_name: string | null }[] | null
+  coordinators?: readonly { account_id?: string; full_name: string | null }[] | null
 }
 
 export interface MyUnit {
@@ -20,6 +20,8 @@ export interface MyUnit {
   code: string | null
   /** Adı bilinen koordinatörler (sunucu sırası); yoksa boş. */
   coordinators: string[]
+  /** "Koordinatörüme yaz" hedefi: sunucu sırasındaki ilk koordinatörün hesabı; yoksa `null`. */
+  coordinatorId: string | null
 }
 
 export function myUnits(rows: readonly MyUnitSource[], programId: string | null): MyUnit[] {
@@ -33,6 +35,7 @@ export function myUnits(rows: readonly MyUnitSource[], programId: string | null)
       coordinators: (row.coordinators ?? [])
         .map((c) => c.full_name?.trim() ?? '')
         .filter((name) => name !== ''),
+      coordinatorId: row.coordinators?.find((c) => !!c.account_id)?.account_id ?? null,
     })
   }
   return [...seen.values()]
