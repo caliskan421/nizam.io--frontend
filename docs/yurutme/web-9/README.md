@@ -19,11 +19,11 @@ Pin `v0.23.0-api` iken backend `v0.24.0-api` (BE-F7: sohbet/bildirim) ve aynı g
 | W185b | **Sohbet C (yeni işçi önerisi):** mesajı ilet (hepsi ya da hiçbiri), dosyayı görev arşivine kaydet, anonim anket | BE-080, 029, 161 |
 | W185 | **Bildirimler:** satır sözlüğü (18 tür), hedef çözümleme (P55 soğuk bağlantı, sohbet/program hedefi), "Senden bekleyen" + `awaiting_count`, süzgeçler, satır içi karar, konu durumu, birleştirme (yığın avatar), zamanlı türler, saklama etiketi, kaldır/konu sessize alma | BE-142, 143, 144, 145, 146, 148, 149, 154, 155, 156 |
 
-† BE-027 W183 + W184'e bölünür; kayıt `bağlandı` W184'te.
+† BE-027 W183 (liste), W184 (ayar) ve W185 (bildirim zinciri) işlerine bölünür; kayıt `bağlandı` yalnız W185 tamamlandığında.
 
 **(c) Kalır (kod/kayıt değişmez):** BE-147 (GAP-246 kabul edilmiş sınır), BE-150 (Tablolar), BE-151/152/153 (Ü7 profil: olay×kanal matrisi, cihaz listesi, sessiz saat).
 
-**(d) DIŞI (P77, P84):** yeni ekran yok. Tablolar (GAP-224), 01b (BE-091), Ü7 profil, Takvim, Kurumsal hafıza, Ü2–Ü7/K2–K8 panelleri, Asistan; tasarımda çizili olmayan v0.25 yüzeyleri (görev ekranı "kaynak mesaja git" `getWorkItemSourceMessage`, konu sessize alma ayar listesi) → karar bekler (matris §6). **v0.25 karşılıkları F10'a bırakılmaz** (P84); yukarıdaki iki çizilmemiş yüzey tasarım kararı gerektirdiği için istisnadır.
+**(d) DIŞI (P77, P84):** yeni ekran yok. Tablolar (GAP-224), 01b (BE-091), Ü7 profil, Takvim, Kurumsal hafıza, Ü2–Ü7/K2–K8 panelleri, Asistan; **v0.25 karşılıkları F10'a bırakılmaz** (P84). P86 ile W184 mevcut görev detayına kaynak mesaj bağlantısını, W185 mevcut bildirim paneline sessize alınan konular alt görünümünü ortak bileşenlerle ekler; ayrı sayfa/artboard yoktur.
 
 **SSE (P82, KESİN 34):** sohbet olayı yalnız `shared/sse`; yeni SSE olay türü yok; bildirimlerde SSE yok. Sohbet mesajı artık kalıcı bildirim zinciri üretir (ADR-0050) — zil/liste pencere odağı + aralıklı tazelemeyle yenilenir.
 
@@ -47,7 +47,7 @@ Her W ayrı worktree ve dal (`web9/<oturum>-<wid>`); [ortak sözleşme](ortak-so
 
 ## Açık sorular
 
-Matris §6 ve [oturum-1-keşif §6](oturum-1-kesif.md#6-açık-sorular-ürün-sahibine-f9u-bloklamaz): BE-085 ters bağ yüzeyi, konu sessize alma ayar listesi, "30 gün" metni, sessiz sohbet sayacı, daha yeni etiket. F8'den devreden: ADR-0041 ŞY aktör kararı ve E-03C-22 ([ilerleme #17, #18](../web-8/ilerleme.md)).
+Matris §6 ve [oturum-1-keşif §6](oturum-1-kesif.md#6-açık-sorular-ürün-sahibine-f9u-bloklamaz): P86 ile ters bağ ve sessize alınan konular mevcut yüzeylerde kapsama alındı; adet tavanı 200 grup, sessiz sohbet sayacı sunucu yanıtından aynen okunur, daha yeni etiket bu faza otomatik alınmaz. F8'den devreden: ADR-0041 ŞY aktör kararı ve E-03C-22 ([ilerleme #17, #18](../web-8/ilerleme.md)).
 
 ## Dosyalar
 

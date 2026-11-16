@@ -51,8 +51,8 @@ Uç 248 → 261 (+13), yol 199 → 209, şema 326 → 348 (+22), hata kodu 227 �
 
 ## 6. Açık sorular (ürün sahibine; F9'u bloklamaz)
 
-1. **BE-085 ters bağ yüzeyi:** görev ekranında "Kaynak mesaja git" (`getWorkItemSourceMessage`) tasarımda çizili değil. Eklensin mi (yeni artboard gerekir), F10'a mı? Varsayılan: F9'da uç kullanılmaz (A5).
-2. **Konu sessize alma ayar listesi** (`listNotificationSubjectMutes`): Ü7 profil kapsamına bırakılsın mı (varsayılan evet, A6).
+1. **BE-085 ters bağ (P86 ile çözüldü):** W184 mevcut görev detayında ortak bağlantı bileşeniyle kaynak mesaja dönüşü uygular; ayrı ekran yok, null/erişimsiz kaynak gösterilmez.
+2. **Konu sessize alma listesi (P86 ile çözüldü):** W185 mevcut bildirim panelinde liste/geri alt görünümünü uygular; imleçli okuma ve sessizi kaldırma dahildir, ayrı profil sayfası yok.
 3. **"30 gün tutulur" metni** (E-14-57/96): backend adet tavanı (200 grup) esas; tasarım metni ürün onayıyla sadeleşir (A7).
 4. **Sessiz sohbet sayacı** (A4): backend'e belge sorusu.
 5. Daha yeni `-api` etiketi çıkarsa F9'a alınmaz (KESİN 37a); kullanıcı kararı gerekir.

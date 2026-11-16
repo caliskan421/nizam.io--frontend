@@ -300,3 +300,7 @@ Yalnız `GET /v1/instance/profile` `api_version` ana sürüm kapısı uygulanır
 ### P32 — F4-S3 özel kişi seçici türetme kararı (2026-11-11)
 
 Ürün sahibi, “önerin nedir? arka planda claude opus5.5 ile tartışıp karar ver” diyerek P23 özel seçicinin eksik açılmış görünümünü kararlaştırma yetkisini koordinatöre devretti. İki tur Claude Opus 5.5 değerlendirmesi ve koordinatör karşı görüşleriyle [S3 kararı](../yurutme/web-4/s3-kisi-secici-karari.md) kesinleşti: toplantıya özel, ağsız, aramalı çoklu seçim modalı; gerçek ad/avatar; locked katılımcılar; formda boş seçimi uygulama; kaybolan adayın seçimini sessiz düşürmeme; K/eksik liste uyarısı; ortak modal/odak altyapısı. Eski çizim bulundu iddiası yok, hazır ortak kişi seçici ikamesi yok. Yeni ürün onayı beklenmez; W105/W106/W107 test/görsel kapıları şart. Bu karar VoiceOver veya E-03C-27/41 kullanıcı kanıtı borçlarını kapatmaz; F5 yetkisi vermez.
+
+### P85/P86 — F9 yönetim ve mevcut yüzeylerde v0.25 kapsamı (2026-11-17)
+
+P85: Yönetici ana Codex oturumudur; kararlar, raporlama, süreç belgeleri ve PR/CI burada yürür. Sonnet uygulayıcı, Terra test/tanık, Opus salt okunur bağımsız denetçidir. P86: P84 kapsamı mevcut ortak bileşenlerle tamamlanır: W184 görev detayında `getWorkItemSourceMessage` kaynak mesaj bağlantısı (null/erişimsizde görünmez), W185 bildirim panelinde `listNotificationSubjectMutes` imleçli liste ve sessizi kaldırma. Yeni sayfa/artboard yoktur. BE-027 W183/W184/W185 ortak teslimidir, kaydı yalnız W185 tamamlandığında kapanır; BE-085 iki yön, BE-156 liste/geri alma dahil tamamlanır.

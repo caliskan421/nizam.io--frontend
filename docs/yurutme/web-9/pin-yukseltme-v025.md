@@ -31,10 +31,10 @@ Kaynak (yalnız etiketlerden; çalışma ağacına bakılmaz): `git -C ../nizam.
 | v0.25 | `setChatNotificationLevel` | PUT `/v1/chats/{chatId}/notification-level` | S2 | CSRF; `{level: all\|mentions\|none}` | BE-027 |
 | v0.25 | `forwardChatMessage` | POST `…/messages/{messageId}/forward` | S2 | CSRF + `Idempotency-Key`; 200/201; `targets` 1–10, `note` | BE-080 |
 | v0.25 | `archiveChatFile` | POST `/v1/chats/{chatId}/archived-files` | S2 | CSRF + `Idempotency-Key`; multipart (metin alanları `file`'dan önce); 201/200 | BE-029 |
-| v0.25 | `getWorkItemSourceMessage` | GET `/v1/work-items/{id}/source-message` | S3 | | BE-085 ters bağ (yüzey: karar bekler) |
+| v0.25 | `getWorkItemSourceMessage` | GET `/v1/work-items/{id}/source-message` | S3 | | BE-085 ters bağ (W184: görev detayında kaynak mesaj bağlantısı) |
 | v0.25 | `muteNotificationSubject` | PUT `/v1/notifications/subject-mutes/{kind}/{id}` | S1 | CSRF, idempotent 204; `kind` yalnız `work_item`/`meeting` | BE-156 |
 | v0.25 | `unmuteNotificationSubject` | DELETE aynı yol | S1 | CSRF, idempotent 204 | BE-156 |
-| v0.25 | `listNotificationSubjectMutes` | GET `/v1/notifications/subject-mutes` | S1 | imleç, `limit` | BE-156 (ayar listesi: yüzey karar bekler) |
+| v0.25 | `listNotificationSubjectMutes` | GET `/v1/notifications/subject-mutes` | S1 | imleç, `limit` | BE-156 (W185: panel içi sessize alınan konular listesi) |
 
 Değişen mevcut uçlar: `listChats` (+`kind`, `unread`; yanıt `total`), `listNotifications` (+`unread_only`, `type` tekrarlı ≤20, `awaiting`), `countUnreadNotifications` (200: `CountResult` → `NotificationUnreadCount {count, awaiting_count}`; `count` artık okunmamış **grup** sayısı), `markChatRead`/`markAllChatsRead` (sunucu sohbet bildirimlerini de kapatır; şema aynı), `markNotificationRead`/`dismissNotification` (grubun tamamına uygulanır).
 
@@ -70,7 +70,7 @@ Not: `ChatMessage.sender_role` zorunlu değildir (yalnız geçmiş/sabitler ceva
 3. **Fixture stratejisi:** `src/shared/api/__tests__/defaults.ts` içine sohbet ve bildirim üreticileri (`makeChatSummary`, `makeChatHistory`, `makeChatMessage`, `makeChatMember`, `makeNotification`, `makeNotificationList` …; web-8 kalıbı: `make<Şema>(overrides)`); modül harness'leri (`chat/__tests__`, `notifications/__tests__`, `app/__tests__/integration/fake-notifications.ts`, e2e sahte sunucu) bu üreticileri kullanır. Üretici içinde alan uydurulmaz.
 4. **Kırıcı/uyum farkları** K-1…K-5 ayrı commit ve ayrı "pin öncesi davranış korunur" testi (K-6…K-8 yalnız tip/test).
 5. **e2e/deploy:** `e2e/backend/up.sh` (`v0.23.0-api` geçen satırlar; etiket `api-pin.json`'dan okunur), `e2e/live-archive.spec.ts` ve `e2e/live-records.spec.ts` yorum/etiket metinleri, `README.md` ve deploy imaj etiketi `v0.25.0-api`.
-6. **Kapı:** `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build` + `pnpm gen:check`; "`designStub` sayısı değişmedi" kontrolü (KESİN 36/37b; 31 kimlik); görsel duman satırı "UI değişmedi" (10 ve 14 + bir kontrol rotası × 390/1024/1440).
+6. **Kapı:** yerelde `pnpm typecheck`, `pnpm lint`, değişen dosyalarda biçim denetimi, etkilenen testler, `pnpm build` ve `pnpm gen:check`; tam test paketi CI'da (P78); "`designStub` sayısı değişmedi" kontrolü (KESİN 36/37b; 31 kimlik); görsel duman satırı "UI değişmedi" (10 ve 14 + bir kontrol rotası × 390/1440 koyu (P78)).
 7. **BE envanteri (rapora):** her BE kimliği için `bağlanan / kısmen / değişmedi` — başlangıç tablosu [canlıya alma matrisi §1](canliya-alma-matrisi.md#1-özet-ve-sayılar).
 
 ## WP2 — modül grupları (canlıya alma, P83/P84)
@@ -84,7 +84,7 @@ Her grup ayrı W/PR; KESİN 35/37 geçerli; **eşzamanlı en fazla 2 işçi** (P
 | W185b | Sohbet C — yazma yüzeyleri (ilet, arşive kaydet, anonim anket) | BE-080, 029, 161 | W184 dalından (yumuşak zincir: `MessageMenu.vue`) |
 | W185 | Bildirimler — satır sözlüğü, hedef, sayaçlar, süzgeçler, karar, kaldır/sessize al, birleştirme, zamanlı türler, sohbet bildirimi | BE-142, 143, 144, 145, 146, 148, 149, 154, 155, 156 | W182 sonrası; W185b ile paralel |
 
-Sıra: **W182 → (W183 ‖ W184) → (W185b ‖ W185) → W186 (O3) → (W187 ‖ W188) → Codex**. **W185b yeni işçi önerisidir:** P83'ün üç W'si (W183/W184/W185) v0.25 ile BE-027/029/080/160 + BE-148/149/154 eklendiği için 25+ yüzeye çıktı; üçüncü sohbet W'si olmadan W184 yedi BE'yi ve dokuz dosya kümesini taşırdı (KESİN 32 dosya sınırı, W176 dersi: tek W'de aşırı yüzey kararsız teslim). Ek W numarası W186'yı (O3) bozmamak için `W185b` adıyla verilir (koordinatör numaralandırmayı değiştirebilir).
+Sıra: **W182 → (W183 ‖ W184) → (W185b ‖ W185) → W186 (O3) → (W187 ‖ W188) → Opus bağımsız nihai denetim**. **W185b yeni işçi önerisidir:** P83'ün üç W'si (W183/W184/W185) v0.25 ile BE-027/029/080/160 + BE-148/149/154 eklendiği için 25+ yüzeye çıktı; üçüncü sohbet W'si olmadan W184 yedi BE'yi ve dokuz dosya kümesini taşırdı (KESİN 32 dosya sınırı, W176 dersi: tek W'de aşırı yüzey kararsız teslim). Ek W numarası W186'yı (O3) bozmamak için `W185b` adıyla verilir (koordinatör numaralandırmayı değiştirebilir).
 
 ## WP3 — entegrasyon + gerçek imaj
 
@@ -93,7 +93,7 @@ Sıra: **W182 → (W183 ‖ W184) → (W185b ‖ W185) → W186 (O3) → (W187 �
 
 ## WP4 — Codex / denetim
 
-Model düzeni 2026-11-17: işçi Sonnet, test Terra, bağımsız denetçi Opus; Codex kapısı hız politikasıyla (P78: en çok 2 tur). Sınıf soruları: sohbet → bildirim zincirinde yetki/kapsam sızıntısı (`program_id`/`department_id` başlıkları, P55 soğuk bağlantı), anonim ankette oy veren sızıntısı (`voters` her zaman `[]`), iletme "hepsi ya da hiçbiri" hatası, arşive kaydet `Idempotency-Key` yaşam döngüsü (KESİN 8; yarım iş GAP-248), `forward` hedef seçici kapsamı, pin ↔ fixture uyumu (zorunlu alan uydurma yok), stub kaldırma ve "eski yol yok".
+Model düzeni 2026-11-17: işçi Sonnet, test Terra, bağımsız denetçi Opus; Opus bağımsız nihai kapısı hız politikasıyla (P78: en çok 2 tur). Sınıf soruları: sohbet → bildirim zincirinde yetki/kapsam sızıntısı (`program_id`/`department_id` başlıkları, P55 soğuk bağlantı), anonim ankette oy veren sızıntısı (`voters` her zaman `[]`), iletme "hepsi ya da hiçbiri" hatası, arşive kaydet `Idempotency-Key` yaşam döngüsü (KESİN 8; yarım iş GAP-248), `forward` hedef seçici kapsamı, pin ↔ fixture uyumu (zorunlu alan uydurma yok), stub kaldırma ve "eski yol yok".
 
 ## BE envanteri (v0.23.0-api → v0.25.0-api)
 
