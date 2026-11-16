@@ -50,6 +50,7 @@ const view = computed<CoordinatorshipView | null>(() => {
     displayName: department.display_name,
     code: department.code ?? null,
     description: department.description ?? null,
+    createdAt: department.created_at,
     stat,
   }
 })

@@ -163,6 +163,8 @@ export interface CoordinatorshipView {
   code: string | null
   /** Katalog açıklaması (`readProgramDepartment`; yoksa `null`). */
   description: string | null
+  /** Katalog kaydının oluşturulma anı (`readProgramDepartment.created_at`; BE-018, GAP-240: tarihsel kuruluş DEĞİL); kart ızgarasında yok. */
+  createdAt?: string | null
   /** Raporda olmayan birim (yarış) → `null`; sayılar "—" (08 backend §4). */
   stat: CoordinatorshipStat | null
 }

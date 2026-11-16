@@ -164,7 +164,12 @@ export function serverHandlers(f: ServerFixture = {}) {
       }[]
       const description = stats.find((s) => s.department_id === params.id)?.description
       return found
-        ? json({ kind: 'koordinatorluk', ...found, ...(description ? { description } : {}) })
+        ? json({
+            kind: 'koordinatorluk',
+            created_at: '2026-09-01T08:00:00Z',
+            ...found,
+            ...(description ? { description } : {}),
+          })
         : json(
             { code: 'program.department_not_found', message: 'x', request_id: 'r', fields: [] },
             404,

@@ -290,17 +290,20 @@ describe('E-08-64…69 KPI şeridi', () => {
 })
 
 describe('E-08-70…77 Hakkında', () => {
-  it('açıklama canlı; Kuruluş/Görünürlük "—" BE-018; arşiv F5; üst birim ve alt birimler yok', async () => {
+  it('açıklama canlı; Oluşturulma tarihi gerçek (BE-018), Görünürlük "—" stub; arşiv F5; üst birim ve alt birimler yok', async () => {
     server.use(...serverHandlers())
     const { wrapper } = await mountDetail()
     expect(wrapper.get('[data-testid="cd-description"]').text()).toBe(
       'Temiz su ve atıksu altyapısını kurar.',
     )
-    for (const field of ['founded', 'visibility']) {
-      const el = wrapper.get(`[data-field="${field}"]`)
-      expect(el.attributes('data-design-stub')).toBe('BE-018')
-      expect(el.text()).toBe('—')
-    }
+    const created = wrapper.get('[data-field="created"]')
+    expect(created.attributes('data-design-stub')).toBeUndefined()
+    expect(created.text()).not.toBe('—')
+    expect(created.text()).toMatch(/2026/)
+    expect(wrapper.text()).not.toContain('Kuruluş')
+    const visibility = wrapper.get('[data-field="visibility"]')
+    expect(visibility.attributes('data-design-stub')).toBe('BE-018')
+    expect(visibility.text()).toBe('—')
     const archive = wrapper.get('[data-field="archive"]')
     expect(archive.attributes('aria-disabled')).toBe('true')
     expect(archive.text()).toBe('F5’te')
