@@ -150,4 +150,4 @@ Uygulayıcı yalnız `kabul` ve **geçici kabul** satırlarını kodlar; `öneri
 | E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
 | --- | --- | --- | --- | --- |
 | E-08-83 Dikkat satırı (08b) | canlı → "‹görev kodu› · atananlar"; statik "‹KOD›-—" kalktı | kabul (P67) | BE-005 | W173 — `components/detail/detail-model.test.ts` («ALT-2 · Ali Avcı», `#5`), `components/detail/CoordinatorshipDetail.test.ts` |
-| E-08-73 Kuruluş | `Department.created_at` "Oluşturulma tarihi" — uygulama W175'indir (matris M-E09, `AboutCard.vue`); W173 değiştirmez | kabul (P67) | BE-018 (kısmi) | W175 |
+| E-08-73 Kuruluş | `Department.created_at` "Oluşturulma tarihi" — uygulama W175'indir (matris M-E09, `AboutCard.vue`); W173 değiştirmez | kabul (P67) | BE-018 (kısmi) | W175 — `components/detail/CoordinatorshipDetail.test.ts` (Oluşturulma tarihi gerçek `created_at`; Görünürlük stub kalır) |
