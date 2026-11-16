@@ -159,3 +159,12 @@ Düğme `designStub('BE-120')` ile devre dışı kalır (yönetici `archiveFullZ
 - **Ortak bileşenler:** `shared/ui` modal/menü/bildirim, `shared/http/mutation` (`useProtectedMutation`, `rateLimitMessage`), indirme bileti yardımcısı (`archive/api/downloads.ts` → `shared`), `designStub`/`DesignStub`.
 - **Diğer ekranlar:** 06 (başlık, ZIP düğmesi F5 `PeriodZipButton`), 09 (09b başlığı, K7), 03/K3 (panel şeridi), 05 (satır seçimi, 05b), 01 (Rapor oluştur menüsü; E-01-12 W135), 00-ortak (kenar menü: Raporlar öğesi **yok**).
 - **Paylaşılan durum:** seçili program (K2), `me.company_admin`, `me/departments`, `instanceProfile.timezone` (tarih biçimi), tema.
+
+## 9. F8 değişiklikleri (pin `v0.23.0-api`, W172)
+
+- **Bölüm seç… (E-13-03…06):** pencere canlıdır. Hepsi seçili açılır; hepsi seçiliyse `sections` parametresi yazılmaz. Hiçbir bölüm seçili değilken "Seçilenleri indir" devre dışıdır (sunucu boş seçimi "tam rapor" sayar). Koordinatörlük çipleri: "Tümü" açıkken bir çip süzgeci o koordinatörlüğe daraltır, sonraki basışlar ekler/çıkarır, son çip çıkınca "Tümü"ne dönülür (`department_ids` yalnız daraltılmışsa). İndirme ana düğmenin durum makinesinde çalışır (`start(selection)`); ana düğmenin kendi tıklaması her zaman tam rapordur.
+- **Önizleme (01f):** bütün bölümler `reportSeason` JSON'undan canlıdır (yer tutucu yok). Dönem aralığı görevlerden türetilmiştir ve dipnotla söylenir. Kesme olursa sayfa başında "gösterilen N / toplam M" satırı çizilir.
+- **Gantt:** bölüm grupları + görev çubukları; geç biten görevde kırmızı kuyruk, açık gecikende kesik kenar ve rapor gününe kadar kuyruk; bağımlılık oku yok.
+- **01g:** "Göreve dönüştürülenler" tablosu NOT · GÖREV (kod + başlık) · DURUM; görev silinmişse "(silinmiş görev)" ve durum `—`.
+- **503 kartı:** `Retry-After` taşıyorsa sayaç ("Bekleyin (N s)") ve sayaç bitince indirme kendiliğinden BAŞLAMAZ; başlık yoksa sayaç yok (savunma).
+

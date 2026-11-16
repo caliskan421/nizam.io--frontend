@@ -1,6 +1,6 @@
 # 13 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend` etiketi **`v0.15.0-api`** (web pini; `git show v0.15.0-api:…`): `docs/api/openapi.yaml`, `docs/api/README.md` §6 (PDF/ZIP/bilet), `docs/api/istemci-akislari.md`, `docs/api/error-codes.json`, `internal/modules/reporting/README.md` (REPORTING-K01…K14) ve use-case/adaptör kaynağı (yalnız doğrulama için). İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye ve `dogrulama.md`'ye gider. v0.15 → v0.17 arasında rapor uçlarında değişiklik yoktur (analiz raporu; pin değişmez, P46).
+Kaynak: `../../../../nizam.io--backend` etiketi **`v0.15.0-api`** (F6 pini; **F8: pin `v0.23.0-api`, aşağıdaki §8 ve `api-pin.json`**; `git show v0.15.0-api:…`): `docs/api/openapi.yaml`, `docs/api/README.md` §6 (PDF/ZIP/bilet), `docs/api/istemci-akislari.md`, `docs/api/error-codes.json`, `internal/modules/reporting/README.md` (REPORTING-K01…K14) ve use-case/adaptör kaynağı (yalnız doğrulama için). İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye ve `dogrulama.md`'ye gider. v0.15 → v0.17 arasında rapor uçlarında değişiklik yoktur (analiz raporu; pin değişmez, P46).
 
 Kapsam başlıkları: bütün rapor uçları **S2** (`X-Nizamio-Program`, zorunlu; yoksa 422 `platform.scope_missing`); bilet üretimi **S1 + CSRF** (`X-Requested-With`; hedef S2 ise `X-Nizamio-Program` **bu isteğe** konur ve bilete yazılır); bilet tüketimi **S0** (başlık gerekmez; gönderilen `Authorization` ve kapsam başlıkları yok sayılır, kimlik biletten gelir).
 
@@ -209,3 +209,19 @@ Kapsam değişince `scoped(...)` anahtarları düşer (K2). 403/404 → K6 (`me`
 | E-13-84 | "CSV / XLSX" (01h iş yükü sekmesi) | — | — |
 | E-13-85 | "Son raporlar" kartı (01e) | — | — |
 | E-13-86 | 03c/K6 Gantt "Dışa aktar (PDF)" ve 05b/08b diğer rapor düğmeleri | — | — |
+
+## 8. F8 — Sürüm `v0.23.0-api` (WEB-8, W172)
+
+Pin `v0.23.0-api` (`api-pin.json`; kaynak `git show v0.23.0-api:docs/api/openapi.yaml`, REPORTING-K17/K18/K20). Ekran davranışı ve kanıt: `README.md` F8 eki. §1–§7'deki v0.15 anlatımı, aşağıdaki farklar dışında geçerlidir (F6 "pin yeterliliği" notu F8'de aşıldı).
+
+| Uç / alan | v0.23 farkı | Web karşılığı |
+| --- | --- | --- |
+| `reportSeasonPdf`, `reportSeason` sorgusu | `sections` (kapalı küme: `summary, gantt, general, tasks, details, meetings, files, appendix`; virgüllü ya da tekrar eden; yok/boş = hepsi; `departments` ana kutusu gönderilmez) ve `department_ids` (programın canlı koordinatörlükleri, ≤50; yok/boş = hepsi); küme dışı değer 422 `reporting.input_invalid` (alan `sections` / `department_ids`) yetki kapısından sonra, slottan önce. Bilet hedefi sorgu dizesini taşır (`/v1/reports/season/pdf?sections=…&department_ids=…`); önizleme (`reportSeason`) parametre GÖNDERMEZ (tam rapor) | `reports/model/targets.ts`, `sections.ts`; BE-122, BE-127 (`department_ids`) |
+| `SeasonReport` | `limits` {`tasks_total/returned`, `files_total/returned`, `notes_per_task`}; `period` {`start_on`,`end_on`,`source: "tasks"`} (görev yoksa null) + `program_year`; koordinatörlük `code`, `file_count`, `file_bytes`, `members[]`, `pending_approval_tasks`, `returned_tasks`, `late_completed_tasks`; `tasks[].code/sequence_no/file_count/file_bytes/detail`; `meetings[]`, `files[]`, `workload_summary[]`; `date_change_stats.average_shift_days/top_requested_tasks`; `monthly_activity.notes/files/date_requests` | 01f kâğıtları; BE-132, BE-134, BE-136, BE-005 (rapor yüzü) |
+| `TaskStatusDistribution`, `TaskPriorityDistribution` | Kapalı şema (5 ve 4 anahtar) | BE-133 (W170 tip, W172 savunma notu) |
+| `ReportMeetingNote` | `converted_task_status`, `converted_task_code` (görev silinmişse/programda değilse başlık, kod, durum null) | 01g tablosu; BE-125 |
+| Hata başlıkları | `Retry-After`: 429 `reporting.export_in_progress` (EWMA tahmini, 1–60 sn) ve 503 `reporting.capacity_full` (1–30 sn); değer ipucudur | `settle.ts` (503 de sayaç başlatır); ortak `normalizeErrorResponse` yalnız 429'da başlık okuyor — 503 sayacı için `shared/errors/api-error.ts` değişikliği bekler (BE-135 `açık`) |
+| `X-Result-Truncated` | JSON ve PDF herhangi bir kesmede `true`; web kesme uyarısını `limits`'ten türetir | BE-132 |
+
+Kalan boşluklar (kayıt `açık`): BE-123 (Gantt okları ve içindekiler sayfa numaraları, GAP-239), BE-136 (konum, beyan edilmiş dönem tarihi, not bayrağı/paylaşılan işareti, GAP-237), BE-127 (`from`/`to` tarih aralığı, GAP-236), BE-131 (ilerleme), BE-126/128/129/130 (HTML/CSV, koordinatör birim raporu, son raporlar).
+
