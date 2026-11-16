@@ -1,14 +1,14 @@
 # O4 — Kapanış
 
-**F8 KAPANMADI — Codex bekliyor (2026-11-16).** O1–O3 main `b9aab8c`'de; O4 sürüyor. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE, `X-Result-Truncated` canlı tetikleme) açıkça "yapılamadı" kalır, otomatik tamamlanmış sayılmaz (KESİN 32). P76 hızlı mod yürürlüktedir (yerelde yalnız etkilenen testler; tam paket CI'da; Codex en çok 2 tur, UYGUN DEĞİL → 3).
+**F8 KAPANMADI — Codex bekliyor (2026-11-16).** O1–O3 main `b9aab8c`'de; O4 sürüyor. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) açıkça "yapılamadı" kalır, otomatik tamamlanmış sayılmaz (KESİN 32). P76 hızlı mod yürürlüktedir (yerelde yalnız etkilenen testler; tam paket CI'da; Codex en çok 2 tur, UYGUN DEĞİL → 3).
 
 ## Planlanan akış
 
 | Adım | İş | İşçi / rol | Durum |
 | ---- | -- | ---------- | ----- |
 | 1 | Belgeler: [rapor-F8](../../backend-eksikleri/rapor-F8.md) (pin envanteri, canlanan/kısmi/açık satırlar, v0.24 farkı, §6 web F9 işi + backend paket adayları), [ilerleme](ilerleme.md), [oturum-3-entegrasyon](oturum-3-entegrasyon.md), ekran README "F8 uygulama kanıtı" ve Sürüm satırları, `kayit.md` v0.24 Bağ notları, [WEB-8-codex](../../reviews/WEB-8-codex.md) ve [web-9](../web-9/README.md) iskeletleri, yol haritası §4, tasarım README notu | W177 (Sonnet 5.5) | `web8/o4-kapanis`; yalnız belge, kod yok; kapı prettier + lint + `tests/lint` |
-| 2 | `dogrulama-F8.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend **`v0.23.0-api` imajı** (P73); P33 yolu yok kanıtı, ZIP/CSV bilet indirme, rapor bölüm seçimi, silinenler toplu, toplantı katılımcı adayları, görev kodu, `X-Result-Truncated` deneme, 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W178 (`web8/o4-w178`) | sürüyor; W177 dosyasına dokunmaz |
-| 3 | Kusur düzeltmeleri (W179…) | işçi | gerekirse |
+| 2 | **Tamam (#165).** `dogrulama-F8.md`: gerçek Docker üretim imajı + Caddy CSP + gerçek backend **`v0.23.0-api` imajı** (P73); P33 yolu yok kanıtı, ZIP/CSV bilet indirme, rapor bölüm seçimi, silinenler toplu, toplantı katılımcı adayları, görev kodu, `X-Result-Truncated` deneme, 3 rol × 390/1024/1440 × iki tema, `KUSUR n:` listesi | W178 (`web8/o4-w178`) | birleşti |
+| 3 | Kusur düzeltmeleri W179 (KUSUR 1/3/4/5) | işçi (`web8/o4-w179`) | PR #166 CI'da |
 | 4 | Codex tur 1…2 (3) (`gpt-6.1-sol` medium `-s read-only`; ilk eylem HEAD, araç izi); sınıf soruları: yetki/kapsam sızıntısı (P33 kaldırıldı; S2/S3 başlıkları), bilet hedefi (14 desen), `Idempotency-Key` yaşam döngüsü (üç oluşturma ucu), pin ↔ fixture uyumu (zorunlu alan uydurma, `defaults.ts`), "eski yol yok" kanıtı, ŞY aktör (ADR-0041) | Codex | bekliyor |
 | 5 | Kapanış belge PR'ı, CI SUCCESS ve MERGED | koordinatör | bekliyor |
 
@@ -26,7 +26,7 @@ Koordinatör Claude Code işi bölüştürür; W177 yalnız belge sahibidir (`do
 | Görsel ölçümler | W173/W174/W171/W172/W175/W176 duman: taşma 0, CSP 0, pageerror 0 (W176 gerçek backend 6 rota × 3 × 2 tema); ham kanıt `.git/koordinator/web8-w17N/` (yerel) |
 | Entegrasyon / e2e | W176: yeni entegrasyon testleri + gerçek backend e2e (arşiv 4, kayıtlar 3, raporlar, Ü1); tam e2e 14/14 × 3 ardışık |
 | Belge kapısı (W177, 2026-11-16) | Prettier check, `pnpm lint`, `tests/lint`: sonuç W177 raporunda; typecheck/test/build/e2e koşulmadı (UI yok, P76) |
-| Gerçek imaj + gerçek backend (W178) | `dogrulama-F8.md` — W178 bekliyor; sonuç buraya işlenir |
+| Gerçek imaj + gerçek backend (W178) | **alındı** (#165, main `30a4f14`; [dogrulama-F8](dogrulama-F8.md)): `check-image.sh` geçti; 28+3 ŞY, 14 K/Ü görünüm, 4 dokunma etkileşimi: taşma 0 (KUSUR 1, 3 hariç), CSP 0, pageerror 0; F7 regresyonu A→B 1514 ms; 5 kusur (KUSUR 1/3/4/5 → W179 PR #166, KUSUR 2 tasarım farkı), BE-165/166; `X-Result-Truncated` doğrulandı; 503 `capacity_full`, `export_too_large`, VoiceOver, piksel yapılamadı |
 | Codex nihai hüküm | bekliyor |
 | Kapanış belge PR | bekliyor; geçerlilik şartı CI SUCCESS ve MERGED |
 

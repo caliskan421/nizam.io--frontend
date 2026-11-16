@@ -24,7 +24,8 @@
 
 - **P75:** GitHub Actions 2026-11-16 00:12–07:17 arasında koşmadı; #161/#162/#163 yerel CI kanıtıyla (ci.yml üç iş birebir; kanıt `.git/koordinator/yerel-ci/pr16N-<hash>/`, PR yorumlarında özet) birleşti. Actions dönünce **main `6e09d7a` CI SUCCESS** ile doğrulandı: bu üç PR bu koşumla main'de sınanmış sayılır; yerel kanıt tek başına CI yerine geçmez ve bu belge onu CI SUCCESS diye anmaz.
 - **P76 hızlı mod:** işçi yerelde yalnız etkilenen testler; tam paket CI'da; gerçek backend e2e yalnız W176/W178/CI; duman tek koşum; geri alma teyidi yok (yalnız Codex bulgularında). İşçi tam paket sayıları (W176 819/5963) işçi raporudur; CI toplamı ayrıca alınmadıkça sayı iddia edilmez.
-- **Yapılamadı (KESİN 32):** VoiceOver ve kullanıcı görsel onayı; Safari/iOS/Firefox push ve `notificationclick` OS bildirimi; CDN arkası SSE; `X-Result-Truncated` bilet tüketiminde canlı tetikleme (W178 dener, sonucu `dogrulama-F8.md`'ye yazar); ekran okuyucu dahil gerçek cihaz kanıtı.
+- **W178 tanığı (#165, main `30a4f14`; [dogrulama-F8](../yurutme/web-8/dogrulama-F8.md)):** gerçek Docker imajı + Caddy CSP + gerçek backend `v0.23.0-api`, gerçek Chromium; P76 kısaltılmış matris (ŞY 31, K/Ü 14 görünüm, 4 dokunma); Chrome dışı tarayıcı yok. Kusur düzeltmeleri W179 (PR #166) bu tanıktan sonradır; W178 ölçümleri W179 HEAD'inde yeniden koşulmadı. KUSUR 2 tasarım farkı olarak kabul. Üretilemeyen: 503 `reporting.capacity_full`, `reporting.export_too_large`.
+- **Yapılamadı (KESİN 32):** VoiceOver ve kullanıcı görsel onayı; ölçülü piksel karşılaştırması; Safari/iOS/Firefox push ve `notificationclick` OS bildirimi; CDN arkası SSE; ekran okuyucu dahil gerçek cihaz kanıtı.
 - **Bu belgenin yazıldığı oturumda** (W177, yalnız belge) kod, tam paket, build ve e2e koşulmadı; kapı: prettier, lint, `tests/lint`.
 - Duman PNG'leri ve ham sonuç dosyaları yerel (`.git/koordinator/web8-w17N/`); git'e girmez.
 

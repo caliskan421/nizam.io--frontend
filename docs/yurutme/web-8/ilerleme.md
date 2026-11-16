@@ -4,7 +4,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 **F8 AÇILDI 2026-11-15** (ürün sahibi: "pin yükseltme + canlıya alma turu olsun"; P67 kesin). Kapsam [README](README.md)'de; kararlar P67 kesin, **P68–P74 koordinatör varsayılanı = geçici kabul** ([ortak-kurallar §12](../../ekranlar/ortak-kurallar.md)); P75–P76 süreç kararları. F7 [KAPANDI](../web-7/ilerleme.md) (main `31c6ccc`). Pin `v0.23.0-api` (main'de, #158).
 
-**F8 KAPANMADI — Codex bekliyor (2026-11-16).** O1–O3 kod ve belge işleri main `b9aab8c`'de tamamdır; O4 sürüyor: W177 (bu belgeler), W178 (gerçek Docker + backend `v0.23.0-api` tanığı), Codex 2–3 tur, kapanış belge PR'ı. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE, `X-Result-Truncated` canlı tetikleme) "yapılamadı" kalır (KESİN 32). **Güncel olgu:** backend `v0.24.0-api` çıktı (BE-F7: sohbet/bildirim); F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8](../../backend-eksikleri/rapor-F8.md) §6'da, F9 önerisi [web-9](../web-9/README.md)'dadır.
+**F8 KAPANMADI — Codex bekliyor (2026-11-16).** O1–O3 kod ve belge işleri main `b9aab8c`'de tamamdır; O4 sürüyor: W177 (bu belgeler), W178 (gerçek Docker + backend `v0.23.0-api` tanığı), Codex 2–3 tur, kapanış belge PR'ı. "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır; kanıtlanamayanlar (VoiceOver, görsel onay, Safari/iOS/Firefox push, CDN arkası SSE) "yapılamadı" kalır (KESİN 32). **Güncel olgu:** backend `v0.24.0-api` çıktı (BE-F7: sohbet/bildirim); F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8](../../backend-eksikleri/rapor-F8.md) §6'da, F9 önerisi [web-9](../web-9/README.md)'dadır.
 
 ## Durum
 
@@ -14,7 +14,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W170 | **Birleşti:** #158 (pin `v0.23.0-api`, UI değişmedi) | `b141713` |
 | O2b W171–W175 | **Birleşti:** #159 (W173), #160 (W174), #161 (W171), #162 (W172), #163 (W175) | `6e09d7a` |
 | O3 W176 | **Birleşti:** #164 (entegrasyon turu + gerçek backend e2e) | `b9aab8c` |
-| O4 W177 ‖ W178, Codex | W177 (belgeler, `web8/o4-kapanis`) sürüyor; W178 gerçek tanık (`web8/o4-w178`) sürüyor; Codex bekliyor | — |
+| O4 W177 ‖ W178, W179, Codex | **W178 birleşti:** #165 (gerçek Docker + `v0.23.0-api` tanığı, [dogrulama-F8](dogrulama-F8.md)); **W179** (KUSUR 1/3/4/5) PR #166 CI'da; W177 belgeler sürüyor; Codex bekliyor | `30a4f14` |
 
 ## Kararlar
 
@@ -102,13 +102,17 @@ Hiçbiri F8'in kapanışını kendiliğinden engellemez. Sınıflar: **kapandı*
 | 21 | 06 yükleyen süzgeci arayüzü yok (`programArchiveUploaders` var; tasarımda çizim yok); depolama dağılımı E-06-23/24 stub (BE-025 kalanı) | karar bekler / açık BE | W171 |
 | 22 | `DeletedWorkItem` kod taşımıyor (E-12-26/42 gizli) | açık BE (sözleşme) | W174 |
 | 23 | Silinenler sıralaması bellekte, URL'de değil | kapanış sonrası borç | W174 |
-| 24 | `X-Result-Truncated` bilet tüketiminde canlı tetiklenemedi; sözleşme güvence etmiyor (`BE-YENI-W171-1`) | W178 doğrular; gerekirse yeni kimlik (BE-165+) | W171, W176 |
+| 24 | `X-Result-Truncated` bilet tüketiminde canlı tetiklenemedi | **kapandı (W178)**: gerçek ZIP'te `true` geldi (42 koordinatörlük) | W171, W176, W178 |
 | 25 | Bilet aşamasında 429 (`organization.export_in_progress`, kota) genel toast; geri sayım yok | kapanış sonrası borç | W176 |
 | 26 | Yük altında 5 sn'ye yaklaşan ağır entegrasyon testleri (sistemik); W176 üç bölme (`meetings-conversion` 2678 → 503 ms, `archive-upload`, `deleted-records-o3`) yaptı; tam paket yük altında hâlâ duyarlı | uygulama notu (KESİN 32) | W167, W176 |
 | 27 | Marka ikonu tasarımı (W167'nin eklediği manifest/`apple-touch-icon` ikonları için tasarım kararı bekler) | karar bekler (tasarım) | W167 |
 | 28 | BE-163 yeni kayıt (program kapsamlı departman purge, ADR-0045); BE-164 öneri (departman silme etki özeti) | açık BE | W174, W177 |
 | 29 | Kısmi satırlar: BE-025 (dağılım), 018 (GAP-240), 110 (GAP-234), 115 (BE-163), 123 (GAP-239), 127 (GAP-236), 136 (GAP-237), 010/030/088/130 (BE-091), 036 | açık BE ([rapor-F8 §2.2](../../backend-eksikleri/rapor-F8.md)) | W171–W175 |
 | 30 | F8 gerçek cihaz/üretim kanıtları: VoiceOver, Safari/iOS, CDN SSE F8'de de **yapılamadı**; W178 yalnız Docker + Chrome tanığıdır | kapanış sonrası borç | W177 |
+| 31 | W178 kusurları: KUSUR 1 (01f 390 px taşma), 3 (silinenler dar ekran), 4 (Ü1 son bildirimler/"Koordinatörüme yaz", K1 son etkinlik metni), 5 (iki küçük görsel) | W179 düzeltiyor (`web8/o4-w179`, PR #166) | W178 |
+| 32 | KUSUR 2: dönem ZIP onay ağacı ASCII adlar, gerçek ZIP Türkçe/boşluklu | tasarım farkı (W171 varsayımı, kabul) | W178 |
+| 33 | BE-165 (silinmiş görev dosyaları arşiv/ZIP'te), BE-166 (görev PDF'inde kod yok) | açık BE | W178 |
+| 34 | 503 `reporting.capacity_full`, `reporting.export_too_large` üretilemedi; ölçülü piksel karşılaştırması yapılmadı | kapanış sonrası borç | W178 |
 
 ## Açık sorular
 
