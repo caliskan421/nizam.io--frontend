@@ -43,7 +43,7 @@ onMounted(() => void nextTick(() => input.value?.focus()))
     :title="mode === 'draft' ? text.draftTitle : text.selectorTitle"
     @close="emit('close')"
   >
-    <label class="t-label"
+    <label class="t-label meeting-selector-search"
       >{{ text.search
       }}<input ref="input" v-model="search" class="t-input" type="search" @keydown.enter.prevent
     /></label>
