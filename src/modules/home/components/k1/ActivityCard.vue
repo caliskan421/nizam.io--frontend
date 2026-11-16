@@ -6,7 +6,8 @@ import { RECENT_ACTIVITY } from '../../model/role/stubs'
 
 /**
  * "Son etkinlik" (E-K1-40): audit okuma yok (BE-010; rol kapsamlı okuma BE-091) → statik nötr
- * yer tutucu; sahte akış yok (§4, P6). Eylem tetiklemez.
+ * yer tutucu + kayıtlı açıklama ("yakında" sözü yok, W178 KUSUR 4; §3); sahte akış yok (§4, P6).
+ * Eylem tetiklemez.
  */
 const activity = RECENT_ACTIVITY
 </script>
@@ -17,7 +18,7 @@ const activity = RECENT_ACTIVITY
     <DesignStub v-if="!activity.available" id="BE-010" as="div">
       <UiEmptyState
         :title="homeText('home.k1.activity.empty')"
-        :text="homeText('home.k1.activity.soon')"
+        :text="homeText('home.k1.activity.reason')"
         icon="clock"
       />
     </DesignStub>

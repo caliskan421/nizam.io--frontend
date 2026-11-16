@@ -25,6 +25,7 @@ import SummaryStrip from '../components/u1/SummaryStrip.vue'
 import TodayQueue from '../components/u1/TodayQueue.vue'
 import UnitsCard from '../components/u1/UnitsCard.vue'
 import UploadDialog from '../components/u1/UploadDialog.vue'
+import { useMessageCoordinator } from '../components/u1/use-message-coordinator'
 import { homeText } from '../model/messages'
 import { lensAssignee } from '@/modules/work/public'
 import { isOpen } from '../model/role/common'
@@ -81,9 +82,12 @@ const unitSources = computed(() =>
   myUnitsOf(myUnits.query.data.value?.data.departments ?? [], store.programId),
 )
 const units = computed(() => unitBreakdown(unitSources.value, items.value))
-const messageLine = computed(() =>
-  messageLineOf(unitSources.value.find((u) => u.departmentId === store.departmentId) ?? null),
+const currentUnit = computed(
+  () => unitSources.value.find((u) => u.departmentId === store.departmentId) ?? null,
 )
+const messageLine = computed(() => messageLineOf(currentUnit.value))
+const coordinatorId = computed(() => currentUnit.value?.coordinatorId ?? null)
+const coordinatorChat = useMessageCoordinator()
 // Kısmi küme (CX-F6-E-03): sunucu sayacı varsa kesin açık toplam o; yoksa türev "≥".
 const openTotal = computed(() =>
   load.counts.data.value ? openCount(load.counts.data.value) : null,
@@ -165,8 +169,11 @@ function openUpload(preset: string | null = null): void {
           :can-upload="uploadable.length > 0"
           :can-note="notable.length > 0"
           :message-line="messageLine"
+          :can-message="coordinatorId !== null"
+          :message-pending="coordinatorChat.pending.value"
           @upload="openUpload()"
           @note="noteOpen = true"
+          @message="coordinatorChat.writeTo(coordinatorId)"
         />
         <NotificationsCard :unread="unread.data.value ?? null" />
       </div>

@@ -7,7 +7,7 @@ const row = (over: Partial<MyUnitSource> = {}): MyUnitSource => ({
   department_id: 'd1',
   display_name: 'Altyapı ve tesisat',
   department_code: 'ALT',
-  coordinators: [{ full_name: 'Kadir Özbek' }],
+  coordinators: [{ account_id: 'c1', full_name: 'Kadir Özbek' }],
   ...over,
 })
 
@@ -28,8 +28,15 @@ describe('Ü1 birim kaynağı (BE-141)', () => {
         displayName: 'Altyapı ve tesisat',
         code: 'ALT',
         coordinators: ['Kadir Özbek'],
+        coordinatorId: 'c1',
       },
-      { departmentId: 'd2', displayName: 'Altyapı ve tesisat', code: null, coordinators: [] },
+      {
+        departmentId: 'd2',
+        displayName: 'Altyapı ve tesisat',
+        code: null,
+        coordinators: [],
+        coordinatorId: null,
+      },
     ])
   })
 

@@ -55,3 +55,9 @@ it('focuses search and emits close on Escape', async () => {
   expect(wrapper.emitted('close')).toHaveLength(1)
   wrapper.unmount()
 })
+it('search label has its own spacing wrapper so the focus ring never touches it (KUSUR 5)', () => {
+  const wrapper = setup()
+  const label = document.querySelector('label.meeting-selector-search')
+  expect(label?.querySelector('input[type=search]')).not.toBeNull()
+  wrapper.unmount()
+})

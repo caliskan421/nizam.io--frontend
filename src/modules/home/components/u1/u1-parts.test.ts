@@ -57,11 +57,11 @@ describe('Ü1 bölgeleri (bileşen sözleşmesi)', () => {
     expect(failed.wrapper.find('[role="alert"]').exists()).toBe(true)
   })
 
-  it('NotificationsCard: sayaç yoksa "yeni" çizilmez; liste F7 (nötr)', async () => {
-    server.use(...standingHandlers(MEMBER))
+  it('NotificationsCard: sayaç yoksa "yeni" çizilmez; liste boşsa nötr metin', async () => {
+    server.use(...standingHandlers(MEMBER), ...roleHandlers())
     const none = await mount(NotificationsCard, { unread: null })
     expect(none.wrapper.find('[data-unread]').exists()).toBe(false)
-    expect(none.wrapper.text()).toContain('Henüz bildirim yok')
+    await vi.waitFor(() => expect(none.wrapper.text()).toContain('Henüz bildirim yok'))
     const some = await mount(NotificationsCard, { unread: 2 })
     expect(some.wrapper.get('[data-unread]').text()).toBe('2 yeni')
   })
@@ -111,6 +111,12 @@ describe('Ü1 bölgeleri (bileşen sözleşmesi)', () => {
       'meetingNote',
     ])
     expect(page.wrapper.get('[data-quick="meetingNote"]').attributes('aria-disabled')).toBe('true')
+    // Koordinatör hedefi yoksa (varsayılan) devre dışı + açıklama; tıklama olay üretmez.
+    const message = page.wrapper.get('[data-quick="message"]')
+    expect(message.attributes('aria-disabled')).toBe('true')
+    expect(message.attributes('title')).toBe('Biriminde atanmış koordinatör yok')
+    await message.trigger('click')
+    expect(page.wrapper.emitted('message')).toBeUndefined()
     const view = meetingView(
       {
         meeting_id: 'm1',

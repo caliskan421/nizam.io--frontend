@@ -1,3 +1,9 @@
+/* "Ad ile ara": etiket ile alan arasında boşluk; odak halkası etikete değmez (W178 KUSUR 5). */
+.meeting-selector-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
 .meeting-selector-row {
   display: flex;
   align-items: center;
