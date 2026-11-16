@@ -42,7 +42,8 @@ test('F7 bildirim: görev oluştur → üyenin zilinde satır → tıkla → oku
     })
     return ((await response.json()) as { count: number }).count
   }
-  expect(await unread()).toBe(0)
+  // Taban 0 varsayımı yok: önceki koşumların gecikmeli (outbox) bildirimleri sonradan gelebilir;
+  // izolasyon aşağıda görev kimliğiyle yapılır.
 
   // Yönetici görevi oluşturur ve üyeye atar (createWorkItem: S3 başlıkları + Idempotency-Key).
   const title = `E2E bildirim görevi ${run}`
@@ -66,6 +67,32 @@ test('F7 bildirim: görev oluştur → üyenin zilinde satır → tıkla → oku
 
   // Backend bildirimi üretene dek (koşul yoklaması; sabit uyku yok).
   await expect.poll(unread, { timeout: 20_000 }).toBeGreaterThan(0)
+
+  const peerHeaders = {
+    ...CSRF,
+    Authorization: `Bearer ${peerToken}`,
+    'X-Nizamio-Program': fixture.programId,
+  }
+  const listAll = async () =>
+    (
+      (await (await api.get('/v1/notifications', { headers: peerHeaders })).json()) as {
+        items: { id: string; is_read: boolean; subject_ref: { id: string } }[]
+      }
+    ).items
+  // Bildirim gecikmeli (outbox): görevin bildirimi listede görünene dek yokla.
+  await expect
+    .poll(async () => (await listAll()).some((n) => n.subject_ref.id === taskId), {
+      timeout: 20_000,
+    })
+    .toBe(true)
+  // Başka spec'lerin (live-*) aynı üyeye bıraktığı okunmamışlar okundu yapılır; böylece panelde
+  // okunmamış satırlar yalnız bu testin görevine aittir (sıra/zaman varsayımı yok).
+  for (const n of await listAll()) {
+    if (!n.is_read && n.subject_ref.id !== taskId) {
+      const res = await api.post(`/v1/notifications/${n.id}/read`, { headers: peerHeaders })
+      expect(res.ok()).toBe(true)
+    }
+  }
   const total = await unread()
 
   const context = await browser.newContext()
@@ -92,9 +119,10 @@ test('F7 bildirim: görev oluştur → üyenin zilinde satır → tıkla → oku
     const panel = page.getByTestId('notification-panel')
     await expect(panel).toBeVisible()
     const rows = panel.getByTestId('notification-row')
-    await expect(rows.first()).toBeVisible(LIVE)
     // En yeni okunmamış satır (görev ataması/oluşturma): tıkla → 03 ?gorev=<id> + görev paneli.
-    const first = rows.first()
+    // Okunmamış satırlar yukarıda izole edildi: yalnız bu testin görevinin bildirimi okunmamış.
+    const first = rows.and(page.locator('[data-unread="true"]')).first()
+    await expect(first).toBeVisible(LIVE)
     await expect(first).toHaveAttribute('data-unread', 'true')
     await first.locator('.nb-it__main').click()
     await expect(page).toHaveURL(new RegExp(`/gorevler\\?.*gorev=${taskId}`), LIVE)
