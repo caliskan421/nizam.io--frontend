@@ -154,15 +154,15 @@ Yerel tam kapı `4bf32fa`: 484 dosya/3252 test; üretim+Caddy altı genişlik/te
 
 | E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
 | --- | --- | --- | --- | --- |
-| E-09-02 / E-09-04 / E-09-19 Alt başlık, zaman sekmeleri, alt sayaç | canlı → `listMeetings` `when`, `total`, `tab_counts.upcoming/past`; "n+" ve istemci bölme kalkar | kabul (P67) | BE-021 | W175 |
-| E-09-05 "Silinenler" sekmesi | canlı → `tab_counts.deleted` (yalnız ŞY, süzgeçsiz) | kabul (P67) | BE-021 | W175 |
-| E-09-12 / E-09-22 / E-09-52 Koordinatörlük kodları | canlı → `MeetingDepartment.department_code` ve `deleted` ("silinmiş" işareti); kod null → ad baş harfleri | kabul (P67) | BE-063 | W175 |
-| E-09-33 İşaretleyen bilgisi | canlı → `AgendaItem.checked_by_full_name` (katılımcı olmasa da) | kabul (P67) | BE-063 | W175 |
-| E-09-35 / E-09-73 Madde ekleme, "Toplantıyı oluştur" | `Idempotency-Key` gönderilir; belirsiz sonuçta aynı anahtarla güvenli tekrar; "anahtar yok" notları kalkar | kabul (P67) | BE-068 | W175 |
-| E-09-36 / E-09-37 / E-09-44 Notlar başlığı, süzgeç, "daha fazla" | canlı → `listMeetingNotes` `converted` / `author`, `total`, `counts`; "n+" kalkar | kabul (P67) | BE-061 | W175 |
-| E-09-40 "Göreve dönüştü" bağlantısı | canlı → `converted_work_item_department_id` ile görev bağlantısı; eski notlarda (alan null) bağlantısız kalır; kod/ek bilgi gösterilmez | geçici kabul (P68) | BE-065 | W175 |
-| E-09-45 Katılımcılar + "Ekle" (kişi seçici) | canlı → `listMeetingParticipantCandidates` (fan-out kalkar); ekip satırı olmayan ŞY listede yok (GAP-223) | kabul (P67) | BE-067 | W175 |
-| E-09-54 Bilgi listesi "Açan" | canlı → `created_by_full_name` | kabul (P67) | BE-063 | W175 |
-| E-09-83 Silinen satırı | koordinatörlük kodu ve "silinmiş" işareti; silen adı değişmez (K77 zaten canlı) | geçici kabul (P68) | BE-063 | W175 |
+| E-09-02 / E-09-04 / E-09-19 Alt başlık, zaman sekmeleri, alt sayaç | canlı → `listMeetings` `when`, `total`, `tab_counts.upcoming/past`; "n+" ve istemci bölme kalkar | kabul (P67) | BE-021 | W175 — `pages/MeetingsPage.test.ts`, `api/queries.test.ts`, `app/__tests__/integration/meetings-list-scope.test.ts` (ŞY/K/Ü `tab_counts`; "yükle-böl" yolu yok) |
+| E-09-05 "Silinenler" sekmesi | canlı → `tab_counts.deleted` (yalnız ŞY, süzgeçsiz) | kabul (P67) | BE-021 | W175 — `meetings-list-scope.test.ts` (ŞY `deleted` sayacı; K/Ü'de sekme DOM'da yok) |
+| E-09-12 / E-09-22 / E-09-52 Koordinatörlük kodları | canlı → `MeetingDepartment.department_code` ve `deleted` ("silinmiş" işareti); kod null → ad baş harfleri | kabul (P67) | BE-063 | W175 — `model/list.test.ts`, `components/list/MeetingList.test.ts`, `components/side/MeetingSide.behavior.test.ts`, `home/model/role/role-model.test.ts` |
+| E-09-33 İşaretleyen bilgisi | canlı → `AgendaItem.checked_by_full_name` (katılımcı olmasa da) | kabul (P67) | BE-063 | W175 — `components/agenda/checker.test.ts` |
+| E-09-35 / E-09-73 Madde ekleme, "Toplantıyı oluştur" | `Idempotency-Key` gönderilir; belirsiz sonuçta aynı anahtarla güvenli tekrar; "anahtar yok" notları kalkar | kabul (P67) | BE-068 | W175 — `api/create-outcomes.test.ts`, `components/forms/use-create-settle.test.ts`, `components/agenda/MeetingAgenda.behavior.test.ts`, `meetings-lifecycle.test.ts`, `meetings-people.test.ts` (aynı anahtarla tek tekrar, tek kayıt) |
+| E-09-36 / E-09-37 / E-09-44 Notlar başlığı, süzgeç, "daha fazla" | canlı → `listMeetingNotes` `converted` / `author`, `total`, `counts`; "n+" kalkar | kabul (P67) | BE-061 | W175 — `api/queries-note-filter.test.ts`, `components/notes/MeetingNotes.behavior.test.ts`, `meetings-roles.test.ts` |
+| E-09-40 "Göreve dönüştü" bağlantısı | canlı → `converted_work_item_department_id` ile görev bağlantısı; eski notlarda (alan null) bağlantısız kalır; kod/ek bilgi gösterilmez | geçici kabul (P68) | BE-065 | W175 — `components/notes/MeetingNotes.behavior.test.ts`, `meetings-conversion.test.ts` (alan null → bağlantısız etiket) |
+| E-09-45 Katılımcılar + "Ekle" (kişi seçici) | canlı → `listMeetingParticipantCandidates` (fan-out kalkar); ekip satırı olmayan ŞY listede yok (GAP-223) | kabul (P67) | BE-067 | W175 — `api/candidates.test.ts`, `meetings-people.test.ts` (tek uç; fan-out yok; 403 hata durumu) |
+| E-09-54 Bilgi listesi "Açan" | canlı → `created_by_full_name` | kabul (P67) | BE-063 | W175 — `components/side/MeetingSide.behavior.test.ts` |
+| E-09-83 Silinen satırı | koordinatörlük kodu ve "silinmiş" işareti; silen adı değişmez (K77 zaten canlı) | geçici kabul (P68) | BE-063 | W175 — `components/deleted/DeletedMeetings.test.ts` |
 
 **F8'de değişmeyenler (09 Toplantılar):** E-09-06 / E-09-06a (sunucu süzgeçleri zaten canlı), E-09-45 ekleme kuralları (K21/K74), konferans alanları.

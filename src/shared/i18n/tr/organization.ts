@@ -264,7 +264,7 @@ export const trOrganization = {
       about: {
         title: 'Hakkında',
         edit: 'Düzenle',
-        founded: 'Kuruluş',
+        created: 'Oluşturulma tarihi',
         archive: 'Arşiv klasörü',
         visibility: 'Görünürlük',
         none: '—',
@@ -352,6 +352,10 @@ export const trOrganization = {
         loading: 'Kullanıcılar yükleniyor…',
       },
       export: 'Dışa aktar',
+      exportState: {
+        preparing: 'Kullanıcı listesi CSV olarak hazırlanıyor…',
+        saved: '{name} indirildi.',
+      },
       create: 'Kullanıcı oluştur',
       tabs: {
         label: 'Rol',

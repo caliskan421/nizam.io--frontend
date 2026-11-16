@@ -126,3 +126,10 @@ Tasarımda hiçbiri yok — K7 varsayılanları:
 - `01-ana-sayfa`: yaklaşan toplantılar kartı aynı liste sorgusunu paylaşabilir.
 - Video (W7, KR-26): 09d/09e ve konferans şeridi; sonraki faz. Küçük pencere kabuk düzeyinde global durum gerektirir (`00-ortak` ile birlikte tasarlanmalı).
 - Paylaşılan durum: seçili program (kapsam), tema (09d/09e tema dışı sabit koyu).
+
+## F8 eki — davranış (pin `v0.23.0-api`, W175)
+- **Liste:** sekme sunucu `when` ile; sayaçlar `tab_counts` (ŞY'de `deleted` dolu, K/Ü'de null → sekme DOM'da yok); sayfa sayfa "Daha fazla göster" (otomatik boşaltma yok); sekme/süzgeç değişince yeni sorgu anahtarı ve imleç sıfırlanır.
+- **Notlar:** süzgeç sunucuda (`converted=true`, `author=me`; URL `notlar` korunur), sayaçlar `counts`; detay tohumu yalnız süzgeçsiz okumaya girer.
+- **Yazma:** üç yazma eylem başına `Idempotency-Key`; belirsiz sonuçta "Yeniden gönder" AYNI anahtar + gövdeyle tek tekrar (tekrar 200 = ilk kaynak); sonuç çözülene dek yeni gönderim yok.
+- **Aday seçici:** tek uç, `meeting_id` ile; kısa/boş sayfada `next_cursor` bitene dek; `is_participant` kilitli; ad sırası istemcide.
+

@@ -1,6 +1,6 @@
 # 09 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.15.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.15.0-api`; F8 sonrası `v0.23.0-api`, bkz. §9), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Ek kaynak (yetki kuralı için): `istemci-akislari.md` toplantı işlemlerini **kapsamaz** (başlığı "görevler ve sohbet"; §3 ve §4'te toplantı satırı yok, yalnız §8'de iki cümle var). Bu yüzden rol ve kural bilgisi `nizam.io--backend/internal/modules/meetings/README.md` §3 (COLLABORATION-K14…K78) ve §4 (uç → rol tablosu) belgelerinden alındı. `istemci-akislari.md` kendi girişinde "kuralların yetkili kaynağı modül README'leridir" diyor. openapi'deki toplantı uçlarında `security`/`description` ile rol bilgisi yok, yalnız birkaç `summary` cümlesi var. Bu eksiklik `eksikler.md` yeni-15'te.
 
@@ -109,3 +109,8 @@ Hepsi `scopedKey(programId, …)` altında. Kapsam (program) değişince hepsi i
 
 
 **Uygulama anahtarı notu (WEB-4 O2b):** Önceki `work/program-list` gösterimi kavramsal addı; çalışan istemci `queryKeys.workItems.list` ve `workItems.all` önekini kullanır. `convertNoteToTask`, mevcut ilişki haritasıyla görev listesi/sayaç, `shellBadges.counts` ve pano `report` sorgularını geçersizler. W101 gerçek cache testi bunu ölçer; ekranlarda rozet/pano önce-sonra entegrasyon kanıtı W107 kapsamındadır. Yeni bir sorgu anahtarı veya backend eksiği eklenmedi.
+
+## 9. F8 eki — pin `v0.23.0-api` (W175)
+
+Sürüm: `v0.23.0-api`. Canlanan uçlar/alanlar (stub yok): `listMeetings` `when`/`sort`/`total`/`tab_counts` (BE-021, K79); `listMeetingNotes` `converted`/`author`/`counts`/`total` (BE-061, K80); `Meeting.created_by_full_name`, `MeetingDepartment.department_code`/`deleted`, `AgendaItem.checked_by_full_name` (BE-063, K81); `MeetingNote.converted_work_item_department_id` (BE-065, K82); `listMeetingParticipantCandidates` `GET /v1/meetings/participant-candidates` (BE-067, K83; `listUsers`/`listMembers` fan-out kalktı); `createMeeting`/`addAgendaItem`/`addMeetingParticipant` `Idempotency-Key` (BE-068, K84; başarı 201 ya da tekrar 200). `GET /v1/meetings/deleted` v0.23'te sürer ve aynı kullanım durumudur (silinenler sekmesi; 12 Silinen kayıtlar `/v1/admin/deleted/meetings` kullanır, 09 değişmedi).
+
