@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { withReportTaskDefaults } from '@/shared/api/__tests__/defaults'
+import { makeSeasonLimits, withReportTaskDefaults } from '@/shared/api/__tests__/defaults'
 
 import {
   activity,
@@ -12,6 +12,7 @@ import {
   SEASON_STATUSES,
   taskDates,
   taskTotals,
+  truncation,
 } from './season-view'
 import type { SeasonReport } from './types'
 
@@ -186,6 +187,27 @@ describe('aylık aktivite', () => {
       total: 0,
       peak: null,
       max: 0,
+    })
+  })
+})
+
+describe('kesme uyarısı (BE-132)', () => {
+  const season = (limits: Parameters<typeof makeSeasonLimits>[0]) =>
+    ({ limits: makeSeasonLimits(limits) }) as unknown as SeasonReport
+
+  it('kesme yoksa null; seçilmeyen bölümün toplamı 0 kesme sayılmaz', () => {
+    expect(truncation(season({}))).toBeNull()
+    expect(truncation(season({ tasks_total: 3, tasks_returned: 3 }))).toBeNull()
+  })
+
+  it('görev ve dosya kesmesi ayrı bildirilir', () => {
+    expect(truncation(season({ tasks_total: 5200, tasks_returned: 5000 }))).toEqual({
+      tasks: { shown: 5000, total: 5200 },
+      files: null,
+    })
+    expect(truncation(season({ files_total: 2400, files_returned: 2000 }))).toEqual({
+      tasks: null,
+      files: { shown: 2000, total: 2400 },
     })
   })
 })

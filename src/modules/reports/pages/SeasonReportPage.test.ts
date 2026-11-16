@@ -2,6 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  makeSeasonLimits,
   makeTaskPriorityDistribution,
   makeTaskStatusDistribution,
   withDateChangeDefaults,
@@ -173,6 +174,25 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     const empty = wrapper.get('#report-season-dept-d2')
     expect(empty.text()).toContain('Bu koordinatörlükte görev yok.')
     expect(empty.text()).toContain('KOORDİNATÖRLÜK')
+  })
+
+  it('kesme (BE-132): limits kesildiğini söylerse "gösterilen N / toplam M" uyarısı; kesme yoksa hiçbir şey çizilmez', async () => {
+    const { wrapper } = await open(SEASON())
+    expect(wrapper.find('[data-testid="season-truncated"]').exists()).toBe(false)
+    unmountAll()
+    const cut = seasonFixture({
+      limits: makeSeasonLimits({
+        tasks_total: 5200,
+        tasks_returned: 5000,
+        files_total: 2000,
+        files_returned: 2000,
+      }),
+    })
+    const again = await open(SEASON(cut))
+    const note = again.wrapper.get('[data-testid="season-truncated"]')
+    expect(note.attributes('role')).toBe('status')
+    expect(note.text()).toContain('görev 5000 / 5200 gösteriliyor.')
+    expect(note.text()).not.toContain('dosya')
   })
 
   it('içindekiler: sayfa içi bağlantı bölüme kaydırır ve odağı bölüme taşır', async () => {

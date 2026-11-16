@@ -38,6 +38,19 @@ afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
 describe('önizleme okuması', () => {
+  it('BE-132: kesilmiş büyük dönem "gösterilen N / toplam M" uyarısı çizer; tam dönemde uyarı yok', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    expect($('[data-testid="season-truncated"]')).toBeNull()
+    teardown()
+    reports.state.season = 'truncated'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    const note = await until(() => $('[data-testid="season-truncated"]'), 'kesme uyarısı')
+    expect(note.textContent).toContain('görev 3 / 5200 gösteriliyor.')
+    expect(note.textContent).toContain('dosya 1 / 2400 gösteriliyor.')
+    await idle(app.queryClient)
+  })
+
   // CX-F6-E-05: başlıklı 429 ortak sayacı başlatır; sayaç boyunca önizleme tekrarı ve PDF düğmesi
   // kapalı, süre bitince otomatik istek yok (süre dolumu ve otomatik istek yokluğu `queries.test.ts`'te sahte saatle).
   it.each(['export_in_progress', 'rate_limited'] as const)(

@@ -13,6 +13,12 @@ export const trReports = {
     season: {
       title: 'Dönem sonu raporu',
       subtitle: 'Önizleme',
+      // Kesme uyarısı (BE-132): yalnız `limits` kesme gösterdiğinde çizilir.
+      truncated: {
+        lead: 'Rapor büyük olduğundan kesildi:',
+        tasks: 'görev {shown} / {total} gösteriliyor.',
+        files: 'dosya {shown} / {total} gösteriliyor.',
+      },
       note: "Önizleme canlı veriden çizilir; indirilen PDF'in şablonu güncellenene kadar daha sade olabilir · Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre · Rapor indirmeleri kayda geçer (denetim).",
       // Önizleme araç çubuğu (01f ve 01g ortak; E-13-15…17, 47).
       toolbar: {

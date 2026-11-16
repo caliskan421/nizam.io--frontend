@@ -174,3 +174,26 @@ export function activity(season: SeasonReport): {
   )
   return { rows, total: rows.reduce((sum, r) => sum + r.count, 0), peak, max }
 }
+
+export interface SeasonTruncation {
+  tasks: { shown: number; total: number } | null
+  files: { shown: number; total: number } | null
+}
+
+/**
+ * Kesme uyarısı (BE-132, pin v0.23.0-api): `limits` her yanıtta gelir; görev ya da dosya satırı
+ * sınırda kesildiyse (5000 görev, 2000 dosya) "gösterilen N / toplam M". Kesme yoksa `null`
+ * (uyarı çizilmez; sessiz eksik veri yok). Seçilmeyen bölümün toplamı 0'dır (kesme sayılmaz).
+ */
+export function truncation(season: SeasonReport): SeasonTruncation | null {
+  const { limits } = season
+  const tasks =
+    limits.tasks_returned < limits.tasks_total
+      ? { shown: limits.tasks_returned, total: limits.tasks_total }
+      : null
+  const files =
+    limits.files_returned < limits.files_total
+      ? { shown: limits.files_returned, total: limits.files_total }
+      : null
+  return tasks || files ? { tasks, files } : null
+}

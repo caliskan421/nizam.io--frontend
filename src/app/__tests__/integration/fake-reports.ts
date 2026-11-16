@@ -19,7 +19,7 @@ export type RedeemFault =
   | 'ticket_invalid'
   | 'not_authorized'
 export type SeasonFault =
-  'ok' | 'empty' | 'export_in_progress' | 'rate_limited' | 'capacity_full' | 'error'
+  'ok' | 'empty' | 'truncated' | 'export_in_progress' | 'rate_limited' | 'capacity_full' | 'error'
 
 export interface FakeMeeting {
   meeting_id: string
@@ -255,11 +255,32 @@ function jsonHandlers(f: Fake) {
         db.programs.find((p) => p.program_id === program)?.name ?? '',
       )
       if (state.season === 'ok') return json(base)
+      if (state.season === 'truncated') {
+        // Büyük dönem (BE-132): görev satırı 5000'de, dosya satırı 2000'de kesilir; başlık gelir.
+        const limits = { ...base.limits, tasks_total: 5200, files_total: 2400 }
+        return HttpResponse.json({ ...base, limits }, { headers: { 'X-Result-Truncated': 'true' } })
+      }
       return json({
         ...base,
         coordinatorship_performance: [],
+        date_change_stats: {
+          ...base.date_change_stats,
+          average_shift_days: null,
+          top_requested_tasks: [],
+        },
+        files: [],
+        limits: {
+          ...base.limits,
+          tasks_total: 0,
+          tasks_returned: 0,
+          files_total: 0,
+          files_returned: 0,
+        },
+        meetings: [],
         monthly_activity: [],
+        period: null,
         tasks: [],
+        workload_summary: [],
         stats: { ...base.stats, total_tasks: 0, completed_tasks: 0, overdue_tasks: 0 },
       })
     }),
