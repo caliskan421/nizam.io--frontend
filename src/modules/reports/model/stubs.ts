@@ -7,16 +7,6 @@
 import { designStub } from '@/shared/design-stub'
 
 /**
- * "Bölüm seç…" penceresi (E-13-03…06): `reportSeasonPdf` parametresizdir. Pencere çizilir; bütün
- * kutular seçiliyken düz tam indirme canlıdır, bir kutu kaldırılınca "Seçilenleri indir" devre
- * dışı + "yakında" (sahte kısmi PDF yok). Koordinatörlük çipleri de "yakında".
- */
-export const SECTION_SELECTION = designStub('BE-122', {
-  partialAvailable: false,
-  departmentFilterAvailable: false,
-})
-
-/**
  * 01f önizlemesinin hedef şablonu (E-13-28, 31, 34…36): Gantt, iş yükü, görev detay kartları,
  * toplantılar ve dosyalar bölümleri statik yer tutucu; indirilen PDF v0.15 şablonudur.
  */

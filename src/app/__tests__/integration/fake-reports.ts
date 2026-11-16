@@ -111,11 +111,47 @@ class Fake {
   }
 }
 
+const SEASON_SECTIONS = [
+  'summary',
+  'gantt',
+  'general',
+  'tasks',
+  'details',
+  'meetings',
+  'files',
+  'appendix',
+]
+
+/** Dönem PDF'i seçim doğrulaması (REPORTING-K17): küme dışı bölüm ya da programda olmayan departman 422. */
+function seasonSelectionFault(f: Fake, issued: Issued): Response | null {
+  const url = new URL(issued.path, 'http://x')
+  if (url.pathname !== '/v1/reports/season/pdf') return null
+  const list = (name: string) =>
+    url.searchParams
+      .getAll(name)
+      .flatMap((v) => v.split(','))
+      .filter(Boolean)
+  const fields: Array<{ field: string; code: string }> = []
+  if (list('sections').some((id) => !SEASON_SECTIONS.includes(id))) {
+    fields.push({ field: 'sections', code: 'reporting.section_invalid' })
+  }
+  const known = f.db.links
+    .filter((l) => l.program_id === issued.program)
+    .map((l) => l.department_id)
+  const departments = list('department_ids')
+  if (departments.length > 50 || departments.some((id) => !known.includes(id))) {
+    fields.push({ field: 'department_ids', code: 'reporting.department_invalid' })
+  }
+  return fields.length > 0 ? envelope('reporting.input_invalid', 422, fields) : null
+}
+
 /** Tüketimde sunucu hatası (slot, doğrulama, yetki); yoksa `null` = PDF. */
 function redeemFault(f: Fake, issued: Issued, account: Account): Response | null {
   const { db, state } = f
   const denied = f.authorize(account, issued.program, issued.path)
   if (denied) return denied
+  const invalidSelection = seasonSelectionFault(f, issued)
+  if (invalidSelection) return invalidSelection
   const members = (issued.body as { member_ids?: string[] } | undefined)?.member_ids ?? []
   const unknown = members.filter((id) => !db.accounts.some((a) => a.account_id === id))
   if (unknown.length > 0 || state.redeem === 'input_invalid') {

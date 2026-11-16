@@ -233,7 +233,7 @@ export const trReports = {
         preview: 'Önizle',
         pickTitle: 'Bölüm seç… — varsayılan tam rapor',
       },
-      // "Bölüm seç…" penceresi (01i hücre B; statik, BE-122; E-13-04…06).
+      // "Bölüm seç…" penceresi (01i hücre B; canlı, BE-122; E-13-04…06).
       picker: {
         kicker: '{program} · {year} sezonu',
         title: 'Dönem sonu raporu — bölümleri seç',
@@ -243,12 +243,10 @@ export const trReports = {
         list: 'Rapor bölümleri',
         always: 'her zaman',
         departments: 'KOORDİNATÖRLÜKLER',
-        soon: 'yakında',
         all: 'Tümü',
         count: '{n} koordinatörlük',
         meta: 'PDF · A4 · kayda geçer (denetim)',
-        partial:
-          'Bölüm seçimi yakında; şimdilik yalnız tam rapor iner. Bütün bölümleri seçili bırakın.',
+        empty: 'Hiçbir bölüm seçili değil. En az bir bölüm seçin; boş seçim tam raporu indirirdi.',
         cancel: 'Vazgeç',
         download: 'Seçilenleri indir (PDF)',
         section: {

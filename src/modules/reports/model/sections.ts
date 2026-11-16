@@ -1,10 +1,12 @@
 /**
- * Dönem sonu raporu "Bölüm seç…" modeli (E-13-04; 13 `mekanizma.md` §3.2). `reportSeasonPdf`
- * bölüm parametresi almaz (BE-122): pencere STATİKTİR — hepsi seçili açılır, hepsi seçiliyken
- * "Seçilenleri indir" düz tam indirmedir, bir kutu kaldırılınca devre dışı + "yakında". Kapak ve
- * içindekiler kilitlidir (her çıktıda). Ana bölümün kutusu alt kutuları toplu işaretler/kaldırır;
- * ana bölüm durumu alt kutulardan TÜRETİLİR (kısmi → `mixed`). Seçim açılışlar arasında
- * hatırlanmaz (durum pencerede bellektedir).
+ * Dönem sonu raporu "Bölüm seç…" modeli (E-13-04, E-13-05; 13 `mekanizma.md` §3.2). Pin v0.23.0-api:
+ * `reportSeasonPdf` `sections` (kapalı küme) ve `department_ids` (programın koordinatörlükleri) alır
+ * (BE-122, BE-127 kısmı; REPORTING-K17). Hepsi seçili açılır; hepsi seçiliyken sorgu parametresi
+ * YAZILMAZ (düz tam rapor). Sunucu boş seçimi "hepsi" sayar: hiçbir bölüm seçili değilken
+ * gönderme engellenir (istemci beklenmedik tam rapor indirtmez). Kapak ve içindekiler kilitlidir
+ * (her çıktıda). Ana bölümün kutusu alt kutuları toplu işaretler/kaldırır; ana bölüm durumu alt
+ * kutulardan TÜRETİLİR (kısmi → `mixed`) ve sunucuya GÖNDERİLMEZ (`departments` kabul edilmez).
+ * Seçim açılışlar arasında hatırlanmaz (durum pencerede bellektedir).
  */
 export const SECTION_IDS = [
   'summary',
@@ -57,7 +59,48 @@ export function toggleSection(selected: ReadonlySet<SectionId>, id: SectionId): 
   return next
 }
 
-/** Hepsi seçili mi: yalnız bu durumda indirme canlıdır (düz tam rapor). */
+/** Hepsi seçili mi: bu durumda `sections` parametresi yazılmaz (düz tam rapor). */
 export function isFullSelection(selected: ReadonlySet<SectionId>): boolean {
   return LEAVES.every((id) => selected.has(id))
+}
+
+/** Sunucunun `sections` kapalı kümesi (REPORTING-K17); çizim sırası. */
+export type SeasonSection = Exclude<SectionId, 'departments'>
+
+/** Hiçbir bölüm seçili değil: sunucu bunu "hepsi" sayacağından gönderme engellenir. */
+export function isEmptySelection(selected: ReadonlySet<SectionId>): boolean {
+  return !LEAVES.some((id) => selected.has(id))
+}
+
+/**
+ * İstek için bölüm kümesi: hepsi seçiliyse `undefined` (parametre yazılmaz), aksi hâlde çizim
+ * sırasında seçili yapraklar. Boş seçim istek olmaz (`isEmptySelection` ile engellenir).
+ */
+export function sectionsForRequest(
+  selected: ReadonlySet<SectionId>,
+): readonly SeasonSection[] | undefined {
+  if (isFullSelection(selected)) return undefined
+  return LEAVES.filter((id): id is SeasonSection => selected.has(id))
+}
+
+/**
+ * Koordinatörlük süzgeci: `only` boşsa "Tümü" (parametre yok). Tümü açıkken bir çipe basmak
+ * süzgeci yalnız o koordinatörlüğe daraltır; sonraki basışlar ekler/çıkarır; son çip çıkınca
+ * "Tümü"ne döner (boş süzgeç yoktur: sunucu onu "hepsi" sayar).
+ */
+export function toggleDepartment(only: ReadonlySet<string>, id: string): Set<string> {
+  const next = new Set(only)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  return next
+}
+
+/** İstek için `department_ids`: yalnız daraltılmışsa, programdaki sırayla; yoksa `undefined`. */
+export function departmentsForRequest(
+  only: ReadonlySet<string>,
+  order: readonly string[],
+): readonly string[] | undefined {
+  if (only.size === 0) return undefined
+  const ids = order.filter((id) => only.has(id))
+  return ids.length > 0 ? ids : undefined
 }

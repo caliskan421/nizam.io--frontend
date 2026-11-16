@@ -6,6 +6,8 @@
 import type { components } from '@/shared/api/schema'
 import type { DownloadTicketFailed } from '@/shared/download'
 
+import type { SeasonSection } from './sections'
+
 type Schemas = components['schemas']
 
 export type SeasonReport = Schemas['SeasonReport']
@@ -26,6 +28,16 @@ export interface ReportRequest {
   targetId?: string
   /** `workload` için seçili üyeler; boş/yok = bütün üyeler (açık boş dizi gönderilir). */
   memberIds?: readonly string[]
+  /** `season` için bölüm seçimi (BE-122); yok = bütün bölümler (parametre yazılmaz). */
+  sections?: readonly SeasonSection[]
+  /** `season` için koordinatörlük süzgeci (BE-122/BE-127); yok = bütün koordinatörlükler. */
+  departmentIds?: readonly string[]
+}
+
+/** "Bölüm seç…" penceresinin seçimi (yalnız `season`); alan yoksa o eksende "hepsi". */
+export interface SeasonSelection {
+  sections?: readonly SeasonSection[]
+  departmentIds?: readonly string[]
 }
 
 /** Hata sınıfları (13 `mekanizma.md` §3.1, `backend.md` §3.2). */
