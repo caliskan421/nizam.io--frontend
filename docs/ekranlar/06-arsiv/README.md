@@ -113,24 +113,24 @@ Hâlâ açık:
 
 ## F8 eki — canlıya alma (WEB-8 O1, W169)
 
-**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W171. Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayacak işçi kimliğidir (kanıt dosyaları işçi PR'ında eklenir).
+**Kaynak:** [`canliya-alma-matrisi.md`](../../yurutme/web-8/canliya-alma-matrisi.md) (2026-11-15, pin hedefi `v0.23.0-api`, karar tabanı P67-P72; P68-P72 koordinatör varsayılanı olduğundan yeni satırlar `kabul (P67)` ya da `geçici kabul (P68…)`). **Uygulayıcı:** W171. Bu bölüm yeni eklenmiştir; yukarıdaki satırların kararı değişmedi, F8 davranışı yalnız burada yazılıdır. Kanıt sütunu uygulayan işçi kimliği ve test dosyalarıdır (W177 O4'te tamamladı).
 
 | E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
 | --- | --- | --- | --- | --- |
-| E-06-04 Tümünü indir (dönem ZIP, ŞY) | canlı → `programArchiveZip` (S2): departman seçmeden dönem ZIP'i; onay penceresinde `include_reports` klasör ağacı (M-A07, M-A08) | kabul (P67), P70-a | BE-120, BE-124 | W171 |
-| E-06-05 / E-06-35 / E-06-62 Dosya yükle | canlı → görev seçici `include_empty=true` (`archiveTasks` / `programArchiveTasks`; dosyasız görevler dahil); ŞY başlığı = `ArchiveTask.department_id` | kabul (P67) | BE-121, BE-072 | W171 |
-| E-06-06 / E-06-26 Arama (ŞY) | canlı → klasörsüz `programArchiveAttachments` (`search`: yalnız dosya adı); "Görev klasörü seçin" boş durumu kalkar; kişi/etiket araması değişmez | kabul (P67) | BE-072 | W171 |
-| E-06-08 / E-06-10 / E-06-12 / E-06-15 / E-06-16 Klasör ızgarası ve kartı (ŞY) | canlı → `programArchiveFolders` (`file_count`, `task_count`); statik `—` kalkar | kabul (P67) | BE-072, BE-025 | W171 |
-| E-06-09 Sıralama | canlı → "Son yükleme" seçeneği `last_uploaded_at` ile etkin (`null` sonda) | geçici kabul (P68) | BE-025 | W171 |
-| E-06-13 / E-06-14 Kart boyutu, Son yükleme | canlı → `total_bytes`, `last_uploaded_at` (`null` → `—`) | kabul (P67) | BE-025 | W171 |
-| E-06-22 / E-06-33 Toplam ve meta satırı | canlı → `totals.file_count`, `totals.total_bytes`, klasör `total_bytes` | kabul (P67) | BE-025 | W171 |
-| E-06-27 / E-06-28 / E-06-29 / E-06-30 / E-06-37 Ağaç, düğüm, görev klasörü (ŞY) | canlı → `programArchiveFolders` + `programArchiveTasks?department_id`; `archiveTasks ∩ listProgramWorkItems` kesişimi ve 200 tavan uyarısı kalkar (P33 geçici yolu) | kabul (P67) | BE-072 | W171 |
-| E-06-34 ZIP indir (klasör) | canlı → ŞY için `programArchiveZip?department_id` (S2); S3 `archiveFolderZip` de geçerli, yol seçimi W171'de | geçici kabul (P68) | BE-072 | W171 |
-| E-06-38 / E-06-46 Başlık + sayaç | canlı → `ArchiveFileList.total` kesin ("n+" kalkar) | kabul (P67) | BE-073 | W171 |
-| E-06-52 / E-06-56 / E-06-57 Görev · İndir · Yeniden adlandır (ŞY) | canlı → S3 başlığı = satırın `department_id` alanı | kabul (P67) | BE-072 | W171 |
-| E-06-54 Yükleyen | canlı → `uploaded_by_full_name` (null → nötr); önizlemede ek okuma kalkar | kabul (P67) | BE-071 | W171 |
-| E-06-55 Tarih | canlı → `created_at` | kabul (P67) | BE-070 | W171 |
-| E-06-58 / E-06-64 Etiketi değiştir ve menüsü | canlı → `retagFile` (`PATCH /v1/files/{id}/tag`) | kabul (P67) | BE-074 | W171 |
+| E-06-04 Tümünü indir (dönem ZIP, ŞY) | canlı → `programArchiveZip` (S2): departman seçmeden dönem ZIP'i; onay penceresinde `include_reports` klasör ağacı (M-A07, M-A08) | kabul (P67), P70-a | BE-120, BE-124 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-05 / E-06-35 / E-06-62 Dosya yükle | canlı → görev seçici `include_empty=true` (`archiveTasks` / `programArchiveTasks`; dosyasız görevler dahil); ŞY başlığı = `ArchiveTask.department_id` | kabul (P67) | BE-121, BE-072 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-06 / E-06-26 Arama (ŞY) | canlı → klasörsüz `programArchiveAttachments` (`search`: yalnız dosya adı); "Görev klasörü seçin" boş durumu kalkar; kişi/etiket araması değişmez | kabul (P67) | BE-072 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-08 / E-06-10 / E-06-12 / E-06-15 / E-06-16 Klasör ızgarası ve kartı (ŞY) | canlı → `programArchiveFolders` (`file_count`, `task_count`); statik `—` kalkar | kabul (P67) | BE-072, BE-025 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-09 Sıralama | canlı → "Son yükleme" seçeneği `last_uploaded_at` ile etkin (`null` sonda) | geçici kabul (P68) | BE-025 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-13 / E-06-14 Kart boyutu, Son yükleme | canlı → `total_bytes`, `last_uploaded_at` (`null` → `—`) | kabul (P67) | BE-025 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-22 / E-06-33 Toplam ve meta satırı | canlı → `totals.file_count`, `totals.total_bytes`, klasör `total_bytes` | kabul (P67) | BE-025 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-27 / E-06-28 / E-06-29 / E-06-30 / E-06-37 Ağaç, düğüm, görev klasörü (ŞY) | canlı → `programArchiveFolders` + `programArchiveTasks?department_id`; `archiveTasks ∩ listProgramWorkItems` kesişimi ve 200 tavan uyarısı kalkar (P33 geçici yolu) | kabul (P67) | BE-072 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-34 ZIP indir (klasör) | canlı → ŞY için `programArchiveZip?department_id` (S2); S3 `archiveFolderZip` de geçerli, yol seçimi W171'de | geçici kabul (P68) | BE-072 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-38 / E-06-46 Başlık + sayaç | canlı → `ArchiveFileList.total` kesin ("n+" kalkar) | kabul (P67) | BE-073 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-52 / E-06-56 / E-06-57 Görev · İndir · Yeniden adlandır (ŞY) | canlı → S3 başlığı = satırın `department_id` alanı | kabul (P67) | BE-072 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-54 Yükleyen | canlı → `uploaded_by_full_name` (null → nötr); önizlemede ek okuma kalkar | kabul (P67) | BE-071 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-55 Tarih | canlı → `created_at` | kabul (P67) | BE-070 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
+| E-06-58 / E-06-64 Etiketi değiştir ve menüsü | canlı → `retagFile` (`PATCH /v1/files/{id}/tag`) | kabul (P67) | BE-074 | W171 — aşağıdaki «F8 uygulama kanıtı» tablosu |
 
 **F8'de değişmeyenler (06 Arşiv):** E-06-19/20/21 (BE-024, `designStub` kalır), E-06-23/24 dağılım (alan yok; BE-025 kapsamı dışı, Varsayım 3), E-06-41/49/50 (BE-026), E-06-59 (BE-075), E-06-63 (BE-076), E-06-06/26 kapsam metni "yalnız dosya adı" (BE-077), E-06-05/35/62 göreve bağsız yükleme (BE-069).
 

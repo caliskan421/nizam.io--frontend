@@ -1,6 +1,6 @@
 # 00 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.11.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (tespit `v0.11.0-api`; **web pini F8'de `v0.23.0-api`** — F8 W173: `MyDepartment.department_code`, bildirim sözlüğü `work.task.reminder`; F8 eki README'dedir, aşağıdaki v0.11 anlatımı tarihsel kalır), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Okuma notu: backend çalışma ağacındaki `openapi.yaml` ve `error-codes.json` `v0.11.0-api` etiketiyle aynıdır (2026-11-08 `git diff` boş); yalnız `README.md` ve `compatibility.md` etiketten sonra değişmiştir — bu dosyada o ikisinden alınan bilgi (§6) etiket sonrası metindir.
 
