@@ -1,6 +1,6 @@
-# O2 — Pin yükseltme ve canlıya alma planı (iskelet; W169 matrisi sonrası kesinleşir)
+# O2 — Pin yükseltme ve canlıya alma (tamam: O2a #158, O2b #159–#163)
 
-**Durum (2026-11-15):** başlamadı. O1 (W168, W169) birleşince koordinatör istemleri üretir; her W istemindeki **Tespit** satırı W169'un matris dosyasındaki E-kimlik listesidir. Yöntem ve kabul: [ortak sözleşme](ortak-sozlesme.md) KESİN 35 (canlıya alma) ve KESİN 36 (pin).
+**Durum (2026-11-16): tamam.** O2a W170 #158 (`b141713`), O2b W173 #159, W174 #160, W171 #161, W172 #162, W175 #163 (main `6e09d7a`); sonuçlar [ilerleme](ilerleme.md). Plan (tarihsel): O1 (W168, W169) birleşince koordinatör istemleri üretti; her W istemindeki **Tespit** satırı W169'un matris dosyasındaki E-kimlik listesidir. Yöntem ve kabul: [ortak sözleşme](ortak-sozlesme.md) KESİN 35 (canlıya alma) ve KESİN 36 (pin).
 
 | W | İş / sahiplik sınırı | Kaynak |
 | --- | --- | --- |

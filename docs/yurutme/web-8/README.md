@@ -1,5 +1,7 @@
 # WEB-8 — pin yükseltme (v0.23.0-api) ve canlıya alma turu
 
+**F8 KAPANMADI — Codex bekliyor (2026-11-16).** O1–O3 kodu main `b9aab8c`'de (#154–#164; pin `v0.23.0-api` #158, canlıya alma #159–#163, entegrasyon #164); O4 sürüyor (W177 belgeler, W178 gerçek backend `v0.23.0-api` tanığı, Codex 2–3 tur). **Güncel olgu:** backend `v0.24.0-api` (BE-F7: sohbet/bildirim) çıktı; F8 pini v0.23'te kalır (P69/P74), karşılıklar [rapor-F8 §6](../../backend-eksikleri/rapor-F8.md) ve F9 önerisi [web-9](../web-9/README.md). "F8 KAPANDI" yalnız CI SUCCESS + MERGED + Codex hükmü sonrası yazılır.
+
 **F8 AÇILDI — 2026-11-15** (P67; ürün sahibi: "pin yükseltme + canlıya alma turu olsun"). F7 [KAPANDI](../web-7/README.md) (main `31c6ccc`). Backend'i ürün sahibi arka planda ayrı yürütür; yayımlanmış son etiket **`v0.23.0-api`**. Kararlar: [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md) (P67 kesin; P68–P74 koordinatör varsayılanı, geçici kabul). Süreç: [ortak sözleşme](ortak-sozlesme.md) (KESİN 1–36), [ilerleme](ilerleme.md), [pin planı](pin-yukseltme-v023.md).
 
 ## Neden bu tur
@@ -40,9 +42,11 @@ Her W ayrı worktree ve dal (`web8/<oturum>-<wid>`); [ortak sözleşme](ortak-so
 | **O2a** | **W170 pin WP1**: tek PR, UI değişmez (KESİN 36), kırıcı farklar ayrı commit/test | W170 |
 | **O2b** | **W171** arşiv + ZIP · **W172** raporlar · **W173** K1/Ü1 + görev kodu · **W174** silinenler · **W175** toplantılar + organizasyon CSV + bildirim sözlüğü. Zincir ya da bağımsız: W169 matrisindeki dosya kesişimine göre koordinatör karar verir (KESİN 23–25). | W171–W175 |
 | **O3** | **W176** entegrasyon: yetki testleri (P33 yolu kaldırma, S2/S3 başlıkları, bilet hedefleri), gerçek bileşen + durumlu sahte sunucu | W176 |
-| **O4** | **W177** belgeler (rapor-F8, kapanış) ‖ **W178** Docker gerçek backend **v0.23.0-api** tanığı → Codex 2–3 tur → kapanış belge PR | W177, W178, Codex |
+| **O4** | **W177** belgeler (rapor-F8, kapanış; P76 hızlı mod) ‖ **W178** Docker gerçek backend **v0.23.0-api** tanığı → Codex 2–3 tur → kapanış belge PR | W177, W178, Codex |
 
-W167 (F7 devir borçları: kararsız testler, `unregisterPushTarget`, `up.sh` parametrik, `topbar-dot*`, manifest, `push.snoozeUntil`) F8'den bağımsız yürür; sonuçları [ilerleme](ilerleme.md) borç tablosuna W177 işler.
+O1–O3 durumu: O1 #154–#157, O2a #158, O2b #159–#163, O3 #164 birleşti ([ilerleme](ilerleme.md)); P75 (Actions kesintisinde yerel CI) ve P76 (hızlı mod) süreç kararlarıdır.
+
+W167 (F7 devir borçları: kararsız testler, `unregisterPushTarget`, `up.sh` parametrik, `topbar-dot*`, manifest, `push.snoozeUntil`) F8'den bağımsız yürüdü ve **kapandı** (#155, `9cc65c8`); sonuçları [ilerleme](ilerleme.md) borç tablosuna işlendi (web-7 ilerleme #2, #8, #12, #13, #21, #27 kapandı).
 
 ## Başlatma koşulları (karşılandı)
 
@@ -52,7 +56,7 @@ W167 (F7 devir borçları: kararsız testler, `unregisterPushTarget`, `up.sh` pa
 
 ## Açık sorular
 
-1. **BE-F7 etiketi** (sohbet/bildirim paketi) geldiğinde ne zaman alınır? Öneri: F8 kapanışından sonra ayrı "pin v0.24" turu ya da F9 içinde (P74). Ürün sahibi kararı.
+1. **BE-F7 etiketi** (sohbet/bildirim paketi) **çıktı: `v0.24.0-api`** (2026-11-16; 29 commit, 6 yeni uç). F8 pini v0.23'te kalır; öneri: F9 = pin v0.24.0-api + sohbet/bildirim canlıya alma ([web-9](../web-9/README.md)). Ürün sahibi kararı.
 2. **F9 adayları** ve sırası: Takvim, Kurumsal hafıza, Tablolar ekranı, profil sayfası (Ü7: tercihler, cihazlar, sessiz saatler), 01b işlem geçmişi, Ü2–Ü7/K2–K8, Asistan. Kapsam kullanıcı kararıdır.
 3. 01f dönem raporunda konum/dönem tarihi (GAP-237) ve Gantt okları (GAP-239) backend'de kalır: web'de nötr kalacak (P68 kısmi kuralı); onay P72 ile sürer.
 4. BE-110 birleşik "Tümü" listesi (GAP-234): backend'de yok; sekme sayaçları gelir, "Tümü" birleşik sırası istemci birleşimi olarak kalır — ürün sahibine ayrıca sorulmaz (varsayılan: değişmez).
@@ -62,7 +66,10 @@ W167 (F7 devir borçları: kararsız testler, `unregisterPushTarget`, `up.sh` pa
 | Dosya | İçerik |
 | --- | --- |
 | README.md | Bu belge (F8 açıldı; kapsam, sıra, açık sorular) |
-| [ilerleme.md](ilerleme.md) | Durum tablosu (O1 sürüyor), kararlar, F7'den devreden borçlar |
+| [ilerleme.md](ilerleme.md) | Durum tablosu (O1–O3 birleşti, O4 sürüyor), kararlar P67–P76, kayıtlar, numaralı borçlar (F7'den devreden + F8'de doğan) |
 | [ortak-sozlesme.md](ortak-sozlesme.md) | Her uygulayıcı isteminin başına eklenen sözleşme (KESİN 1–36) |
 | [pin-yukseltme-v023.md](pin-yukseltme-v023.md) | WP0–WP4 planı, kırıcı farklar envanteri, fixture stratejisi (web-5 planının devamı) |
-| [oturum-1-hazirlik.md](oturum-1-hazirlik.md) … [oturum-4-kapanis.md](oturum-4-kapanis.md) | Oturum iskeletleri |
+| [oturum-1-hazirlik.md](oturum-1-hazirlik.md) … [oturum-4-kapanis.md](oturum-4-kapanis.md) | Oturum iskeletleri; [oturum-3](oturum-3-entegrasyon.md) (W176 sonucu) ve [oturum-4](oturum-4-kapanis.md) (kapı sonuçları) dolu |
+| [canliya-alma-matrisi.md](canliya-alma-matrisi.md) | W169 stub → v0.23 ucu → ekran satırı matrisi |
+| [rapor-F8](../../backend-eksikleri/rapor-F8.md) | Backend devir raporu (bağlanan/kısmi/açık, v0.24 farkı, F9 web işi, backend paket adayları) |
+| [web-9](../web-9/README.md) | F9 iskeleti (**F9 AÇILMADI**) |
