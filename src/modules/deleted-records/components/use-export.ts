@@ -8,10 +8,9 @@
  * tüketilmez / dosya kaydedilmez, bildirim yok). `useToast` kurulumda alınır (KESİN 26a).
  */
 import { useQueryClient } from '@tanstack/vue-query'
-import { onScopeDispose, ref } from 'vue'
+import { ref } from 'vue'
 
-import { useDownloadFlow, type DownloadResult } from '@/shared/download'
-import { authSession } from '@/shared/http'
+import { useDownloadFlow, useDownloadLife, type DownloadResult } from '@/shared/download'
 import { reportAuthorityLoss } from '@/shared/scope/authority-loss'
 import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
@@ -40,18 +39,8 @@ export function useDeletedExport(options: ExportOptions) {
   const toast = useToast()
   const flow = useDownloadFlow<ExportRequest>(exportTarget)
   const state = ref<ExportState>({ kind: 'idle' })
-  let controller: AbortController | null = null
-
-  function cancel(): void {
-    controller?.abort()
-  }
-  const stopScope = scope.onChange(cancel)
-  const stopSession = authSession.subscribe(cancel)
-  onScopeDispose(() => {
-    cancel()
-    stopScope()
-    stopSession()
-  })
+  const life = useDownloadLife()
+  const cancel = life.cancel
 
   function settle(result: DownloadResult<ExportRequest>): void {
     switch (result.kind) {
@@ -78,14 +67,10 @@ export function useDeletedExport(options: ExportOptions) {
 
   async function start(): Promise<void> {
     if (state.value.kind === 'running' || scope.programId === null) return
-    controller = new AbortController()
+    const lifeOptions = life.begin()
     state.value = { kind: 'running' }
     const request = { programId: scope.programId, kind: options.kind(), query: options.query() }
-    try {
-      settle(await flow.start(request, { signal: controller.signal }))
-    } finally {
-      controller = null
-    }
+    settle(await flow.start(request, lifeOptions))
   }
 
   return {

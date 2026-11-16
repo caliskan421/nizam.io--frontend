@@ -18,7 +18,8 @@ import { usePeriodZip } from './use-period-zip'
  * açar (E-13-10); "Hazırla ve indir" `programArchiveZip`'i (S2, yalnız program başlığı; BE-120) raporlu
  * (`include_reports=true`, BE-124) bilet hedefiyle indirir. Departman seçimi gerekmez. Yetkisiz
  * hesapta düğme gizlidir (gizleme güvenlik değildir, sunucu 403 verir). Metinler `zip-status.ts`;
- * otomatik tekrar yok. Program/oturum değişince açık pencere kapanır (bayat bağlam yazma başlatmaz).
+ * otomatik tekrar yok. `Retry-After` taşıyan 429/503'te "Bekleyin (N s)" sayacı çalışır, düğme
+ * `aria-disabled` olur (odak kaybolmaz) ve süre bitince açılır (CX-F8-Ö-01). Program/oturum değişince açık pencere kapanır (bayat bağlam yazma başlatmaz).
  */
 const store = useScopeStore()
 const { standing } = useStanding()
@@ -26,7 +27,9 @@ const visible = computed(() => archiveCapabilities(standing.value, store.program
 const zip = usePeriodZip(() => store.programId)
 
 const confirming = ref(false)
+const waiting = computed(() => zip.cooldown.value > 0)
 const noteText = computed(() => {
+  if (waiting.value) return zipText('cooldown', { seconds: zip.cooldown.value })
   if (zip.phase.value === 'busy') return zipText('period.busy')
   if (zip.phase.value === 'saved') {
     return zip.truncated.value ? zipText('period.truncated') : zipText('period.saved')
@@ -64,8 +67,9 @@ onBeforeUnmount(() => {
       :aria-busy="zip.busy.value"
       :aria-describedby="noteText ? 'period-zip-note' : undefined"
       aria-haspopup="dialog"
+      :aria-disabled="waiting ? 'true' : undefined"
       data-testid="period-zip-button"
-      @click="confirming = true"
+      @click="confirming = !waiting"
     >
       {{ zipText('period.label') }}
     </UiButton>

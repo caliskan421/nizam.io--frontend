@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
+import { cooldownSeconds, useDownloadCooldown } from '@/shared/download'
+
 import { errorText } from '@/shared/i18n'
 import { notifyOutcome } from '@/shared/ui/confirm'
 import { UiIcon } from '@/shared/ui'
@@ -18,7 +20,10 @@ const view = injectUsersView()
 const exporter = useUsersExport()
 const done = ref<string | null>(null)
 const failure = ref<string | null>(null)
-const disabled = computed(() => view === null || exporter.busy.value)
+const cooldown = useDownloadCooldown(() => {
+  failure.value = null
+})
+const disabled = computed(() => view === null || exporter.busy.value || cooldown.seconds.value > 0)
 
 async function start(): Promise<void> {
   if (!view || exporter.busy.value) return
@@ -26,8 +31,11 @@ async function start(): Promise<void> {
   failure.value = null
   const result = await exporter.run(view.exportFilters.value)
   if (result.kind === 'saved') done.value = result.fileName
-  else if (result.kind === 'failed') failure.value = errorText(result.error)
-  else if (result.kind === 'ticket_failed') notifyOutcome(result.outcome)
+  else if (result.kind === 'failed') {
+    failure.value = errorText(result.error)
+    const wait = cooldownSeconds(result)
+    if (wait !== null) cooldown.start(wait)
+  } else if (result.kind === 'ticket_failed') notifyOutcome(result.outcome)
 }
 </script>
 
@@ -51,7 +59,9 @@ async function start(): Promise<void> {
       usersText('users.exportState.saved', { name: done })
     }}</span>
     <span v-else-if="failure" class="rp-cap" role="alert" data-testid="users-export-error">{{
-      failure
+      cooldown.seconds.value > 0
+        ? usersText('users.exportState.cooldown', { seconds: cooldown.seconds.value })
+        : failure
     }}</span>
   </span>
 </template>
