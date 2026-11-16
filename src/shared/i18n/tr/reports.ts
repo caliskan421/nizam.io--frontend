@@ -363,7 +363,8 @@ export const trReports = {
     failure: {
       export_in_progress:
         'Önceki raporunuz bitince yeniden deneyin. Başka bir sekme ya da cihazdaki rapor sürüyor olabilir.',
-      capacity_full: 'Şu an çok sayıda rapor üretiliyor. Otomatik yeniden deneme yapılmaz.',
+      capacity_full:
+        'Şu an çok sayıda rapor üretiliyor. Bekleme süresi (varsa) yaklaşıktır; otomatik yeniden deneme yapılmaz.',
       input_invalid: 'Seçim güncellendi, yeniden deneyin.',
       too_large: 'Daha az üye seçin.',
       report_failed: 'Rapor oluşturulamadı.',

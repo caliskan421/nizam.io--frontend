@@ -3,11 +3,12 @@
  * tekrar YOKTUR; sonuç kullanıcıya durum kartı olarak gider, metin yalnız i18n'den (sunucu
  * `message` gösterilmez).
  *
- *  - 429 `reporting.export_in_progress`: sayaç yalnız `Retry-After` başlığı varsa (sunucuda sabit
- *    1 sn, gerçek kalan süre değil; BE-135).
+ *  - 429 `reporting.export_in_progress`: sayaç `Retry-After` başlığı varsa (v0.23: EWMA tahmini,
+ *    1–60 sn; değer İPUCUDUR — kart "yaklaşık" der; BE-135).
  *  - 429 `platform.rate_limited` (bilet tavanı 16 açık bilet ya da dışa aktarım kotası):
  *    `Retry-After` ile sayaç.
- *  - 503 `reporting.capacity_full`: başlık yok, sayaç yok, "Yeniden dene" (E-13-71).
+ *  - 503 `reporting.capacity_full`: v0.23'te `Retry-After` (1–30 sn) taşır → sayaç; başlık yoksa
+ *    (eski sunucu, savunma) sayaç yok, "Yeniden dene". Otomatik tekrar YOK (E-13-71).
  *  - 403 `reporting.not_authorized`: yetki düştü (`me` yeniden okunur — çağıran).
  *  - 404 `reporting.not_found`: kayıt silinmiş/kapsam dışı (panel/sayfa kapanır — çağıran).
  *  - 422 `reporting.input_invalid`: iş yükü `member_ids` geçersiz → seçim yenilenir.

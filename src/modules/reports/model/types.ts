@@ -65,8 +65,8 @@ export interface ReportFailure {
   /** i18n anahtarı (`errors.*` ya da `reports.failure.*`); sunucu `message` alanı gösterilmez. */
   messageKey: string
   /**
-   * `Retry-After` saniyesi; YALNIZ başlık varsa (sayaç gösterilir). Başlık yoksa `null`
-   * (503 `reporting.capacity_full`: sayaç yok, "Yeniden dene"; BE-135).
+   * `Retry-After` saniyesi (429 ve 503 `reporting.capacity_full`; BE-135); YALNIZ başlık varsa
+   * (sayaç gösterilir). Başlık yoksa `null` (sayaç yok, "Yeniden dene").
    */
   retryAfter: number | null
 }
