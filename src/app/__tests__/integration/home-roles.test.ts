@@ -126,7 +126,17 @@ describe('K1 (koordinatör hesabı)', () => {
     const app = await boot({ ...COORD, path: '/' })
     await until(() => badge('approval') === '1' && cell('returned') === '1', 'önce')
     await click('[data-region="approvals"] [data-action="return"]')
+    // BE-139: gerekçe penceresi; gerekçe isteğe bağlıdır, dolu gerekçe gövdede `reason` olur.
+    const reason = await until(
+      () => $('[data-testid="k1-return-input"]') as HTMLTextAreaElement | null,
+      'gerekçe alanı',
+    )
+    reason.value = 'imzalı liste eksik'
+    reason.dispatchEvent(new Event('input', { bubbles: true }))
+    await click('[data-testid="k1-return-submit"]')
     await until(() => cell('returned') === '2', 'iade 2')
+    const transitions = backend.sent('POST', '/v1/work-items/w1/transitions')
+    expect(transitions.at(-1)?.body).toEqual({ to: 'iade_edildi', reason: 'imzalı liste eksik' })
     await until(() => badge('approval') === null, 'onay rozeti düştü')
     expect(badge('overdue')).toBe('1')
     expect(cell('pending')).toBe('0')

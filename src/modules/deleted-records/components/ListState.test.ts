@@ -5,7 +5,7 @@ import { ApiError } from '@/shared/errors/api-error'
 
 import ListState from './ListState.vue'
 
-const base = { kind: 'toplanti', error: null, retrying: false, hasMore: false } as const
+const base = { kind: 'toplanti', error: null, retrying: false } as const
 
 describe('ListState (E-12-60/61/62, P44)', () => {
   it('yükleniyor', () => {
@@ -27,13 +27,11 @@ describe('ListState (E-12-60/61/62, P44)', () => {
     expect(wrapper.text()).toBe('Silinmiş kullanıcı yok.')
   })
 
-  it('süzgeç boş: temizle düğmesi; imleç sürüyorsa ek ipucu', async () => {
-    const plain = mount(ListState, { props: { ...base, state: 'filtered' } })
-    expect(plain.text()).toContain('Bu filtrelerle kayıt yok.')
-    expect(plain.text()).not.toContain('daha fazla yükle')
-    const more = mount(ListState, { props: { ...base, state: 'filtered', hasMore: true } })
-    expect(more.text()).toContain('Yüklenen kayıtlarda yok, daha fazla yükle.')
-    await more.get('[data-testid="dr-clear"]').trigger('click')
-    expect(more.emitted('clear')).toHaveLength(1)
+  it('süzgeç boş: sunucu süzgeci olduğundan "yüklenenlerde yok" ayrımı yok; temizle düğmesi', async () => {
+    const wrapper = mount(ListState, { props: { ...base, state: 'filtered' } })
+    expect(wrapper.text()).toContain('Bu filtrelerle kayıt yok.')
+    expect(wrapper.text()).not.toMatch(/Yüklenen|daha fazla/)
+    await wrapper.get('[data-testid="dr-clear"]').trigger('click')
+    expect(wrapper.emitted('clear')).toHaveLength(1)
   })
 })

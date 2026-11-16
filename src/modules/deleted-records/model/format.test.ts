@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   dayKey,
+  dayStartIso,
   formatClock,
   formatDate,
   formatLong,
@@ -47,5 +48,18 @@ describe('silinen kayıtlar tarih biçimleri (kurulum saat dilimi)', () => {
     expect(isToday('2026-10-21T10:00:00Z', now, TZ)).toBe(false)
     expect(isToday('2026-10-21T10:00:00Z', now, 'UTC')).toBe(true)
     expect(isToday(null, now, TZ)).toBe(false)
+  })
+})
+
+describe('gün başlangıcı (aralık sınırı; M-D07)', () => {
+  it('kurulum saat diliminde gün başı UTC anına çevrilir', () => {
+    expect(dayStartIso('2026-11-12', TZ)).toBe('2026-11-11T21:00:00Z')
+    expect(dayStartIso('2026-11-12', 'UTC')).toBe('2026-11-12T00:00:00Z')
+  })
+
+  it('DST dilimlerinde yaz/kış sapması gün başında uygulanır', () => {
+    // New York: 12 Kasım (EST, -05) ve 12 Temmuz (EDT, -04).
+    expect(dayStartIso('2026-11-12', 'America/New_York')).toBe('2026-11-12T05:00:00Z')
+    expect(dayStartIso('2026-07-12', 'America/New_York')).toBe('2026-07-12T04:00:00Z')
   })
 })

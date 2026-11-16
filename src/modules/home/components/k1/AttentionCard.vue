@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { DateRequestForm } from '@/modules/timeline/public'
 import { TIMELINE_ROUTE } from '@/modules/timeline/public'
-import { targetOf } from '@/modules/work/public'
+import { targetOf, workShortCode } from '@/modules/work/public'
 import type { ApiError } from '@/shared/errors/api-error'
-import { DesignStub, UiButton, UiCount, useToast } from '@/shared/ui'
+import { UiButton, UiCount, useToast } from '@/shared/ui'
 
 import type { RoleLoadScope } from '../../model/role/common'
 import { useRoleFacts } from '../../api/role/use-facts'
@@ -15,6 +15,7 @@ import type { AttentionRow } from '../../model/k1/queues'
 import type { WorkRow } from '../../model/role/common'
 import { formatDayShort } from '../../model/role/dates'
 import { taskLocation } from '../../model/role/links'
+import { attentionNote } from '../../model/role/lock'
 import RegionBody from './RegionBody.vue'
 import ScopeNote from './ScopeNote.vue'
 
@@ -22,9 +23,9 @@ import ScopeNote from './ScopeNote.vue'
  * "Dikkat gerektirenler ‹n›" (E-K1-23…25): geciken açık görevler (yüklenen küme; en uzun
  * gecikme önde). Satır eylemi: bekleyen talep varsa "Talebi gör" (03 paneli), yoksa koordinatör
  * için "Süre uzat" → ortak `DateRequestForm` (timeline, F3). "talep reddedildi" yalnız
- * yüklenen talep listesinde eşleşirse. Bağımlılık göstergesi/eylemi gizli (BE-138); kod `—`.
+ * yüklenen talep listesinde eşleşirse. Bağımlılık: başlıkta "‹m› görev bağımlılık bekliyor", satırda "Bağımlılıklar" (03 paneli; BE-138); görev kodu sunucu `code` alanından (BE-005).
  */
-defineProps<{
+const props = defineProps<{
   rows: readonly AttentionRow[]
   /** Kısmi yükleme (`null` = tam): sayı "≥" + "ilk N görev" etiketi (CX-F6-E-03). */
   scope?: RoleLoadScope | null
@@ -36,6 +37,7 @@ defineProps<{
 const emit = defineEmits<{ retry: [] }>()
 
 const facts = useRoleFacts()
+const note = computed(() => attentionNote(props.rows.map((r) => r.item)))
 const toast = useToast()
 const extending = ref<WorkRow | null>(null)
 const open = ref(false)
@@ -61,7 +63,7 @@ function sent(): void {
         {{ homeText('home.k1.attention.timeline') }}
       </RouterLink>
     </div>
-    <p class="rh-note">{{ homeText('home.k1.attention.note', { n: rows.length }) }}</p>
+    <p class="rh-note" data-testid="k1-attention-note">{{ note }}</p>
     <ScopeNote v-if="scope" compact :scope="scope" :loaded="loaded ?? 0" />
     <RegionBody
       :loading="loading"
@@ -77,9 +79,9 @@ function sent(): void {
             <RouterLink class="rh-title" :to="taskLocation(row.item.work_item_id)">
               {{ row.item.title }}
             </RouterLink>
-            <DesignStub id="BE-005">
-              <span class="rh-kicker">{{ homeText('home.k1.common.code') }}</span>
-            </DesignStub>
+            <span v-if="workShortCode(row.item)" class="rh-kicker" data-task-code>{{
+              workShortCode(row.item)
+            }}</span>
           </span>
           <span class="rh-cap rh-trunc">
             {{
@@ -122,8 +124,17 @@ function sent(): void {
           >
             {{ homeText('home.k1.attention.viewRequest') }}
           </RouterLink>
+          <RouterLink
+            v-if="row.item.has_pending_dependency"
+            class="rh-link"
+            :to="taskLocation(row.item.work_item_id)"
+            :aria-label="homeText('home.k1.attention.dependenciesLabel', { title: row.item.title })"
+            data-action="dependencies"
+          >
+            {{ homeText('home.k1.attention.dependencies') }}
+          </RouterLink>
           <UiButton
-            v-else-if="facts.canExtend(row.item)"
+            v-if="!row.requestPending && facts.canExtend(row.item)"
             variant="ghost"
             size="sm"
             :aria-label="homeText('home.k1.attention.extendLabel', { title: row.item.title })"

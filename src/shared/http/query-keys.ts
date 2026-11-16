@@ -98,6 +98,8 @@ export const queryKeys = {
   /** Silinmiş departmanlar (`listDeletedDepartments`, S2, imleçli; K7 ad eşleşmesi). */
   deletedDepartments: {
     all: (s: ScopeSnapshot) => scoped(s, ['deleted-departments']),
+    /** 12 Silinen kayıtlar listesi: sunucu süzgeci/sırası `filters` içindedir (BE-117; W174). */
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-departments', filters]),
   },
   /**
    * Silinmiş görevler (`listDeletedWorkItems`, S2, imleçli; 12 Silinen kayıtlar, W128). Kapsamlı:
@@ -115,6 +117,14 @@ export const queryKeys = {
   deletedAccounts: {
     all: () => ['deleted-accounts'] as const,
     list: (filters: QueryFilters) => ['deleted-accounts', filters] as const,
+  },
+  /**
+   * Silinenler özeti (`reportDeletedSummary`, S2, yalnız ŞY; BE-110): tür başına sayaçlar; süzgeç
+   * almaz. Kapsamlı: program değişince düşer. Dört silinen listesinin yaşam döngüsü yazmalarıyla
+   * (silme, geri yükleme, kalıcı silme, toplu ve çöp boşaltma) birlikte yenilenir.
+   */
+  deletedSummary: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-summary']),
   },
   workItems: {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
@@ -172,6 +182,9 @@ export const queryKeys = {
     all: (s: ScopeSnapshot) => scoped(s, ['meetings']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['meetings', 'list', filters]),
     deleted: (s: ScopeSnapshot) => scoped(s, ['meetings', 'deleted']),
+    /** 12 Silinen kayıtlar toplantı listesi: sunucu süzgeci/sırası `filters` içindedir (BE-117). */
+    deletedList: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['meetings', 'deleted', filters]),
     candidates: (s: ScopeSnapshot, filters: QueryFilters) =>
       scoped(s, ['meetings', 'candidates', filters]),
     detail: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', 'detail', id]),
@@ -215,6 +228,7 @@ export type QueryResource =
   | 'deletedDepartments'
   | 'deletedWorkItems'
   | 'deletedAccounts'
+  | 'deletedSummary'
   | 'workItems.list'
   | 'workItems.item'
   | 'workItems.counts'
@@ -239,6 +253,30 @@ export type QueryResource =
   | 'chats.refSummary'
   | 'users'
 
+// 12 Silinen kayıtlar: toplu geri yükleme / toplu kalıcı silme / çöp boşaltma (BE-114/115; W174).
+// Tekil geri yükleme ve kalıcı silme ile AYNI türetilmiş kaynakları değiştirir; listeler, özet,
+// pano ve bağlı okuyucular birlikte yenilenir (KESİN 29).
+const BATCH_WORK_ITEM_WRITES = [
+  'batchRestoreWorkItems',
+  'batchPurgeWorkItems',
+  'purgeAllWorkItems',
+] as const satisfies readonly OperationId[]
+const BATCH_MEETING_WRITES = [
+  'batchRestoreMeetings',
+  'batchPurgeMeetings',
+  'purgeAllMeetings',
+] as const satisfies readonly OperationId[]
+const BATCH_DEPARTMENT_WRITES = [
+  'batchRestoreDepartments',
+  'batchPurgeDepartments',
+  'purgeAllDepartments',
+] as const satisfies readonly OperationId[]
+const BATCH_ACCOUNT_WRITES = [
+  'batchRestoreAccounts',
+  'batchPurgeAccounts',
+  'purgeAllAccounts',
+] as const satisfies readonly OperationId[]
+
 // "Görev oluştur/güncelle/sil/geçiş/ata; tarih uçları" (§6 görev satırları).
 const WORK_ITEM_WRITES = [
   'createWorkItem',
@@ -255,6 +293,7 @@ const WORK_ITEM_WRITES = [
   'transferWorkItems',
   'convertNoteToTask',
   'createTaskFromChatMessage',
+  ...BATCH_WORK_ITEM_WRITES,
 ] as const satisfies readonly OperationId[]
 
 // Görev tarihini değiştiren uçlar (istemci-akislari §6, §8 "dates_revision").
@@ -282,7 +321,11 @@ const NOTE_WRITES = [
 ] as const satisfies readonly OperationId[]
 
 /** Silinen kayıtlar: görev geri yükleme ve kalıcı silme (12). */
-const LIFECYCLE_WORK_ITEM_WRITES = ['restoreWorkItem', 'permanentDeleteWorkItem'] as const
+const LIFECYCLE_WORK_ITEM_WRITES = [
+  'restoreWorkItem',
+  'permanentDeleteWorkItem',
+  ...BATCH_WORK_ITEM_WRITES,
+] as const
 
 const FILE_WRITES = [
   'attachFile',
@@ -310,6 +353,7 @@ const ACCOUNT_LIFECYCLE_WRITES = [
   'restoreAccount',
   'permanentDeleteAccount',
   'deleteUser',
+  ...BATCH_ACCOUNT_WRITES,
 ] as const satisfies readonly OperationId[]
 
 // Atama devri (ORGANIZATION-K17/K18/K29; 05 `backend.md` §5, 08 §5): ekipten çıkarma, rol
@@ -331,6 +375,7 @@ const CATALOG_DEPARTMENT_WRITES = [
   'deleteDepartment',
   'restoreDepartment',
   'permanentDeleteDepartment',
+  ...BATCH_DEPARTMENT_WRITES,
 ] as const satisfies readonly OperationId[]
 
 // Panoyu (rapor) geçersizleyen organizasyon yazmaları (koordinatör kararı, W82a): üyelik,
@@ -363,6 +408,9 @@ const REPORT_ORGANIZATION_WRITES = [
   'permanentDeleteDepartment',
   'restoreAccount',
   'permanentDeleteAccount',
+  ...BATCH_MEETING_WRITES,
+  ...BATCH_DEPARTMENT_WRITES,
+  ...BATCH_ACCOUNT_WRITES,
 ] as const satisfies readonly OperationId[]
 
 // Toplantı içeriği yazmaları (konferans başlat/bitir hariç: rapora ve panoya girmez).
@@ -381,6 +429,7 @@ const MEETING_CONTENT_WRITES = [
   'convertNoteToTask',
   'addMeetingParticipant',
   'removeMeetingParticipant',
+  ...BATCH_MEETING_WRITES,
 ] as const satisfies readonly OperationId[]
 
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
@@ -421,6 +470,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'updateUser',
     'restoreDepartment',
     'permanentDeleteDepartment',
+    ...BATCH_DEPARTMENT_WRITES,
   ]),
   // §6 (link/unlink/rename) + kodu değiştiren katalog güncellemesi ve katalog silme (08 §5).
   departments: [
@@ -431,6 +481,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'deleteDepartment',
     'restoreDepartment',
     'permanentDeleteDepartment',
+    ...BATCH_DEPARTMENT_WRITES,
   ],
   // Ekip satırı ve hesap durumu (`status: deleted`) değiştiren uçlar; `createUser` ekip
   // satırıyla birlikte hesap açar (05 §2).
@@ -438,11 +489,37 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // Atanabilir havuz (08 §5): ekip yazmaları + havuza giren/çıkan hesaplar.
   'departments.assignable': unique(MEMBERSHIP_WRITES, ACCOUNT_LIFECYCLE_WRITES, ['createUser']),
   'catalog.departments': CATALOG_DEPARTMENT_WRITES,
-  deletedDepartments: ['deleteDepartment', 'restoreDepartment', 'permanentDeleteDepartment'],
+  deletedDepartments: [
+    'deleteDepartment',
+    'restoreDepartment',
+    'permanentDeleteDepartment',
+    ...BATCH_DEPARTMENT_WRITES,
+  ],
   // 12 Silinen kayıtlar (W128): görev silme/geri yükleme/kalıcı silme silinen görev listesini
   // yeniden okutur.
-  deletedWorkItems: ['deleteWorkItem', 'restoreWorkItem', 'permanentDeleteWorkItem'],
+  deletedWorkItems: [
+    'deleteWorkItem',
+    'restoreWorkItem',
+    'permanentDeleteWorkItem',
+    ...BATCH_WORK_ITEM_WRITES,
+  ],
   deletedAccounts: [...ACCOUNT_LIFECYCLE_WRITES],
+  // Özet sayaçları dört türün silme/geri yükleme/kalıcı silme yazmalarıyla değişir (12, BE-110).
+  deletedSummary: [
+    'deleteWorkItem',
+    'restoreWorkItem',
+    'permanentDeleteWorkItem',
+    'deleteMeeting',
+    'restoreMeeting',
+    'permanentDeleteMeeting',
+    'deleteDepartment',
+    'restoreDepartment',
+    'permanentDeleteDepartment',
+    ...ACCOUNT_LIFECYCLE_WRITES,
+    ...BATCH_WORK_ITEM_WRITES,
+    ...BATCH_MEETING_WRITES,
+    ...BATCH_DEPARTMENT_WRITES,
+  ],
   'workItems.list': unique(
     WORK_ITEM_WRITES,
     DATE_WRITES,
@@ -479,6 +556,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'deleteWorkItem',
     'restoreWorkItem',
     'permanentDeleteWorkItem',
+    ...BATCH_WORK_ITEM_WRITES,
   ]),
   dateRequests: ['requestDateChange', 'reviewDateChangeRequest', 'deleteDateChangeRequest'],
   // Organizasyon yazmaları (W82a) ve rozetleri besleyen görev/tarih yazmaları geçersizler (WP3).
@@ -510,7 +588,11 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // Pano sayaçları (geciken, bekleyen talep) dosyaya bağlı değildir: pano geçersizlenmez.
   // Geri yüklenen görevin dosyaları erişilebilir döner, kalıcı silinen görevin dosyaları gider
   // (RECORDS; 12 Silinen kayıtlar, W128).
-  archive: unique(FILE_WRITES, ['restoreWorkItem', 'permanentDeleteWorkItem']),
+  archive: unique(
+    FILE_WRITES,
+    ['restoreWorkItem', 'permanentDeleteWorkItem'],
+    BATCH_WORK_ITEM_WRITES,
+  ),
   meetings: [...MEETING_CONTENT_WRITES, 'startConference', 'endConference'],
   // Sohbet (parçalı; "tek önek aşırı geçersizleme" giderildi). Mesaj penceresi (`chats.messages`)
   // yazmayla geçersizlenmez: gönderim/düzenleme/silme/mesajdan görev cevabı pencereye yerel
@@ -550,6 +632,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
       'restoreAccount',
       'permanentDeleteAccount',
       'resetLockouts',
+      ...BATCH_ACCOUNT_WRITES,
     ],
     MEMBERSHIP_WRITES,
   ),
@@ -678,6 +761,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   deletedDepartments: prefix(queryKeys.deletedDepartments.all),
   deletedWorkItems: prefix(queryKeys.deletedWorkItems.all),
   deletedAccounts: prefix(() => queryKeys.deletedAccounts.all()),
+  deletedSummary: prefix(queryKeys.deletedSummary.all),
   'workItems.list': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),

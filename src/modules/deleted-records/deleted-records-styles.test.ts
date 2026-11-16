@@ -71,8 +71,10 @@ describe('silinen kayıtlar görünüm kuralları', () => {
     }
   })
 
-  it('seçim/kalan süre/Yakında kartı stilleri yok (P36/P37)', () => {
+  it('kalan süre/Yakında kartı stilleri yok (P37, BE-112); toplu çubuk ve seçim kutusu stilleri var (BE-114)', () => {
     const all = css.map((f) => f.text).join('\n')
-    expect(all).not.toMatch(/rp-bulk|rp-left|rp-expire|rp-trnote/)
+    expect(all).not.toMatch(/rp-left|rp-expire|rp-trnote/)
+    expect(all).toMatch(/\.dr-bulk\b/)
+    expect(all).toMatch(/\.dr-check\b/)
   })
 })

@@ -152,7 +152,7 @@ export function programAvatar(
   return programAvatars(list).get(program.programId)!
 }
 
-/** Dar menü birim etiketi: `ProgramDepartment.code`, yoksa birim adının baş harfleri. */
+/** Dar menü birim etiketi: `MyDepartment.department_code`, yoksa birim adının baş harfleri. */
 export function departmentCode(code: string | null | undefined, displayName: string): string {
   const trimmed = code?.trim()
   return trimmed ? trimmed : initialsOf(displayName)

@@ -167,7 +167,7 @@ export function useDetailPanel(
   const kicker = computed(() => {
     if (!item.value) return ''
     const department = departments.byId.value.get(item.value.department_id)
-    return kickerText(department?.code, department?.display_name)
+    return kickerText(item.value, department?.display_name)
   })
 
   return {

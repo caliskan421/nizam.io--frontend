@@ -22,14 +22,13 @@ import {
 
 /**
  * Görev satırı (E-03-18…29). Seçim kutusu gizli, sütunu boş kalır (P7, E-03-18); öncelik
- * gösterilmez (E-03-29, karar bekliyor → gizli). Kısa kod: önek `ProgramDepartment.code`
- * (yoksa yok), sıra numarası statik `—` (BE-005). Alt görev bloğu satırın altında, bağımsız
+ * gösterilmez (E-03-29, karar bekliyor → gizli). Kısa kod: sunucunun `code` alanı
+ * (`<DEPARTMAN>-<sıra>`; departman kodsuzsa `#<sıra>`, WORK-K97, BE-005). Alt görev bloğu satırın altında, bağımsız
  * açılır (E-03-21; içerik W44 `SubtaskBlock`, panel sekmesiyle aynı sorgu).
  */
 const props = defineProps<{
   item: WorkItem
   departmentName: string
-  code: string | null
   href: string
   selected: boolean
   expanded: boolean
@@ -41,7 +40,7 @@ const emit = defineEmits<{
   openSubtasks: [workItemId: string]
 }>()
 
-const shortCode = computed(() => workShortCode(props.code) || null)
+const shortCode = computed(() => workShortCode(props.item) || null)
 const subtasks = computed(() => subtaskToggle(props.item.subtask_counts))
 const note = computed(() => dueNote(props.item, props.today))
 const request = computed(() => requestTag(props.item))

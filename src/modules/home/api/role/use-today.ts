@@ -14,5 +14,5 @@ export function useToday(clock: () => Date = () => new Date()) {
   const now = shallowRef(clock())
   const timeZone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
   const today = computed(() => dayIn(timeZone.value, now.value))
-  return { today, timeZone }
+  return { today, timeZone, now }
 }

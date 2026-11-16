@@ -124,10 +124,9 @@ export function useTaskPanel(input: () => PanelInput) {
   const kicker = computed(() => {
     const department = departments.byId.value.get(task.value.department_id)
     const parts: string[] = []
-    // Kod yalnız Admin yüzünde (E-03C-30); sıra numarası yok → statik "—" (BE-005).
-    if (input().face === 'admin' && department?.code) {
-      parts.push(workShortCode(department.code))
-    }
+    // Görev kodu yalnız Admin yüzünde (E-03C-30); sunucunun `code` alanı (BE-005).
+    const code = input().face === 'admin' ? workShortCode(task.value) : ''
+    if (code) parts.push(code)
     const name = input().departmentName ?? department?.display_name
     if (name) parts.push(name)
     return parts.join(' · ')

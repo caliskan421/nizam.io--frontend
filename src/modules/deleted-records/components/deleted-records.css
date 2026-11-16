@@ -1,18 +1,18 @@
 /*
  * 12 Silinen kayıtlar sayfa görünümü — Silinen-Kayitlar-Tarih.dc.html (01d) birebir karşılığı.
  * Kural: yalnız token; px yok (medya koşulu hariç: değer `--rp-narrow-max` ile aynı). Izgara
- * ölçüleri yeni token açmadan mevcut ölçek katlarıyla yazılır (tür 96 = 2 x space-12, tarih 120
- * = 3 x space-10, silen 140 = 3,5 x space-10, işlemler 150 = 3,75 x space-10; tasarım 96, 118,
- * 180, 150). Seçim ve kalan süre sütunları yok (P36/P37, E-12-24 "ızgara yeniden hesaplanır"):
- * ızgara beş sütundur, kayıt sütunu kalan genişliği alır ve silen sütunu 180'den 140'a iner —
- * 1440 px'te panel yanındayken tablo kaydırmasız sığar. Katman: components (CSS katman sırası
- * #37-#43 dersi, KESİN 17).
+ * ölçüleri yeni token açmadan mevcut ölçek katlarıyla yazılır (seçim kutusu 36 = 9 x space-1,
+ * tür 96 = 2 x space-12, tarih 112 = 2,8 x space-10, silen 128 = 3,2 x space-10, işlemler 150 =
+ * 3,75 x space-10; tasarım 36, 96, 118, 180, 150). "Kalan süre" sütunu yok (P37, E-12-24 "ızgara
+ * yeniden hesaplanır"): ızgara altı sütundur ve kayıt sütunu kalan genişliği alır; en küçük tablo
+ * genişliği 736'dır (1440 px'te panel yanındayken kaydırmasız sığar, dar ekranda tablo kendi
+ * içinde kayar, sayfa taşmaz). Katman: components (CSS katman sırası #37-#43 dersi, KESİN 17).
  */
 @layer components {
   .dr-page {
-    --dr-cols: calc(var(--space-12) * 2) minmax(0, 1fr) calc(var(--space-10) * 3)
-      calc(var(--space-10) * 3.5) calc(var(--space-10) * 3.75);
-    --dr-min-w: calc(var(--space-16) * 10);
+    --dr-cols: calc(var(--space-1) * 9) calc(var(--space-12) * 2) minmax(0, 1fr)
+      calc(var(--space-10) * 2.8) calc(var(--space-10) * 3.2) calc(var(--space-10) * 3.75);
+    --dr-min-w: calc(var(--space-16) * 11.5);
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -231,7 +231,10 @@
     color: var(--ink);
     font: inherit;
     letter-spacing: inherit;
-    cursor: not-allowed;
+    cursor: pointer;
+  }
+  .dr-page .dr-sorth:focus-visible {
+    outline: var(--ui-focus-width) solid var(--focus-ring);
   }
   .dr-page .dr-sr {
     position: absolute;
@@ -240,6 +243,27 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+
+  /* Toplu işlem çubuğu (E-12-21; BE-114) ve seçim kutusu hücresi */
+  .dr-page .dr-bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+  }
+  .dr-page .dr-bulk__count {
+    margin-right: auto;
+    font: var(--ui-text-sm-strong);
+    white-space: nowrap;
+  }
+  .dr-page .dr-check {
+    display: flex;
+    align-items: center;
   }
 
   /* Hücreler */
@@ -412,6 +436,60 @@
   }
   .dr-page .dr-card__actions .t-btn--primary {
     flex: 1 1 auto;
+  }
+
+  /* Toplu işlem sonucu: başarısız kayıtlar adı ve gerekçesiyle (BE-114) */
+  .dr-page .dr-notice--batch {
+    flex-wrap: wrap;
+  }
+  .dr-page .dr-batch-list {
+    flex: 1 1 100%;
+    display: grid;
+    gap: var(--ui-gap-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--text-body);
+  }
+  .dr-page .dr-batch-list li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    min-width: 0;
+  }
+  .dr-page .dr-batch-list__title {
+    font: var(--ui-text-sm-strong);
+    overflow-wrap: anywhere;
+  }
+  .dr-page .dr-batch-list__reason {
+    color: var(--ink-muted);
+  }
+
+  /* Çöpü boşalt paneli (BE-115) */
+  .dr-page .dr-purgeall {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+  }
+  .dr-page .dr-purgeall__text {
+    flex: 1 1 var(--rp-head-basis);
+    min-width: 0;
+  }
+  .dr-page .dr-purgeall__title {
+    margin: 0 0 var(--space-1);
+    font: var(--ui-text-sm-strong);
+  }
+  .dr-page .dr-purgeall__form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .dr-page .dr-purgeall__form .t-field {
+    flex: 1 1 var(--rp-aside-basis);
+    max-width: var(--rp-aside-max);
+    min-width: 0;
   }
 
   /* Yetkisiz durum */

@@ -31,6 +31,39 @@ const RELATIONS: ReadonlyArray<[OperationId[], QueryResource[]]> = [
     ],
   ],
   [
+    ['batchRestoreWorkItems', 'batchPurgeWorkItems', 'purgeAllWorkItems'],
+    [
+      'deletedWorkItems',
+      'deletedSummary',
+      'workItems.list',
+      'workItems.item',
+      'workItems.counts',
+      'gantt',
+      'workItems.files',
+      'archive',
+      'report',
+    ],
+  ],
+  [
+    ['batchRestoreMeetings', 'batchPurgeMeetings', 'purgeAllMeetings'],
+    ['meetings', 'deletedSummary', 'report'],
+  ],
+  [
+    ['batchRestoreDepartments', 'batchPurgeDepartments', 'purgeAllDepartments'],
+    ['deletedDepartments', 'deletedSummary', 'departments', 'catalog.departments', 'me', 'report'],
+  ],
+  [
+    ['batchRestoreAccounts', 'batchPurgeAccounts', 'purgeAllAccounts'],
+    [
+      'deletedAccounts',
+      'deletedSummary',
+      'users',
+      'departments.members',
+      'departments.assignable',
+      'report',
+    ],
+  ],
+  [
     ['restoreMeeting', 'permanentDeleteMeeting'],
     ['meetings', 'report'],
   ],

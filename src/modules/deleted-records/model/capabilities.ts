@@ -34,3 +34,11 @@ export function deletedRecordsCapabilities(standing: Standing | null) {
 }
 
 export type DeletedRecordsCapabilities = ReturnType<typeof deletedRecordsCapabilities>
+
+/**
+ * Silinmiş hesabın şirket yöneticiliği ataması (silmede korunur, geri yüklemede döner): satırda
+ * bilgi olarak gösterilir (yetki kararı değildir). `company_admin` okuması yalnız bu dosyadadır (K1).
+ */
+export function accountHoldsCompanyAdmin(account: { company_admin: boolean }): boolean {
+  return account.company_admin === true
+}

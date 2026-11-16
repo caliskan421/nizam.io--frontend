@@ -46,6 +46,8 @@ import { dragText } from './drag-messages'
 export interface DateChange {
   workItemId: string
   title: string
+  /** Görev kodu (`<DEPARTMAN>-<sıra>`, BE-005); bildirim başlığında kullanılır, yoksa boş. */
+  code: string
   policy: DatePolicy
   write: DateWrite
   before: DayRange

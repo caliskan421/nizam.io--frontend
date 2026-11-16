@@ -215,7 +215,7 @@ function openInList(workItemId: string): void {
             :scale="state.scale"
             :today="page.today.value"
             :department-names="page.departmentNames.value"
-            :department-codes="page.adminFace.value ? page.departmentCodes.value : undefined"
+            :show-codes="page.adminFace.value"
             :selected-id="state.selected"
             :draggable-ids="draggableIds"
             :date-key-handler="dateKeyHandler"

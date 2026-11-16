@@ -33,7 +33,16 @@ const ITEM = row('onaya_sunuldu', { title: 'Hidrofor' })
 
 const Host = defineComponent({
   setup: () => () =>
-    h('div', [h(ApprovalsCard, { items: [ITEM], count: 1, today: '2026-10-21' }), h(ConfirmHost)]),
+    h('div', [
+      h(ApprovalsCard, {
+        items: [ITEM],
+        count: 1,
+        today: '2026-10-21',
+        now: new Date('2026-10-21T09:00:00Z'),
+        timeZone: 'Europe/Istanbul',
+      }),
+      h(ConfirmHost),
+    ]),
 })
 
 const approve = (page: Awaited<ReturnType<typeof mountRole>>) =>

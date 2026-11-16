@@ -123,9 +123,11 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 
 | E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
 | --- | --- | --- | --- | --- |
-| E-03-10 Arama | yüklenen kümede başlık + gerçek kod + atanan adı (sunucu araması yok: BE-004 değişmez) | kabul (P67) | BE-005 | W173 |
-| E-03-20 Görev kodu (satır) | canlı → `code` (`<departman kodu>-<sıra>`); kodsuz birimde gösterilmez; statik `—` sıra kalkar | kabul (P67) | BE-005 | W173 |
-| E-03-41 Ayrıntı paneli başlığı | canlı → `code` | kabul (P67) | BE-005 | W173 |
+| E-03-10 Arama | yüklenen kümede başlık + gerçek kod + atanan adı (sunucu araması yok: BE-004 değişmez) | kabul (P67) | BE-005 | W173 — `components/list/rows.test.ts` («başlık + kısa kod + atanan adı»: `mek-7` kodla eşleşir) |
+| E-03-20 Görev kodu (satır) | canlı → `code` (`<departman kodu>-<sıra>`); kodsuz birimde gösterilmez; statik `—` sıra kalkar | kabul (P67) | BE-005 | W173 — `model/short-code.test.ts`, `components/list/TaskRow.test.ts` (`MEK-4`; kodsuzda `#5`), `components/list/TaskTable.test.ts` |
+| E-03-41 Ayrıntı paneli başlığı | canlı → `code` | kabul (P67) | BE-005 | W173 — `components/detail/format.test.ts`, `components/detail/WorkDetailPanel.test.ts` («MEK-9 · Mekanik sistemler») |
 | E-03-53 Hatırlat | canlı → `remindWorkItem` (koordinatör ve ŞY olgusu; üye devre dışı); 202 + "‹n› kişiye hatırlatıldı"; 409 / 422 / 429 iletileri | kabul (P67), P70-e | BE-008 | W175 |
 
-**F8'de değişmeyenler (03 Görevler › Liste):** E-03-16 sıralama (BE-040), E-03-30 / E-03-33 / E-03-36 / E-03-60 zorunlu alan kutuları (BE-006: P5), E-03-51 etkinlik (BE-007). 03c (E-03C-22/30/54/65/68), 05b takip tablosu ve 08b (E-08-83) kod/Hatırlat satırları bu işin sahipliğinde değildir (matris M-C01, M-E08).
+**W173 uygulama notu:** `workShortCode(task)` artık görevin `code` alanıdır (kodsuz departmanda `#<sıra>`, WORK-K97); eski `ProgramDepartment.code` önek yolu ve `designStub('BE-005')` yoktur. Kapsamdaki 03c (E-03C-22/30/54/65/68), 05b takip tablosu, 08b (E-08-83) ve kabuk (E-00-40) F8 ekleri kendi grup README'lerindedir.
+
+**F8'de değişmeyenler (03 Görevler › Liste):** E-03-16 sıralama (BE-040), E-03-30 / E-03-33 / E-03-36 / E-03-60 zorunlu alan kutuları (BE-006: P5), E-03-51 etkinlik (BE-007). 03c, 05b takip tablosu ve 08b kod satırlarının F8 ekleri kendi grup README'lerindedir (W173).
