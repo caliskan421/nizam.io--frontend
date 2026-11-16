@@ -165,11 +165,8 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   /** Menüden hedef seçimi: geri almada önce gerekçe penceresi. */
   async function choose(to: WorkItemStatus): Promise<void> {
     const current = toValue(item)
-    if (requiresReason(current.status, to) || offersReturnReason(to)) {
-      reasonFor.value = to
-      return
-    }
-    await send(current, { to })
+    if (requiresReason(current.status, to) || offersReturnReason(to)) reasonFor.value = to
+    else await send(current, { to })
   }
 
   /** Gerekçe penceresinden gönderim; pencere başarıda kapanır. */
