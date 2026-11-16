@@ -459,6 +459,9 @@
     --report-cols: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr)
       minmax(0, 2fr) minmax(0, 1fr);
   }
+  .report-cols-workload {
+    --report-cols: minmax(0, 3fr) repeat(4, minmax(0, 1fr)) minmax(0, 3fr);
+  }
   .report-cols-gloss,
   .report-cols-converted {
     --report-cols: minmax(0, 1fr) minmax(0, 3fr);
@@ -514,6 +517,9 @@
   }
   .report-st-tamamlandi {
     --report-tone: var(--accent-text);
+  }
+  .report-wl-late {
+    --report-tone: var(--danger);
   }
   .report-pr-acil {
     --report-tone: var(--danger);

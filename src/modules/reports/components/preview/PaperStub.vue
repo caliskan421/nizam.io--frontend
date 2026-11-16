@@ -8,14 +8,11 @@ import { DesignStub } from '@/shared/ui'
  * kısa açıklama. `stub` kayıt kimliğinin son hanesi (`designStub` kimliği dize literali olmak
  * zorundadır; bu yüzden her kimlik ayrı etiket).
  */
-defineProps<{ stub: '123' | '134' | '136'; text: string }>()
+defineProps<{ stub: '123' | '136'; text: string }>()
 </script>
 
 <template>
   <DesignStub v-if="stub === '123'" id="BE-123" as="div">
-    <p class="report-emptyline" data-placeholder>{{ text }}</p>
-  </DesignStub>
-  <DesignStub v-else-if="stub === '134'" id="BE-134" as="div">
     <p class="report-emptyline" data-placeholder>{{ text }}</p>
   </DesignStub>
   <DesignStub v-else id="BE-136" as="div">

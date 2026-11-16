@@ -199,3 +199,38 @@ export function truncation(season: SeasonReport): SeasonTruncation | null {
       : null
   return tasks || files ? { tasks, files } : null
 }
+
+const pct = (part: number, whole: number): number => Math.round(share(part, whole) * 100) / 100
+
+export interface WorkloadRow {
+  id: string
+  name: string
+  active: number
+  overdue: number
+  completed: number
+  total: number
+  /** 0–100 dağılım çubuğu bölükleri (en büyük toplama göre): tamamlanan · aktif (zamanında) · geciken. */
+  done: number
+  ontime: number
+  late: number
+}
+
+/**
+ * İş yükü özeti (BE-134, `SeasonReport.workload_summary`): sunucu sırası korunur (aktif göreve göre
+ * azalan). Aktif = açık görev (geciken dahil); zamanında aktif = aktif − geciken; toplam sunucudan.
+ * Çubuk genişlikleri en büyük toplama göre (tasarım: ilk satır en uzun).
+ */
+export function workloadRows(season: SeasonReport): WorkloadRow[] {
+  const max = season.workload_summary.reduce((m, r) => Math.max(m, r.total), 0)
+  return season.workload_summary.map((r) => ({
+    id: r.account_id,
+    name: r.full_name,
+    active: r.active,
+    overdue: r.overdue,
+    completed: r.completed,
+    total: r.total,
+    done: pct(r.completed, max),
+    ontime: pct(Math.max(0, r.active - r.overdue), max),
+    late: pct(r.overdue, max),
+  }))
+}

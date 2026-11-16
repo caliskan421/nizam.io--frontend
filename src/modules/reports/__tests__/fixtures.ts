@@ -17,6 +17,20 @@ type Task = SeasonReport['tasks'][number]
 
 const person = (id: string, name: string) => ({ account_id: id, full_name: name })
 
+export const workloadRow = (
+  over: Partial<SeasonReport['workload_summary'][number]>,
+): SeasonReport['workload_summary'][number] => ({
+  account_id: 'u0',
+  active: 0,
+  completed: 0,
+  full_name: 'Ad Soyad',
+  overdue: 0,
+  pending_approval: 0,
+  returned: 0,
+  total: 0,
+  ...over,
+})
+
 export function seasonTask(over: Partial<Task> = {}): Task {
   return withReportTaskDefaults({
     assignees: [person('u1', 'Bahar Kılıç')],
@@ -152,6 +166,24 @@ export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
       tamamlandi: 1,
     }),
     tasks: seasonTasks(),
+    workload_summary: [
+      workloadRow({
+        account_id: 'u1',
+        full_name: 'Bahar Kılıç',
+        active: 4,
+        overdue: 1,
+        completed: 6,
+        total: 10,
+      }),
+      workloadRow({
+        account_id: 'u2',
+        full_name: 'Kadir Özbek',
+        active: 2,
+        overdue: 0,
+        completed: 3,
+        total: 5,
+      }),
+    ],
     ...over,
   })
 }

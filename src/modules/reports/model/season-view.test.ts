@@ -13,6 +13,7 @@ import {
   taskDates,
   taskTotals,
   truncation,
+  workloadRows,
 } from './season-view'
 import type { SeasonReport } from './types'
 
@@ -209,5 +210,45 @@ describe('kesme uyarısı (BE-132)', () => {
       tasks: null,
       files: { shown: 2000, total: 2400 },
     })
+  })
+})
+
+describe('iş yükü özeti (BE-134)', () => {
+  const rows = (list: SeasonReport['workload_summary']) =>
+    workloadRows({ workload_summary: list } as unknown as SeasonReport)
+
+  it('sunucu sırası korunur; çubuklar en büyük toplama göre', () => {
+    const w = (id: string, active: number, overdue: number, completed: number) => ({
+      account_id: id,
+      active,
+      completed,
+      full_name: id,
+      overdue,
+      pending_approval: 0,
+      returned: 0,
+      total: active + completed,
+    })
+    const out = rows([w('a', 9, 4, 6), w('b', 3, 3, 1)])
+    expect(out.map((r) => r.id)).toEqual(['a', 'b'])
+    expect(out[0]).toMatchObject({ done: 40, ontime: 33.33, late: 26.67, total: 15 })
+    expect(out[1]).toMatchObject({ done: 6.67, ontime: 0, late: 20 })
+  })
+
+  it('boş küme boş satır; sıfır toplamda genişlik 0 (NaN yok)', () => {
+    expect(rows([])).toEqual([])
+    expect(
+      rows([
+        {
+          account_id: 'z',
+          active: 0,
+          completed: 0,
+          full_name: 'Z',
+          overdue: 0,
+          pending_approval: 0,
+          returned: 0,
+          total: 0,
+        },
+      ])[0],
+    ).toMatchObject({ done: 0, ontime: 0, late: 0 })
   })
 })

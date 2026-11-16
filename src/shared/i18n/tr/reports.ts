@@ -152,7 +152,26 @@ export const trReports = {
           reqPeriod: 'dönem boyunca',
           reqPendingSub: '{pct} · karar bekliyor',
           workload: 'İŞ YÜKÜ',
-          workloadStub: 'İş yükü bölümü için veri ucu yok.',
+          workloadCount: '{n} kişi (aktif göreve göre)',
+          workloadEmpty: 'İş yükü verisi bulunamadı.',
+          workloadNote:
+            'Aktif = açık görev (geciken dahil); toplam = aktif + tamamlanan. Bir kişi birden çok koordinatörlükte görev alabilir.',
+          workloadLabel: 'İş yükü tablosu',
+          workloadCols: {
+            person: 'KİŞİ',
+            active: 'AKTİF',
+            overdue: 'GECİKEN',
+            completed: 'TAMAMLANAN',
+            total: 'TOPLAM',
+            spread: 'DAĞILIM',
+          },
+          workloadLegend: {
+            label: 'Dağılım lejantı',
+            done: 'Tamamlanan',
+            ontime: 'Aktif (zamanında)',
+            late: 'Geciken',
+          },
+          workloadTip: '{done} tamamlanan · {ontime} aktif (zamanında) · {late} geciken',
         },
         dept: {
           kicker: 'KOORDİNATÖRLÜK · {code}',

@@ -125,14 +125,12 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(summary.text()).toContain('2 bölüm')
   })
 
-  it('statik yer tutucular sahte veri göstermez: Gantt (BE-123), iş yükü (BE-134), detay/toplantı/dosya (BE-136)', async () => {
+  it('statik yer tutucular sahte veri göstermez: Gantt (BE-123), detay/toplantı/dosya (BE-136)', async () => {
     const { wrapper } = await open(SEASON())
     expect(wrapper.get('#report-season-gantt [data-design-stub="BE-123"]').text()).toBe(
       'Gantt önizlemesi bu sürümde yok.',
     )
-    expect(wrapper.get('#report-season-general [data-design-stub="BE-134"]').text()).toBe(
-      'İş yükü bölümü için veri ucu yok.',
-    )
+    expect(wrapper.find('[data-design-stub="BE-134"]').exists()).toBe(false)
     const dept = wrapper.get('#report-season-dept-d1')
     expect(dept.findAll('[data-design-stub="BE-136"]')).toHaveLength(2)
     expect(dept.find('[data-design-stub="BE-123"]').exists()).toBe(true)
@@ -174,6 +172,36 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     const empty = wrapper.get('#report-season-dept-d2')
     expect(empty.text()).toContain('Bu koordinatörlükte görev yok.')
     expect(empty.text()).toContain('KOORDİNATÖRLÜK')
+  })
+
+  it('iş yükü (BE-134): workload_summary satırları sunucu sırasıyla, sayaçlar ve dağılım çubuğu; stub yok', async () => {
+    const { wrapper } = await open(SEASON())
+    const rows = wrapper.findAll('[data-testid="workload-row"]')
+    expect(
+      rows.map((r) =>
+        r
+          .findAll('[role="cell"]')
+          .map((c) => c.text())
+          .slice(0, 5),
+      ),
+    ).toEqual([
+      ['Bahar Kılıç', '4', '1', '6', '10'],
+      ['Kadir Özbek', '2', '0', '3', '5'],
+    ])
+    expect(wrapper.text()).toContain('2 kişi (aktif göreve göre)')
+    const bars = rows[0]!.findAll('.report-track > span').map((b) => b.attributes('style'))
+    expect(bars).toEqual(['width: 60%;', 'width: 30%;', 'width: 10%;'])
+    expect(rows[1]!.get('[title]').attributes('title')).toBe(
+      '3 tamamlanan · 2 aktif (zamanında) · 0 geciken',
+    )
+    expect(wrapper.find('[data-design-stub="BE-134"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('veri ucu yok')
+  })
+
+  it('iş yükü boş dönem: tek satır metin, tablo yok', async () => {
+    const { wrapper } = await open(SEASON(seasonFixture({ workload_summary: [] })))
+    expect(wrapper.find('[data-testid="workload-row"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="workload"]').text()).toContain('İş yükü verisi bulunamadı.')
   })
 
   it('kesme (BE-132): limits kesildiğini söylerse "gösterilen N / toplam M" uyarısı; kesme yoksa hiçbir şey çizilmez', async () => {

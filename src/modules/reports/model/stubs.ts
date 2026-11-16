@@ -12,7 +12,6 @@ import { designStub } from '@/shared/design-stub'
  */
 export const SEASON_TEMPLATE = designStub('BE-123', {
   gantt: false,
-  workload: false,
 })
 
 /** 01f kapak dönem aralığı ve detay bölümleri için dönem JSON'unda alan yok (E-13-21, 34…36). */

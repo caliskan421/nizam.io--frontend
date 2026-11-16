@@ -38,6 +38,26 @@ afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
 describe('önizleme okuması', () => {
+  it("BE-134: iş yükü satırları reportSeason.workload_summary'den; ikinci okuma (reportWorkload) ve stub yok; boş dönemde metin", async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    const rows = Array.from(document.querySelectorAll('[data-testid="workload-row"]'))
+    expect(rows.map((r) => r.querySelector('strong')?.textContent)).toEqual([
+      'Bahar Kılıç',
+      'Kadir Özbek',
+    ])
+    expect(document.querySelector('[data-design-stub="BE-134"]')).toBeNull()
+    expect(backend.sent('GET', '/v1/reports/workload')).toHaveLength(0)
+    expect(backend.sent('POST', '/v1/reports/workload')).toHaveLength(0)
+    expect(sent()).toHaveLength(1)
+    teardown()
+    reports.state.season = 'empty'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(() => $('[data-testid="workload"]'), 'iş yükü bölümü')
+    expect($('[data-testid="workload"]')!.textContent).toContain('İş yükü verisi bulunamadı.')
+    await idle(app.queryClient)
+  })
+
   it('BE-132: kesilmiş büyük dönem "gösterilen N / toplam M" uyarısı çizer; tam dönemde uyarı yok', async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
     await until(STAGE, 'önizleme')
@@ -142,7 +162,8 @@ describe('önizleme okuması', () => {
     const stubs = $$('[data-design-stub]', STAGE()!).map((el) =>
       el.getAttribute('data-design-stub'),
     )
-    expect(stubs).toEqual(expect.arrayContaining(['BE-123', 'BE-134', 'BE-136']))
+    expect(stubs).toEqual(expect.arrayContaining(['BE-123', 'BE-136']))
+    expect(stubs).not.toContain('BE-134')
     expect($$('[data-placeholder]', STAGE()!).length).toBeGreaterThan(0)
     // Pdf düğmesi ve yakınlaştırma araç çubuğunda; "Yazdır" ve sayfa göstergesi yok.
     expect(byText('button', 'PDF indir')).not.toBeNull()

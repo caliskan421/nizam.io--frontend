@@ -13,13 +13,13 @@ import PaperBand from './PaperBand.vue'
 import PaperFrame from './PaperFrame.vue'
 import PaperHeading from './PaperHeading.vue'
 import PaperKpis, { type PaperKpi } from './PaperKpis.vue'
-import PaperStub from './PaperStub.vue'
+import SeasonWorkload from './SeasonWorkload.vue'
 
 /**
  * Teknofest geneli (E-13-29…31): aylık aktivite (yalnız gerçek seri; tanım JSON'a göre:
  * oluşturulan + tamamlanan görev, toplantı, mesaj), tarih değişikliği talepleri (4 KPI;
- * "ortalama kayma" ve "en çok talep alan görevler" gizli, BE-136) ve iş yükü bölümü STATİK
- * (ikinci ağır JSON okunmaz, BE-134). Grafik `role="img"` ile metin özeti taşır.
+ * "ortalama kayma" ve "en çok talep alan görevler" gizli, BE-136) ve iş yükü bölümü CANLI
+ * (`workload_summary`; ikinci ağır JSON okunmaz, BE-134; `SeasonWorkload`). Grafik `role="img"` ile metin özeti taşır.
  */
 const props = defineProps<{ ctx: PaperContext; season: SeasonReport }>()
 
@@ -108,9 +108,6 @@ const requests = computed<PaperKpi[]>(() => {
       <PaperHeading id="report-gen-requests" :title="t('reports.season.paper.general.requests')" />
       <PaperKpis :items="requests" :label="t('reports.season.paper.general.requestsKpis')" />
     </section>
-    <section class="report-section" aria-labelledby="report-gen-workload">
-      <PaperHeading id="report-gen-workload" :title="t('reports.season.paper.general.workload')" />
-      <PaperStub stub="134" :text="t('reports.season.paper.general.workloadStub')" />
-    </section>
+    <SeasonWorkload :season="season" />
   </PaperFrame>
 </template>
