@@ -1,6 +1,6 @@
 # O1 — F8 açılış belgeleri (W168 ‖ W169)
 
-**F8 AÇILDI 2026-11-15.** Adımların durumu:
+**F8 AÇILDI 2026-11-15; O1 tamam (2026-11-15/16):** #154 (W168), #155 (W167), #156 (W169), #157 (W169b), main `73cfdcd`. Adımların durumu:
 
 1. ~~Kullanıcının açık F8 onayını al.~~ **Yapıldı (koordinatör):** "pin yükseltme + canlıya alma turu olsun" (P67).
 2. ~~F7 kapanış kanıtını doğrula.~~ **Yapıldı (koordinatör):** kapanış PR #153 MERGED, main `31c6ccc`; yerel/uzak dal ve worktree temiz.

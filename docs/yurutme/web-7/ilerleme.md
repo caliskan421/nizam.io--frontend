@@ -117,6 +117,8 @@ Hepsi kapandı: P54–P66 kesin. Karar bekleyen ürün sorusu yok. **F8 kapsamı
 
 ## Borçlar
 
+**F8 notu (2026-11-16, W177):** aşağıdaki borçlardan #2, #8, #9, #12, #13, #21, #27 F8'de **kapandı** (W167 #155 `9cc65c8`; W171–W173); #20 ve #25 backend `v0.24.0-api` ile F9'da kapanır. Güncel numaralı liste: [web-8 ilerleme](../web-8/ilerleme.md) (bu tablodaki satırlar tarihsel kayıttır).
+
 Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç** (F7 kapanışını engellemez), **UX borcu açık**, **ilerleme borcu (F8 adayı)**, **uygulama notu**, **açık BE** ([rapor-F7](../../backend-eksikleri/rapor-F7.md)), **kapandı**.
 
 ### F6'dan devreden ([web-6 ilerleme](../web-6/ilerleme.md) tablosu esastır)
@@ -124,14 +126,14 @@ Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç*
 | # | Borç / not | Sınıf | Kaynak |
 | --- | --- | --- | --- |
 | 1 | Gerçek cihaz ekran okuyucu (VoiceOver) kabulü: W136–W142 ve F7 UI'ı (liste, konuşma, pencereler, zil paneli, izin kutusu) için **yapılamadı**; sessiz geçilmez (KESİN 32) | kapanış sonrası borç | web-6 #1; W155–W160 |
-| 2 | Kararsız testler: `password.test.ts` `force_password_change` yük altında; `archive/api/lifecycle.test.ts` 5 sn zaman aşımı; W156'da tam paket yük altında (13–18 vitest işlemi) 4 dosya zaman aşımı, tek başına 68/68; KESİN 32 bölme adayı | kapanış sonrası borç | web-6 #19; W156 |
+| 2 | Kararsız testler: `password.test.ts` `force_password_change` yük altında; `archive/api/lifecycle.test.ts` 5 sn zaman aşımı; W156'da tam paket yük altında (13–18 vitest işlemi) 4 dosya zaman aşımı, tek başına 68/68; KESİN 32 bölme adayı | kapanış sonrası borç → **kapandı (F8 W167, #155 `9cc65c8`: bölme + ısınma; yük altı duyarlılık web-8 #26)** | web-6 #19; W156 |
 | 3 | Ü1 iade/onay/tarih notları ve K1 ApprovalsCard sayacı pending dışı kısmi kümede "≥" almıyor | kapanış sonrası borç | web-6 #21 |
 | 4 | Soğuk `?gorev=` derin bağlantıda hedef birim/kapsam çözümleme UX borcu (P55 karar; UX açık); bildirim hedef çözümlemesi (P57, BE-143) aynı kalıbı kullanır; çözülemezse 03 listesi + "Bu görev bu kapsamda bulunamadı" (KUSUR 2) | UX borcu açık | web-6 #22 |
 | 5 | Gerçek backend'de gezinme SONRASI K/Ü mercek-parametre tanığı yok | kapanış sonrası borç | web-6 #23 |
 | 6 | Ağır okuyucu bekleme denetimi `useReportSeason` içinde; yeni ağır okuyucu aynı denetimi kendisi yapmalı | uygulama notu | web-6 #24 |
 | 7 | Duman betikleri tek `results.json` (CX-F6-K-10): KESİN 33 ile kapandı, F7 betikleri senaryo başına ayrı `results-<senaryo>.json` (W154–W160) | kapandı (süreç) | web-6 #25, P66 |
-| 8 | "Şimdi değil" kalıcı 14 gün (Web Push kutusu): oturum belleği kabul (koordinatör 2026-11-14); `push.snoozeUntil` K2 anahtarı eklenmedi | ilerleme borcu (F8 adayı) | 14-bildirimler E-14-72 |
-| 9 | ZIP onayı (E-13-10, BE-120/124), 390 px ZIP/yükle düğmesi genişliği (E-13-12), E-13-72 dosya boyutu, kâğıt 880 / 10,5 pt, E-K1-17/18 iade gerekçesi (BE-139) — F7'de dokunulmadı | kapanış sonrası borç (BE'ye bağlı) | [rapor-F6](../../backend-eksikleri/rapor-F6.md) |
+| 8 | "Şimdi değil" kalıcı 14 gün (Web Push kutusu): oturum belleği kabul (koordinatör 2026-11-14); `push.snoozeUntil` K2 anahtarı eklenmedi | ilerleme borcu (F8 adayı) → **kapandı (F8 W167, #155 `9cc65c8`: `push.snoozeUntil` 14 gün, K2 anahtarı)** | 14-bildirimler E-14-72 |
+| 9 | ZIP onayı (E-13-10, BE-120/124), 390 px ZIP/yükle düğmesi genişliği (E-13-12), E-13-72 dosya boyutu, kâğıt 880 / 10,5 pt, E-K1-17/18 iade gerekçesi (BE-139) — F7'de dokunulmadı | kapanış sonrası borç (BE'ye bağlı) → **kapandı (F8 W171/W172/W173: BE-120/124/139 canlı; web-8 #7)** | [rapor-F6](../../backend-eksikleri/rapor-F6.md) |
 | 10 | 01 kutucukları liste sayfasına gider; pencereyi açan URL parametresi (09/05 oluşturma) yok | F8 adayı | web-6 #17 |
 
 ### F7'de doğan
@@ -139,23 +141,23 @@ Hiçbiri F8'i kendiliğinden başlatmaz. Sınıflar: **kapanış sonrası borç*
 | # | Borç / not | Sınıf | Kaynak |
 | --- | --- | --- | --- |
 | 11 | Gerçek push teslimi ve `subscribe`: **kapandı (W162)** — Chrome 157 + FCM 9,1 sn, `registerPushTarget` 200. Kalan: Safari/iOS/Firefox push ve `notificationclick` OS bildirimi kanıtlanmadı | kapandı; kalan kapanış sonrası borç | W159, W162 |
-| 12 | `up.sh` / compose adları parametrik değil (paralel işçilerde geçici kopya kalıbı); e2e/backend CI'da sabit adlarla koşar | kapanış sonrası borç | W148, W154 |
-| 13 | `manifest.webmanifest` ve `apple-touch-icon` yok: iOS/iPadOS Web Push ana ekran uygulaması ister; "ana ekrana ekle" yönergesi gerçek PWA vermez | kapanış sonrası borç (deploy) | W152, W159 |
+| 12 | `up.sh` / compose adları parametrik değil (paralel işçilerde geçici kopya kalıbı); e2e/backend CI'da sabit adlarla koşar | kapanış sonrası borç → **kapandı (F8 W167, #155: `up.sh` parametrik)** | W148, W154 |
+| 13 | `manifest.webmanifest` ve `apple-touch-icon` yok: iOS/iPadOS Web Push ana ekran uygulaması ister; "ana ekrana ekle" yönergesi gerçek PWA vermez | kapanış sonrası borç (deploy) → **kapandı (F8 W167, #155: manifest + `apple-touch-icon`; iOS cihaz denemesi kullanıcıda, web-8 #9)** | W152, W159 |
 | 14 | SSE bütçe kesintisi gerçek tanığı **alındı (W162)**: kapanış 241–281 sn + yeniden bağlanma; `: ping` 25 sn; kenar Caddy tamponlamıyor. CDN arkası denenmedi. Okuma ağ hatasında tazelenmeme = KUSUR 1 (W163) | kapandı; kalan: CDN | W154, W162 |
 | 15 | Ters vekil `flush_interval -1` + ≥6 dk okuma zaman aşımı (SSE akışı tamponlanır / kesilir); W162: backend kenar Caddy'si varsayılanla tamponlamıyor (teyit), CDN arkası denenmedi; bu depodaki Caddyfile yalnız statik web | deploy borcu (SAHİPLİK-DIŞI) | W151, W154, W162 |
 | 16 | `read.updated` varsayımı: W162 gerçek akışta birebir okundu tiki "Gönderildi" → "Okundu" ≈3 sn gözlendi | kapandı (W162) | W160 varsayım 3 |
 | 17 | Ek önizleme yok (yalnız bilet indirme); `DialogRequest`'te ek önizleme adı yok | F8 adayı (tasarım farkı) | W156 |
 | 18 | `ChatPageContext.messages.query` tipli açıldı ve N-10-15 "Bağlantı yeniden kuruluyor…" göstergesi akış durumundan çiziliyor | kapandı (KUSUR 5/6, `697fda0`) | W156 → W160 |
 | 19 | N-10-15 gerçek kopma W162'de gözlendi (yeniden bağlanma + `reconcile`); KUSUR 1 W163'te | kapandı (W162) | W160 |
-| 20 | Okunmamış ayırıcı `unread_count`'tan yaklaşık (kozmetik; BE-082); sahte akış düzeneği `watchStreams` entegrasyon altyapısı | kapanış sonrası borç (düşük) | W160 |
-| 21 | `topbar-dot*` token'ları (`--topbar-dot`, `-top`, `-right`) kullanılmıyor (F7 sayılı rozet) → `design/web-tokens.json` + `pnpm gen:tokens` temizliği | kapanış sonrası borç (düşük) | W158 |
+| 20 | Okunmamış ayırıcı `unread_count`'tan yaklaşık (kozmetik; BE-082); sahte akış düzeneği `watchStreams` entegrasyon altyapısı | kapanış sonrası borç (düşük) → **F9'da kapanır (backend v0.24 `first_unread_seq`, BE-082; web-8 #12)** | W160 |
+| 21 | `topbar-dot*` token'ları (`--topbar-dot`, `-top`, `-right`) kullanılmıyor (F7 sayılı rozet) → `design/web-tokens.json` + `pnpm gen:tokens` temizliği | kapanış sonrası borç (düşük) → **kapandı (F8 W167, #155: `topbar-dot*` kaldırıldı)** | W158 |
 | 22 | Panel açıkken ConfirmDialog tıkı dış tık sayılıyordu | kapandı (KUSUR 3, `4956d15`) | W158 → W160 |
 | 23 | Program değişiminde URL'deki eski sohbet kimliği listede yoksa "Bu konuşma bulunamadı" (kabul); kapsam değişiminde yazma çubuğu taslağı boşalır (KUSUR 8) | kabul (varsayım 2) | W160 |
 | 24 | Çoklu program seçici P56 kalır; programlar arası bildirimde program bilgisi yok (BE-143) | karar (P56) + açık BE | W152, W148 |
-| 25 | Tüm F7 BE kayıtları açık, "backend dursun": BE-027/028/029, BE-080…086, BE-142…156, BE-160…162 | açık BE | [rapor-F7](../../backend-eksikleri/rapor-F7.md) |
+| 25 | Tüm F7 BE kayıtları açık, "backend dursun": BE-027/028/029, BE-080…086, BE-142…156, BE-160…162 | açık BE → **açık BE → backend v0.24'te büyük kısmı karşılandı; F9 canlıya alma (web-8 #14, rapor-F8 §6)** | [rapor-F7](../../backend-eksikleri/rapor-F7.md) |
 | 26 | Duman konsolu: sahte uç `GET /v1/meetings/m-1` 404 ve Chrome incognito Push API uyarısı ürün hatası değil; "konsol hatası 0" diye sunulmaz | uygulama notu | W160 |
 
-| 27 | `unregisterPushTarget` çıkışta çağrılmıyor: `target_id` tutulmuyor, yalnız yerel `unsubscribe()`; sunucu ulaşılamayan hedefi kendisi düşürüyor (W162) | kapanış sonrası borç | W162 |
+| 27 | `unregisterPushTarget` çıkışta çağrılmıyor: `target_id` tutulmuyor, yalnız yerel `unsubscribe()`; sunucu ulaşılamayan hedefi kendisi düşürüyor (W162) | kapanış sonrası borç → **kapandı (F8 W167, #155: `unregisterPushTarget` çıkışta)** | W162 |
 | 28 | KUSUR 1–6 (dogrulama-F7): **kapandı** (W163, #149 `a56e291`); KUSUR 1 gerçek ağ kopukluğu kanıtı yok (birim + entegrasyon) | kapandı; kalan: gerçek kopukluk kanıtı | W162/W163 |
 | 29 | Kanıtlanamayanlar: VoiceOver, kullanıcı görsel onayı, `notificationclick` OS bildirimi, Safari/iOS/Firefox push, `typing` hız kovası, CDN arkası SSE | kapanış sonrası borç | W162 |
 

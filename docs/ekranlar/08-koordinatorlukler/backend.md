@@ -1,6 +1,6 @@
 # 08 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.11.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (tespit `v0.11.0-api`; **web pini F8'de `v0.23.0-api`** — F8 W173/W175: `MyDepartment.coordinators`, katalog `created_at`; F8 eki README'dedir, aşağıdaki v0.11 anlatımı tarihsel kalır), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Kısaltmalar: **ŞY** şirket yöneticisi (`GET /v1/me` → `company_admin`), **K** seçili programda o departmanın koordinatörü (`GET /v1/me/departments` satırı `role = koordinator`), **Ü** üye. Yetki sütunları openapi açıklamalarından ve backend modül README'lerinin uç tablolarından (organization §4, program §4, REPORTING-K01) okunmuştur; `istemci-akislari.md` §4'te departman işlemleri için satır **yoktur** (bkz. §3 ve `eksikler.md` yeni-4).
 

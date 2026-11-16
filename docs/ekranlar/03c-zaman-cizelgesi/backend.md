@@ -1,6 +1,6 @@
 # 03c — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.11.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (tespit `v0.11.0-api`; **web pini F8'de `v0.23.0-api`** — F8 W173/W175: görev kodu, elle hatırlatma `remindWorkItem`; F8 eki README'dedir, aşağıdaki v0.11 anlatımı tarihsel kalır), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Ek kaynaklar (backend deposu): `docs/architecture/adr/0024-gorev-kaniti-ve-alt-gorev.md`, `docs/known-gaps.md` (GAP-053, GAP-204), `internal/modules/work/README.md` (WORK-K36, K37, K40, K74, K82).
 

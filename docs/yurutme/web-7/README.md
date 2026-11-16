@@ -40,6 +40,8 @@ Güncel kullanıcı onaylı Codex devralma ve tarihsel Fable/Sonnet dağılımı
 
 ## Aday kapsam (F7 dışı kalanlar ve devredenler)
 
+> **F8 notu (2026-11-16):** devreden borçların W167 kısmı (kararsız testler, manifest, `push.snoozeUntil`, `unregisterPushTarget`, `up.sh`, `topbar-dot*`) F8'de kapandı; BE-F7 `v0.24.0-api` çıktı (F9 önerisi [web-9](../web-9/README.md)). Güncel durum [web-8 ilerleme](../web-8/ilerleme.md).
+
 **F7'de olanlar:** Mesajlar (10, 10b, 10c) ve Bildirimler (zil paneli; Web Push P58 dahil). Aşağıdaki tablonun diğer satırları F7 DIŞIDIR (sonraki faz) ve aday listesi olarak kalır. Tuvale sonradan eklenen ekranlar ve F6'dan devreden satırlar aşağıdadır.
 
 | Aday                                                             | Tasarım artboard / ekran grubu                                                 | Not (kaynak)                                                                                                                                                                                              |

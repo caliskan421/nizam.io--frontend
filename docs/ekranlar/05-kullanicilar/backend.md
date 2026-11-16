@@ -1,6 +1,6 @@
 # 05 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.11.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (tespit `v0.11.0-api`; **web pini F8'de `v0.23.0-api`** — F8 W175: `exportUsersCsv`; W173 görev kodu 05b; F8 eki README'dedir, aşağıdaki v0.11 anlatımı tarihsel kalır), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Ek kaynak (yalnız sözleşmenin sustuğu yerde, "kod okuması" diye işaretli): `internal/modules/organization/README.md` §4 uç tablosu ve ORGANIZATION-K*, `internal/modules/reporting/README.md`, `docs/known-gaps.md`. Kod okumasından çıkan her bilgi sözleşmede yazmadığı için **doğrulanmalıdır**; istemci ona dayanmadan önce backend'e sorulur.
 

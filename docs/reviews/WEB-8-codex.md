@@ -1,0 +1,115 @@
+# WEB-8 — Codex nihai kapı (iskelet)
+
+**F8 KAPANDI — 2026-11-16 (kapanış PR'ının CI başarılı birleşmesiyle yürürlüğe girer).** Codex iki tur (P76 hızlı mod, en fazla 2 tur): tur 1 UYGUN DEĞİL (HEAD `27587d2`) → W180 (#167, main `d183dc7`) E-01 ve Ö-01'i kapattı → tur 2 **UYGUN** (HEAD `cadf4af`, nihai). Hüküm UYGUN, **kapanış PR'ının CI SUCCESS ve MERGED koşullarının yerine geçmez** (Codex notu). Bu belge F8 (pin `v0.23.0-api` + canlıya alma turu) için Codex nihai kapı kayıtlarıdır; birleşme kanıtı GitHub PR kaydıdır. Her tur kaydı HEAD, araç izi ve kanıt sınırlarıyla gelir; araç izi olmayan çıktı kapı sayılmaz.
+
+## Kapsam ve girdiler
+
+- **Kod HEAD adayı:** main `b9aab8c` (O1 #154–#157, O2a #158, O2b #159–#163, O3 #164) ve W177 belge dalı `web8/o4-kapanis`; W178 dalı `web8/o4-w178` (`dogrulama-F8.md`, gerçek Docker + backend `v0.23.0-api` tanığı).
+- **Kabul ölçütleri:** ekran README'lerinin "F8 eki" tabloları (`kabul` / `geçici kabul` satırları; 00, 01, 03, 03c, 05/05b, 06, 08, 09, 12, 13, 14), [ortak-kurallar §5 F8 eki ve §12 P67–P76](../ekranlar/ortak-kurallar.md), KESİN 17/21/22/26/29/30/32/35/36 ([ortak sözleşme](../yurutme/web-8/ortak-sozlesme.md)); [canlıya alma matrisi](../yurutme/web-8/canliya-alma-matrisi.md); [pin planı](../yurutme/web-8/pin-yukseltme-v023.md); [rapor-F8](../backend-eksikleri/rapor-F8.md).
+- **Tur sayısı (P76):** en çok 2 tur; tur 1 UYGUN DEĞİL ise 3. Model `gpt-6.1-sol`, orta çaba, `-s read-only`; ilk eylem HEAD teyidi (araç izi). Geri alma deneyi yalnız bulgularda. Uygulayıcı kendi değişikliğine nihai onay vermez.
+
+## Sınıf soruları (tur istemine girer)
+
+1. **Yetki ve kapsam sızıntısı:** S2 `programArchive*` uçları yalnız şirket yöneticisi; satır işlemi S3 başlığı = satırın `department_id`'si; P33 geçici yolunun (`listProgramDepartments` adlarından kart, `archiveTasks` ∩ `listProgramWorkItems`, 200 tavan) kodda ve testte **yokluğu**; yönetici merceği ≠ yetki (P1); koordinatör/üye S3 başlığı; 403/404 gerçek sonuç.
+2. **Bilet hedefi ve indirme:** istemci hedef listesi ↔ backend kapalı liste (14 desen, IDENTITY-K52); `shared/download` (`X-Result-Truncated`, `Content-Disposition`, 429/503 `Retry-After`); dönem ZIP `include_reports`, silinenler CSV, kullanıcı CSV.
+3. **`Idempotency-Key` yaşam döngüsü:** yalnız sözleşmenin istediği uç (`createWorkItem`, `transferWorkItems`, toplantı/gündem/not oluşturma), kullanıcı eylemi başına; belirsiz sonuçta aynı anahtarla güvenli tekrar; anahtarsız organizasyon uçlarında kör tekrar yok.
+4. **Toplu yazma güvenliği:** silinenler toplu geri yükle/kalıcı sil ≤100 parça, kısmi başarı, tür adı yazılarak onay, çöpü boşalt `remaining` döngüsü; ortak onay (`confirmWrite`), sökülmüş sahip (`owner_disposed`), geç sonuç (KESİN 26).
+5. **Pin ↔ fixture uyumu:** `defaults.ts` üreticileri spec varsayılanından; uydurulmuş alan yok; kırıcı farklar (`actor` `sirket_yoneticisi`, `MyDepartment.role`, kapalı dağılım, `createMeeting` 200/404) ayrı commit/testle; 33 yeni hata kodu → i18n (sunucu `message` gösterilmez).
+6. **Stub kaldırma bütünlüğü ("eski yol yok"):** matristeki "canlanır" yerlerinde `designStub` kalmadı; `kayit.md` Durum `bağlandı` ↔ kodda kimlik yok (`tests/lint/design-stub.test.ts`, `live-register.test.ts`); kısmi satırlarda kalan stub ve Durum `açık`.
+7. **Türev sayaçlar (KESİN 29):** toplu işlem ve iade/teslim → liste + rozet + 01 pano + K1/Ü1.
+8. **ŞY aktör (ADR-0041):** `SERVER_ACTOR_TO_CLIENT.sirket_yoneticisi = null`; ürün kararı bekler, davranış değişmedi; ölü dışa aktarım.
+9. **Görsel:** üretim paketi duman (W176 gerçek backend, W178 Docker), CSS katman sırası, taşma/CSP/pageerror; 390 px etkileşim (KESİN 30).
+
+## Kanıt sınırları (baştan yazılır)
+
+- **P75:** GitHub Actions 2026-11-16 00:12–07:17 arasında koşmadı; #161/#162/#163 yerel CI kanıtıyla (ci.yml üç iş birebir; kanıt `.git/koordinator/yerel-ci/pr16N-<hash>/`, PR yorumlarında özet) birleşti. Actions dönünce **main `6e09d7a` CI SUCCESS** ile doğrulandı: bu üç PR bu koşumla main'de sınanmış sayılır; yerel kanıt tek başına CI yerine geçmez ve bu belge onu CI SUCCESS diye anmaz.
+- **P76 hızlı mod:** işçi yerelde yalnız etkilenen testler; tam paket CI'da; gerçek backend e2e yalnız W176/W178/CI; duman tek koşum; geri alma teyidi yok (yalnız Codex bulgularında). İşçi tam paket sayıları (W176 819/5963) işçi raporudur; CI toplamı ayrıca alınmadıkça sayı iddia edilmez.
+- **W178 tanığı (#165, main `30a4f14`; [dogrulama-F8](../yurutme/web-8/dogrulama-F8.md)):** gerçek Docker imajı + Caddy CSP + gerçek backend `v0.23.0-api`, gerçek Chromium; P76 kısaltılmış matris (ŞY 31, K/Ü 14 görünüm, 4 dokunma); Chrome dışı tarayıcı yok. Kusur düzeltmeleri W179 (PR #166) bu tanıktan sonradır; W178 ölçümleri W179 HEAD'inde yeniden koşulmadı. KUSUR 2 tasarım farkı olarak kabul. Üretilemeyen: 503 `reporting.capacity_full`, `reporting.export_too_large`.
+- **Yapılamadı (KESİN 32):** VoiceOver ve kullanıcı görsel onayı; ölçülü piksel karşılaştırması; Safari/iOS/Firefox push ve `notificationclick` OS bildirimi; CDN arkası SSE; ekran okuyucu dahil gerçek cihaz kanıtı.
+- **Bu belgenin yazıldığı oturumda** (W177, yalnız belge) kod, tam paket, build ve e2e koşulmadı; kapı: prettier, lint, `tests/lint`.
+- Duman PNG'leri ve ham sonuç dosyaları yerel (`.git/koordinator/web8-w17N/`); git'e girmez.
+
+## Tur 1 — 2026-11-16, HEAD 27587d2
+
+HEAD: `27587d26f4449857ca87ba0ecb09f2fd9a10e192` (girdi main `dd71bd6`; ham çıktı koordinatör kaydında: `.git/koordinator/web8-codex-tur1.md`, yerel)
+
+**UYGUN DEĞİL** — dönem ZIP'inde kapsam değişimi ve sökülme sonrasında indirmeyi sürdürebilen engelleyici yaşam döngüsü kusuru (E-01); ayrıca tüketim hatasında süre kaybı (Ö-01) ve belge/süreç bulguları (K-01, K-02). Codex dosya değiştirmedi, çalışma ağacı temiz kaldı.
+
+### Bulgular
+
+| Kimlik | Ağırlık | Özet | Sahip / durum |
+| --- | --- | --- | --- |
+| CX-F8-E-01 | Yüksek / engelleyici | Ortak indirme akışında (`shared/download/flow.ts`, `redeem.ts`; `archive/.../use-period-zip.ts`, `PeriodZipButton.vue`) kapsam/oturum/sökülme iptali yok: bilet beklenirken program değişirse eski programın ZIP'i kaydedilebilir; tüketim başladıktan sonra bileşen sökülürse `owner.alive()` yeniden denetlenmez. Düzeltme: eyleme bağlı iptal yaşamı (kapsam, oturum nesli/hesap, sahip sökülmesi) + tüketim/kaydetme öncesi bağlam denetimi. Kabul: bilet yanıtını tut → program değiştir → bırak: tüketim isteği ve dosya kaydı 0 | **W180** |
+| CX-F8-Ö-01 | Orta | Tüketim hatasında `Retry-After` kullanıcıya ulaşmıyor: kullanıcı CSV (`UsersExportButton.vue`) 429 `organization.export_in_progress` / 503 `organization.capacity_full`, raporlu ZIP (`zip-status.ts`) 503 `reporting.capacity_full` genel metne düşüyor. Bilet üretimi aşamasındaki genel-toast borcundan farklıdır. Düzeltme: ortak süreli hata sınıflandırması, bekleme süresi görünür, otomatik tekrar yok | **W180** |
+| CX-F8-K-01 | Orta (belge) | `dogrulama-F8.md:61,70` modüle özgü kota sayıları ham sonuçlarla uyuşmuyor (ham: 12× ve 16× `platform.rate_limited`, `Retry-After: 60`). CSV'nin çalışmadığı sonucu çıkmaz | **W177 düzeltti** (`dogrulama-F8.md` koordinatör düzeltmesi, sayılar ham kayda göre; borç: hedefli gerçek backend kota koşumu, ilerleme #36) |
+| CX-F8-K-02 | Düşük / süreç | W170 "UI değişmedi" hükmü mutlak değil: `9a8ed02` `work.task.reminder` için özel metin/simge/ton ve push metni ekledi (`notifications/model/dictionary.ts`, `public/sw.js`); pin planı bunu W175'e ayırmıştı. Mevcut F8 sözlük davranışı ürün kusuru sayılmaz | **W177 işledi** (ilerleme, oturum-2: W170 kanıtı daraltıldı; sapma notu) |
+
+### Bağımsız sınıf taraması (özet)
+
+| Sınıf | Değerlendirme |
+| --- | --- |
+| Yetki/kapsam | Arşiv yollarında S2/S3 ayrımı ve satır `department_id` tutarlı; P33 kesişimi kaldırılmış; W178 K/Ü gerçek 403 sonuçları mevcut; yeni sızıntı yok |
+| Bilet/indirme | Hedef üreticileri kapalı listeyle uyumlu; dönem ZIP'i yalnız program başlığı taşıyor; yaşam döngüsü engeli E-01 |
+| Stub/kayıt | 35 bağlı kimlikte kalan stub yok; kısmi satırlar `açık` ve GAP/BE bağlı |
+| Pin | `v0.23.0-api` ile **birebir**: 248 işlem, 227 hata kodu (bellekte karşılaştırma); kırıcı farklar ayrı commit/testle |
+| Türevler/modül sınırları | Toplu işlem geçersizleme ilişkileri ve rozet senaryoları mevcut; lint bu HEAD'de geçti; kural gevşetmesi yok |
+| Faz/gövde | Faz anahtarı F7'de kalmış; F8 yeni ekran açmıyor; gövdesiz parça yok |
+
+### Kanıt sınırları (tur 1)
+
+- Codex hedefli testleri koşamadı (salt okunur ortamda Vitest geçici dizin oluşturamadı; testler başlamadan durdu): **test geçti iddiası yok**.
+- W178 gerçek Docker/backend tanığı bu HEAD'in yeniden koşumu değildir (W178 HEAD `b9aab8c`; W179 sonrası ölçüm yok).
+- Bu HEAD'in uzak CI durumu bağımsız doğrulanmadı; `../program/` erişilebilir değildi.
+- VoiceOver, kullanıcı görsel onayı, Safari/iOS push, ölçülü son görsel eşitlik doğrulanmış sayılmadı. Bilinen kapsam dışı borçlar yeniden bulgu sayılmadı. Tüm dosyaların satır satır kapsandığı iddiası yoktur.
+- K-02 kaydı: W170'in "UI değişmedi" ifadesi `work.task.reminder` sözlük girişi (`9a8ed02`) hariç doğrudur; bu görünür değişiklik P69/KESİN 36'dan sapmadır, ürün kusuru değildir.
+
+### Tur 1 koşullarının kapanışı — W180 (#167, main `d183dc7`)
+
+- **CX-F8-E-01 KAPANDI** (`207aa629`): `shared/download` akışına `isCurrent()` doğrulayıcı ve `life.ts` `useDownloadLife()` (program, oturum nesli/hesap ve sökülme → abort; bilet yanıtı, tüketim ve kaydetmeden önce bağlam denetimi). Bağlanan tüketiciler: dönem ZIP, klasör ZIP, kullanıcı CSV, silinenler CSV. Testler: `PeriodZipButton.life` 7, `flow.current` 3; düzeltme geri alınınca 5/7 ve 2/3 kırmızı.
+- **CX-F8-Ö-01 KAPANDI** (`0cdde4cc`): `shared/download/cooldown.ts`; yalnız `Retry-After` taşıyan 429/503 için bekleme sayacı (ZIP `aria-disabled`, CSV `disabled`; otomatik tekrar yok). Testler: `PeriodZipButton.cooldown` 5, `UsersExportButton` 2; geri alınınca kırmızı. Varsayımlar kabul: ZIP `aria-disabled` (KESİN 27), klasör ZIP de sayaç kullanır, silinenler CSV süre metni.
+- **Kapı (işçi, P76):** etkilenen 414 dosya / 3202 test + CI yeşil; duman 390 koyu: ZIP 503 `Retry-After: 7`, CSV 429 `Retry-After: 9` (`.git/koordinator/web8-w180/`, yerel). PR #167 ilk CI koşumu vitest 825/825 dosya geçtiği halde seyrek işlenmemiş red `ApiError: platform.unauthenticated` (geç 401) ile kırmızı çıktı; W180 değişikliğiyle ilgisiz, rerun yeşil; borç ilerleme #38.
+- K-01 ve K-02 tur 1'de W177 tarafından işlendi (yukarıda).
+
+## Tur 2 — 2026-11-16, HEAD cadf4af
+
+HEAD: `cadf4af0775a2cb858878aa1cb8078fb44840263` (girdi main `d183dc7` + W177 belge dalı; ham çıktı koordinatör kaydında: `.git/koordinator/web8-codex-tur2.md`, yerel)
+
+**UYGUN** — incelenen kapsamda tur 1 kapanışlarını destekleyen kod ve anlamlı regresyon testleri mevcut; yeni engelleyici veya koşullu bulgu yok. Codex dosya değiştirmedi, çalışma ağacı temiz kaldı. **Bu hüküm, faz kapanış PR'ının CI SUCCESS ve MERGED koşullarının yerine geçmez.**
+
+### Tur 1 kapanış doğrulaması
+
+| Kimlik | Tur 2 değerlendirmesi |
+| --- | --- |
+| CX-F8-E-01 | **Kapandı.** `shared/download/life.ts:33` kapsam, `:34` oturum nesli/hesap, `:42` sökülmede iptal ediyor; `flow.ts:76` tüketimden önce, `redeem.ts:34` dosya kaydından önce yeniden denetliyor. Dönem/klasör ZIP'i ve iki CSV tüketicisi bağlı |
+| CX-F8-Ö-01 | **Kapandı.** `cooldown.ts:22` süreyi sınıflandırıyor; ZIP ve kullanıcı CSV bileşenleri kalan süreyi gösterip eylemi kilitliyor; başlıksız hata normal metinde; sayaç bitişi yeni indirme başlatmıyor |
+| CX-F8-K-01 | Belge düzeltmesi ham kayıtla uyumlu: silinenler 12×, kullanıcılar 16× `platform.rate_limited`, `Retry-After: 60`; modüle özgü kota tanığı doğrulanmış gösterilmiyor |
+| CX-F8-K-02 | W170 sözlük sapması ilerleme ve uygulama kaydında belirtilmiş; "UI değişmedi" iddiası daraltılmış |
+
+Testler anlamlı: `PeriodZipButton.life.test.ts` bilet ve tüketim yanıtlarını ayrı bariyerlerde tutup kapsam/oturum/sökülme sonrası tüketim veya kaydı sıfır bekliyor; `flow.current.test.ts` doğrulayıcının iki sınırını ayrıca sınıyor; sayaç testleri süre, kilit, başlıksız yol ve ikinci bilet oluşmamasını denetliyor. Geri alma deneyini Codex bu oturumda çalıştırmadı (W180 raporu: geri alınınca kırmızı).
+
+### Bağımsız sınıf taraması (özet)
+
+| Sınıf | Sonuç |
+| --- | --- |
+| Yetki/kapsam | S2/S3 ayrımı, satır `department_id` başlığı, ŞY kapıları tutarlı; P33 kesişim yolu kaldırılmış; K/Ü 403 gerçek-backend tanığı mevcut |
+| Bilet/indirme | Hedef üreticileri 14 desenlik listeyle uyumlu; dönem ZIP'i yalnız program başlığı taşıyor; kesme ve kota hata yollarında yeni kusur yok |
+| Stub/kayıt | Kayıt denetimi sorunsuz; F8'de bağlı 35 kimlikte stub kalmamış; kısmi alanlar açık kayıt ve GAP bağı taşıyor |
+| Pin | `v0.23.0-api` ile **birebir** (dosyaya yazmadan yeniden üretildi): 248 işlem, 227 hata kodu; kırıcı farklar ayrı commit/testle |
+| Türevler/modül sınırları | Toplu işlem ve iade geçersizleme/test bağları mevcut; lint geçti; lint/boyut kapılarında gevşetme yok |
+| Faz/gövde | Faz anahtarı F7'de; F8 mevcut ekranları canlandırıyor; görünür gövdesiz parça yok |
+
+### Kanıt sınırları (tur 2)
+
+- Hedefli Vitest çalıştırması geçici dosya yazımında **EPERM** ile testler başlamadan durdu: bu oturum için test geçti veya mutasyon deneyi geçti iddiası yok.
+- W178 gerçek Docker/backend tanığı `b9aab8c` HEAD'indedir; W179/W180 sonrası mevcut HEAD'in canlı yeniden koşumu değildir.
+- W180 sahte `/v1` dumanı sayaçları destekliyor; ham kayıtlardaki işlenmemiş dashboard 404 (sahte uç) nedeniyle **temiz konsol kanıtı sayılmadı**.
+- Uzak CI durumu bağımsız doğrulanmadı; `../program/` erişilebilir değildi.
+- VoiceOver, kullanıcı görsel onayı, gerçek Safari/iOS push ve son görsel eşitlik otomatik doğrulanmış sayılmadı. Bilinen kapsam dışı borçlar yeniden bulgu yapılmadı. Tüm dosyaların satır satır kapsandığı iddiası yoktur.
+
+## Koşulların kapanışı
+
+Tur 1 koşulları (E-01, Ö-01: W180 #167; K-01, K-02: W177) tur 2'de kapalı doğrulandı; açık koşul yok. Kalan borçlar [ilerleme](../yurutme/web-8/ilerleme.md) #1–#38 (kapanışı engellemez).
+
+## F8 main birleşmesi ve kapanış kaydı
+
+**F8 KAPANDI — 2026-11-16 (kapanış PR'ının CI başarılı birleşmesiyle yürürlüğe girer).** Kapanış belge PR'ı: bekliyor (numara ve main hash PR açılınca/birleşince koordinatör kaydıyla eklenir; geçerlilik şartı CI SUCCESS ve MERGED, kanıt GitHub PR kaydıdır). Uygulama PR'ları: #154–#167 (O1 #154–#157, O2a #158, O2b #159–#163, O3 #164, O4 #165 W178, #166 W179, #167 W180). P75: Actions kesintisinde (00:12–07:17) #161–#163 yerel CI kanıtıyla birleşti; main `6e09d7a` CI SUCCESS ile doğrulandı. P76 hızlı mod.
