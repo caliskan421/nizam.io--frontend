@@ -14,7 +14,7 @@ import {
   recordMeasure,
   signIn,
 } from './live-helpers'
-import { Api, ensureLiveFixture } from './live-seed'
+import { Api, COORD_PASSWORD, ensureLiveFixture } from './live-seed'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -145,4 +145,39 @@ test('390 px: Dönem arşivi (ZIP) onayı ve bölüm seçimi tıklanır, yatay t
   await expect(page.getByRole('dialog')).toBeHidden()
   await expectNoViolations(page, '/arsiv 390')
   await page.setViewportSize({ width: 1280, height: 800 })
+})
+
+test('yetki (gerçek backend): S2 arşiv uçları yalnız şirket yöneticisine; koordinatör ve üye 403 records.not_authorized', async ({}, info) => {
+  const baseURL = String(info.project.use.baseURL)
+  const live = await ensureLiveFixture(baseURL)
+  const fixture = readChatFixture()
+  const paths = [
+    '/v1/program/archive/folders',
+    '/v1/program/archive/attachments',
+    '/v1/program/archive/tasks',
+    '/v1/program/archive/uploaders',
+  ]
+  const outcome: Record<string, Record<string, number>> = {}
+  for (const [who, email, password] of [
+    ['admin', ADMIN.email, ADMIN.password],
+    ['koordinator', live.coordEmail, COORD_PASSWORD],
+    ['uye', fixture.chat.peerEmail, fixture.chat.peerPassword],
+  ] as const) {
+    const api = await Api.login(baseURL, email, password)
+    try {
+      outcome[who] = {}
+      for (const path of paths) {
+        const res = await api.ctx.get(path, { headers: api.headers('S2') })
+        outcome[who][path] = res.status()
+        if (who === 'admin') expect(res.status(), `${who} ${path}`).toBe(200)
+        else {
+          expect(res.status(), `${who} ${path}`).toBe(403)
+          expect(((await res.json()) as { code: string }).code).toBe('records.not_authorized')
+        }
+      }
+    } finally {
+      await api.dispose()
+    }
+  }
+  await recordMeasure(info, 'arsiv-s2-yetki', outcome)
 })
