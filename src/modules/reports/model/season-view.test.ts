@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { withReportTaskDefaults } from '@/shared/api/__tests__/defaults'
+import { makeSeasonLimits, withReportTaskDefaults } from '@/shared/api/__tests__/defaults'
 
 import {
   activity,
@@ -13,6 +13,7 @@ import {
   taskDates,
   taskTotals,
 } from './season-view'
+import { truncation, workloadRows } from './season-extras'
 import type { SeasonReport } from './types'
 
 export function task(over: Partial<ReportTask> = {}): ReportTask {
@@ -110,15 +111,19 @@ describe('gecikme ve tarih hücresi', () => {
 })
 
 const stat = (id: string, name: string, over: Record<string, unknown> = {}) => ({
+  code: null,
   completed_tasks: 1,
   completion_rate: 50,
   coordinators: [{ account_id: 'c', full_name: 'Koord' }],
   department_id: id,
+  file_bytes: 0,
+  file_count: 0,
   in_progress_tasks: 1,
   kind: 'koordinatorluk',
   last_activity_at: null,
   meeting_count: 4,
   member_count: 3,
+  members: [],
   name,
   not_started_tasks: 0,
   overdue_tasks: 1,
@@ -138,6 +143,28 @@ describe('koordinatörlük bölümleri', () => {
       task({ work_item_id: 'x', department_id: 'd2' }),
     ],
   } as unknown as SeasonReport
+
+  it('sıra numarası (BE-005) artan, numarasızlar created_at artan sonda; sunucu kodu katalogdan önce; dosya/üye alanları', () => {
+    const numbered = {
+      coordinatorship_performance: [
+        stat('d1', 'A', {
+          code: 'ALT',
+          file_count: 3,
+          file_bytes: 2048,
+          members: [{ account_id: 'u', full_name: 'Üye Bir' }],
+        }),
+      ],
+      tasks: [
+        task({ work_item_id: 'n', created_at: '2026-01-01T00:00:00Z', sequence_no: null }),
+        task({ work_item_id: 'two', created_at: '2026-05-01T00:00:00Z', sequence_no: 2 }),
+        task({ work_item_id: 'one', created_at: '2026-06-01T00:00:00Z', sequence_no: 1 }),
+      ],
+    } as unknown as SeasonReport
+    const [alt] = departmentSections(numbered, () => 'KATALOG')
+    expect(alt!.tasks.map((t) => t.work_item_id)).toEqual(['one', 'two', 'n'])
+    expect(alt!.code).toBe('ALT')
+    expect(alt).toMatchObject({ fileCount: 3, fileBytes: 2048, members: ['Üye Bir'] })
+  })
 
   it('ada göre (Türkçe sıra), görevler created_at artan, kod kaynağı dışarıdan', () => {
     const sections = departmentSections(season, (id) => (id === 'd1' ? 'ALT' : null))
@@ -187,5 +214,66 @@ describe('aylık aktivite', () => {
       peak: null,
       max: 0,
     })
+  })
+})
+
+describe('kesme uyarısı (BE-132)', () => {
+  const season = (limits: Parameters<typeof makeSeasonLimits>[0]) =>
+    ({ limits: makeSeasonLimits(limits) }) as unknown as SeasonReport
+
+  it('kesme yoksa null; seçilmeyen bölümün toplamı 0 kesme sayılmaz', () => {
+    expect(truncation(season({}))).toBeNull()
+    expect(truncation(season({ tasks_total: 3, tasks_returned: 3 }))).toBeNull()
+  })
+
+  it('görev ve dosya kesmesi ayrı bildirilir', () => {
+    expect(truncation(season({ tasks_total: 5200, tasks_returned: 5000 }))).toEqual({
+      tasks: { shown: 5000, total: 5200 },
+      files: null,
+    })
+    expect(truncation(season({ files_total: 2400, files_returned: 2000 }))).toEqual({
+      tasks: null,
+      files: { shown: 2000, total: 2400 },
+    })
+  })
+})
+
+describe('iş yükü özeti (BE-134)', () => {
+  const rows = (list: SeasonReport['workload_summary']) =>
+    workloadRows({ workload_summary: list } as unknown as SeasonReport)
+
+  it('sunucu sırası korunur; çubuklar en büyük toplama göre', () => {
+    const w = (id: string, active: number, overdue: number, completed: number) => ({
+      account_id: id,
+      active,
+      completed,
+      full_name: id,
+      overdue,
+      pending_approval: 0,
+      returned: 0,
+      total: active + completed,
+    })
+    const out = rows([w('a', 9, 4, 6), w('b', 3, 3, 1)])
+    expect(out.map((r) => r.id)).toEqual(['a', 'b'])
+    expect(out[0]).toMatchObject({ done: 40, ontime: 33.33, late: 26.67, total: 15 })
+    expect(out[1]).toMatchObject({ done: 6.67, ontime: 0, late: 20 })
+  })
+
+  it('boş küme boş satır; sıfır toplamda genişlik 0 (NaN yok)', () => {
+    expect(rows([])).toEqual([])
+    expect(
+      rows([
+        {
+          account_id: 'z',
+          active: 0,
+          completed: 0,
+          full_name: 'Z',
+          overdue: 0,
+          pending_approval: 0,
+          returned: 0,
+          total: 0,
+        },
+      ])[0],
+    ).toMatchObject({ done: 0, ontime: 0, late: 0 })
   })
 })

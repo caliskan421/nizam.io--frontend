@@ -12,7 +12,7 @@ import {
   showsRetry,
   type ReportActionPhase,
 } from '../model/action-state'
-import type { ReportFailure, ReportKind } from '../model/types'
+import type { ReportFailure, ReportKind, SeasonSelection } from '../model/types'
 import ReportStateCard from './ReportStateCard.vue'
 import { t } from './text'
 
@@ -25,8 +25,10 @@ import { t } from './text'
  * kaydedildi, `failed(kod)` sınıflandırılmış hata (iptal/kilit olay üretmez). Etiket varsayılandır;
  * ekran kendi etiketini yuvayla verebilir. Yetki kararı çağıranındır (`model/capabilities.ts`).
  * Durum kartları ortak `ReportStateCard`'dır (01h; W138). `trailing` yuvası düğmeye bitişik ek
- * denetimdir ("Bölüm seç…"); `start()` dışarıya açılır (bölüm penceresinin "Seçilenleri indir"i
- * AYNI düğme durumunda çalışsın diye; ek yüzey, prop/emit sözleşmesi değişmez).
+ * denetimdir ("Bölüm seç…"); `start(selection?)` dışarıya açılır (bölüm penceresinin "Seçilenleri
+ * indir"i AYNI düğme durumunda çalışsın diye; `selection` dönem PDF'inin bölüm/koordinatörlük
+ * seçimidir, BE-122 — ana düğmenin kendi tıklaması seçimsiz tam rapordur; ek yüzey, prop/emit
+ * sözleşmesi değişmez).
  */
 const props = defineProps<{
   kind: ReportKind
@@ -111,7 +113,7 @@ watch(subject, () => {
   failure.value = null
 })
 
-async function start(): Promise<void> {
+async function start(selection?: SeasonSelection): Promise<void> {
   if (!canStart(state.value)) return
   phase.value = 'idle'
   failure.value = null
@@ -120,6 +122,7 @@ async function start(): Promise<void> {
     kind: props.kind,
     targetId: props.targetId,
     memberIds: props.memberIds,
+    ...(props.kind === 'season' ? selection : undefined),
   })
   if (mine !== epoch) return
   if (result.kind === 'saved') {
@@ -145,7 +148,7 @@ defineExpose({ start })
         :disabled="!canStart(state)"
         :title="props.disabledReason"
         :aria-busy="state === 'preparing' ? 'true' : undefined"
-        @click="start"
+        @click="start()"
       >
         <slot v-if="!ownsLabel">{{ label }}</slot>
         <template v-else>{{ label }}</template>

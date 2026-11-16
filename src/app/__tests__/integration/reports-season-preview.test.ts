@@ -38,9 +38,85 @@ afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
 describe('önizleme okuması', () => {
+  it('BE-123: Gantt tasks[]’ten çizilir (stub ve ok yok); görev satırları ve çubuklar', async () => {
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    const gantt = $('[data-testid="gantt"]')!
+    expect(gantt).not.toBeNull()
+    expect($$('[data-gantt-task]', gantt).map((r) => r.getAttribute('data-gantt-task'))).toEqual([
+      'w2',
+      'w3',
+      'w1',
+    ])
+    expect($$('.report-gantt__bar', gantt).length).toBeGreaterThanOrEqual(3)
+    expect($('#report-season-gantt [data-design-stub]')).toBeNull()
+    expect($('#report-season-gantt [data-placeholder]')).toBeNull()
+    expect($('#report-season-gantt')!.textContent).toContain('ALT-7')
+    // Bölüm içi sıra: koordinatörlük sıra numarası (BE-005), oluşturulma anı değil.
+  })
+
+  it("BE-136: kapak dönem aralığı, bölüm detay kartı, toplantı, dosya ve ortalama kayma gerçek JSON'dan; boş dönemde aralık ve kartlar yok", async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    const text = (sel: string) => $(sel)?.textContent ?? ''
+    expect(text('#report-season-cover')).toContain('01.09.2026 – 17.10.2026')
+    expect(text('#report-season-dept-d1 [data-detail="w1"]')).toContain('Ana dağıtım panolarından')
+    expect(text('#report-season-dept-d1 [data-detail="w1"]')).toContain('Onay bekliyor')
+    expect(text('#report-season-dept-d1 [data-meeting="m1"]')).toContain('GÜNDEM 4/6')
+    expect(text('#report-season-dept-d1 [data-testid="dept-files"]')).toContain(
+      'saha-kablo-kanali-plan-v3.pdf',
+    )
+    expect(text('#report-season-general')).toContain('Onaylananlarda ortalama kayma: 4,2 gün')
+    expect(text('#report-season-dept-d1')).toContain('ALT-7')
+    expect($('[data-design-stub="BE-136"]')).toBeNull()
+    teardown()
+    reports.state.season = 'empty'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'boş dönem önizlemesi')
+    expect(text('#report-season-cover')).not.toContain('01.09.2026')
+    expect($('[data-testid="cover-period-note"]')).toBeNull()
+    expect($('[data-detail]')).toBeNull()
+    expect($('[data-meeting]')).toBeNull()
+    expect($('[data-testid="top-requested"]')).toBeNull()
+    await idle(app.queryClient)
+  })
+
+  it("BE-134: iş yükü satırları reportSeason.workload_summary'den; ikinci okuma (reportWorkload) ve stub yok; boş dönemde metin", async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    const rows = Array.from(document.querySelectorAll('[data-testid="workload-row"]'))
+    expect(rows.map((r) => r.querySelector('strong')?.textContent)).toEqual([
+      'Bahar Kılıç',
+      'Kadir Özbek',
+    ])
+    expect(document.querySelector('[data-design-stub="BE-134"]')).toBeNull()
+    expect(backend.sent('GET', '/v1/reports/workload')).toHaveLength(0)
+    expect(backend.sent('POST', '/v1/reports/workload')).toHaveLength(0)
+    expect(sent()).toHaveLength(1)
+    teardown()
+    reports.state.season = 'empty'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(() => $('[data-testid="workload"]'), 'iş yükü bölümü')
+    expect($('[data-testid="workload"]')!.textContent).toContain('İş yükü verisi bulunamadı.')
+    await idle(app.queryClient)
+  })
+
+  it('BE-132: kesilmiş büyük dönem "gösterilen N / toplam M" uyarısı çizer; tam dönemde uyarı yok', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    expect($('[data-testid="season-truncated"]')).toBeNull()
+    teardown()
+    reports.state.season = 'truncated'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    const note = await until(() => $('[data-testid="season-truncated"]'), 'kesme uyarısı')
+    expect(note.textContent).toContain('görev 3 / 5200 gösteriliyor.')
+    expect(note.textContent).toContain('dosya 1 / 2400 gösteriliyor.')
+    await idle(app.queryClient)
+  })
+
   // CX-F6-E-05: başlıklı 429 ortak sayacı başlatır; sayaç boyunca önizleme tekrarı ve PDF düğmesi
   // kapalı, süre bitince otomatik istek yok (süre dolumu ve otomatik istek yokluğu `queries.test.ts`'te sahte saatle).
-  it.each(['export_in_progress', 'rate_limited'] as const)(
+  it.each(['export_in_progress', 'rate_limited', 'capacity_full'] as const)(
     '%s (Retry-After): sayaç boyunca "Yeniden dene" ve "PDF indir" kapalı, ek istek yok',
     async (mode) => {
       reports.state.season = mode
@@ -98,7 +174,7 @@ describe('önizleme okuması', () => {
   })
 
   it('başlıksız 503 (capacity_full): sayaç yok, "Yeniden dene" açık', async () => {
-    reports.state.season = 'capacity_full'
+    reports.state.season = 'capacity_bare'
     await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
     await until(() => byText('button', 'Yeniden dene'), 'hata')
     expect(document.body.textContent).not.toContain('Bekleyin (')
@@ -125,12 +201,9 @@ describe('önizleme okuması', () => {
     expect(text).toContain('Kablo kanalı kazısı')
     expect(text).toContain('Hidrant hattı')
     expect(text).toContain('Başlamadı')
-    // Statik bölümler: yer tutucu, DesignStub işareti.
-    const stubs = $$('[data-design-stub]', STAGE()!).map((el) =>
-      el.getAttribute('data-design-stub'),
-    )
-    expect(stubs).toEqual(expect.arrayContaining(['BE-123', 'BE-134', 'BE-136']))
-    expect($$('[data-placeholder]', STAGE()!).length).toBeGreaterThan(0)
+    // Pin v0.23.0-api: önizlemede statik yer tutucu kalmadı (BE-123/134/136); eski yol yok.
+    expect($$('[data-design-stub]', STAGE()!)).toHaveLength(0)
+    expect($$('[data-placeholder]', STAGE()!)).toHaveLength(0)
     // Pdf düğmesi ve yakınlaştırma araç çubuğunda; "Yazdır" ve sayfa göstergesi yok.
     expect(byText('button', 'PDF indir')).not.toBeNull()
     expect(byText('button', 'Yazdır')).toBeNull()
@@ -170,7 +243,7 @@ describe('önizleme okuması', () => {
 
   it.each([
     ['error', 'Dönem raporu okunamadı'],
-    ['capacity_full', 'Dönem raporu okunamadı'],
+    ['capacity_bare', 'Dönem raporu okunamadı'],
   ] as const)('%s: bölge içi hata + "Yeniden dene", otomatik tekrar yok', async (mode, title) => {
     reports.state.season = mode
     const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })

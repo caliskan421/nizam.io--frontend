@@ -41,7 +41,7 @@ export class ApiError extends Error {
   readonly requestId: string | null
   readonly fields: NormalizedFieldError[]
   readonly status: number | null
-  /** 429 yanıtında `Retry-After` (saniye); yoksa null. Yazmalarda otomatik tekrar yapılmaz. */
+  /** 429 ve 503 yanıtında `Retry-After` (saniye); yoksa null. Yazmalarda otomatik tekrar yapılmaz. */
   readonly retryAfter: number | null
 
   constructor(init: {
@@ -103,7 +103,9 @@ function isEnvelope(body: unknown): body is ErrorEnvelope {
 export function normalizeErrorResponse(response: Response, body: unknown): ApiError {
   const headerRequestId = response.headers.get('X-Request-Id')
   const retryAfter =
-    response.status === 429 ? parseRetryAfter(response.headers.get('Retry-After')) : null
+    response.status === 429 || response.status === 503
+      ? parseRetryAfter(response.headers.get('Retry-After'))
+      : null
   if (!isEnvelope(body)) {
     return new ApiError({
       code: 'client.invalid_response',

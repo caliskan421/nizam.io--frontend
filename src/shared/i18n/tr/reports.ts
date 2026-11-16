@@ -13,6 +13,12 @@ export const trReports = {
     season: {
       title: 'Dönem sonu raporu',
       subtitle: 'Önizleme',
+      // Kesme uyarısı (BE-132): yalnız `limits` kesme gösterdiğinde çizilir.
+      truncated: {
+        lead: 'Rapor büyük olduğundan kesildi:',
+        tasks: 'görev {shown} / {total} gösteriliyor.',
+        files: 'dosya {shown} / {total} gösteriliyor.',
+      },
       note: "Önizleme canlı veriden çizilir; indirilen PDF'in şablonu güncellenene kadar daha sade olabilir · Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre · Rapor indirmeleri kayda geçer (denetim).",
       // Önizleme araç çubuğu (01f ve 01g ortak; E-13-15…17, 47).
       toolbar: {
@@ -71,6 +77,8 @@ export const trReports = {
           requests: '{a} onay · {r} red · {p} bekliyor',
           openTask: 'açık görev',
           ofDone: '{n} bitenden',
+          agenda: 'gündem {a}/{b}',
+          coordinators: '{n} koordinatör',
         },
         cover: {
           kicker: 'ROKETPORTAL · TEKNOFEST KOORDİNASYON',
@@ -82,6 +90,8 @@ export const trReports = {
           note1:
             'Bu rapor, seçili program kapsamındaki aktif (silinmemiş) koordinatörlük, görev ve toplantı kayıtlarından otomatik üretilmiştir. Mesaj içerikleri rapora alınmaz; yalnızca sayılar yer alır.',
           note2: 'Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre.',
+          periodNote:
+            'Dönem aralığı programın beyan ettiği bir tarih değildir: görevlerin en erken başlangıcı ve en geç bitişinden türetilir.',
           logo: 'Program logosu yer tutucu',
           emblem: 'RoketPortal amblemi yer tutucu',
           emblemName: 'ROKETPORTAL',
@@ -96,6 +106,9 @@ export const trReports = {
           appendix: 'EK: SÖZLÜK VE KURALLAR',
           kind: 'KOORDİNATÖRLÜK',
           tasks: 'Görevler',
+          details: 'Görev detayları',
+          meetings: 'Toplantılar',
+          files: 'Dosyalar',
           note: 'Bölümler ada göre sıralanır. Satırlar bu önizlemede ilgili bölüme bağlantıdır.',
         },
         summary: {
@@ -124,7 +137,17 @@ export const trReports = {
         gantt: {
           kicker: '{program} — GÖREV ZAMAN ÇİZELGESİ',
           title: 'GANTT — GÖREV ZAMAN ÇİZELGESİ',
-          stub: 'Gantt önizlemesi bu sürümde yok.',
+          sub: '{n} görev · {range} · Rapor tarihi {date}',
+          label: 'Görev zaman çizelgesi, {n} görev, {range}',
+          empty: 'Çizelgede gösterilecek görev yok.',
+          group: '{name}  ·  {n} görev',
+          today: 'Rapor tarihi {date}',
+          cols: { task: 'GÖREV', start: 'BAŞLANGIÇ', end: 'BİTİŞ', status: 'DURUM' },
+          legend: {
+            label: 'Lejant',
+            late: 'Gecikme (geç bitişte kırmızı kuyruk · açık gecikende kesik kırmızı kenar)',
+          },
+          note: 'Bağımlılık okları önizlemede ve PDF’te yoktur.',
         },
         general: {
           kicker: '{program} · GENEL GÖSTERGELER',
@@ -144,9 +167,34 @@ export const trReports = {
           reqRejected: 'REDDEDİLEN',
           reqPending: 'BEKLEYEN',
           reqPeriod: 'dönem boyunca',
+          avgShift: 'Onaylananlarda ortalama kayma: {n} gün',
+          avgShortShift: 'ort. kayma {n} gün',
+          topRequested: 'EN ÇOK TALEP ALAN GÖREVLER',
+          requestCount: '{n} talep',
+          activityExtras:
+            'Dönem toplamı (aktivite sayısına dahil değil): {notes} not · {files} dosya · {requests} tarih talebi.',
           reqPendingSub: '{pct} · karar bekliyor',
           workload: 'İŞ YÜKÜ',
-          workloadStub: 'İş yükü bölümü için veri ucu yok.',
+          workloadCount: '{n} kişi (aktif göreve göre)',
+          workloadEmpty: 'İş yükü verisi bulunamadı.',
+          workloadNote:
+            'Aktif = açık görev (geciken dahil); toplam = aktif + tamamlanan. Bir kişi birden çok koordinatörlükte görev alabilir.',
+          workloadLabel: 'İş yükü tablosu',
+          workloadCols: {
+            person: 'KİŞİ',
+            active: 'AKTİF',
+            overdue: 'GECİKEN',
+            completed: 'TAMAMLANAN',
+            total: 'TOPLAM',
+            spread: 'DAĞILIM',
+          },
+          workloadLegend: {
+            label: 'Dağılım lejantı',
+            done: 'Tamamlanan',
+            ontime: 'Aktif (zamanında)',
+            late: 'Geciken',
+          },
+          workloadTip: '{done} tamamlanan · {ontime} aktif (zamanında) · {late} geciken',
         },
         dept: {
           kicker: 'KOORDİNATÖRLÜK · {code}',
@@ -166,7 +214,7 @@ export const trReports = {
             date: 'TARİH',
             assignees: 'ATANANLAR',
             late: 'GECİKME',
-            notes: 'N',
+            notes: 'D/N',
           },
           urgent: 'acil',
           plan: 'plan {d}',
@@ -178,11 +226,44 @@ export const trReports = {
             early: '{n} gün erken',
             ontime: 'Zamanında',
           },
-          note: 'N: görev notu sayısı. Gecikme değerleri rapor oluşturulma anına göredir (bkz. Ek).',
-          stubDetails: 'GÖREV DETAYLARI',
-          stubMeetings: 'TOPLANTILAR',
-          stubFiles: 'DOSYALAR',
-          stub: 'Bu önizlemede yok; indirilen PDF daha ayrıntılı olabilir.',
+          note: 'D/N: dosya / not sayısı. Gecikme değerleri rapor oluşturulma anına göredir (bkz. Ek).',
+          details: {
+            title: 'GÖREV DETAYLARI',
+            count: 'İçeriği olan {n} görev',
+            empty: 'Ayrıntısı olan görev yok.',
+            priority: 'Öncelik',
+            assignees: 'Atananlar',
+            dependsOn: 'Bağımlı olduğu görevler',
+            notes: 'NOTLAR ({n})',
+            note: 'Not {no} · {at}',
+            notesShown: 'En yeni {n} not gösteriliyor.',
+            requests: 'TARİH DEĞİŞİKLİĞİ TALEPLERİ ({n})',
+            end: 'Bitiş',
+            requestMeta: 'Talep: {by}, {at}',
+            reason: 'Gerekçe: {text}',
+            reviewReason: 'Karar gerekçesi: {text}',
+            reqStatus: { pending: 'Onay bekliyor', approved: 'Onaylandı', rejected: 'Reddedildi' },
+            files: 'DOSYALAR ({n})',
+          },
+          meetings: {
+            title: 'TOPLANTILAR',
+            count: '{n} toplantı',
+            empty: 'Bu koordinatörlükte toplantı yok.',
+            agenda: 'GÜNDEM {a}/{b}',
+            participants: 'Katılımcı: {n}',
+            notes: '{n} not',
+            converted: '{n} göreve dönüştürüldü',
+            shared: 'Ortak toplantı — diğer bölümler: {names}',
+            deleted: '(silinmiş)',
+          },
+          files: {
+            title: 'DOSYALAR',
+            count: '{n} dosya · {size}',
+            empty: 'Bu koordinatörlükte dosya yok.',
+            untagged: 'Etiketsiz',
+            groupMeta: '{n} dosya · {size}',
+            cols: { file: 'DOSYA', task: 'GÖREV', by: 'YÜKLEYEN', size: 'BOYUT', date: 'TARİH' },
+          },
         },
         appendix: {
           kicker: 'SÖZLÜK · KURALLAR · KAPSAM',
@@ -233,7 +314,7 @@ export const trReports = {
         preview: 'Önizle',
         pickTitle: 'Bölüm seç… — varsayılan tam rapor',
       },
-      // "Bölüm seç…" penceresi (01i hücre B; statik, BE-122; E-13-04…06).
+      // "Bölüm seç…" penceresi (01i hücre B; canlı, BE-122; E-13-04…06).
       picker: {
         kicker: '{program} · {year} sezonu',
         title: 'Dönem sonu raporu — bölümleri seç',
@@ -243,12 +324,10 @@ export const trReports = {
         list: 'Rapor bölümleri',
         always: 'her zaman',
         departments: 'KOORDİNATÖRLÜKLER',
-        soon: 'yakında',
         all: 'Tümü',
         count: '{n} koordinatörlük',
         meta: 'PDF · A4 · kayda geçer (denetim)',
-        partial:
-          'Bölüm seçimi yakında; şimdilik yalnız tam rapor iner. Bütün bölümleri seçili bırakın.',
+        empty: 'Hiçbir bölüm seçili değil. En az bir bölüm seçin; boş seçim tam raporu indirirdi.',
         cancel: 'Vazgeç',
         download: 'Seçilenleri indir (PDF)',
         section: {
@@ -297,7 +376,8 @@ export const trReports = {
         convertedCount: '{n} görev',
         noteCol: 'NOT',
         taskCol: 'GÖREV',
-        taskGone: '—',
+        statusCol: 'DURUM',
+        taskGone: '(silinmiş görev)',
         footRight: 'RoketPortal · {date}',
       },
       // Yan kart (v87): rapor kuralları ("Tetikleyiciler" kartı çizilmez: E-13-54 ret).
@@ -364,7 +444,8 @@ export const trReports = {
     failure: {
       export_in_progress:
         'Önceki raporunuz bitince yeniden deneyin. Başka bir sekme ya da cihazdaki rapor sürüyor olabilir.',
-      capacity_full: 'Şu an çok sayıda rapor üretiliyor. Otomatik yeniden deneme yapılmaz.',
+      capacity_full:
+        'Şu an çok sayıda rapor üretiliyor. Bekleme süresi (varsa) yaklaşıktır; otomatik yeniden deneme yapılmaz.',
       input_invalid: 'Seçim güncellendi, yeniden deneyin.',
       too_large: 'Daha az üye seçin.',
       report_failed: 'Rapor oluşturulamadı.',

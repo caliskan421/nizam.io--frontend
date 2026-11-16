@@ -5,24 +5,29 @@ import { computed } from 'vue'
 
 import { percent } from '../../model/format'
 import type { PaperContext } from '../../model/paper-context'
+import { formatBytes, upper } from '../../model/format'
+import { taskLabel } from '../../model/gantt'
+import type { SeasonReport } from '../../model/types'
 import { lateness, taskDates, type DepartmentSection } from '../../model/season-view'
-import { upper } from '../../model/format'
 import { t } from '../text'
 import { departmentAnchor } from './ids'
 import PaperBand from './PaperBand.vue'
 import PaperFrame from './PaperFrame.vue'
 import PaperHeading from './PaperHeading.vue'
 import PaperKpis, { type PaperKpi } from './PaperKpis.vue'
-import PaperStub from './PaperStub.vue'
+import DepartmentDetails from './DepartmentDetails.vue'
+import DepartmentFiles from './DepartmentFiles.vue'
+import DepartmentMeetings from './DepartmentMeetings.vue'
 
 /**
- * Koordinatörlük bölümü (E-13-32…36): bant, künye, 5 KPI, durum şeridi ve görev tablosu CANLI
- * (`coordinatorship_performance` + `tasks`); "#" sıra numarası gizli (BE-005, satır sırası
- * `created_at`), dosya sayıları/boyutları, üye adları ve görev detay/toplantı/dosya kartları
- * gizli ya da STATİK yer tutucu (BE-136, BE-123). Boş bölüm "Bu koordinatörlükte görev yok.".
+ * Koordinatörlük bölümü (E-13-32…36): bant, künye (açıklama, koordinatörler, üye adları), 5 KPI,
+ * durum şeridi, görev tablosu ("#" kod ya da sıra numarası; D/N dosya/not), görev detay kartları,
+ * toplantılar ve dosyalar — hepsi CANLI (`coordinatorship_performance`, `tasks`, `meetings`,
+ * `files`; pin v0.23.0-api, BE-005/BE-136/BE-123). Boş bölüm "Bu koordinatörlükte görev yok.".
  */
-const props = defineProps<{ ctx: PaperContext; section: DepartmentSection }>()
+const props = defineProps<{ ctx: PaperContext; section: DepartmentSection; season: SeasonReport }>()
 
+const fileTotal = computed(() => formatBytes(props.section.fileBytes) ?? '')
 const kpis = computed<PaperKpi[]>(() => {
   const s = props.section
   const kpi = (key: string) => t(`reports.season.paper.kpi.${key}`)
@@ -51,6 +56,7 @@ const kpis = computed<PaperKpi[]>(() => {
       tone: 'danger',
     },
     { label: kpi('meetings'), value: String(s.meetingCount) },
+    { label: kpi('files'), value: String(s.fileCount), sub: fileTotal.value },
   ]
 })
 const stripLabel = computed(() =>
@@ -100,9 +106,9 @@ function lateText(task: DepartmentSection['tasks'][number]): string {
         <dd>{{ section.coordinators.join(', ') }}</dd>
       </template>
       <dt>{{ t('reports.season.paper.dept.members', { n: section.memberCount }) }}</dt>
-      <dd />
+      <dd>{{ section.members.join(', ') }}</dd>
     </dl>
-    <PaperKpis five :items="kpis" :label="t('reports.season.paper.dept.kpis')" />
+    <PaperKpis six :items="kpis" :label="t('reports.season.paper.dept.kpis')" />
     <div class="report-section">
       <span class="report-track" role="img" :aria-label="stripLabel">
         <span
@@ -137,6 +143,7 @@ function lateText(task: DepartmentSection['tasks'][number]): string {
           :aria-labelledby="`${departmentAnchor(section.id)}-tasks`"
         >
           <div class="report-tr report-tr--head" role="row">
+            <span class="report-c" role="columnheader">#</span>
             <span role="columnheader">{{ t('reports.season.paper.dept.cols.task') }}</span>
             <span role="columnheader">{{ t('reports.season.paper.dept.cols.status') }}</span>
             <span role="columnheader">{{ t('reports.season.paper.dept.cols.priority') }}</span>
@@ -155,6 +162,7 @@ function lateText(task: DepartmentSection['tasks'][number]): string {
             role="row"
             :data-task="task.work_item_id"
           >
+            <span class="report-c report-mono" role="cell">{{ taskLabel(task) }}</span>
             <strong role="cell">{{ task.title }}</strong>
             <span role="cell">
               <span class="report-status" :class="`report-st-${task.status}`"
@@ -189,23 +197,14 @@ function lateText(task: DepartmentSection['tasks'][number]): string {
               }"
               >{{ lateText(task) }}</span
             >
-            <span class="report-c" role="cell">{{ task.note_count }}</span>
+            <span class="report-c" role="cell">{{ task.file_count }}/{{ task.note_count }}</span>
           </div>
         </div>
       </div>
       <p class="report-fn">{{ t('reports.season.paper.dept.note') }}</p>
     </section>
-    <PaperStub
-      stub="123"
-      :text="`${t('reports.season.paper.dept.stubDetails')} · ${t('reports.season.paper.dept.stub')}`"
-    />
-    <PaperStub
-      stub="136"
-      :text="`${t('reports.season.paper.dept.stubMeetings')} · ${t('reports.season.paper.dept.stub')}`"
-    />
-    <PaperStub
-      stub="136"
-      :text="`${t('reports.season.paper.dept.stubFiles')} · ${t('reports.season.paper.dept.stub')}`"
-    />
+    <DepartmentDetails :ctx="ctx" :section="section" :season="season" />
+    <DepartmentMeetings :ctx="ctx" :section="section" :season="season" />
+    <DepartmentFiles :ctx="ctx" :section="section" :season="season" :total="fileTotal" />
   </PaperFrame>
 </template>

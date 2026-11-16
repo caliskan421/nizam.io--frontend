@@ -25,6 +25,7 @@ import { t } from '../components/text'
 import { FALLBACK_TIME_ZONE } from '../model/format'
 import { paperContext } from '../model/paper-context'
 import { requestFocusReturn, SEASON_RETURN_KEY } from '../model/return-focus'
+import { truncation } from '../model/season-extras'
 import { departmentSections } from '../model/season-view'
 
 /**
@@ -62,6 +63,7 @@ const sections = computed(() =>
     ? departmentSections(season.value, (id) => departments.byId.value.get(id)?.code ?? null)
     : [],
 )
+const cut = computed(() => (season.value ? truncation(season.value) : null))
 // Ağır okuma 429'u ortak bekleme sayacını başlatır; sayaç boyunca "Yeniden dene" kapalı (E-05).
 const cooldown = reportGate.cooldown
 const error = computed(() => (query.isError.value ? toApiError(query.error.value) : null))
@@ -108,17 +110,27 @@ const error = computed(() => (query.isError.value ? toApiError(query.error.value
           </div>
         </div>
         <div v-else class="report-stage" data-testid="season-stage">
+          <p v-if="cut" class="report-page__note" role="status" data-testid="season-truncated">
+            {{ t('reports.season.truncated.lead') }}
+            <template v-if="cut.tasks">
+              {{ t('reports.season.truncated.tasks', cut.tasks) }}
+            </template>
+            <template v-if="cut.files">
+              {{ t('reports.season.truncated.files', cut.files) }}
+            </template>
+          </p>
           <div class="report-stack" :style="{ zoom: zoom / 100 }">
             <SeasonCover :ctx="context" :season="season" />
             <SeasonToc :ctx="context" :sections="sections" />
             <SeasonSummary :ctx="context" :season="season" :sections="sections" />
-            <SeasonGantt :ctx="context" />
+            <SeasonGantt :ctx="context" :season="season" :sections="sections" />
             <SeasonGeneral :ctx="context" :season="season" />
             <SeasonDepartment
               v-for="section in sections"
               :key="section.id"
               :ctx="context"
               :section="section"
+              :season="season"
             />
             <SeasonAppendix :ctx="context" />
           </div>

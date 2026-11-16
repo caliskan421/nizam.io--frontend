@@ -19,7 +19,14 @@ export type RedeemFault =
   | 'ticket_invalid'
   | 'not_authorized'
 export type SeasonFault =
-  'ok' | 'empty' | 'export_in_progress' | 'rate_limited' | 'capacity_full' | 'error'
+  | 'ok'
+  | 'empty'
+  | 'truncated'
+  | 'export_in_progress'
+  | 'rate_limited'
+  | 'capacity_full'
+  | 'capacity_bare'
+  | 'error'
 
 export interface FakeMeeting {
   meeting_id: string
@@ -67,6 +74,14 @@ export function createReportsState(): ReportsState {
 
 const PDF = Uint8Array.from([37, 80, 68, 70, 45, 49, 46, 55])
 
+/** 503 `reporting.capacity_full` (v0.23: `Retry-After` 1–30 sn ipucu; BE-135). */
+function capacityFull() {
+  return HttpResponse.json(
+    { code: 'reporting.capacity_full', message: 'x', request_id: 'r', fields: [] },
+    { status: 503, headers: { 'Retry-After': '12' } },
+  )
+}
+
 function limited(code: string, retryAfter: string | null) {
   return HttpResponse.json(
     { code, message: 'x', request_id: 'r', fields: [] },
@@ -111,11 +126,47 @@ class Fake {
   }
 }
 
+const SEASON_SECTIONS = [
+  'summary',
+  'gantt',
+  'general',
+  'tasks',
+  'details',
+  'meetings',
+  'files',
+  'appendix',
+]
+
+/** Dönem PDF'i seçim doğrulaması (REPORTING-K17): küme dışı bölüm ya da programda olmayan departman 422. */
+function seasonSelectionFault(f: Fake, issued: Issued): Response | null {
+  const url = new URL(issued.path, 'http://x')
+  if (url.pathname !== '/v1/reports/season/pdf') return null
+  const list = (name: string) =>
+    url.searchParams
+      .getAll(name)
+      .flatMap((v) => v.split(','))
+      .filter(Boolean)
+  const fields: Array<{ field: string; code: string }> = []
+  if (list('sections').some((id) => !SEASON_SECTIONS.includes(id))) {
+    fields.push({ field: 'sections', code: 'reporting.section_invalid' })
+  }
+  const known = f.db.links
+    .filter((l) => l.program_id === issued.program)
+    .map((l) => l.department_id)
+  const departments = list('department_ids')
+  if (departments.length > 50 || departments.some((id) => !known.includes(id))) {
+    fields.push({ field: 'department_ids', code: 'reporting.department_invalid' })
+  }
+  return fields.length > 0 ? envelope('reporting.input_invalid', 422, fields) : null
+}
+
 /** Tüketimde sunucu hatası (slot, doğrulama, yetki); yoksa `null` = PDF. */
 function redeemFault(f: Fake, issued: Issued, account: Account): Response | null {
   const { db, state } = f
   const denied = f.authorize(account, issued.program, issued.path)
   if (denied) return denied
+  const invalidSelection = seasonSelectionFault(f, issued)
+  if (invalidSelection) return invalidSelection
   const members = (issued.body as { member_ids?: string[] } | undefined)?.member_ids ?? []
   const unknown = members.filter((id) => !db.accounts.some((a) => a.account_id === id))
   if (unknown.length > 0 || state.redeem === 'input_invalid') {
@@ -135,7 +186,7 @@ function redeemFault(f: Fake, issued: Issued, account: Account): Response | null
     case 'rate_limited':
       return limited('platform.rate_limited', '60')
     case 'capacity_full':
-      return envelope('reporting.capacity_full', 503)
+      return capacityFull()
     default:
       return null
   }
@@ -192,41 +243,67 @@ function ticketHandlers(f: Fake) {
   ]
 }
 
-function jsonHandlers(f: Fake) {
+type AdminGuard = (request: Request) => Response | null
+
+/** `reportSeason` yanıtı: sunucu hatası kipleri, boş/kesilmiş büyük dönem (BE-132) ya da tam gövde. */
+function seasonResponse(f: Fake, request: Request, adminOnly: AdminGuard): Response {
   const { db, state } = f
+  const denied = adminOnly(request)
+  if (denied) return denied
+  switch (state.season) {
+    case 'export_in_progress':
+      return limited('reporting.export_in_progress', '1')
+    case 'rate_limited':
+      return limited('platform.rate_limited', '60')
+    case 'capacity_bare':
+      return envelope('reporting.capacity_full', 503)
+    case 'capacity_full':
+      return capacityFull()
+    case 'error':
+      return envelope('platform.internal', 500)
+  }
+  const program = fakeOrg.programOf(request)
+  const base = seasonBody(program, db.programs.find((p) => p.program_id === program)?.name ?? '')
+  if (state.season === 'ok') return json(base)
+  if (state.season === 'truncated') {
+    // Büyük dönem (BE-132): görev satırı 5000'de, dosya satırı 2000'de kesilir; başlık gelir.
+    const limits = { ...base.limits, tasks_total: 5200, files_total: 2400 }
+    return HttpResponse.json({ ...base, limits }, { headers: { 'X-Result-Truncated': 'true' } })
+  }
+  return json({
+    ...base,
+    coordinatorship_performance: [],
+    date_change_stats: {
+      ...base.date_change_stats,
+      average_shift_days: null,
+      top_requested_tasks: [],
+    },
+    files: [],
+    limits: {
+      ...base.limits,
+      tasks_total: 0,
+      tasks_returned: 0,
+      files_total: 0,
+      files_returned: 0,
+    },
+    meetings: [],
+    monthly_activity: [],
+    period: null,
+    tasks: [],
+    workload_summary: [],
+    stats: { ...base.stats, total_tasks: 0, completed_tasks: 0, overdue_tasks: 0 },
+  })
+}
+
+function jsonHandlers(f: Fake) {
+  const { state } = f
   const adminOnly = (request: Request) => {
     const account = f.me(request)
     if (!account) return envelope('platform.unauthenticated', 401)
     return account.admin ? null : envelope('reporting.not_authorized', 403)
   }
   return [
-    http.get(`${ORIGIN}/v1/reports/season`, ({ request }) => {
-      const denied = adminOnly(request)
-      if (denied) return denied
-      switch (state.season) {
-        case 'export_in_progress':
-          return limited('reporting.export_in_progress', '1')
-        case 'rate_limited':
-          return limited('platform.rate_limited', '60')
-        case 'capacity_full':
-          return envelope('reporting.capacity_full', 503)
-        case 'error':
-          return envelope('platform.internal', 500)
-      }
-      const program = fakeOrg.programOf(request)
-      const base = seasonBody(
-        program,
-        db.programs.find((p) => p.program_id === program)?.name ?? '',
-      )
-      if (state.season === 'ok') return json(base)
-      return json({
-        ...base,
-        coordinatorship_performance: [],
-        monthly_activity: [],
-        tasks: [],
-        stats: { ...base.stats, total_tasks: 0, completed_tasks: 0, overdue_tasks: 0 },
-      })
-    }),
+    http.get(`${ORIGIN}/v1/reports/season`, ({ request }) => seasonResponse(f, request, adminOnly)),
     http.get(`${ORIGIN}/v1/reports/meetings/:id`, ({ request, params }) => {
       const denied = adminOnly(request)
       if (denied) return denied

@@ -15,6 +15,23 @@ describe('rapor bilet hedefleri (kapalı liste: dört PDF)', () => {
     })
   })
 
+  it('dönem: bölüm ve koordinatörlük seçimi sorgu dizesinde (BE-122); boş dizi parametre yazmaz', () => {
+    expect(
+      reportTarget({
+        ...base,
+        kind: 'season',
+        sections: ['summary', 'tasks'],
+        departmentIds: ['d1', 'd 2'],
+      }).path,
+    ).toBe('/v1/reports/season/pdf?sections=summary,tasks&department_ids=d1,d%202')
+    expect(reportTarget({ ...base, kind: 'season', departmentIds: ['d1'] }).path).toBe(
+      '/v1/reports/season/pdf?department_ids=d1',
+    )
+    expect(reportTarget({ ...base, kind: 'season', sections: [], departmentIds: [] }).path).toBe(
+      '/v1/reports/season/pdf',
+    )
+  })
+
   it('toplantı ve görev: kimlik kodlanır, ham sorgu yok', () => {
     expect(reportTarget({ ...base, kind: 'meeting', targetId: 'm 1/x' })).toMatchObject({
       method: 'GET',

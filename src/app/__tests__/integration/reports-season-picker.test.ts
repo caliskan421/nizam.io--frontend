@@ -1,4 +1,4 @@
-// W142 · O3 senaryo 1 (b): "Bölüm seç…" penceresi (statik, BE-122), dönem ZIP'i (BE-120 canlı, W171) ve
+// W142 · O3 senaryo 1 (b): "Bölüm seç…" penceresi (canlı, BE-122 — W172), dönem ZIP'i (BE-120 canlı, W171) ve
 // odak dönüşü; gerçek router/AppShell/oturum.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
@@ -67,36 +67,72 @@ describe('bölüm seçimi penceresi', () => {
     expect(toasts()).toContain('indirildi')
   })
 
-  it('bir kutu kaldırılınca indirme devre dışı + açıklama + yakında; ağ isteği ve sahte kısmi PDF yok', async () => {
+  it('bir kutu kaldırılınca "Seçilenleri indir" etkin: bilet hedefi seçili bölümleri taşır; eski yol (sahte devre dışı/yakında) yok', async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv' })
     await openPicker()
-    const box = $$('[data-section]')[0] as HTMLInputElement
-    box.click()
+    ;($$('[data-section]')[0] as HTMLInputElement).click()
+    await until(
+      () => !$('[role="dialog"] [data-design-stub="BE-122"]') && !CONFIRM()!.disabled,
+      'etkin',
+    )
+    expect(DIALOG()!.textContent).not.toContain('yakında')
+    await userClick(CONFIRM)
+    await until(() => saved.length === 1, 'kaydedildi')
+    await idle(app.queryClient)
+    expect(issued()).toHaveLength(1)
+    expect(issued()[0]!.body).toEqual({
+      method: 'GET',
+      path: '/v1/reports/season/pdf?sections=gantt,general,tasks,details,meetings,files,appendix',
+    })
+  })
+
+  it('hiçbir bölüm seçili değilken gönderme engellenir: ağ isteği yok', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv' })
+    await openPicker()
+    for (const box of $$('[data-section]')) {
+      const input = box as HTMLInputElement
+      if (input.checked && input.dataset.section !== 'departments') input.click()
+    }
     await until(() => CONFIRM()!.disabled, 'devre dışı')
-    expect($('[role="dialog"] [data-design-stub="BE-122"]')).not.toBeNull()
     expect($('[role="dialog"] [role="status"]')).not.toBeNull()
     CONFIRM()!.click()
     await idle(app.queryClient)
     expect(issued()).toHaveLength(0)
-    // Kutu geri işaretlenince yeniden etkin.
-    box.click()
-    await until(() => !CONFIRM()!.disabled, 'yeniden etkin')
   })
 
-  it('koordinatörlük çipleri programdan, devre dışı; kapanıp açılınca seçim hatırlanmaz', async () => {
-    await boot({ ...ADMIN, path: '/arsiv' })
+  it('koordinatörlük çipleri programdan, etkin; çip süzgeci department_ids olarak biletlenir; kapanıp açılınca seçim hatırlanmaz', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv' })
     await openPicker()
-    const chips = $$('.report-chip')
     await until(() => $$('.report-chip').length === 3, 'çipler: Tümü + MEK + YAZ')
-    expect(chips.length).toBeGreaterThan(0)
-    expect($$('.report-chip').every((c) => (c as HTMLButtonElement).disabled)).toBe(true)
+    expect($$('.report-chip').every((c) => !(c as HTMLButtonElement).disabled)).toBe(true)
     expect($$('.report-chip').map((c) => c.textContent?.trim())).toEqual(['Tümü', 'MEK', 'YAZ'])
+    ;($$('.report-chip')[1] as HTMLButtonElement).click()
+    await until(() => $$('.report-chip')[1]!.getAttribute('aria-pressed') === 'true', 'MEK basılı')
+    await userClick(CONFIRM)
+    await until(() => saved.length === 1, 'kaydedildi')
+    await idle(app.queryClient)
+    expect((issued()[0]!.body as { path: string }).path).toMatch(
+      /^\/v1\/reports\/season\/pdf\?department_ids=d1$/,
+    )
+    await openPicker()
+    expect($$('.report-chip')[0]!.getAttribute('aria-pressed')).toBe('true')
     ;($$('[data-section]')[1] as HTMLInputElement).click()
-    await until(() => CONFIRM()!.disabled, 'kısmi')
     press(DIALOG()!, 'Escape')
     await until(() => DIALOG() === null, 'kapandı')
     await openPicker()
     expect($$('[data-section]').every((el) => (el as HTMLInputElement).checked)).toBe(true)
+  })
+
+  it('sunucu 422 reporting.input_invalid (küme dışı bölüm) → kullanıcıya hata kartı, ağ tekrarı yok', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv' })
+    reports.state.redeem = 'input_invalid'
+    await openPicker()
+    ;($$('[data-section]')[0] as HTMLInputElement).click()
+    await userClick(CONFIRM)
+    await until(() => $('[data-testid="report-card"]'), 'hata kartı')
+    await idle(app.queryClient)
+    expect(saved).toHaveLength(0)
+    expect(issued()).toHaveLength(1)
   })
 
   it.each([

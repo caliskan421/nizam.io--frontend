@@ -311,6 +311,9 @@
   .report-kpis--5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+  .report-kpis--6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
   .report-kpi {
     display: flex;
     flex-direction: column;
@@ -456,13 +459,23 @@
     --report-cols: minmax(0, 3fr) repeat(5, minmax(0, 1fr)) minmax(0, 2fr);
   }
   .report-cols-tasks {
-    --report-cols: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr)
-      minmax(0, 2fr) minmax(0, 1fr);
+    --report-cols: minmax(0, 1.4fr) minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr)
+      minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr);
+  }
+  .report-cols-top {
+    --report-cols: minmax(0, 1.4fr) minmax(0, 6fr) minmax(0, 1.6fr);
+    min-inline-size: 0;
+  }
+  .report-cols-workload {
+    --report-cols: minmax(0, 3fr) repeat(4, minmax(0, 1fr)) minmax(0, 3fr);
   }
   .report-cols-gloss,
   .report-cols-converted {
     --report-cols: minmax(0, 1fr) minmax(0, 3fr);
     min-inline-size: 0;
+  }
+  .report-cols-converted {
+    --report-cols: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 1.4fr);
   }
   .report-prog {
     display: grid;
@@ -511,6 +524,9 @@
   }
   .report-st-tamamlandi {
     --report-tone: var(--accent-text);
+  }
+  .report-wl-late {
+    --report-tone: var(--danger);
   }
   .report-pr-acil {
     --report-tone: var(--danger);

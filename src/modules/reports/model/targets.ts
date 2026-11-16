@@ -1,8 +1,9 @@
 /**
  * Rapor PDF'lerinin bilet hedefleri (kapalı liste: dört PDF; `backend.md` §1.1–§1.5). Yol
- * çağırandadır: kimlik kodlanır, ham sorgu dizesi yoktur. İş yükü tek POST hedefidir: gövde
+ * çağırandadır: kimlik kodlanır; ham sorgu dizesi yalnız dönem PDF'inin seçim parametreleridir
+ * (kapalı küme). İş yükü tek POST hedefidir: gövde
  * `{member_ids: [...]}` — seçim yokken AÇIK boş dizi (bilet POST hedefi boş olmayan JSON nesnesi
- * ister; `dogrulama.md` #9).
+ * ister; `dogrulama.md` #9). Dönem PDF'i hedefi bölüm/koordinatörlük seçimini sorgu dizesinde taşır.
  */
 import type { DownloadTarget } from '@/shared/download'
 
@@ -27,10 +28,26 @@ function requireId(request: ReportRequest): string {
   return encodeURIComponent(request.targetId)
 }
 
+/**
+ * Dönem PDF'i sorgu dizesi (REPORTING-K17): `sections` kapalı kümeden, `department_ids` programın
+ * koordinatörlük kimliklerinden; ikisi de virgüllü, yoksa hiç yazılmaz (sunucu "hepsi" sayar).
+ * Boş dizi YAZILMAZ: boş seçim sunucuda tam rapordur, istemci bunu seçim olarak göndermez.
+ */
+function seasonQuery(request: ReportRequest): string {
+  const parts: string[] = []
+  if (request.sections !== undefined && request.sections.length > 0) {
+    parts.push(`sections=${request.sections.join(',')}`)
+  }
+  if (request.departmentIds !== undefined && request.departmentIds.length > 0) {
+    parts.push(`department_ids=${request.departmentIds.map(encodeURIComponent).join(',')}`)
+  }
+  return parts.length > 0 ? `?${parts.join('&')}` : ''
+}
+
 export function reportPath(request: ReportRequest): string {
   switch (request.kind) {
     case 'season':
-      return SEASON_PDF_PATH
+      return `${SEASON_PDF_PATH}${seasonQuery(request)}`
     case 'workload':
       return WORKLOAD_PDF_PATH
     case 'meeting':

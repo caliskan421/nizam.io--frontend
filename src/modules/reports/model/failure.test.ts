@@ -30,6 +30,7 @@ describe('rapor hata sınıflandırması', () => {
 
   it('sayaç yalnız Retry-After başlığı varsa (BE-135): yok/0 → null', () => {
     expect(classifyFailure(err('reporting.capacity_full', 503), null).retryAfter).toBeNull()
+    expect(classifyFailure(err('reporting.capacity_full', 503), 12).retryAfter).toBe(12)
     expect(classifyFailure(err('reporting.export_in_progress', 429), 0).retryAfter).toBeNull()
     expect(classifyFailure(err('reporting.export_in_progress', 429), null).retryAfter).toBeNull()
   })

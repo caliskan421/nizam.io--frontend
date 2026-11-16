@@ -4,7 +4,7 @@ import './preview.css'
 import { computed } from 'vue'
 
 import type { PaperContext } from '../../model/paper-context'
-import { percent } from '../../model/format'
+import { formatBytes, formatDay, percent } from '../../model/format'
 import { taskTotals } from '../../model/season-view'
 import type { SeasonReport } from '../../model/types'
 import { t } from '../text'
@@ -14,9 +14,12 @@ import PaperHeading from './PaperHeading.vue'
 import PaperKpis, { type PaperKpi } from './PaperKpis.vue'
 
 /**
- * 01f kapak (E-13-20…23): kicker/başlık sabit; program adı `program_name`, yıl `Program.year`;
- * "Oluşturulma" `generated_at`. Gizli (alan yok): konum, dönem tarih aralığı, dosya boyutu,
- * "çalışma grubu" ve "koordinatör" alt notları (BE-136, P39). KPI'lar `stats`/`tasks`'tan.
+ * 01f kapak (E-13-20…23): kicker/başlık sabit; program adı `program_name`, yıl `program_year`
+ * (yoksa `Program.year`); "Oluşturulma" `generated_at`. "Dönemin özeti" yanında dönem aralığı
+ * `period` (BE-136): GÖREVLERDEN türetilmiş en erken başlangıç → en geç bitiş (programın dönem
+ * tarihi alanı yok, GAP-237) — dipnot bunu söyler; görev yoksa aralık çizilmez. Gizli (alan yok):
+ * konum ve "çalışma grubu" alt notu. KPI'lar `stats`/`tasks`'tan; kullanıcı alt notu koordinatör
+ * sayısı, dosya alt notu toplam boyut.
  */
 const props = defineProps<{ ctx: PaperContext; season: SeasonReport }>()
 
@@ -49,8 +52,16 @@ const kpis = computed<PaperKpi[]>(() => {
       sub: sub('notes', meetings.total_notes),
     },
     { label: kpi('coordinatorships'), value: String(stats.total_coordinatorships) },
-    { label: kpi('users'), value: String(stats.total_users) },
-    { label: kpi('files'), value: String(stats.total_attachments) },
+    {
+      label: kpi('users'),
+      value: String(stats.total_users),
+      sub: sub('coordinators', stats.total_coordinators),
+    },
+    {
+      label: kpi('files'),
+      value: String(stats.total_attachments),
+      sub: formatBytes(stats.total_attachment_bytes) ?? undefined,
+    },
     {
       label: kpi('requests'),
       value: String(requests.total),
@@ -59,11 +70,15 @@ const kpis = computed<PaperKpi[]>(() => {
     },
   ]
 })
+const year = computed(() => props.season.program_year ?? props.ctx.year)
 const heading = computed(() =>
-  props.ctx.year === null
-    ? props.ctx.programUpper
-    : `${props.ctx.programUpper} · ${props.ctx.year}`,
+  year.value === null ? props.ctx.programUpper : `${props.ctx.programUpper} · ${year.value}`,
 )
+const period = computed(() => {
+  const p = props.season.period
+  const range = p ? [formatDay(p.start_on), formatDay(p.end_on)] : []
+  return range[0] && range[1] ? `${range[0]} – ${range[1]}` : null
+})
 </script>
 
 <template>
@@ -97,10 +112,17 @@ const heading = computed(() =>
       >
     </header>
     <section class="report-section" aria-labelledby="report-cover-summary">
-      <PaperHeading id="report-cover-summary" :title="t('reports.season.paper.cover.summary')" />
+      <PaperHeading
+        id="report-cover-summary"
+        :title="t('reports.season.paper.cover.summary')"
+        :aside="period ?? undefined"
+      />
       <PaperKpis :items="kpis" :label="t('reports.season.paper.cover.kpis')" />
     </section>
     <div class="report-section">
+      <p v-if="period" class="report-fn" data-testid="cover-period-note">
+        {{ t('reports.season.paper.cover.periodNote') }}
+      </p>
       <p class="report-fn">{{ t('reports.season.paper.cover.note1') }}</p>
       <p class="report-fn">{{ t('reports.season.paper.cover.note2') }}</p>
     </div>

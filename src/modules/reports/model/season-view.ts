@@ -2,7 +2,9 @@
  * 01f dönem sonu raporu önizlemesinin saf türetimleri (`ozellikler.md` §2.5, `README` (b)). Kaynak
  * yalnız `reportSeason` JSON'udur (`SeasonReport`); JSON'da olmayan değer (dosya boyutu, dönem
  * tarih aralığı, "ortalama kayma", sıra numarası …) HİÇ türetilmez, çağıran çizmez (§4).
- * Eksik anahtar sıfır sayılır (savunma: `task_status_distribution` beş anahtarı daima doldurur).
+ * Sunucu dağılımları (`task_status_distribution`, `priority_distribution`) kapalı şemadır (BE-133,
+ * pin v0.23.0-api: beş durum, dört öncelik, sıfırlar dahil); eksik anahtar savunması yalnız
+ * bölüm şeridinin görev sayımı içindir (`departmentSections`).
  */
 import { formatShortDay, share } from './format'
 import type { SeasonReport } from './types'
@@ -59,7 +61,7 @@ export interface DistributionRow<K extends string> {
 /**
  * Pin v0.23.0-api: `TaskStatusDistribution`/`TaskPriorityDistribution` kapalı şemadır (anahtar
  * kümesi sabit, `additionalProperties` yok); kaynak anahtarları satır anahtarlarıyla sınırlıdır.
- * Eksik anahtar sıfır sayılır (davranış pin öncesiyle aynı).
+ * Kısmi kaynak (bölüm şeridi sayımı) için eksik anahtar sıfır sayılır.
  */
 export function distribution<K extends string>(
   keys: readonly K[],
@@ -111,11 +113,23 @@ export interface DepartmentSection {
   coordinators: string[]
   memberCount: number
   meetingCount: number
+  /** Koordinatörlüğün dosya sayısı ve toplam boyutu (BE-136). */
+  fileCount: number
+  fileBytes: number
+  /** Koordinatör olmayan canlı üyeler (yalnız ad-soyad; BE-136). */
+  members: string[]
   totals: TaskTotals
   /** Durum şeridi: bölümün görevlerinden beş durum. */
   strip: DistributionRow<SeasonStatus>[]
-  /** `created_at` artan (sıra numarası alanı yok, BE-005). */
+  /** Sıra numarası artan (BE-005); numarasız görevler `created_at` artan sonda. */
   tasks: ReportTask[]
+}
+
+/** Bölüm içi görev sırası: koordinatörlük sıra numarası (BE-005); yoksa oluşturulma anı. */
+function bySequence(a: ReportTask, b: ReportTask): number {
+  const left = a.sequence_no ?? Number.POSITIVE_INFINITY
+  const right = b.sequence_no ?? Number.POSITIVE_INFINITY
+  return left === right ? a.created_at.localeCompare(b.created_at) : left < right ? -1 : 1
 }
 
 const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, 'tr')
@@ -128,17 +142,20 @@ export function departmentSections(
   return [...season.coordinatorship_performance].sort(byName).map((stat) => {
     const tasks = season.tasks
       .filter((t) => t.department_id === stat.department_id)
-      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .sort(bySequence)
     const counts: Record<string, number> = {}
     for (const task of tasks) counts[task.status] = (counts[task.status] ?? 0) + 1
     return {
       id: stat.department_id,
       name: stat.name,
-      code: codeOf(stat.department_id),
+      code: stat.code ?? codeOf(stat.department_id),
       description: stat.description ?? '',
       coordinators: stat.coordinators.map((c) => c.full_name),
       memberCount: stat.member_count,
       meetingCount: stat.meeting_count,
+      fileCount: stat.file_count,
+      fileBytes: stat.file_bytes,
+      members: stat.members.map((m) => m.full_name),
       totals: {
         ...taskTotals(tasks),
         total: stat.total_tasks,
