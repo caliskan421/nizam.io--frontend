@@ -159,7 +159,7 @@ describe('FolderZipButton — hatalar (otomatik tekrar yok, odak düğmede)', ()
 
   it('429 records.busy + Retry-After → süre metni; sunucu iletisi gösterilmez', async () => {
     const text = await failWith('records.busy', 429, { 'Retry-After': '30' })
-    expect(text).toBe('Çok fazla istek gönderildi; 30 saniye sonra yeniden deneyin.')
+    expect(text).toBe('Bekleyin (30 s)')
     expect(text).not.toContain('sunucu iletisi')
   })
 

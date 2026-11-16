@@ -2,7 +2,8 @@
  * Bilet tüketimi (`redeemDownloadTicket`, S0): `GET /v1/downloads/{ticket}` gövdeyi `blob` olarak
  * okur ve tarayıcı indirmesine verir. Başarısızlık sınıflandırılmış sonuç olarak döner
  * (fırlatmaz); otomatik tekrar YOKTUR. İptal (`signal`) sessizdir: bilet tüketildiyse sunucu
- * üretimi sürebilir, istemci dosyayı kaydetmez (`disposed`; 13 mekanizma §3.1).
+ * üretimi sürebilir, istemci dosyayı kaydetmez (`disposed`; 13 mekanizma §3.1). `isCurrent` (bağlam
+ * doğrulayıcısı) gövde döndükten sonra, kayıttan önce de sorulur (CX-F8-E-01).
  */
 import { ApiError, normalizeErrorResponse, toApiError } from '@/shared/errors/api-error'
 import { api } from '@/shared/http'
@@ -15,7 +16,9 @@ export async function redeemAndSave(
   ticketUrl: string,
   fallbackName: string,
   signal?: AbortSignal,
+  isCurrent?: () => boolean,
 ): Promise<DownloadRedeemResult> {
+  const stale = () => signal?.aborted === true || isCurrent?.() === false
   const ticket = ticketOf(ticketUrl)
   if (ticket === null) {
     const error = new ApiError({ code: 'client.invalid_response' })
@@ -27,7 +30,8 @@ export async function redeemAndSave(
       parseAs: 'blob',
       signal,
     })
-    if (signal?.aborted) return { kind: 'disposed' }
+    // Gövde dönene kadar kapsam/oturum/sahip değişmiş olabilir: kayıt ve bildirim yok.
+    if (stale()) return { kind: 'disposed' }
     if (!result.response.ok) {
       const error = normalizeErrorResponse(result.response, result.error)
       return { kind: 'failed', error, retryAfter: error.retryAfter }
@@ -38,7 +42,7 @@ export async function redeemAndSave(
     const truncated = result.response.headers.get('X-Result-Truncated') === 'true'
     return { kind: 'saved', fileName, ...(truncated ? { truncated } : {}) }
   } catch (cause) {
-    if (signal?.aborted) return { kind: 'disposed' }
+    if (stale()) return { kind: 'disposed' }
     const error = toApiError(cause)
     return { kind: 'failed', error, retryAfter: error.retryAfter }
   }

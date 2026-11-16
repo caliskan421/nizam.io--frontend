@@ -6,10 +6,14 @@
  * `organization.capacity_full`) tüketimde sınıflandırılır; otomatik tekrar yoktur. Kapsam başlığı
  * etkisizdir (program süzgeci parametreyle gider).
  */
-import { onScopeDispose, readonly, ref } from 'vue'
+import { readonly, ref } from 'vue'
 
-import { useDownloadFlow, type DownloadResult, type DownloadTarget } from '@/shared/download'
-import { useScopeStore } from '@/shared/scope/store'
+import {
+  useDownloadFlow,
+  useDownloadLife,
+  type DownloadResult,
+  type DownloadTarget,
+} from '@/shared/download'
 
 import type { UserListFilters } from '../model/types'
 
@@ -30,27 +34,19 @@ export function usersExportTarget(filters: UserListFilters): DownloadTarget {
   }
 }
 
-/** Eylem kapsam değişiminde ve sahip sökülünce iptal edilir (bilet tüketilmez). */
+/** Eylem kapsam/oturum değişiminde ve sahip sökülünce iptal edilir (bilet tüketilmez, dosya kaydedilmez). */
 export function useUsersExport() {
   const flow = useDownloadFlow<UserListFilters>(usersExportTarget)
-  const store = useScopeStore()
+  const life = useDownloadLife()
   const busy = ref(false)
-  let controller: AbortController | null = null
-  const off = store.onChange(() => controller?.abort())
-  onScopeDispose(() => {
-    off()
-    controller?.abort()
-  })
 
   async function run(filters: UserListFilters): Promise<DownloadResult<UserListFilters>> {
     if (busy.value) return { kind: 'disposed' }
     busy.value = true
-    controller = new AbortController()
     try {
-      return await flow.start(filters, { signal: controller.signal })
+      return await flow.start(filters, life.begin())
     } finally {
       busy.value = false
-      controller = null
     }
   }
   return { run, busy: readonly(busy) }

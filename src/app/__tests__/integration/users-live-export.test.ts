@@ -148,8 +148,8 @@ describe('bilet hedefi ekran süzgeciyle bire bir', () => {
 describe('hata kodları → i18n (otomatik tekrar yok)', () => {
   it.each([
     ['too-large', /satır|daralt|çok büyük|sınır/i],
-    ['in-progress', /sürüyor|bekle|meşgul|başka/i],
-    ['capacity', /yoğun|kapasite|sonra/i],
+    ['in-progress', /^Bekleyin \(9 s\)$/],
+    ['capacity', /^Bekleyin \(30 s\)$/],
   ] as const)('%s: satır içi hata metni; dosya yok; ikinci bilet yok', async (kind, text) => {
     const app = await boot({ ...ADMIN_ADMIN, path: '/kullanicilar' })
     await until(() => $$('[role="row"][data-account]').length === 5, 'liste')
@@ -157,6 +157,8 @@ describe('hata kodları → i18n (otomatik tekrar yok)', () => {
     await click(exportBtn)
     await until(() => $('[data-testid="users-export-error"]'), 'hata metni')
     expect($('[data-testid="users-export-error"]')!.textContent).toMatch(text)
+    // Retry-After taşıyan 429/503: süre dolana kadar düğme kapalı (CX-F8-Ö-01); 422'de açık.
+    expect((exportBtn() as HTMLButtonElement).disabled).toBe(kind !== 'too-large')
     await idle(app.queryClient)
     expect(saved).toEqual([])
     expect(backend.sent('POST', '/v1/download-tickets')).toHaveLength(1)

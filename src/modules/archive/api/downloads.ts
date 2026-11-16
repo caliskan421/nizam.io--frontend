@@ -14,7 +14,12 @@
  * Sahip bilet beklerken söküldüyse bilet TÜKETİLMEZ (`disposed`).
  */
 import { scopeHeaders } from '@/modules/work/public'
-import { redeemAndSave, useDownloadFlow, type DownloadTarget } from '@/shared/download'
+import {
+  redeemAndSave,
+  useDownloadFlow,
+  type DownloadStartOptions,
+  type DownloadTarget,
+} from '@/shared/download'
 
 import type { ArchiveDownloadRequest, ArchiveDownloadResult } from '../model/types'
 
@@ -45,7 +50,9 @@ export { redeemAndSave }
 /** Dosya/ZIP indirme eylemi (düğme başına bir kez çağrılır; bilet tıklama anında üretilir). */
 export function useArchiveDownload() {
   const flow = useDownloadFlow<ArchiveDownloadRequest>(archiveTarget)
-  const start = (request: ArchiveDownloadRequest): Promise<ArchiveDownloadResult> =>
-    flow.start(request)
+  const start = (
+    request: ArchiveDownloadRequest,
+    options?: DownloadStartOptions,
+  ): Promise<ArchiveDownloadResult> => flow.start(request, options)
   return { start, isPending: flow.isPending }
 }

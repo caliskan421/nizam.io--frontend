@@ -171,7 +171,7 @@ describe('usePeriodZipDownload', () => {
     const { result } = h.run(() => usePeriodZipDownload())
     const controller = new AbortController()
     controller.abort()
-    expect(await result.start(request, controller.signal)).toEqual({ kind: 'disposed' })
+    expect(await result.start(request, { signal: controller.signal })).toEqual({ kind: 'disposed' })
     expect(sent('POST', '/v1/download-tickets')).toHaveLength(0)
   })
 })
