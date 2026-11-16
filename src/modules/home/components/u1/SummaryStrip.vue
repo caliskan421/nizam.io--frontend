@@ -18,10 +18,12 @@ import BarSeg from '../k1/BarSeg.vue'
  * `department_id` yok (program geneli; BE-038, W135 varsayımı 2). Kesin sunucu sayaçları.
  * Kart tıklaması 03'ü (üye merceği) `durum` süzgeciyle açar; bölge hatası "Yeniden dene".
  * Notlar: "Koordinatör onayında" (kanıt iddiası yok), "Tekrar başlayabilirsin" (iade sebebi
- * satırda yok — BE-139; "kanıt eksik" iddiası kaldırıldı). Açık = 0 → nötr (§4).
+ * yoksa; BE-139 gerekçesi `last_return.reason` varsa not olur; "kanıt eksik" iddiası yok). Açık = 0 → nötr (§4).
  */
 const props = defineProps<{
   counts: WorkItemCounts | null
+  /** En son iade edilmiş görevin gerekçesi (BE-139); yoksa mevcut not. */
+  returnReason?: string | null
   loading?: boolean
   error?: Pick<ApiError, 'messageKey' | 'requestId'> | null
   retrying?: boolean
@@ -90,7 +92,7 @@ const cards = computed<Card[]>(() => {
       key: 'returned',
       icon: 'undo',
       value: by.iade_edildi,
-      note: homeText('home.u1.summary.returnedNote'),
+      note: props.returnReason ?? homeText('home.u1.summary.returnedNote'),
       danger: false,
       to: tasksLocation('iade_edildi'),
       bar: [{ tone: 'back', width: share(by.iade_edildi) }],

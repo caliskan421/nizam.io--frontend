@@ -64,6 +64,8 @@ export interface ItemPatch {
   days_overdue?: number
   department_id?: string
   title?: string
+  code?: string | null
+  sequence_no?: number
 }
 
 /** Sözleşmeye birebir görev satırı (`WorkItem`). */
@@ -73,6 +75,8 @@ export function workItem(id: string, assignees: [string, string | null][], patch
     program_id: 'p1',
     department_id: patch.department_id ?? 'd1',
     title: patch.title ?? `Görev ${id}`,
+    code: patch.code ?? null,
+    sequence_no: patch.sequence_no ?? 1,
     priority: 'orta',
     status: patch.status ?? 'devam_ediyor',
     assignees: assignees.map(([account_id, full_name]) => ({ account_id, full_name })),

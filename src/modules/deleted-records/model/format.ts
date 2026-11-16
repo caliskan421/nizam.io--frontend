@@ -93,3 +93,43 @@ export function isToday(iso: string | null | undefined, now: Date, timezone: str
   const day = dayKey(iso, timezone)
   return day !== null && day === dayKey(now, timezone)
 }
+
+/** Saat diliminin `ms` anındaki UTC sapması (ms; doğu pozitif). */
+function offsetAt(ms: number, timezone: string): number {
+  const parts = formatter(timezone, 'parts', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(ms))
+  const at = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0)
+  const local = Date.UTC(
+    at('year'),
+    at('month') - 1,
+    at('day'),
+    at('hour'),
+    at('minute'),
+    at('second'),
+  )
+  return local - Math.floor(ms / 1000) * 1000
+}
+
+/**
+ * Takvim gününün (`YYYY-MM-DD`) kurulum saat diliminde başladığı an, RFC 3339 (UTC, `Z`).
+ * Silinme aralığı sınırı budur (`deleted_from`; UTC gün sınırı DEĞİL — matris M-D07). Saat
+ * dilimi geçişinde (DST) sapma iki turda yakınsar.
+ */
+export function dayStartIso(key: string, timezone: string): string {
+  const [y, m, d] = key.split('-').map(Number)
+  const wall = Date.UTC(y!, (m ?? 1) - 1, d ?? 1)
+  let guess = wall
+  for (let i = 0; i < 3; i += 1) {
+    const next = wall - offsetAt(guess, timezone)
+    if (next === guess) break
+    guess = next
+  }
+  return new Date(guess).toISOString().replace('.000Z', 'Z')
+}

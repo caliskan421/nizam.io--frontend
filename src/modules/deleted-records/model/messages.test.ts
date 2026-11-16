@@ -36,7 +36,7 @@ describe('silinen kayıtlar metinleri (tek kök ağaç, KESİN 24)', () => {
       '3 görev · yalnız yönetici görür',
     )
     expect(deletedText('confirm.purgeBody')).toBe('Bu işlem geri alınamaz.')
-    expect(deletedText('filters.search.placeholder')).toBe('Yüklenen kayıtlarda ara')
+    expect(deletedText('filters.search.placeholder')).toBe('Kayıt ara')
     expect(deletedText('footer.more')).toBe('Daha fazla yükle')
   })
 

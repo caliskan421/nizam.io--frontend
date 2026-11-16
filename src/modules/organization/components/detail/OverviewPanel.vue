@@ -7,7 +7,7 @@ import type { CoordinatorshipTab } from '../index'
 import AboutCard from './AboutCard.vue'
 import ActivityCard from './ActivityCard.vue'
 import AttentionCard from './AttentionCard.vue'
-import { badgeText, kpiCells } from './detail-model'
+import { kpiCells } from './detail-model'
 import KpiStrip from './KpiStrip.vue'
 import ShortcutsCard from './ShortcutsCard.vue'
 import TeamCard from './TeamCard.vue'
@@ -33,7 +33,6 @@ const workSet = computed(() => ({
   items: props.work.items.value,
   complete: props.work.complete.value,
 }))
-const badge = computed(() => badgeText(props.view.displayName, props.view.code))
 const workLoading = computed(() => props.work.query.isPending.value)
 const workError = computed(() => props.work.query.isError.value)
 const cells = computed(() =>
@@ -62,7 +61,6 @@ const cells = computed(() =>
   <aside class="rp-aside cd-aside" :aria-label="view.displayName">
     <AttentionCard
       :department-id="view.departmentId"
-      :code="badge"
       :work="workSet"
       :loading="workLoading"
       :error="workError"

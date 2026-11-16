@@ -1,13 +1,18 @@
 /**
  * Ü1 "Koordinatörlüklerim" (E-Ü1-30…32): `myDepartments` üyelik satırları + AYNI yükleme
  * kümesinin `department_id` kırılımı (tek istek; fan-out değil). "‹n› görev" = o birimdeki açık
- * görevlerim; dilimler başlamadı/devam/onayda/iade. Koordinatör adı yok (BE-141).
+ * görevlerim; dilimler başlamadı/devam/onayda/iade. Koordinatör adı ve birim kodu `myDepartments` satırından (BE-141).
  */
 import { collator, isOpen, type WorkRow } from '../role/common'
+import { coordinatorText } from './units'
 
 export interface UnitRow {
   departmentId: string
   name: string
+  /** Birim kodu (`MyDepartment.department_code`); yoksa ad kısaltması çağıranda (BE-141). */
+  code: string | null
+  /** "Koordinatör: ‹ad›" satırı; ad yoksa `null` (gizli). */
+  coordinator: string | null
   open: number
   overdue: number
   doing: number
@@ -17,7 +22,12 @@ export interface UnitRow {
 }
 
 export function unitBreakdown(
-  units: readonly { departmentId: string; displayName: string }[],
+  units: readonly {
+    departmentId: string
+    displayName: string
+    code?: string | null
+    coordinators?: string[]
+  }[],
   items: readonly WorkRow[],
 ): UnitRow[] {
   const open = items.filter(isOpen)
@@ -27,6 +37,8 @@ export function unitBreakdown(
       const row: UnitRow = {
         departmentId: unit.departmentId,
         name: unit.displayName,
+        code: unit.code ?? null,
+        coordinator: coordinatorText({ coordinators: unit.coordinators ?? [] }),
         open: mine.length,
         overdue: mine.filter((i) => i.is_overdue).length,
         doing: 0,

@@ -151,8 +151,8 @@ describe('Zaman çizelgesi — kapsam ve yüz', () => {
     const view = ctx.wrapper.findComponent({ name: 'GanttView' })
     expect(view.props('scale')).toBe('hafta')
     expect(view.props('today')).toBe('2026-10-21')
-    // Admin yüzünde kod öneki verilir (E-03C-30)
-    expect(view.props('departmentCodes')).toEqual(new Map([['d1', 'MEK']]))
+    // Admin yüzünde görev kodu sütunu açılır (E-03C-30)
+    expect(view.props('showCodes')).toBe(true)
   })
 })
 

@@ -13,8 +13,8 @@ import ScopeNote from '../k1/ScopeNote.vue'
 /**
  * "Koordinatörlüklerim ‹n›" (E-Ü1-30…32): `myDepartments` üyelik satırları + AYNI yükleme
  * kümesinin birim kırılımı (tek istek). "‹n› görev" = o birimdeki açık görevlerim; dilimler
- * başlamadı/devam/onayda/iade; ikinci satır durum özeti. "Koordinatör: ‹ad›" gizli (BE-141:
- * üyeye okunamaz); kod yerine ad kısaltması. Altnot sözleşme bilgisidir.
+ * başlamadı/devam/onayda/iade; ikinci satır durum özeti. Kod `department_code` (yoksa ad
+ * kısaltması), "Koordinatör: ‹ad›" `coordinators` alanından (BE-141; ad null → satır gizli). Altnot sözleşme bilgisidir.
  */
 const props = defineProps<{
   rows: readonly UnitRow[]
@@ -41,13 +41,18 @@ const count = (n: number): string | number => (props.scope ? `≥${n}` : n)
     >
       <div v-for="row in rows" :key="row.departmentId" class="rh-unit" data-row>
         <span class="rh-line">
-          <span class="rh-code" :title="row.name">{{ shortName(row.name) }}</span>
+          <span class="rh-code" :title="row.name" data-unit-code>{{
+            row.code ?? shortName(row.name)
+          }}</span>
           <span class="rh-title">{{ row.name }}</span>
           <span class="rh-cap">{{ homeText('home.u1.depts.tasks', { n: count(row.open) }) }}</span>
           <span v-if="row.overdue > 0" class="rh-cap rh-danger rh-link">
             {{ homeText('home.u1.depts.late', { n: count(row.overdue) }) }}
           </span>
         </span>
+        <span v-if="row.coordinator" class="rh-cap" data-parts="coordinator">{{
+          row.coordinator
+        }}</span>
         <span class="rh-bar rh-bar--thick" aria-hidden="true">
           <BarSeg tone="todo" :width="unitWidths(row).todo" />
           <BarSeg tone="doing" :width="unitWidths(row).doing" />

@@ -1,6 +1,6 @@
 # 01 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.11.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.23.0-api`, F8 W173), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Doğrulama notu (backend analisti, 2026-11-08): alan adları `openapi.yaml` şemalarından (`DashboardReport`, `CoordinatorshipStat`, `WorkItem`, `MeResponse`, `ArchiveFolder`, `DeletedWorkItem`) okundu; anlam belirsiz olan sayaçlar backend kodundan (`internal/modules/reporting/domain/aggregate.go`, `usecase/dashboard.go`, `usecase/roster.go`; `records/usecase/archive.go`) doğrulandı. Kod okuması sözleşme değildir; kodla doğrulanan anlamlar "**(kod)**" ile işaretlidir ve backend README/şema açıklamasına girmesi önerilir (`eksikler.md` §2 `yeni-6`).
 
@@ -177,3 +177,17 @@ K1/Ü1 yeni anahtar tanımlamaz: `scoped(['work-items', filters])` ve `workItems
 
 ### 7.5 Kapsam notu (Ü1 "program geneli")
 `listProgramWorkItems`'ta `department_id` isteğe bağlıdır; Ü1 tek istekle üyenin bütün birimlerindeki atamalarını okur (fan-out değil, K3). Sunucu salt üyeye yalnız atananları döndürür; birleşik rolde `assignee_account_id` = ben zorunlu (KESİN 21, BE-038 bağlandı).
+
+## 8. F8 — K1/Ü1 satır alanları (WEB-8 W173, pin `v0.23.0-api`)
+
+Doğrulama: `v0.23.0-api` `openapi.yaml`; ek uç yok, ek istek yok (görev başına `listWorkItemFiles`/`listDependencies` fan-out YASAK kalır). Tüm alanlar zaten okunan `listProgramWorkItems` / `myDateChangeRequests` / `myDepartments` yanıtındadır.
+
+| Alan | Şema | K1/Ü1 yüzü | Boş/null davranışı |
+| --- | --- | --- | --- |
+| `WorkItem.code`, `sequence_no` | WORK-K97: `<DEPARTMAN-KODU>-<sıra>`; kodsuz departmanda `code` null | görev kodu (5 kart + KPI notları E-K1-09/11) | `code` null → `#<sıra>`; ikisi de yoksa gizli |
+| `file_count`, `submitted_at` | WORK-K95 | onay kartı alt yazısı ve satırı; Ü1 kuyruk satırı | 0 → "dosya" gizli; `submitted_at` null → "gönderildi/en eskisi" gizli; "Kanıt yüklendi" yalnız listelenen her satırda `file_count > 0` iken |
+| `has_pending_dependency`, `pending_dependency_count` | WORK-K95 | atanmamış kilit rozeti, dikkat kartı notu ve "Bağımlılıklar", Ü1 kilitli "Göreve başla" | bekleyen görevin adı/kodu alanda yok → yalnız sayı (Varsayım 9); engel yine `work.dependency_not_completed` |
+| `last_return{reason, returned_at, returned_by}` | WORK-K96 | Ü1 kuyruk satırı "iade: …" ve kart notu | nesne ya da `reason` null → nötr (eski metin); gerekçe metin düğümü, 120 karakterde kırpılır |
+| `TransitionRequest.reason` | WORK-K96: iadede isteğe bağlı, kırpılır, boş ya da 3–500 karakter | K1 "İade et" gerekçe penceresi | boş → gövdede `reason` yok |
+| `DateChangeRequest.created_at`, `reviewed_at`, `review_reason` | WORK-K39/K96 | K1 "Tarih taleplerim" satırı | `reviewed_at` null → karar zamanı yok; `review_reason` yalnız gerekçeli kararda |
+| `MyDepartment.department_code`, `coordinators[]` | ORGANIZATION-K63 | Ü1 "Koordinatörlüklerim" kodu ve "Koordinatör: ‹ad›"; "Koordinatörüme yaz" alt satırı; kabuk dar menü kodu | kod null → ad kısaltması; `full_name` null → kişi/satır gizli |

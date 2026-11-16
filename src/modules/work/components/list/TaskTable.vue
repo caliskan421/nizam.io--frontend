@@ -113,7 +113,6 @@ function department(id: string): ProgramDepartment | undefined {
             :key="item.work_item_id"
             :item="item"
             :department-name="department(item.department_id)?.display_name ?? ''"
-            :code="department(item.department_id)?.code ?? null"
             :href="hrefFor(item.work_item_id)"
             :selected="item.work_item_id === selectedId"
             :expanded="expanded.has(item.work_item_id)"

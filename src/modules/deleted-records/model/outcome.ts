@@ -52,7 +52,7 @@ function filesDeleted(data: unknown): number {
   return typeof value === 'number' && value > 0 ? value : 0
 }
 
-function failed(action: LifecycleAction, code: string): Interpreted | null {
+export function failed(action: LifecycleAction, code: string): Interpreted | null {
   if (NOT_DELETED.has(code)) {
     return { kind: 'gone', message: deletedText('feedback.alreadyRestored') }
   }
@@ -107,4 +107,14 @@ export function interpretOutcome(
     return { kind: 'error', message: deletedText('feedback.purgeIncomplete'), refresh: true }
   }
   return null
+}
+
+/**
+ * Toplu işlemde tek kimliğin hata kodu → kullanıcı cümlesi (tekil yazmayla aynı sözlük; sunucu
+ * `message` alanı gösterilmez). Bilinmeyen kod nötr cümleye düşer.
+ */
+export function batchFailureText(action: LifecycleAction, code: string): string {
+  if (code === 'organization.not_authorized') return deletedText('feedback.ownAccount')
+  if (code === 'platform.conflict_retry') return deletedText('feedback.conflictRetry')
+  return failed(action, code)?.message ?? deletedText('batch.generic')
 }

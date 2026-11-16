@@ -11,7 +11,6 @@ export const trDeletedRecords = {
       sub: {
         idle: 'Yalnız yönetici görür',
         loaded: '{n} {kind} · yalnız yönetici görür',
-        partial: '{n}+ {kind} · yüklenen kayıtlar içinde · yalnız yönetici görür',
       },
       // E-12-07 / P37.
       retention: 'Silinen kayıtlar bir yönetici kalıcı olarak silene kadar saklanır.',
@@ -46,27 +45,17 @@ export const trDeletedRecords = {
       koordinatorluk: 'koordinatörlük',
       kullanici: 'kullanıcı',
     },
-    // Koordinatörlük sekmesi: liste şirket genelidir, ana sayfa sayacı yalnız seçili programa
-    // bağlı olanları sayar (BE-119); uyuşmazlık düzeltilmez, açıklanır.
-    mismatch: {
-      departments:
-        'Bu liste şirket genelindeki silinmiş koordinatörlükleri gösterir. Ana sayfadaki Silinen kayıtlar sayısı yalnız seçili programa bağlı olanları sayar; iki sayı farklı olabilir.',
-      counter:
-        'Sayı; seçili programdaki silinmiş görev ve toplantıları, programa bağlı silinmiş koordinatörlükleri ve şirket genelindeki silinmiş hesapları kapsar. Ekrandaki listelerle farklı olabilir.',
-    },
     filters: {
       range: {
         label: 'Silinme tarihi aralığı',
         today: 'Bugün',
         week: 'Son 7 gün',
         all: 'Tümü',
-        unsupported: 'Kullanıcı kayıtlarında silinme tarihi yok.',
       },
       actor: {
         label: 'Silen',
         all: 'Tümü',
-        unknown: 'Bilinmiyor',
-        unsupported: 'Yalnız toplantılarda silen bilgisi var.',
+        unnamed: 'Adı bilinmiyor',
       },
       department: {
         label: 'Koordinatörlük',
@@ -74,9 +63,8 @@ export const trDeletedRecords = {
         unknown: 'Bilinmeyen koordinatörlük',
         unsupported: 'Bu türde koordinatörlük süzgeci yok.',
       },
-      search: { label: 'Silinen kayıtlarda ara', placeholder: 'Yüklenen kayıtlarda ara' },
+      search: { label: 'Silinen kayıtlarda ara', placeholder: 'Kayıt ara' },
       clear: 'Filtreleri temizle',
-      loadingRange: 'Aralık için kayıtlar yükleniyor',
     },
     table: {
       label: 'Silinen kayıtlar',
@@ -87,7 +75,7 @@ export const trDeletedRecords = {
         actor: 'silen',
         actions: 'işlemler',
       },
-      sortHint: 'En yeni üstte; sıralama değiştirilemez.',
+      sortHint: 'Sıralamak için tıklayın.',
       today: 'bugün',
       none: '—',
       unknownActor: 'Bilinmiyor',
@@ -100,12 +88,12 @@ export const trDeletedRecords = {
     // Satır alt satırı (E-12-28, P44).
     sub: {
       task: '{department} › Görevler',
+      taskByDepartment: '{department} › Görevler · koordinatörlükle birlikte silindi',
       meeting: '{when} · {department}',
     },
     footer: {
-      loaded: '{n} kayıt yüklendi',
-      loadedMore: '{n} kayıt yüklendi, daha var',
-      shown: '{m} kayıt gösteriliyor (yüklenen {n} içinde)',
+      loaded: '{n} kayıt',
+      of: '{m} / {n} kayıt gösteriliyor',
       more: 'Daha fazla yükle',
       moreBusy: 'Yükleniyor',
     },
@@ -117,15 +105,22 @@ export const trDeletedRecords = {
         actor: 'Silen',
         deletedAt: 'Silinme',
         status: 'Durumu',
+        assignees: 'Atananlar',
         place: 'Yer',
         invite: 'Davet',
         departments: 'Koordinatörlükler',
         kind: 'Tür',
         code: 'Kod',
+        admin: 'Yetki',
       },
+      adminValue: 'Şirket yöneticisi',
       invite: { coordinatorship: 'Koordinatörlük', person: 'Kişiler' },
       together: 'birlikte geri gelecek',
+      subtasks: 'Alt görev',
       files: 'Kanıt dosyası',
+      notes: 'Yorum',
+      dateRequest: 'Tarih talebi',
+      unknownAssignee: 'Bilinmeyen kişi',
       // Durum adları (03 sözlüğü; geçmiş zaman biçimi istemci metnidir, E-12-47).
       status: {
         baslanmadi: 'Başlanmamıştı',
@@ -165,17 +160,92 @@ export const trDeletedRecords = {
         'Bu görevin koordinatörlüğü silinmiş ya da programa bağlı değil. Önce Koordinatörlük sekmesinden geri yükleyin.',
       openDepartments: 'Koordinatörlük sekmesini aç',
       writeClosed: 'Yazma şu anda kapalı.',
+      ownAccount: 'Kendi hesabınız kalıcı silinemez.',
+      conflictRetry: 'Kayıt başka bir işlemle çakıştı, yeniden deneyin.',
       dismiss: 'Kapat',
+    },
+    // Toplu işlem çubuğu ve sonuç özeti (E-12-21/22/23; BE-114).
+    bulk: {
+      label: 'Seçili kayıtlar',
+      selected: '{n} kayıt seçildi',
+      restore: 'Geri yükle',
+      purge: 'Kalıcı sil',
+      clear: 'Seçimi kaldır',
+      selectAll: 'Tümünü seç',
+      selectRow: '{title} seç',
+    },
+    batch: {
+      restoreTitle: '{n} {kind} geri yüklensin mi?',
+      restoreBody: 'Bu işlem seçili {n} kaydı geri yükler.',
+      purgeTitle: '{n} {kind} kalıcı olarak silinsin mi?',
+      purgeBody: 'Bu işlem geri alınamaz.',
+      purgeFiles: 'Görevlerin dosyaları da silinir.',
+      chunked: 'Kayıtlar 100’erli gruplar hâlinde işlenir.',
+      restored: '{n} kayıt geri yüklendi.',
+      purged: '{n} kayıt kalıcı olarak silindi.',
+      partial: '{ok} kayıt işlendi, {bad} kayıt işlenemedi.',
+      nothing: 'Hiçbir kayıt işlenemedi ({bad} kayıt).',
+      interrupted:
+        'İşlem yarıda kaldı: {n} kayıt işlendi, kalanının durumu bilinmiyor. Liste yenilendi.',
+      generic: 'Bu kayıt işlenemedi.',
+      dismiss: 'Kapat',
+    },
+    // CSV indir (E-12-05; BE-116): bilet akışı durum kartı.
+    export: {
+      hint: 'Ekrandaki süzgeçlerle eşleşen silinmiş kayıtları CSV olarak indirir.',
+      preparing: 'CSV hazırlanıyor; büyük listelerde biraz sürebilir.',
+      cancel: 'İptal',
+      saved: '{name} indirildi.',
+      tooLarge:
+        'Süzgece uyan kayıt sayısı CSV sınırını (10.000 satır) aşıyor. Süzgeci daraltıp yeniden deneyin.',
+      truncated: 'Bağlantı kesildi: CSV tamamlanamadı ve kaydedilmedi. Yeniden deneyin.',
+      failed: 'CSV oluşturulamadı. Yeniden deneyin.',
+      retryIn: '{n} sn sonra yeniden deneyebilirsiniz.',
+      retry: 'Yeniden dene',
+    },
+    // Çöpü boşalt (E-12-06; BE-115): tür adı yazılarak onay, ardından ilerleme/sonuç.
+    purgeAll: {
+      title: '{n} {kind} kalıcı olarak silinecek',
+      titleUnknown: 'Tüm silinmiş {kind} kayıtları kalıcı olarak silinecek',
+      scope: {
+        gorev:
+          'Seçili programdaki bütün silinmiş görevler silinir; ekrandaki süzgeçler dikkate alınmaz.',
+        toplanti:
+          'Seçili programdaki bütün silinmiş toplantılar silinir; ekrandaki süzgeçler dikkate alınmaz.',
+        kullanici:
+          'Şirket genelindeki bütün silinmiş hesaplar silinir; ekrandaki süzgeçler dikkate alınmaz. Başka kayıtlarca kullanılan hesaplar silinmez.',
+      },
+      irreversible: 'Bu işlem geri alınamaz.',
+      typeLabel: 'Onaylamak için "{kind}" yazın',
+      typePlaceholder: '{kind}',
+      confirm: 'Çöpü boşalt',
+      cancel: 'Vazgeç',
+      confirmTitle: 'Silinmiş {kind} kayıtları kalıcı olarak silinsin mi?',
+      confirmBody: 'Bu işlem geri alınamaz. Kayıtlar 50’şerli gruplar hâlinde silinir.',
+      running: '{n} kayıt silindi, silme sürüyor',
+      runningLeft: '{n} kayıt silindi, {left} kayıt kaldı',
+      stop: 'Durdur',
+      done: 'Çöp boşaltıldı: {n} kayıt kalıcı olarak silindi.',
+      left: '{n} kayıt silindi, {left} kayıt silinemedi.',
+      cancelled: 'Durduruldu: {n} kayıt silindi, kalanına dokunulmadı.',
+      interrupted:
+        'İşlem yarıda kaldı: {n} kayıt silindi, kalanının durumu bilinmiyor. Liste yenilendi.',
+      group: '{n} kayıt',
+      unsupported:
+        'Koordinatörlük türünde çöp boşaltılamaz: uç şirket geneli çalışır ve programa bağlı kayıtları silemez.',
     },
     states: {
       loading: 'Silinen kayıtlar yükleniyor',
       loadFailed: 'Silinen kayıtlar yüklenemedi',
       empty: 'Silinmiş {kind} yok.',
       filteredEmpty: 'Bu filtrelerle kayıt yok.',
-      filteredEmptyMore: 'Yüklenen kayıtlarda yok, daha fazla yükle.',
     },
     home: {
       button: 'Silinen kayıtlar',
+      // Sayı özetin dört terimli toplamıdır (`reportDeletedSummary.total` = pano `deleted_records`);
+      // ekrandaki süzgeçli liste sayıları farklı olabilir.
+      counterHint:
+        'Seçili programdaki silinmiş görev ve toplantıları, programa bağlı silinmiş koordinatörlükleri ve şirket genelindeki silinmiş hesapları sayar; süzgeçli listelerdeki sayılardan farklı olabilir.',
     },
   },
 } as const

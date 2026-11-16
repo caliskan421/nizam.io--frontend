@@ -8,7 +8,8 @@ import { UiCount, UiIcon } from '@/shared/ui'
  * "Silinen kayıtlar ‹n›" düğmesi (E-01-02; `Main.dc.html` `rp-actions`): 12 Silinen kayıtlar
  * ekranının tek girişi (kenar menüsünde giriş yoktur, P36). Sayaç `reportDashboard.deleted_records`
  * değeridir; programa bağlı görev/toplantı/departman ile şirket genelindeki hesapları toplar ve
- * ekrandaki listelerle eşit olmayabilir (BE-119) — `title` bunu söyler. Sayı yoksa (pano henüz
+ * özetle (`reportDeletedSummary.total`) aynı hesaptır; süzgeçli listelerin sayısından farklı
+ * olabilir — `title` bileşimi ve bunu söyler (BE-119). Sayı yoksa (pano henüz
  * gelmedi ya da Admin merceği dışı) yalnız etiket çizilir; sahte sayı yok. Hedef YOL ile verilir:
  * rota kaydı olmayan bir yönlendiricide (komşu sayfa testleri) ad çözümleme hatası vermez.
  */
@@ -20,7 +21,7 @@ defineProps<{ count: number | null }>()
     :to="{ path: DELETED_RECORDS_ROUTE.path }"
     class="t-btn t-btn--secondary"
     data-testid="home-deleted-records"
-    :title="deletedText('mismatch.counter')"
+    :title="deletedText('home.counterHint')"
   >
     <UiIcon name="trash" size="sm" />
     {{ deletedText('home.button') }}

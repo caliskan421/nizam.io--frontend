@@ -7,8 +7,17 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { PATHS, resetAll, sent, server, serverDefaults, task, world } from '../__tests__/harness'
-import { MAX_AUTO_PAGES, useDeletedView } from './use-deleted-view'
+import {
+  meeting,
+  PATHS,
+  resetAll,
+  sent,
+  server,
+  serverDefaults,
+  task,
+  world,
+} from '../__tests__/harness'
+import { useDeletedView } from './use-deleted-view'
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
@@ -53,27 +62,47 @@ async function setup(path: string) {
 }
 
 describe('useDeletedView', () => {
-  it('URL süzgeci ve yabancı sorgu anahtarları korunur', async () => {
+  it('URL süzgeci sunucuya gider; yabancı sorgu anahtarları korunur', async () => {
     world.tasks = [[task('w1', { title: 'Motor' }), task('w2', { title: 'Şasi' })]]
     const { view, router, client, app } = await setup('/silinen-kayitlar?q=motor&x=1')
-    expect(view.visible.value.map((r) => r.id)).toEqual(['w1'])
+    expect(sent(PATHS.tasks).at(-1)!.query.get('q')).toBe('motor')
+    expect(view.list.rows.value.map((r) => r.id)).toEqual(['w1'])
     view.update({ q: '' })
     await settleQueries(client)
     expect(router.currentRoute.value.query).toEqual({ x: '1' })
-    expect(view.visible.value).toHaveLength(2)
+    expect(view.list.rows.value).toHaveLength(2)
     view.setKind('toplanti')
     await settleQueries(client)
     expect(router.currentRoute.value.query).toEqual({ x: '1', tur: 'toplanti' })
     app.unmount()
   })
 
-  it('sayaç: yükleme sürerken yok; imleç bitince kesin', async () => {
-    world.tasks = [[task('w1')], [task('w2')]]
+  it('aralık sunucu deleted_from olarak gider (kurulum günü başı); sayfa yükleme döngüsü yok', async () => {
+    world.tasks = [[task('w1')], [task('w2')], [task('w3')]]
+    const { view, app } = await setup('/silinen-kayitlar?aralik=bugun')
+    const only = sent(PATHS.tasks)
+    // 2026-11-12 12:00Z = Istanbul 15:00; gün başı 11 Kasım 21:00Z.
+    expect(only).toHaveLength(1)
+    expect(only[0]!.query.get('deleted_from')).toBe('2026-11-11T21:00:00Z')
+    expect(view.list.hasMore.value).toBe(true)
+    view.dispose()
+    app.unmount()
+  })
+
+  it('sıralama başlığı: ilk tık ters yön, ikinci tık geri; tür değişince varsayılan', async () => {
+    world.tasks = [[task('w1', { title: 'B' }), task('w2', { title: 'A' })]]
     const { view, client, app } = await setup('/silinen-kayitlar')
-    expect(view.count.value).toBe('1+')
-    await view.list.fetchMore()
+    view.setSort('name')
     await settleQueries(client)
-    expect(view.count.value).toBe('2')
+    let last = sent(PATHS.tasks).at(-1)!.query
+    expect([last.get('sort'), last.get('order')]).toEqual(['name', 'asc'])
+    expect(view.list.rows.value.map((r) => r.title)).toEqual(['A', 'B'])
+    view.setSort('name')
+    await settleQueries(client)
+    last = sent(PATHS.tasks).at(-1)!.query
+    expect([last.get('sort'), last.get('order')]).toEqual(['name', 'desc'])
+    view.setKind('toplanti')
+    expect(view.sort.value).toEqual({ key: 'deleted_at', order: 'desc' })
     app.unmount()
   })
 
@@ -87,15 +116,19 @@ describe('useDeletedView', () => {
     b.app.unmount()
   })
 
-  it('aralık otomatik yükleme tavanı ve dispose sonrası sayaç', async () => {
-    expect(MAX_AUTO_PAGES).toBe(5)
-    world.tasks = Array.from({ length: 8 }, (_, i) => [
-      task(`w${i}`, { deleted_at: '2026-11-12T08:00:00Z' }),
-    ])
-    const { view, app } = await setup('/silinen-kayitlar?aralik=bugun')
-    expect(sent(PATHS.tasks)).toHaveLength(1 + MAX_AUTO_PAGES)
-    expect(view.autoLoading.value).toBe(false)
-    view.dispose()
+  it('süzgeç adayları birikir: arama silenleri daraltsa da seçenekler kaybolmaz', async () => {
+    world.meetings = [
+      [
+        meeting('m1', { title: 'Fuar', deleted_by: { account_id: 'a7', full_name: 'Reha Koçak' } }),
+        meeting('m2', { title: 'Yemek', deleted_by: { account_id: 'a8', full_name: 'Ali Avcı' } }),
+      ],
+    ]
+    const { view, client, app } = await setup('/silinen-kayitlar?tur=toplanti')
+    expect(view.candidates.actors.value.map((a) => a.name)).toEqual(['Reha Koçak', 'Ali Avcı'])
+    view.update({ q: 'fuar' })
+    await settleQueries(client)
+    expect(view.list.rows.value).toHaveLength(1)
+    expect(view.candidates.actors.value.map((a) => a.name)).toEqual(['Reha Koçak', 'Ali Avcı'])
     app.unmount()
   })
 })

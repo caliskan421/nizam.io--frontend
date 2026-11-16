@@ -25,7 +25,15 @@ export type TrackingGrouping = (typeof USER_GROUPINGS)[number]
 /** Türetimlerin okuduğu görev alanları. */
 export type TrackingItem = Pick<
   WorkItem,
-  'work_item_id' | 'department_id' | 'title' | 'status' | 'end_on' | 'is_overdue' | 'days_overdue'
+  | 'work_item_id'
+  | 'department_id'
+  | 'title'
+  | 'status'
+  | 'end_on'
+  | 'is_overdue'
+  | 'days_overdue'
+  | 'code'
+  | 'sequence_no'
 >
 
 // --- Tarih ------------------------------------------------------------------------------------

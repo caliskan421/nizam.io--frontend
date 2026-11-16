@@ -48,7 +48,7 @@ const SCOPES = { admin: ADMIN_SCOPE, coordinator: COORD_SCOPE, member: MEMBER_SC
 
 function setup(who: Who, task: Partial<GanttTask> = {}, extra: GanttTask[] = []) {
   const h = harness(SCOPES[who])
-  const t = ganttTask(task)
+  const t = ganttTask({ code: 'ARGE-1', sequence_no: 1, ...task })
   const all = [t, ...extra]
   const api = h.run(() =>
     useDateChange({
@@ -101,7 +101,8 @@ describe('P8 politikası — yüze göre yazma yolu', () => {
     api.onEdgeDrag(drop('end', '2026-11-15'))
     expect(api.snack.value?.props).toMatchObject({
       face: 'admin',
-      title: 'Rapor',
+      // Bildirim başlığı görev KODUdur (E-03C-68, BE-005)
+      title: 'ARGE-1',
       before: { start: '2026-11-01', end: '2026-11-10' },
       after: { start: '2026-11-01', end: '2026-11-15' },
     })
@@ -285,7 +286,10 @@ describe('gecikmeli gönderim — iptal ve yaşam döngüsü', () => {
 const EXTEND2 = '/v1/work-items/w2/extend'
 
 describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal penceresi korunur', () => {
-  const two = () => setup('admin', {}, [ganttTask({ work_item_id: 'w2', title: 'Plan' })])
+  const two = () =>
+    setup('admin', {}, [
+      ganttTask({ work_item_id: 'w2', title: 'Plan', code: 'ARGE-2', sequence_no: 2 }),
+    ])
   const dropW2 = (day: string) => ({ ...drop('end', day), workItemId: 'w2' })
 
   it('A sonra B değişince A hemen gitmez; her görev kendi süresinde TEK istekle gider', async () => {
@@ -312,9 +316,9 @@ describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal pe
     api.onEdgeDrag(drop('end', '2026-11-15'))
     await vi.advanceTimersByTimeAsync(1000)
     api.onEdgeDrag(dropW2('2026-11-15'))
-    expect(api.snack.value?.props.title).toBe('Plan')
+    expect(api.snack.value?.props.title).toBe('ARGE-2')
     api.cancel()
-    expect(api.snack.value?.props.title).toBe('Rapor')
+    expect(api.snack.value?.props.title).toBe('ARGE-1')
     api.cancel()
     expect(api.snack.value).toBeNull()
     await elapse(10_000)
@@ -330,7 +334,7 @@ describe('görevler arası bekleyenler (CX-F3-Ö-01): her görevin 5 sn iptal pe
     await vi.advanceTimersByTimeAsync(1000)
     expect(api.nudge('w2', 'end', 1)).toBe(true)
     expect(api.nudge('w2', 'end', -1)).toBe(true) // B geri alındı
-    expect(api.snack.value?.props.title).toBe('Rapor')
+    expect(api.snack.value?.props.title).toBe('ARGE-1')
     await vi.advanceTimersByTimeAsync(3900)
     expect(allWrites()).toEqual([])
     await elapse(100)

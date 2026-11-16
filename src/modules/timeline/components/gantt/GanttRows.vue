@@ -29,7 +29,7 @@ const props = defineProps<
     layout: GanttLayout
     window: RowWindow
     pageSize: number
-    departmentCodes?: ReadonlyMap<string, string>
+    showCodes?: boolean
     /** W95 uzantı noktası: Shift(+Alt)+←/→ tarih kısayolu (verilmezse işlenmez). */
     dateKeyHandler?: (request: DateKeyRequest) => boolean | void
     /** Alt görev satırları açık görevler (03d; E-03C-33). */
@@ -131,8 +131,7 @@ function groupLabel(row: Extract<GanttRow, { kind: 'group' }>): string {
 }
 
 function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
-  const prefix = props.departmentCodes?.get(row.task.department_id)
-  return workShortCode(prefix)
+  return workShortCode(row.task)
 }
 </script>
 
@@ -187,9 +186,9 @@ function codeOf(row: Extract<GanttRow, { kind: 'task' }>): string {
           <div
             role="rowheader"
             class="gantt-row__label"
-            :class="{ 'gantt-row__label--bare': !departmentCodes }"
+            :class="{ 'gantt-row__label--bare': !showCodes }"
           >
-            <span v-if="departmentCodes" class="gantt-row__code">{{ codeOf(row) }}</span>
+            <span v-if="showCodes" class="gantt-row__code">{{ codeOf(row) }}</span>
             <span
               class="gantt-dot"
               :class="[

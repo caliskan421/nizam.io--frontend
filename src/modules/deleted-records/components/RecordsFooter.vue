@@ -4,23 +4,23 @@ import { computed } from 'vue'
 import { deletedText } from '../model/messages'
 
 /**
- * Alt bilgi (E-12-38/39): "‹n› kayıt yüklendi" (+ "daha var"); süzgeçliyse "‹m› kayıt gösteriliyor
- * (yüklenen ‹n› içinde)". "x / y" biçimi uygulanamaz (toplam yok; BE-110). "Daha fazla yükle" (P4)
- * imleç bitince gizlenir.
+ * Alt bilgi (E-12-38/39): "‹m› / ‹toplam› kayıt gösteriliyor" (toplam = süzgece uyan küme,
+ * sunucu `total`; BE-110/117); hepsi yüklendiyse "‹n› kayıt". "Daha fazla yükle" (P4) imleç
+ * bitince gizlenir.
  */
 const props = defineProps<{
   loaded: number
-  shown: number
-  filtered: boolean
+  total: number | null
   hasMore: boolean
   loadingMore: boolean
 }>()
 const emit = defineEmits<{ more: [] }>()
 
-const line = computed(() => {
-  if (props.filtered) return deletedText('footer.shown', { m: props.shown, n: props.loaded })
-  return deletedText(props.hasMore ? 'footer.loadedMore' : 'footer.loaded', { n: props.loaded })
-})
+const line = computed(() =>
+  props.total !== null && props.total !== props.loaded
+    ? deletedText('footer.of', { m: props.loaded, n: props.total })
+    : deletedText('footer.loaded', { n: props.loaded }),
+)
 function more(): void {
   if (!props.loadingMore) emit('more')
 }

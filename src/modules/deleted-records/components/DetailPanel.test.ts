@@ -21,26 +21,50 @@ describe('DetailPanel (E-12-41…54)', () => {
     )
   })
 
-  it('görev: durum (geçmiş zaman), silinme, birlikte geri gelecek yalnız dosya; atananlar/yüzde/kalıcı silinme yok', () => {
+  it('görev: durum (geçmiş zaman), silinme, silen; veri olmayan yüzde/atanan yok; kalıcı silinme yok', () => {
     const wrapper = mount(DetailPanel, { props: { ...base, row: fixtureRow() } })
     const text = wrapper.text()
     expect(text).toContain('Devam ediyordu')
     expect(text).toContain('12.11.2026 · 13:42')
+    // Silen dört türde canlıdır (BE-108); silen bilgisi tutulmadan önce silinmişse "Bilinmiyor".
+    expect(text).toContain('Silen')
+    expect(text).toContain('Bilinmiyor')
     expect(text).toContain('birlikte geri gelecek')
-    expect(wrapper.get('.dr-linked').text()).toContain('Kanıt dosyası')
-    expect(wrapper.get('.dr-linked .rp-count').text()).toBe('2')
-    expect(wrapper.findAll('.dr-linked li')).toHaveLength(1)
-    for (const absent of [
-      'Atananlar',
-      'Silen',
-      'Kalıcı silinme',
-      '%',
-      'Yorum',
-      'Tarih talebi',
-      'Alt görev',
-    ]) {
+    expect(wrapper.find('[data-testid="dr-assignees"]').exists()).toBe(false)
+    for (const absent of ['Atananlar', 'Kalıcı silinme', '%']) {
       expect(text, absent).not.toContain(absent)
     }
+  })
+
+  it('görev (BE-113): atananlar, durum yüzdesi ve birlikte geri gelecek dört satır sayısıyla', () => {
+    const row = fixtureRow({
+      task: {
+        assignees: ['Reha Koçak', 'Ali Avcı', ''],
+        progress: 40,
+        subtasks: 3,
+        notes: 5,
+        dateRequest: true,
+        byDepartment: false,
+      },
+    })
+    const wrapper = mount(DetailPanel, { props: { ...base, row } })
+    expect(wrapper.text()).toContain('Devam ediyordu · %40')
+    expect(wrapper.get('[data-testid="dr-assignees"]').text()).toBe(
+      'Reha Koçak, Ali Avcı, Bilinmeyen kişi',
+    )
+    const lines = wrapper
+      .findAll('.dr-linked li')
+      .map((li) => `${li.text().replace(/[0-9]+$/, '')} ${li.get('.rp-count').text()}`)
+    expect(lines).toEqual(['Alt görev 3', 'Kanıt dosyası 2', 'Yorum 5', 'Tarih talebi 1'])
+  })
+
+  it('görev: bekleyen tarih talebi yoksa 0; alt görev yoksa yüzde uydurulmaz', () => {
+    const wrapper = mount(DetailPanel, { props: { ...base, row: fixtureRow() } })
+    const lines = wrapper
+      .findAll('.dr-linked li')
+      .map((li) => `${li.text().replace(/[0-9]+$/, '')} ${li.get('.rp-count').text()}`)
+    expect(lines).toEqual(['Alt görev 0', 'Kanıt dosyası 2', 'Yorum 0', 'Tarih talebi 0'])
+    expect(wrapper.text()).not.toContain('%')
   })
 
   it('bilinmeyen görev durumu nötr gösterilir', () => {
@@ -56,6 +80,7 @@ describe('DetailPanel (E-12-41…54)', () => {
         ...base,
         row: fixtureRow({
           kind: 'toplanti',
+          task: null,
           status: null,
           fileCount: null,
           actor: { accountId: 'a', name: 'Reha Koçak' },
@@ -73,7 +98,7 @@ describe('DetailPanel (E-12-41…54)', () => {
     expect(text).not.toContain('birlikte geri gelecek')
   })
 
-  it('koordinatörlük: tür ve kod; hesap: silinme satırı yok', () => {
+  it('koordinatörlük: tür ve kod', () => {
     const department = mount(DetailPanel, {
       props: {
         ...base,
@@ -87,19 +112,28 @@ describe('DetailPanel (E-12-41…54)', () => {
       },
     })
     expect(department.text()).toContain('OPE')
-    const account = mount(DetailPanel, {
-      props: {
-        ...base,
-        row: fixtureRow({
-          kind: 'kullanici',
-          status: null,
-          fileCount: null,
-          deletedAt: null,
-          subLine: '',
-        }),
-      },
+  })
+
+  it('hesap: silinme tarihi, ekip koordinatörlükleri ve şirket yöneticiliği (BE-118); tarih yoksa satır yok', () => {
+    const row = fixtureRow({
+      kind: 'kullanici',
+      status: null,
+      fileCount: null,
+      subLine: 'Mekanik',
+      departmentNames: ['Mekanik'],
+      companyAdmin: true,
     })
-    expect(account.text()).not.toContain('Silinme')
+    const text = mount(DetailPanel, { props: { ...base, row } }).text()
+    expect(text).toContain('Silinme')
+    expect(text).toContain('12.11.2026 · 13:42')
+    expect(text).toContain('Mekanik')
+    expect(text).toContain('Şirket yöneticisi')
+    expect(text).toContain('Silen')
+    const undated = mount(DetailPanel, {
+      props: { ...base, row: { ...row, deletedAt: null, companyAdmin: false } },
+    }).text()
+    expect(undated).not.toContain('Silinme')
+    expect(undated).not.toContain('Şirket yöneticisi')
   })
 
   it('eylemler: Geri yükle birincil, Kalıcı sil; uçuşta ve yetkisizde engellenir', async () => {
