@@ -87,8 +87,29 @@ export const COORD_SCOPE: ScopeSelection = {
 }
 export const MEMBER_SCOPE: ScopeSelection = { programId: 'p1', lens: 'member', departmentId: 'd1' }
 
+/** `programArchiveFolders` gövdesi (01 yönetici kartı arşiv özeti; BE-072/BE-025). */
+export function archiveFolders(
+  ...cards: Array<{ folder_id: string; file_count: number; last_uploaded_at?: string | null }>
+) {
+  return {
+    folders: cards.map((c) => ({
+      name: c.folder_id,
+      is_virtual: false,
+      task_count: 0,
+      total_bytes: 0,
+      last_uploaded_at: null,
+      ...c,
+    })),
+    totals: { file_count: 0, task_count: 0, total_bytes: 0, last_uploaded_at: null },
+  }
+}
+
+export const ARCHIVE_FOLDERS = '/v1/program/archive/folders'
+
 export function standingHandlers(fixture: StandingFixture) {
   return [
+    // Varsayılan: arşiv özeti boş (testler kendi `ARCHIVE_FOLDERS` işleyicisini önce verir).
+    http.get(`${ORIGIN}${ARCHIVE_FOLDERS}`, () => json(archiveFolders())),
     http.get(`${ORIGIN}/v1/me`, () =>
       json({
         account_id: 'acc-1',

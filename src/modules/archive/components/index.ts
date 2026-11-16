@@ -46,8 +46,6 @@ import type {
 export interface ArchiveSearchBarProps {
   q: string
   kind: ArchiveKind
-  /** Yönetici (P33): arama statik/boş durum — "Görev klasörü seçin" (designStub BE-072). */
-  disabled: boolean
 }
 export interface ArchiveSearchBarEmits {
   'update:q': [value: string]
@@ -69,7 +67,7 @@ export interface FolderGridEmits {
   retry: []
 }
 
-/** W122 · E-06-10…15 — tek klasör kartı; sayılar `null` iken statik `—` (sahte veri yok). */
+/** W122 · E-06-10…15 — tek klasör kartı: dosya/görev sayısı, boyut, son yükleme (sunucudan; BE-025). */
 export interface FolderCardProps {
   card: FolderCardView
 }
@@ -85,9 +83,11 @@ export interface TagLegendEmits {
   select: [tag: ArchiveTag]
 }
 
-/** W122 · E-06-22…24 — depolama özeti; toplam dosya canlı (K/Ü), bayt/dağılım statik (BE-025). */
+/** W122 · E-06-22…24 — depolama özeti; toplam dosya ve bayt `totals`'tan (BE-025), dağılım statik. */
 export interface StorageSummaryProps {
   totalFiles: number | null
+  /** `totals.total_bytes`; okunana dek `null` → `—`. */
+  totalBytes: number | null
   loading: boolean
 }
 
@@ -124,9 +124,8 @@ export interface FileFilterBarProps {
   tag: ArchiveTag | null
   view: ArchiveView
   loaded: number
-  /** Kesin toplam (`knownTotal`); süzgeçlide `null` → "n+" (hasMore). */
+  /** Süzgece uyan kümenin kesin boyu (`ArchiveFileList.total`); gelene dek `null` → yüklenen sayı. */
   total: number | null
-  hasMore: boolean
 }
 export interface FileFilterBarEmits {
   'update:tag': [value: ArchiveTag | null]
@@ -142,8 +141,6 @@ export interface FileGridProps {
   hasMore: boolean
   loading: boolean
   error: boolean
-  /** Yönetici, görev seçilmemiş: "Görev klasörü seçin" boş durumu (BE-072). */
-  needsTask: boolean
 }
 export interface FileGridEmits {
   select: [fileId: string]
@@ -205,8 +202,11 @@ export interface RenameFileDialogEmits {
 
 /** W125 · E-06-05/35/62 — görev seçtiren yükleme penceresi (zorunlu etiket, sürükle-bırak). */
 export interface UploadDialogProps {
+  /** `include_empty=true` görev seçenekleri (dosyasızlar dahil; başlık = seçeneğin `department_id`'si). */
   tasks: readonly UploadTask[]
   defaultTaskId?: string | null
+  /** Sunucu seçenek listesini 200'de kesti (`X-Result-Truncated`). */
+  truncated?: boolean
 }
 export interface UploadDialogEmits {
   close: []
@@ -219,11 +219,6 @@ export interface UploadDialogEmits {
 export interface FolderZipButtonProps {
   target: ArchiveTarget
   folder: Pick<ArchiveFolder, 'folder_id' | 'name' | 'is_virtual'>
-}
-
-/** W126 · E-06-04 — dönem ZIP'i (yalnız ŞY); `target` `null` iken devre dışı (06, BE-072). */
-export interface PeriodZipButtonProps {
-  target: ArchiveTarget | null
 }
 
 // --- Bileşenler (gövdeler O2b'de) ------------------------------------------------------------

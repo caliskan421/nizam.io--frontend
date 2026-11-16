@@ -128,7 +128,9 @@ describe('01g toplantı raporu önizlemesi', () => {
     const text = STAGE()!.textContent ?? ''
     expect(text).toContain('Kazı yüzde 60 tamamlandı.')
     expect(text).toContain('GÖREVE DÖNÜŞTÜRÜLENLER')
-    expect(text).toContain('Ek beton ekibi')
+    expect(text).toContain('ALT-7 Ek beton ekibi')
+    expect(text).toContain('DURUM')
+    expect(text).toContain('Devam ediyor')
     expect(text).toContain('(silinmiş)')
     expect(byText('a, button', 'Toplantıya git')).not.toBeNull()
   })

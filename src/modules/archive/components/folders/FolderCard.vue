@@ -3,14 +3,18 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import { useInstanceStore } from '@/shared/instance/store'
+
+import { formatBytes } from '../../model/mime'
+import { daysSince } from '../../model/relative-days'
 import { ARCHIVE_FOLDER_ROUTE } from '../../routes'
 import type { FolderCardEmits, FolderCardProps } from '../index'
 import './folders.css'
-import { FOLDER_SUMMARY } from '../../model/stubs'
 
 /**
- * Klasör kartı (E-06-10…15). Sayılar `null` iken statik `—` (yönetici, BE-072/BE-025); boyut ve
- * son yükleme alanı yokken (BE-025) her zaman `—`: örnek boyut/tarih üretilmez. "grup" rozeti yok
+ * Klasör kartı (E-06-10…15). Hepsi sunucudandır (K/Ü `archiveFolders`, yönetici
+ * `programArchiveFolders`, BE-072/BE-025): "‹N› dosya · ‹M› görev" (dosyasızda "Henüz dosya yok"),
+ * boyut ("0 B" boş klasörde) ve son yükleme göreli gün (kurulum saat diliminde; yükleme yoksa `—`). "grup" rozeti yok
  * (P39). Boş klasör (`fileCount === 0`) soluk ama listede. Gerçek bağlantıdır (yeni sekmede
  * açılır); düz sol tık `open` yayar.
  */
@@ -26,12 +30,22 @@ const href = computed(
 )
 const empty = computed(() => props.card.fileCount === 0)
 const meta = computed(() =>
-  props.card.fileCount === null
-    ? t('archive.shared.noValue')
-    : empty.value
-      ? t('archive.folders.card.emptyFolder')
-      : t('archive.folders.card.files', { count: props.card.fileCount }),
+  empty.value
+    ? t('archive.folders.card.emptyFolder')
+    : t('archive.folders.card.filesAndTasks', {
+        count: props.card.fileCount,
+        tasks: props.card.taskCount,
+      }),
 )
+const instance = useInstanceStore()
+const last = computed(() => {
+  const days = daysSince(props.card.lastUploadedAt, new Date(), instance.profile?.timezone)
+  if (days === null) return t('archive.shared.noValue')
+  if (days === 0) return t('archive.folders.card.today')
+  return days === 1
+    ? t('archive.folders.card.yesterday')
+    : t('archive.folders.card.daysAgo', { n: days })
+})
 
 function onClick(event: MouseEvent): void {
   if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
@@ -53,19 +67,14 @@ function onClick(event: MouseEvent): void {
     <span class="archive-folder__foot">
       <span class="rp-cap rp-trunc" data-field="meta">{{ meta }}</span>
       <span class="archive-folder__row">
+        <span class="rp-mono rp-trunc" data-field="size" :title="t('archive.folders.card.size')">{{
+          formatBytes(card.totalBytes)
+        }}</span>
         <span
-          v-if="!FOLDER_SUMMARY.totalBytes"
-          class="rp-mono rp-trunc"
-          data-field="size"
-          :title="t('archive.folders.card.size')"
-          >{{ t('archive.shared.noValue') }}</span
-        >
-        <span
-          v-if="!FOLDER_SUMMARY.lastUploadedAt"
           class="rp-kicker rp-nowrap archive-folder__rel"
           data-field="last"
           :title="t('archive.folders.card.lastUpload')"
-          >{{ t('archive.shared.noValue') }}</span
+          >{{ last }}</span
         >
       </span>
     </span>

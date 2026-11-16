@@ -133,3 +133,21 @@ Hâlâ açık:
 | E-06-58 / E-06-64 Etiketi değiştir ve menüsü | canlı → `retagFile` (`PATCH /v1/files/{id}/tag`) | kabul (P67) | BE-074 | W171 |
 
 **F8'de değişmeyenler (06 Arşiv):** E-06-19/20/21 (BE-024, `designStub` kalır), E-06-23/24 dağılım (alan yok; BE-025 kapsamı dışı, Varsayım 3), E-06-41/49/50 (BE-026), E-06-59 (BE-075), E-06-63 (BE-076), E-06-06/26 kapsam metni "yalnız dosya adı" (BE-077), E-06-05/35/62 göreve bağsız yükleme (BE-069).
+
+**F8 uygulama kanıtı (W171, pin `v0.23.0-api`; kod `src/modules/archive/**`, `home/**`):** birim testleri bileşen yanında, "gerçek uç + eski yol yok" entegrasyon testleri `src/app/__tests__/integration/` altında (durumlu sahte arşiv sunucusu `archive-fake.ts`: S2 yalnız ŞY, dosya işlemi başlığı dosyanın departmanıyla eşleşmezse 404).
+
+| E-kimliği | Kanıt |
+| --- | --- |
+| E-06-04 · E-13-09/10/11 dönem ZIP, onay penceresi, kayda geçer rozeti | `components/zip/{PeriodZipButton,PeriodZipDialog}.test.ts`, `api/period-zip.test.ts`, `model/zip-plan.test.ts` · entegrasyon: `archive-downloads.test.ts` (S2 hedefi, yalnız program başlığı, Content-Disposition), `archive-zip-reports.test.ts` (`include_reports=true`, `X-Result-Truncated`, `reporting.export_in_progress`) |
+| E-06-05/35/62 yükleme seçici (dosyasız görev, başlık = seçeneğin `department_id`'si) | `components/upload/UploadDialog.test.ts`, `model/tasks.test.ts` · entegrasyon: `archive-upload.test.ts` ("dosyasız göreve ilk yükleme": ŞY d2, K d1) |
+| E-06-06/26 arama (ŞY, program geneli) · E-06-27…30/37 ağaç/görev klasörü | `pages/ArchivePage.test.ts`, `pages/ArchiveFolderPage.admin.test.ts`, `api/{admin-tasks,context,cards}.test.ts` · entegrasyon: `archive-program.test.ts`, `archive-roles.test.ts`, `archive-urls.test.ts` |
+| E-06-08/10/12…16, E-06-22/33 klasör ızgarası, kart, toplam, başlık meta | `components/folders/{FolderCard,FolderGrid,StorageSummary}.test.ts`, `model/{folder-cards,filters}.test.ts` · entegrasyon: `archive-program.test.ts` ("klasör özeti") |
+| E-06-09 sıralama "Son yükleme" | `components/folders/{sort-param,FolderGrid}.test.ts`, `model/filters.test.ts` |
+| E-06-34 klasör ZIP (S3 yolu korundu) | `components/zip/FolderZipButton.test.ts` |
+| E-06-38/46 sayaç + konum (kesin `total`) | `components/files/FileFilterBar.test.ts`, `components/preview/FilePreview.test.ts`, `api/queries.test.ts` · entegrasyon: `archive-fields.test.ts` |
+| E-06-52/56/57 görev · indir · ad (ŞY, başlık satırdan) | `components/preview/FileActions.test.ts` · entegrasyon: `archive-program.test.ts` (başka birimin dosyasında PATCH başlığı d2) |
+| E-06-54/55 yükleyen, tarih | `components/preview/FilePreview.test.ts`, `model/preview.test.ts` · entegrasyon: `archive-fields.test.ts` |
+| E-06-58/64 etiketi değiştir | `components/preview/FileActions.test.ts`, `api/writes.test.ts`, `model/capabilities.test.ts` · entegrasyon: `archive-writes.test.ts` |
+| E-01-26/37/38 (01 yönetici kartı arşiv sayısı, son yükleme, sıralama) | `home/components/{CoordinatorshipCard,CoordSortMenu}.test.ts`, `home/pages/AdminHomePage.test.ts`, `home/model/coordinatorships.test.ts` · entegrasyon: `archive-program.test.ts` |
+
+**F8 sonrası kalanlar (kodda `designStub`):** BE-025 kısmi (E-06-23/24 depolama dağılımı), BE-069, BE-075, BE-024, BE-026, BE-076, BE-077. Bilinen sınır: `sirala=son:azalan` URL değeri `src/app/routes.catalog.ts` `archive.folders.query.sirala` (`sortBy(['ad','dosya'])`) kataloğunda henüz yoktur (katalog W171 sahipliği dışı; sayfa değeri doğrudan okur).

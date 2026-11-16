@@ -177,6 +177,18 @@
     gap: var(--space-2);
     min-width: 0;
   }
+  /* "Etiketi değiştir" menüsü (açılır liste, tetikleyiciye göre konumlu). */
+  .af-retag {
+    position: relative;
+    display: inline-flex;
+  }
+  .af-retag__pop {
+    top: calc(100% + var(--space-1));
+    left: 0;
+    width: max-content;
+    min-width: calc(var(--space-16) * 2);
+    max-width: calc(100vw - var(--space-8));
+  }
   .af-form {
     display: flex;
     flex-direction: column;

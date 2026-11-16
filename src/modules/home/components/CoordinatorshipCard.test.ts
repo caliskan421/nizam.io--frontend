@@ -1,9 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { mountWith, resetAll, settle, stat } from '../__tests__/harness'
 import CoordinatorshipCard from './CoordinatorshipCard.vue'
 
-afterEach(resetAll)
+afterEach(() => {
+  vi.useRealTimers()
+  resetAll()
+})
 
 const STAT = stat('d1', 'Altyapı ve tesisat', {
   coordinators: [
@@ -70,24 +73,74 @@ describe('koordinatörlük kartı (E-01-28…38)', () => {
     expect(wrapper.find('[data-testid="more"]').exists()).toBe(false)
   })
 
-  it('sayılar: geciken (danger), kullanıcı = üye + koordinatör, arşiv statik "—" (BE-072)', async () => {
+  it('sayılar: geciken (danger), kullanıcı = üye + koordinatör, arşiv `file_count` (yoksa nötr "—"; BE-072)', async () => {
     const { wrapper } = await mountWith(CoordinatorshipCard, null, { stat: STAT })
     expect(wrapper.get('[data-stat="late"]').text()).toContain('3')
     expect(wrapper.get('[data-stat="late"] .rp-num').classes()).toContain('rp-danger-text')
     expect(wrapper.get('[data-stat="users"]').text()).toContain('5')
+    // Arşiv özeti okunmadıysa sayı uydurulmaz.
     expect(wrapper.get('[data-testid="archive"]').text()).toBe('—')
+    const live = await mountWith(CoordinatorshipCard, null, {
+      stat: STAT,
+      archive: {
+        folder_id: 'd1',
+        name: 'Mekanik',
+        file_count: 12,
+        task_count: 3,
+        total_bytes: 9,
+        last_uploaded_at: null,
+        is_virtual: false,
+      },
+    })
+    expect(live.wrapper.get('[data-testid="archive"]').text()).toBe('12')
+    const empty = await mountWith(CoordinatorshipCard, null, {
+      stat: STAT,
+      archive: {
+        folder_id: 'd1',
+        name: 'Mekanik',
+        file_count: 0,
+        task_count: 0,
+        total_bytes: 0,
+        last_uploaded_at: null,
+        is_virtual: false,
+      },
+    })
+    expect(empty.wrapper.get('[data-testid="archive"]').text()).toBe('0')
     const calm = await mountWith(CoordinatorshipCard, null, {
       stat: stat('d3', 'Sakin', { overdue_tasks: 0 }),
     })
     expect(calm.wrapper.get('[data-stat="late"] .rp-num').classes()).not.toContain('rp-danger-text')
   })
 
-  it('"Son yükleme" satırı yok (BE-025); `last_activity_at` yükleme sayılmaz', async () => {
-    const { wrapper } = await mountWith(CoordinatorshipCard, null, {
-      stat: stat('d4', 'Sakin', { last_activity_at: '2026-11-10T10:00:00Z' }),
+  it('"Son yükleme ‹göreli›" `last_uploaded_at`\'tan (BE-025); `last_activity_at` yükleme sayılmaz, yükleme yoksa satır yok', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-16T10:00:00Z'))
+    const folder = (last: string | null) => ({
+      folder_id: 'd4',
+      name: 'Sakin',
+      file_count: 3,
+      task_count: 1,
+      total_bytes: 9,
+      last_uploaded_at: last,
+      is_virtual: false,
     })
-    expect(wrapper.text()).not.toContain('Son yükleme')
-    expect(wrapper.text()).not.toContain('bugün')
+    const text = async (last: string | null) =>
+      (
+        await mountWith(CoordinatorshipCard, null, {
+          stat: stat('d4', 'Sakin', { last_activity_at: '2026-11-15T10:00:00Z' }),
+          archive: folder(last),
+        })
+      ).wrapper.find('[data-testid="last-upload"]')
+    expect((await text('2026-11-16T08:00:00Z')).text()).toBe('Son yükleme bugün')
+    expect((await text('2026-11-15T08:00:00Z')).text()).toBe('Son yükleme dün')
+    expect((await text('2026-10-24T10:00:00Z')).text()).toBe('Son yükleme 23 gün önce')
+    // Yükleme yok: `last_activity_at` dolu olsa da satır hiç çizilmez.
+    expect((await text(null)).exists()).toBe(false)
+    const noArchive = await mountWith(CoordinatorshipCard, null, {
+      stat: stat('d4', 'Sakin', { last_activity_at: '2026-11-15T10:00:00Z' }),
+    })
+    expect(noArchive.wrapper.text()).not.toContain('Son yükleme')
+    vi.useRealTimers()
   })
 
   it('bağlantılar: ad → 08b, geciken → 03 süzgeci, kullanıcı → 08b üyeler, arşiv → 07 klasörü', async () => {

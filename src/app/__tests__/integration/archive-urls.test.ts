@@ -37,7 +37,7 @@ describe('URL gidiş-dönüşü', () => {
     await until(() => $('[data-file-id="f2"]'), 'süzülmüş dosya')
     expect(ids()).toEqual(['f2'])
     expect($('[data-testid="file-list"]')).not.toBeNull()
-    const sent = backend.sent('GET', '/v1/records/archive/attachments').at(-1)!
+    const sent = backend.sent('GET', '/v1/program/archive/attachments').at(-1)!
     expect(sent.query.get('work_item_id')).toBe('w1')
     expect(sent.query.get('tag')).toBe('plan')
     expect(sent.query.get('search')).toBe('foto')
@@ -82,7 +82,7 @@ describe('URL gidiş-dönüşü', () => {
     }
     const app = await boot({ ...ADMIN, path: '/arsiv/d1?gorev=w1&dosya=p110' })
     await until(() => $('[data-testid="file-preview"]'), 'önizleme (sayfalar yüklenerek)')
-    const pages = backend.sent('GET', '/v1/records/archive/attachments')
+    const pages = backend.sent('GET', '/v1/program/archive/attachments')
     expect(pages.length).toBeGreaterThan(1)
     expect(pages[1]!.query.get('cursor')).toBeTruthy()
     expect(app.router.currentRoute.value.query.dosya).toBe('p110')

@@ -1,42 +1,101 @@
 import { describe, expect, it } from 'vitest'
 
-import { FOLDER_CARD_PAGE, adminFolderCards, archiveFolderCards, pageCards } from './folder-cards'
+import { FOLDER_CARD_PAGE, archiveFolderCards, pageCards } from './folder-cards'
+
+const folder = (over: Record<string, unknown>) => ({
+  folder_id: 'd1',
+  name: 'Ağ',
+  file_count: 0,
+  task_count: 0,
+  total_bytes: 0,
+  last_uploaded_at: null,
+  is_virtual: false,
+  ...over,
+})
 
 describe('06 klasör kartları', () => {
-  it('yönetici: departman adlarından, sayılar null (statik —; BE-072/BE-025), rozet yok', () => {
-    const cards = adminFolderCards([
-      { department_id: 'd2', display_name: 'Zemin', code: 'ZM' },
-      { department_id: 'd1', display_name: 'Ağ' },
+  it('yönetici (programArchiveFolders) ve K/Ü aynı biçim: sunucu sayıları, ada göre sıra, rozet yok', () => {
+    const cards = archiveFolderCards([
+      folder({ folder_id: 'd2', name: 'Zemin', file_count: 5 }),
+      folder({ folder_id: 'd1', name: 'Ağ', file_count: 0 }),
     ])
     expect(cards).toEqual([
-      { folderId: 'd1', name: 'Ağ', fileCount: null, virtual: false },
-      { folderId: 'd2', name: 'Zemin', fileCount: null, virtual: false },
+      {
+        folderId: 'd1',
+        name: 'Ağ',
+        fileCount: 0,
+        taskCount: 0,
+        totalBytes: 0,
+        lastUploadedAt: null,
+        virtual: false,
+      },
+      {
+        folderId: 'd2',
+        name: 'Zemin',
+        fileCount: 5,
+        taskCount: 0,
+        totalBytes: 0,
+        lastUploadedAt: null,
+        virtual: false,
+      },
     ])
     expect(JSON.stringify(cards)).not.toMatch(/grup|group|code/i)
   })
 
-  it('yönetici sayıya göre sıra istese de ada düşer (sayı yok)', () => {
-    const departments = [
-      { department_id: 'b', display_name: 'B' },
-      { department_id: 'a', display_name: 'A' },
+  it('görev sayısı, boyut ve son yükleme sunucudan (BE-025)', () => {
+    expect(
+      archiveFolderCards([
+        folder({
+          folder_id: 'd1',
+          name: 'Ağ',
+          file_count: 12,
+          task_count: 4,
+          total_bytes: 668_700_000,
+          last_uploaded_at: '2026-11-10T09:00:00Z',
+        }),
+      ]),
+    ).toEqual([
+      {
+        folderId: 'd1',
+        name: 'Ağ',
+        fileCount: 12,
+        taskCount: 4,
+        totalBytes: 668_700_000,
+        lastUploadedAt: '2026-11-10T09:00:00Z',
+        virtual: false,
+      },
+    ])
+  })
+
+  it('dosya sayısına göre sıra: azalan, eşitte ada', () => {
+    const list = [
+      folder({ folder_id: 'a', name: 'A', file_count: 1 }),
+      folder({ folder_id: 'b', name: 'B', file_count: 7 }),
+      folder({ folder_id: 'c', name: 'C', file_count: 7 }),
     ]
-    expect(adminFolderCards(departments, 'dosya').map((c) => c.folderId)).toEqual(['a', 'b'])
+    expect(archiveFolderCards(list, 'dosya', 'azalan').map((c) => c.folderId)).toEqual([
+      'b',
+      'c',
+      'a',
+    ])
   })
 
   it('K/Ü: archiveFolders sayılarıyla; sanal klasör işaretli', () => {
     expect(
       archiveFolderCards([
-        {
-          folder_id: 'my-tasks',
-          name: 'Görevlerim',
-          file_count: 4,
-          is_virtual: true,
-          task_count: 0,
-          total_bytes: 0,
-          last_uploaded_at: null,
-        },
+        folder({ folder_id: 'my-tasks', name: 'Görevlerim', file_count: 4, is_virtual: true }),
       ]),
-    ).toEqual([{ folderId: 'my-tasks', name: 'Görevlerim', fileCount: 4, virtual: true }])
+    ).toEqual([
+      {
+        folderId: 'my-tasks',
+        name: 'Görevlerim',
+        fileCount: 4,
+        taskCount: 0,
+        totalBytes: 0,
+        lastUploadedAt: null,
+        virtual: true,
+      },
+    ])
     expect(archiveFolderCards(undefined)).toEqual([])
   })
 
@@ -44,7 +103,10 @@ describe('06 klasör kartları', () => {
     const cards = Array.from({ length: 15 }, (_, i) => ({
       folderId: `d${i}`,
       name: `D${i}`,
-      fileCount: null,
+      fileCount: 0,
+      taskCount: 0,
+      totalBytes: 0,
+      lastUploadedAt: null,
       virtual: false,
     }))
     expect(FOLDER_CARD_PAGE).toBe(12)

@@ -17,6 +17,20 @@ type Task = SeasonReport['tasks'][number]
 
 const person = (id: string, name: string) => ({ account_id: id, full_name: name })
 
+export const workloadRow = (
+  over: Partial<SeasonReport['workload_summary'][number]>,
+): SeasonReport['workload_summary'][number] => ({
+  account_id: 'u0',
+  active: 0,
+  completed: 0,
+  full_name: 'Ad Soyad',
+  overdue: 0,
+  pending_approval: 0,
+  returned: 0,
+  total: 0,
+  ...over,
+})
+
 export function seasonTask(over: Partial<Task> = {}): Task {
   return withReportTaskDefaults({
     assignees: [person('u1', 'Bahar Kılıç')],
@@ -65,10 +79,14 @@ const stat = (id: string, name: string, over: Record<string, unknown> = {}) =>
   })
 
 const STATS = withSeasonStatsDefaults({
+  agenda_checked: 162,
+  agenda_total: 201,
   completed_tasks: 1,
   completion_rate: 33,
   overdue_tasks: 1,
+  total_attachment_bytes: 432_642_458,
   total_attachments: 50,
+  total_coordinators: 15,
   total_coordinatorships: 2,
   total_meetings: 41,
   total_members: 12,
@@ -79,7 +97,17 @@ const STATS = withSeasonStatsDefaults({
 })
 
 const ACTIVITY = [
-  { completed_tasks: 4, count: 20, created_tasks: 6, meetings: 5, messages: 5, month: '2026-05' },
+  {
+    completed_tasks: 4,
+    count: 20,
+    created_tasks: 6,
+    date_requests: 1,
+    files: 3,
+    meetings: 5,
+    messages: 5,
+    month: '2026-05',
+    notes: 9,
+  },
   {
     completed_tasks: 10,
     count: 61,
@@ -106,6 +134,38 @@ function seasonTasks(): Task[] {
       is_overdue: true,
       days_overdue: 4,
       planned_end_on: '2026-09-30',
+      code: 'ALT-7',
+      sequence_no: 7,
+      file_count: 2,
+      file_bytes: 4_194_304,
+      detail: {
+        description: 'Ana panolardan stant adalarına kanal kazısı.',
+        dependencies: [
+          { code: 'ALT-3', status: 'tamamlandi', title: 'Atık su hattı', work_item_id: 'w9' },
+        ],
+        recent_notes: [
+          {
+            author: person('u1', 'Bahar Kılıç'),
+            content: 'Kesişim çıktı; kazı durdu.',
+            created_at: '2026-10-09T08:20:00Z',
+          },
+        ],
+        date_requests: [
+          {
+            created_at: '2026-10-16T08:00:00Z',
+            new_end_on: '2026-10-24',
+            new_start_on: '2026-09-01',
+            old_end_on: '2026-10-17',
+            old_start_on: '2026-09-01',
+            reason: 'taşeron gecikmesi',
+            requested_by: person('u1', 'Bahar Kılıç'),
+            review_reason: null,
+            reviewed_at: null,
+            reviewed_by: null,
+            status: 'pending',
+          },
+        ],
+      },
     }),
     seasonTask({
       work_item_id: 'w2',
@@ -126,13 +186,77 @@ function seasonTasks(): Task[] {
   ]
 }
 
+const departments = () => [
+  stat('d2', 'Operasyon', EMPTY_DEPARTMENT),
+  stat('d1', 'Altyapı ve tesisat', {
+    code: 'ALT',
+    file_bytes: 4_194_304,
+    file_count: 2,
+    members: [person('u1', 'Bahar Kılıç'), person('u2', 'Kadir Özbek')],
+  }),
+]
+
+const dateStats = () =>
+  withDateChangeDefaults({
+    approved: 5,
+    average_shift_days: 4.2,
+    pending: 3,
+    rejected: 1,
+    top_requested_tasks: [
+      { code: 'ALT-7', count: 2, title: 'Kablo kanalı kazısı', work_item_id: 'w1' },
+    ],
+    total: 9,
+  })
+
+const seasonFiles = (): SeasonReport['files'] => [
+  {
+    created_at: '2026-10-12T09:00:00Z',
+    department_id: 'd1',
+    display_name: 'plan-v3.pdf',
+    file_id: 'f1',
+    size_bytes: 3_145_728,
+    tag: 'Planlar',
+    uploaded_by: person('u1', 'Bahar Kılıç'),
+    work_item_id: 'w1',
+  },
+  {
+    created_at: '2026-10-13T09:00:00Z',
+    department_id: 'd1',
+    display_name: 'IMG_1042.jpg',
+    file_id: 'f2',
+    size_bytes: 1_048_576,
+    tag: null,
+    uploaded_by: person('u2', 'Kadir Özbek'),
+    work_item_id: 'w1',
+  },
+]
+
+const seasonMeetings = (): SeasonReport['meetings'] => [
+  {
+    agenda_checked: 4,
+    agenda_total: 6,
+    converted_note_count: 1,
+    coordinatorships: [
+      { department_id: 'd1', name: 'Altyapı ve tesisat', deleted: false },
+      { department_id: 'd2', name: 'Operasyon', deleted: true },
+    ],
+    meeting_date: '2026-10-14T11:00:00Z',
+    meeting_id: 'm1',
+    note_count: 5,
+    owner_department_id: 'd1',
+    participant_count: 5,
+    title: 'Haftalık koordinasyon',
+  },
+]
+
 export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
   return withSeasonReportDefaults({
-    coordinatorship_performance: [
-      stat('d2', 'Operasyon', EMPTY_DEPARTMENT),
-      stat('d1', 'Altyapı ve tesisat'),
-    ],
-    date_change_stats: withDateChangeDefaults({ approved: 5, pending: 3, rejected: 1, total: 9 }),
+    coordinatorship_performance: departments(),
+    date_change_stats: dateStats(),
+    files: seasonFiles(),
+    meetings: seasonMeetings(),
+    period: { end_on: '2026-10-17', source: 'tasks', start_on: '2026-09-01' },
+    program_year: 2026,
     generated_at: '2026-10-21T11:05:00Z',
     meeting_stats: {
       converted_to_task: 2,
@@ -152,6 +276,24 @@ export function seasonFixture(over: Partial<SeasonReport> = {}): SeasonReport {
       tamamlandi: 1,
     }),
     tasks: seasonTasks(),
+    workload_summary: [
+      workloadRow({
+        account_id: 'u1',
+        full_name: 'Bahar Kılıç',
+        active: 4,
+        overdue: 1,
+        completed: 6,
+        total: 10,
+      }),
+      workloadRow({
+        account_id: 'u2',
+        full_name: 'Kadir Özbek',
+        active: 2,
+        overdue: 0,
+        completed: 3,
+        total: 5,
+      }),
+    ],
     ...over,
   })
 }
@@ -192,6 +334,8 @@ export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportM
         author: person('u1', 'Bahar Kılıç'),
         author_role: 'member',
         content: 'Beton için ek ekip gerekli.',
+        converted_task_code: 'ALT-7',
+        converted_task_status: 'devam_ediyor',
         converted_task_title: 'Ek beton ekibi',
         converted_to_task_id: 't9',
         created_at: '2026-10-14T12:30:00Z',

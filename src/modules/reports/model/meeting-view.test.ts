@@ -38,6 +38,8 @@ const detail = {
       content: 'ikinci',
       created_at: '2026-10-14T12:30:00Z',
       converted_to_task_id: 't1',
+      converted_task_code: 'ALT-3',
+      converted_task_status: 'onaya_sunuldu',
       converted_task_title: 'Kablo kanalı',
       author: { account_id: 'a', full_name: 'Ali' },
       author_role: 'admin',
@@ -47,6 +49,8 @@ const detail = {
       content: 'birinci',
       created_at: '2026-10-14T11:05:00Z',
       converted_to_task_id: null,
+      converted_task_code: null,
+      converted_task_status: null,
       converted_task_title: null,
       author: { account_id: 'a', full_name: 'Ali' },
       author_role: '',
@@ -74,7 +78,12 @@ describe('toplantı raporu türetimleri', () => {
     ])
     const converted = convertedRows(notes)
     expect(converted).toHaveLength(1)
-    expect(converted[0]).toMatchObject({ no: '02', taskTitle: 'Kablo kanalı' })
+    expect(converted[0]).toMatchObject({
+      no: '02',
+      taskTitle: 'Kablo kanalı',
+      taskCode: 'ALT-3',
+      taskStatus: 'onaya_sunuldu',
+    })
     expect(convertedRows(noteRows({ ...detail, notes: [] }, 'UTC'))).toEqual([])
   })
 

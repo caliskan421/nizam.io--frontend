@@ -28,15 +28,31 @@ export type AttachFileForm =
   paths['/v1/work-items/{id}/files']['post']['requestBody']['content']['multipart/form-data']
 /** `archiveAttachments` sorgu parametreleri (sunucu adlarıyla). */
 export type ArchiveFileQuery = NonNullable<operations['archiveAttachments']['parameters']['query']>
-/** `listWorkItemFiles` öğesi: önizlemede yükleyen adı (`uploaded_by_full_name`, null olabilir). */
-export type PreviewFileInfo = Schemas['WorkItemFileListItem']
 export type PreviewSubtask = Schemas['WorkItemSubtask']
 
 /**
- * Her S3 isteğinin kapsam başlıkları: program + departman. Yöneticide departman rotadaki
- * `klasorId`'den (P33, `model/admin-scope.ts`), koordinatör/üyede seçili kapsamdan gelir.
+ * Her S3 isteğinin kapsam başlıkları: program + departman. Dosya/görev işlemlerinde başlık
+ * dosyanın (görev seçeneğinin) `department_id`'sidir (RECORDS-K39); koordinatör/üye okumalarında
+ * seçili kapsamdan gelir.
  */
 export type ArchiveTarget = WorkTarget
+
+/**
+ * Yönetici program arşivi (S2, `/v1/program/archive/*`; RECORDS-K39): yalnız program başlığı,
+ * isteğe bağlı `department_id` sorgu süzgeci (başlık DEĞİL). Okuma kaynağı S3 hedefi
+ * (`ArchiveTarget`) ya da bu program kaynağıdır (`isProgramSource`).
+ */
+export interface ProgramArchiveSource {
+  programId: string
+  /** `department_id` süzgeci (klasör); `null` = bütün program. */
+  departmentId: string | null
+  program: true
+}
+export type ArchiveSource = ArchiveTarget | ProgramArchiveSource
+
+export function isProgramSource(source: ArchiveSource): source is ProgramArchiveSource {
+  return 'program' in source && source.program === true
+}
 
 /** `mime_category` kümesi (sözleşme; PDF ayrı kategori DEĞİL, `belge` içindedir — E-06-07). */
 export type ArchiveMimeCategory = 'belge' | 'tablo' | 'gorsel' | 'arsiv' | 'metin'
@@ -56,22 +72,16 @@ export interface ArchiveFileFilters {
   sort?: ArchiveSort
 }
 
-/** Klasör ızgarasının istemci sıralaması (06 `sirala`): yalnız sunucunun verdiği alanlar. */
-export type FolderSortField = 'ad' | 'dosya'
+/** Klasör ızgarasının istemci sıralaması (06 `sirala`): ad, dosya sayısı, son yükleme (BE-025). */
+export type FolderSortField = 'ad' | 'dosya' | 'son'
 export type FolderSortDirection = 'artan' | 'azalan'
 
-/** Bir yönetici ızgara öğesi: `listProgramDepartments` adı + sayılar statik (BE-072/BE-025). */
-export interface AdminFolderCard {
-  folderId: string
-  name: string
-}
-
-/** Yönetici görev klasörleri: `archiveTasks` ∩ `listProgramWorkItems(department_id)`. */
-export interface AdminTaskFolders {
+/** Görev klasörleri (07): `archiveTasks` / `programArchiveTasks?department_id`. */
+export interface TaskFolders {
   tasks: ArchiveTask[]
-  /** 200 tavanına çarpıldı (sonraki sayfa var): kesişim eksik olabilir. */
+  /** Sunucu listeyi 200'de kesti (`X-Result-Truncated`): liste eksik olabilir. */
   truncated: boolean
-  /** Görev listesi (kesişim) henüz tamamlandı mı. */
+  /** Görev listesi okundu mu. */
   ready: boolean
 }
 
@@ -103,14 +113,31 @@ export interface RenameArchiveFileInput extends ArchiveFileRef {
   displayName: string
 }
 
-/** İndirme türü: tek dosya, klasör ZIP'i, dönem ZIP'i (seçim ZIP'i kullanılmaz). */
-export type ArchiveDownloadKind = 'file' | 'folder' | 'period'
+/** `retagFile` değişkenleri: kapalı küme etiketi (BE-074). */
+export interface RetagArchiveFileInput extends ArchiveFileRef {
+  tag: ArchiveTag
+}
+
+/** S3 indirme türü: tek dosya ya da klasör ZIP'i (dönem ZIP'i S2'dir: `PeriodZipRequest`). */
+export type ArchiveDownloadKind = 'file' | 'folder'
 
 export interface ArchiveDownloadRequest {
   target: ArchiveTarget
   kind: ArchiveDownloadKind
-  /** `file` için dosya, `folder` için klasör kimliği; `period` için yok. */
-  id?: string
+  /** `file` için dosya, `folder` için klasör kimliği. */
+  id: string
+  /** Sunucu `Content-Disposition` vermezse kaydedilecek ad. */
+  fallbackName: string
+}
+
+/**
+ * Dönem arşivi ZIP'i (`programArchiveZip`, S2; BE-120): yalnız program başlığı, departman başlığı
+ * YOK. `includeReports` → `include_reports=true` (BE-124: `00-Genel/Donem-Raporu.pdf`, birim
+ * raporları, `EKSIK-DOSYALAR.txt`).
+ */
+export interface PeriodZipRequest {
+  programId: string
+  includeReports: boolean
   /** Sunucu `Content-Disposition` vermezse kaydedilecek ad. */
   fallbackName: string
 }
@@ -119,6 +146,8 @@ export interface ArchiveDownloadRequest {
 export interface ArchiveDownloadSaved {
   kind: 'saved'
   fileName: string
+  /** Yanıt `X-Result-Truncated: true` taşıdı (raporlu ZIP'te gömülü rapor kesildi; BE-124). */
+  truncated?: boolean
 }
 /** Tüketimde hedefin hatası (422 `identity.download_target_invalid`, 429, `records.*`). */
 export interface ArchiveDownloadFailed {
@@ -127,7 +156,9 @@ export interface ArchiveDownloadFailed {
   /** 429 `Retry-After` (saniye) — otomatik tekrar yok. */
   retryAfter: number | null
 }
-export type TicketOutcome = MutationOutcome<ArchiveDownloadRequest, DownloadTicket, unknown>
+export type TicketOutcome =
+  | MutationOutcome<ArchiveDownloadRequest, DownloadTicket, unknown>
+  | MutationOutcome<PeriodZipRequest, DownloadTicket, unknown>
 /** Bilet ÜRETİMİ başarısız (429 açık bilet tavanı, 403, ağ …): ortak yazma sonucu. */
 export interface ArchiveDownloadTicketFailed {
   kind: 'ticket_failed'
@@ -152,19 +183,22 @@ export type ArchiveAccess =
   | { mode: 'admin-folder'; target: ArchiveTarget; folderId: string }
   | { mode: 'scoped'; target: ArchiveTarget }
 
-/** 06 klasör kartı: sayılar yönetici merceğinde `null` (statik `—`; BE-072/BE-025). */
+/** 06 klasör kartı (`archiveFolders` / `programArchiveFolders`). */
 export interface FolderCardView {
   folderId: string
   name: string
-  /** Canlı dosya sayısı (K/Ü `archiveFolders.file_count`); yöneticide `null`. */
-  fileCount: number | null
+  /** Canlı dosya sayısı. */
+  fileCount: number
+  /** Dosyalı görev sayısı (`task_count`, BE-025). */
+  taskCount: number
+  /** Klasördeki dosyaların toplam boyutu (bayt; `total_bytes`, BE-025). */
+  totalBytes: number
+  /** Hâlen arşivde duran en yeni dosya metadata'sının oluşturulma anı (UTC); dosyasızda `null`. */
+  lastUploadedAt: string | null
   /** Üye sanal klasörü ("Görevlerim"). */
   virtual: boolean
 }
 
-/** `listProgramDepartments` öğesinden gerekli alanlar (yönetici ızgarası). */
-export type ProgramDepartmentRow = Schemas['ProgramDepartment']
-
-/** Reaktif hedef ve etkinleştirme girdileri (okuyucu composable'ları). */
-export type MaybeTarget = MaybeRefOrGetter<ArchiveTarget | null>
+/** Reaktif okuma kaynağı ve etkinleştirme girdileri (okuyucu composable'ları). */
+export type MaybeTarget = MaybeRefOrGetter<ArchiveSource | null>
 export type MaybeFlag = MaybeRefOrGetter<boolean>

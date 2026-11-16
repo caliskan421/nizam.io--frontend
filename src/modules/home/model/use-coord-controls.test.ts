@@ -39,14 +39,14 @@ describe('koordinatörlük yerel durumu (mekanizma §3)', () => {
     scope.stop()
   })
 
-  it('ölçüt seçimi ters çevirmeyi sıfırlar; ters çevirme terslenir; devre dışı ölçüt seçilmez', () => {
+  it('ölçüt seçimi ters çevirmeyi sıfırlar; ters çevirme terslenir; son yükleme seçilebilir (BE-025)', () => {
     const { controls, scope } = setup()
     controls.flip()
     expect(controls.reversed.value).toBe(true)
     controls.pickSort('name')
     expect([controls.sortKey.value, controls.reversed.value]).toEqual(['name', false])
     controls.pickSort('last_upload')
-    expect(controls.sortKey.value).toBe('name')
+    expect(controls.sortKey.value).toBe('last_upload')
     controls.flip()
     controls.flip()
     expect(controls.reversed.value).toBe(false)

@@ -69,11 +69,20 @@ describe('yükleme penceresi', () => {
     await until(() => focused() === trigger(), `${how} odak`)
   })
 
-  it('06 sayfasında (yönetici, klasör seçili değil) "Dosya yükle" devre dışıdır; pencere açılmaz', async () => {
-    await boot({ ...ADMIN, path: '/arsiv' })
-    await until(() => $('[data-action="upload"]'), 'düğme')
-    expect(($('[data-action="upload"]') as HTMLButtonElement).disabled).toBe(true)
-  })
+  it.each(['esc', 'vazgeç'] as const)(
+    '06 sayfasında (yönetici, BE-072) "Dosya yükle" etkin; %s: odak düğmeye döner',
+    async (how) => {
+      await boot({ ...ADMIN, path: '/arsiv' })
+      const trigger = () => $('[data-action="upload"]')
+      await until(() => trigger() && !(trigger() as HTMLButtonElement).disabled, 'etkin düğme')
+      await userClick(trigger)
+      await until(() => $('[data-testid="upload-task"]'), 'pencere')
+      if (how === 'esc') escape($('[role="dialog"]'))
+      else await userClick(() => $('[data-testid="upload-cancel"]'))
+      await until(() => !$('[data-testid="upload-task"]'), 'kapandı')
+      await until(() => focused() === trigger(), `${how} odak`)
+    },
+  )
 })
 
 describe('önizleme paneli', () => {

@@ -17,7 +17,13 @@ import { zipText } from './messages'
 export type ZipScope = 'folder' | 'period'
 
 const TOO_BIG = new Set(['records.too_many_files', 'records.too_large'])
-const RATE_LIMITED = new Set(['platform.rate_limited', 'records.busy'])
+// `reporting.export_in_progress`: raporlu dönem ZIP'i aynı hesabın sürmekte olan başka rapor
+// üretimiyle çakıştı (429 + Retry-After; BE-124). `reporting.capacity_full` (503) ortak metne düşer.
+const RATE_LIMITED = new Set([
+  'platform.rate_limited',
+  'records.busy',
+  'reporting.export_in_progress',
+])
 
 function rateText(retryAfter: number | null): string {
   const { key, params } = rateLimitMessage(retryAfter)

@@ -1,27 +1,31 @@
 /**
- * P33 yönetici kapsamı — S3 başlığı kararı (`06-arsiv/mekanizma.md` §3 "F5 açılış notu").
+ * Yönetici kapsamı (P33 → F8 BE-072, RECORDS-K39, ADR-0044).
  *
- * Arşiv uçlarının hepsi S3'tür (program + departman başlığı zorunlu); yöneticide (`company_admin`
- * OLGUSU, mercek değil — P1, KESİN 6) departman başlığı sonucu süzmez (sunucu program geneli
- * döner) ama doğru dosya/görev işlemi için dosyanın departmanı gerekir ve `FileListItem` /
- * `ArchiveTask` `department_id` taşımaz (BE-072). Karar:
+ * Yönetici (`company_admin` OLGUSU, mercek değil — P1, KESİN 6) arşivi program geneli S2 uçlarından
+ * okur (`programArchive*`; yalnız program başlığı, isteğe bağlı `department_id` süzgeci); S3
+ * departman başlığı okumada kullanılmaz. Karar:
  *
- *  - Yönetici: S3 departman başlığı YALNIZ rotadaki `klasorId`'dir (= departman kimliği; kod
- *    kuralı, sözleşme açıkça yazmaz) — keyfî/sessiz "ilk departman" yoktur (K2, Codex §8 reddi),
- *    kapsam deposuna yazılmaz. `/arsiv` (klasörsüz) yönetici için S3 isteği ATMAZ; 06 ızgarası
- *    `listProgramDepartments` (S2) adlarından kurulur. `klasorId` önce `archiveFolders` yanıtıyla
- *    doğrulanır (`folderKnown`); doğrulanmadan görev/dosya okunmaz.
- *  - Koordinatör/üye: başlık seçili kapsamdan (`departmentId`); `klasorId` yalnız yanıtla
+ *  - `/arsiv` (06): `programArchiveFolders` (bütün koordinatörlük kartları, tek istek). Klasör
+ *    kimliği = departman kimliğidir (kod kuralı); rotadaki `klasorId` önce bu yanıtla doğrulanır
+ *    (`folderKnown`), doğrulanmadan görev/dosya okunmaz.
+ *  - `/arsiv/:klasorId` (07): görevler ve dosyalar `department_id=klasorId` süzgeciyle S2'den.
+ *  - Dosya/görev İŞLEMLERİ (indir, ad, etiket, sil, yükle) S3'tür: başlık satırın / görev
+ *    seçeneğinin `department_id`'sidir (rotadaki klasör kimliği DEĞİL; model dışında çağıran verir).
+ *    Klasör ZIP'i yöneticide klasör kimliğiyle (`target`) S3 yoluyla alınır.
+ *  - Koordinatör/üye: S3, başlık seçili kapsamdan (`departmentId`); `klasorId` yalnız yanıtla
  *    doğrulanan gösterim kimliğidir (departman kimliği ya da üyede sabit `my-tasks`).
- *  - Dosyalar yöneticide yalnız `work_item_id` süzgeciyle okunur ve süzgeçteki görev
- *    `archiveTasks ∩ listProgramWorkItems(department_id)` kesişiminde olmalıdır (aksi dosyanın
- *    departmanı bilinmez).
- *  - Dönem ZIP'i S3'tür (departman başlığı zorunlu): yalnız açık seçilmiş bir klasör bağlamında
- *    (`folderId`) istenebilir; `/arsiv`'te (06) yönetici için kullanılamaz (BE-072).
+ *  - Keyfî/sessiz "ilk departman" yoktur (K2); kapsam deposuna yazılmaz.
  */
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 
-import type { ArchiveAccess, ArchiveFolder, ArchiveTarget } from './types'
+import type {
+  ArchiveAccess,
+  ArchiveFolder,
+  ArchiveSource,
+  ArchiveTarget,
+  ProgramArchiveSource,
+} from './types'
+import { isProgramSource } from './types'
 
 /** Üyenin sabit sanal klasör kimliği (`archiveFolders`: `my-tasks`, "Görevlerim"). */
 export const MEMBER_FOLDER_ID = 'my-tasks'
@@ -71,7 +75,41 @@ export function accessTarget(access: ArchiveAccess): ArchiveTarget | null {
   return access.mode === 'admin-folder' || access.mode === 'scoped' ? access.target : null
 }
 
-/** `klasorId` `archiveFolders` yanıtında var mı (doğrulama; yanıt yoksa `false`). */
+/** Yönetici S2 kaynağı: yalnız program başlığı; `departmentId` isteğe bağlı sorgu süzgeci. */
+export function programSource(
+  programId: string,
+  departmentId: string | null,
+): ProgramArchiveSource {
+  return { programId, departmentId, program: true }
+}
+
+/**
+ * Görev/dosya/yükleyen okumalarının kaynağı: yöneticide S2 (`/arsiv` bütün program, klasörde
+ * `department_id` süzgeci), koordinatör/üyede S3 hedefi. `waiting`/`invalid` → `null` (istek yok).
+ */
+export function readSource(access: ArchiveAccess, programId: string | null): ArchiveSource | null {
+  if (programId === null) return null
+  if (access.mode === 'admin-overview') return programSource(programId, null)
+  if (access.mode === 'admin-folder') return programSource(programId, access.folderId)
+  return access.mode === 'scoped' ? access.target : null
+}
+
+/**
+ * Klasör özetinin kaynağı: yöneticide süzgeçsiz S2 (kartların hepsi tek istekte; `/arsiv` ve
+ * `/arsiv/:klasorId` aynı önbellek girdisini paylaşır), koordinatör/üyede S3.
+ */
+export function folderSource(
+  access: ArchiveAccess,
+  programId: string | null,
+): ArchiveSource | null {
+  if (programId === null) return null
+  if (access.mode === 'admin-overview' || access.mode === 'admin-folder') {
+    return programSource(programId, null)
+  }
+  return access.mode === 'scoped' ? access.target : null
+}
+
+/** `klasorId` klasör özeti yanıtında var mı (doğrulama; yanıt yoksa `false`). */
 export function folderKnown(
   folders: readonly ArchiveFolder[] | undefined,
   folderId: string | null,
@@ -80,11 +118,19 @@ export function folderKnown(
 }
 
 /**
- * Sorgu anahtarının kapsamı: yöneticide departman alanı rotadaki klasörle doldurulur (aksi
- * farklı klasörlerin önbelleği karışırdı); depoya yazılmaz.
+ * Sorgu anahtarının kapsamı: departman alanı kaynağın süzgeciyle doldurulur (aksi farklı
+ * klasörlerin önbelleği karışırdı); depoya yazılmaz.
  */
-export function keyScope(scope: ScopeSnapshot, target: ArchiveTarget): ScopeSnapshot {
-  return { ...scope, departmentId: target.departmentId }
+export function keyScope(scope: ScopeSnapshot, source: ArchiveSource): ScopeSnapshot {
+  return { ...scope, departmentId: source.departmentId }
+}
+
+/** S2 ve S3 yanıtları aynı anahtarda buluşmasın: S2 kaynağı süzgece işaret koyar. */
+export function sourceFilters<F extends Record<string, unknown>>(
+  source: ArchiveSource,
+  filters: F,
+): F & { source?: 'program' } {
+  return isProgramSource(source) ? { ...filters, source: 'program' } : filters
 }
 
 export type EntryDecision =

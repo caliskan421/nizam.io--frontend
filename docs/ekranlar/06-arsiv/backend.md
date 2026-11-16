@@ -1,9 +1,24 @@
 # 06 — Backend eşlemesi (nereden geliyor)
 
-Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.15.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
+Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.23.0-api`; F8 W171 ile güncellendi — aşağıdaki "F8 / v0.23.0-api güncel uç tablosu" §1–§2'deki v0.15 notlarının YERİNE geçer), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 Ek doğrulama (yetkili kaynak, sözleşme sayılmaz): `internal/modules/records/README.md` (RECORDS-Knn) ve `records/usecase/archive.go`; yalnız openapi'nin sustuğu yerde "**modül README**" / "**kod**" diye anılır.
 
-**Kritik çerçeve (bütün tablolar için):**
+**F8 / v0.23.0-api güncel uç tablosu (W171; kod: `modules/archive/api/*`):** aşağıdaki §1–§3 v0.15 durumunu anlatır; güncel durum şudur.
+
+| Kimlik | Uç | Kapsam | Ne değişti |
+|---|---|---|---|
+| E-06-04/05/06/08/10/12/15/16/26/27/28/29/30/34/35/37/38/52/56/57/62, E-01-37 (BE-072) | `programArchiveFolders`, `programArchiveTasks`, `programArchiveAttachments`, `programArchiveUploaders` (`/v1/program/archive/*`) | **S2** (yalnız şirket yöneticisi; K/Ü 403 `records.not_authorized`); yalnız `X-Nizamio-Program`, `department_id` sorgu süzgeci (başlık değil) | Yönetici okumaları S3 yerine S2: 06 kartları tek istek, 07 görev/dosya listeleri `department_id=<klasorId>`; `archiveTasks ∩ listProgramWorkItems` kesişimi ve 200 tavan uyarısı kalktı; `X-Result-Truncated` sunucu kesmesini söyler. Dosya İŞLEMİ (indir, ad, etiket, sil, `listWorkItemFiles`, yükleme) hâlâ S3: başlık = **satırın / görev seçeneğinin `department_id`'si** (`FileListItem`, `WorkItemFileListItem`, `ArchiveTask` taşır), rotadaki klasör kimliği değil. Klasör kimliği = departman kimliği |
+| E-06-12…14, E-06-22, E-06-33 (BE-025, kısmi) | `archiveFolders`/`programArchiveFolders` | S3 / S2 | `ArchiveFolder.task_count`, `total_bytes`, `last_uploaded_at`; zarf `totals` (`file_count`, `task_count`, `total_bytes`, `last_uploaded_at`). `last_uploaded_at` yükleme olay günlüğü değildir (GAP-240). KALAN: E-06-23/24 depolama dağılımı (tür/etiket bazlı bayt alanı yok) |
+| E-06-55 (BE-070) | `archiveAttachments`/`programArchiveAttachments`, `listWorkItemFiles`, `FileRecord` | — | `created_at` (UTC) |
+| E-06-54 (BE-071) | aynı | — | `FileListItem.uploaded_by_full_name` (null olabilir); `archiveUploaders.uploader_details[{account_id, full_name}]` |
+| E-06-38/46 (BE-073) | `archiveAttachments`/`programArchiveAttachments` | — | `ArchiveFileList.total` (süzgece uyan küme, imleçten bağımsız) |
+| E-06-58/64 (BE-074) | `retagFile` — `PATCH /v1/files/{id}/tag` | S3, dosyanın departmanı; CSRF | gövde `{tag}` (kapalı küme); aynı etiket 200 değişiklik yok; yetki yeniden adlandırmayla aynı; 403 `records.not_authorized`, 422 `records.tag_invalid` |
+| E-06-05/35/62 (BE-121) | `archiveTasks`/`programArchiveTasks?include_empty=true` | S3 / S2 | dosyasız canlı görevler `file_count: 0`; ≤200, kesilirse `X-Result-Truncated` (yalnız YÜKLEME seçicisi; klasör görevleri ve seçimli ZIP parametresizdir) |
+| E-06-04, E-13-09/10/11 (BE-120, BE-124) | `programArchiveZip` — `GET /v1/program/archive/download-zip` (bilet hedefi) | **S2**, yalnız ŞY | `include_reports=true` raporlu düzen (`00-Genel/Donem-Raporu.pdf`, `NN-Departman/…`, `EKSIK-DOSYALAR.txt`; 40 üstü departmanda `NOT.txt`), `department_id` verilirse klasör ZIP'i (istemci raporlu istekte `department_id` GÖNDERMEZ → 422); hata: 429 `reporting.export_in_progress`, 503 `reporting.capacity_full`, 422 `records.too_many_files`/`records.too_large`, 429 `records.busy` + `Retry-After`. `X-Result-Truncated: true` gömülü rapor kesildi (bilet tüketiminde iletildiği doğrulanamadı: sözleşme tüketimde yalnız gövde/Content-Type/Content-Disposition'ı güvence eder). Eski S3 `archiveFullZip` yolu kullanılmaz |
+
+Kalan statik: BE-069 (göreve bağsız yükleme), BE-075 (taşı), BE-024 (etiket oluştur), BE-026 (önizleme türevi), BE-076 (geri yükleme), BE-077 (arama kapsamı: yalnız dosya adı).
+
+**Kritik çerçeve (bütün tablolar için; v0.15 notları — güncel hâl yukarıdaki F8 tablosunda):**
 - Bütün arşiv ve dosya uçları **S3**'tür: `X-Nizamio-Program` **ve** `X-Nizamio-Department` zorunlu (`x-nizamio-scope-class: S3`). Departman başlığı yoksa 422 `platform.scope_missing`.
 - Kapsam sunucuda sabittir (RECORDS-K18, kod `resolveArchive`): **yönetici** (`company_admin`) programın tamamını görür (departman başlığı süzmez); **koordinatör** yalnız başlıktaki departmanı; **üye** yalnız o departmanda kendisine atanan görevlerin dosyalarını, tek sanal klasör `folder_id = "my-tasks"`, `name = "Görevlerim"`, `is_virtual = true`. Atanmamış üyenin listesi boştur.
 - Tek dosyaya giden istekler (`downloadFile`, `renameFile`, `deleteFile`) başlıktaki departman **dosyanın departmanı** değilse 404 `records.file_not_found` alır (kod `attach_ops.go`, `reads.go`). Arşiv öğesi (`FileListItem`) `department_id` taşımaz → yönetici merceğinde bu başlık bilinmez (eksikler `yeni-3`).

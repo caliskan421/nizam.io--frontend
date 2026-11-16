@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import { authSession } from '@/shared/http'
 import { useScopeStore } from '@/shared/scope/store'
-import { DesignStub, UiInput, UiKbd, UiSegmented } from '@/shared/ui'
+import { UiInput, UiKbd, UiSegmented } from '@/shared/ui'
 
 import { ARCHIVE_KINDS } from '../../model/mime'
 import type { ArchiveKind } from '../../model/types'
@@ -14,9 +14,8 @@ import './folders.css'
 /**
  * Arama + dosya türü segmenti (E-06-06/07/26). Arama sunucunun desteklediği alanla sınırlıdır
  * (dosya adı, BE-077). Yazım ~300 ms gecikmeyle `update:q` yayar; bekleyen yazım sahip sökülünce,
- * kapsam ya da oturum değişince düşer. "/" kutuya odaklar (yazı alanındayken değil). `disabled`
- * (yönetici, BE-072): arama ve segment statik, "Görev klasörü seçin" açıklaması görünür.
- * Segment yalnız Tümü/Görsel/Belge'dir (PDF ayrı kategori değil, E-06-07).
+ * kapsam ya da oturum değişince düşer. "/" kutuya odaklar (yazı alanındayken değil). Yönetici
+ * için arama program geneli S2'dir (BE-072; sonuçlar `ArchiveSearchResults`). Segment yalnız Tümü/Görsel/Belge'dir (PDF ayrı kategori değil, E-06-07).
  */
 const props = defineProps<ArchiveSearchBarProps>()
 const emit = defineEmits<ArchiveSearchBarEmits>()
@@ -73,7 +72,6 @@ const options = computed(() =>
 function onSlash(event: KeyboardEvent): void {
   if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented)
     return
-  if (props.disabled) return
   const target = event.target as HTMLElement | null
   if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))
     return
@@ -94,37 +92,23 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="archive-searchbar">
-    <component
-      :is="disabled ? DesignStub : 'div'"
-      v-bind="disabled ? { id: 'BE-072', as: 'div' } : {}"
-      class="archive-searchbar__row"
-    >
+    <div class="archive-searchbar__row">
       <div class="archive-search">
         <UiInput
           v-model="draft"
           type="search"
           icon="search"
-          :disabled="disabled"
           :aria-label="t('archive.folders.search.label')"
           :placeholder="t('archive.folders.search.placeholder')"
         />
-        <UiKbd
-          v-if="!disabled"
-          class="archive-search__kbd"
-          :title="t('archive.folders.search.shortcut')"
-          >/</UiKbd
-        >
+        <UiKbd class="archive-search__kbd" :title="t('archive.folders.search.shortcut')">/</UiKbd>
       </div>
       <UiSegmented
         :model-value="kind"
         :options="options"
         :label="t('archive.shared.kind.label')"
-        :disabled="disabled"
         @update:model-value="(value: ArchiveKind | null) => value && emit('update:kind', value)"
       />
-    </component>
-    <p v-if="disabled" class="rp-cap archive-searchbar__hint" role="status">
-      {{ t('archive.shared.selectTask') }}
-    </p>
+    </div>
   </div>
 </template>

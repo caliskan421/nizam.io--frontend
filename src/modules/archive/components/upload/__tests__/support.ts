@@ -72,7 +72,7 @@ export interface Mounted {
  * (`v-if` söker); `events` sayar.
  */
 export function mountDialog(
-  props: { tasks?: UploadTask[]; defaultTaskId?: string | null } = {},
+  props: { tasks?: UploadTask[]; defaultTaskId?: string | null; truncated?: boolean } = {},
   options: { selection?: ScopeSelection; standing?: StandingSeed } = {},
 ): Mounted {
   const h = harness(options.selection ?? COORD)
@@ -86,6 +86,7 @@ export function mountDialog(
         ? render(UploadDialog, {
             tasks: props.tasks ?? TASKS,
             defaultTaskId: props.defaultTaskId ?? null,
+            truncated: props.truncated ?? false,
             onClose: () => {
               events.closed += 1
               visible.value = false

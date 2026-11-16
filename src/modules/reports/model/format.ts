@@ -42,6 +42,12 @@ export function instantDate(iso: string, timeZone: string): string | null {
   return p ? `${p.day}.${p.month}.${p.year}` : null
 }
 
+/** Bir an → takvim günü `YYYY-AA-GG` (kurulum saat diliminde). */
+export function instantDay(iso: string, timeZone: string): string | null {
+  const p = parts(iso, timeZone, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return p ? `${p.year}-${p.month}-${p.day}` : null
+}
+
 /** Bir an → `SS:DD` (kurulum saat diliminde, 24 saat). */
 export function instantTime(iso: string, timeZone: string): string | null {
   const p = parts(iso, timeZone, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -94,4 +100,21 @@ export function initials(name: string): string {
       .map((word) => [...word][0] ?? '')
       .join(''),
   )
+}
+
+/** Bayt → "512 B" / "340 KB" / "3,8 MB" / "1,2 GB" (ikili birim, virgüllü ondalık; geçersiz → `null`). */
+export function formatBytes(bytes: number): string | null {
+  if (!Number.isFinite(bytes) || bytes < 0) return null
+  const units = ['B', 'KB', 'MB', 'GB'] as const
+  let value = bytes
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit += 1
+  }
+  const text =
+    unit === 0
+      ? String(Math.round(value))
+      : value.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  return `${text} ${units[unit]}`
 }

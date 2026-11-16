@@ -5,41 +5,54 @@ import './reports.css'
 import { computed, ref, watch } from 'vue'
 
 import { useProgramDepartments } from '@/shared/scope/program-departments'
-import { DesignStub, UiButton, UiModal } from '@/shared/ui'
+import { UiButton, UiModal } from '@/shared/ui'
 
 import {
   allSections,
+  departmentsForRequest,
   isChild,
-  isFullSelection,
+  isEmptySelection,
+  sectionsForRequest,
   sectionState,
   SECTION_IDS,
+  toggleDepartment,
   toggleSection,
   type SectionId,
 } from '../model/sections'
+import type { SeasonSelection } from '../model/types'
 import { t } from './text'
 
 /**
- * "Bölüm seç…" penceresi (01i hücre B, E-13-04…06; STATİK, BE-122): hepsi seçili açılır; kilitli
- * "Kapak ve içindekiler"; 4 ana + 4 girintili alt kutu (ana kutu alt kutuları toplu işaretler,
- * kısmi seçimde `mixed`); koordinatörlük çipleri çizilir ama devre dışı "yakında" (çip kaynağı
- * `listProgramDepartments`: kod, yoksa ad); koordinatörlük sayısı canlı, sayfa tahmini yok
- * (E-13-06). Hepsi seçiliyken "Seçilenleri indir" = düz tam rapor (`download` olayı; indirmeyi
- * ana düğme yapar); bir kutu kaldırılınca devre dışı + açıklama (sahte kısmi PDF yok). Seçim
- * açılışlar arasında hatırlanmaz. Kapanışta odak tetikleyiciye `UiModal` ile döner.
+ * "Bölüm seç…" penceresi (01i hücre B, E-13-04…06; CANLI, BE-122/BE-127 kısmı): hepsi seçili açılır;
+ * kilitli "Kapak ve içindekiler"; 4 ana + 4 girintili alt kutu (ana kutu alt kutuları toplu
+ * işaretler, kısmi seçimde `mixed`); koordinatörlük çipleri (kaynak `listProgramDepartments`: kod,
+ * yoksa ad): "Tümü" açıkken bir çip süzgeci o koordinatörlüğe daraltır, sonraki basışlar
+ * ekler/çıkarır, son çip çıkınca "Tümü"ne dönülür. Koordinatörlük sayısı canlı (süzgeçle seçili
+ * sayı), sayfa tahmini yok (E-13-06). "Seçilenleri indir" seçimi (`download` olayı: `sections` /
+ * `departmentIds`; hepsi seçiliyse ilgili alan YOK = parametresiz tam eksen) yayar; indirmeyi ana
+ * düğme yapar. Hiçbir bölüm seçili değilken düğme devre dışıdır (sunucu boş seçimi "hepsi" sayar:
+ * beklenmedik tam rapor inmesin). Seçim açılışlar arasında hatırlanmaz. Kapanışta odak
+ * tetikleyiciye `UiModal` ile döner.
  */
 const props = defineProps<{ programLabel: string }>()
 const open = defineModel<boolean>('open', { default: false })
-const emit = defineEmits<{ download: [] }>()
+const emit = defineEmits<{ download: [selection: SeasonSelection] }>()
 
 const selected = ref<Set<SectionId>>(allSections())
+const only = ref<Set<string>>(new Set())
 watch(open, (isOpen) => {
-  if (isOpen) selected.value = allSections()
+  if (isOpen) {
+    selected.value = allSections()
+    only.value = new Set()
+  }
 })
 
 const departments = useProgramDepartments(open)
 const list = computed(() => departments.query.data.value?.departments ?? [])
-const count = computed(() => (departments.query.data.value ? list.value.length : null))
-const full = computed(() => isFullSelection(selected.value))
+const count = computed(() =>
+  departments.query.data.value ? (only.value.size > 0 ? only.value.size : list.value.length) : null,
+)
+const empty = computed(() => isEmptySelection(selected.value))
 const summary = computed(() =>
   [
     count.value === null ? '' : t('reports.season.picker.count', { n: count.value }),
@@ -50,9 +63,17 @@ const summary = computed(() =>
 )
 
 function confirm(): void {
-  if (!full.value) return
+  if (empty.value) return
+  const sections = sectionsForRequest(selected.value)
+  const departmentIds = departmentsForRequest(
+    only.value,
+    list.value.map((d) => d.department_id),
+  )
   open.value = false
-  emit('download')
+  emit('download', {
+    ...(sections ? { sections } : {}),
+    ...(departmentIds ? { departmentIds } : {}),
+  })
 }
 </script>
 
@@ -105,12 +126,15 @@ function confirm(): void {
       <hr class="report-picker__rule" />
       <div class="report-picker__head">
         <p class="report-picker__label">{{ t('reports.season.picker.departments') }}</p>
-        <DesignStub id="BE-122">
-          <span class="report-soon">{{ t('reports.season.picker.soon') }}</span>
-        </DesignStub>
       </div>
       <div class="report-picker__chips">
-        <button type="button" class="report-chip" aria-pressed="true" disabled>
+        <button
+          type="button"
+          class="report-chip"
+          data-chip="all"
+          :aria-pressed="only.size === 0"
+          @click="only = new Set()"
+        >
           {{ t('reports.season.picker.all') }}
         </button>
         <button
@@ -118,14 +142,15 @@ function confirm(): void {
           :key="department.department_id"
           type="button"
           class="report-chip"
-          aria-pressed="true"
-          disabled
+          :data-chip="department.department_id"
+          :aria-pressed="only.has(department.department_id)"
+          @click="only = toggleDepartment(only, department.department_id)"
         >
           {{ department.code ?? department.display_name }}
         </button>
       </div>
-      <p v-if="!full" class="report-picker__hint" role="status">
-        {{ t('reports.season.picker.partial') }}
+      <p v-if="empty" class="report-picker__hint" role="status">
+        {{ t('reports.season.picker.empty') }}
       </p>
     </div>
     <template #footer>
@@ -134,13 +159,13 @@ function confirm(): void {
         <UiButton variant="ghost" data-action="cancel" @click="open = false">
           {{ t('reports.season.picker.cancel') }}
         </UiButton>
-        <DesignStub v-if="!full" id="BE-122">
-          <UiButton variant="primary" icon="download" disabled data-action="confirm">
-            {{ t('reports.season.picker.download') }}
-          </UiButton>
-          <span class="report-soon">{{ t('reports.season.picker.soon') }}</span>
-        </DesignStub>
-        <UiButton v-else variant="primary" icon="download" data-action="confirm" @click="confirm">
+        <UiButton
+          variant="primary"
+          icon="download"
+          data-action="confirm"
+          :disabled="empty"
+          @click="confirm"
+        >
           {{ t('reports.season.picker.download') }}
         </UiButton>
       </div>

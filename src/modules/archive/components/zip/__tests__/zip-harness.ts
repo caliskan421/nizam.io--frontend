@@ -62,6 +62,7 @@ export async function mountZip(
   component: Component,
   props: Record<string, unknown>,
   selection: ScopeSelection,
+  options: { settle?: boolean } = {},
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retryDelay: 0, retry: false }, mutations: { retry: false } },
@@ -75,7 +76,9 @@ export async function mountZip(
     global: { plugins: [pinia, [VueQueryPlugin, { queryClient }]] },
   })
   mounted.push(wrapper)
-  await vi.waitFor(() => expect(queryClient.isFetching()).toBe(0))
-  await flushPromises()
+  if (options.settle !== false) {
+    await vi.waitFor(() => expect(queryClient.isFetching()).toBe(0))
+    await flushPromises()
+  }
   return { wrapper, queryClient }
 }

@@ -4,6 +4,7 @@ import './preview.css'
 import { computed } from 'vue'
 
 import { monthLabel, percent } from '../../model/format'
+import { shiftDays, topRequested, activityExtras } from '../../model/season-extras'
 import type { PaperContext } from '../../model/paper-context'
 import { activity } from '../../model/season-view'
 import type { SeasonReport } from '../../model/types'
@@ -13,13 +14,14 @@ import PaperBand from './PaperBand.vue'
 import PaperFrame from './PaperFrame.vue'
 import PaperHeading from './PaperHeading.vue'
 import PaperKpis, { type PaperKpi } from './PaperKpis.vue'
-import PaperStub from './PaperStub.vue'
+import SeasonWorkload from './SeasonWorkload.vue'
 
 /**
  * Teknofest geneli (E-13-29…31): aylık aktivite (yalnız gerçek seri; tanım JSON'a göre:
- * oluşturulan + tamamlanan görev, toplantı, mesaj), tarih değişikliği talepleri (4 KPI;
- * "ortalama kayma" ve "en çok talep alan görevler" gizli, BE-136) ve iş yükü bölümü STATİK
- * (ikinci ağır JSON okunmaz, BE-134). Grafik `role="img"` ile metin özeti taşır.
+ * oluşturulan + tamamlanan görev, toplantı, mesaj; not/dosya/tarih talebi dönem toplamları dipnotta),
+ * tarih değişikliği talepleri (4 KPI + onaylananlarda "ortalama kayma" + "en çok talep alan
+ * görevler" tablosu, BE-136) ve iş yükü bölümü CANLI
+ * (`workload_summary`; ikinci ağır JSON okunmaz, BE-134; `SeasonWorkload`). Grafik `role="img"` ile metin özeti taşır.
  */
 const props = defineProps<{ ctx: PaperContext; season: SeasonReport }>()
 
@@ -37,6 +39,9 @@ const chartLabel = computed(() => {
     total,
   })
 })
+const shift = computed(() => shiftDays(props.season))
+const top = computed(() => topRequested(props.season))
+const extras = computed(() => activityExtras(props.season))
 const requests = computed<PaperKpi[]>(() => {
   const r = props.season.date_change_stats
   const g = (key: string) => t(`reports.season.paper.general.${key}`)
@@ -45,7 +50,9 @@ const requests = computed<PaperKpi[]>(() => {
     {
       label: g('reqApproved'),
       value: String(r.approved),
-      sub: percent(r.approved, r.total),
+      sub: shift.value
+        ? `${percent(r.approved, r.total)} · ${t('reports.season.paper.general.avgShortShift', { n: shift.value })}`
+        : percent(r.approved, r.total),
       tone: 'ok',
     },
     {
@@ -103,14 +110,41 @@ const requests = computed<PaperKpi[]>(() => {
         </div>
       </div>
       <p class="report-fn">{{ t('reports.season.paper.general.activityNote') }}</p>
+      <p v-if="extras" class="report-fn" data-testid="activity-extras">
+        {{ t('reports.season.paper.general.activityExtras', extras) }}
+      </p>
     </section>
     <section class="report-section" aria-labelledby="report-gen-requests">
-      <PaperHeading id="report-gen-requests" :title="t('reports.season.paper.general.requests')" />
+      <PaperHeading
+        id="report-gen-requests"
+        :title="t('reports.season.paper.general.requests')"
+        :aside="shift ? t('reports.season.paper.general.avgShift', { n: shift }) : undefined"
+      />
       <PaperKpis :items="requests" :label="t('reports.season.paper.general.requestsKpis')" />
+      <template v-if="top.length > 0">
+        <p class="report-label">{{ t('reports.season.paper.general.topRequested') }}</p>
+        <div
+          class="report-table report-cols-top"
+          role="table"
+          :aria-label="t('reports.season.paper.general.topRequested')"
+          data-testid="top-requested"
+        >
+          <div
+            v-for="(row, index) in top"
+            :key="row.id"
+            class="report-tr"
+            :class="{ 'report-tr--zebra': index % 2 === 1 }"
+            role="row"
+          >
+            <span class="report-mono" role="cell">{{ row.code ?? '—' }}</span>
+            <strong class="rp-trunc" role="cell">{{ row.title }}</strong>
+            <span class="report-r" role="cell">{{
+              t('reports.season.paper.general.requestCount', { n: row.count })
+            }}</span>
+          </div>
+        </div>
+      </template>
     </section>
-    <section class="report-section" aria-labelledby="report-gen-workload">
-      <PaperHeading id="report-gen-workload" :title="t('reports.season.paper.general.workload')" />
-      <PaperStub stub="134" :text="t('reports.season.paper.general.workloadStub')" />
-    </section>
+    <SeasonWorkload :season="season" />
   </PaperFrame>
 </template>

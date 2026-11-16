@@ -11,6 +11,6 @@ type Leaves<T, P extends string = ''> = {
 export type ZipTextKey = Leaves<typeof trZip>
 
 /** `archive.zip.*` metni (TR). */
-export function zipText(key: ZipTextKey): string {
-  return i18n.global.t(`archive.zip.${key}`)
+export function zipText(key: ZipTextKey, params: Record<string, string | number> = {}): string {
+  return i18n.global.t(`archive.zip.${key}`, params)
 }

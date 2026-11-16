@@ -7,7 +7,7 @@ import * as skeleton from './index'
 // nesnesindeki `props` / `emits` bildirimleri denetlenir; yer tutucu ya da dolu gövdeyle aynı
 // sonuç (KESİN 22; web-1 W41b, web-2 W72 dersi).
 const CONTRACT = {
-  ArchiveSearchBar: [['q', 'kind', 'disabled'], ['update:q', 'update:kind'], 'W122'],
+  ArchiveSearchBar: [['q', 'kind'], ['update:q', 'update:kind'], 'W122'],
   FolderGrid: [
     ['cards', 'sortField', 'sortDirection', 'loading', 'error'],
     ['open', 'update:sort', 'retry'],
@@ -22,18 +22,14 @@ const CONTRACT = {
     'W123',
   ],
   TaskFolderCards: [['tasks', 'selectedTaskId', 'truncated', 'loading'], ['select'], 'W123'],
-  FileFilterBar: [
-    ['tag', 'view', 'loaded', 'total', 'hasMore'],
-    ['update:tag', 'update:view'],
-    'W123',
-  ],
+  FileFilterBar: [['tag', 'view', 'loaded', 'total'], ['update:tag', 'update:view'], 'W123'],
   FileGrid: [
-    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error', 'needsTask'],
+    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error'],
     ['select', 'loadMore', 'retry'],
     'W123',
   ],
   FileList: [
-    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error', 'needsTask'],
+    ['files', 'taskTitles', 'selectedFileId', 'hasMore', 'loading', 'error'],
     ['select', 'loadMore', 'retry'],
     'W123',
   ],
@@ -44,9 +40,9 @@ const CONTRACT = {
   ],
   FileActions: [['file', 'target'], ['deleted', 'renamed'], 'W124'],
   RenameFileDialog: [['open', 'file', 'target'], ['update:open', 'renamed'], 'W124'],
-  UploadDialog: [['tasks', 'defaultTaskId'], ['close', 'uploaded'], 'W125'],
+  UploadDialog: [['tasks', 'defaultTaskId', 'truncated'], ['close', 'uploaded'], 'W125'],
   FolderZipButton: [['target', 'folder'], [], 'W126'],
-  PeriodZipButton: [['target'], [], 'W126'],
+  PeriodZipButton: [[], [], 'W126'],
 } as const
 
 type Declared = {
@@ -77,7 +73,7 @@ describe('arşiv bileşen iskeleti (W121 → O2b)', () => {
   it('yükleme penceresi sözleşmesi: emits close/uploaded, props tasks/defaultTaskId (W125)', () => {
     const dialog = skeleton.UploadDialog as Declared
     expect(names(dialog.emits).sort()).toEqual(['close', 'uploaded'])
-    expect(names(dialog.props).sort()).toEqual(['defaultTaskId', 'tasks'])
+    expect(names(dialog.props).sort()).toEqual(['defaultTaskId', 'tasks', 'truncated'])
   })
 
   it('bileşenler yetkiyi kendileri hesaplamaz: rol/yönetici olgusu prop adında taşınmaz', () => {

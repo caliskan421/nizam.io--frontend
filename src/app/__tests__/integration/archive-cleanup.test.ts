@@ -1,6 +1,7 @@
 // W127 · O3 senaryo 9: W121 temizlik kalemleri. Koordinatör/üye 06'ya girince yönlendirilir (P40);
 // 06'ya özgü okumalar (yönetici ızgarası için `listProgramDepartments`, yükleme listesi için
-// `archiveTasks`) bu roller için ağ isteği atmaz; 07'nin kendi okumaları tek kez gider.
+// `archiveTasks`) bu roller için ağ isteği atmaz; 07'nin kendi okumaları tek kez gider (görev
+// klasörleri parametresiz, yükleme seçicisi `include_empty=true` ile — iki ayrı küme, BE-121).
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import {
@@ -35,11 +36,16 @@ describe.each([
   it('yönlenir; program departman sözlüğü 06 için istenmez, archiveTasks yönlendirme öncesi gitmez', async () => {
     const app = await boot({ ...who, path: '/arsiv' })
     await until(() => app.router.currentRoute.value.path === `/arsiv/${folder}`, 'yönlendirme')
-    await until(() => $('[data-file-id]') ?? $('[data-testid="files-needs-task"]'), '07 yerleşti')
+    await until(() => $('[data-file-id]'), '07 yerleşti')
     await idle(app.queryClient)
     const first = (path: string) => backend.requests.findIndex((r) => r.path === path)
-    // 07'nin kendi görev klasörleri okuması TEK istektir (06 + 07 çifte okuma yok).
-    expect(backend.sent('GET', '/v1/records/archive/tasks')).toHaveLength(1)
+    // 07'nin kendi görev okumaları: klasörler (parametresiz) + yükleme seçicisi (`include_empty`)
+    // birer istektir (06 + 07 çifte okuma yok).
+    const tasks = backend.sent('GET', '/v1/records/archive/tasks')
+    expect(tasks.filter((r) => !r.query.has('include_empty'))).toHaveLength(1)
+    expect(tasks.filter((r) => r.query.get('include_empty') === 'true')).toHaveLength(1)
+    // K/Ü S2 yüzlerini hiç çağırmaz (S2 yalnız yöneticide; K/Ü'ye 403).
+    expect(backend.requests.filter((r) => r.path.startsWith('/v1/program/archive'))).toHaveLength(0)
     expect(backend.sent('GET', '/v1/records/archive/folders')).toHaveLength(1)
     // Yönlendirme kararı (klasör listesi) gelmeden görev okuması başlamaz: 06 görev okumaz.
     const redirected = first('/v1/records/archive/folders')

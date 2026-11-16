@@ -1,32 +1,30 @@
 /**
  * 07 veri bileşimi: bağlam (`useArchiveContext`), görev klasörleri (`useArchiveTaskFolders`) ve
- * dosya sayfaları (`useArchiveAttachments`). Dosya okuması kuralları (P33, `mekanizma.md` §3):
- *  - Görev süzgeci (`gorev`) görev listesiyle doğrulanır; listede olmayan kimlik yok sayılır
- *    (yönetici için dosyanın departmanı bilinemez).
- *  - Yöneticide dosyalar yalnız doğrulanmış görev seçiliyken okunur; aksi `needsTask`
- *    ("Görev klasörü seçin", BE-072) ve S3 dosya isteği YOK.
- *  - Toplam yalnız süzgeçsizde klasör, yalnız görev süzgecinde görev sayacından bilinir
- *    (`knownTotal`); diğerinde "n+" (BE-073).
+ * dosya sayfaları (`useArchiveAttachments`). Dosya okuması kuralları (`mekanizma.md` §3):
+ *  - Görev süzgeci (`gorev`) görev listesiyle doğrulanır; listede olmayan kimlik yok sayılır.
+ *  - Yöneticide de dosyalar klasör düzeyinde okunur (`programArchiveAttachments?department_id`,
+ *    BE-072): görev seçmek zorunlu değildir, "Görev klasörü seçin" boş durumu yoktur.
+ *  - Toplam sunucunun süzgece uyan küme boyudur (`ArchiveFileList.total`, BE-073).
  */
 import { computed, type Ref } from 'vue'
 
+import { isListTruncated } from '@/shared/http/truncation'
+
 import { useArchiveTaskFolders } from '../../api/admin-tasks'
 import { useArchiveContext } from '../../api/context'
-import { useArchiveAttachments } from '../../api/queries'
-import { knownTotal } from '../../model/filters'
+import { useArchiveAttachments, useArchiveUploadTasks } from '../../api/queries'
 import { archiveFolderCards } from '../../model/folder-cards'
 import { taskTitles, uploadTasks } from '../../model/tasks'
 import type { ArchiveFileFilters } from '../../model/types'
 import type { FolderUrlState } from './url-state'
 
-/** Görev klasörleri + doğrulanmış görev süzgeci (yönetici için `needsTask`). */
+/** Görev klasörleri + doğrulanmış görev süzgeci. */
 function useTaskScope(ctx: ReturnType<typeof useArchiveContext>, url: Ref<FolderUrlState>) {
   const taskFolders = useArchiveTaskFolders(ctx)
   const taskList = computed(() => taskFolders.folders.value.tasks)
   const tasksReady = computed(() => taskFolders.folders.value.ready)
   const tasksFailure = computed(() => taskFolders.failure.value)
   const tasksFailed = computed(() => tasksFailure.value !== null)
-  const adminFolder = computed(() => ctx.access.value.mode === 'admin-folder')
   /** Doğrulanmış görev süzgeci; doğrulama beklerken `undefined`. */
   const verifiedTask = computed<string | null | undefined>(() => {
     const id = url.value.task
@@ -34,17 +32,15 @@ function useTaskScope(ctx: ReturnType<typeof useArchiveContext>, url: Ref<Folder
     if (tasksReady.value) {
       return taskList.value.some((t) => t.work_item_id === id) ? id : null
     }
-    if (tasksFailed.value) return adminFolder.value ? null : id
+    if (tasksFailed.value) return id
     return undefined
   })
   const activeTask = computed(() => verifiedTask.value ?? null)
-  const needsTask = computed(() => adminFolder.value && activeTask.value === null)
   return {
     taskFolders,
     taskList,
     verifiedTask,
     activeTask,
-    needsTask,
     tasksFailed,
     tasksFailure,
     tasksLoading: computed(() => !tasksReady.value && !tasksFailed.value),
@@ -54,7 +50,7 @@ function useTaskScope(ctx: ReturnType<typeof useArchiveContext>, url: Ref<Folder
 export function useFolderData(folderId: Ref<string | null>, url: Ref<FolderUrlState>) {
   const ctx = useArchiveContext(folderId)
   const scope = useTaskScope(ctx, url)
-  const { taskList, verifiedTask, activeTask, needsTask } = scope
+  const { taskList, verifiedTask, activeTask } = scope
 
   const folder = computed(() => ctx.folderList.value?.find((f) => f.folder_id === folderId.value))
   const treeFolders = computed(() => archiveFolderCards(ctx.folderList.value))
@@ -64,24 +60,17 @@ export function useFolderData(folderId: Ref<string | null>, url: Ref<FolderUrlSt
     ...(url.value.q.trim() ? { search: url.value.q.trim() } : {}),
     ...(activeTask.value ? { workItemId: activeTask.value } : {}),
   }))
-  const filesEnabled = computed(
-    () => ctx.readsOpen.value && verifiedTask.value !== undefined && !needsTask.value,
-  )
-  const attachments = useArchiveAttachments(ctx.target, filters, filesEnabled)
+  const filesEnabled = computed(() => ctx.readsOpen.value && verifiedTask.value !== undefined)
+  const attachments = useArchiveAttachments(ctx.source, filters, filesEnabled)
+  // Yükleme seçicisi: dosyasız görevler de (`include_empty=true`, BE-121); ayrı okuma.
+  const uploadSource = useArchiveUploadTasks(ctx.source, ctx.readsOpen)
   const query = attachments.query
 
-  const total = computed(() =>
-    knownTotal(filters.value, {
-      folder: folder.value?.file_count ?? null,
-      task: taskList.value.find((t) => t.work_item_id === activeTask.value)?.file_count ?? null,
-    }),
-  )
   const filesLoading = computed(
     () =>
-      !needsTask.value &&
-      (verifiedTask.value === undefined ||
-        (query.isPending.value && filesEnabled.value) ||
-        query.isFetchingNextPage.value),
+      verifiedTask.value === undefined ||
+      (query.isPending.value && filesEnabled.value) ||
+      query.isFetchingNextPage.value,
   )
 
   return {
@@ -90,9 +79,10 @@ export function useFolderData(folderId: Ref<string | null>, url: Ref<FolderUrlSt
     folder,
     treeFolders,
     attachments,
-    total,
+    total: attachments.total,
     titles: computed(() => taskTitles(taskList.value)),
-    uploads: computed(() => uploadTasks(taskList.value, ctx.target.value?.departmentId ?? null)),
+    uploads: computed(() => uploadTasks(uploadSource.data.value?.tasks)),
+    uploadsTruncated: computed(() => isListTruncated(uploadSource.data.value)),
     filesLoading,
     filesError: computed(() => query.isError.value && filesEnabled.value),
     /** Dosya sayfaları yerleşti (hata yok, uçuşta istek yok). */

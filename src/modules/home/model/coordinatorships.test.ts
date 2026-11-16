@@ -4,7 +4,6 @@ import { stat } from '../__tests__/harness'
 import {
   approvalRemainder,
   completionPercent,
-  coordSortDisabled,
   filterCounts,
   foldTr,
   initialsOf,
@@ -107,12 +106,21 @@ describe('sıralama (E-01-25/26)', () => {
     expect(STATS[0]!.department_id).toBe('a')
   })
 
-  it('"Son yükleme" devre dışı (BE-025) ve ada düşer', () => {
-    expect(coordSortDisabled('last_upload')).toBe(true)
-    expect(coordSortDisabled('late')).toBe(false)
+  it('"Son yükleme" programArchiveFolders `last_uploaded_at` ile (BE-025): en yeni önce, yüklemesiz sonda, eşitte ad', () => {
+    const uploads = new Map<string, string | null>([
+      ['a', '2026-10-01T09:00:00Z'],
+      ['b', '2026-11-10T09:00:00Z'],
+      ['c', null],
+      ['d', '2026-11-10T09:00:00Z'],
+      // 'e' için özet yok (okunmadı): yüklemesiz sayılır.
+    ])
+    expect(ids(sortStats(STATS, 'last_upload', false, uploads))).toEqual(['b', 'd', 'a', 'e', 'c'])
+    // Özet hiç yokken ada düşer; `last_activity_at` yükleme sayılmaz.
     expect(ids(sortStats(STATS, 'last_upload', false))).toEqual(
       ids(sortStats(STATS, 'name', false)),
     )
+    // Ters çevirme bütün sırayı tersler.
+    expect(ids(sortStats(STATS, 'last_upload', true, uploads))).toEqual(['c', 'e', 'a', 'd', 'b'])
   })
 
   it('süzgeç + arama + sıralama birlikte', () => {

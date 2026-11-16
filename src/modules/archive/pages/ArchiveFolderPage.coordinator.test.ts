@@ -46,12 +46,14 @@ const cards = (w: VueWrapper) =>
   w.findAll('[data-file-id]').map((e) => e.attributes('data-file-id'))
 
 describe('07 koordinatör: başlık, ağaç, görev klasörleri, dosyalar', () => {
-  it('klasör adı kırıntıda; meta canlı sayılar + statik bayt; ağaç tek düğüm; "grup" rozeti ve kişi adı yok', async () => {
+  it('klasör adı kırıntıda; meta canlı sayılar + bayt; ağaç tek düğüm; "grup" rozeti ve kişi adı yok', async () => {
     server.use(...K, ...archiveBackend({ files: FILES }))
     const { wrapper } = await mountPage('/arsiv/d1', COORD)
     expect(crumb()).toBe('Koordinatörlük 1')
     expect(wrapper.find('h1').text()).toBe('Koordinatörlük 1')
-    expect(wrapper.find('[data-testid="folder-meta"]').text()).toBe('2 görev klasörü · 3 dosya · —')
+    expect(wrapper.find('[data-testid="folder-meta"]').text()).toBe(
+      '2 görev klasörü · 3 dosya · 0 B',
+    )
     expect(wrapper.findAll('[data-folder-id]')).toHaveLength(1)
     expect(wrapper.find('[data-folder-id="d1"]').attributes('aria-current')).toBe('page')
     expect(wrapper.text()).not.toMatch(/çalışma grubu|\bgrup\b/i)
@@ -72,7 +74,8 @@ describe('07 koordinatör: başlık, ağaç, görev klasörleri, dosyalar', () =
     expect(cards(wrapper)).toEqual(['f2', 'f3'])
     const last = sent('GET', '/v1/records/archive/attachments').at(-1)!
     expect(last.query.get('work_item_id')).toBe('w2')
-    expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('3')
+    // Sayaç sunucunun süzgeç toplamıdır (görev w2: 2 dosya).
+    expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('2')
     expect(
       wrapper.find('[data-testid="folder-tree"] [data-task-id="w2"]').attributes('aria-current'),
     ).toBe('page')
@@ -82,7 +85,7 @@ describe('07 koordinatör: başlık, ağaç, görev klasörleri, dosyalar', () =
     expect(cards(wrapper)).toEqual(['f1', 'f2', 'f3'])
   })
 
-  it('etiket segmenti ?etiket yazar ve sunucu süzgecini gönderir; süzgeçlide sayaç "n+" olmaz tek sayfada', async () => {
+  it('etiket segmenti ?etiket yazar ve sunucu süzgecini gönderir; süzgeçli sayaç sunucu toplamıdır', async () => {
     server.use(...K, ...archiveBackend({ files: FILES }))
     const { wrapper, router, settle } = await mountPage('/arsiv/d1', COORD)
     await wrapper.find('[data-tag="plan"]').trigger('click')
@@ -93,11 +96,11 @@ describe('07 koordinatör: başlık, ağaç, görev klasörleri, dosyalar', () =
     expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('2')
   })
 
-  it('imleçli liste: süzgeçlide "n+", "Daha fazla yükle" aynı süzgeçle sonraki sayfayı ekler', async () => {
+  it('imleçli liste: sayaç sunucu toplamı ("n+" yok), "Daha fazla yükle" aynı süzgeçle sonraki sayfayı ekler', async () => {
     server.use(...K, ...archiveBackend({ files: manyFiles(5), pageSize: 2 }))
     const { wrapper, settle } = await mountPage('/arsiv/d1?etiket=sonuc', COORD)
     expect(cards(wrapper)).toHaveLength(2)
-    expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('2+')
+    expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('5')
     await wrapper.find('.arch-files__more').trigger('click')
     await settle()
     expect(cards(wrapper)).toHaveLength(4)

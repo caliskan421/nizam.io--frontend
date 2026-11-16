@@ -22,7 +22,6 @@ const { t } = useI18n()
 
 const expanded = ref(false)
 const page = computed(() => pageCards(props.cards, expanded.value))
-const hasCounts = computed(() => props.cards.some((card) => card.fileCount !== null))
 const collapsible = computed(() => props.cards.length > FOLDER_CARD_PAGE)
 </script>
 
@@ -39,7 +38,6 @@ const collapsible = computed(() => props.cards.length > FOLDER_CARD_PAGE)
         <FolderSortMenu
           :field="sortField"
           :direction="sortDirection"
-          :has-counts="hasCounts"
           @update:sort="(field, direction) => emit('update:sort', field, direction)"
         />
       </div>

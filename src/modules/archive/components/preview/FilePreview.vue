@@ -5,12 +5,13 @@ import { computed, nextTick, ref, watch } from 'vue'
 
 import { i18n } from '@/shared/i18n'
 import { cssVar } from '@/shared/tokens/css-var'
-import { DesignStub, UiIconButton } from '@/shared/ui'
+import { useInstanceStore } from '@/shared/instance/store'
+import { UiIconButton } from '@/shared/ui'
 
 import { usePreviewDetails } from '../../api/preview'
 import { formatBytes, typeBadge } from '../../model/mime'
+import { formatUploadedAt, uploaderName } from '../../model/preview'
 import { tagView } from '../../model/tags'
-import { UPLOAD_DATE } from '../../model/stubs'
 import type { FilePreviewEmits, FilePreviewProps } from '../index'
 import FileActions from './FileActions.vue'
 import PreviewArea from './PreviewArea.vue'
@@ -23,8 +24,8 @@ import { previewText } from './messages'
  * Esc, ✕, silme/ad değişimi). Önizleme alanı yalnız raster görselde ve ≤ 20 MiB'de aynı kökenden
  * `Authorization`'lı okunan `blob:` URL'sidir (HTML/SVG/PDF gömülmez; diğer türlerde nötr tür
  * simgesi); tam ekran devre dışı (designStub BE-026). Ayrıntılar: ad, tür · boyut, Görev
- * (`openTask`), Etiket (P34), Yükleyen (`listWorkItemFiles`; null → nötr, BE-071), Tarih `—`
- * (BE-070). İndir / yeniden adlandır / sil `FileActions`'tadır. 390 px'te panel akışta durur.
+ * (`openTask`), Etiket (P34), Yükleyen (`uploaded_by_full_name`; null → nötr), Tarih
+ * (`created_at`, kurulum saat diliminde). İndir / yeniden adlandır / sil `FileActions`'tadır. 390 px'te panel akışta durur.
  */
 const props = defineProps<FilePreviewProps>()
 const emit = defineEmits<FilePreviewEmits>()
@@ -42,14 +43,15 @@ const returnFocus = useReturnFocus(() => props.file.file_id, root)
 const badge = computed(() => typeBadge(props.file.content_type))
 const typeName = computed(() => i18n.global.t(`archive.type.${badge.value}`))
 const tag = computed(() => tagView(props.file.tag))
+const instance = useInstanceStore()
+const uploadedAt = computed(() =>
+  formatUploadedAt(props.file.created_at, instance.profile?.timezone),
+)
 
 const positionText = computed(() => {
-  const { position, total, hasMore } = props
+  const { position, total } = props
   if (total === null) return previewText('archive.preview.positionUnknown', { position })
-  return previewText(hasMore ? 'archive.preview.positionMore' : 'archive.preview.position', {
-    position,
-    total,
-  })
+  return previewText('archive.preview.position', { position, total })
 })
 const previousDisabled = computed(() => props.position <= 1)
 // Son yüklenen dosyada devam varsa "sonraki" etkindir (üst sayfa bir sayfa daha yükler).
@@ -184,11 +186,11 @@ function onKeydown(event: KeyboardEvent): void {
       </dd>
       <dt>{{ previewText('archive.preview.uploader') }}</dt>
       <dd data-testid="preview-uploader">
-        {{ details.uploaderName.value ?? previewText('archive.preview.noValue') }}
+        {{ uploaderName(file) ?? previewText('archive.preview.noValue') }}
       </dd>
       <dt>{{ previewText('archive.preview.date') }}</dt>
-      <dd class="fp-mono" data-testid="preview-date" :data-available="UPLOAD_DATE.available">
-        <DesignStub id="BE-070">{{ previewText('archive.preview.noValue') }}</DesignStub>
+      <dd class="fp-mono" data-testid="preview-date">
+        {{ uploadedAt ?? previewText('archive.preview.noValue') }}
       </dd>
     </dl>
 

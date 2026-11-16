@@ -1,5 +1,7 @@
 # 06 — Mekanizma (nasıl davranıyor)
 
+Sürüm: `v0.23.0-api` (F8 W171: yönetici okumaları S2 `programArchive*`, dosya işlemi başlığı satırın `department_id`'si, klasör özeti/tarih/yükleyen/toplam alanları, `retagFile`, dönem ZIP'i `programArchiveZip` + onay penceresi; ayrıntı `backend.md` "F8 / v0.23.0-api güncel uç tablosu"). Aşağıdaki "BE-072 açıktır" gibi v0.15 notları tarihçedir.
+
 Öğe kimlikleri `ozellikler.md` ile aynıdır. Uç adları yalnız yön göstermek içindir; eşleme `backend.md`'nin işidir.
 
 ## 1. Giriş ve gezinme
@@ -14,7 +16,7 @@
 
 ## 2. Kapsam ve rol etkisi (K1, K2)
 - Ekran seçili **program** kapsamında çalışır (kırıntıdaki program adı). Kapsam değişince arşiv sorguları iptal edilir, eski veri gösterilmez; 07'de açık klasör yeni kapsamda yoksa 06'ya dönülür (Varsayım; K6 ile uyumlu).
-- **Yönetici merceği:** programdaki bütün koordinatörlük klasörleri (çok düğümlü ağaç yalnız burada); "Tümünü indir" (dönem tam ZIP'i) yalnız yöneticidir (`istemci-akislari.md` §3). Pin v0.15/ADR-0030: şirket yöneticisi ekip satırı/atama aranmadan doğru görev kapsamında yükleyebilir; K ve atanmış Ü yetkisi korunur. Yönetici arşivinin doğru dosya/görev departmanını bulma sorunu BE-072 olarak ayrıca açıktır.
+- **Yönetici merceği:** programdaki bütün koordinatörlük klasörleri (çok düğümlü ağaç yalnız burada); "Tümünü indir" (dönem tam ZIP'i) yalnız yöneticidir (`istemci-akislari.md` §3). Pin v0.15/ADR-0030: şirket yöneticisi ekip satırı/atama aranmadan doğru görev kapsamında yükleyebilir; K ve atanmış Ü yetkisi korunur. Yönetici arşivinin doğru dosya/görev departmanını bulma sorunu F8'de (BE-072) kapandı: okumalar S2, işlem başlığı satırın `department_id`'si; 06'da arama/tür segmenti programın tamamında çalışır (sonuç listesi, tık dosyanın klasörünü açar).
 - **Koordinatör merceği:** yalnız `X-Nizamio-Department` başlığındaki **tek** departman (sunucu başlık dışı koordinatörlükleri döndürmez; kaynak: modül README RECORDS-K18 + kod `archiveFolders`, openapi yalnız "koordinatörlük başına dosya özeti" der). Birden çok koordinatörlüğü olan hesap departmanı kenar menüsünden değiştirir, klasörler birleştirilmez. Ağaç tek düğümlüdür; yükleme açık (koşulları §4).
 - **Üye merceği:** sunucu üyeye **tek sanal klasör** döndürür (`folder_id = "my-tasks"`, `is_virtual = true`; `archiveFolders` özeti, §3). Tasarım üye görünümü çizmemiş. Varsayım: üye 06'da tek kart görür ya da doğrudan 07'ye yönlendirilir — ürün sahibine soru (README).
 - **Dosya eylemleri** (indir, yeniden adlandır, sil, yükle) görünürlüğü işlem bazında `istemci-akislari.md` §4 tablosundan, arşiv modülünün tek `capabilities.ts` dosyasında hesaplanır; rol dizesi karşılaştırması yapılmaz. Özellikle: silme yalnız yükleyene açıktır (yükleyen ŞY ekip satırından muaftır; diğer yükleyende ilgili ekip satırı gerekir); yeniden adlandırma yönetici, koordinatör ya da yükleyene (§4 satırları) → önizlenen dosyanın yükleyen kimliği gerekir. "Etiketi değiştir", "Başka klasöre taşı", "yeni etiket oluştur" §4'te yoktur → görünürlük kuralı backend analistine bırakılır.

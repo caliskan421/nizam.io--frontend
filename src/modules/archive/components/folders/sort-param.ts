@@ -1,7 +1,6 @@
 /**
- * 06 `sirala` URL değeri (`<alan>:<yön>`; rota kataloğu `sortBy(['ad', 'dosya'])`). Yalnız sunucunun
- * verdiği alanlar sıralanır: "Son yükleme" için alan yok (BE-025) → değer ve seçenek yoktur.
- * Varsayılan (ada göre artan) URL'ye yazılmaz.
+ * 06 `sirala` URL değeri (`<alan>:<yön>`): `ad`, `dosya`, `son` (son yükleme, `last_uploaded_at`;
+ * BE-025). Varsayılan (ada göre artan) URL'ye yazılmaz.
  */
 import type { FolderSortDirection, FolderSortField } from '../../model/types'
 
@@ -18,6 +17,7 @@ export const FOLDER_SORT_OPTIONS = [
   { key: 'adAzalan', field: 'ad', direction: 'azalan' },
   { key: 'dosyaAzalan', field: 'dosya', direction: 'azalan' },
   { key: 'dosyaArtan', field: 'dosya', direction: 'artan' },
+  { key: 'sonYukleme', field: 'son', direction: 'azalan' },
 ] as const satisfies readonly (FolderSort & { key: string })[]
 
 export type FolderSortKey = (typeof FOLDER_SORT_OPTIONS)[number]['key']

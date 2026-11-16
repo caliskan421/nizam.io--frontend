@@ -3,19 +3,23 @@ import './folder.css'
 
 import { computed, ref, type ComponentPublicInstance } from 'vue'
 
-import { DesignStub, UiButton, UiIcon } from '@/shared/ui'
+import { UiButton, UiIcon } from '@/shared/ui'
 
 import { FolderZipButton } from '../../components'
 import { folderText } from '../../components/files/messages'
+import { formatBytes } from '../../model/mime'
 import type { ArchiveFolder, ArchiveTarget } from '../../model/types'
 
 /**
- * Klasör başlığı (E-06-31…35): ad, meta (görev klasörü ve dosya sayısı canlı; kişi adları gizli,
- * bayt toplamı statik `—` — BE-025; "çalışma grubu" rozeti yok — P39), klasör ZIP'i (W126) ve
+ * Klasör başlığı (E-06-31…35): ad, meta (görev klasörü, dosya sayısı ve bayt toplamı canlı —
+ * `total_bytes`, BE-025; kişi adları gizli; "çalışma grubu" rozeti yok — P39), klasör ZIP'i (W126) ve
  * "Yükle" (W125 penceresini sayfa açar). Eylemler yalnız yetkili olana çizilir (K1).
  */
 const props = defineProps<{
-  folder: Pick<ArchiveFolder, 'folder_id' | 'name' | 'is_virtual' | 'file_count'> | null
+  folder: Pick<
+    ArchiveFolder,
+    'folder_id' | 'name' | 'is_virtual' | 'file_count' | 'total_bytes'
+  > | null
   target: ArchiveTarget | null
   taskCount: number | null
   tasksTruncated: boolean
@@ -39,8 +43,9 @@ const taskMeta = computed(() => {
 const fileMeta = computed(() =>
   props.folder ? folderText('folder.meta.files', { n: props.folder.file_count }) : null,
 )
+const bytesMeta = computed(() => (props.folder ? formatBytes(props.folder.total_bytes) : null))
 const meta = computed(() =>
-  [taskMeta.value, fileMeta.value].filter((part) => part !== null).join(' · '),
+  [taskMeta.value, fileMeta.value, bytesMeta.value].filter((part) => part !== null).join(' · '),
 )
 </script>
 
@@ -51,8 +56,7 @@ const meta = computed(() =>
       <h1 v-if="folder" class="arch-head__title">{{ folder.name }}</h1>
       <span v-else class="arch-skel" role="status" :aria-label="folderText('folder.loading')" />
       <p v-if="folder" class="arch-head__meta" data-testid="folder-meta">
-        {{ meta }}<template v-if="meta"> · </template
-        ><DesignStub id="BE-025">{{ folderText('folder.meta.bytes') }}</DesignStub>
+        {{ meta }}
       </p>
     </div>
     <div class="arch-head__actions">

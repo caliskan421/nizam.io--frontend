@@ -30,7 +30,20 @@ describe('indirme sonucu → rapor sonucu', () => {
     expect(h.cooldown).toHaveBeenCalledWith(1)
   })
 
-  it('503 capacity_full: sayaç yok', () => {
+  it('503 capacity_full + Retry-After: ortak sayaç başlar (BE-135); sayaç bitince indirme kendiliğinden başlamaz', () => {
+    const h = hooks()
+    const out = settleDownload(
+      { kind: 'failed', error: err('reporting.capacity_full', 503), retryAfter: 12 },
+      h,
+    )
+    expect(out).toMatchObject({
+      kind: 'failed',
+      failure: { kind: 'capacity_full', retryAfter: 12 },
+    })
+    expect(h.cooldown).toHaveBeenCalledWith(12)
+  })
+
+  it('503 capacity_full başlıksız: sayaç yok (savunma)', () => {
     const h = hooks()
     settleDownload(
       { kind: 'failed', error: err('reporting.capacity_full', 503), retryAfter: null },

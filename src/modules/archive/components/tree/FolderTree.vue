@@ -60,7 +60,7 @@ function openFolder(folderId: string): void {
         />
         <UiIcon name="archive" size="sm" class="arch-node__icon" />
         <span class="arch-node__name">{{ folder.name }}</span>
-        <span class="rp-count">{{ folder.fileCount ?? folderText('tree.noValue') }}</span>
+        <span class="rp-count">{{ folder.fileCount }}</span>
       </button>
       <template v-if="folder.folderId === activeFolderId">
         <span

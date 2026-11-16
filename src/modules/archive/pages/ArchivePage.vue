@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { computed, onScopeDispose, ref, watch } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, watch, type ComponentPublicInstance } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import { SeasonReportActions } from '@/modules/reports/public'
-import { useProgramDepartments } from '@/modules/work/public'
 import { authSession } from '@/shared/http'
+import { isListTruncated } from '@/shared/http/truncation'
 import { useScopeStore } from '@/shared/scope/store'
-import { DesignStub, UiButton, UiEmptyState } from '@/shared/ui'
+import { UiButton, UiCount, UiEmptyState } from '@/shared/ui'
 
-import { useArchiveTaskFolders } from '../api/admin-tasks'
 import { useArchiveContext } from '../api/context'
 import { useFolderCards } from '../api/cards'
+import { useArchiveUploadTasks } from '../api/queries'
 import {
   ArchiveSearchBar,
+  FileList,
   FolderGrid,
   PeriodZipButton,
   StorageSummary,
@@ -31,16 +32,16 @@ import { isArchiveKind } from '../model/mime'
 import { uploadTasks } from '../model/tasks'
 import type { ArchiveKind } from '../model/types'
 import { ARCHIVE_FOLDER_ROUTE } from '../routes'
+import { useArchiveSearch } from './use-archive-search'
 
 /**
- * 06 Arşiv (E-06-01…24; F5). Koordinatör/üye `/arsiv`'e girince kendi klasörüne yönlenir (P40);
- * ızgara yalnız yöneticide görünür (P33): koordinatörlük adları `listProgramDepartments`'tan,
- * sayılar `—` (BE-072/BE-025) ve arama/tür segmenti statik ("Görev klasörü seçin"). Süzgeçler URL'de
- * (`q`, `tur`, `sirala`). Bağlama (KESİN 28): `PeriodZipButton` (W126; ŞY, `target` yöneticide
- * `null` → devre dışı, BE-120) ve `UploadDialog` (W125; `tasks` = `uploadTasks`, görev seçici
- * arşivdeki dosyalı görevlerle sınırlı, BE-121). Etiket kartı yalnız açıklayıcıdır (06'da
- * gidilecek klasör bağlamı yok); depolama yalnız dosya adedi.
- */
+ * 06 Arşiv (E-06-01…24; F5, F8). Koordinatör/üye `/arsiv`'e girince kendi klasörüne yönlenir (P40);
+ * ızgara yalnız yöneticide: `programArchiveFolders` (S2, BE-072/BE-025) kartları. Yönetici araması
+ * program geneli (`programArchiveAttachments`, yalnız dosya adı): süzgeç doluyken sonuç listesi
+ * ızgaranın yerine gelir. Süzgeçler URL'de (`q`, `tur`, `sirala`). Bağlama (KESİN 28):
+ * `PeriodZipButton` (W126; `target` yöneticide `null` → devre dışı, BE-120) ve `UploadDialog`
+ * (W125; görevler `include_empty=true` ile dosyasızlar dahil, BE-121; başlık seçeneğin
+ * `department_id`'si). */
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -75,9 +76,8 @@ const folders = useFolderCards(
   () => sort.value.field,
   () => sort.value.direction,
 )
-const departments = useProgramDepartments(() => context.admin.value === true)
 function retry(): void {
-  void (context.admin.value ? departments.query.refetch() : context.folders.refetch())
+  void context.folders.refetch()
 }
 const entry = computed(() => context.entry.value)
 const adminGrid = computed(() => entry.value.kind === 'grid')
@@ -97,30 +97,31 @@ watch(
 )
 
 const capabilities = computed(() => archiveCapabilities(context.standing.value, scope.programId))
-const totalFiles = computed(() =>
-  context.admin.value === true
-    ? null
-    : (context.folderList.value ?? []).reduce((sum, f) => sum + f.file_count, 0),
-)
+const totalFiles = computed(() => context.folders.data.value?.totals.file_count ?? null)
+const totalBytes = computed(() => context.folders.data.value?.totals.total_bytes ?? null)
 
-// Yükleme: görev seçicisi arşivdeki (dosyalı) görevlerle sınırlıdır (BE-121).
-// Yönlendirilen roller (P40) 06'da görev okumaz: 07 kendi okumasını açar (W121 temizliği).
-const taskFolders = useArchiveTaskFolders(context, () => context.entry.value.kind === 'grid')
-const uploadList = computed(() =>
-  uploadTasks(taskFolders.folders.value.tasks, context.target.value?.departmentId ?? null),
-)
+// Yükleme: seçici `include_empty=true` (dosyasızlar dahil, BE-121), yönetici bütün programı görür;
+// yönlendirilen roller (P40) 06'da görev okumaz (07 kendi okumasını açar).
+const gridActive = computed(() => context.entry.value.kind === 'grid')
+const uploadTaskList = useArchiveUploadTasks(context.source, gridActive)
+const uploadList = computed(() => uploadTasks(uploadTaskList.data.value?.tasks))
+const uploadTruncated = computed(() => isListTruncated(uploadTaskList.data.value))
 const uploading = ref(false)
-const needsFolder = computed(() => context.access.value.mode === 'admin-overview')
+const uploadButton = ref<ComponentPublicInstance | null>(null)
 const uploadDisabled = computed(() => uploadList.value.length === 0)
-const uploadHint = computed(() =>
-  needsFolder.value
-    ? t('archive.folders.actions.uploadNeedsFolder')
-    : uploadDisabled.value
-      ? t('archive.folders.actions.uploadNoTasks')
-      : undefined,
-)
+
+// Arama (yönetici, program geneli): süzgeç doluyken sonuç listesi ızgaranın yerine geçer.
+const {
+  searching,
+  results,
+  titles: resultTitles,
+  openResult,
+} = useArchiveSearch(context, { q, kind, adminGrid })
 function closeUpload(): void {
+  const wasOpen = uploading.value
   uploading.value = false
+  // Kapanınca odak tetikleyiciye döner (KESİN 27); kapsam/oturum değişiminde (sahip aynı) da.
+  if (wasOpen) void nextTick(() => (uploadButton.value?.$el as HTMLElement | undefined)?.focus())
 }
 const stopScope = scope.onChange(closeUpload)
 let generation = authSession.generation
@@ -145,23 +146,19 @@ onScopeDispose(() => {
       </div>
       <div class="rp-actions">
         <SeasonReportActions />
-        <PeriodZipButton v-if="capabilities.periodZip()" :target="context.target.value" />
-        <component
-          :is="needsFolder ? DesignStub : 'span'"
+        <PeriodZipButton v-if="capabilities.periodZip()" />
+        <UiButton
           v-if="capabilities.canOpenUpload"
-          v-bind="needsFolder ? { id: 'BE-072' } : {}"
+          ref="uploadButton"
+          variant="primary"
+          icon="upload"
+          :disabled="uploadDisabled"
+          :title="uploadDisabled ? t('archive.folders.actions.uploadNoTasks') : undefined"
+          data-action="upload"
+          @click="uploading = true"
         >
-          <UiButton
-            variant="primary"
-            icon="upload"
-            :disabled="uploadDisabled"
-            :title="uploadHint"
-            data-action="upload"
-            @click="uploading = true"
-          >
-            {{ t('archive.folders.actions.upload') }}
-          </UiButton>
-        </component>
+          {{ t('archive.folders.actions.upload') }}
+        </UiButton>
       </div>
     </header>
     <div class="rp-body">
@@ -170,16 +167,35 @@ onScopeDispose(() => {
           <ArchiveSearchBar
             :q="q"
             :kind="kind"
-            :disabled="context.admin.value === true"
             @update:q="setQuery('q', $event)"
             @update:kind="setKind"
           />
         </div>
         <div class="rp-col">
-          <p v-if="folders.truncated.value" class="rp-cap" role="status">
-            {{ t('archive.folders.coordinatorships.truncated') }}
-          </p>
+          <section
+            v-if="searching"
+            class="archive-results"
+            :aria-label="t('archive.folders.search.results')"
+            data-testid="archive-search-results"
+          >
+            <h2 class="rp-cardtitle">
+              {{ t('archive.folders.search.results') }}
+              <UiCount :value="String(results.total.value ?? results.files.value.length)" />
+            </h2>
+            <FileList
+              :files="results.files.value"
+              :task-titles="resultTitles"
+              :selected-file-id="null"
+              :has-more="results.hasMore.value"
+              :loading="results.query.isPending.value || results.query.isFetchingNextPage.value"
+              :error="results.query.isError.value"
+              @select="openResult"
+              @load-more="results.loadMore"
+              @retry="results.query.refetch()"
+            />
+          </section>
           <FolderGrid
+            v-else
             :cards="folders.cards.value"
             :sort-field="sort.field"
             :sort-direction="sort.direction"
@@ -192,7 +208,11 @@ onScopeDispose(() => {
         </div>
         <aside class="rp-aside" :aria-label="t('archive.folders.tags.title')">
           <TagLegend />
-          <StorageSummary :total-files="totalFiles" :loading="folders.loading.value" />
+          <StorageSummary
+            :total-files="totalFiles"
+            :total-bytes="totalBytes"
+            :loading="folders.loading.value"
+          />
         </aside>
       </template>
       <UiEmptyState
@@ -222,6 +242,7 @@ onScopeDispose(() => {
     <UploadDialog
       v-if="uploading && capabilities.canOpenUpload"
       :tasks="uploadList"
+      :truncated="uploadTruncated"
       @close="closeUpload"
     />
   </section>

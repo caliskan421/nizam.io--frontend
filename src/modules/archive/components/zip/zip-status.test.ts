@@ -39,6 +39,15 @@ describe('zipFailureText', () => {
     )
   })
 
+  it("raporlu dönem ZIP'i: 429 reporting.export_in_progress Retry-After metni; 503 reporting.capacity_full ortak metin (BE-124)", () => {
+    expect(zipFailureText(failed('reporting.export_in_progress', 12), 'period')).toBe(
+      'Çok fazla istek gönderildi; 12 saniye sonra yeniden deneyin.',
+    )
+    expect(zipFailureText(failed('reporting.capacity_full', 30), 'period')).toBe(
+      'Rapor kapasitesi dolu; biraz sonra yeniden deneyin.',
+    )
+  })
+
   it('akış ortasında kopma: yarım indirme, tekrar deneyin (GAP-041)', () => {
     expect(zipFailureText(failed('client.network_error'), 'folder')).toBe(
       'Bağlantı kesildi; indirme yarım kalmış olabilir. Tekrar deneyin.',

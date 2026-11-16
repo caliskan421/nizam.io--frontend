@@ -1,21 +1,28 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
 import {
   ADMIN_SCOPE,
+  ARCHIVE_FOLDERS,
+  archiveFolders,
   dashboard,
+  http,
   mountWith,
+  ORIGIN,
   resetAll,
+  server,
   stat,
   type Mounted,
 } from '../__tests__/harness'
 import { COORD_SEARCH_DEBOUNCE_MS } from '../model/use-coord-controls'
 import CoordinatorshipsSection from './CoordinatorshipsSection.vue'
 
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   vi.useRealTimers()
   resetAll()
 })
+afterAll(() => server.close())
 
 const STATS = [
   stat('a', 'İdari işler', { overdue_tasks: 4, coordinators: [], total_tasks: 11 }),
@@ -25,8 +32,11 @@ const STATS = [
 ]
 const REPORT = dashboard({ coordinatorship_stats: STATS })
 
-const mountSection = (props: Record<string, unknown> = { report: REPORT }) =>
-  mountWith(CoordinatorshipsSection, ADMIN_SCOPE, props)
+const mountSection = (props: Record<string, unknown> = { report: REPORT }) => {
+  // Kartların arşiv özeti (`programArchiveFolders`, BE-072): boş yanıt.
+  server.use(http.get(`${ORIGIN}${ARCHIVE_FOLDERS}`, () => Response.json(archiveFolders())))
+  return mountWith(CoordinatorshipsSection, ADMIN_SCOPE, props)
+}
 const names = ({ wrapper }: Mounted) => wrapper.findAll('a.rp-title').map((a) => a.text())
 const filterButtons = ({ wrapper }: Mounted) =>
   wrapper.get('[aria-label="Durum filtresi"]').findAll('button')

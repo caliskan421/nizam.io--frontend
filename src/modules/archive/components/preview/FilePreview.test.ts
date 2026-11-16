@@ -9,7 +9,6 @@ import {
   errorEnvelope,
   http,
   HttpResponse,
-  json,
   ORIGIN,
   resetHarness,
   sent,
@@ -23,8 +22,6 @@ let urls: ReturnType<typeof stubObjectUrls>
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 beforeEach(() => {
   urls = stubObjectUrls()
-  // Varsayılan yan okuma (yükleyen adı); testler gerektiğinde üzerine yazar.
-  server.use(taskFiles('Ali Avcı'))
 })
 afterEach(() => {
   resetHarness()
@@ -41,24 +38,6 @@ const png = () =>
       headers: { 'Content-Type': 'image/png' },
     }),
   )
-const taskFiles = (name: string | null) =>
-  http.get(`${ORIGIN}/v1/work-items/w1/files`, () =>
-    json({
-      files: [
-        {
-          file_id: 'f1',
-          work_item_id: 'w1',
-          display_name: 'foto.png',
-          content_type: 'image/png',
-          size_bytes: 10,
-          tag: 'sonuc',
-          uploaded_by_account_id: 'me-1',
-          uploaded_by_full_name: name,
-        },
-      ],
-    }),
-  )
-
 function preview(
   props: Record<string, unknown> = {},
   standing: object | null = { companyAdmin: true },
@@ -82,11 +61,11 @@ const text = (id: string) => q(id)?.textContent?.replace(/\s+/g, ' ').trim()
 const btn = (id: string) => q(id) as HTMLButtonElement
 
 describe('FilePreview başlık ve gezinme (E-06-46…48)', () => {
-  it('"i / N", toplam bilinmiyorsa "i / i+", devam varsa "N+"', async () => {
+  it('"i / N" kesin toplamla (devam olsa da "N+" yok); toplam bilinmiyorsa "i / i+"', async () => {
     const { wrapper } = preview({}, null)
     expect(text('preview-position')).toBe('2 / 15')
     await wrapper.setProps({ hasMore: true })
-    expect(text('preview-position')).toBe('2 / 15+')
+    expect(text('preview-position')).toBe('2 / 15')
     await wrapper.setProps({ total: null })
     expect(text('preview-position')).toBe('2 / 2+')
   })
@@ -262,25 +241,33 @@ describe('FilePreview ayrıntıları (E-06-51…55)', () => {
     expect(text('preview-tag')).toBe('ozel')
   })
 
-  it('Yükleyen listWorkItemFiles adından; null → nötr "—" (kimlikten ad uydurulmaz)', async () => {
-    server.use(png(), taskFiles('Ali Avcı'))
-    const first = preview({}, null)
-    await settleQueries(first.h.queryClient)
+  it('Yükleyen liste satırındaki `uploaded_by_full_name` değerinden; null → nötr "—"', () => {
+    preview({ file: file({ uploaded_by_full_name: 'Ali Avcı' }) }, null)
     expect(text('preview-uploader')).toBe('Ali Avcı')
-    first.wrapper.unmount()
     document.body.innerHTML = ''
 
-    server.use(png(), taskFiles(null))
-    const second = preview({}, null)
-    await settleQueries(second.h.queryClient)
+    preview({ file: file({ uploaded_by_full_name: null }) }, null)
     expect(text('preview-uploader')).toBe('—')
     expect(text('preview-uploader')).not.toContain('me-1')
   })
 
-  it('Tarih statik "—" (BE-070), tahmin edilmez', () => {
-    preview({}, null)
+  it('eski yol yok: yükleyen için listWorkItemFiles okunmaz (BE-071)', async () => {
+    server.use(png())
+    const { h } = preview({ file: file({ uploaded_by_full_name: 'Ali Avcı' }) }, null)
+    await settleQueries(h.queryClient)
+    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(0)
+  })
+
+  it('Tarih `created_at` değerinden "GG.AA.YYYY · SS:DD" (kurulum saat diliminde); stub yok', () => {
+    preview({ file: file({ created_at: '2026-11-12T09:05:00Z' }) }, null)
+    // Varsayılan kurulum saat dilimi Europe/Istanbul (UTC+3).
+    expect(text('preview-date')).toBe('12.11.2026 · 12:05')
+    expect(q('preview-date')!.querySelector('[data-design-stub]')).toBeNull()
+  })
+
+  it('Tarih çözümlenemezse nötr "—" (tahmin edilmez)', () => {
+    preview({ file: file({ created_at: 'bozuk' }) }, null)
     expect(text('preview-date')).toBe('—')
-    expect(q('preview-date')!.querySelector('[data-design-stub="BE-070"]')).not.toBeNull()
   })
 
   it('alt görev bağlıysa adı alt görev listesinden (403 work.not_assigned → nötr)', async () => {
@@ -296,10 +283,10 @@ describe('FilePreview ayrıntıları (E-06-51…55)', () => {
   })
 
   it('görev/alt görev/yükleyen okumaları yalnız seçili dosya için (liste fan-out yok)', async () => {
-    server.use(png(), taskFiles('Ali Avcı'))
+    server.use(png())
     const { h } = preview({}, null)
     await settleQueries(h.queryClient)
-    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(1)
+    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(0)
     expect(sent('GET', '/v1/work-items/w1/subtasks')).toHaveLength(0)
   })
 })

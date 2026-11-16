@@ -12,8 +12,8 @@ import PaperHeading from './PaperHeading.vue'
 
 /**
  * İçindekiler (E-13-24): satırlar sayfa içi bağlantıdır (bölüme kaydırır ve odağı bölüme taşır);
- * sayfa numaraları gizli (akış). Koordinatörlük satırı yalnız canlı bölüme ("Görevler") bağlanır;
- * görev detayları/toplantılar/dosyalar bağlantıları BE-136 kapanana dek yok.
+ * sayfa numaraları gizli (akış, GAP-239). Her koordinatörlük satırının altında Görevler · Görev
+ * detayları · Toplantılar · Dosyalar bağlantıları (BE-136: bölümlerin hepsi canlı).
  */
 const props = defineProps<{ ctx: PaperContext; sections: readonly DepartmentSection[] }>()
 
@@ -26,6 +26,15 @@ const items = computed(() => [
     id: props.sections[0] ? departmentAnchor(props.sections[0].id) : SEASON_IDS.general,
   },
 ])
+
+const PARTS = [
+  { key: 'tasks', suffix: '' },
+  { key: 'details', suffix: '-details' },
+  { key: 'meetings', suffix: '-meetings' },
+  { key: 'files', suffix: '-files' },
+] as const
+/** `Görevler` bölümün kendisine (kâğıt), diğerleri alt başlıklara bağlanır. */
+const anchorOf = (id: string, suffix: string): string => `${departmentAnchor(id)}${suffix}`
 
 function go(event: Event, id: string): void {
   event.preventDefault()
@@ -67,11 +76,15 @@ function go(event: Event, id: string): void {
           <span class="report-toc__t rp-trunc">{{ section.name }}</span>
         </a>
         <p class="report-toc__sub">
-          <a
-            :href="`#${departmentAnchor(section.id)}`"
-            @click="go($event, departmentAnchor(section.id))"
-            >{{ t('reports.season.paper.toc.tasks') }}</a
-          >
+          <template v-for="(part, index) in PARTS" :key="part.key">
+            <span v-if="index > 0" aria-hidden="true"> · </span>
+            <a
+              :href="`#${anchorOf(section.id, part.suffix)}`"
+              :data-toc-part="part.key"
+              @click="go($event, anchorOf(section.id, part.suffix))"
+              >{{ t(`reports.season.paper.toc.${part.key}`) }}</a
+            >
+          </template>
         </p>
       </div>
       <a

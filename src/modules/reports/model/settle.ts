@@ -1,6 +1,7 @@
 /**
  * İndirme sonucunun rapor sonucuna çevrilmesi (saf; yan etkiler çağıranın kancalarıyla). Sayaç
- * yalnız `Retry-After` taşıyan 429'larda başlar (`export_in_progress`, `rate_limited`).
+ * yalnız `Retry-After` taşıyan yanıtlarda başlar: 429 (`export_in_progress`, `rate_limited`) ve —
+ * pin v0.23.0-api, BE-135 — 503 `reporting.capacity_full`. Başlık yoksa sayaç yoktur.
  */
 import type { ApiError } from '@/shared/errors/api-error'
 import type { DownloadResult } from '@/shared/download'
@@ -11,6 +12,7 @@ import type { ReportFailure, ReportRequest, ReportRunResult } from './types'
 const COOLDOWN_KINDS: ReadonlySet<ReportFailure['kind']> = new Set([
   'export_in_progress',
   'rate_limited',
+  'capacity_full',
 ])
 
 export interface SettleHooks {
@@ -22,7 +24,7 @@ export interface SettleHooks {
   cooldown: (seconds: number) => void
 }
 
-/** Ortak bekleme politikası: yalnız `Retry-After` taşıyan 429'lar sayaç başlatır (indirme + JSON okuma). */
+/** Ortak bekleme politikası: yalnız `Retry-After` taşıyan 429/503'ler sayaç başlatır (indirme + JSON okuma). */
 export function applyCooldown(failure: ReportFailure, start: (seconds: number) => void): void {
   if (COOLDOWN_KINDS.has(failure.kind) && failure.retryAfter !== null) start(failure.retryAfter)
 }

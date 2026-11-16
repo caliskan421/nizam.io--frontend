@@ -104,15 +104,16 @@ describe('dönem sonu PDF (06 Arşiv)', () => {
     expect(reports.state.redeemed).toHaveLength(0)
   })
 
-  it('503 capacity_full: sayaç yok, süresiz mesaj, "Yeniden dene"; otomatik tekrar yok', async () => {
+  it('503 capacity_full + Retry-After (BE-135): "Bekleyin (12 s)" sayacı; sayaç bitince indirme kendiliğinden başlamaz', async () => {
     reports.state.redeem = 'capacity_full'
     const app = await boot({ ...ADMIN, path: '/arsiv' })
     await userClick(PDF_BUTTON)
     await until(() => card().includes('Sunucu şu an yoğun'), 'durum kartı')
-    expect(byText('button', 'Yeniden dene')).not.toBeNull()
-    expect(byText('button', 'Bekleyin')).toBeNull()
+    await until(() => byText('button', 'Bekleyin (12 s)'), 'sayaç')
+    expect(byText('button', 'Yeniden dene')).toBeNull()
     await idle(app.queryClient)
     expect(issued()).toHaveLength(1)
+    expect(reports.state.redeemed).toHaveLength(1)
   })
 
   it('403 not_authorized: me yenilenir ve sayfa yetkisiz yoluna düşer', async () => {

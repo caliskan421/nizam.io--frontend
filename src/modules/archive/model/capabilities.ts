@@ -15,7 +15,9 @@
  *  - Klasör ZIP'i: ŞY her klasör; K yalnız kendi (departman) klasörü; Ü yalnız sanal klasör.
  *  - Dönem ZIP'i: yalnız ŞY (RECORDS-K24).
  *  - İndir: listede görünen her dosya (yetki tüketimde hedefte).
- *  - Etiket değiştir / taşı / etiket oluştur / geri yükle: uç yok → devre dışı (`model/stubs.ts`).
+ *  - Etiketi değiştir (`retagFile`, BE-074): yeniden adlandırmayla aynı yetki (ŞY ∨ K ∨ yükleyen ∧
+ *    ekip satırı; sunucuda aynı kural, 403 gerçek sonuçtur).
+ *  - Taşı / etiket oluştur / geri yükle: uç yok → devre dışı (`model/stubs.ts`).
  */
 import { scopeFacts, type Standing } from '@/shared/scope/standing-facts'
 
@@ -32,6 +34,7 @@ export type ArchiveFolderFacts = Pick<ArchiveFolder, 'folder_id' | 'is_virtual'>
 export const ARCHIVE_CAPABILITY_ACTIONS = [
   'upload',
   'rename',
+  'retag',
   'delete',
   'download',
   'folderZip',
@@ -44,6 +47,7 @@ export const ARCHIVE_CAPABILITY_SOURCES: Readonly<Record<ArchiveCapabilityAction
   upload: 'istemci-akislari §4 "Dosya yükle" + RECORDS-K01/ADR-0030: ŞY ∨ K ∨ atanmış Ü',
   rename:
     'istemci-akislari §4 "Dosya adını değiştir" + RECORDS-K10: ŞY ∨ K ∨ (yükleyen ∧ ekip satırı)',
+  retag: 'RECORDS-K10 (retagFile): yeniden adlandırmayla aynı — ŞY ∨ K ∨ (yükleyen ∧ ekip satırı)',
   delete: 'istemci-akislari §4 "Dosya sil" + RECORDS-K10: yalnız yükleyen ∧ (ŞY ∨ ekip satırı)',
   download: 'istemci-akislari §3 + README §6: listede görünen her dosya (yetki hedefte)',
   folderZip: 'RECORDS-K24/K18: ŞY her klasör; K kendi; Ü sanal klasör',
@@ -58,6 +62,10 @@ export function archiveCapabilities(standing: Standing | null, programId: string
     const f = facts(departmentId)
     return f.coordinator || f.member
   }
+  const canRename = (file: ArchiveFileFacts): boolean => {
+    const f = facts(file.departmentId)
+    return f.companyAdmin || f.coordinator || (isUploader(file) && hasTeamRow(file.departmentId))
+  }
   return {
     /** Görev seçilmeden "Dosya yükle" düğmesi görünür mü (hedef görev pencerede seçilir). */
     canOpenUpload: standing !== null && programId !== null,
@@ -65,10 +73,9 @@ export function archiveCapabilities(standing: Standing | null, programId: string
       const f = facts(departmentId)
       return f.companyAdmin || f.coordinator || (f.member && assigned)
     },
-    rename(file: ArchiveFileFacts): boolean {
-      const f = facts(file.departmentId)
-      return f.companyAdmin || f.coordinator || (isUploader(file) && hasTeamRow(file.departmentId))
-    },
+    rename: canRename,
+    /** Etiketi değiştir: yetki yeniden adlandırmayla aynıdır (RECORDS-K10; `retagFile`). */
+    retag: canRename,
     delete(file: ArchiveFileFacts): boolean {
       if (!isUploader(file)) return false
       return facts(file.departmentId).companyAdmin || hasTeamRow(file.departmentId)

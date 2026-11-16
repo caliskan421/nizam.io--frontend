@@ -20,8 +20,9 @@ import PaperHeading from './PaperHeading.vue'
 /**
  * 01g toplantı raporu kâğıdı (E-13-48…53): künye (tarih + başlangıç saati; bitiş saati YOK),
  * katılımcılar + "üyeler dahil" rozeti, gündem (salt okunur onay kutuları), not akışı, "Göreve
- * dönüştürülenler" tablosu (NOT · GÖREV; DURUM sütunu gizli, alan yok; dönüştürülen yoksa tablo
- * çizilmez). Görev kodu gizli (BE-005); not yazarı çizilmez. "Sayfa 1 / 1" yok.
+ * dönüştürülenler" tablosu (NOT · GÖREV · DURUM; kod + başlık + güncel durum sunucudan, BE-125/BE-005;
+ * görev silinmişse "(silinmiş görev)" ve durum "—"; dönüştürülen yoksa tablo çizilmez). Not yazarı
+ * çizilmez. "Sayfa 1 / 1" yok.
  */
 const props = defineProps<{ ctx: PaperContext; detail: ReportMeetingDetail }>()
 
@@ -126,7 +127,11 @@ const departmentText = computed(() =>
           </h3>
           <p class="report-note__b">{{ note.content }}</p>
           <p v-if="note.converted && note.taskTitle" class="report-note__t">
-            {{ t('reports.meeting.paper.convertedTo', { title: note.taskTitle }) }}
+            {{
+              t('reports.meeting.paper.convertedTo', {
+                title: note.taskCode ? `${note.taskCode} ${note.taskTitle}` : note.taskTitle,
+              })
+            }}
           </p>
         </article>
       </div>
@@ -145,6 +150,7 @@ const departmentText = computed(() =>
         <div class="report-tr report-tr--head" role="row">
           <span role="columnheader">{{ t('reports.meeting.paper.noteCol') }}</span>
           <span role="columnheader">{{ t('reports.meeting.paper.taskCol') }}</span>
+          <span role="columnheader">{{ t('reports.meeting.paper.statusCol') }}</span>
         </div>
         <div
           v-for="(row, index) in converted"
@@ -154,7 +160,18 @@ const departmentText = computed(() =>
           role="row"
         >
           <span class="report-mono" role="cell">Not {{ row.no }}</span>
-          <span role="cell">{{ row.taskTitle ?? t('reports.meeting.paper.taskGone') }}</span>
+          <span role="cell">{{
+            [row.taskCode, row.taskTitle ?? t('reports.meeting.paper.taskGone')]
+              .filter(Boolean)
+              .join(' ')
+          }}</span>
+          <span role="cell" data-testid="converted-status">
+            <span v-if="row.taskStatus" class="report-status" :class="`report-st-${row.taskStatus}`"
+              ><i class="report-dot" aria-hidden="true" />{{
+                t(`reports.season.paper.status.${row.taskStatus}`)
+              }}</span
+            ><template v-else>—</template>
+          </span>
         </div>
       </div>
     </section>

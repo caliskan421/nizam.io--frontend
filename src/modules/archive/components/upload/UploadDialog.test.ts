@@ -116,17 +116,25 @@ describe('UploadDialog — görev seçici (E-06-05/35/62)', () => {
     expect((body().find('[data-testid="upload-task"]').element as HTMLSelectElement).value).toBe('')
   })
 
-  it('yetkili görev yoksa açıklama gösterilir ve seçici devre dışıdır (BE-121 notu)', () => {
+  it('yetkili görev yoksa açıklama gösterilir ve seçici devre dışıdır', () => {
     mountDialog({ tasks: [] })
-    expect(body().text()).toContain('Henüz dosyası olmayan görevler bu listede görünmez')
+    expect(body().text()).toContain('Dosya yükleyebileceğiniz görev yok.')
     expect((body().find('[data-testid="upload-task"]').element as HTMLSelectElement).disabled).toBe(
       true,
     )
   })
 
-  it('normal durumda da dosyası olmayan görevlerin listede olmadığı açıklanır', () => {
-    mountDialog()
-    expect(body().text()).toContain('henüz dosyası olmayan bir görev burada yoktur')
+  it('dosyasız görevler de seçilebilir (BE-121): "yalnız dosyalı görevler" açıklaması yok', () => {
+    mountDialog({
+      tasks: [{ workItemId: 'w1', title: 'Dosyasız görev', departmentId: 'd1' }],
+    })
+    expect(optionLabels('upload-task')).toEqual(['Görev seçin', 'Dosyasız görev'])
+    expect(body().text()).not.toMatch(/dosyası olmayan/)
+  })
+
+  it('sunucu seçenek listesini kestiyse (X-Result-Truncated) uyarı gösterilir', () => {
+    mountDialog({ truncated: true })
+    expect(body().text()).toContain('Görev listesi kesildi')
   })
 })
 
@@ -454,7 +462,7 @@ describe('UploadDialog — sökülmüş sahip', () => {
 describe('sözleşme', () => {
   it('props/emits bildirimleri (iskelet sözleşmesi)', () => {
     const options = UploadDialog as unknown as { props: object; emits: string[] }
-    expect(Object.keys(options.props)).toEqual(['tasks', 'defaultTaskId'])
+    expect(Object.keys(options.props)).toEqual(['tasks', 'defaultTaskId', 'truncated'])
     expect(options.emits).toEqual(['close', 'uploaded'])
     expect(TASKS).toHaveLength(3)
   })

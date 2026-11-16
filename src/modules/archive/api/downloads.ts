@@ -1,7 +1,8 @@
 /**
  * İndirme bileti akışı (ADR-0013; `06-arsiv/backend.md` §2): `issueDownloadTicket` (S1; hedefin
  * S3 başlıkları bilete yazılır) → hemen `redeemDownloadTicket` (S0, 60 sn, tek kullanım).
- * Hedefler: `downloadFile` (tek dosya), `archiveFolderZip`, `archiveFullZip`; seçim ZIP'i
+ * Hedefler: `downloadFile` (tek dosya) ve `archiveFolderZip` (S3); dönem ZIP'i S2'dir
+ * (`api/period-zip.ts`, `programArchiveZip`; eski `archiveFullZip` yolu kalktı); seçim ZIP'i
  * kullanılmaz. Bilet önbelleğe/duruma girmez (`gcTime: 0`, her indirmeden sonra `reset`).
  *
  * Hatalar (otomatik tekrar YOK): üretimde 422 `identity.download_target_invalid`, 429
@@ -17,12 +18,12 @@ import { redeemAndSave, useDownloadFlow, type DownloadTarget } from '@/shared/do
 
 import type { ArchiveDownloadRequest, ArchiveDownloadResult } from '../model/types'
 
-/** Bilet hedefinin göreli yolu (kapalı liste: yalnız bu üç arşiv/dosya deseni). */
+/** Bilet hedefinin göreli yolu (kapalı liste: yalnız bu iki S3 deseni). */
 export function downloadPath(request: ArchiveDownloadRequest): string {
-  const id = encodeURIComponent(request.id ?? '')
-  if (request.kind === 'file') return `/v1/files/${id}/download`
-  if (request.kind === 'folder') return `/v1/records/archive/folders/${id}/download-zip`
-  return '/v1/records/archive/period/download-zip'
+  const id = encodeURIComponent(request.id)
+  return request.kind === 'file'
+    ? `/v1/files/${id}/download`
+    : `/v1/records/archive/folders/${id}/download-zip`
 }
 
 /** Arşiv hedefi: GET + S3 kapsam başlıkları (program + departman). */
