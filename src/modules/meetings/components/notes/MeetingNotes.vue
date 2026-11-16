@@ -5,13 +5,10 @@ import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { UiAvatar } from '@/shared/ui'
 import { useInstanceStore } from '@/shared/instance/store'
 import { authSession } from '@/shared/http'
-import { reachesOwner } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConflictDialog } from '@/shared/ui/conflict'
-import { notifyOutcome } from '@/shared/ui/confirm'
 import { useMeetingNotes } from '../../api/queries'
-import { useAddMeetingNote } from '../../api/note-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
 import NoteConvertedLabel from './NoteConvertedLabel.vue'
@@ -20,6 +17,7 @@ import NoteComposer from './NoteComposer.vue'
 import { noteTime, noteFacts, noteFocus } from './notes-view'
 import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
+import { useNoteAdd } from './use-note-add'
 import { useNoteDelete } from './use-note-delete'
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
@@ -28,9 +26,6 @@ const instance = useInstanceStore()
 const { standing } = useStanding()
 const { filter, setFilter } = useNoteFilter()
 const query = useMeetingNotes(() => props.meeting.meeting_id, filter)
-const add = useAddMeetingNote()
-const draft = ref('')
-const unknownDraft = ref<string | null>(null)
 // Sayaçlar süzgeç ve imleçten bağımsızdır, her sayfada aynıdır (BE-061).
 const counts = computed(() => query.data.value?.pages[0]?.counts ?? null)
 const time = (value: string) => noteTime(value, instance.profile?.timezone)
@@ -56,6 +51,11 @@ const access = computed(() =>
 )
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
+const { add, draft, unknownDraft, addNote, resetAdd } = useNoteAdd(
+  target,
+  () => version,
+  () => emit('refresh'),
+)
 function refreshNotes() {
   void query.refetch()
   emit('refresh')
@@ -72,8 +72,7 @@ const { update, conflict, editing, editDraft, saveNote, busy } = useNoteEdit(
 const removeNote = useNoteDelete(target, () => version, refreshNotes, heading)
 function resetDraft() {
   version += 1
-  draft.value = ''
-  unknownDraft.value = null
+  resetAdd()
   editing.value = null
   openMenu.value = null
 }
@@ -100,28 +99,6 @@ function startEdit(note: MeetingNote) {
   editing.value = note
   editDraft.value = note.content
   closeMenu(note.note_id)
-}
-async function addNote() {
-  if (
-    !scope.programId ||
-    !draft.value.trim() ||
-    Array.from(draft.value).length > 5000 ||
-    add.isPending.value ||
-    draft.value === unknownDraft.value
-  )
-    return
-  const started = version
-  const content = draft.value
-  const result = await add.submit({ ...target(), body: { content } })
-  if (!reachesOwner(result) || started !== version) return
-  if (result.kind === 'success') {
-    unknownDraft.value = null
-    draft.value = ''
-    emit('refresh')
-  } else {
-    if (result.kind === 'unknown_outcome') unknownDraft.value = content
-    notifyOutcome(result)
-  }
 }
 function deleteNote(note: MeetingNote) {
   closeMenu(note.note_id)
