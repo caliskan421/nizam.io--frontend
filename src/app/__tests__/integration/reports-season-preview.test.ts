@@ -55,6 +55,32 @@ describe('önizleme okuması', () => {
     // Bölüm içi sıra: koordinatörlük sıra numarası (BE-005), oluşturulma anı değil.
   })
 
+  it("BE-136: kapak dönem aralığı, bölüm detay kartı, toplantı, dosya ve ortalama kayma gerçek JSON'dan; boş dönemde aralık ve kartlar yok", async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    const text = (sel: string) => $(sel)?.textContent ?? ''
+    expect(text('#report-season-cover')).toContain('01.09.2026 – 17.10.2026')
+    expect(text('#report-season-dept-d1 [data-detail="w1"]')).toContain('Ana dağıtım panolarından')
+    expect(text('#report-season-dept-d1 [data-detail="w1"]')).toContain('Onay bekliyor')
+    expect(text('#report-season-dept-d1 [data-meeting="m1"]')).toContain('GÜNDEM 4/6')
+    expect(text('#report-season-dept-d1 [data-testid="dept-files"]')).toContain(
+      'saha-kablo-kanali-plan-v3.pdf',
+    )
+    expect(text('#report-season-general')).toContain('Onaylananlarda ortalama kayma: 4,2 gün')
+    expect(text('#report-season-dept-d1')).toContain('ALT-7')
+    expect($('[data-design-stub="BE-136"]')).toBeNull()
+    teardown()
+    reports.state.season = 'empty'
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'boş dönem önizlemesi')
+    expect(text('#report-season-cover')).not.toContain('01.09.2026')
+    expect($('[data-testid="cover-period-note"]')).toBeNull()
+    expect($('[data-detail]')).toBeNull()
+    expect($('[data-meeting]')).toBeNull()
+    expect($('[data-testid="top-requested"]')).toBeNull()
+    await idle(app.queryClient)
+  })
+
   it("BE-134: iş yükü satırları reportSeason.workload_summary'den; ikinci okuma (reportWorkload) ve stub yok; boş dönemde metin", async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
     await until(STAGE, 'önizleme')
@@ -175,13 +201,9 @@ describe('önizleme okuması', () => {
     expect(text).toContain('Kablo kanalı kazısı')
     expect(text).toContain('Hidrant hattı')
     expect(text).toContain('Başlamadı')
-    // Statik bölümler: yer tutucu, DesignStub işareti.
-    const stubs = $$('[data-design-stub]', STAGE()!).map((el) =>
-      el.getAttribute('data-design-stub'),
-    )
-    expect(stubs).toEqual(expect.arrayContaining(['BE-123', 'BE-136']))
-    expect(stubs).not.toContain('BE-134')
-    expect($$('[data-placeholder]', STAGE()!).length).toBeGreaterThan(0)
+    // Pin v0.23.0-api: önizlemede statik yer tutucu kalmadı (BE-123/134/136); eski yol yok.
+    expect($$('[data-design-stub]', STAGE()!)).toHaveLength(0)
+    expect($$('[data-placeholder]', STAGE()!)).toHaveLength(0)
     // Pdf düğmesi ve yakınlaştırma araç çubuğunda; "Yazdır" ve sayfa göstergesi yok.
     expect(byText('button', 'PDF indir')).not.toBeNull()
     expect(byText('button', 'Yazdır')).toBeNull()

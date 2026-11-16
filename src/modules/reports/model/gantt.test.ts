@@ -72,7 +72,7 @@ describe('Gantt modeli (E-13-28, BE-123)', () => {
   })
 
   it('geçersiz tarih: çubuk yok', () => {
-    expect(bar({ start_on: 'x' as string })).toBeNull()
+    expect(bar({ start_on: 'x' })).toBeNull()
   })
 
   it('görev etiketi: kod, yoksa #sıra, yoksa —', () => {

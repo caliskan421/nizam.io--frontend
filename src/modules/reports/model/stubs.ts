@@ -15,13 +15,5 @@ export const SEASON_TEMPLATE = designStub('BE-123', {
   gantt: false,
 })
 
-/** 01f kapak dönem aralığı ve detay bölümleri için dönem JSON'unda alan yok (E-13-21, 34…36). */
-export const SEASON_DETAIL_FIELDS = designStub('BE-136', {
-  periodRange: false,
-  taskDetailCards: false,
-  meetings: false,
-  files: false,
-})
-
 /** "Rapor hazırlanıyor…": ilerleme yok — belirsiz şerit + "ilerleme yakında" (E-13-68). */
 export const REPORT_PROGRESS = designStub('BE-131', { available: false })

@@ -164,41 +164,85 @@ const seasonTasks = () => [
   }),
 ]
 
+const DEPARTMENTS = () => [
+  department('d2', 'Operasyon', { description: undefined, meeting_count: 0, total_tasks: 0 }),
+  department('d1', 'Altyapı ve tesisat', {
+    code: 'ALT',
+    file_bytes: 3_984_588,
+    file_count: 1,
+    late_completed_tasks: 1,
+    members: [person('u1', 'Bahar Kılıç'), person('u2', 'Kadir Özbek')],
+  }),
+]
+
+const DATE_STATS = {
+  approved: 5,
+  average_shift_days: 4.2,
+  pending: 3,
+  rejected: 1,
+  top_requested_tasks: [
+    { code: 'ALT-7', count: 2, title: 'Kablo kanalı kazısı', work_item_id: 'w1' },
+  ],
+  total: 9,
+}
+
+const FILES = [
+  {
+    created_at: '2026-10-12T09:00:00Z',
+    department_id: 'd1',
+    display_name: 'saha-kablo-kanali-plan-v3.pdf',
+    file_id: 'f1',
+    size_bytes: 3_984_588,
+    tag: 'Planlar',
+    uploaded_by: person('u1', 'Bahar Kılıç'),
+    work_item_id: 'w1',
+  },
+]
+
+const MEETINGS = [
+  {
+    agenda_checked: 4,
+    agenda_total: 6,
+    converted_note_count: 1,
+    coordinatorships: [{ department_id: 'd1', name: 'Altyapı ve tesisat', deleted: false }],
+    meeting_date: '2026-10-14T11:00:00Z',
+    meeting_id: 'm1',
+    note_count: 5,
+    owner_department_id: 'd1',
+    participant_count: 5,
+    title: 'Haftalık koordinasyon toplantısı',
+  },
+]
+
+const WORKLOAD = [
+  {
+    account_id: 'u1',
+    active: 1,
+    completed: 0,
+    full_name: 'Bahar Kılıç',
+    overdue: 1,
+    pending_approval: 0,
+    returned: 0,
+    total: 1,
+  },
+  {
+    account_id: 'u2',
+    active: 1,
+    completed: 1,
+    full_name: 'Kadir Özbek',
+    overdue: 0,
+    pending_approval: 0,
+    returned: 1,
+    total: 2,
+  },
+]
+
 export function seasonBody(programId: string, programName: string) {
   const tasks = seasonTasks()
   return {
-    coordinatorship_performance: [
-      department('d2', 'Operasyon', { description: undefined, meeting_count: 0, total_tasks: 0 }),
-      department('d1', 'Altyapı ve tesisat', {
-        code: 'ALT',
-        file_bytes: 3_984_588,
-        file_count: 1,
-        late_completed_tasks: 1,
-        members: [person('u1', 'Bahar Kılıç'), person('u2', 'Kadir Özbek')],
-      }),
-    ],
-    date_change_stats: {
-      approved: 5,
-      average_shift_days: 4.2,
-      pending: 3,
-      rejected: 1,
-      top_requested_tasks: [
-        { code: 'ALT-7', count: 2, title: 'Kablo kanalı kazısı', work_item_id: 'w1' },
-      ],
-      total: 9,
-    },
-    files: [
-      {
-        created_at: '2026-10-12T09:00:00Z',
-        department_id: 'd1',
-        display_name: 'saha-kablo-kanali-plan-v3.pdf',
-        file_id: 'f1',
-        size_bytes: 3_984_588,
-        tag: 'Planlar',
-        uploaded_by: person('u1', 'Bahar Kılıç'),
-        work_item_id: 'w1',
-      },
-    ],
+    coordinatorship_performance: DEPARTMENTS(),
+    date_change_stats: DATE_STATS,
+    files: FILES,
     generated_at: '2026-10-21T11:05:00Z',
     limits: {
       files_returned: 1,
@@ -213,20 +257,7 @@ export function seasonBody(programId: string, programName: string) {
       total_notes: 118,
       total_participants: 90,
     },
-    meetings: [
-      {
-        agenda_checked: 4,
-        agenda_total: 6,
-        converted_note_count: 1,
-        coordinatorships: [{ department_id: 'd1', name: 'Altyapı ve tesisat', deleted: false }],
-        meeting_date: '2026-10-14T11:00:00Z',
-        meeting_id: 'm1',
-        note_count: 5,
-        owner_department_id: 'd1',
-        participant_count: 5,
-        title: 'Haftalık koordinasyon toplantısı',
-      },
-    ],
+    meetings: MEETINGS,
     message_stats: { from_admins: 3, from_others: 4, total: 7 },
     monthly_activity: ACTIVITY,
     period: { end_on: '2026-10-17', source: 'tasks', start_on: '2026-09-01' },
@@ -243,28 +274,7 @@ export function seasonBody(programId: string, programName: string) {
       tamamlandi: 1,
     },
     tasks,
-    workload_summary: [
-      {
-        account_id: 'u1',
-        active: 1,
-        completed: 0,
-        full_name: 'Bahar Kılıç',
-        overdue: 1,
-        pending_approval: 0,
-        returned: 0,
-        total: 1,
-      },
-      {
-        account_id: 'u2',
-        active: 1,
-        completed: 1,
-        full_name: 'Kadir Özbek',
-        overdue: 0,
-        pending_approval: 0,
-        returned: 1,
-        total: 2,
-      },
-    ],
+    workload_summary: WORKLOAD,
   }
 }
 

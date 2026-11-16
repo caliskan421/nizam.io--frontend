@@ -7,7 +7,9 @@ defineProps<{ id?: string; title: string; aside?: string; level?: 2 | 3 }>()
 
 <template>
   <div class="report-heading">
-    <component :is="level === 2 ? 'h2' : 'h3'" :id="id">{{ title }}</component>
+    <component :is="level === 2 ? 'h2' : 'h3'" :id="id" :tabindex="id ? -1 : undefined">{{
+      title
+    }}</component>
     <span v-if="aside">{{ aside }}</span>
   </div>
 </template>

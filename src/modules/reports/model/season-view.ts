@@ -113,6 +113,11 @@ export interface DepartmentSection {
   coordinators: string[]
   memberCount: number
   meetingCount: number
+  /** Koordinatörlüğün dosya sayısı ve toplam boyutu (BE-136). */
+  fileCount: number
+  fileBytes: number
+  /** Koordinatör olmayan canlı üyeler (yalnız ad-soyad; BE-136). */
+  members: string[]
   totals: TaskTotals
   /** Durum şeridi: bölümün görevlerinden beş durum. */
   strip: DistributionRow<SeasonStatus>[]
@@ -143,11 +148,14 @@ export function departmentSections(
     return {
       id: stat.department_id,
       name: stat.name,
-      code: codeOf(stat.department_id),
+      code: stat.code ?? codeOf(stat.department_id),
       description: stat.description ?? '',
       coordinators: stat.coordinators.map((c) => c.full_name),
       memberCount: stat.member_count,
       meetingCount: stat.meeting_count,
+      fileCount: stat.file_count,
+      fileBytes: stat.file_bytes,
+      members: stat.members.map((m) => m.full_name),
       totals: {
         ...taskTotals(tasks),
         total: stat.total_tasks,
@@ -182,62 +190,4 @@ export function activity(season: SeasonReport): {
     null,
   )
   return { rows, total: rows.reduce((sum, r) => sum + r.count, 0), peak, max }
-}
-
-export interface SeasonTruncation {
-  tasks: { shown: number; total: number } | null
-  files: { shown: number; total: number } | null
-}
-
-/**
- * Kesme uyarısı (BE-132, pin v0.23.0-api): `limits` her yanıtta gelir; görev ya da dosya satırı
- * sınırda kesildiyse (5000 görev, 2000 dosya) "gösterilen N / toplam M". Kesme yoksa `null`
- * (uyarı çizilmez; sessiz eksik veri yok). Seçilmeyen bölümün toplamı 0'dır (kesme sayılmaz).
- */
-export function truncation(season: SeasonReport): SeasonTruncation | null {
-  const { limits } = season
-  const tasks =
-    limits.tasks_returned < limits.tasks_total
-      ? { shown: limits.tasks_returned, total: limits.tasks_total }
-      : null
-  const files =
-    limits.files_returned < limits.files_total
-      ? { shown: limits.files_returned, total: limits.files_total }
-      : null
-  return tasks || files ? { tasks, files } : null
-}
-
-const pct = (part: number, whole: number): number => Math.round(share(part, whole) * 100) / 100
-
-export interface WorkloadRow {
-  id: string
-  name: string
-  active: number
-  overdue: number
-  completed: number
-  total: number
-  /** 0–100 dağılım çubuğu bölükleri (en büyük toplama göre): tamamlanan · aktif (zamanında) · geciken. */
-  done: number
-  ontime: number
-  late: number
-}
-
-/**
- * İş yükü özeti (BE-134, `SeasonReport.workload_summary`): sunucu sırası korunur (aktif göreve göre
- * azalan). Aktif = açık görev (geciken dahil); zamanında aktif = aktif − geciken; toplam sunucudan.
- * Çubuk genişlikleri en büyük toplama göre (tasarım: ilk satır en uzun).
- */
-export function workloadRows(season: SeasonReport): WorkloadRow[] {
-  const max = season.workload_summary.reduce((m, r) => Math.max(m, r.total), 0)
-  return season.workload_summary.map((r) => ({
-    id: r.account_id,
-    name: r.full_name,
-    active: r.active,
-    overdue: r.overdue,
-    completed: r.completed,
-    total: r.total,
-    done: pct(r.completed, max),
-    ontime: pct(Math.max(0, r.active - r.overdue), max),
-    late: pct(r.overdue, max),
-  }))
 }

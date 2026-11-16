@@ -228,62 +228,65 @@ function ticketHandlers(f: Fake) {
   ]
 }
 
-function jsonHandlers(f: Fake) {
+type AdminGuard = (request: Request) => Response | null
+
+/** `reportSeason` yanıtı: sunucu hatası kipleri, boş/kesilmiş büyük dönem (BE-132) ya da tam gövde. */
+function seasonResponse(f: Fake, request: Request, adminOnly: AdminGuard): Response {
   const { db, state } = f
+  const denied = adminOnly(request)
+  if (denied) return denied
+  switch (state.season) {
+    case 'export_in_progress':
+      return limited('reporting.export_in_progress', '1')
+    case 'rate_limited':
+      return limited('platform.rate_limited', '60')
+    case 'capacity_full':
+      return envelope('reporting.capacity_full', 503)
+    case 'error':
+      return envelope('platform.internal', 500)
+  }
+  const program = fakeOrg.programOf(request)
+  const base = seasonBody(program, db.programs.find((p) => p.program_id === program)?.name ?? '')
+  if (state.season === 'ok') return json(base)
+  if (state.season === 'truncated') {
+    // Büyük dönem (BE-132): görev satırı 5000'de, dosya satırı 2000'de kesilir; başlık gelir.
+    const limits = { ...base.limits, tasks_total: 5200, files_total: 2400 }
+    return HttpResponse.json({ ...base, limits }, { headers: { 'X-Result-Truncated': 'true' } })
+  }
+  return json({
+    ...base,
+    coordinatorship_performance: [],
+    date_change_stats: {
+      ...base.date_change_stats,
+      average_shift_days: null,
+      top_requested_tasks: [],
+    },
+    files: [],
+    limits: {
+      ...base.limits,
+      tasks_total: 0,
+      tasks_returned: 0,
+      files_total: 0,
+      files_returned: 0,
+    },
+    meetings: [],
+    monthly_activity: [],
+    period: null,
+    tasks: [],
+    workload_summary: [],
+    stats: { ...base.stats, total_tasks: 0, completed_tasks: 0, overdue_tasks: 0 },
+  })
+}
+
+function jsonHandlers(f: Fake) {
+  const { state } = f
   const adminOnly = (request: Request) => {
     const account = f.me(request)
     if (!account) return envelope('platform.unauthenticated', 401)
     return account.admin ? null : envelope('reporting.not_authorized', 403)
   }
   return [
-    http.get(`${ORIGIN}/v1/reports/season`, ({ request }) => {
-      const denied = adminOnly(request)
-      if (denied) return denied
-      switch (state.season) {
-        case 'export_in_progress':
-          return limited('reporting.export_in_progress', '1')
-        case 'rate_limited':
-          return limited('platform.rate_limited', '60')
-        case 'capacity_full':
-          return envelope('reporting.capacity_full', 503)
-        case 'error':
-          return envelope('platform.internal', 500)
-      }
-      const program = fakeOrg.programOf(request)
-      const base = seasonBody(
-        program,
-        db.programs.find((p) => p.program_id === program)?.name ?? '',
-      )
-      if (state.season === 'ok') return json(base)
-      if (state.season === 'truncated') {
-        // Büyük dönem (BE-132): görev satırı 5000'de, dosya satırı 2000'de kesilir; başlık gelir.
-        const limits = { ...base.limits, tasks_total: 5200, files_total: 2400 }
-        return HttpResponse.json({ ...base, limits }, { headers: { 'X-Result-Truncated': 'true' } })
-      }
-      return json({
-        ...base,
-        coordinatorship_performance: [],
-        date_change_stats: {
-          ...base.date_change_stats,
-          average_shift_days: null,
-          top_requested_tasks: [],
-        },
-        files: [],
-        limits: {
-          ...base.limits,
-          tasks_total: 0,
-          tasks_returned: 0,
-          files_total: 0,
-          files_returned: 0,
-        },
-        meetings: [],
-        monthly_activity: [],
-        period: null,
-        tasks: [],
-        workload_summary: [],
-        stats: { ...base.stats, total_tasks: 0, completed_tasks: 0, overdue_tasks: 0 },
-      })
-    }),
+    http.get(`${ORIGIN}/v1/reports/season`, ({ request }) => seasonResponse(f, request, adminOnly)),
     http.get(`${ORIGIN}/v1/reports/meetings/:id`, ({ request, params }) => {
       const denied = adminOnly(request)
       if (denied) return denied

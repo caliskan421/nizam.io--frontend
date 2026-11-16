@@ -117,35 +117,18 @@ export function taskLabel(task: ReportTask): string {
   return task.sequence_no === null ? '—' : `#${task.sequence_no}`
 }
 
-export function ganttModel(
-  sections: readonly DepartmentSection[],
-  reportDay: string | null,
-): GanttModel {
-  const tasks = sections.flatMap((s) => s.tasks)
-  const days = tasks.flatMap((t) => [
-    dayNumber(t.start_on),
-    dayNumber(t.end_on),
-    t.status === 'tamamlandi' ? dayNumber(t.completed_on) : null,
-  ])
-  const valid = days.filter((d): d is number => d !== null)
-  const todayNo = dayNumber(reportDay)
-  if (valid.length === 0) {
-    return { groups: [], months: [], today: null, taskCount: 0, range: null }
-  }
-  const lo = Math.min(...valid)
-  const hi = Math.max(...valid)
-  const first = monthOf(lo)
-  const last = monthOf(hi)
-  const axisStart = monthStart(first.y, first.m)
-  const axisEnd = monthStart(last.y, last.m) + monthDays(last.y, last.m)
-  const length = axisEnd - axisStart
+function monthsOf(
+  first: { y: number; m: number },
+  last: { y: number; m: number },
+  axisStart: number,
+  length: number,
+): GanttMonth[] {
   const months: GanttMonth[] = []
   for (let y = first.y, m = first.m; y < last.y || (y === last.y && m <= last.m);) {
     const start = monthStart(y, m)
-    const n = monthDays(y, m)
     months.push({
       key: `${y}-${pad(m + 1)}`,
-      width: (n / length) * 100,
+      width: (monthDays(y, m) / length) * 100,
       ticks: [1, 15].map((day) => ({ day, left: ((start + day - 1 - axisStart) / length) * 100 })),
     })
     m += 1
@@ -154,48 +137,71 @@ export function ganttModel(
       y += 1
     }
   }
-  const todayInAxis =
-    todayNo !== null && todayNo >= axisStart && todayNo <= hi + 31 ? todayNo : null
-  const groups = sections.map<GanttGroup>((section) => ({
+  return months
+}
+
+function lateOf(task: ReportTask): Pick<GanttTaskRow, 'lateKind' | 'lateDays'> {
+  if (task.status !== 'tamamlandi') {
+    return task.is_overdue
+      ? { lateKind: 'overdue', lateDays: task.days_overdue }
+      : { lateKind: 'none', lateDays: 0 }
+  }
+  if (task.is_completed_late) return { lateKind: 'late', lateDays: task.days_late }
+  if (task.is_completed_early) return { lateKind: 'early', lateDays: task.days_early }
+  return { lateKind: 'ontime', lateDays: 0 }
+}
+
+function groupOf(
+  section: DepartmentSection,
+  axisStart: number,
+  length: number,
+  todayNo: number | null,
+): GanttGroup {
+  return {
     id: section.id,
     name: section.name,
     code: section.code,
     count: section.tasks.length,
-    rows: section.tasks.map((task) => {
-      const overdue = task.status !== 'tamamlandi' && task.is_overdue
-      const lateKind = overdue
-        ? 'overdue'
-        : task.status !== 'tamamlandi'
-          ? 'none'
-          : task.is_completed_late
-            ? 'late'
-            : task.is_completed_early
-              ? 'early'
-              : 'ontime'
-      return {
-        id: task.work_item_id,
-        label: taskLabel(task),
-        title: task.title,
-        start: task.start_on,
-        end: task.end_on,
-        status: task.status,
-        bar: taskBar(task, axisStart, length, todayInAxis),
-        lateKind,
-        lateDays:
-          lateKind === 'overdue'
-            ? task.days_overdue
-            : lateKind === 'late'
-              ? task.days_late
-              : lateKind === 'early'
-                ? task.days_early
-                : 0,
-      }
-    }),
-  }))
+    rows: section.tasks.map((task) => ({
+      id: task.work_item_id,
+      label: taskLabel(task),
+      title: task.title,
+      start: task.start_on,
+      end: task.end_on,
+      status: task.status,
+      bar: taskBar(task, axisStart, length, todayNo),
+      ...lateOf(task),
+    })),
+  }
+}
+
+export function ganttModel(
+  sections: readonly DepartmentSection[],
+  reportDay: string | null,
+): GanttModel {
+  const tasks = sections.flatMap((s) => s.tasks)
+  const valid = tasks
+    .flatMap((t) => [
+      dayNumber(t.start_on),
+      dayNumber(t.end_on),
+      t.status === 'tamamlandi' ? dayNumber(t.completed_on) : null,
+    ])
+    .filter((d): d is number => d !== null)
+  if (valid.length === 0) return { groups: [], months: [], today: null, taskCount: 0, range: null }
+  const lo = Math.min(...valid)
+  const hi = Math.max(...valid)
+  const first = monthOf(lo)
+  const last = monthOf(hi)
+  const axisStart = monthStart(first.y, first.m)
+  const length = monthStart(last.y, last.m) + monthDays(last.y, last.m) - axisStart
+  const months = monthsOf(first, last, axisStart, length)
+  const reportNo = dayNumber(reportDay)
+  const todayNo =
+    reportNo !== null && reportNo >= axisStart && reportNo <= hi + 31 ? reportNo : null
   return {
-    groups,
+    groups: sections.map((section) => groupOf(section, axisStart, length, todayNo)),
     months,
-    today: todayInAxis === null ? null : ((todayInAxis + 0.5 - axisStart) / length) * 100,
+    today: todayNo === null ? null : ((todayNo + 0.5 - axisStart) / length) * 100,
     taskCount: tasks.length,
     range: { from: months[0]!.key, to: months[months.length - 1]!.key },
   }

@@ -101,3 +101,20 @@ export function initials(name: string): string {
       .join(''),
   )
 }
+
+/** Bayt → "512 B" / "340 KB" / "3,8 MB" / "1,2 GB" (ikili birim, virgüllü ondalık; geçersiz → `null`). */
+export function formatBytes(bytes: number): string | null {
+  if (!Number.isFinite(bytes) || bytes < 0) return null
+  const units = ['B', 'KB', 'MB', 'GB'] as const
+  let value = bytes
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit += 1
+  }
+  const text =
+    unit === 0
+      ? String(Math.round(value))
+      : value.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  return `${text} ${units[unit]}`
+}

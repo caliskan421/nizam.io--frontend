@@ -3,9 +3,7 @@ import './preview.css'
 
 import { computed } from 'vue'
 
-import { DesignStub } from '@/shared/ui'
-
-import { percent, share } from '../../model/format'
+import { formatBytes, percent, share } from '../../model/format'
 import type { PaperContext } from '../../model/paper-context'
 import {
   distribution,
@@ -25,7 +23,7 @@ import PaperKpis, { type PaperKpi } from './PaperKpis.vue'
 /**
  * Yönetici özeti (E-13-25…27): bant, 8 KPI, durum/öncelik dağılımı ve koordinatörlük
  * karşılaştırması. Zamanında/geç tamamlanan `tasks`'tan istemci sayımı; "gündem a/b" ve dosya
- * boyutu gizli; karşılaştırmada DOSYA sütunu "—" (alan yok, BE-136).
+ * boyutu `stats`'tan, karşılaştırmada DOSYA sütunu koordinatörlük `file_count`'undan (BE-136).
  */
 const props = defineProps<{
   ctx: PaperContext
@@ -67,8 +65,16 @@ const kpis = computed<PaperKpi[]>(() => {
       sub: sub('doneShare', { pct: percent(x.lateCompleted, x.completed) }),
       tone: 'danger',
     },
-    { label: kpi('meetings'), value: String(stats.total_meetings) },
-    { label: kpi('files'), value: String(stats.total_attachments) },
+    {
+      label: kpi('meetings'),
+      value: String(stats.total_meetings),
+      sub: sub('agenda', { a: stats.agenda_checked, b: stats.agenda_total }),
+    },
+    {
+      label: kpi('files'),
+      value: String(stats.total_attachments),
+      sub: formatBytes(stats.total_attachment_bytes) ?? undefined,
+    },
     {
       label: kpi('requests'),
       value: String(req.total),
@@ -202,7 +208,7 @@ const priority = computed(() => distribution(SEASON_PRIORITIES, props.season.pri
               >{{ section.totals.overdue }}</span
             >
             <span class="report-c" role="cell">{{ section.meetingCount }}</span>
-            <span class="report-c" role="cell"><DesignStub id="BE-136">—</DesignStub></span>
+            <span class="report-c" role="cell">{{ section.fileCount }}</span>
             <span class="report-prog" role="cell"
               ><span class="report-track" aria-hidden="true"
                 ><span

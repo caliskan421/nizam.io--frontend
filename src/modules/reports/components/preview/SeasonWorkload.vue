@@ -3,7 +3,7 @@ import './preview.css'
 
 import { computed } from 'vue'
 
-import { workloadRows } from '../../model/season-view'
+import { workloadRows } from '../../model/season-extras'
 import type { SeasonReport } from '../../model/types'
 import { t } from '../text'
 import PaperHeading from './PaperHeading.vue'

@@ -9,11 +9,16 @@ export interface PaperKpi {
 }
 
 /** KPI kartları (sol ton çubuğu). Değeri olmayan öğe çağıranda süzülür (sahte değer yok, §4). */
-defineProps<{ items: readonly PaperKpi[]; label: string; five?: boolean }>()
+defineProps<{ items: readonly PaperKpi[]; label: string; five?: boolean; six?: boolean }>()
 </script>
 
 <template>
-  <div class="report-kpis" :class="{ 'report-kpis--5': five }" role="group" :aria-label="label">
+  <div
+    class="report-kpis"
+    :class="{ 'report-kpis--5': five, 'report-kpis--6': six }"
+    role="group"
+    :aria-label="label"
+  >
     <div
       v-for="item in items"
       :key="item.label"

@@ -88,7 +88,7 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
       'Operasyon',
       'EK: SÖZLÜK VE KURALLAR',
     ])
-    expect(wrapper.text()).not.toMatch(/Sayfa \d|\d+ sayfa|\d+ MB|TRT/)
+    expect(wrapper.text()).not.toMatch(/Sayfa \d|\d+ sayfa|TRT/)
     expect(
       wrapper.findAll('article.report-paper').every((a) => a.attributes('data-theme') === 'light'),
     ).toBe(true)
@@ -108,10 +108,10 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(kpis[1]!.text()).toContain('1 geç tamamlandı')
     expect(kpis[2]!.text()).toContain('2 açık görevden')
     expect(kpis[3]!.text()).toContain('118 not')
-    expect(cover.text()).not.toMatch(/çalışma grubu|MB|\d{2}\.\d{2}\.\d{4} –/)
+    expect(cover.text()).not.toMatch(/çalışma grubu/)
   })
 
-  it('özet: dağılımlar JSON anahtarlarından; karşılaştırma tablosu ada göre; DOSYA sütunu stub', async () => {
+  it('özet: dağılımlar JSON anahtarlarından; karşılaştırma tablosu ada göre; DOSYA sütunu koordinatörlük dosya sayısı', async () => {
     const { wrapper } = await open(SEASON())
     const summary = wrapper.get('#report-season-summary')
     expect(summary.get('[data-status="tamamlandi"]').text()).toContain('1')
@@ -121,17 +121,129 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(
       rows.map((r) => (r.find('strong').exists() ? r.get('strong').text() : r.text().slice(0, 6))),
     ).toEqual(['Altyapı ve tesisat', 'Operasyon', 'Toplam'])
-    expect(summary.findAll('[data-design-stub="BE-136"]').length).toBeGreaterThanOrEqual(2)
+    expect(summary.find('[data-design-stub]').exists()).toBe(false)
+    expect(rows[0]!.findAll('[role="cell"]')[5]!.text()).toBe('2')
+    expect(summary.text()).toContain('gündem 162/201')
+    expect(summary.text()).toContain('412,6 MB')
     expect(summary.text()).toContain('2 bölüm')
   })
 
-  it('statik yer tutucular sahte veri göstermez: detay/toplantı/dosya (BE-136); Gantt artık yer tutucu değil (BE-123)', async () => {
+  it('yer tutucu kalmadı: Gantt, iş yükü, detay, toplantı, dosya canlı (BE-123/134/136)', async () => {
     const { wrapper } = await open(SEASON())
-    expect(wrapper.find('#report-season-gantt [data-design-stub]').exists()).toBe(false)
-    expect(wrapper.find('[data-design-stub="BE-134"]').exists()).toBe(false)
-    const dept = wrapper.get('#report-season-dept-d1')
-    expect(dept.findAll('[data-design-stub="BE-136"]')).toHaveLength(2)
-    expect(dept.find('[data-design-stub="BE-123"]').exists()).toBe(true)
+    expect(wrapper.find('[data-design-stub]').exists()).toBe(false)
+    expect(wrapper.find('[data-placeholder]').exists()).toBe(false)
+  })
+
+  it('kapak: dönem aralığı görevlerden türetilmiş (dipnotla); yıl program_year; kullanıcı/dosya alt notları', async () => {
+    const { wrapper } = await open(SEASON())
+    const cover = wrapper.get('#report-season-cover')
+    expect(cover.text()).toContain('01.09.2026 – 17.10.2026')
+    expect(cover.get('[data-testid="cover-period-note"]').text()).toContain('görevlerin en erken')
+    expect(cover.text()).toContain('ŞANLIURFA TEKNOFEST · 2026')
+    expect(cover.text()).toContain('15 koordinatör')
+    expect(cover.text()).toContain('412,6 MB')
+    unmountAll()
+    const none = await open(SEASON(seasonFixture({ period: null })))
+    expect(none.wrapper.find('[data-testid="cover-period-note"]').exists()).toBe(false)
+    expect(none.wrapper.get('#report-season-cover').text()).not.toContain('01.09.2026')
+  })
+
+  it('içindekiler: her koordinatörlük için Görevler · Görev detayları · Toplantılar · Dosyalar bağlantıları', async () => {
+    const { wrapper } = await open(SEASON())
+    const parts = wrapper
+      .get('[data-toc="department"]')
+      .findAll('[data-toc-part]')
+      .map((a) => [a.attributes('data-toc-part'), a.attributes('href')])
+    expect(parts).toEqual([
+      ['tasks', '#report-season-dept-d1'],
+      ['details', '#report-season-dept-d1-details'],
+      ['meetings', '#report-season-dept-d1-meetings'],
+      ['files', '#report-season-dept-d1-files'],
+    ])
+    expect(wrapper.find('#report-season-dept-d1-files').exists()).toBe(true)
+  })
+
+  it('genel: ortalama kayma, en çok talep alan görevler, aktivite dönem toplamları (not/dosya/talep)', async () => {
+    const { wrapper } = await open(SEASON())
+    const general = wrapper.get('#report-season-general')
+    expect(general.text()).toContain('Onaylananlarda ortalama kayma: 4,2 gün')
+    expect(general.get('[data-testid="top-requested"]').text()).toContain('ALT-7')
+    expect(general.get('[data-testid="top-requested"]').text()).toContain('2 talep')
+    expect(general.get('[data-testid="activity-extras"]').text()).toContain(
+      '9 not · 3 dosya · 1 tarih talebi',
+    )
+    unmountAll()
+    const plain = await open(
+      SEASON(
+        seasonFixture({
+          date_change_stats: withDateChangeDefaults({
+            approved: 0,
+            pending: 0,
+            rejected: 0,
+            total: 0,
+          }),
+        }),
+      ),
+    )
+    expect(plain.wrapper.text()).not.toContain('ortalama kayma')
+    expect(plain.wrapper.find('[data-testid="top-requested"]').exists()).toBe(false)
+  })
+
+  it('görev detay kartı: açıklama, bağımlılık, not, tarih talebi (durum), dosyalar; bayrak/paylaşılan yok', async () => {
+    const { wrapper } = await open(SEASON())
+    const cards = wrapper.findAll('[data-testid="dept-details"] [data-detail]')
+    expect(cards.map((c) => c.attributes('data-detail'))).toEqual(['w1'])
+    const card = cards[0]!
+    expect(card.text()).toContain('ALT-7')
+    expect(card.text()).toContain('Ana panolardan stant adalarına kanal kazısı.')
+    expect(card.get('[data-testid="detail-deps"]').text()).toContain('ALT-3')
+    expect(card.get('[data-testid="detail-note"]').text()).toContain('Not 01 · 09.10.2026 11:20')
+    expect(card.get('[data-testid="detail-note"]').text()).toContain('Bahar Kılıç')
+    expect(card.text()).toContain('NOTLAR (2)')
+    expect(card.text()).toContain('En yeni 1 not gösteriliyor.')
+    const request = card.get('[data-testid="detail-request"]')
+    expect(request.text()).toContain('17.10.2026')
+    expect(request.text()).toContain('24.10.2026')
+    expect(request.text()).toContain('Onay bekliyor')
+    expect(request.text()).toContain('Gerekçe: taşeron gecikmesi')
+    expect(card.text()).toContain('DOSYALAR (2)')
+    expect(card.text()).toContain('plan-v3.pdf')
+    expect(card.text()).toContain('Planlar · 3,0 MB · Bahar Kılıç')
+    expect(card.text()).not.toMatch(/ENGEL|PAYLAŞILAN|SORU/)
+    const empty = wrapper.get('#report-season-dept-d2 [data-testid="dept-details"]')
+    expect(empty.text()).toContain('Ayrıntısı olan görev yok.')
+  })
+
+  it('toplantı kartı: sunucu sayaçları, ortak toplantıda diğer bölümler (silinmiş işaretli); olmayan bölümde boş metin', async () => {
+    const { wrapper } = await open(SEASON())
+    const card = wrapper.get('#report-season-dept-d1 [data-meeting="m1"]')
+    expect(card.text()).toContain('14.10.2026 · 14:00')
+    expect(card.text()).toContain('GÜNDEM 4/6')
+    expect(card.text()).toContain('Haftalık koordinasyon')
+    expect(card.text()).toContain('Katılımcı: 5')
+    expect(card.text()).toContain('1 göreve dönüştürüldü')
+    expect(card.text()).toContain('Ortak toplantı — diğer bölümler: Operasyon (silinmiş)')
+    // d2 de bu toplantıya dahil.
+    expect(wrapper.find('#report-season-dept-d2 [data-meeting="m1"]').exists()).toBe(true)
+  })
+
+  it('dosya tablosu: etikete göre gruplu (etiketsiz sonda), görev kodu + başlık, boyut MB; koordinatörlük toplamı başlıkta', async () => {
+    const { wrapper } = await open(SEASON())
+    const section = wrapper.get('#report-season-dept-d1 [data-testid="dept-files"]')
+    expect(section.text()).toContain('2 dosya · 4,0 MB')
+    const body = wrapper.get('#report-season-dept-d1 [data-testid="dept-files"]')
+    expect(body.findAll('[data-testid="file-group"]').map((g) => g.text())).toEqual([
+      'Planlar1 dosya · 3,0 MB',
+      'Etiketsiz1 dosya · 1,0 MB',
+    ])
+    const rows = body.findAll('[data-testid="file-row"]')
+    expect(rows[0]!.text()).toContain('plan-v3.pdf')
+    expect(rows[0]!.text()).toContain('ALT-7')
+    expect(rows[0]!.text()).toContain('12.10.2026')
+    expect(rows[1]!.text()).toContain('IMG_1042.jpg')
+    expect(wrapper.get('#report-season-dept-d2 [data-testid="dept-files"]').text()).toContain(
+      'Bu koordinatörlükte dosya yok.',
+    )
   })
 
   it('genel: aylık aktivite yalnız gerçek seri (toplam 81), erişilebilir metin özeti; talepler 4 KPI', async () => {
@@ -144,20 +256,20 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     )
     expect(chart.findAll('.report-chart__col')).toHaveLength(2)
     expect(general.text()).toContain('oluşturulan ve tamamlanan görev, toplantı ve mesaj')
-    expect(general.text()).not.toContain('ortalama kayma')
     const requests = general.findAll('[aria-label="Tarih talepleri"] .report-kpi')
     expect(requests.map((k) => k.get('.report-kpi__value').text())).toEqual(['9', '5', '1', '3'])
     expect(requests[3]!.text()).toContain('%33 · karar bekliyor')
   })
 
-  it('koordinatörlük bölümü: künye, 5 KPI, durum şeridi, görev tablosu (sıra created_at, gecikme metinleri), boş bölüm', async () => {
+  it('koordinatörlük bölümü: künye, 6 KPI, durum şeridi, görev tablosu (sıra created_at, gecikme metinleri), boş bölüm', async () => {
     const { wrapper } = await open(SEASON())
     const dept = wrapper.get('#report-season-dept-d1')
     expect(dept.text()).toContain('KOORDİNATÖRLÜK · ALT')
     expect(dept.text()).toContain('ALTYAPI VE TESİSAT')
     expect(dept.text()).toContain('Fuar alanı altyapısı')
     expect(dept.text()).toContain('Abdullah Ateş')
-    expect(dept.findAll('.report-kpi')).toHaveLength(5)
+    expect(dept.findAll('.report-kpi')).toHaveLength(6)
+    expect(dept.text()).toContain('Bahar Kılıç, Kadir Özbek')
     const rows = dept.findAll('[data-task]')
     expect(rows.map((r) => r.attributes('data-task'))).toEqual(['w1', 'w2', 'w3'])
     expect(rows[0]!.text()).toContain('acil')
@@ -165,7 +277,9 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(rows[0]!.text()).toContain('plan 30.09')
     expect(rows[1]!.text()).toContain('2 gün geç bitti')
     expect(rows[1]!.text()).toContain('atanmamış')
-    expect(dept.text()).not.toContain('#')
+    expect(rows[0]!.text()).toContain('ALT-7')
+    expect(rows[0]!.text()).toContain('2/2')
+    expect(rows[1]!.text()).toContain('—')
     const empty = wrapper.get('#report-season-dept-d2')
     expect(empty.text()).toContain('Bu koordinatörlükte görev yok.')
     expect(empty.text()).toContain('KOORDİNATÖRLÜK')

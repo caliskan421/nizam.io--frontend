@@ -1,0 +1,100 @@
+/*
+ * 01f koordinatörlük bölümü ayrıntıları (Rapor-Donem `rp-rapor-card`; E-13-34…36, BE-136):
+ * görev detay kartı, toplantı kartı, dosya grupları. Yalnız token; kâğıt açık yüzeydir.
+ */
+@layer components {
+  .report-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    box-sizing: border-box;
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    box-shadow: inset var(--space-1) 0 0 var(--report-tone, var(--accent-text));
+    min-width: 0;
+  }
+  .report-card + .report-card {
+    margin-top: var(--space-3);
+  }
+  .report-card__h {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .report-card__t {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    font: var(--text-body-strong);
+  }
+  .report-card__num {
+    font: var(--text-label);
+    color: var(--ink-muted);
+    flex: none;
+  }
+  .report-card__meta {
+    margin: 0;
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+  .report-card__meta strong {
+    color: var(--ink);
+  }
+  .report-card__text {
+    margin: 0;
+    font: var(--text-body);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .report-card__sub {
+    margin: var(--space-1) 0 0;
+    font: var(--text-label);
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+  .report-card__list {
+    margin: 0;
+    padding-inline-start: var(--space-5);
+    font: var(--text-caption);
+  }
+  .report-card__req {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    font: var(--text-caption);
+  }
+  .report-card__reqrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .report-req-pending {
+    --report-tone: var(--gold);
+  }
+  .report-req-approved {
+    --report-tone: var(--accent-text);
+  }
+  .report-req-rejected {
+    --report-tone: var(--danger);
+  }
+  .report-card__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    font: var(--text-label);
+    color: var(--ink-muted);
+  }
+  .report-cols-files {
+    --report-cols: minmax(0, 6fr) minmax(0, 5fr) minmax(0, 3fr) minmax(0, 2fr) minmax(0, 3fr);
+  }
+  .report-tr--group {
+    grid-template-columns: minmax(0, 1fr) auto;
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+}

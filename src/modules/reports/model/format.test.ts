@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  formatBytes,
   formatDay,
   formatShortDay,
   initials,
   instantDate,
+  instantDay,
   instantDateTime,
   instantTime,
   monthLabel,
@@ -53,5 +55,23 @@ describe('önizleme biçimleri', () => {
     expect(upper('altyapı ve tesisat')).toBe('ALTYAPI VE TESİSAT')
     expect(initials('Şanlıurfa Teknofest')).toBe('ŞT')
     expect(initials('')).toBe('')
+  })
+})
+
+describe('boyut ve gün biçimleri (BE-136, BE-123)', () => {
+  it('bayt: ikili birim, virgüllü ondalık; geçersiz null', () => {
+    expect(formatBytes(512)).toBe('512 B')
+    expect(formatBytes(2048)).toBe('2,0 KB')
+    expect(formatBytes(3_984_588)).toBe('3,8 MB')
+    expect(formatBytes(432_642_458)).toBe('412,6 MB')
+    expect(formatBytes(5 * 1024 ** 3)).toBe('5,0 GB')
+    expect(formatBytes(-1)).toBeNull()
+    expect(formatBytes(Number.NaN)).toBeNull()
+  })
+
+  it('an → takvim günü kurulum saat diliminde (gece yarısı sınırı)', () => {
+    expect(instantDay('2026-10-21T22:30:00Z', 'Europe/Istanbul')).toBe('2026-10-22')
+    expect(instantDay('2026-10-21T22:30:00Z', 'UTC')).toBe('2026-10-21')
+    expect(instantDay('x', 'UTC')).toBeNull()
   })
 })

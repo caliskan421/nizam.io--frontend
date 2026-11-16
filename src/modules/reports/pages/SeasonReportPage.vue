@@ -25,7 +25,8 @@ import { t } from '../components/text'
 import { FALLBACK_TIME_ZONE } from '../model/format'
 import { paperContext } from '../model/paper-context'
 import { requestFocusReturn, SEASON_RETURN_KEY } from '../model/return-focus'
-import { departmentSections, truncation } from '../model/season-view'
+import { truncation } from '../model/season-extras'
+import { departmentSections } from '../model/season-view'
 
 /**
  * 01f dönem sonu raporu önizlemesi (`/arsiv/donem-raporu`; E-13-13…40). Yalnız şirket yöneticisi
@@ -129,6 +130,7 @@ const error = computed(() => (query.isError.value ? toApiError(query.error.value
               :key="section.id"
               :ctx="context"
               :section="section"
+              :season="season"
             />
             <SeasonAppendix :ctx="context" />
           </div>
