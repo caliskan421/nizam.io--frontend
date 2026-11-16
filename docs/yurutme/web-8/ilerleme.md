@@ -102,11 +102,11 @@ Hiçbiri F8'in kapanışını kendiliğinden engellemez. Sınıflar: **kapandı*
 | 21 | 06 yükleyen süzgeci arayüzü yok (`programArchiveUploaders` var; tasarımda çizim yok); depolama dağılımı E-06-23/24 stub (BE-025 kalanı) | karar bekler / açık BE | W171 |
 | 22 | `DeletedWorkItem` kod taşımıyor (E-12-26/42 gizli) | açık BE (sözleşme) | W174 |
 | 23 | Silinenler sıralaması bellekte, URL'de değil | kapanış sonrası borç | W174 |
-| 24 | `X-Result-Truncated` bilet tüketiminde canlı tetiklenemedi; sözleşme güvence etmiyor (`BE-YENI-W171-1`) | W178 doğrular; gerekirse BE-164 | W171, W176 |
+| 24 | `X-Result-Truncated` bilet tüketiminde canlı tetiklenemedi; sözleşme güvence etmiyor (`BE-YENI-W171-1`) | W178 doğrular; gerekirse yeni kimlik (BE-165+) | W171, W176 |
 | 25 | Bilet aşamasında 429 (`organization.export_in_progress`, kota) genel toast; geri sayım yok | kapanış sonrası borç | W176 |
 | 26 | Yük altında 5 sn'ye yaklaşan ağır entegrasyon testleri (sistemik); W176 üç bölme (`meetings-conversion` 2678 → 503 ms, `archive-upload`, `deleted-records-o3`) yaptı; tam paket yük altında hâlâ duyarlı | uygulama notu (KESİN 32) | W167, W176 |
 | 27 | Marka ikonu tasarımı (W167'nin eklediği manifest/`apple-touch-icon` ikonları için tasarım kararı bekler) | karar bekler (tasarım) | W167 |
-| 28 | BE-163 yeni kayıt (program kapsamlı departman purge, ADR-0045); `BE-YENI-W177-1` öneri (departman silme etki özeti) | açık BE | W174, W177 |
+| 28 | BE-163 yeni kayıt (program kapsamlı departman purge, ADR-0045); BE-164 öneri (departman silme etki özeti) | açık BE | W174, W177 |
 | 29 | Kısmi satırlar: BE-025 (dağılım), 018 (GAP-240), 110 (GAP-234), 115 (BE-163), 123 (GAP-239), 127 (GAP-236), 136 (GAP-237), 010/030/088/130 (BE-091), 036 | açık BE ([rapor-F8 §2.2](../../backend-eksikleri/rapor-F8.md)) | W171–W175 |
 | 30 | F8 gerçek cihaz/üretim kanıtları: VoiceOver, Safari/iOS, CDN SSE F8'de de **yapılamadı**; W178 yalnız Docker + Chrome tanığıdır | kapanış sonrası borç | W177 |
 

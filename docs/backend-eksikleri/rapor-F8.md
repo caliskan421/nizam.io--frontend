@@ -70,8 +70,8 @@ Her satırda `designStub` koddan kalktı, gerçek uçla entegrasyon testi ve "es
 
 1. **ADR-0041 şirket yöneticisi aktörü:** v0.23'te `transitionWorkItem`/`ownStatusWorkItem` yanıtı `actor = sirket_yoneticisi` taşıyabilir; istemci matrisi değişmedi (ŞY "aktör sayılmaz", `SERVER_ACTOR_TO_CLIENT.sirket_yoneticisi = null`), W176 canlı davranışı salt okunur durumla doğruladı. **Ürün kararı bekler** (W169 Varsayım 19). `SERVER_ACTOR_TO_CLIENT` dışa aktarımının üretim kodunda tüketicisi yok (yalnız testlerde); karar gelirse tüketilir ya da kaldırılır.
 2. **BE-006** (alt görev kanıt bayrağı) ve **BE-046** (05b kişinin dosyaları): v0.23'te alan/uç geldiği halde P68'e göre F8'de iş yok, karar bekler; kayıt `açık`.
-3. **Departman silme zinciri:** `departmentDeleteImpact` (v0.20) var, web kullanmıyor; silinmiş departmanın programa bağlı olması `purgeAllDepartments`'ı engelliyor (`organization.department_in_use`) → **BE-163** (kayıtta, ADR-0045). Departman silme etki penceresi için ayrı BE satırı **önerisi**: "silme öncesi etki özeti (görev/üye/dosya sayısı) ve program kapsamlı purge" — kimlik koordinatörde (BE-164+; `BE-YENI-W177-1`).
-4. **BE-YENI-W171-1 → W178:** bilet tüketiminde `X-Result-Truncated` başlığı sözleşmede güvence edilmiyor; W176 canlı tetikleyemedi ("büyük veri" gerçek backend'de yok). Sözleşme belirsizliği; W178 doğrular, gerekirse BE-164.
+3. **Departman silme zinciri:** `departmentDeleteImpact` (v0.20) var, web kullanmıyor; silinmiş departmanın programa bağlı olması `purgeAllDepartments`'ı engelliyor (`organization.department_in_use`) → **BE-163** (kayıtta, ADR-0045). Departman silme etki penceresi için ayrı BE satırı **önerisi**: "silme öncesi etki özeti (görev/üye/dosya sayısı) ve program kapsamlı purge" — kimlik koordinatörde (BE-164+; BE-164).
+4. **BE-YENI-W171-1 → W178:** bilet tüketiminde `X-Result-Truncated` başlığı sözleşmede güvence edilmiyor; W176 canlı tetikleyemedi ("büyük veri" gerçek backend'de yok). Sözleşme belirsizliği; W178 doğrular, gerekirse yeni kimlik (BE-165+).
 5. **Bilet aşamasında 429:** `organization.export_in_progress` ve kota 429'u genel toast; ayrı geri sayım yok (UI borcu, [ilerleme #25](../yurutme/web-8/ilerleme.md)).
 6. **Tasarım farkları:** yeni artboard yok (P72). 01f büyük dönemde render 2,5 sn+ (5000 görev + 2000 dosya, jsdom; sanallaştırma yok → F9); `reports-live-large` KESİN 32 istisnası (40 sn/10 sn) onaylıdır. 03c "Yalnız kodları göster" düğmesi (E-03C-22) karar bekler; kilit ipucu yalnız sayı (BE-138 bekleyen görev adı/kodu vermez); silinenler sıralaması bellekte (URL'de değil); `DeletedWorkItem` kod taşımaz (E-12-26/42 gizli); 06 yükleyen süzgeci arayüzü yok (`programArchiveUploaders` uç var, tasarımda çizim yok); 09 `MeetingsPage` hâlâ `/v1/meetings/deleted` (W174 `admin/deleted/meetings` ile aynı küme, birleştirme notu).
 
@@ -122,7 +122,7 @@ Toplam: sohbet 13 stub → 7 tam canlanır (081, 082, 083, 084, 086, 161, 162), 
 | 6 | **Program kapsamlı departman purge** | BE-163 (ADR-0045); öneri: `purgeAllDepartments` `scope` | 12 Koordinatörlük "Çöpü boşalt" | S |
 | 7 | **Tablolar modeli ↔ tasarım hizalaması** | GAP-224 (BE-031, 093…106) | web ekranı açılmadan önce model kararı | XL |
 | 8 | **Sohbet/bildirim ikinci paket** (v0.24 sonrası kalan) | BE-027 (GAP-242), BE-029/080/160 (GAP-244), grup tiki + ters bağ (GAP-245), BE-147/148/149/150/152…154 | sohbet sessize alma, iletme, atomik yükle + arşivle; bildirim birleştirme/zamanlı olaylar | L |
-| 9 | **Kalan karar/kayıt işleri** | BE-006, BE-046; ADR-0041 ŞY aktör; departman silme etkisi önerisi (`BE-YENI-W177-1`) | ürün kararı sonrası | S–M |
+| 9 | **Kalan karar/kayıt işleri** | BE-006, BE-046; ADR-0041 ŞY aktör; departman silme etkisi önerisi (BE-164) | ürün kararı sonrası | S–M |
 
 Bağımlılık notu: BE-091 olmadan BE-007/010/015/018 tüketicileri açılamaz (hepsi aynı rol kapsamı kararı).
 
