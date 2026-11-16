@@ -42,6 +42,20 @@ describe('redeemAndSave', () => {
     expect(saved.clicked).toEqual(['.._a.pdf'])
   })
 
+  it('X-Result-Truncated: true → saved.truncated; başlık yoksa ya da başka değerde alan yok', async () => {
+    server.use(pdf({ 'X-Result-Truncated': 'true' }))
+    expect(await redeemAndSave('/v1/downloads/tk_1', 'a.zip')).toEqual({
+      kind: 'saved',
+      fileName: 'a.zip',
+      truncated: true,
+    })
+    server.use(pdf({ 'X-Result-Truncated': 'false' }))
+    expect(await redeemAndSave('/v1/downloads/tk_1', 'b.zip')).toEqual({
+      kind: 'saved',
+      fileName: 'b.zip',
+    })
+  })
+
   it('ağ kopması: failed (kaydedilmez)', async () => {
     server.use(
       http.get(`${ORIGIN}/v1/downloads/tk_1`, () => errorEnvelope('platform.internal', 500)),

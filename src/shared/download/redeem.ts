@@ -35,7 +35,8 @@ export async function redeemAndSave(
     const name = dispositionName(result.response.headers.get('Content-Disposition'))
     const fileName = safeFileName(name ?? fallbackName, fallbackName)
     saveBlob(result.data as Blob, fileName)
-    return { kind: 'saved', fileName }
+    const truncated = result.response.headers.get('X-Result-Truncated') === 'true'
+    return { kind: 'saved', fileName, ...(truncated ? { truncated } : {}) }
   } catch (cause) {
     if (signal?.aborted) return { kind: 'disposed' }
     const error = toApiError(cause)

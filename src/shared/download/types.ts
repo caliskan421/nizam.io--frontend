@@ -28,6 +28,11 @@ export interface DownloadTarget {
 export interface DownloadSaved {
   kind: 'saved'
   fileName: string
+  /**
+   * Yanıt `X-Result-Truncated: true` taşıdı (raporlu ZIP'te gömülü rapor kesildi; BE-124). Sözleşme
+   * tüketimde bu başlığı güvence etmez: yoksa alan hiç yazılmaz (PDF içindeki uyarı geçerlidir).
+   */
+  truncated?: boolean
 }
 /** Tüketimde hedefin hatası (403/404/422/429/503 …): sınıflandırılmış, tekrar yok. */
 export interface DownloadFailed {
