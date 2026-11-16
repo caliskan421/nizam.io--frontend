@@ -295,7 +295,8 @@ export const trReports = {
         convertedCount: '{n} görev',
         noteCol: 'NOT',
         taskCol: 'GÖREV',
-        taskGone: '—',
+        statusCol: 'DURUM',
+        taskGone: '(silinmiş görev)',
         footRight: 'RoketPortal · {date}',
       },
       // Yan kart (v87): rapor kuralları ("Tetikleyiciler" kartı çizilmez: E-13-54 ret).

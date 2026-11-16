@@ -99,17 +99,22 @@ describe('MeetingReportPage (01g; E-13-46…53)', () => {
       'Not 01 · 14:05',
       'Not 02 · 15:30 · Göreve dönüştürüldü',
     ])
-    expect(notes[1]!.text()).toContain('→ Ek beton ekibi')
+    expect(notes[1]!.text()).toContain('→ ALT-7 Ek beton ekibi')
     expect(wrapper.text()).toContain('Toplam 2 not')
     expect(wrapper.get('[data-testid="meeting-stage"]').text()).not.toContain('Bahar Kılıç beton')
   })
 
-  it('"Göreve dönüştürülenler" tablosu NOT · GÖREV (DURUM yok); dönüştürülen yoksa çizilmez', async () => {
+  it('"Göreve dönüştürülenler" tablosu NOT · GÖREV · DURUM (kod + başlık + güncel durum); dönüştürülen yoksa çizilmez', async () => {
     const { wrapper } = await open()
     const table = wrapper.get('[aria-label="Göreve dönüştürülen notlar"]')
-    expect(table.findAll('[role="columnheader"]').map((c) => c.text())).toEqual(['NOT', 'GÖREV'])
+    expect(table.findAll('[role="columnheader"]').map((c) => c.text())).toEqual([
+      'NOT',
+      'GÖREV',
+      'DURUM',
+    ])
     expect(table.text()).toContain('Not 02')
-    expect(table.text()).toContain('Ek beton ekibi')
+    expect(table.text()).toContain('ALT-7 Ek beton ekibi')
+    expect(table.get('[data-testid="converted-status"]').text()).toBe('Devam ediyor')
     unmountAll()
     const plain = meetingFixture({
       notes: meetingFixture().notes.map((n) => ({
@@ -120,6 +125,22 @@ describe('MeetingReportPage (01g; E-13-46…53)', () => {
     })
     const again = await open(plain)
     expect(again.wrapper.find('[aria-label="Göreve dönüştürülen notlar"]').exists()).toBe(false)
+  })
+
+  it('silinmiş/programda olmayan görev: kod, başlık ve durum null → "(silinmiş görev)" ve "—" (uydurma durum yok)', async () => {
+    const base = meetingFixture()
+    const gone = meetingFixture({
+      notes: base.notes.map((n) => ({
+        ...n,
+        converted_task_code: null,
+        converted_task_status: null,
+        converted_task_title: null,
+      })),
+    })
+    const { wrapper } = await open(gone)
+    const table = wrapper.get('[aria-label="Göreve dönüştürülen notlar"]')
+    expect(table.text()).toContain('(silinmiş görev)')
+    expect(table.get('[data-testid="converted-status"]').text()).toBe('—')
   })
 
   it('boş gündem ve not metinleri', async () => {

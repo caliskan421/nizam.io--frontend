@@ -192,6 +192,8 @@ export function meetingFixture(over: Partial<ReportMeetingDetail> = {}): ReportM
         author: person('u1', 'Bahar Kılıç'),
         author_role: 'member',
         content: 'Beton için ek ekip gerekli.',
+        converted_task_code: 'ALT-7',
+        converted_task_status: 'devam_ediyor',
         converted_task_title: 'Ek beton ekibi',
         converted_to_task_id: 't9',
         created_at: '2026-10-14T12:30:00Z',

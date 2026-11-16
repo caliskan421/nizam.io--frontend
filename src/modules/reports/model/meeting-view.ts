@@ -1,8 +1,10 @@
 /**
  * 01g toplantı raporu önizlemesinin saf türetimleri (`README` (c), E-13-46…53). Kaynak yalnız
  * `reportMeetingDetail`'dır. Bitiş saati alanı YOKTUR (yalnız `meeting_date`); not yazarı çizilmez
- * (tasarımda yok); görev kodu gizli (BE-005), görev başlığı `converted_task_title`; dönüştürülen
- * notun durum sütunu gizli (alan yok, BE-125). Silinmiş birim "(silinmiş)" etiketini taşır.
+ * (tasarımda yok). Pin v0.23.0-api: dönüştürülen görevin kodu (`converted_task_code`, BE-005 rapor
+ * yüzü), başlığı ve güncel durumu (`converted_task_status`, BE-125) gelir; görev silinmişse ya da
+ * programda değilse üçü de null'dır (uydurma durum/kod yok; "(silinmiş görev)" etiketi). Silinmiş
+ * birim "(silinmiş)" etiketini taşır.
  */
 import { instantTime } from './format'
 import type { ReportMeetingDetail } from './types'
@@ -20,7 +22,15 @@ export interface MeetingNoteRow {
   content: string
   converted: boolean
   taskTitle: string | null
+  /** Katalog kodu (`ALT-7`); departmanın kodu yoksa null (kod uydurulmaz). */
+  taskCode: string | null
+  /** Güncel görev durumu; görev silinmiş/programda değilse null. */
+  taskStatus: NoteTaskStatus | null
 }
+
+export type NoteTaskStatus = NonNullable<
+  ReportMeetingDetail['notes'][number]['converted_task_status']
+>
 
 export interface MeetingCoordinatorship {
   id: string
@@ -55,6 +65,8 @@ export function noteRows(detail: ReportMeetingDetail, timeZone: string): Meeting
       content: note.content,
       converted: note.converted_to_task_id !== null,
       taskTitle: note.converted_task_title,
+      taskCode: note.converted_task_code,
+      taskStatus: note.converted_task_status,
     }))
 }
 
