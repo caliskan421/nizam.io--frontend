@@ -38,6 +38,23 @@ afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
 describe('önizleme okuması', () => {
+  it('BE-123: Gantt tasks[]’ten çizilir (stub ve ok yok); görev satırları ve çubuklar', async () => {
+    await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
+    await until(STAGE, 'önizleme')
+    const gantt = $('[data-testid="gantt"]')!
+    expect(gantt).not.toBeNull()
+    expect($$('[data-gantt-task]', gantt).map((r) => r.getAttribute('data-gantt-task'))).toEqual([
+      'w2',
+      'w3',
+      'w1',
+    ])
+    expect($$('.report-gantt__bar', gantt).length).toBeGreaterThanOrEqual(3)
+    expect($('#report-season-gantt [data-design-stub]')).toBeNull()
+    expect($('#report-season-gantt [data-placeholder]')).toBeNull()
+    expect($('#report-season-gantt')!.textContent).toContain('ALT-7')
+    // Bölüm içi sıra: koordinatörlük sıra numarası (BE-005), oluşturulma anı değil.
+  })
+
   it("BE-134: iş yükü satırları reportSeason.workload_summary'den; ikinci okuma (reportWorkload) ve stub yok; boş dönemde metin", async () => {
     const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
     await until(STAGE, 'önizleme')
