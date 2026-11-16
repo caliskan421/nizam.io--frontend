@@ -29,27 +29,43 @@
 - **Bu belgenin yazıldığı oturumda** (W177, yalnız belge) kod, tam paket, build ve e2e koşulmadı; kapı: prettier, lint, `tests/lint`.
 - Duman PNG'leri ve ham sonuç dosyaları yerel (`.git/koordinator/web8-w17N/`); git'e girmez.
 
-## Tur 1 — bekliyor (girdi main `dd71bd6`)
+## Tur 1 — 2026-11-16, HEAD 27587d2
 
-HEAD: _(Codex ilk eylemi: HEAD teyidi; girdi main `dd71bd6` = W179 #166 birleşik)_
+HEAD: `27587d26f4449857ca87ba0ecb09f2fd9a10e192` (girdi main `dd71bd6`; ham çıktı koordinatör kaydında: `.git/koordinator/web8-codex-tur1.md`, yerel)
 
-**Hüküm:** _bekliyor_
+**UYGUN DEĞİL** — dönem ZIP'inde kapsam değişimi ve sökülme sonrasında indirmeyi sürdürebilen engelleyici yaşam döngüsü kusuru (E-01); ayrıca tüketim hatasında süre kaybı (Ö-01) ve belge/süreç bulguları (K-01, K-02). Codex dosya değiştirmedi, çalışma ağacı temiz kaldı.
 
 ### Bulgular
 
-_(boş)_
+| Kimlik | Ağırlık | Özet | Sahip / durum |
+| --- | --- | --- | --- |
+| CX-F8-E-01 | Yüksek / engelleyici | Ortak indirme akışında (`shared/download/flow.ts`, `redeem.ts`; `archive/.../use-period-zip.ts`, `PeriodZipButton.vue`) kapsam/oturum/sökülme iptali yok: bilet beklenirken program değişirse eski programın ZIP'i kaydedilebilir; tüketim başladıktan sonra bileşen sökülürse `owner.alive()` yeniden denetlenmez. Düzeltme: eyleme bağlı iptal yaşamı (kapsam, oturum nesli/hesap, sahip sökülmesi) + tüketim/kaydetme öncesi bağlam denetimi. Kabul: bilet yanıtını tut → program değiştir → bırak: tüketim isteği ve dosya kaydı 0 | **W180** |
+| CX-F8-Ö-01 | Orta | Tüketim hatasında `Retry-After` kullanıcıya ulaşmıyor: kullanıcı CSV (`UsersExportButton.vue`) 429 `organization.export_in_progress` / 503 `organization.capacity_full`, raporlu ZIP (`zip-status.ts`) 503 `reporting.capacity_full` genel metne düşüyor. Bilet üretimi aşamasındaki genel-toast borcundan farklıdır. Düzeltme: ortak süreli hata sınıflandırması, bekleme süresi görünür, otomatik tekrar yok | **W180** |
+| CX-F8-K-01 | Orta (belge) | `dogrulama-F8.md:61,70` modüle özgü kota sayıları ham sonuçlarla uyuşmuyor (ham: 12× ve 16× `platform.rate_limited`, `Retry-After: 60`). CSV'nin çalışmadığı sonucu çıkmaz | **W177 düzeltti** (`dogrulama-F8.md` koordinatör düzeltmesi, sayılar ham kayda göre; borç: hedefli gerçek backend kota koşumu, ilerleme #36) |
+| CX-F8-K-02 | Düşük / süreç | W170 "UI değişmedi" hükmü mutlak değil: `9a8ed02` `work.task.reminder` için özel metin/simge/ton ve push metni ekledi (`notifications/model/dictionary.ts`, `public/sw.js`); pin planı bunu W175'e ayırmıştı. Mevcut F8 sözlük davranışı ürün kusuru sayılmaz | **W177 işledi** (ilerleme, oturum-2: W170 kanıtı daraltıldı; sapma notu) |
 
 ### Bağımsız sınıf taraması (özet)
 
-_(boş)_
+| Sınıf | Değerlendirme |
+| --- | --- |
+| Yetki/kapsam | Arşiv yollarında S2/S3 ayrımı ve satır `department_id` tutarlı; P33 kesişimi kaldırılmış; W178 K/Ü gerçek 403 sonuçları mevcut; yeni sızıntı yok |
+| Bilet/indirme | Hedef üreticileri kapalı listeyle uyumlu; dönem ZIP'i yalnız program başlığı taşıyor; yaşam döngüsü engeli E-01 |
+| Stub/kayıt | 35 bağlı kimlikte kalan stub yok; kısmi satırlar `açık` ve GAP/BE bağlı |
+| Pin | `v0.23.0-api` ile **birebir**: 248 işlem, 227 hata kodu (bellekte karşılaştırma); kırıcı farklar ayrı commit/testle |
+| Türevler/modül sınırları | Toplu işlem geçersizleme ilişkileri ve rozet senaryoları mevcut; lint bu HEAD'de geçti; kural gevşetmesi yok |
+| Faz/gövde | Faz anahtarı F7'de kalmış; F8 yeni ekran açmıyor; gövdesiz parça yok |
 
 ### Kanıt sınırları (tur 1)
 
-_(boş)_
+- Codex hedefli testleri koşamadı (salt okunur ortamda Vitest geçici dizin oluşturamadı; testler başlamadan durdu): **test geçti iddiası yok**.
+- W178 gerçek Docker/backend tanığı bu HEAD'in yeniden koşumu değildir (W178 HEAD `b9aab8c`; W179 sonrası ölçüm yok).
+- Bu HEAD'in uzak CI durumu bağımsız doğrulanmadı; `../program/` erişilebilir değildi.
+- VoiceOver, kullanıcı görsel onayı, Safari/iOS push, ölçülü son görsel eşitlik doğrulanmış sayılmadı. Bilinen kapsam dışı borçlar yeniden bulgu sayılmadı. Tüm dosyaların satır satır kapsandığı iddiası yoktur.
+- K-02 kaydı: W170'in "UI değişmedi" ifadesi `work.task.reminder` sözlük girişi (`9a8ed02`) hariç doğrudur; bu görünür değişiklik P69/KESİN 36'dan sapmadır, ürün kusuru değildir.
 
-## Tur 2 — (bekliyor)
+## Tur 2 — bekliyor
 
-_(tur 1 koşulları kapandıktan sonra; P76: en çok 2 tur, UYGUN DEĞİL → 3)_
+_(W180 birleşince; kapsam: E-01 ve Ö-01 düzeltme doğrulaması + yeniden sınıf taraması; P76: en çok 2 tur, UYGUN DEĞİL → 3)_
 
 ## Koşulların kapanışı
 

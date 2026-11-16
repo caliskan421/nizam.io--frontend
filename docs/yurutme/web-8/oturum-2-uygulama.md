@@ -4,7 +4,7 @@
 
 | W | İş / sahiplik sınırı | Kaynak |
 | --- | --- | --- |
-| **W170 O2a** | **Pin WP1:** `api-pin.json` → `v0.23.0-api`, `pnpm gen:api`/`gen:check`, tip/fixture uyumu (zorunlu alan varsayılan üreticileri), kırıcı enum/şema farkları **ayrı commit ve ayrı test**, 33 hata kodu i18n, `e2e/backend` etiketi. UI davranışı **değişmez**; `designStub` kaldırılmaz | [pin-yukseltme-v023](pin-yukseltme-v023.md) WP1 |
+| **W170 O2a** | **Pin WP1:** `api-pin.json` → `v0.23.0-api`, `pnpm gen:api`/`gen:check`, tip/fixture uyumu (zorunlu alan varsayılan üreticileri), kırıcı enum/şema farkları **ayrı commit ve ayrı test**, 33 hata kodu i18n, `e2e/backend` etiketi. UI davranışı **değişmez** (gerçekte tek istisna: `work.task.reminder` sözlük girişi `9a8ed02` görünür davranış değişikliği oldu; Codex tur 1 K-02, ilerleme #37); `designStub` kaldırılmaz | [pin-yukseltme-v023](pin-yukseltme-v023.md) WP1 |
 | **W171 (a)** | Arşiv + ZIP: BE-072 S2 uçları, BE-120 dönem ZIP, BE-025/070/071/073/074/121; P33 geçici yönetici yolu kaldırılır | 06/07 README, rapor-F5 |
 | **W172 (b)** | Raporlar: BE-122/124/125/132/133/134/135; BE-123/136 yalnız gelen alan | 13-raporlar README, rapor-F6 |
 | **W173 (c)** | K1/Ü1 + görev kodu: BE-137…141, BE-005 (`code`/`sequence_no`) | 01, 03, rapor-F6 |
