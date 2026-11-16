@@ -19,7 +19,14 @@ export type RedeemFault =
   | 'ticket_invalid'
   | 'not_authorized'
 export type SeasonFault =
-  'ok' | 'empty' | 'truncated' | 'export_in_progress' | 'rate_limited' | 'capacity_full' | 'error'
+  | 'ok'
+  | 'empty'
+  | 'truncated'
+  | 'export_in_progress'
+  | 'rate_limited'
+  | 'capacity_full'
+  | 'capacity_bare'
+  | 'error'
 
 export interface FakeMeeting {
   meeting_id: string
@@ -66,6 +73,14 @@ export function createReportsState(): ReportsState {
 }
 
 const PDF = Uint8Array.from([37, 80, 68, 70, 45, 49, 46, 55])
+
+/** 503 `reporting.capacity_full` (v0.23: `Retry-After` 1–30 sn ipucu; BE-135). */
+function capacityFull() {
+  return HttpResponse.json(
+    { code: 'reporting.capacity_full', message: 'x', request_id: 'r', fields: [] },
+    { status: 503, headers: { 'Retry-After': '12' } },
+  )
+}
 
 function limited(code: string, retryAfter: string | null) {
   return HttpResponse.json(
@@ -171,7 +186,7 @@ function redeemFault(f: Fake, issued: Issued, account: Account): Response | null
     case 'rate_limited':
       return limited('platform.rate_limited', '60')
     case 'capacity_full':
-      return envelope('reporting.capacity_full', 503)
+      return capacityFull()
     default:
       return null
   }
@@ -240,8 +255,10 @@ function seasonResponse(f: Fake, request: Request, adminOnly: AdminGuard): Respo
       return limited('reporting.export_in_progress', '1')
     case 'rate_limited':
       return limited('platform.rate_limited', '60')
-    case 'capacity_full':
+    case 'capacity_bare':
       return envelope('reporting.capacity_full', 503)
+    case 'capacity_full':
+      return capacityFull()
     case 'error':
       return envelope('platform.internal', 500)
   }

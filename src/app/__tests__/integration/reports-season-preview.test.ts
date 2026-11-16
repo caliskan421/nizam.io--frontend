@@ -116,7 +116,7 @@ describe('önizleme okuması', () => {
 
   // CX-F6-E-05: başlıklı 429 ortak sayacı başlatır; sayaç boyunca önizleme tekrarı ve PDF düğmesi
   // kapalı, süre bitince otomatik istek yok (süre dolumu ve otomatik istek yokluğu `queries.test.ts`'te sahte saatle).
-  it.each(['export_in_progress', 'rate_limited'] as const)(
+  it.each(['export_in_progress', 'rate_limited', 'capacity_full'] as const)(
     '%s (Retry-After): sayaç boyunca "Yeniden dene" ve "PDF indir" kapalı, ek istek yok',
     async (mode) => {
       reports.state.season = mode
@@ -174,7 +174,7 @@ describe('önizleme okuması', () => {
   })
 
   it('başlıksız 503 (capacity_full): sayaç yok, "Yeniden dene" açık', async () => {
-    reports.state.season = 'capacity_full'
+    reports.state.season = 'capacity_bare'
     await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
     await until(() => byText('button', 'Yeniden dene'), 'hata')
     expect(document.body.textContent).not.toContain('Bekleyin (')
@@ -243,7 +243,7 @@ describe('önizleme okuması', () => {
 
   it.each([
     ['error', 'Dönem raporu okunamadı'],
-    ['capacity_full', 'Dönem raporu okunamadı'],
+    ['capacity_bare', 'Dönem raporu okunamadı'],
   ] as const)('%s: bölge içi hata + "Yeniden dene", otomatik tekrar yok', async (mode, title) => {
     reports.state.season = mode
     const app = await boot({ ...ADMIN, path: '/arsiv/donem-raporu' })
