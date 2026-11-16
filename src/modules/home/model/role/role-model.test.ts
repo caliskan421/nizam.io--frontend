@@ -60,8 +60,13 @@ describe('toplantı satırı (E-K1-35, E-Ü1-29)', () => {
     meeting_date: '2026-10-21T12:30:00Z',
     owner_department_id: 'd2',
     departments: [
-      { department_id: 'd1', department_name: 'Altyapı ve tesisat' },
-      { department_id: 'd2', department_name: 'Sistem' },
+      {
+        department_id: 'd1',
+        department_name: 'Altyapı ve tesisat',
+        department_code: null,
+        deleted: false,
+      },
+      { department_id: 'd2', department_name: 'Sistem', department_code: 'SYS', deleted: false },
     ],
     members_included: true,
     invite_mode: 'coordinatorship' as const,
@@ -74,7 +79,7 @@ describe('toplantı satırı (E-K1-35, E-Ü1-29)', () => {
     ...over,
   })
 
-  it('kurulum saat diliminde gün/ay/saat; sahip önde; kısaltma', () => {
+  it('kurulum saat diliminde gün/ay/saat; sahip önde; kod, kodsuzda kısaltma', () => {
     const view = meetingView(meeting() as never, 'Europe/Istanbul', '2026-10-21')
     expect(view).toMatchObject({
       day: '21',
@@ -85,7 +90,7 @@ describe('toplantı satırı (E-K1-35, E-Ü1-29)', () => {
     })
     expect(view.month).toBe('EKİ')
     expect(view.units.map((u) => [u.short, u.owner])).toEqual([
-      ['SİS', true],
+      ['SYS', true],
       ['AVT', false],
     ])
     expect(shortName('Sistem koordinatörlüğü')).toBe('SK')

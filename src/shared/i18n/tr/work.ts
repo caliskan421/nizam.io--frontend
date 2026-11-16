@@ -165,6 +165,9 @@ export const trWorkDetail = {
       label: 'Görev eylemleri',
       upload: 'Kanıt dosyası yükle',
       remind: 'Atanana hatırlat',
+      // BE-008: teslim asenkron (202) — "gönderildi" denir, teslim garantisi verilmez.
+      reminded: '{n} kişiye hatırlatma gönderildi.',
+      remindedNone: 'Hatırlatılacak atanan yok.',
       // E-03-54: uç var, akış F3 (P5, §5) — faz notu, stub değil.
       dateRequest: 'Tarih değişikliği iste',
       copy: 'Kopyala',
@@ -236,6 +239,13 @@ export const trWorkForms = {
         label: 'Gerekçe',
         error: 'En az 3 karakterlik bir gerekçe yazın.',
         submit: 'Geri al',
+      },
+      returnReason: {
+        title: 'Görevi iade et',
+        description: 'Görev iade edilir; atanan tekrar başlayabilir.',
+        label: 'Gerekçe (isteğe bağlı)',
+        error: 'Gerekçe 3–500 karakter olmalı ya da boş bırakılmalı.',
+        submit: 'İade et',
       },
     },
     remove: {

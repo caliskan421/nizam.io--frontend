@@ -8,10 +8,10 @@ import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { UiModal } from '@/shared/ui'
-import { notifyOutcome } from '@/shared/ui/confirm'
+import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 import { useToast } from '@/shared/ui/use-toast'
 import { useMeetingCandidates } from '../../api/queries'
-import { useCreateMeeting, useUpdateMeeting } from '../../api/meeting-writes'
+import { useUpdateMeeting } from '../../api/meeting-writes'
 import { coordinatorDepartmentIds } from '../../model/capabilities'
 import type { MeetingDetail } from '../../model/types'
 import { useSessionReset } from '../../pages/detail/use-session-reset'
@@ -24,6 +24,7 @@ import MeetingInviteMode from './MeetingInviteMode.vue'
 import { departmentOrder, toggleDepartment } from './department-order'
 import { meetingChanges } from './form-diff'
 import { meetingFieldErrors, fieldErrorAttrs } from './meeting-field-errors'
+import { useCreateSettle } from './use-create-settle'
 
 const props = defineProps<{
   meeting: MeetingDetail | null
@@ -36,11 +37,10 @@ const scope = useScopeStore()
 const instance = useInstanceStore()
 const { standing } = useStanding()
 const departments = useProgramDepartments()
-const create = useCreateMeeting()
 const update = useUpdateMeeting()
 const toast = useToast()
 const selectorOpen = ref(false)
-const candidates = useMeetingCandidates(standing, selectorOpen)
+const candidates = useMeetingCandidates(null, selectorOpen)
 const title = ref(props.meeting?.title ?? '')
 const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul'),
   clock = useNow()
@@ -65,11 +65,18 @@ const canEditDepartments = computed(
 const today = computed(() => meetingDateParts(clock.value, timezone.value).date)
 const uncertain = ref(false)
 const fieldErrors = ref<Record<string, string>>({})
+const created = useCreateSettle({
+  uncertain,
+  fieldErrors,
+  warn: (side, failed) => warn(side, failed),
+  saved: (id) => emit('saved', id),
+})
+const notice = created.notice
 const errorAttrs = (field: string) => fieldErrorAttrs(fieldErrors.value, field)
 watch([title, date, time, departmentIds, participantIds, members, mode], () => {
   fieldErrors.value = {}
 })
-const busy = computed(() => create.isPending.value || update.isPending.value)
+const busy = computed(() => created.create.isPending.value || update.isPending.value)
 const invalidDate = computed(
   () =>
     dateChanged.value &&
@@ -130,29 +137,16 @@ async function submitUpdate(programId: string, meetingId: string, meetingDate: s
     if (!Object.keys(errors).length) notifyOutcome(result)
   }
 }
-async function submitCreate(programId: string, meetingDate: string) {
-  const result = await create.submit({
-    programId,
-    body: {
-      title: title.value.trim(),
-      meeting_date: meetingDate,
-      invite_mode: mode.value,
-      department_ids:
-        mode.value === 'person' ? departmentIds.value.slice(0, 1) : [...departmentIds.value],
-      participant_ids: [...participantIds.value],
-      ...(mode.value === 'coordinatorship' ? { members_included: members.value } : {}),
-    },
+function submitCreate(programId: string, meetingDate: string) {
+  return created.submit(programId, {
+    title: title.value.trim(),
+    meeting_date: meetingDate,
+    invite_mode: mode.value,
+    department_ids:
+      mode.value === 'person' ? departmentIds.value.slice(0, 1) : [...departmentIds.value],
+    participant_ids: [...participantIds.value],
+    ...(mode.value === 'coordinatorship' ? { members_included: members.value } : {}),
   })
-  if (!reachesOwner(result)) return
-  if (result.kind === 'unknown_outcome') uncertain.value = true
-  if (result.kind === 'success') {
-    warn(result.data.side_effects, result.data.failed_participants ?? [])
-    emit('saved', result.data.meeting.meeting_id)
-  } else {
-    const errors = meetingFieldErrors(result)
-    fieldErrors.value = errors
-    if (!Object.keys(errors).length) notifyOutcome(result)
-  }
 }
 async function submit() {
   if (invalid.value || busy.value || !scope.programId) return
@@ -171,7 +165,8 @@ async function submit() {
     @close="emit('close')"
   >
     <form id="meeting-form" class="meeting-form" @submit.prevent="submit">
-      <p v-if="uncertain" role="alert">{{ text.uncertain }}</p>
+      <p v-if="uncertain && !notice" role="alert">{{ text.uncertain }}</p>
+      <UiOutcomeNotice :outcome="notice" @resolved="created.resolved" />
       <MeetingFormFields
         v-model:title="title"
         v-model:date="date"
@@ -231,11 +226,10 @@ async function submit() {
   <MeetingPersonSelector
     v-if="selectorOpen"
     :selected-ids="participantIds"
-    :candidates="candidates.data.value ?? { people: [], truncated: false, partial: false }"
+    :candidates="candidates.data.value ?? { people: [] }"
     :loading="candidates.isPending.value"
     :error="candidates.isError.value"
     mode="draft"
-    :scope-limited="standing?.companyAdmin === false"
     @close="selectorOpen = false"
     @select="
       (ids) => {

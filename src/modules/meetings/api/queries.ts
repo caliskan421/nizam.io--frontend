@@ -4,57 +4,20 @@ import {
   useQueryClient,
   type QueryFunctionContext,
 } from '@tanstack/vue-query'
-import { computed, toValue, watch, type MaybeRefOrGetter } from 'vue'
+import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { retryTransient } from '@/modules/work/public'
-import { coordinatorDepartmentIds } from '../model/capabilities'
-import type { MeetingDetail, MeetingFilters } from '../model/types'
-import { authSession } from '@/shared/http'
-import { ownerLife } from '@/shared/http/mutation'
+import type { MeetingDetail, MeetingFilters, NoteFilter } from '../model/types'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
-import type { Standing } from '@/shared/scope/standing-facts'
 import { sessionBound } from '@/shared/session/query-session'
-import { adminCandidates, coordinatorCandidates } from './candidates'
+import { fetchMeetingCandidates } from './candidates'
 import { fetchDeletedMeetings, fetchMeeting, fetchMeetingNotes, fetchMeetings } from './fetchers'
-
-function useListLifetime(
-  filters: MaybeRefOrGetter<MeetingFilters>,
-  enabled: MaybeRefOrGetter<boolean>,
-) {
-  const store = useScopeStore()
-  let version = 0
-  const stopFilters = watch(
-    () => JSON.stringify([toValue(filters), toValue(enabled)]),
-    () => {
-      version += 1
-    },
-    { flush: 'sync' },
-  )
-  const stopScope = store.onChange(() => {
-    version += 1
-  })
-  const owner = ownerLife(() => {
-    stopFilters()
-    stopScope()
-  })
-  return () => {
-    const started = version
-    const generation = authSession.generation
-    const accountId = authSession.snapshot.accountId
-    return () =>
-      owner.alive() &&
-      version === started &&
-      authSession.generation === generation &&
-      authSession.snapshot.accountId === accountId
-  }
-}
 
 export function useMeetings(
   filters: MaybeRefOrGetter<MeetingFilters>,
   enabled: MaybeRefOrGetter<boolean> = true,
 ) {
   const store = useScopeStore()
-  const lifetime = useListLifetime(filters, enabled)
   const query = useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
@@ -81,18 +44,7 @@ export function useMeetings(
   )
   const items = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
   const complete = computed(() => query.data.value !== undefined && !query.hasNextPage.value)
-  async function loadAll() {
-    const current = lifetime()
-    const visited = new Set<string>()
-    while (query.hasNextPage.value && current() && toValue(enabled)) {
-      const cursor = query.data.value?.pages.at(-1)?.next_cursor
-      if (!cursor || visited.has(cursor)) throw new Error('Tekrarlanan toplantı imleci')
-      visited.add(cursor)
-      const result = await query.fetchNextPage()
-      if (result.isError) throw result.error
-    }
-  }
-  return { query, items, complete, loadAll }
+  return { query, items, complete }
 }
 
 export function useMeeting(id: MaybeRefOrGetter<string | null>) {
@@ -113,16 +65,22 @@ export function useMeeting(id: MaybeRefOrGetter<string | null>) {
   )
 }
 
-export function useMeetingNotes(id: MaybeRefOrGetter<string | null>) {
+/** Detay tohumu (süzgeçsiz) yalnız `all` okumasına girer; süzgeçli okuma ayrı anahtardır (BE-061). */
+export function useMeetingNotes(
+  id: MaybeRefOrGetter<string | null>,
+  filter: MaybeRefOrGetter<NoteFilter> = 'all',
+) {
   const client = useQueryClient()
   const store = useScopeStore()
   return useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
       const meetingId = toValue(id)
+      const selected = toValue(filter)
       return {
-        queryKey: queryKeys.meetings.noteList(scope, meetingId ?? ''),
+        queryKey: queryKeys.meetings.noteList(scope, meetingId ?? '', selected),
         initialData: () => {
+          if (selected !== 'all') return undefined
           const detail = client.getQueryData<MeetingDetail>(
             queryKeys.meetings.detail(scope, meetingId ?? ''),
           )
@@ -130,7 +88,13 @@ export function useMeetingNotes(id: MaybeRefOrGetter<string | null>) {
         },
         queryFn: sessionBound(
           ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
-            fetchMeetingNotes(scope.programId!, meetingId!, pageParam || undefined, signal),
+            fetchMeetingNotes(
+              scope.programId!,
+              meetingId!,
+              pageParam || undefined,
+              signal,
+              selected,
+            ),
         ),
         initialPageParam: '',
         getNextPageParam: (page: Awaited<ReturnType<typeof fetchMeetingNotes>>) =>
@@ -163,27 +127,22 @@ export function useDeletedMeetings(enabled: MaybeRefOrGetter<boolean>) {
   )
 }
 
-/** Aday kümesi seçili programın standing olgularından okunur. */
+/** Aday kümesi tek uçtan (BE-067); `meetingId` null ise yeni toplantı taslağı (kuruluş kapısı). */
 export function useMeetingCandidates(
-  standing: MaybeRefOrGetter<Standing | null>,
+  meetingId: MaybeRefOrGetter<string | null>,
   enabled: MaybeRefOrGetter<boolean>,
 ) {
   const store = useScopeStore()
   return useQuery(
     computed(() => {
       const scope = store.snapshot
-      const actor = toValue(standing)
-      const isAdmin = actor?.companyAdmin === true
-      const departments = coordinatorDepartmentIds(actor, scope.programId)
+      const id = toValue(meetingId)
       return {
-        queryKey: queryKeys.meetings.candidates(scope, { admin: isAdmin, departments }),
+        queryKey: queryKeys.meetings.candidates(scope, { meetingId: id }),
         queryFn: sessionBound(({ signal }: QueryFunctionContext) =>
-          isAdmin
-            ? adminCandidates(scope.programId!, signal)
-            : coordinatorCandidates(scope.programId!, departments, signal),
+          fetchMeetingCandidates(scope.programId!, id, signal),
         ),
-        enabled:
-          scope.programId !== null && toValue(enabled) && (isAdmin || departments.length > 0),
+        enabled: scope.programId !== null && toValue(enabled),
         retry: retryTransient,
       }
     }),

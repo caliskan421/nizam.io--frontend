@@ -20,7 +20,7 @@ const meeting = {
   place: null,
   agenda: [],
   participants: [],
-  notes: { items: [], next_cursor: '' },
+  notes: { items: [], next_cursor: '', total: 0, counts: { all: 0, converted: 0, mine: 0 } },
   viewer_role: 'admin',
 }
 function handlers() {
@@ -33,7 +33,12 @@ function handlers() {
     ),
     http.get('http://localhost/v1/meetings/m1', () => HttpResponse.json(meeting)),
     http.get('http://localhost/v1/meetings/m1/notes', () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
+      HttpResponse.json({
+        items: [],
+        next_cursor: '',
+        total: 0,
+        counts: { all: 0, converted: 0, mine: 0 },
+      }),
     ),
   )
 }
@@ -55,14 +60,23 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
     author_role: 'admin',
     content: 'Yeni görev',
     converted_to_work_item_id: null,
+    converted_work_item_department_id: null,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     edit_revision: 1,
   }
   let converted = false
   const notes = () => ({
-    items: [{ ...note, converted_to_work_item_id: converted ? 'w-new' : null }],
+    items: [
+      {
+        ...note,
+        converted_to_work_item_id: converted ? 'w-new' : null,
+        converted_work_item_department_id: converted ? 'd1' : null,
+      },
+    ],
     next_cursor: '',
+    total: 1,
+    counts: { all: 1, converted: converted ? 1 : 0, mine: 1 },
   })
   backend.server.use(
     http.get('http://localhost/v1/meetings/m1', () =>
@@ -115,7 +129,8 @@ it('nottan görev üretimi gerçek listeyi ve pano sayacını yeniler, rozet do�
   $('#meeting-convert-form')!.dispatchEvent(
     new Event('submit', { bubbles: true, cancelable: true }),
   )
-  await until(() => $('.meeting-notes__converted'), 'dönüşüm etiketi')
+  await until(() => $('a.meeting-notes__converted'), 'dönüşüm etiketi bağlantı')
+  expect($('a.meeting-notes__converted')?.getAttribute('href')).toBe('/gorevler?gorev=w-new')
   await until(
     () => backend.sent('GET', '/v1/reports/dashboard').length > reportReads,
     'pano ve rozet yeniden okuma',

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
+import { useInstanceStore } from '@/shared/instance/store'
 import { DesignStub, UiIcon } from '@/shared/ui'
 
 import { detailText } from './messages'
@@ -6,11 +9,25 @@ import { detailText } from './messages'
 /**
  * Hakkında (E-08-70…75): "Düzenle" W74 düzenleme formunu açar (yalnız `editDepartment`).
  * Açıklama katalog alanı (`readProgramDepartment.description`, BE-049); boşsa paragraf çizilmez.
- * Üst birim çizilmez (K14, P16). Kuruluş ve Görünürlük alanı yok → "—" + `BE-018` (sahte tarih
- * yok, §4). Arşiv klasörü F5'e dek tıklanamaz + faz notu.
+ * Üst birim çizilmez (K14, P16). "Oluşturulma tarihi" katalog kaydının oluşturulma anıdır
+ * (BE-018 `created_at`; tarihsel kuruluş iddiası yok, GAP-240); Görünürlük alanı yok → "—" + `BE-018`
+ * (kısmi satır; sahte değer yok, §4). Arşiv klasörü F5'e dek tıklanamaz + faz notu.
  */
-defineProps<{ description: string | null; canEdit: boolean }>()
+const props = defineProps<{
+  description: string | null
+  createdAt: string | null
+  canEdit: boolean
+}>()
 const emit = defineEmits<{ edit: [] }>()
+const instance = useInstanceStore()
+const created = computed(() =>
+  props.createdAt
+    ? new Intl.DateTimeFormat('tr-TR', {
+        timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
+        dateStyle: 'medium',
+      }).format(new Date(props.createdAt))
+    : null,
+)
 </script>
 
 <template>
@@ -32,11 +49,9 @@ const emit = defineEmits<{ edit: [] }>()
     </div>
     <p v-if="description" class="cd-about" data-testid="cd-description">{{ description }}</p>
     <dl class="rp-dl cd-dl">
-      <dt>{{ detailText('coordinatorship.about.founded') }}</dt>
-      <dd class="rp-mono">
-        <DesignStub id="BE-018" data-field="founded">
-          {{ detailText('coordinatorship.about.none') }}
-        </DesignStub>
+      <dt>{{ detailText('coordinatorship.about.created') }}</dt>
+      <dd class="rp-mono" data-field="created">
+        {{ created ?? detailText('coordinatorship.about.none') }}
       </dd>
       <dt>{{ detailText('coordinatorship.about.archive') }}</dt>
       <dd>

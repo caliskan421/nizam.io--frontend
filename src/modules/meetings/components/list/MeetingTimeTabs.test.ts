@@ -9,10 +9,8 @@ it('uses roving focus and automatic selection for arrows, Home and End', async (
       selected: 'yaklasan',
       upcoming: 1,
       past: 2,
-      complete: true,
       admin: true,
-      deletedCount: 0,
-      deletedMore: false,
+      deleted: 0,
     },
     global: { plugins: [i18n] },
   })
@@ -32,4 +30,15 @@ it('uses roving focus and automatic selection for arrows, Home and End', async (
   expect(wrapper.emitted('select')?.at(-1)).toEqual(['silinenler'])
   expect(document.activeElement).toBe(tabs[2]!.element)
   wrapper.unmount()
+})
+it('prints exact counts without a plus marker and leaves unread counts empty', () => {
+  const wrapper = mount(MeetingTimeTabs, {
+    props: { selected: 'gecmis', upcoming: 12, past: 340, admin: true, deleted: null },
+    global: { plugins: [i18n] },
+  })
+  const tabs = wrapper.findAll('[role=tab]').map((tab) => tab.text())
+  expect(tabs[0]).toMatch(/12$/)
+  expect(tabs[1]).toMatch(/340$/)
+  expect(tabs.join()).not.toContain('+')
+  expect(tabs[2]).toBe('Silinenler')
 })

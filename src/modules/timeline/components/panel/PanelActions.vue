@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
-import { DesignStub, UiButton, UiIconButton, UiMenu, UiMenuItem } from '@/shared/ui'
+import { UiButton, UiIconButton, UiMenu, UiMenuItem } from '@/shared/ui'
 
 import { panelText } from './messages'
 
@@ -9,12 +9,23 @@ export type PanelAction = 'addDependency' | 'removeDependency' | 'openInList'
 
 /**
  * E-03C-64…66 — eylem satırı. "Kaydet" (Admin, doğrudan) ve "Tarih talebi gönder" (Koordinatör;
- * bekleyen talep varken gizli) yetkiye göre; Hatırlat devre dışı + `BE-008` stub; "Diğer işlemler"
+ * bekleyen talep varken gizli) yetkiye göre; Hatırlat canlı (BE-008; yalnız yönetici/koordinatör, `remind` olayı); "Diğer işlemler"
  * menüsü (Admin + Koordinatör; Üye'de yok): bağımlılık ekle/kaldır, Liste görünümünde aç. Menü
  * kapanınca odak tetikleyiciye döner (Esc, seçim, dışarı tıklama).
  */
-defineProps<{ canSave: boolean; canRequest: boolean; canManage: boolean; busy: boolean }>()
-const emit = defineEmits<{ save: []; request: []; action: [action: PanelAction] }>()
+defineProps<{
+  canSave: boolean
+  canRequest: boolean
+  canManage: boolean
+  busy: boolean
+  remindBusy?: boolean
+}>()
+const emit = defineEmits<{
+  save: []
+  request: []
+  remind: []
+  action: [action: PanelAction]
+}>()
 
 const root = ref<HTMLElement | null>(null)
 const trigger = ref<HTMLElement | null>(null)
@@ -64,14 +75,13 @@ async function pick(action: PanelAction): Promise<void> {
       </UiButton>
     </div>
     <div v-if="canManage" class="tp-actions__icons">
-      <DesignStub id="BE-008">
-        <UiIconButton
-          icon="bell"
-          :label="panelText('actions.remind')"
-          disabled
-          data-testid="tp-remind"
-        />
-      </DesignStub>
+      <UiIconButton
+        icon="bell"
+        :label="panelText('actions.remind')"
+        :disabled="busy || remindBusy"
+        data-testid="tp-remind"
+        @click="emit('remind')"
+      />
       <span ref="trigger" class="tp-actions__trigger">
         <UiIconButton
           icon="more"

@@ -1,6 +1,7 @@
-// K-4 (pin v0.23.0-api): createMeeting / addAgendaItem / addMeetingParticipant 200 (tekrar) / 201 / 404
-// ve isteğe bağlı `Idempotency-Key`. Davranış değişmez: anahtar GÖNDERİLMEZ (canlıya alma W175'in),
-// 200 de başarı sayılır, 404 olağan hata akışına (`failed` + kod → i18n) düşer.
+// BE-068 (pin v0.23.0-api, F8 W175): createMeeting / addAgendaItem / addMeetingParticipant
+// `Idempotency-Key` ile gönderilir; 201 yeni, 200 aynı anahtarın tekrarı (başarı), 404 (silinmiş
+// ilk toplantı) olağan hata akışına (`failed` + kod → i18n) düşer; belirsiz sonuçta AYNI anahtar
+// ve gövdeyle tek tekrar sunulur.
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -55,10 +56,12 @@ const createVars = {
   },
 }
 
-describe('K-4: 200 (tekrar) / 201 / 404 — anahtar gönderilmez', () => {
+const KEY = /^[A-Za-z0-9_-]{22}$/
+
+describe('BE-068: Idempotency-Key + 200 (tekrar) / 201 / 404', () => {
   for (const status of [200, 201] as const) {
-    it(`createMeeting ${status}: başarı; Idempotency-Key gönderilmez`, async () => {
-      let key: string | null = 'unset'
+    it(`createMeeting ${status}: başarı; eylem başına anahtar gider`, async () => {
+      let key: string | null = null
       server.use(
         http.post('http://localhost/v1/meetings', ({ request }) => {
           key = request.headers.get('Idempotency-Key')
@@ -68,12 +71,12 @@ describe('K-4: 200 (tekrar) / 201 / 404 — anahtar gönderilmez', () => {
       const { writes, close } = setup()
       const out = await writes.create.submit(createVars)
       expect(out).toMatchObject({ kind: 'success', status, data: { meeting_id: 'm1' } })
-      expect(key).toBeNull()
+      expect(key).toMatch(KEY)
       close()
     })
   }
 
-  it('addAgendaItem ve addMeetingParticipant 200/201: ikisi de başarı, anahtarsız', async () => {
+  it('addAgendaItem ve addMeetingParticipant 200/201: ikisi de başarı, her eylem yeni anahtar', async () => {
     const keys: (string | null)[] = []
     let n = 0
     server.use(
@@ -96,7 +99,73 @@ describe('K-4: 200 (tekrar) / 201 / 404 — anahtar gönderilmez', () => {
     ]
     expect(outs.map((o) => o.kind)).toEqual(Array(4).fill('success'))
     expect(outs.map((o) => (o.kind === 'success' ? o.status : 0))).toEqual([200, 201, 200, 201])
-    expect(keys).toEqual([null, null, null, null])
+    expect(keys.every((key) => KEY.test(key ?? ''))).toBe(true)
+    expect(new Set(keys).size).toBe(4)
+    close()
+  })
+
+  it('belirsiz sonuçta aynı anahtar ve gövdeyle tek tekrar; tekrar 200 = ilk kaynak, tek kayıt', async () => {
+    const seen: unknown[][] = []
+    server.use(
+      http.post('http://localhost/v1/meetings', async ({ request }) => {
+        seen.push([request.headers.get('Idempotency-Key'), await request.json()])
+        return seen.length === 1
+          ? HttpResponse.error()
+          : HttpResponse.json(CREATED, { status: 200 })
+      }),
+    )
+    const { writes, close } = setup()
+    const out = await writes.create.submit(createVars)
+    expect(out.kind).toBe('unknown_outcome')
+    if (out.kind !== 'unknown_outcome') return
+    expect(out.retry).not.toBeNull()
+    const again = await out.retry!()
+    expect(again).toMatchObject({ kind: 'success', status: 200, replayed: true })
+    expect(seen).toHaveLength(2)
+    expect(seen[0]![0]).toMatch(KEY)
+    expect(seen[1]).toEqual(seen[0])
+    close()
+  })
+
+  it('tekrar da belirsizse üçüncü kör gönderim yok: retry kapanır', async () => {
+    let calls = 0
+    server.use(
+      http.post('http://localhost/v1/meetings/m/participants', () => {
+        calls += 1
+        return HttpResponse.error()
+      }),
+      http.get('http://localhost/v1/*', () => HttpResponse.json({ items: [], next_cursor: '' })),
+    )
+    const { writes, close } = setup()
+    const out = await writes.participant.submit({ programId: 'p', id: 'm', userId: 'u' })
+    if (out.kind !== 'unknown_outcome') throw new Error('belirsiz bekleniyordu')
+    const second = await out.retry!()
+    expect(second.kind).toBe('unknown_outcome')
+    if (second.kind === 'unknown_outcome') expect(second.retry).toBeNull()
+    expect(calls).toBe(2)
+    close()
+  })
+
+  it('409 farklı istekle anahtar yeniden kullanımı: otomatik tekrar yok', async () => {
+    let calls = 0
+    server.use(
+      http.post('http://localhost/v1/meetings', () => {
+        calls += 1
+        return HttpResponse.json(
+          {
+            code: 'collaboration.idempotency_key_reused',
+            message: 'sunucu iletisi',
+            request_id: 'r',
+            fields: [],
+          },
+          { status: 409 },
+        )
+      }),
+    )
+    const { writes, close } = setup()
+    const out = await writes.create.submit(createVars)
+    expect(out.kind).toBe('idempotency_key_reused')
+    expect(calls).toBe(1)
     close()
   })
 

@@ -27,14 +27,16 @@ function setupWrites() {
   }
 }
 
-it('writes all meeting operations through S2 without idempotency keys', async () => {
+it('writes all meeting operations through S2; only createMeeting carries an idempotency key', async () => {
   const seen: string[] = []
   server.use(
     http.all('http://localhost/v1/*', ({ request }) => {
       expect(request.headers.get('X-Nizamio-Program')).toBe('p')
       expect(request.headers.get('X-Nizamio-Department')).toBeNull()
       expect(request.headers.get('X-Requested-With')).toBe('XMLHttpRequest')
-      expect(request.headers.get('Idempotency-Key')).toBeNull()
+      const key = request.headers.get('Idempotency-Key')
+      if (request.method === 'POST') expect(key).toMatch(/^[A-Za-z0-9_-]{22}$/)
+      else expect(key).toBeNull()
       seen.push(`${request.method} ${new URL(request.url).pathname}`)
       if (request.method === 'DELETE' && new URL(request.url).pathname === '/v1/meetings/m')
         return new HttpResponse(null, { status: 204 })

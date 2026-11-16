@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { expect, it, vi } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
@@ -12,17 +12,18 @@ vi.mock('@/shared/scope/standing', () => ({
     standing: computed(() => ({ accountId: 'a', companyAdmin: actor.admin, rows: [] })),
   }),
 }))
-vi.mock('../../pages/detail/use-departments', () => ({
-  useDepartments: () => ref([{ department_id: 'd', code: 'BİR' }]),
-}))
 const meeting = {
   meeting_id: 'm',
   program_id: 'p',
   invite_mode: 'coordinatorship',
   owner_department_id: 'd',
-  departments: [{ department_id: 'd', department_name: 'Birim' }],
+  departments: [
+    { department_id: 'd', department_name: 'Birim', department_code: 'BİR', deleted: false },
+    { department_id: 'x', department_name: 'Eski Birim', department_code: null, deleted: true },
+  ],
   created_by_account_id: 'a',
   created_by_role: 'admin',
+  created_by_full_name: 'Ada',
   created_at: '2026-10-21T10:00:00Z',
   members_included: false,
   viewer_role: 'admin',
@@ -46,7 +47,12 @@ it('shows department and information without conference provider', async () => {
   wrapper.unmount()
 })
 it('hides editing for coordinators and person meetings and falls back for absent creator', () => {
-  const missing = { ...meeting, participants: [], invite_mode: 'person' } as MeetingDetail
+  const missing = {
+    ...meeting,
+    participants: [],
+    created_by_full_name: null,
+    invite_mode: 'person',
+  } as MeetingDetail
   const wrapper = setup(false, missing)
   expect(wrapper.find('button').exists()).toBe(false)
   expect(wrapper.text()).toContain('Bilinmeyen kişi')
@@ -59,10 +65,26 @@ it('hides editing for coordinators and person meetings and falls back for absent
 it('uses name initials when the department no longer has a code', () => {
   const value = {
     ...meeting,
-    departments: [{ department_id: 'deleted', department_name: 'Eski Birim' }],
+    departments: [
+      {
+        department_id: 'deleted',
+        department_name: 'Eski Birim',
+        department_code: null,
+        deleted: true,
+      },
+    ],
     owner_department_id: 'deleted',
   } as MeetingDetail
   const wrapper = setup(true, value)
   expect(wrapper.text()).toContain('EB')
+  wrapper.unmount()
+})
+
+it('names the creator from the server even when not a participant and marks deleted departments', () => {
+  const value = { ...meeting, participants: [], created_by_full_name: 'Ayşe Açan' } as MeetingDetail
+  const wrapper = setup(true, value)
+  expect(wrapper.text()).toContain('Ayşe Açan')
+  expect(wrapper.text()).toContain('Eski Birim')
+  expect(wrapper.text()).toContain('silinmiş')
   wrapper.unmount()
 })

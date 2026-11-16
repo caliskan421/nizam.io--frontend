@@ -3,7 +3,9 @@
  * yalnız modelden: `canTransitionWorkItem` (s.141) + `transitionTargets` (§5 matrisi). Uç
  * varsayılanı `transitionWorkItem` (her aktöre yeter; IK yok, sürüm yok).
  *
- *  - Geri alma (`tamamlandi → devam_ediyor`) önce gerekçe ister (`reason` ≥ 3 bayt).
+ *  - Geri alma (`tamamlandi → devam_ediyor`) önce gerekçe ister (`reason` ≥ 3 bayt). İade
+ *    (`→ iade_edildi`) aynı pencereyle isteğe bağlı gerekçe sorar (boş = gerekçesiz; 3–500
+ *    karakter; BE-139).
  *  - 409 `work.subtasks_open` → "Açık alt görevler kapatılsın mı?" → onayda AYNI hedef
  *    `close_subtasks: true` ile yeni eylem (yalnız `to = tamamlandi`).
  *  - 422 `work.attachment_required` → "Önce kanıt dosyası yükleyin" + `requestEvidence`
@@ -25,7 +27,13 @@ import { useToast } from '@/shared/ui'
 import { useTransitionWorkItem } from '../../api'
 import { canTransitionWorkItem, workActorFacts } from '../../model/capabilities'
 import { targetOf } from '../../model/target'
-import { canCloseSubtasks, requiresReason, transitionTargets } from '../../model/transitions'
+import {
+  canCloseSubtasks,
+  offersReturnReason,
+  reasonBody,
+  requiresReason,
+  transitionTargets,
+} from '../../model/transitions'
 import type { TransitionBody, TransitionResult, WorkItem, WorkItemStatus } from '../../model/types'
 import { formsText } from './messages'
 
@@ -157,18 +165,16 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   /** Menüden hedef seçimi: geri almada önce gerekçe penceresi. */
   async function choose(to: WorkItemStatus): Promise<void> {
     const current = toValue(item)
-    if (requiresReason(current.status, to)) {
-      reasonFor.value = to
-      return
-    }
-    await send(current, { to })
+    if (requiresReason(current.status, to) || offersReturnReason(to)) reasonFor.value = to
+    else await send(current, { to })
   }
 
   /** Gerekçe penceresinden gönderim; pencere başarıda kapanır. */
   async function submitReason(reason: string): Promise<Outcome | null> {
     const to = reasonFor.value
     if (to === null) return null
-    const outcome = await send(toValue(item), { to, reason: reason.trim() })
+    const body: TransitionBody = reasonBody(to, reason)
+    const outcome = await send(toValue(item), body)
     if (outcome.kind === 'success') reasonFor.value = null
     return outcome
   }

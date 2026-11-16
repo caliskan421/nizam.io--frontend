@@ -11,7 +11,12 @@ import { useScopeStore } from '@/shared/scope/store'
 import type { MeetingDetail } from '../../model/types'
 import MeetingNotes from './MeetingNotes.vue'
 
-const actor = vi.hoisted(() => ({ admin: false, role: 'member', replace: vi.fn() }))
+const actor = vi.hoisted(() => ({
+  admin: false,
+  role: 'member',
+  replace: vi.fn(),
+  push: vi.fn(),
+}))
 vi.mock('@/shared/scope/standing', () => ({
   useStanding: () => ({
     standing: computed(() => ({
@@ -23,7 +28,7 @@ vi.mock('@/shared/scope/standing', () => ({
 }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
-  useRouter: () => ({ replace: actor.replace }),
+  useRouter: () => ({ replace: actor.replace, push: actor.push }),
 }))
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
@@ -50,7 +55,7 @@ const meeting = {
   members_included: true,
   viewer_role: 'member',
   participants: [{ account_id: 'a' }],
-  notes: { items: [note], next_cursor: '' },
+  notes: { items: [note], next_cursor: '', total: 1, counts: { all: 1, converted: 1, mine: 1 } },
 } as MeetingDetail
 function setup(admin: boolean, role: string) {
   actor.admin = admin
@@ -111,10 +116,11 @@ it('filters the loaded notes and submits a note with an idempotency key', async 
   client.clear()
 })
 
-it('marks loaded counts as partial and writes the filter into the URL', async () => {
+it('shows exact counts even when more pages exist and writes the filter into the URL', async () => {
   meeting.notes.next_cursor = 'next'
   const { wrapper, client } = setup(false, 'member')
-  expect(wrapper.text()).toContain('Tümü 1+')
+  expect(wrapper.text()).toContain('Tümü 1')
+  expect(wrapper.text()).not.toContain('1+')
   expect(wrapper.text()).toContain('Daha fazla not göster')
   await wrapper.get('button[aria-pressed="false"]').trigger('click')
   expect(actor.replace).toHaveBeenCalledWith({ query: { notlar: 'gorev' } })
@@ -170,4 +176,22 @@ it('keeps an uncertain draft and blocks a new key until the user clears it', asy
   )
   wrapper.unmount()
   client.clear()
+})
+
+it('turns the converted label into a task link only when the department copy exists (BE-065)', async () => {
+  const linked = { ...note, converted_work_item_department_id: 'd' }
+  meeting.notes.items = [
+    linked,
+    { ...note, note_id: 'old', converted_work_item_department_id: null },
+  ] as MeetingDetail['notes']['items']
+  const { wrapper, client } = setup(false, 'member')
+  const links = wrapper.findAll('a.meeting-notes__converted')
+  expect(links).toHaveLength(1)
+  expect(links[0]!.attributes('href')).toBe('/gorevler?gorev=w')
+  expect(wrapper.findAll('span.meeting-notes__converted')).toHaveLength(1)
+  await links[0]!.trigger('click')
+  expect(actor.push).toHaveBeenCalledWith('/gorevler?gorev=w')
+  wrapper.unmount()
+  client.clear()
+  meeting.notes.items = [note] as MeetingDetail['notes']['items']
 })

@@ -39,9 +39,14 @@ const FORM_STUB = { DateRequestForm: true }
 const REPORT_STUB = { TaskReportButton: true }
 
 function mountActions(facts: WorkActorFacts, over = {}) {
+  // "Atanana hatırlat" (BE-008) yazma kancası QueryClient + Pinia ister.
+  const h = harness(COORD_SCOPE)
   return mount(DetailActions, {
     props: { item: workItem(over), facts },
-    global: { stubs: { ...CHILD_STUBS, ...FORM_STUB, ...REPORT_STUB } },
+    global: {
+      stubs: { ...CHILD_STUBS, ...FORM_STUB, ...REPORT_STUB },
+      plugins: [getActivePinia()!, [VueQueryPlugin, { queryClient: h.queryClient }]],
+    },
   })
 }
 
@@ -50,18 +55,18 @@ const action = (wrapper: ReturnType<typeof mountActions>, name: string) =>
 
 describe('eylem satırı — görünürlük (capabilities, P1)', () => {
   it.each([
-    // [ad, olgular, yükle, tarih talebi, sil]
-    ['yönetici', FACTS.admin, true, false, true],
-    ['koordinatör', FACTS.coordinator, true, true, true],
-    ['atanmış üye', FACTS.assignedMember, true, false, false],
-    ['atanmamış üye', FACTS.member, false, false, false],
-  ])('%s', (_name, facts, upload, dateRequest, remove) => {
+    // [ad, olgular, yükle, tarih talebi, sil, hatırlat]
+    ['yönetici', FACTS.admin, true, false, true, true],
+    ['koordinatör', FACTS.coordinator, true, true, true, true],
+    ['atanmış üye', FACTS.assignedMember, true, false, false, false],
+    ['atanmamış üye', FACTS.member, false, false, false, false],
+  ])('%s', (_name, facts, upload, dateRequest, remove, remind) => {
     const wrapper = mountActions(facts)
     expect(action(wrapper, 'upload').exists()).toBe(upload)
     expect(action(wrapper, 'date-request').exists()).toBe(dateRequest)
     expect(wrapper.findComponent({ name: 'DeleteTaskAction' }).exists()).toBe(remove)
-    // Hatırlat ve Kopyala herkeste.
-    expect(action(wrapper, 'remind').exists()).toBe(true)
+    // Hatırlat yalnız koordinatör/yönetici (BE-008, olgu); Kopyala herkeste.
+    expect(action(wrapper, 'remind').exists()).toBe(remind)
     expect(action(wrapper, 'copy').exists()).toBe(true)
   })
 
@@ -83,14 +88,39 @@ describe('eylem satırı — görünürlük (capabilities, P1)', () => {
 })
 
 describe('eylem satırı — davranış', () => {
-  it('Hatırlat: devre dışı + BE-008 stub; tık istek atmaz (E-03-53)', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+  it('Hatırlat canlı (BE-008): görevin kendi kapsamıyla 202; "n kişiye gönderildi"; stub yok', async () => {
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/w1/remind`, () => json({ recipient_count: 2 }, 202)),
+    )
     const wrapper = mountActions(FACTS.coordinator)
     const remind = action(wrapper, 'remind')
-    expect(remind.attributes('disabled')).toBeDefined()
-    expect(remind.element.closest('[data-design-stub="BE-008"]')).not.toBeNull()
+    expect(remind.attributes('disabled')).toBeUndefined()
+    expect(remind.element.closest('[data-design-stub]')).toBeNull()
     await remind.trigger('click')
-    expect(fetchSpy).not.toHaveBeenCalled()
+    await flushPromises()
+    const [call] = sent('POST', '/v1/work-items/w1/remind')
+    expect(call!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(call!.headers.get('X-Nizamio-Department')).toBe('d2')
+    expect(call!.headers.get('Idempotency-Key')).toBeNull()
+    expect(useToast().current.value?.message).toBe('2 kişiye hatırlatma gönderildi.')
+  })
+
+  it.each([
+    ['work.item_completed', 409, 'Görev zaten tamamlandı.'],
+    ['work.input_invalid', 422, 'Girilen bilgiler geçersiz.'],
+    ['platform.rate_limited', 429, 'Çok fazla istek'],
+  ])('Hatırlat %s (%s): kod → i18n, sunucu iletisi yok, tekrar yok', async (code, status, text) => {
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/w1/remind`, () =>
+        json({ code, message: 'sunucu iletisi', request_id: 'r', fields: [] }, status),
+      ),
+    )
+    const wrapper = mountActions(FACTS.coordinator)
+    await action(wrapper, 'remind').trigger('click')
+    await flushPromises()
+    expect(sent('POST', '/v1/work-items/w1/remind')).toHaveLength(1)
+    expect(useToast().current.value?.message).toContain(text)
+    expect(useToast().current.value?.message).not.toContain('sunucu iletisi')
   })
 
   it('Tarih değişikliği iste: canlı (E-03-54, P8/P18); stub/devre dışı değil, F3 notu yok', () => {

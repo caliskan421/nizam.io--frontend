@@ -60,6 +60,39 @@ export function requiresReason(from: WorkItemStatus, to: WorkItemStatus): boolea
   return from === 'tamamlandi' && to === 'devam_ediyor'
 }
 
+/** İade (`→ iade_edildi`) gerekçe penceresi açar; gerekçe İSTEĞE BAĞLIDIR (BE-139, WORK-K96). */
+export function offersReturnReason(to: WorkItemStatus): boolean {
+  return to === 'iade_edildi'
+}
+
+export const RETURN_REASON_MIN = 3
+export const RETURN_REASON_MAX = 500
+
+/** İade gerekçesi denetimi: kırpılmış boş → gerekçesiz iade (`null`); doluysa 3–500 karakter. */
+export function checkReturnReason(
+  input: string,
+): { ok: true; reason: string | null } | { ok: false } {
+  const reason = input.trim()
+  if (reason === '') return { ok: true, reason: null }
+  const length = [...reason].length
+  return length >= RETURN_REASON_MIN && length <= RETURN_REASON_MAX
+    ? { ok: true, reason }
+    : { ok: false }
+}
+
+/**
+ * Gerekçe penceresinden geçiş gövdesi: iade gerekçesi isteğe bağlıdır (boş → gerekçesiz, BE-139);
+ * geri almada kırpılmış gerekçe zorunludur.
+ */
+export function reasonBody(
+  to: WorkItemStatus,
+  reason: string,
+): { to: WorkItemStatus; reason?: string } {
+  if (!offersReturnReason(to)) return { to, reason: reason.trim() }
+  const checked = checkReturnReason(reason)
+  return checked.ok && checked.reason !== null ? { to, reason: checked.reason } : { to }
+}
+
 /** Gerekçe geçerli mi (UTF-8 bayt sayısı, kırpılmış). */
 export function isValidReason(reason: string): boolean {
   return new TextEncoder().encode(reason.trim()).length >= REVERT_REASON_MIN_BYTES

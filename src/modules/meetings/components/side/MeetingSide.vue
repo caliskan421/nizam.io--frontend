@@ -4,7 +4,6 @@ import './side.css'
 import type { MeetingDetail } from '../../model/types'
 import { coordinatorDepartmentIds, meetingCapabilities } from '../../model/capabilities'
 import { meetingDepartments } from '../../model/list'
-import { useDepartments } from '../../pages/detail/use-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -16,7 +15,6 @@ const text = trMeetings.meetings.side
 const scope = useScopeStore()
 const instance = useInstanceStore()
 const { standing } = useStanding()
-const departments = useDepartments()
 const access = computed(() =>
   meetingCapabilities(standing.value, scope.programId ?? '', {
     inviteMode: props.meeting.invite_mode,
@@ -28,13 +26,10 @@ const access = computed(() =>
     viewerRole: props.meeting.viewer_role,
   }),
 )
-const ordered = computed(() => meetingDepartments(props.meeting, departments.value))
+const ordered = computed(() => meetingDepartments(props.meeting))
 const code = (id: string) => ordered.value.find((d) => d.department_id === id)?.code
-const creator = computed(
-  () =>
-    props.meeting.participants.find((p) => p.account_id === props.meeting.created_by_account_id)
-      ?.full_name || text.unknown,
-)
+// Açan adı katılımcı olmasa da gelir (BE-063 `created_by_full_name`); null → bilinmeyen kişi.
+const creator = computed(() => props.meeting.created_by_full_name || text.unknown)
 const date = computed(() =>
   new Intl.DateTimeFormat('tr-TR', {
     timeZone: instance.profile?.timezone ?? 'Europe/Istanbul',
@@ -89,6 +84,7 @@ const role = computed(() => {
           <small v-if="department.department_id === meeting.owner_department_id">{{
             text.owner
           }}</small>
+          <small v-if="department.deleted">{{ text.deletedDepartment }}</small>
         </li>
       </ul>
       <p>{{ text.departmentHint }}</p>

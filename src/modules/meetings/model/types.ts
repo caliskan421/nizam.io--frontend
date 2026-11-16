@@ -2,17 +2,18 @@ import type { components, operations } from '@/shared/api/schema'
 
 export type MeetingFilters = NonNullable<operations['listMeetings']['parameters']['query']>
 export type MeetingDetail = components['schemas']['MeetingDetail']
+/** Not süzgeci (BE-061): sunucuda `converted`/`author`; URL `notlar` ile eşli. */
+export type NoteFilter = 'all' | 'converted' | 'mine'
 
 export interface MeetingCandidate {
   accountId: string
   fullName: string
+  /** Aday toplantıya zaten katılımcıdır (yalnız `meeting_id` verilen okumada anlamlı). */
+  isParticipant: boolean
 }
 
 export interface MeetingCandidates {
   people: MeetingCandidate[]
-  truncated: boolean
-  /** K yolu yalnız kendi koordinatörlüklerini kapsar. */
-  partial: boolean
 }
 
 export type CreateMeetingRequest = components['schemas']['CreateMeetingRequest']

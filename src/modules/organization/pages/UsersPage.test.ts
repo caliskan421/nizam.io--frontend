@@ -75,16 +75,14 @@ function mountPage(path = '/kullanicilar') {
 }
 
 describe('UsersPage — başlık ve araç çubuğu', () => {
-  it('alt başlık sunucu toplamı; Dışa aktar stub (istek yok); Admin sekmesi canlı; sunucu sayaçları', async () => {
+  it('alt başlık sunucu toplamı; Dışa aktar canlı (stub yok); Admin sekmesi canlı; sunucu sayaçları', async () => {
     const { wrapper } = await mountPage()
     expect(wrapper.get('[data-testid="users-summary"]').text()).toBe(
       '3 kullanıcı · roller ve koordinatörlük atamaları',
     )
-    const exportButton = wrapper.get('[data-design-stub="BE-014"] [data-testid="users-export"]')
-    expect(exportButton.attributes('disabled')).toBeDefined()
-    const before = sent('GET', '/v1/admin/users').length
-    await exportButton.trigger('click')
-    expect(sent('GET', '/v1/admin/users')).toHaveLength(before)
+    const exportButton = wrapper.get('[data-testid="users-export"]')
+    expect(wrapper.find('[data-design-stub="BE-014"]').exists()).toBe(false)
+    expect(exportButton.attributes('disabled')).toBeUndefined()
 
     const tabs = wrapper.findAll('.rp-seg button')
     expect(tabs.map((t) => t.text().replace(/\s+/g, ' '))).toEqual([

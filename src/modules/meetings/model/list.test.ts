@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { makeMeetingDepartment, withMeetingDefaults } from '@/shared/api/__tests__/defaults'
 import type { components } from '@/shared/api/schema'
-import { groupMeetings, meetingDay, meetingDepartments, splitMeetings } from './list'
+import { groupMeetings, meetingDay, meetingDepartments } from './list'
 
 type Meeting = components['schemas']['Meeting']
 const meeting = (id: string, date: string): Meeting =>
@@ -22,30 +22,27 @@ const meeting = (id: string, date: string): Meeting =>
   })
 
 describe('meeting list model', () => {
-  it('uses the installation day and keeps earlier times today upcoming', () => {
-    const now = new Date('2026-11-10T22:30:00Z')
-    expect(meetingDay(now, 'Europe/Istanbul')).toBe('2026-11-11')
-    const result = splitMeetings(
-      [meeting('today', '2026-11-10T21:01:00Z'), meeting('past', '2026-11-10T20:59:00Z')],
-      now,
-      'Europe/Istanbul',
-    )
-    expect(result.upcoming.map((m) => m.meeting_id)).toEqual(['today'])
-    expect(result.past.map((m) => m.meeting_id)).toEqual(['past'])
+  it('uses the installation calendar day', () => {
+    expect(meetingDay(new Date('2026-11-10T22:30:00Z'), 'Europe/Istanbul')).toBe('2026-11-11')
+    expect(meetingDay('2026-11-10T20:59:00Z', 'Europe/Istanbul')).toBe('2026-11-10')
   })
-  it('places the owner first and falls back to initials for missing codes', () => {
+  it('places the owner first, takes the code from the bind copy and falls back to initials', () => {
     const m = {
       ...meeting('x', '2026-11-11T00:00:00Z'),
       departments: [
-        makeMeetingDepartment({ department_id: 'other', department_name: 'İnsan Kaynakları' }),
-        makeMeetingDepartment({ department_id: 'd', department_name: 'Ana Ekip' }),
+        makeMeetingDepartment({
+          department_id: 'other',
+          department_name: 'İnsan Kaynakları',
+          department_code: null,
+        }),
+        makeMeetingDepartment({
+          department_id: 'd',
+          department_name: 'Ana Ekip',
+          department_code: 'ANA',
+        }),
       ],
     }
-    expect(
-      meetingDepartments(m, [{ department_id: 'd', display_name: 'Ana', code: 'ANA' }]).map(
-        (d) => d.code,
-      ),
-    ).toEqual(['ANA', 'İK'])
+    expect(meetingDepartments(m).map((d) => d.code)).toEqual(['ANA', 'İK'])
   })
   it('groups records by the installation calendar day', () => {
     const groups = groupMeetings(

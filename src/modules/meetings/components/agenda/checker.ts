@@ -6,7 +6,10 @@ export function checker(
   timezone: string,
   unknown: string,
 ) {
-  const name = participants.find((p) => p.account_id === item.checked_by_account_id)?.full_name
+  // İşaretleyen adı sunucudan (BE-063 `checked_by_full_name`); eski satırda katılımcıdan yedek.
+  const name =
+    item.checked_by_full_name ||
+    participants.find((p) => p.account_id === item.checked_by_account_id)?.full_name
   const displayName = name ?? unknown
   const parts = displayName.trim().split(/\s+/)
   const short =

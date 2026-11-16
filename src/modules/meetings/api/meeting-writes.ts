@@ -1,4 +1,4 @@
-import { useKeylessMutation } from '@/modules/organization/public'
+import { useKeyedOrgMutation, useKeylessMutation } from '@/modules/organization/public'
 import { programHeaders } from '@/modules/work/public'
 import { api } from '@/shared/http'
 import type {
@@ -10,12 +10,16 @@ import type {
   UpdateMeetingInput,
 } from '../model/types'
 
+/**
+ * `createMeeting` (BE-068): her gönderimde kullanıcı eylemi başına `Idempotency-Key`; sonuç
+ * bilinmiyorsa aynı anahtar ve gövdeyle tek tekrar sunulur (tekrar 200 = ilk kaynak, başarı).
+ */
 export function useCreateMeeting() {
-  return useKeylessMutation<CreateMeetingInput, MeetingCreated>({
+  return useKeyedOrgMutation<CreateMeetingInput, MeetingCreated>({
     operation: 'createMeeting',
     send: (vars, ctx) =>
       api.POST('/v1/meetings', {
-        params: { header: programHeaders(vars) },
+        params: { header: { ...programHeaders(vars), 'Idempotency-Key': ctx.idempotencyKey } },
         body: vars.body,
         signal: ctx.signal,
       }),

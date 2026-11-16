@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import './users-page.css'
 
-import { DesignStub, UiButton, UiIcon } from '@/shared/ui'
+import { UiButton } from '@/shared/ui'
 
 import { usersText } from '../../components/users/messages'
+import UsersExportButton from '../../components/users/UsersExportButton.vue'
 import WorkloadReportButton from '../../components/users/WorkloadReportButton.vue'
 
 /**
  * Başlık (E-05-02…05). Alt başlık yüklenen sayı (imleç bitmediyse "‹n›+ … yüklenen kayıtlar
- * içinde"; toplam yazılmaz — BE-011, P4). "Dışa aktar" devre dışı `designStub('BE-014')` (uç
- * yok; tık istek atmaz). İş yükü raporu düğmesi (E-13-59; `WorkloadReportButton`, yalnız ŞY) ilk eylemdir. Birincil eylem metni "Kullanıcı oluştur" (P14; e-posta daveti yok).
+ * içinde"; toplam yazılmaz — BE-011, P4). "Dışa aktar" canlı (BE-014; `UsersExportButton`). İş yükü raporu düğmesi (E-13-59; `WorkloadReportButton`, yalnız ŞY) ilk eylemdir. Birincil eylem metni "Kullanıcı oluştur" (P14; e-posta daveti yok).
  */
 defineProps<{ summary: string; canCreate: boolean }>()
 const emit = defineEmits<{ create: [] }>()
@@ -23,12 +23,7 @@ const emit = defineEmits<{ create: [] }>()
     </div>
     <div class="rp-actions">
       <WorkloadReportButton />
-      <DesignStub id="BE-014">
-        <button class="t-btn t-btn--secondary" type="button" disabled data-testid="users-export">
-          <UiIcon name="download" size="sm" />
-          <span class="rp-trunc">{{ usersText('users.export') }}</span>
-        </button>
-      </DesignStub>
+      <UsersExportButton />
       <UiButton
         v-if="canCreate"
         variant="primary"

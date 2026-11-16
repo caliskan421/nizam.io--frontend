@@ -188,7 +188,14 @@ export const queryKeys = {
     candidates: (s: ScopeSnapshot, filters: QueryFilters) =>
       scoped(s, ['meetings', 'candidates', filters]),
     detail: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', 'detail', id]),
-    noteList: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', 'notes', id]),
+    /** Süzgeçsiz anahtar önektir: süzgeçli okumalar (BE-061) onun altında, aynı önekle geçersizlenir. */
+    noteList: (s: ScopeSnapshot, id: string, filter?: string) =>
+      scoped(
+        s,
+        filter && filter !== 'all'
+          ? ['meetings', 'notes', id, { filter }]
+          : ['meetings', 'notes', id],
+      ),
     item: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', id]),
     agenda: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', id, 'agenda']),
     notes: (s: ScopeSnapshot, id: string) => scoped(s, ['meetings', id, 'notes']),

@@ -2,36 +2,32 @@
 import './notes.css'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
-import { designStub } from '@/shared/design-stub'
 import { UiAvatar } from '@/shared/ui'
 import { useInstanceStore } from '@/shared/instance/store'
 import { authSession } from '@/shared/http'
-import { reachesOwner } from '@/shared/http/mutation'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 import { ConflictDialog } from '@/shared/ui/conflict'
-import { notifyOutcome } from '@/shared/ui/confirm'
 import { useMeetingNotes } from '../../api/queries'
-import { useAddMeetingNote } from '../../api/note-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
+import NoteConvertedLabel from './NoteConvertedLabel.vue'
 import NoteFilters from './NoteFilters.vue'
 import NoteComposer from './NoteComposer.vue'
-import { noteCount, noteTime, noteFacts, noteFocus, selectNotes } from './notes-view'
+import { noteTime, noteFacts, noteFocus } from './notes-view'
 import { useNoteFilter } from './use-note-filter'
 import { useNoteEdit } from './use-note-edit'
+import { useNoteAdd } from './use-note-add'
 import { useNoteDelete } from './use-note-delete'
 const props = defineProps<{ meeting: MeetingDetail }>()
 const emit = defineEmits<{ convert: [note: MeetingNote]; refresh: [] }>()
 const scope = useScopeStore()
 const instance = useInstanceStore()
 const { standing } = useStanding()
-const query = useMeetingNotes(() => props.meeting.meeting_id)
-const add = useAddMeetingNote()
-const draft = ref('')
-const unknownDraft = ref<string | null>(null)
 const { filter, setFilter } = useNoteFilter()
-const count = (value: number) => noteCount(value, query.hasNextPage.value)
+const query = useMeetingNotes(() => props.meeting.meeting_id, filter)
+// Sayaçlar süzgeç ve imleçten bağımsızdır, her sayfada aynıdır (BE-061).
+const counts = computed(() => query.data.value?.pages[0]?.counts ?? null)
 const time = (value: string) => noteTime(value, instance.profile?.timezone)
 const openMenu = ref<string | null>(null)
 const section = ref<HTMLElement | null>(null)
@@ -39,11 +35,9 @@ const { focus, bind, heading } = noteFocus(section, () => version)
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
 const text = trMeetings.meetings.notes
 const roleLabels = text.roles
-const convertedLabel = designStub('BE-065', text.convertedLabel)
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
 const mine = (note: MeetingNote) =>
   !!standing.value && note.author_account_id === standing.value.accountId
-const shown = computed(() => selectNotes(notes.value, filter.value, standing.value?.accountId))
 const access = computed(() =>
   meetingCapabilities(standing.value, scope.programId ?? '', {
     inviteMode: props.meeting.invite_mode,
@@ -57,6 +51,11 @@ const access = computed(() =>
 )
 const target = () => ({ programId: scope.programId!, id: props.meeting.meeting_id })
 let version = 0
+const { add, draft, unknownDraft, addNote, resetAdd } = useNoteAdd(
+  target,
+  () => version,
+  () => emit('refresh'),
+)
 function refreshNotes() {
   void query.refetch()
   emit('refresh')
@@ -73,8 +72,7 @@ const { update, conflict, editing, editDraft, saveNote, busy } = useNoteEdit(
 const removeNote = useNoteDelete(target, () => version, refreshNotes, heading)
 function resetDraft() {
   version += 1
-  draft.value = ''
-  unknownDraft.value = null
+  resetAdd()
   editing.value = null
   openMenu.value = null
 }
@@ -102,28 +100,6 @@ function startEdit(note: MeetingNote) {
   editDraft.value = note.content
   closeMenu(note.note_id)
 }
-async function addNote() {
-  if (
-    !scope.programId ||
-    !draft.value.trim() ||
-    Array.from(draft.value).length > 5000 ||
-    add.isPending.value ||
-    draft.value === unknownDraft.value
-  )
-    return
-  const started = version
-  const content = draft.value
-  const result = await add.submit({ ...target(), body: { content } })
-  if (!reachesOwner(result) || started !== version) return
-  if (result.kind === 'success') {
-    unknownDraft.value = null
-    draft.value = ''
-    emit('refresh')
-  } else {
-    if (result.kind === 'unknown_outcome') unknownDraft.value = content
-    notifyOutcome(result)
-  }
-}
 function deleteNote(note: MeetingNote) {
   closeMenu(note.note_id)
   void removeNote(note)
@@ -133,9 +109,9 @@ function deleteNote(note: MeetingNote) {
   <section ref="section" class="t-card meeting-notes" :aria-label="text.title">
     <NoteFilters
       :filter="filter"
-      :all="count(notes.length)"
-      :converted="count(notes.filter(converted).length)"
-      :mine="count(notes.filter(mine).length)"
+      :all="counts?.all ?? null"
+      :converted="counts?.converted ?? null"
+      :mine="counts?.mine ?? null"
       @change="setFilter"
     />
     <NoteComposer
@@ -150,7 +126,7 @@ function deleteNote(note: MeetingNote) {
     <p v-else-if="query.isError.value">
       {{ text.error }} <button type="button" @click="query.refetch()">{{ text.retry }}</button>
     </p>
-    <article v-for="note in shown" :key="note.note_id" class="meeting-notes__item">
+    <article v-for="note in notes" :key="note.note_id" class="meeting-notes__item">
       <UiAvatar :name="note.author_name" />
       <div class="meeting-notes__content">
         <strong>{{ note.author_name }}</strong>
@@ -176,8 +152,7 @@ function deleteNote(note: MeetingNote) {
         </form>
         <p v-else>{{ note.content }}</p>
         <div class="meeting-notes__foot">
-          <span v-if="converted(note)" class="meeting-notes__converted">{{ convertedLabel }}</span
-          ><button
+          <NoteConvertedLabel v-if="converted(note)" :note="note" /><button
             v-else-if="access.convertNote(noteFacts(note))"
             class="t-btn t-btn--secondary t-btn--sm"
             type="button"

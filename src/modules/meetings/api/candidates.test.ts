@@ -1,124 +1,64 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, beforeAll, expect, it } from 'vitest'
-import { adminCandidates, coordinatorCandidates } from './candidates'
+import { afterAll, afterEach, beforeAll, expect, it } from 'vitest'
+import { fetchMeetingCandidates } from './candidates'
 
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
-it('loads all admin pages including empty pages and keeps disabled accounts with a program team', async () => {
-  let count = 0
-  server.use(
-    http.get('http://localhost/v1/admin/users', ({ request }) => {
-      expect(new URL(request.url).searchParams.get('program_id')).toBe('p')
-      count += 1
-      return HttpResponse.json({
-        users:
-          count === 1
-            ? []
-            : [
-                {
-                  account_id: 'a',
-                  full_name: 'A',
-                  account_status: 'disabled',
-                  teams: [{ program_id: 'p' }],
-                },
-                {
-                  account_id: 'b',
-                  full_name: 'B',
-                  account_status: 'active',
-                  teams: [{ program_id: 'other' }],
-                },
-              ],
-        next_cursor: count === 1 ? 'next' : '',
-        total: 1,
-        role_counts: {},
-      })
-    }),
-  )
-  const result = await adminCandidates('p', new AbortController().signal)
-  expect(result.people).toEqual([{ accountId: 'a', fullName: 'A' }])
-  expect(count).toBe(2)
+const row = (id: string, name: string, participant = false) => ({
+  account_id: id,
+  full_name: name,
+  is_participant: participant,
+  teams: [],
 })
 
-it('reads only supplied coordOf rosters, deduplicates active rows and records truncation', async () => {
-  const seen: string[] = []
+it('follows cursors through short and empty pages and sorts by name', async () => {
+  const cursors: (string | null)[] = []
   server.use(
-    http.get('http://localhost/v1/departments/:id/members', ({ params }) => {
-      seen.push(String(params.id))
-      return HttpResponse.json(
-        {
-          members: [
-            { account_id: 'a', full_name: 'A', status: 'active' },
-            { account_id: 'b', full_name: 'B', status: 'deleted' },
-          ],
-        },
-        { headers: { 'X-Result-Truncated': 'true' } },
-      )
+    http.get('http://localhost/v1/meetings/participant-candidates', ({ request }) => {
+      const url = new URL(request.url)
+      expect(request.headers.get('X-Nizamio-Program')).toBe('p')
+      expect(url.searchParams.get('meeting_id')).toBe('m')
+      cursors.push(url.searchParams.get('cursor'))
+      const call = cursors.length
+      if (call === 1) return HttpResponse.json({ items: [row('b', 'İpek')], next_cursor: 'c1' })
+      if (call === 2) return HttpResponse.json({ items: [], next_cursor: 'c2' })
+      return HttpResponse.json({ items: [row('a', 'Ada', true)], next_cursor: '' })
     }),
   )
-  const result = await coordinatorCandidates('p', ['d1', 'd1', 'd2'], new AbortController().signal)
-  expect(seen).toEqual(['d1', 'd2'])
-  expect(result).toEqual({
-    people: [{ accountId: 'a', fullName: 'A' }],
-    truncated: true,
-    partial: true,
-  })
+  const result = await fetchMeetingCandidates('p', 'm', new AbortController().signal)
+  expect(cursors).toEqual([null, 'c1', 'c2'])
+  expect(result.people).toEqual([
+    { accountId: 'a', fullName: 'Ada', isParticipant: true },
+    { accountId: 'b', fullName: 'İpek', isParticipant: false },
+  ])
 })
 
-it.each(['session', 'abort'] as const)('stops a held roster load on %s change', async (change) => {
-  const { authSession } = await import('@/shared/http')
-  let release!: () => void
-  let started!: () => void
-  const gate = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  const requested = new Promise<void>((resolve) => {
-    started = resolve
-  })
-  let calls = 0
+it('omits meeting_id for the draft gate and rejects a repeated cursor', async () => {
   server.use(
-    http.get('http://localhost/v1/departments/:id/members', async () => {
-      calls += 1
-      started()
-      await gate
-      return HttpResponse.json({ members: [] })
+    http.get('http://localhost/v1/meetings/participant-candidates', ({ request }) => {
+      expect(new URL(request.url).searchParams.has('meeting_id')).toBe(false)
+      return HttpResponse.json({ items: [], next_cursor: 'same' })
     }),
   )
-  const controller = new AbortController()
-  const loading = coordinatorCandidates('p', ['d1', 'd2'], controller.signal)
-  await requested
-  if (change === 'abort') controller.abort()
-  else authSession.clear()
-  release()
-  await expect(loading).rejects.toBeDefined()
-  expect(calls).toBe(1)
+  await expect(fetchMeetingCandidates('p', null, new AbortController().signal)).rejects.toThrow(
+    'Tekrarlanan aday imleci',
+  )
 })
 
-it('does not read the next admin page after the account changes', async () => {
-  const { authSession } = await import('@/shared/http')
-  let release!: () => void
-  let started!: () => void
-  const gate = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  const requested = new Promise<void>((resolve) => {
-    started = resolve
-  })
-  let calls = 0
+it('surfaces the server decision for members and unknown meetings', async () => {
   server.use(
-    http.get('http://localhost/v1/admin/users', async () => {
-      calls += 1
-      started()
-      await gate
-      return HttpResponse.json({ users: [], next_cursor: 'next', total: 0, role_counts: {} })
-    }),
+    http.get('http://localhost/v1/meetings/participant-candidates', () =>
+      HttpResponse.json(
+        { code: 'collaboration.not_authorized', message: 'x', request_id: 'r', fields: [] },
+        { status: 403 },
+      ),
+    ),
   )
-  const loading = adminCandidates('p', new AbortController().signal)
-  await requested
-  authSession.clear()
-  release()
-  await expect(loading).rejects.toBeDefined()
-  expect(calls).toBe(1)
+  await expect(
+    fetchMeetingCandidates('p', null, new AbortController().signal),
+  ).rejects.toMatchObject({ code: 'collaboration.not_authorized' })
 })

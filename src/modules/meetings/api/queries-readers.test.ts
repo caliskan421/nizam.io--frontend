@@ -5,20 +5,19 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent } from 'vue'
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { useScopeStore } from '@/shared/scope/store'
-import type { Standing } from '@/shared/scope/standing-facts'
 import { useDeletedMeetings, useMeeting, useMeetingCandidates } from './queries'
 
 const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
-function readers(standing: Standing) {
+function readers() {
   return {
     detail: useMeeting('m'),
     deleted: useDeletedMeetings(true),
-    candidates: useMeetingCandidates(standing, true),
+    candidates: useMeetingCandidates(null, true),
   }
 }
-it('reads detail, deleted and only the coordinator’s selected program roster', async () => {
+it('reads detail, deleted and the single candidates endpoint without roster fan-out', async () => {
   const paths: string[] = []
   server.use(
     http.get('http://localhost/v1/*', ({ request }) => {
@@ -26,7 +25,6 @@ it('reads detail, deleted and only the coordinator’s selected program roster',
       paths.push(path)
       expect(request.headers.get('X-Nizamio-Program')).toBe('p')
       expect(request.headers.get('X-Nizamio-Department')).toBeNull()
-      if (path.endsWith('/members')) return HttpResponse.json({ members: [] })
       return HttpResponse.json({
         items: [],
         next_cursor: '',
@@ -38,27 +36,11 @@ it('reads detail, deleted and only the coordinator’s selected program roster',
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p', departmentId: 'd', lens: 'coordinator' })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  const standing: Standing = {
-    accountId: 'a',
-    fullName: '',
-    email: '',
-    companyAdmin: false,
-    rows: [
-      { programId: 'p', programName: '', departmentId: 'd', displayName: '', role: 'coordinator' },
-      {
-        programId: 'other',
-        programName: '',
-        departmentId: 'foreign',
-        displayName: '',
-        role: 'coordinator',
-      },
-    ],
-  }
   let result!: ReturnType<typeof readers>
   const app = createApp(
     defineComponent({
       setup() {
-        result = readers(standing)
+        result = readers()
         return () => null
       },
     }),
@@ -70,9 +52,9 @@ it('reads detail, deleted and only the coordinator’s selected program roster',
     result.candidates.suspense(),
   ])
   expect(paths.sort()).toEqual(
-    ['/v1/departments/d/members', '/v1/meetings/deleted', '/v1/meetings/m'].sort(),
+    ['/v1/meetings/participant-candidates', '/v1/meetings/deleted', '/v1/meetings/m'].sort(),
   )
-  expect(result.candidates.data.value?.partial).toBe(true)
+  expect(result.candidates.data.value).toEqual({ people: [] })
   app.unmount()
   client.clear()
 })

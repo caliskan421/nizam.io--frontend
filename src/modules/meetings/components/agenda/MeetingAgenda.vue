@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import './agenda.css'
 import { checker } from './checker'
 import AgendaMenu from './AgendaMenu.vue'
@@ -7,12 +7,12 @@ import { useAddAgendaItem, useDeleteAgendaItem, useUpdateAgendaItem } from '../.
 import { meetingCapabilities } from '../../model/capabilities'
 import type { AgendaItem, MeetingDetail } from '../../model/types'
 import { useSessionReset } from '../../pages/detail/use-session-reset'
-import { reachesOwner } from '@/shared/http/mutation'
+import { reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
-import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { notifyOutcome, UiOutcomeNotice, useConfirm } from '@/shared/ui/confirm'
 import { UiIcon } from '@/shared/ui'
 
 const text = trMeetings.meetings.agenda
@@ -29,6 +29,8 @@ const draft = ref('')
 const editing = ref<string | null>(null)
 const editTitle = ref('')
 const limitReached = ref(false)
+// Belirsiz ekleme sonucu: aynı anahtarla "Yeniden gönder" (BE-068); sonuç çözülene dek yeni ekleme yok.
+const notice = shallowRef<MutationOutcome<unknown, unknown, unknown> | null>(null)
 const section = ref<HTMLElement | null>(null)
 const checked = computed(() => props.meeting.agenda.filter((item) => item.is_checked).length)
 const canManage = computed(
@@ -50,13 +52,12 @@ function clearDrafts() {
   editing.value = null
   editTitle.value = ''
   limitReached.value = false
+  notice.value = null
 }
 watch(() => [props.meeting.meeting_id, scope.programId], clearDrafts)
 useSessionReset(clearDrafts)
 const count = computed(() => Array.from(draft.value).length)
-function result(
-  outcome: Awaited<ReturnType<typeof add.submit>> | Awaited<ReturnType<typeof update.submit>>,
-) {
+function result(outcome: MutationOutcome<unknown, unknown, unknown>) {
   if (!reachesOwner(outcome)) return false
   if (outcome.kind === 'success') {
     emit('refresh')
@@ -75,19 +76,23 @@ async function addItem() {
     count.value > 300 ||
     props.meeting.agenda.length >= 50 ||
     limitReached.value ||
+    notice.value ||
     add.isPending.value
   )
     return
-  if (
-    result(
-      await add.submit({
-        programId: scope.programId,
-        id: props.meeting.meeting_id,
-        body: { title },
-      }),
-    )
+  settleAdd(
+    await add.submit({
+      programId: scope.programId,
+      id: props.meeting.meeting_id,
+      body: { title },
+    }),
   )
-    draft.value = ''
+}
+function settleAdd(outcome: MutationOutcome<unknown, unknown, unknown>) {
+  if (!reachesOwner(outcome)) return
+  notice.value = null
+  if (outcome.kind === 'unknown_outcome') notice.value = outcome
+  else if (result(outcome)) draft.value = ''
 }
 async function toggle(item: AgendaItem, event: Event) {
   const input = event.target
@@ -214,13 +219,14 @@ async function deleteItem(item: AgendaItem) {
         <UiIcon name="plus" size="sm" />
         <input
           v-model="draft"
-          :disabled="meeting.agenda.length >= 50 || limitReached || add.isPending.value"
+          :disabled="meeting.agenda.length >= 50 || limitReached || !!notice || add.isPending.value"
           :placeholder="text.placeholder"
           :aria-label="text.placeholder"
         />
         <span>{{ count }} / 300</span></label
       >
       <p v-if="meeting.agenda.length >= 50 || limitReached">{{ text.limit }}</p>
+      <UiOutcomeNotice :outcome="notice" @resolved="settleAdd" />
     </form>
   </section>
 </template>

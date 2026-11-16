@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import './meetings/meetings.css'
-import { computed, onScopeDispose, ref, watch } from 'vue'
+import { computed, onScopeDispose, ref } from 'vue'
 import { authSession } from '@/shared/http'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProgramDepartments } from '@/modules/work/public'
-import { useInstanceStore } from '@/shared/instance/store'
 import { useScopeStore } from '@/shared/scope/store'
 import { useStanding } from '@/shared/scope/standing'
 import { useMeetings, useDeletedMeetings } from '../api/queries'
 import { coordinatorDepartmentIds } from '../model/capabilities'
-import { splitMeetings } from '../model/list'
-import { useNow } from './meetings/use-now'
 import { invalidRange, lensDescription } from './meetings/presentation'
 import MeetingDepartmentFilter from '../components/list/MeetingDepartmentFilter.vue'
 import MeetingHeader from '../components/list/MeetingHeader.vue'
@@ -25,34 +22,21 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const scope = useScopeStore()
-const instance = useInstanceStore()
 const { standing, programs } = useStanding()
 const departments = useProgramDepartments()
 const creating = ref(false)
-const loadFailure = ref(false)
-const loadingAll = ref(false)
-let listGeneration = 0
-function resetLoad() {
-  listGeneration += 1
-  loadingAll.value = false
-  loadFailure.value = false
-}
 const stopScope = scope.onChange(() => {
   creating.value = false
-  resetLoad()
 })
 let generation = authSession.generation
 let account = authSession.snapshot.accountId
 const stopSession = authSession.subscribe((snapshot) => {
-  if (generation !== authSession.generation || account !== snapshot.accountId) {
+  if (generation !== authSession.generation || account !== snapshot.accountId)
     creating.value = false
-    resetLoad()
-  }
   generation = authSession.generation
   account = snapshot.accountId
 })
 onScopeDispose(() => {
-  resetLoad()
   stopScope()
   stopSession()
 })
@@ -71,17 +55,19 @@ const value = (key: string) => (typeof route.query[key] === 'string' ? route.que
 const from = computed(() => value('from'))
 const to = computed(() => value('to'))
 const invalid = computed(() => invalidRange(route.query.from, route.query.to))
+// Sekme sunucu `when` ile süzülür (BE-021); Silinenler sekmesinde sayaçlar için "yaklaşan"
+// sorgusu (önbellekteki aynı anahtar) kullanılır.
 const filters = computed(() => ({
+  when: tab.value === 'gecmis' ? ('past' as const) : ('upcoming' as const),
   department_id: value('koordinatorluk') || undefined,
   from: from.value || undefined,
   to: to.value || undefined,
 }))
 const meetings = useMeetings(filters, () => !invalid.value)
-const deleted = useDeletedMeetings(() => admin.value)
-const now = useNow()
-const timezone = computed(() => instance.profile?.timezone ?? 'Europe/Istanbul')
-const split = computed(() => splitMeetings(meetings.items.value, now.value, timezone.value))
-const shown = computed(() => (tab.value === 'gecmis' ? split.value.past : split.value.upcoming))
+const deleted = useDeletedMeetings(() => admin.value && tab.value === 'silinenler')
+const firstPage = computed(() => meetings.query.data.value?.pages[0])
+const counts = computed(() => firstPage.value?.tab_counts ?? null)
+const total = computed(() => firstPage.value?.total ?? meetings.items.value.length)
 const lensText = computed(() => lensDescription(scope.lens))
 const program = computed(
   () => programs.value?.find((p) => p.programId === scope.programId)?.name ?? '',
@@ -93,53 +79,15 @@ function saved(id?: string) {
 function update(key: string, next: string) {
   void router.replace({ query: { ...route.query, [key]: next || undefined } })
 }
-watch(() => [from.value, to.value, value('koordinatorluk'), invalid.value], resetLoad, {
-  flush: 'sync',
-})
-async function loadRemaining() {
-  if (loadingAll.value || invalid.value) return
-  const started = listGeneration
-  loadingAll.value = true
-  loadFailure.value = false
-  try {
-    await meetings.loadAll()
-  } catch {
-    if (started === listGeneration) loadFailure.value = true
-  } finally {
-    if (started === listGeneration) loadingAll.value = false
-  }
-}
-watch(
-  () => [
-    meetings.query.data.value,
-    meetings.query.isFetching.value,
-    invalid.value,
-    loadingAll.value,
-  ],
-  () => {
-    if (
-      !invalid.value &&
-      !loadFailure.value &&
-      !loadingAll.value &&
-      meetings.query.hasNextPage.value &&
-      !meetings.query.isFetching.value &&
-      !meetings.query.isFetchNextPageError.value
-    )
-      void loadRemaining()
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
   <section class="meetings-page">
     <MeetingHeader
       :program="program"
-      :upcoming="split.upcoming.length"
-      :past="split.past.length"
-      :complete="meetings.complete.value"
+      :upcoming="counts?.upcoming ?? null"
+      :past="counts?.past ?? null"
       :lens-text="lensText"
-      :filtered="!!(from || to || value('koordinatorluk'))"
       :can-create="canCreate"
       @create="creating = true"
     />
@@ -147,14 +95,10 @@ watch(
       <div class="meetings-toolbar">
         <MeetingTimeTabs
           :selected="tab"
-          :upcoming="split.upcoming.length"
-          :past="split.past.length"
-          :complete="meetings.complete.value"
+          :upcoming="counts?.upcoming ?? null"
+          :past="counts?.past ?? null"
           :admin="admin"
-          :deleted-count="
-            deleted.data.value ? deleted.data.value.pages.flatMap((p) => p.items).length : null
-          "
-          :deleted-more="deleted.hasNextPage.value"
+          :deleted="counts?.deleted ?? null"
           @select="update('zaman', $event)"
         />
         <MeetingDepartmentFilter
@@ -201,24 +145,29 @@ watch(
           @retry="meetings.query.refetch()"
         />
         <template v-else
-          ><div v-if="loadFailure || meetings.query.isFetchNextPageError.value" role="alert">
+          ><div v-if="meetings.query.isFetchNextPageError.value" role="alert">
             {{ t('meetings.list.moreError') }}
-            <button @click="loadRemaining">
-              {{ t('meetings.list.retry') }}
-            </button>
           </div>
           <MeetingList
-            :items="shown"
-            :complete="meetings.complete.value"
+            :items="meetings.items.value"
             @create="creating = true"
             @open-deleted="update('zaman', 'silinenler')"
             @select="router.push({ path: `/toplantilar/${$event}`, query: route.query })"
           />
+          <button
+            v-if="meetings.query.hasNextPage.value"
+            type="button"
+            class="t-btn t-btn--secondary"
+            :disabled="meetings.query.isFetchingNextPage.value"
+            @click="meetings.query.fetchNextPage()"
+          >
+            {{ t('meetings.list.loadMore') }}
+          </button>
           <footer class="meetings-foot">
             <span>{{ t('meetings.list.rule') }}</span
             ><span>{{
               t(tab === 'gecmis' ? 'meetings.list.footerPast' : 'meetings.list.footerUpcoming', {
-                count: `${shown.length}${meetings.complete.value ? '' : '+'}`,
+                count: total,
               })
             }}</span>
           </footer></template

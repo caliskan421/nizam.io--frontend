@@ -233,6 +233,6 @@ Test dosyaları `src/` altındadır (kısaltma: `nt` = `src/modules/notification
 
 | E-kimliği · öğe | F8: canlı → uç/alan | Karar | BE bağı | Kanıt |
 | --- | --- | --- | --- | --- |
-| E-14-27 Satır metni (tür → cümle); komşu E-14-26 / E-14-28 / E-14-48 | canlı → bildirim türü `work.task.reminder` sözlüğe eklenir (13. tür): simge/ton, "Hatırlatma" etiketi, konu `work_item`; `public/sw.js` kopyası eşleşir | geçici kabul (P68) | (yeni olay türü; BE yok) | W175 |
+| E-14-27 Satır metni (tür → cümle); komşu E-14-26 / E-14-28 / E-14-48 | canlı → bildirim türü `work.task.reminder` sözlüğe eklenir (13. tür): simge/ton, "Hatırlatma" etiketi, konu `work_item`; `public/sw.js` kopyası eşleşir | geçici kabul (P68) | (yeni olay türü; BE yok) | W175 — sözlük satırı W170'te eklenmişti, W175 doğruladı (çift ekleme yok): `notifications/model/dictionary.test.ts` (13 tür), `public/sw.js` eşleşme testi |
 
 **F8'de değişmeyenler (14 Bildirimler):** P74: `work.task.reminder` dışında sohbet/bildirim değişikliği yok (BE-144, BE-146 ve BE-027…086, 160…162 stub'ları kalır).

@@ -22,11 +22,9 @@ vi.mock('../../api/queries', () => ({
   useMeetingCandidates: () => ({
     data: ref({
       people: [
-        { accountId: 'b', fullName: 'Bora' },
-        { accountId: 'c', fullName: 'Cem' },
+        { accountId: 'b', fullName: 'Bora', isParticipant: false },
+        { accountId: 'c', fullName: 'Cem', isParticipant: false },
       ],
-      partial: false,
-      truncated: false,
     }),
     isPending: ref(false),
     isError: ref(false),

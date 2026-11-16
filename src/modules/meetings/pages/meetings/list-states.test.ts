@@ -63,7 +63,7 @@ it('hides creation and deleted tabs for a member', async () => {
   standingState.admin = true
 })
 
-it('stops the automatic drain on repeated cursors, including empty pages', async () => {
+it('never drains pages automatically, even when the server repeats a cursor', async () => {
   let requests = 0
   server.use(
     http.get('http://localhost/v1/program/departments', () =>
@@ -89,10 +89,10 @@ it('stops the automatic drain on repeated cursors, including empty pages', async
     global: { plugins: [pinia, i18n, router, [VueQueryPlugin, { queryClient: client }]] },
   })
   await settleQueries(client)
-  expect(wrapper.text()).toContain('Diğer toplantılar yüklenemedi')
-  expect(requests).toBe(2)
+  expect(wrapper.text()).not.toContain('Diğer toplantılar yüklenemedi')
+  expect(requests).toBe(1)
   await flushPromises()
-  expect(requests).toBe(2)
+  expect(requests).toBe(1)
   wrapper.unmount()
   client.clear()
 })

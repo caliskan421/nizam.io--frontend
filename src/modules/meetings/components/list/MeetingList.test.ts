@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import Component from './MeetingList.vue'
 
 it('declares its integration contract independently of its body', () => {
-  expect(Object.keys(Component.props ?? {}).sort()).toEqual(['items', 'complete'].sort())
+  expect(Object.keys(Component.props ?? {}).sort()).toEqual(['items'])
   expect(
     (Array.isArray(Component.emits) ? Component.emits : Object.keys(Component.emits ?? {})).sort(),
   ).toEqual(['create', 'openDeleted', 'select'].sort())
@@ -44,8 +44,13 @@ it('renders summary and owner first without fetching meeting details', async () 
     meeting_date: '2026-11-11T12:00:00Z',
     owner_department_id: 'owner',
     departments: [
-      { department_id: 'other', department_name: 'Diğer Birim' },
-      { department_id: 'owner', department_name: 'Sahip' },
+      {
+        department_id: 'other',
+        department_name: 'Diğer Birim',
+        department_code: null,
+        deleted: true,
+      },
+      { department_id: 'owner', department_name: 'Sahip', department_code: 'SH', deleted: false },
     ],
     summary: { agenda_checked: 2, agenda_total: 4, note_count: 3, participant_count: 5 },
   } as Meeting
@@ -67,7 +72,8 @@ it('renders summary and owner first without fetching meeting details', async () 
   expect(wrapper.findAll('.meeting-code').map((code) => code.text())).toEqual(['SH', 'DB'])
   expect(wrapper.find('a').attributes('href')).toBe('/toplantilar/m?zaman=gecmis')
   expect(wrapper.text()).not.toMatch(/Canlı|Bekliyor/)
-  expect(paths).toEqual(['/v1/program/departments'])
+  expect(paths).toEqual([])
+  expect(wrapper.findAll('.meeting-code')[1]!.attributes('title')).toBe('Diğer Birim (silinmiş)')
   wrapper.unmount()
   client.clear()
 })

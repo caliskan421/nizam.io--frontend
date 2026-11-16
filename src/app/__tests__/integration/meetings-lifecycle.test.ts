@@ -32,7 +32,7 @@ const meeting = {
   place: null,
   agenda: [],
   participants: [],
-  notes: { items: [], next_cursor: '' },
+  notes: { items: [], next_cursor: '', total: 0, counts: { all: 0, converted: 0, mine: 0 } },
   viewer_role: 'admin',
 }
 function handlers() {
@@ -40,12 +40,21 @@ function handlers() {
     http.get('http://localhost/v1/meetings/deleted', () =>
       HttpResponse.json({ items: [], next_cursor: '' }),
     ),
-    http.get('http://localhost/v1/meetings', () =>
-      HttpResponse.json({ items: [meeting], next_cursor: '' }),
+    // Toplantı 2020'dedir: sunucu `when=upcoming` sekmesinde döndürmez (BE-021).
+    http.get('http://localhost/v1/meetings', ({ request }) =>
+      HttpResponse.json({
+        items: new URL(request.url).searchParams.get('when') === 'upcoming' ? [] : [meeting],
+        next_cursor: '',
+      }),
     ),
     http.get('http://localhost/v1/meetings/m1', () => HttpResponse.json(meeting)),
     http.get('http://localhost/v1/meetings/m1/notes', () =>
-      HttpResponse.json({ items: [], next_cursor: '' }),
+      HttpResponse.json({
+        items: [],
+        next_cursor: '',
+        total: 0,
+        counts: { all: 0, converted: 0, mine: 0 },
+      }),
     ),
   )
 }
@@ -166,8 +175,23 @@ it('gerçek detayda elli gündem maddesinde giriş kapanır', async () => {
   expect(backend.sent('POST', '/v1/meetings/m1/agenda')).toHaveLength(0)
 })
 
-it('anahtarsız toplantı oluşturma sonucu bilinmiyorsa otomatik tekrar göndermez', async () => {
-  backend.server.use(http.post('http://localhost/v1/meetings', () => HttpResponse.error()))
+it('toplantı oluşturma sonucu bilinmiyorsa aynı anahtarla tek tekrar sunar; tekrar 200 tek kayıttır', async () => {
+  let calls = 0
+  backend.server.use(
+    http.post('http://localhost/v1/meetings', () => {
+      calls += 1
+      return calls === 1
+        ? HttpResponse.error()
+        : HttpResponse.json(
+            {
+              meeting,
+              failed_participants: null,
+              side_effects: { event_failed: false, failed_messages: 0 },
+            },
+            { status: 200 },
+          )
+    }),
+  )
   await boot({
     email: PEOPLE.admin.email,
     scope: { programId: 'p1', lens: 'admin' },
@@ -179,15 +203,21 @@ it('anahtarsız toplantı oluşturma sonucu bilinmiyorsa otomatik tekrar gönder
   await fill('#meeting-form input[type="time"]', '10:00')
   await click('#meeting-form .meeting-form__chip')
   await click('button[form="meeting-form"]')
-  await until(() => $('[role="alert"]'), 'belirsizlik uyarısı')
+  await until(() => $('[data-testid="outcome-retry"]'), 'yeniden gönder')
   expect(backend.sent('POST', '/v1/meetings')).toHaveLength(1)
-  expect(backend.sent('POST', '/v1/meetings')[0]?.headers.get('Idempotency-Key')).toBeNull()
+  const key = backend.sent('POST', '/v1/meetings')[0]?.headers.get('Idempotency-Key')
+  expect(key).toMatch(/^[A-Za-z0-9_-]{22}$/)
   expect(
     (document.querySelector('button[form="meeting-form"]') as HTMLButtonElement).disabled,
   ).toBe(true)
   expect(
     (document.querySelector('#meeting-form input:not([type])') as HTMLInputElement).value,
   ).toBe('Belirsiz toplantı')
+  await click('[data-testid="outcome-retry"]')
+  await until(() => backend.sent('POST', '/v1/meetings').length === 2, 'tekrar')
+  expect(backend.sent('POST', '/v1/meetings')[1]?.headers.get('Idempotency-Key')).toBe(key)
+  await until(() => $('.meeting-detail'), 'ayrıntıya geçiş')
+  expect(backend.sent('POST', '/v1/meetings')).toHaveLength(2)
 })
 
 it('kardeş sekme çıkışı açık toplantı taslağını ve oturumu kapatır', async () => {

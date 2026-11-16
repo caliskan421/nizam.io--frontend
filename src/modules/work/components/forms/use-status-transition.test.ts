@@ -174,6 +174,21 @@ describe('useStatusTransition — yazma', () => {
     expect(transitioned).toHaveBeenCalledOnce()
   })
 
+  it('iade (→ iade_edildi) isteğe bağlı gerekçe sorar: boş = gerekçesiz, dolu = kırpılmış reason (BE-139)', async () => {
+    server.use(http.post(`${ORIGIN}${PATH}`, () => json(result('iade_edildi'))))
+    const { r, transitioned } = setup('onaya_sunuldu')
+    await r.choose('iade_edildi')
+    expect(bodies()).toEqual([])
+    expect(r.reasonFor.value).toBe('iade_edildi')
+    await r.submitReason('   ')
+    expect(bodies()).toEqual([{ to: 'iade_edildi' }])
+    expect(r.reasonFor.value).toBeNull()
+    await r.choose('iade_edildi')
+    await r.submitReason('  Kanıt eksik ')
+    expect(bodies()).toEqual([{ to: 'iade_edildi' }, { to: 'iade_edildi', reason: 'Kanıt eksik' }])
+    expect(transitioned).toHaveBeenCalledTimes(2)
+  })
+
   it('sunucu 422 work.revert_reason_required → gerekçe penceresi', async () => {
     server.use(
       http.post(`${ORIGIN}${PATH}`, () => errorEnvelope('work.revert_reason_required', 422)),

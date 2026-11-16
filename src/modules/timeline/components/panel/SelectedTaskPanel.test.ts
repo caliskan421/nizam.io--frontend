@@ -1,7 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { settleQueries } from '@/shared/http/__tests__/settle'
+import { settleQueries, until } from '@/shared/http/__tests__/settle'
 import { useToast } from '@/shared/ui'
 
 import {
@@ -241,16 +241,24 @@ describe('yüz × yetki × görünürlük (P1, P8, P18)', () => {
     expect(text('tp-title')).toBe('Diğer')
   })
 
-  it('Hatırlat devre dışı + BE-008 stub; tık istek atmaz (E-03C-65)', async () => {
+  it('Hatırlat canlı (BE-008): görevin kendi kapsamıyla 202; stub yok (E-03C-65)', async () => {
+    server.use(
+      http.post(`${ORIGIN}/v1/work-items/w1/remind`, () => json({ recipient_count: 1 }, 202)),
+    )
     const { h } = render({ who: 'admin', face: 'admin' })
     await settleQueries(h.queryClient)
     const button = $('[data-testid="tp-remind"]') as HTMLButtonElement
-    expect(button.disabled).toBe(true)
-    expect(button.closest('[data-design-stub="BE-008"]')).not.toBeNull()
-    const before = sent('POST', '/v1/work-items/w1/remind').length
+    expect(button.disabled).toBe(false)
+    expect(button.closest('[data-design-stub]')).toBeNull()
     button.click()
-    await flushPromises()
-    expect(sent('POST', '/v1/work-items/w1/remind')).toHaveLength(before)
+    await until(
+      () => sent('POST', '/v1/work-items/w1/remind').length > 0,
+      (notify) => h.queryClient.getMutationCache().subscribe(notify),
+    )
+    const [call] = sent('POST', '/v1/work-items/w1/remind')
+    expect(call!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(call!.headers.get('X-Nizamio-Department')).toBe('d2')
+    expect(sent('POST', '/v1/work-items/w1/remind')).toHaveLength(1)
   })
 })
 

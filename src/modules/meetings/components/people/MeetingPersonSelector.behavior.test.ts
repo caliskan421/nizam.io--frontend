@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { expect, it } from 'vitest'
 import MeetingPersonSelector from './MeetingPersonSelector.vue'
 
-function setup(scopeLimited = false) {
+function setup() {
   return mount(MeetingPersonSelector, {
     attachTo: document.body,
     props: {
@@ -11,13 +11,11 @@ function setup(scopeLimited = false) {
       mode: 'draft',
       loading: false,
       error: false,
-      scopeLimited,
       candidates: {
-        partial: true,
-        truncated: true,
         people: [
-          { accountId: 'locked', fullName: 'Ada' },
-          { accountId: 'b', fullName: 'İpek' },
+          { accountId: 'locked', fullName: 'Ada', isParticipant: false },
+          { accountId: 'b', fullName: 'İpek', isParticipant: false },
+          { accountId: 'c', fullName: 'Cem', isParticipant: true },
         ],
       },
     },
@@ -25,7 +23,7 @@ function setup(scopeLimited = false) {
 }
 it('preserves hidden selections, locks participants, and searches Turkish names', async () => {
   const wrapper = setup()
-  expect(document.body.textContent).toContain('Liste eksik olabilir')
+  expect(document.body.textContent).not.toContain('Liste eksik olabilir')
   expect(document.body.textContent).not.toContain('Yalnız koordine')
   const search = document.querySelector<HTMLInputElement>('input[type=search]')!
   search.value = 'ipek'
@@ -39,10 +37,11 @@ it('preserves hidden selections, locks participants, and searches Turkish names'
   expect(wrapper.emitted('select')?.[0]?.[0]).toEqual(['missing', 'b'])
   wrapper.unmount()
 })
-it('shows coordinator scope and truncation separately', () => {
-  const wrapper = setup(true)
-  expect(document.body.textContent).toContain('Yalnız koordine')
-  expect(document.body.textContent).toContain('Liste eksik olabilir')
+it('locks candidates the server marks as participants', () => {
+  const wrapper = setup()
+  const boxes = [...document.querySelectorAll<HTMLInputElement>('input[type=checkbox]')]
+  expect(boxes.map((box) => box.disabled)).toEqual([true, false, true])
+  expect(document.body.textContent).not.toContain('Yalnız koordine')
   wrapper.unmount()
 })
 it('focuses search and emits close on Escape', async () => {

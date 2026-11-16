@@ -8,6 +8,11 @@ import type { components, paths } from '@/shared/api/schema'
 
 type Schemas = components['schemas']
 
+/** `remindWorkItem` 202 yanıtı (BE-008). */
+export type RemindResult = components['schemas']['RemindResult']
+/** Hatırlatılacak görev: kimlik + kendi kapsamı (S3 başlıkları). */
+export type RemindTarget = Pick<WorkItem, 'work_item_id' | 'program_id' | 'department_id'>
+
 export type WorkItem = Schemas['WorkItem']
 export type WorkItemDetail = Schemas['WorkItemDetail']
 export type WorkItemList = Schemas['WorkItemList']
