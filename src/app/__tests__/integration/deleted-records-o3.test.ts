@@ -198,27 +198,34 @@ describe('sekmeler ve statik öğeler', () => {
 })
 
 describe('geri yükle → türevler önce/sonra (KESİN 29)', () => {
-  it('görev listesi, zaman çizelgesi ve menü rozeti geri yüklenen geciken görevi yansıtır', async () => {
-    const app = await boot({ ...ADMIN, path: '/gorevler' })
-    await until(() => $('[data-work-item="w1"]'), 'görev listesi')
-    await idle(app.queryClient)
-    const badgeBefore = overdueBadge()
-    expect($('[data-work-item="wd"]')).toBeNull()
-    await app.router.push('/zaman-cizelgesi')
-    await idle(app.queryClient)
-    const gantt = ganttReads()
-
+  async function restoreOverdue(app: Awaited<ReturnType<typeof boot>>) {
     await app.router.push('/silinen-kayitlar')
     await until(() => $('[data-record-key="gorev:wd"]'), 'silinen görev')
     await click(() => $('[data-record-key="gorev:wd"] [data-action="restore"]'))
     await accept()
     await idle(app.queryClient)
     await until(() => !$('[data-record-key="gorev:wd"]'), 'satır düştü')
+  }
 
+  // KESİN 32: tek ağır test ikiye bölündü (liste + rozet / zaman çizelgesi).
+  it('görev listesi ve menü rozeti geri yüklenen geciken görevi yansıtır', async () => {
+    const app = await boot({ ...ADMIN, path: '/gorevler' })
+    await until(() => $('[data-work-item="w1"]'), 'görev listesi')
+    await idle(app.queryClient)
+    const badgeBefore = overdueBadge()
+    expect($('[data-work-item="wd"]')).toBeNull()
+    await restoreOverdue(app)
     await until(() => overdueBadge() !== badgeBefore, 'menü rozeti değişti')
     expect(Number(overdueBadge() ?? 0)).toBe(Number(badgeBefore ?? 0) + 1)
     await app.router.push('/gorevler')
     await until(() => $('[data-work-item="wd"]'), 'geri gelen görev listede')
+  })
+
+  it('zaman çizelgesi geri yüklemeden sonra yeniden okunur', async () => {
+    const app = await boot({ ...ADMIN, path: '/zaman-cizelgesi' })
+    await idle(app.queryClient)
+    const gantt = ganttReads()
+    await restoreOverdue(app)
     await app.router.push('/zaman-cizelgesi')
     await idle(app.queryClient)
     expect(ganttReads()).toBeGreaterThan(gantt)

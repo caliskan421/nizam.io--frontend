@@ -87,21 +87,16 @@ async function openAndFill(path: string, boot_ = ADMIN): Promise<Awaited<ReturnT
 }
 
 describe('yükleme', () => {
-  it('?gorev ön seçili; anahtarlı yazma tek istek; başarıda arşiv + görev sayaçları yenilenir', async () => {
-    const app = await boot({ ...ADMIN, path: '/gorevler?gorev=w1' })
-    await until(() => backend.sent('GET', '/v1/work-items/w1').length > 0, 'görev ayrıntısı')
-    await idle(app.queryClient)
-    await app.router.push('/arsiv/d1?gorev=w1')
+  // KESİN 32: tek ağır test ikiye bölündü (yazma + türevler ayrı iddialar).
+  it('?gorev ön seçili; anahtarlı yazma tek istek; yeni dosya listede', async () => {
+    const app = await boot({ ...ADMIN, path: '/arsiv/d1?gorev=w1' })
+    await until(() => $('[data-testid="folder-upload"]'), 'sayfa')
     await userClick(() => $('[data-testid="folder-upload"]'))
     await until(() => $('[data-testid="upload-task"]'), 'yükleme penceresi')
     await fill('[data-testid="upload-tag"]', 'cikti')
     await choose()
     expect(($('[data-testid="upload-task"]') as HTMLSelectElement).value).toBe('w1')
     await idle(app.queryClient)
-    const folders = backend.sent('GET', '/v1/program/archive/folders').length
-    const lists = backend.sent('GET', '/v1/program/archive/attachments').length
-    const detail = backend.sent('GET', '/v1/work-items/w1').length
-
     await click(() => $('[data-testid="upload-submit"]'))
     await until(() => !$('[data-testid="upload-task"]'), 'pencere kapandı')
     await idle(app.queryClient)
@@ -111,6 +106,25 @@ describe('yükleme', () => {
     expect(posts[0]!.headers.get('X-Requested-With')).toBeTruthy()
     expect(posts[0]!.headers.get('X-Nizamio-Department')).toBe('d1')
     expect(posts[0]!.query.get('tag')).toBe('cikti')
+    await until(() => $('[data-file-id="fu-1"]'), 'yeni dosya listede')
+  })
+
+  it('başarıda arşiv sayaçları ve görev ayrıntısı geçersizlenir (KESİN 29)', async () => {
+    const app = await boot({ ...ADMIN, path: '/gorevler?gorev=w1' })
+    await until(() => backend.sent('GET', '/v1/work-items/w1').length > 0, 'görev ayrıntısı')
+    await idle(app.queryClient)
+    await app.router.push('/arsiv/d1?gorev=w1')
+    await userClick(() => $('[data-testid="folder-upload"]'))
+    await until(() => $('[data-testid="upload-task"]'), 'yükleme penceresi')
+    await fill('[data-testid="upload-tag"]', 'cikti')
+    await choose()
+    await idle(app.queryClient)
+    const folders = backend.sent('GET', '/v1/program/archive/folders').length
+    const lists = backend.sent('GET', '/v1/program/archive/attachments').length
+    const detail = backend.sent('GET', '/v1/work-items/w1').length
+    await click(() => $('[data-testid="upload-submit"]'))
+    await until(() => !$('[data-testid="upload-task"]'), 'pencere kapandı')
+    await idle(app.queryClient)
     await until(() => $('[data-file-id="fu-1"]'), 'yeni dosya listede')
     expect(backend.sent('GET', '/v1/program/archive/folders').length).toBeGreaterThan(folders)
     expect(backend.sent('GET', '/v1/program/archive/attachments').length).toBeGreaterThan(lists)

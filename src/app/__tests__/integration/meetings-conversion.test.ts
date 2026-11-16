@@ -43,6 +43,16 @@ function handlers() {
   )
 }
 beforeAll(() => backend.server.listen({ onUnhandledFrame: 'error' }))
+// Isınma: ilk önyükleme tembel modülleri yükler (soğuk başlangıç testlerden birinin süresini
+// şişirmesin; KESİN 32). Sonuç atılır.
+beforeAll(async () => {
+  backend.reset()
+  seedWorld(backend.db)
+  handlers()
+  await boot({ email: PEOPLE.admin.email, scope: { programId: 'p1', lens: 'admin' }, path: '/' })
+  await until(() => $('[data-kpi="open"] [data-kpi-value]'), 'ısınma')
+  teardown()
+}, 60_000)
 beforeEach(() => {
   backend.reset()
   seedWorld(backend.db)
