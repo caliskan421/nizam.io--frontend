@@ -1,0 +1,152 @@
+/*
+ * 01f Gantt (Rapor-Donem `rp-rapor-gantt`; E-13-28, BE-123): iki sütunlu ızgara — solda görev
+ * tablosu, sağda zaman ekseni; satırlar aynı yükseklikte (`--rp-gantt-row`). Konumlar yüzde
+ * (satır içi `left/width`), yükseklikler ve renkler yalnız token. Kâğıt açık yüzeydir.
+ */
+@layer components {
+  .report-gantt {
+    --rp-gantt-row: var(--space-6);
+    --rp-gantt-head: var(--space-10);
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    min-inline-size: var(--rp-col-basis);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    overflow: hidden;
+    font: var(--text-caption);
+  }
+  .report-gantt__left {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-inline-end: var(--ui-hairline) solid var(--border-strong);
+  }
+  .report-gantt__right {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .report-gantt__head {
+    flex: none;
+    block-size: var(--rp-gantt-head);
+    box-sizing: border-box;
+    background: var(--ink);
+    color: var(--bg-surface);
+    font: var(--ui-text-xs-strong);
+    letter-spacing: 0.05em;
+  }
+  .report-gantt__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 8fr) minmax(0, 3fr) minmax(0, 3fr) minmax(
+        0,
+        4fr
+      );
+    column-gap: var(--space-2);
+    align-items: center;
+    block-size: var(--rp-gantt-row);
+    padding-inline: var(--space-2);
+    box-sizing: border-box;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+    white-space: nowrap;
+  }
+  .report-gantt__cols > * {
+    min-width: 0;
+  }
+  .report-gantt__head.report-gantt__cols {
+    align-items: end;
+    padding-block-end: var(--space-1);
+    border-bottom: 0;
+    block-size: var(--rp-gantt-head);
+  }
+  .report-gantt__group {
+    grid-template-columns: minmax(0, 1fr) auto;
+    background: color-mix(in srgb, var(--accent-text) 12%, transparent);
+    font-weight: 600;
+  }
+  .report-gantt__months {
+    display: flex;
+    block-size: 55%;
+    border-bottom: var(--ui-hairline) solid color-mix(in srgb, var(--bg-surface) 25%, transparent);
+  }
+  .report-gantt__month {
+    flex: none;
+    box-sizing: border-box;
+    padding: var(--space-1) var(--space-2) 0;
+    border-inline-start: var(--ui-hairline) solid
+      color-mix(in srgb, var(--bg-surface) 25%, transparent);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .report-gantt__ticks {
+    position: relative;
+    block-size: 45%;
+  }
+  .report-gantt__ticks > span {
+    position: absolute;
+    top: var(--ui-gap-2xs);
+    padding-inline-start: var(--ui-gap-2xs);
+    font: var(--text-label);
+  }
+  .report-gantt__cell {
+    position: relative;
+    flex: none;
+    block-size: var(--rp-gantt-row);
+    box-sizing: border-box;
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .report-gantt__cell--group {
+    background: color-mix(in srgb, var(--accent-text) 12%, transparent);
+  }
+  .report-gantt__bar {
+    position: absolute;
+    top: 50%;
+    block-size: var(--space-3);
+    transform: translateY(-50%);
+    box-sizing: border-box;
+    border-radius: var(--radius-xs);
+    background: var(--report-tone, var(--accent-text));
+  }
+  .report-gantt__bar--tail {
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    background: var(--danger);
+  }
+  .report-gantt__bar--head-late {
+    border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+  }
+  .report-gantt__bar--overdue {
+    border: var(--ui-hairline) dashed var(--danger);
+  }
+  .report-gantt__bar--tail-open {
+    border: var(--ui-hairline) dashed var(--danger);
+    border-inline-start: 0;
+    background: color-mix(in srgb, var(--danger) 18%, transparent);
+  }
+  .report-gantt__today {
+    position: absolute;
+    top: var(--rp-gantt-head);
+    bottom: 0;
+    inline-size: var(--ui-gap-2xs);
+    margin-inline-start: calc(var(--ui-gap-2xs) / -2);
+    background: var(--ink);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .report-gantt__chip {
+    position: absolute;
+    bottom: var(--ui-gap-2xs);
+    transform: translateX(-50%);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-xs);
+    background: var(--ink);
+    color: var(--bg-surface);
+    font: var(--text-label);
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .report-gantt__foot {
+    flex: none;
+    block-size: var(--rp-gantt-row);
+  }
+}

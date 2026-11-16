@@ -130,7 +130,17 @@ export const trReports = {
         gantt: {
           kicker: '{program} — GÖREV ZAMAN ÇİZELGESİ',
           title: 'GANTT — GÖREV ZAMAN ÇİZELGESİ',
-          stub: 'Gantt önizlemesi bu sürümde yok.',
+          sub: '{n} görev · {range} · Rapor tarihi {date}',
+          label: 'Görev zaman çizelgesi, {n} görev, {range}',
+          empty: 'Çizelgede gösterilecek görev yok.',
+          group: '{name}  ·  {n} görev',
+          today: 'Rapor tarihi {date}',
+          cols: { task: 'GÖREV', start: 'BAŞLANGIÇ', end: 'BİTİŞ', status: 'DURUM' },
+          legend: {
+            label: 'Lejant',
+            late: 'Gecikme (geç bitişte kırmızı kuyruk · açık gecikende kesik kırmızı kenar)',
+          },
+          note: 'Bağımlılık okları önizlemede ve PDF’te yoktur.',
         },
         general: {
           kicker: '{program} · GENEL GÖSTERGELER',

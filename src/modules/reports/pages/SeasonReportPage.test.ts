@@ -125,16 +125,13 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(summary.text()).toContain('2 bölüm')
   })
 
-  it('statik yer tutucular sahte veri göstermez: Gantt (BE-123), detay/toplantı/dosya (BE-136)', async () => {
+  it('statik yer tutucular sahte veri göstermez: detay/toplantı/dosya (BE-136); Gantt artık yer tutucu değil (BE-123)', async () => {
     const { wrapper } = await open(SEASON())
-    expect(wrapper.get('#report-season-gantt [data-design-stub="BE-123"]').text()).toBe(
-      'Gantt önizlemesi bu sürümde yok.',
-    )
+    expect(wrapper.find('#report-season-gantt [data-design-stub]').exists()).toBe(false)
     expect(wrapper.find('[data-design-stub="BE-134"]').exists()).toBe(false)
     const dept = wrapper.get('#report-season-dept-d1')
     expect(dept.findAll('[data-design-stub="BE-136"]')).toHaveLength(2)
     expect(dept.find('[data-design-stub="BE-123"]').exists()).toBe(true)
-    expect(wrapper.find('.report-gantt').exists()).toBe(false)
   })
 
   it('genel: aylık aktivite yalnız gerçek seri (toplam 81), erişilebilir metin özeti; talepler 4 KPI', async () => {
@@ -172,6 +169,39 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     const empty = wrapper.get('#report-season-dept-d2')
     expect(empty.text()).toContain('Bu koordinatörlükte görev yok.')
     expect(empty.text()).toContain('KOORDİNATÖRLÜK')
+  })
+
+  it('Gantt (BE-123): bölüm grupları, görev satırı başına çubuk; geç biten kuyruk, açık gecikmiş kesik kenar; ok yok', async () => {
+    const { wrapper } = await open(SEASON())
+    const gantt = wrapper.get('[data-testid="gantt"]')
+    expect(gantt.attributes('aria-label')).toBe(
+      'Görev zaman çizelgesi, 3 görev, Eylül 2026 – Ekim 2026',
+    )
+    expect(gantt.findAll('[data-gantt-task]').map((r) => r.attributes('data-gantt-task'))).toEqual([
+      'w1',
+      'w2',
+      'w3',
+    ])
+    expect(wrapper.get('#report-season-gantt').text()).toContain('Altyapı ve tesisat  ·  3 görev')
+    expect(wrapper.get('#report-season-gantt').text()).toContain('Operasyon  ·  0 görev')
+    const cells = gantt.findAll('.report-gantt__cell:not(.report-gantt__cell--group)')
+    expect(cells).toHaveLength(3)
+    // w1: açık gecikmiş (kesik kenar); w2: geç bitti ama tamamlanma günü yok → tek çubuk.
+    expect(cells[0]!.find('.report-gantt__bar--overdue').exists()).toBe(true)
+    expect(cells.every((c) => c.find('.report-gantt__bar').exists())).toBe(true)
+    expect(gantt.find('.report-gantt__today').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Rapor tarihi 21.10.2026')
+    expect(wrapper.text()).toContain('Bağımlılık okları')
+  })
+
+  it('Gantt boş dönem: çubuk uydurulmaz, tek satır metin', async () => {
+    const { wrapper } = await open(
+      SEASON(seasonFixture({ tasks: [], coordinatorship_performance: [] })),
+    )
+    expect(wrapper.find('[data-testid="gantt"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="gantt-empty"]').text()).toBe(
+      'Çizelgede gösterilecek görev yok.',
+    )
   })
 
   it('iş yükü (BE-134): workload_summary satırları sunucu sırasıyla, sayaçlar ve dağılım çubuğu; stub yok', async () => {

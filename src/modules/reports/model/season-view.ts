@@ -116,8 +116,15 @@ export interface DepartmentSection {
   totals: TaskTotals
   /** Durum şeridi: bölümün görevlerinden beş durum. */
   strip: DistributionRow<SeasonStatus>[]
-  /** `created_at` artan (sıra numarası alanı yok, BE-005). */
+  /** Sıra numarası artan (BE-005); numarasız görevler `created_at` artan sonda. */
   tasks: ReportTask[]
+}
+
+/** Bölüm içi görev sırası: koordinatörlük sıra numarası (BE-005); yoksa oluşturulma anı. */
+function bySequence(a: ReportTask, b: ReportTask): number {
+  const left = a.sequence_no ?? Number.POSITIVE_INFINITY
+  const right = b.sequence_no ?? Number.POSITIVE_INFINITY
+  return left === right ? a.created_at.localeCompare(b.created_at) : left < right ? -1 : 1
 }
 
 const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, 'tr')
@@ -130,7 +137,7 @@ export function departmentSections(
   return [...season.coordinatorship_performance].sort(byName).map((stat) => {
     const tasks = season.tasks
       .filter((t) => t.department_id === stat.department_id)
-      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .sort(bySequence)
     const counts: Record<string, number> = {}
     for (const task of tasks) counts[task.status] = (counts[task.status] ?? 0) + 1
     return {

@@ -122,7 +122,7 @@ const error = computed(() => (query.isError.value ? toApiError(query.error.value
             <SeasonCover :ctx="context" :season="season" />
             <SeasonToc :ctx="context" :sections="sections" />
             <SeasonSummary :ctx="context" :season="season" :sections="sections" />
-            <SeasonGantt :ctx="context" />
+            <SeasonGantt :ctx="context" :season="season" :sections="sections" />
             <SeasonGeneral :ctx="context" :season="season" />
             <SeasonDepartment
               v-for="section in sections"

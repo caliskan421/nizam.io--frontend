@@ -42,6 +42,12 @@ export function instantDate(iso: string, timeZone: string): string | null {
   return p ? `${p.day}.${p.month}.${p.year}` : null
 }
 
+/** Bir an → takvim günü `YYYY-AA-GG` (kurulum saat diliminde). */
+export function instantDay(iso: string, timeZone: string): string | null {
+  const p = parts(iso, timeZone, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return p ? `${p.year}-${p.month}-${p.day}` : null
+}
+
 /** Bir an → `SS:DD` (kurulum saat diliminde, 24 saat). */
 export function instantTime(iso: string, timeZone: string): string | null {
   const p = parts(iso, timeZone, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })

@@ -7,8 +7,9 @@
 import { designStub } from '@/shared/design-stub'
 
 /**
- * 01f önizlemesinin hedef şablonu (E-13-28, 31, 34…36): Gantt, iş yükü, görev detay kartları,
- * toplantılar ve dosyalar bölümleri statik yer tutucu; indirilen PDF v0.15 şablonudur.
+ * Gantt bağımlılık okları ve içindekiler sayfa numaraları (E-13-28; GAP-239): PDF'te de önizlemede
+ * de yoktur (karar: oklar çizilmez). Gantt çubukları ve iş yükü pin v0.23.0-api ile canlıdır
+ * (`ganttModel`, `workload_summary`); kalan boşluk yalnız oklardır.
  */
 export const SEASON_TEMPLATE = designStub('BE-123', {
   gantt: false,
