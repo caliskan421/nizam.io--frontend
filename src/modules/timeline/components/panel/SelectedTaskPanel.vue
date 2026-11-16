@@ -3,6 +3,7 @@ import './panel.css'
 
 import { computed, nextTick, ref, useId } from 'vue'
 
+import { useRemindWorkItem } from '@/modules/work/public'
 import { UiErrorState } from '@/shared/ui'
 import { ConflictDialog } from '@/shared/ui/conflict'
 
@@ -35,6 +36,15 @@ const panel = useTaskPanel(() => props)
 const actions = useDateActions(panel)
 usePanelLifecycle(root, () => emit('close'))
 
+const reminder = useRemindWorkItem()
+async function remindTask(): Promise<void> {
+  // Görev kendi program/departmanıyla gider (kapsam başlığı hedeften).
+  await reminder.remind({
+    work_item_id: props.task.work_item_id,
+    program_id: panel.target.value.programId,
+    department_id: panel.target.value.departmentId,
+  })
+}
 const requestOpen = ref(false)
 const dependencyMode = ref<'add' | 'remove' | null>(null)
 const dependencyOpen = computed({
@@ -122,7 +132,9 @@ const help = computed(() =>
       :can-manage="panel.can.value.manage"
       :busy="actions.busy.value"
       @save="actions.save"
+      :remind-busy="reminder.isPending.value"
       @request="requestOpen = true"
+      @remind="remindTask"
       @action="onAction"
     />
     <DateRequestForm

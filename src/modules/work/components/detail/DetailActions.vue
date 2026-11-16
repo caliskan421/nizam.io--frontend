@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 
 import { TaskReportButton } from '@/modules/reports/public'
 import { DateRequestForm, panelText } from '@/modules/timeline/public'
-import { DesignStub, UiIconButton, useToast } from '@/shared/ui'
+import { UiIconButton, useToast } from '@/shared/ui'
 
 import {
   canManageWorkItem,
@@ -13,6 +13,7 @@ import {
   canUploadFile,
   type WorkActorFacts,
 } from '../../model/capabilities'
+import { useRemindWorkItem } from '../../api/remind'
 import { targetOf } from '../../model/target'
 import type { WorkItem } from '../../model/types'
 import { taskLink } from '../../routes'
@@ -23,7 +24,8 @@ import { detailText } from './messages'
  * Görev düzeyi eylem satırı (`rp-iconrow--icons`; E-03-52…56). Yetkisiz eylem gizlenir (P1,
  * `capabilities.ts`); BE kaynaklı eksik eylem devre dışı + stub.
  *  - Kanıt yükle (s.148; yönetici gizli) → `upload` (çağıran `FileUploadDialog`'u açar).
- *  - Hatırlat: uç yok → devre dışı, `BE-008`.
+ *  - Hatırlat (BE-008, canlı): koordinatör ve ŞY (olgu; `canManageWorkItem`); üyede gizli.
+ *    202 "‹n› kişiye hatırlatma gönderildi"; çift tık kilitli.
  *  - Tarih değişikliği iste (s.151; bekleyen talep varken gizli; E-03-54/63): canlı — zaman
  *    çizelgesinin `DateRequestForm`'unu (`timeline/public.ts`; 03c ile AYNI form) açar. Yetki
  *    ve gizleme `canRequestDateChange` (koordinatör; P8/P18: Admin tek başına talep açmaz).
@@ -37,6 +39,7 @@ const t = detailText
 const toast = useToast()
 const canUpload = computed(() => canUploadFile(props.facts))
 const canManage = computed(() => canManageWorkItem(props.facts))
+const reminder = useRemindWorkItem()
 const dateRequestOpen = ref(false)
 const canDateRequest = computed(() =>
   canRequestDateChange({
@@ -68,15 +71,15 @@ async function copyLink(): Promise<void> {
       :label="t('workDetail.actions.upload')"
       @click="emit('upload')"
     />
-    <DesignStub id="BE-008">
-      <UiIconButton
-        icon="bell"
-        size="md"
-        data-action="remind"
-        :label="t('workDetail.actions.remind')"
-        disabled
-      />
-    </DesignStub>
+    <UiIconButton
+      v-if="canManage"
+      icon="bell"
+      size="md"
+      data-action="remind"
+      :label="t('workDetail.actions.remind')"
+      :disabled="reminder.isPending.value"
+      @click="reminder.remind(item)"
+    />
     <UiIconButton
       v-if="canDateRequest"
       icon="calendar"

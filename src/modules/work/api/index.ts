@@ -29,6 +29,7 @@ export {
   useDownloadTicket,
   useRenameFile,
 } from './files'
+export { useRemindWorkItem } from './remind'
 export { useAddNote, useDeleteNote, useUpdateNote } from './notes'
 export {
   useMyProgramDepartments,
