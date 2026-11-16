@@ -213,6 +213,10 @@ test('K1 iade sebebi → Ü1: koordinatör gerekçeyle iade eder, üye özetinde
     await signIn(memberPage, fixture.chat.peerEmail, fixture.chat.peerPassword)
     await open(memberPage, '/')
     await expect(memberPage.locator('[data-cell="returned"] .rh-cap')).toContainText(reason)
+    // BE-141: Koordinatörlüklerim kartı kod ve koordinatör adını `me/departments`'tan alır.
+    const unit = memberPage.locator('[data-region="units"] [data-row]').first()
+    await expect(unit.locator('[data-unit-code]')).toHaveText(DEPARTMENT_CODE)
+    await expect(unit.locator('[data-parts="coordinator"]')).toContainText('E2E Koordinatör')
     await memberPage.setViewportSize({ width: 390, height: 844 })
     await expectNoOverflow(memberPage)
     await expectNoViolations(memberPage, 'Ü1')
