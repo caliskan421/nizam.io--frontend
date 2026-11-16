@@ -2,7 +2,6 @@
 import './notes.css'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
-import { designStub } from '@/shared/design-stub'
 import { UiAvatar } from '@/shared/ui'
 import { useInstanceStore } from '@/shared/instance/store'
 import { authSession } from '@/shared/http'
@@ -15,6 +14,7 @@ import { useMeetingNotes } from '../../api/queries'
 import { useAddMeetingNote } from '../../api/note-writes'
 import { meetingCapabilities } from '../../model/capabilities'
 import type { MeetingDetail, MeetingNote } from '../../model/types'
+import NoteConvertedLabel from './NoteConvertedLabel.vue'
 import NoteFilters from './NoteFilters.vue'
 import NoteComposer from './NoteComposer.vue'
 import { noteTime, noteFacts, noteFocus } from './notes-view'
@@ -40,7 +40,6 @@ const { focus, bind, heading } = noteFocus(section, () => version)
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
 const text = trMeetings.meetings.notes
 const roleLabels = text.roles
-const convertedLabel = designStub('BE-065', text.convertedLabel)
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
 const mine = (note: MeetingNote) =>
   !!standing.value && note.author_account_id === standing.value.accountId
@@ -176,8 +175,7 @@ function deleteNote(note: MeetingNote) {
         </form>
         <p v-else>{{ note.content }}</p>
         <div class="meeting-notes__foot">
-          <span v-if="converted(note)" class="meeting-notes__converted">{{ convertedLabel }}</span
-          ><button
+          <NoteConvertedLabel v-if="converted(note)" :note="note" /><button
             v-else-if="access.convertNote(noteFacts(note))"
             class="t-btn t-btn--secondary t-btn--sm"
             type="button"
