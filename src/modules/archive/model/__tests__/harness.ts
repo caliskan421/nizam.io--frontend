@@ -57,8 +57,13 @@ export function s3Requests(): Recorded[] {
   )
 }
 
-export function json(body: JsonBodyType, status = 200) {
-  return HttpResponse.json(body, { status })
+/** S2 yönetici arşiv istekleri (`/v1/program/archive/*`): yalnız program başlığı taşımalıdır. */
+export function s2Requests(): Recorded[] {
+  return requests.filter((r) => r.path.startsWith('/v1/program/archive'))
+}
+
+export function json(body: JsonBodyType, status = 200, headers: Record<string, string> = {}) {
+  return HttpResponse.json(body, { status, headers })
 }
 
 export function errorEnvelope(code: string, status: number, headers: Record<string, string> = {}) {
@@ -156,8 +161,23 @@ export function folder(over: object = {}) {
   })
 }
 
+/** `archiveFolders` / `programArchiveFolders` gövdesi: kartlar + `totals` (RECORDS-K41). */
+export function folderBody(...cards: ReturnType<typeof folder>[]) {
+  const times = cards.map((c) => c.last_uploaded_at).filter((t): t is string => t !== null)
+  return {
+    folders: cards,
+    totals: {
+      file_count: cards.reduce((sum, c) => sum + c.file_count, 0),
+      task_count: cards.reduce((sum, c) => sum + c.task_count, 0),
+      total_bytes: cards.reduce((sum, c) => sum + c.total_bytes, 0),
+      last_uploaded_at: times.sort().at(-1) ?? null,
+    },
+  }
+}
+
 export function archiveFile(over: object = {}) {
   return withFileDefaults({
+    department_id: 'd1',
     file_id: 'f1',
     work_item_id: 'w1',
     display_name: 'rapor.pdf',

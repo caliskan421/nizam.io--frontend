@@ -7,21 +7,21 @@ import { UiCount, UiIcon } from '@/shared/ui'
 import { rovingTarget } from '@/shared/ui/roving'
 
 import type { FileFilterBarEmits, FileFilterBarProps } from '../index'
-import { countLabel } from '../../model/filters'
 import { ARCHIVE_TAGS, tagView } from '../../model/tags'
 import type { ArchiveView } from '../../model/types'
 import TagDot from './TagDot.vue'
 import { folderText } from './messages'
 
 /**
- * Dosya araç çubuğu (E-06-38…40/46): başlık + sayaç ("n" kesin, süzgeçlide "n+", BE-073), etiket
+ * Dosya araç çubuğu (E-06-38…40/46): başlık + sayaç (sunucunun kesin süzgeç toplamı, BE-073; toplam
+ * gelene dek yüklenen sayı), etiket
  * segmenti (kapalı küme, P34) ve görünüm segmenti. Basılı etiket yeniden basılınca kalkar
  * ("Tümü"). Klavye: segment içinde ←/→.
  */
 const props = defineProps<FileFilterBarProps>()
 const emit = defineEmits<FileFilterBarEmits>()
 
-const count = computed(() => countLabel(props.loaded, props.hasMore, props.total))
+const count = computed(() => props.total ?? props.loaded)
 const VIEWS: readonly { value: ArchiveView; icon: 'grid' | 'list' }[] = [
   { value: 'izgara', icon: 'grid' },
   { value: 'liste', icon: 'list' },
@@ -37,7 +37,7 @@ function roving(event: KeyboardEvent): void {
   <div class="arch-bar" data-testid="file-filter-bar">
     <h2 id="arch-files-title" class="arch-bar__title">
       {{ folderText('files.title') }}
-      <UiCount :value="`${count.value}${count.approximate ? '+' : ''}`" />
+      <UiCount :value="String(count)" />
     </h2>
     <div class="arch-bar__group">
       <div

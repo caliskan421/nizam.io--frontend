@@ -6,11 +6,13 @@ import {
   ADMIN,
   COORD,
   folder,
+  folderBody,
   harness,
   http,
   json,
   ORIGIN,
   resetHarness,
+  s2Requests,
   s3Requests,
   sent,
   server,
@@ -26,63 +28,66 @@ afterEach(() => resetHarness())
 afterAll(() => server.close())
 
 describe('06 klasör kartları', () => {
-  it('yönetici: listProgramDepartments adlarından, sayılar null, S3 isteği YOK (P33)', async () => {
+  it('yönetici: programArchiveFolders (S2) sayılarıyla; S3 isteği YOK, departman başlığı YOK (BE-072)', async () => {
     server.use(
       ...standing({ admin: true }),
-      http.get(`${ORIGIN}/v1/program/departments`, () =>
-        json({
-          departments: [
-            { department_id: 'd2', display_name: 'Zemin' },
-            { department_id: 'd1', display_name: 'Ağ', code: 'AG' },
-          ],
-        }),
+      http.get(`${ORIGIN}/v1/program/archive/folders`, () =>
+        json(
+          folderBody(
+            folder({ folder_id: 'd2', name: 'Zemin', file_count: 0 }),
+            folder({ folder_id: 'd1', name: 'Ağ', file_count: 6 }),
+          ),
+        ),
       ),
     )
     const h = harness(ADMIN)
     const { result } = h.run(() => useFolderCards(useArchiveContext(null)))
     await settleQueries(h.queryClient)
     expect(result.cards.value).toEqual([
-      { folderId: 'd1', name: 'Ağ', fileCount: null, virtual: false },
-      { folderId: 'd2', name: 'Zemin', fileCount: null, virtual: false },
+      expect.objectContaining({ folderId: 'd1', name: 'Ağ', fileCount: 6, virtual: false }),
+      expect.objectContaining({ folderId: 'd2', name: 'Zemin', fileCount: 0, virtual: false }),
     ])
-    expect(result.truncated.value).toBe(false)
     expect(s3Requests()).toHaveLength(0)
-    expect(
-      sent('GET', '/v1/program/departments')[0]!.headers.get('X-Nizamio-Department'),
-    ).toBeNull()
+    expect(s2Requests().map((r) => r.path)).toEqual(['/v1/program/archive/folders'])
+    expect(s2Requests()[0]!.headers.get('X-Nizamio-Department')).toBeNull()
+    // Eski yol yok: departman adları için `listProgramDepartments` okunmaz (P33 geçici yolu kalktı).
+    expect(sent('GET', '/v1/program/departments')).toHaveLength(0)
   })
 
-  it('yönetici: >200 bağda departman listesi kesilmiş olgusu (X-Result-Truncated)', async () => {
+  it('yönetici: yükleniyor/hata durumları klasör özeti sorgusundandır', async () => {
     server.use(
       ...standing({ admin: true }),
-      http.get(
-        `${ORIGIN}/v1/program/departments`,
-        () =>
-          new Response(
-            JSON.stringify({ departments: [{ department_id: 'd1', display_name: 'Ağ' }] }),
-            { headers: { 'Content-Type': 'application/json', 'X-Result-Truncated': 'true' } },
-          ),
-      ),
+      http.get(`${ORIGIN}/v1/program/archive/folders`, () => json({ code: 'x' }, 500)),
     )
     const h = harness(ADMIN)
     const { result } = h.run(() => useFolderCards(useArchiveContext(null)))
     await settleQueries(h.queryClient)
-    expect(result.truncated.value).toBe(true)
+    expect(result.error.value).toBe(true)
   })
 
-  it('koordinatör: archiveFolders sayılarıyla (kendi klasörü)', async () => {
+  it('koordinatör: archiveFolders sayılarıyla (kendi klasörü); S2 isteği YOK', async () => {
     server.use(
       ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      http.get(`${ORIGIN}/v1/program/departments`, () => json({ departments: [] })),
-      http.get(`${ORIGIN}/v1/records/archive/folders`, () => json({ folders: [folder()] })),
+      http.get(`${ORIGIN}/v1/records/archive/folders`, () =>
+        json(folderBody(folder({ file_count: 3 }))),
+      ),
     )
     const h = harness(COORD)
     const { result } = h.run(() => useFolderCards(useArchiveContext(null)))
     await settleQueries(h.queryClient)
     expect(result.cards.value).toEqual([
-      { folderId: 'd1', name: 'Koordinatörlük 1', fileCount: 3, virtual: false },
+      {
+        folderId: 'd1',
+        name: 'Koordinatörlük 1',
+        fileCount: 3,
+        taskCount: 0,
+        totalBytes: 0,
+        lastUploadedAt: null,
+        virtual: false,
+      },
     ])
     expect(result.loading.value).toBe(false)
     expect(result.error.value).toBe(false)
+    expect(s2Requests()).toHaveLength(0)
   })
 })

@@ -19,7 +19,7 @@ function bar(props: Record<string, unknown> = {}) {
   const pinia = createPinia()
   setActivePinia(pinia)
   const wrapper = mount(ArchiveSearchBar, {
-    props: { q: '', kind: 'tumu', disabled: false, ...props },
+    props: { q: '', kind: 'tumu', ...props },
     global: { plugins: [i18n, pinia] },
     attachTo: document.body,
   })
@@ -99,11 +99,7 @@ describe('"/" kısayolu', () => {
     expect(document.activeElement).toBe(other)
   })
 
-  it('devre dışıyken ve sökülünce çalışmaz', () => {
-    const off = bar({ disabled: true })
-    press(document.body)
-    expect(document.activeElement).toBe(document.body)
-    off.unmount()
+  it('sökülünce çalışmaz', () => {
     const w = bar()
     w.unmount()
     press(document.body)
@@ -127,21 +123,14 @@ describe('tür segmenti (E-06-07)', () => {
   })
 })
 
-describe('yönetici (disabled; P33, BE-072)', () => {
-  it('arama ve segment devre dışı, BE-072 stub, "Görev klasörü seçin" açıklaması, kısayol ipucu yok', () => {
-    const w = bar({ disabled: true })
-    expect(w.find('[data-design-stub="BE-072"]').exists()).toBe(true)
-    expect(w.get('input').attributes('disabled')).toBeDefined()
-    expect(w.findAll('.rp-seg button').every((b) => b.attributes('disabled') !== undefined)).toBe(
-      true,
-    )
-    expect(w.get('[role="status"]').text()).toBe('Görev klasörü seçin')
-    expect(w.find('kbd').exists()).toBe(false)
-  })
-
-  it('etkinken stub çerçevesi ve açıklama yok', () => {
+describe('yönetici (program geneli arama; BE-072)', () => {
+  it('arama ve segment etkin, stub çerçevesi ve "Görev klasörü seçin" açıklaması yok; "/" ipucu var', () => {
     const w = bar()
     expect(w.find('[data-design-stub]').exists()).toBe(false)
+    expect(w.get('input').attributes('disabled')).toBeUndefined()
+    expect(w.findAll('.rp-seg button').every((b) => b.attributes('disabled') === undefined)).toBe(
+      true,
+    )
     expect(w.find('[role="status"]').exists()).toBe(false)
     expect(w.get('kbd').text()).toBe('/')
   })

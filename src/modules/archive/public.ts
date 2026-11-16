@@ -15,6 +15,7 @@ export {
   useArchiveAttachments,
   useArchiveFolders,
   useArchiveTasks,
+  useArchiveUploadTasks,
   useArchiveUploaders,
 } from './api/queries'
 export { useFilePreview, usePreviewDetails } from './api/preview'
@@ -24,6 +25,7 @@ export {
   useAttachArchiveFile,
   useDeleteArchiveFile,
   useRenameArchiveFile,
+  useRetagArchiveFile,
 } from './api/writes'
 export * from './model/admin-scope'
 export * from './model/capabilities'
@@ -31,6 +33,7 @@ export * from './model/filters'
 export * from './model/folder-cards'
 export * from './model/mime'
 export * from './model/preview'
+export * from './model/relative-days'
 export * from './model/stubs'
 export * from './model/tasks'
 export * from './model/tags'

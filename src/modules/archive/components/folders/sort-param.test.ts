@@ -9,10 +9,20 @@ import {
 } from './sort-param'
 
 describe('06 sirala parametresi', () => {
-  it('geçerli alan:yön okunur; geçersiz/bilinmeyen (sonYukleme dahil) varsayılana düşer', () => {
+  it('geçerli alan:yön okunur (son yükleme dahil); geçersiz/bilinmeyen varsayılana düşer', () => {
     expect(parseFolderSort('dosya:azalan')).toEqual({ field: 'dosya', direction: 'azalan' })
+    expect(parseFolderSort('son:azalan')).toEqual({ field: 'son', direction: 'azalan' })
     expect(parseFolderSort(['ad:azalan', 'x'])).toEqual({ field: 'ad', direction: 'azalan' })
-    for (const bad of ['sonYukleme:azalan', 'ad', 'ad:yukari', '', undefined, 3, null]) {
+    for (const bad of [
+      'sonYukleme:azalan',
+      'son:artan',
+      'ad',
+      'ad:yukari',
+      '',
+      undefined,
+      3,
+      null,
+    ]) {
       expect(parseFolderSort(bad)).toEqual(DEFAULT_FOLDER_SORT)
     }
   })

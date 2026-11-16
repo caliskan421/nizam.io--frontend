@@ -6,11 +6,13 @@ import {
   ADMIN,
   COORD,
   folder,
+  folderBody,
   harness,
   http,
   json,
   ORIGIN,
   resetHarness,
+  s3Requests,
   sent,
   server,
   standing,
@@ -24,39 +26,18 @@ beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => resetHarness())
 afterAll(() => server.close())
 
-function workItem(id: string) {
-  return {
-    work_item_id: id,
-    program_id: 'p1',
-    department_id: 'd7',
-    title: `Görev ${id}`,
-    priority: 'orta',
-    status: 'baslanmadi',
-    assignees: [],
-    assignee_account_ids: [],
-    start_on: '2026-11-01',
-    end_on: '2026-11-10',
-    is_overdue: false,
-    days_overdue: 0,
-    is_completed_late: false,
-    days_late: 0,
-    is_completed_early: false,
-    days_early: 0,
-    completion_evidence_required: false,
-    subtask_counts: { total: 0, done: 0 },
-    pending_date_request: null,
-    created_at: '2026-11-01T08:00:00Z',
-    created_by_account_id: 'a',
-    created_by_full_name: 'A',
-  }
-}
-
-const archiveTasks = (...ids: string[]) =>
-  http.get(`${ORIGIN}/v1/records/archive/tasks`, () =>
-    json({ tasks: ids.map((id) => ({ work_item_id: id, title: `Görev ${id}`, file_count: 1 })) }),
+const task = (id: string, department = 'd7') => ({
+  work_item_id: id,
+  title: `Görev ${id}`,
+  department_id: department,
+  file_count: 1,
+})
+const programTasks = (tasks: object[], truncated = false) =>
+  http.get(`${ORIGIN}/v1/program/archive/tasks`, () =>
+    json({ tasks }, 200, truncated ? { 'X-Result-Truncated': 'true' } : {}),
   )
-const folders = http.get(`${ORIGIN}/v1/records/archive/folders`, () =>
-  json({ folders: [folder({ folder_id: 'd7' })] }),
+const programFolders = http.get(`${ORIGIN}/v1/program/archive/folders`, () =>
+  json(folderBody(folder({ folder_id: 'd7' }))),
 )
 
 function setup(route: string | null, selection = ADMIN) {
@@ -68,96 +49,82 @@ function setup(route: string | null, selection = ADMIN) {
   return { h, ...result }
 }
 
-describe('yönetici görev klasörleri: archiveTasks ∩ listProgramWorkItems(department_id)', () => {
-  it('program geneli archiveTasks klasörün görevleriyle kesişir; liste department_id ile okunur', async () => {
-    server.use(
-      ...standing({ admin: true }),
-      folders,
-      archiveTasks('w1', 'w2', 'baska-departman'),
-      http.get(`${ORIGIN}/v1/program/work-items`, () =>
-        json({ items: [workItem('w1'), workItem('w2')] }),
-      ),
-    )
+describe('yönetici görev klasörleri: programArchiveTasks?department_id (S2, BE-072)', () => {
+  it("görevler klasörün department_id süzgeciyle S2'den okunur; kesişim ve work-items okuması yok", async () => {
+    server.use(...standing({ admin: true }), programFolders, programTasks([task('w1'), task('w2')]))
     const { h, tasks } = setup('d7')
     await settleQueries(h.queryClient)
     expect(tasks.folders.value.tasks.map((t) => t.work_item_id)).toEqual(['w1', 'w2'])
-    expect(tasks.folders.value.truncated).toBe(false)
-    expect(tasks.folders.value.ready).toBe(true)
-    const listCall = sent('GET', '/v1/program/work-items')[0]!
-    expect(listCall.query.get('department_id')).toBe('d7')
-    // Görev listesi S2'dir: departman başlığı gönderilmez.
-    expect(listCall.headers.get('X-Nizamio-Department')).toBeNull()
+    expect(tasks.folders.value).toMatchObject({ truncated: false, ready: true })
+    const call = sent('GET', '/v1/program/archive/tasks')[0]!
+    expect(call.query.get('department_id')).toBe('d7')
+    expect(call.query.has('include_empty')).toBe(false)
+    // S2: yalnız program başlığı; departman başlığı gönderilmez.
+    expect(call.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(call.headers.get('X-Nizamio-Department')).toBeNull()
+    // Eski yol yok (P33 geçici yolu): `listProgramWorkItems` kesişimi ve S3 görev listesi çağrılmaz.
+    expect(sent('GET', '/v1/program/work-items')).toHaveLength(0)
+    expect(s3Requests()).toHaveLength(0)
   })
 
-  it('görev listesi 200 tavanına çarptıysa (sonraki sayfa var) truncated olgusu', async () => {
+  it('sunucu listeyi kesince (X-Result-Truncated) truncated olgusu', async () => {
+    server.use(...standing({ admin: true }), programFolders, programTasks([task('w1')], true))
+    const { h, tasks } = setup('d7')
+    await settleQueries(h.queryClient)
+    expect(tasks.folders.value.truncated).toBe(true)
+  })
+
+  it('klasör doğrulanmadan görev okuması başlamaz; olmayan klasörde hiç açılmaz', async () => {
     server.use(
       ...standing({ admin: true }),
-      folders,
-      archiveTasks('w1'),
-      http.get(`${ORIGIN}/v1/program/work-items`, () =>
-        json({ items: [workItem('w1')], next_cursor: 'sonraki' }),
+      http.get(`${ORIGIN}/v1/program/archive/folders`, () => json(folderBody())),
+      programTasks([task('w1')]),
+    )
+    const { h, tasks } = setup('d7')
+    await settleQueries(h.queryClient)
+    expect(sent('GET', '/v1/program/archive/tasks')).toHaveLength(0)
+    expect(tasks.folders.value).toEqual({ tasks: [], truncated: false, ready: false })
+  })
+
+  it('ilk okuma hatası: failure + yeniden dene; veri gelince hata kalkar', async () => {
+    let fail = true
+    server.use(
+      ...standing({ admin: true }),
+      programFolders,
+      http.get(`${ORIGIN}/v1/program/archive/tasks`, () =>
+        fail ? json({ code: 'platform.internal' }, 500) : json({ tasks: [task('w1')] }),
       ),
     )
     const { h, tasks } = setup('d7')
     await settleQueries(h.queryClient)
-    expect(tasks.folders.value.truncated).toBe(true)
-    expect(tasks.folders.value.tasks.map((t) => t.work_item_id)).toEqual(['w1'])
-  })
-
-  it('klasör doğrulanmadan görev/liste okuması başlamaz; olmayan klasörde hiç açılmaz', async () => {
-    server.use(
-      ...standing({ admin: true }),
-      http.get(`${ORIGIN}/v1/records/archive/folders`, () => json({ folders: [] })),
-      archiveTasks('w1'),
-      http.get(`${ORIGIN}/v1/program/work-items`, () => json({ items: [workItem('w1')] })),
-    )
-    const { h, tasks } = setup('d7')
+    expect(tasks.failure.value).toMatchObject({ source: 'tasks' })
+    fail = false
+    tasks.retry()
     await settleQueries(h.queryClient)
-    expect(sent('GET', '/v1/records/archive/tasks')).toHaveLength(0)
-    expect(sent('GET', '/v1/program/work-items')).toHaveLength(0)
-    expect(tasks.folders.value).toEqual({ tasks: [], truncated: false, ready: false })
-  })
-
-  it('kesişim hazır olmadan görev gösterilmez (program geneli sızıntısı yok)', async () => {
-    let release!: () => void
-    const gate = new Promise<void>((resolve) => {
-      release = resolve
-    })
-    server.use(
-      ...standing({ admin: true }),
-      folders,
-      archiveTasks('w1', 'x'),
-      http.get(`${ORIGIN}/v1/program/work-items`, async () => {
-        await gate
-        return json({ items: [workItem('w1')] })
-      }),
-    )
-    const { h, tasks } = setup('d7')
-    await vi.waitFor(() => expect(tasks.tasks.data.value).toBeDefined())
-    expect(tasks.folders.value).toEqual({ tasks: [], truncated: false, ready: false })
-    release()
-    await settleQueries(h.queryClient)
-    expect(tasks.folders.value.tasks.map((t) => t.work_item_id)).toEqual(['w1'])
+    expect(tasks.failure.value).toBeNull()
+    expect(tasks.folders.value.tasks).toHaveLength(1)
   })
 })
 
 describe('koordinatör görev klasörleri', () => {
-  it('doğrudan archiveTasks (başlıktaki departman); görev listesi okunmaz', async () => {
+  it('doğrudan archiveTasks (S3, başlıktaki departman); S2 okunmaz', async () => {
     server.use(
       ...standing({ rows: [['p1', 'd1', 'koordinator']] }),
-      http.get(`${ORIGIN}/v1/records/archive/folders`, () => json({ folders: [folder()] })),
-      archiveTasks('w1', 'w2'),
+      http.get(`${ORIGIN}/v1/records/archive/folders`, () => json(folderBody(folder()))),
+      http.get(`${ORIGIN}/v1/records/archive/tasks`, () =>
+        json({ tasks: [task('w1', 'd1'), task('w2', 'd1')] }),
+      ),
     )
     const { h, tasks } = setup('d1', COORD)
     await settleQueries(h.queryClient)
     expect(tasks.folders.value).toEqual({
-      tasks: [
-        { work_item_id: 'w1', title: 'Görev w1', file_count: 1 },
-        { work_item_id: 'w2', title: 'Görev w2', file_count: 1 },
-      ],
+      tasks: [task('w1', 'd1'), task('w2', 'd1')],
       truncated: false,
       ready: true,
     })
-    expect(sent('GET', '/v1/program/work-items')).toHaveLength(0)
+    expect(sent('GET', '/v1/records/archive/tasks')[0]!.headers.get('X-Nizamio-Department')).toBe(
+      'd1',
+    )
+    expect(sent('GET', '/v1/program/archive/tasks')).toHaveLength(0)
   })
 })

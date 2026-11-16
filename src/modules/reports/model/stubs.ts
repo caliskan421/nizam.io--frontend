@@ -16,9 +16,6 @@ export const SECTION_SELECTION = designStub('BE-122', {
   departmentFilterAvailable: false,
 })
 
-/** Dönem arşivi ZIP'i (E-13-09/10): yönetici `archiveFullZip`'i S3 başlığı olmadan çağıramaz. */
-export const PERIOD_ZIP = designStub('BE-120', { available: false })
-
 /**
  * 01f önizlemesinin hedef şablonu (E-13-28, 31, 34…36): Gantt, iş yükü, görev detay kartları,
  * toplantılar ve dosyalar bölümleri statik yer tutucu; indirilen PDF v0.15 şablonudur.

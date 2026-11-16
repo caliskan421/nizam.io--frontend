@@ -20,7 +20,7 @@ import { folderText } from './messages'
 const props = defineProps<FileListProps>()
 const emit = defineEmits<FileListEmits>()
 
-const showStates = computed(() => props.needsTask || props.error || props.files.length === 0)
+const showStates = computed(() => props.error || props.files.length === 0)
 </script>
 
 <template>
@@ -32,7 +32,6 @@ const showStates = computed(() => props.needsTask || props.error || props.files.
   >
     <FileStates
       v-if="showStates"
-      :needs-task="needsTask"
       :error="error"
       :loading="loading"
       :empty="files.length === 0"

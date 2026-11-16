@@ -9,6 +9,11 @@
  *  - `renameFile`: anahtarsız, `expected_revision` yok (son yazan kazanır); sonuç bilinmiyorsa
  *    kör tekrar yok → liste yeniden okunur. 409 `records.name_taken` / `records.moved`, 422
  *    `records.name_invalid`; `records.moved` yeniden okutur.
+
+ *  - `retagFile` (BE-074): `PATCH /v1/files/{id}/tag`, anahtarsız (aynı etiket 200 "değişiklik
+ *    yok"; yeniden gönderim zararsız); 403 `records.not_authorized`, 422 `records.tag_invalid`.
+ *    Başarıda `archive` (etiket süzgeci/segment sorguları: öğe süzgeçten çıkabilir) ve görevin
+ *    `listWorkItemFiles`'ı yeniden okunur (`query-keys.ts` ilişki listesi).
  *  - `deleteFile`: 204, kalıcı (onay çağıranda); 404 `records.file_not_found` → silinmiş say,
  *    liste yenilenir (sonuç `failed` kalır, çağıran `fileGone` ile ayırt eder).
  */
@@ -33,6 +38,7 @@ import type {
   AttachFileForm,
   FileRecord,
   RenameArchiveFileInput,
+  RetagArchiveFileInput,
 } from '../model/types'
 import { useSingleRetryMutation } from './keyed'
 
@@ -101,6 +107,21 @@ export function useRenameArchiveFile() {
     invalidation: byItem,
   })
   return rereadOnCodes(mutation, 'renameFile', RENAME_REREAD)
+}
+
+/** `retagFile` — etiketi kapalı kümeden değiştir; yeniden adlandırmayla aynı yetki (sunucuda). */
+export function useRetagArchiveFile() {
+  const mutation = useKeylessMutation<RetagArchiveFileInput, FileRecord>({
+    operation: 'retagFile',
+    send: (vars, ctx) =>
+      api.PATCH('/v1/files/{id}/tag', {
+        params: { header: scopeHeaders(vars.target), path: { id: vars.fileId } },
+        body: { tag: vars.tag },
+        signal: ctx.signal,
+      }),
+    invalidation: byItem,
+  })
+  return rereadOnCodes(mutation, 'retagFile', RENAME_REREAD)
 }
 
 /** `deleteFile` — kalıcı silme (geri alma yok); onay çağıranda (`confirmWrite`). */

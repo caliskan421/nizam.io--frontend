@@ -1,12 +1,15 @@
 /**
- * Arşiv bağlamı (P33): rota + kapsam + yetki olgusundan S3 hedefi ve klasör doğrulaması.
+ * Arşiv bağlamı (P33 → F8 BE-072): rota + kapsam + yetki olgusundan okuma kaynağı ve klasör
+ * doğrulaması.
  *
- *  - Yönetici (`company_admin` olgusu): S3 departman başlığı YALNIZ rotadaki `klasorId`; `/arsiv`
- *    S3 isteği atmaz (06 ızgarası `listProgramDepartments` adlarından). Kapsam deposuna YAZILMAZ.
- *  - Koordinatör/üye: başlık seçili kapsamdan; `klasorId` yanıtla doğrulanan gösterim kimliği.
- *  - `klasorId` `archiveFolders` yanıtıyla doğrulanır; doğrulanmadan görev/dosya okuması başlamaz
+ *  - Yönetici (`company_admin` olgusu): okumalar S2 program arşivinden (`programArchive*`); klasör
+ *    özeti süzgeçsizdir (06 ve 07 aynı önbellek girdisi), görev/dosya okumaları rotadaki `klasorId`
+ *    ile `department_id` süzülür. Yazma/indirme başlığı satırın `department_id`'sidir (burada değil).
+ *    Kapsam deposuna YAZILMAZ.
+ *  - Koordinatör/üye: S3, başlık seçili kapsamdan; `klasorId` yanıtla doğrulanan gösterim kimliği.
+ *  - `klasorId` klasör özeti yanıtıyla doğrulanır; doğrulanmadan görev/dosya okuması başlamaz
  *    (yönetici). `folderMissing` → "klasör bulunamadı / erişim yok".
- * Standing (yetki olgusu) gelmeden hedef yoktur: yanlış kipte S3 isteği çıkmaz.
+ * Standing (yetki olgusu) gelmeden kaynak yoktur: yanlış kipte istek çıkmaz.
  */
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
@@ -14,7 +17,14 @@ import { ApiError } from '@/shared/errors/api-error'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
 
-import { accessTarget, decideEntry, folderKnown, resolveArchiveAccess } from '../model/admin-scope'
+import {
+  accessTarget,
+  decideEntry,
+  folderKnown,
+  folderSource,
+  readSource,
+  resolveArchiveAccess,
+} from '../model/admin-scope'
 import { useArchiveFolders } from './queries'
 
 export function useArchiveContext(routeFolderId: MaybeRefOrGetter<string | null>) {
@@ -28,8 +38,11 @@ export function useArchiveContext(routeFolderId: MaybeRefOrGetter<string | null>
       routeFolderId: toValue(routeFolderId),
     }),
   )
+  /** S3 başlığı (yalnız klasör ZIP'i gibi klasör-başlıklı eylemler için); `/arsiv` yöneticisinde yok. */
   const target = computed(() => accessTarget(access.value))
-  const folders = useArchiveFolders(target)
+  /** Görev/dosya/yükleyen okumalarının kaynağı (yönetici S2, K/Ü S3). */
+  const source = computed(() => readSource(access.value, store.snapshot.programId))
+  const folders = useArchiveFolders(() => folderSource(access.value, store.snapshot.programId))
   const folderList = computed(() => folders.data.value?.folders)
   const folderOk = computed(() => folderKnown(folderList.value, toValue(routeFolderId)))
   const folderMissing = computed(() => {
@@ -57,6 +70,7 @@ export function useArchiveContext(routeFolderId: MaybeRefOrGetter<string | null>
     admin,
     access,
     target,
+    source,
     folders,
     folderList,
     folderOk,

@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import {
   $,
   ADMIN,
+  archive,
   boot,
   click,
   COORD,
@@ -96,6 +97,65 @@ describe('yeniden adlandırma', () => {
     }
     await idle(app.queryClient)
     expect(backend.sent('PATCH', '/v1/files/f2/name')).toHaveLength(0)
+  })
+})
+
+describe('etiketi değiştir (retagFile, BE-074)', () => {
+  const pick = (tag: string) => userClick(() => $(`[data-retag="${tag}"]`))
+
+  it('koordinatör: menüden yeni etiket → PATCH → liste/etiket süzgeci yenilenir; etiket süzgecinden çıkan dosyada panel kapanır', async () => {
+    const app = await open('/arsiv/d1?gorev=w1&etiket=plan&dosya=f2')
+    await until(() => $('[data-testid="file-preview"]'), 'önizleme')
+    await userClick(() => $('[data-testid="file-retag"]'))
+    await until(() => $('[data-retag="girdi"]'), 'etiket menüsü')
+    await pick('girdi')
+    await idle(app.queryClient)
+    const patch = backend.sent('PATCH', '/v1/files/f2/tag')
+    expect(patch).toHaveLength(1)
+    expect(patch[0]!.headers.get('Idempotency-Key')).toBeNull()
+    expect(patch[0]!.headers.get('X-Nizamio-Department')).toBe('d1')
+    expect(archive.state.retags).toEqual([{ file_id: 'f2', tag: 'girdi' }])
+    // `plan` süzgecinde artık yok: liste yeniden okundu, kart ve panel düştü.
+    await until(() => !$('[data-file-id="f2"]'), 'süzgeçten çıktı')
+    await until(() => !$('[data-testid="file-preview"]'), 'panel kapandı')
+    // Panel (sahip) sökülünce geç sonuç ekrana özgü bildirim başlatmaz (KESİN 26a).
+  })
+
+  it('süzgeçsiz listede dosya kalır; yeni etiket kartta ve panelde görünür; odak tetikleyiciye döner', async () => {
+    const app = await open('/arsiv/d1?gorev=w1&dosya=f2')
+    await until(() => $('[data-testid="file-preview"]'), 'önizleme')
+    await userClick(() => $('[data-testid="file-retag"]'))
+    await pick('cikti')
+    await idle(app.queryClient)
+    await until(
+      () => $('[data-testid="preview-tag"]')?.textContent?.includes('Çıktı'),
+      'panelde yeni etiket',
+    )
+    expect($('[data-file-id="f2"] [data-tag-dot]')?.getAttribute('data-tag-dot')).toBe('cikti')
+    await until(() => toasts().includes('Çıktı'), 'bildirim')
+    expect(document.activeElement).toBe($('[data-testid="file-retag"]'))
+  })
+
+  it('üye başkasının dosyasında etiket düğmesi yok; kendi dosyasında var; ŞY başka birimin dosyasını d2 başlığıyla değiştirir', async () => {
+    const { MEMBER } = await import('./archive-support')
+    await boot({ ...MEMBER, path: '/arsiv/my-tasks?dosya=f2' })
+    await until(() => $('[data-testid="file-preview"]'), 'üye önizleme (başkasının dosyası)')
+    expect($('[data-testid="file-retag"]')).toBeNull()
+    teardown()
+
+    await boot({ ...MEMBER, path: '/arsiv/my-tasks?dosya=f1' })
+    await until(() => $('[data-testid="file-preview"]'), 'üye önizleme (kendi dosyası)')
+    expect($('[data-testid="file-retag"]')).not.toBeNull()
+    teardown()
+
+    const app = await boot({ ...ADMIN, path: '/arsiv/d2?dosya=f4' })
+    await until(() => $('[data-testid="file-preview"]'), 'ŞY önizleme')
+    await userClick(() => $('[data-testid="file-retag"]'))
+    await pick('ister')
+    await idle(app.queryClient)
+    expect(backend.sent('PATCH', '/v1/files/f4/tag')[0]!.headers.get('X-Nizamio-Department')).toBe(
+      'd2',
+    )
   })
 })
 

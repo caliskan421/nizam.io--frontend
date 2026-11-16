@@ -51,6 +51,9 @@ describe('arşiv capability tablosu (üç rol × eylemler)', () => {
     expect(caps.upload('d2')).toBe(up2)
     expect(caps.rename(own)).toBe(renOwn)
     expect(caps.rename(others)).toBe(renOther)
+    // Etiketi değiştir (BE-074) yeniden adlandırmayla aynı yetki.
+    expect(caps.retag(own)).toBe(renOwn)
+    expect(caps.retag(others)).toBe(renOther)
     expect(caps.delete(own)).toBe(delOwn)
     expect(caps.delete(others)).toBe(delOther)
   })

@@ -54,7 +54,8 @@ describe('trArchive (tek kök ağaç)', () => {
     expect(i18n.global.te('archive.shared.kind.pdf')).toBe(false)
   })
 
-  it('yönetici boş durumu anahtarı (BE-072) çözülür', () => {
-    expect(i18n.global.t('archive.shared.selectTask')).toBe('Görev klasörü seçin')
+  it('yönetici "Görev klasörü seçin" metinleri kalktı (BE-072)', () => {
+    expect(i18n.global.te('archive.shared.selectTask')).toBe(false)
+    expect(i18n.global.te('archive.folder.search.needsTask')).toBe(false)
   })
 })

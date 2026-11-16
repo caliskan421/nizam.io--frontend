@@ -14,13 +14,16 @@ describe('görev yardımcıları', () => {
     expect(taskTitles(undefined)).toEqual({})
   })
 
-  it('yükleme satırları: ada göre (tr-TR), departman başlık hedefi; departman yoksa boş', () => {
-    expect(uploadTasks(tasks, 'd7')).toEqual([
-      { workItemId: 'w1', title: 'Ağ', departmentId: 'd7' },
-      { workItemId: 'w2', title: 'Zemin', departmentId: 'd7' },
+  it("yükleme satırları: ada göre (tr-TR); başlık hedefi SEÇENEĞİN department_id'si (RECORDS-K39)", () => {
+    const mixed = [
+      { work_item_id: 'w2', title: 'Zemin', file_count: 0, department_id: 'd2' },
+      { work_item_id: 'w1', title: 'Ağ', file_count: 4, department_id: 'd1' },
+    ]
+    expect(uploadTasks(mixed)).toEqual([
+      { workItemId: 'w1', title: 'Ağ', departmentId: 'd1' },
+      { workItemId: 'w2', title: 'Zemin', departmentId: 'd2' },
     ])
-    expect(uploadTasks(tasks, null)).toEqual([])
-    expect(uploadTasks(undefined, 'd7')).toEqual([])
+    expect(uploadTasks(undefined)).toEqual([])
   })
 })
 

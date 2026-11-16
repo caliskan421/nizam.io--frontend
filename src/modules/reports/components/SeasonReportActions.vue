@@ -19,7 +19,7 @@ import { t } from './text'
  * 06 Arşiv başlığındaki dönem sonu raporu eylemleri (01i hücre A, E-13-01…08, 12): "Dönem sonu
  * raporu (PDF)" + bitişik "Bölüm seç…" (tek parça) ve altında "Önizle" bağlantısı (01f). Bağlama
  * (KESİN 28): `ArchivePage.vue` başlık eylem şeridi. Yalnız şirket yöneticisi görür (`reportCapabilities`,
- * mercek değil olgu); "Dönem arşivi (ZIP)" `PeriodZipButton`'ın (F5, BE-120 stub) işidir. "Bölüm seç…"
+ * mercek değil olgu); "Dönem arşivi (ZIP)" `PeriodZipButton`'ın (06; `programArchiveZip` S2, BE-120) işidir. "Bölüm seç…"
  * penceresi statiktir (BE-122); hepsi seçiliyken "Seçilenleri indir" aynı düğmenin durumunda
  * düz indirmeyi başlatır. Pencere kapanınca odak "Bölüm seç…" düğmesine döner (UiModal; indirme
  * başlayınca kart ana düğmede görünür). 390'da düğme tam genişlik, yığılı.

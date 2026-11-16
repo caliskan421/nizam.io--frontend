@@ -23,6 +23,7 @@ import {
   useAttachArchiveFile,
   useDeleteArchiveFile,
   useRenameArchiveFile,
+  useRetagArchiveFile,
 } from './writes'
 
 // `structuredClone(File)` jsdom'da yazma motorunun gövde dondurmasına takılır: tarayıcı
@@ -273,6 +274,69 @@ describe('renameFile (anahtarsız, revizyonsuz)', () => {
     expect(calls).toBe(1)
     expect(keys.stale(keys.adminKey)).toBe(true)
     expect(keys.stale(keys.files)).toBe(true)
+  })
+})
+
+describe('retagFile (BE-074; anahtarsız, kapalı küme)', () => {
+  it('PATCH tag; Idempotency-Key yok; başlık dosyanın departmanı; arşiv + görevin dosyaları yenilenir, görev ayrıntısı değil', async () => {
+    server.use(http.patch(`${ORIGIN}/v1/files/f1/tag`, () => json({ ...fileRecord, tag: 'plan' })))
+    const h = harness(ADMIN)
+    const keys = seed(h)
+    const { result: retag } = h.run(() => useRetagArchiveFile())
+    const outcome = await retag.submit({ ...ref, tag: 'plan' })
+    expect(outcome.kind).toBe('success')
+    const [req] = sent('PATCH', '/v1/files/f1/tag')
+    expect(req!.headers.get('Idempotency-Key')).toBeNull()
+    expect(req!.headers.get('X-Requested-With')).toBeTruthy()
+    expect(req!.body).toEqual({ tag: 'plan' })
+    expect(req!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(req!.headers.get('X-Nizamio-Department')).toBe('d7')
+    // Etiket süzgeci/segment sorguları (arşiv) ve görevin dosyaları yenilenir; başka program değil.
+    expect(keys.stale(keys.adminKey)).toBe(true)
+    expect(keys.stale(keys.files)).toBe(true)
+    expect(keys.stale(keys.item)).toBe(false)
+    expect(keys.stale(keys.foreignProgram)).toBe(false)
+  })
+
+  it.each([
+    ['records.not_authorized', 403],
+    ['records.tag_invalid', 422],
+    ['records.file_not_found', 404],
+  ])('%s sınıflı hata olarak döner', async (code, status) => {
+    server.use(http.patch(`${ORIGIN}/v1/files/f1/tag`, () => errorEnvelope(code, status)))
+    const h = harness(COORD)
+    const { result: retag } = h.run(() => useRetagArchiveFile())
+    const outcome = await retag.submit({ ...ref, tag: 'girdi' })
+    expect(outcome.kind).toBe('failed')
+    if (outcome.kind === 'failed') expect(outcome.error.code).toBe(code)
+  })
+
+  it('409 records.moved: dosya taşınmış → arşiv yeniden okunur', async () => {
+    server.use(http.patch(`${ORIGIN}/v1/files/f1/tag`, () => errorEnvelope('records.moved', 409)))
+    const h = harness(ADMIN)
+    const keys = seed(h)
+    const { result: retag } = h.run(() => useRetagArchiveFile())
+    const outcome = await retag.submit({ ...ref, tag: 'cikti' })
+    expect(outcome.kind).toBe('failed')
+    expect(keys.stale(keys.adminKey)).toBe(true)
+  })
+
+  it('sonuç bilinmiyor: kör tekrar YOK (retry düşer), tek yeniden okuma', async () => {
+    let calls = 0
+    server.use(
+      http.patch(`${ORIGIN}/v1/files/f1/tag`, () => {
+        calls += 1
+        return errorEnvelope('platform.internal', 503)
+      }),
+    )
+    const h = harness(ADMIN)
+    const keys = seed(h)
+    const { result: retag } = h.run(() => useRetagArchiveFile())
+    const outcome = await retag.submit({ ...ref, tag: 'sonuc' })
+    expect(outcome.kind).toBe('unknown_outcome')
+    if (outcome.kind === 'unknown_outcome') expect(outcome.retry).toBeNull()
+    expect(calls).toBe(1)
+    expect(keys.stale(keys.adminKey)).toBe(true)
   })
 })
 

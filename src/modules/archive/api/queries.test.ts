@@ -124,19 +124,19 @@ describe('anahtarlar kapsamlı ve klasörle ayrışır', () => {
   })
 })
 
-describe('archiveAttachments — imleç, süzgeç, "n+"', () => {
+describe('archiveAttachments — imleç, süzgeç, kesin toplam', () => {
   function pages() {
     return http.get(`${ORIGIN}/v1/records/archive/attachments`, ({ request }) => {
       const url = new URL(request.url)
       const cursor = url.searchParams.get('cursor')
       if (cursor === null) {
-        return json({ files: [archiveFile({ file_id: 'f1' })], next_cursor: 'c2' })
+        return json({ files: [archiveFile({ file_id: 'f1' })], next_cursor: 'c2', total: 2 })
       }
-      return json({ files: [archiveFile({ file_id: 'f2' })] })
+      return json({ files: [archiveFile({ file_id: 'f2' })], total: 2 })
     })
   }
 
-  it('süzgeçler sunucu adlarıyla; sonraki sayfa aynı süzgeçle imleç gönderir; n+ olgusu', async () => {
+  it('süzgeçler sunucu adlarıyla; sonraki sayfa aynı süzgeçle imleç gönderir; toplam sunucudan', async () => {
     server.use(pages())
     const h = harness(COORD)
     const filters = ref({
@@ -149,6 +149,8 @@ describe('archiveAttachments — imleç, süzgeç, "n+"', () => {
     await settleQueries(h.queryClient)
     expect(result.files.value.map((f) => f.file_id)).toEqual(['f1'])
     expect(result.hasMore.value).toBe(true)
+    // Toplam yüklenen sayfadan değil sunucudan (BE-073): 1 dosya yüklü, süzgeç kümesi 2.
+    expect(result.total.value).toBe(2)
     const [first] = sent('GET', '/v1/records/archive/attachments')
     expect(Object.fromEntries(first!.query)).toEqual({
       tag: 'plan',

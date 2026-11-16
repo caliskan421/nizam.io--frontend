@@ -140,21 +140,9 @@ describe('görsel önizleme (blob: URL)', () => {
   })
 })
 
-describe('yükleyen adı ve alt görev adı (yalnız seçili dosya için)', () => {
-  const fileRow = {
-    file_id: 'f1',
-    work_item_id: 'w1',
-    display_name: 'a.png',
-    content_type: 'image/png',
-    size_bytes: 3,
-    tag: 'plan',
-    uploaded_by_account_id: 'u1',
-    uploaded_by_full_name: 'Ayşe Yılmaz',
-  }
-
-  it('listWorkItemFiles ile yükleyen adı; listWorkItemSubtasks ile alt görev adı', async () => {
+describe('alt görev adı (yalnız seçili dosya için)', () => {
+  it('listWorkItemSubtasks ile alt görev adı; listWorkItemFiles okunmaz (BE-071)', async () => {
     server.use(
-      http.get(`${ORIGIN}/v1/work-items/w1/files`, () => json({ files: [fileRow] })),
       http.get(`${ORIGIN}/v1/work-items/w1/subtasks`, () =>
         json({ subtasks: [{ subtask_id: 's1', title: 'Taslak' }], total: 1 }),
       ),
@@ -162,31 +150,23 @@ describe('yükleyen adı ve alt görev adı (yalnız seçili dosya için)', () =
     const h = harness(ADMIN)
     const { result } = h.run(() => usePreviewDetails(target, image({ subtask_id: 's1' })))
     await settleQueries(h.queryClient)
-    expect(result.uploaderName.value).toBe('Ayşe Yılmaz')
     expect(result.subtaskTitle.value).toBe('Taslak')
-    expect(sent('GET', '/v1/work-items/w1/files')[0]!.headers.get('X-Nizamio-Department')).toBe(
+    expect(sent('GET', '/v1/work-items/w1/files')).toHaveLength(0)
+    expect(sent('GET', '/v1/work-items/w1/subtasks')[0]!.headers.get('X-Nizamio-Department')).toBe(
       'd7',
     )
-    expect(sent('GET', '/v1/work-items/w1/subtasks')).toHaveLength(1)
   })
 
-  it('yükleyen adı null ise nötr; alt görev yoksa alt görev isteği atılmaz', async () => {
-    server.use(
-      http.get(`${ORIGIN}/v1/work-items/w1/files`, () =>
-        json({ files: [{ ...fileRow, uploaded_by_full_name: null }] }),
-      ),
-    )
+  it('alt görev yoksa alt görev isteği atılmaz', async () => {
     const h = harness(COORD)
     const { result } = h.run(() => usePreviewDetails(target, image()))
     await settleQueries(h.queryClient)
-    expect(result.uploaderName.value).toBeNull()
     expect(result.subtaskTitle.value).toBeNull()
     expect(sent('GET', '/v1/work-items/w1/subtasks')).toHaveLength(0)
   })
 
   it('403 work.not_assigned alt görev okumasında nötr (hata ekranı değil)', async () => {
     server.use(
-      http.get(`${ORIGIN}/v1/work-items/w1/files`, () => json({ files: [fileRow] })),
       http.get(`${ORIGIN}/v1/work-items/w1/subtasks`, () =>
         errorEnvelope('work.not_assigned', 403),
       ),
@@ -195,7 +175,6 @@ describe('yükleyen adı ve alt görev adı (yalnız seçili dosya için)', () =
     const { result } = h.run(() => usePreviewDetails(target, image({ subtask_id: 's1' })))
     await settleQueries(h.queryClient)
     expect(result.subtaskTitle.value).toBeNull()
-    expect(result.uploaderName.value).toBe('Ayşe Yılmaz')
   })
 
   it('seçili dosya yokken hiçbir yan okuma yok', async () => {

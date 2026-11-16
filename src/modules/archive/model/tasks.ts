@@ -12,15 +12,12 @@ export function taskTitles(tasks: readonly ArchiveTask[] | undefined): Record<st
 const collator = new Intl.Collator('tr-TR', { sensitivity: 'base' })
 
 /**
- * Yükleme penceresi satırları: görevin departmanı = isteğin S3 başlığı (arşiv görevi
- * `department_id` taşımaz; yöneticide klasör, K/Ü'de seçili kapsam — çağıran verir). Ada göre sıralı.
+ * Yükleme penceresi satırları (`include_empty=true` görev seçenekleri, BE-121): isteğin S3
+ * başlığı = SEÇENEĞİN `department_id`'sidir (RECORDS-K39; yönetici için rotadaki klasör değil).
+ * Ada göre sıralı; sunucunun "dosyalılar önce" sırası seçicide korunmaz (ad sırası).
  */
-export function uploadTasks(
-  tasks: readonly ArchiveTask[] | undefined,
-  departmentId: string | null,
-): UploadTask[] {
-  if (departmentId === null) return []
+export function uploadTasks(tasks: readonly ArchiveTask[] | undefined): UploadTask[] {
   return [...(tasks ?? [])]
     .sort((a, b) => collator.compare(a.title, b.title))
-    .map((t) => ({ workItemId: t.work_item_id, title: t.title, departmentId }))
+    .map((t) => ({ workItemId: t.work_item_id, title: t.title, departmentId: t.department_id }))
 }

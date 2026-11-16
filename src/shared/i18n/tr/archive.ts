@@ -20,18 +20,15 @@ export const trArchive = {
       loading: 'Klasör yükleniyor',
       error: 'Klasör bilgisi yüklenemedi',
       meta: {
-        // E-06-33: kişi adları ve bayt toplamı gizli/statik (BE-025).
+        // E-06-33: kişi adları gizli; bayt toplamı `total_bytes` (BE-025).
         tasks: '{n} görev klasörü',
         tasksMore: '{n}+ görev klasörü',
         files: '{n} dosya',
-        bytes: '—',
       },
       upload: 'Yükle',
       search: {
         label: 'Tüm arşivde ara',
         placeholder: 'Tüm arşivde ara…',
-        // Yönetici, görev seçilmemiş: arama statik (BE-072).
-        needsTask: 'Görev klasörü seçin',
       },
       missing: {
         // K6: klasör yok ya da erişim kaybı.
@@ -55,12 +52,9 @@ export const trArchive = {
       sort: {
         ad: 'Ada göre',
         dosya: 'Dosya sayısına göre',
-        // Klasör "Son yükleme" sırası için alan yok (BE-025): seçenek devre dışı.
         sonYukleme: 'Son yükleme',
       },
-      // Yönetici merceği (P33, BE-072): klasör düzeyi "Son eklenen dosyalar" ve "Tüm arşivde ara".
-      selectTask: 'Görev klasörü seçin',
-      // Yönetici görev listesi 200 tavanında kesildi: kesişim eksik olabilir.
+      // Sunucu görev listesini 200'de kesti (`X-Result-Truncated`): bazı görev klasörleri eksik olabilir.
       tasksTruncated: 'Görev listesi kesildi: bazı görev klasörleri gösterilemiyor.',
       unknownUploader: 'Bilinmeyen kişi',
       noValue: '—',
@@ -83,6 +77,7 @@ export const trArchive = {
         // BE-077: arama yalnız dosya adında; kişi/görev/etiket araması vaadi yok.
         placeholder: 'Dosya adı ara…',
         shortcut: 'Aramaya git',
+        results: 'Arama sonuçları',
       },
       coordinatorships: {
         title: 'Koordinatörlükler',
@@ -94,7 +89,6 @@ export const trArchive = {
         retry: 'Yeniden dene',
         more: '{count} koordinatörlük daha',
         less: 'Daha az göster',
-        truncated: 'Koordinatörlük listesi kesildi: bazı klasörler gösterilemiyor.',
       },
       sort: {
         button: 'Sırala: {field}',
@@ -103,19 +97,24 @@ export const trArchive = {
         adAzalan: 'Ada göre (Z → A)',
         dosyaAzalan: 'Dosya sayısı (çoktan aza)',
         dosyaArtan: 'Dosya sayısı (azdan çoğa)',
-        sonYukleme: 'Son yükleme',
+        sonYukleme: 'Son yükleme (yeniden eskiye)',
         short: {
           adArtan: 'Ada göre',
           adAzalan: 'Ada göre (ters)',
           dosyaAzalan: 'Dosya sayısı',
           dosyaArtan: 'Dosya sayısı (ters)',
+          sonYukleme: 'Son yükleme',
         },
       },
       card: {
         emptyFolder: 'Henüz dosya yok',
         files: '{count} dosya',
+        filesAndTasks: '{count} dosya · {tasks} görev',
         size: 'Boyut',
         lastUpload: 'Son yükleme',
+        today: 'bugün',
+        yesterday: 'dün',
+        daysAgo: '{n} gün',
       },
       tags: {
         title: 'Etiketler',
@@ -145,8 +144,6 @@ export const trArchive = {
       },
       actions: {
         upload: 'Dosya yükle',
-        // BE-072 / BE-121: yönetici 06'da klasör seçmeden yükleyemez; seçici arşiv görevleriyle sınırlı.
-        uploadNeedsFolder: 'Yüklemek için önce bir koordinatörlük klasörü açın.',
         uploadNoTasks: 'Yüklenebilecek görev bulunamadı.',
       },
       noFolders: 'Görüntülenecek klasör yok',
@@ -181,7 +178,6 @@ export const trArchive = {
       empty: {
         title: 'Gösterilecek dosya yok',
         text: 'Seçili görev klasöründe, etikette ya da aramada dosya bulunamadı.',
-        selectTaskText: 'Dosyalar seçilen görev klasörüne göre listelenir.',
       },
       column: { name: 'Ad', task: 'Görev', type: 'Tür', size: 'Boyut', tag: 'Etiket' },
     },
@@ -190,7 +186,6 @@ export const trArchive = {
       region: 'Dosya önizleme',
       title: 'Önizleme',
       position: '{position} / {total}',
-      positionMore: '{position} / {total}+',
       positionUnknown: '{position} / {position}+',
       previous: 'Önceki dosya',
       next: 'Sonraki dosya',
@@ -223,6 +218,9 @@ export const trArchive = {
       downloadInterrupted: 'İndirme yarım kaldıysa yeniden deneyin.',
       rename: 'Yeniden adlandır',
       retag: 'Etiketi değiştir',
+      retagMenu: 'Etiket',
+      retagged: 'Etiket “{tag}” olarak değiştirildi.',
+      retaggedSame: 'Dosya zaten “{tag}” etiketli.',
       move: 'Başka klasöre taşı',
       remove: 'Dosyayı sil',
       renameTitle: 'Dosyayı yeniden adlandır',
@@ -245,10 +243,10 @@ export const trArchive = {
       task: {
         label: 'Görev',
         placeholder: 'Görev seçin',
-        // BE-121: arşiv görev listesi yalnız dosyası olan görevleri verir.
-        hint: 'Yalnız arşivde görünen görevler listelenir; henüz dosyası olmayan bir görev burada yoktur.',
         required: 'Görev seçin.',
-        none: 'Dosya yükleyebileceğiniz görev yok. Henüz dosyası olmayan görevler bu listede görünmez.',
+        none: 'Dosya yükleyebileceğiniz görev yok.',
+        // Sunucu seçenek listesini 200'de kesti (`X-Result-Truncated`, RECORDS-K42).
+        truncated: 'Görev listesi kesildi: bazı görevler burada görünmüyor.',
       },
       tag: {
         label: 'Etiket',
@@ -287,9 +285,28 @@ export const trArchive = {
         busy: 'ZIP hazırlanıyor…',
         saved: 'ZIP indirildi. Dosya eksik ya da açılmıyorsa tekrar deneyin.',
         tooLarge: 'Dönem arşivi tek ZIP için çok büyük; klasörleri ayrı ayrı indirin.',
-        // BE-120: `archiveFullZip` S3 (departman başlığı ister); yönetici /arsiv'te departman seçili değil.
-        unavailable:
-          "Dönem ZIP'i bu görünümde henüz indirilemiyor; bir klasörü açıp klasör ZIP'ini kullanın.",
+        // BE-124: gömülü rapor satır/not sınırında kesildi (`X-Result-Truncated`).
+        truncated:
+          'İndirildi; gömülü raporların bazı bölümleri sınır nedeniyle kesildi (ayrıntı rapor içindeki uyarıdadır).',
+        // Onay penceresi (E-13-10, 01h): klasör ağacı önizlemesi (BE-124).
+        dialog: {
+          kicker: '{program} · {year} sezonu',
+          title: 'Dönem arşivi (ZIP)',
+          summary: '{files} dosya · {size} · birkaç dakika sürebilir',
+          loading: 'Arşiv bilgisi okunuyor…',
+          error: 'Arşiv bilgisi okunamadı. Birazdan yeniden deneyin.',
+          tree: 'Arşiv klasör yapısı',
+          general: 'dönem raporu (PDF)',
+          unitReport: 'birim raporu · {n} dosya',
+          unitReportEmpty: 'birim raporu',
+          missing: 'yalnız eksik dosya varsa',
+          notice: 'birim raporları ayrı PDF olarak eklenmez ({limit}’ten fazla koordinatörlük)',
+          more: '… ve {from}–{to} arası diğer {n} koordinatörlük klasörü.',
+          wait: 'İndirme başladıktan sonra sayfayı kapatmayın veya yenilemeyin. Arşiv tamamlanınca tek dosya olarak iner.',
+          audit: 'Raporlu dönem arşivi indirmesi kayda geçer (denetim).',
+          cancel: 'Vazgeç',
+          confirm: 'Hazırla ve indir',
+        },
       },
       // Akış ortasında kopma: gövde yarım kalmış olabilir (GAP-041).
       partial: 'Bağlantı kesildi; indirme yarım kalmış olabilir. Tekrar deneyin.',

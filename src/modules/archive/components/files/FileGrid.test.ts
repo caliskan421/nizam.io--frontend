@@ -62,11 +62,11 @@ describe('FileGrid (E-06-41…45)', () => {
     expect(w.find('.arch-files__more').attributes('disabled')).toBeDefined()
   })
 
-  it('durumlar: yönetici görev seçmemiş, hata (yeniden dene), ilk yükleme, boş', async () => {
-    const w = mountGrid({ needsTask: true })
-    expect(w.find('[data-testid="files-needs-task"]').text()).toContain('Görev klasörü seçin')
+  it('durumlar: hata (yeniden dene), ilk yükleme, boş (yönetici "görev seçin" durumu yok)', async () => {
+    const w = mountGrid()
+    expect(w.find('[data-testid="files-needs-task"]').exists()).toBe(false)
+    await w.setProps({ error: true })
     expect(w.find('button.arch-card').exists()).toBe(false)
-    await w.setProps({ needsTask: false, error: true })
     expect(w.find('[data-testid="files-error"]').exists()).toBe(true)
     await w.find('[data-testid="files-error"] button').trigger('click')
     expect(w.emitted('retry')).toHaveLength(1)

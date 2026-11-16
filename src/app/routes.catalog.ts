@@ -268,8 +268,8 @@ export const ROUTES = {
     menu: { group: 'icerik', key: 'archive', order: 2 },
     params: {},
     // 06 README rota satırı: `tur` yalnız gönderilebilen değerler (PDF ayrı kategori değil,
-    // E-06-07); `sirala` yalnız ad/dosya sayısı (Son yükleme için alan yok, BE-025).
-    query: { q: text, tur: oneOf(ARCHIVE_KINDS), sirala: sortBy(['ad', 'dosya']) },
+    // E-06-07); `sirala` ad/dosya sayısı/son yükleme (`son`, `last_uploaded_at`; BE-025).
+    query: { q: text, tur: oneOf(ARCHIVE_KINDS), sirala: sortBy(['ad', 'dosya', 'son']) },
   },
   'archive.folder': {
     path: '/arsiv/:klasorId',

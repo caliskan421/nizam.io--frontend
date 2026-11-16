@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { i18n } from '@/shared/i18n'
 
@@ -15,36 +16,53 @@ function card(over: Record<string, unknown> = {}) {
   })
   return mount(FolderCard, {
     props: {
-      card: { folderId: 'd1', name: 'Mekanik sistemler', fileCount: 78, virtual: false, ...over },
+      card: {
+        folderId: 'd1',
+        name: 'Mekanik sistemler',
+        fileCount: 78,
+        taskCount: 8,
+        totalBytes: 701_234_567,
+        lastUploadedAt: '2026-10-24T10:00:00Z',
+        virtual: false,
+        ...over,
+      },
     },
-    global: { plugins: [i18n, router] },
+    global: { plugins: [i18n, router, createPinia()] },
   })
 }
 
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-16T10:00:00Z'))
+})
+afterEach(() => vi.useRealTimers())
+
 describe('klasör kartı (E-06-10…15)', () => {
-  it('ad ve dosya sayısı canlı; bağlantı /arsiv/:klasorId', () => {
+  it('ad, "‹N› dosya · ‹M› görev", boyut ve son yükleme canlı; bağlantı /arsiv/:klasorId', () => {
     const w = card()
     expect(w.get('.archive-folder__name').text()).toBe('Mekanik sistemler')
-    expect(w.get('[data-field="meta"]').text()).toBe('78 dosya')
+    expect(w.get('[data-field="meta"]').text()).toBe('78 dosya · 8 görev')
+    expect(w.get('[data-field="size"]').text()).toBe('668,7 MB')
+    // 24 Eki → 16 Kas (kurulum saat diliminin takvim günleri): 23 gün.
+    expect(w.get('[data-field="last"]').text()).toBe('23 gün')
     expect(w.get('a').attributes('href')).toBe('/arsiv/d1')
   })
 
-  it('görev sayısı, boyut ve son yükleme uydurulmaz: boyut/son yükleme statik —, görev sayısı yok', () => {
-    const w = card()
-    expect(w.get('[data-field="size"]').text()).toBe('—')
-    expect(w.get('[data-field="last"]').text()).toBe('—')
-    expect(w.text()).not.toMatch(/görev|MB|KB|\bgün\b/)
-  })
-
-  it('yönetici (sayı null): meta statik —, sahte sayı yok', () => {
-    const w = card({ fileCount: null })
-    expect(w.get('[data-field="meta"]').text()).toBe('—')
-    expect(w.classes()).not.toContain('archive-folder--empty')
+  it('son yükleme göreli: bugün / dün / n gün; yükleme yoksa —', () => {
+    expect(card({ lastUploadedAt: '2026-11-16T08:00:00Z' }).get('[data-field="last"]').text()).toBe(
+      'bugün',
+    )
+    expect(card({ lastUploadedAt: '2026-11-15T08:00:00Z' }).get('[data-field="last"]').text()).toBe(
+      'dün',
+    )
+    expect(card({ lastUploadedAt: null }).get('[data-field="last"]').text()).toBe('—')
   })
 
   it('boş klasör (0): "Henüz dosya yok", soluk ama bağlantı', () => {
-    const w = card({ fileCount: 0 })
+    const w = card({ fileCount: 0, taskCount: 0, totalBytes: 0, lastUploadedAt: null })
     expect(w.get('[data-field="meta"]').text()).toBe('Henüz dosya yok')
+    expect(w.get('[data-field="size"]').text()).toBe('0 B')
+    expect(w.get('[data-field="last"]').text()).toBe('—')
     expect(w.classes()).toContain('archive-folder--empty')
   })
 

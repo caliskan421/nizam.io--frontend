@@ -8,17 +8,18 @@ import { useScopeStore } from '@/shared/scope/store'
 import { DesignStub, UiButton, UiIconButton } from '@/shared/ui'
 
 import { archiveCapabilities } from '../../model/capabilities'
-import { MOVE_FILE, RETAG_FILE } from '../../model/stubs'
+import { MOVE_FILE } from '../../model/stubs'
 import type { FileActionsEmits, FileActionsProps } from '../index'
 import { previewText } from './messages'
 import RenameFileDialog from './RenameFileDialog.vue'
+import RetagMenu from './RetagMenu.vue'
 import { useFileActions } from './use-file-actions'
 
 /**
  * W124 · E-06-56…60, 64 — önizleme eylemleri (tasarım `rp-iconrow`): İndir (birincil), Yeniden
- * adlandır, Etiketi değiştir / Başka klasöre taşı (uç yok → devre dışı, designStub BE-074/075,
- * sıfır yazma), Dosyayı sil. Görünürlük yalnız `archiveCapabilities` olgularıyla (mercek
- * yetki değildir — P1): ad değiştirme ŞY ∨ K ∨ (yükleyen ∧ ekip satırı), silme yalnız yükleyen
+ * adlandır, Etiketi değiştir (`retagFile`, BE-074; `RetagMenu`), Başka klasöre taşı (uç yok →
+ * devre dışı, designStub BE-075, sıfır yazma), Dosyayı sil. Görünürlük yalnız `archiveCapabilities` olgularıyla (mercek
+ * yetki değildir — P1): ad ve etiket değiştirme ŞY ∨ K ∨ (yükleyen ∧ ekip satırı), silme yalnız yükleyen
  * ∧ (ŞY ∨ ekip satırı); yetkisiz eylem GİZLİ (gizleme güvenlik değildir, sunucu 403/404 verir).
  * `RenameFileDialog` burada bağlıdır (`FilePreview` → `FileActions` → `RenameFileDialog`).
  */
@@ -44,6 +45,7 @@ const facts = computed(() => ({
 }))
 const canDownload = computed(() => caps.value.download())
 const canRename = computed(() => caps.value.rename(facts.value))
+const canRetag = computed(() => caps.value.retag(facts.value))
 const canDelete = computed(() => caps.value.delete(facts.value))
 const renaming = ref(false)
 </script>
@@ -72,14 +74,12 @@ const renaming = ref(false)
       data-testid="file-rename"
       @click="renaming = true"
     />
-    <DesignStub id="BE-074" data-testid="file-retag-stub">
-      <UiIconButton
-        icon="tag"
-        :label="previewText('archive.actions.retag')"
-        :disabled="!RETAG_FILE.available"
-        data-testid="file-retag"
-      />
-    </DesignStub>
+    <RetagMenu
+      v-if="canRetag"
+      :current="file.tag"
+      :busy="actions.busy.value"
+      @select="actions.startRetag"
+    />
     <DesignStub id="BE-075" data-testid="file-move-stub">
       <UiIconButton
         icon="folder-move"

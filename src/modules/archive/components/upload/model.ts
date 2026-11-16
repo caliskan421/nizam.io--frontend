@@ -31,3 +31,12 @@ export function firstDropped(files: FileList | readonly File[] | null | undefine
   const list = files ? Array.from(files) : []
   return { file: list[0] ?? null, extra: list.length > 1 }
 }
+
+/** Görev seçici ipucu anahtarı: görev yoksa nedeni, sunucu listeyi kestiyse uyarı, aksi hâlde yok. */
+export function taskHintKey(
+  count: number,
+  truncated: boolean,
+): 'archive.upload.task.none' | 'archive.upload.task.truncated' | null {
+  if (count === 0) return 'archive.upload.task.none'
+  return truncated ? 'archive.upload.task.truncated' : null
+}
