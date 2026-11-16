@@ -2,7 +2,7 @@
 //
 // Backend ZIP/PDF/CSV bilet hedeflerini HESAP başına dakikalık ortak kotada tutar
 // (`NIZAMIO_RECORDS_EXPORT_PER_MINUTE`, üretim varsayılanı 5; aşım 429 `platform.rate_limited` →
-// arayüz geri sayım kartı gösterir, indirme başlamaz; e2e `up.sh` bu alanı değiştirmez). Tek yönetici
+// arayüz geri sayım kartı gösterir, indirme başlamaz; `up.sh` e2e'de 30 verir, bekçi yedektir). Tek yönetici
 // hesabıyla koşan spec'ler ardışık koşumda ya da aynı koşumda beşten fazla dışa aktarım yaparsa
 // `page.waitForEvent('download')` zaman aşımına düşer. Çözüm kota-bilinçli bekleme: her dışa
 // aktarım tıklamasından ÖNCE `reserveExport()` çağrılır; son 60 sn içinde ayrılmış dışa aktarım
@@ -13,8 +13,8 @@ import { dirname, resolve } from 'node:path'
 
 const STATE = resolve(import.meta.dirname, '.state/export-times.json')
 const WINDOW_MS = 60_000
-/** Backend sınırı (varsayılan 5); `up.sh` değiştirilirse env ile eşlenir. */
-export const EXPORT_LIMIT = Number(process.env.NIZAMIO_E2E_EXPORT_LIMIT ?? 5)
+/** `up.sh` backend'e `NIZAMIO_RECORDS_EXPORT_PER_MINUTE=30` verir (non-prod); farklı bir backend için env ile geçersiz kılınır (üretim varsayılanı 5). */
+export const EXPORT_LIMIT = Number(process.env.NIZAMIO_E2E_EXPORT_LIMIT ?? 30)
 
 function read(): number[] {
   if (!existsSync(STATE)) return []
