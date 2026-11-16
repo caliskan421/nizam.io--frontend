@@ -11,7 +11,7 @@ import { i18n } from '@/shared/i18n'
 import { useToast } from '@/shared/ui'
 import { notifyOutcome } from '@/shared/ui/confirm'
 
-import type { WorkItem } from '../model/types'
+import type { RemindResult, RemindTarget } from '../model/types'
 import { targetOf } from '../model/target'
 import { scopeHeaders } from './http'
 
@@ -29,7 +29,7 @@ export function useRemindWorkItem() {
       }),
   })
 
-  async function remind(item: Pick<WorkItem, 'work_item_id' | 'program_id' | 'department_id'>) {
+  async function remind(item: RemindTarget) {
     if (mutation.isPending.value) return
     const outcome = await mutation.submit(item)
     if (!reachesOwner(outcome)) return

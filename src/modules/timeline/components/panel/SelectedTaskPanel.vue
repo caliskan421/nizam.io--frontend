@@ -119,6 +119,7 @@ const help = computed(() =>
         :see-pending="panel.can.value.seePending"
         :can-review="panel.can.value.review"
         :busy="actions.busy.value"
+        :remind-busy="reminder.isPending.value"
         @decide="actions.decide"
       />
       <p v-if="help" class="tp-help" data-testid="tp-help">{{ help }}</p>
@@ -132,7 +133,6 @@ const help = computed(() =>
       :can-manage="panel.can.value.manage"
       :busy="actions.busy.value"
       @save="actions.save"
-      :remind-busy="reminder.isPending.value"
       @request="requestOpen = true"
       @remind="remindTask"
       @action="onAction"

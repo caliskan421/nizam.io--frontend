@@ -29,8 +29,8 @@ import { canTransitionWorkItem, workActorFacts } from '../../model/capabilities'
 import { targetOf } from '../../model/target'
 import {
   canCloseSubtasks,
-  checkReturnReason,
   offersReturnReason,
+  reasonBody,
   requiresReason,
   transitionTargets,
 } from '../../model/transitions'
@@ -176,14 +176,7 @@ export function useStatusTransition(item: MaybeRefOrGetter<WorkItem>, hooks: Tra
   async function submitReason(reason: string): Promise<Outcome | null> {
     const to = reasonFor.value
     if (to === null) return null
-    // İade gerekçesi isteğe bağlıdır: boş gönderim gerekçesiz iade eder (BE-139).
-    const returned = offersReturnReason(to) ? checkReturnReason(reason) : null
-    const body: TransitionBody =
-      returned === null
-        ? { to, reason: reason.trim() }
-        : returned.ok && returned.reason !== null
-          ? { to, reason: returned.reason }
-          : { to }
+    const body: TransitionBody = reasonBody(to, reason)
     const outcome = await send(toValue(item), body)
     if (outcome.kind === 'success') reasonFor.value = null
     return outcome

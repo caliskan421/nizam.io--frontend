@@ -80,6 +80,19 @@ export function checkReturnReason(
     : { ok: false }
 }
 
+/**
+ * Gerekçe penceresinden geçiş gövdesi: iade gerekçesi isteğe bağlıdır (boş → gerekçesiz, BE-139);
+ * geri almada kırpılmış gerekçe zorunludur.
+ */
+export function reasonBody(
+  to: WorkItemStatus,
+  reason: string,
+): { to: WorkItemStatus; reason?: string } {
+  if (!offersReturnReason(to)) return { to, reason: reason.trim() }
+  const checked = checkReturnReason(reason)
+  return checked.ok && checked.reason !== null ? { to, reason: checked.reason } : { to }
+}
+
 /** Gerekçe geçerli mi (UTF-8 bayt sayısı, kırpılmış). */
 export function isValidReason(reason: string): boolean {
   return new TextEncoder().encode(reason.trim()).length >= REVERT_REASON_MIN_BYTES
