@@ -17,10 +17,7 @@ import { scopeHeaders } from './http'
 
 export function useRemindWorkItem() {
   const toast = useToast()
-  const mutation = useProtectedMutation<
-    Pick<WorkItem, 'work_item_id' | 'program_id' | 'department_id'>,
-    { recipient_count: number }
-  >({
+  const mutation = useProtectedMutation<RemindTarget, RemindResult>({
     operation: 'remindWorkItem',
     send: (vars, ctx) =>
       api.POST('/v1/work-items/{id}/remind', {
