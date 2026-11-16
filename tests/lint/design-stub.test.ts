@@ -116,15 +116,15 @@ describe('kod ↔ kayıt (kırmızı)', () => {
     expect(problems.join('\n')).toMatch(expected)
   })
 
-  it('gerçek kayıtla: BE-008 (açık) yeşil, BE-023 (vazgeçildi) kırmızı — çağrı ve bileşen', () => {
+  it('gerçek kayıtla: BE-149 (açık) yeşil, BE-023 (vazgeçildi) kırmızı — çağrı ve bileşen', () => {
     const registry = readFileSync(REGISTRY_PATH, 'utf8')
     const green = [
-      ts("export const hint = designStub('BE-008', null)\n"),
+      ts("export const hint = designStub('BE-149', null)\n"),
       ts(
-        '<template><DesignStub id="BE-008"><button disabled /></DesignStub></template>\n',
+        '<template><DesignStub id="BE-149"><button disabled /></DesignStub></template>\n',
         'src/a.vue',
       ),
-      ts(`<template><DesignStub :id="'BE-008'" /></template>\n`, 'src/b.vue'),
+      ts(`<template><DesignStub :id="'BE-149'" /></template>\n`, 'src/b.vue'),
     ]
     expect(checkDesignStubs(registry, green)).toEqual([])
     const red = [
