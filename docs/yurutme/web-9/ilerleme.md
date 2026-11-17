@@ -70,3 +70,7 @@ Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/
 ### W184 birleşik teknik kabul hazırlığı (2026-11-17)
 
 İlk Sonnet24cef7df9commit; read API/mutation ve SSE, rol/üye/mesaj bilgisi/paylaşılanlar, iki yönlü görev kaynağı bağlantısı,11yeni test dosyasında56yeni test. W183 branch ile üç kaynak çatışması bad6e3bd'de Sonnet tarafından birleştirildi, notify_levels tek fake kaynak oldu. Koordinatörler GroupInfo bilgisi4b26e5c6; eski görünür grup tiklerinin bayatlığı120mesajlı kırmızı→yeşil regresyonla21106559'da bounded okundu metadata taramasına geçti. W183 hedef/visualfixleri ve tarihselF8guard sonradan alındı. BE028/083/084/085 kayıtları bağlı, BE027açık; final bağımsız Terra+CI bekler.
+
+### W184 bağımsız kabul (2026-11-17; PR/CI bekler)
+
+Terra b2107de2/source7b16b973 üzerinde83hedeflitest,25yaşam döngüsü ve20read-state/window kontrolünü (örtüşen koşumlar) geçirdi; build/lint/formatPASS. true→null grupokundu ve pendingread sırasında scope/session/sökülme negatifleri için test patch'i eklendi.390/1440koyu GroupInfo/iki dosya kaynağı/görev listesi/NotifyPUT/ownreceipts/Tab-focus dumanı; CSP/overflow/pageerror0, PNG gözle incelendi. Sahte work verisinde görev detayı açılmadığından source-link bağımsız görsel dumanı kanıt dışı; actualrouter/around ve negatifler entegrasyondaPASS, ilkSonnetdumanındaUIvardı. **W188 gerçekbackend tanığı görevden kaynağa linkin390/1440pointer açılışını ayrıca kanıtlayacak.**120mesaj UI focus ayrıca ölçülmedi; model içerik/pencere korunması testlidir.
