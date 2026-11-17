@@ -13,3 +13,5 @@ export const LIST_INTERVAL_MS = 30_000
 export const LIST_PAGE_LIMIT = 30
 /** VAPID açık anahtarı seyrek değişir (VAPID rotasyonu yok, GAP-043); odakta tazelenmez. */
 export const PUSH_KEY_STALE_MS = 3_600_000
+/** "Sessize alınan konular" sayfa boyu (`listNotificationSubjectMutes` 1–100; sorgu anahtarına girmez). */
+export const MUTES_PAGE_LIMIT = 30

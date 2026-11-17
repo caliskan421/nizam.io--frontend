@@ -5,14 +5,18 @@ export {
   UNREAD_NOTIFICATIONS_KEY,
   useNotifications,
   usePushPublicKey,
+  useSubjectMutes,
   useUnreadNotifications,
 } from './api/queries'
-export { fetchUnreadNotificationCount } from './api/fetchers'
+export { fetchNotificationCounts } from './api/fetchers'
 export {
   NOTIFICATION_NOT_FOUND,
+  useDismissNotification,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
+  useMuteNotificationSubject,
   useRegisterPushTarget,
+  useUnmuteNotificationSubject,
   useUnregisterPushTarget,
 } from './api/writes'
 export { default as NotificationPanel } from './components/NotificationPanel.vue'
