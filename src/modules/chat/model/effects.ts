@@ -13,6 +13,7 @@ import {
   type ProtectedMutation,
   type SubmitOptions,
   ownerLife,
+  toPlainVars,
 } from '@/shared/http/mutation'
 import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
@@ -85,7 +86,10 @@ export function withEffects<V, D, S = unknown>(
     ...mutation,
     async submit(vars: V, opts?: SubmitOptions): Promise<MutationOutcome<V, D, S>> {
       const scope = { ...(opts?.context?.scope ?? scopeStore.snapshot) }
-      return settle(await mutation.submit(vars, opts), vars, scope)
+      // Efektler motorla AYNI düz anlık görüntüyü kullanır (ilk/tekrar/onay başarısı): gönderim
+      // sırasında giriş nesnesi değişse de yakalanmış değişkenler değişmez (File/Blob ham kalır).
+      const captured = toPlainVars(vars)
+      return settle(await mutation.submit(vars, opts), captured, scope)
     },
   }
 }
