@@ -18,10 +18,21 @@ export interface MessageWindow {
   hasOlder: boolean
   /** Pencerenin üstünde (daha yeni) mesaj olabilir. */
   hasNewer: boolean
+  /**
+   * İlk açılış sayfasının sunucu `first_unread_seq` değeri (sayfadan bağımsız; liste özeti yokken
+   * ayırıcı kaynağı). `undefined` = henüz okunmadı. Sonraki sayfalar bu alanı değiştirmez.
+   */
+  firstUnreadSeq: number | null | undefined
 }
 
 export function emptyWindow(): MessageWindow {
-  return { items: [], peerReadSeq: null, hasOlder: false, hasNewer: false }
+  return {
+    items: [],
+    peerReadSeq: null,
+    hasOlder: false,
+    hasNewer: false,
+    firstUnreadSeq: undefined,
+  }
 }
 
 const bySeq = (a: ChatMessage, b: ChatMessage) => a.seq - b.seq
@@ -48,12 +59,14 @@ export function windowFromLatest(
   page: readonly ChatMessage[],
   peer: number | null,
   limit = MESSAGE_PAGE_LIMIT,
+  firstUnreadSeq?: number | null,
 ) {
   return {
     items: [...page].sort(bySeq),
     peerReadSeq: peer,
     hasOlder: page.length >= limit,
     hasNewer: false,
+    firstUnreadSeq,
   } satisfies MessageWindow
 }
 
@@ -65,6 +78,7 @@ export function windowFromAround(
   page: readonly ChatMessage[],
   peer: number | null,
   anchor: number,
+  firstUnreadSeq?: number | null,
 ) {
   const items = [...page].sort(bySeq)
   const first = items[0]?.seq ?? anchor
@@ -73,6 +87,7 @@ export function windowFromAround(
     peerReadSeq: peer,
     hasOlder: first > 1,
     hasNewer: true,
+    firstUnreadSeq,
   } satisfies MessageWindow
 }
 

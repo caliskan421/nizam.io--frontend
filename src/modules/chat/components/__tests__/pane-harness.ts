@@ -46,13 +46,17 @@ export interface PaneOptions extends ConversationHandlerOptions {
   peerReadSeq?: number | null
   /** Sohbet listesi özeti (okunmamış ayırıcısı: sunucu `first_unread_seq`, BE-082). */
   summary?: { unread_count: number; first_unread_seq?: number | null }
+  /** Geçmiş cevabının `first_unread_seq` değeri (liste özeti yoksa çapa kaynağı). */
+  historyFirstUnreadSeq?: number | null
   path?: string
 }
 
 export function servePane(options: PaneOptions = {}) {
   resetDrafts()
   const chat = { ...CHAT, ...options.chat }
-  const fake = fakeChatServer(options.messages ?? [], options.peerReadSeq ?? null)
+  const fake = fakeChatServer(options.messages ?? [], options.peerReadSeq ?? null, {
+    seq: options.historyFirstUnreadSeq ?? null,
+  })
   server.use(
     http.get(`${ORIGIN}/v1/chats`, () =>
       json({

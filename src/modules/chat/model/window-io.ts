@@ -34,7 +34,9 @@ const query = (extra: MessageQuery): MessageQuery => ({ limit: MESSAGE_PAGE_LIMI
 /** İlk açılış: son sayfa (imleçsiz). */
 export async function loadLatest(read: MessageReader, store: WindowStore): Promise<void> {
   const page = await read(query({}))
-  store.set(() => windowFromLatest(page.items, page.peer_read_seq))
+  store.set(() =>
+    windowFromLatest(page.items, page.peer_read_seq, undefined, page.first_unread_seq),
+  )
 }
 
 /** `around=<seq>`: alıntı/sabit/bağlantı hedefi; pencere YENİDEN kurulur. */
@@ -44,7 +46,15 @@ export async function loadAround(
   seq: number,
 ): Promise<void> {
   const page = await read(query({ around: seq }))
-  store.set(() => windowFromAround(page.items, page.peer_read_seq, seq))
+  // İlk açılışın dondurulmuş metadatası korunur; yalnız hiç okunmadıysa bu sayfadan alınır.
+  store.set((w) =>
+    windowFromAround(
+      page.items,
+      page.peer_read_seq,
+      seq,
+      w.firstUnreadSeq === undefined ? page.first_unread_seq : w.firstUnreadSeq,
+    ),
+  )
 }
 
 /** Yukarı kaydırma: `before=<alt seq>`. Pencere boşsa son sayfa okunur. */
