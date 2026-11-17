@@ -46,3 +46,8 @@ v026 OpenAPI deleteWorkItemSubtask/deleteMeetingNote/deleteAgendaItem açıklama
 ## Son paket ve sonraki adım
 
 W193 silinenler + W194 arşiv + W197 dört somut denetim düzeltmesi + W196 kapanış belgeleri aynı PR'da taşınır. Not/gündem Durdur hatası önce Terra RED, sonra Sonnet dar guard ve bağımsız27 testle kapandı. Mevcut görev UI taşıma hedeflerinden çıkarıldı;48 bağımsız arşiv testi/fulltypecheck/build ve gerçek390 yeni paket tanığı geçti. Değişen kaynak yalnız5a8a9815'tir; root sonraki commitlerde yalnız belge yazar. Son başlığın kendi üç CI SUCCESS ve MERGED koşulu F10'u kapatır. [F11](../yurutme/web-11/README.md) açılmadı, backend BE-F8'e müdahale edilmedi.
+
+
+## Kesin kapanış — 2026-11-17
+
+[PR180](https://github.com/caliskan421/nizam.io--frontend/pull/180) HEADd9346fd6, kendi [CI44082578155](https://github.com/caliskan421/nizam.io--frontend/actions/runs/44082578155) kalite/imaj/gerçek backend üç SUCCESS sonrasında **MERGED**: main984a1a37. Kalite884 dosya6639 test, gerçek E2E15/15. Son paket kabulü ve Opus tur2 UYGUN/açık0 ile F10 kapandı; yukarıdaki gelecek zamanlı son paket koşulları gerçekleşmiştir. F10'a ait çalışma ağaçları/dallar ve sahip olunan Docker kaynakları temizlendi. Kullanıcının sonraki talimatıyla F11 mevcut ekranlardaki hazır eksikler kapsamıyla açıldı; güncel kayıt WEB-11'dir.
