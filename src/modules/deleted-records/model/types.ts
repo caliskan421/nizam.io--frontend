@@ -84,3 +84,27 @@ export interface DeletedRow {
   /** Kullanıcı: şirket yöneticiliği ataması (silmede korunur); diğer türlerde `false`. */
   companyAdmin: boolean
 }
+
+// v0.26 çocuk türleri ve birleşik liste (üretilmiş şemadan; elle DTO yok).
+export type DeletedFile = components['schemas']['DeletedFile']
+export type DeletedFileList = components['schemas']['DeletedFileList']
+export type DeletedSubtask = components['schemas']['DeletedSubtask']
+export type DeletedSubtaskList = components['schemas']['DeletedSubtaskList']
+export type DeletedTaskNote = components['schemas']['DeletedTaskNote']
+export type DeletedTaskNoteList = components['schemas']['DeletedTaskNoteList']
+export type DeletedMeetingNote = components['schemas']['DeletedMeetingNote']
+export type DeletedMeetingNoteList = components['schemas']['DeletedMeetingNoteList']
+export type DeletedAgendaItem = components['schemas']['DeletedAgendaItem']
+export type DeletedAgendaItemList = components['schemas']['DeletedAgendaItemList']
+export type DeletedRecordItem = components['schemas']['DeletedRecordItem']
+export type DeletedRecordsPage = components['schemas']['DeletedRecordsPage']
+export type FileRestoreResult = components['schemas']['FileRestoreResult']
+export type FilePurgeResult = components['schemas']['FilePurgeResult']
+export type SubtaskLifecycleResult = components['schemas']['SubtaskLifecycleResult']
+export type SubtaskPurgeResult = components['schemas']['SubtaskPurgeResult']
+export type TaskNoteLifecycleResult = components['schemas']['TaskNoteLifecycleResult']
+export type TaskNotePurgeResult = components['schemas']['TaskNotePurgeResult']
+export type MeetingNoteLifecycleResult = components['schemas']['MeetingNoteLifecycleResult']
+export type MeetingNotePurgeResult = components['schemas']['MeetingNotePurgeResult']
+export type AgendaItemLifecycleResult = components['schemas']['AgendaItemLifecycleResult']
+export type AgendaItemPurgeResult = components['schemas']['AgendaItemPurgeResult']

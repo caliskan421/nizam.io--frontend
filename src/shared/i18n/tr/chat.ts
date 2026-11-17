@@ -103,6 +103,7 @@ export const trChat = {
       more: 'Diğer',
       linkCopied: 'Bağlantı kopyalandı',
       linkFailed: 'Kopyalanamadı',
+      savedRefreshFailed: 'Değişiklik kaydedildi, ancak mesaj yenilenemedi',
       reaction: { like: '👍', heart: '❤️', check: '✅', star: '⭐' },
       reactionName: { like: 'Beğen', heart: 'Kalp', check: 'Onay', star: 'Yıldız' },
       forwarded: 'İletildi',

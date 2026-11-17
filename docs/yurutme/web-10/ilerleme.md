@@ -31,3 +31,23 @@ W190 PR176 `25a14bbc`, CI44057267798 üç SUCCESS ile main7e5be482 oldu; açıl�
 Sonnet gen:check/type/lint/format/build başarılı; pin ilk dilimi48 dosya762 test, geniş etkilenen537 dosya3997 test ve son dar delta9 dosya187 test başarılıdır (örtüşen kümeler toplanmaz; tam paket CI'a aittir). Pin sonrası katalog kapsama testindeki iki kırmızı, beş yeni hata anahtarı eklenerek giderildi. Terra aa2 öncesinde12 dosya154 bağımsız test ve ek defaults/error kontrollerini geçirdi; son390/1440 üretim paketi dumanı ve dar delta kabulü bekler.
 
 Yerel yeni izole v026 tanık ortamı W195 bootstrap: etiket4d4adc0f, normal/kısa profile200 ve üç rol login200; gerçek UI tanığı henüz yapılmadı. F9'un eski ROFS okuma hatası bu yeni kurulumda tekrarlanmadı. F9 artık kaynaklarına ve diğer çalışan backend projelerine müdahale edilmedi.
+
+
+## W191 kapanışı ve W192 veri katmanı — 2026-11-17
+
+Pin PR177 `d2a77024`, CI44060513834 kalite864 dosyada6369 test, web imajı ve gerçek v026 backend15/15(3.8dk) ile üç SUCCESS oldu; main `bd22ff83422b2bf73620d45a3463fdf539115cbd`. Terra'nın son390/1440 koyu üretim paketi kabulü birleşmeden önce alındı: dört onay gerçek pointer, iptalde DELETE yok, dosya onayında sahte204 ve attachments GET yenilemesi, overflow/pageerror/CSP0. CSP Caddyfile policy simülasyonu ve sahte API kullanıldı; gerçek Caddy/backend değildir. Root390 dosya PNG'sini ayrıca inceledi.
+
+W192 Sonnet `bcb8a0ca`:25 çocuk yazması,5 çocuk okuyucu/sorgu, tek birleşik liste ve yaşam döngüsü/etki kaydı. Mevcut4 tür UI/URL değişmedi.1522 hedefli test/type/lint/format/build başarılı. Bu bir veri katmanı teslimidir; yeni UI ve BE kayıt kapanışları sonraki pakettedir.
+
+Root incelemesi dosya silme/restore sonrasında sohbet `refSummary` önbelleğinin tazelenmediğini buldu. Terra gerçek QueryClient üzerinde kırmızı regresyon verdi (`7e0e1e07`), Sonnet `c9ad652d` programın bütün departmanlarındaki ref özetlerini tazeleyip başka programa dokunmayan filtreyi ekledi. Yanlışlıkla records yaşam döngüsüne bağlanan messaging link/ek sayaçları düzeltildi; backend bunları ayrı mesaj tablolarından sayar. Mevcut gerçek mesaj yazmaları korundu. Sonnet411 ilgili test/type/lint/format başarılı; büyük paketi tekrarlamadı. W192 nihai bağımsız kabulü ve kendi CI/merge kapısı bekler.
+
+W195 gerçek v026 API tanıkları ayrı izole ortamda: PNG upload/silme/çöp/restore/download bayt eşliği, ebeveyn çöpte409 ve ebeveyn restore sonrasında çocuğun çöpte kalması, ayrı permanent yolu; ada çakışmalı restore renamed/display_name; beş yeni tür ve parent bilgisi birleşik listede, notes üç alt tür toplamı ve üye403; beş çocuk listesinde limit200 isteği200. Bunlar doğrudan gerçek API tanığıdır; final frontend/Caddy UI kanıtı değildir.200 öğe stres, bütün batch/limit matrisleri veya başka program negatifinin gerçek koşumu iddia edilmez. İlk gündem helper alan adı hatası ayrı başarısız JSON olarak korundu, ürün hatası değildi.
+
+
+## PR178 CI1 ve dar sohbet yeniden-okuma düzeltmesi
+
+CI44066418947/e9e3690a,869 dosya6502 assertion geçtiği halde `chat-writes.test.ts` kaynaklı bir yakalanmamış401 nedeniyle kaliteyi düşürdü; imaj/e2e çalışmadı ve merge yapılmadı. Tam hangi test/söküm anı ve F9 borç38 ile aynı kök olduğu kanıtlanmadı.
+
+Terra kontrollü gerçek useSetChatReaction testinde PUT204 sonrası around401/refresh401 ile üretim promise reddini gösterdi; RED testi c414f0a2 olarak korundu. Sonnet97778ed5 yalnız yeniden-okuma sınırında ApiError/SessionChangedError'ı ele alır. Kaydedilmiş yazma success kalır ve tekrar gönderilmez; aynı owner/scope/session hâlâ geçerliyse doğru 'kaydedildi, mesaj yenilenemedi' bildirimi, kayıpta sessizlik. Başarısız oy/anket yazmasının yardımcı okuması sessizdir ve failed sonucu korunur. Genel programlama hataları yutulmaz; withEffects/ortak motor/UIguard değiştirilmedi.
+
+Sonnet17 dosya156 test; Terra kendi RED→GREEN ve effects/actions/App31 bağımsız test, tam pnpm typecheck(build/force), değişen lint/format başarılı. Yeni CI başlığı kendi üç kapısını yeniden geçmelidir; kör rerun/skip/timeout artırımı yapılmadı. Gerçek backend ağ hatası veya CI'nın eski tam zamanlaması ayrıca sınanmış sayılmaz.

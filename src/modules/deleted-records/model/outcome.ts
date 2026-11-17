@@ -26,12 +26,14 @@ export type Interpreted =
   | { kind: 'error'; message: string; refresh: boolean }
 
 const NOT_DELETED = new Set([
+  'records.not_deleted',
   'work.not_deleted',
   'collaboration.not_deleted',
   'organization.not_deleted',
   'identity.not_deleted',
 ])
 const NOT_FOUND = new Set([
+  'records.file_not_found',
   'work.item_not_found',
   'collaboration.meeting_not_found',
   'organization.department_not_found',
@@ -39,6 +41,7 @@ const NOT_FOUND = new Set([
   'organization.account_not_found',
 ])
 const REQUIRES_DELETED = new Set([
+  'records.permanent_requires_deleted',
   'work.permanent_requires_deleted',
   'collaboration.permanent_requires_deleted',
   'organization.permanent_requires_deleted',
@@ -50,6 +53,32 @@ type AnyOutcome = MutationOutcome<unknown, unknown, unknown>
 function filesDeleted(data: unknown): number {
   const value = (data as { files_deleted?: unknown } | null)?.files_deleted
   return typeof value === 'number' && value > 0 ? value : 0
+}
+
+/** v0.26 çocuk türlerin geri yükleme kapıları (ebeveyn çöpte, tavanlar, tamamlanmış görev). */
+function childFailure(code: string): Interpreted | null {
+  const key = CHILD_FAILURES[code]
+  return key ? { kind: 'refresh', message: deletedText(`feedback.${key}`) } : null
+}
+
+type ChildFeedback =
+  | 'parentTaskDeleted'
+  | 'parentMeetingDeleted'
+  | 'fileLimit'
+  | 'subtaskLimit'
+  | 'subtaskCompleted'
+  | 'agendaLimit'
+  | 'transferActive'
+
+const CHILD_FAILURES: Readonly<Record<string, ChildFeedback>> = {
+  'records.work_item_deleted': 'parentTaskDeleted',
+  'work.item_deleted': 'parentTaskDeleted',
+  'collaboration.meeting_deleted': 'parentMeetingDeleted',
+  'records.too_many_files': 'fileLimit',
+  'work.subtask_limit_reached': 'subtaskLimit',
+  'work.item_completed': 'subtaskCompleted',
+  'collaboration.agenda_limit_reached': 'agendaLimit',
+  'records.transfer_active': 'transferActive',
 }
 
 export function failed(action: LifecycleAction, code: string): Interpreted | null {
@@ -64,6 +93,8 @@ export function failed(action: LifecycleAction, code: string): Interpreted | nul
   if (REQUIRES_DELETED.has(code)) {
     return { kind: 'refresh', message: deletedText('feedback.notDeleted') }
   }
+  const child = childFailure(code)
+  if (child) return child
   if (code === 'work.department_unavailable') {
     return {
       kind: 'notice',
