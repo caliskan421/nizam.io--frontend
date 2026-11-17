@@ -60,3 +60,9 @@ PR170 ilk CI koşusunda reports-lifecycle.test.ts:88 boot/login gerçek localhos
 ### W183 bağımsız regresyon ve düzeltme (2026-11-17)
 
 Terra explicit `?mesaj=55` hedefinin server first_unread_seq6 açılışıyla ezildiğini stateful uygulama testinde yakaladı; test694ba3be ile kaydedildi. Sonnet b54081a7 ile tek hedef ayrıştırıcısı ve açık mesaj önceliğini ekledi;16dosya77ilgili test/typecheck/lint/format geçti. Geç A→B yanıt testi yeşil; yeni getterler shared query anahtarlarına dokunmadı. Görsel duman ve bağımsız final kontrol hâlâ Terra'da; CI/PR gelmeden bu teslim kapanmış sayılmaz.
+
+### W183 bağımsız son kabul (2026-11-17; PR/CI bekler)
+
+Sonnet95bac896 ilk unread inişini center yaparak sticky tarih/okunmamış ilk iniş örtüşmesini giderdi. Terra build ve gerçek Chromium sahte/v025 dumanında390(253–283 tarih/515–545unread),1440(200–230/489–519) dikdörtgenlerini ayrık ölçtü ve PNG'leri gördü; CSP/overflow/pageerror0. Derin hedef55 korundu, alıntı2/beforezinciriyok her iki genişlikte görüldü.390ilkpointermesaj satırına düşüpikinciquote'aulaştı;ilkhedefkaymasınınsebebibelirsiz,ürünkusuruiddiasıyok. Source95 ve önceki42test kırmızı→yeşil kanıtı saklandı.
+
+Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/tamF9matris/stubyok şartıyla düzeltti; BE027 parantezli yüzeyID'si de desteklenir.40ilgilitest+lint/formatPASS. F8tarihselmatris değişmedi, unsupported/aynı-eski pin/stubnegatifleri korunur. Bu kabul seçili sahteUI/istemci kanıtıdır; gerçekCaddy/backendtanığı CI+W188'dedir.
