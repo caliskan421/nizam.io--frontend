@@ -13,34 +13,51 @@ import { useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
 import { BATCH_LIMIT, summarizeBatch, type BatchSummary } from '../model/batch'
-import type { DeletedKind } from '../model/kinds'
+import { PURGE_ORDER, RESTORE_ORDER, type LifecycleKind } from '../model/lifecycle'
 import { deletedText } from '../model/messages'
 import type { LifecycleAction } from '../model/outcome'
 import type { DeletedRow } from '../model/types'
+import type { LifecycleHub } from './use-lifecycle-hub'
 import { useBatchWrites, type BatchResult } from './use-batch-writes'
 
 export interface BatchActionOptions {
-  kind: () => DeletedKind
-  /** Açık sekmenin listesini ve bağlı sorguları yeniden okur. */
+  /** Açık görünümün listesini ve bağlı sorguları yeniden okur. */
   refresh: () => Promise<unknown>
-  /** İşlem bitti: başarısız kimlikler seçili kalır; odak taşınır. */
-  finished: (failedIds: readonly string[]) => void
+  /** İşlem bitti: başarısız satır ANAHTARLARI (`kind:id`) seçili kalır; odak taşınır. */
+  finished: (failedKeys: readonly string[]) => void
+  /** Sayfanın ortak yazma merkezi (verilmezse kurulur). */
+  hub?: LifecycleHub
+}
+
+/** Seçimin yazma türü başına sayısı, eylemin tür sırasıyla. */
+function countsOf(action: LifecycleAction, rows: readonly DeletedRow[]) {
+  const order: readonly LifecycleKind[] = action === 'restore' ? RESTORE_ORDER : PURGE_ORDER
+  const counts = new Map<LifecycleKind, number>()
+  for (const row of rows) if (row.kind) counts.set(row.kind, (counts.get(row.kind) ?? 0) + 1)
+  return order.filter((kind) => counts.has(kind)).map((kind) => ({ kind, n: counts.get(kind)! }))
 }
 
 export function batchConfirmOptions(
   action: LifecycleAction,
-  kind: DeletedKind,
   rows: readonly DeletedRow[],
 ): ConfirmOptions {
   const n = rows.length
-  const name = deletedText(`kindNames.${kind}`)
+  const groups = countsOf(action, rows)
+  const kinds = groups.map((group) => group.kind)
+  const name = (kind: LifecycleKind) => deletedText(`lifecycleKinds.${kind}`)
+  const summary = groups.map((group) => `${group.n} ${name(group.kind)}`).join(', ')
+  const mixed = groups.length > 1
   const chunked = n > BATCH_LIMIT ? [deletedText('batch.chunked')] : []
+  const accounts = kinds.includes('accounts')
   if (action === 'restore') {
     return {
-      title: deletedText('batch.restoreTitle', { n, kind: name }),
+      title: mixed
+        ? deletedText('batch.restoreTitleMixed', { summary })
+        : deletedText('batch.restoreTitle', { n, kind: name(kinds[0]!) }),
       body: [
         deletedText('batch.restoreBody', { n }),
-        deletedText(`confirm.restoreWarning.${kind}`),
+        ...kinds.map((kind) => deletedText(`confirm.restoreWarning.${kind}`)),
+        ...(accounts ? [deletedText('confirm.accountsScope')] : []),
         ...chunked,
       ],
       confirmLabel: deletedText('confirm.restoreConfirm'),
@@ -48,10 +65,13 @@ export function batchConfirmOptions(
     }
   }
   return {
-    title: deletedText('batch.purgeTitle', { n, kind: name }),
+    title: mixed
+      ? deletedText('batch.purgeTitleMixed', { summary })
+      : deletedText('batch.purgeTitle', { n, kind: name(kinds[0]!) }),
     body: [
       deletedText('batch.purgeBody'),
-      ...(kind === 'gorev' ? [deletedText('batch.purgeFiles')] : []),
+      ...(kinds.includes('tasks') ? [deletedText('batch.purgeFiles')] : []),
+      ...(accounts ? [deletedText('batch.accountsPurgeScope')] : []),
       ...chunked,
     ],
     confirmLabel: deletedText('confirm.purgeConfirm'),
@@ -62,7 +82,7 @@ export function batchConfirmOptions(
 export function useBatchActions(options: BatchActionOptions) {
   const toast = useToast()
   const { confirmWrite } = useConfirm()
-  const writes = useBatchWrites()
+  const writes = useBatchWrites(options.hub)
   const summary = ref<BatchSummary | null>(null)
 
   async function settle(action: LifecycleAction, rows: readonly DeletedRow[], result: BatchResult) {
@@ -79,13 +99,13 @@ export function useBatchActions(options: BatchActionOptions) {
     options.finished(run.failed.map((line) => line.id))
   }
 
-  async function start(action: LifecycleAction, rows: readonly DeletedRow[]) {
+  async function start(action: LifecycleAction, selected: readonly DeletedRow[]) {
+    // Bilinmeyen (gelecek) tür yazılamaz: seçime hiç girmez, yine de savunmacı süzülür.
+    const rows = selected.filter((row) => row.kind !== null)
     if (writes.pending.value || rows.length === 0) return
     summary.value = null
-    const kind = options.kind()
-    const ids = rows.map((row) => row.id)
-    const result = await confirmWrite(batchConfirmOptions(action, kind, rows), (context) =>
-      writes.run(kind, action, ids, context),
+    const result = await confirmWrite(batchConfirmOptions(action, rows), (context) =>
+      writes.run(action, rows, context),
     )
     if (result !== null) await settle(action, rows, result)
   }

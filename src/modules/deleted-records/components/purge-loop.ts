@@ -17,7 +17,7 @@ export type PurgeSubmit = (
   vars: PurgeAllTarget,
   opts: { context?: PurgeContext },
 ) => Promise<PurgeOutcome>
-type PurgeContext = NonNullable<Extract<PurgeOutcome, { kind: 'success' }>['context']>
+export type PurgeContext = NonNullable<Extract<PurgeOutcome, { kind: 'success' }>['context']>
 
 export interface PurgeLoopResult {
   run: BatchRun
@@ -25,6 +25,8 @@ export interface PurgeLoopResult {
   /** `done`: kural gereği bitti; `cancelled`: kullanıcı kesti; `stopped`: protokol sonucu durdurdu. */
   state: 'done' | 'cancelled' | 'stopped'
   stopped: PurgeOutcome | null
+  /** Son başarılı çağrının bağlamı: sıradaki tür aynı yakalanmış bağlamla sürer. */
+  context: PurgeContext | undefined
 }
 
 export async function purgeLoop(
@@ -36,15 +38,23 @@ export async function purgeLoop(
   let run = emptyRun()
   let remaining: number | null = null
   let outcome = first
+  let context: PurgeContext | undefined
   for (;;) {
-    if (outcome.kind !== 'success') return { run, remaining, state: 'stopped', stopped: outcome }
+    if (outcome.kind !== 'success') {
+      return { run, remaining, state: 'stopped', stopped: outcome, context }
+    }
+    context = outcome.context
     run = mergeRun(run, outcome.data)
     // Başarısız kayıt her çağrıda aday kalır ve yeniden başarısız olur: kimlik başına tek satır.
     run = { ...run, failed: [...new Map(run.failed.map((line) => [line.id, line])).values()] }
     remaining = outcome.data.remaining ?? 0
     hooks.onProgress(run.succeeded.length, remaining)
-    if (!shouldContinue(outcome.data)) return { run, remaining, state: 'done', stopped: null }
-    if (hooks.shouldStop()) return { run, remaining, state: 'cancelled', stopped: null }
+    if (!shouldContinue(outcome.data)) {
+      return { run, remaining, state: 'done', stopped: null, context }
+    }
+    if (hooks.shouldStop()) {
+      return { run, remaining, state: 'cancelled', stopped: null, context }
+    }
     outcome = await submit(target, { context: outcome.context })
   }
 }

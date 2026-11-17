@@ -15,13 +15,13 @@ describe('onay seçenekleri (E-12-58/59)', () => {
       'Bu işlem 1 kaydı geri yükler.',
       'Koordinatörlüğü silinmişse görev geri yüklenemez.',
     ])
-    expect(confirmOptions('restore', fixtureRow({ kind: 'toplanti' })).body).toContain(
+    expect(confirmOptions('restore', fixtureRow({ kind: 'meetings' })).body).toContain(
       'Canlı konferans geri gelmez.',
     )
-    expect(confirmOptions('restore', fixtureRow({ kind: 'kullanici' })).body).toContain(
+    expect(confirmOptions('restore', fixtureRow({ kind: 'accounts' })).body).toContain(
       'Devredilmiş açık görev atamaları geri dönmez.',
     )
-    expect(confirmOptions('restore', fixtureRow({ kind: 'koordinatorluk' })).body).toContain(
+    expect(confirmOptions('restore', fixtureRow({ kind: 'departments' })).body).toContain(
       'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
     )
   })
@@ -34,8 +34,8 @@ describe('onay seçenekleri (E-12-58/59)', () => {
     expect(confirmOptions('purge', fixtureRow({ fileCount: 0 })).body).toEqual([
       'Bu işlem geri alınamaz.',
     ])
-    expect(
-      confirmOptions('purge', fixtureRow({ kind: 'kullanici', fileCount: null })).body,
-    ).toEqual(['Bu işlem geri alınamaz.'])
+    expect(confirmOptions('purge', fixtureRow({ kind: 'accounts', fileCount: null })).body).toEqual(
+      ['Bu işlem geri alınamaz.'],
+    )
   })
 })

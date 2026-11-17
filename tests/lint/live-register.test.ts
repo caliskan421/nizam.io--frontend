@@ -42,6 +42,12 @@ function matrixDecisions(): Map<string, string> {
   return out
 }
 
+/**
+ * F10 W193'te kapanan silinenler satırları (v0.26.0-api): BE-076 (arşiv son stub'ı W194'te kalkar),
+ * BE-069/112 (ürün kararı) ve BE-075/077/165 bu kümede DEĞİLDİR.
+ */
+const F10_W193_CLOSED = new Set(['BE-109', 'BE-110', 'BE-111', 'BE-115', 'BE-163'])
+
 /** F8'de yok olan bir iş, yalnız sonraki fazın tam matris kanıtı ve stub yokluğuyla kapanır. */
 function laterBoundAllowed(
   id: string,
@@ -49,6 +55,10 @@ function laterBoundAllowed(
   stubs: Set<string>,
   matrix: string,
 ): boolean {
+  // F10 W193: kapanış kodda kimlikli stub kalmamasıyla ve sabit satır kümesiyle sınırlıdır.
+  if (/^bağlandı \(pin v0\.26\.0-api, F10 W193\)$/.test(status)) {
+    return F10_W193_CLOSED.has(id) && !stubs.has(id)
+  }
   const match = /^bağlandı \(pin v(\d+)\.(\d+)\.(\d+)-api, F9 W18\d+[a-z]?\)$/.exec(status)
   if (!match || stubs.has(id)) return false
   // F9 matrisi v0.25 etiketiyle hazırlanmıştır; bugünkü api-pin'e bağlı değildir.
@@ -89,15 +99,7 @@ describe('F8 kayıt ↔ kod bütünlüğü', () => {
         !c.status.startsWith('bağlandı'),
     )
     expect(partial.map((c) => c.id)).toEqual(
-      expect.arrayContaining([
-        'BE-018',
-        'BE-025',
-        'BE-110',
-        'BE-115',
-        'BE-123',
-        'BE-127',
-        'BE-136',
-      ]),
+      expect.arrayContaining(['BE-018', 'BE-025', 'BE-123', 'BE-127', 'BE-136']),
     )
     for (const row of partial) {
       expect(row.bag, `${row.id}: kısmi satır "kalan" yazmalı`).toMatch(/kalan|kısmen|kısmi/)
@@ -168,5 +170,46 @@ describe('F8 yok sonrası bağlanma kanıtı', () => {
     )
     expect(laterBoundAllowed(id, status, new Set(), '')).toBe(false)
     expect(laterBoundAllowed(id, status, new Set([id]), matrix)).toBe(false)
+  })
+})
+
+describe('F10 W193 kapanışı: silinenler satırları', () => {
+  const rows = () => cells().filter((c) => F10_W193_CLOSED.has(c.id))
+
+  it('BE-109/110/111/115/163 bağlandı (pin v0.26.0-api, F10 W193); tarihsel F8 notu silinmez', () => {
+    expect(rows().map((c) => c.id)).toEqual(['BE-109', 'BE-110', 'BE-111', 'BE-115', 'BE-163'])
+    for (const row of rows()) {
+      expect(row.status, row.id).toBe('bağlandı (pin v0.26.0-api, F10 W193)')
+      expect(row.bag, row.id).toContain('F10 canlıya alma (W193)')
+    }
+    const history = (id: string) => rows().find((c) => c.id === id)!.bag
+    expect(history('BE-110')).toContain('F8 W174')
+    expect(history('BE-115')).toContain('F8 W174')
+    expect(history('BE-163')).toContain('F8 W174')
+  })
+
+  it('bu satırların kimliği kodda stub olarak kalmaz; BE-076 stub’ı (arşiv) W194’e kadar sürer ve satırı açıktır', () => {
+    const stubs = stubIds()
+    for (const id of F10_W193_CLOSED) expect(stubs.has(id), `${id} stub kaldı`).toBe(false)
+    const be076 = cells().find((c) => c.id === 'BE-076')!
+    expect(stubs.has('BE-076')).toBe(true)
+    expect(be076.status.startsWith('bağlandı')).toBe(false)
+  })
+
+  it('kapsam dışı satırlar bu W ile kapanmaz (BE-075, BE-077, BE-069, BE-112, BE-165)', () => {
+    for (const id of ['BE-075', 'BE-077', 'BE-069', 'BE-112', 'BE-165']) {
+      const row = cells().find((c) => c.id === id)!
+      expect(row.status, id).not.toContain('F10 W193')
+    }
+  })
+
+  it('F10 kapanış kuralı yalnız sabit kümeyi ve stub yokluğunu kabul eder', () => {
+    const status = 'bağlandı (pin v0.26.0-api, F10 W193)'
+    expect(laterBoundAllowed('BE-110', status, new Set(), '')).toBe(true)
+    expect(laterBoundAllowed('BE-110', status, new Set(['BE-110']), '')).toBe(false)
+    expect(laterBoundAllowed('BE-076', status, new Set(), '')).toBe(false)
+    expect(laterBoundAllowed('BE-109', 'bağlandı (pin v0.26.0-api, F10 W194)', new Set(), '')).toBe(
+      false,
+    )
   })
 })

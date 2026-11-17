@@ -54,7 +54,7 @@ test('silinenler: CSV bileti (S2 hedefi) + toplu geri yükle → silinen listesi
 
     await open(page, '/silinen-kayitlar')
     for (const id of ids)
-      await expect(page.locator(`[data-record-key="gorev:${id}"]`)).toBeVisible()
+      await expect(page.locator(`[data-record-key="tasks:${id}"]`)).toBeVisible()
 
     // CSV: bilet hedefi sorgu dizesiyle bire bir, S2 başlığı; BOM'lu CSV iner.
     await reserveExport()
@@ -71,7 +71,7 @@ test('silinenler: CSV bileti (S2 hedefi) + toplu geri yükle → silinen listesi
 
     // Toplu geri yükle (ADR-0045): iki satır seçilir, tek istek, satırlar listeden düşer.
     for (const id of ids) {
-      await page.locator(`[data-record-key="gorev:${id}"] [data-testid="dr-row-check"]`).check()
+      await page.locator(`[data-record-key="tasks:${id}"] [data-testid="dr-row-check"]`).check()
     }
     const restore = page.waitForResponse(
       (r) =>
@@ -84,7 +84,7 @@ test('silinenler: CSV bileti (S2 hedefi) + toplu geri yükle → silinen listesi
     expect([...restored.succeeded].sort()).toEqual([...ids].sort())
     expect(restored.failed).toEqual([])
     for (const id of ids)
-      await expect(page.locator(`[data-record-key="gorev:${id}"]`)).toHaveCount(0)
+      await expect(page.locator(`[data-record-key="tasks:${id}"]`)).toHaveCount(0)
 
     // Türevler (KESİN 29): görev listesi geri gelenleri gösterir, ana sayfa sayacı iki düşer.
     await open(page, '/gorevler')

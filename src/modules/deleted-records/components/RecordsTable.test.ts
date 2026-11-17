@@ -5,8 +5,8 @@ import RecordsTable from './RecordsTable.vue'
 import { fixtureRow } from '../__tests__/fixtures'
 
 const props = {
-  rows: [fixtureRow(), fixtureRow({ id: 'w2', key: 'gorev:w2', title: 'İkinci' })],
-  selectedKey: 'gorev:w2',
+  rows: [fixtureRow(), fixtureRow({ id: 'w2', key: 'tasks:w2', title: 'İkinci' })],
+  selectedKey: 'tasks:w2',
   checkedIds: new Set<string>(),
   allChecked: false,
   someChecked: false,
@@ -39,7 +39,7 @@ describe('RecordsTable (E-12-24; 01d)', () => {
 
   it('seçim: işaretli satır kutusu, tümünü seç tri-state ve olaylar (BE-114)', async () => {
     const wrapper = mount(RecordsTable, {
-      props: { ...props, checkedIds: new Set(['w2']), someChecked: true },
+      props: { ...props, checkedIds: new Set(['tasks:w2']), someChecked: true },
     })
     const boxes = wrapper.findAll('[data-testid="dr-row-check"]')
     expect(boxes.map((b) => (b.element as HTMLInputElement).checked)).toEqual([false, true])
@@ -51,7 +51,7 @@ describe('RecordsTable (E-12-24; 01d)', () => {
     await boxes[0]!.setValue(true)
     expect(wrapper.emitted('toggle')![0]![0]).toMatchObject({ id: 'w1' })
     await wrapper.setProps({
-      checkedIds: new Set(['w1', 'w2']),
+      checkedIds: new Set(['tasks:w1', 'tasks:w2']),
       allChecked: true,
       someChecked: false,
     })
@@ -75,10 +75,18 @@ describe('RecordsTable (E-12-24; 01d)', () => {
     expect(wrapper.get('[aria-sort] button').attributes('data-sort')).toBe('name')
   })
 
+  it('birleşik görünümde sıra kilitli: başlıklar düğme değil, aria-sort yok', () => {
+    const wrapper = mount(RecordsTable, { props: { ...props, sortLocked: true } })
+    expect(wrapper.find('[data-sort]').exists()).toBe(false)
+    expect(wrapper.find('[aria-sort]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('kayıt')
+    expect(wrapper.text()).toContain('silinme tarihi')
+  })
+
   it('satırlar sırayla; seçili satır işaretli; olaylar satırı taşır', async () => {
     const wrapper = mount(RecordsTable, { props })
     const rows = wrapper.findAll('[data-record-key]')
-    expect(rows.map((r) => r.attributes('data-record-key'))).toEqual(['gorev:w1', 'gorev:w2'])
+    expect(rows.map((r) => r.attributes('data-record-key'))).toEqual(['tasks:w1', 'tasks:w2'])
     expect(rows[1]!.attributes('aria-current')).toBe('true')
     await rows[0]!.get('[data-action="restore"]').trigger('click')
     await rows[1]!.get('[data-action="purge"]').trigger('click')

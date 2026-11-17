@@ -8,7 +8,7 @@ Koordinatörün F10 kapsamı, yayımlı **v0.26.0-api /4d4adc0f** BE-P45 paketin
 
 2026-11-17 kesin P45 ürün kararları backend `.git/koordinator/plan-p45.md` başından ve proje `memory/p45-kararlar.md` kaydından doğrulandı: süresiz saklama; dosya/alt görev/görev notu/toplantı notu/gündem yumuşak silme; görevsiz yükleme yok; başka göreve taşıma; dosya tavanı100; dosya adı+görev başlığı+yükleyen araması. GAP234 birleşik liste dahildir, GAP233 küçük resim/önizleme türevi dışıdır. Eski P45 ertelemesi bu kararlarla aşılmıştır.
 
-Mevcut06/07 arşiv,12 silinen kayıtlar ve work/meetings silme yüzleri kullanılır; yeni sayfa/artboard yok. BE075/076/077/109/110/111/115/163/165 ve BE069/112 ürün kararı kayıtları tek tek tam/kısmi/kalır olarak eşlenecek. Başlangıç163 kayıt=77 bağlı84 açık2 vazgeçildi;16 benzersiz gerçek stub. Yeni BE kimliği gerekirse yalnız koordinatör BE167'den verir.
+Mevcut06/07 arşiv,12 silinen kayıtlar ve work/meetings silme yüzleri kullanılır; yeni sayfa/artboard yok. BE075/076/077/109/110/111/115/163/165 ve BE069/112 ürün kararı kayıtları tek tek tam/kısmi/kalır olarak eşlenecek. Başlangıç163 kayıt=77 bağlı84 açık2 vazgeçildi;24 benzersiz çalışma-zamanı stub kimliği. Yeni BE kimliği gerekirse yalnız koordinatör BE167'den verir.
 
 Dışı: BE-F8'in yayımlanmamış karşılıkları, Tablolar, audit/01b, Takvim/Kurumsal hafıza, Ü/K yeni panelleri, profil, Asistan, GAP233 ve yeni saklama zamanlayıcısı. Rol/sözleşme uydurulmaz; backend/mobil/program depolarına yazılmaz.
 

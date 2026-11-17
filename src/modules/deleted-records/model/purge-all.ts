@@ -3,26 +3,31 @@
  * sonuç özeti. Saf fonksiyonlar. Sunucu çağrı başına en çok 50 kayıt işler; istemci
  * `remaining > 0` ve `succeeded` boş değilken yeniden çağırır, hiç başarı olmayan çağrıdan sonra
  * durur (kalıcı başarısız kalanlar sonsuz döngü üretmesin) ve kalanları `failed` kodlarıyla
- * gösterir. Koordinatörlük türü desteklenmez: uç şirket geneli çalışır ve programa bağlı
- * silinmişleri kalıcı silemez (`organization.department_in_use`), sekme kümesiyle örtüşmez.
+ * gösterir. Koordinatörlük `scope=program` ile açıkça boşaltılır (W192 `usePurgeAllDepartments`).
  */
-import type { DeletedKind } from './kinds'
+import { VIEW_KINDS, type DeletedKind } from './kinds'
+import { LIFECYCLE, type LifecycleKind } from './lifecycle'
 import { deletedText } from './messages'
 import { batchFailureText } from './outcome'
 import type { BatchRun, BatchSummary } from './batch'
 import type { DeletedBatchResult } from './types'
 
 /** Onay değeri = türün yol adı (`confirm`; aksi 422). Eşleme testle sabitlenir. */
-export const PURGE_ALL_CONFIRM = {
-  gorev: 'work-items',
-  toplanti: 'meetings',
-  kullanici: 'accounts',
-} as const
+export const PURGE_ALL_CONFIRM: Readonly<Record<LifecycleKind, string>> = Object.fromEntries(
+  (Object.keys(LIFECYCLE) as LifecycleKind[]).map((kind) => [kind, LIFECYCLE[kind].path]),
+) as Record<LifecycleKind, string>
 
-export type PurgeAllKind = keyof typeof PURGE_ALL_CONFIRM
+/**
+ * Görünümün boşaltılacak türleri (sırayla). Tek türlü görünüm kendi türünü, `Not ve gündem` üç not
+ * türünü boşaltır; `Tümü` boşaltılamaz (`null`): bir tür seçilir. Görünüm politikasıdır, sözleşme
+ * eksiği değil.
+ */
+export function purgeKindsOf(view: DeletedKind): readonly LifecycleKind[] | null {
+  return view === 'tumu' ? null : VIEW_KINDS[view]
+}
 
-export function supportsPurgeAll(kind: DeletedKind): kind is PurgeAllKind {
-  return kind in PURGE_ALL_CONFIRM
+export function supportsPurgeAll(view: DeletedKind): boolean {
+  return purgeKindsOf(view) !== null
 }
 
 /** Çağrı başına sunucu tavanı (ADR-0045). */

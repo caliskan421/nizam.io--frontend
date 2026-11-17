@@ -277,18 +277,46 @@
     font: var(--ui-text-xs-strong);
     white-space: nowrap;
   }
-  .dr-page .dr-logtype[data-kind='gorev'] {
+  /* Satırın yazma türü (dokuz tür); renkler yalnız mevcut token'lardan (P41: yeni renk yok). */
+  .dr-page .dr-logtype[data-kind='tasks'],
+  .dr-page .dr-logtype[data-kind='subtasks'] {
     --dr-tone: var(--violet);
   }
-  .dr-page .dr-logtype[data-kind='toplanti'] {
+  .dr-page .dr-logtype[data-kind='files'] {
+    --dr-tone: var(--gold);
+  }
+  .dr-page .dr-logtype[data-kind='meetings'] {
     --dr-tone: var(--accent-text);
   }
-  .dr-page .dr-logtype[data-kind='kullanici'] {
+  .dr-page .dr-logtype[data-kind='accounts'] {
     --dr-tone: var(--danger);
   }
-  /* Koordinatörlük için yeni renk icat edilmez (P41): nötr ton. */
-  .dr-page .dr-logtype[data-kind='koordinatorluk'] {
+  /* Koordinatörlük, not, gündem ve tanınmayan tür nötr tondadır. */
+  .dr-page .dr-logtype[data-kind='departments'],
+  .dr-page .dr-logtype[data-kind='task_notes'],
+  .dr-page .dr-logtype[data-kind='meeting_notes'],
+  .dr-page .dr-logtype[data-kind='agenda_items'],
+  .dr-page .dr-logtype[data-kind='unknown'] {
     --dr-tone: var(--ink-muted);
+  }
+  /* Ebeveyn çöpte uyarısı (satır ve panel). */
+  .dr-page .dr-parent {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    color: var(--gold);
+    font: var(--ui-text-xs-strong);
+    min-width: 0;
+  }
+  .dr-page .dr-parent__link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent-text);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
   }
   .dr-page .dr-record {
     display: flex;
@@ -577,5 +605,15 @@
     text-align: center;
     color: var(--ink-muted);
     font: var(--text-body);
+  }
+}
+
+@layer components {
+  /* Sekiz görünümlü segment: dar ekranda kendi içinde kaymaz, alt satıra sarılır; her düğme
+     görünür ve klavyeyle erişilebilir kalır. Paylaşılan `.rp-seg` stiline dokunulmaz (yerel
+     değiştirici); geniş ekranda tek satır yerleşimi aynıdır. */
+  .dr-page .rp-seg.dr-seg {
+    flex-wrap: wrap;
+    overflow-x: visible;
   }
 }

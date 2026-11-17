@@ -1,5 +1,7 @@
 /**
- * Satır seçimi (E-12-21…23; BE-114): yüklenen satırlar içinde onay kutusuyla seçilen kimlikler.
+ * Satır seçimi (E-12-21…23; BE-114): yüklenen satırlar içinde onay kutusuyla seçilen satır ANAHTARLARI
+ * (`kind:id`; karma görünümde aynı kimlik farklı türlerde çakışmaz). Yalnız yazılabilir satırlar
+ * (bilinen tür) seçilir; bilinmeyen (gelecek) tür satırı onay kutusuz ve seçim dışıdır.
  * Seçim türe, süzgece, sıraya ve kapsama/oturuma bağlıdır: `resetOn` değişince, kapsam ya da
  * oturum değişince temizlenir; liste yenilenince listede olmayan kimlikler düşer (silinmiş/
  * işlenmiş kayıt seçili kalmaz). Seçim yalnız yüklenen kümedir: "tümünü seç" bu sayfaları kapsar.
@@ -13,8 +15,8 @@ import type { DeletedRow } from '../model/types'
 
 export function useSelection(rows: () => readonly DeletedRow[], resetOn: () => unknown) {
   const ids = shallowRef<ReadonlySet<string>>(new Set())
-  const loaded = computed(() => rows())
-  const selectedRows = computed(() => loaded.value.filter((row) => ids.value.has(row.id)))
+  const loaded = computed(() => rows().filter((row) => row.kind !== null))
+  const selectedRows = computed(() => loaded.value.filter((row) => ids.value.has(row.key)))
 
   const clear = () => {
     if (ids.value.size > 0) ids.value = new Set()
@@ -28,16 +30,16 @@ export function useSelection(rows: () => readonly DeletedRow[], resetOn: () => u
     () => loaded.value.length > 0 && selectedRows.value.length === loaded.value.length,
   )
   const toggleAll = () => {
-    ids.value = allSelected.value ? new Set() : new Set(loaded.value.map((row) => row.id))
+    ids.value = allSelected.value ? new Set() : new Set(loaded.value.map((row) => row.key))
   }
-  /** Yalnız verilen kimlikleri bırakır (işlemden sonra başarısız olanlar seçili kalır). */
+  /** Yalnız verilen anahtarları bırakır (işlemden sonra başarısız olanlar seçili kalır). */
   const keepOnly = (keep: readonly string[]) => {
     ids.value = new Set(keep.filter((id) => ids.value.has(id)))
   }
 
   watch(resetOn, clear)
   watch(loaded, (list) => {
-    const live = new Set(list.map((row) => row.id))
+    const live = new Set(list.map((row) => row.key))
     const next = [...ids.value].filter((id) => live.has(id))
     if (next.length !== ids.value.size) ids.value = new Set(next)
   })

@@ -4,7 +4,7 @@
 
 ## Birleşen teslimler
 
-O1 PR169, pin PR170, W183 PR171, W184 PR172, W185b PR173 ve W185 PR174 kendi üç CI kontrolü başarılı olarak birleşti. Son ana sürüm `8b797382`; PR174 CI44010736714. Kapsam23 tam BE,16 kalan gerçek designStub, yeni ekran yok. Kayıt163 benzersiz satır:77 bağlı/84 açık/2 vazgeçildi. F8 raporundaki160/104 sayımı tarihsel hesap hatası olarak yeni raporda açıklandı.
+O1 PR169, pin PR170, W183 PR171, W184 PR172, W185b PR173 ve W185 PR174 kendi üç CI kontrolü başarılı olarak birleşti. Son ana sürüm `8b797382`; PR174 CI44010736714. Kapsam23 tam BE,24 kalan benzersiz çalışma-zamanı stub kimliği (önceki16 dar sayımı F10 standart taramasıyla düzeltildi), yeni ekran yok. Kayıt163 benzersiz satır:77 bağlı/84 açık/2 vazgeçildi. F8 raporundaki160/104 sayımı tarihsel hesap hatası olarak yeni raporda açıklandı.
 
 ## W186 entegrasyon ve W189 denetim düzeltmeleri
 

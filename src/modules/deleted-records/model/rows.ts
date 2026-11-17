@@ -9,6 +9,7 @@ import type { Meeting } from '@/modules/meetings/public'
 
 import { accountHoldsCompanyAdmin } from './capabilities'
 import { formatMeetingWhen } from './format'
+import { recordKey } from './lifecycle'
 import { deletedText } from './messages'
 import type {
   DeletedAccount,
@@ -52,9 +53,10 @@ function taskFacts(item: DeletedWorkItem): DeletedTaskFacts {
 export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
   const department = ctx.departmentName(item.department_id) ?? unknownDepartment()
   return {
-    kind: 'gorev',
+    kind: 'tasks',
+    rawKind: 'tasks',
     id: item.work_item_id,
-    key: `gorev:${item.work_item_id}`,
+    key: recordKey('tasks', item.work_item_id),
     title: item.title,
     code: null,
     subLine: deletedText(item.deleted_by_department ? 'sub.taskByDepartment' : 'sub.task', {
@@ -71,6 +73,8 @@ export function taskRow(item: DeletedWorkItem, ctx: RowContext): DeletedRow {
     departmentNames: [department],
     departmentKind: null,
     companyAdmin: false,
+    parent: null,
+    facts: [],
   }
 }
 
@@ -85,9 +89,10 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
   const names = ids.map(nameOf)
   const owner = nameOf(meeting.owner_department_id)
   return {
-    kind: 'toplanti',
+    kind: 'meetings',
+    rawKind: 'meetings',
     id: meeting.meeting_id,
-    key: `toplanti:${meeting.meeting_id}`,
+    key: recordKey('meetings', meeting.meeting_id),
     title: meeting.title,
     code: null,
     subLine: deletedText('sub.meeting', {
@@ -105,14 +110,17 @@ export function meetingRow(meeting: Meeting, ctx: RowContext): DeletedRow {
     departmentNames: names,
     departmentKind: null,
     companyAdmin: false,
+    parent: null,
+    facts: [],
   }
 }
 
 export function departmentRow(department: DeletedDepartment): DeletedRow {
   return {
-    kind: 'koordinatorluk',
+    kind: 'departments',
+    rawKind: 'departments',
     id: department.department_id,
-    key: `koordinatorluk:${department.department_id}`,
+    key: recordKey('departments', department.department_id),
     title: department.name,
     code: department.code || null,
     subLine: department.kind || '',
@@ -128,6 +136,8 @@ export function departmentRow(department: DeletedDepartment): DeletedRow {
     departmentNames: [],
     departmentKind: department.kind || null,
     companyAdmin: false,
+    parent: null,
+    facts: [],
   }
 }
 
@@ -135,9 +145,10 @@ export function accountRow(account: DeletedAccount): DeletedRow {
   const teams = [...new Map(account.teams.map((team) => [team.department_id, team])).values()]
   const names = teams.map((team) => team.display_name)
   return {
-    kind: 'kullanici',
+    kind: 'accounts',
+    rawKind: 'accounts',
     id: account.account_id,
-    key: `kullanici:${account.account_id}`,
+    key: recordKey('accounts', account.account_id),
     title: account.full_name,
     code: null,
     // Silmede korunan ekip satırları (canlı departmanlar; ekipsiz hesapta boş).
@@ -154,5 +165,7 @@ export function accountRow(account: DeletedAccount): DeletedRow {
     departmentNames: names,
     departmentKind: null,
     companyAdmin: accountHoldsCompanyAdmin(account),
+    parent: null,
+    facts: [],
   }
 }

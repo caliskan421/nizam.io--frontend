@@ -9,15 +9,14 @@
 import type { DownloadTarget } from '@/shared/download'
 
 import type { ListQuery } from './filters'
-import type { DeletedKind } from './kinds'
+import { VIEW_KINDS, type DeletedKind } from './kinds'
 
-/** `kinds` değerleri (sözleşme: `tasks`, `meetings`, `departments`, `accounts`). Testle sabit. */
-export const EXPORT_KINDS: Readonly<Record<DeletedKind, string>> = {
-  gorev: 'tasks',
-  toplanti: 'meetings',
-  koordinatorluk: 'departments',
-  kullanici: 'accounts',
-}
+/**
+ * `kinds` değeri: görünümün türleri (tek tür, `Not ve gündem` üç not türü, `Tümü` dokuzun hepsi;
+ * açık liste, sunucu varsayılanına bırakılmaz). Birleşik görünümde `notes` iki kez sayılmaz:
+ * CSV satırları türlere göre bloklanır.
+ */
+export const exportKinds = (view: DeletedKind): string => VIEW_KINDS[view].join(',')
 
 export const EXPORT_PATH = '/v1/admin/deleted/export'
 
@@ -37,7 +36,7 @@ export interface ExportRequest {
 export function exportQuery(request: ExportRequest): string {
   const { kind, query } = request
   const params = new URLSearchParams()
-  params.set('kinds', EXPORT_KINDS[kind])
+  params.set('kinds', exportKinds(kind))
   params.set('scope', 'program')
   if (query.q) params.set('q', query.q)
   if (query.deleted_from) params.set('deleted_from', query.deleted_from)

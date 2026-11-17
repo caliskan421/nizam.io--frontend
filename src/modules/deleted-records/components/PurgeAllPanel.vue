@@ -32,7 +32,7 @@ const title = computed(() =>
     : deletedText('purgeAll.title', { n: props.count, kind: kindName.value }),
 )
 const scopeText = computed(() =>
-  supportsPurgeAll(props.kind) ? deletedText(`purgeAll.scope.${props.kind}`) : '',
+  props.kind !== 'tumu' ? deletedText(`purgeAll.scope.${props.kind}`) : '',
 )
 const runningText = computed(() =>
   props.progress.left === null

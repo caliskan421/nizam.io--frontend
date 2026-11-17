@@ -6,6 +6,7 @@ import { UiAvatar, UiCheck, UiIcon } from '@/shared/ui'
 import { formatClock, formatDate, formatLong, isToday } from '../model/format'
 import { deletedText } from '../model/messages'
 import type { DeletedRow } from '../model/types'
+import RowParent from './RowParent.vue'
 
 /**
  * Tablo satırı (E-12-22…37; 01d). Seçim kutusu (toplu işlem; BE-114), tür rozeti, kayıt (kod +
@@ -25,12 +26,22 @@ const props = defineProps<{
   canRestore: boolean
   canPurge: boolean
 }>()
-const emit = defineEmits<{ select: []; restore: []; purge: []; toggle: [] }>()
+const emit = defineEmits<{
+  select: []
+  restore: []
+  purge: []
+  toggle: []
+  openParent: []
+}>()
 
 const date = computed(() => formatDate(props.row.deletedAt, props.timezone))
 const clock = computed(() => formatClock(props.row.deletedAt, props.timezone))
 const today = computed(() => isToday(props.row.deletedAt, props.now, props.timezone))
 const long = computed(() => formatLong(props.row.deletedAt, props.timezone) ?? undefined)
+/** Bilinmeyen (gelecek) tür salt okunurdur: onay kutusu ve eylem yok. */
+const writable = computed(() => props.row.kind !== null)
+const kindKey = computed(() => props.row.kind ?? 'unknown')
+const title = computed(() => props.row.title || deletedText('row.untitled'))
 const actorName = computed(() => props.row.actor.name || deletedText('table.unknownActor'))
 
 function onKeydown(event: KeyboardEvent): void {
@@ -62,27 +73,30 @@ function act(action: 'restore' | 'purge'): void {
     tabindex="0"
     :aria-current="selected ? 'true' : undefined"
     :data-record-key="row.key"
-    :data-kind="row.kind"
+    :data-kind="kindKey"
     @click="emit('select')"
     @keydown="onKeydown"
   >
     <span role="cell" class="dr-check" @click.stop>
       <UiCheck
+        v-if="writable"
         :model-value="checked"
-        :label="deletedText('bulk.selectRow', { title: row.title })"
+        :label="deletedText('bulk.selectRow', { title })"
         data-testid="dr-row-check"
         @update:model-value="emit('toggle')"
       />
     </span>
     <span role="cell" class="dr-kind">
-      <span class="dr-logtype" :data-kind="row.kind">{{ deletedText(`kinds.${row.kind}`) }}</span>
+      <span class="dr-logtype" :data-kind="kindKey">{{ deletedText(`rowKinds.${kindKey}`) }}</span>
     </span>
     <span role="cell" class="dr-record">
       <span class="dr-record__line">
         <span v-if="row.code" class="dr-code">{{ row.code }}</span>
-        <span class="dr-title rp-trunc">{{ row.title }}</span>
+        <span class="dr-title rp-trunc">{{ title }}</span>
       </span>
       <span v-if="row.subLine" class="rp-cap rp-trunc">{{ row.subLine }}</span>
+      <span v-if="!writable" class="rp-cap">{{ deletedText('row.unknownKind') }}</span>
+      <RowParent :row="row" @open="emit('openParent')" />
     </span>
     <span role="cell" class="dr-dt" :title="long">
       <template v-if="date">
@@ -100,7 +114,7 @@ function act(action: 'restore' | 'purge'): void {
     </span>
     <span role="cell" class="dr-rowact">
       <button
-        v-if="canRestore"
+        v-if="canRestore && writable"
         type="button"
         class="t-btn t-btn--secondary t-btn--sm"
         :aria-disabled="busy ? 'true' : undefined"
@@ -110,10 +124,10 @@ function act(action: 'restore' | 'purge'): void {
         {{ deletedText('row.restore') }}
       </button>
       <button
-        v-if="canPurge"
+        v-if="canPurge && writable"
         type="button"
         class="t-iconbtn dr-danger"
-        :aria-label="deletedText('row.purgeOf', { title: row.title })"
+        :aria-label="deletedText('row.purgeOf', { title })"
         :title="deletedText('row.purge')"
         :aria-disabled="busy ? 'true' : undefined"
         data-action="purge"
