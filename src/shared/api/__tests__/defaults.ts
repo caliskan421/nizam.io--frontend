@@ -1,4 +1,4 @@
-// Pin v0.23.0-api…v0.25.0-api: yanıt şemalarına eklenen ZORUNLU alanların test varsayılanları — tek yer (W170, W182; KESİN 36).
+// Pin v0.23.0-api…v0.26.0-api: yanıt şemalarına eklenen ZORUNLU alanların test varsayılanları — tek yer (W170, W182; KESİN 36).
 //
 // Kural: alan uydurulmaz. Her varsayılan yalnız pinli spec'in o şemada `required` saydığı
 // alandır; değer "alan yok/boş/sıfır" anlamına gelen en yalın değerdir (null, 0, false, []) ve
@@ -502,4 +502,26 @@ export function makeNotificationUnreadCount(
   over: Partial<S['NotificationUnreadCount']> = {},
 ): S['NotificationUnreadCount'] {
   return { awaiting_count: 0, count: 0, ...over }
+}
+
+/**
+ * `DeletedSummary` (v0.26): dokuz terim + `notes` zorunludur; `total` terimlerin toplamıdır
+ * (`notes` ikinci kez girmez). Varsayılan hepsi sıfır; çağıran yalnız sahip olduğu terimleri
+ * ve tutarlı `total`'ı verir (çocuk türlerin sayısı mevcut dört tür akışında 0'dır).
+ */
+export function makeDeletedSummary(over: Partial<S['DeletedSummary']> = {}): S['DeletedSummary'] {
+  return {
+    tasks: 0,
+    subtasks: 0,
+    files: 0,
+    meetings: 0,
+    task_notes: 0,
+    meeting_notes: 0,
+    agenda_items: 0,
+    notes: 0,
+    departments: 0,
+    accounts: 0,
+    total: 0,
+    ...over,
+  }
 }
