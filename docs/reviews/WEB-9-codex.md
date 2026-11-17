@@ -46,3 +46,5 @@ Opus5f6f3365/ürünfcf7bc76(src ağacı080b0242) farkını salt okunur inceledi:
 Hata yolunda okundu görünür son mesaja kadar ilerler; görünmeyen daha eski sıra da backend'in okundu-ya-kadar anlamıyla kapanabilir. Bu, çapasız normal açılışla aynı mevcut davranıştır ve kilitlenme yerine seçilen sınırlı fallback'tir; bulgu değildir.
 
 Yeni e2e tasarımı güvenli bulundu fakat ilk gerçek yürütmesi geçmiş sayılmadı. Tek kalan faz kapısı: kapanış başlığında kalite/imaj/gerçek backend(son sparse e2e dahil) üç SUCCESS ve PR MERGED. Bu koşul gerçekleşince koordinatör F9 kapanışını yürürlüğe alır. Denetim belgesi/prettier/koşullu kapanış başlıkları ürün kaynağını değiştirmediğinden kaynak hükmünü etkilemez. Başarısız CI varken tamamlandı iddiası verilmez.
+
+CI1'deki iki test uyumu sonrasında yalnız first-unread.test.ts ve ChatPage.test.ts değişti; denetlenen ürün kodu değişmedi. Pencere/metadata istekleri ayrı ve daha kesin doğrulanır, ilgili query success koşulu kullanılır.6326/6328 ilk sonuç başarılı tamamlanmış sayılmaz; yeni başlığın tam CI kapısı şarttır.

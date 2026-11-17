@@ -135,3 +135,9 @@ Opus tur2 ek kontrolde5f6f3365/ürünfcf7bc76 için KOŞULLU UYGUN dedi: önceki
 W188 gerçek tanık94fe0a3a üzerindedir; W189 son paketinin normal UI dumanı84f9cff6 üzerinde sahte API'dir; fcf hata yolu bağımsız25 component/ilgili testle doğrulandı. Yeni gerçek sparse e2e bu kapanışın CI'ında yürütülür; o kapı başarısızken final tamamlandı denmez. Yerel Docker ROFS sebebiyle dört dead test kaydı/ağ/volume silinemedi, çalışan süreç kalmadığı inspect ile görüldü; ayrıntı dogrulama-F9'dadır.
 
 F10 AÇILMADI. Backend/mobil/program depolarına yazılmadı. Kayıt163 =77 bağlı +84 açık +2 vazgeçildi; yeni BE kimliği yok, gerçek designStub16. Rapor-F9 §6a sonraki web önerisi, §6b ayrı backend paketi girdisidir.
+
+### Kapanış CI1 test uyumu (2026-11-17)
+
+PR175 ilk başlık8df083d0, CI44021360785: tip/lint/format başarılı, tam pakette863 dosyadan861 ve6328 testten6326 geçti; iki test kırmızı olduğundan imaj/gerçek backend işleri skipped ve merge yapılmadı. ChatPage eski tek GET beklentisi, mevcut limit50 pencere + yeni limit1 metadata isteklerini ve p1/imleçsiz kapsamını ayrı doğrulayacak şekilde güncellendi; fixture'a zorunlu first_unread_seq=null eklendi. first-unread testleri tüm cache'in settle olayını beklemek yerine ilgili query success koşulunu bekler; kuyruk negatifinde yalnız eski p1 limit1 okumaları sayılır.
+
+CI zaman aşımının takıldığı tam await logdan belirlenmedi; kayıp cache olayı olasılığı giderildi fakat kesin kök neden/kalıcı zamanlama düzeltmesi iddia edilmez. Terra iki dar koşumda2 dosya22 test, type/değişenlint/format başarılı. İki test dışında ürün kodu değişmedi, skip veya timeout artırımı yok. Yeni başlık kendi üç CI sonucuna tabidir.

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 import { authSession } from '@/shared/http'
@@ -13,7 +13,6 @@ import {
   resetAll,
   sent,
   server,
-  settleQueries,
   signIn,
 } from '../__tests__/harness'
 import { useChatMessages } from './message-window'
@@ -51,7 +50,7 @@ describe('readFirstUnread: yakalanan bağlam kapıları', () => {
   it('geçerli bağlamda sunucunun first_unread_seq değerini döner', async () => {
     const gate = holdEntryRead(3)
     const m = mountSetup(() => useChatMessages('c1'))
-    await settleQueries(m.client)
+    await vi.waitFor(() => expect(m.result.query.isSuccess.value).toBe(true))
     const pending = m.result.readFirstUnread()
     await gate.reached
     gate.release()
@@ -61,7 +60,7 @@ describe('readFirstUnread: yakalanan bağlam kapıları', () => {
   it('uçuşta oturum silinirse sonuç undefined', async () => {
     const gate = holdEntryRead(3)
     const m = mountSetup(() => useChatMessages('c1'))
-    await settleQueries(m.client)
+    await vi.waitFor(() => expect(m.result.query.isSuccess.value).toBe(true))
     const pending = m.result.readFirstUnread()
     await gate.reached
     authSession.clear()
@@ -72,7 +71,7 @@ describe('readFirstUnread: yakalanan bağlam kapıları', () => {
   it('uçuşta sahip sökülürse sonuç undefined', async () => {
     const gate = holdEntryRead(3)
     const m = mountSetup(() => useChatMessages('c1'))
-    await settleQueries(m.client)
+    await vi.waitFor(() => expect(m.result.query.isSuccess.value).toBe(true))
     const pending = m.result.readFirstUnread()
     await gate.reached
     m.wrapper.unmount()
@@ -84,7 +83,7 @@ describe('readFirstUnread: yakalanan bağlam kapıları', () => {
     const gate = holdEntryRead(3)
     const id = ref('c1')
     const m = mountSetup(() => useChatMessages(id))
-    await settleQueries(m.client)
+    await vi.waitFor(() => expect(m.result.query.isSuccess.value).toBe(true))
     const pending = m.result.readFirstUnread()
     await gate.reached
     id.value = 'c2'
@@ -95,15 +94,19 @@ describe('readFirstUnread: yakalanan bağlam kapıları', () => {
   it('kuyrukta beklerken kapsam değişirse eski kapsam için okuma başlamaz', async () => {
     const gate = holdEntryRead(3)
     const m = mountSetup(() => useChatMessages('c1'))
-    await settleQueries(m.client)
+    await vi.waitFor(() => expect(m.result.query.isSuccess.value).toBe(true))
     const first = m.result.readFirstUnread()
     await gate.reached
     const queued = m.result.readFirstUnread()
     useScopeStore().commit({ programId: 'p2', lens: 'admin', departmentId: null })
-    const reads = sent('GET', '/v1/chats/c1/messages').length
+    const reads = () =>
+      sent('GET', '/v1/chats/c1/messages').filter(
+        (r) => r.query.get('limit') === '1' && r.headers.get('X-Nizamio-Program') === 'p1',
+      ).length
+    expect(reads()).toBe(1)
     gate.release()
     expect(await first).toBeUndefined()
     expect(await queued).toBeUndefined()
-    expect(sent('GET', '/v1/chats/c1/messages')).toHaveLength(reads)
+    expect(reads()).toBe(1)
   })
 })
