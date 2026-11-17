@@ -71,6 +71,22 @@ describe('withEffects — retry/confirm devamları', () => {
     expect(fx.scope).toMatchObject({ programId: 'p1' })
   })
 
+  it('gönderim sonrası değişen giriş, tekrarın yakalanmış değişkenlerini değiştirmez', async () => {
+    const onSuccess = vi.fn()
+    const done = { kind: 'success', data: 'x', status: 200 } as Out
+    const { wrapped } = setup(
+      unknown(() => Promise.resolve(done)),
+      { onSuccess },
+    )
+    const vars = { id: 'ilk' }
+    const pending = wrapped.submit(vars)
+    vars.id = 'sonra'
+    const out = await pending
+    if (out.kind !== 'unknown_outcome') throw new Error('beklenmeyen')
+    await out.retry!()
+    expect(onSuccess.mock.calls[0]![0].vars.id).toBe('ilk')
+  })
+
   it('retry sırasında kapsam değişse de efekt İLK gönderimin yakalanmış kapsamıyla uygulanır', async () => {
     const onSuccess = vi.fn()
     const done = { kind: 'success', data: 'x', status: 200 } as Out
