@@ -83,3 +83,7 @@ F9 sırasında görülen düşük öncelikli sözleşme önerileri: anonim çokl
 - Yürürlük kapısı: bu kapanış başlığının üç CI SUCCESS ile MERGED olmasıdır. Önceki ana uygulama PR'ları169–174 zaten üç CI ile birleşti; yeni sparse e2e sonucu da bu son kapıya dahildir.
 
 W189 son kaynak ek kabulü: aktör tavanında “diğerleri”, listede olmayan sohbetin her girişte güvenli limit1 metadata okuması ve otomatik read readiness kapısı tamamlandı(30bfc952). Terra67 ilgili test/build başarılı; yeni gerçek sparse e2e temiz CI'da ilk koşumu bekler. W18894 sürümünde gerçek tanıklar tamam; son ek yerel UI koşumu Docker ROFS nedeniyle başlamadı. Nihai kaynak hükmü Opus tur2 ek kaydındadır; koşulu bu kapanışın CI/merge kapısıdır.
+
+## Kapanış kapısının gerçekleşmesi — 2026-11-17
+
+PR175 `c002692e`, CI44026445257 kalite863 dosya6328 test, imaj ve gerçek backend15/15 kontrolünde SUCCESS oldu; `215ae5d9649d1bdade7174b6947311b660d6e064` ile MERGED. Yeni sparse390/1440+SPA testi2dk, tüm Playwright3.8dk; testler arası ortak hesap yazma yükü ayrı kurucu hesabıyla yalıtıldı. Opus kaynak hükmünün CI/merge koşulu gerçekleşti. F9 kapandı; önceki bekleyen ifadeler koşum öncesi tarihçedir. F10 daha sonra ürün sahibinin talimatıyla [açıldı](../yurutme/web-10/README.md).

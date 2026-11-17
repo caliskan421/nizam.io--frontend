@@ -304,3 +304,12 @@ Yalnız `GET /v1/instance/profile` `api_version` ana sürüm kapısı uygulanır
 ### P85/P86 — F9 yönetim ve mevcut yüzeylerde v0.25 kapsamı (2026-11-17)
 
 P85: Yönetici ana Codex oturumudur; kararlar, raporlama, süreç belgeleri ve PR/CI burada yürür. Sonnet uygulayıcı, Terra test/tanık, Opus salt okunur bağımsız denetçidir. P86: P84 kapsamı mevcut ortak bileşenlerle tamamlanır: W184 görev detayında `getWorkItemSourceMessage` kaynak mesaj bağlantısı (null/erişimsizde görünmez), W185 bildirim panelinde `listNotificationSubjectMutes` imleçli liste ve sessizi kaldırma. Yeni sayfa/artboard yoktur. BE-027 W183/W184/W185 ortak teslimidir, kaydı yalnız W185 tamamlandığında kapanır; BE-085 iki yön, BE-156 liste/geri alma dahil tamamlanır.
+
+
+### F10 — P45 güncel kararları ve yürütme (2026-11-17)
+
+**P89 (ürün sahibi):** «sen sonraki frontend fazına geç». F10 açıldı; Codex yönetici, Sonnet uygulama/düzeltme, Terra test/tanık, Opus bağımsız salt okunur denetim.
+
+**P45 güncellemesi (önceden verilmiş kesin kullanıcı kararları):** backend `.git/koordinator/plan-p45.md` başı ve proje `memory/p45-kararlar.md` kaydı2026-11-17: BE112 süresiz saklama; BE109 alt görev, BE111 görev/toplantı notu ve gündem, BE076 dosya yumuşak silme/geri yükleme; BE069 görevsiz yükleme yok(v1); BE075 başka göreve taşıma ve genel dosya tavanı100; BE077 dosya adı+görev başlığı+yükleyen araması. GAP234 birleşik liste dahil, GAP233 önizleme türevi dışarıda. Eski P45 ertelemesi ve P42 birleşik liste yokluğu kararı bu güncel kararlardan önceki tarihçedir. Saklama/kalan süre için otomatik temizlik vaadi eklenmez.
+
+**P90–P92 (koordinatör uygulama kararları, geçici kabul):** F10 kapsamı v0.26.0-api4d4adc0f P45 canlıya alma+BE163/165; BE-F8 ayrı backend süreci. Pin sırasında silme semantiği değiştiğinden zorunlu onay/metin/test uyumu atomiktir; yeni işlevler ayrı W'lerde gelir. Birleşik Tümü ve Not ve gündem gerçek server listesiyle kurulur, istemci fan-out yapmaz. Kapsam/sahiplik [WEB-10](../yurutme/web-10/README.md)'da; yeni sayfa/artboard yoktur. Daha yeni API etiketi kendiliğinden kapsama girmez.
