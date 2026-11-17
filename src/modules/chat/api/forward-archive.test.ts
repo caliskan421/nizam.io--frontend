@@ -4,6 +4,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { queryKeys } from '@/shared/http/query-keys'
+import { useScopeStore } from '@/shared/scope/store'
 
 import { msg, range, seqs } from '../__tests__/fixtures'
 import {
@@ -244,6 +245,40 @@ describe('archiveChatFile', () => {
     for (const k of ['otherFiles', 'otherRefs', 'attachments'] as const)
       expect(state(keys[k]), k).toBeFalsy()
   })
+
+  it.each(['scope', 'unmount'] as const)(
+    'geç arşiv yanıtı %s sonrası yeni kapsama yazmaz ve ek okuma başlatmaz',
+    async (change) => {
+      const m = await setup(useArchiveChatFile)
+      let release!: () => void
+      let arrived!: () => void
+      const gate = new Promise<void>((resolve) => (release = resolve))
+      const reached = new Promise<void>((resolve) => (arrived = resolve))
+      server.use(
+        http.post(ARCHIVE, async () => {
+          arrived()
+          await gate
+          return answer(201)
+        }),
+      )
+      const otherScope = { ...scope, programId: 'p2' }
+      const otherKey = queryKeys.chats.messages(otherScope, 'c1')
+      m.client.setQueryData(otherKey, { marker: 'other' })
+      const pending = m.result.write.submit(input())
+      await reached
+      if (change === 'scope')
+        useScopeStore().commit({ programId: 'p2', lens: 'admin', departmentId: null })
+      else m.wrapper.unmount()
+      const reads = sent('GET', '/v1/chats/c1/messages').length
+      release()
+      await pending
+      expect(m.client.getQueryData(otherKey)).toEqual({ marker: 'other' })
+      expect(sent('GET', '/v1/chats/c1/messages')).toHaveLength(reads)
+      // Başarı, yakalanan eski kapsamın önbelleğine gerçek mesaj olarak işlenebilir.
+      const win = m.client.getQueryData<MessageWindow>(queryKeys.chats.messages(scope, 'c1'))!
+      expect(seqs(win.items)).toEqual([1, 2, 3, 4])
+    },
+  )
 
   it('ağ hatasında retry AYNI Idempotency-Key ve AYNI client_message_id (vars) ile gider; 403/404/409/422 hataları ayrışır', async () => {
     const m = await setup(useArchiveChatFile)

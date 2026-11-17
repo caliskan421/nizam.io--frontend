@@ -82,3 +82,9 @@ W183 PR #171, CI44001071112 üçSUCCESS ile main b69c6e9c oldu. W184 PR #172 ba�
 ### W184 gerçek backend CI seçici düzeltmesi (2026-11-17)
 
 CI44003202106 kalite ve imaj SUCCESS; gerçek backend dumanında e2e/chat.spec.ts sendMessage eski kısmi “Gönder” seçicisi iki yeni “Gönderildi” receipt düğmesiyle birlikte üç öğe eşleştirdi. Terra testi mevcut chat-composer içinde exact Gönder ile sınırlandırdı; assertion/ürün davranışı değişmedi. ESLint/format ve Playwright tek-test keşfiPASS; yerelde gerçekbackend tekrarlanmadı. Root bu kesin nedenli test düzeltmesini PR172'ye ekledi; yeni üç CI sonucu beklenir, kırmızı koşumda merge yapılmadı.
+
+### W185b bağımsız kabul (2026-11-17; PR/CI bekler)
+
+Terra özellik kaynağı `39083b96`, birleşik `ceff95f1` üzerinde hedefli 66 test, ek 17 test (örtüşen koşumlar) ve kayıt denetimi 40 test geçirdi; typecheck/lint/format/build başarılı. İki yeni arşiv geç-yanıt testi, kapsam değişimi/söküm sonrasında yeni kapsamın cache'inin değişmediğini ve ek okuma başlamadığını doğrular. Gerçek başarılı yanıtın yakalanmış eski cache'e işlenmesi ortak mutation sözleşmesidir; ilk yanlış test varsayımının kırmızısı ürün bulgusu sayılmaz. Arşive özgü oturum değişimi ayrıca sınanmadı.
+
+390/1440 koyu üretim paketi dumanında gerçek pointer ile iletme, anonim anket ve tek multipart arşiv isteği çalıştı; metin alanları dosyadan önce, CSRF ve Idempotency-Key mevcut. CSP/overflow/pageerror sıfır; PNG'ler incelendi. Root da 390 arşiv formunun görüntüsünü inceledi. Bu sahte API/Caddy simülasyonu kanıtıdır; gerçek backend atomik davranışı, aynı anahtarla tekrar ve multipart baytları W188'de doğrulanacak. Üç CI kapısı ve parent PR172 birleşmesi beklenir.
