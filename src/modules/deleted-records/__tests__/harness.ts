@@ -96,6 +96,8 @@ export interface World {
   dictionary: Array<{ department_id: string; display_name: string; code?: string }>
   /** `METHOD /yol` → zorunlu hata. */
   failures: Map<string, { status: number; code: string }>
+  /** Dosya geri yükleme: kimlik → numaralanan yeni ad (`renamed: true`; ad çakışması). */
+  fileRenames: Map<string, string>
   /** Toplu işlemde kimlik → öğe hata kodu (`failed[]` satırı; kayıt listede kalır). */
   itemFailures: Map<string, string>
   /** Çöpü boşalt çağrısını bekleten kapı (senaryo: durdur / kapsam değişimi). */
@@ -122,6 +124,7 @@ export const world: World = {
   records: [],
   dictionary: [],
   failures: new Map(),
+  fileRenames: new Map(),
   itemFailures: new Map(),
   purgeGate: null,
   download: { ticket: 'ok', redeem: 'ok', tickets: new Map() },
@@ -143,6 +146,7 @@ export function resetWorld(): void {
     dictionary: [],
   })
   world.failures.clear()
+  world.fileRenames.clear()
   world.itemFailures.clear()
   world.purgeGate = null
   world.download = { ticket: 'ok', redeem: 'ok', tickets: new Map() }
@@ -497,8 +501,17 @@ function lifecycleHandlers() {
         const forced = failure(method.toUpperCase(), path.replace(':id', id))
         if (forced) return forced
         if (!world.admin) return FORBIDDEN(spec.code)
+        const renamed = world.fileRenames.get(id)
+        const fileRestore = spec.kind === 'files' && method === 'patch'
         removeRecord(spec, id)
-        return json({ [spec.idField]: id, status, ...(extra as object | undefined) })
+        return json({
+          [spec.idField]: id,
+          status,
+          ...(extra as object | undefined),
+          ...(fileRestore
+            ? { display_name: renamed ?? `dosya-${id}.pdf`, renamed: !!renamed }
+            : {}),
+        })
       }),
     ),
   )

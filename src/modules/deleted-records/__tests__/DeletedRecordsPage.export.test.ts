@@ -5,8 +5,11 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { useToast } from '@/shared/ui'
 
 import {
+  file,
   meeting,
   mountPage,
+  record,
+  subtask,
   resetAll,
   sent,
   server,
@@ -188,5 +191,40 @@ describe('CSV indir (E-12-05)', () => {
     await vi.waitFor(() => expect(card(page).exists()).toBe(false))
     expect(saved.clicked).toEqual([])
     expect(sent('/v1/downloads/tk-9')).toHaveLength(0)
+  })
+})
+
+describe('CSV: yeni görünümler (v0.26)', () => {
+  it('Tümü dokuz türü açıkça ister; Not ve gündem üç not türünü; süzgeçler taşınır, notes ayrı tür değil', async () => {
+    world.records = [[record('files', 'f1')]]
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=tumu&q=plan&silen=acc-7' })
+    await download(page)
+    expect(ticket().path).toBe(
+      '/v1/admin/deleted/export?kinds=tasks%2Csubtasks%2Cfiles%2Cmeetings%2Ctask_notes%2Cmeeting_notes%2Cagenda_items%2Cdepartments%2Caccounts&scope=program&q=plan&deleted_by=acc-7',
+    )
+    world.download.tickets.clear()
+    world.records = [[record('task_notes', 'n1')]]
+    await page.wrapper.get('[data-kind="notgundem"]').trigger('click')
+    await settle()
+    await download(page)
+    expect(ticket().path).toBe(
+      // Görünüm değişince `silen` temizlenir (mevcut kural); arama korunur.
+      '/v1/admin/deleted/export?kinds=task_notes%2Cmeeting_notes%2Cagenda_items&scope=program&q=plan',
+    )
+    expect(ticket().path).not.toContain('notes&')
+    expect(ticket().program).toBe('p1')
+  })
+
+  it('tek tür: alt görev ve dosya kendi türünü ister', async () => {
+    world.subtasks = [[subtask('s1')]]
+    world.files = [[file('f1')]]
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=altgorev' })
+    await download(page)
+    expect(ticket().path).toBe('/v1/admin/deleted/export?kinds=subtasks&scope=program')
+    world.download.tickets.clear()
+    await page.wrapper.get('[data-kind="dosya"]').trigger('click')
+    await settle()
+    await download(page)
+    expect(ticket().path).toBe('/v1/admin/deleted/export?kinds=files&scope=program')
   })
 })
