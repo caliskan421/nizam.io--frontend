@@ -13,6 +13,7 @@ import { collectSources, parseRegistry, scanSource, statusOf } from './design-st
 
 const REGISTRY = readFileSync('docs/backend-eksikleri/kayit.md', 'utf8')
 const MATRIX = readFileSync('docs/yurutme/web-8/canliya-alma-matrisi.md', 'utf8')
+const F9_MATRIX = readFileSync('docs/yurutme/web-9/canliya-alma-matrisi.md', 'utf8')
 
 interface Cells {
   id: string
@@ -39,6 +40,23 @@ function matrixDecisions(): Map<string, string> {
     if (decision) out.set(m[1]!, decision)
   }
   return out
+}
+
+/** F8'de yok olan bir iş, yalnız sonraki fazın tam matris kanıtı ve stub yokluğuyla kapanır. */
+function laterBoundAllowed(
+  id: string,
+  status: string,
+  stubs: Set<string>,
+  matrix: string,
+): boolean {
+  const match = /^bağlandı \(pin v(\d+)\.(\d+)\.(\d+)-api, F9 W18\d+[a-z]?\)$/.exec(status)
+  if (!match || stubs.has(id)) return false
+  // F9 matrisi v0.25 etiketiyle hazırlanmıştır; bugünkü api-pin'e bağlı değildir.
+  if (match[1] !== '0' || match[2] !== '25' || match[3] !== '0') return false
+  return matrix.split('\n').some((line) => {
+    const first = /^\|\s*(BE-\d{3})(?:\s+\([^|()]+\))?\s*\|/.exec(line)
+    return first?.[1] === id && /\| tam (?:\([^|]*\) )?\|/.test(line)
+  })
 }
 
 const stubIds = (): Set<string> => {
@@ -107,13 +125,48 @@ describe('F8 kayıt ↔ kod bütünlüğü', () => {
     const byId = new Map(cells().map((c) => [c.id, c]))
     for (const [id, decision] of matrixDecisions()) {
       if (decision !== 'yok') continue
-      expect(byId.get(id)?.status.startsWith('bağlandı') ?? false, `${id} yok ama bağlandı`).toBe(
-        false,
-      )
+      const status = byId.get(id)?.status ?? ''
+      if (status.startsWith('bağlandı')) {
+        expect(
+          laterBoundAllowed(id, status, stubs, F9_MATRIX),
+          `${id} yok ama geçerli sonraki faz kanıtı yok`,
+        ).toBe(true)
+      }
     }
     // Kodda süren stub kimliklerinin hiçbiri bağlandı satırı değildir (design-stub.test.ts'in ters yüzü).
     for (const id of stubs) {
       expect(byId.get(id)?.status.startsWith('bağlandı') ?? false, id).toBe(false)
     }
+  })
+})
+
+describe('F8 yok sonrası bağlanma kanıtı', () => {
+  const id = 'BE-081'
+  const matrix = '| BE-081 | E-10 | v0.25 | tam | yüzey | kanıt |'
+  const status = 'bağlandı (pin v0.25.0-api, F9 W183)'
+  it('sonraki faz tam ve stub yoksa geçer; daha sonra pin değişmesi sonucu değiştirmez', () => {
+    expect(laterBoundAllowed(id, status, new Set(), matrix)).toBe(true)
+  })
+  it('yüzey ekli BE-027 ve nitelikli tam kararı tanır', () => {
+    const f9 = '| BE-027 (liste yüzü) | E-10-16 | v0.25 | tam (+W184) | yüzey | kanıt |'
+    expect(laterBoundAllowed('BE-027', status.replace('W183', 'W185'), new Set(), f9)).toBe(true)
+    expect(
+      laterBoundAllowed(
+        'BE-027',
+        status.replace('W183', 'W185'),
+        new Set(),
+        f9.replace('| tam (+W184) |', '| kalır |'),
+      ),
+    ).toBe(false)
+  })
+  it.each(['v0.23.0', 'v0.22.0', 'v0.24.9'])('aynı/eski pin %s reddedilir', (pin) => {
+    expect(laterBoundAllowed(id, status.replace('v0.25.0', pin), new Set(), matrix)).toBe(false)
+  })
+  it('kalır veya eksik matris ve kalan stub reddedilir', () => {
+    expect(laterBoundAllowed(id, status, new Set(), matrix.replace('| tam |', '| kalır |'))).toBe(
+      false,
+    )
+    expect(laterBoundAllowed(id, status, new Set(), '')).toBe(false)
+    expect(laterBoundAllowed(id, status, new Set([id]), matrix)).toBe(false)
   })
 })

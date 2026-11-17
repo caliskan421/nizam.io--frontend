@@ -1,11 +1,12 @@
 <script setup lang="ts">
 /**
- * "Dosya paylaş" (E-10-54/55 → E-10-101…107): segment "Arşivden" / "Yeni yükle" (varsayılan yeni
- * yükle). Yeni yükle: TEK dosya (çoklu seçim yok), izinli 11 tür, isteğe bağlı açıklama
- * (`body` parçası dosyadan ÖNCE), `sendChatAttachment` multipart; tavan sunucudadır (422
- * `file_too_large` / `file_rejected` alanın altında). "Görev arşivine de kaydet" devre dışı + BE-029.
- * Arşivden: `sendChatMessage` + `refs[{file}]` + gövde (boş gövde gönderilmez: not ya da dosya adı).
- * Mesaj kimliği seçim/gönderim başına BİR kez üretilir; ağ tekrarı aynı kimlik + aynı gövde.
+ * "Dosya paylaş" (E-10-54/55 → E-10-101…107): "Arşivden" / "Yeni yükle" (varsayılan yeni yükle).
+ * Yeni yükle: TEK dosya, izinli 11 tür, isteğe bağlı açıklama (`body` parçası dosyadan ÖNCE),
+ * `sendChatAttachment` multipart; tavan sunucudadır (422 alanın altında). "Görev arşivine de
+ * kaydet" (BE-029) açıksa tek `archiveChatFile` (`Idempotency-Key` + `client_message_id`
+ * arşivleme boyunca sabit); iki adımlı attachFile → sendChatMessage yolu YOKTUR. Arşivden:
+ * `sendChatMessage` + `refs[{file}]` + gövde (boş gövde yerine not ya da dosya adı). Mesaj
+ * kimliği seçim/gönderim başına BİR kez üretilir; ağ tekrarı aynı kimlik + aynı gövde.
  */
 import './dialogs.css'
 
@@ -13,9 +14,7 @@ import { computed, ref, watch } from 'vue'
 
 import { useScopeStore } from '@/shared/scope/store'
 import {
-  DesignStub,
   UiButton,
-  UiCheck,
   UiField,
   UiHint,
   UiInput,
@@ -26,12 +25,14 @@ import {
 import { UiOutcomeNotice } from '@/shared/ui/confirm'
 
 import { useChat } from '../../api/queries'
-import { useSendChatAttachment } from '../../api/attachments'
+import { useArchiveChatFile, useSendChatAttachment } from '../../api/attachments'
 import { useSendChatMessage } from '../../api/writes'
 import { chatText } from '../../messages'
 import { ATTACHMENT_EXTENSIONS, hasAllowedExtension } from '../../model/attachments'
 import { newClientMessageId } from '../../model/message-state'
 import ArchivePane from './ArchivePane.vue'
+import ArchiveSaveFields from './ArchiveSaveFields.vue'
+import type { ArchiveSaveChoice } from './archive-save'
 import { sizeKb, type PickedArchiveFile } from './forms'
 import { useDialogWrite } from './use-dialog-write'
 
@@ -42,6 +43,7 @@ const store = useScopeStore()
 const chat = useChat(() => props.chatId)
 const sendAttachment = useSendChatAttachment()
 const sendMessage = useSendChatMessage()
+const archiveSave = useArchiveChatFile()
 const write = useDialogWrite()
 
 const tab = ref<'upload' | 'archive'>(props.tab ?? 'upload')
@@ -49,12 +51,18 @@ const file = ref<File | null>(null)
 const fileError = ref<'type' | 'required' | null>(null)
 const note = ref('')
 const archiveFile = ref<PickedArchiveFile | null>(null)
+const saveToTask = ref(false)
+const tried = ref(false)
+const saveChoice = ref<ArchiveSaveChoice | null>(null)
 const dragging = ref(false)
 const input = ref<HTMLInputElement | null>(null)
 // Gönderim kimliği seçim başına: ağ tekrarında aynı kimlik (K5).
 let clientMessageId = newClientMessageId()
 
-const pending = computed(() => sendAttachment.isPending.value || sendMessage.isPending.value)
+const pending = computed(
+  () =>
+    sendAttachment.isPending.value || sendMessage.isPending.value || archiveSave.isPending.value,
+)
 const chatName = computed(() => chat.data.value?.name ?? '')
 const tabs = computed<UiChoiceOption<'upload' | 'archive'>[]>(() => [
   { value: 'archive', label: chatText('chat.dialogs.share.fromArchive') },
@@ -62,7 +70,8 @@ const tabs = computed<UiChoiceOption<'upload' | 'archive'>[]>(() => [
 ])
 const accept = ATTACHMENT_EXTENSIONS.map((e) => `.${e}`).join(',')
 
-watch([file, archiveFile], () => {
+// Yeni eylem (dosya/seçim/not değişti): yeni mesaj kimliği; ağ tekrarı aynı kimliği korur (K5).
+watch([file, archiveFile, saveChoice, note], () => {
   clientMessageId = newClientMessageId()
 })
 
@@ -107,12 +116,28 @@ async function submit(): Promise<void> {
       fileError.value = 'required'
       return
     }
+    const caption = note.value.trim()
+    if (saveToTask.value) {
+      tried.value = true
+      if (saveChoice.value === null) return
+      const saved = await archiveSave.submit({
+        programId,
+        chatId: props.chatId,
+        clientMessageId,
+        file: file.value,
+        workItemId: saveChoice.value.workItemId,
+        tag: saveChoice.value.tag,
+        ...(caption === '' ? {} : { body: caption }),
+      })
+      write.settle(saved, sentOk)
+      return
+    }
     const outcome = await sendAttachment.submit({
       programId,
       chatId: props.chatId,
       clientMessageId,
       file: file.value,
-      ...(note.value.trim() === '' ? {} : { caption: note.value.trim() }),
+      ...(caption === '' ? {} : { caption }),
     })
     write.settle(outcome, sentOk)
     return
@@ -190,12 +215,13 @@ const canSend = computed(() =>
         <UiHint v-else-if="write.fieldErrors.value.file" error>
           {{ write.fieldErrors.value.file }}
         </UiHint>
-        <DesignStub id="BE-029" as="div">
-          <label class="chat-dlg__check">
-            <UiCheck :model-value="false" disabled data-testid="dlg-save-archive" />
-            <span>{{ chatText('chat.dialogs.share.saveToTask') }}</span>
-          </label>
-        </DesignStub>
+        <ArchiveSaveFields
+          v-model:enabled="saveToTask"
+          :tried="tried"
+          :field-errors="write.fieldErrors.value"
+          :disabled="pending"
+          @change="saveChoice = $event"
+        />
       </div>
       <ArchivePane v-else @change="archiveFile = $event" />
       <UiField :label="chatText('chat.dialogs.share.note')">

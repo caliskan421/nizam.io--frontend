@@ -10,7 +10,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | --- | --- | --- |
 | O1 W181 | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN | `099dfe6e` |
 | O2a W182 (pin v0.25) | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı | `2bd788f3` |
-| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 `236d8629` teknik teslim, bağımsız Terra/PR/CI bekler; W184 aktif | — |
+| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 PR #171 CI bekler; W184 `21106559` birleşik teknik teslim, Terra/PR/CI bekler; W185b aktif | — |
 | O3 W186 | bekliyor | — |
 | O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | bekliyor | — |
 
@@ -60,3 +60,41 @@ PR170 ilk CI koşusunda reports-lifecycle.test.ts:88 boot/login gerçek localhos
 ### W183 bağımsız regresyon ve düzeltme (2026-11-17)
 
 Terra explicit `?mesaj=55` hedefinin server first_unread_seq6 açılışıyla ezildiğini stateful uygulama testinde yakaladı; test694ba3be ile kaydedildi. Sonnet b54081a7 ile tek hedef ayrıştırıcısı ve açık mesaj önceliğini ekledi;16dosya77ilgili test/typecheck/lint/format geçti. Geç A→B yanıt testi yeşil; yeni getterler shared query anahtarlarına dokunmadı. Görsel duman ve bağımsız final kontrol hâlâ Terra'da; CI/PR gelmeden bu teslim kapanmış sayılmaz.
+
+### W183 bağımsız son kabul (2026-11-17; PR/CI bekler)
+
+Sonnet95bac896 ilk unread inişini center yaparak sticky tarih/okunmamış ilk iniş örtüşmesini giderdi. Terra build ve gerçek Chromium sahte/v025 dumanında390(253–283 tarih/515–545unread),1440(200–230/489–519) dikdörtgenlerini ayrık ölçtü ve PNG'leri gördü; CSP/overflow/pageerror0. Derin hedef55 korundu, alıntı2/beforezinciriyok her iki genişlikte görüldü.390ilkpointermesaj satırına düşüpikinciquote'aulaştı;ilkhedefkaymasınınsebebibelirsiz,ürünkusuruiddiasıyok. Source95 ve önceki42test kırmızı→yeşil kanıtı saklandı.
+
+Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/tamF9matris/stubyok şartıyla düzeltti; BE027 parantezli yüzeyID'si de desteklenir.40ilgilitest+lint/formatPASS. F8tarihselmatris değişmedi, unsupported/aynı-eski pin/stubnegatifleri korunur. Bu kabul seçili sahteUI/istemci kanıtıdır; gerçekCaddy/backendtanığı CI+W188'dedir.
+
+### W184 birleşik teknik kabul hazırlığı (2026-11-17)
+
+İlk Sonnet24cef7df9commit; read API/mutation ve SSE, rol/üye/mesaj bilgisi/paylaşılanlar, iki yönlü görev kaynağı bağlantısı,11yeni test dosyasında56yeni test. W183 branch ile üç kaynak çatışması bad6e3bd'de Sonnet tarafından birleştirildi, notify_levels tek fake kaynak oldu. Koordinatörler GroupInfo bilgisi4b26e5c6; eski görünür grup tiklerinin bayatlığı120mesajlı kırmızı→yeşil regresyonla21106559'da bounded okundu metadata taramasına geçti. W183 hedef/visualfixleri ve tarihselF8guard sonradan alındı. BE028/083/084/085 kayıtları bağlı, BE027açık; final bağımsız Terra+CI bekler.
+
+### W184 bağımsız kabul (2026-11-17; PR/CI bekler)
+
+Terra b2107de2/source7b16b973 üzerinde83hedeflitest,25yaşam döngüsü ve20read-state/window kontrolünü (örtüşen koşumlar) geçirdi; build/lint/formatPASS. true→null grupokundu ve pendingread sırasında scope/session/sökülme negatifleri için test patch'i eklendi.390/1440koyu GroupInfo/iki dosya kaynağı/görev listesi/NotifyPUT/ownreceipts/Tab-focus dumanı; CSP/overflow/pageerror0, PNG gözle incelendi. Sahte work verisinde görev detayı açılmadığından source-link bağımsız görsel dumanı kanıt dışı; actualrouter/around ve negatifler entegrasyondaPASS, ilkSonnetdumanındaUIvardı. **W188 gerçekbackend tanığı görevden kaynağa linkin390/1440pointer açılışını ayrıca kanıtlayacak.**120mesaj UI focus ayrıca ölçülmedi; model içerik/pencere korunması testlidir.
+
+### W183 PR kapanışı ve W185b teslimi (2026-11-17)
+
+W183 PR #171, CI44001071112 üçSUCCESS ile main b69c6e9c oldu. W184 PR #172 bağımsız kabul sonrası5040a0d2 başlığında CI44003202106 sürüyor. W185b39083b96 kaynak teslimi BE029/080/161 ve son sohbet stub kaldırmasını içerir;51yeni test, type/lint/format/buildPASS. Sonnet geniş koşumdaki1791/1792 sonucunda tek devralınan F8guard hatası parent5040a0d2 merge'iyle güncel teste taşındı; yeni kabul henüz verilmedi. Terra dar test ve390/1440 dumanına başladı. W185 merkezi query-keys sahipliği a1e7fdea checkpoint'inden devralındı; bildirim uygulaması paralel sürüyor.
+
+### W184 gerçek backend CI seçici düzeltmesi (2026-11-17)
+
+CI44003202106 kalite ve imaj SUCCESS; gerçek backend dumanında e2e/chat.spec.ts sendMessage eski kısmi “Gönder” seçicisi iki yeni “Gönderildi” receipt düğmesiyle birlikte üç öğe eşleştirdi. Terra testi mevcut chat-composer içinde exact Gönder ile sınırlandırdı; assertion/ürün davranışı değişmedi. ESLint/format ve Playwright tek-test keşfiPASS; yerelde gerçekbackend tekrarlanmadı. Root bu kesin nedenli test düzeltmesini PR172'ye ekledi; yeni üç CI sonucu beklenir, kırmızı koşumda merge yapılmadı.
+
+### W185b bağımsız kabul (2026-11-17; PR/CI bekler)
+
+Terra özellik kaynağı `39083b96`, birleşik `ceff95f1` üzerinde hedefli 66 test, ek 17 test (örtüşen koşumlar) ve kayıt denetimi 40 test geçirdi; typecheck/lint/format/build başarılı. İki yeni arşiv geç-yanıt testi, kapsam değişimi/söküm sonrasında yeni kapsamın cache'inin değişmediğini ve ek okuma başlamadığını doğrular. Gerçek başarılı yanıtın yakalanmış eski cache'e işlenmesi ortak mutation sözleşmesidir; ilk yanlış test varsayımının kırmızısı ürün bulgusu sayılmaz. Arşive özgü oturum değişimi ayrıca sınanmadı.
+
+390/1440 koyu üretim paketi dumanında gerçek pointer ile iletme, anonim anket ve tek multipart arşiv isteği çalıştı; metin alanları dosyadan önce, CSRF ve Idempotency-Key mevcut. CSP/overflow/pageerror sıfır; PNG'ler incelendi. Root da 390 arşiv formunun görüntüsünü inceledi. Bu sahte API/Caddy simülasyonu kanıtıdır; gerçek backend atomik davranışı, aynı anahtarla tekrar ve multipart baytları W188'de doğrulanacak. Üç CI kapısı ve parent PR172 birleşmesi beklenir.
+
+### W184 kapanışı ve W185b tekrar denemesi düzeltmeleri (2026-11-17)
+
+W184 PR #172, `64db4eca` için CI44005439139 üç SUCCESS sonrasında main `abfc7916` olarak birleşti. Temiz W184 worktree ve yerel dal kaldırıldı.
+
+W186 Terra gerçek App/router entegrasyonu, arşiv isteği sunucuda tamamlanıp yanıt kaybolduktan sonra aynı anahtarla 200 dönen tekrarda mesajın açık pencereye eklenmediğini gösterdi. Kırmızı test W185b'ye `892a6494` ile alındı. Sonnet `67bbf0d0` ortak sohbet `withEffects` yolunda retry/confirm ardıllarına gerçek başarı efektini uyguladı; motorun anahtar, oturum, kapsam ve sahip kapıları değişmedi. Terra 19 hedefli test ve motor/korumalı mutasyon 43 testle ilk hatanın düzeldiğini doğruladı.
+
+Terra ek regresyonunda gönderim sürerken dışarıdan değiştirilen giriş nesnesinin yerel efekti değiştirdiğini buldu (`6c18efda`); gerçek UI'nın aynı nesneyi değiştirdiği ayrıca gösterilmedi. Sonnet `261af5fe`, mevcut toPlainVars yardımcı işleviyle ilk veri kopyasını yakaladı; aynı kopya ilk/tekrar/onay efektlerinde kullanılır. File/Blob semantiği ve korumalı motor korunur. Sonnet 11 dosyada97 test,158 diyalog testi/type/lint/format/build başarılı; son bağımsız dar kontrol Terra'dadır. İlk düzeltmenin geniş koşumunda chat-window açık mesaj testi5s zaman aşımı verdi, tek başına iki kez11/11 geçti; kesin kök neden kanıtlanmadı. PR173'ün eski başlığı üç CI'da başarılı olsa da yeni kusur nedeniyle birleştirilmedi; düzeltmeli başlık için yeniden üç CI gerekir.
+
+Terra son bağımsız kontrolde `261af5fe` üzerinde App3 + effects6 = iki dosyada9 testi geçirdi; iki ayrı kırmızı regresyon yeşil. Kaynak diff'i yalnız await öncesi mevcut toPlainVars kopyası ve dar export; motor kapıları değişmedi. Bu yardımcı plain nesneleri kopyalar; File/Blob/FormData/Date mevcut semantik gereği referans olarak taşınır, değişebilir opaque içeriklerin dondurulduğu iddiası yoktur. Root yeni PR173 başlığını CI'a gönderir.

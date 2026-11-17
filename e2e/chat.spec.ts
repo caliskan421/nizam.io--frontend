@@ -54,7 +54,10 @@ async function open(page: Page, path: string): Promise<void> {
 const sendMessage = async (page: Page, text: string) => {
   const field = page.locator('[data-chat-composer-input]')
   await field.fill(text)
-  await page.getByRole('button', { name: 'Gönder' }).click()
+  await page
+    .getByTestId('chat-composer')
+    .getByRole('button', { name: 'Gönder', exact: true })
+    .click()
 }
 const bubble = (page: Page, text: string) =>
   page.locator('[data-testid="chat-message"]').filter({ hasText: text })

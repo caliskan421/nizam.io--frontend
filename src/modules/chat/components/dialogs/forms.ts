@@ -58,6 +58,8 @@ export interface PollDraft {
   question: string
   options: readonly string[]
   multi: boolean
+  /** Anonim anket (BE-161): açılışta seçilir, sonra değişmez; gövdede AÇIKÇA `true`/`false` gider. */
+  anonymous: boolean
   /** `datetime-local` değeri (`YYYY-MM-DDTHH:mm`, yerel saat) ya da boş. */
   closesLocal: string
 }
@@ -92,7 +94,7 @@ export function validatePoll(draft: PollDraft, nowMs: number): PollError | null 
   return null
 }
 
-/** `sendChatMessage` gövdesi: soru = `body`, anket `poll` içinde (K38); anonim yoktur (BE-161). */
+/** `sendChatMessage` gövdesi: soru = `body`, anket `poll` içinde (K38); `anonymous` her zaman açık. */
 export function toPollBody(
   draft: PollDraft,
   clientMessageId: string,
@@ -101,13 +103,12 @@ export function toPollBody(
   return {
     client_message_id: clientMessageId,
     body: draft.question.trim(),
-    // Spec'te `poll.anonymous` isteğe bağlıdır (varsayılan false); üretilmiş tip `default`'u zorunlu
-    // gösterir. Gövdeye alan eklenmez (W182: gönderim değişmez); W185b anonim anketi bağlayınca verir.
     poll: {
       options: filledOptions(draft.options),
       multi: draft.multi,
+      anonymous: draft.anonymous,
       ...(closes ? { closes_at: closes } : {}),
-    } as NonNullable<SendChatMessageRequest['poll']>,
+    },
   }
 }
 

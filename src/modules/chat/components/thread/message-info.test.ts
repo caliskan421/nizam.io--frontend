@@ -15,6 +15,13 @@ afterAll(() => server.close())
 beforeEach(signIn)
 
 const ME = 'acc-1'
+const POLL = {
+  anonymous: false,
+  closed_at: null,
+  closes_at: null,
+  multi: false,
+  results: [{ option_index: 0, label: 'A', count: 0, mine: false, voters: [] }],
+}
 const mine = (seq: number, over = {}) =>
   msg(seq, { sender_account_id: ME, sender_name: 'Ben', ...over })
 
@@ -135,16 +142,35 @@ describe('mesaj görev kartları (BE-085)', () => {
   })
 })
 
-describe('İlet kapısı (BE-080 W185b bağlar)', () => {
-  it('menü öğesi devre dışı kalır (stub); MessageRow forward eylemini yayar', async () => {
+describe('İlet kapısı (BE-080, W185b bağladı)', () => {
+  it('menü öğesi etkindir (stub yok); seçilince İlet penceresi isteği (kaynak mesaj kimliğiyle) açılır', async () => {
     servePane({ messages: [msg(1)] })
+    const { wrapper, dialogs } = await mountPane()
+    await wrapper.get('.msg-row [aria-label="Diğer"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-design-stub="BE-080"]').exists()).toBe(false)
+    const item = wrapper.findAll('[role="menuitem"]').find((e) => e.text() === 'İlet')!
+    expect(item.attributes('disabled')).toBeUndefined()
+    await item.trigger('click')
+    expect(dialogs).toEqual([{ dialog: 'forward', chatId: 'c1', messageId: 'm1' }])
+  })
+
+  it('anket mesajında İlet gizlidir', async () => {
+    servePane({ messages: [msg(1, { body: 'Soru?', poll: POLL })] })
     const { wrapper } = await mountPane()
     await wrapper.get('.msg-row [aria-label="Diğer"]').trigger('click')
     await flushPromises()
-    expect(wrapper.get('[data-design-stub="BE-080"] button').attributes('disabled')).toBeDefined()
-    const row = wrapper.findComponent({ name: 'MessageRow' })
-    const menu = row.findComponent({ name: 'MessageMenu' })
-    menu.vm.$emit('action', 'forward')
-    expect(row.emitted('forward')?.[0]?.[0]).toMatchObject({ message_id: 'm1' })
+    expect(wrapper.findAll('[role="menuitem"]').map((e) => e.text())).not.toContain('İlet')
+  })
+
+  it('"İletildi" etiketi yalnız forwarded_from varken; kaynak sohbet/gönderen gösterilmez', async () => {
+    servePane({
+      messages: [msg(1), msg(2, { forwarded_from: { message_id: 'kaynak-9' }, body: 'Merhaba' })],
+    })
+    const { wrapper } = await mountPane()
+    const rows = wrapper.findAll('[data-testid="chat-message"]')
+    expect(rows[0]!.find('[data-testid="chat-forwarded"]').exists()).toBe(false)
+    expect(rows[1]!.get('[data-testid="chat-forwarded"]').text()).toBe('İletildi')
+    expect(rows[1]!.text()).not.toContain('kaynak-9')
   })
 })
