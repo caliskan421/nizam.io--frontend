@@ -74,3 +74,7 @@ Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/
 ### W184 bağımsız kabul (2026-11-17; PR/CI bekler)
 
 Terra b2107de2/source7b16b973 üzerinde83hedeflitest,25yaşam döngüsü ve20read-state/window kontrolünü (örtüşen koşumlar) geçirdi; build/lint/formatPASS. true→null grupokundu ve pendingread sırasında scope/session/sökülme negatifleri için test patch'i eklendi.390/1440koyu GroupInfo/iki dosya kaynağı/görev listesi/NotifyPUT/ownreceipts/Tab-focus dumanı; CSP/overflow/pageerror0, PNG gözle incelendi. Sahte work verisinde görev detayı açılmadığından source-link bağımsız görsel dumanı kanıt dışı; actualrouter/around ve negatifler entegrasyondaPASS, ilkSonnetdumanındaUIvardı. **W188 gerçekbackend tanığı görevden kaynağa linkin390/1440pointer açılışını ayrıca kanıtlayacak.**120mesaj UI focus ayrıca ölçülmedi; model içerik/pencere korunması testlidir.
+
+### W183 PR kapanışı ve W185b teslimi (2026-11-17)
+
+W183 PR #171, CI44001071112 üçSUCCESS ile main b69c6e9c oldu. W184 PR #172 bağımsız kabul sonrası5040a0d2 başlığında CI44003202106 sürüyor. W185b39083b96 kaynak teslimi BE029/080/161 ve son sohbet stub kaldırmasını içerir;51yeni test, type/lint/format/buildPASS. Sonnet geniş koşumdaki1791/1792 sonucunda tek devralınan F8guard hatası parent5040a0d2 merge'iyle güncel teste taşındı; yeni kabul henüz verilmedi. Terra dar test ve390/1440 dumanına başladı. W185 merkezi query-keys sahipliği a1e7fdea checkpoint'inden devralındı; bildirim uygulaması paralel sürüyor.
