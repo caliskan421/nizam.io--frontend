@@ -23,6 +23,7 @@ export type FileRecord = Schemas['FileRecord']
 export type ArchiveTag = FileRecord['tag']
 export type DownloadTicket = Schemas['DownloadTicketResponse']
 export type RenameFileBody = Schemas['RenameFileRequest']
+export type MoveFileBody = Schemas['MoveFileRequest']
 /** `attachFile` çok parçalı gövdesi (şemada `file: string`; çalışma anında `FormData`). */
 export type AttachFileForm =
   paths['/v1/work-items/{id}/files']['post']['requestBody']['content']['multipart/form-data']
@@ -111,6 +112,16 @@ export interface ArchiveFileRef {
 
 export interface RenameArchiveFileInput extends ArchiveFileRef {
   displayName: string
+}
+
+/**
+ * `moveFile` değişkenleri (RECORDS-K46): `target` + `workItemId` + `fileId` KAYNAK dosyanındır
+ * (S3 başlıkları); hedef görev yalnız gövdededir, hedef departman başlık DEĞİLDİR.
+ */
+export interface MoveArchiveFileInput extends ArchiveFileRef {
+  targetWorkItemId: string
+  /** Hedef görevin canlı alt görevi; yoksa dosya yalnız ana göreve bağlanır. */
+  targetSubtaskId?: string
 }
 
 /** `retagFile` değişkenleri: kapalı küme etiketi (BE-074). */

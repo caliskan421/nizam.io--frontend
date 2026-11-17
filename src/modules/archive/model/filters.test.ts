@@ -29,12 +29,25 @@ describe('süzgeç → sunucu sorgusu', () => {
       tag: 'plan',
       mime_category: 'belge',
       search: 'rapor',
+      search_scope: 'all',
       work_item_id: 'w1',
       uploader_id: 'a1',
       sort: 'name',
       limit: ARCHIVE_PAGE_LIMIT,
     })
     expect(filterKey({ kind: 'tumu', search: '   ', sort: '' })).toEqual({})
+  })
+
+  it('arama doluyken search_scope=all gider (anahtarda ve sorguda); arama yoksa yok', () => {
+    expect(toQuery({ search: ' İş ' })).toEqual({
+      search: 'İş',
+      search_scope: 'all',
+      limit: ARCHIVE_PAGE_LIMIT,
+    })
+    expect(filterKey({ search: 'ı' })).toEqual({ search: 'ı', search_scope: 'all' })
+    expect(toQuery({ tag: 'plan' })).not.toHaveProperty('search_scope')
+    expect(filterKey({ search: '  ' })).not.toHaveProperty('search_scope')
+    expect(filterKey({ search: 'rapor' })).not.toEqual(filterKey({ search: 'rapor', tag: 'plan' }))
   })
 
   it('bilinmeyen etiket ve sort gönderilmez (sunucu 422 / varsayılan)', () => {

@@ -14,6 +14,7 @@
  *    yok"; yeniden gönderim zararsız); 403 `records.not_authorized`, 422 `records.tag_invalid`.
  *    Başarıda `archive` (etiket süzgeci/segment sorguları: öğe süzgeçten çıkabilir) ve görevin
  *    `listWorkItemFiles`'ı yeniden okunur (`query-keys.ts` ilişki listesi).
+ *  - `moveFile` (BE-075): `PATCH /v1/files/{id}/work-item`, anahtarsız; ayrıntısı `useMoveArchiveFile`.
  *  - `deleteFile`: 204, kalıcı (onay çağıranda); 404 `records.file_not_found` → silinmiş say,
  *    liste yenilenir (sonuç `failed` kalır, çağıran `fileGone` ile ayırt eder).
  */
@@ -29,7 +30,11 @@ import {
   type ProtectedMutation,
   type SubmitOptions,
 } from '@/shared/http/mutation'
-import { invalidationFilters, type OperationId } from '@/shared/http/query-keys'
+import {
+  invalidationFilters,
+  type InvalidationContext,
+  type OperationId,
+} from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 
 import type {
@@ -37,6 +42,7 @@ import type {
   AttachArchiveFileInput,
   AttachFileForm,
   FileRecord,
+  MoveArchiveFileInput,
   RenameArchiveFileInput,
   RetagArchiveFileInput,
 } from '../model/types'
@@ -75,6 +81,7 @@ function rereadOnCodes<V extends ArchiveFileRef, D>(
   mutation: ProtectedMutation<V, D, unknown>,
   operation: OperationId,
   codes: ReadonlySet<string>,
+  context: (vars: V) => InvalidationContext = byItem,
 ): ProtectedMutation<V, D, unknown> {
   const queryClient = useQueryClient()
   const store = useScopeStore()
@@ -83,7 +90,7 @@ function rereadOnCodes<V extends ArchiveFileRef, D>(
     const scope = { ...(opts?.context?.scope ?? store.snapshot) }
     const outcome = await mutation.submit(vars, opts)
     if (outcome.kind === 'failed' && codes.has(outcome.error.code) && owner.alive()) {
-      const filters = invalidationFilters(operation, scope, { workItemId: vars.workItemId })
+      const filters = invalidationFilters(operation, scope, context(vars))
       await Promise.all(filters.map((filter) => queryClient.invalidateQueries(filter)))
     }
     return owner.alive() ? outcome : markDetached(outcome)
@@ -122,6 +129,44 @@ export function useRetagArchiveFile() {
     invalidation: byItem,
   })
   return rereadOnCodes(mutation, 'retagFile', RENAME_REREAD)
+}
+
+/**
+ * Taşıma başarısızlığında yeniden okunanlar: dosya başka yere taşınmış/yok (`moved`,
+ * `file_not_found`), kaynak görev tamamlanmış (`source_completed`), hedef görünmüyor/dolu
+ * (`input_invalid`, `too_many_files`; görev seçenekleri bayat). Kör tekrar yok.
+ */
+const MOVE_REREAD = new Set([
+  'records.moved',
+  'records.file_not_found',
+  'records.source_completed',
+  'records.input_invalid',
+  'records.too_many_files',
+])
+
+/**
+ * `moveFile` (RECORDS-K46) — dosyayı aynı programdaki başka göreve (ve isteğe bağlı hedef alt
+ * göreve) taşır. Başlıklar KAYNAK dosyanındır (`vars.target`); hedef görev yalnız gövdede,
+ * hedef departman başlık değildir. Anahtarsızdır: aynı hedefe tekrar doğal olarak 200 döner;
+ * sonuç bilinmiyorsa kör tekrar yok (ortak yeniden okuma). Dönen `FileRecord` GERÇEK (numaralanmış
+ * olabilir) adı taşır. Etki bağlamı verilmez: görev anahtarları `workItems.fileMove` ile programın
+ * bütün departmanlarında yenilenir.
+ */
+export function useMoveArchiveFile() {
+  const mutation = useKeylessMutation<MoveArchiveFileInput, FileRecord>({
+    operation: 'moveFile',
+    send: (vars, ctx) =>
+      api.PATCH('/v1/files/{id}/work-item', {
+        params: { header: scopeHeaders(vars.target), path: { id: vars.fileId } },
+        body: {
+          work_item_id: vars.targetWorkItemId,
+          ...(vars.targetSubtaskId ? { subtask_id: vars.targetSubtaskId } : {}),
+        },
+        signal: ctx.signal,
+      }),
+    invalidation: () => ({}),
+  })
+  return rereadOnCodes(mutation, 'moveFile', MOVE_REREAD, () => ({}))
 }
 
 /** `deleteFile` — kalıcı silme (geri alma yok); onay çağıranda (`confirmWrite`). */

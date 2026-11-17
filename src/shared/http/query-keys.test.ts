@@ -241,6 +241,12 @@ const TABLE: Array<{
     mustInvalidate: ['attachFile', 'renameFile', 'deleteFile'],
   },
   {
+    resource: 'workItems.fileMove',
+    key: queryKeys.workItems.item(S, 'w1'),
+    expected: [...root(S), 'work-items', 'w1'],
+    mustInvalidate: ['moveFile'],
+  },
+  {
     resource: 'workItems.dependencies',
     key: queryKeys.workItems.dependencies(S, 'w1'),
     expected: [...root(S), 'work-items', 'w1', 'dependencies'],

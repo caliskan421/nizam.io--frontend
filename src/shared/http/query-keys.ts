@@ -308,6 +308,7 @@ export type QueryResource =
   | 'workItems.subtasks'
   | 'workItems.notes'
   | 'workItems.files'
+  | 'workItems.fileMove'
   | 'workItems.dependencies'
   | 'workItems.sourceMessage'
   | 'gantt'
@@ -451,6 +452,7 @@ const FILE_WRITES = [
   'archiveChatFile',
   'renameFile',
   'retagFile',
+  'moveFile',
   'deleteFile',
   ...FILE_TRASH_WRITES,
 ] as const satisfies readonly OperationId[]
@@ -733,7 +735,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     SUBTASK_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
     // Satırın `file_count` alanı dosya çöpüyle (silme/geri yükleme/kalıcı silme) değişir.
-    ['deleteFile'],
+    ['deleteFile', 'moveFile'],
     FILE_TRASH_WRITES,
   ),
   'workItems.item': unique(
@@ -743,7 +745,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     // Tamamlanma kanıtı dosyadan türer: yükleme de silme de görev ayrıntısını yeniden okutur
     // (06 Arşiv, KESİN 29); yeniden adlandırma görev kaydına dokunmaz. Çöpten geri yükleme ve
     // kalıcı silme (v0.26) kanıt sayımını değiştirir.
-    ['attachFile', 'archiveChatFile', 'deleteFile'],
+    ['attachFile', 'archiveChatFile', 'deleteFile', 'moveFile'],
     FILE_TRASH_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
   ),
@@ -764,6 +766,11 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     SUBTASK_TRASH_WRITES,
     LIFECYCLE_WORK_ITEM_WRITES,
   ),
+  // Dosya taşıma (v0.26; RECORDS-K46): kaynak ve hedef görevin `file_count`/kanıt/dosya listeleri
+  // değişir; hedef başka departmanda olabilir ve görev anahtarları departman parçası taşır
+  // (eylemin anlık görüntüsü yalnız kaynağı bilir). Bu yüzden yalnız `moveFile` için programın
+  // bütün departmanlarındaki görev okuyucuları yenilenir (`workItemFilesOfProgram`).
+  'workItems.fileMove': ['moveFile'],
   'workItems.dependencies': DEPENDENCY_WRITES,
   // Kaynak mesaj bağı (S3): mesajdan görev açılması ve mesajın silinmesi bağı değiştirir; görev
   // aktarımı sohbeti seçili programdan düşürür (`source_message: null`).
@@ -806,8 +813,8 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     SUBTASK_WRITES,
     DEPENDENCY_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
-    // Görev raporundaki dosya sayısı çöpe taşıma/geri yükleme/kalıcı silmeyle değişir (v0.26).
-    ['deleteFile'],
+    // Görev raporundaki dosya sayısı çöpe taşıma/geri yükleme/kalıcı silme/taşımayla değişir (v0.26).
+    ['deleteFile', 'moveFile'],
     FILE_TRASH_WRITES,
   ),
   // Toplantı rapor ayrıntısı (`reportMeetingDetail`: künye, katılımcı rolleri, gündem, notlar):
@@ -855,7 +862,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // Dosya referans özeti (`getChatRefSummary`) dosyanın canlı kaydından `available`/ad üretir:
   // yumuşak silme, geri yükleme ve kalıcı silme (v0.26) onu değiştirir. Ref kimliği dosya
   // kimliğinden türetilemez; bu yüzden eylemin programındaki bütün özetler yenilenir.
-  'chats.refSummary': ['deleteFile', ...FILE_TRASH_WRITES],
+  'chats.refSummary': ['deleteFile', 'moveFile', ...FILE_TRASH_WRITES],
   // W184: paylaşılan sayı = liste toplamı (aynı yazmalarla birlikte yenilenir; sayıyı kalan liste
   // belirler). Mesaj görev kartı görev yaşam döngüsü yazmalarıyla da değişir (`deleted`/başlık/durum).
   'chats.sharedCounts': [
@@ -1017,6 +1024,26 @@ function archiveOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
 }
 
 /**
+ * Eylemin PROGRAMININ görev dosya okuyucuları (liste/ayrıntı/dosyalar/sayaçlar), departman
+ * parçasından bağımsız: `moveFile` hedef görevi başka departmanda olabilir ve eylemin anlık
+ * görüntüsü yalnız kaynağı taşır. Alt görev/not/bağımlılık okuyucularına ve başka programa
+ * dokunulmaz (K2); programsız eylemde geçersizleme yok.
+ */
+function workItemFilesOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
+  if (scope.programId === null) return null
+  return {
+    queryKey: [QUERY_KEY_ROOT],
+    predicate: ({ queryKey }) =>
+      isScopedQueryKey(queryKey) &&
+      (queryKey[1] as { program: unknown }).program === scope.programId &&
+      queryKey[2] === 'work-items' &&
+      (queryKey.length === 4 ||
+        (queryKey.length === 5 &&
+          (queryKey[4] === 'files' || queryKey[3] === 'counts' || queryKey[3] === 'shell-counts'))),
+  }
+}
+
+/**
  * Hesap geneli (S1) yazmanın etkilediği PROGRAM KAPSAMLI okuyucular: hesap şirket geneli olduğundan
  * her programın birleşik liste/özet/pano sayısında görünür. Yalnız bu üç kaynağa (hesap yazmaları)
  * uygulanır; programa bağlı yazmalar başka programın önbelleğine dokunmaz (K2).
@@ -1083,6 +1110,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'workItems.subtasks': (scope, ctx) => workItemChild(scope, 'subtasks', ctx.workItemId),
   'workItems.notes': (scope, ctx) => workItemChild(scope, 'notes', ctx.workItemId),
   'workItems.files': (scope, ctx) => workItemChild(scope, 'files', ctx.workItemId),
+  'workItems.fileMove': workItemFilesOfProgram,
   'workItems.dependencies': (scope, ctx) => workItemChild(scope, 'dependencies', ctx.workItemId),
   'workItems.sourceMessage': (scope, ctx) => workItemChild(scope, 'source-message', ctx.workItemId),
   gantt: prefix(queryKeys.gantt.all),
