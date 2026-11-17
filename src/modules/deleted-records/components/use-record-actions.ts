@@ -5,7 +5,7 @@
  * Sahibi (sayfa) sökülmüş sonuç ekrana ulaşmaz (`reachesOwner`). `useToast`/`useConfirm` kurulumda
  * alınır (KESİN 26a); çağıran `setup` içinde çağırmalıdır.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { reachesOwner } from '@/shared/http/mutation'
 import { useToast } from '@/shared/ui'
@@ -17,12 +17,15 @@ import { interpretOutcome, type LifecycleAction } from '../model/outcome'
 import { interpretChildOutcome } from '../model/outcome-child'
 import type { DeletedRow } from '../model/types'
 import type { LifecycleHub } from './use-lifecycle-hub'
+import { useDeleteImpact } from './use-delete-impact'
 import { useLifecycleWrites, type LifecycleOutcome } from './use-lifecycle-writes'
 
 export interface RecordNotice {
   message: string
   /** Koordinatörlük sekmesine yol sunulur (görevin koordinatörlüğü silinmiş). */
   departmentsLink: boolean
+  /** Bilgi durumu (okuma sürüyor): `role=status`; yoksa `role=alert`. */
+  status?: boolean
 }
 
 export interface RecordActionOptions {
@@ -65,7 +68,10 @@ export function confirmOptions(action: LifecycleAction, row: DeletedRow): Confir
 export function useRecordActions(options: RecordActionOptions) {
   const toast = useToast()
   const { confirmWrite } = useConfirm()
-  const { senders, pending } = useLifecycleWrites(options.hub)
+  const { senders, pending: writing } = useLifecycleWrites(options.hub)
+  const impact = useDeleteImpact()
+  // Etki okuması sürerken bütün yazma eylemleri mevcut meşgul yoluyla kilitlidir.
+  const pending = computed(() => writing.value || impact.reading.value)
   const notice = ref<RecordNotice | null>(null)
 
   async function settle(action: LifecycleAction, row: DeletedRow, outcome: LifecycleOutcome) {
@@ -100,9 +106,17 @@ export function useRecordActions(options: RecordActionOptions) {
     // Bilinmeyen (gelecek) tür salt okunurdur: yazma yolu yoktur.
     if (pending.value || kind === null) return
     notice.value = null
-    const outcome = await confirmWrite(confirmOptions(action, row), (context) =>
-      senders[kind][action](row, context),
-    )
+    let confirm = confirmOptions(action, row)
+    if (action === 'purge' && kind === 'departments') {
+      // Kalıcı silme onayı etkiyle kurulur; okuma başarısız/engelli ise onay ve DELETE yoktur.
+      const withImpact = await impact.gate(row, confirm, notice, async () => {
+        await options.refresh()
+        options.removed(row)
+      })
+      if (withImpact === null) return
+      confirm = withImpact
+    }
+    const outcome = await confirmWrite(confirm, (context) => senders[kind][action](row, context))
     if (outcome === null) return
     await settle(action, row, outcome)
   }

@@ -107,6 +107,12 @@ export const queryKeys = {
    */
   catalog: {
     departments: () => ['catalog', 'departments'] as const,
+    /**
+     * `departmentDeleteImpact` (S1, yalnız ŞY): şirket geneli etki önizlemesi; her kalıcı silme
+     * onayında taze okunur (`staleTime: 0`, önbellek tutulmaz). Katalog yazmalarıyla düşer.
+     */
+    departmentDeleteImpact: (departmentId: string) =>
+      ['catalog', 'departments', departmentId, 'delete-impact'] as const,
   },
   /** Silinmiş departmanlar (`listDeletedDepartments`, S2, imleçli; K7 ad eşleşmesi). */
   deletedDepartments: {

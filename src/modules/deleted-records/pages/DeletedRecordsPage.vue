@@ -131,6 +131,7 @@ const {
           v-if="actions.notice.value"
           :message="actions.notice.value.message"
           :departments-link="actions.notice.value.departmentsLink"
+          :status="actions.notice.value.status"
           @departments="openDepartments"
           @dismiss="dismissNotice"
         />

@@ -16,7 +16,7 @@ describe('departman zinciri kapsamı', () => {
     const client = new QueryClient()
     const keys = [
       queryKeys.departments.members(p2d, 'd1'),
-      queryKeys.chats.list(p2d, {}),
+      queryKeys.chats.list(p2d, ''),
       queryKeys.deletedWorkItems.list(p2, {}),
       queryKeys.meetings.list(p2d, {}),
     ]
@@ -27,7 +27,7 @@ describe('departman zinciri kapsamı', () => {
 
   it('geri yükleme sohbet listesine dokunmaz', async () => {
     const client = new QueryClient()
-    const keys = [queryKeys.chats.list(p2d, {})]
+    const keys = [queryKeys.chats.list(p2d, '')]
     for (const key of keys) client.setQueryData(key, 1)
     await run('restoreDepartment', client)
     for (const key of keys) expect(client.getQueryState(key)?.isInvalidated).toBe(false)
