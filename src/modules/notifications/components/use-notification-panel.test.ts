@@ -71,7 +71,7 @@ describe('useNotificationPanel', () => {
     expect(failed.result.state.value).toBe('error')
   })
 
-  it('gruplar: sunucu sırası korunur, boş grup yok; okunmamış sekmesi istemci süzgeci', async () => {
+  it('gruplar: sunucu sırası korunur, boş grup yok; sekmeler sunucu süzgecidir (istemci süzgeci yok)', async () => {
     server.use(
       http.get(`${ORIGIN}/v1/notifications`, () =>
         json({
@@ -91,11 +91,22 @@ describe('useNotificationPanel', () => {
       ['today', ['a', 'b']],
       ['yesterday', ['c']],
     ])
+    // Okunmamış sekmesi: istemci yüklü kümeyi süzmez; sunucu `unread_only=true` ile yeniden okunur.
+    server.use(
+      http.get(`${ORIGIN}/v1/notifications`, ({ request }) =>
+        json({
+          items: new URL(request.url).searchParams.get('unread_only') ? [item('a')] : [],
+          awaiting_count: 4,
+          unread_count: 2,
+        }),
+      ),
+    )
     m.result.tab.value = 'unread'
+    await settleQueries(m.client)
     expect(m.result.groups.value.map((g) => [g.group, g.items.map((i) => i.id)])).toEqual([
       ['today', ['a']],
-      ['yesterday', ['c']],
     ])
+    expect(m.result.awaitingCount.value).toBe(4)
   })
 
   it("kapanınca sekme Tümü'ye döner", async () => {

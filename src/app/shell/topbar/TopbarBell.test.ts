@@ -67,7 +67,11 @@ afterEach(() => {
 async function mountBell(unread: number | null = 1, path = '/oturum') {
   const ctx = await sideContext(path)
   const { lifecycle } = createFakeLifecycle()
-  if (unread !== null) ctx.queryClient.setQueryData([...UNREAD_NOTIFICATIONS_KEY], unread)
+  if (unread !== null)
+    ctx.queryClient.setQueryData([...UNREAD_NOTIFICATIONS_KEY], {
+      count: unread,
+      awaiting_count: 0,
+    })
   const wrapper = mountWithScope(ctx, lifecycle, TopbarBell)
   await flushPromises()
   const bell = () => wrapper.get('[data-testid="topbar-bell"]')
@@ -118,7 +122,7 @@ describe('zil durumları (1a)', () => {
     const live = wrapper.get('[data-testid="topbar-bell-live"]')
     expect(live.attributes('aria-live')).toBe('polite')
     expect(live.text()).toBe('3 okunmamış bildirim')
-    ctx.queryClient.setQueryData([...UNREAD_NOTIFICATIONS_KEY], 5)
+    ctx.queryClient.setQueryData([...UNREAD_NOTIFICATIONS_KEY], { count: 5, awaiting_count: 0 })
     await flushPromises()
     expect(live.text()).toBe('5 okunmamış bildirim')
     expect(wrapper.find('.topbar-bell__dot, .nb-mute').exists()).toBe(false)

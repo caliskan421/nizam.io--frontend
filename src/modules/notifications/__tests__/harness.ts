@@ -40,8 +40,20 @@ export const sent = (method: string, path: string) =>
 
 export const json = (body: JsonBodyType, status = 200) => HttpResponse.json(body, { status })
 export const noContent = () => new HttpResponse(null, { status: 204 })
-export const errorEnvelope = (code: string, status: number) =>
-  HttpResponse.json({ code, message: 'sunucu iletisi', request_id: 'r', fields: [] }, { status })
+export const errorEnvelope = (
+  code: string,
+  status: number,
+  fields: Array<{ field: string; code: string }> = [],
+) =>
+  HttpResponse.json(
+    {
+      code,
+      message: 'sunucu iletisi',
+      request_id: 'r',
+      fields: fields.map((f) => ({ ...f, message: 'alan iletisi' })),
+    },
+    { status },
+  )
 
 export function signIn(): void {
   authSession.establish({

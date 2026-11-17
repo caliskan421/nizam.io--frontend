@@ -41,7 +41,7 @@ const TABLE: Array<{
     resource: 'notifications.unreadCount',
     key: queryKeys.notifications.unreadCount(),
     expected: ['notifications', 'unread-count'],
-    mustInvalidate: ['markNotificationRead', 'markAllNotificationsRead'],
+    mustInvalidate: ['markNotificationRead', 'markAllNotificationsRead', 'markChatRead'],
   },
   {
     resource: 'chats.unreadOverview',
@@ -250,7 +250,13 @@ const TABLE: Array<{
     resource: 'notifications.list',
     key: queryKeys.notifications.list(),
     expected: ['notifications', 'list'],
-    mustInvalidate: ['markNotificationRead', 'markAllNotificationsRead'],
+    mustInvalidate: ['markNotificationRead', 'markAllNotificationsRead', 'dismissNotification'],
+  },
+  {
+    resource: 'notifications.subjectMutes',
+    key: queryKeys.notifications.subjectMutes(),
+    expected: ['notifications', 'subject-mutes'],
+    mustInvalidate: ['muteNotificationSubject', 'unmuteNotificationSubject'],
   },
   {
     resource: 'notifications.pushKey',
@@ -503,7 +509,12 @@ describe('query-keys — F7 sohbet ve bildirim', () => {
 
   it('okundu yazmaları liste + rozet kaynağını birlikte yeniler (KESİN 29)', () => {
     for (const op of ['markChatRead', 'markAllChatsRead'] as const) {
-      expect(resourcesInvalidatedBy(op)).toEqual(['chats.unreadOverview', 'chats.list'])
+      expect(resourcesInvalidatedBy(op)).toEqual([
+        'notifications.unreadCount',
+        'notifications.list',
+        'chats.unreadOverview',
+        'chats.list',
+      ])
     }
     for (const op of ['markNotificationRead', 'markAllNotificationsRead'] as const) {
       expect(resourcesInvalidatedBy(op).sort()).toEqual([
@@ -511,6 +522,51 @@ describe('query-keys — F7 sohbet ve bildirim', () => {
         'notifications.unreadCount',
       ])
     }
+  })
+
+  it('W185: kaldır/sessize al/karar bildirim listesi + iki sayacı yeniler; mute listesi yalnız mute yazmalarıyla', () => {
+    const both = ['notifications.unreadCount', 'notifications.list']
+    for (const op of [
+      'dismissNotification',
+      'muteNotificationSubject',
+      'unmuteNotificationSubject',
+      'reviewDateChangeRequest',
+      'transitionWorkItem',
+    ] as const) {
+      expect(resourcesInvalidatedBy(op)).toEqual(expect.arrayContaining(both))
+    }
+    expect(resourcesInvalidatedBy('muteNotificationSubject')).toContain(
+      'notifications.subjectMutes',
+    )
+    expect(resourcesInvalidatedBy('unmuteNotificationSubject')).toContain(
+      'notifications.subjectMutes',
+    )
+    expect(resourcesInvalidatedBy('dismissNotification')).not.toContain(
+      'notifications.subjectMutes',
+    )
+  })
+
+  it('W185: süzgeçli liste anahtarı list() önekinin altındadır; mute listesi dışındadır', () => {
+    const client = new QueryClient()
+    const awaiting = queryKeys.notifications.filtered({ awaiting: true })
+    const unread = queryKeys.notifications.filtered({ unread_only: true })
+    client.setQueryData(queryKeys.notifications.list(), 1)
+    client.setQueryData(awaiting, 2)
+    client.setQueryData(unread, 3)
+    client.setQueryData(queryKeys.notifications.subjectMutes(), 4)
+    expect(awaiting).not.toEqual(unread)
+    const filters = invalidationFilters('dismissNotification', {
+      programId: null,
+      departmentId: null,
+    })
+    for (const filter of filters) void client.invalidateQueries(filter)
+    const state = (key: QueryKey) => client.getQueryState(key)?.isInvalidated
+    expect([state(awaiting), state(unread), state(queryKeys.notifications.list())]).toEqual([
+      true,
+      true,
+      true,
+    ])
+    expect(state(queryKeys.notifications.subjectMutes())).toBe(false)
   })
 
   it('bildirim anahtarları hesap geneli (kapsamsız); görev yazması bildirim listesini yenilemez', () => {

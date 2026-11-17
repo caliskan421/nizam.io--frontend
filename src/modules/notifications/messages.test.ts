@@ -21,17 +21,18 @@ describe('bildirim metinleri (tek ağaç trNotifications)', () => {
     }
   })
 
-  it('alt dallar: bell, panel, rows, target, push', () => {
+  it('alt dallar: bell, panel, mutes, rows, target, push', () => {
     expect(Object.keys(trNotifications.notifications)).toEqual([
       'bell',
       'panel',
+      'mutes',
       'rows',
       'target',
       'push',
     ])
   })
 
-  it('tasarım metinleri birebir; "Senden bekleyen" metni var ama sekme devre dışıdır (BE-144)', () => {
+  it('tasarım metinleri birebir', () => {
     expect(notificationText('notifications.panel.markAll')).toBe('Tümünü okundu say')
     expect(notificationText('notifications.bell.unread', { n: 4 })).toBe('Bildirimler, 4 okunmamış')
     expect(notificationText('notifications.push.title')).toBe(

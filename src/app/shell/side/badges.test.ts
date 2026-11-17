@@ -208,14 +208,23 @@ describe('bildirim sayacı (E-00-38)', () => {
   it('hesap geneli anahtar; hata → null; oturum yoksa istenmez', async () => {
     const ctx = await sideContext()
     const { lifecycle, store } = createFakeLifecycle()
-    const fetcher = vi.fn(() => Promise.resolve(3))
-    const { count } = setupWithScope(ctx, lifecycle, () => useUnreadNotifications(fetcher))
+    const fetcher = vi.fn(() => Promise.resolve({ count: 3, awaiting_count: 2 }))
+    const { count, awaitingCount } = setupWithScope(ctx, lifecycle, () =>
+      useUnreadNotifications(fetcher),
+    )
     await flushPromises()
     expect(count.value).toBe(3)
-    expect(ctx.queryClient.getQueryData(queryKeys.notifications.unreadCount())).toBe(3)
+    expect(awaitingCount.value).toBe(2)
+    expect(ctx.queryClient.getQueryData(queryKeys.notifications.unreadCount())).toEqual({
+      count: 3,
+      awaiting_count: 2,
+    })
     expect(isScopedQueryKey(queryKeys.notifications.unreadCount())).toBe(false)
     purgeScopedQueries(ctx.queryClient)
-    expect(ctx.queryClient.getQueryData(queryKeys.notifications.unreadCount())).toBe(3)
+    expect(ctx.queryClient.getQueryData(queryKeys.notifications.unreadCount())).toEqual({
+      count: 3,
+      awaiting_count: 2,
+    })
     store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
     await flushPromises()
     expect(fetcher).toHaveBeenCalledTimes(1)
@@ -227,7 +236,7 @@ describe('bildirim sayacı (E-00-38)', () => {
     expect(failing.count.value).toBeNull()
 
     session.isAuthenticated = false
-    const idle = vi.fn(() => Promise.resolve(1))
+    const idle = vi.fn(() => Promise.resolve({ count: 1, awaiting_count: 0 }))
     setupWithScope(await sideContext(), lifecycle, () => useUnreadNotifications(idle))
     await flushPromises()
     expect(idle).not.toHaveBeenCalled()

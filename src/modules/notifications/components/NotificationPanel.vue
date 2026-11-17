@@ -4,13 +4,15 @@
  * modal DEĞİL (odak tuzağı yok, Tab panelden çıkar), dar ekranda (≤ `--rp-narrow-max`, P62) tam
  * ekran modal: `aria-modal`, odak tuzağı, kaydırma kilidi. Kapanış: Esc, ✕, dış tık (`close`
  * olayı); odak her kapanışta zile (yoksa önceki odağa) döner (KESİN 27). Kapsam/oturum değişince
- * `close` yayılır. Liste yalnız AÇIKKEN okunur; sekme süzgeci istemcidedir (uçta süzgeç yok).
+ * `close` yayılır. Liste yalnız AÇIKKEN okunur; sekme süzgeçleri sunucudadır (BE-144/145).
  * Web Push kutusu yuvası (`PushOptInCard`, W159 gövdesi) listenin sonundadır.
  */
 import './notifications.css'
+import './notifications-rows.css'
 
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
+import { RevertReasonDialog } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import {
   UiButton,
@@ -23,8 +25,9 @@ import {
 
 import { notificationText } from '../messages'
 import { NOTIFICATION_PANEL_ID } from '../model/panel'
-import { AWAITING_TAB } from '../model/stubs'
 import type { NotificationTarget } from '../model/target'
+import type { NotificationItem } from '../model/types'
+import MutesView from './MutesView.vue'
 import NotificationRow from './NotificationRow.vue'
 import PushOptInCard from './PushOptInCard.vue'
 import { useNotificationPanel, type PanelTab } from './use-notification-panel'
@@ -58,12 +61,11 @@ const GROUP_LABEL = {
   older: 'notifications.rows.groupOlder',
 } as const
 
-const tabs = computed<UiChoiceOption<'awaiting' | PanelTab>[]>(() => [
+const tabs = computed<UiChoiceOption<PanelTab>[]>(() => [
   {
     value: 'awaiting',
     label: notificationText('notifications.panel.tabAwaiting'),
-    count: notificationText('notifications.panel.soon'),
-    disabled: !AWAITING_TAB.enabled,
+    ...(panel.awaitingCount.value === null ? {} : { count: panel.awaitingCount.value }),
   },
   { value: 'all', label: notificationText('notifications.panel.tabAll') },
   {
@@ -72,12 +74,34 @@ const tabs = computed<UiChoiceOption<'awaiting' | PanelTab>[]>(() => [
     ...(panel.unreadCount.value === null ? {} : { count: panel.unreadCount.value }),
   },
 ])
-const tabModel = computed({
-  get: () => panel.tab.value,
-  set: (value: 'awaiting' | PanelTab) => {
-    if (value !== 'awaiting') panel.tab.value = value
+const EMPTY_TEXT = {
+  awaiting: 'notifications.panel.emptyAwaiting',
+  unread: 'notifications.panel.emptyUnread',
+  all: 'notifications.panel.emptyAll',
+} as const
+// "Reddet" (görev onayı = iade): isteğe bağlı gerekçe penceresi; tarih talebi doğrudan reddedilir.
+const returning = ref<NotificationItem | null>(null)
+const returnOpen = computed({
+  get: () => returning.value !== null,
+  set: (open: boolean) => {
+    if (!open) returning.value = null
   },
 })
+function reject(item: NotificationItem): void {
+  if (item.action?.kind === 'approve_task') returning.value = item
+  else void panel.decide(item, 'reject')
+}
+async function submitReturn(reason: string): Promise<void> {
+  const item = returning.value
+  if (!item) return
+  await panel.decide(item, 'reject', reason.trim() || undefined)
+  returning.value = null
+}
+async function backFromMutes(): Promise<void> {
+  panel.view.value = 'list'
+  await nextTick()
+  root.value?.querySelector<HTMLElement>('[data-testid="notification-mutes-open"]')?.focus()
+}
 const canMarkAll = computed(() => (panel.unreadCount.value ?? 0) > 0 && !panel.markAllBusy.value)
 const listError = computed(() => toApiError(panel.error.value))
 </script>
@@ -117,8 +141,16 @@ const listError = computed(() => toApiError(panel.error.value))
         />
       </div>
     </header>
+    <MutesView
+      v-if="panel.view.value === 'mutes'"
+      :open="open"
+      :rows="panel.rows.value"
+      :time-zone="panel.timeZone.value"
+      @back="backFromMutes"
+    />
     <UiTabs
-      v-model="tabModel"
+      v-else
+      v-model="panel.tab.value"
       class="nb-tabs"
       :options="tabs"
       :label="notificationText('notifications.panel.tabsLabel')"
@@ -142,13 +174,7 @@ const listError = computed(() => toApiError(panel.error.value))
         <UiEmptyState
           v-else-if="panel.state.value === 'empty'"
           icon="bell"
-          :title="
-            notificationText(
-              panel.tab.value === 'unread'
-                ? 'notifications.panel.emptyUnread'
-                : 'notifications.panel.emptyAll',
-            )
-          "
+          :title="notificationText(EMPTY_TEXT[panel.tab.value])"
         />
         <template v-else>
           <section v-for="g in panel.groups.value" :key="g.group" class="nb-group">
@@ -162,8 +188,14 @@ const listError = computed(() => toApiError(panel.error.value))
                 :now="panel.now.value"
                 :time-zone="panel.timeZone.value"
                 :pending="panel.pending.value.has(item.id)"
+                :deciding="panel.deciding.value === item.id"
+                :me="panel.me.value"
                 @activate="panel.activate(item)"
                 @mark-read="panel.markOne(item.id)"
+                @dismiss="panel.dismiss(item.id)"
+                @toggle-mute="panel.toggleMute(item)"
+                @approve="panel.decide(item, 'approve')"
+                @reject="reject(item)"
               />
             </ul>
           </section>
@@ -186,8 +218,24 @@ const listError = computed(() => toApiError(panel.error.value))
             </UiButton>
           </div>
         </template>
+        <div class="nb-mutes-link">
+          <UiButton
+            variant="ghost"
+            size="sm"
+            data-testid="notification-mutes-open"
+            @click="panel.view.value = 'mutes'"
+          >
+            {{ notificationText('notifications.panel.mutesOpen') }}
+          </UiButton>
+        </div>
         <div class="nb-push"><PushOptInCard /></div>
       </div>
     </UiTabs>
+    <RevertReasonDialog
+      v-model:open="returnOpen"
+      variant="return"
+      :pending="panel.deciding.value !== null"
+      @submit="submitReturn"
+    />
   </section>
 </template>

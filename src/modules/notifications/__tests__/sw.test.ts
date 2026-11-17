@@ -104,7 +104,7 @@ describe('push olayı (E-14-75): metinsiz yük → sözlükten genel cümle', ()
     },
   )
 
-  it('sözlüğün sw.js kopyası tam 13 tür, model ile aynı küme', () => {
+  it('sözlüğün sw.js kopyası tam 18 tür, model ile aynı küme', () => {
     const block = /const TYPE_TEXT = \{([\s\S]*?)\n\}/.exec(SOURCE)![1]!
     const types = [...block.matchAll(/'([a-z_.]+)':/g)].map((m) => m[1])
     expect([...types].sort()).toEqual([...KNOWN_NOTIFICATION_TYPES].sort())
@@ -132,6 +132,9 @@ describe('notificationclick (E-14-76): hedef eşlemesi model/target ile aynı', 
     ['work_item', 'w-9', '/gorevler?gorev=w-9'],
     ['meeting', 'm-3', '/toplantilar/m-3'],
     ['program_transfer', 't-1', '/'],
+    ['chat', 'c-4', '/mesajlar/c-4'],
+    ['program', 'p-1', '/'],
+    ['chat', 'kötü id!', '/'],
     ['membership', 'x', '/'],
     ['whatever', 'x', '/'],
     ['work_item', 'kötü id!', '/'],
@@ -151,7 +154,9 @@ describe('notificationclick (E-14-76): hedef eşlemesi model/target ile aynı', 
           ? `/gorevler?gorev=${target.query.gorev}`
           : target.route === 'collaboration.meeting'
             ? `/toplantilar/${target.params.meetingId}`
-            : '/'
+            : target.route === 'collaboration.chat'
+              ? `/mesajlar/${target.params.chatId}`
+              : '/'
       expect(viaModel).toBe(path)
     },
   )

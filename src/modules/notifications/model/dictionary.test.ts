@@ -9,7 +9,7 @@ import {
   describeNotification,
 } from './dictionary'
 
-// 14 `backend.md` §4.1: events.md'de "kuyruğa → notifications" işaretli 12 tür + F8 (pin v0.23.0-api) `work.task.reminder`.
+// 14 `backend.md` §4.1: 12 tür + F8 `work.task.reminder` + v0.25 (BE-142/149) 5 yeni tür = 18.
 const TWELVE = [
   'work.item.created',
   'work.item.transitioned',
@@ -24,6 +24,11 @@ const TWELVE = [
   'organization.membership.removed',
   'organization.membership.role_changed',
   'program.transfer.completed',
+  'messaging.message.mentioned',
+  'messaging.message.sent',
+  'collaboration.meeting.reminder',
+  'collaboration.meeting.rescheduled',
+  'work.digest.daily',
 ]
 
 const SENTENCES: Record<string, [string, string]> = {
@@ -40,10 +45,15 @@ const SENTENCES: Record<string, [string, string]> = {
   'organization.membership.removed': ['Ekip', 'Ekipten üye çıkarıldı'],
   'organization.membership.role_changed': ['Ekip', 'Ekipte üye rolü değişti'],
   'program.transfer.completed': ['Aktarım', 'Görev aktarımı tamamlandı'],
+  'messaging.message.mentioned': ['Mesaj', 'Bir sohbette senden bahsedildi'],
+  'messaging.message.sent': ['Mesaj', 'Sohbette yeni mesaj var'],
+  'collaboration.meeting.reminder': ['Hatırlatma', 'Toplantı hatırlatması'],
+  'collaboration.meeting.rescheduled': ['Toplantı', 'Toplantının saati değişti'],
+  'work.digest.daily': ['Günlük özet', 'Günlük özetin hazır'],
 }
 
-describe('bildirim sözlüğü (13 tür)', () => {
-  it('tam 13 tür; backend.md §4.1 + events.md work.task.reminder ile aynı küme', () => {
+describe('bildirim sözlüğü (18 tür)', () => {
+  it('tam 18 tür; backend.md §4.1 + v0.25 türleriyle aynı küme', () => {
     expect([...KNOWN_NOTIFICATION_TYPES].sort()).toEqual([...TWELVE].sort())
   })
 
@@ -63,33 +73,30 @@ describe('bildirim sözlüğü (13 tür)', () => {
     expect(entry).toMatchObject({ icon: 'bell', tone: 'muted', subject: 'unknown', action: null })
   })
 
-  it.each([
-    'messaging.message.mentioned',
-    'messaging.message.sent',
-    'collaboration.meeting.reminder',
-    'collaboration.meeting.rescheduled',
-    'work.digest.daily',
-  ])(
-    'pin v0.25 yeni tür %s sözlüğe girmedi: genel satır davranışı korunur (W185 kurar)',
-    (type) => {
-      const { entry, known } = describeNotification({ type })
-      expect(known).toBe(false)
-      expect(entry).toBe(FALLBACK_ENTRY)
-    },
-  )
+  it('18 türün tamamı sözlükte; her biri aktörlü cümle (actorText) taşır, {actor} yer tutucusu ile', () => {
+    expect(KNOWN_NOTIFICATION_TYPES).toHaveLength(18)
+    for (const type of KNOWN_NOTIFICATION_TYPES) {
+      const { entry } = describeNotification({ type })
+      expect(
+        i18n.global.t(`notifications.rows.types.${entry.id}.actorText`, { actor: 'Ayşe' }),
+      ).toMatch(/Ayşe|özet/)
+    }
+  })
 
   it('Object prototipi anahtarları bilinen tür sayılmaz', () => {
     expect(describeNotification({ type: 'constructor' }).known).toBe(false)
     expect(describeNotification({ type: '__proto__' }).known).toBe(false)
   })
 
-  it('ek düğmeler: yalnız tarih talebi "İncele", toplantı "Gündemi aç"', () => {
+  it('ek düğmeler: tarih talebi "İncele"; toplantı satırları (4 tür) "Gündemi aç"', () => {
     const actions = Object.fromEntries(
       Object.entries(NOTIFICATION_DICTIONARY).map(([type, e]) => [type, e.action]),
     )
     expect(actions['work.date_change.requested']).toBe('review')
     expect(actions['collaboration.meeting.created']).toBe('agenda')
     expect(actions['collaboration.meeting.updated']).toBe('agenda')
-    expect(Object.values(actions).filter(Boolean)).toHaveLength(3)
+    expect(actions['collaboration.meeting.reminder']).toBe('agenda')
+    expect(actions['collaboration.meeting.rescheduled']).toBe('agenda')
+    expect(Object.values(actions).filter(Boolean)).toHaveLength(5)
   })
 })
