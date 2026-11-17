@@ -84,7 +84,7 @@ Her grup ayrı W/PR; KESİN 35/37 geçerli; **eşzamanlı en fazla 2 işçi** (P
 | W185b | Sohbet C — yazma yüzeyleri (ilet, arşive kaydet, anonim anket) | BE-080, 029, 161 | W184 dalından (yumuşak zincir: `MessageMenu.vue`) |
 | W185 | Bildirimler — satır sözlüğü, hedef, sayaçlar, süzgeçler, karar, kaldır/sessize al, birleştirme, zamanlı türler, sohbet bildirimi | BE-142, 143, 144, 145, 146, 148, 149, 154, 155, 156 | W182 sonrası; W185b ile paralel |
 
-Sıra: **W182 → (W183 ‖ W184) → (W185b ‖ W185) → W186 (O3) → (W187 ‖ W188) → Opus bağımsız nihai denetim**. **W185b yeni işçi önerisidir:** P83'ün üç W'si (W183/W184/W185) v0.25 ile BE-027/029/080/160 + BE-148/149/154 eklendiği için 25+ yüzeye çıktı; üçüncü sohbet W'si olmadan W184 yedi BE'yi ve dokuz dosya kümesini taşırdı (KESİN 32 dosya sınırı, W176 dersi: tek W'de aşırı yüzey kararsız teslim). Ek W numarası W186'yı (O3) bozmamak için `W185b` adıyla verilir (koordinatör numaralandırmayı değiştirebilir).
+Sıra: **W182 → (W183 ‖ W184) → (W185b ‖ W185) → W186 (O3) → (W187 ‖ W188) → Opus bağımsız denetim → Codex koordinatör kapanışı**. **W185b yeni işçi önerisidir:** P83'ün üç W'si (W183/W184/W185) v0.25 ile BE-027/029/080/160 + BE-148/149/154 eklendiği için 25+ yüzeye çıktı; üçüncü sohbet W'si olmadan W184 yedi BE'yi ve dokuz dosya kümesini taşırdı (KESİN 32 dosya sınırı, W176 dersi: tek W'de aşırı yüzey kararsız teslim). Ek W numarası W186'yı (O3) bozmamak için `W185b` adıyla verilir (koordinatör numaralandırmayı değiştirebilir).
 
 ## WP3 — entegrasyon + gerçek imaj
 
@@ -93,7 +93,7 @@ Sıra: **W182 → (W183 ‖ W184) → (W185b ‖ W185) → W186 (O3) → (W187 �
 
 ## WP4 — Codex / denetim
 
-Model düzeni 2026-11-17: işçi Sonnet, test Terra, bağımsız denetçi Opus; Opus bağımsız nihai kapısı hız politikasıyla (P78: en çok 2 tur). Sınıf soruları: sohbet → bildirim zincirinde yetki/kapsam sızıntısı (`program_id`/`department_id` başlıkları, P55 soğuk bağlantı), anonim ankette oy veren sızıntısı (`voters` her zaman `[]`), iletme "hepsi ya da hiçbiri" hatası, arşive kaydet `Idempotency-Key` yaşam döngüsü (KESİN 8; yarım iş GAP-248), `forward` hedef seçici kapsamı, pin ↔ fixture uyumu (zorunlu alan uydurma yok), stub kaldırma ve "eski yol yok".
+Model düzeni 2026-11-17: işçi Sonnet, test Terra, bağımsız denetçi Opus; Opus bağımsız denetimi hız politikasıyla (P78: en çok 2 tur, UYGUN DEĞİL → 3); ardından Codex koordinatör kapanışı. Sınıf soruları: sohbet → bildirim zincirinde yetki/kapsam sızıntısı (`program_id`/`department_id` başlıkları, P55 soğuk bağlantı), anonim ankette oy veren sızıntısı (`voters` her zaman `[]`), iletme "hepsi ya da hiçbiri" hatası, arşive kaydet `Idempotency-Key` yaşam döngüsü (KESİN 8; yarım iş GAP-248), `forward` hedef seçici kapsamı, pin ↔ fixture uyumu (zorunlu alan uydurma yok), stub kaldırma ve "eski yol yok".
 
 ## BE envanteri (v0.23.0-api → v0.25.0-api)
 

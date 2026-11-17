@@ -1,6 +1,6 @@
 # WEB-9 — pin v0.25.0-api ve sohbet/bildirim canlıya alma turu
 
-**F9 AÇILDI — 2026-11-16 karar (P77), 2026-11-17 yürütme; kapsam 2026-11-17'de v0.25'i de içerecek şekilde güncellendi (P84).** Ürün sahibi: «pinden dolayı pasif kalan özellikler varsa … bunu yükseltelim» (P77), «F9 planını v0.25'i de kapsayacak şekilde güncelle» (P84). F8 [KAPANDI](../web-8/README.md) (main `a48a3e78`, CI 43875579510 SUCCESS). Kararlar: [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md) (P77, P84 KESİN; P78–P83 koordinatör varsayılanı, geçici kabul). Süreç: [ortak sözleşme](ortak-sozlesme.md) (KESİN 1–37). Model düzeni (2026-11-17): işçi Sonnet, test Terra, bağımsız denetçi Opus, koordinasyon Codex.
+**F9 AÇILDI — 2026-11-16 karar (P77), 2026-11-17 yürütme; kapsam 2026-11-17'de v0.25'i de içerecek şekilde güncellendi (P84).** Ürün sahibi: «pinden dolayı pasif kalan özellikler varsa … bunu yükseltelim» (P77), «F9 planını v0.25'i de kapsayacak şekilde güncelle» (P84). F8 [KAPANDI](../web-8/README.md) (main `a48a3e78`, CI 43875579510 SUCCESS). Kararlar: [ortak-kurallar §12](../../ekranlar/ortak-kurallar.md) (P77, P84 KESİN; P78/P79 kullanıcı süreç tercihi; P80–P83 koordinatör varsayılanı, geçici kabul). Süreç: [ortak sözleşme](ortak-sozlesme.md) (KESİN 1–37). Model düzeni (2026-11-17): işçi Sonnet, test Terra, bağımsız denetçi Opus, koordinasyon Codex.
 
 ## Neden bu tur
 

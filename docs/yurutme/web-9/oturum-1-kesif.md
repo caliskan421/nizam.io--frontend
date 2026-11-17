@@ -54,7 +54,7 @@ Uç 248 → 261 (+13), yol 199 → 209, şema 326 → 348 (+22), hata kodu 227 �
 1. **BE-085 ters bağ (P86 ile çözüldü):** W184 mevcut görev detayında ortak bağlantı bileşeniyle kaynak mesaja dönüşü uygular; ayrı ekran yok, null/erişimsiz kaynak gösterilmez.
 2. **Konu sessize alma listesi (P86 ile çözüldü):** W185 mevcut bildirim panelinde liste/geri alt görünümünü uygular; imleçli okuma ve sessizi kaldırma dahildir, ayrı profil sayfası yok.
 3. **"30 gün tutulur" metni** (E-14-57/96): backend adet tavanı (200 grup) esas; tasarım metni ürün onayıyla sadeleşir (A7).
-4. **Sessiz sohbet sayacı** (A4): backend'e belge sorusu.
+4. **Sessiz sohbet sayacı (A4 kapandı):** K46/K54 uyarınca bildirim seviyesi okunmamış sayacını etkilemez; sunucu sayısı aynen kullanılır.
 5. Daha yeni `-api` etiketi çıkarsa F9'a alınmaz (KESİN 37a); kullanıcı kararı gerekir.
 
 ## 7. Süreç notu

@@ -40,3 +40,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 ## Borç devri
 
 Web-8 ilerleme #1–#38 F9 W'lerine otomatik taşınmaz. F9 ile ilgili: #38 (`platform.unauthenticated` işlenmemiş red; chat-writes geç 401 sınıfı; sohbet/bildirim W'lerinde yeniden görülebilir), 01f sanallaştırma (#16, F9 dışı), ADR-0041 ŞY aktör kararı ve E-03C-22 (karar bekler). Yeni borç F9 ilerledikçe numaralanır (#39'dan).
+
+### O1 koordinatör kabulü (2026-11-17)
+
+Sonnet W181: 656dba77 (yalnız 11 belge); Terra prettier ve 100 hedefli test başarılı. Koordinatör ee33b13/3939d3e ile kapsam, rol ve sahiplik düzeltmeleri; Opus tur1 KOŞULLU UYGUN → tur2 **UYGUN** (3939d3e, yalnız O1; final F9 kapısı değil). Düşük metin kalıntıları koordinatörce temizlendi; kaynak/pin değişmedi. PR #169 CI ve merge bekliyor; W182 bundan sonra başlar.
