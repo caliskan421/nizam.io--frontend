@@ -106,10 +106,15 @@ export function usePanelWrites(onNavigate: (target: NotificationTarget) => void)
     if (outcome && outcome.kind !== 'success') notify(outcome)
   }
 
-  /** Satır (ya da "İncele"/"Gündemi aç") etkinleştirme: okundu + hedefe gezinme birlikte. */
+  /**
+   * Satır (ya da "İncele"/"Gündemi aç") etkinleştirme: okundu + hedefe gezinme birlikte. Sohbet
+   * bildirimi İSTEMCİDE okundu işaretlenmez: konuşma açılınca mevcut okundu işaretçisi
+   * `markChatRead` gönderir, sunucu sohbet bildirimlerini kapatır ve ilişki (`query-keys`) zil +
+   * liste + iki sayacı yeniler (BE-027; `markNotificationRead` yalnız açık "Okundu say"da).
+   */
   function activate(item: NotificationItem): void {
-    if (!item.is_read) void markOne(item.id)
     const target = notificationTarget(item)
+    if (!item.is_read && target?.route !== 'collaboration.chat') void markOne(item.id)
     if (target) onNavigate(target)
   }
 

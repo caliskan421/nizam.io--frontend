@@ -66,7 +66,9 @@ describe('zil ve liste', () => {
     await userClick(
       () => $$('[role="tab"]').find((t) => t.textContent?.includes('Okunmamış')) ?? null,
     )
-    expect(panelRows()).toHaveLength(3)
+    // Süzgeç SUNUCUDADIR (BE-145): sekme `unread_only=true` ile yeniden okur.
+    await until(() => panelRows().length === 3, 'sunucu süzgeci')
+    expect(sent('GET', '/v1/notifications').at(-1)!.query.get('unread_only')).toBe('true')
     await idle(app.queryClient)
   })
 

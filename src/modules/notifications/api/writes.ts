@@ -13,6 +13,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { api } from '@/shared/http'
 import { useProtectedMutation, type MutationOutcome } from '@/shared/http/mutation'
 import { invalidationFilters, type OperationId } from '@/shared/http/query-keys'
+import type { ScopeSnapshot } from '@/shared/scope/scope'
 import { useScopeStore } from '@/shared/scope/store'
 
 import type {
@@ -26,6 +27,13 @@ import type {
 } from '../model/types'
 
 export const NOTIFICATION_NOT_FOUND = 'notifications.notification_not_found'
+
+/**
+ * Bildirim yazmaları S1'dir (hesap geneli, kapsam başlığı yok): eylem kapsamı sabit "kapsamsız"dır.
+ * Böylece satır tıklamasında okundu yazması ile aynı anda yapılan program geçişi (çaprazprogram hedef)
+ * yazmayı `scope_changed` ile düşürmez; oturum nesli denetimi (çıkış/hesap değişimi) aynen sürer.
+ */
+const ACCOUNT_SCOPE = (): ScopeSnapshot => ({ programId: null, departmentId: null, lens: null })
 
 /**
  * Satır yazması sarmalayıcısı: 404 `notifications.notification_not_found` (başkasının/olmayan/
@@ -52,6 +60,7 @@ export function useMarkNotificationRead() {
   const client = useQueryClient()
   const mutation = useProtectedMutation<MarkReadInput, void>({
     operation: 'markNotificationRead',
+    scope: ACCOUNT_SCOPE,
     send: (vars, ctx) =>
       api.POST('/v1/notifications/{id}/read', {
         params: { path: { id: vars.id } },
@@ -66,6 +75,7 @@ export function useDismissNotification() {
   const client = useQueryClient()
   const mutation = useProtectedMutation<DismissInput, void>({
     operation: 'dismissNotification',
+    scope: ACCOUNT_SCOPE,
     send: (vars, ctx) =>
       api.DELETE('/v1/notifications/{id}', {
         params: { path: { id: vars.id } },
@@ -79,6 +89,7 @@ export function useDismissNotification() {
 export function useMuteNotificationSubject() {
   return useProtectedMutation<SubjectMuteInput, void>({
     operation: 'muteNotificationSubject',
+    scope: ACCOUNT_SCOPE,
     send: (vars, ctx) =>
       api.PUT('/v1/notifications/subject-mutes/{kind}/{id}', {
         params: { path: { kind: vars.kind, id: vars.id } },
@@ -91,6 +102,7 @@ export function useMuteNotificationSubject() {
 export function useUnmuteNotificationSubject() {
   return useProtectedMutation<SubjectMuteInput, void>({
     operation: 'unmuteNotificationSubject',
+    scope: ACCOUNT_SCOPE,
     send: (vars, ctx) =>
       api.DELETE('/v1/notifications/subject-mutes/{kind}/{id}', {
         params: { path: { kind: vars.kind, id: vars.id } },
@@ -102,6 +114,7 @@ export function useUnmuteNotificationSubject() {
 export function useMarkAllNotificationsRead() {
   return useProtectedMutation<void, MarkedCount>({
     operation: 'markAllNotificationsRead',
+    scope: ACCOUNT_SCOPE,
     send: (_vars, ctx) => api.POST('/v1/notifications/read-all', { signal: ctx.signal }),
   })
 }

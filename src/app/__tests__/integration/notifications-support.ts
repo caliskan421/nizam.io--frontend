@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { vi } from 'vitest'
 
 import { createBackend, seedWorld, until, $, $$, click } from './harness'
+import { seedChats } from './chat-support'
 import { createChatState, type ChatState } from './fake-chat'
 import { chatHandlers } from './fake-chat-server'
 import {
@@ -12,6 +13,7 @@ import {
   notify,
   type NotificationsState,
 } from './fake-notifications'
+import { notificationMoreHandlers, type DecisionLog } from './fake-notifications-more'
 import { PEOPLE } from './world'
 
 export {
@@ -44,10 +46,22 @@ export const MEMBER = {
   scope: { programId: 'p1', lens: 'member' as const, departmentId: 'd1' },
 }
 
+/** İki programlı kişi (p1 Yazılım üyesi, p2 Fuar üyesi): çaprazprogram bildirimleri için. */
+export const SECOND = {
+  email: PEOPLE.second.email,
+  scope: { programId: 'p1', lens: 'member' as const, departmentId: 'd2' },
+}
+
 export type Roles = Parameters<typeof createBackend>[0]
-export const notifications: { state: NotificationsState; chat: ChatState } = {
+export const notifications: {
+  state: NotificationsState
+  chat: ChatState
+  /** Satır içi karar uçlarına gelen istekler (W185). */
+  decisions: DecisionLog
+} = {
   state: createNotificationsState(),
   chat: createChatState(),
+  decisions: { calls: [] },
 }
 export let backend!: ReturnType<typeof createBackend>
 
@@ -61,10 +75,17 @@ export function seedNotificationsWorld(): void {
   seedWorld(backend.db)
   notifications.state = createNotificationsState()
   notifications.chat = createChatState()
+  notifications.decisions = { calls: [] }
   backend.server.use(
+    ...notificationMoreHandlers(backend.db, notifications.state, notifications.decisions),
     ...notificationHandlers(backend.db, notifications.state),
     ...chatHandlers(backend.db, notifications.chat),
   )
+}
+
+/** Sohbet dünyası: ortak sohbetler (Mekanik Ekibi g1 …) bildirim sohbet sunucusuna eklenir. */
+export function seedNotificationChats(): void {
+  Object.assign(notifications.chat, seedChats())
 }
 
 /** Her testten önce: sunucu sıfırlanır, dünya yeniden kurulur. */

@@ -1,7 +1,9 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { makeNotification } from '@/shared/api/__tests__/defaults'
+import { authSession } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
+import { useScopeStore } from '@/shared/scope/store'
 
 import {
   errorEnvelope,
@@ -241,6 +243,41 @@ describe('Web Push cihaz kaydı (yalnız api katmanı; arayüz W159)', () => {
     const out = await m.result.submit({ targetId: 't-9' })
     expect(out.kind).toBe('success')
     expect(sent('DELETE', '/v1/notifications/targets/t-9')).toHaveLength(1)
+  })
+})
+
+describe('S1 yazmaları kapsam değişiminden etkilenmez (çaprazprogram gezinmesi)', () => {
+  it('okundu/kaldır/sessize al: gönderim anında program değişse de `scope_changed` YOK, istek gider; çıkış gönderimi durdurur', async () => {
+    fakeServer()
+    server.use(
+      http.delete(`${ORIGIN}/v1/notifications/:id`, () => noContent()),
+      http.put(`${ORIGIN}/v1/notifications/subject-mutes/:kind/:id`, () => noContent()),
+    )
+    const m = mountSetup(() => ({
+      read: useMarkNotificationRead(),
+      dismiss: useDismissNotification(),
+      mute: useMuteNotificationSubject(),
+      readAll: useMarkAllNotificationsRead(),
+    }))
+    const store = useScopeStore()
+    store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
+    const pending = [
+      m.result.read.submit({ id: '1' }),
+      m.result.dismiss.submit({ id: '2' }),
+      m.result.mute.submit({ kind: 'work_item', id: 'w-1' }),
+      m.result.readAll.submit(),
+    ]
+    store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    expect((await Promise.all(pending)).map((o) => o.kind)).toEqual([
+      'success',
+      'success',
+      'success',
+      'success',
+    ])
+    const afterSignOut = m.result.read.submit({ id: '3' })
+    authSession.clear()
+    expect((await afterSignOut).kind).not.toBe('success')
+    expect(sent('POST', '/v1/notifications/3/read')).toHaveLength(0)
   })
 })
 
