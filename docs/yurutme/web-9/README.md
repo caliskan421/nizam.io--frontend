@@ -37,7 +37,7 @@ Her W ayrı worktree ve dal (`web9/<oturum>-<wid>`); [ortak sözleşme](ortak-so
 | **O2a** | **W182** pin v0.23 → v0.25 (WP1), UI değişmez | W182 |
 | **O2b** | **W183 ‖ W184** (sohbet A/B), sonra **W185b ‖ W185** (sohbet C / bildirimler); W185b W184 dalından (`MessageMenu.vue`) | W183, W184, W185b, W185 |
 | **O3** | **W186** entegrasyon: `chat-*`/`notifications-*`, e2e güncellemesi, tek duman 390+1440 koyu (10, 10b, 10c, 14 panel) | W186 |
-| **O4** | **W187** belgeler (`rapor-F9`, ilerleme/oturum-4, `WEB-9-codex.md` iskeleti, web-10 "F10 AÇILMADI") ‖ **W188** Docker + gerçek backend **v0.25.0-api** tanığı (`dogrulama-F9.md`) → Codex (en çok 2 tur, P78) → kapanış PR | W187, W188, Codex |
+| **O4** | **W187** belgeler (`rapor-F9`, ilerleme/oturum-4, `WEB-9-codex.md` iskeleti, web-10 "F10 AÇILMADI") ‖ **W188** Docker + gerçek backend **v0.25.0-api** tanığı (`dogrulama-F9.md`) → Opus bağımsız denetim + Codex koordinatör kapanışı (en çok 2 tur, P78) → kapanış PR | W187, W188, Codex |
 
 ## Başlatma koşulları (karşılandı)
 

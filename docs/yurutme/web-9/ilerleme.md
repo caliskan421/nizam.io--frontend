@@ -12,20 +12,23 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | O2a W182 (pin v0.25) | bekliyor | — |
 | O2b W183 ‖ W184, sonra W185b ‖ W185 | bekliyor | — |
 | O3 W186 | bekliyor | — |
-| O4 W187 ‖ W188, Codex, kapanış | bekliyor | — |
+| O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | bekliyor | — |
 
 ## Kararlar
 
 | # | Konu | Durum |
 | --- | --- | --- |
 | P77 | F9 = pin yükseltmesi + sohbet/bildirim canlıya alma; yeni ekran yok | **KESİN** (ürün sahibi 2026-11-16) |
-| P78 | Hız politikası (P76) varsayılan: etkilenen testler yerelde, tam paket CI'da, tek duman 390+1440 koyu, gerçek backend e2e yalnız CI + tanık işçisi, eşzamanlı ≤ 2 işçi, Codex ≤ 2 tur | geçici kabul |
+| P78 | Hız politikası (P76) varsayılan: etkilenen testler yerelde, tam paket CI'da, tek duman 390+1440 koyu, gerçek backend e2e yalnız CI + tanık işçisi, eşzamanlı ≤ 2 işçi, Opus denetim ≤ 2 tur | kullanıcı süreç tercihi |
 | P79 | Model ajandası: **2026-11-17 güncellemesi** işçi Sonnet, test Terra (gpt-6.1-terra), denetçi Opus, koordinasyon Codex; eski Haiku/Astra atamaları geçersiz | kullanıcı güncellemesi |
 | P80 | Pin tek PR (KESİN 36 kalıbı): `v0.23.0-api` → **`v0.25.0-api`** (P84 ile v0.24'ten yükseltildi); UI değişmez | geçici kabul |
 | P81 | Canlıya alma = KESİN 35; kısmi satır `bağlandı` olmaz; kalanlar BE-147 (GAP-246), BE-150…153 | geçici kabul (P84 ile güncel; v0.24'te kalan 027/029/080/160 ve kısmi 028/085/156 v0.25 ile `tam`) |
 | P82 | SSE yalnız `shared/sse`; bildirimlerde SSE yok; sohbet mesajı bildirim zinciri SSE'den ayrı | geçici kabul |
 | P83 | O2b bölme (≤ 2 eşzamanlı): W183 sohbet A, W184 sohbet B, **W185b sohbet C (yeni, öneri)**, W185 bildirimler | geçici kabul; matris §2–§4 (W181 önerisi) |
 | P84 | **Kapsam güncellemesi:** F9 v0.25'i de kapsar; tek pin v0.23→v0.25; v0.25 karşılıkları F10'a bırakılmaz | **KESİN** (kullanıcı 2026-11-17) |
+
+| P85 | Yönetici ana Codex; Sonnet uygulayıcı, Terra test, Opus bağımsız denetim | kullanıcı rol talimatı |
+| P86 | Mevcut görev detayında kaynak mesaj bağlantısı W184; bildirim panelinde sessize alınanlar W185; BE027 kapanış W185 | koordinatör kapsam uygulaması |
 
 ## Kayıtlar
 
