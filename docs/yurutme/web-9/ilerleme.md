@@ -2,14 +2,14 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz (ham kaynak `.git/koordinator/f5-notlar.md` ve `web9-kararlar.md`).
 
-**F9 AÇILDI — karar 2026-11-16 (P77), yürütme 2026-11-17; kapsam 2026-11-17'de v0.25'i de içerecek biçimde güncellendi (P84).** Kapsam [README](README.md)'de. F8 [KAPANDI](../web-8/ilerleme.md) (main `a48a3e78`; devreden borçlar web-8 ilerleme #1–#38). Pin bugün `v0.23.0-api`; hedef `v0.25.0-api` (W182).
+**F9 AÇILDI — karar 2026-11-16 (P77), yürütme 2026-11-17; kapsam 2026-11-17'de v0.25'i de içerecek biçimde güncellendi (P84).** Kapsam [README](README.md)'de. F8 [KAPANDI](../web-8/ilerleme.md) (main `a48a3e78`; devreden borçlar web-8 ilerleme #1–#38). Main pini O1 kapanışında `v0.23.0-api`; W182 bu PR'da `v0.25.0-api` pinini hazırlar; O2a kapanışı CI + merge ile yürürlüğe girer.
 
 ## Durum
 
 | Oturum | Durum | main hash |
 | --- | --- | --- |
-| O1 W181 | **Teslim edildi (dal `web9/o1-w181`; PR koordinatörde)** | PR birleşince eklenir |
-| O2a W182 (pin v0.25) | bekliyor | — |
+| O1 W181 | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN | `099dfe6e` |
+| O2a W182 (pin v0.25) | Sonnet teslimi `17e97b8b`; bağımsız Terra doğrulama ve PR/CI bekliyor | — |
 | O2b W183 ‖ W184, sonra W185b ‖ W185 | bekliyor | — |
 | O3 W186 | bekliyor | — |
 | O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | bekliyor | — |
@@ -44,3 +44,7 @@ Web-8 ilerleme #1–#38 F9 W'lerine otomatik taşınmaz. F9 ile ilgili: #38 (`pl
 ### O1 koordinatör kabulü (2026-11-17)
 
 Sonnet W181: 656dba77 (yalnız 11 belge); Terra prettier ve 100 hedefli test başarılı. Koordinatör ee33b13/3939d3e ile kapsam, rol ve sahiplik düzeltmeleri; Opus tur1 KOŞULLU UYGUN → tur2 **UYGUN** (3939d3e, yalnız O1; final F9 kapısı değil). Düşük metin kalıntıları koordinatörce temizlendi; kaynak/pin değişmedi. PR #169 CI ve merge bekliyor; W182 bundan sonra başlar.
+
+### O2a teknik teslimi (2026-11-17; henüz kapanmadı)
+
+Sonnet W182 beş commit: pin/generated (261 uç, 227 hata kodu), ortak defaults, sohbet ve bildirim tip/fixture uyumu, güncel e2e/README pin referansları. Gen:check/typecheck/lint, 162 dosyada1412 hedefli test ve tests/lint157 başarılı; stub31 değişmedi, canlıya alma yok. K1/K2/K3/K5 aynı fixture dosyalarını paylaştığından tek uyum commitinde; davranış testleri sınıfları ayrı doğrular. `poll.anonymous` spec'te opsiyonel, generator default nedeniyle required tipliyor; W182 eski gönderim gövdesini dar cast+omission testiyle korur. W185b anonim anketi bağlarken explicit alanla bu geçici cast kaldırılır. Build ve tek390/1440koyu karşılaştırmalı duman Terra'ya atandı. Nihai doğrulama/CI/merge gelmeden O2a kapandı sayılmaz.
