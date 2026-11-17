@@ -115,7 +115,11 @@ describe('liste okuma', () => {
     await settle(client, wrapper)
     expect(wrapper.get('.rp-empty').text()).toContain('Henüz bildirim yok')
     await tabs(wrapper)[2]!.trigger('click')
+    await settle(client, wrapper)
     expect(wrapper.get('.rp-empty').text()).toContain('Okunmamış bildirim yok')
+    await tabs(wrapper)[0]!.trigger('click')
+    await settle(client, wrapper)
+    expect(wrapper.get('.rp-empty').text()).toContain('Senden bekleyen karar yok')
   })
 
   it('hata: ortak hata durumu + yeniden dene (sunucu message gösterilmez)', async () => {
@@ -140,23 +144,38 @@ describe('liste okuma', () => {
 })
 
 describe('sekmeler', () => {
-  it('Senden bekleyen devre dışı + "Yakında" (BE-144); Tümü seçili; sekme değişimi istek atmaz', async () => {
-    serve([item({ id: 'u1' }), item({ id: 'r1', is_read: true })], {
-      awaiting_count: 0,
-      unread_count: 1,
-    })
+  it('Senden bekleyen etkin (BE-144) ve AYRI sayı; Okunmamış sunucu süzgeci (BE-145); Tümü seçili', async () => {
+    server.use(
+      http.get(LIST, ({ request }) => {
+        const q = new URL(request.url).searchParams
+        const items = q.get('awaiting')
+          ? [item({ id: 'aw' })]
+          : q.get('unread_only')
+            ? [item({ id: 'u1' })]
+            : [item({ id: 'u1' }), item({ id: 'r1', is_read: true })]
+        return json({ items, awaiting_count: 5, unread_count: 1 })
+      }),
+      http.get(`${ORIGIN}/v1/notifications/vapid-public-key`, () =>
+        json({ enabled: false, public_key: '' }),
+      ),
+    )
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
     const [awaiting, all, unread] = tabs(wrapper)
-    expect(awaiting!.attributes('disabled')).toBeDefined()
-    expect(awaiting!.text()).toContain('Yakında')
-    expect(all!.attributes('aria-selected')).toBe('true')
+    expect(awaiting!.attributes('disabled')).toBeUndefined()
+    expect(awaiting!.text()).toContain('5')
     expect(unread!.text()).toContain('1')
+    expect(all!.attributes('aria-selected')).toBe('true')
     expect(rows(wrapper)).toHaveLength(2)
     await unread!.trigger('click')
+    await settle(client, wrapper)
     expect(rows(wrapper)).toHaveLength(1)
-    expect(rows(wrapper)[0]!.attributes('data-unread')).toBe('true')
-    expect(sent('GET', '/v1/notifications')).toHaveLength(1)
+    expect(sent('GET', '/v1/notifications')[1]!.query.get('unread_only')).toBe('true')
+    await awaiting!.trigger('click')
+    await settle(client, wrapper)
+    expect(rows(wrapper).map((r) => r.attributes('data-unread'))).toEqual(['true'])
+    expect(sent('GET', '/v1/notifications')[2]!.query.get('awaiting')).toBe('true')
+    expect(sent('GET', '/v1/notifications')[2]!.query.has('unread_only')).toBe(false)
   })
 
   it("panel kapanıp açılınca sekme Tümü'ye döner", async () => {
@@ -171,13 +190,29 @@ describe('sekmeler', () => {
     expect(tabs(wrapper)[1]!.attributes('aria-selected')).toBe('true')
   })
 
-  it('Okunmamış sekmesinde yüklü küme boş ama sayfa varken boş durum yok, "Daha eski" açık', async () => {
-    serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 3, next_cursor: 'c2' })
+  it('süzülmüş boş sayfa + next_cursor: boş durum yok, "Daha eski" açık; imleçle devam eder', async () => {
+    server.use(
+      http.get(LIST, ({ request }) => {
+        const q = new URL(request.url).searchParams
+        if (!q.get('unread_only')) return json({ items: [], awaiting_count: 0, unread_count: 3 })
+        return q.get('cursor')
+          ? json({ items: [item({ id: 'late' })], awaiting_count: 0, unread_count: 3 })
+          : json({ items: [], awaiting_count: 0, unread_count: 3, next_cursor: 'c2' })
+      }),
+      http.get(`${ORIGIN}/v1/notifications/vapid-public-key`, () =>
+        json({ enabled: false, public_key: '' }),
+      ),
+    )
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
     await tabs(wrapper)[2]!.trigger('click')
+    await settle(client, wrapper)
     expect(wrapper.find('.rp-empty').exists()).toBe(false)
-    expect(wrapper.find('[data-testid="notification-older"]').exists()).toBe(true)
+    await wrapper.get('[data-testid="notification-older"]').trigger('click')
+    await settle(client, wrapper)
+    expect(rows(wrapper)).toHaveLength(1)
+    const last = sent('GET', '/v1/notifications').at(-1)!.query
+    expect([last.get('cursor'), last.get('unread_only')]).toEqual(['c2', 'true'])
   })
 })
 
@@ -252,7 +287,7 @@ describe('okundu akışı', () => {
     await settle(client, wrapper)
     await rows(wrapper)[0]!.get('.nb-it__main').trigger('click')
     expect(wrapper.emitted('navigate')).toEqual([
-      [{ route: 'work.tasks', params: {}, query: { gorev: 'w-1' } }],
+      [{ route: 'work.tasks', params: {}, query: { gorev: 'w-1' }, programId: null }],
     ])
     // Yazma sürerken: iyimser değişim yok (nokta duruyor), satır meşgul.
     expect(rows(wrapper)[0]!.attributes('data-unread')).toBe('true')
@@ -365,7 +400,7 @@ describe('Tümünü okundu say', () => {
       http.get(`${LIST}/unread-count`, () => json({ count: 0, awaiting_count: 0 })),
     )
     const { wrapper, client } = await mountPanel()
-    client.setQueryData(queryKeys.notifications.unreadCount(), 2)
+    client.setQueryData(queryKeys.notifications.unreadCount(), { count: 2, awaiting_count: 0 })
     await settle(client, wrapper)
     const button = wrapper.get('[data-testid="notification-mark-all"]')
     expect(button.attributes('disabled')).toBeUndefined()
@@ -476,7 +511,7 @@ describe('kapanış istekleri ve erişilebilirlik', () => {
     )
   })
 
-  it('okunmamış yokken odak ilk etkin sekmeye (devre dışı sekme atlanır)', async () => {
+  it('okunmamış yokken odak ilk etkin sekmeye ("Senden bekleyen" artık etkin)', async () => {
     serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 0 })
     const { wrapper, client } = await mountPanel(false)
     await wrapper.setProps({ open: true })
@@ -484,6 +519,7 @@ describe('kapanış istekleri ve erişilebilirlik', () => {
     await wrapper.vm.$nextTick()
     // Liste gelmeden açılış odağı verildi: ilk etkin öğe "Tümü" sekmesi (ya da kök).
     expect([
+      tabs(wrapper)[0]!.element,
       tabs(wrapper)[1]!.element,
       wrapper.get('[data-testid="notification-panel"]').element,
     ]).toContain(document.activeElement)

@@ -5,14 +5,18 @@ export {
   UNREAD_NOTIFICATIONS_KEY,
   useNotifications,
   usePushPublicKey,
+  useSubjectMutes,
   useUnreadNotifications,
 } from './api/queries'
-export { fetchUnreadNotificationCount } from './api/fetchers'
+export { fetchNotificationCounts } from './api/fetchers'
 export {
   NOTIFICATION_NOT_FOUND,
+  useDismissNotification,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
+  useMuteNotificationSubject,
   useRegisterPushTarget,
+  useUnmuteNotificationSubject,
   useUnregisterPushTarget,
 } from './api/writes'
 export { default as NotificationPanel } from './components/NotificationPanel.vue'
@@ -27,9 +31,8 @@ export {
   type NotificationTone,
 } from './model/dictionary'
 export { NOTIFICATION_PANEL_ID } from './model/panel'
-export { notificationTarget, type NotificationTarget } from './model/target'
+export { notificationTarget, type NotificationRoute, type NotificationTarget } from './model/target'
 export { notificationCapabilities, type NotificationCapabilities } from './model/capabilities'
-export { AWAITING_TAB, INLINE_DECISION } from './model/stubs'
 export * from './model/refresh'
 export type * from './model/types'
 export { notificationText, type NotificationTextKey } from './messages'

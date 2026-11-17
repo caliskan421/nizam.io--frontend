@@ -22,6 +22,8 @@ export interface PushFault {
 }
 
 export interface NotificationsState {
+  /** Hesap → sessize alınan konular (en yeni önce; `fake-notifications-more.ts`). */
+  mutes: Map<string, { kind: string; id: string; created_at: string }[]>
   /** Hesap → satırlar (en yeni önce). */
   rows: Map<string, FakeNotification[]>
   seq: number
@@ -40,6 +42,7 @@ export const VAPID_KEY =
 export function createNotificationsState(): NotificationsState {
   return {
     rows: new Map(),
+    mutes: new Map(),
     seq: 0,
     vapid: { enabled: false, public_key: '' },
     registerFault: null,
@@ -77,6 +80,21 @@ const rowsOf = (state: NotificationsState, account: string): FakeNotification[] 
 const unreadOf = (state: NotificationsState, account: string): number =>
   rowsOf(state, account).filter((n) => !n.is_read).length
 
+/** Bekleyen karar sayısı (`awaiting_count`): açık eylem satırları (okundu durumundan bağımsız). */
+export const awaitingOf = (state: NotificationsState, account: string): number =>
+  rowsOf(state, account).filter((n) => n.action?.state === 'pending').length
+
+/** Sunucu süzgeçleri (BE-144/145): `awaiting`, `unread_only`, `type` (tekrarlı). */
+function filtered(rows: FakeNotification[], query: URLSearchParams): FakeNotification[] {
+  const types = query.getAll('type')
+  return rows.filter(
+    (n) =>
+      (query.get('awaiting') !== 'true' || n.action?.state === 'pending') &&
+      (query.get('unread_only') !== 'true' || !n.is_read) &&
+      (types.length === 0 || types.includes(n.type)),
+  )
+}
+
 const notFound = () => envelope('notifications.notification_not_found', 404)
 
 function readHandlers(db: OrgDb, state: NotificationsState) {
@@ -84,7 +102,12 @@ function readHandlers(db: OrgDb, state: NotificationsState) {
     http.get(`${ORIGIN}/v1/notifications/unread-count`, ({ request }) => {
       const me = fakeOrg.actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)
-      return json(makeNotificationUnreadCount({ count: unreadOf(state, me.account_id) }))
+      return json(
+        makeNotificationUnreadCount({
+          count: unreadOf(state, me.account_id),
+          awaiting_count: awaitingOf(state, me.account_id),
+        }),
+      )
     }),
     http.get(`${ORIGIN}/v1/notifications`, ({ request }) => {
       const me = fakeOrg.actorOf(db, request)
@@ -92,10 +115,13 @@ function readHandlers(db: OrgDb, state: NotificationsState) {
       const query = new URL(request.url).searchParams
       const limit = Number(query.get('limit') ?? 50)
       const from = Number(query.get('cursor') || 0)
-      const rows = rowsOf(state, me.account_id)
+      const rows = filtered(rowsOf(state, me.account_id), query)
       const next = from + limit < rows.length ? { next_cursor: String(from + limit) } : {}
       return json({
-        ...makeNotificationList({ unread_count: unreadOf(state, me.account_id) }),
+        ...makeNotificationList({
+          unread_count: unreadOf(state, me.account_id),
+          awaiting_count: awaitingOf(state, me.account_id),
+        }),
         items: rows.slice(from, from + limit),
         ...next,
       })

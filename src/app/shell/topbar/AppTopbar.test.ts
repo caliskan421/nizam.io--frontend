@@ -26,7 +26,11 @@ async function mountTopbar(
   const ctx = await sideContext(path)
   const { lifecycle, store } = createFakeLifecycle(state)
   store.commit({ programId: 'p1', lens: 'admin', departmentId: null })
-  if (unread !== null) ctx.queryClient.setQueryData([...UNREAD_NOTIFICATIONS_KEY], unread)
+  if (unread !== null)
+    ctx.queryClient.setQueryData([...UNREAD_NOTIFICATIONS_KEY], {
+      count: unread,
+      awaiting_count: 0,
+    })
   const fetchSpy = vi.spyOn(globalThis, 'fetch')
   const wrapper = mountWithScope(ctx, lifecycle, AppTopbar, { openState: null })
   await flushPromises()

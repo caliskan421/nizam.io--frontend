@@ -10,9 +10,9 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | --- | --- | --- |
 | O1 W181 | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN | `099dfe6e` |
 | O2a W182 (pin v0.25) | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı | `2bd788f3` |
-| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 PR #171 CI bekler; W184 `21106559` birleşik teknik teslim, Terra/PR/CI bekler; W185b aktif | — |
-| O3 W186 | bekliyor | — |
-| O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | bekliyor | — |
+| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 PR171 ve W184 PR172 üç CI ile birleşti; W185b PR173 düzeltmeli CI, W185 kaynak tamam ve bağımsız Terra kabulünde | `abfc7916` (W184) |
+| O3 W186 | Sohbet App entegrasyonu ve iki regresyon tamam; bildirim birleşimi ve son kabul sürüyor | — |
+| O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | W187 kayıt hazırlığı, W188 izole backend preflight hazır; nihai tanık ve Opus bekler | — |
 
 ## Kararlar
 
@@ -26,7 +26,6 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | P82 | SSE yalnız `shared/sse`; bildirimlerde SSE yok; sohbet mesajı bildirim zinciri SSE'den ayrı | geçici kabul |
 | P83 | O2b bölme (≤ 2 eşzamanlı): W183 sohbet A, W184 sohbet B, **W185b sohbet C (yeni, öneri)**, W185 bildirimler | geçici kabul; matris §2–§4 (W181 önerisi) |
 | P84 | **Kapsam güncellemesi:** F9 v0.25'i de kapsar; tek pin v0.23→v0.25; v0.25 karşılıkları F10'a bırakılmaz | **KESİN** (kullanıcı 2026-11-17) |
-
 | P85 | Yönetici ana Codex; Sonnet uygulayıcı, Terra test, Opus bağımsız denetim | kullanıcı rol talimatı |
 | P86 | Mevcut görev detayında kaynak mesaj bağlantısı W184; bildirim panelinde sessize alınanlar W185; BE027 kapanış W185 | koordinatör kapsam uygulaması |
 
@@ -98,3 +97,9 @@ W186 Terra gerçek App/router entegrasyonu, arşiv isteği sunucuda tamamlanıp 
 Terra ek regresyonunda gönderim sürerken dışarıdan değiştirilen giriş nesnesinin yerel efekti değiştirdiğini buldu (`6c18efda`); gerçek UI'nın aynı nesneyi değiştirdiği ayrıca gösterilmedi. Sonnet `261af5fe`, mevcut toPlainVars yardımcı işleviyle ilk veri kopyasını yakaladı; aynı kopya ilk/tekrar/onay efektlerinde kullanılır. File/Blob semantiği ve korumalı motor korunur. Sonnet 11 dosyada97 test,158 diyalog testi/type/lint/format/build başarılı; son bağımsız dar kontrol Terra'dadır. İlk düzeltmenin geniş koşumunda chat-window açık mesaj testi5s zaman aşımı verdi, tek başına iki kez11/11 geçti; kesin kök neden kanıtlanmadı. PR173'ün eski başlığı üç CI'da başarılı olsa da yeni kusur nedeniyle birleştirilmedi; düzeltmeli başlık için yeniden üç CI gerekir.
 
 Terra son bağımsız kontrolde `261af5fe` üzerinde App3 + effects6 = iki dosyada9 testi geçirdi; iki ayrı kırmızı regresyon yeşil. Kaynak diff'i yalnız await öncesi mevcut toPlainVars kopyası ve dar export; motor kapıları değişmedi. Bu yardımcı plain nesneleri kopyalar; File/Blob/FormData/Date mevcut semantik gereği referans olarak taşınır, değişebilir opaque içeriklerin dondurulduğu iddiası yoktur. Root yeni PR173 başlığını CI'a gönderir.
+
+### W185 birleşik teknik teslimi (2026-11-17; bağımsız kabul sürüyor)
+
+Sonnet kaynak `1100f522`: 18 tür zengin/güvenli sözlük, server filtre/cursor, iki ayrı sayaç, satır içi karar ve konu/grup eylemleri, panel içinde sessize alınanlar, cold çapraz program typed hedef. P88 mevcut protected mutation ve RevertReasonDialog kullanır; global aktör matrisi değişmedi. S1 bildirim yazmaları kapsamsız hesap işlemi olarak program geçişinden bağımsız, oturum kapısına bağlıdır. Sonnet124 dosyada983test ve type/full-lint/format/build başarılı. Sahte390/1440 dumanı avatar taşmasını düzeltti; gerçek backend değil. Root W185b45ec1191'i temiz merge ederek `24d256db` bütünleşik kaynağını Terra'ya verdi. BE027 ve bildirim10 kaydı bağlandı; bağımsız kabul/CI/gerçek tanık tamamlandı anlamına gelmez. Yeni BE kimliği atanmadı.
+
+W188 backend preflight: `nizamio_web9_w188_0615`, etiket58856bbc, port28089/28090/25439, iki profile200, izole seed hazır. Nihai frontend/UI tanığı henüz yapılmadı.

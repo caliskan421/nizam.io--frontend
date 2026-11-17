@@ -1,6 +1,8 @@
 /**
- * `type` → etiket / cümle / simge / ton sözlüğü (14 `backend.md` §4.1; 12 tür + F8 `work.task.reminder`, pin v0.23.0-api). Yanıt metinsizdir
- * (K15/K29): aktör adı, konu başlığı, kod, tarih UYDURULMAZ; cümle yalnız türü söyler. Bilinmeyen
+ * `type` → etiket / cümle / simge / ton sözlüğü (14 `backend.md` §4.1; 18 tür: 12 + F8 `work.task.reminder` + v0.25 `messaging.message.*`, `collaboration.meeting.reminder/.rescheduled`, `work.digest.daily`). Yanıt serbest metin
+ * taşımaz (ADR-0048); cümleyi `model/sentence.ts` bu sözlüğün `type` girdisinden, `actor`/`subject`/
+ * `detail`/`group` kapalı kodlarından kurar. `text` aktörsüz GENEL cümledir (push ve `forbidden`/`unknown`
+ * satırı); aktör adı yoksa ya da konu görünmüyorsa başlık/ad UYDURULMAZ. Bilinmeyen
  * tür (yeni etiket) genel satıra düşer — sessiz düşürme yok. Metinler `trNotifications.rows`
  * ağacında; burada yalnız anahtar kimliği. Service worker (W159) sözlüğün ayrı bir kopyasını
  * taşır; eşleşme testi `dictionary.test.ts`'e W159 ekler.
@@ -12,13 +14,14 @@ import type { NotificationItem } from './types'
 /** Satır simge tonu (token karşılığı bileşende: accent-text, violet, r-koord, gold, ink-muted). */
 export type NotificationTone = 'accent' | 'violet' | 'coord' | 'gold' | 'muted'
 
-/** Satırdaki ek düğme (canlı olanlar). "Onayla/Reddet" BE-146 yüzünden statiktir (stubs.ts). */
+/** Satırdaki ek düğme (canlı olanlar). "Onayla/Reddet" `action` alanından kurulur (decision). */
 export type NotificationAction = 'review' | 'agenda'
 
 export interface DictionaryEntry {
   /** i18n kimliği: `notifications.rows.types.<id>.{label,text}`. */
   readonly id: string
-  readonly subject: 'work_item' | 'meeting' | 'membership' | 'program_transfer' | 'unknown'
+  readonly subject:
+    'work_item' | 'meeting' | 'membership' | 'program_transfer' | 'chat' | 'program' | 'unknown'
   readonly icon: IconName
   readonly tone: NotificationTone
   readonly action: NotificationAction | null
@@ -84,6 +87,18 @@ export const NOTIFICATION_DICTIONARY: Readonly<Record<string, DictionaryEntry>> 
     'muted',
   ),
   'program.transfer.completed': entry('transfer_completed', 'program_transfer', 'bell', 'muted'),
+  // v0.25 (BE-142/149): sohbet bildirimi (ADR-0050; mesaj metni yok) ve zamanlı/değişiklik olayları.
+  'messaging.message.mentioned': entry('message_mentioned', 'chat', 'messages', 'violet'),
+  'messaging.message.sent': entry('message_sent', 'chat', 'messages', 'accent'),
+  'collaboration.meeting.reminder': entry('meeting_reminder', 'meeting', 'clock', 'gold', 'agenda'),
+  'collaboration.meeting.rescheduled': entry(
+    'meeting_rescheduled',
+    'meeting',
+    'calendar',
+    'gold',
+    'agenda',
+  ),
+  'work.digest.daily': entry('digest_daily', 'program', 'tasks', 'accent'),
 }
 
 export const KNOWN_NOTIFICATION_TYPES: readonly string[] = Object.keys(NOTIFICATION_DICTIONARY)

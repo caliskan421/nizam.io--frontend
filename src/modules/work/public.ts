@@ -17,6 +17,10 @@ export {
 export const NewTaskDialog = defineAsyncComponent(
   () => import('./components/forms/NewTaskDialog.vue'),
 )
+// W185 (P88): bildirim satırı içi "iade" kararı aynı gerekçe penceresini kullanır (yeni pencere çizilmez).
+export const RevertReasonDialog = defineAsyncComponent(
+  () => import('./components/forms/RevertReasonDialog.vue'),
+)
 export type { NewTaskDialogEmits, NewTaskDialogProps } from './components'
 export { createPartialText } from './model/messages'
 export { departmentTarget, listDepartmentFilter, resolveTarget, targetOf } from './model/target'

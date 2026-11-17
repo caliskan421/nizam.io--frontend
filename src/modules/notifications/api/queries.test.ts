@@ -36,13 +36,18 @@ describe('useUnreadNotifications', () => {
   it('hesap geneli anahtarla sayacı okur; kapsam başlığı gitmez', async () => {
     server.use(
       http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
-        json({ count: 4, awaiting_count: 0 }),
+        json({ count: 4, awaiting_count: 7 }),
       ),
     )
     const m = mountSetup(() => useUnreadNotifications())
     await settleQueries(m.client)
+    // Zil sayısı (okunmamış GRUP) ve "Senden bekleyen" iki AYRI sayıdır.
     expect(m.result.count.value).toBe(4)
-    expect(m.client.getQueryData(queryKeys.notifications.unreadCount())).toBe(4)
+    expect(m.result.awaitingCount.value).toBe(7)
+    expect(m.client.getQueryData(queryKeys.notifications.unreadCount())).toEqual({
+      count: 4,
+      awaiting_count: 7,
+    })
     const call = sent('GET', '/v1/notifications/unread-count')[0]!
     expect(call.headers.get('X-Nizamio-Program')).toBeNull()
     expect(call.headers.get('Authorization')).toBe('Bearer tok-1')
