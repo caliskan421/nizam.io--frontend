@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
         @keydown="onKeydown"
       >
         <header class="t-modal__head">
-          <div>
+          <div class="ui-confirm__head">
             <h2 :id="`${id}-title`" class="t-modal__title">{{ request.options.title }}</h2>
             <p v-if="request.options.description" :id="`${id}-desc`" class="t-modal__desc">
               {{ request.options.description }}
