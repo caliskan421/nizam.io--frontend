@@ -12,7 +12,7 @@
  * operationId listesi olarak tutar; `invalidationFilters()` bir mutasyon için TanStack
  * filtrelerini üretir. Yazma sonrası yeniden okuma budur; iyimser güncelleme yoktur (§7).
  */
-import type { QueryKey } from '@tanstack/vue-query'
+import { hashKey, partialMatchKey, type QueryKey } from '@tanstack/vue-query'
 
 import type { OperationMeta } from '@/shared/api/operations.gen'
 import { QUERY_KEY_ROOT, scopedKey, type ScopeSnapshot } from '@/shared/scope/scope'
@@ -615,7 +615,7 @@ const CHILD_TRASH_WRITES = [
  * değiştiren uçlar (geri yükleme, kalıcı silme, aktarım, nottan/mesajdan görev) satırın
  * kaynağına eklendi; fazla geçersizleme güvenlidir, eksik geçersizleme bayat veri gösterir.
  */
-export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]>> = {
+const BASE_INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]>> = {
   // Yalnız yeniden yükleme.
   'instance.profile': [],
   // Bildirim okundu yazmaları sayaç + panel listesini BİRLİKTE yeniler (KESİN 29; rozet ↔ sekme
@@ -904,6 +904,61 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   ),
 }
 
+/**
+ * Departman zinciri (ADR-0043; W199): geri alınabilir silme, geri yükleme, kalıcı silme ve üç toplu
+ * uç ŞİRKET GENELİNDE bütün programlardaki görevi, dosyayı, bağı ve ekibi etkiler; eylemin dondurulmuş
+ * programı yalnız başlıktır. Bu uçlar için aşağıdaki kaynaklar `acrossPrograms` ile bütün programların
+ * önbelleğinde yenilenir (`invalidationFilters`). Başka program kapsamlı yazmalar (dosya, görev) dar kalır.
+ */
+export const DEPARTMENT_CHAIN_WRITES = DEPARTMENT_PARENT_WRITES
+/** Zincirin yalnız kalıcı silme kollarında değişenler: ekip satırları ve kaynaklı sohbet grubu. */
+const DEPARTMENT_PURGE_WRITES = [
+  'permanentDeleteDepartment',
+  'batchPurgeDepartments',
+  'purgeAllDepartments',
+] as const satisfies readonly OperationId[]
+
+/** Zincir uçlarının kaynak başına eklediği geçersizleme (görev, çöp, dosya, rapor, arşiv, toplantı adı). */
+const DEPARTMENT_CHAIN_RESOURCES: Readonly<Partial<Record<QueryResource, readonly OperationId[]>>> =
+  {
+    deletedWorkItems: DEPARTMENT_CHAIN_WRITES,
+    deletedFiles: DEPARTMENT_CHAIN_WRITES,
+    deletedSubtasks: DEPARTMENT_CHAIN_WRITES,
+    deletedTaskNotes: DEPARTMENT_CHAIN_WRITES,
+    'workItems.list': DEPARTMENT_CHAIN_WRITES,
+    'workItems.item': DEPARTMENT_CHAIN_WRITES,
+    'workItems.counts': DEPARTMENT_CHAIN_WRITES,
+    'workItems.subtasks': DEPARTMENT_CHAIN_WRITES,
+    'workItems.notes': DEPARTMENT_CHAIN_WRITES,
+    'workItems.files': DEPARTMENT_CHAIN_WRITES,
+    'workItems.dependencies': DEPARTMENT_CHAIN_WRITES,
+    gantt: DEPARTMENT_CHAIN_WRITES,
+    dateRequests: DEPARTMENT_CHAIN_WRITES,
+    archive: DEPARTMENT_CHAIN_WRITES,
+    report: DEPARTMENT_CHAIN_WRITES,
+    'report.task': DEPARTMENT_CHAIN_WRITES,
+    // Toplantı satırındaki departman `deleted` bayrağı ve ad kopyası (COLLABORATION-K14).
+    meetings: DEPARTMENT_CHAIN_WRITES,
+    'chats.refSummary': DEPARTMENT_CHAIN_WRITES,
+    'chats.messageTasks': DEPARTMENT_CHAIN_WRITES,
+    'chats.sharedCounts': DEPARTMENT_CHAIN_WRITES,
+    // Kalıcı silme program bağını kaldırır: ekip satırları gider, kaynaklı sohbet grubu kapanır.
+    'departments.members': DEPARTMENT_PURGE_WRITES,
+    'departments.assignable': DEPARTMENT_PURGE_WRITES,
+    'chats.list': DEPARTMENT_PURGE_WRITES,
+    'chats.detail': DEPARTMENT_PURGE_WRITES,
+    'chats.members': DEPARTMENT_PURGE_WRITES,
+    'chats.unreadOverview': DEPARTMENT_PURGE_WRITES,
+  }
+
+export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]>> =
+  Object.fromEntries(
+    (Object.keys(BASE_INVALIDATED_BY) as QueryResource[]).map((resource) => [
+      resource,
+      unique(BASE_INVALIDATED_BY[resource], DEPARTMENT_CHAIN_RESOURCES[resource] ?? []),
+    ]),
+  ) as Record<QueryResource, readonly OperationId[]>
+
 /** Mutasyonun hedef kaydı; verilmezse ilgili kaynağın kapsamdaki bütün kayıtları geçersizlenir. */
 export interface InvalidationContext {
   workItemId?: string
@@ -1152,13 +1207,56 @@ export function resourcesInvalidatedBy(operation: OperationId): QueryResource[] 
   )
 }
 
+/**
+ * Kapsamlı bir filtreyi bütün programlara/departmanlara genişletir: her önbellek anahtarı kendi
+ * kapsamıyla (`program`/`department`/`lens`) aynı kaynak filtresine sorulur. Kapsamsız (hesap geneli)
+ * filtre olduğu gibi kalır. `queryClient.clear/reset` ya da genel "hepsi" bayrağı yoktur.
+ */
+function acrossPrograms(
+  resource: QueryResource,
+  scope: ScopeSnapshot,
+  ctx: InvalidationContext,
+): InvalidationFilter | null {
+  // Kaynağın kapsamlı olup olmadığı örnek bir kapsamla sınanır (program yoksa bazı filtreler null döner).
+  const probe = FILTERS[resource]({ programId: 'probe', departmentId: null }, ctx)
+  if (probe === null) return null
+  const scopedResource =
+    probe.queryKey[0] === QUERY_KEY_ROOT &&
+    (probe.queryKey.length === 1 || isScopedQueryKey(probe.queryKey))
+  if (!scopedResource) return FILTERS[resource](scope, ctx)
+  return {
+    queryKey: [QUERY_KEY_ROOT],
+    predicate: (query) => {
+      const key = query.queryKey
+      if (!isScopedQueryKey(key)) return false
+      const head = key[1] as {
+        program: string | null
+        department: string | null
+        lens?: ScopeSnapshot['lens']
+      }
+      const filter = FILTERS[resource](
+        { programId: head.program, departmentId: head.department, lens: head.lens ?? null },
+        ctx,
+      )
+      if (filter === null) return false
+      const hit = filter.exact
+        ? hashKey(filter.queryKey) === hashKey(key)
+        : partialMatchKey(key, filter.queryKey)
+      return hit && (filter.predicate?.(query) ?? true)
+    },
+  }
+}
+
 /** Başarılı bir mutasyondan sonra yeniden okunacak sorguların filtreleri. */
 export function invalidationFilters(
   operation: OperationId,
   scope: ScopeSnapshot,
   ctx: InvalidationContext = {},
 ): InvalidationFilter[] {
+  const companyWide = (DEPARTMENT_CHAIN_WRITES as readonly OperationId[]).includes(operation)
   return resourcesInvalidatedBy(operation)
-    .map((resource) => FILTERS[resource](scope, ctx))
+    .map((resource) =>
+      companyWide ? acrossPrograms(resource, scope, ctx) : FILTERS[resource](scope, ctx),
+    )
     .filter((f): f is InvalidationFilter => f !== null)
 }
