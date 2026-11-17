@@ -7,7 +7,7 @@
  * sabit, gövde `type` sözlüğünden GENEL cümledir (aktör/başlık/kod/tarih yok). Aşağıdaki sözlük ve
  * hedef eşlemesi `src/modules/notifications/model/{dictionary,target}.ts` ile `trNotifications.rows`
  * cümlelerinin KOPYASIDIR (service worker paket dışıdır, içe aktaramaz); sapmayı
- * `src/modules/notifications/api/sw.test.ts` yakalar. Okundu İŞARETLENMEZ: service worker oturum
+ * `src/modules/notifications/__tests__/sw.test.ts` yakalar. Okundu İŞARETLENMEZ: service worker oturum
  * belirteci taşımaz; okundu portal açılınca satır tıklamasıyla olur.
  */
 'use strict'
@@ -28,6 +28,11 @@ const TYPE_TEXT = {
   'organization.membership.removed': 'Ekipten üye çıkarıldı',
   'organization.membership.role_changed': 'Ekipte üye rolü değişti',
   'program.transfer.completed': 'Görev aktarımı tamamlandı',
+  'messaging.message.mentioned': 'Bir sohbette senden bahsedildi',
+  'messaging.message.sent': 'Sohbette yeni mesaj var',
+  'collaboration.meeting.reminder': 'Toplantı hatırlatması',
+  'collaboration.meeting.rescheduled': 'Toplantının saati değişti',
+  'work.digest.daily': 'Günlük özetin hazır',
 }
 // Rota kataloğundaki `id` kuralıyla aynı: geçersiz kimlik gezinme üretmez (`/` açılır).
 const ID_VALUE = /^[A-Za-z0-9_-]{1,128}$/
@@ -52,11 +57,17 @@ function bodyText(type) {
     : FALLBACK_TEXT
 }
 
-/** `subject_ref` → portal yolu (E-14-76); hedef yoksa `/`. membership/bilinmeyen: `/`. */
+/**
+ * `subject_ref` → portal yolu (E-14-76); hedef yoksa `/`. membership/bilinmeyen: `/`. Sohbet
+ * `/mesajlar/<id>` (push yükünde `seq` yok: ilk okunmamışa panel satırı götürür); günlük özet
+ * (`program`) ana sayfa. Program kapsamı yük taşımaz: seçili programda bulunamazsa ilgili ekranın
+ * kendi "bulunamadı" akışı çalışır (program geçişini yalnız panel satırı yapar).
+ */
 function targetPath(ref) {
   if (!isRecord(ref) || typeof ref.id !== 'string' || !ID_VALUE.test(ref.id)) return '/'
   if (ref.kind === 'work_item') return '/gorevler?gorev=' + encodeURIComponent(ref.id)
   if (ref.kind === 'meeting') return '/toplantilar/' + encodeURIComponent(ref.id)
+  if (ref.kind === 'chat') return '/mesajlar/' + encodeURIComponent(ref.id)
   return '/'
 }
 
