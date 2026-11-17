@@ -8,7 +8,10 @@ import {
   badgeCount,
   chatTime,
   chatTitle,
+  isCoordinatorsGroup,
+  isMuted,
   isSystemGroup,
+  listTick,
   parseFilter,
   previewOf,
   serverFilter,
@@ -43,13 +46,17 @@ describe('süzgeç (E-10-06)', () => {
 })
 
 describe('K-1 pin v0.25: coordinators / bilinmeyen kaynak geri düşüşü (ADR-0051)', () => {
-  it('coordinators avatarı çizilmez: serbest grup gibi 2 baş harf; bölüm/genel kodu çıkmaz', () => {
+  it('coordinators (BE-160): sistem avatarı "K" (bölüm/genel kodu çıkmaz); bilinmeyen değer serbest grup', () => {
     const coordinators = chat({
       auto_kind: 'coordinators',
       source: 'coordinators',
       name: 'Koordinatörler',
     })
-    expect(avatarOf(coordinators, 'sis')).toEqual({ kind: 'grp', text: 'K' })
+    expect(avatarOf(coordinators, 'sis')).toEqual({ kind: 'sys', text: 'K' })
+    expect(avatarOf(chat({ source: 'coordinators', name: 'Koordinatörler' }))).toEqual({
+      kind: 'sys',
+      text: 'K',
+    })
     // Bilinmeyen gelecekteki değer de aynı geri düşüşü alır.
     const unknown = chat({
       auto_kind: 'yeni_tur' as ChatSummary['auto_kind'],
@@ -62,6 +69,27 @@ describe('K-1 pin v0.25: coordinators / bilinmeyen kaynak geri düşüşü (ADR-
   it('kendiliğinden kurulan (auto_kind dolu) grup sistem grubu sayılır; null değil', () => {
     expect(isSystemGroup(chat({ auto_kind: 'coordinators' }))).toBe(true)
     expect(isSystemGroup(chat({ auto_kind: null }))).toBe(false)
+    expect(isSystemGroup(chat({ auto_kind: 'yeni_tur' as ChatSummary['auto_kind'] }))).toBe(false)
+    expect(isCoordinatorsGroup(chat({ source: 'coordinators' }))).toBe(true)
+    expect(isCoordinatorsGroup(chat({ auto_kind: 'general' }))).toBe(false)
+  })
+
+  it('liste tiki (BE-082 peer_read_seq): yalnız birebirde son mesajım; imleç ≥ seq → read', () => {
+    const mineLast = last({ sender_account_id: 'u1', seq: 7 })
+    const dm = (over: Partial<ChatSummary>) =>
+      chat({ kind: 'direct', name: null, last_message: mineLast, ...over })
+    expect(listTick(dm({ peer_read_seq: 7 }), 'u1')).toBe('read')
+    expect(listTick(dm({ peer_read_seq: 6 }), 'u1')).toBe('sent')
+    expect(listTick(dm({ peer_read_seq: null }), 'u1')).toBeNull()
+    expect(listTick(dm({ kind: 'group', peer_read_seq: 9 }), 'u1')).toBeNull()
+    expect(listTick(dm({ peer_read_seq: 9, last_message: last({ seq: 7 }) }), 'u1')).toBeNull()
+    expect(listTick(dm({ peer_read_seq: 9 }), null)).toBeNull()
+  })
+
+  it('sessiz rozeti yalnız notify_level none (BE-027 liste yüzü); yoksa all', () => {
+    expect(isMuted(chat({ notify_level: 'none' }))).toBe(true)
+    expect(isMuted(chat({ notify_level: 'mentions' }))).toBe(false)
+    expect(isMuted(chat({ notify_level: undefined }))).toBe(false)
   })
 })
 

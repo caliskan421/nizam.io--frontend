@@ -183,6 +183,20 @@ li:has(> .chat-row[aria-current='true']) + li > .chat-row::before {
 .chat-row--unread .chat-row__prev {
   font-weight: 600;
 }
+.chat-row__tick {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-inline-end: var(--ui-gap-2xs);
+  color: var(--ink-faint);
+}
+.chat-row__tick--read {
+  color: var(--accent-text);
+}
+.chat-row__mute {
+  flex: none;
+  display: inline-flex;
+  color: var(--ink-faint);
+}
 .chat-row__pin {
   flex: none;
   display: inline-flex;

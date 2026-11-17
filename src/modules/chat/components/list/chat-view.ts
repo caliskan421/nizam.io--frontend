@@ -63,13 +63,15 @@ function initials(name: string, count: number): string {
 }
 
 /**
- * E-10-09: `general` → "G"; koordinatörlük grubu (`auto_kind`/`source` = department) → katalog
+ * E-10-09: `general` → "G"; "Koordinatörler" sistem grubu (`auto_kind`/`source` = coordinators,
+ * BE-160) → "K"; koordinatörlük grubu (`auto_kind`/`source` = department) → katalog
  * kodunun 3 harfi (kod yoksa ad baş harfleri); serbest grup → 2 baş harf; birebir → karşı tarafın
- * baş harfleri. "Koordinatörler" sistem grubu ("K") çizilmez (BE-160).
+ * baş harfleri. Bilinmeyen `auto_kind`/`source` değeri `none` gibi serbest grup sayılır (K-1).
  */
 export function avatarOf(chat: ChatSummary, departmentCode?: string): ChatAvatar {
   const title = chatTitle(chat)
   if (chat.auto_kind === 'general') return { kind: 'sys', text: 'G' }
+  if (isCoordinatorsGroup(chat)) return { kind: 'sys', text: 'K' }
   if (chat.auto_kind === 'department' || chat.source === 'department') {
     const code = departmentCode?.trim()
     return {
@@ -81,9 +83,30 @@ export function avatarOf(chat: ChatSummary, departmentCode?: string): ChatAvatar
   return { kind: 'person', text: initials(title, 2) }
 }
 
-/** İğne simgesi yalnız kendiliğinden kurulan (sistem) gruplarda (E-10-13). */
+/** "Koordinatörler" sistem grubu (BE-160; program başına, silinemez/kaynağı değişmez). */
+export const isCoordinatorsGroup = (chat: Pick<ChatSummary, 'auto_kind' | 'source'>): boolean =>
+  chat.auto_kind === 'coordinators' || chat.source === 'coordinators'
+
+const SYSTEM_KINDS: readonly (string | null)[] = ['general', 'department', 'coordinators']
+
+/** İğne simgesi yalnız bilinen kendiliğinden kurulan (sistem) gruplarda (E-10-13); bilinmeyen değer düşer. */
 export const isSystemGroup = (chat: Pick<ChatSummary, 'auto_kind'>): boolean =>
-  chat.auto_kind !== null
+  SYSTEM_KINDS.includes(chat.auto_kind)
+
+/**
+ * Birebir son mesajım için liste tiki (BE-082 `peer_read_seq`): karşı imleç mesajıma ulaştıysa
+ * `read`, değilse `sent`; grupta, karşı imleç bilinmiyorsa, silinmiş/başkasının mesajında `null`.
+ */
+export function listTick(chat: ChatSummary, meAccountId: string | null): 'sent' | 'read' | null {
+  const last = chat.last_message
+  if (chat.kind !== 'direct' || last === null || last.deleted || meAccountId === null) return null
+  if (last.sender_account_id !== meAccountId || chat.peer_read_seq === null) return null
+  return last.seq <= chat.peer_read_seq ? 'read' : 'sent'
+}
+
+/** Sessiz rozeti (BE-027 liste yüzü): yalnız `notify_level === 'none'`; yoksa `all`. Sayaç bağımsızdır. */
+export const isMuted = (chat: Pick<ChatSummary, 'notify_level'>): boolean =>
+  chat.notify_level === 'none'
 
 /** Rozet sayısı: 99'dan büyükse "99+" (E-10-14). */
 export const badgeCount = (n: number): string => (n > 99 ? '99+' : String(n))

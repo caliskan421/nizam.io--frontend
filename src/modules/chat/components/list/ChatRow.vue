@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
  * Konuşma satırı (E-10-08…E-10-15): tek `button`; seçili olan `aria-current="true"`. Avatar, ad,
- * zaman, önizleme, sistem grubu iğnesi ve okunmamış / bahsetme rozeti. Sessiz rozet yok (P61,
- * BE-027); birebir okundu tiki listede yok (BE-082). Süs avatarı erişim adına girmez.
+ * zaman, önizleme, sistem grubu iğnesi, sessiz rozeti (`notify_level = none`, BE-027; okunmamış
+ * sayacı seviyeden bağımsızdır) ve okunmamış / bahsetme rozeti. Birebirde son mesajım için okundu
+ * tiki `peer_read_seq`'ten (BE-082). Süs avatarı erişim adına girmez.
  */
 import { computed } from 'vue'
 
@@ -10,7 +11,16 @@ import { UiIcon } from '@/shared/ui'
 
 import { chatText } from '../../messages'
 import type { ChatSummary } from '../../model/types'
-import { avatarOf, badgeCount, chatTime, chatTitle, isSystemGroup, previewOf } from './chat-view'
+import {
+  avatarOf,
+  badgeCount,
+  chatTime,
+  chatTitle,
+  isMuted,
+  isSystemGroup,
+  listTick,
+  previewOf,
+} from './chat-view'
 
 const props = defineProps<{
   chat: ChatSummary
@@ -34,6 +44,8 @@ const time = computed(() =>
   ),
 )
 const preview = computed(() => previewOf(props.chat, props.meAccountId))
+const tick = computed(() => listTick(props.chat, props.meAccountId))
+const muted = computed(() => isMuted(props.chat))
 const unread = computed(() => props.chat.unread_count > 0)
 const badged = computed(() => unread.value || props.chat.mentioned)
 const badgeLabel = computed(() =>
@@ -62,7 +74,28 @@ const badgeLabel = computed(() =>
       </span>
       <span class="chat-row__top">
         <span class="chat-row__prev rp-trunc">
+          <span
+            v-if="tick"
+            class="chat-row__tick"
+            :class="{ 'chat-row__tick--read': tick === 'read' }"
+            data-testid="chat-row-tick"
+            role="img"
+            :aria-label="
+              tick === 'read' ? chatText('chat.thread.read') : chatText('chat.thread.sent')
+            "
+          >
+            <UiIcon :name="tick === 'read' ? 'chat-tick' : 'check'" size="sm" />
+          </span>
           <template v-if="preview">{{ preview.prefix }}{{ preview.text }}</template>
+        </span>
+        <span
+          v-if="muted"
+          class="chat-row__mute"
+          data-testid="chat-row-muted"
+          role="img"
+          :aria-label="chatText('chat.list.mutedBadge')"
+        >
+          <UiIcon name="bell" size="sm" />
         </span>
         <span
           v-if="isSystemGroup(chat)"

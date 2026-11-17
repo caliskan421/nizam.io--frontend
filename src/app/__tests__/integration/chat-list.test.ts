@@ -136,6 +136,46 @@ describe('sayfalama ve süzgeç', () => {
   })
 })
 
+describe('liste satırı: Koordinatörler grubu, sessiz rozeti, okundu tiki (BE-160, BE-027, BE-082)', () => {
+  it('Koordinatörler sistem grubu "K" avatarı + iğne ile gelir; sessiz grupta sayaç seviyeden bağımsız aynen görünür', async () => {
+    const group = makeChat(
+      'kg',
+      'group',
+      [member(WHO.admin.account_id, 'admin'), member(WHO.coord.account_id)],
+      { name: 'Koordinatörler', auto_kind: 'coordinators', source: 'coordinators' },
+    )
+    addMessage(group, WHO.coord, 'Haftalık toplantı')
+    addMessage(group, WHO.coord, 'Gündem eklendi')
+    group.reads[WHO.admin.account_id] = 0
+    group.notify_levels = { [WHO.admin.account_id]: 'none' }
+    chat.state.chats.push(group)
+    const app = await boot({ ...ADMIN, path: '/mesajlar' })
+    await until(() => $('[data-chat-id="kg"]'), 'Koordinatörler satırı')
+    const row = $('[data-chat-id="kg"]')!
+    expect(row.querySelector('.chat-av')?.textContent?.trim()).toBe('K')
+    expect(row.querySelector('.chat-av--sys')).not.toBeNull()
+    expect(row.querySelector('.chat-row__pin')).not.toBeNull()
+    expect(row.querySelector('[data-testid="chat-row-muted"]')).not.toBeNull()
+    expect(row.querySelector('.chat-row__badge')?.textContent?.trim()).toBe('2')
+    expect($(`[data-chat-id="${GROUP}"] [data-testid="chat-row-muted"]`)).toBeNull()
+    await idle(app.queryClient)
+  })
+
+  it('birebirde son mesajım: tik karşı tarafın `peer_read_seq` imlecinden (gönderildi → okundu)', async () => {
+    const dm = chatOf('dm2')
+    addMessage(dm, WHO.admin, 'Raporu aldım')
+    dm.reads[WHO.member.account_id] = 1
+    const app = await boot({ ...ADMIN, path: '/mesajlar' })
+    await until(() => $('[data-chat-id="dm2"] [data-testid="chat-row-tick"]'), 'tik')
+    const tick = () => $('[data-chat-id="dm2"] [data-testid="chat-row-tick"]')
+    expect(tick()?.getAttribute('aria-label')).toBe('Gönderildi')
+    dm.reads[WHO.member.account_id] = 2
+    await app.queryClient.invalidateQueries()
+    await until(() => tick()?.getAttribute('aria-label') === 'Okundu', 'okundu tiki')
+    await idle(app.queryClient)
+  })
+})
+
 describe('arama', () => {
   it('terim sunucuya 300 ms gecikmeyle gider (`q`); Enter gecikmeyi atlar; temizlenince tam liste', async () => {
     const app = await boot({ ...ADMIN, path: '/mesajlar' })

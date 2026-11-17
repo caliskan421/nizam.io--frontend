@@ -23,6 +23,7 @@ export const trChat = {
       filterPeople: 'Kişiler',
       more: 'Daha fazla yükle',
       unreadBadge: '{n} okunmamış mesaj',
+      mutedBadge: 'Bildirimler kapalı',
       mentionBadge: 'Sizi anan okunmamış mesaj var',
       you: 'Sen: ',
       deletedPreview: 'silinmiş mesaj',

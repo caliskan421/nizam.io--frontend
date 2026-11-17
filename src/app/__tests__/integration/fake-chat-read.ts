@@ -79,7 +79,7 @@ function summary(db: OrgDb, chat: FakeChat, me: string) {
       : null,
     first_unread_seq: firstUnreadSeq(chat, me),
     mentioned: mentionedIn(chat, me),
-    notify_level: 'all' as const,
+    notify_level: chat.notify_levels?.[me] ?? ('all' as const),
     peer_read_seq: peerRead(chat, me),
     read_seq: chat.reads[me] ?? 0,
     unread_count: unreadOf(chat, me),

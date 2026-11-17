@@ -27,8 +27,8 @@ export interface FakeChat {
   program_id: string
   kind: 'direct' | 'group'
   name: string | null
-  auto_kind: 'department' | 'general' | null
-  source: 'none' | 'department' | 'program'
+  auto_kind: 'department' | 'general' | 'coordinators' | null
+  source: 'none' | 'department' | 'program' | 'coordinators'
   source_department_id: string | null
   created_by: string
   created_at: string
@@ -38,6 +38,8 @@ export interface FakeChat {
   reads: Record<string, number>
   /** Son atanan `seq` (silinse de azalmaz). */
   last_seq: number
+  /** Hesap → bildirim seviyesi (liste satırı `notify_level`; yoksa `all`). */
+  notify_levels?: Record<string, 'all' | 'mentions' | 'none'>
 }
 
 export type SendFault = 'ok' | 'unavailable' | 'lost-response'

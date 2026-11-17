@@ -112,6 +112,21 @@ describe('grup rolü: üye yönetimi, ad, silme, sabitleme, @herkes', () => {
     expect(caps.deleteMessage(messageFacts(msg(1, { sender_account_id: 'me' })))).toBe(true)
   })
 
+  it('"Koordinatörler" sistem grubu (BE-160): silme/kaynak değiştirme gizli, mesaj yetkisi aynı; bilinmeyen değer korumasız', () => {
+    const facts = (autoKind: string | null, source: string) =>
+      ({ ...group('admin'), autoKind, source }) as unknown as Parameters<typeof chatCapabilities>[1]
+    for (const [autoKind, source] of [
+      ['coordinators', 'coordinators'],
+      [null, 'coordinators'],
+      ['coordinators', 'none'],
+    ] as const) {
+      const caps = chatCapabilities(COORD, facts(autoKind, source))
+      expect(caps).toMatchObject({ deleteGroup: false, changeSource: false, addMembers: true })
+    }
+    const unknown = chatCapabilities(COORD, facts('yeni_tur', 'yeni_kaynak'))
+    expect(unknown).toMatchObject({ deleteGroup: true, changeSource: true })
+  })
+
   it('yönetici (admin): her mesajı siler, yönetici yapar; kaynak ayarı yalnız ŞY/K ile', () => {
     const caps = chatCapabilities(COORD, group('admin'))
     expect(caps.deleteMessage(messageFacts(msg(1, { sender_account_id: 'u2' })))).toBe(true)
