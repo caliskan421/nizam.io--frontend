@@ -8,10 +8,14 @@
  *    (`readCurrent` güncel mesajı `around` ile okur, kullanıcı karar verir, otomatik tekrar yok).
  *  - Tepki/oy/sabit/anket bitirme 204 döner: doğrulama `around=<seq>` okumasıdır.
  */
-import { api } from '@/shared/http'
-import { useProtectedMutation } from '@/shared/http/mutation'
+import { api, authSession } from '@/shared/http'
+import { ApiError } from '@/shared/errors/api-error'
+import { sameScope, useProtectedMutation } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
+import { SessionChangedError } from '@/shared/session/query-session'
+import { pushAppNotice } from '@/shared/ui'
 
+import { chatText } from '../messages'
 import { removeMessage, upsertMessage } from '../model/window'
 import { refreshAround } from '../model/window-io'
 import type {
@@ -41,10 +45,17 @@ import { patchWindow, windowStore } from './window-cache'
 
 const NOT_FOUND = 'messaging.message_not_found'
 
-/** `message.updated` benzeri: yerel `seq` çevresini okuyup yereli günceller (sahip yaşıyorsa). */
-async function refreshMessage<V extends MessageTarget>(fx: EffectBase<V>): Promise<void> {
-  if (!fx.alive()) return
+/**
+ * `message.updated` benzeri: yerel `seq` çevresini okuyup yereli günceller (sahip yaşıyorsa).
+ * Yazma sunucuda kaydedilmiştir; yeniden okuma yalnız doğrulama/tazelemedir. Okuma `ApiError`
+ * (HTTP/ağ) ya da oturum değişimiyle düşerse yazmanın sonucu bozulmaz, okuma tekrarlanmaz ve yazma
+ * yeniden gönderilmez; pencere olduğu gibi kalır. Diğer (programlama) hataları yutulmaz.
+ * Dönüş: sahip/kapsam/oturum hâlâ geçerliyken okuma başarısız oldu mu (kullanıcıya bildirilir).
+ */
+async function rereadMessage<V extends MessageTarget>(fx: EffectBase<V>): Promise<boolean> {
+  if (!fx.alive()) return false
   const scopeStore = useScopeStore()
+  const generation = authSession.generation
   const store = windowStore(
     fx.client,
     fx.scope,
@@ -52,9 +63,35 @@ async function refreshMessage<V extends MessageTarget>(fx: EffectBase<V>): Promi
     () => scopeStore.snapshot,
     fx.alive,
   )
-  if (store.get().items.length === 0) return
+  if (store.get().items.length === 0) return false
   const read = messageReader(fx.scope.programId!, fx.vars.chatId, new AbortController().signal)
-  await refreshAround(read, store, fx.vars.seq)
+  try {
+    await refreshAround(read, store, fx.vars.seq)
+  } catch (error) {
+    if (!(error instanceof ApiError || error instanceof SessionChangedError)) throw error
+    return (
+      fx.alive() &&
+      sameScope(fx.scope, scopeStore.snapshot) &&
+      generation === authSession.generation
+    )
+  }
+  return false
+}
+
+/** Başarılı yazma sonrası tazeleme: okunamadıysa "kaydedildi, yenilenemedi" bildirimi (tek). */
+async function refreshMessage<V extends MessageTarget>(fx: EffectBase<V>): Promise<void> {
+  const generation = authSession.generation
+  if (await rereadMessage(fx)) {
+    pushAppNotice(
+      { message: chatText('chat.thread.savedRefreshFailed'), tone: 'danger' },
+      generation,
+    )
+  }
+}
+
+/** Başarısız yazma sonrası (oy/anket kapanmış) en iyi çaba okuma: sessiz; hata dışarı sızmaz. */
+async function refreshMessageQuietly<V extends MessageTarget>(fx: EffectBase<V>): Promise<void> {
+  await rereadMessage(fx)
 }
 
 function upsert<V extends ChatTarget>(fx: WriteEffects<V, ChatMessage>): void {
@@ -350,7 +387,7 @@ export function useVoteChatPoll() {
     }),
     {
       onSuccess: refreshMessage,
-      onFailure: refreshMessage,
+      onFailure: refreshMessageQuietly,
     },
   )
 }
@@ -371,7 +408,7 @@ export function useCloseChatPoll() {
     }),
     {
       onSuccess: refreshMessage,
-      onFailure: refreshMessage,
+      onFailure: refreshMessageQuietly,
     },
   )
 }
