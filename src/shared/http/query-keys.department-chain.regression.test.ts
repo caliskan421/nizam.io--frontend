@@ -26,7 +26,7 @@ function chainKeys(scope: (typeof scopes)[number]) {
     queryKeys.workItems.counts(scope, filters),
     queryKeys.workItems.files(scope, 'task-1'),
     queryKeys.gantt.face(scope, 'all'),
-    queryKeys.archive.list(scope, 'files', filters),
+    queryKeys.archive.list(scope, 'attachments', filters),
     queryKeys.report.dashboard(scope),
     queryKeys.report.season(scope),
     queryKeys.report.task(scope, 'task-1'),
