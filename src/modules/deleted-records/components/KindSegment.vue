@@ -27,7 +27,7 @@ function onKeydown(event: KeyboardEvent): void {
 <template>
   <div
     ref="root"
-    class="rp-seg"
+    class="rp-seg dr-seg"
     role="group"
     :aria-label="deletedText('kinds.label')"
     data-testid="dr-kinds"

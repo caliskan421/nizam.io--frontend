@@ -607,3 +607,13 @@
     font: var(--text-body);
   }
 }
+
+@layer components {
+  /* Sekiz görünümlü segment: dar ekranda kendi içinde kaymaz, alt satıra sarılır; her düğme
+     görünür ve klavyeyle erişilebilir kalır. Paylaşılan `.rp-seg` stiline dokunulmaz (yerel
+     değiştirici); geniş ekranda tek satır yerleşimi aynıdır. */
+  .dr-page .rp-seg.dr-seg {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}

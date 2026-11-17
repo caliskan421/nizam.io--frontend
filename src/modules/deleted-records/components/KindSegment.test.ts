@@ -40,6 +40,13 @@ describe('KindSegment (E-12-08…16, P41; v0.26 sekiz görünüm)', () => {
     wrapper.unmount()
   })
 
+  it('yerel sarma değiştiricisi var; paylaşılan segment sınıfı korunur', () => {
+    const wrapper = mountSegment()
+    const root = wrapper.get('[data-testid="dr-kinds"]')
+    expect(root.classes()).toEqual(expect.arrayContaining(['rp-seg', 'dr-seg']))
+    wrapper.unmount()
+  })
+
   it('sayaçlar özetten ve kesin; özet yoksa hiç çizilmez', async () => {
     const wrapper = mountSegment()
     expect(wrapper.findAll('.rp-count').map((c) => c.text())).toEqual([
