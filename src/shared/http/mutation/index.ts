@@ -38,4 +38,5 @@ export {
   type ProtectedMutation,
   type ProtectedMutationOptions,
   type SubmitOptions,
+  toPlainVars,
 } from './use-protected-mutation'
