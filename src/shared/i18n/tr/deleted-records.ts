@@ -45,6 +45,18 @@ export const trDeletedRecords = {
       koordinatorluk: 'koordinatörlük',
       kullanici: 'kullanıcı',
     },
+    // v0.26 çocuk türleri ve birleşik liste: tür adları (W193 etiketleri/onaylar bu adları kullanır).
+    lifecycleKinds: {
+      tasks: 'görev',
+      subtasks: 'alt görev',
+      files: 'dosya',
+      meetings: 'toplantı',
+      task_notes: 'görev notu',
+      meeting_notes: 'toplantı notu',
+      agenda_items: 'gündem maddesi',
+      departments: 'koordinatörlük',
+      accounts: 'kullanıcı',
+    },
     filters: {
       range: {
         label: 'Silinme tarihi aralığı',
@@ -162,6 +174,16 @@ export const trDeletedRecords = {
       writeClosed: 'Yazma şu anda kapalı.',
       ownAccount: 'Kendi hesabınız kalıcı silinemez.',
       conflictRetry: 'Kayıt başka bir işlemle çakıştı, yeniden deneyin.',
+      // v0.26 çocuk türleri: geri yükleme ve kalıcı silme sonuçları.
+      restoredRenamed:
+        '{title} geri yüklendi; aynı ad görevde kullanıldığı için “{name}” olarak adlandırıldı.',
+      parentTaskDeleted: 'Önce kaydın bağlı olduğu görevi geri yükleyin.',
+      parentMeetingDeleted: 'Önce kaydın bağlı olduğu toplantıyı geri yükleyin.',
+      fileLimit: 'Görevin dosya sınırına ulaşıldı; dosya geri yüklenemedi.',
+      subtaskLimit: 'Görevin alt görev sınırına ulaşıldı; alt görev geri yüklenemedi.',
+      subtaskCompleted: 'Görev tamamlanmış; açık alt görev geri yüklenemez.',
+      agendaLimit: 'Toplantının gündem sınırına ulaşıldı; madde geri yüklenemedi.',
+      transferActive: 'Devam eden bir aktarım nedeniyle işlem yapılamadı.',
       dismiss: 'Kapat',
     },
     // Toplu işlem çubuğu ve sonuç özeti (E-12-21/22/23; BE-114).

@@ -43,3 +43,19 @@ export const usePurgeAllAccounts = () =>
         signal: ctx.signal,
       }),
   })
+
+/**
+ * Koordinatörlük çöpü boşalt (BE-163; ORGANIZATION-K65): küme `scope=program` ile AÇIKÇA seçilir
+ * (sunucu varsayılanı `company`'dir; programa bağlı silinmişleri silemez, burada kullanılmaz).
+ * Tablo engelli kayıtlar `organization.department_in_use` ile `failed[]`'te kalır. UI W193'tedir.
+ */
+export const usePurgeAllDepartments = () =>
+  useKeylessMutation<PurgeAllTarget, DeletedBatchResult>({
+    operation: 'purgeAllDepartments',
+    send: (v, ctx) =>
+      api.POST('/v1/admin/deleted/departments/purge-all', {
+        params: { header: programHeaders(v), query: { scope: 'program' as const } },
+        body: { confirm: v.confirm },
+        signal: ctx.signal,
+      }),
+  })

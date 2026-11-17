@@ -13,7 +13,7 @@ import type { ListQuery } from '../model/filters'
 /** İstemci 1…200 tam sayı gönderir (sınır dışı hiç gitmez; `backend.md` çerçeve). */
 export const DELETED_PAGE_LIMIT = 200
 
-function page(query: ListQuery, cursor: string | undefined) {
+export function page(query: ListQuery, cursor: string | undefined) {
   return { limit: DELETED_PAGE_LIMIT, ...query, ...(cursor ? { cursor } : {}) }
 }
 

@@ -15,6 +15,7 @@ import {
 import type { QueryResource } from './query-keys'
 
 const S = { programId: 'p1', departmentId: null }
+const f = { limit: 50 }
 
 const RELATIONS: ReadonlyArray<[OperationId[], QueryResource[]]> = [
   [
@@ -75,6 +76,148 @@ const RELATIONS: ReadonlyArray<[OperationId[], QueryResource[]]> = [
     ['restoreAccount', 'permanentDeleteAccount'],
     ['deletedAccounts', 'users', 'departments.members', 'departments.assignable', 'report'],
   ],
+  // v0.26 çocuk çöpleri (W192): tür başına beş yönetim ucu + canlı yüzden yumuşak silme.
+  [
+    ['restoreFile', 'permanentDeleteFile', 'batchRestoreFiles', 'batchPurgeFiles', 'purgeAllFiles'],
+    [
+      'deletedFiles',
+      'deletedRecords',
+      'deletedSummary',
+      'deletedWorkItems',
+      'archive',
+      'workItems.files',
+      'workItems.item',
+      'workItems.list',
+      'report.task',
+      'chats.sharedCounts',
+      'chats.attachments',
+      'report',
+    ],
+  ],
+  [
+    ['deleteFile'],
+    [
+      'deletedFiles',
+      'deletedRecords',
+      'deletedSummary',
+      'deletedWorkItems',
+      'archive',
+      'workItems.files',
+      'workItems.item',
+      'chats.sharedCounts',
+      'report',
+    ],
+  ],
+  [
+    [
+      'restoreSubtask',
+      'permanentDeleteSubtask',
+      'batchRestoreSubtasks',
+      'batchPurgeSubtasks',
+      'purgeAllSubtasks',
+    ],
+    [
+      'deletedSubtasks',
+      'deletedRecords',
+      'deletedSummary',
+      'deletedWorkItems',
+      'workItems.subtasks',
+      'workItems.list',
+      'workItems.item',
+      'workItems.counts',
+      'workItems.files',
+      'gantt',
+      'report.task',
+      'report',
+    ],
+  ],
+  [
+    ['deleteWorkItemSubtask'],
+    ['deletedSubtasks', 'deletedRecords', 'deletedSummary', 'deletedWorkItems', 'report'],
+  ],
+  [
+    [
+      'restoreTaskNote',
+      'permanentDeleteTaskNote',
+      'batchRestoreTaskNotes',
+      'batchPurgeTaskNotes',
+      'purgeAllTaskNotes',
+    ],
+    [
+      'deletedTaskNotes',
+      'deletedRecords',
+      'deletedSummary',
+      'deletedWorkItems',
+      'workItems.notes',
+      'report.task',
+      'report',
+    ],
+  ],
+  [
+    ['deleteWorkItemNote'],
+    ['deletedTaskNotes', 'deletedRecords', 'deletedSummary', 'deletedWorkItems', 'report'],
+  ],
+  [
+    [
+      'restoreMeetingNote',
+      'permanentDeleteMeetingNote',
+      'batchRestoreMeetingNotes',
+      'batchPurgeMeetingNotes',
+      'purgeAllMeetingNotes',
+    ],
+    [
+      'deletedMeetingNotes',
+      'deletedRecords',
+      'deletedSummary',
+      'meetings',
+      'report.meeting',
+      'report',
+    ],
+  ],
+  [
+    ['deleteMeetingNote'],
+    ['deletedMeetingNotes', 'deletedRecords', 'deletedSummary', 'meetings', 'report.meeting'],
+  ],
+  [
+    [
+      'restoreAgendaItem',
+      'permanentDeleteAgendaItem',
+      'batchRestoreAgendaItems',
+      'batchPurgeAgendaItems',
+      'purgeAllAgendaItems',
+    ],
+    [
+      'deletedAgendaItems',
+      'deletedRecords',
+      'deletedSummary',
+      'meetings',
+      'report.meeting',
+      'report',
+    ],
+  ],
+  [
+    ['deleteAgendaItem'],
+    ['deletedAgendaItems', 'deletedRecords', 'deletedSummary', 'meetings', 'report.meeting'],
+  ],
+  // Ebeveynin yaşam döngüsü çocuk çöplerini (`parent_deleted`, ebeveyn kalıcı silinince çocuk) ve
+  // birleşik listeyi de yeniler.
+  [
+    ['deleteWorkItem', 'restoreWorkItem', 'permanentDeleteWorkItem', 'batchPurgeWorkItems'],
+    ['deletedFiles', 'deletedSubtasks', 'deletedTaskNotes', 'deletedRecords', 'deletedSummary'],
+  ],
+  [
+    ['deleteMeeting', 'restoreMeeting', 'permanentDeleteMeeting', 'purgeAllMeetings'],
+    ['deletedMeetingNotes', 'deletedAgendaItems', 'deletedRecords', 'deletedSummary'],
+  ],
+  [
+    ['deleteDepartment', 'restoreDepartment', 'permanentDeleteDepartment', 'purgeAllDepartments'],
+    ['deletedRecords', 'deletedSummary'],
+  ],
+  // Hesap (S1) yazmaları şirket geneli: bütün programların birleşik liste, özet ve panosu.
+  [
+    ['restoreAccount', 'permanentDeleteAccount', 'batchRestoreAccounts', 'purgeAllAccounts'],
+    ['deletedRecordsAllPrograms', 'deletedSummaryAllPrograms', 'dashboardAllPrograms'],
+  ],
 ]
 
 describe('12 Silinen kayıtlar — geçersizleme ilişkileri', () => {
@@ -125,4 +268,50 @@ describe('12 Silinen kayıtlar — geçersizleme ilişkileri', () => {
       expect(client.getQueryState(other)?.isInvalidated).toBe(false) // başka program
     })
   }
+
+  it('program kapsamlı çöp yazması başka programın birleşik/özet önbelleğine dokunmaz', () => {
+    const p2 = { programId: 'p2', departmentId: null }
+    const own = [queryKeys.deletedRecords.list(S, f), queryKeys.deletedSummary.all(S)]
+    const other = [queryKeys.deletedRecords.list(p2, f), queryKeys.deletedSummary.all(p2)]
+    for (const operation of [
+      'restoreFile',
+      'deleteWorkItemSubtask',
+      'purgeAllAgendaItems',
+    ] as const) {
+      const client = new QueryClient()
+      for (const key of [...own, ...other]) client.setQueryData(key, 1)
+      for (const filter of invalidationFilters(operation, S, {}))
+        void client.invalidateQueries(filter)
+      expect(
+        own.every((key) => client.getQueryState(key)?.isInvalidated),
+        operation,
+      ).toBe(true)
+      expect(
+        other.some((key) => client.getQueryState(key)?.isInvalidated),
+        operation,
+      ).toBe(false)
+    }
+  })
+
+  it('hesap (S1) yazması bütün programların birleşik liste, özet ve panosunu bayatlatır; hesap başlığı program taşımaz', () => {
+    const p2 = { programId: 'p2', departmentId: null }
+    const keys = [S, p2].flatMap((scope) => [
+      queryKeys.deletedRecords.list(scope, f),
+      queryKeys.deletedSummary.all(scope),
+      queryKeys.report.dashboard(scope),
+    ])
+    const unrelated = queryKeys.deletedFiles.list(p2, f)
+    for (const operation of ['restoreAccount', 'batchPurgeAccounts'] as const) {
+      const client = new QueryClient()
+      for (const key of [...keys, unrelated]) client.setQueryData(key, 1)
+      // Eylemin yakalanmış kapsamı p1; p2 önbelleği yine de bayatlar.
+      for (const filter of invalidationFilters(operation, S, {}))
+        void client.invalidateQueries(filter)
+      expect(
+        keys.every((key) => client.getQueryState(key)?.isInvalidated),
+        operation,
+      ).toBe(true)
+      expect(client.getQueryState(unrelated)?.isInvalidated, operation).toBe(false)
+    }
+  })
 })

@@ -139,6 +139,36 @@ export const queryKeys = {
   deletedSummary: {
     all: (s: ScopeSnapshot) => scoped(s, ['deleted-summary']),
   },
+  /**
+   * v0.26 çocuk çöpleri (`listDeletedFiles|Subtasks|TaskNotes|MeetingNotes|AgendaItems`, S2,
+   * imleçli) ve birleşik liste (`listDeletedRecords`). Kapsamlı: program değişince düşer; sunucu
+   * süzgeci/`kinds` `filters` içindedir (imleç ona bağlıdır). W192.
+   */
+  deletedFiles: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-files']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-files', filters]),
+  },
+  deletedSubtasks: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-subtasks']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-subtasks', filters]),
+  },
+  deletedTaskNotes: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-task-notes']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-task-notes', filters]),
+  },
+  deletedMeetingNotes: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-meeting-notes']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(s, ['deleted-meeting-notes', filters]),
+  },
+  deletedAgendaItems: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-agenda-items']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-agenda-items', filters]),
+  },
+  deletedRecords: {
+    all: (s: ScopeSnapshot) => scoped(s, ['deleted-records']),
+    list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['deleted-records', filters]),
+  },
   workItems: {
     all: (s: ScopeSnapshot) => scoped(s, ['work-items']),
     list: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['work-items', filters]),
@@ -263,6 +293,15 @@ export type QueryResource =
   | 'deletedWorkItems'
   | 'deletedAccounts'
   | 'deletedSummary'
+  | 'deletedFiles'
+  | 'deletedSubtasks'
+  | 'deletedTaskNotes'
+  | 'deletedMeetingNotes'
+  | 'deletedAgendaItems'
+  | 'deletedRecords'
+  | 'deletedRecordsAllPrograms'
+  | 'deletedSummaryAllPrograms'
+  | 'dashboardAllPrograms'
   | 'workItems.list'
   | 'workItems.item'
   | 'workItems.counts'
@@ -348,16 +387,55 @@ const DATE_WRITES = [
   'deleteDateChangeRequest',
 ] as const satisfies readonly OperationId[]
 
+// v0.26 çocuk çöp yaşam döngüsü (ADR-0053/0054): tür başına tekil + toplu + çöpü boşalt.
+const FILE_TRASH_WRITES = [
+  'restoreFile',
+  'permanentDeleteFile',
+  'batchRestoreFiles',
+  'batchPurgeFiles',
+  'purgeAllFiles',
+] as const satisfies readonly OperationId[]
+const SUBTASK_TRASH_WRITES = [
+  'restoreSubtask',
+  'permanentDeleteSubtask',
+  'batchRestoreSubtasks',
+  'batchPurgeSubtasks',
+  'purgeAllSubtasks',
+] as const satisfies readonly OperationId[]
+const TASK_NOTE_TRASH_WRITES = [
+  'restoreTaskNote',
+  'permanentDeleteTaskNote',
+  'batchRestoreTaskNotes',
+  'batchPurgeTaskNotes',
+  'purgeAllTaskNotes',
+] as const satisfies readonly OperationId[]
+const MEETING_NOTE_TRASH_WRITES = [
+  'restoreMeetingNote',
+  'permanentDeleteMeetingNote',
+  'batchRestoreMeetingNotes',
+  'batchPurgeMeetingNotes',
+  'purgeAllMeetingNotes',
+] as const satisfies readonly OperationId[]
+const AGENDA_TRASH_WRITES = [
+  'restoreAgendaItem',
+  'permanentDeleteAgendaItem',
+  'batchRestoreAgendaItems',
+  'batchPurgeAgendaItems',
+  'purgeAllAgendaItems',
+] as const satisfies readonly OperationId[]
+
 const SUBTASK_WRITES = [
   'createWorkItemSubtask',
   'updateWorkItemSubtask',
   'deleteWorkItemSubtask',
+  ...SUBTASK_TRASH_WRITES,
 ] as const satisfies readonly OperationId[]
 
 const NOTE_WRITES = [
   'addWorkItemNote',
   'updateWorkItemNote',
   'deleteWorkItemNote',
+  ...TASK_NOTE_TRASH_WRITES,
 ] as const satisfies readonly OperationId[]
 
 /** Silinen kayıtlar: görev geri yükleme ve kalıcı silme (12). */
@@ -374,6 +452,7 @@ const FILE_WRITES = [
   'renameFile',
   'retagFile',
   'deleteFile',
+  ...FILE_TRASH_WRITES,
 ] as const satisfies readonly OperationId[]
 
 const DEPENDENCY_WRITES = [
@@ -472,6 +551,8 @@ const MEETING_CONTENT_WRITES = [
   'addMeetingParticipant',
   'removeMeetingParticipant',
   ...BATCH_MEETING_WRITES,
+  ...MEETING_NOTE_TRASH_WRITES,
+  ...AGENDA_TRASH_WRITES,
 ] as const satisfies readonly OperationId[]
 
 const NOTIFICATION_WRITES = [
@@ -489,6 +570,43 @@ const NOTIFICATION_WRITES = [
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
   ...new Set(lists.flat()),
 ]
+
+// v0.26 çöp ilişkileri (W192). Ebeveynin (görev, toplantı) silinmesi/geri yüklenmesi/kalıcı
+// silinmesi çocuk çöp satırlarının `parent_deleted` bilgisini ya da varlığını değiştirir.
+const TASK_PARENT_WRITES = [
+  'deleteWorkItem',
+  'restoreWorkItem',
+  'permanentDeleteWorkItem',
+  ...BATCH_WORK_ITEM_WRITES,
+] as const satisfies readonly OperationId[]
+const MEETING_PARENT_WRITES = [
+  'deleteMeeting',
+  'restoreMeeting',
+  'permanentDeleteMeeting',
+  ...BATCH_MEETING_WRITES,
+] as const satisfies readonly OperationId[]
+const DEPARTMENT_PARENT_WRITES = [
+  'deleteDepartment',
+  'restoreDepartment',
+  'permanentDeleteDepartment',
+  ...BATCH_DEPARTMENT_WRITES,
+] as const satisfies readonly OperationId[]
+/** Beş çocuk türün canlı yüzden çöpe taşıyan (yumuşak) silme uçları. */
+const CHILD_SOFT_DELETES = [
+  'deleteFile',
+  'deleteWorkItemSubtask',
+  'deleteWorkItemNote',
+  'deleteMeetingNote',
+  'deleteAgendaItem',
+] as const satisfies readonly OperationId[]
+/** Beş çocuk türün çöpten yönetim uçları (geri yükle / kalıcı sil / toplu / çöpü boşalt). */
+const CHILD_TRASH_WRITES = [
+  ...FILE_TRASH_WRITES,
+  ...SUBTASK_TRASH_WRITES,
+  ...TASK_NOTE_TRASH_WRITES,
+  ...MEETING_NOTE_TRASH_WRITES,
+  ...AGENDA_TRASH_WRITES,
+] as const satisfies readonly OperationId[]
 
 /**
  * §6 "Geçersizleyen mutasyonlar" sütunu (operationId). Tabloda adı geçmeyen ama aynı kaydı
@@ -556,11 +674,14 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   ],
   // 12 Silinen kayıtlar (W128): görev silme/geri yükleme/kalıcı silme silinen görev listesini
   // yeniden okutur.
+  // Satırın `file_count`/`subtask_counts`/`note_count` alanları çocuk yazmalarıyla değişir (v0.26).
   deletedWorkItems: [
     'deleteWorkItem',
     'restoreWorkItem',
     'permanentDeleteWorkItem',
     ...BATCH_WORK_ITEM_WRITES,
+    ...CHILD_SOFT_DELETES,
+    ...CHILD_TRASH_WRITES,
   ],
   deletedAccounts: [...ACCOUNT_LIFECYCLE_WRITES],
   // Özet sayaçları dört türün silme/geri yükleme/kalıcı silme yazmalarıyla değişir (12, BE-110).
@@ -578,20 +699,52 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     ...BATCH_WORK_ITEM_WRITES,
     ...BATCH_MEETING_WRITES,
     ...BATCH_DEPARTMENT_WRITES,
+    // v0.26: çocuk türlerin silmesi ve çöp yönetimi özet terimlerini (`subtasks`, `files`,
+    // `notes` …) değiştirir.
+    ...CHILD_SOFT_DELETES,
+    ...CHILD_TRASH_WRITES,
   ],
+  // v0.26 çocuk çöp listeleri: kendi çöp yazmaları + canlı yüzden yumuşak silme + ebeveynin
+  // yaşam döngüsü (`parent_deleted`, ebeveyn kalıcı silinince çocuk da gider).
+  deletedFiles: unique(FILE_TRASH_WRITES, ['deleteFile'], TASK_PARENT_WRITES),
+  deletedSubtasks: unique(SUBTASK_TRASH_WRITES, ['deleteWorkItemSubtask'], TASK_PARENT_WRITES),
+  deletedTaskNotes: unique(TASK_NOTE_TRASH_WRITES, ['deleteWorkItemNote'], TASK_PARENT_WRITES),
+  deletedMeetingNotes: unique(
+    MEETING_NOTE_TRASH_WRITES,
+    ['deleteMeetingNote'],
+    MEETING_PARENT_WRITES,
+  ),
+  deletedAgendaItems: unique(AGENDA_TRASH_WRITES, ['deleteAgendaItem'], MEETING_PARENT_WRITES),
+  // Birleşik liste dokuz türün hepsiyle değişir; hesap yazmaları (S1) aşağıdaki "AllPrograms"
+  // kaynaklarında: hesap şirket geneli olduğundan her programın birleşik listesinde görünür.
+  deletedRecords: unique(
+    CHILD_SOFT_DELETES,
+    CHILD_TRASH_WRITES,
+    TASK_PARENT_WRITES,
+    MEETING_PARENT_WRITES,
+    DEPARTMENT_PARENT_WRITES,
+  ),
+  deletedRecordsAllPrograms: ACCOUNT_LIFECYCLE_WRITES,
+  deletedSummaryAllPrograms: ACCOUNT_LIFECYCLE_WRITES,
+  dashboardAllPrograms: ACCOUNT_LIFECYCLE_WRITES,
   'workItems.list': unique(
     WORK_ITEM_WRITES,
     DATE_WRITES,
     SUBTASK_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
+    // Satırın `file_count` alanı dosya çöpüyle (silme/geri yükleme/kalıcı silme) değişir.
+    ['deleteFile'],
+    FILE_TRASH_WRITES,
   ),
   'workItems.item': unique(
     WORK_ITEM_WRITES,
     DATE_WRITES,
     SUBTASK_WRITES,
     // Tamamlanma kanıtı dosyadan türer: yükleme de silme de görev ayrıntısını yeniden okutur
-    // (06 Arşiv, KESİN 29); yeniden adlandırma görev kaydına dokunmaz.
+    // (06 Arşiv, KESİN 29); yeniden adlandırma görev kaydına dokunmaz. Çöpten geri yükleme ve
+    // kalıcı silme (v0.26) kanıt sayımını değiştirir.
     ['attachFile', 'archiveChatFile', 'deleteFile'],
+    FILE_TRASH_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
   ),
   // Sayaçlar liste ile aynı görünürlük ve aynı yazmalarla değişir (durum, atama, tarih, devir).
@@ -605,7 +758,12 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'workItems.notes': NOTE_WRITES,
   // Geri yüklenen/kalıcı silinen görevin ortak dosya listesi (görev ayrıntısı, kanıt, önizleme
   // yan okumaları) yaşam döngüsüyle değişir (12 Silinen kayıtlar, backend.md §5; CX-F5-Ö-03).
-  'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask'], LIFECYCLE_WORK_ITEM_WRITES),
+  'workItems.files': unique(
+    FILE_WRITES,
+    ['deleteWorkItemSubtask'],
+    SUBTASK_TRASH_WRITES,
+    LIFECYCLE_WORK_ITEM_WRITES,
+  ),
   'workItems.dependencies': DEPENDENCY_WRITES,
   // Kaynak mesaj bağı (S3): mesajdan görev açılması ve mesajın silinmesi bağı değiştirir; görev
   // aktarımı sohbeti seçili programdan düşürür (`source_message: null`).
@@ -635,6 +793,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     DATE_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
     MEETING_CONTENT_WRITES,
+    // Pano `deleted_records` dokuz terimli toplamdır (v0.26): çocuk türlerin çöp yazmaları.
+    CHILD_SOFT_DELETES,
+    CHILD_TRASH_WRITES,
   ),
   // Görev rapor ayrıntısı (`reportTaskDetail`: künye, bağımlılıklar, son 20 not): görev, tarih,
   // not, alt görev ve bağımlılık yazmaları ile atama devri; hedef görev biliniyorsa yalnız o.
@@ -645,6 +806,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     SUBTASK_WRITES,
     DEPENDENCY_WRITES,
     ASSIGNMENT_HANDOVER_WRITES,
+    // Görev raporundaki dosya sayısı çöpe taşıma/geri yükleme/kalıcı silmeyle değişir (v0.26).
+    ['deleteFile'],
+    FILE_TRASH_WRITES,
   ),
   // Toplantı rapor ayrıntısı (`reportMeetingDetail`: künye, katılımcı rolleri, gündem, notlar):
   // toplantı içeriği yazmaları + departman adı / üyelik / kullanıcı adı yazmaları.
@@ -692,6 +856,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // W184: paylaşılan sayı = liste toplamı (aynı yazmalarla birlikte yenilenir; sayıyı kalan liste
   // belirler). Mesaj görev kartı görev yaşam döngüsü yazmalarıyla da değişir (`deleted`/başlık/durum).
   'chats.sharedCounts': [
+    // Çöpteki dosya sohbet paylaşımında görünmez (ADR-0053); çöpten dönünce yeniden görünür.
+    'deleteFile',
+    ...FILE_TRASH_WRITES,
     'sendChatMessage',
     'sendChatAttachment',
     'forwardChatMessage',
@@ -702,7 +869,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'removeChatMember',
   ],
   // İletme ek baytını hedefe kopyalar (yeni ek kimliği) ve görev referansını taşır.
-  'chats.attachments': ['sendChatAttachment', 'forwardChatMessage', 'deleteChatMessage'],
+  'chats.attachments': [
+    'sendChatAttachment',
+    'forwardChatMessage',
+    'deleteChatMessage',
+    'deleteFile',
+    ...FILE_TRASH_WRITES,
+  ],
   'chats.taskLinks': ['createTaskFromChatMessage', 'forwardChatMessage', 'deleteChatMessage'],
   'chats.messageTasks': unique(
     ['createTaskFromChatMessage', 'deleteChatMessage', 'editChatMessage'],
@@ -832,6 +1005,18 @@ function archiveOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
   }
 }
 
+/**
+ * Hesap geneli (S1) yazmanın etkilediği PROGRAM KAPSAMLI okuyucular: hesap şirket geneli olduğundan
+ * her programın birleşik liste/özet/pano sayısında görünür. Yalnız bu üç kaynağa (hesap yazmaları)
+ * uygulanır; programa bağlı yazmalar başka programın önbelleğine dokunmaz (K2).
+ */
+function allPrograms(match: (key: QueryKey) => boolean): InvalidationFilter {
+  return {
+    queryKey: [QUERY_KEY_ROOT],
+    predicate: ({ queryKey }) => isScopedQueryKey(queryKey) && match(queryKey),
+  }
+}
+
 /** Kaynak → filtre eşlemesi (§6). null: yazma sonrası geçersizleme yok. */
 const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'instance.profile': () => null,
@@ -855,6 +1040,15 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   deletedWorkItems: prefix(queryKeys.deletedWorkItems.all),
   deletedAccounts: prefix(() => queryKeys.deletedAccounts.all()),
   deletedSummary: prefix(queryKeys.deletedSummary.all),
+  deletedFiles: prefix(queryKeys.deletedFiles.all),
+  deletedSubtasks: prefix(queryKeys.deletedSubtasks.all),
+  deletedTaskNotes: prefix(queryKeys.deletedTaskNotes.all),
+  deletedMeetingNotes: prefix(queryKeys.deletedMeetingNotes.all),
+  deletedAgendaItems: prefix(queryKeys.deletedAgendaItems.all),
+  deletedRecords: prefix(queryKeys.deletedRecords.all),
+  deletedRecordsAllPrograms: () => allPrograms((key) => key[2] === 'deleted-records'),
+  deletedSummaryAllPrograms: () => allPrograms((key) => key[2] === 'deleted-summary'),
+  dashboardAllPrograms: () => allPrograms((key) => key[2] === 'report' && key[3] === 'dashboard'),
   'workItems.list': (scope) => ({
     queryKey: queryKeys.workItems.all(scope),
     predicate: ({ queryKey }) => queryKey.length === 4 && isFiltersPart(queryKey[3]),
