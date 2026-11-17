@@ -85,9 +85,19 @@ export function useChatMessages(chatId: MaybeRefOrGetter<string | null>) {
     return next
   }
 
+  /** Giriş okuması: tek kayıtlık sayfa; yalnız `first_unread_seq` kullanılır (pencereye yazılmaz). */
+  async function readFirstUnread(): Promise<number | null | undefined> {
+    let seq: number | null | undefined
+    await run(async (read) => {
+      seq = (await read({ limit: 1 })).first_unread_seq
+    }).catch(() => undefined)
+    return seq
+  }
+
   return {
     query,
     window,
+    readFirstUnread,
     loadOlder: () => run(loadOlder),
     loadNewer: () => run(loadNewer),
     /** Alıntı/sabit/bağlantı hedefi: pencere `around=<seq>` ile yeniden kurulur. */
