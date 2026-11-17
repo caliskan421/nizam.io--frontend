@@ -15,6 +15,8 @@ import {
   isMember,
   isResponse,
   mentionedIn,
+  programRoleOf,
+  readByAll,
   resolveChat,
   unreadOf,
   viewOf,
@@ -118,7 +120,18 @@ function historyHandler(db: OrgDb, state: ChatState) {
     const found = resolveChat(db, state, request, String(params.chatId))
     if (isResponse(found)) return found
     const me = found.account.account_id
-    const all = found.chat.messages.map((m) => viewOf(m, me))
+    // Geçmiş cevabı: grup tiki (`read_by_all`, yalnız kendi grup mesajım) ve gönderen rozeti.
+    const all = found.chat.messages.map((m) => {
+      const view = viewOf(m, me)
+      const tick = readByAll(found.chat, m, me)
+      return {
+        ...view,
+        ...(found.chat.kind === 'group' && m.base.sender_account_id === me
+          ? { read_by_all: tick }
+          : {}),
+        sender_role: programRoleOf(db, m.base.sender_account_id, found.chat.program_id),
+      }
+    })
     return json({
       first_unread_seq: firstUnreadSeq(found.chat, me),
       items: pageOf(all, new URL(request.url).searchParams),
@@ -145,6 +158,7 @@ function detailHandlers(db: OrgDb, state: ChatState) {
           founder: isFounder(m),
           from_source: m.from_source,
           full_name: fakeOrg.accountName(db, m.account_id),
+          program_role: programRoleOf(db, m.account_id, found.chat.program_id),
           role: m.role,
         }),
       )

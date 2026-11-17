@@ -5,6 +5,7 @@ import { http } from 'msw'
 import { ORIGIN, type OrgDb } from './fake-org'
 import { createChatState, type ChatState } from './fake-chat'
 import { groupHandlers } from './fake-chat-groups'
+import { sharedHandlers } from './fake-chat-shared'
 import { readHandlers } from './fake-chat-read'
 import { streamHandlers } from './fake-chat-stream'
 import { writeHandlers } from './fake-chat-write'
@@ -38,6 +39,7 @@ export function chatHandlers(db: OrgDb, state: ChatState) {
     http.all(`${ORIGIN}/v1/chats`, ({ request }) => passGate(state, request)),
     http.all(`${ORIGIN}/v1/chats/*`, ({ request }) => passGate(state, request)),
     ...streamHandlers(db, state),
+    ...sharedHandlers(db, state),
     ...groupHandlers(db, state),
     ...readHandlers(db, state),
     ...writeHandlers(db, state),

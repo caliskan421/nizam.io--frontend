@@ -15,7 +15,7 @@ import {
 } from './fake-org'
 
 /** Sunucu görünürlüğü (`listProgramWorkItems`): yönetici hepsi, koordinatör birimi, üye ataması. */
-function visible(db: OrgDb, me: Account, i: Item): boolean {
+export function visible(db: OrgDb, me: Account, i: Item): boolean {
   if (me.admin) return true
   const team = o.teamIn(db, me.account_id, i.program_id, i.department_id)
   return (
@@ -24,7 +24,7 @@ function visible(db: OrgDb, me: Account, i: Item): boolean {
 }
 
 /** Görünmeyen görev: birimde ekip satırı varsa 403 `work.not_assigned`, yoksa 404. */
-function denied(db: OrgDb, me: Account, i: Item | undefined) {
+export function denied(db: OrgDb, me: Account, i: Item | undefined) {
   if (i && o.teamIn(db, me.account_id, i.program_id, i.department_id) !== null) {
     return envelope('work.not_assigned', 403)
   }
