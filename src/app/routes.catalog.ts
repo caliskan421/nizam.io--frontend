@@ -320,8 +320,7 @@ export const ROUTES = {
     phase: 'F7',
     menu: { group: 'icerik', key: 'messages', order: 3 },
     params: {},
-    // `filtre`: istemci süzgeci sekmesi (E-10-06; BE-081 sunucu süzgeci gelene dek yüklenen
-    // sayfalarda); arama ve imleç URL'de taşınmaz.
+    // `filtre`: sunucu kind/unread süzgeci sekmesi (F9 BE-081); arama ve imleç URL'de taşınmaz.
     query: { filtre: oneOf(['okunmamis', 'gruplar', 'kisiler']) },
   },
   'collaboration.chat': {
