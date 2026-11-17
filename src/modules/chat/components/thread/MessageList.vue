@@ -63,7 +63,13 @@ const marker = useReadMarker({
   meId: () => thread.meId.value,
   hasNewer: () => win.value.hasNewer,
   unread: () => unread.unread.value,
+  ready: () => unread.ready.value,
 })
+// Hazır olunca (çapa çözüldü) bekleyen otomatik okundu normal gecikmeyle tek istek olarak çıkar.
+watch(
+  () => unread.ready.value,
+  (ready) => ready && marker.touch(),
+)
 watch(
   () => thread.stickBottom.value,
   async () => {
