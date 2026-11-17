@@ -78,7 +78,7 @@ describe('süzgeçler URL ile gidip gelir, sunucuya gider (P43, BE-117)', () => 
     const page = await mountPage({ path: '/silinen-kayitlar?q=motor&koordinatorluk=d2&kayit=w2' })
     expect(ids(page)).toEqual(['w2'])
     expect(page.wrapper.get('[data-testid="dr-panel"]').text()).toContain('Motor yatağı')
-    expect(page.wrapper.get('[data-record-key="gorev:w2"]').attributes('aria-current')).toBe('true')
+    expect(page.wrapper.get('[data-record-key="tasks:w2"]').attributes('aria-current')).toBe('true')
     expect(page.wrapper.get('[data-testid="dr-search"]').element).toHaveProperty('value', 'motor')
   })
 
@@ -320,7 +320,7 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
     ]
     const page = await mountPage()
     expect(page.wrapper.get('[data-testid="dr-panel"]').text()).toContain('Bir kayıt seçin')
-    await page.wrapper.get('[data-record-key="gorev:w1"]').trigger('click')
+    await page.wrapper.get('[data-record-key="tasks:w1"]').trigger('click')
     await settle()
     expect(query(page).kayit).toBe('w1')
     const panel = page.wrapper.get('[data-testid="dr-panel"]').text()
@@ -409,11 +409,11 @@ describe('seçili kayıt paneli (E-12-37/41…54)', () => {
   it('Enter ve ok tuşları: satır seçer / komşu satıra geçer', async () => {
     world.tasks = [[task('w1'), task('w2')]]
     const page = await mountPage()
-    const first = page.wrapper.get('[data-record-key="gorev:w1"]')
+    const first = page.wrapper.get('[data-record-key="tasks:w1"]')
     ;(first.element as HTMLElement).focus()
     await first.trigger('keydown', { key: 'ArrowDown' })
-    expect(document.activeElement).toBe(page.wrapper.get('[data-record-key="gorev:w2"]').element)
-    await page.wrapper.get('[data-record-key="gorev:w2"]').trigger('keydown', { key: 'Enter' })
+    expect(document.activeElement).toBe(page.wrapper.get('[data-record-key="tasks:w2"]').element)
+    await page.wrapper.get('[data-record-key="tasks:w2"]').trigger('keydown', { key: 'Enter' })
     await settle()
     expect(query(page).kayit).toBe('w2')
   })

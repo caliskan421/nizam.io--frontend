@@ -57,8 +57,10 @@ describe('URL ⇄ süzgeç (K10; P43)', () => {
   })
 
   it('kayıtsız / devre dışı tür Görev’e düşer; geçersiz aralık tümü', () => {
-    expect(parseFilters({ tur: 'altgorev' }).kind).toBe('gorev')
-    expect(parseFilters({ tur: 'dosya' }).kind).toBe('gorev')
+    expect(parseFilters({ tur: 'altgorev' }).kind).toBe('altgorev')
+    expect(parseFilters({ tur: 'dosya' }).kind).toBe('dosya')
+    expect(parseFilters({ tur: 'tasks' }).kind).toBe('gorev')
+    expect(parseFilters({ tur: 'bilinmeyen' }).kind).toBe('gorev')
     expect(parseFilters({ aralik: '30gun' }).range).toBe('tumu')
   })
 

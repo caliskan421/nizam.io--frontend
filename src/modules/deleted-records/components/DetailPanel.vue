@@ -6,6 +6,7 @@ import { UiCard, UiIcon } from '@/shared/ui'
 import { formatClock, formatDate } from '../model/format'
 import { deletedText } from '../model/messages'
 import type { DeletedRow } from '../model/types'
+import RowParent from './RowParent.vue'
 
 /**
  * Seçili kayıt paneli (E-12-41…54). Alanlar YALNIZ liste öğesinden gelir; satır başına ayrıntı
@@ -22,7 +23,21 @@ const props = defineProps<{
   canRestore: boolean
   canPurge: boolean
 }>()
-const emit = defineEmits<{ restore: []; purge: [] }>()
+const emit = defineEmits<{ restore: []; purge: []; openParent: [] }>()
+
+const kindKey = computed(() => props.row?.kind ?? 'unknown')
+const title = computed(() => props.row?.title || deletedText('row.untitled'))
+const writable = computed(() => props.row?.kind != null)
+/** Çocuk türlerin liste öğesinden gelen alanları (etiket + değer; evet/hayır çevrilir). */
+const facts = computed(() =>
+  (props.row?.facts ?? []).map((fact) => ({
+    label: deletedText(`panel.facts.${fact.label as 'size'}`),
+    value:
+      fact.value === 'yes' || fact.value === 'no'
+        ? deletedText(`panel.facts.${fact.value}`)
+        : fact.value,
+  })),
+)
 
 const STATUS = ['baslanmadi', 'devam_ediyor', 'onaya_sunuldu', 'iade_edildi', 'tamamlandi'] as const
 const statusLabel = computed(() => {
@@ -70,13 +85,17 @@ function act(action: 'restore' | 'purge'): void {
     <template v-if="row">
       <div class="dr-card__head">
         <span class="dr-kicker">{{ deletedText('panel.title') }}</span>
-        <span class="dr-logtype" :data-kind="row.kind">{{ deletedText(`kinds.${row.kind}`) }}</span>
+        <span class="dr-logtype" :data-kind="kindKey">{{
+          deletedText(`rowKinds.${kindKey}`)
+        }}</span>
       </div>
       <h2 class="dr-card__title">
         <span v-if="row.code" class="dr-code">{{ row.code }}</span>
-        {{ row.title }}
+        {{ title }}
       </h2>
       <p v-if="row.subLine" class="rp-cap">{{ row.subLine }}</p>
+      <p v-if="!writable" class="rp-cap">{{ deletedText('row.unknownKind') }}</p>
+      <RowParent :row="row" @open="emit('openParent')" />
       <dl class="rp-dl">
         <dt>{{ deletedText('panel.fields.actor') }}</dt>
         <dd>{{ row.actor.name || deletedText('table.unknownActor') }}</dd>
@@ -101,7 +120,7 @@ function act(action: 'restore' | 'purge'): void {
           <dd>{{ invite }}</dd>
         </template>
         <template
-          v-if="(row.kind === 'toplanti' || row.kind === 'kullanici') && row.departmentNames.length"
+          v-if="(row.kind === 'meetings' || row.kind === 'accounts') && row.departmentNames.length"
         >
           <dt>{{ deletedText('panel.fields.departments') }}</dt>
           <dd>{{ row.departmentNames.join(', ') }}</dd>
@@ -110,11 +129,15 @@ function act(action: 'restore' | 'purge'): void {
           <dt>{{ deletedText('panel.fields.admin') }}</dt>
           <dd>{{ deletedText('panel.adminValue') }}</dd>
         </template>
+        <template v-for="fact in facts" :key="fact.label">
+          <dt>{{ fact.label }}</dt>
+          <dd>{{ fact.value }}</dd>
+        </template>
         <template v-if="row.departmentKind">
           <dt>{{ deletedText('panel.fields.kind') }}</dt>
           <dd>{{ row.departmentKind }}</dd>
         </template>
-        <template v-if="row.kind === 'koordinatorluk' && row.code">
+        <template v-if="row.kind === 'departments' && row.code">
           <dt>{{ deletedText('panel.fields.code') }}</dt>
           <dd class="dr-mono">{{ row.code }}</dd>
         </template>
@@ -130,7 +153,7 @@ function act(action: 'restore' | 'purge'): void {
       </template>
       <div class="dr-card__actions">
         <button
-          v-if="canRestore"
+          v-if="canRestore && writable"
           type="button"
           class="t-btn t-btn--primary t-btn--sm"
           :aria-disabled="busy ? 'true' : undefined"
@@ -140,7 +163,7 @@ function act(action: 'restore' | 'purge'): void {
           <UiIcon name="undo" size="sm" />{{ deletedText('row.restore') }}
         </button>
         <button
-          v-if="canPurge"
+          v-if="canPurge && writable"
           type="button"
           class="t-btn t-btn--ghost t-btn--sm dr-danger"
           :aria-disabled="busy ? 'true' : undefined"

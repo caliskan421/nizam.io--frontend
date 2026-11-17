@@ -43,7 +43,7 @@ describe('silinen kayıtlar rotası (F5)', () => {
     expect(Object.keys(ROUTES['deleted-records.list'].params)).toEqual([])
   })
 
-  it('tipli süzgeçler: tur dört canlı değer, aralık üç değer; devre dışı türler tanınmaz', () => {
+  it('tipli süzgeçler: tur sekiz görünüm değeri, aralık üç değer; bilinmeyen değer tanınmaz', () => {
     expect(
       parseRouteQuery('deleted-records.list', {
         tur: 'koordinatorluk',
@@ -61,7 +61,20 @@ describe('silinen kayıtlar rotası (F5)', () => {
       kayit: 'w1',
       silen: 'a7',
     })
-    for (const tur of ['altgorev', 'dosya', 'notgundem', 'tumu']) {
+    // v0.26: sekiz görünümün hepsi tanınır; bilinmeyen değer elenir.
+    for (const tur of [
+      'tumu',
+      'gorev',
+      'altgorev',
+      'dosya',
+      'toplanti',
+      'koordinatorluk',
+      'kullanici',
+      'notgundem',
+    ]) {
+      expect(parseRouteQuery('deleted-records.list', { tur }), tur).toEqual({ tur })
+    }
+    for (const tur of ['tasks', 'files', 'bilinmeyen']) {
       expect(parseRouteQuery('deleted-records.list', { tur }), tur).toEqual({})
     }
     expect(parseRouteQuery('deleted-records.list', { aralik: '30gun' })).toEqual({})

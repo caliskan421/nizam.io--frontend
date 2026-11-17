@@ -1,6 +1,6 @@
 import type { components } from '@/shared/api/schema'
 
-import type { DeletedKind } from './kinds'
+import type { LifecycleKind } from './lifecycle'
 
 export type DeletedWorkItem = components['schemas']['DeletedWorkItem']
 export type DeletedWorkItemList = components['schemas']['DeletedWorkItemList']
@@ -51,15 +51,37 @@ export interface DeletedTaskFacts {
   byDepartment: boolean
 }
 
-/** Tek tür-bağımsız satır modeli (tablo + panel); alanlar liste öğesinden gelir, ek istek yok. */
-export interface DeletedRow {
-  kind: DeletedKind
-  /** Kayıt kimliği (görev, toplantı, departman, hesap). */
+/** Ebeveyn kaydı (birleşik listede `parent`): `kind` yalnız bilinen çoğul türlerde `tasks`/`meetings`. */
+export interface RowParent {
+  /** Bilinen ebeveyn türü; bilinmeyende `null` (bağlantı sunulmaz). */
+  kind: 'tasks' | 'meetings' | null
   id: string
-  /** `kind:id` — aynı kimliğin türler arası çakışmasını önler. */
+  /** Okunabilir ad; yoksa `null` (kimlik ad olarak gösterilmez). */
+  name: string | null
+  deleted: boolean
+}
+
+/** Çocuk türlerin panel gerçekleri: yalnız liste öğesinde dönen alanlar (etiket anahtarı + değer). */
+export interface RowFact {
+  label: string
+  value: string
+}
+
+/**
+ * Tek tür-bağımsız satır modeli (tablo + panel); alanlar liste öğesinden gelir, ek istek yok.
+ * `kind` satırın YAZMA türüdür (dokuz bilinen tür); bilinmeyen (gelecek) `kind` için `null` ve
+ * satır salt okunurdur (`rawKind` sunucu değeri, onay kutusu/eylem yok).
+ */
+export interface DeletedRow {
+  kind: LifecycleKind | null
+  /** Sunucu `kind` dizesi (bilinmeyende de dolu). */
+  rawKind: string
+  /** Kayıt kimliği. */
+  id: string
+  /** `rawKind:id` — aynı kimliğin türler arası çakışmasını önler (seçim, URL, hata özeti anahtarı). */
   key: string
   title: string
-  /** Koordinatörlük kodu (varsa mono kicker); diğer türlerde `null`. */
+  /** Koordinatörlük kodu / görev kodu (varsa mono kicker); yoksa `null`. */
   code: string | null
   /** Alt satır (E-12-28); yoksa boş dize. */
   subLine: string
@@ -73,7 +95,7 @@ export interface DeletedRow {
   status: string | null
   /** Görev: `file_count`; diğer türlerde `null`. */
   fileCount: number | null
-  /** Görev: BE-113 ek alanları; diğer türlerde `null`. */
+  /** Görev: BE-113 ek alanları; tipli listeden gelmeyen satırlarda `null`. */
   task: DeletedTaskFacts | null
   /** Panel ek alanları (türe özgü). */
   place: string | null
@@ -83,6 +105,10 @@ export interface DeletedRow {
   departmentKind: string | null
   /** Kullanıcı: şirket yöneticiliği ataması (silmede korunur); diğer türlerde `false`. */
   companyAdmin: boolean
+  /** Çocuk türlerde ebeveyn; görev/toplantı/departman/hesapta `null`. */
+  parent: RowParent | null
+  /** Çocuk türlerin panel alanları (yalnız dönen veri); diğerlerinde boş. */
+  facts: readonly RowFact[]
 }
 
 // v0.26 çocuk türleri ve birleşik liste (üretilmiş şemadan; elle DTO yok).

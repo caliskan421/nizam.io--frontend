@@ -1,6 +1,7 @@
 /**
- * Açık sekmenin silinen kayıt listesi (12; P42/P43): dört okuyucudan YALNIZ açık türünkü
- * etkindir (fan-out yok, birleşik liste yok; GAP-234). Süzgeç/sıra sunucuya gider (`query`,
+ * Açık görünümün silinen kayıt listesi (12; P42/P43; v0.26): okuyuculardan YALNIZ açık görünümünki
+ * etkindir (fan-out yok). Tek türlü görünümler tipli listesini (zengin alan), `Tümü` ve `Not ve
+ * gündem` tek `listDeletedRecords` sorgusunu okur; satırları istemci birleştirmez ve sıralamaz. Süzgeç/sıra sunucuya gider (`query`,
  * BE-117); satırlar liste öğelerinden türetilir (`model/rows`), istemci süzmez. `total` süzgece
  * uyan kayıt sayısıdır (imleçten bağımsız). Koordinatörlük adı program sözlüğünden
  * (`listProgramDepartments`, kabukla ortak anahtar), yoksa önbellekte yüklü silinmiş departman
@@ -21,9 +22,12 @@ import {
   useDeletedMeetings,
   useDeletedWorkItems,
 } from '../api/queries'
+import { useDeletedFiles, useDeletedSubtasks } from '../api/queries-child'
+import { useDeletedRecords } from '../api/unified'
 import type { ListQuery } from '../model/filters'
-import type { DeletedKind } from '../model/kinds'
+import { isUnifiedView, VIEW_KINDS, type DeletedKind } from '../model/kinds'
 import { accountRow, departmentRow, meetingRow, taskRow, type RowContext } from '../model/rows'
+import { fileRow, recordRow, subtaskRow } from '../model/rows-child'
 import type { DeletedDepartment, DeletedRow } from '../model/types'
 
 const DEFAULT_TIMEZONE = 'Europe/Istanbul'
@@ -59,14 +63,22 @@ function useDepartmentNames(timezone: Ref<string>) {
   })
 }
 
+type TypedView = Exclude<DeletedKind, 'tumu' | 'notgundem'>
 type Queries = {
   gorev: ReturnType<typeof useDeletedWorkItems>
+  altgorev: ReturnType<typeof useDeletedSubtasks>
+  dosya: ReturnType<typeof useDeletedFiles>
   toplanti: ReturnType<typeof useDeletedMeetings>
   koordinatorluk: ReturnType<typeof useDeletedDepartments>
   kullanici: ReturnType<typeof useDeletedAccounts>
+  birlesik: ReturnType<typeof useDeletedRecords>
 }
 
 const pagesOf = <T>(data: { pages: T[] } | undefined) => data?.pages ?? []
+
+/** Görünümün okuyucusu: birleşik görünümler tek sorguyu paylaşır. */
+const sourceOf = (kind: DeletedKind): keyof Queries =>
+  isUnifiedView(kind) ? 'birlesik' : (kind as TypedView)
 
 function rowsOf(kind: DeletedKind, q: Queries, ctx: RowContext): DeletedRow[] {
   switch (kind) {
@@ -76,6 +88,13 @@ function rowsOf(kind: DeletedKind, q: Queries, ctx: RowContext): DeletedRow[] {
       return pagesOf(q.koordinatorluk.data.value).flatMap((p) => p.departments.map(departmentRow))
     case 'kullanici':
       return pagesOf(q.kullanici.data.value).flatMap((p) => p.accounts.map(accountRow))
+    case 'altgorev':
+      return pagesOf(q.altgorev.data.value).flatMap((p) => p.items.map(subtaskRow))
+    case 'dosya':
+      return pagesOf(q.dosya.data.value).flatMap((p) => p.items.map(fileRow))
+    case 'tumu':
+    case 'notgundem':
+      return pagesOf(q.birlesik.data.value).flatMap((p) => p.items.map(recordRow))
     default:
       return pagesOf(q.gorev.data.value).flatMap((p) => p.items.map((i) => taskRow(i, ctx)))
   }
@@ -83,9 +102,8 @@ function rowsOf(kind: DeletedKind, q: Queries, ctx: RowContext): DeletedRow[] {
 
 /** Süzülmüş küme boyu: son yüklenen sayfanın zarfı (imleçten bağımsız). */
 function totalOf(kind: DeletedKind, q: Queries): number | null {
-  const last = pagesOf(q[kind].data.value as { pages: Array<{ total?: number }> } | undefined).at(
-    -1,
-  )
+  const data = q[sourceOf(kind)].data.value as { pages: Array<{ total?: number }> } | undefined
+  const last = pagesOf(data).at(-1)
   return typeof last?.total === 'number' ? last.total : null
 }
 
@@ -100,21 +118,28 @@ export function useDeletedList(
   query: MaybeRefOrGetter<ListQuery>,
   enabled: MaybeRefOrGetter<boolean>,
 ) {
-  const on = (wanted: DeletedKind) => () => toValue(enabled) && toValue(kind) === wanted
-  const tasks = useDeletedWorkItems(query, on('gorev'))
-  const meetings = useDeletedMeetings(query, on('toplanti'))
-  const departments = useDeletedDepartments(query, on('koordinatorluk'))
-  const accounts = useDeletedAccounts(query, on('kullanici'))
+  const on = (source: keyof Queries) => () => toValue(enabled) && sourceOf(toValue(kind)) === source
+  // Birleşik listenin sorgusu: sıra yoktur (`sort`/`order` gönderilmez); `tumu` tür kısıtı taşımaz.
+  const unified = computed(() => {
+    const rest = { ...toValue(query) }
+    delete rest.sort
+    delete rest.order
+    const view = toValue(kind)
+    return { ...rest, ...(view === 'tumu' ? {} : { kinds: VIEW_KINDS[view] }) }
+  })
+  const queries: Queries = {
+    gorev: useDeletedWorkItems(query, on('gorev')),
+    altgorev: useDeletedSubtasks(query, on('altgorev')),
+    dosya: useDeletedFiles(query, on('dosya')),
+    toplanti: useDeletedMeetings(query, on('toplanti')),
+    koordinatorluk: useDeletedDepartments(query, on('koordinatorluk')),
+    kullanici: useDeletedAccounts(query, on('kullanici')),
+    birlesik: useDeletedRecords(unified, on('birlesik')),
+  }
   const timezone = useDeletedTimezone()
   const context = useDepartmentNames(timezone)
 
-  const queries = {
-    gorev: tasks,
-    toplanti: meetings,
-    koordinatorluk: departments,
-    kullanici: accounts,
-  }
-  const paged = computed<PagedQuery>(() => queries[toValue(kind)])
+  const paged = computed<PagedQuery>(() => queries[sourceOf(toValue(kind))])
   const rows = computed<DeletedRow[]>(() => rowsOf(toValue(kind), queries, context.value))
   /** Süzgece uyan kayıt sayısı (son yüklenen sayfanın zarfı; toplantıda alan isteğe bağlıdır). */
   const total = computed(() => totalOf(toValue(kind), queries))

@@ -11,9 +11,12 @@ import { reachesOwner } from '@/shared/http/mutation'
 import { useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
+import { isChildKind } from '../model/lifecycle'
 import { deletedText } from '../model/messages'
 import { interpretOutcome, type LifecycleAction } from '../model/outcome'
+import { interpretChildOutcome } from '../model/outcome-child'
 import type { DeletedRow } from '../model/types'
+import type { LifecycleHub } from './use-lifecycle-hub'
 import { useLifecycleWrites, type LifecycleOutcome } from './use-lifecycle-writes'
 
 export interface RecordNotice {
@@ -27,24 +30,33 @@ export interface RecordActionOptions {
   refresh: () => Promise<unknown>
   /** Satır listeden düştü ya da düşmüş olabilir (seçim temizliği, odak taşıma). */
   removed: (row: DeletedRow) => void
+  /** Sayfanın ortak yazma merkezi (verilmezse kurulur). */
+  hub?: LifecycleHub
 }
 
 export function confirmOptions(action: LifecycleAction, row: DeletedRow): ConfirmOptions {
   if (action === 'restore') {
     return {
       title: deletedText('confirm.restoreTitle', { title: row.title }),
-      body: [deletedText('confirm.restoreBody'), deletedText(`confirm.restoreWarning.${row.kind}`)],
+      body: [
+        deletedText('confirm.restoreBody'),
+        ...(row.kind ? [deletedText(`confirm.restoreWarning.${row.kind}`)] : []),
+      ],
       confirmLabel: deletedText('confirm.restoreConfirm'),
       tone: 'primary',
     }
   }
   const files = row.fileCount ?? 0
+  // Birleşik listeden gelen görev satırı dosya sayısı taşımaz: sayı uydurulmaz, genel uyarı verilir.
+  const filesLine =
+    files > 0
+      ? [deletedText('confirm.purgeFiles', { n: files })]
+      : row.kind === 'tasks' && row.fileCount === null
+        ? [deletedText('confirm.purgeFilesAny')]
+        : []
   return {
     title: deletedText('confirm.purgeTitle', { title: row.title }),
-    body: [
-      deletedText('confirm.purgeBody'),
-      ...(files > 0 ? [deletedText('confirm.purgeFiles', { n: files })] : []),
-    ],
+    body: [deletedText('confirm.purgeBody'), ...filesLine],
     confirmLabel: deletedText('confirm.purgeConfirm'),
     tone: 'danger',
   }
@@ -53,12 +65,16 @@ export function confirmOptions(action: LifecycleAction, row: DeletedRow): Confir
 export function useRecordActions(options: RecordActionOptions) {
   const toast = useToast()
   const { confirmWrite } = useConfirm()
-  const { senders, pending } = useLifecycleWrites()
+  const { senders, pending } = useLifecycleWrites(options.hub)
   const notice = ref<RecordNotice | null>(null)
 
   async function settle(action: LifecycleAction, row: DeletedRow, outcome: LifecycleOutcome) {
     if (!reachesOwner(outcome)) return
-    const result = interpretOutcome(action, row, outcome)
+    // Çocuk türlerde başarı metni gerçek yanıttan (dosya geri yüklemede yeni ad) kurulur.
+    const result =
+      row.kind && isChildKind(row.kind)
+        ? interpretChildOutcome(action, row.title || deletedText('row.untitled'), outcome)
+        : interpretOutcome(action, row, outcome)
     if (!result) {
       notifyOutcome(outcome)
       if (outcome.kind === 'unknown_outcome') await options.refresh()
@@ -80,10 +96,12 @@ export function useRecordActions(options: RecordActionOptions) {
   }
 
   async function run(action: LifecycleAction, row: DeletedRow) {
-    if (pending.value) return
+    const kind = row.kind
+    // Bilinmeyen (gelecek) tür salt okunurdur: yazma yolu yoktur.
+    if (pending.value || kind === null) return
     notice.value = null
     const outcome = await confirmWrite(confirmOptions(action, row), (context) =>
-      senders[row.kind][action](row, context),
+      senders[kind][action](row, context),
     )
     if (outcome === null) return
     await settle(action, row, outcome)

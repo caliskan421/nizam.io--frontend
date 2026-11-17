@@ -69,12 +69,16 @@ describe('useDeletedList (P42/P43: açık sekme, fan-out yok)', () => {
     world.accounts = [[account('a1')]]
     const { list, kind, client, app } = setup('gorev')
     await settleQueries(client)
-    expect(list.rows.value.map((r) => r.key)).toEqual(['gorev:w1'])
+    expect(list.rows.value.map((r) => r.key)).toEqual(['tasks:w1'])
     expect(list.rows.value[0]!.subLine).toBe('Mekanik › Görevler')
-    for (const wanted of ['toplanti', 'koordinatorluk', 'kullanici'] as const) {
+    for (const [wanted, row] of [
+      ['toplanti', 'meetings'],
+      ['koordinatorluk', 'departments'],
+      ['kullanici', 'accounts'],
+    ] as const) {
       kind.value = wanted
       await settleQueries(client)
-      expect(list.rows.value.map((r) => r.kind)).toEqual([wanted])
+      expect(list.rows.value.map((r) => r.kind)).toEqual([row])
     }
     expect(sent(PATHS.tasks)).toHaveLength(1)
     expect(sent(PATHS.accounts)).toHaveLength(1)

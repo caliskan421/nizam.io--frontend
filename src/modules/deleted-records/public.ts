@@ -7,7 +7,6 @@ export {
   DEFAULT_RANGE,
   DELETED_KINDS,
   DELETED_RANGES,
-  DISABLED_KINDS,
   isDeletedKind,
   isDeletedRange,
   parseKind,

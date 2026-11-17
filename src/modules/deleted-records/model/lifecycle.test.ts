@@ -58,9 +58,21 @@ describe('yaşam döngüsü kaydı', () => {
     expect(LIFECYCLE_KINDS.filter((kind) => !needsProgram(kind))).toEqual(['accounts'])
   })
 
-  it('mevcut dört ekran türü kayıt türüne bire bir eşlenir; çocuk türlerin ekran türü yok', () => {
-    expect(DELETED_KINDS.map(lifecycleOf)).toEqual(['tasks', 'meetings', 'departments', 'accounts'])
-    for (const kind of CHILD_KINDS) expect(LIFECYCLE[kind].view).toBeNull()
+  it('tek türlü görünümler kayıt türüne bire bir eşlenir; birleşik görünümler yazma türü değildir', () => {
+    const single = DELETED_KINDS.filter((view) => view !== 'tumu' && view !== 'notgundem')
+    expect(single.map(lifecycleOf)).toEqual([
+      'tasks',
+      'subtasks',
+      'files',
+      'meetings',
+      'departments',
+      'accounts',
+    ])
+    // Not ve gündem üç türdür: kendi tek türlü görünümleri yoktur.
+    for (const kind of ['task_notes', 'meeting_notes', 'agenda_items'] as const) {
+      expect(LIFECYCLE[kind].view).toBeNull()
+    }
+    expect(CHILD_KINDS).toHaveLength(5)
   })
 
   it('bilinmeyen (gelecek) tür `null`: yazma üretilmez', () => {

@@ -273,7 +273,7 @@ describe('giriş: ana sayfa düğmesi (E-01-02, P36)', () => {
     await click('[data-testid="home-deleted-records"]')
     await until(() => $('[data-testid="deleted-records-page"]'), 'ekran')
     expect(app.router.currentRoute.value.path).toBe('/silinen-kayitlar')
-    await until(() => $('[data-record-key="gorev:wd"]'), 'görev satırı')
+    await until(() => $('[data-record-key="tasks:wd"]'), 'görev satırı')
   })
 
   it('koordinatör: ana sayfada düğme DOM’da yok', async () => {
@@ -298,18 +298,18 @@ describe('geri yükle → türetilmiş kaynaklar önce/sonra (KESİN 29)', () =>
     await until(() => $('[data-work-item="w1"]'), 'görev listesi')
     expect($('[data-work-item="wd"]')).toBeNull()
     await app.router.push('/silinen-kayitlar')
-    await until(() => $('[data-record-key="gorev:wd"]'), 'silinen görev')
+    await until(() => $('[data-record-key="tasks:wd"]'), 'silinen görev')
     const dashboards = backend.sent('GET', '/v1/reports/dashboard').length
     const lists = backend.sent('GET', '/v1/program/work-items').length
 
-    await restore('gorev:wd')
+    await restore('tasks:wd')
     await acceptConfirm()
     await idle(app.queryClient)
     expect(backend.sent('PATCH', '/v1/admin/restore/work-items/wd')).toHaveLength(1)
     expect(
       backend.sent('PATCH', '/v1/admin/restore/work-items/wd')[0]!.headers.get('X-Nizamio-Program'),
     ).toBe('p1')
-    await until(() => !$('[data-record-key="gorev:wd"]'), 'satır düştü')
+    await until(() => !$('[data-record-key="tasks:wd"]'), 'satır düştü')
     expect(toasts()).toContain('Silinmiş görev geri yüklendi.')
 
     await app.router.push('/')
@@ -325,9 +325,9 @@ describe('geri yükle → türetilmiş kaynaklar önce/sonra (KESİN 29)', () =>
     await until(() => $('.meetings-page'), 'toplantılar')
     expect(restoredMeetings).toEqual([])
     await app.router.push('/silinen-kayitlar?tur=toplanti')
-    await until(() => $('[data-record-key="toplanti:md"]'), 'silinen toplantı')
+    await until(() => $('[data-record-key="meetings:md"]'), 'silinen toplantı')
     const lists = backend.sent('GET', '/v1/meetings').length
-    await restore('toplanti:md')
+    await restore('meetings:md')
     await acceptConfirm()
     await idle(app.queryClient)
     expect(backend.sent('PATCH', '/v1/admin/restore/meetings/md')).toHaveLength(1)
@@ -340,11 +340,11 @@ describe('geri yükle → türetilmiş kaynaklar önce/sonra (KESİN 29)', () =>
 
   it('koordinatörlük: standing (me/departments) ve departman listeleri yeniden okunur', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=koordinatorluk' })
-    await until(() => $('[data-record-key="koordinatorluk:dd"]'), 'silinen birim')
+    await until(() => $('[data-record-key="departments:dd"]'), 'silinen birim')
     await idle(app.queryClient)
     const standing = backend.sent('GET', '/v1/me/departments').length
     const catalog = backend.sent('GET', '/v1/departments').length
-    await restore('koordinatorluk:dd')
+    await restore('departments:dd')
     await acceptConfirm()
     await idle(app.queryClient)
     expect(backend.sent('PATCH', '/v1/admin/restore/departments/dd')).toHaveLength(1)
@@ -363,8 +363,8 @@ describe('geri yükle → türetilmiş kaynaklar önce/sonra (KESİN 29)', () =>
     await idle(app.queryClient)
     const users = backend.sent('GET', '/v1/admin/users').length
     await app.router.push('/silinen-kayitlar?tur=kullanici')
-    await until(() => $('[data-record-key="kullanici:acc-dead"]'), 'silinen hesap')
-    await restore('kullanici:acc-dead')
+    await until(() => $('[data-record-key="accounts:acc-dead"]'), 'silinen hesap')
+    await restore('accounts:acc-dead')
     await acceptConfirm()
     await idle(app.queryClient)
     expect(backend.sent('PATCH', '/v1/admin/restore/accounts/acc-dead')).toHaveLength(1)
@@ -379,8 +379,8 @@ describe('geri yükle → türetilmiş kaynaklar önce/sonra (KESİN 29)', () =>
     expect(backend.sent('GET', '/v1/admin/users').length).toBeGreaterThan(users)
 
     await app.router.push('/silinen-kayitlar?tur=toplanti')
-    await until(() => $('[data-record-key="toplanti:md"]'), 'silinen toplantı')
-    await click(() => $('[data-record-key="toplanti:md"] [data-action="purge"]'))
+    await until(() => $('[data-record-key="meetings:md"]'), 'silinen toplantı')
+    await click(() => $('[data-record-key="meetings:md"] [data-action="purge"]'))
     await acceptConfirm()
     await idle(app.queryClient)
     expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/md')).toHaveLength(1)
@@ -397,11 +397,20 @@ describe('özet sayaçları ↔ ana sayfa rozeti (BE-110, KESİN 29)', () => {
         .filter(([, n]) => n !== undefined),
     )
 
-  it('segment sayaçları özet (dört tür kesin) ve toplamı ana sayfa rozetiyle aynı hesap', async () => {
+  it('segment sayaçları özet (sekiz görünüm kesin) ve toplamı ana sayfa rozetiyle aynı hesap', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wd"]'), 'görev satırı')
+    await until(() => $('[data-record-key="tasks:wd"]'), 'görev satırı')
     await until(() => segment().gorev, 'özet sayaçları')
-    expect(segment()).toEqual({ gorev: '1', toplanti: '1', koordinatorluk: '1', kullanici: '1' })
+    expect(segment()).toEqual({
+      tumu: '4',
+      gorev: '1',
+      altgorev: '0',
+      dosya: '0',
+      toplanti: '1',
+      koordinatorluk: '1',
+      kullanici: '1',
+      notgundem: '0',
+    })
     expect(backend.sent('GET', '/v1/admin/deleted/summary')).toHaveLength(1)
     expect(
       backend.sent('GET', '/v1/admin/deleted/summary')[0]!.headers.get('X-Nizamio-Program'),
@@ -414,17 +423,23 @@ describe('özet sayaçları ↔ ana sayfa rozeti (BE-110, KESİN 29)', () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=toplanti' })
     await until(() => segment().toplanti === '1', 'önce')
     const summaries = backend.sent('GET', '/v1/admin/deleted/summary').length
-    await restore('toplanti:md')
+    await restore('meetings:md')
     await acceptConfirm()
     await idle(app.queryClient)
     await until(() => segment().toplanti === '0', 'özet sayacı düştü')
     expect(backend.sent('GET', '/v1/admin/deleted/summary').length).toBeGreaterThan(summaries)
-    expect(segment()).toEqual({ gorev: '1', toplanti: '0', koordinatorluk: '1', kullanici: '1' })
+    expect(segment()).toMatchObject({
+      tumu: '3',
+      gorev: '1',
+      toplanti: '0',
+      koordinatorluk: '1',
+      kullanici: '1',
+    })
     await app.router.push('/')
     await until(() => counter() === '3', 'rozet sonra')
     await app.router.push('/silinen-kayitlar?tur=kullanici')
-    await until(() => $('[data-record-key="kullanici:acc-dead"]'), 'silinen hesap')
-    await click(() => $('[data-record-key="kullanici:acc-dead"] [data-action="purge"]'))
+    await until(() => $('[data-record-key="accounts:acc-dead"]'), 'silinen hesap')
+    await click(() => $('[data-record-key="accounts:acc-dead"] [data-action="purge"]'))
     await acceptConfirm()
     await idle(app.queryClient)
     await until(() => segment().kullanici === '0', 'hesap sayacı düştü')
@@ -439,7 +454,7 @@ describe('toplu geri yükle / kalıcı sil → türetilmiş kaynaklar (BE-114, K
     await until(() => $('[data-work-item="w1"]'), 'görev listesi')
     expect($('[data-work-item="wd"]')).toBeNull()
     await app.router.push('/silinen-kayitlar')
-    await until(() => $('[data-record-key="gorev:wd2"]'), 'silinen görevler')
+    await until(() => $('[data-record-key="tasks:wd2"]'), 'silinen görevler')
     await click(() => $('[data-testid="dr-select-all"]'))
     await until(() => $('[data-testid="dr-bulk"]'), 'toplu çubuk')
     expect($('[data-testid="dr-bulk"] [role="status"]')?.textContent).toBe('2 kayıt seçildi')
@@ -463,7 +478,7 @@ describe('toplu geri yükle / kalıcı sil → türetilmiş kaynaklar (BE-114, K
 
   it('kalıcı silme: toplantı + hesap sayaçları ve rozet düşer; eski tekil uç çağrılmaz', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=toplanti' })
-    await until(() => $('[data-record-key="toplanti:md"]'), 'silinen toplantı')
+    await until(() => $('[data-record-key="meetings:md"]'), 'silinen toplantı')
     await click(() => $('[data-testid="dr-select-all"]'))
     await click(() => $('[data-testid="dr-bulk"] [data-action="bulk-purge"]'))
     await acceptConfirm()
@@ -471,7 +486,7 @@ describe('toplu geri yükle / kalıcı sil → türetilmiş kaynaklar (BE-114, K
     expect(backend.sent('POST', '/v1/admin/deleted/meetings/purge')).toHaveLength(1)
     expect(backend.sent('DELETE', '/v1/admin/permanent/meetings/md')).toHaveLength(0)
     await tab('kullanici')
-    await until(() => $('[data-record-key="kullanici:acc-dead"]'), 'silinen hesap')
+    await until(() => $('[data-record-key="accounts:acc-dead"]'), 'silinen hesap')
     await click(() => $('[data-testid="dr-select-all"]'))
     await click(() => $('[data-testid="dr-bulk"] [data-action="bulk-purge"]'))
     await acceptConfirm()
@@ -488,7 +503,7 @@ describe('çöpü boşalt → özet, listeler ve ana sayfa rozeti (BE-115, KESİ
   it('tür adı yazılınca ortak onay, sonra purge-all; sayaçlar ve rozet düşer; tekil uçlar çağrılmaz', async () => {
     deleted.tasks = ['wd', 'wd2', 'wd3']
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wd3"]'), 'silinen görevler')
+    await until(() => $('[data-record-key="tasks:wd3"]'), 'silinen görevler')
     await click(() => $('[data-testid="dr-empty-trash"]'))
     await until(() => $('[data-testid="dr-purgeall"]'), 'çöp paneli')
     expect($('[data-testid="dr-purgeall"]')?.textContent).toContain(
@@ -549,7 +564,7 @@ describe('CSV indir: bilet akışı (BE-116)', () => {
 
   it('arama süzgeciyle seçili türün hedefi bilete yazılır, bilet tüketilir ve CSV kaydedilir; tekil ucu yok', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar?tur=toplanti&q=silinmis' })
-    await until(() => $('[data-record-key="toplanti:md"]'), 'silinen toplantı')
+    await until(() => $('[data-record-key="meetings:md"]'), 'silinen toplantı')
     await click(() => $('[data-testid="dr-csv"]'))
     await until(() => saved.length === 1, 'CSV kaydedildi')
     await idle(app.queryClient)
@@ -569,9 +584,9 @@ describe('CSV indir: bilet akışı (BE-116)', () => {
 describe('kapsam değişimi (K2)', () => {
   it('program değişince S2 silinen listeleri yeni başlıkla yeniden okunur; hesap listesi düşmez', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wd"]'), 'görev')
+    await until(() => $('[data-record-key="tasks:wd"]'), 'görev')
     await tab('kullanici')
-    await until(() => $('[data-record-key="kullanici:acc-dead"]'), 'hesap')
+    await until(() => $('[data-record-key="accounts:acc-dead"]'), 'hesap')
     await tab('gorev')
     await idle(app.queryClient)
     const tasks = backend.sent('GET', '/v1/admin/deleted/work-items')
@@ -591,7 +606,7 @@ describe('kapsam değişimi (K2)', () => {
     await tab('kullanici')
     await idle(app.queryClient)
     // Hesap geneli anahtar düşmedi: sekmeye dönüşte önbellekten görünür; ek istek yalnız arka plan doğrulaması.
-    expect($$('[data-record-key]').map((r) => r.dataset.recordKey)).toEqual(['kullanici:acc-dead'])
+    expect($$('[data-record-key]').map((r) => r.dataset.recordKey)).toEqual(['accounts:acc-dead'])
     expect(backend.sent('GET', '/v1/admin/deleted/accounts').length).toBeGreaterThanOrEqual(
       accounts,
     )

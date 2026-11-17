@@ -4,9 +4,9 @@ import { BATCH_LIMIT, chunk, emptyRun, mergeRun, summarizeBatch } from './batch'
 import { batchFailureText } from './outcome'
 
 const rows = [
-  { id: 'a', title: 'Alfa' },
-  { id: 'b', title: 'Beta' },
-  { id: 'c', title: 'Gama' },
+  { key: 'a', title: 'Alfa' },
+  { key: 'b', title: 'Beta' },
+  { key: 'c', title: 'Gama' },
 ]
 
 describe('parçalama (≤100 kimlik / istek)', () => {
@@ -27,6 +27,16 @@ describe('sonuç birleştirme', () => {
     run = mergeRun(run, { succeeded: ['a'], failed: [{ id: 'b', code: 'work.not_deleted' }] })
     run = mergeRun(run, { succeeded: ['c'], failed: [] })
     expect(run).toEqual({ succeeded: ['a', 'c'], failed: [{ id: 'b', code: 'work.not_deleted' }] })
+  })
+
+  it('tür verilirse çıplak kimlikler kind:id anahtarına çevrilir (çapraz tür çakışması yok)', () => {
+    let run = emptyRun()
+    run = mergeRun(run, { succeeded: ['7'], failed: [{ id: '8', code: 'x.y' }] }, 'files')
+    run = mergeRun(run, { succeeded: ['7'], failed: [] }, 'subtasks')
+    expect(run).toEqual({
+      succeeded: ['files:7', 'subtasks:7'],
+      failed: [{ id: 'files:8', code: 'x.y' }],
+    })
   })
 })
 
@@ -58,8 +68,8 @@ describe('özet', () => {
         title: 'Beta',
         reason: 'Kalıcı silinemedi: koordinatörlüğün görevleri veya program katılımı var.',
       },
-      // Satır listede yoksa kimlik gösterilir (sahte ad yok); bilinmeyen kod nötr cümle.
-      { id: 'zz', title: 'zz', reason: 'Bu kayıt işlenemedi.' },
+      // Satır listede yoksa kimlik ad olarak yazılmaz (sahte ad yok); bilinmeyen kod nötr cümle.
+      { id: 'zz', title: 'Adı okunamayan kayıt', reason: 'Bu kayıt işlenemedi.' },
     ])
   })
 

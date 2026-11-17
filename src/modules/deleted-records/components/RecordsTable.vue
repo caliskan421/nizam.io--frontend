@@ -21,6 +21,8 @@ const props = defineProps<{
   allChecked: boolean
   someChecked: boolean
   sort: DeletedSort
+  /** Birleşik görünümlerde sıra yalnız sunucudadır (silinme anı azalan): başlıklar pasif. */
+  sortLocked?: boolean
   busy: boolean
   timezone: string
   now: Date
@@ -34,10 +36,11 @@ const emit = defineEmits<{
   sort: [key: SortKey]
   toggle: [row: DeletedRow]
   toggleAll: []
+  openParent: [row: DeletedRow]
 }>()
 
 function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
-  if (props.sort.key !== key) return undefined
+  if (props.sortLocked === true || props.sort.key !== key) return undefined
   return props.sort.order === 'asc' ? 'ascending' : 'descending'
 }
 </script>
@@ -59,6 +62,7 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
           <span role="columnheader">{{ deletedText('table.columns.kind') }}</span>
           <span role="columnheader" :aria-sort="ariaSort('name')">
             <button
+              v-if="!sortLocked"
               type="button"
               class="dr-sorth"
               data-sort="name"
@@ -68,9 +72,11 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
               {{ deletedText('table.columns.record') }}
               <UiIcon name="sort" size="sm" />
             </button>
+            <template v-else>{{ deletedText('table.columns.record') }}</template>
           </span>
           <span role="columnheader" :aria-sort="ariaSort('deleted_at')">
             <button
+              v-if="!sortLocked"
               type="button"
               class="dr-sorth"
               data-sort="deleted_at"
@@ -80,6 +86,7 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
               {{ deletedText('table.columns.deletedAt') }}
               <UiIcon name="sort" size="sm" />
             </button>
+            <template v-else>{{ deletedText('table.columns.deletedAt') }}</template>
           </span>
           <span role="columnheader">{{ deletedText('table.columns.actor') }}</span>
           <span role="columnheader"
@@ -91,7 +98,7 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
           :key="row.key"
           :row="row"
           :selected="row.key === selectedKey"
-          :checked="checkedIds.has(row.id)"
+          :checked="checkedIds.has(row.key)"
           :busy="busy"
           :timezone="timezone"
           :now="now"
@@ -101,6 +108,7 @@ function ariaSort(key: SortKey): 'ascending' | 'descending' | undefined {
           @restore="emit('restore', row)"
           @purge="emit('purge', row)"
           @toggle="emit('toggle', row)"
+          @open-parent="emit('openParent', row)"
         />
       </div>
     </div>

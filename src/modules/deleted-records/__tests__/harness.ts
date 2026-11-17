@@ -24,7 +24,17 @@ import type { Meeting } from '@/modules/meetings/public'
 import { settleQueries } from '@/shared/http/__tests__/settle'
 import { useScopeStore } from '@/shared/scope/store'
 
-import type { DeletedAccount, DeletedDepartment, DeletedWorkItem } from '../model/types'
+import type {
+  DeletedAccount,
+  DeletedAgendaItem,
+  DeletedDepartment,
+  DeletedFile,
+  DeletedMeetingNote,
+  DeletedRecordItem,
+  DeletedSubtask,
+  DeletedTaskNote,
+  DeletedWorkItem,
+} from '../model/types'
 import DeletedRecordsPage from '../pages/DeletedRecordsPage.vue'
 
 export const ORIGIN = 'http://localhost'
@@ -33,6 +43,12 @@ export const PATHS = {
   meetings: '/v1/admin/deleted/meetings',
   departments: '/v1/admin/deleted/departments',
   accounts: '/v1/admin/deleted/accounts',
+  files: '/v1/admin/deleted/files',
+  subtasks: '/v1/admin/deleted/subtasks',
+  taskNotes: '/v1/admin/deleted/task-notes',
+  meetingNotes: '/v1/admin/deleted/meeting-notes',
+  agendaItems: '/v1/admin/deleted/agenda-items',
+  records: '/v1/admin/deleted/records',
   summary: '/v1/admin/deleted/summary',
   dictionary: '/v1/program/departments',
   dashboard: '/v1/reports/dashboard',
@@ -70,6 +86,13 @@ export interface World {
   meetings: Meeting[][]
   departments: DeletedDepartment[][]
   accounts: DeletedAccount[][]
+  files: DeletedFile[][]
+  subtasks: DeletedSubtask[][]
+  taskNotes: DeletedTaskNote[][]
+  meetingNotes: DeletedMeetingNote[][]
+  agendaItems: DeletedAgendaItem[][]
+  /** Birleşik liste (`listDeletedRecords`) sayfaları: sunucu sırası senaryoyu kuran testindir. */
+  records: DeletedRecordItem[][]
   dictionary: Array<{ department_id: string; display_name: string; code?: string }>
   /** `METHOD /yol` → zorunlu hata. */
   failures: Map<string, { status: number; code: string }>
@@ -91,6 +114,12 @@ export const world: World = {
   meetings: [],
   departments: [],
   accounts: [],
+  files: [],
+  subtasks: [],
+  taskNotes: [],
+  meetingNotes: [],
+  agendaItems: [],
+  records: [],
   dictionary: [],
   failures: new Map(),
   itemFailures: new Map(),
@@ -105,6 +134,12 @@ export function resetWorld(): void {
     meetings: [],
     departments: [],
     accounts: [],
+    files: [],
+    subtasks: [],
+    taskNotes: [],
+    meetingNotes: [],
+    agendaItems: [],
+    records: [],
     dictionary: [],
   })
   world.failures.clear()
@@ -223,20 +258,95 @@ const ACCOUNT_FACETS: Facets<DeletedAccount> = {
   name: (a) => a.full_name,
 }
 
+const FILE_FACETS: Facets<DeletedFile> = {
+  text: (f) => [f.display_name],
+  departments: (f) => [f.department_id],
+  actor: (f) => f.deleted_by?.account_id ?? null,
+  at: (f) => f.deleted_at,
+  name: (f) => f.display_name,
+}
+const SUBTASK_FACETS: Facets<DeletedSubtask> = {
+  text: (t) => [t.title],
+  departments: (t) => [t.department_id],
+  actor: (t) => t.deleted_by?.account_id ?? null,
+  at: (t) => t.deleted_at,
+  name: (t) => t.title,
+}
+const TASK_NOTE_FACETS: Facets<DeletedTaskNote> = {
+  text: (n) => [n.excerpt],
+  departments: (n) => [n.department_id],
+  actor: (n) => n.deleted_by?.account_id ?? null,
+  at: (n) => n.deleted_at,
+  name: (n) => n.excerpt,
+}
+const MEETING_NOTE_FACETS: Facets<DeletedMeetingNote> = {
+  text: (n) => [n.excerpt],
+  departments: (n) => [n.owner_department_id],
+  actor: (n) => n.deleted_by?.account_id ?? null,
+  at: (n) => n.deleted_at,
+  name: (n) => n.excerpt,
+}
+const AGENDA_FACETS: Facets<DeletedAgendaItem> = {
+  text: (a) => [a.title],
+  departments: (a) => [a.owner_department_id],
+  actor: (a) => a.deleted_by?.account_id ?? null,
+  at: (a) => a.deleted_at,
+  name: (a) => a.title,
+}
+const RECORD_FACETS: Facets<DeletedRecordItem> = {
+  text: (r) => [r.name],
+  departments: (r) => (r.department_id ? [r.department_id] : []),
+  actor: (r) => r.deleted_by?.account_id ?? null,
+  at: (r) => r.deleted_at ?? '',
+  name: (r) => r.name,
+}
+
 const size = (pages: unknown[][]) => pages.reduce((sum, p) => sum + p.length, 0)
 
-/** Özet: dört türün tüm silinmişleri (süzgeç almaz; `total` dört terimin toplamı, REPORTING-K15). */
+/**
+ * Özet: dokuz türün tüm silinmişleri (süzgeç almaz). `total` dokuz terimin toplamıdır; `notes` üç
+ * not/gündem türünün ayrı toplamıdır ve `total`'a İKİNCİ KEZ girmez (REPORTING-K15, ADR-0055).
+ */
 function summaryOf() {
   const counts = {
     tasks: size(world.tasks),
+    subtasks: size(world.subtasks),
+    files: size(world.files),
     meetings: size(world.meetings),
+    task_notes: size(world.taskNotes),
+    meeting_notes: size(world.meetingNotes),
+    agenda_items: size(world.agendaItems),
     departments: size(world.departments),
     accounts: size(world.accounts),
   }
+  const notes = counts.task_notes + counts.meeting_notes + counts.agenda_items
   return makeDeletedSummary({
     ...counts,
+    notes,
     total: Object.values(counts).reduce((a, b) => a + b, 0),
   })
+}
+
+/**
+ * Birleşik liste: `kinds` ve ortak süzgeçleri uygular, sıra senaryodaki dizilimdir (sunucu yalnız
+ * silinme anı azalan). İmleç = sonraki sayfa dizini; son sayfada `next_cursor` boştur.
+ */
+function recordsPage(request: Request) {
+  const params = new URL(request.url).searchParams
+  const kinds = params.get('kinds')?.split(',')
+  const pages = world.records.map((p) => p.filter((r) => !kinds || kinds.includes(r.kind)))
+  const { shaped, total } = shapePages(pages, params, RECORD_FACETS)
+  const index = Number(params.get('cursor') ?? 0)
+  const unsorted = pages.filter((p) => p.length > 0)
+  const body =
+    params.get('q') || params.get('deleted_by') || params.get('department_id') ? shaped : unsorted
+  const current = body[index] ?? []
+  const next = index + 1 < body.length ? String(index + 1) : ''
+  return {
+    items: current,
+    total: body === shaped ? total : unsorted.flat().length,
+    next_cursor: next,
+  }
 }
 
 /** Silinen liste uçları (yetkili görünürlük: yönetici değilse 403). */
@@ -256,6 +366,20 @@ function listHandlers() {
     list(PATHS.accounts, 'organization.not_authorized', (r) =>
       page(world.accounts, r, 'accounts', ACCOUNT_FACETS),
     ),
+    list(PATHS.files, 'records.not_authorized', (r) => page(world.files, r, 'items', FILE_FACETS)),
+    list(PATHS.subtasks, 'work.not_authorized', (r) =>
+      page(world.subtasks, r, 'items', SUBTASK_FACETS),
+    ),
+    list(PATHS.taskNotes, 'work.not_authorized', (r) =>
+      page(world.taskNotes, r, 'items', TASK_NOTE_FACETS),
+    ),
+    list(PATHS.meetingNotes, 'collaboration.not_authorized', (r) =>
+      page(world.meetingNotes, r, 'items', MEETING_NOTE_FACETS),
+    ),
+    list(PATHS.agendaItems, 'collaboration.not_authorized', (r) =>
+      page(world.agendaItems, r, 'items', AGENDA_FACETS),
+    ),
+    list(PATHS.records, 'reporting.not_authorized', (r) => recordsPage(r)),
     http.get(`${ORIGIN}${PATHS.summary}`, () => {
       const forced = failure('GET', PATHS.summary)
       if (forced) return forced
@@ -267,6 +391,8 @@ function listHandlers() {
 
 interface LifecycleSpec {
   segment: string
+  /** Birleşik listedeki `kind` değeri. */
+  kind: string
   code: string
   idField: string
   purgeExtra?: JsonBodyType
@@ -277,7 +403,48 @@ interface LifecycleSpec {
 
 const LIFECYCLES: LifecycleSpec[] = [
   {
+    segment: 'files',
+    kind: 'files',
+    code: 'records.not_authorized',
+    idField: 'file_id',
+    remove: (id) => drop(world.files, (f) => f.file_id === id),
+    all: () => world.files.flat().map((f) => f.file_id),
+  },
+  {
+    segment: 'subtasks',
+    kind: 'subtasks',
+    code: 'work.not_authorized',
+    idField: 'subtask_id',
+    remove: (id) => drop(world.subtasks, (t) => t.subtask_id === id),
+    all: () => world.subtasks.flat().map((t) => t.subtask_id),
+  },
+  {
+    segment: 'task-notes',
+    kind: 'task_notes',
+    code: 'work.not_authorized',
+    idField: 'note_id',
+    remove: (id) => drop(world.taskNotes, (n) => n.note_id === id),
+    all: () => world.taskNotes.flat().map((n) => n.note_id),
+  },
+  {
+    segment: 'meeting-notes',
+    kind: 'meeting_notes',
+    code: 'collaboration.not_authorized',
+    idField: 'note_id',
+    remove: (id) => drop(world.meetingNotes, (n) => n.note_id === id),
+    all: () => world.meetingNotes.flat().map((n) => n.note_id),
+  },
+  {
+    segment: 'agenda-items',
+    kind: 'agenda_items',
+    code: 'collaboration.not_authorized',
+    idField: 'item_id',
+    remove: (id) => drop(world.agendaItems, (a) => a.item_id === id),
+    all: () => world.agendaItems.flat().map((a) => a.item_id),
+  },
+  {
     segment: 'work-items',
+    kind: 'tasks',
     code: 'work.not_authorized',
     idField: 'work_item_id',
     purgeExtra: { files_deleted: 2 },
@@ -286,6 +453,7 @@ const LIFECYCLES: LifecycleSpec[] = [
   },
   {
     segment: 'meetings',
+    kind: 'meetings',
     code: 'collaboration.not_authorized',
     idField: 'meeting_id',
     remove: (id) => drop(world.meetings, (m) => m.meeting_id === id),
@@ -293,6 +461,7 @@ const LIFECYCLES: LifecycleSpec[] = [
   },
   {
     segment: 'departments',
+    kind: 'departments',
     code: 'organization.not_authorized',
     idField: 'department_id',
     remove: (id) => drop(world.departments, (d) => d.department_id === id),
@@ -300,12 +469,19 @@ const LIFECYCLES: LifecycleSpec[] = [
   },
   {
     segment: 'accounts',
+    kind: 'accounts',
     code: 'organization.not_authorized',
     idField: 'account_id',
     remove: (id) => drop(world.accounts, (a) => a.account_id === id),
     all: () => world.accounts.flat().map((a) => a.account_id),
   },
 ]
+
+/** Kaydı türünün listesinden ve birleşik listeden düşürür (tutarlı sahte sunucu). */
+function removeRecord(spec: LifecycleSpec, id: string): void {
+  spec.remove(id)
+  drop(world.records, (r) => r.kind === spec.kind && r.id === id)
+}
 
 /** Geri yükle / kalıcı sil uçları: kaydı listeden düşürür, zorunlu hata tablosuna uyar. */
 function lifecycleHandlers() {
@@ -321,7 +497,7 @@ function lifecycleHandlers() {
         const forced = failure(method.toUpperCase(), path.replace(':id', id))
         if (forced) return forced
         if (!world.admin) return FORBIDDEN(spec.code)
-        spec.remove(id)
+        removeRecord(spec, id)
         return json({ [spec.idField]: id, status, ...(extra as object | undefined) })
       }),
     ),
@@ -350,7 +526,7 @@ function batchHandlers() {
           const code = world.itemFailures.get(id)
           if (code) failed.push({ id, code })
           else {
-            spec.remove(id)
+            removeRecord(spec, id)
             succeeded.push(id)
           }
         }
@@ -383,7 +559,7 @@ function purgeAllHandlers() {
         const code = world.itemFailures.get(id)
         if (code) failed.push({ id, code })
         else {
-          spec.remove(id)
+          removeRecord(spec, id)
           succeeded.push(id)
         }
       }
@@ -527,6 +703,109 @@ export const meeting = (id: string, over: Partial<Meeting> = {}): Meeting =>
     deleted_by: { account_id: 'acc-7', full_name: 'Reha Koçak' },
     ...over,
   })
+
+const ADMIN_NAME = { account_id: 'acc-7', full_name: 'Reha Koçak' }
+const T0 = '2026-11-12T10:00:00Z'
+
+export const file = (id: string, over: Partial<DeletedFile> = {}): DeletedFile => ({
+  file_id: id,
+  display_name: `dosya-${id}.pdf`,
+  content_type: 'application/pdf',
+  size_bytes: 2048,
+  tag: 'sonuc',
+  work_item_id: 'w1',
+  work_item_title: 'Saha pano montajı',
+  work_item_code: 'OPE-3',
+  parent_deleted: false,
+  subtask_id: null,
+  department_id: 'd1',
+  uploaded_by: ADMIN_NAME,
+  created_at: T0,
+  deleted_at: T0,
+  deleted_by: ADMIN_NAME,
+  ...over,
+})
+
+export const subtask = (id: string, over: Partial<DeletedSubtask> = {}): DeletedSubtask => ({
+  subtask_id: id,
+  title: `Alt görev ${id}`,
+  work_item_id: 'w1',
+  work_item_title: 'Saha pano montajı',
+  work_item_code: null,
+  department_id: 'd1',
+  parent_deleted: false,
+  done: false,
+  assigned_to: null,
+  deleted_at: T0,
+  deleted_by: ADMIN_NAME,
+  ...over,
+})
+
+export const taskNote = (id: string, over: Partial<DeletedTaskNote> = {}): DeletedTaskNote => ({
+  note_id: id,
+  excerpt: `Not ${id}`,
+  work_item_id: 'w1',
+  work_item_title: 'Saha pano montajı',
+  work_item_code: null,
+  department_id: 'd1',
+  parent_deleted: false,
+  author: ADMIN_NAME,
+  created_at: T0,
+  deleted_at: T0,
+  deleted_by: ADMIN_NAME,
+  ...over,
+})
+
+export const meetingNote = (
+  id: string,
+  over: Partial<DeletedMeetingNote> = {},
+): DeletedMeetingNote => ({
+  note_id: id,
+  excerpt: `Toplantı notu ${id}`,
+  meeting_id: 'm1',
+  meeting_title: 'Haftalık koordinasyon',
+  owner_department_id: 'd1',
+  parent_deleted: false,
+  author: ADMIN_NAME,
+  author_role: null,
+  converted_to_work_item_id: null,
+  created_at: T0,
+  deleted_at: T0,
+  deleted_by: ADMIN_NAME,
+  ...over,
+})
+
+export const agendaItem = (
+  id: string,
+  over: Partial<DeletedAgendaItem> = {},
+): DeletedAgendaItem => ({
+  item_id: id,
+  title: `Gündem ${id}`,
+  meeting_id: 'm1',
+  meeting_title: 'Haftalık koordinasyon',
+  owner_department_id: 'd1',
+  parent_deleted: false,
+  is_checked: false,
+  deleted_at: T0,
+  deleted_by: ADMIN_NAME,
+  ...over,
+})
+
+/** Birleşik liste öğesi (yalnız sözleşmenin döndürdüğü alanlar). */
+export const record = (
+  kind: string,
+  id: string,
+  over: Partial<DeletedRecordItem> = {},
+): DeletedRecordItem => ({
+  kind,
+  id,
+  name: `${kind} ${id}`,
+  department_id: 'd1',
+  parent: null,
+  deleted_at: T0,
+  deleted_by: ADMIN_NAME,
+  ...over,
+})
 
 export const department = (id: string, over: Partial<DeletedDepartment> = {}): DeletedDepartment =>
   withDeletedDepartmentDefaults({

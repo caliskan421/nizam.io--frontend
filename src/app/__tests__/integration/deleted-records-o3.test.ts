@@ -158,20 +158,24 @@ async function userClick(selector: string): Promise<void> {
 }
 
 describe('sekmeler ve statik öğeler', () => {
-  it('dört canlı tür seçilebilir; statik türler devre dışı ve ağ isteği atmaz; CSV/çöp boşalt etkin (F8); saklama metni; "Kalan süre" yok', async () => {
+  it('sekiz görünüm etkin ve seçilebilir; CSV/çöp boşalt etkin (F8); saklama metni; "Kalan süre" yok', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wd"]'), 'görevler')
+    await until(() => $('[data-record-key="tasks:wd"]'), 'görevler')
     const live = $$('[data-testid="dr-kinds"] [data-kind]:not([disabled])').map(
       (b) => b.dataset.kind,
     )
-    expect(live).toEqual(
-      expect.arrayContaining(['gorev', 'toplanti', 'koordinatorluk', 'kullanici']),
-    )
-    for (const kind of ['altgorev', 'dosya', 'notgundem']) {
-      expect($(`[data-testid="dr-kinds"] [data-kind="${kind}"]`)!.hasAttribute('disabled')).toBe(
-        true,
-      )
-    }
+    // v0.26: sekiz görünümün hepsi etkin; stub işareti yok.
+    expect(live).toEqual([
+      'tumu',
+      'gorev',
+      'altgorev',
+      'dosya',
+      'toplanti',
+      'koordinatorluk',
+      'kullanici',
+      'notgundem',
+    ])
+    expect($('[data-testid="dr-kinds"] [data-design-stub]')).toBeNull()
     expect($('[data-testid="dr-retention"]')!.textContent).toContain(
       'bir yönetici kalıcı olarak silene kadar saklanır',
     )
@@ -182,9 +186,6 @@ describe('sekmeler ve statik öğeler', () => {
     expect($('[data-testid="dr-csv"]')!.hasAttribute('disabled')).toBe(false)
     expect($('[data-testid="dr-empty-trash"]')!.hasAttribute('disabled')).toBe(false)
     $('[data-testid="dr-empty-trash"]')!.click()
-    for (const kind of ['altgorev', 'dosya', 'notgundem']) {
-      $(`[data-testid="dr-kinds"] [data-kind="${kind}"]`)!.click()
-    }
     await idle(app.queryClient)
     expect(backend.requests.length).toBe(before)
     await until(() => $('[data-testid="dr-purgeall"]'), 'çöp paneli')
@@ -201,11 +202,11 @@ describe('sekmeler ve statik öğeler', () => {
 describe('geri yükle → türevler önce/sonra (KESİN 29)', () => {
   async function restoreOverdue(app: Awaited<ReturnType<typeof boot>>) {
     await app.router.push('/silinen-kayitlar')
-    await until(() => $('[data-record-key="gorev:wd"]'), 'silinen görev')
-    await click(() => $('[data-record-key="gorev:wd"] [data-action="restore"]'))
+    await until(() => $('[data-record-key="tasks:wd"]'), 'silinen görev')
+    await click(() => $('[data-record-key="tasks:wd"] [data-action="restore"]'))
     await accept()
     await idle(app.queryClient)
-    await until(() => !$('[data-record-key="gorev:wd"]'), 'satır düştü')
+    await until(() => !$('[data-record-key="tasks:wd"]'), 'satır düştü')
   }
 
   // KESİN 32: tek ağır test ikiye bölündü (liste + rozet / zaman çizelgesi).
@@ -236,30 +237,30 @@ describe('geri yükle → türevler önce/sonra (KESİN 29)', () => {
 describe('work.department_unavailable', () => {
   it('bildirim → Koordinatörlük sekmesi → birim geri yüklenir → görev geri yüklenir', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wx"]'), 'kapalı birim görevi')
-    await click(() => $('[data-record-key="gorev:wx"] [data-action="restore"]'))
+    await until(() => $('[data-record-key="tasks:wx"]'), 'kapalı birim görevi')
+    await click(() => $('[data-record-key="tasks:wx"] [data-action="restore"]'))
     await accept()
     await until(() => $('[data-testid="dr-notice"]'), 'satır içi bildirim')
-    expect(keys()).toContain('gorev:wx')
+    expect(keys()).toContain('tasks:wx')
     await click(() => $('[data-testid="dr-open-departments"]'))
-    await until(() => $('[data-record-key="koordinatorluk:dd"]'), 'birim satırı')
+    await until(() => $('[data-record-key="departments:dd"]'), 'birim satırı')
     expect(app.router.currentRoute.value.query.tur).toBe('koordinatorluk')
-    await click(() => $('[data-record-key="koordinatorluk:dd"] [data-action="restore"]'))
+    await click(() => $('[data-record-key="departments:dd"] [data-action="restore"]'))
     await accept()
-    await until(() => !$('[data-record-key="koordinatorluk:dd"]'), 'birim geri yüklendi')
+    await until(() => !$('[data-record-key="departments:dd"]'), 'birim geri yüklendi')
     await click(() => $('[data-testid="dr-kinds"] [data-kind="gorev"]'))
-    await until(() => $('[data-record-key="gorev:wx"]'), 'görev tekrar')
-    await click(() => $('[data-record-key="gorev:wx"] [data-action="restore"]'))
+    await until(() => $('[data-record-key="tasks:wx"]'), 'görev tekrar')
+    await click(() => $('[data-record-key="tasks:wx"] [data-action="restore"]'))
     await accept()
-    await until(() => !$('[data-record-key="gorev:wx"]'), 'görev geri yüklendi')
+    await until(() => !$('[data-record-key="tasks:wx"]'), 'görev geri yüklendi')
   })
 })
 
 describe('work.department_unavailable: odak (KESİN 27, CX-F5-Ö-04)', () => {
   async function raiseNotice() {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wx"]'), 'kapalı birim görevi')
-    await click(() => $('[data-record-key="gorev:wx"] [data-action="restore"]'))
+    await until(() => $('[data-record-key="tasks:wx"]'), 'kapalı birim görevi')
+    await click(() => $('[data-record-key="tasks:wx"] [data-action="restore"]'))
     await accept()
     await until(() => $('[data-testid="dr-notice"]'), 'satır içi bildirim')
     return app
@@ -291,8 +292,8 @@ describe('work.department_unavailable: odak (KESİN 27, CX-F5-Ö-04)', () => {
 describe('kalıcı silme: onay ve odak (KESİN 27)', () => {
   it('vazgeç: istek yok, odak eylem düğmesine döner; onay: satır düşer, odak gövdeye düşmez', async () => {
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wd"]'), 'satır')
-    const trigger = '[data-record-key="gorev:wd"] [data-action="purge"]'
+    await until(() => $('[data-record-key="tasks:wd"]'), 'satır')
+    const trigger = '[data-record-key="tasks:wd"] [data-action="purge"]'
     await userClick(trigger)
     await until(() => $('[data-testid="confirm-dialog"]'), 'onay')
     expect($('[data-testid="confirm-dialog"]')!.textContent).toMatch(/geri alınamaz/i)
@@ -306,7 +307,7 @@ describe('kalıcı silme: onay ve odak (KESİN 27)', () => {
 
     await userClick(trigger)
     await accept()
-    await until(() => !$('[data-record-key="gorev:wd"]'), 'satır düştü')
+    await until(() => !$('[data-record-key="tasks:wd"]'), 'satır düştü')
     await idle(app.queryClient)
     expect(document.activeElement).not.toBe(document.body)
     expect(backend.sent('DELETE', '/v1/admin/permanent/work-items/wd')).toHaveLength(1)
@@ -320,8 +321,8 @@ describe('yaşam döngüsü: sökülmüş ekran', () => {
     const reached = new Promise<void>((resolve) => (arrived = resolve))
     restoreGate = { arrived, wait: new Promise<void>((resolve) => (release = resolve)) }
     const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-    await until(() => $('[data-record-key="gorev:wd"]'), 'satır')
-    await click(() => $('[data-record-key="gorev:wd"] [data-action="restore"]'))
+    await until(() => $('[data-record-key="tasks:wd"]'), 'satır')
+    await click(() => $('[data-record-key="tasks:wd"] [data-action="restore"]'))
     await click(() => $('[data-testid="confirm-accept"]'))
     await reached
     await app.router.push('/')

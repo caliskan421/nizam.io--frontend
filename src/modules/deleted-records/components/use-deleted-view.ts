@@ -23,6 +23,7 @@ import type { DeletedKind } from '../model/kinds'
 import { DELETED_RECORDS_QUERY_KEYS } from '../routes'
 import { useFilterCandidates } from './use-filter-candidates'
 import { useDeletedList, useDeletedTimezone } from './use-deleted-list'
+import { useViewSelection } from './use-view-selection'
 
 export function useDeletedView(enabled: () => boolean) {
   const route = useRoute()
@@ -58,9 +59,13 @@ export function useDeletedView(enabled: () => boolean) {
     sort.value = toggleSort(sort.value, key)
   }
 
-  const selected = computed(
-    () => list.rows.value.find((row) => row.id === filters.value.selected) ?? null,
-  )
+  const { selected, select, openParent } = useViewSelection({
+    filters,
+    rows: () => list.rows.value,
+    update,
+    sort,
+    navigate,
+  })
   const candidates = useFilterCandidates(
     () => filters.value.kind,
     () => list.rows.value,
@@ -73,6 +78,8 @@ export function useDeletedView(enabled: () => boolean) {
     sort,
     filtered: computed(() => isFiltered(filters.value)),
     selected,
+    select,
+    openParent,
     now,
     candidates,
     update,
