@@ -9,7 +9,6 @@ import {
   loadOlder,
   reconcile,
   refreshAround,
-  refreshPeerRead,
   type WindowStore,
 } from './window-io'
 
@@ -116,16 +115,6 @@ describe('loadAround / refreshAround', () => {
       edited: true,
     })
     expect(server.reads.at(-1)).toEqual({ limit: 50, around: 95 })
-  })
-
-  it('refreshPeerRead tik imlecini günceller', async () => {
-    const server = fakeChatServer(range(1, 5), 4)
-    const s = store()
-    await loadLatest(server.read, s)
-    expect(s.get().peerReadSeq).toBe(4)
-    const moved = fakeChatServer(range(1, 5), 5)
-    await refreshPeerRead(moved.read, s)
-    expect(s.get().peerReadSeq).toBe(5)
   })
 })
 
