@@ -1,0 +1,90 @@
+/*
+ * Bildirim satırı eklentileri (W185): ikinci/üçüncü satır, yığın avatar, satır içi karar ve
+ * "Sessize alınan konular" görünümü. Yalnız token; px yok.
+ */
+@layer components {
+  .nb-tx__sub {
+    font: var(--ui-text-sm);
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+  .nb-stack {
+    display: inline-flex;
+    flex: none;
+  }
+  .nb-stack .rp-av + .rp-av {
+    margin-inline-start: calc(var(--space-1) * -1);
+    border: var(--ui-hairline) solid var(--bg-raised);
+  }
+  .nb-dec {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ui-gap-xs);
+    margin: 0;
+  }
+  .nb-dec__note,
+  .nb-dec--done {
+    font: var(--ui-text-sm);
+    color: var(--ink-muted);
+  }
+  .nb-hov {
+    display: flex;
+    gap: var(--ui-gap-2xs);
+  }
+
+  .nb-sub {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+  .nb-sub__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    padding: var(--ui-gap-sm) var(--space-3);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .nb-sub__bar h4 {
+    margin: 0;
+    font: var(--ui-text-sm-medium);
+    color: var(--ink);
+  }
+  .nb-mutes {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-y: auto;
+  }
+  .nb-mute {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-gap-sm);
+    padding: var(--ui-gap-sm) var(--space-3);
+    border-bottom: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .nb-mute__tx {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    min-width: 0;
+  }
+  .nb-mute__title {
+    font: var(--ui-text-sm-medium);
+    color: var(--ink);
+  }
+  .nb-mute__date {
+    font-family: var(--font-mono);
+    font-size: var(--list-fs-2xs);
+    color: var(--ink-faint);
+  }
+  .nb-mutes-link {
+    display: flex;
+    justify-content: center;
+    padding: var(--ui-gap-xs) 0;
+  }
+}

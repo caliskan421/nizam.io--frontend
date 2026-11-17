@@ -95,7 +95,7 @@ describe('görünürlük (E-14-60)', () => {
     expect(view()).toBe('prompt')
     expect(card()!.textContent).toContain('Portal kapalıyken de haber verelim mi?')
     expect(card()!.textContent).toContain('Tarih talepleri ve onaylar bu tarayıcıya')
-    expect(card()!.textContent).toContain('Sohbet mesajları gelmez')
+    expect(card()!.textContent).toContain('Sohbet mesajları da gelir')
     expect(browser.requestPermission).not.toHaveBeenCalled()
     expect(browser.register).not.toHaveBeenCalled()
     expect(sent('POST', '/v1/notifications/targets')).toHaveLength(0)

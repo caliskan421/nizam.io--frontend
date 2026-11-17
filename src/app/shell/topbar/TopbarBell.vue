@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import {
   NOTIFICATION_PANEL_ID,
   NotificationPanel,
   notificationText,
   useUnreadNotifications,
-  type NotificationTarget,
 } from '@/modules/notifications/public'
 import { UiIcon } from '@/shared/ui'
 
-import { bellTargetLocation } from './bell-target'
+import { useBellNavigation } from './use-bell-navigation'
 
 /**
  * Bildirim zili (E-00-38, E-14-01…08): sayaç canlı (hesap geneli; kapsam değişince yeniden
@@ -24,7 +23,6 @@ import { bellTargetLocation } from './bell-target'
  */
 const OVERFLOW_AT = 9
 const { count } = useUnreadNotifications()
-const router = useRouter()
 const route = useRoute()
 const open = ref(false)
 const unread = computed(() => (count.value !== null && count.value > 0 ? count.value : null))
@@ -53,10 +51,9 @@ watch(
   },
 )
 
-function navigate(target: NotificationTarget): void {
+const navigate = useBellNavigation(() => {
   open.value = false
-  void router.push(bellTargetLocation(target))
-}
+})
 </script>
 
 <template>
@@ -77,5 +74,5 @@ function navigate(target: NotificationTarget): void {
   <span class="rp-sr" role="status" aria-live="polite" data-testid="topbar-bell-live">{{
     live
   }}</span>
-  <NotificationPanel :open="open" @close="open = false" @navigate="navigate" />
+  <NotificationPanel :open="open" @close="open = false" @navigate="(t) => navigate(t)" />
 </template>
