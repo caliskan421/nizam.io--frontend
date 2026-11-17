@@ -21,3 +21,6 @@ Aynı paket, departman geri yüklemenin ADR-0043 zincirine aykırı «görevleri
 5. Codex rapor/kayıt/PR-CI: her PR kendi üç SUCCESS ve kabul sonrası MERGED; ana ağacın doğrulanması ve yalnız faza ait kaynakların temizliği.
 
 Yerelde etkilenen testler/typecheck/değişen lint-format/build; tam test paketi ve gerçek E2E CI'da. Kapanış kapısı henüz PR/CI/MERGED bekliyor. [F11 raporu](../../backend-eksikleri/rapor-F11.md), [bağımsız doğrulama](../../backend-eksikleri/dogrulama-F11.md), [Opus](../../reviews/WEB-11-opus.md). [İlerleme](ilerleme.md), [kabul matrisi](canliya-alma-matrisi.md).
+
+
+**CI güvenlik deltası:** Uygulama kabulü f7729476 olarak korunur. CI1 44151554996'da893/6692 test geçti, üretim audit kırmızı oldu. Sonnet cedc7106 yalnız Vue Router4.6.5 manifest/kilit düzeltmesiyle savunmasız üretim araç zincirini kaldırdı; Terra W203 bağımsız87 test/tam tip-build/gerçek üçrol390-1440 gezinme ve prod audit0 kabulü verdi. Dev audit borcu değişmeden sürer. Bu paket değişikliği önceki Opus uygulama hükmünün kapsamına eklenmez. Ayrıntılar [ilerlemede](../../yurutme/web-11/ilerleme.md); yeni HEAD'in kendi üç CI SUCCESS+MERGED kapısı beklenir.

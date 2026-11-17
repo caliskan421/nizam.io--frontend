@@ -54,3 +54,12 @@ Terra FINAL-f772 raporu kabul verdi:2 dosya36 test/build başarılı; gerçek390
 ## Son hüküm ve PR kapısı
 
 Opus üçüncü yalnız son delta hükmü f7729476 UYGUN/açık0, F1–F4/G1 kapalı. Root2 kayıt tutarlılığı dosyası64 test ve standart runtime scanner17 kimlik26 kullanım/sorun0; registry163=87 bağlı72 açık4 vazgeçildi. İlk Corepack ortam değişkeni eksikliği düzeltildi, kaynak değişmedi. Root bu kabul edilen üretim kaynağına yalnız10 belge yolunu commit'ler; üretim/pin/paket/e2e/public farkı0 doğrulanır. Bundan sonraki tek aşama kendi PR üç CI SUCCESS→MERGED/main doğrulama ve faz kaynaklarının temizliğidir; yeni faz/özellik başlatılmaz.
+
+
+## CI1 bağımlılık kırmızısı ve W202/W203 güvenlik düzeltmesi
+
+PR181 ilk **44151554996** koşusunda 893 dosya/6692 test ve tip/lint/format/build geçti; değiştirilmemiş `pnpm audit --prod` GHSA-fc5q-39xc-vjpf nedeniyle kırmızı, imaj/E2E atlandı. Kör tekrar yapılmadı. Sonnet W202 `cedc7106` yalnız package.json/pnpm-lock.yaml değiştirir: Vue Router ^5.4.0 yerine resmi, tam 4.6.5. Uygulama elle tanımlı rotalar kullandığından v5 dosya rota araç zinciri gerekmiyor; savunmasız üretim yolu kaldırıldı. Audit ignore/override/CI gevşetmesi yok; picomatch yamalandı iddiası yok.
+
+Terra W203 aynı cedc kaynağında frozen install, tam typecheck/build ve rota/history/session/scope ile mevcut F11 impact/handoff/G1/outcome **11 dosya87 test** bağımsız PASS; üretim audit exit0,68 bağımlılık,0 bulgu,muted[] ve üretimde picomatch yolu yok. Gerçek v026/Caddy test vekili run2d98dc77-42d4-4ef4-9a47-9d1907708899:390/1440 admin deep link/geri-ileri/seçim/impact-iptal/odak; üye/koordinatör yetki reddi/adminGET0; ikinci program kapsam geçişi; taşma/CSP/pageerror0. Son JS index-ZXdQgTFz.js yerel/sunulan SHA256 bcfca572f18e65e602489d375ef7ce58e250c1d6fee6aa4849d8d3dda032cee0 eşit. İlk scope betiği goto sırasında eski programı yeniden yazdığı için yanlış kırmızıydı; gerçek SPA tıklamasıyla düzeltilmiş tanık korundu.
+
+Root tam audit baseline/candidate kıyasında aynı14 advisory ve15 bulgu (2critical6high7moderate) gördü; geliştirme borcu devam eder, yeni bulgu eklenmedi. Tam ağacın temizliği iddia edilmez. W202 teslimindeki “W201 base'de yok” ifadesi yanlıştı: f772,63dd'nin atasıdır; Terra mevcut F11 testlerini de çalıştırdı. Sonnet uygulama/Terra bağımsız doğrulama/root karar-belge-PR rolleri korunur. Opus üç turlu f772 uygulama hükmü değişmeyen uygulama koduna aittir; yeni paket deltası Opus tarafından denetlendi sayılmaz. Yeni kaynak kendi CI2 kalite/üretim imajı/gerçek E2E üç SUCCESS olmadan birleşmez.

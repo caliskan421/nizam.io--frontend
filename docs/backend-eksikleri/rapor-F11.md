@@ -32,3 +32,6 @@ Opus tur2 dab0a05a için kaynak UYGUN dedi ve F1–F4 kapandı; engellemeyen G1 
 Son kaynak **f7729476** ayrıca başarı bildiriminden `memberships_deleted` sayacını çıkartır: yayımlı sözleşmeye göre bu alan program bağları kaldırılırken silinen üyelikleri **içermez**, toplam üye/üyelik sayısı değildir. Etki önizlemesindeki gerçek farklı kişi sayısı korunur; görev/dosya/program bağı başarı sayıları sunucu yanıtından kalır. Üyelik sayacı tek alan olarak dönerse genel başarı metni kullanılır; istemci toplam uydurmaz. Yeni API veya şema değişikliği yoktur.
 
 İlk Opus turu P1 nedeniyle KOŞULLU UYGUN DEĞİL olduğundan P78'in üçüncü tur olanağı yalnız son G1/sayaç delta'sının nihai hükmü için kullanılır. Kendi PR üç CI SUCCESS+MERGED kapısı ve yalnız faza ait kaynakların temizliği yine zorunludur.
+
+
+**CI güvenlik deltası:** Uygulama kabulü f7729476 olarak korunur. CI1 44151554996'da893/6692 test geçti, üretim audit kırmızı oldu. Sonnet cedc7106 yalnız Vue Router4.6.5 manifest/kilit düzeltmesiyle savunmasız üretim araç zincirini kaldırdı; Terra W203 bağımsız87 test/tam tip-build/gerçek üçrol390-1440 gezinme ve prod audit0 kabulü verdi. Dev audit borcu değişmeden sürer. Bu paket değişikliği önceki Opus uygulama hükmünün kapsamına eklenmez. Ayrıntılar [ilerlemede](../yurutme/web-11/ilerleme.md); yeni HEAD'in kendi üç CI SUCCESS+MERGED kapısı beklenir.
