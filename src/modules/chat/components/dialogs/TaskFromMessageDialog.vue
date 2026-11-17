@@ -24,6 +24,7 @@ import { chatText } from '../../messages'
 import { canCreateTaskFromMessage, taskTargetDepartments } from '../../model/capabilities'
 import { useChatPage } from '../../model/context'
 import { findMessage } from '../../model/window'
+import MessageTasks from '../thread/MessageTasks.vue'
 import { TASK_TITLE_MAX, localDay, toTaskBody, validateTask, type TaskError } from './forms'
 import { useChatActor } from './use-actor'
 import { useDialogWrite } from './use-dialog-write'
@@ -159,6 +160,11 @@ const sender = computed(() => message.value?.sender_name ?? '')
         <strong v-if="sender">{{ sender }}</strong>
         <span class="rp-trunc">{{ message.body }}</span>
       </blockquote>
+      <MessageTasks
+        v-if="message && message.task_ids.length > 0"
+        :chat-id="chatId"
+        :message-id="messageId"
+      />
       <UiField :label="chatText('chat.dialogs.task.title')" :error="errorOf('title')">
         <UiInput v-model="title" name="title" data-autofocus />
       </UiField>

@@ -3,8 +3,8 @@
  * "Grup bilgisi" / "Konuşma bilgisi" (E-10-18/20 → E-10-62…71): `getChat` taze okunur. Birebirde
  * yalnız karşı taraf (Üyeler/Dosyalar yok). Grupta: ad (yönetici/kurucu ve `auto_kind == null`
  * için düzenlenir, `updateChat`), alt bilgi "Grup · n üye · kuran ad", hızlı eylemler (Üye ekle,
- * Toplantı planla → `/toplantilar`; Sessize al devre dışı + BE-027) ve sekmeler Üyeler / Dosyalar
- * / Görevler / Sabitli (`rp-ctabs` ≙ `UiTabs`). Eylem görünürlüğü grup rolünden (`capabilities`);
+ * Toplantı planla → `/toplantilar`), bildirim seviyesi (`NotifyLevel`, BE-027) ve sekmeler Üyeler /
+ * Dosyalar / Görevler / Sabitli (sayaçlar `getChatSharedCounts`, BE-084) (`rp-ctabs` ≙ `UiTabs`). Eylem görünürlüğü grup rolünden (`capabilities`);
  * mercek etkisizdir (P1). 404 → "Bu konuşma bulunamadı".
  */
 import './dialogs.css'
@@ -13,18 +13,19 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { TASKS_ROUTE } from '@/modules/work/public'
-import { DesignStub, UiButton, UiHint, UiModal, UiTabs, type UiChoiceOption } from '@/shared/ui'
+import { UiButton, UiHint, UiModal, UiTabs, type UiChoiceOption } from '@/shared/ui'
 
 import { useChat, useChatMembers, useChatPins } from '../../api/queries'
+import { useChatSharedCounts } from '../../api/shared-queries'
 import { chatText } from '../../messages'
 import { canChooseSource, chatCapabilities } from '../../model/capabilities'
-import { CHAT_STUBS } from '../../model/stubs'
-import type { Chat, ChatMessage } from '../../model/types'
+import type { Chat } from '../../model/types'
 import AddMembersPanel from './AddMembersPanel.vue'
 import GroupName from './GroupName.vue'
 import GroupMembersTab from './GroupMembersTab.vue'
 import GroupPinsTab from './GroupPinsTab.vue'
 import GroupRefsTab from './GroupRefsTab.vue'
+import NotifyLevel from './NotifyLevel.vue'
 import { useChatActor } from './use-actor'
 
 const props = defineProps<{ chatId: string }>()
@@ -40,6 +41,10 @@ const members = useChatMembers(
   () => chat.data.value?.kind === 'group',
 )
 const pins = useChatPins(() => props.chatId)
+const counts = useChatSharedCounts(
+  () => props.chatId,
+  () => chat.data.value?.kind === 'group',
+)
 
 const tab = ref<Tab>('members')
 const adding = ref(false)
@@ -76,18 +81,22 @@ const pinCount = computed(() => {
   if (!list) return undefined
   return list.truncated ? `${list.items.length}+` : list.items.length
 })
+/** Dosyalar = arşivden paylaşılanlar + cihaz ekleri (iki ayrı listenin toplamı, "n+" yok). */
+const filesCount = computed(() => {
+  const c = counts.data.value
+  return c ? c.files + c.attachments : undefined
+})
 const tabs = computed<UiChoiceOption<Tab>[]>(() => [
   {
     value: 'members',
     label: chatText('chat.dialogs.info.members'),
     count: memberCount.value ?? undefined,
   },
-  { value: 'files', label: chatText('chat.dialogs.info.files') },
-  { value: 'tasks', label: chatText('chat.dialogs.info.tasks') },
+  { value: 'files', label: chatText('chat.dialogs.info.files'), count: filesCount.value },
+  { value: 'tasks', label: chatText('chat.dialogs.info.tasks'), count: counts.data.value?.tasks },
   { value: 'pins', label: chatText('chat.dialogs.info.pins'), count: pinCount.value },
 ])
 const canPlanMeeting = computed(() => canChooseSource(actor.value))
-const muteStub = CHAT_STUBS.mute
 
 function open(target: Chat): void {
   emit('close')
@@ -97,12 +106,12 @@ function leftGroup(): void {
   emit('close')
   void router.replace({ name: 'collaboration.chats' })
 }
-function goto(message: ChatMessage): void {
+function goto(target: { seq: number }): void {
   emit('close')
   void router.push({
     name: 'collaboration.chat',
     params: { chatId: props.chatId },
-    query: { mesaj: String(message.seq) },
+    query: { mesaj: String(target.seq) },
   })
 }
 function openTask(workItemId: string): void {
@@ -131,6 +140,7 @@ function planMeeting(): void {
           :member-count="memberCount"
           :founder="founder"
         />
+        <NotifyLevel :chat-id="chatId" :level="data.notify_level" />
         <template v-if="isGroup">
           <div class="chat-dlg__actions" data-testid="dlg-quick">
             <UiButton
@@ -152,16 +162,6 @@ function planMeeting(): void {
             >
               {{ chatText('chat.dialogs.info.meeting') }}
             </UiButton>
-            <DesignStub id="BE-027">
-              <UiButton
-                variant="secondary"
-                size="sm"
-                :disabled="!muteStub.enabled"
-                data-testid="dlg-mute"
-              >
-                {{ chatText('chat.dialogs.info.mute') }}
-              </UiButton>
-            </DesignStub>
           </div>
           <AddMembersPanel
             v-if="adding && caps.addMembers"
@@ -179,12 +179,18 @@ function planMeeting(): void {
                 @left="leftGroup"
                 @open="open"
               />
-              <GroupRefsTab v-else-if="value === 'files'" :chat-id="chatId" kind="file" />
+              <GroupRefsTab
+                v-else-if="value === 'files'"
+                :chat-id="chatId"
+                kind="file"
+                @goto="(seq) => goto({ seq })"
+              />
               <GroupRefsTab
                 v-else-if="value === 'tasks'"
                 :chat-id="chatId"
                 kind="task"
                 @task="openTask"
+                @goto="(seq) => goto({ seq })"
               />
               <GroupPinsTab v-else :chat-id="chatId" :can-unpin="caps.pin" @goto="goto" />
             </template>

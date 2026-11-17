@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * Grup bilgisi › Üyeler (E-10-68…71): `listChatMembers` (≤200; `truncated` → "200+"). Satır: ad,
- * grup rolü ("Yönetici"/"Kurucu"; program rolü ve birim adı yok, BE-083), kendisi "(sen)".
+ * grup rolü ("Yönetici"/"Kurucu"), alt yazı "<Rol> · <Koordinatörlük>" (`program_role`, BE-083;
+ * departman adı programın listesinden; grup rolüyle karışmaz), kendisi "(sen)".
  * Eylemler `capabilities`tan (grup rolü; mercek etkisiz): "Mesaj" (hedef birebir aday listesinde
  * ise `openDirectChat`, değilse §10.6 metni), "Çıkar" (kaynaktan gelen üye çıkarılmaz),
  * "Yönetici yap/Yöneticiliği al" ve "Gruptan ayrıl" — yıkıcı olanlar ortak onayla.
@@ -10,6 +11,7 @@ import './dialogs.css'
 
 import { computed, ref } from 'vue'
 
+import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiAvatar, UiButton, UiHint, useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
@@ -23,6 +25,7 @@ import {
 } from '../../api/writes'
 import { chatText } from '../../messages'
 import { memberRoleFacts, type ChatCapabilities } from '../../model/capabilities'
+import { programRoleLine } from '../../model/role-badge'
 import type { Chat, ChatMember } from '../../model/types'
 
 const props = defineProps<{
@@ -34,6 +37,7 @@ const emit = defineEmits<{ left: []; open: [chat: Chat] }>()
 
 const store = useScopeStore()
 const members = useChatMembers(() => props.chatId)
+const departments = useProgramDepartments()
 const direct = useChatCandidates('direct')
 const remove = useRemoveChatMember()
 const grant = useGrantChatAdmin()
@@ -53,6 +57,8 @@ const busy = computed(
     revoke.isPending.value ||
     openDirect.isPending.value,
 )
+const departmentName = (id: string): string | null =>
+  departments.byId.value.get(id)?.display_name ?? null
 const roleLabel = (m: ChatMember): string => {
   const badge = memberRoleFacts(m.role).badge
   return badge === null ? '' : chatText(`chat.dialogs.members.${badge}`)
@@ -127,6 +133,9 @@ async function setAdmin(m: ChatMember, on: boolean): Promise<void> {
             }}
           </span>
           <span v-if="roleLabel(m)" class="chat-dlg-row__meta">{{ roleLabel(m) }}</span>
+          <span class="chat-dlg-row__meta" data-testid="dlg-member-program-role">
+            {{ programRoleLine(m.program_role, departmentName) }}
+          </span>
         </span>
         <span v-if="m.account_id !== selfId" class="chat-dlg__actions">
           <UiButton variant="ghost" size="sm" :disabled="busy" @click="message(m)">
