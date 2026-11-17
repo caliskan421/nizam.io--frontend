@@ -42,6 +42,15 @@ describe('refreshReadState', () => {
     expect(items[0]!.body).toBe('yerel')
   })
 
+  it('sunucunun null değeri önceki true durumunu temizler', async () => {
+    const s = store(windowFromLatest([msg(1, { read_by_all: true })], null))
+    await refreshReadState(
+      () => Promise.resolve(makeChatHistory({ items: [msg(1, { read_by_all: null })] })),
+      s,
+    )
+    expect(s.now().items[0]!.read_by_all).toBeNull()
+  })
+
   it('birebir: peer_read_seq güncellenir; read_by_all alanı yoksa yereli bozmaz', async () => {
     const s = store(windowFromLatest([msg(1), msg(2)], null))
     await refreshReadState(
