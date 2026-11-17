@@ -187,11 +187,14 @@ describe('Dosyayı sil (kalıcı; ortak onay)', () => {
       b.textContent?.includes('Vazgeç'),
     )!
 
-  it('onay "Bu işlem geri alınamaz." der; kabulden önce DELETE yok', async () => {
+  it('onay silinen kayıtlara taşıma ve yönetici geri yükleme/kalıcı silme der; kabulden önce DELETE yok', async () => {
     const { h } = actions(ADMIN_SEED)
     q('file-delete')!.click()
     await nextTick()
-    expect(dialog()?.textContent).toContain('Bu işlem geri alınamaz.')
+    expect(dialog()?.textContent).toContain(
+      'Dosya silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',
+    )
+    expect(dialog()?.textContent).not.toMatch(/geri alınamaz|kalıcı olarak/)
     expect(dialog()?.textContent).toContain('rapor.pdf')
     await settleQueries(h.queryClient)
     expect(sent('DELETE', '/v1/files/f1')).toHaveLength(0)

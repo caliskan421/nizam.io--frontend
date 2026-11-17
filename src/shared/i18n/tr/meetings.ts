@@ -99,7 +99,8 @@ export const trMeetings = {
       edit: 'Düzenle',
       delete: 'Sil',
       deleteTitle: 'Not silinsin mi?',
-      deleteBody: 'Bu işlem geri alınamaz.',
+      deleteBody:
+        'Not silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',
       more: 'Daha fazla not göster',
       roles: { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' },
     },
