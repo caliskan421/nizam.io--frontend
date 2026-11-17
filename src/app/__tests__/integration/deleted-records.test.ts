@@ -22,6 +22,7 @@ import {
   until,
 } from './harness'
 import {
+  makeDeletedSummary,
   withDeletedAccountDefaults,
   withDeletedDepartmentDefaults,
   withDeletedTaskDefaults,
@@ -187,13 +188,15 @@ function install(): void {
       }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/summary`, () =>
-      HttpResponse.json({
-        tasks: deleted.tasks.length,
-        meetings: deleted.meetings.length,
-        departments: deleted.departments.length,
-        accounts: deleted.accounts.length,
-        total: total(),
-      }),
+      HttpResponse.json(
+        makeDeletedSummary({
+          tasks: deleted.tasks.length,
+          meetings: deleted.meetings.length,
+          departments: deleted.departments.length,
+          accounts: deleted.accounts.length,
+          total: total(),
+        }),
+      ),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/accounts`, () =>
       HttpResponse.json({

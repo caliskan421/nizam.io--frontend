@@ -5,7 +5,7 @@
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { withDeletedTaskDefaults } from '@/shared/api/__tests__/defaults'
+import { makeDeletedSummary, withDeletedTaskDefaults } from '@/shared/api/__tests__/defaults'
 
 import { envelope, ORIGIN } from './fake-org'
 import {
@@ -60,7 +60,7 @@ function install(): void {
       }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/summary`, () =>
-      HttpResponse.json({ tasks: 1, meetings: 0, departments: 0, accounts: 0, total: 1 }),
+      HttpResponse.json(makeDeletedSummary({ tasks: 1, total: 1 })),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
       HttpResponse.json({ items: [], next_cursor: '', total: 0 }),

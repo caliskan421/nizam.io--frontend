@@ -6,6 +6,7 @@ import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import {
+  makeDeletedSummary,
   withDeletedDepartmentDefaults,
   withDeletedTaskDefaults,
 } from '@/shared/api/__tests__/defaults'
@@ -56,13 +57,13 @@ function install(): void {
       }),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/summary`, () =>
-      HttpResponse.json({
-        tasks: dead.tasks.length,
-        meetings: 0,
-        departments: dead.departments.length,
-        accounts: 0,
-        total: dead.tasks.length + dead.departments.length,
-      }),
+      HttpResponse.json(
+        makeDeletedSummary({
+          tasks: dead.tasks.length,
+          departments: dead.departments.length,
+          total: dead.tasks.length + dead.departments.length,
+        }),
+      ),
     ),
     http.get(`${ORIGIN}/v1/admin/deleted/meetings`, () =>
       HttpResponse.json({ items: [], next_cursor: '', total: 0 }),

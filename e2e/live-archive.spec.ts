@@ -1,4 +1,4 @@
-// W176 O3 · gerçek backend `v0.25.0-api`: arşiv ZIP bileti (BE-120/124) ve dönem raporu bölüm seçimi
+// W176 O3 · gerçek backend `v0.26.0-api`: arşiv ZIP bileti (BE-120/124) ve dönem raporu bölüm seçimi
 // (BE-122/127) üretim paketi + üretim CSP'si altında. Yönetici /arsiv yalnız S2 (program başlığı)
 // okur (P33 geçici yolu YOK: S3 arşiv okuması ve work-items kesişimi çağrılmaz). Dışa aktarımlar
 // hesap başına dakikalık kotaya bağlıdır (e2e/export-quota.ts). Ölçümler `e2e/.state/live-*.json`.

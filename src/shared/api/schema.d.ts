@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.25.0-api (58856bbc185fe2a7124a3baeeb8178ef5ccd47ab) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.26.0-api (4d4adc0f9f1890184b5ed210296deb1fde6db886) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -252,6 +252,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/deleted/agenda-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Çöpteki gündem maddesileri (imleçli).
+         * @description Yalnız şirket yöneticisi, seçili program (COLLABORATION-K91). Yumuşak silinmiş gündem maddesileri ebeveyniyle birlikte listeler; ebeveyni de silinmiş çocuk `parent_deleted: true` taşır. Süzgeç ve sıra isteğe bağlıdır (silinen görevler listesiyle aynı küme); `q` metinde Türkçe katlamalı içerir aramasıdır. `total` süzgece uyan çöp satırı sayısıdır (imleçten bağımsız).
+         */
+        get: operations["listDeletedAgendaItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/agenda-items/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki gündem maddesileri toplu kalıcı siler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `permanentDeleteAgendaItem` yoluyla işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `collaboration.permanent_requires_deleted`, `collaboration.agenda_item_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; COLLABORATION-K91).
+         */
+        post: operations["batchPurgeAgendaItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/agenda-items/purge-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Programın çöpteki gündem maddesilerini parça parça kalıcı siler (çağrı başına en çok 50).
+         * @description `confirm` tür yol adı (`agenda-items`) olmalıdır. Sunucu çöpten en çok 50 satırı
+         *     okur ve her birini `batchPurgeAgendaItems` ile aynı kurallarla işler. `remaining`
+         *     işlemden sonra kalan çöp satırı sayısıdır. İstemci `remaining > 0` ve `succeeded`
+         *     boş değilken yeniden çağırır. ADR-0045; COLLABORATION-K91.
+         */
+        post: operations["purgeAllAgendaItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/agenda-items/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki gündem maddesileri toplu geri yükler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `restoreAgendaItem` yoluyla kendi transaction'ında işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `collaboration.meeting_deleted`, `collaboration.not_deleted`, `collaboration.agenda_item_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; COLLABORATION-K91).
+         */
+        post: operations["batchRestoreAgendaItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/deleted/departments": {
         parameters: {
             query?: never;
@@ -306,11 +397,13 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Şirketin silinmiş departmanlarını parça parça kalıcı siler (çağrı başına en çok 50).
-         * @description `confirm` tür yol adı (`departments`) olmalıdır. Küme silinen departmanlar
-         *     listesinin varsayılan kapsamıdır (şirket geneli). Programa bağlı silinmiş departman
-         *     kalıcı silinemez ve `organization.department_in_use` ile `failed[]`'te kalır;
-         *     `remaining` bu kayıtları da sayar. İstemci `remaining > 0` ve `succeeded` boş
+         * Silinmiş departmanları parça parça kalıcı siler (çağrı başına en çok 50).
+         * @description `confirm` tür yol adı (`departments`) olmalıdır. Küme `scope` ile seçilir:
+         *     `company` (varsayılan; silinen departmanlar listesinin varsayılan kapsamı, şirket
+         *     geneli) ya da `program` (başlıktaki programa bağlı silinmişler; liste `scope=program`
+         *     ile aynı küme, ORGANIZATION-K65); `remaining` aynı kapsamı sayar. Tablo engelli
+         *     silinmiş departman kalıcı silinemez ve `organization.department_in_use` ile
+         *     `failed[]`'te kalır; `remaining` bu kayıtları da sayar. İstemci `remaining > 0` ve `succeeded` boş
          *     değilken yeniden çağırır; hiç başarı olmayan çağrıdan sonra durur. Diğer kurallar
          *     `batchPurgeDepartments` ile aynıdır (ADR-0045; ORGANIZATION-K62).
          */
@@ -355,8 +448,10 @@ export interface paths {
         };
         /**
          * Silinenler CSV'si (yalnız şirket yöneticisi; dışa aktarım kotası, bilet hedefi).
-         * @description Türler `kinds` ile seçilir (virgüllü alt küme; varsayılan hepsi), bloklar görev,
-         *     toplantı, koordinatörlük, kullanıcı sırasıyla, blok içi silinme anı azalan gelir.
+         * @description Türler `kinds` ile seçilir (virgüllü alt küme; varsayılan hepsi), bloklar görev, alt
+         *     görev, dosya, toplantı, görev notu, toplantı notu, gündem maddesi, koordinatörlük,
+         *     kullanıcı sırasıyla, blok içi silinme anı azalan gelir. Koordinatörlük sütunu
+         *     alt görev, dosya ve not/gündemde ebeveynin departmanıdır.
          *     Süzgeçler silinenler listeleriyle aynı anlamdadır ve sahip modülün listesinden
          *     okunur; türe uygulanmayan süzgeç o türde yok sayılır (departman satırında
          *     `department_id`). Departman türünün kapsamı `scope` (varsayılan `program`: özetle
@@ -378,6 +473,190 @@ export interface paths {
         get: operations["exportDeletedRecords"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Çöpteki dosyalar (imleçli; görev bilgisiyle).
+         * @description Yalnız şirket yöneticisi (RECORDS-K45). Süzgeç ve sıra isteğe bağlıdır; parametresiz
+         *     istek silinme anı azalan sıradır. `q` dosyanın görünen adında Türkçe katlamalı "içerir"
+         *     aramasıdır; `sort=name` ad anahtarıdır. `total` süzgece uyan çöpteki dosya sayısıdır
+         *     (imleçten bağımsız). Satır görev başlığı ve kodunu (görev kalıcı gitmişse null),
+         *     `parent_deleted` bayrağını (görev de çöpteyse true), yükleyen ve silen adını taşır; depolama
+         *     anahtarı hiçbir yanıtta yoktur.
+         */
+        get: operations["listDeletedFiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/files/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki dosyaları toplu kalıcı siler (en çok 100 kimlik; kısmi başarı).
+         * @description Her kimlik tekil `permanentDeleteFile` yoluyla işlenir (ADR-0045; RECORDS-K45). İş hatası
+         *     öğenin `failed[]` satırına yazılır (olası kodlar: `records.permanent_requires_deleted`,
+         *     `records.file_not_found`).
+         */
+        post: operations["batchPurgeFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/files/purge-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Programın çöpteki dosyalarını parça parça kalıcı siler (çağrı başına en çok 50).
+         * @description `confirm` tür yol adı (`files`) olmalıdır, aksi 422 alan `confirm`. Sunucu çöpteki
+         *     dosyalardan en çok 50'sini (çöp listesinin sırasıyla) okur ve `batchPurgeFiles` ile aynı
+         *     kurallarla işler; `remaining` işlemden sonra kalan çöpteki dosya sayısıdır. İstemci
+         *     `remaining > 0` ve `succeeded` boş değilken yeniden çağırır (ADR-0045; RECORDS-K45).
+         */
+        post: operations["purgeAllFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/files/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki dosyaları toplu geri yükler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; her kimlik tekil `restoreFile`
+         *     yoluyla işlenir (ADR-0045; RECORDS-K45). İş hatası öğenin `failed[]` satırına dış koduyla
+         *     yazılır (olası kodlar: `records.not_deleted`, `records.work_item_deleted`, `records.too_many_files`,
+         *     `records.transfer_active`, `records.file_not_found`, `work.item_not_found`).
+         */
+        post: operations["batchRestoreFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/meeting-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Çöpteki toplantı notuleri (imleçli).
+         * @description Yalnız şirket yöneticisi, seçili program (COLLABORATION-K91). Yumuşak silinmiş toplantı notuleri ebeveyniyle birlikte listeler; ebeveyni de silinmiş çocuk `parent_deleted: true` taşır. Süzgeç ve sıra isteğe bağlıdır (silinen görevler listesiyle aynı küme); `q` metinde Türkçe katlamalı içerir aramasıdır. `total` süzgece uyan çöp satırı sayısıdır (imleçten bağımsız).
+         */
+        get: operations["listDeletedMeetingNotes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/meeting-notes/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki toplantı notuleri toplu kalıcı siler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `permanentDeleteMeetingNote` yoluyla işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `collaboration.permanent_requires_deleted`, `collaboration.note_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; COLLABORATION-K91).
+         */
+        post: operations["batchPurgeMeetingNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/meeting-notes/purge-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Programın çöpteki toplantı notulerini parça parça kalıcı siler (çağrı başına en çok 50).
+         * @description `confirm` tür yol adı (`meeting-notes`) olmalıdır. Sunucu çöpten en çok 50 satırı
+         *     okur ve her birini `batchPurgeMeetingNotes` ile aynı kurallarla işler. `remaining`
+         *     işlemden sonra kalan çöp satırı sayısıdır. İstemci `remaining > 0` ve `succeeded`
+         *     boş değilken yeniden çağırır. ADR-0045; COLLABORATION-K91.
+         */
+        post: operations["purgeAllMeetingNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/meeting-notes/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki toplantı notuleri toplu geri yükler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `restoreMeetingNote` yoluyla kendi transaction'ında işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `collaboration.meeting_deleted`, `collaboration.not_deleted`, `collaboration.note_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; COLLABORATION-K91).
+         */
+        post: operations["batchRestoreMeetingNotes"];
         delete?: never;
         options?: never;
         head?: never;
@@ -475,6 +754,135 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/deleted/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Silinenlerin türler arası birleşik listesi (yalnız şirket yöneticisi; silinme anı azalan).
+         * @description Sahip modüllerin silinenler listelerini silinme anına göre k-yollu birleştirir
+         *     (görev, alt görev, dosya, toplantı, görev notu, toplantı notu, gündem maddesi,
+         *     departman, hesap; REPORTING-K21). Sıra YALNIZ silinme anı azalandır; eşitlikte sabit
+         *     tür sırası (`tasks`, `subtasks`, `files`, `meetings`, `task_notes`, `meeting_notes`,
+         *     `agenda_items`, `departments`, `accounts`) ve kimlik azalan. "Not ve gündem" görünümü
+         *     `kinds=task_notes,meeting_notes,agenda_items` süzgecidir. Silinme anı bilinmeyen eski hesaplar sahip modülün sıralama anına
+         *     (`updated_at`) göre yerleşir (satırın `deleted_at`'i null kalır). `kinds` seçilen türlerle sınırlar (virgüllü; varsayılan hepsi;
+         *     bilinmeyen değer 422 alan `kinds`). Süzgeçler (`q`, `deleted_from`, `deleted_to`,
+         *     `deleted_by`, `department_id`) silinenler listeleriyle ve CSV ile aynı anlamdadır;
+         *     türe uygulanmayan süzgeç o türde yok sayılır (departman satırında `department_id`).
+         *     Departman türünün kapsamı `scope` (varsayılan `program`; `company` şirket geneli).
+         *     `next_cursor` bileşik imleçtir ve süzgeç/tür kümesine bağlıdır: başka süzgeçle
+         *     kullanılan ya da bozuk imleç 422 alan `cursor`. Sayfa `limit`'ten kısa olabilir
+         *     (bir türün sayfası tükenip devamı varsa sayfa erken kapanır); istemci yalnız boş
+         *     `next_cursor` ile durur. Her kayıt tam bir kez gelir; sayfalar arasında kayıt
+         *     silinir ya da geri yüklenirse bu kayıtlar görülebilir ya da görülmeyebilir; değişmemiş
+         *     kayıt atlanmaz ve gösterilmiş kayıt tekrarlanmaz (imleç son gösterilen kaydın sıralama
+         *     anahtarını taşır; taramanın başlamasından sonra silinen daha yeni kayıtlar o taramada
+         *     gösterilmez). İmleç program, süzgeç ve tür kümesine bağlıdır.
+         */
+        get: operations["listDeletedRecords"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/subtasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Çöpteki alt görevleri (imleçli).
+         * @description Yalnız şirket yöneticisi, seçili program (WORK-K101). Yumuşak silinmiş alt görevleri ebeveyniyle birlikte listeler; ebeveyni de silinmiş çocuk `parent_deleted: true` taşır. Süzgeç ve sıra isteğe bağlıdır (silinen görevler listesiyle aynı küme); `q` metinde Türkçe katlamalı içerir aramasıdır. `total` süzgece uyan çöp satırı sayısıdır (imleçten bağımsız).
+         */
+        get: operations["listDeletedSubtasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/subtasks/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki alt görevleri toplu kalıcı siler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `permanentDeleteSubtask` yoluyla işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `work.permanent_requires_deleted`, `work.subtask_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; WORK-K101).
+         */
+        post: operations["batchPurgeSubtasks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/subtasks/purge-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Programın çöpteki alt görevlerini parça parça kalıcı siler (çağrı başına en çok 50).
+         * @description `confirm` tür yol adı (`subtasks`) olmalıdır. Sunucu çöpten en çok 50 satırı
+         *     okur ve her birini `batchPurgeSubtasks` ile aynı kurallarla işler. `remaining`
+         *     işlemden sonra kalan çöp satırı sayısıdır. İstemci `remaining > 0` ve `succeeded`
+         *     boş değilken yeniden çağırır. ADR-0045; WORK-K101.
+         */
+        post: operations["purgeAllSubtasks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/subtasks/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki alt görevleri toplu geri yükler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `restoreSubtask` yoluyla kendi transaction'ında işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `work.item_deleted`, `work.item_completed`, `work.subtask_limit_reached`, `work.not_deleted`, `work.subtask_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; WORK-K101).
+         */
+        post: operations["batchRestoreSubtasks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/deleted/summary": {
         parameters: {
             query?: never;
@@ -494,6 +902,97 @@ export interface paths {
         get: operations["reportDeletedSummary"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/task-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Çöpteki görev notuleri (imleçli).
+         * @description Yalnız şirket yöneticisi, seçili program (WORK-K102). Yumuşak silinmiş görev notuleri ebeveyniyle birlikte listeler; ebeveyni de silinmiş çocuk `parent_deleted: true` taşır. Süzgeç ve sıra isteğe bağlıdır (silinen görevler listesiyle aynı küme); `q` metinde Türkçe katlamalı içerir aramasıdır. `total` süzgece uyan çöp satırı sayısıdır (imleçten bağımsız).
+         */
+        get: operations["listDeletedTaskNotes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/task-notes/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki görev notuleri toplu kalıcı siler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `permanentDeleteTaskNote` yoluyla işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `work.permanent_requires_deleted`, `work.note_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; WORK-K102).
+         */
+        post: operations["batchPurgeTaskNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/task-notes/purge-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Programın çöpteki görev notulerini parça parça kalıcı siler (çağrı başına en çok 50).
+         * @description `confirm` tür yol adı (`task-notes`) olmalıdır. Sunucu çöpten en çok 50 satırı
+         *     okur ve her birini `batchPurgeTaskNotes` ile aynı kurallarla işler. `remaining`
+         *     işlemden sonra kalan çöp satırı sayısıdır. İstemci `remaining > 0` ve `succeeded`
+         *     boş değilken yeniden çağırır. ADR-0045; WORK-K102.
+         */
+        post: operations["purgeAllTaskNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/deleted/task-notes/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Çöpteki görev notuleri toplu geri yükler (en çok 100 kimlik; kısmi başarı).
+         * @description Yetki, yazma izni ve girdi döngüden önce bir kez denetlenir; ret bütün isteği
+         *     reddeder. Her kimlik tekil `restoreTaskNote` yoluyla kendi transaction'ında işlenir; tekrarlı kimlik bir kez işlenir. İş hatası öğenin `failed[]`
+         *     satırına dış koduyla yazılır (olası kodlar: `work.item_deleted`, `work.not_deleted`, `work.note_not_found`, `platform.conflict_retry`) ve döngü sürer. Sistem
+         *     hatası döngüyü durdurur (5xx); işlenmiş öğeler kalıcıdır, tekrar çağrı güvenlidir.
+         *     İşlem anahtarı alınmaz (ADR-0045; WORK-K102).
+         */
+        post: operations["batchRestoreTaskNotes"];
         delete?: never;
         options?: never;
         head?: never;
@@ -613,6 +1112,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/permanent/agenda-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Çöpteki gündem maddesini kalıcı siler.
+         * @description Yalnız şirket yöneticisi, seçili program (COLLABORATION-K91). Canlı gündem maddesi kalıcı silinmez (409 `collaboration.permanent_requires_deleted`).
+         */
+        delete: operations["permanentDeleteAgendaItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/permanent/departments/{id}": {
         parameters: {
             query?: never;
@@ -642,6 +1161,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/permanent/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Çöpteki dosyayı kalıcı siler (metadata ve depolama nesnesi).
+         * @description Yalnız şirket yöneticisi (RECORDS-K45). Silinmemiş dosya 409
+         *     `records.permanent_requires_deleted`; olmayan ya da başka programın dosyası 404
+         *     `records.file_not_found` (istemci başarı sayar). Nesne silme arızası yanıtı etkilemez
+         *     (log; metadata'sız nesne süpürmesi toplar).
+         */
+        delete: operations["permanentDeleteFile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/permanent/meeting-notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Çöpteki toplantı notuni kalıcı siler.
+         * @description Yalnız şirket yöneticisi, seçili program (COLLABORATION-K91). Canlı toplantı notu kalıcı silinmez (409 `collaboration.permanent_requires_deleted`).
+         */
+        delete: operations["permanentDeleteMeetingNote"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/permanent/meetings/{id}": {
         parameters: {
             query?: never;
@@ -654,6 +1216,46 @@ export interface paths {
         post?: never;
         /** Silinmiş toplantıyı kalıcı siler. */
         delete: operations["permanentDeleteMeeting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/permanent/subtasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Çöpteki alt görevni kalıcı siler.
+         * @description Yalnız şirket yöneticisi, seçili program (WORK-K101). Canlı alt görev kalıcı silinmez (409 `work.permanent_requires_deleted`). Kalıcı silme dosyalardaki alt görev bağını AYNI transaction'da boşaltır (dosyalar ana görevde kalır; RECORDS-K32).
+         */
+        delete: operations["permanentDeleteSubtask"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/permanent/task-notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Çöpteki görev notuni kalıcı siler.
+         * @description Yalnız şirket yöneticisi, seçili program (WORK-K102). Canlı görev notu kalıcı silinmez (409 `work.permanent_requires_deleted`).
+         */
+        delete: operations["permanentDeleteTaskNote"];
         options?: never;
         head?: never;
         patch?: never;
@@ -693,6 +1295,26 @@ export interface paths {
         patch: operations["restoreAccount"];
         trace?: never;
     };
+    "/v1/admin/restore/agenda-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Çöpteki gündem maddesini geri yükler.
+         * @description Yalnız şirket yöneticisi, seçili program (COLLABORATION-K91). Toplantı çöpteyse `collaboration.meeting_deleted`; canlı madde sayısı tavandaysa (50) 422 `collaboration.agenda_limit_reached`; `sort_order` korunur. İkinci geri yükleme 409 `collaboration.not_deleted`.
+         */
+        patch: operations["restoreAgendaItem"];
+        trace?: never;
+    };
     "/v1/admin/restore/departments/{id}": {
         parameters: {
             query?: never;
@@ -715,6 +1337,50 @@ export interface paths {
         patch: operations["restoreDepartment"];
         trace?: never;
     };
+    "/v1/admin/restore/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Çöpteki dosyayı geri yükler (tavan, ad çakışması ve görev durumu denetlenir).
+         * @description Yalnız şirket yöneticisi (RECORDS-K45). Görev çöpteyse 409 `records.work_item_deleted`
+         *     (önce görev geri yüklenir), görev kalıcı gitmişse 404 `work.item_not_found`; görev başına
+         *     dosya tavanı doluysa 422 `records.too_many_files`. Görevde aynı adlı canlı dosya varsa ad
+         *     numaralanır (`rapor.csv` → `rapor (2).csv`; yanıtta `renamed`). Dosya çöpte değilse (ikinci
+         *     geri yükleme dahil) 409 `records.not_deleted`.
+         */
+        patch: operations["restoreFile"];
+        trace?: never;
+    };
+    "/v1/admin/restore/meeting-notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Çöpteki toplantı notuni geri yükler.
+         * @description Yalnız şirket yöneticisi, seçili program (COLLABORATION-K91). Toplantı çöpteyse `collaboration.meeting_deleted`; dönüşmüş not dönüşüm bağıyla geri gelir. İkinci geri yükleme 409 `collaboration.not_deleted`.
+         */
+        patch: operations["restoreMeetingNote"];
+        trace?: never;
+    };
     "/v1/admin/restore/meetings/{id}": {
         parameters: {
             query?: never;
@@ -730,6 +1396,46 @@ export interface paths {
         head?: never;
         /** Silinmiş toplantıyı geri yükler. */
         patch: operations["restoreMeeting"];
+        trace?: never;
+    };
+    "/v1/admin/restore/subtasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Çöpteki alt görevni geri yükler.
+         * @description Yalnız şirket yöneticisi, seçili program (WORK-K101). Ebeveyn görev çöpteyse `work.item_deleted`; görev tamamlanmışken açık alt görev `work.item_completed`; canlı alt görev tavanı (50) doluysa `work.subtask_limit_reached`. Atanan artık ana göreve atanmış değilse atama boşaltılır (WORK-K73). Silinen alt görevin dosyaları alt göreve bağlı kalmıştır. İkinci geri yükleme 409 `work.not_deleted`.
+         */
+        patch: operations["restoreSubtask"];
+        trace?: never;
+    };
+    "/v1/admin/restore/task-notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Çöpteki görev notuni geri yükler.
+         * @description Yalnız şirket yöneticisi, seçili program (WORK-K102). Ebeveyn görev çöpteyse `work.item_deleted`. İkinci geri yükleme 409 `work.not_deleted`.
+         */
+        patch: operations["restoreTaskNote"];
         trace?: never;
     };
     "/v1/admin/restore/work-items/{id}": {
@@ -2148,7 +2854,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Dosyayı siler (metadata + nesne). Yalnız yükleyen siler: dosyanın `(program, departman)` ekibinde satırı olan yükleyen ya da yükleyen şirket yöneticisi (aksi 403 `records.not_authorized`); ikinci silme 404 `records.file_not_found` alır. */
+        /** Dosyayı çöpe taşır (metadata kalır, depolama nesnesi yerinde durur; RECORDS-K44). Yalnız yükleyen siler: dosyanın `(program, departman)` ekibinde satırı olan yükleyen ya da yükleyen şirket yöneticisi (aksi 403 `records.not_authorized`); ikinci silme 404 `records.file_not_found` alır. Geri yükleme ve kalıcı silme yönetici çöp uçlarındadır (`restoreFile`, `permanentDeleteFile`). */
         delete: operations["deleteFile"];
         options?: never;
         head?: never;
@@ -2204,6 +2910,35 @@ export interface paths {
         head?: never;
         /** Sınıflandırma etiketini değiştirir (kapalı küme; depolama nesnesine dokunmaz; aynı etiket değişikliksiz 200). Yetki yeniden adlandırmayla aynıdır (RECORDS-K10): yönetici, ekibin koordinatörü ya da dosyanın `(program, departman)` ekibinde satırı olan yükleyen; aksi 403 `records.not_authorized`. Audit `records.file.tag_changed`. */
         patch: operations["retagFile"];
+        trace?: never;
+    };
+    "/v1/files/{id}/work-item": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Dosyayı aynı programdaki başka göreve taşır (RECORDS-K46).
+         * @description Kaynakta yeniden adlandırma yetkisi (yönetici, ekibin koordinatörü ya da o ekipte satırı olan
+         *     yükleyen; K10) ve hedefte yükleme yetkisi (yönetici, hedef departmanın koordinatörü, hedefe
+         *     atanmış üye; K01) aranır; hedef görünmeyen (başka program, silinmiş, olmayan ya da atanmamış
+         *     üye için) görev 422 `records.input_invalid` alan `work_item_id` alır. Kaynak görev tamamlanmışsa
+         *     409 `records.source_completed` (kanıt kapısı bozulmaz); tamamlanmış hedefe taşıma serbesttir.
+         *     Hedef görev tavanı doluysa 422 `records.too_many_files`; hedefte aynı adlı canlı dosya varsa ad
+         *     numaralanır ("rapor (2).csv"; 409 değil) ve yanıt yeni adı taşır. `subtask_id` verilirse hedef
+         *     görevin canlı alt görevi olmalıdır (aksi 422 alan `subtask_id`), verilmezse bağ boşaltılır.
+         *     Dosya zaten hedefteyse 200 ve kayıt değişmeden döner (audit yazılmaz). Program, depolama nesnesi
+         *     ve yükleme işlem anahtarı değişmez; çöpteki dosya 404'tür.
+         */
+        patch: operations["moveFile"];
         trace?: never;
     };
     "/v1/instance/profile": {
@@ -4803,6 +5538,16 @@ export interface components {
             sort_order: number;
             title: string;
         };
+        AgendaItemLifecycleResult: {
+            item_id: string;
+            /** @enum {string} */
+            status: "restored";
+        };
+        AgendaItemPurgeResult: {
+            item_id: string;
+            /** @enum {string} */
+            status: "purged";
+        };
         AgendaItemRequest: {
             /** @description Madde başlığı. Sunucu düz metne indirir ve kırpar; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 300 karakterdir (Unicode kod noktası, düz metne indirildikten sonra); aksi 422 `collaboration.input_invalid` (alan `title`). Toplantı başına en çok 50 madde; aşım 422 `collaboration.agenda_limit_reached` (COLLABORATION-K24). */
             title: string;
@@ -5753,6 +6498,25 @@ export interface components {
             /** @description Süzgece uyan silinmiş hesap sayısı; imleçten bağımsız, her sayfada aynı (ORGANIZATION-K61). */
             total: number;
         };
+        /** @description Çöpteki gündem maddesi (COLLABORATION-K91). */
+        DeletedAgendaItem: {
+            /** Format: date-time */
+            deleted_at: string;
+            deleted_by: components["schemas"]["MeetingDeletedBy"] | null;
+            is_checked: boolean;
+            item_id: string;
+            meeting_id: string;
+            meeting_title: string;
+            owner_department_id: string;
+            parent_deleted: boolean;
+            title: string;
+        };
+        DeletedAgendaItemList: {
+            items: components["schemas"]["DeletedAgendaItem"][];
+            next_cursor?: string;
+            /** @description Süzgece uyan çöp satırı sayısı; imleçten bağımsız, her sayfada aynı. */
+            total: number;
+        };
         DeletedBatchFailure: {
             /** @description Öğenin dış hata kodu (tekil ucun 4xx kodu; olası değerler uç açıklamasında). */
             code: string;
@@ -5796,21 +6560,173 @@ export interface components {
             /** @description Bu çağrıda departmanla birlikte "Silinenler"e taşınan görev sayısı (bütün programlar; ADR-0043). Zaten silinmiş departmanda ikinci çağrı canlı kalmış görevleri taşır, yoksa 0. */
             work_items_deleted: number;
         };
+        /** @description Çöpteki dosya (RECORDS-K44, RECORDS-K45). Depolama anahtarı taşımaz. `work_item_title` ve `work_item_code` görev kalıcı gitmişse null; `parent_deleted` görev çöpteyse true (dosya önce görev geri yüklenmeden geri yüklenemez). */
+        DeletedFile: {
+            content_type: string;
+            /**
+             * Format: date-time
+             * @description Yükleme zamanı (UTC).
+             */
+            created_at: string;
+            /** Format: date-time */
+            deleted_at: string;
+            /** @description Dosyayı silen hesap; ad çözülemezse `full_name` boş. */
+            deleted_by: components["schemas"]["MeetingDeletedBy"] | null;
+            department_id: string;
+            display_name: string;
+            file_id: string;
+            parent_deleted: boolean;
+            /** Format: int64 */
+            size_bytes: number;
+            subtask_id: string | null;
+            /** @description Kapalı küme (RECORDS-K07); `FileListItem.tag` ile aynı değerler. */
+            tag: string;
+            uploaded_by: components["schemas"]["MeetingDeletedBy"];
+            /** @description Görev kısa kodu (WORK-K97); departmanın kodu yoksa boş dize. */
+            work_item_code: string | null;
+            work_item_id: string;
+            work_item_title: string | null;
+        };
+        DeletedFileList: {
+            items: components["schemas"]["DeletedFile"][];
+            next_cursor?: string;
+            /** @description Süzgece uyan çöpteki dosya sayısı; imleçten bağımsız, her sayfada aynı (RECORDS-K45). */
+            total: number;
+        };
+        /** @description Çöpteki toplantı notu (COLLABORATION-K91). `excerpt` gövdenin ilk 200 karakteridir; dönüşmüş notta `converted_to_work_item_id` dolu kalır. */
+        DeletedMeetingNote: {
+            author: components["schemas"]["MeetingDeletedBy"] | null;
+            author_role: string | null;
+            converted_to_work_item_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            deleted_at: string;
+            deleted_by: components["schemas"]["MeetingDeletedBy"] | null;
+            excerpt: string;
+            meeting_id: string;
+            meeting_title: string;
+            note_id: string;
+            owner_department_id: string;
+            parent_deleted: boolean;
+        };
+        DeletedMeetingNoteList: {
+            items: components["schemas"]["DeletedMeetingNote"][];
+            next_cursor?: string;
+            /** @description Süzgece uyan çöp satırı sayısı; imleçten bağımsız, her sayfada aynı. */
+            total: number;
+        };
         DeletedPurgeAllRequest: {
-            /** @description Onay; türün yol adına (`work-items`, `departments`, `accounts`, `meetings`) eşit olmalıdır, aksi 422 alan `confirm`. */
+            /** @description Onay; türün yol adına (`work-items`, `departments`, `accounts`, `meetings`, `subtasks`, `files`, `task-notes`, `meeting-notes`, `agenda-items`) eşit olmalıdır, aksi 422 alan `confirm`. */
             confirm: string;
         };
         /**
-         * @description Silinenler ekranının tür başına sayıları (REPORTING-K15). `tasks` ve `meetings`
-         *     seçili programın, `departments` programa bağlı silinmiş departmanların, `accounts`
-         *     şirket genelinin sayısıdır; `total` dördünün toplamıdır ve
-         *     `DashboardReport.deleted_records` ile aynı hesaptır.
+         * @description Birleşik silinenler listesinin satırı (REPORTING-K21). `kind` düz string'dir (belgelenmiş
+         *     küme `tasks`, `subtasks`, `files`, `meetings`, `task_notes`, `meeting_notes`,
+         *     `agenda_items`, `departments`, `accounts`; küme genişleyebilir, istemci bilmediği değeri
+         *     genel satır olarak gösterir). `name` görev/alt görev/toplantı/gündem başlığı, dosya
+         *     görünen adı, not gövdesinin ilk 200 karakteri, departman/hesap adıdır. `department_id`
+         *     görev, toplantı ve çocuk türlerde (alt görev, dosya, not, gündem) ebeveynin departmanı,
+         *     hesapta ve departman satırında null. `parent` alt görev, dosya ve görev notunda görev,
+         *     toplantı notu ve gündemde toplantıdır; ebeveyn silinmişse `parent.deleted` true.
+         */
+        DeletedRecordItem: {
+            /**
+             * Format: date-time
+             * @description Silinme anı; bilinmiyorsa null.
+             */
+            deleted_at: string | null;
+            deleted_by: {
+                account_id: string;
+                full_name: string;
+            } | null;
+            department_id: string | null;
+            id: string;
+            kind: string;
+            /** @description Görev/toplantı başlığı, departman/hesap adı. */
+            name: string;
+            parent: components["schemas"]["DeletedRecordParent"] | null;
+        };
+        /** @description Kaydın ebeveyni (REPORTING-K21), görev ya da toplantı. Ebeveyni olmayan türlerde (görev, toplantı, departman, hesap) `parent` null'dır; kalıcı gitmiş ebeveynde (yetim dosya) `name` null olur. */
+        DeletedRecordParent: {
+            /** @description Ebeveyn silinmişse true. */
+            deleted: boolean;
+            id: string;
+            /** @description `tasks` ya da `meetings` (düz string). */
+            kind: string;
+            /** @description Ebeveynin adı; okunamazsa null. */
+            name: string | null;
+        };
+        DeletedRecordsPage: {
+            items: components["schemas"]["DeletedRecordItem"][];
+            /** @description Sonraki sayfanın bileşik imleci; boş = bitti. Sayfa `limit`'ten kısa olabilir; bitiş yalnız boş imleçtir. */
+            next_cursor: string;
+            /** @description Seçili türlerin süzülmüş küme boylarının toplamı (imleçten bağımsız). */
+            total: number;
+        };
+        /** @description Çöpteki alt görev (WORK-K101). `work_item_code` ebeveyn görevin kısa kodudur (kodsuz departmanda null). `parent_deleted` ebeveyn görevin de silinmiş olduğunu söyler. */
+        DeletedSubtask: {
+            assigned_to: components["schemas"]["MeetingDeletedBy"] | null;
+            /** Format: date-time */
+            deleted_at: string;
+            deleted_by: components["schemas"]["MeetingDeletedBy"] | null;
+            /** @description Ebeveyn görevin departmanı. */
+            department_id: string;
+            done: boolean;
+            parent_deleted: boolean;
+            subtask_id: string;
+            title: string;
+            work_item_code: string | null;
+            work_item_id: string;
+            work_item_title: string;
+        };
+        DeletedSubtaskList: {
+            items: components["schemas"]["DeletedSubtask"][];
+            next_cursor?: string;
+            /** @description Süzgece uyan çöp satırı sayısı; imleçten bağımsız, her sayfada aynı. */
+            total: number;
+        };
+        /**
+         * @description Silinenler ekranının tür başına sayıları (REPORTING-K15). `tasks`, `subtasks`, `files`,
+         *     `meetings`, `task_notes`, `meeting_notes` ve `agenda_items` seçili programın,
+         *     `departments` programa bağlı silinmiş departmanların, `accounts` şirket genelinin
+         *     sayısıdır; `notes` üç not/gündem teriminin toplamıdır ("Not ve gündem" rozeti, `total`'a
+         *     ikinci kez girmez); `total` dokuz türün toplamıdır, birleşik listenin (`listDeletedRecords`)
+         *     `total`'ıdır ve `DashboardReport.deleted_records` ile aynı hesaptır.
          */
         DeletedSummary: {
             accounts: number;
+            agenda_items: number;
             departments: number;
+            files: number;
+            meeting_notes: number;
             meetings: number;
+            notes: number;
+            subtasks: number;
+            task_notes: number;
             tasks: number;
+            total: number;
+        };
+        /** @description Çöpteki görev notu (WORK-K102). `excerpt` gövdenin ilk 200 karakteridir. */
+        DeletedTaskNote: {
+            author: components["schemas"]["MeetingDeletedBy"] | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            deleted_at: string;
+            deleted_by: components["schemas"]["MeetingDeletedBy"] | null;
+            department_id: string;
+            excerpt: string;
+            note_id: string;
+            parent_deleted: boolean;
+            work_item_code: string | null;
+            work_item_id: string;
+            work_item_title: string;
+        };
+        DeletedTaskNoteList: {
+            items: components["schemas"]["DeletedTaskNote"][];
+            next_cursor?: string;
+            /** @description Süzgece uyan çöp satırı sayısı; imleçten bağımsız, her sayfada aynı. */
             total: number;
         };
         DeletedWorkItem: {
@@ -5884,7 +6800,7 @@ export interface components {
             /** @description Departmanla birlikte silinmiş görev toplamı; geri yüklemede geri gelir. */
             deleted_with_department: number;
             department_id: string;
-            /** @description Departmanın dosya sayısı (silinmiş görevlerin ekleri dahil). */
+            /** @description Departmanın dosya sayısı (silinmiş görevlerin ekleri ve çöpteki dosyalar dahil; kalıcı silmede hepsi gider). */
             file_count: number;
             /** @description Departmanı taşıyan silinmemiş toplantı sayısı. */
             meeting_count: number;
@@ -6033,6 +6949,11 @@ export interface components {
             uploaded_by_full_name: string | null;
             work_item_id: string;
         };
+        FilePurgeResult: {
+            file_id: string;
+            /** @enum {string} */
+            status: "purged";
+        };
         FileRecord: {
             content_type: string;
             /**
@@ -6052,6 +6973,14 @@ export interface components {
         };
         FileRecordList: {
             files: components["schemas"]["WorkItemFileListItem"][];
+        };
+        FileRestoreResult: {
+            /** @description Geri yüklenen dosyanın adı; görevde aynı adlı canlı dosya varsa numaralanmış. */
+            display_name: string;
+            file_id: string;
+            renamed: boolean;
+            /** @enum {string} */
+            status: "restored";
         };
         ForwardChatMessageRequest: {
             /** @description İsteğe bağlı not; her hedefte iletilen mesajdan SONRA ayrı düz mesaj olarak yazılır (gövde kuralları, en çok 5.000 karakter; alan hatası `note`). */
@@ -6389,12 +7318,22 @@ export interface components {
             /** @description Çağıranın yazdığı notlar (yazarın rol kopyasından bağımsız). */
             mine: number;
         };
+        MeetingNoteLifecycleResult: {
+            note_id: string;
+            /** @enum {string} */
+            status: "restored";
+        };
         MeetingNoteList: {
             counts: components["schemas"]["MeetingNoteCounts"];
             items: components["schemas"]["MeetingNote"][];
             next_cursor: string;
             /** @description İstekteki süzgeçlere (`converted`, `author`) uyan notların sayısı (COLLABORATION-K80); imleçten bağımsızdır, her sayfada aynıdır. Detaydaki `notes` süzgeçsizdir (`total == counts.all`). */
             total: number;
+        };
+        MeetingNotePurgeResult: {
+            note_id: string;
+            /** @enum {string} */
+            status: "purged";
         };
         MeetingRevised: components["schemas"]["Meeting"] & {
             side_effects: components["schemas"]["MeetingSideEffects"];
@@ -6466,6 +7405,12 @@ export interface components {
             month: string;
             /** @description Ayda canlı görevlere yazılan not sayısı. */
             notes: number;
+        };
+        MoveFileRequest: {
+            /** @description Hedef görevin canlı alt görevi; boş ya da null ise dosya yalnız ana göreve bağlanır. */
+            subtask_id?: string | null;
+            /** @description Hedef görev; kaynakla aynı programda, canlı ve çağıranın yükleme yapabileceği olmalıdır. */
+            work_item_id: string;
         };
         /** @description Çağıranın bir programdaki ekip satırı (ekip programa göredir, ADR-0023). */
         MyDepartment: {
@@ -7348,6 +8293,16 @@ export interface components {
             done: number;
             total: number;
         };
+        SubtaskLifecycleResult: {
+            /** @enum {string} */
+            status: "restored";
+            subtask_id: string;
+        };
+        SubtaskPurgeResult: {
+            /** @enum {string} */
+            status: "purged";
+            subtask_id: string;
+        };
         SystemInfo: {
             api_version: string;
             /** @description Bu sunucu sürümünün sunduğu yetenek adları; bu sürümde [work, program, records, notifications]. Adlar tablo/aile adı değildir. */
@@ -7961,6 +8916,16 @@ export interface components {
             returned: number;
             /** @description Üyeye atanmış görev sayısı. */
             total: number;
+        };
+        TaskNoteLifecycleResult: {
+            note_id: string;
+            /** @enum {string} */
+            status: "restored";
+        };
+        TaskNotePurgeResult: {
+            note_id: string;
+            /** @enum {string} */
+            status: "purged";
         };
         TaskPriorityDistribution: {
             acil: number;
@@ -9726,6 +10691,382 @@ export interface operations {
             };
         };
     };
+    listDeletedAgendaItems: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Silen hesap kimliği (tam eşleşme). Silen bilgisi tutulmadan önce silinmiş kayıt (`deleted_by: null`) eşleşmez. */
+                deleted_by?: components["parameters"]["DeletedBy"];
+                /** @description Silinme anı alt ucu (RFC 3339, dahil). `deleted_to`'dan sonra olamaz; çözülemeyen değer ya da ters aralık 422 `<modül>.input_invalid` (alan `deleted_from`/`deleted_to`). Gün sınırı istemcidedir. */
+                deleted_from?: components["parameters"]["DeletedFrom"];
+                /** @description Silinme anı üst ucu (RFC 3339, dahil). */
+                deleted_to?: components["parameters"]["DeletedTo"];
+                /** @description Ebeveynin departmanı (tam eşleşme; toplantıda sahip ya da bağlı departman). */
+                department_id?: string;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Sıra yönü: `asc` ya da `desc`; varsayılan `deleted_at`'te `desc`, `name`'de `asc`. Başka değer 422 (alan `order`). */
+                order?: components["parameters"]["DeletedOrder"];
+                /** @description Silinenler listesi araması (WORK-K93, ORGANIZATION-K60/K60, COLLABORATION-K85): Türkçe büyük/küçük harf ve aksan duyarsız "içerir" (ç/c, ğ/g, ı/i, ö/o, ş/s, ü/u, İ/i); `%` ve `_` joker değil harftir. Boş ya da yalnız boşluk arama yoktur. Aranan alan listeye göredir (görev ve toplantı başlığı, departman adı ya da kodu, hesabın görünen adı — e-posta aranmaz). */
+                q?: components["parameters"]["DeletedSearch"];
+                /** @description Sıra ekseni: `deleted_at` (varsayılan; parametresiz isteğin bugünkü sırası) ya da `name` (katlanmış ad/başlık). Eşitlikte kayıt kimliği eşkırıcıdır. Başka değer 422 `<modül>.input_invalid` (alan `sort`). İmleç sıraya bağlıdır: varsayılan sıra bugünkü imleç biçimini üretir ve okur, diğer sıraların imleci yalnız kendi sırasında geçerlidir (aksi 422). */
+                sort?: components["parameters"]["DeletedSort"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedAgendaItemList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchPurgeAgendaItems: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    purgeAllAgendaItems: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedPurgeAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil; `remaining` dolu) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchRestoreAgendaItems: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listDeletedDepartments: {
         parameters: {
             query?: {
@@ -9928,7 +11269,10 @@ export interface operations {
     };
     purgeAllDepartments: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Boşaltılacak kümenin kapsamı: `company` (varsayılan; parametresiz isteğin bugünkü kümesi) ya da `program` (başlıktaki programa bağlı silinmiş departmanlar). Başka değer 422 `organization.input_invalid` (alan `scope`). */
+                scope?: "company" | "program";
+            };
             header: {
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
                 "X-Nizamio-Program": components["parameters"]["ProgramScope"];
@@ -10130,9 +11474,9 @@ export interface operations {
                 deleted_from?: string;
                 /** @description Silinme anı üst ucu (RFC 3339, dahil). */
                 deleted_to?: string;
-                /** @description Görev, toplantı ve hesap türünde departman süzgeci. */
+                /** @description Departman süzgeci (görev ve toplantıda departman; alt görev, dosya ve not/gündemde ebeveynin departmanı; hesapta ekip satırı); departman satırında yok sayılır. */
                 department_id?: string;
-                /** @description Virgüllü tür alt kümesi (`tasks`, `meetings`, `departments`, `accounts`). */
+                /** @description Virgüllü tür alt kümesi (`tasks`, `subtasks`, `files`, `meetings`, `task_notes`, `meeting_notes`, `agenda_items`, `departments`, `accounts`). */
                 kinds?: string;
                 /** @description Ad/başlıkta "içerir" araması (listelerle aynı). */
                 q?: string;
@@ -10219,6 +11563,758 @@ export interface operations {
             503: {
                 headers: {
                     "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listDeletedFiles: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Silen hesap kimliği (tam eşleşme). Silen bilgisi tutulmadan önce silinmiş kayıt (`deleted_by: null`) eşleşmez. */
+                deleted_by?: components["parameters"]["DeletedBy"];
+                /** @description Silinme anı alt ucu (RFC 3339, dahil). `deleted_to`'dan sonra olamaz; çözülemeyen değer ya da ters aralık 422 `<modül>.input_invalid` (alan `deleted_from`/`deleted_to`). Gün sınırı istemcidedir. */
+                deleted_from?: components["parameters"]["DeletedFrom"];
+                /** @description Silinme anı üst ucu (RFC 3339, dahil). */
+                deleted_to?: components["parameters"]["DeletedTo"];
+                /** @description Dosyanın departmanı (tam eşleşme). */
+                department_id?: string;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Sıra yönü: `asc` ya da `desc`; varsayılan `deleted_at`'te `desc`, `name`'de `asc`. Başka değer 422 (alan `order`). */
+                order?: components["parameters"]["DeletedOrder"];
+                /** @description Silinenler listesi araması (WORK-K93, ORGANIZATION-K60/K60, COLLABORATION-K85): Türkçe büyük/küçük harf ve aksan duyarsız "içerir" (ç/c, ğ/g, ı/i, ö/o, ş/s, ü/u, İ/i); `%` ve `_` joker değil harftir. Boş ya da yalnız boşluk arama yoktur. Aranan alan listeye göredir (görev ve toplantı başlığı, departman adı ya da kodu, hesabın görünen adı — e-posta aranmaz). */
+                q?: components["parameters"]["DeletedSearch"];
+                /** @description Sıra ekseni: `deleted_at` (varsayılan; parametresiz isteğin bugünkü sırası) ya da `name` (katlanmış ad/başlık). Eşitlikte kayıt kimliği eşkırıcıdır. Başka değer 422 `<modül>.input_invalid` (alan `sort`). İmleç sıraya bağlıdır: varsayılan sıra bugünkü imleç biçimini üretir ve okur, diğer sıraların imleci yalnız kendi sırasında geçerlidir (aksi 422). */
+                sort?: components["parameters"]["DeletedSort"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedFileList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchPurgeFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    purgeAllFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedPurgeAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil; `remaining` dolu) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchRestoreFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listDeletedMeetingNotes: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Silen hesap kimliği (tam eşleşme). Silen bilgisi tutulmadan önce silinmiş kayıt (`deleted_by: null`) eşleşmez. */
+                deleted_by?: components["parameters"]["DeletedBy"];
+                /** @description Silinme anı alt ucu (RFC 3339, dahil). `deleted_to`'dan sonra olamaz; çözülemeyen değer ya da ters aralık 422 `<modül>.input_invalid` (alan `deleted_from`/`deleted_to`). Gün sınırı istemcidedir. */
+                deleted_from?: components["parameters"]["DeletedFrom"];
+                /** @description Silinme anı üst ucu (RFC 3339, dahil). */
+                deleted_to?: components["parameters"]["DeletedTo"];
+                /** @description Ebeveynin departmanı (tam eşleşme; toplantıda sahip ya da bağlı departman). */
+                department_id?: string;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Sıra yönü: `asc` ya da `desc`; varsayılan `deleted_at`'te `desc`, `name`'de `asc`. Başka değer 422 (alan `order`). */
+                order?: components["parameters"]["DeletedOrder"];
+                /** @description Silinenler listesi araması (WORK-K93, ORGANIZATION-K60/K60, COLLABORATION-K85): Türkçe büyük/küçük harf ve aksan duyarsız "içerir" (ç/c, ğ/g, ı/i, ö/o, ş/s, ü/u, İ/i); `%` ve `_` joker değil harftir. Boş ya da yalnız boşluk arama yoktur. Aranan alan listeye göredir (görev ve toplantı başlığı, departman adı ya da kodu, hesabın görünen adı — e-posta aranmaz). */
+                q?: components["parameters"]["DeletedSearch"];
+                /** @description Sıra ekseni: `deleted_at` (varsayılan; parametresiz isteğin bugünkü sırası) ya da `name` (katlanmış ad/başlık). Eşitlikte kayıt kimliği eşkırıcıdır. Başka değer 422 `<modül>.input_invalid` (alan `sort`). İmleç sıraya bağlıdır: varsayılan sıra bugünkü imleç biçimini üretir ve okur, diğer sıraların imleci yalnız kendi sırasında geçerlidir (aksi 422). */
+                sort?: components["parameters"]["DeletedSort"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedMeetingNoteList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchPurgeMeetingNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    purgeAllMeetingNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedPurgeAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil; `remaining` dolu) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchRestoreMeetingNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
                     [name: string]: unknown;
                 };
                 content: {
@@ -10603,6 +12699,524 @@ export interface operations {
             };
         };
     };
+    listDeletedRecords: {
+        parameters: {
+            query?: {
+                /** @description Önceki sayfanın `next_cursor` değeri. */
+                cursor?: string;
+                /** @description Silen hesap kimliği. */
+                deleted_by?: string;
+                /** @description Silinme anı alt ucu (RFC 3339, dahil). */
+                deleted_from?: string;
+                /** @description Silinme anı üst ucu (RFC 3339, dahil). */
+                deleted_to?: string;
+                /** @description Departman süzgeci (görev ve toplantıda departman; alt görev, dosya ve not/gündemde ebeveynin departmanı; hesapta ekip satırı); departman satırında yok sayılır. */
+                department_id?: string;
+                /** @description Virgüllü tür alt kümesi (`tasks`, `subtasks`, `files`, `meetings`, `task_notes`, `meeting_notes`, `agenda_items`, `departments`, `accounts`). */
+                kinds?: string;
+                /** @description Sayfa boyu (1–100, varsayılan 50); aralık dışı 422 alan `limit`. */
+                limit?: number;
+                /** @description Ad/başlıkta "içerir" araması (listelerle aynı). */
+                q?: string;
+                /** @description Departman türünün kapsamı. */
+                scope?: "program" | "company";
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedRecordsPage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listDeletedSubtasks: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Silen hesap kimliği (tam eşleşme). Silen bilgisi tutulmadan önce silinmiş kayıt (`deleted_by: null`) eşleşmez. */
+                deleted_by?: components["parameters"]["DeletedBy"];
+                /** @description Silinme anı alt ucu (RFC 3339, dahil). `deleted_to`'dan sonra olamaz; çözülemeyen değer ya da ters aralık 422 `<modül>.input_invalid` (alan `deleted_from`/`deleted_to`). Gün sınırı istemcidedir. */
+                deleted_from?: components["parameters"]["DeletedFrom"];
+                /** @description Silinme anı üst ucu (RFC 3339, dahil). */
+                deleted_to?: components["parameters"]["DeletedTo"];
+                /** @description Ebeveynin departmanı (tam eşleşme; toplantıda sahip ya da bağlı departman). */
+                department_id?: string;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Sıra yönü: `asc` ya da `desc`; varsayılan `deleted_at`'te `desc`, `name`'de `asc`. Başka değer 422 (alan `order`). */
+                order?: components["parameters"]["DeletedOrder"];
+                /** @description Silinenler listesi araması (WORK-K93, ORGANIZATION-K60/K60, COLLABORATION-K85): Türkçe büyük/küçük harf ve aksan duyarsız "içerir" (ç/c, ğ/g, ı/i, ö/o, ş/s, ü/u, İ/i); `%` ve `_` joker değil harftir. Boş ya da yalnız boşluk arama yoktur. Aranan alan listeye göredir (görev ve toplantı başlığı, departman adı ya da kodu, hesabın görünen adı — e-posta aranmaz). */
+                q?: components["parameters"]["DeletedSearch"];
+                /** @description Sıra ekseni: `deleted_at` (varsayılan; parametresiz isteğin bugünkü sırası) ya da `name` (katlanmış ad/başlık). Eşitlikte kayıt kimliği eşkırıcıdır. Başka değer 422 `<modül>.input_invalid` (alan `sort`). İmleç sıraya bağlıdır: varsayılan sıra bugünkü imleç biçimini üretir ve okur, diğer sıraların imleci yalnız kendi sırasında geçerlidir (aksi 422). */
+                sort?: components["parameters"]["DeletedSort"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedSubtaskList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchPurgeSubtasks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    purgeAllSubtasks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedPurgeAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil; `remaining` dolu) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchRestoreSubtasks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     reportDeletedSummary: {
         parameters: {
             query?: never;
@@ -10644,6 +13258,418 @@ export interface operations {
             };
             /** @description Kapsamda bulunamadı */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listDeletedTaskNotes: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Silen hesap kimliği (tam eşleşme). Silen bilgisi tutulmadan önce silinmiş kayıt (`deleted_by: null`) eşleşmez. */
+                deleted_by?: components["parameters"]["DeletedBy"];
+                /** @description Silinme anı alt ucu (RFC 3339, dahil). `deleted_to`'dan sonra olamaz; çözülemeyen değer ya da ters aralık 422 `<modül>.input_invalid` (alan `deleted_from`/`deleted_to`). Gün sınırı istemcidedir. */
+                deleted_from?: components["parameters"]["DeletedFrom"];
+                /** @description Silinme anı üst ucu (RFC 3339, dahil). */
+                deleted_to?: components["parameters"]["DeletedTo"];
+                /** @description Ebeveynin departmanı (tam eşleşme; toplantıda sahip ya da bağlı departman). */
+                department_id?: string;
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Sıra yönü: `asc` ya da `desc`; varsayılan `deleted_at`'te `desc`, `name`'de `asc`. Başka değer 422 (alan `order`). */
+                order?: components["parameters"]["DeletedOrder"];
+                /** @description Silinenler listesi araması (WORK-K93, ORGANIZATION-K60/K60, COLLABORATION-K85): Türkçe büyük/küçük harf ve aksan duyarsız "içerir" (ç/c, ğ/g, ı/i, ö/o, ş/s, ü/u, İ/i); `%` ve `_` joker değil harftir. Boş ya da yalnız boşluk arama yoktur. Aranan alan listeye göredir (görev ve toplantı başlığı, departman adı ya da kodu, hesabın görünen adı — e-posta aranmaz). */
+                q?: components["parameters"]["DeletedSearch"];
+                /** @description Sıra ekseni: `deleted_at` (varsayılan; parametresiz isteğin bugünkü sırası) ya da `name` (katlanmış ad/başlık). Eşitlikte kayıt kimliği eşkırıcıdır. Başka değer 422 `<modül>.input_invalid` (alan `sort`). İmleç sıraya bağlıdır: varsayılan sıra bugünkü imleç biçimini üretir ve okur, diğer sıraların imleci yalnız kendi sırasında geçerlidir (aksi 422). */
+                sort?: components["parameters"]["DeletedSort"];
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedTaskNoteList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchPurgeTaskNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    purgeAllTaskNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedPurgeAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil; `remaining` dolu) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    batchRestoreTaskNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletedBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı (kısmi başarı dahil) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedBatchResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11191,6 +14217,106 @@ export interface operations {
             };
         };
     };
+    permanentDeleteAgendaItem: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgendaItemPurgeResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     permanentDeleteDepartment: {
         parameters: {
             query?: never;
@@ -11291,6 +14417,206 @@ export interface operations {
             };
         };
     };
+    permanentDeleteFile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilePurgeResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    permanentDeleteMeetingNote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeetingNotePurgeResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     permanentDeleteMeeting: {
         parameters: {
             query?: never;
@@ -11314,6 +14640,206 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeetingLifecycleResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    permanentDeleteSubtask: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubtaskPurgeResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    permanentDeleteTaskNote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskNotePurgeResult"];
                 };
             };
             /** @description Kimlik doğrulanmamış */
@@ -11580,6 +15106,106 @@ export interface operations {
             };
         };
     };
+    restoreAgendaItem: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgendaItemLifecycleResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     restoreDepartment: {
         parameters: {
             query?: never;
@@ -11680,6 +15306,206 @@ export interface operations {
             };
         };
     };
+    restoreFile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRestoreResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    restoreMeetingNote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeetingNoteLifecycleResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     restoreMeeting: {
         parameters: {
             query?: never;
@@ -11703,6 +15529,206 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeetingLifecycleResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    restoreSubtask: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubtaskLifecycleResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    restoreTaskNote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskNoteLifecycleResult"];
                 };
             };
             /** @description Kimlik doğrulanmamış */
@@ -19915,6 +23941,123 @@ export interface operations {
             };
         };
     };
+    moveFile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description İsteğe bağlı (ADR-0027 biçimi): verilmişse kırpılmış uzunluk 22–200 bayt olmalıdır, aksi 422 `records.input_invalid` (alan `idempotency_key`, kod `records.request_key_invalid`). Taşıma yeni kaynak doğurmadığı ve doğal olarak tekrar güvenli olduğu için anahtar kalıcı saklanmaz: aynı hedefe tekrar istek anahtarla ya da anahtarsız 200 değişiksiz döner. */
+                "Idempotency-Key"?: string;
+                /** @description Departman kapsamı (S3 uçlarda zorunlu). */
+                "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveFileRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRecord"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     instanceProfile: {
         parameters: {
             query?: never;
@@ -25275,6 +29418,8 @@ export interface operations {
                 mime_category?: string;
                 /** @description Ad araması (Türkçe harf duyarsız). */
                 search?: string;
+                /** @description Arama kapsamı (RECORDS-K47): `name` (varsayılan; yalnız dosya adı, bugünkü davranış) ya da `all` (dosya adı + görev başlığı + yükleyen adı, Türkçe harf duyarsız; kapsam koşulları aynen geçerlidir). `all` yalnız arama en az 2 karakterken görev başlığı ve yükleyen adında da arar (tek harfte yalnız dosya adı). Başka değer 422 `records.input_invalid` (alan `search_scope`). */
+                search_scope?: "name" | "all";
                 /** @description Sıralama ekseni; izinli liste dışı değer varsayılana düşer. */
                 sort?: string;
                 /** @description Etiket; küme dışı değer 422 records.tag_invalid. */
@@ -27022,6 +31167,8 @@ export interface operations {
                 mime_category?: string;
                 /** @description Ad araması (Türkçe harf duyarsız). */
                 search?: string;
+                /** @description Arama kapsamı (RECORDS-K47): `name` (varsayılan; yalnız dosya adı, bugünkü davranış) ya da `all` (dosya adı + görev başlığı + yükleyen adı, Türkçe harf duyarsız; kapsam koşulları aynen geçerlidir). `all` yalnız arama en az 2 karakterken görev başlığı ve yükleyen adında da arar (tek harfte yalnız dosya adı). Başka değer 422 `records.input_invalid` (alan `search_scope`). */
+                search_scope?: "name" | "all";
                 /** @description Sıralama ekseni; izinli liste dışı değer varsayılana düşer. */
                 sort?: string;
                 /** @description Etiket; küme dışı değer 422 records.tag_invalid. */

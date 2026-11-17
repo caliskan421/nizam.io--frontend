@@ -11,6 +11,7 @@ import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 import { defineComponent, h } from 'vue'
 
 import {
+  makeDeletedSummary,
   makeMeetingDepartment,
   withDeletedAccountDefaults,
   withDeletedDepartmentDefaults,
@@ -232,7 +233,10 @@ function summaryOf() {
     departments: size(world.departments),
     accounts: size(world.accounts),
   }
-  return { ...counts, total: Object.values(counts).reduce((a, b) => a + b, 0) }
+  return makeDeletedSummary({
+    ...counts,
+    total: Object.values(counts).reduce((a, b) => a + b, 0),
+  })
 }
 
 /** Silinen liste uçları (yetkili görünürlük: yönetici değilse 403). */

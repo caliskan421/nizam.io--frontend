@@ -303,7 +303,7 @@ export const trSubtasks = {
     },
     confirm: {
       title: 'Alt görev silinsin mi?',
-      body: '“{title}” kalıcı olarak silinir; bağlı dosyalar görevde kalır.',
+      body: '“{title}” silinen kayıtlara taşınır; bağlı dosyalar görevde kalır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',
       ok: 'Sil',
     },
     field: {
@@ -335,7 +335,8 @@ export const trNotes = {
       unknownAuthor: 'Adı bilinmeyen kişi',
       field: 'Not',
       confirmTitle: 'Not silinsin mi?',
-      confirmBody: 'Not bu görevden kaldırılır.',
+      confirmBody:
+        'Not silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',
       confirmAccept: 'Notu sil',
     },
   },
@@ -393,7 +394,7 @@ export const trWorkFiles = {
     },
     remove: {
       title: 'Dosya silinsin mi?',
-      body: 'Dosya kalıcı olarak silinir; bu işlem geri alınamaz.',
+      body: 'Dosya silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',
       confirm: 'Sil',
     },
     slot: {

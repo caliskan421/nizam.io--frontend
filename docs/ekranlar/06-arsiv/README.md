@@ -151,3 +151,8 @@ Hâlâ açık:
 | E-01-26/37/38 (01 yönetici kartı arşiv sayısı, son yükleme, sıralama) | `home/components/{CoordinatorshipCard,CoordSortMenu}.test.ts`, `home/pages/AdminHomePage.test.ts`, `home/model/coordinatorships.test.ts` · entegrasyon: `archive-program.test.ts` |
 
 **F8 sonrası kalanlar (kodda `designStub`):** BE-025 kısmi (E-06-23/24 depolama dağılımı), BE-069, BE-075, BE-024, BE-026, BE-076, BE-077. Bilinen sınır: `sirala=son:azalan` URL değeri `src/app/routes.catalog.ts` `archive.folders.query.sirala` (`sortBy(['ad','dosya'])`) kataloğunda henüz yoktur (katalog W171 sahipliği dışı; sayfa değeri doğrudan okur).
+
+
+## F10 pin ve zorunlu semantik uyum
+
+v0.26.0-api pin teslimi W191, P45/ADR0053–0054 ile dosya/alt görev/görev notu/toplantı notu/gündem silmesinin çöp semantiğini tüketir. Eski F5/F4 tablosundaki "kalıcı/geri alınamaz" ifadeleri tarihsel pin varsayımıdır; güncel onaylar silinen kayıtlara taşıma ve yalnız şirket yöneticisinin geri yükleyip kalıcı silebilmesini söyler. Gerçek yönetici kalıcı silme metinleri korunur. Gündemin istemcide gecikmeli geri alma akışı değişmez. Yeni çöp türü/arama/taşıma yüzleri sonraki F10 paketlerinde bağlanacak; pin tek başına BE satırlarını kapatmaz. Kanıt [WEB-10 ilerleme](../../yurutme/web-10/ilerleme.md)'dedir.

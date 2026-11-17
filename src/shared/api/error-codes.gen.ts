@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.25.0-api (58856bbc185fe2a7124a3baeeb8178ef5ccd47ab) — docs/api/error-codes.json
+// Kaynak: nizam.io--backend etiket v0.26.0-api (4d4adc0f9f1890184b5ed210296deb1fde6db886) — docs/api/error-codes.json
 
 export const ERROR_CATALOG_VERSION = 1 as const
 
@@ -28,6 +28,7 @@ export const ERROR_CODES = {
   "collaboration.idempotency_key_reused": { status: [409], fields: [], messageKey: "errors.collaboration.idempotency_key_reused" },
   "collaboration.input_invalid": { status: [422], fields: ["collaboration.input_invalid","collaboration.request_key_invalid","collaboration.request_key_required","collaboration.revision_invalid","collaboration.revision_required"], messageKey: "errors.collaboration.input_invalid" },
   "collaboration.invalid_cursor": { status: [422], fields: ["collaboration.invalid_cursor"], messageKey: "errors.collaboration.invalid_cursor" },
+  "collaboration.meeting_deleted": { status: [409], fields: [], messageKey: "errors.collaboration.meeting_deleted" },
   "collaboration.meeting_not_found": { status: [404], fields: [], messageKey: "errors.collaboration.meeting_not_found" },
   "collaboration.not_authorized": { status: [403], fields: [], messageKey: "errors.collaboration.not_authorized" },
   "collaboration.not_deleted": { status: [409], fields: [], messageKey: "errors.collaboration.not_deleted" },
@@ -154,11 +155,15 @@ export const ERROR_CODES = {
   "records.name_invalid": { status: [422], fields: ["records.name_invalid"], messageKey: "errors.records.name_invalid" },
   "records.name_taken": { status: [409], fields: [], messageKey: "errors.records.name_taken" },
   "records.not_authorized": { status: [403], fields: [], messageKey: "errors.records.not_authorized" },
+  "records.not_deleted": { status: [409], fields: [], messageKey: "errors.records.not_deleted" },
+  "records.permanent_requires_deleted": { status: [409], fields: [], messageKey: "errors.records.permanent_requires_deleted" },
+  "records.source_completed": { status: [409], fields: [], messageKey: "errors.records.source_completed" },
   "records.tag_invalid": { status: [422], fields: ["records.tag_invalid"], messageKey: "errors.records.tag_invalid" },
   "records.tag_required": { status: [422], fields: ["records.tag_required"], messageKey: "errors.records.tag_required" },
   "records.too_large": { status: [422], fields: ["records.too_large"], messageKey: "errors.records.too_large" },
   "records.too_many_files": { status: [422], fields: ["records.too_many_files"], messageKey: "errors.records.too_many_files" },
   "records.transfer_active": { status: [422], fields: ["records.transfer_active"], messageKey: "errors.records.transfer_active" },
+  "records.work_item_deleted": { status: [409], fields: [], messageKey: "errors.records.work_item_deleted" },
   "reporting.capacity_full": { status: [503], fields: [], messageKey: "errors.reporting.capacity_full" },
   "reporting.export_in_progress": { status: [429], fields: [], messageKey: "errors.reporting.export_in_progress" },
   "reporting.export_too_large": { status: [422], fields: [], messageKey: "errors.reporting.export_too_large" },

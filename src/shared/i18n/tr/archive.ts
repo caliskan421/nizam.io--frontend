@@ -232,7 +232,8 @@ export const trArchive = {
       renameTooLong: 'Dosya adı en çok {max} karakter olabilir.',
       renamed: 'Dosya adı güncellendi.',
       removeTitle: 'Dosya silinsin mi?',
-      removeBody: 'Bu işlem geri alınamaz.',
+      removeBody:
+        'Dosya silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',
       removeConfirm: 'Dosyayı sil',
       removed: 'Dosya silindi.',
       removedAlready: 'Dosya zaten silinmiş.',

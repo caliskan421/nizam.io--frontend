@@ -9,6 +9,7 @@ import {
   makeChatMessage,
   makeChatMessageQuote,
   makeChatSummary,
+  makeDeletedSummary,
   makeNotification,
   makeNotificationList,
   makeNotificationUnreadCount,
@@ -124,5 +125,24 @@ describe('pin v0.25.0-api varsayılan üreticileri (sohbet + bildirim)', () => {
     })
     expect(makeNotificationList()).toEqual({ awaiting_count: 0, items: [], unread_count: 0 })
     expect(makeNotificationUnreadCount({ count: 2 })).toEqual({ awaiting_count: 0, count: 2 })
+  })
+})
+
+describe('pin v0.26.0-api varsayılan üreticileri (silinenler özeti)', () => {
+  it('DeletedSummary: dokuz terim + notes sıfır, verilen alan ezer', () => {
+    expect(makeDeletedSummary()).toEqual({
+      tasks: 0,
+      subtasks: 0,
+      files: 0,
+      meetings: 0,
+      task_notes: 0,
+      meeting_notes: 0,
+      agenda_items: 0,
+      notes: 0,
+      departments: 0,
+      accounts: 0,
+      total: 0,
+    })
+    expect(makeDeletedSummary({ tasks: 2, total: 2 })).toMatchObject({ tasks: 2, total: 2 })
   })
 })
