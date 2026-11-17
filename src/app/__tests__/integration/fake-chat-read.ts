@@ -86,6 +86,12 @@ function summary(db: OrgDb, chat: FakeChat, me: string) {
   }
 }
 
+/** `kind` ∈ {direct, group}, `unread` ∈ {true, false}; başka değer 422 (sözleşme). */
+function validFilter(kind: string | null, unread: string | null): boolean {
+  const kindOk = kind === null || kind === 'direct' || kind === 'group'
+  return kindOk && (unread === null || unread === 'true' || unread === 'false')
+}
+
 function listHandler(db: OrgDb, state: ChatState) {
   return http.get(`${ORIGIN}/v1/chats`, ({ request }) => {
     const me = fakeOrg.actorOf(db, request)
@@ -96,9 +102,7 @@ function listHandler(db: OrgDb, state: ChatState) {
     const needle = (query.get('q') ?? '').toLocaleLowerCase('tr')
     const kind = query.get('kind')
     const unread = query.get('unread')
-    const badKind = kind !== null && kind !== 'direct' && kind !== 'group'
-    const badUnread = unread !== null && unread !== 'true' && unread !== 'false'
-    if (badKind || badUnread) return envelope('messaging.input_invalid', 422)
+    if (!validFilter(kind, unread)) return envelope('messaging.input_invalid', 422)
     const rows = state.chats
       .filter((c) => c.program_id === program && isMember(c, me.account_id))
       .map((c) => summary(db, c, me.account_id))
