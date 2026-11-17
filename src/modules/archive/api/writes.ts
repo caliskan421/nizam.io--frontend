@@ -15,7 +15,8 @@
  *    Başarıda `archive` (etiket süzgeci/segment sorguları: öğe süzgeçten çıkabilir) ve görevin
  *    `listWorkItemFiles`'ı yeniden okunur (`query-keys.ts` ilişki listesi).
  *  - `moveFile` (BE-075): `PATCH /v1/files/{id}/work-item`, anahtarsız; ayrıntısı `useMoveArchiveFile`.
- *  - `deleteFile`: 204, kalıcı (onay çağıranda); 404 `records.file_not_found` → silinmiş say,
+ *  - `deleteFile`: 204, dosyayı çöpe taşır (yumuşak silme; yönetici Silinen kayıtlar'dan geri
+ *    yükleyebilir; onay çağıranda); 404 `records.file_not_found` → silinmiş say,
  *    liste yenilenir (sonuç `failed` kalır, çağıran `fileGone` ile ayırt eder).
  */
 import { useQueryClient } from '@tanstack/vue-query'
@@ -169,7 +170,7 @@ export function useMoveArchiveFile() {
   return rereadOnCodes(mutation, 'moveFile', MOVE_REREAD, () => ({}))
 }
 
-/** `deleteFile` — kalıcı silme (geri alma yok); onay çağıranda (`confirmWrite`). */
+/** `deleteFile` — çöpe taşıma (yönetici Silinen kayıtlar'dan geri yükleyebilir); onay çağıranda (`confirmWrite`). */
 export function useDeleteArchiveFile() {
   const mutation = useKeylessMutation<ArchiveFileRef, unknown>({
     operation: 'deleteFile',

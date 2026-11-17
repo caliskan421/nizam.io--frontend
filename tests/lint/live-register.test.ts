@@ -5,7 +5,7 @@
 //  - kodda stub'ı süren her kimlik kayıtta `açık`/`backend'de` (design-stub.test.ts) VE canlıya alınmış
 //    satırın "tam" sayılan kısmına ait bir stub kodda yoktur;
 //  - matrisin `tam` dediği satır, kayıtta `bağlandı` ya da açıkça kısmi (kalan boşluk yazılı) olur.
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
@@ -43,10 +43,24 @@ function matrixDecisions(): Map<string, string> {
 }
 
 /**
- * F10 W193'te kapanan silinenler satırları (v0.26.0-api): BE-076 (arşiv son stub'ı W194'te kalkar),
- * BE-069/112 (ürün kararı) ve BE-075/077/165 bu kümede DEĞİLDİR.
+ * F10 W193'te kapanan silinenler satırları (v0.26.0-api). BE-076 (arşiv son stub'ı), BE-075/077/165
+ * W194 kümesindedir; BE-069/112 ürün kararıyla vazgeçilmiştir (bu kümede DEĞİLDİR).
  */
 const F10_W193_CLOSED = new Set(['BE-109', 'BE-110', 'BE-111', 'BE-115', 'BE-163'])
+
+/** F10 W194 (arşiv taşıma/arama/dosya çöpü): `bağlandı (pin v0.26.0-api, F10 W194)` yalnız bu dört satıra. */
+const F10_W194_CLOSED = new Set(['BE-075', 'BE-076', 'BE-077', 'BE-165'])
+/** P45 ürün kararıyla vazgeçilen satırlar: kodda stub yok ve `vazgeçildi (P45: …, F10 W194)` gerekçeli. */
+const F10_W194_WAIVED = new Set(['BE-069', 'BE-112'])
+const F10_W194_BOUND = 'bağlandı (pin v0.26.0-api, F10 W194)'
+const F10_W194_WAIVER = /^vazgeçildi \(P45: [^)]+, F10 W194\)$/
+/** Kapanış kanıtı olarak depoda var olması gereken gerçek test dosyaları (yoksa kapanış sahte). */
+const F10_W194_EVIDENCE: Readonly<Record<string, readonly string[]>> = {
+  'BE-075': ['src/app/__tests__/integration/archive-move.test.ts'],
+  'BE-077': ['src/app/__tests__/integration/archive-search-scope.test.ts'],
+  'BE-076': [],
+  'BE-165': [],
+}
 
 /** F8'de yok olan bir iş, yalnız sonraki fazın tam matris kanıtı ve stub yokluğuyla kapanır. */
 function laterBoundAllowed(
@@ -58,6 +72,14 @@ function laterBoundAllowed(
   // F10 W193: kapanış kodda kimlikli stub kalmamasıyla ve sabit satır kümesiyle sınırlıdır.
   if (/^bağlandı \(pin v0\.26\.0-api, F10 W193\)$/.test(status)) {
     return F10_W193_CLOSED.has(id) && !stubs.has(id)
+  }
+  // F10 W194: sabit dört satır, kodda stub yok ve kanıt dosyaları depoda var (kayıt sözüne güvenilmez).
+  if (status === F10_W194_BOUND) {
+    return (
+      F10_W194_CLOSED.has(id) &&
+      !stubs.has(id) &&
+      (F10_W194_EVIDENCE[id] ?? []).every((path) => existsSync(path))
+    )
   }
   const match = /^bağlandı \(pin v(\d+)\.(\d+)\.(\d+)-api, F9 W18\d+[a-z]?\)$/.exec(status)
   if (!match || stubs.has(id)) return false
@@ -188,12 +210,12 @@ describe('F10 W193 kapanışı: silinenler satırları', () => {
     expect(history('BE-163')).toContain('F8 W174')
   })
 
-  it('bu satırların kimliği kodda stub olarak kalmaz; BE-076 stub’ı (arşiv) W194’e kadar sürer ve satırı açıktır', () => {
+  it('bu satırların kimliği kodda stub olarak kalmaz; BE-076 W194 kümesine geçmiştir (W193 kapanışı değil)', () => {
     const stubs = stubIds()
     for (const id of F10_W193_CLOSED) expect(stubs.has(id), `${id} stub kaldı`).toBe(false)
     const be076 = cells().find((c) => c.id === 'BE-076')!
-    expect(stubs.has('BE-076')).toBe(true)
-    expect(be076.status.startsWith('bağlandı')).toBe(false)
+    expect(F10_W193_CLOSED.has('BE-076')).toBe(false)
+    expect(be076.status).not.toContain('F10 W193')
   })
 
   it('kapsam dışı satırlar bu W ile kapanmaz (BE-075, BE-077, BE-069, BE-112, BE-165)', () => {
@@ -211,5 +233,84 @@ describe('F10 W193 kapanışı: silinenler satırları', () => {
     expect(laterBoundAllowed('BE-109', 'bağlandı (pin v0.26.0-api, F10 W194)', new Set(), '')).toBe(
       false,
     )
+  })
+})
+
+describe('F10 W194 kapanışı: arşiv satırları', () => {
+  const byId = () => new Map(cells().map((c) => [c.id, c]))
+
+  it('BE-075/076/077/165 yalnız bu W için bağlandı; sabit dört satır, W193 beş satırdan ayrı', () => {
+    const bound = cells().filter((c) => c.status === F10_W194_BOUND)
+    expect(bound.map((c) => c.id)).toEqual(['BE-075', 'BE-076', 'BE-077', 'BE-165'])
+    for (const row of bound) expect(row.bag, row.id).toContain('F10 canlıya alma (W194)')
+    for (const id of F10_W193_CLOSED) expect(F10_W194_CLOSED.has(id), id).toBe(false)
+  })
+
+  it('BE-069/112 P45 gerekçesiyle vazgeçildi; kodda stub yok, bağlandı sayılmaz', () => {
+    const stubs = stubIds()
+    for (const id of F10_W194_WAIVED) {
+      const row = byId().get(id)!
+      expect(row.status, id).toMatch(F10_W194_WAIVER)
+      expect(stubs.has(id), `${id} vazgeçildi ama kodda stub var`).toBe(false)
+      expect(laterBoundAllowed(id, F10_W194_BOUND, stubs, ''), id).toBe(false)
+    }
+  })
+
+  it('gerçek depo: kapanan dört kimlik kodda stub değil; eski arşiv stub dışa aktarımları yok; kanıt dosyaları var', () => {
+    const stubs = stubIds()
+    for (const id of F10_W194_CLOSED) {
+      expect(stubs.has(id), `${id} stub kaldı`).toBe(false)
+      for (const path of F10_W194_EVIDENCE[id] ?? []) expect(existsSync(path), path).toBe(true)
+      expect(laterBoundAllowed(id, F10_W194_BOUND, stubs, ''), id).toBe(true)
+    }
+    const archiveStubs = readFileSync('src/modules/archive/model/stubs.ts', 'utf8')
+    for (const name of ['MOVE_FILE', 'RESTORE_FILE', 'SEARCH_SCOPE', 'UNATTACHED_UPLOAD']) {
+      expect(archiveStubs, name).not.toContain(name)
+    }
+  })
+
+  it('kapsam: W194 satırları W193 etiketi taşımaz; W193 satırları W194 etiketi taşımaz', () => {
+    for (const row of cells()) {
+      if (F10_W194_CLOSED.has(row.id)) expect(row.status, row.id).not.toContain('F10 W193')
+      if (F10_W193_CLOSED.has(row.id)) expect(row.status, row.id).not.toContain('F10 W194')
+    }
+  })
+})
+
+describe('F10 W194 kapanış kuralı (negatifler)', () => {
+  const none = new Set<string>()
+  it('yalnız doğru W194 kümesi + stub yok + doğru etiket kabul edilir', () => {
+    for (const id of F10_W194_CLOSED) {
+      expect(laterBoundAllowed(id, F10_W194_BOUND, none, ''), id).toBe(true)
+    }
+  })
+  it.each([
+    ['ilgisiz satır', 'BE-110', F10_W194_BOUND],
+    ['W193 satırı W194 etiketiyle', 'BE-163', F10_W194_BOUND],
+    ['W194 satırı W193 etiketiyle', 'BE-075', 'bağlandı (pin v0.26.0-api, F10 W193)'],
+    ['aynı pin yanlış W', 'BE-075', 'bağlandı (pin v0.26.0-api, F10 W195)'],
+    ['yanlış pin', 'BE-075', 'bağlandı (pin v0.25.0-api, F10 W194)'],
+    ['eski pin', 'BE-077', 'bağlandı (pin v0.23.0-api, F10 W194)'],
+    ['açık durum', 'BE-076', 'açık'],
+    ['vazgeçilen satır bağlandı diye', 'BE-069', F10_W194_BOUND],
+    ['vazgeçilen satır bağlandı diye (112)', 'BE-112', F10_W194_BOUND],
+    ['F8 etiketi', 'BE-165', 'bağlandı (pin v0.23.0-api, F8 W174)'],
+  ])('reddeder: %s', (_name, id, status) => {
+    expect(laterBoundAllowed(id, status, none, '')).toBe(false)
+  })
+  it.each(['BE-075', 'BE-076', 'BE-077', 'BE-165'])(
+    'kodda kalan stub (%s) kapanışı geçersiz kılar',
+    (id) => {
+      expect(laterBoundAllowed(id, F10_W194_BOUND, new Set([id]), '')).toBe(false)
+    },
+  )
+  it('kanıt dosyası yoksa kapanış reddedilir', () => {
+    const original = F10_W194_EVIDENCE['BE-075']
+    ;(F10_W194_EVIDENCE as Record<string, readonly string[]>)['BE-075'] = ['yok/olmayan.test.ts']
+    try {
+      expect(laterBoundAllowed('BE-075', F10_W194_BOUND, none, '')).toBe(false)
+    } finally {
+      ;(F10_W194_EVIDENCE as Record<string, readonly string[]>)['BE-075'] = original!
+    }
   })
 })
