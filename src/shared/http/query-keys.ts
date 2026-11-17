@@ -20,6 +20,12 @@ import { QUERY_KEY_ROOT, scopedKey, type ScopeSnapshot } from '@/shared/scope/sc
 export type OperationId = OperationMeta['operationId']
 export type QueryFilters = Record<string, unknown>
 type Part = string | number | QueryFilters
+/** Bildirim listesi sunucu süzgeçleri (`listNotifications`); yalnız doluysa anahtara girer. */
+export interface NotificationListFilters {
+  awaiting?: true
+  unread_only?: true
+  type?: readonly string[]
+}
 
 /** Kapsamlı anahtar: `scoped(scope, ['work-items', id])`. */
 export function scoped(scope: ScopeSnapshot, parts: ReadonlyArray<Part>): QueryKey {
@@ -55,6 +61,13 @@ export const queryKeys = {
   notifications: {
     unreadCount: () => ['notifications', 'unread-count'] as const,
     list: () => ['notifications', 'list'] as const,
+    /**
+     * Sunucu süzgeçli liste (W185; BE-144/145): `awaiting`, `unread_only`, `type` anahtara girer
+     * (sekme başına ayrı imleç zinciri), `list()` önekinin altındadır → tek geçersizleme hepsini yeniler.
+     */
+    filtered: (filters: NotificationListFilters) => ['notifications', 'list', filters] as const,
+    /** "Sessize alınan konular" imleçli listesi (BE-156; `list()` önekinin DIŞINDA). */
+    subjectMutes: () => ['notifications', 'subject-mutes'] as const,
     pushKey: () => ['notifications', 'push-key'] as const,
   },
   chatsUnread: { overview: () => ['chats', 'unread-overview'] as const },
@@ -237,6 +250,7 @@ export type QueryResource =
   | 'instance.profile'
   | 'notifications.unreadCount'
   | 'notifications.list'
+  | 'notifications.subjectMutes'
   | 'notifications.pushKey'
   | 'chats.unreadOverview'
   | 'programs'
@@ -460,6 +474,18 @@ const MEETING_CONTENT_WRITES = [
   ...BATCH_MEETING_WRITES,
 ] as const satisfies readonly OperationId[]
 
+const NOTIFICATION_WRITES = [
+  'markNotificationRead',
+  'markAllNotificationsRead',
+  'dismissNotification',
+  'muteNotificationSubject',
+  'unmuteNotificationSubject',
+  'markChatRead',
+  'markAllChatsRead',
+  'reviewDateChangeRequest',
+  'transitionWorkItem',
+] as const satisfies readonly OperationId[]
+
 const unique = (...lists: ReadonlyArray<readonly OperationId[]>): readonly OperationId[] => [
   ...new Set(lists.flat()),
 ]
@@ -475,8 +501,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // Bildirim okundu yazmaları sayaç + panel listesini BİRLİKTE yeniler (KESİN 29; rozet ↔ sekme
   // sayacı uyumu). Görev/toplantı yazmaları bildirim listesini geçersizlemez: kaydı sunucu üretir
   // (tazeleme kuralı: staleTime + odak + aralık). Cihaz kaydı (`registerPushTarget`) okuma yenilemez.
-  'notifications.unreadCount': ['markNotificationRead', 'markAllNotificationsRead'],
-  'notifications.list': ['markNotificationRead', 'markAllNotificationsRead'],
+  // W185 ilişkileri (KESİN 29): (a) sohbet okundu → sunucu o sohbetin bildirimlerini kapatır (BE-027;
+  // istemci ayrıca okundu işaretlemez), zil sayısı + liste yenilenir; (b) kaldır/sessize al/sessizi
+  // kaldır `muted`, okunmamış grup ve `awaiting_count`'u değiştirir; (c) satır içi karar
+  // (`reviewDateChangeRequest`, görev geçişi) eylem `state`'ini ve `awaiting_count`'u çözer.
+  'notifications.unreadCount': NOTIFICATION_WRITES,
+  'notifications.list': NOTIFICATION_WRITES,
+  'notifications.subjectMutes': ['muteNotificationSubject', 'unmuteNotificationSubject'],
   'notifications.pushKey': [],
   // Sohbet okundu yazmaları rozet kaynağını (`getChatUnreadOverview`) yeniler; gruptan ayrılma ve
   // grup silme okunmamış sohbet sayısını değiştirir.
@@ -809,6 +840,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'report.meeting': reportOfProgram(['meeting'], (ctx) => ctx.meetingId),
   'notifications.unreadCount': prefix(() => queryKeys.notifications.unreadCount()),
   'notifications.list': prefix(() => queryKeys.notifications.list()),
+  'notifications.subjectMutes': prefix(() => queryKeys.notifications.subjectMutes()),
   'notifications.pushKey': prefix(() => queryKeys.notifications.pushKey()),
   'chats.unreadOverview': prefix(() => queryKeys.chatsUnread.overview()),
   programs: prefix(() => queryKeys.programs.all()),
