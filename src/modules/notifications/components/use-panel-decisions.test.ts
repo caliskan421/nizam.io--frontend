@@ -1,5 +1,4 @@
-// Satır içi karar (BE-146; P88): GERÇEK istemci + MSW + gerçek Pinia/TanStack Query. Kabiliyet
-// backend `action`'ından; program/departman başlıkları satırdan (seçili programdan alan tahmini yok).
+// Satır içi karar (BE-146; P88): gerçek istemci + MSW; kabiliyet backend `action`'ından.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { makeNotification } from '@/shared/api/__tests__/defaults'
@@ -30,12 +29,10 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 beforeEach(signIn)
-
 const bodies: unknown[] = []
 const REVIEW = `${ORIGIN}/v1/date-change-requests/r1/review`
 const TRANSITION = `${ORIGIN}/v1/work-items/w9/transitions`
 const result = { work_item_id: 'w9', status: 'tamamlandi' }
-
 beforeEach(() => {
   bodies.length = 0
   server.use(
