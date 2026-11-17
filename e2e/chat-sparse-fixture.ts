@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 import { expect, request, type APIRequestContext, type APIResponse } from '@playwright/test'
 import { ADMIN, readChatFixture } from './fixture'
 
@@ -33,18 +33,21 @@ export async function sparseFixture(baseURL: string) {
   const api = await request.newContext({ baseURL })
   const created: string[] = []
   const admin = await login(api, ADMIN.email, ADMIN.password)
-  const member = await login(api, fixture.chat.peerEmail, fixture.chat.peerPassword)
+  let writer = ''
+  let writerId: string | null = null
   const headers = (token: string) => ({
     ...csrf,
     Authorization: `Bearer ${token}`,
     'X-Nizamio-Program': fixture.programId,
   })
+  const csrfAuth = (token: string) => ({ ...csrf, Authorization: `Bearer ${token}` })
   const run = randomUUID().slice(0, 8)
+  let peer = ''
   async function makeGroup(name: string) {
     const key = randomUUID()
     const group = await retry(() =>
       api.post('/v1/chats/groups', {
-        headers: { ...headers(admin), 'Idempotency-Key': key },
+        headers: { ...headers(writer), 'Idempotency-Key': key },
         data: { name, member_account_ids: [fixture.chat.peerAccountId] },
       }),
     )
@@ -54,7 +57,7 @@ export async function sparseFixture(baseURL: string) {
     const clientId = randomUUID()
     const message = await retry(() =>
       api.post(`/v1/chats/${id}/messages`, {
-        headers: headers(admin),
+        headers: headers(writer),
         data: { body: `W189 ${name}`, client_message_id: clientId },
       }),
     )
@@ -64,7 +67,7 @@ export async function sparseFixture(baseURL: string) {
   }
   async function history(id: string) {
     const response = await retry(() =>
-      api.get(`/v1/chats/${id}/messages?limit=50`, { headers: headers(member) }),
+      api.get(`/v1/chats/${id}/messages?limit=50`, { headers: headers(peer) }),
     )
     expect(response.status(), 'geçmiş').toBe(200)
     return (await response.json()) as { first_unread_seq: number | null }
@@ -74,21 +77,57 @@ export async function sparseFixture(baseURL: string) {
     for (const id of created) {
       try {
         const response = await retry(() =>
-          api.delete(`/v1/chats/${id}`, { headers: headers(admin) }),
+          api.delete(`/v1/chats/${id}`, { headers: headers(writer) }),
         )
         if (response.status() !== 204) failed.push(`${id}: ${response.status()}`)
       } catch {
         failed.push(`${id}: retry hatası`)
       }
     }
+    if (writerId) {
+      try {
+        const response = await retry(() =>
+          api.delete(`/v1/admin/accounts/${writerId}`, { headers: csrfAuth(admin) }),
+        )
+        if (response.status() !== 200) failed.push(`hesap: ${response.status()}`)
+      } catch {
+        failed.push('hesap: retry hatası')
+      }
+    }
     await api.dispose()
     if (failed.length) throw new Error(`Sohbet temizliği başarısız: ${failed.join(', ')}`)
   }
   try {
+    const email = `sparse-${run}@e2e.nizamio.test`
+    const password = `W189-${randomBytes(18).toString('hex')}aA1!`
+    const account = await retry(() =>
+      api.post('/v1/admin/accounts', {
+        headers: csrfAuth(admin),
+        data: { email, password, full_name: 'E2E Sparse Kurucu', force_password_change: false },
+      }),
+    )
+    expect(account.status(), 'izole hesap oluşturma').toBe(201)
+    writerId = ((await account.json()) as { account_id: string }).account_id
+    const membership = await retry(() =>
+      api.post('/v1/admin/users', {
+        headers: csrfAuth(admin),
+        data: {
+          email,
+          full_name: 'E2E Sparse Kurucu',
+          program_id: fixture.programId,
+          department_id: fixture.departmentId,
+          role: 'uye',
+          transfer_account_id: writerId,
+        },
+      }),
+    )
+    expect(membership.status(), 'izole hesap üyeliği').toBe(201)
+    writer = await login(api, email, password)
+    peer = await login(api, fixture.chat.peerEmail, fixture.chat.peerPassword)
     const target = await makeGroup(`W189 hedef ${run}`)
     let other = ''
     for (let i = 0; i < 50; i++) other = (await makeGroup(`W189 ${run} ${i}`)).id
-    const list = await retry(() => api.get('/v1/chats?limit=50', { headers: headers(member) }))
+    const list = await retry(() => api.get('/v1/chats?limit=50', { headers: headers(peer) }))
     expect(list.status(), 'ilk liste').toBe(200)
     const body = (await list.json()) as { items: { chat_id: string }[] } & Json
     expect(body.items).toHaveLength(50)

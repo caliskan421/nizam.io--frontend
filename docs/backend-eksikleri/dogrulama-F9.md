@@ -60,3 +60,16 @@ Terra yalnız `nizamio_web9_w188_0615` backend projesi için down ve ayrı Caddy
 Yerel kanıt `web9-terra-w188/cleanup.md` ve cleanup-inspect/pre/post loglarıdır. Kesin adlar: `nizamio_web9_w188_0615-caddy`, `nizamio_web9_w188_0615-server`, `nizamio_web9_w188_0615-server-shortttl`, `nizamio_web9_w188_0615-db-1`, ağ `nizamio_web9_w188_0615_default`. Anonim volume: `68091b9492d8f2eaedaaf995dd9947c48fd533a428edc1907e7a12a547a7cda6`. Bu ortam sınırı temiz CI testinin yürütülmesinden ayrıdır.
 
 Son hata yolu deltası: Opus tur2 around hatasında ready kilidi P3'ünü bildirdi. fcf7bc76 bunu aynı girişte çapa yok/ready açık olarak çözer; eski pencere boşaltılmaz, eski giriş sonucu entryToken ile elenir. Sonnet6 dosyada46 test/type/lint/format/build, Terra4 dosyada25 bağımsız test(503 dahil) başarılı. Tam gerçek sparse koşumu ve son üretim imajı, kapanış CI'ında bu son kaynağı doğrulayacaktır.
+
+
+### Kapanış CI2: kalite ve yeni sparse tanığı, açık test izolasyonu (2026-11-17)
+
+PR175 `81146d93` için CI44023374846 kalite kapısı863 dosyada6328 test ve build ile başarılı; web imajı da başarılı. Yeni sparse gerçek-backend testi ilk yürütmede2 dakikada geçti: ilk50 dışındaki sohbet,390/1440 ayırıcı ve aynı önbellekle SPA dönüşü doğrulandı. Bu testin başarısı bütün CI'ın başarısı değildir: Playwright toplam11 başarılı,3 başarısız,1 çalışmadı.
+
+Sonraki toplantı katılımcı yazmasının ilk yanıtı429, bildirim fixture görev oluşturması429 ve rapor indirme beklemesi zaman aşımı verdi. Ortak neden henüz doğrulanmadı; Terra trace ve etiketli backend limiter kaynağını inceleyerek testler arası izolasyonu ele alıyor. Kırmızıda watcher durdu, merge yapılmadı. Ürün kaynağı denetlenen fcf7bc76 ile aynı; üç CI başarısı ve MERGED kapanış koşulu sürüyor.
+
+
+Terra trace incelemesi rapor timeoutundan önceki429 yanıtını doğruladı: toplantı katılımcısı yazması Retry-After42, görev oluşturma41 ve `POST /v1/download-tickets`38 saniyeli429 aldı; indirme olayı bu nedenle oluşmadı. Etiketli backend accountWriteLimiter hesabın kimliğiyle anahtarlanır ve varsayılan60/dk'dır. Sparse fixture aynı yöneticiyle51 grup oluşturma+51 mesaj+51 silme yaptı; sonraki429 yanıtları hesap kotasıyla güçlü biçimde uyumludur. Yanıt limiter adını taşımadığından reddeden kova kesin olarak belirlenemedi. Çözüm, yoğun fixture yazmalarını ayrı test hesabına taşımaktır; ürün limiti ve test assertion'ları korunur. Yeni başlığın üç CI kapısı yine zorunludur.
+
+
+Terra test-only izolasyonu tamamladı: yönetici iki bootstrap çağrısı, ayrı aynı-departman üye-kurucu51 grup/mesaj/silme, son olarak yönetici kurucuyu soft-delete eder. Kalıcı hesap purge garantisi yoktur; atılabilir CI veritabanında silinmiş kayıt kalabilir. Mevcut peer, ilk50/history/SPA assertionları ve Retry-After/same-key korunur. Playwright keşfi/typecheck/ESLint/Prettier başarılı; bu yeni fixture gerçek backendde henüz koşmadı, yeni CI başlığında doğrulanacaktır. Ürün kodu değişmedi.

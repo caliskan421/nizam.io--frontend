@@ -141,3 +141,16 @@ F10 AÇILMADI. Backend/mobil/program depolarına yazılmadı. Kayıt163 =77 bağ
 PR175 ilk başlık8df083d0, CI44021360785: tip/lint/format başarılı, tam pakette863 dosyadan861 ve6328 testten6326 geçti; iki test kırmızı olduğundan imaj/gerçek backend işleri skipped ve merge yapılmadı. ChatPage eski tek GET beklentisi, mevcut limit50 pencere + yeni limit1 metadata isteklerini ve p1/imleçsiz kapsamını ayrı doğrulayacak şekilde güncellendi; fixture'a zorunlu first_unread_seq=null eklendi. first-unread testleri tüm cache'in settle olayını beklemek yerine ilgili query success koşulunu bekler; kuyruk negatifinde yalnız eski p1 limit1 okumaları sayılır.
 
 CI zaman aşımının takıldığı tam await logdan belirlenmedi; kayıp cache olayı olasılığı giderildi fakat kesin kök neden/kalıcı zamanlama düzeltmesi iddia edilmez. Terra iki dar koşumda2 dosya22 test, type/değişenlint/format başarılı. İki test dışında ürün kodu değişmedi, skip veya timeout artırımı yok. Yeni başlık kendi üç CI sonucuna tabidir.
+
+
+### Kapanış CI2: kalite ve yeni sparse tanığı, açık test izolasyonu (2026-11-17)
+
+PR175 `81146d93` için CI44023374846 kalite kapısı863 dosyada6328 test ve build ile başarılı; web imajı da başarılı. Yeni sparse gerçek-backend testi ilk yürütmede2 dakikada geçti: ilk50 dışındaki sohbet,390/1440 ayırıcı ve aynı önbellekle SPA dönüşü doğrulandı. Bu testin başarısı bütün CI'ın başarısı değildir: Playwright toplam11 başarılı,3 başarısız,1 çalışmadı.
+
+Sonraki toplantı katılımcı yazmasının ilk yanıtı429, bildirim fixture görev oluşturması429 ve rapor indirme beklemesi zaman aşımı verdi. Ortak neden henüz doğrulanmadı; Terra trace ve etiketli backend limiter kaynağını inceleyerek testler arası izolasyonu ele alıyor. Kırmızıda watcher durdu, merge yapılmadı. Ürün kaynağı denetlenen fcf7bc76 ile aynı; üç CI başarısı ve MERGED kapanış koşulu sürüyor.
+
+
+Terra trace incelemesi rapor timeoutundan önceki429 yanıtını doğruladı: toplantı katılımcısı yazması Retry-After42, görev oluşturma41 ve `POST /v1/download-tickets`38 saniyeli429 aldı; indirme olayı bu nedenle oluşmadı. Etiketli backend accountWriteLimiter hesabın kimliğiyle anahtarlanır ve varsayılan60/dk'dır. Sparse fixture aynı yöneticiyle51 grup oluşturma+51 mesaj+51 silme yaptı; sonraki429 yanıtları hesap kotasıyla güçlü biçimde uyumludur. Yanıt limiter adını taşımadığından reddeden kova kesin olarak belirlenemedi. Çözüm, yoğun fixture yazmalarını ayrı test hesabına taşımaktır; ürün limiti ve test assertion'ları korunur. Yeni başlığın üç CI kapısı yine zorunludur.
+
+
+Terra test-only izolasyonu tamamladı: yönetici iki bootstrap çağrısı, ayrı aynı-departman üye-kurucu51 grup/mesaj/silme, son olarak yönetici kurucuyu soft-delete eder. Kalıcı hesap purge garantisi yoktur; atılabilir CI veritabanında silinmiş kayıt kalabilir. Mevcut peer, ilk50/history/SPA assertionları ve Retry-After/same-key korunur. Playwright keşfi/typecheck/ESLint/Prettier başarılı; bu yeni fixture gerçek backendde henüz koşmadı, yeni CI başlığında doğrulanacaktır. Ürün kodu değişmedi.
