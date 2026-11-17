@@ -30,6 +30,7 @@ export {
   useRenameFile,
 } from './files'
 export { useRemindWorkItem } from './remind'
+export { useWorkItemSourceMessage } from './source-message'
 export { useAddNote, useDeleteNote, useUpdateNote } from './notes'
 export {
   useMyProgramDepartments,

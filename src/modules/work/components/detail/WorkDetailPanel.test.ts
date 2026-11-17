@@ -52,6 +52,7 @@ function backend(item: WorkItemDetail | Response, files = 2, notes = 3) {
       }),
     ),
     http.get(`${ORIGIN}${ITEM}/notes`, () => json({ notes: [], total: notes })),
+    http.get(`${ORIGIN}${ITEM}/source-message`, () => json({ source_message: null })),
     http.get(`${ORIGIN}/v1/program/departments`, () =>
       json({
         departments: [
@@ -283,5 +284,34 @@ describe('hata durumu', () => {
     fail = false
     await wrapper.get('[role="alert"] button').trigger('click')
     await vi.waitFor(() => expect(wrapper.find('h2').exists()).toBe(true))
+  })
+})
+
+describe('ayrıntı paneli — kaynak mesaj bağı (BE-085 ters bağ, P86)', () => {
+  it('görev bir mesajdan açıldıysa panelde "Kaynak mesaja git"; görevin kendi kapsamıyla okunur', async () => {
+    backend(workItem({ department_id: 'd1' }))
+    server.use(
+      http.get(`${ORIGIN}${ITEM}/source-message`, () =>
+        json({ source_message: { chat_id: 'c1', message_id: 'm9', seq: 9 } }),
+      ),
+    )
+    const { mountPanel } = setup(COORD_SCOPE, false, COORD_D1)
+    const wrapper = mountPanel({ workItemId: 'w1' })
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-testid="detail-source-message"]').exists()).toBe(true),
+    )
+    expect(wrapper.get('[data-testid="detail-source-message"]').text()).toBe('Kaynak mesaja git')
+    const [request] = sent('GET', `${ITEM}/source-message`)
+    expect(request!.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(request!.headers.get('X-Nizamio-Department')).toBe('d1')
+  })
+
+  it('source_message null → panelde bağlantı yok (elle açılmış görev)', async () => {
+    backend(workItem({ department_id: 'd1' }))
+    const { mountPanel } = setup(COORD_SCOPE, false, COORD_D1)
+    const wrapper = mountPanel({ workItemId: 'w1' })
+    await vi.waitFor(() => expect(sent('GET', `${ITEM}/source-message`)).toHaveLength(1))
+    await vi.waitFor(() => expect(wrapper.find('h2').exists()).toBe(true))
+    expect(wrapper.find('[data-testid="detail-source-message"]').exists()).toBe(false)
   })
 })

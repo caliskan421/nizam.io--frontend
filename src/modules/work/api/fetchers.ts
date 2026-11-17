@@ -84,6 +84,20 @@ export function fetchWorkItem(target: WorkTarget, workItemId: string, signal?: A
   )
 }
 
+/**
+ * `getWorkItemSourceMessage` (S3, v0.25 ters bağ; P86): görevin açıldığı sohbet mesajı. Bağ yok,
+ * mesaj silinmiş, sohbet seçili programda değil ya da okuyanın sohbete erişimi yoksa
+ * `source_message: null` (sohbetin varlığı sızmaz).
+ */
+export function fetchSourceMessage(target: WorkTarget, workItemId: string, signal?: AbortSignal) {
+  return unwrap(
+    api.GET('/v1/work-items/{id}/source-message', {
+      params: { header: scopeHeaders(target), path: { id: workItemId } },
+      signal,
+    }),
+  )
+}
+
 /** `listWorkItemSubtasks` (S3; sayfasız, görev başına ≤ 50). */
 export function fetchSubtasks(target: WorkTarget, workItemId: string, signal?: AbortSignal) {
   return unwrap(
