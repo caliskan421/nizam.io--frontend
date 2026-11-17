@@ -100,6 +100,10 @@ export interface World {
   fileRenames: Map<string, string>
   /** Toplu işlemde kimlik → öğe hata kodu (`failed[]` satırı; kayıt listede kalır). */
   itemFailures: Map<string, string>
+  /** Koordinatörlük silme etkisi: kimlik → varsayılan üstüne yazılan alanlar (`departmentDeleteImpact`). */
+  impacts: Map<string, Record<string, unknown>>
+  /** Etki okumasını bekleten kapı (senaryo: kapsam/oturum değişimi, çift tık). */
+  impactGate: (() => Promise<void>) | null
   /** Çöpü boşalt çağrısını bekleten kapı (senaryo: durdur / kapsam değişimi). */
   purgeGate: ((call: number) => Promise<void>) | null
   /** CSV bilet akışı: bilet üretimi ve tüketimi senaryosu + üretilen biletler (`path` gövdesi). */
@@ -126,6 +130,8 @@ export const world: World = {
   failures: new Map(),
   fileRenames: new Map(),
   itemFailures: new Map(),
+  impacts: new Map(),
+  impactGate: null,
   purgeGate: null,
   download: { ticket: 'ok', redeem: 'ok', tickets: new Map() },
 }
@@ -148,6 +154,8 @@ export function resetWorld(): void {
   world.failures.clear()
   world.fileRenames.clear()
   world.itemFailures.clear()
+  world.impacts.clear()
+  world.impactGate = null
   world.purgeGate = null
   world.download = { ticket: 'ok', redeem: 'ok', tickets: new Map() }
   purgeCalls = 0
@@ -160,6 +168,47 @@ export const errorEnvelope = (code: string, status: number) =>
     { code, message: 'sunucu iletisi', request_id: 'req-9', fields: [] },
     { status },
   )
+
+/** Şirket geneli etki yanıtı (gerçek şekil; sayılar tutarlı: toplamlar program satırlarının toplamıdır). */
+export function impactOf(id: string, over: Record<string, unknown> = {}) {
+  return {
+    department_id: id,
+    name: 'Mekanik',
+    deleted: true,
+    active_items: 3,
+    completed_items: 2,
+    deleted_items: 4,
+    deleted_with_department: 1,
+    file_count: 7,
+    member_count: 5,
+    meeting_count: 2,
+    permanent_blocked: false,
+    permanent_blockers: { tables: 0, projects: 0, pending_proposals: 0 },
+    programs: [
+      {
+        program_id: 'p1',
+        program_name: 'Sezon 2026',
+        department_name: 'Mekanik',
+        linked: true,
+        active_items: 2,
+        completed_items: 1,
+        deleted_items: 3,
+        deleted_with_department: 1,
+      },
+      {
+        program_id: 'p2',
+        program_name: null,
+        department_name: null,
+        linked: false,
+        active_items: 1,
+        completed_items: 1,
+        deleted_items: 1,
+        deleted_with_department: 0,
+      },
+    ],
+    ...over,
+  }
+}
 
 function failure(method: string, path: string) {
   const forced = world.failures.get(`${method} ${path}`)
@@ -390,6 +439,14 @@ function listHandlers() {
       return world.admin ? json(summaryOf()) : FORBIDDEN('work.not_authorized')
     }),
     http.get(`${ORIGIN}${PATHS.dictionary}`, () => json({ departments: world.dictionary })),
+    http.get(`${ORIGIN}/v1/departments/:id/delete-impact`, async ({ params }) => {
+      const id = String(params.id)
+      if (world.impactGate) await world.impactGate()
+      const forced = failure('GET', `/v1/departments/${id}/delete-impact`)
+      if (forced) return forced
+      if (!world.admin) return FORBIDDEN('organization.not_authorized')
+      return json(impactOf(id, world.impacts.get(id)))
+    }),
   ]
 }
 

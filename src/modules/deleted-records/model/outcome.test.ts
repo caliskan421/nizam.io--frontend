@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/shared/errors/api-error'
 import type { MutationOutcome } from '@/shared/http/mutation'
 
-import { interpretOutcome } from './outcome'
+import { batchFailureText, interpretOutcome } from './outcome'
 
 const TASK = { kind: 'tasks', title: 'Saha pano montajı' } as const
 const ACCOUNT = { kind: 'accounts', title: 'Ayşe' } as const
@@ -33,6 +33,27 @@ describe('yaşam döngüsü sonucu yorumu', () => {
     expect(interpretOutcome('purge', TASK, success({ files_deleted: 3 }))).toEqual({
       kind: 'done',
       message: 'Saha pano montajı kalıcı olarak silindi, 3 dosya da silindi.',
+    })
+  })
+
+  it('koordinatörlük kalıcı silme: üyelik sayacı toplam gibi yazılmaz; yalnız görev/dosya/bağ', () => {
+    const department = { kind: 'departments', title: 'Saha' } as const
+    const result = (data: unknown) => interpretOutcome('purge', department, success(data))
+    const full = result({
+      work_items_deleted: 4,
+      files_deleted: 1,
+      program_links_removed: 2,
+      memberships_deleted: 0,
+    })
+    expect(full).toEqual({
+      kind: 'done',
+      message: 'Saha kalıcı olarak silindi: 4 görev, 1 dosya, 2 program bağı.',
+    })
+    expect(full && 'message' in full && full.message).not.toMatch(/üyelik/)
+    // Yalnız üyelik sayacı gelirse sayı gösterilmez; genel başarı metni.
+    expect(result({ memberships_deleted: 3 })).toEqual({
+      kind: 'done',
+      message: 'Saha kalıcı olarak silindi.',
     })
   })
 
@@ -68,13 +89,29 @@ describe('yaşam döngüsü sonucu yorumu', () => {
   it.each([
     'work.permanent_requires_deleted',
     'collaboration.permanent_requires_deleted',
-    'organization.permanent_requires_deleted',
     'identity.permanent_requires_deleted',
   ])('409 %s → silinmiş değil + yenile', (code) => {
     expect(interpretOutcome('purge', TASK, failed(code))).toEqual({
       kind: 'refresh',
       message: 'Kayıt silinmiş durumda değil.',
     })
+  })
+
+  it('departman kalıcı silmede organization.permanent_requires_deleted → kısmi silme olasılığı + yenile', () => {
+    const expected = {
+      kind: 'error',
+      refresh: true,
+      message: expect.stringMatching(/silme tamamlanamadı.*kalıcı silinmiş olabilir.*yenilendi/),
+    }
+    const department = { kind: 'departments', title: 'Saha' } as const
+    const code = 'organization.permanent_requires_deleted'
+    const result = interpretOutcome('purge', department, failed(code))
+    expect(result).toMatchObject(expected)
+    // Tam geri alma / "hiçbir şey silinmedi" vaadi yok; genel "silinmiş durumda değil" de değil.
+    expect(result && 'message' in result && result.message).not.toMatch(
+      /hiçbir şey silinmedi|geri alındı|silinmiş durumda değil/,
+    )
+    expect(batchFailureText('purge', code)).toBe(result && 'message' in result && result.message)
   })
 
   it('409 work.department_unavailable → satır içi bildirim + Koordinatörlük yolu', () => {
@@ -88,7 +125,7 @@ describe('yaşam döngüsü sonucu yorumu', () => {
   it.each([
     ['work.constraint_violation', 'kullanılıyor'],
     ['identity.account_referenced', 'kullanılıyor'],
-    ['organization.department_in_use', 'görevleri veya program katılımı'],
+    ['organization.department_in_use', 'tablosu, projesi veya bekleyen tablo önerisi'],
     ['provisioning.write_not_allowed', 'kapalı'],
   ])('409 %s → hata bildirimi (%s)', (code, fragment) => {
     const result = interpretOutcome('purge', TASK, failed(code))

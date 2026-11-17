@@ -4,6 +4,11 @@
  * token; ölçek dışı değerler üretilmiş `--ui-*` token'ları (design/web-tokens.json `ui`).
  */
 @layer components {
+  /* Flex çocuğu başlık kutusu içerik genişliğine kadar küçülmez; uzun bölünmez ad sarılır. */
+  .ui-confirm__head {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .ui-confirm__body {
     gap: var(--ui-gap-sm);
     font: var(--text-body);
@@ -11,6 +16,7 @@
   }
   .ui-confirm__body p {
     margin: 0;
+    overflow-wrap: anywhere;
   }
   .ui-confirm__body .ui-confirm__k,
   .ui-notice__k {

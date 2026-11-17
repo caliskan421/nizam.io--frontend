@@ -5,9 +5,11 @@
  * Sahibi (sayfa) sökülmüş sonuç ekrana ulaşmaz (`reachesOwner`). `useToast`/`useConfirm` kurulumda
  * alınır (KESİN 26a); çağıran `setup` içinde çağırmalıdır.
  */
-import { ref } from 'vue'
+import { computed, onScopeDispose, ref } from 'vue'
 
-import { reachesOwner } from '@/shared/http/mutation'
+import { authSession } from '@/shared/http'
+import { reachesOwner, sameScope } from '@/shared/http/mutation'
+import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
@@ -17,12 +19,15 @@ import { interpretOutcome, type LifecycleAction } from '../model/outcome'
 import { interpretChildOutcome } from '../model/outcome-child'
 import type { DeletedRow } from '../model/types'
 import type { LifecycleHub } from './use-lifecycle-hub'
+import { useDeleteImpact } from './use-delete-impact'
 import { useLifecycleWrites, type LifecycleOutcome } from './use-lifecycle-writes'
 
 export interface RecordNotice {
   message: string
   /** Koordinatörlük sekmesine yol sunulur (görevin koordinatörlüğü silinmiş). */
   departmentsLink: boolean
+  /** Bilgi durumu (okuma sürüyor): `role=status`; yoksa `role=alert`. */
+  status?: boolean
 }
 
 export interface RecordActionOptions {
@@ -30,6 +35,8 @@ export interface RecordActionOptions {
   refresh: () => Promise<unknown>
   /** Satır listeden düştü ya da düşmüş olabilir (seçim temizliği, odak taşıma). */
   removed: (row: DeletedRow) => void
+  /** Yeniden okunmuş listede satır hâlâ var mı (hata + yenilemeden sonra kayıp denetimi). */
+  isPresent?: (row: DeletedRow) => boolean
   /** Sayfanın ortak yazma merkezi (verilmezse kurulur). */
   hub?: LifecycleHub
 }
@@ -62,10 +69,42 @@ export function confirmOptions(action: LifecycleAction, row: DeletedRow): Confir
   }
 }
 
+/**
+ * Yenilemeyi çalıştırır; sürerken kapsam/oturum nesli/sahip değiştiyse `false` (eski sonuç seçime
+ * ve odağa dokunmaz). `setup` içinde çağrılır.
+ */
+function useRefreshGuard() {
+  const scope = useScopeStore()
+  let alive = true
+  onScopeDispose(() => {
+    alive = false
+  })
+  return async (refresh: () => Promise<unknown>): Promise<boolean> => {
+    const before = scope.snapshot
+    const generation = authSession.generation
+    await refresh()
+    return alive && sameScope(before, scope.snapshot) && generation === authSession.generation
+  }
+}
+
+/** Hata + yenileme: kayıt artık listede yoksa (ör. kısmi 409 yarışı) seçim ve odak temizlenir. */
+async function reconcileAfterError(
+  options: RecordActionOptions,
+  row: DeletedRow,
+  refreshed: ReturnType<typeof useRefreshGuard>,
+): Promise<void> {
+  if (!(await refreshed(options.refresh))) return
+  if (options.isPresent?.(row) === false) options.removed(row)
+}
+
 export function useRecordActions(options: RecordActionOptions) {
   const toast = useToast()
   const { confirmWrite } = useConfirm()
-  const { senders, pending } = useLifecycleWrites(options.hub)
+  const refreshed = useRefreshGuard()
+  const { senders, pending: writing } = useLifecycleWrites(options.hub)
+  const impact = useDeleteImpact()
+  // Etki okuması sürerken bütün yazma eylemleri mevcut meşgul yoluyla kilitlidir.
+  const pending = computed(() => writing.value || impact.reading.value)
   const notice = ref<RecordNotice | null>(null)
 
   async function settle(action: LifecycleAction, row: DeletedRow, outcome: LifecycleOutcome) {
@@ -86,7 +125,7 @@ export function useRecordActions(options: RecordActionOptions) {
     }
     if (result.kind === 'error') {
       toast.push({ message: result.message, tone: 'danger' })
-      if (result.refresh) await options.refresh()
+      if (result.refresh) await reconcileAfterError(options, row, refreshed)
       return
     }
     toast.push({ message: result.message })
@@ -100,8 +139,17 @@ export function useRecordActions(options: RecordActionOptions) {
     // Bilinmeyen (gelecek) tür salt okunurdur: yazma yolu yoktur.
     if (pending.value || kind === null) return
     notice.value = null
-    const outcome = await confirmWrite(confirmOptions(action, row), (context) =>
-      senders[kind][action](row, context),
+    // Kalıcı koordinatörlük silme onayı etkiyle kurulur; okuma başarısız/engelli ise onay ve DELETE yoktur.
+    const gone = () => options.refresh().then(() => options.removed(row))
+    const gated =
+      action === 'purge' && kind === 'departments'
+        ? await impact.gate(row, confirmOptions(action, row), notice, gone)
+        : { options: confirmOptions(action, row), context: undefined }
+    if (gated === null) return
+    const outcome = await confirmWrite(
+      gated.options,
+      (context) => senders[kind][action](row, context),
+      { context: gated.context },
     )
     if (outcome === null) return
     await settle(action, row, outcome)

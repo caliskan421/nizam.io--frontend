@@ -9,6 +9,7 @@
  */
 import type { MutationOutcome } from '@/shared/http/mutation'
 
+import { blockerPartsFromFields } from './impact'
 import { deletedText } from './messages'
 import type { DeletedRow } from './types'
 
@@ -55,6 +56,27 @@ function filesDeleted(data: unknown): number {
   return typeof value === 'number' && value > 0 ? value : 0
 }
 
+function countOf(data: unknown, field: string): number | null {
+  const value = (data as Record<string, unknown> | null)?.[field]
+  return typeof value === 'number' && value >= 0 ? value : null
+}
+
+/**
+ * Departman kalıcı silme sonucu: yalnız sunucunun döndürdüğü sayılar (uydurma yok).
+ * `memberships_deleted` toplam değildir (bağ kaldırmada silinenler hariç, v0.26 şeması): yazılmaz.
+ */
+function purgedDepartment(title: string, data: unknown): string | null {
+  const parts = (['work_items_deleted', 'files_deleted', 'program_links_removed'] as const).flatMap(
+    (field) => {
+      const n = countOf(data, field)
+      return n === null ? [] : [deletedText(`impact.result.${field}`, { n })]
+    },
+  )
+  return parts.length > 0
+    ? deletedText('feedback.purgedDepartment', { title, parts: parts.join(', ') })
+    : null
+}
+
 /** v0.26 çocuk türlerin geri yükleme kapıları (ebeveyn çöpte, tavanlar, tamamlanmış görev). */
 function childFailure(code: string): Interpreted | null {
   const key = CHILD_FAILURES[code]
@@ -81,6 +103,18 @@ const CHILD_FAILURES: Readonly<Record<string, ChildFeedback>> = {
   'records.transfer_active': 'transferActive',
 }
 
+/**
+ * ADR-0043: departman kalıcı silmede serbest bırakmadan sonra geri yükleme yarışı; görev/dosya
+ * kısmen silinmiş OLABİLİR (ön kapı 409'undan ayırt edilemez): "hiçbir şey silinmedi" denmez.
+ */
+function requiresDeleted(action: LifecycleAction, code: string): Interpreted {
+  const partial = action === 'purge' && code === 'organization.permanent_requires_deleted'
+  if (partial) {
+    return { kind: 'error', message: deletedText('feedback.departmentPurgePartial'), refresh: true }
+  }
+  return { kind: 'refresh', message: deletedText('feedback.notDeleted') }
+}
+
 export function failed(action: LifecycleAction, code: string): Interpreted | null {
   if (NOT_DELETED.has(code)) {
     return { kind: 'gone', message: deletedText('feedback.alreadyRestored') }
@@ -90,9 +124,7 @@ export function failed(action: LifecycleAction, code: string): Interpreted | nul
       ? { kind: 'gone', message: deletedText('feedback.alreadyGone') }
       : { kind: 'refresh', message: deletedText('feedback.notFound') }
   }
-  if (REQUIRES_DELETED.has(code)) {
-    return { kind: 'refresh', message: deletedText('feedback.notDeleted') }
-  }
+  if (REQUIRES_DELETED.has(code)) return requiresDeleted(action, code)
   const child = childFailure(code)
   if (child) return child
   if (code === 'work.department_unavailable') {
@@ -114,25 +146,53 @@ export function failed(action: LifecycleAction, code: string): Interpreted | nul
   return null
 }
 
+function successOf(
+  action: LifecycleAction,
+  row: Pick<DeletedRow, 'kind' | 'title'>,
+  data: unknown,
+): Interpreted {
+  const isDepartment = row.kind === 'departments'
+  if (action === 'restore') {
+    const restored = isDepartment ? countOf(data, 'work_items_restored') : null
+    if (restored === null) {
+      return { kind: 'done', message: deletedText('feedback.restored', { title: row.title }) }
+    }
+    const key = restored > 0 ? 'feedback.restoredDepartment' : 'feedback.restoredDepartmentNoTasks'
+    return { kind: 'done', message: deletedText(key, { title: row.title, n: restored }) }
+  }
+  const department = isDepartment ? purgedDepartment(row.title, data) : null
+  if (department) return { kind: 'done', message: department }
+  const files = filesDeleted(data)
+  return {
+    kind: 'done',
+    message:
+      files > 0
+        ? deletedText('feedback.purgedFiles', { title: row.title, n: files })
+        : deletedText('feedback.purged', { title: row.title }),
+  }
+}
+
+/** 409 `department_in_use`: `fields[]` bilinen engel türlerini sayıyla taşır; yoksa genel metin. */
+function inUseOf(error: {
+  fields: Parameters<typeof blockerPartsFromFields>[0]
+}): Interpreted | null {
+  const parts = blockerPartsFromFields(error.fields)
+  if (!parts) return null
+  const message = deletedText('feedback.departmentBlocked', { parts: parts.join(', ') })
+  return { kind: 'error', message, refresh: false }
+}
+
 export function interpretOutcome(
   action: LifecycleAction,
   row: Pick<DeletedRow, 'kind' | 'title'>,
   outcome: AnyOutcome,
 ): Interpreted | null {
-  if (outcome.kind === 'success') {
-    if (action === 'restore') {
-      return { kind: 'done', message: deletedText('feedback.restored', { title: row.title }) }
-    }
-    const files = filesDeleted(outcome.data)
-    return {
-      kind: 'done',
-      message:
-        files > 0
-          ? deletedText('feedback.purgedFiles', { title: row.title, n: files })
-          : deletedText('feedback.purged', { title: row.title }),
-    }
+  if (outcome.kind === 'success') return successOf(action, row, outcome.data)
+  if (outcome.kind === 'failed') {
+    const inUse =
+      outcome.error.code === 'organization.department_in_use' ? inUseOf(outcome.error) : null
+    return inUse ?? failed(action, outcome.error.code)
   }
-  if (outcome.kind === 'failed') return failed(action, outcome.error.code)
   // Görev kalıcı silmede ek temizlik hatası (500; GAP-052/WORK-K48): görev silinmiş kalır.
   if (outcome.kind === 'unknown_outcome' && action === 'purge' && row.kind === 'tasks') {
     return { kind: 'error', message: deletedText('feedback.purgeIncomplete'), refresh: true }

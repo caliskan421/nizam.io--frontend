@@ -71,6 +71,7 @@ export function batchConfirmOptions(
     body: [
       deletedText('batch.purgeBody'),
       ...(kinds.includes('tasks') ? [deletedText('batch.purgeFiles')] : []),
+      ...(kinds.includes('departments') ? [deletedText('batch.departmentsPurgeScope')] : []),
       ...(accounts ? [deletedText('batch.accountsPurgeScope')] : []),
       ...chunked,
     ],

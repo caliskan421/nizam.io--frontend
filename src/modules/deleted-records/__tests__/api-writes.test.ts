@@ -139,7 +139,14 @@ describe('yaşam döngüsü yazmaları (görev, departman, hesap)', () => {
         .sort()
     reset()
     await writes.restoreDepartment.submit({ programId: 'p1', id: 'd1' })
-    expect(stale()).toEqual(['catalog', 'deletedDepartments', 'departments', 'me', 'report'])
+    expect(stale()).toEqual([
+      'catalog',
+      'deletedDepartments',
+      'deletedWorkItems',
+      'departments',
+      'me',
+      'report',
+    ])
     reset()
     await writes.restoreAccount.submit({ id: 'a1' })
     expect(stale()).toEqual(['deletedAccounts', 'report', 'users'])

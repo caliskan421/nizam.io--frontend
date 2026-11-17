@@ -90,7 +90,7 @@ describe('Geri yükle (E-12-35/58)', () => {
     [
       'koordinatorluk',
       '/v1/admin/restore/departments/d5',
-      'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
+      'Üyelik yetkileri geri döner. Koordinatörlükle birlikte silinen görevler, koordinatörlüğün hâlâ bağlı olduğu bütün programlarda geri gelir; daha önce ayrıca silinen görevler ve bağı kalkmış programdaki görevler silinmiş kalır.',
     ],
     ['kullanici', '/v1/admin/restore/accounts/a1', 'Devredilmiş açık görev atamaları geri dönmez.'],
   ] as const)('%s: türe özgü uyarı ve doğru uç', async (kind, path, warning) => {
@@ -198,9 +198,10 @@ describe('hata sınıfları (error-codes.json)', () => {
     })
     const page = await mountPage({ path: '/silinen-kayitlar?tur=koordinatorluk' })
     await page.wrapper.get('[data-action="purge"]').trigger('click')
+    await settle()
     await accept(page)
     expect(toasts()).toEqual([
-      'Kalıcı silinemedi: koordinatörlüğün görevleri veya program katılımı var.',
+      'Kalıcı silinemedi: koordinatörlüğün tablosu, projesi veya bekleyen tablo önerisi var. Önce bunları kaldırın.',
     ])
   })
 

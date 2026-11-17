@@ -52,6 +52,7 @@ function usePageWrites({ view, filters, list, focus }: PageState) {
   const actions = useRecordActions({
     hub,
     refresh: () => list.refetch(),
+    isPresent: (row) => list.rows.value.some((candidate) => candidate.key === row.key),
     removed: (row) => {
       // Liste yenilendiğinde satır çoktan düşmüş olabilir: seçim URL değerinden denetlenir.
       const selected = filters.value.selected

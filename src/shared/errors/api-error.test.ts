@@ -31,3 +31,32 @@ describe('normalizeErrorResponse: Retry-After (BE-135)', () => {
     expect(error).toMatchObject({ code: 'client.invalid_response', retryAfter: 9 })
   })
 })
+
+describe('normalizeErrorResponse: veri alanı izin listesi', () => {
+  const body = (fields: unknown[]) => ({
+    code: 'organization.department_in_use',
+    message: 'sunucu metni',
+    request_id: 'r1',
+    fields,
+  })
+  const make = (fields: unknown[]) =>
+    normalizeErrorResponse(new Response(null, { status: 409 }), body(fields))
+
+  it('department_usage alanı değeri yalnız izin listesindeki kodda taşır', () => {
+    const error = make([{ field: 'tables', code: 'organization.department_usage', message: '3' }])
+    expect(error.fields).toEqual([
+      expect.objectContaining({
+        field: 'tables',
+        code: 'organization.department_usage',
+        value: '3',
+      }),
+    ])
+  })
+
+  it('izin listesi dışı kodun message değeri taşınmaz, hata iletisi arayüze sızmaz', () => {
+    const error = make([{ field: 'tables', code: 'organization.other_code', message: 'ham metin' }])
+    expect(error.fields[0]).not.toHaveProperty('value')
+    expect(JSON.stringify(error.fields)).not.toContain('ham metin')
+    expect(JSON.stringify(error)).not.toContain('sunucu metni')
+  })
+})

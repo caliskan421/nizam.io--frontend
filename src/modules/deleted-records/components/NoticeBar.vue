@@ -8,12 +8,12 @@ import { deletedText } from '../model/messages'
  * `work.department_unavailable`) "önce koordinatörlüğü geri yükle" yolu — Koordinatörlük
  * sekmesine bağlantı. Yüklenen sunucu metni gösterilmez.
  */
-defineProps<{ message: string; departmentsLink: boolean }>()
+defineProps<{ message: string; departmentsLink: boolean; status?: boolean }>()
 const emit = defineEmits<{ departments: []; dismiss: [] }>()
 </script>
 
 <template>
-  <div class="dr-notice" role="alert" data-testid="dr-notice">
+  <div class="dr-notice" :role="status ? 'status' : 'alert'" data-testid="dr-notice">
     <UiIcon name="alert" size="sm" />
     <p class="dr-notice__text">{{ message }}</p>
     <button

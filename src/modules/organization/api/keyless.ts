@@ -10,6 +10,11 @@
  *    verir. Onay devamının (`confirmation_required.confirm`) sonucu da aynı kuraldan geçer.
  *  - 409 `organization.membership_exists` / `identity.account_exists` "zaten uygulanmış olabilir"
  *    diye yorumlanır (05 satır dışı): sonuç `failed` kalır, liste yeniden okunur.
+ *  - Kalıcı departman silmede 409 `organization.permanent_requires_deleted` (ADR-0043: serbest
+ *    bırakma görev/dosyayı sildikten sonra geri yükleme yarışı) kısmi etkili OLABİLİR: sonuç
+ *    `failed` kalır, otomatik yeniden DELETE yoktur, işlemin bütün program önbellekleri yeniden
+ *    okunur. Kod yalnız bu işlemde sayılır; genel "zaten uygulanmış" kümesine katılmaz. Ön kapı
+ *    409 `organization.department_in_use` hiçbir şey değiştirmez: yeniden okuma yok.
  *  - `owner_disposed` (sahip söküldü) olduğu gibi döner: bildirim de yeniden okuma da yok
  *    (KESİN 20).
  * Bileşik işlemde ardıl adım `submit(vars, { context })` ile ilk eylemin bağlamını taşır;
@@ -37,6 +42,11 @@ import { useScopeStore } from '@/shared/scope/store'
 export const ALREADY_APPLIED_CODES: ReadonlySet<string> = new Set([
   'organization.membership_exists',
   'identity.account_exists',
+])
+
+/** Kısmi etkisi olası 409 (işlem + kod): kod tek başına değil, yalnız bu işlemde geçerlidir. */
+const PARTIAL_EFFECT_FAILURES: ReadonlyMap<string, string> = new Map([
+  ['permanentDeleteDepartment', 'organization.permanent_requires_deleted'],
 ])
 
 export function isAlreadyApplied(error: ApiError): boolean {
@@ -136,7 +146,11 @@ export function useKeylessMutation<V, D>(
       await reread(scope)
       return keepDetached(outcome, { ...outcome, retry: null })
     }
-    if (outcome.kind === 'failed' && isAlreadyApplied(outcome.error)) {
+    if (
+      outcome.kind === 'failed' &&
+      (isAlreadyApplied(outcome.error) ||
+        PARTIAL_EFFECT_FAILURES.get(options.operation) === outcome.error.code)
+    ) {
       await reread(scope)
       return outcome
     }

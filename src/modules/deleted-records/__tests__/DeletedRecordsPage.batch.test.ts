@@ -147,7 +147,7 @@ describe('toplu geri yükle (E-12-21)', () => {
     [
       'koordinatorluk',
       '/v1/admin/deleted/departments/restore',
-      'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
+      'Üyelik yetkileri geri döner. Koordinatörlükle birlikte silinen görevler, koordinatörlüğün hâlâ bağlı olduğu bütün programlarda geri gelir; daha önce ayrıca silinen görevler ve bağı kalkmış programdaki görevler silinmiş kalır.',
       'p1',
     ],
     [
@@ -214,7 +214,7 @@ describe('kısmi başarı ve hata kodları', () => {
     expect(summary.text()).toContain('1 kayıt işlendi, 2 kayıt işlenemedi.')
     expect(summary.get('[data-failed-id="departments:d6"]').text()).toContain('Fuar')
     expect(summary.get('[data-failed-id="departments:d6"]').text()).toContain(
-      'Kalıcı silinemedi: koordinatörlüğün görevleri veya program katılımı var.',
+      'Kalıcı silinemedi: koordinatörlüğün tablosu, projesi veya bekleyen tablo önerisi var. Önce bunları kaldırın.',
     )
     expect(summary.get('[data-failed-id="departments:d7"]').text()).toContain(
       'Bu kayıt işlenemedi.',

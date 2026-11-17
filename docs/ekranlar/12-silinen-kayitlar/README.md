@@ -1,5 +1,20 @@
 # 12 · Silinen kayıtlar
 
+## F11 güncel kabul — koordinatörlük etki özeti ve zincir uyumu
+
+Son kaynak f7729476, yayımlı v0.26.0-api; [F11 matrisi](../../yurutme/web-11/canliya-alma-matrisi.md) ve [bağımsız doğrulama](../../backend-eksikleri/dogrulama-F11.md). Yeni ekran veya08 katalog silme eylemi eklenmedi.
+
+| Öğe | Güncel davranış | Kanıt |
+| --- | --- | --- |
+| E-12-36/59 koordinatörlük tekil kalıcı silme | Onay öncesi taze S1 `departmentDeleteImpact`, şirket geneli gerçek sayı/program/engel; hata veya engelde DELETE yok | `DeletedRecordsPage.impact.test.ts`, `.impact-handoff.test.ts`, `.impact-errors.test.ts`; Terra gerçek390/1440 all11PASS |
+| E-12-35/58 departman geri yükle | Yalnız zincirle silinmiş ve hâlâ bağlı programdaki görevler döner; gerçek `work_items_restored` bildirimi | Gerçek iki program/zincir/önce silinmiş/bağı kalkmış program ve restore200+2 görev |
+| E-12-21/06 toplu/çöp boşaltma | Aday kümesi program, departmanın kalıcı etkisi bütün programlar; N önizleme sorgusu yok | Gerçek scope=program purge-all kısmi başarı/diğer program etkisi; ortak onay metin testleri |
+| Kısmi kalıcı silme409 | failed/hata tonu, olası kısmi etkiler açık, bütün programların ilgili cache'i yeniden okunur; otomatik DELETE yok | Bağımsız hook RED→GREEN, negatif ön kapı engeli, QueryClient program sınırları |
+| Ortak onay başlık/gövde | Uzun departman/program adı sarılır, kesilmez; loading hata halinde temizlenir | Opus F1/F2 düzeltmesi; gerçek390/1440 taşma0 ve390x600 footer/scroll, programlama hatası/401/429 testleri |
+
+BE164 bu mevcut12 kapsamıyla bağlandı. Faz kapanışı son bağımsız denetim ve kendi PR üç CI SUCCESS+MERGED koşuludur; aşağıdaki eski faz tabloları tarihsel kanıttır.
+
+
 ## F10 güncel kapsamı — v0.26.0-api
 
 Bu bölüm, aşağıdaki F5/F8 tarihsel tespitlerin güncellenen alanlarında yetkilidir. F10 uygulaması W192/W193'tedir; nihai bağımsız tanık ve kabul [WEB-10 ilerleme kaydında](../../yurutme/web-10/ilerleme.md) izlenir.
