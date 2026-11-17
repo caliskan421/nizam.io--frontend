@@ -212,7 +212,7 @@ export function viewOf(message: FakeMessage, viewer: string): ChatMessage {
     return {
       ...row,
       count: voters.length,
-      voters,
+      voters: poll?.anonymous ? [] : voters,
       mine: voters.some((v) => v.account_id === viewer),
     }
   })

@@ -38,9 +38,10 @@ function pollOf(
   options: string[],
   closesAt?: string,
   multi = false,
+  anonymous = false,
 ): NonNullable<ChatMessage['poll']> {
   return {
-    anonymous: false,
+    anonymous,
     closed_at: null,
     closes_at: closesAt ?? null,
     multi,
@@ -58,7 +59,7 @@ interface SendBody {
   body: string
   client_message_id: string
   mentions: ChatMessage['mentions']
-  poll: { options: string[]; closes_at?: string; multi?: boolean }
+  poll: { options: string[]; closes_at?: string; multi?: boolean; anonymous?: boolean }
   reply_to_message_id: string
   refs: Array<{ kind: 'task' | 'department' | 'file'; target_id: string }>
 }
@@ -69,7 +70,9 @@ function create(state: ChatState, chat: FakeChat, account: Account, body: Partia
     client_message_id: body.client_message_id,
     mentions: body.mentions ?? [],
     reply_to_message_id: body.reply_to_message_id ?? null,
-    poll: body.poll ? pollOf(body.poll.options, body.poll.closes_at, body.poll.multi) : null,
+    poll: body.poll
+      ? pollOf(body.poll.options, body.poll.closes_at, body.poll.multi, body.poll.anonymous)
+      : null,
     refs,
   })
   const reply = chat.messages.find((m) => m.base.message_id === message.base.reply_to_message_id)
