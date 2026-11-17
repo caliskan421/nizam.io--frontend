@@ -49,6 +49,7 @@ export const trChat = {
       deleted: 'silinmiş mesaj',
       replyTo: '{name} kişisine yanıt',
       unreadDivider: '{n} okunmamış mesaj',
+      unreadDividerGeneric: 'Okunmamış mesajlar',
       region: 'Mesajlar',
       empty: 'Henüz mesaj yok',
       loading: 'Mesajlar yükleniyor…',

@@ -101,6 +101,26 @@ describe('describeRow — tür × konu durumu (BE-142/155)', () => {
     expect(describeRow(makeNotification({ group: null }), ctx).avatars).toEqual([])
   })
 
+  it('grup: 5 aktör tavanı ya da adsız aktör varsa kesin sayı iddia edilmez; tek kişi çok olay', () => {
+    const at = (n: number) => ({ account_id: `a${n}`, full_name: `Kişi ${n}` as string | null })
+    const text = (actors: ReturnType<typeof at>[], count = 12) =>
+      describeRow(
+        makeNotification({
+          type: 'work.item.transitioned',
+          group: { count, actors, first_created_at: '2026-11-14T08:00:00Z' },
+        }),
+        ctx,
+      ).text
+    const suffix = 'bir görevin durumunu değiştirdi'
+    const capped = [1, 2, 3, 4, 5].map(at)
+    expect(text(capped)).toBe(`Kişi 1 ve diğerleri ${suffix}`)
+    const withNull = [at(1), { ...at(2), full_name: null }, at(3)]
+    expect(text(withNull)).toBe(`Kişi 1 ve diğerleri ${suffix}`)
+    expect(text([at(1), { ...at(2), full_name: null }])).toBe(`Kişi 1 ve diğerleri ${suffix}`)
+    expect(text([at(1)], 40)).toBe(`Kişi 1 ${suffix}`)
+    expect(text([1, 2, 3, 4].map(at))).toBe(`Kişi 1 ve 3 kişi ${suffix}`)
+  })
+
   it('üyelik: etkilenen kişi + departman adı; toplantı saati değişikliği; günlük özet sayıları', () => {
     const member = describeRow(
       makeNotification({

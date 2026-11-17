@@ -171,7 +171,11 @@ watch(open, (now, was) => {
           class="chat-sep chat-sep--new"
           data-testid="chat-unread"
         >
-          <span>{{ chatText('chat.thread.unreadDivider', { n: entry.count }) }}</span>
+          <span>{{
+            entry.count === null
+              ? chatText('chat.thread.unreadDividerGeneric')
+              : chatText('chat.thread.unreadDivider', { n: entry.count })
+          }}</span>
         </div>
         <MessageRow
           v-else

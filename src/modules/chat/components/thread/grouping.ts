@@ -17,7 +17,8 @@ export interface DayEntry {
 export interface UnreadEntry {
   type: 'unread'
   key: string
-  count: number
+  /** Güvenilir sayı yoksa `null` (genel "Okunmamış mesajlar" ayırıcısı). */
+  count: number | null
 }
 export interface MessageEntry {
   type: 'message'
@@ -35,7 +36,8 @@ export interface EntryOptions {
   meId: string | null
   /** İlk okunmamış mesajın `seq` değeri (ayırıcı onun üstüne); yoksa `null`. */
   unreadAnchor: number | null
-  unreadCount: number
+  /** `null` = sunucu sayısı bilinmiyor (liste özeti yok): ayırıcı sayısız çizilir. */
+  unreadCount: number | null
 }
 
 function continues(prev: ChatMessage, next: ChatMessage): boolean {
@@ -55,7 +57,8 @@ function pushSeparators(
   if (newDay) {
     out.push({ type: 'day', key: `day-${dayKey(message.created_at)}`, iso: message.created_at })
   }
-  const divider = opts.unreadAnchor === message.seq && opts.unreadCount > 0
+  const divider =
+    opts.unreadAnchor === message.seq && (opts.unreadCount === null || opts.unreadCount > 0)
   if (divider) out.push({ type: 'unread', key: 'unread', count: opts.unreadCount })
   return newDay || divider
 }
