@@ -166,3 +166,8 @@ Yerel tam kapı `4bf32fa`: 484 dosya/3252 test; üretim+Caddy altı genişlik/te
 | E-09-83 Silinen satırı | koordinatörlük kodu ve "silinmiş" işareti; silen adı değişmez (K77 zaten canlı) | geçici kabul (P68) | BE-063 | W175 — `components/deleted/DeletedMeetings.test.ts` |
 
 **F8'de değişmeyenler (09 Toplantılar):** E-09-06 / E-09-06a (sunucu süzgeçleri zaten canlı), E-09-45 ekleme kuralları (K21/K74), konferans alanları.
+
+
+## F10 pin ve zorunlu semantik uyum
+
+v0.26.0-api pin teslimi W191, P45/ADR0053–0054 ile dosya/alt görev/görev notu/toplantı notu/gündem silmesinin çöp semantiğini tüketir. Eski F5/F4 tablosundaki "kalıcı/geri alınamaz" ifadeleri tarihsel pin varsayımıdır; güncel onaylar silinen kayıtlara taşıma ve yalnız şirket yöneticisinin geri yükleyip kalıcı silebilmesini söyler. Gerçek yönetici kalıcı silme metinleri korunur. Gündemin istemcide gecikmeli geri alma akışı değişmez. Yeni çöp türü/arama/taşıma yüzleri sonraki F10 paketlerinde bağlanacak; pin tek başına BE satırlarını kapatmaz. Kanıt [WEB-10 ilerleme](../../yurutme/web-10/ilerleme.md)'dedir.

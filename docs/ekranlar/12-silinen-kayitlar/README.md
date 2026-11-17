@@ -125,3 +125,8 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 | E-12-63 Ana sayfadan giriş | canlı → sayaç = özet `total` (`deleted_records` ile aynı hesap) | kabul (P67) | BE-110, BE-119 | W174 · entegrasyon `app/__tests__/integration/deleted-records.test.ts` (rozet = özet toplamı) |
 
 **F8'de değişmeyenler (12 Silinen kayıtlar):** E-12-09 "Tümü" (GAP-234), E-12-11 / E-12-12 / E-12-15 (BE-109, BE-076, BE-111), E-12-07 / E-12-33 / E-12-34 / E-12-46 / E-12-55…57 (BE-112), E-12-26 / E-12-42 kod (`DeletedWorkItem` kod taşımaz), E-12-29 uyarı rozeti.
+
+
+## F10 pin ve zorunlu semantik uyum
+
+v0.26.0-api pin teslimi W191, P45/ADR0053–0054 ile dosya/alt görev/görev notu/toplantı notu/gündem silmesinin çöp semantiğini tüketir. Eski F5/F4 tablosundaki "kalıcı/geri alınamaz" ifadeleri tarihsel pin varsayımıdır; güncel onaylar silinen kayıtlara taşıma ve yalnız şirket yöneticisinin geri yükleyip kalıcı silebilmesini söyler. Gerçek yönetici kalıcı silme metinleri korunur. Gündemin istemcide gecikmeli geri alma akışı değişmez. Yeni çöp türü/arama/taşıma yüzleri sonraki F10 paketlerinde bağlanacak; pin tek başına BE satırlarını kapatmaz. Kanıt [WEB-10 ilerleme](../../yurutme/web-10/ilerleme.md)'dedir.

@@ -133,3 +133,8 @@ Faz açılışında koordinatör doldurur; uygulayıcı yalnız `kabul` satırla
 **F8'de değişmeyenler (03 Görevler › Liste):** E-03-16 sıralama (BE-040), E-03-30 / E-03-33 / E-03-36 / E-03-60 zorunlu alan kutuları (BE-006: P5), E-03-51 etkinlik (BE-007). 03c, 05b takip tablosu ve 08b kod satırlarının F8 ekleri kendi grup README'lerindedir (W173).
 
 **F8 eki — 03 durum menüsü: iade gerekçesi (W173 devri, BE-139, W175).** `→ iade_edildi` seçimi `RevertReasonDialog` (`variant="return"`) açar; gerekçe isteğe bağlıdır (boş = gerekçesiz iade, dolu 3–500 karakter). Kanıt: `components/forms/RevertReasonDialog.test.ts`, `use-status-transition.test.ts`, `model/transitions.test.ts`.
+
+
+## F10 pin ve zorunlu semantik uyum
+
+v0.26.0-api pin teslimi W191, P45/ADR0053–0054 ile dosya/alt görev/görev notu/toplantı notu/gündem silmesinin çöp semantiğini tüketir. Eski F5/F4 tablosundaki "kalıcı/geri alınamaz" ifadeleri tarihsel pin varsayımıdır; güncel onaylar silinen kayıtlara taşıma ve yalnız şirket yöneticisinin geri yükleyip kalıcı silebilmesini söyler. Gerçek yönetici kalıcı silme metinleri korunur. Gündemin istemcide gecikmeli geri alma akışı değişmez. Yeni çöp türü/arama/taşıma yüzleri sonraki F10 paketlerinde bağlanacak; pin tek başına BE satırlarını kapatmaz. Kanıt [WEB-10 ilerleme](../../yurutme/web-10/ilerleme.md)'dedir.
