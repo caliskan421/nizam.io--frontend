@@ -42,3 +42,12 @@ W192 Sonnet `bcb8a0ca`:25 çocuk yazması,5 çocuk okuyucu/sorgu, tek birleşik 
 Root incelemesi dosya silme/restore sonrasında sohbet `refSummary` önbelleğinin tazelenmediğini buldu. Terra gerçek QueryClient üzerinde kırmızı regresyon verdi (`7e0e1e07`), Sonnet `c9ad652d` programın bütün departmanlarındaki ref özetlerini tazeleyip başka programa dokunmayan filtreyi ekledi. Yanlışlıkla records yaşam döngüsüne bağlanan messaging link/ek sayaçları düzeltildi; backend bunları ayrı mesaj tablolarından sayar. Mevcut gerçek mesaj yazmaları korundu. Sonnet411 ilgili test/type/lint/format başarılı; büyük paketi tekrarlamadı. W192 nihai bağımsız kabulü ve kendi CI/merge kapısı bekler.
 
 W195 gerçek v026 API tanıkları ayrı izole ortamda: PNG upload/silme/çöp/restore/download bayt eşliği, ebeveyn çöpte409 ve ebeveyn restore sonrasında çocuğun çöpte kalması, ayrı permanent yolu; ada çakışmalı restore renamed/display_name; beş yeni tür ve parent bilgisi birleşik listede, notes üç alt tür toplamı ve üye403; beş çocuk listesinde limit200 isteği200. Bunlar doğrudan gerçek API tanığıdır; final frontend/Caddy UI kanıtı değildir.200 öğe stres, bütün batch/limit matrisleri veya başka program negatifinin gerçek koşumu iddia edilmez. İlk gündem helper alan adı hatası ayrı başarısız JSON olarak korundu, ürün hatası değildi.
+
+
+## PR178 CI1 ve dar sohbet yeniden-okuma düzeltmesi
+
+CI44066418947/e9e3690a,869 dosya6502 assertion geçtiği halde `chat-writes.test.ts` kaynaklı bir yakalanmamış401 nedeniyle kaliteyi düşürdü; imaj/e2e çalışmadı ve merge yapılmadı. Tam hangi test/söküm anı ve F9 borç38 ile aynı kök olduğu kanıtlanmadı.
+
+Terra kontrollü gerçek useSetChatReaction testinde PUT204 sonrası around401/refresh401 ile üretim promise reddini gösterdi; RED testi c414f0a2 olarak korundu. Sonnet97778ed5 yalnız yeniden-okuma sınırında ApiError/SessionChangedError'ı ele alır. Kaydedilmiş yazma success kalır ve tekrar gönderilmez; aynı owner/scope/session hâlâ geçerliyse doğru 'kaydedildi, mesaj yenilenemedi' bildirimi, kayıpta sessizlik. Başarısız oy/anket yazmasının yardımcı okuması sessizdir ve failed sonucu korunur. Genel programlama hataları yutulmaz; withEffects/ortak motor/UIguard değiştirilmedi.
+
+Sonnet17 dosya156 test; Terra kendi RED→GREEN ve effects/actions/App31 bağımsız test, tam pnpm typecheck(build/force), değişen lint/format başarılı. Yeni CI başlığı kendi üç kapısını yeniden geçmelidir; kör rerun/skip/timeout artırımı yapılmadı. Gerçek backend ağ hatası veya CI'nın eski tam zamanlaması ayrıca sınanmış sayılmaz.
