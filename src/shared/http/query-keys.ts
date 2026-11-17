@@ -852,13 +852,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // arşive kaydet sohbete `file` referanslı mesaj düşürür.
   'chats.refs': ['sendChatMessage', 'forwardChatMessage', 'archiveChatFile', 'deleteChatMessage'],
   'chats.candidates': ['addChatMembers', 'removeChatMember'],
-  'chats.refSummary': [],
+  // Dosya referans özeti (`getChatRefSummary`) dosyanın canlı kaydından `available`/ad üretir:
+  // yumuşak silme, geri yükleme ve kalıcı silme (v0.26) onu değiştirir. Ref kimliği dosya
+  // kimliğinden türetilemez; bu yüzden eylemin programındaki bütün özetler yenilenir.
+  'chats.refSummary': ['deleteFile', ...FILE_TRASH_WRITES],
   // W184: paylaşılan sayı = liste toplamı (aynı yazmalarla birlikte yenilenir; sayıyı kalan liste
   // belirler). Mesaj görev kartı görev yaşam döngüsü yazmalarıyla da değişir (`deleted`/başlık/durum).
   'chats.sharedCounts': [
-    // Çöpteki dosya sohbet paylaşımında görünmez (ADR-0053); çöpten dönünce yeniden görünür.
-    'deleteFile',
-    ...FILE_TRASH_WRITES,
     'sendChatMessage',
     'sendChatAttachment',
     'forwardChatMessage',
@@ -869,13 +869,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'removeChatMember',
   ],
   // İletme ek baytını hedefe kopyalar (yeni ek kimliği) ve görev referansını taşır.
-  'chats.attachments': [
-    'sendChatAttachment',
-    'forwardChatMessage',
-    'deleteChatMessage',
-    'deleteFile',
-    ...FILE_TRASH_WRITES,
-  ],
+  'chats.attachments': ['sendChatAttachment', 'forwardChatMessage', 'deleteChatMessage'],
   'chats.taskLinks': ['createTaskFromChatMessage', 'forwardChatMessage', 'deleteChatMessage'],
   'chats.messageTasks': unique(
     ['createTaskFromChatMessage', 'deleteChatMessage', 'editChatMessage'],
@@ -950,7 +944,24 @@ function chatChild(scope: ScopeSnapshot, child: string, chatId?: string): Invali
   }
 }
 
-/** `scoped(['chats', <ayrılmış sözcük>, …])` anahtarları (list | candidates | ref). */
+/**
+ * Eylemin PROGRAMININ sohbet ref özetleri (`scoped(['chats', 'ref', refId])`), departman/mercek
+ * parçasından bağımsız: özet anahtarı çağıranın departmanını taşır, eylemin anlık görüntüsü
+ * taşımaz. Başka programa dokunulmaz (K2); programsız eylemde geçersizleme yok.
+ */
+function refSummariesOfProgram(scope: ScopeSnapshot): InvalidationFilter | null {
+  if (scope.programId === null) return null
+  return {
+    queryKey: [QUERY_KEY_ROOT],
+    predicate: ({ queryKey }) =>
+      isScopedQueryKey(queryKey) &&
+      (queryKey[1] as { program: unknown }).program === scope.programId &&
+      queryKey[2] === 'chats' &&
+      queryKey[3] === 'ref',
+  }
+}
+
+/** `scoped(['chats', <ayrılmış sözcük>, …])` anahtarları (list | candidates). */
 function chatReserved(scope: ScopeSnapshot, word: string): InvalidationFilter {
   return {
     queryKey: queryKeys.chats.all(scope),
@@ -1085,7 +1096,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'chats.members': (scope, ctx) => chatChild(scope, 'members', ctx.chatId),
   'chats.refs': (scope, ctx) => chatChild(scope, 'refs', ctx.chatId),
   'chats.candidates': (scope) => chatReserved(scope, 'candidates'),
-  'chats.refSummary': (scope) => chatReserved(scope, 'ref'),
+  'chats.refSummary': refSummariesOfProgram,
   'chats.sharedCounts': (scope, ctx) => chatChild(scope, 'shared-counts', ctx.chatId),
   'chats.attachments': (scope, ctx) => chatChild(scope, 'attachments', ctx.chatId),
   'chats.taskLinks': (scope, ctx) => chatChild(scope, 'task-links', ctx.chatId),

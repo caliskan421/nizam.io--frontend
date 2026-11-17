@@ -89,8 +89,7 @@ const RELATIONS: ReadonlyArray<[OperationId[], QueryResource[]]> = [
       'workItems.item',
       'workItems.list',
       'report.task',
-      'chats.sharedCounts',
-      'chats.attachments',
+      'chats.refSummary',
       'report',
     ],
   ],
@@ -104,7 +103,7 @@ const RELATIONS: ReadonlyArray<[OperationId[], QueryResource[]]> = [
       'archive',
       'workItems.files',
       'workItems.item',
-      'chats.sharedCounts',
+      'chats.refSummary',
       'report',
     ],
   ],
@@ -314,4 +313,34 @@ describe('12 Silinen kayıtlar — geçersizleme ilişkileri', () => {
       expect(client.getQueryState(unrelated)?.isInvalidated, operation).toBe(false)
     }
   })
+
+  it.each([
+    'deleteFile',
+    'restoreFile',
+    'permanentDeleteFile',
+    'batchRestoreFiles',
+    'batchPurgeFiles',
+    'purgeAllFiles',
+  ] as const)(
+    '%s: eylemin programındaki bütün departman ref özetleri bayatlar; p2 ve paylaşılan sayı/ek değişmez',
+    async (operation) => {
+      const client = new QueryClient()
+      const d1 = queryKeys.chats.refSummary({ programId: 'p1', departmentId: 'd1' }, 'r1')
+      const d2 = queryKeys.chats.refSummary({ programId: 'p1', departmentId: 'd2' }, 'r2')
+      const none = queryKeys.chats.refSummary({ programId: 'p1', departmentId: null }, 'r3')
+      const other = queryKeys.chats.refSummary({ programId: 'p2', departmentId: 'd1' }, 'r4')
+      const counts = queryKeys.chats.sharedCounts({ programId: 'p1', departmentId: 'd1' }, 'c1')
+      const files = queryKeys.chats.attachments({ programId: 'p1', departmentId: 'd1' }, 'c1')
+      for (const key of [d1, d2, none, other, counts, files]) client.setQueryData(key, 1)
+      await Promise.all(
+        invalidationFilters(operation, { programId: 'p1', departmentId: null }, {}).map((filter) =>
+          client.invalidateQueries(filter),
+        ),
+      )
+      for (const key of [d1, d2, none]) expect(client.getQueryState(key)?.isInvalidated).toBe(true)
+      for (const key of [other, counts, files]) {
+        expect(client.getQueryState(key)?.isInvalidated).toBe(false)
+      }
+    },
+  )
 })
