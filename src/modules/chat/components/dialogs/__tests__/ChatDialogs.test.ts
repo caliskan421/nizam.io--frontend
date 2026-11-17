@@ -43,6 +43,11 @@ const REQUESTS: Record<string, { request: DialogRequest; title: string; footer: 
     title: 'Yeni grup',
     footer: 'Vazgeç',
   },
+  forward: {
+    request: { dialog: 'forward', chatId: 'c1', messageId: 'm5' },
+    title: 'Mesajı ilet',
+    footer: 'Vazgeç',
+  },
   taskFromMessage: {
     request: { dialog: 'taskFromMessage', chatId: 'c1', messageId: 'm5', seq: 5 },
     title: 'Mesajdan görev',
@@ -70,6 +75,7 @@ function serve() {
   )
   on('get', '/v1/chats/c1/members', () => json({ items: [], truncated: false }))
   on('get', '/v1/chats/c1/pins', () => json({ items: [], truncated: false }))
+  on('get', '/v1/chats', () => json({ items: [], next_cursor: '', total: 0 }))
   on('get', '/v1/chats/candidates', () => json({ items: [], truncated: false }))
   on('get', '/v1/program/departments', () => json({ departments: [] }))
   on('post', '/v1/chats/c1/messages', () => json(msg(9), 201))
@@ -125,8 +131,8 @@ describe('ChatDialogs — tek giriş', () => {
     expect($('[role="dialog"]')).toBeNull()
   })
 
-  it('"Mesajı ilet" açılabilir değildir (BE-080): istek türünde yok', () => {
-    expect(Object.keys(REQUESTS)).not.toContain('forward')
+  it('"Mesajı ilet" açılabilir (BE-080, W185b): istek türünde var', () => {
+    expect(Object.keys(REQUESTS)).toContain('forward')
   })
 })
 

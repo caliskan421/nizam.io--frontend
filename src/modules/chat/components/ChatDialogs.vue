@@ -9,6 +9,7 @@
 import { nextTick, watch } from 'vue'
 
 import type { DialogRequest } from '../model/dialogs'
+import ForwardDialog from './dialogs/ForwardDialog.vue'
 import GroupInfoDialog from './dialogs/GroupInfoDialog.vue'
 import MessageInfoDialog from './dialogs/MessageInfoDialog.vue'
 import NewChatDialog from './dialogs/NewChatDialog.vue'
@@ -71,6 +72,12 @@ async function restoreFocus(): Promise<void> {
     <NewChatDialog
       v-else-if="request.dialog === 'newGroup'"
       :mode="request.mode"
+      @close="emit('close')"
+    />
+    <ForwardDialog
+      v-else-if="request.dialog === 'forward'"
+      :chat-id="request.chatId"
+      :message-id="request.messageId"
       @close="emit('close')"
     />
     <TaskFromMessageDialog

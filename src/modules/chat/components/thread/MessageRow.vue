@@ -40,8 +40,6 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   menu: [kind: 'react' | 'more' | null]
-  /** "İlet" menü kapısı (BE-080): diyaloğu W185b bağlar; menü öğesi o zamana dek devre dışıdır. */
-  forward: [message: ChatMessage]
   tools: [open: boolean]
   'focus-lost': []
 }>()
@@ -80,8 +78,9 @@ function onAction(name: MenuAction): void {
   closeMenu(true)
   const m = props.message
   if (name === 'reply') thread.startReply(m)
-  else if (name === 'forward') emit('forward', m)
-  else if (name === 'edit') thread.startEdit(m)
+  else if (name === 'forward') {
+    thread.openDialog({ dialog: 'forward', chatId: thread.chatId.value, messageId: m.message_id })
+  } else if (name === 'edit') thread.startEdit(m)
   else if (name === 'pin') void actions.togglePin(m)
   else if (name === 'copy') void actions.copyLink(m)
   else if (name === 'delete') void actions.remove(m)
@@ -172,6 +171,10 @@ onBeforeUnmount(() => {
           >
             {{ badge.text }}
           </span>
+        </span>
+        <span v-if="message.forwarded_from" class="chat-bub__fwd" data-testid="chat-forwarded">
+          <UiIcon name="chat-forward" size="sm" />
+          {{ chatText('chat.thread.forwarded') }}
         </span>
         <QuoteBlock v-if="message.reply_to" :quote="message.reply_to" />
         <BodyText v-if="!message.poll" :message="message" :summaries="summaries" />
