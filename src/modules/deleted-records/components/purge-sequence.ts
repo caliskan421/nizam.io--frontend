@@ -2,7 +2,7 @@
  * Çöpü boşalt: türleri SIRAYLA boşaltır (tek tür ya da `Not ve gündem`in üç türü). Her tür kendi
  * `purgeLoop`'unu (≤50'lik çağrılar, ilerleme yoksa durur) çalıştırır; sıradaki tür önceki türün son
  * başarılı çağrısının yakalanmış bağlamıyla sürer (kapsam/oturum değişirse motor göndermez). Bir tür
- * kesilir ya da protokol sonucuyla durursa sonrakine geçilmez; önceden silinenler geri gelmez ve
+ * kesilir, protokol sonucuyla durursa ya da türler arasında "Durdur" istenirse sonrakine geçilmez; önceden silinenler geri gelmez ve
  * özet bunu söyler. Sonuç kimlikleri satır anahtarına (`kind:id`) çevrilir.
  */
 import type { Ref } from 'vue'
@@ -44,6 +44,11 @@ export async function runPurgeSequence(
   let ended: 'done' | 'cancelled' | 'interrupted' = 'done'
   let context: PurgeContext | undefined
   for (const [index, kind] of kinds.entries()) {
+    // Önceki türün son yanıtı sürerken "Durdur" gelmiş olabilir: sıradaki türe istek atılmaz.
+    if (index > 0 && state.stop.requested) {
+      ended = 'cancelled'
+      break
+    }
     const target = purgeTarget(scope.programId, kind)
     const start = index === 0 ? first : await hub.purgeAll[kind](target, { context })
     const before = run.succeeded.length
