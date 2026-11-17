@@ -78,3 +78,7 @@ Terra b2107de2/source7b16b973 üzerinde83hedeflitest,25yaşam döngüsü ve20rea
 ### W183 PR kapanışı ve W185b teslimi (2026-11-17)
 
 W183 PR #171, CI44001071112 üçSUCCESS ile main b69c6e9c oldu. W184 PR #172 bağımsız kabul sonrası5040a0d2 başlığında CI44003202106 sürüyor. W185b39083b96 kaynak teslimi BE029/080/161 ve son sohbet stub kaldırmasını içerir;51yeni test, type/lint/format/buildPASS. Sonnet geniş koşumdaki1791/1792 sonucunda tek devralınan F8guard hatası parent5040a0d2 merge'iyle güncel teste taşındı; yeni kabul henüz verilmedi. Terra dar test ve390/1440 dumanına başladı. W185 merkezi query-keys sahipliği a1e7fdea checkpoint'inden devralındı; bildirim uygulaması paralel sürüyor.
+
+### W184 gerçek backend CI seçici düzeltmesi (2026-11-17)
+
+CI44003202106 kalite ve imaj SUCCESS; gerçek backend dumanında e2e/chat.spec.ts sendMessage eski kısmi “Gönder” seçicisi iki yeni “Gönderildi” receipt düğmesiyle birlikte üç öğe eşleştirdi. Terra testi mevcut chat-composer içinde exact Gönder ile sınırlandırdı; assertion/ürün davranışı değişmedi. ESLint/format ve Playwright tek-test keşfiPASS; yerelde gerçekbackend tekrarlanmadı. Root bu kesin nedenli test düzeltmesini PR172'ye ekledi; yeni üç CI sonucu beklenir, kırmızı koşumda merge yapılmadı.
