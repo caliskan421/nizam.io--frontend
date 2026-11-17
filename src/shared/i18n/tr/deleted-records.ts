@@ -27,23 +27,41 @@ export const trDeletedRecords = {
       soon: 'Yakında',
       soonHint: 'Bu özellik henüz kullanılamıyor.',
     },
+    // Görünüm (sekme) adları; satır tür rozeti `rowKinds`'tan gelir.
     kinds: {
       label: 'Kayıt türü',
+      tumu: 'Tümü',
       gorev: 'Görev',
+      altgorev: 'Alt görev',
+      dosya: 'Dosya',
       toplanti: 'Toplantı',
       koordinatorluk: 'Koordinatörlük',
       kullanici: 'Kullanıcı',
-      altgorev: 'Alt görev',
-      dosya: 'Dosya',
       notgundem: 'Not ve gündem',
-      disabledHint: 'Bu tür için silinenler listesi henüz yok.',
     },
-    // Alt başlıkta ve boş durumda kullanılan küçük harfli tür adları.
+    // Satırın yazma türü rozeti (dokuz bilinen tür); bilinmeyen tür `unknown`.
+    rowKinds: {
+      tasks: 'Görev',
+      subtasks: 'Alt görev',
+      files: 'Dosya',
+      meetings: 'Toplantı',
+      task_notes: 'Görev notu',
+      meeting_notes: 'Toplantı notu',
+      agenda_items: 'Gündem',
+      departments: 'Koordinatörlük',
+      accounts: 'Kullanıcı',
+      unknown: 'Tanınmayan tür',
+    },
+    // Alt başlıkta ve boş durumda kullanılan küçük harfli görünüm adları.
     kindNames: {
+      tumu: 'kayıt',
       gorev: 'görev',
+      altgorev: 'alt görev',
+      dosya: 'dosya',
       toplanti: 'toplantı',
       koordinatorluk: 'koordinatörlük',
       kullanici: 'kullanıcı',
+      notgundem: 'not ve gündem',
     },
     // v0.26 çocuk türleri ve birleşik liste: tür adları (W193 etiketleri/onaylar bu adları kullanır).
     lifecycleKinds: {
@@ -96,6 +114,14 @@ export const trDeletedRecords = {
       restore: 'Geri yükle',
       purge: 'Kalıcı sil',
       purgeOf: '{title} kalıcı sil',
+      // Adı okunamayan kayıt: kimlik ad olarak yazılmaz.
+      untitled: 'Adı okunamayan kayıt',
+      unknownKind: 'Bu kayıt türü bu sürümde yönetilemiyor.',
+      parentTask: 'Önce bağlı görevi geri yükleyin.',
+      parentMeeting: 'Önce bağlı toplantıyı geri yükleyin.',
+      parentUnknown: 'Bağlı kayıt silinmiş.',
+      openTask: 'Silinen görevlerde aç',
+      openMeeting: 'Silinen toplantılarda aç',
     },
     // Satır alt satırı (E-12-28, P44).
     sub: {
@@ -126,6 +152,23 @@ export const trDeletedRecords = {
         admin: 'Yetki',
       },
       adminValue: 'Şirket yöneticisi',
+      // Çocuk türlerin panel alanları (yalnız liste öğesinde dönen veri).
+      facts: {
+        size: 'Boyut',
+        contentType: 'Dosya türü',
+        tag: 'Etiket',
+        uploader: 'Yükleyen',
+        done: 'Tamamlandı',
+        assignee: 'Atanan',
+        author: 'Yazan',
+        converted: 'Göreve dönüştü',
+        checked: 'İşaretli',
+        yes: 'Evet',
+        no: 'Hayır',
+        parentTask: 'Bağlı görev',
+        parentMeeting: 'Bağlı toplantı',
+        parentDeleted: 'silinmiş',
+      },
       invite: { coordinatorship: 'Koordinatörlük', person: 'Kişiler' },
       together: 'birlikte geri gelecek',
       subtasks: 'Alt görev',
@@ -149,13 +192,21 @@ export const trDeletedRecords = {
       purgeTitle: '{title} kalıcı olarak silinsin mi?',
       purgeBody: 'Bu işlem geri alınamaz.',
       purgeFiles: '{n} dosya da silinir.',
+      purgeFilesAny: 'Görevin dosyaları da silinir.',
       purgeConfirm: 'Kalıcı sil',
       restoreWarning: {
-        gorev: 'Koordinatörlüğü silinmişse görev geri yüklenemez.',
-        toplanti: 'Canlı konferans geri gelmez.',
-        koordinatorluk: 'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
-        kullanici: 'Devredilmiş açık görev atamaları geri dönmez.',
+        tasks: 'Koordinatörlüğü silinmişse görev geri yüklenemez.',
+        meetings: 'Canlı konferans geri gelmez.',
+        departments: 'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
+        accounts: 'Devredilmiş açık görev atamaları geri dönmez.',
+        subtasks: 'Bağlı görev silinmişse alt görev geri yüklenemez.',
+        files:
+          'Bağlı görev silinmişse dosya geri yüklenemez; aynı ad varsa dosya yeniden adlandırılır.',
+        task_notes: 'Bağlı görev silinmişse not geri yüklenemez.',
+        meeting_notes: 'Bağlı toplantı silinmişse not geri yüklenemez.',
+        agenda_items: 'Bağlı toplantı silinmişse gündem maddesi geri yüklenemez.',
       },
+      accountsScope: 'Hesaplar şirket genelinde geri yüklenir.',
     },
     feedback: {
       restored: '{title} geri yüklendi.',
@@ -197,6 +248,9 @@ export const trDeletedRecords = {
       selectRow: '{title} seç',
     },
     batch: {
+      restoreTitleMixed: '{summary} geri yüklensin mi?',
+      purgeTitleMixed: '{summary} kalıcı olarak silinsin mi?',
+      accountsPurgeScope: 'Hesaplar şirket genelinde kalıcı silinir.',
       restoreTitle: '{n} {kind} geri yüklensin mi?',
       restoreBody: 'Bu işlem seçili {n} kaydı geri yükler.',
       purgeTitle: '{n} {kind} kalıcı olarak silinsin mi?',
@@ -236,6 +290,14 @@ export const trDeletedRecords = {
           'Seçili programdaki bütün silinmiş toplantılar silinir; ekrandaki süzgeçler dikkate alınmaz.',
         kullanici:
           'Şirket genelindeki bütün silinmiş hesaplar silinir; ekrandaki süzgeçler dikkate alınmaz. Başka kayıtlarca kullanılan hesaplar silinmez.',
+        altgorev:
+          'Seçili programdaki bütün silinmiş alt görevler silinir; ekrandaki süzgeçler dikkate alınmaz.',
+        dosya:
+          'Seçili programdaki bütün silinmiş dosyalar depolamadan da silinir; ekrandaki süzgeçler dikkate alınmaz.',
+        koordinatorluk:
+          'Seçili programa bağlı bütün silinmiş koordinatörlükler silinir; ekrandaki süzgeçler dikkate alınmaz. Görevi veya program katılımı olanlar silinmez.',
+        notgundem:
+          'Seçili programdaki bütün silinmiş görev notları, toplantı notları ve gündem maddeleri sırayla kalıcı silinir. Durdurursanız veya bir işlem tamamlanmazsa, daha önce silinenler geri getirilemez.',
       },
       irreversible: 'Bu işlem geri alınamaz.',
       typeLabel: 'Onaylamak için "{kind}" yazın',
@@ -243,7 +305,7 @@ export const trDeletedRecords = {
       confirm: 'Çöpü boşalt',
       cancel: 'Vazgeç',
       confirmTitle: 'Silinmiş {kind} kayıtları kalıcı olarak silinsin mi?',
-      confirmBody: 'Bu işlem geri alınamaz. Kayıtlar 50’şerli gruplar hâlinde silinir.',
+      confirmBody: 'Bu işlem geri alınamaz.',
       running: '{n} kayıt silindi, silme sürüyor',
       runningLeft: '{n} kayıt silindi, {left} kayıt kaldı',
       stop: 'Durdur',
@@ -253,8 +315,8 @@ export const trDeletedRecords = {
       interrupted:
         'İşlem yarıda kaldı: {n} kayıt silindi, kalanının durumu bilinmiyor. Liste yenilendi.',
       group: '{n} kayıt',
-      unsupported:
-        'Koordinatörlük türünde çöp boşaltılamaz: uç şirket geneli çalışır ve programa bağlı kayıtları silemez.',
+      // Tümü görünümünde düğme devre dışıdır (görünüm politikası): tür seçilir.
+      pickKind: 'Boşaltmak için bir kayıt türü seçin.',
     },
     states: {
       loading: 'Silinen kayıtlar yükleniyor',

@@ -156,6 +156,7 @@ describe('archiveAttachments — imleç, süzgeç, kesin toplam', () => {
       tag: 'plan',
       mime_category: 'belge',
       search: 'rapor',
+      search_scope: 'all',
       sort: 'name',
       limit: '50',
     })

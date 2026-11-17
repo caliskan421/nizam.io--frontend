@@ -58,14 +58,15 @@ const has = (id: string) => q(id) !== null
 const toastMessages = () => useToast().queue.value.map((t) => t.message)
 
 describe('FileActions görünürlüğü (K1, yalnız capability olguları)', () => {
-  it('yönetici: yükleyen kendisiyse indir + adlandır + etiket + sil; yalnız taşıma devre dışı stub', () => {
+  it('yönetici: yükleyen kendisiyse indir + adlandır + etiket + taşı + sil; hiçbir eylem stub değil', () => {
     actions(ADMIN_SEED)
-    expect(['file-download', 'file-rename', 'file-retag', 'file-delete'].every(has)).toBe(true)
+    expect(
+      ['file-download', 'file-rename', 'file-retag', 'file-move', 'file-delete'].every(has),
+    ).toBe(true)
     expect(q('file-retag')!.disabled).toBe(false)
-    expect(q('file-move')!.disabled).toBe(true)
-    // BE-074 canlandı: etiket düğmesinde stub çerçevesi yok; taşıma (BE-075) devre dışı kalır.
-    expect(document.body.querySelector('[data-design-stub="BE-074"]')).toBeNull()
-    expect(document.body.querySelector('[data-design-stub="BE-075"]')).not.toBeNull()
+    expect(q('file-move')!.disabled).toBe(false)
+    // BE-074/075 canlandı: etiket ve taşıma düğmelerinde stub çerçevesi yok.
+    expect(document.body.querySelector('[data-design-stub]')).toBeNull()
   })
 
   it('yönetici başkasının dosyasını silemez (gizli), adlandırabilir ve etiketini değiştirebilir', () => {
@@ -94,11 +95,15 @@ describe('FileActions görünürlüğü (K1, yalnız capability olguları)', () 
     expect(has('file-rename') || has('file-retag') || has('file-delete')).toBe(false)
   })
 
-  it('taşıma stub düğmesi tıklanınca hiçbir istek atılmaz (sıfır yazma)', async () => {
+  it('taşı düğmesi pencereyi açar; seçim yapılmadan hiçbir yazma isteği atılmaz', async () => {
+    server.use(http.get(`${ORIGIN}/v1/program/archive/tasks`, () => json({ tasks: [] })))
     const { h } = actions(ADMIN_SEED)
     q('file-move')!.click()
     await settleQueries(h.queryClient)
-    expect(sent('PATCH', '/v1/files/f1')).toHaveLength(0)
+    expect(has('move-submit')).toBe(true)
+    q('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', '/v1/files/f1/work-item')).toHaveLength(0)
     expect(sent('POST', '/v1/download-tickets')).toHaveLength(0)
   })
 })

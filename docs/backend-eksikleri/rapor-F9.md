@@ -18,7 +18,7 @@ Tek PR ile v0.23 → v0.25 yükseltildi; ara v0.24 pini yok. Uç 248 → 261 (+1
 | W185                 | 142,143,144,145,146,148,149,154,155,156 | Zengin18 tür, soğuk hedef, iki sayaç, server filtre, karar, grup/zamanlı tür/saklama metni, konu durumu ve konu mute/list/unmute |
 | Ortak W183/W184/W185 | 027                                     | Liste sessiz rozeti, all/mentions/none tercihi ve sohbet bildirim/okundu zinciri                                                 |
 
-Toplam 23 satır. Kayıt toplamı 163 satır = 77 bağlı + 84 açık + 2 vazgeçildi; yeni BE kimliği atanmadı. Kaynakta beklenen gerçek designStub sayısı31 → 16; nihai kaynak denetimi kapanışta doğrulanacaktır. Matris 28 satırının 23'ü tam, 5'i kalır. Yeni ekran/artboard yok: kaynak bağlantısı mevcut görev detayında, sessize alınanlar mevcut bildirim panelindedir.
+Toplam 23 satır. Kayıt toplamı 163 satır = 77 bağlı + 84 açık + 2 vazgeçildi; yeni BE kimliği atanmadı. F9 dönemindeki dar31→16 stub sayımı sonradan tam kaynak yöntemiyle düzeltildi: testsiz üretim .ts/.vue, yorumlar hariç designStub çağrıları ve Vue DesignStub birlikte F8 sonunda39, F9 sonunda24 benzersiz kimliktir; kullanım57→35. Bu yöntem F10 ilerleme kaydında belgelenmiştir. Matris 28 satırının 23'ü tam, 5'i kalır. Yeni ekran/artboard yok: kaynak bağlantısı mevcut görev detayında, sessize alınanlar mevcut bildirim panelindedir.
 
 Kayıt toplamı düzeltmesi: F8 raporundaki 160 satır/104 açık sayısı tarihsel bir raporlama hatasıdır. F8 kapanış commit'i a48a3e78 ve F9 başlangıcı 099dfe6e üzerinde kayit.md doğrudan sayıldı: 163 benzersiz satır = 54 bağlı + 107 açık + 2 vazgeçildi. F9'da 23 satır bağlanınca sonuç 77 bağlı + 84 açık + 2 vazgeçildi, toplam yine 163'tür. Yeni satır eklenmedi; BE-164/165/166 başlangıçta zaten vardı.
 
@@ -87,3 +87,6 @@ W189 son kaynak ek kabulü: aktör tavanında “diğerleri”, listede olmayan 
 ## Kapanış kapısının gerçekleşmesi — 2026-11-17
 
 PR175 `c002692e`, CI44026445257 kalite863 dosya6328 test, imaj ve gerçek backend15/15 kontrolünde SUCCESS oldu; `215ae5d9649d1bdade7174b6947311b660d6e064` ile MERGED. Yeni sparse390/1440+SPA testi2dk, tüm Playwright3.8dk; testler arası ortak hesap yazma yükü ayrı kurucu hesabıyla yalıtıldı. Opus kaynak hükmünün CI/merge koşulu gerçekleşti. F9 kapandı; önceki bekleyen ifadeler koşum öncesi tarihçedir. F10 daha sonra ürün sahibinin talimatıyla [açıldı](../yurutme/web-10/README.md).
+
+
+F10 takip kaydı (2026-11-17): F9'da ROFS nedeniyle kalan dört W188 test konteyneri, proje ağı ve tek DB anonim volume'ü yalnız kendi adlarıyla kaldırıldı; üç cleanup işlemi EXIT0. Eski çevre borcu bu kaynaklar için kapandı, ortak daemon/imajlara dokunulmadı. [F10 doğrulaması](dogrulama-F10.md).

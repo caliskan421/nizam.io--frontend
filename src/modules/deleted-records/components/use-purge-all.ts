@@ -1,6 +1,7 @@
 /**
  * Çöpü boşalt akışı (E-12-06; BE-115; ADR-0045): başlık düğmesi → tür adı yazılan panel → ortak
- * onay (`confirmWrite`; onayın yakaladığı bağlam KESİN 20) → ≤50'lik parçalar hâlinde döngü.
+ * onay (`confirmWrite`; onayın yakaladığı bağlam KESİN 20) → parçalar hâlinde döngü. `Not ve
+ * gündem` üç türü sırayla boşaltır (her tür kendi döngüsü); `Tümü` boşaltılamaz.
  * Döngü durma kuralı: `remaining > 0` VE o çağrıda en az bir kayıt işlendiyse sürer; hiç başarı
  * olmayan çağrıdan sonra durur ve kalanlar `failed` kodlarıyla özette gösterilir. Kullanıcı
  * "Durdur" ile parçalar arasında kesebilir (çağrı başlamışsa bitirilir). Bağlam (kapsam/oturum)
@@ -10,36 +11,34 @@
  */
 import { computed, ref } from 'vue'
 
-import { reachesOwner } from '@/shared/http/mutation'
 import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
-import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
+import { useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
-import { usePurgeAllAccounts, usePurgeAllMeetings, usePurgeAllWorkItems } from '../api/purge-all'
 import type { BatchSummary } from '../model/batch'
+import type { LifecycleKind } from '../model/lifecycle'
 import type { DeletedKind } from '../model/kinds'
 import { deletedText } from '../model/messages'
-import {
-  PURGE_ALL_CONFIRM,
-  summarizePurgeAll,
-  supportsPurgeAll,
-  type PurgeAllKind,
-} from '../model/purge-all'
+import { purgeKindsOf, supportsPurgeAll } from '../model/purge-all'
 
-import { purgeLoop, type PurgeOutcome } from './purge-loop'
+import { purgeTarget, runPurgeSequence } from './purge-sequence'
+import type { PurgeOutcome } from './purge-loop'
+import { useLifecycleHub, type LifecycleHub } from './use-lifecycle-hub'
 
 export interface PurgeAllOptions {
   kind: () => DeletedKind
-  /** Açık sekmenin listesini ve bağlı sorguları yeniden okur. */
+  /** Açık görünümün listesini ve bağlı sorguları yeniden okur. */
   refresh: () => Promise<unknown>
   /** İşlem bitti (özet gösterildi): odak taşınır. */
   finished: () => void
+  /** Sayfanın ortak yazma merkezi (verilmezse kurulur). */
+  hub?: LifecycleHub
 }
 
-export function purgeAllConfirmOptions(kind: PurgeAllKind): ConfirmOptions {
+export function purgeAllConfirmOptions(view: Exclude<DeletedKind, 'tumu'>): ConfirmOptions {
   return {
-    title: deletedText('purgeAll.confirmTitle', { kind: deletedText(`kindNames.${kind}`) }),
-    body: [deletedText('purgeAll.confirmBody'), deletedText(`purgeAll.scope.${kind}`)],
+    title: deletedText('purgeAll.confirmTitle', { kind: deletedText(`kindNames.${view}`) }),
+    body: [deletedText('purgeAll.confirmBody'), deletedText(`purgeAll.scope.${view}`)],
     confirmLabel: deletedText('purgeAll.confirm'),
     tone: 'danger',
   }
@@ -77,44 +76,22 @@ export function usePurgeAll(options: PurgeAllOptions) {
   const toast = useToast()
   const { confirmWrite } = useConfirm()
   const scope = useScopeStore()
-  const writes = {
-    gorev: usePurgeAllWorkItems(),
-    toplanti: usePurgeAllMeetings(),
-    kullanici: usePurgeAllAccounts(),
-  }
+  const hub = options.hub ?? useLifecycleHub()
   const state = usePurgeAllState(options.kind)
-  const pending = computed(
-    () => state.running.value || Object.values(writes).some((write) => write.isPending.value),
-  )
+  const pending = computed(() => state.running.value || hub.pending.value)
 
-  async function loop(kind: PurgeAllKind, first: PurgeOutcome): Promise<void> {
-    const target = { programId: scope.programId ?? '', confirm: PURGE_ALL_CONFIRM[kind] }
-    const result = await purgeLoop(writes[kind].submit, target, first, {
-      shouldStop: () => state.stop.requested,
-      onProgress: (done, left) => {
-        state.progress.value = { done, left }
-      },
-    })
-    if (result.stopped) {
-      if (!reachesOwner(result.stopped)) return
-      notifyOutcome(result.stopped)
-      await options.refresh()
-    }
-    const ended = result.state === 'stopped' ? 'interrupted' : result.state
-    const made = summarizePurgeAll(result.run, result.remaining, ended)
-    if (made.tone === 'success') toast.push({ message: made.message })
-    else state.summary.value = made
-  }
+  const sequence = (kinds: readonly LifecycleKind[], first: PurgeOutcome) =>
+    runPurgeSequence({ hub, scope, state, toast, refresh: options.refresh }, kinds, first)
 
   async function confirm(): Promise<void> {
-    const kind = options.kind()
-    if (pending.value || !supportsPurgeAll(kind)) return
+    const view = options.kind()
+    const kinds = purgeKindsOf(view)
+    if (pending.value || kinds === null || view === 'tumu') return
     state.summary.value = null
     state.stop.requested = false
-    const target = { programId: scope.programId ?? '', confirm: PURGE_ALL_CONFIRM[kind] }
     // İlk parça onayın bağlamıyla (diyalog meşgul) gider; sonrakiler ilerleme panelinde sürer.
-    const first = await confirmWrite(purgeAllConfirmOptions(kind), (context) =>
-      writes[kind].submit(target, { context }),
+    const first = await confirmWrite(purgeAllConfirmOptions(view), (context) =>
+      hub.purgeAll[kinds[0]!](purgeTarget(scope.programId, kinds[0]!), { context }),
     )
     // Vazgeç ya da bağlam bayat: istek gitmedi, panel açık kalır.
     if (first === null) return
@@ -122,7 +99,7 @@ export function usePurgeAll(options: PurgeAllOptions) {
     state.running.value = true
     state.panel.value = false
     try {
-      await loop(kind, first)
+      await sequence(kinds, first)
     } finally {
       state.running.value = false
     }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   EXPORT_FALLBACK_NAME,
-  EXPORT_KINDS,
+  exportKinds,
   EXPORT_MAX_ROWS,
   EXPORT_PATH,
   exportQuery,
@@ -13,12 +13,17 @@ const base = { programId: 'p1', kind: 'gorev' as const, query: {} }
 
 describe('CSV bilet hedefi (BE-116; hedef sorgu dizesiyle bire bir)', () => {
   it('tür eşlemesi sözleşme değerleriyle sabit; tavan 10 000', () => {
-    expect(EXPORT_KINDS).toEqual({
-      gorev: 'tasks',
-      toplanti: 'meetings',
-      koordinatorluk: 'departments',
-      kullanici: 'accounts',
-    })
+    expect(exportKinds('gorev')).toBe('tasks')
+    expect(exportKinds('toplanti')).toBe('meetings')
+    expect(exportKinds('koordinatorluk')).toBe('departments')
+    expect(exportKinds('kullanici')).toBe('accounts')
+    expect(exportKinds('altgorev')).toBe('subtasks')
+    expect(exportKinds('dosya')).toBe('files')
+    // Birleşik görünümler açık liste gönderir; `notes` ayrı tür değildir (iki kez sayılmaz).
+    expect(exportKinds('notgundem')).toBe('task_notes,meeting_notes,agenda_items')
+    expect(exportKinds('tumu')).toBe(
+      'tasks,subtasks,files,meetings,task_notes,meeting_notes,agenda_items,departments,accounts',
+    )
     expect(EXPORT_MAX_ROWS).toBe(10_000)
     expect(EXPORT_PATH).toBe('/v1/admin/deleted/export')
   })

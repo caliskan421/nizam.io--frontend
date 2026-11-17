@@ -52,3 +52,8 @@ CI1'deki iki test uyumu sonrasında yalnız first-unread.test.ts ve ChatPage.tes
 ## Kapanış kapısının gerçekleşmesi — 2026-11-17
 
 PR175 `c002692e`, CI44026445257 kalite863 dosya6328 test, imaj ve gerçek backend15/15 kontrolünde SUCCESS oldu; `215ae5d9649d1bdade7174b6947311b660d6e064` ile MERGED. Yeni sparse390/1440+SPA testi2dk, tüm Playwright3.8dk; testler arası ortak hesap yazma yükü ayrı kurucu hesabıyla yalıtıldı. Opus kaynak hükmünün CI/merge koşulu gerçekleşti. F9 kapandı; önceki bekleyen ifadeler koşum öncesi tarihçedir. F10 daha sonra ürün sahibinin talimatıyla [açıldı](../yurutme/web-10/README.md).
+
+
+## Koordinatör ölçüm düzeltmesi — F10 keşfi
+
+Opus tur2'nin16 stub sayımını tekrar eden dönem raporu eksik bir taramaya dayanıyordu. Root F10'da standart scanSource/stripComments ile testsiz üretim .ts/.vue ve hem çağrı hem Vue wrapper kullanımını saydı: a48a3e78/F8=39 benzersiz kimlik57 kullanım;215ae5d9/F9=24 kimlik35 kullanım. Bu bir kaynak metrik düzeltmesidir;23 bağlanan BE ve163 kayıt sayısı, kaynak hükmü ve gerçekleşen CI/merge kapısı değişmez. Önceki16 sayısı tarihsel denetim metnidir, güncel tam sayım diye kullanılmaz.

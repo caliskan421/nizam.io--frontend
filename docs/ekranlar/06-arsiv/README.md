@@ -1,5 +1,18 @@
 # 06 · Arşiv
 
+## F10 güncel kapsamı — v0.26.0-api
+
+Bu bölüm, aşağıdaki F5/F8 tarihsel tespitlerin güncellenen alanlarında yetkilidir. W194 uygulaması ve bağımsız kabul [WEB-10 ilerleme kaydında](../../yurutme/web-10/ilerleme.md) izlenir; yalnız kod teslimi nihai kabul sayılmaz.
+
+- E-06-59 dosya taşıma aynı programdaki yetkili hedef göreve ve isteğe bağlı alt göreve yapılır. Kaynak yeniden adlandırma, hedef yükleme yetkisi ayrı değerlendirilir. S3 başlıkları kaynak dosyanın program/departmanıdır; hedef görevin kimliği gövdededir. Hedef seçimi global kapsamı değiştirmez; görev değişince alt görev sıfırlanır.
+- Taşıma anahtarsız korumalı yazmadır; belirsiz yanıtta liste yeniden okunur, kör yazma tekrarı yoktur. Kaynak tamamlandı409 ve görünmeyen/hedef tavanı422 sunucudan gelir. Başarıda gerçek dönen dosya adı gösterilir; yanıt gelmeden iyimser kaldırma yoktur, önizleme sonuç teslimine kadar korunur.
+- E-06-06/26 dolu arama `search_scope=all` ile dosya adı, görev başlığı ve yükleyeni kapsar. Backend ek görev/yükleyen eşleşmesini en az iki karakterde açar; tek karakterde dosya adı araması sürer. İstemci sonuç/toplam üretmez, yeni arama türü/URL parametresi eklemez. Serbest etiket araması güncel ürün vaadi değildir.
+- E-06-60/64 dosya silme çöpe taşır. Şirket yöneticisi Silinen kayıtlar ekranından geri yükler/kalıcı siler. Ebeveyn görev çöpteyken çocuk geri yükle409; önce görev, sonra dosya geri yüklenir. Aynı ad çakışırsa gerçek yeniden adlandırılmış sonuç kullanılır.
+- Görevsiz yükleme v1'de yoktur (BE-069 ürün kararı); görev zorunluluğu korunur. Varsayılan dosya tavanı100 backend kuralıdır, istemci yeni bir sabit tavan uydurmaz. Süreli saklama/otomatik silme yoktur.
+- BE-165: çöpteki görevin dosyaları arşiv listesi/toplam/ZIP'te bulunmaz; görev geri yüklenince geri görünür. Doğrudan dosya indirme ayrı RECORDS-K14 kuralıdır; aynı durumda zorunlu404 olduğu söylenmez.
+
+BE-075/076/077/165 kapanışı, son stub'ın kaldırılması + bağımsız tanık + ilgili başlığın üç CI SUCCESS koşuluna bağlıdır. BE-024/025/026 ve diğer kapsam dışı türevler otomatik kapanmaz; GAP-233 küçük resim/çıkarılmış önizleme bu fazın dışındadır.
+
 **Codex kapısı:** UYGUN (WEB-5, 2026-11-13); tespit kapısı KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
 
 **Uygulama durumu (F5):** uygulandı — W121 veri katmanı (#105), W122–W126 (#106–#110), W129 (#113), W127 entegrasyon turu (#114, birleşti `8abcb3b`); F5 Codex nihai kapısı UYGUN (WEB-5). Kabul kanıtları tablonun son sütunundadır.

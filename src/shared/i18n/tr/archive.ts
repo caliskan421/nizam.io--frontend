@@ -7,6 +7,8 @@
 // (hata kodu → `errors.*`); örnek işletme verisi yoktur (ortak-kurallar §4). Etiket adları
 // (P34) `modules/archive/model/tags.ts` sözlüğündedir (tek kaynak).
 
+import { trArchiveMove } from './archive-move'
+
 export const trArchive = {
   archive: {
     page: {
@@ -27,8 +29,9 @@ export const trArchive = {
       },
       upload: 'Yükle',
       search: {
-        label: 'Tüm arşivde ara',
-        placeholder: 'Tüm arşivde ara…',
+        label: 'Dosya, görev veya yükleyen ara',
+        placeholder: 'Dosya, görev veya yükleyen ara…',
+        minHint: 'Görev ve yükleyen adında aramak için en az 2 karakter yazın.',
       },
       missing: {
         // K6: klasör yok ya da erişim kaybı.
@@ -73,9 +76,10 @@ export const trArchive = {
     // O2b alt dalları: sahibi W gövdesini doldururken buraya ekler.
     folders: {
       search: {
-        label: 'Tüm arşivde ara',
-        // BE-077: arama yalnız dosya adında; kişi/görev/etiket araması vaadi yok.
-        placeholder: 'Dosya adı ara…',
+        label: 'Dosya, görev veya yükleyen ara',
+        // RECORDS-K47: dosya adı + görev başlığı + yükleyen adı; serbest etiket araması vaadi yok.
+        placeholder: 'Dosya, görev veya yükleyen ara…',
+        minHint: 'Görev ve yükleyen adında aramak için en az 2 karakter yazın.',
         shortcut: 'Aramaya git',
         results: 'Arama sonuçları',
       },
@@ -221,7 +225,7 @@ export const trArchive = {
       retagMenu: 'Etiket',
       retagged: 'Etiket “{tag}” olarak değiştirildi.',
       retaggedSame: 'Dosya zaten “{tag}” etiketli.',
-      move: 'Başka klasöre taşı',
+      move: 'Başka göreve taşı',
       remove: 'Dosyayı sil',
       renameTitle: 'Dosyayı yeniden adlandır',
       renameDescription: 'Yeni ad aynı görevdeki diğer dosyalarla çakışmamalıdır.',
@@ -231,6 +235,7 @@ export const trArchive = {
       renameRequired: 'Dosya adı boş olamaz.',
       renameTooLong: 'Dosya adı en çok {max} karakter olabilir.',
       renamed: 'Dosya adı güncellendi.',
+      ...trArchiveMove,
       removeTitle: 'Dosya silinsin mi?',
       removeBody:
         'Dosya silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',

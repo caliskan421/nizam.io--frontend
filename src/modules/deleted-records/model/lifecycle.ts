@@ -38,7 +38,7 @@ export interface LifecycleSpec {
   path: string
   /** `account`: S1, program başlığı yok; `program`: S2, başlık eylemle dondurulur. */
   scope: 'program' | 'account'
-  /** Mevcut ekran türü; çocuk türlerde `null` (W193 görünümü). */
+  /** Türün tek türlü görünümü; notlar ve gündem yalnız `notgundem` birleşik görünümündedir (`null`). */
   view: DeletedKind | null
   operations: Readonly<{
     restore: OperationId
@@ -65,7 +65,7 @@ export const LIFECYCLE: Readonly<Record<LifecycleKind, LifecycleSpec>> = {
   subtasks: {
     path: 'subtasks',
     scope: 'program',
-    view: null,
+    view: 'altgorev',
     operations: {
       restore: 'restoreSubtask',
       purge: 'permanentDeleteSubtask',
@@ -77,7 +77,7 @@ export const LIFECYCLE: Readonly<Record<LifecycleKind, LifecycleSpec>> = {
   files: {
     path: 'files',
     scope: 'program',
-    view: null,
+    view: 'dosya',
     operations: {
       restore: 'restoreFile',
       purge: 'permanentDeleteFile',
@@ -170,9 +170,8 @@ export function isChildKind(kind: LifecycleKind): kind is ChildKind {
 }
 
 /** Mevcut ekran türü → kayıt türü (dört tür). */
-export function lifecycleOf(view: DeletedKind): LifecycleKind {
-  const found = LIFECYCLE_KINDS.find((kind) => LIFECYCLE[kind].view === view)
-  return found as LifecycleKind
+export function lifecycleOf(view: DeletedKind): LifecycleKind | null {
+  return LIFECYCLE_KINDS.find((kind) => LIFECYCLE[kind].view === view) ?? null
 }
 
 /** S2 başlıklı türler (program başlığı gerekir); hesap S1'dir. */
@@ -193,3 +192,52 @@ export function kindsParam(kinds: readonly LifecycleKind[] | undefined): string 
 export interface UnifiedQuery extends Omit<ListQuery, 'sort' | 'order'> {
   kinds?: readonly LifecycleKind[]
 }
+
+/** Karma geri yüklemede sıra: ebeveynler (departman, hesap, görev, toplantı) önce, çocuklar sonra. */
+export const RESTORE_ORDER = [
+  'departments',
+  'accounts',
+  'tasks',
+  'meetings',
+  'subtasks',
+  'files',
+  'task_notes',
+  'meeting_notes',
+  'agenda_items',
+] as const satisfies readonly LifecycleKind[]
+
+/** Karma kalıcı silmede sıra: çocuklar önce, ebeveynler sonra. */
+export const PURGE_ORDER = [
+  'files',
+  'subtasks',
+  'task_notes',
+  'meeting_notes',
+  'agenda_items',
+  'tasks',
+  'meetings',
+  'departments',
+  'accounts',
+] as const satisfies readonly LifecycleKind[]
+
+/** Satır anahtarı (`kind:id`): aynı kimlik farklı türlerde çakışmaz. Bilinmeyen tür ham kalır. */
+export const recordKey = (rawKind: string, id: string): string => `${rawKind}:${id}`
+
+/**
+ * URL `kayit` değerini satıra çözer. Birleşik görünümlerde değer satır anahtarıdır (`kind:id`);
+ * tek türlü görünümde düz kimlik (eski bağlantılar) ya da anahtar geçerlidir. Bilinmeyen (gelecek)
+ * türün anahtarı da eşleşir. Yüklü sayfalarda yoksa `null` (kimlik arama ucu yoktur).
+ */
+export function findSelected<T extends { key: string; id: string; kind: LifecycleKind | null }>(
+  rows: readonly T[],
+  value: string | null,
+  single: LifecycleKind | null,
+): T | null {
+  if (!value) return null
+  const byKey = rows.find((row) => row.key === value)
+  if (byKey) return byKey
+  return single ? (rows.find((row) => row.kind === single && row.id === value) ?? null) : null
+}
+
+/** Seçimin URL değeri: tek türlü görünümde düz kimlik (eski biçim), birleşikte anahtar. */
+export const selectedParam = (row: { key: string; id: string }, single: LifecycleKind | null) =>
+  single ? row.id : row.key

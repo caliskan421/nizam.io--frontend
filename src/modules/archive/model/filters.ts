@@ -17,6 +17,17 @@ import type {
 /** `archiveAttachments` sayfa boyu: sözleşmede bu uç için belgelenmemiş; README genel 50/200. */
 export const ARCHIVE_PAGE_LIMIT = 50
 
+/** `search_scope` değeri: dosya adı + görev başlığı + yükleyen adı (sözleşme; varsayılan `name`). */
+const SEARCH_SCOPE_ALL = 'all' satisfies NonNullable<ArchiveFileQuery['search_scope']>
+
+/**
+ * Arama tek karakter mi (yalnız yardımcı metin için): görev/yükleyen eşleşmesi sunucuda en az iki
+ * karakter ister; istek ve sonuç değişmez (sunucu doğrular, istemci süzmez). Karakter = kod noktası.
+ */
+export function isSingleCharSearch(search: string): boolean {
+  return [...search.trim()].length === 1
+}
+
 /** `sort` izinli değerleri (kod; openapi yazmaz — eksikler yeni-8): boş = `created_at` azalan. */
 export const ARCHIVE_SORTS: readonly ArchiveSort[] = ['', 'name', 'size']
 
@@ -24,14 +35,25 @@ export function isArchiveSort(value: unknown): value is ArchiveSort {
   return typeof value === 'string' && (ARCHIVE_SORTS as readonly string[]).includes(value)
 }
 
-/** Sorgu anahtarına giren kararlı süzgeç nesnesi (boş değerler düşer, anahtar sırası sabit). */
-export function filterKey(filters: ArchiveFileFilters): Record<string, string> {
-  const out: Record<string, string> = {}
+/** Süzgeç anahtarı: sunucu adlarıyla dize değerleri; `search_scope` yalnız `all` olabilir. */
+type FilterKey = Record<string, string> & { search_scope?: typeof SEARCH_SCOPE_ALL }
+
+/**
+ * Sorgu anahtarına giren kararlı süzgeç nesnesi (boş değerler düşer, anahtar sırası sabit).
+ * Arama doluyken kapsam her zaman `all`'dır (dosya adı + görev başlığı + yükleyen adı; RECORDS-K47):
+ * görev/yükleyen eşleşmesi için en az iki karakter eşiğini sunucu uygular, tek karakterde dosya
+ * adı eşleşmesi sürer — istemci eşiği kopyalamaz, sonucu süzmez.
+ */
+export function filterKey(filters: ArchiveFileFilters): FilterKey {
+  const out: FilterKey = {}
   const search = filters.search?.trim()
   if (filters.tag && isArchiveTag(filters.tag)) out.tag = filters.tag
   const category = mimeCategoryOf(filters.kind)
   if (category) out.mime_category = category
-  if (search) out.search = search
+  if (search) {
+    out.search = search
+    out.search_scope = SEARCH_SCOPE_ALL
+  }
   if (filters.workItemId) out.work_item_id = filters.workItemId
   if (filters.uploaderId) out.uploader_id = filters.uploaderId
   if (filters.sort && isArchiveSort(filters.sort)) out.sort = filters.sort

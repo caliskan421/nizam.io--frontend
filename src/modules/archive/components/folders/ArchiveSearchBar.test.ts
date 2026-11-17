@@ -28,18 +28,31 @@ function bar(props: Record<string, unknown> = {}) {
 }
 
 describe('arama (E-06-06/26)', () => {
-  it('etiketli, yalnız dosya adı vaadi; ~300 ms gecikmeyle tek update:q', async () => {
+  it('etiketli; dosya, görev veya yükleyen vaadi (serbest etiket yok); ~300 ms gecikmeyle tek update:q', async () => {
     const w = bar()
     const input = w.get('input[type="search"]')
-    expect(input.attributes('aria-label')).toBe('Tüm arşivde ara')
-    expect(input.attributes('placeholder')).toBe('Dosya adı ara…')
-    expect(input.attributes('placeholder')).not.toMatch(/kişi|etiket|görev/i)
+    expect(input.attributes('aria-label')).toBe('Dosya, görev veya yükleyen ara')
+    expect(input.attributes('placeholder')).toBe('Dosya, görev veya yükleyen ara…')
+    expect(input.attributes('placeholder')).not.toMatch(/etiket/i)
     await input.setValue('ra')
     await input.setValue('rapor')
     vi.advanceTimersByTime(299)
     expect(w.emitted('update:q')).toBeUndefined()
     vi.advanceTimersByTime(1)
     expect(w.emitted('update:q')).toEqual([['rapor']])
+  })
+
+  it('tek karakterde (Türkçe dahil) iki karakter yardımı görünür; iki karakterde yok; istek metni değişmez', async () => {
+    const w = bar()
+    expect(w.find('[data-testid="archive-search-hint"]').exists()).toBe(false)
+    await w.get('input[type="search"]').setValue('İ')
+    expect(w.get('[data-testid="archive-search-hint"]').text()).toBe(
+      'Görev ve yükleyen adında aramak için en az 2 karakter yazın.',
+    )
+    vi.advanceTimersByTime(300)
+    expect(w.emitted('update:q')).toEqual([['İ']])
+    await w.get('input[type="search"]').setValue('İş')
+    expect(w.find('[data-testid="archive-search-hint"]').exists()).toBe(false)
   })
 
   it('dışarıdan değişim (geri tuşu) bekleyen yazımı düşürür ve kutuyu eşitler', async () => {

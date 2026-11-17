@@ -22,12 +22,13 @@ import {
 } from '../components'
 import { useDeletedPage } from '../components/use-deleted-page'
 import { deletedText } from '../model/messages'
+import { isUnifiedView } from '../model/kinds'
 import { supportsPurgeAll } from '../model/purge-all'
 
 /**
- * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5, F8; P36, P41…P45). Yalnız şirket
- * yöneticisi (`me.company_admin` olgusu; mercek değil). Dört canlı tür ayrı imleçli uçtur, açık
- * sekmenin ucu çağrılır; arama/koordinatörlük/aralık/silen/sıra sunucu parametresidir (BE-117).
+ * 12 · Silinen kayıtlar (`/silinen-kayitlar`, S2; F5, F8, F10; P36, P41…P45). Yalnız şirket
+ * yöneticisi (`me.company_admin` olgusu; mercek değil). Tek türlü görünümler tipli listesini,
+ * `Tümü` ve `Not ve gündem` birleşik sunucu listesini okur (açık görünümün ucu çağrılır; arama/koordinatörlük/aralık/silen/sıra sunucu parametresidir (BE-117).
  * Kenar menüsünde giriş yoktur; giriş ana sayfa E-01-02 düğmesidir. Bileşim `use-deleted-page`.
  */
 const {
@@ -147,6 +148,7 @@ const {
           :rows="list.rows.value"
           :selected-key="view.selected.value?.key ?? null"
           :sort="view.sort.value"
+          :sort-locked="isUnifiedView(filters.kind)"
           :busy="busy"
           :checked-ids="selection.ids.value"
           :all-checked="selection.allSelected.value"
@@ -155,9 +157,10 @@ const {
           :now="view.now.value"
           :can-restore="caps.restore"
           :can-purge="caps.purge"
-          @select="(row) => view.update({ selected: row.id })"
+          @select="view.select"
           @sort="view.setSort"
-          @toggle="(row) => selection.toggle(row.id)"
+          @open-parent="view.openParent"
+          @toggle="(row) => selection.toggle(row.key)"
           @toggle-all="selection.toggleAll"
           @restore="(row) => act('restore', row)"
           @purge="(row) => act('purge', row)"
@@ -180,6 +183,7 @@ const {
           :timezone="list.timezone.value"
           :can-restore="caps.restore"
           :can-purge="caps.purge"
+          @open-parent="view.selected.value && view.openParent(view.selected.value)"
           @restore="view.selected.value && act('restore', view.selected.value)"
           @purge="view.selected.value && act('purge', view.selected.value)"
         />

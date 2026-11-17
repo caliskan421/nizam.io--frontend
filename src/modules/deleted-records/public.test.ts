@@ -14,7 +14,6 @@ describe('deleted-records public yüzü', () => {
         'DELETED_RECORDS_CAPABILITY_SOURCES',
         'DELETED_RECORDS_QUERY_KEYS',
         'DELETED_RECORDS_ROUTE',
-        'DISABLED_KINDS',
         'deletedRecordsCapabilities',
         'deletedRecordsRoutes',
         'deletedText',

@@ -112,7 +112,7 @@ beforeAll(async () => {
   seedWorld(backend.db)
   install()
   await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-  await until(() => $('[data-record-key="gorev:wd"]'), 'ısınma')
+  await until(() => $('[data-record-key="tasks:wd"]'), 'ısınma')
   teardown()
 }, 60_000)
 beforeEach(() => {
@@ -139,7 +139,7 @@ const card = () => $('[data-testid="dr-export-card"]')
 const csv = () => click(() => $('[data-testid="dr-csv"]'))
 const open = async () => {
   const app = await boot({ ...ADMIN, path: '/silinen-kayitlar' })
-  await until(() => $('[data-record-key="gorev:wd"]'), 'silinen görev')
+  await until(() => $('[data-record-key="tasks:wd"]'), 'silinen görev')
   return app
 }
 

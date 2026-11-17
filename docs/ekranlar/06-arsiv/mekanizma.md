@@ -1,5 +1,7 @@
 # 06 — Mekanizma (nasıl davranıyor)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Sürüm: `v0.23.0-api` (F8 W171: yönetici okumaları S2 `programArchive*`, dosya işlemi başlığı satırın `department_id`'si, klasör özeti/tarih/yükleyen/toplam alanları, `retagFile`, dönem ZIP'i `programArchiveZip` + onay penceresi; ayrıntı `backend.md` "F8 / v0.23.0-api güncel uç tablosu"). Aşağıdaki "BE-072 açıktır" gibi v0.15 notları tarihçedir.
 
 Öğe kimlikleri `ozellikler.md` ile aynıdır. Uç adları yalnız yön göstermek içindir; eşleme `backend.md`'nin işidir.

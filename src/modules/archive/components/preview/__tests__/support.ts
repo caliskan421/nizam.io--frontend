@@ -16,7 +16,12 @@ import type { ArchiveFile } from '../../../model/types'
 export interface StandingSeed {
   accountId?: string
   companyAdmin?: boolean
-  rows?: ReadonlyArray<{ departmentId: string; role: 'koordinator' | 'uye' }>
+  rows?: ReadonlyArray<{
+    departmentId: string
+    role: 'koordinator' | 'uye'
+    programId?: string
+    name?: string
+  }>
 }
 
 /** `useStanding()` önbelleğine `me` + `me/departments` yazar (oturum kapalıyken istek atılmaz). */
@@ -32,10 +37,10 @@ export function seedStanding(client: QueryClient, seed: StandingSeed | null): vo
     truncated: false,
     data: {
       departments: (seed.rows ?? []).map((row) => ({
-        program_id: 'p1',
+        program_id: row.programId ?? 'p1',
         program_name: 'Program',
         department_id: row.departmentId,
-        display_name: 'Birim',
+        display_name: row.name ?? 'Birim',
         role: row.role,
       })),
     },

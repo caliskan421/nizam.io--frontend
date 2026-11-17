@@ -79,7 +79,7 @@ describe('DetailPanel (E-12-41…54)', () => {
       props: {
         ...base,
         row: fixtureRow({
-          kind: 'toplanti',
+          kind: 'meetings',
           task: null,
           status: null,
           fileCount: null,
@@ -103,7 +103,7 @@ describe('DetailPanel (E-12-41…54)', () => {
       props: {
         ...base,
         row: fixtureRow({
-          kind: 'koordinatorluk',
+          kind: 'departments',
           status: null,
           fileCount: null,
           code: 'OPE',
@@ -116,7 +116,7 @@ describe('DetailPanel (E-12-41…54)', () => {
 
   it('hesap: silinme tarihi, ekip koordinatörlükleri ve şirket yöneticiliği (BE-118); tarih yoksa satır yok', () => {
     const row = fixtureRow({
-      kind: 'kullanici',
+      kind: 'accounts',
       status: null,
       fileCount: null,
       subLine: 'Mekanik',

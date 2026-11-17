@@ -17,6 +17,7 @@ import { usePageCounts } from './use-page-counts'
 import { usePageFocus } from './use-page-focus'
 import { usePurgeAll } from './use-purge-all'
 import { useRecordActions } from './use-record-actions'
+import { useLifecycleHub } from './use-lifecycle-hub'
 import { useSelection } from './use-selection'
 
 function usePageState() {
@@ -46,10 +47,15 @@ type PageState = ReturnType<typeof usePageState>
 
 /** Yazma eylemleri: tekil, toplu (seçim) ve çöpü boşalt; hepsi ortak onay ve kilit üzerinden. */
 function usePageWrites({ view, filters, list, focus }: PageState) {
+  // Dokuz türün yazmaları tek merkezden: tekil, toplu ve çöpü boşalt aynı hook'ları paylaşır.
+  const hub = useLifecycleHub()
   const actions = useRecordActions({
+    hub,
     refresh: () => list.refetch(),
     removed: (row) => {
-      if (filters.value.selected === row.id) view.update({ selected: null })
+      // Liste yenilendiğinde satır çoktan düşmüş olabilir: seçim URL değerinden denetlenir.
+      const selected = filters.value.selected
+      if (selected === row.id || selected === row.key) view.update({ selected: null })
       void focus.afterRemoval()
     },
   })
@@ -60,14 +66,15 @@ function usePageWrites({ view, filters, list, focus }: PageState) {
   )
   onScopeDispose(selection.dispose)
   const batch = useBatchActions({
-    kind: () => filters.value.kind,
+    hub,
     refresh: () => list.refetch(),
-    finished: (failedIds) => {
-      selection.keepOnly(failedIds)
+    finished: (failedKeys) => {
+      selection.keepOnly(failedKeys)
       void focus.afterRemoval()
     },
   })
   const purgeAll = usePurgeAll({
+    hub,
     kind: () => filters.value.kind,
     refresh: () => list.refetch(),
     finished: () => {

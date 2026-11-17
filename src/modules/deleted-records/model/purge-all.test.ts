@@ -4,6 +4,7 @@ import { emptyRun } from './batch'
 import {
   PURGE_ALL_CHUNK,
   PURGE_ALL_CONFIRM,
+  purgeKindsOf,
   shouldContinue,
   summarizePurgeAll,
   supportsPurgeAll,
@@ -11,18 +12,39 @@ import {
 } from './purge-all'
 
 describe('onay değeri eşlemesi (ADR-0045: confirm = tür yol adı)', () => {
-  it('görev work-items, toplantı meetings, kullanıcı accounts; koordinatörlük desteklenmez', () => {
+  it('dokuz türün yol adı onay değeridir; görünüm politikası: Tümü hariç hepsi boşaltılır', () => {
     expect(PURGE_ALL_CONFIRM).toEqual({
-      gorev: 'work-items',
-      toplanti: 'meetings',
-      kullanici: 'accounts',
+      tasks: 'work-items',
+      subtasks: 'subtasks',
+      files: 'files',
+      meetings: 'meetings',
+      task_notes: 'task-notes',
+      meeting_notes: 'meeting-notes',
+      agenda_items: 'agenda-items',
+      departments: 'departments',
+      accounts: 'accounts',
     })
     expect(PURGE_ALL_CHUNK).toBe(50)
-    expect(supportsPurgeAll('gorev')).toBe(true)
-    expect(supportsPurgeAll('toplanti')).toBe(true)
-    expect(supportsPurgeAll('kullanici')).toBe(true)
-    // Uç şirket geneli çalışır, programa bağlı departmanı silemez: sekme kümesiyle örtüşmez.
-    expect(supportsPurgeAll('koordinatorluk')).toBe(false)
+    for (const view of [
+      'gorev',
+      'altgorev',
+      'dosya',
+      'toplanti',
+      'koordinatorluk',
+      'kullanici',
+      'notgundem',
+    ] as const) {
+      expect(supportsPurgeAll(view), view).toBe(true)
+    }
+    // Tümü: bir tür seçilir (tüm şirket çöpünü tek tıkla boşaltma vaadi yok).
+    expect(supportsPurgeAll('tumu')).toBe(false)
+    expect(purgeKindsOf('tumu')).toBeNull()
+  })
+
+  it('Not ve gündem üç türü sırayla boşaltır; tek türlü görünüm yalnız kendi türünü', () => {
+    expect(purgeKindsOf('notgundem')).toEqual(['task_notes', 'meeting_notes', 'agenda_items'])
+    expect(purgeKindsOf('dosya')).toEqual(['files'])
+    expect(purgeKindsOf('koordinatorluk')).toEqual(['departments'])
   })
 })
 
@@ -37,6 +59,8 @@ describe('tür adı yazarak onay', () => {
     expect(typedMatches('', 'gorev')).toBe(false)
     expect(typedMatches('görevler', 'gorev')).toBe(false)
     expect(typedMatches('work-items', 'gorev')).toBe(false)
+    expect(typedMatches('not ve gündem', 'notgundem')).toBe(true)
+    expect(typedMatches('alt görev', 'altgorev')).toBe(true)
   })
 })
 

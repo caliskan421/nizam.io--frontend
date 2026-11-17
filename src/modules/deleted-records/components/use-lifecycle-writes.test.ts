@@ -44,33 +44,39 @@ function currentContext() {
 }
 
 describe('yaşam döngüsü gönderici tablosu (tür × eylem)', () => {
-  it('sekiz uç, doğru yol ve kapsam; toplantı yazmaları meetings modülünden', async () => {
+  it('dokuz türün on sekiz ucu, doğru yol ve kapsam; toplantı yazmaları meetings modülünden', async () => {
     const { writes, app } = setup()
     const cases = [
-      ['gorev', 'restore', 'PATCH /v1/admin/restore/work-items/x1'],
-      ['gorev', 'purge', 'DELETE /v1/admin/permanent/work-items/x1'],
-      ['toplanti', 'restore', 'PATCH /v1/admin/restore/meetings/x1'],
-      ['toplanti', 'purge', 'DELETE /v1/admin/permanent/meetings/x1'],
-      ['koordinatorluk', 'restore', 'PATCH /v1/admin/restore/departments/x1'],
-      ['koordinatorluk', 'purge', 'DELETE /v1/admin/permanent/departments/x1'],
-      ['kullanici', 'restore', 'PATCH /v1/admin/restore/accounts/x1'],
-      ['kullanici', 'purge', 'DELETE /v1/admin/permanent/accounts/x1'],
+      ['tasks', 'work-items'],
+      ['meetings', 'meetings'],
+      ['departments', 'departments'],
+      ['accounts', 'accounts'],
+      ['subtasks', 'subtasks'],
+      ['files', 'files'],
+      ['task_notes', 'task-notes'],
+      ['meeting_notes', 'meeting-notes'],
+      ['agenda_items', 'agenda-items'],
     ] as const
-    for (const [kind, action, expected] of cases) {
-      requests.length = 0
-      const outcome = await writes.senders[kind][action](
-        fixtureRow({ kind, id: 'x1' }),
-        currentContext(),
-      )
-      expect(outcome.kind, expected).toBe('success')
-      expect(
-        requests.map((r) => `${r.method} ${r.path}`),
-        expected,
-      ).toEqual([expected])
-      expect(requests[0]!.headers.get('X-Nizamio-Program'), expected).toBe(
-        kind === 'kullanici' ? null : 'p1',
-      )
-      expect(requests[0]!.headers.get('Idempotency-Key'), expected).toBeNull()
+    for (const [kind, path] of cases) {
+      for (const [action, expected] of [
+        ['restore', `PATCH /v1/admin/restore/${path}/x1`],
+        ['purge', `DELETE /v1/admin/permanent/${path}/x1`],
+      ] as const) {
+        requests.length = 0
+        const outcome = await writes.senders[kind][action](
+          fixtureRow({ kind, rawKind: kind, id: 'x1' }),
+          currentContext(),
+        )
+        expect(outcome.kind, expected).toBe('success')
+        expect(
+          requests.map((r) => `${r.method} ${r.path}`),
+          expected,
+        ).toEqual([expected])
+        expect(requests[0]!.headers.get('X-Nizamio-Program'), expected).toBe(
+          kind === 'accounts' ? null : 'p1',
+        )
+        expect(requests[0]!.headers.get('Idempotency-Key'), expected).toBeNull()
+      }
     }
     expect(writes.pending.value).toBe(false)
     app.unmount()
@@ -82,7 +88,7 @@ describe('yaşam döngüsü gönderici tablosu (tür × eylem)', () => {
       scope: { ...useScopeStore().snapshot, programId: 'p0' },
       generation: authSession.generation,
     }
-    const outcome = await writes.senders.gorev.restore(fixtureRow(), stale)
+    const outcome = await writes.senders.tasks.restore(fixtureRow(), stale)
     expect(outcome.kind).toBe('scope_changed')
     expect(requests).toHaveLength(0)
     app.unmount()

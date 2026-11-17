@@ -5,8 +5,8 @@ import type { MutationOutcome } from '@/shared/http/mutation'
 
 import { interpretOutcome } from './outcome'
 
-const TASK = { kind: 'gorev', title: 'Saha pano montajı' } as const
-const ACCOUNT = { kind: 'kullanici', title: 'Ayşe' } as const
+const TASK = { kind: 'tasks', title: 'Saha pano montajı' } as const
+const ACCOUNT = { kind: 'accounts', title: 'Ayşe' } as const
 
 const failed = (code: string, status = 409): MutationOutcome<unknown, unknown, unknown> => ({
   kind: 'failed',

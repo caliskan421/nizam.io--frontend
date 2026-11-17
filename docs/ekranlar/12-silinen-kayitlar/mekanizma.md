@@ -1,5 +1,7 @@
 # 12 — Mekanizma (nasıl davranıyor)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 **Sürüm: v0.23.0-api (F8, W174).** Bu dosyanın F5 metni (v0.15: sunucu süzgeci/toplu/çöp/CSV yok) F8 canlıya almayla güncellendi; ayrıntı `backend.md` ve README "F8 eki".
 
 Kararlar: P36, P37, P41 (`../ortak-kurallar.md` §12). Ortak kurallar (mercek≠yetki, varsayım durumları, statik≠sahte veri, sayfa tavanı, yazma protokolü) yeniden yazılmaz: `../ortak-kurallar.md` §1, §2, §4, §7, §9, §10.

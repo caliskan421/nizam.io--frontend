@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import { DesignStub, UiCount } from '@/shared/ui'
+import { UiCount } from '@/shared/ui'
 import { rovingTarget } from '@/shared/ui/roving'
 
 import { DELETED_KINDS, type DeletedKind } from '../model/kinds'
 import { deletedText } from '../model/messages'
 
 /**
- * Tür segmenti (E-12-08…16; P41, P42): Görev (varsayılan) · Toplantı · Koordinatörlük ·
- * Kullanıcı canlı; Alt görev · Dosya · Not ve gündem devre dışı statik (BE-109, BE-076, BE-111).
- * "Tümü" yoktur (birleşik liste yok; GAP-234). Sayaçlar `reportDeletedSummary` değeridir (kesin;
- * etkin olmayan tür de sayı gösterir, BE-110); özet gelmediyse sayaç çizilmez, sahte sayı yok.
+ * Görünüm segmenti (E-12-08…16; P41, v0.26): Tümü · Görev (varsayılan) · Alt görev · Dosya ·
+ * Toplantı · Koordinatörlük · Kullanıcı · Not ve gündem; hepsi gerçek uçlarla canlıdır. Sayaçlar
+ * `reportDeletedSummary` değeridir (kesin; `Tümü` toplam, `Not ve gündem` `notes`); özet gelmediyse
+ * sayaç çizilmez, sahte sayı yok.
  * Klavye: ←/→, Home/End odağı taşır; Enter/Boşluk seçer.
  */
 defineProps<{ modelValue: DeletedKind; counts: Readonly<Record<DeletedKind, number>> | null }>()
@@ -27,7 +27,7 @@ function onKeydown(event: KeyboardEvent): void {
 <template>
   <div
     ref="root"
-    class="rp-seg"
+    class="rp-seg dr-seg"
     role="group"
     :aria-label="deletedText('kinds.label')"
     data-testid="dr-kinds"
@@ -44,30 +44,5 @@ function onKeydown(event: KeyboardEvent): void {
       {{ deletedText(`kinds.${kind}`) }}
       <UiCount v-if="counts !== null" :value="String(counts[kind])" :parens="false" />
     </button>
-    <DesignStub id="BE-109">
-      <button
-        type="button"
-        data-kind="altgorev"
-        disabled
-        :title="deletedText('kinds.disabledHint')"
-      >
-        {{ deletedText('kinds.altgorev') }}
-      </button>
-    </DesignStub>
-    <DesignStub id="BE-076">
-      <button type="button" data-kind="dosya" disabled :title="deletedText('kinds.disabledHint')">
-        {{ deletedText('kinds.dosya') }}
-      </button>
-    </DesignStub>
-    <DesignStub id="BE-111">
-      <button
-        type="button"
-        data-kind="notgundem"
-        disabled
-        :title="deletedText('kinds.disabledHint')"
-      >
-        {{ deletedText('kinds.notgundem') }}
-      </button>
-    </DesignStub>
   </div>
 </template>

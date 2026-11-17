@@ -13,24 +13,8 @@ import { designStub } from '@/shared/design-stub'
  */
 export const FOLDER_SUMMARY = designStub('BE-025', { storageBreakdown: false })
 
-/** Göreve bağsız yükleme (E-06-05): görev seçilmeden yükleme yok → pencere görev seçtirir. */
-export const UNATTACHED_UPLOAD = designStub('BE-069', { available: false })
-
 /** Etiket oluşturma (E-06-19…21): kapalı küme, ağ isteği yok. */
 export const CREATE_TAG = designStub('BE-024', { available: false })
 
 /** Küçük resim / önizleme türevi (E-06-41, 49, 50): ızgarada yok; tam ekran devre dışı. */
 export const THUMBNAIL = designStub('BE-026', { grid: false, fullscreen: false })
-
-/** Başka göreve/klasöre taşı (E-06-59). */
-export const MOVE_FILE = designStub('BE-075', { available: false })
-
-/**
- * Silinen dosya geri yükleme (E-06-63; BE-076): v0.26'da dosya silme çöpe taşır ve yönetici geri
- * yükler; bu ekranda geri yükleme arayüzü yoktur (sonraki W'de silinenler ekranı), bu yüzden
- * kullanılamaz kalır.
- */
-export const RESTORE_FILE = designStub('BE-076', { available: false })
-
-/** Arama kapsamı (E-06-06/26): yalnız dosya adı; görev/kişi/etiket adı araması yok. */
-export const SEARCH_SCOPE = designStub('BE-077', { fileNameOnly: true })

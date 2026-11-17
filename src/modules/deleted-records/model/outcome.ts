@@ -134,7 +134,7 @@ export function interpretOutcome(
   }
   if (outcome.kind === 'failed') return failed(action, outcome.error.code)
   // Görev kalıcı silmede ek temizlik hatası (500; GAP-052/WORK-K48): görev silinmiş kalır.
-  if (outcome.kind === 'unknown_outcome' && action === 'purge' && row.kind === 'gorev') {
+  if (outcome.kind === 'unknown_outcome' && action === 'purge' && row.kind === 'tasks') {
     return { kind: 'error', message: deletedText('feedback.purgeIncomplete'), refresh: true }
   }
   return null

@@ -3,9 +3,10 @@ import type { DeletedRow } from '../model/types'
 // Bileşen testleri için satır fikstürü (örnek veri; gerçek değildir).
 export function fixtureRow(over: Partial<DeletedRow> = {}): DeletedRow {
   return {
-    kind: 'gorev',
+    kind: 'tasks',
+    rawKind: 'tasks',
     id: 'w1',
-    key: 'gorev:w1',
+    key: 'tasks:w1',
     title: 'Saha pano montajı',
     code: null,
     subLine: 'Mekanik › Görevler',
@@ -27,6 +28,8 @@ export function fixtureRow(over: Partial<DeletedRow> = {}): DeletedRow {
     departmentNames: ['Mekanik'],
     departmentKind: null,
     companyAdmin: false,
+    parent: null,
+    facts: [],
     ...over,
   }
 }

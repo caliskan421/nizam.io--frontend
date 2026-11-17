@@ -55,9 +55,12 @@ describe('E-12-66 görev satırı', () => {
 
   it('alanlar yalnız liste öğesinden: başlık, alt satır, durum, dosya sayısı', () => {
     expect(row).toMatchObject({
-      kind: 'gorev',
+      kind: 'tasks',
+      rawKind: 'tasks',
       id: 'w1',
-      key: 'gorev:w1',
+      key: 'tasks:w1',
+      parent: null,
+      facts: [],
       title: 'Saha pano montajı',
       code: null,
       subLine: 'Mekanik › Görevler',
@@ -163,7 +166,7 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
       }),
     )
     expect(row).toMatchObject({
-      kind: 'koordinatorluk',
+      kind: 'departments',
       title: 'Operasyon',
       code: 'OPE',
       subLine: 'koordinatorluk',
@@ -201,8 +204,8 @@ describe('E-12-68/69 koordinatörlük ve kullanıcı satırı', () => {
       }),
     )
     expect(row).toMatchObject({
-      kind: 'kullanici',
-      key: 'kullanici:a1',
+      kind: 'accounts',
+      key: 'accounts:a1',
       title: 'Gökhan Tanaydın',
       subLine: 'Mekanik, Yazılım',
       deletedAt: '2026-11-11T14:30:00Z',

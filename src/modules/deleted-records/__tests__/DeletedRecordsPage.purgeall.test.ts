@@ -1,4 +1,4 @@
-// BE-115 · Çöpü boşalt: tür adı yazarak onay → ortak onay → ≤50'lik parçalar döngüsü
+// BE-115/BE-163 · Çöpü boşalt: tür adı yazarak onay → ortak onay → ≤50'lik parçalar döngüsü
 // (`remaining` > 0 ve başarı varken sürer), durdur, kapsam değişimi, 5xx, kalan başarısızlar.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -7,8 +7,13 @@ import { useConfirm } from '@/shared/ui/confirm'
 
 import {
   account,
+  agendaItem,
   department,
   meeting,
+  meetingNote,
+  record,
+  requests,
+  taskNote,
   mountPage,
   PATHS,
   resetAll,
@@ -267,22 +272,123 @@ describe('döngü', () => {
   })
 })
 
-describe('koordinatörlük türü: çöpü boşalt devre dışı (kalan stub BE-115)', () => {
-  it('sekmede devre dışı + açıklama; panel açılmaz, istek yok; diğer türlerde etkin', async () => {
-    world.departments = [[department('d5')]]
-    world.tasks = [[task('w1')]]
+describe('koordinatörlük çöpü boşalt (BE-163): scope=program açık', () => {
+  it('düğme etkin, stub yok; onaydan sonra purge-all `scope=program` ve doğru confirm ile gider', async () => {
+    world.departments = [[department('d5'), department('d6')]]
     const page = await mountPage({ path: '/silinen-kayitlar?tur=koordinatorluk' })
+    expect(trash(page).attributes('disabled')).toBeUndefined()
+    expect(page.wrapper.find('[data-design-stub="BE-163"]').exists()).toBe(false)
+    await open(page)
+    expect(panel(page).text()).toContain('2 koordinatörlük kalıcı olarak silinecek')
+    await type(page, 'koordinatörlük')
+    await submit(page)
+    await accept()
+    expect(posts('departments')).toHaveLength(1)
+    const call = posts('departments')[0]!
+    expect(call.query.get('scope')).toBe('program')
+    expect(call.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(rowIds(page)).toEqual([])
+  })
+})
+
+describe('Tümü görünümünde çöpü boşalt devre dışı (görünüm politikası)', () => {
+  it('düğme devre dışı ve "bir tür seçin" der; panel açılmaz, istek yok; tür seçilince etkin', async () => {
+    world.records = [[record('files', 'f1')]]
+    world.tasks = [[task('w1')]]
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=tumu' })
     const button = trash(page)
     expect(button.attributes('disabled')).toBeDefined()
-    expect(page.wrapper.get('[data-design-stub="BE-163"]').element.contains(button.element)).toBe(
-      true,
-    )
-    expect(button.attributes('title')).toContain('şirket geneli')
+    expect(button.attributes('title')).toBe('Boşaltmak için bir kayıt türü seçin.')
+    expect(page.wrapper.find('[data-design-stub]').exists()).toBe(false)
     await button.trigger('click')
     expect(panel(page).exists()).toBe(false)
+    expect(
+      requests.filter((r) => r.method === 'POST' && r.path.endsWith('/purge-all')),
+    ).toHaveLength(0)
     await page.wrapper.get('[data-kind="gorev"]').trigger('click')
     await settle()
     expect(trash(page).attributes('disabled')).toBeUndefined()
-    expect(page.wrapper.find('[data-design-stub="BE-163"]').exists()).toBe(false)
+  })
+})
+
+describe('Not ve gündem: üç tür sırayla boşaltılır', () => {
+  const seed = () => {
+    world.taskNotes = [[taskNote('n1'), taskNote('n2')]]
+    world.meetingNotes = [[meetingNote('m1')]]
+    world.agendaItems = [[agendaItem('a1')]]
+    world.records = [
+      [
+        record('task_notes', 'n1'),
+        record('task_notes', 'n2'),
+        record('meeting_notes', 'm1'),
+        record('agenda_items', 'a1'),
+      ],
+    ]
+  }
+
+  it('panel sonucu açıkça söyler (atomik/50 ayrıntısı yok); her tür kendi yol adıyla, program başlığıyla', async () => {
+    seed()
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=notgundem' })
+    await open(page)
+    const text = panel(page).text()
+    expect(text).toContain('sırayla kalıcı silinir')
+    expect(text).toContain('daha önce silinenler geri getirilemez')
+    expect(text).not.toMatch(/atomik|50|100/)
+    await type(page, 'not ve gündem')
+    await submit(page)
+    await accept()
+    expect(posts('task-notes')).toHaveLength(1)
+    expect(posts('meeting-notes')).toHaveLength(1)
+    expect(posts('agenda-items')).toHaveLength(1)
+    const order = requests
+      .filter((r) => r.method === 'POST' && r.path.endsWith('/purge-all'))
+      .map((r) => r.path.split('/').at(-2))
+    expect(order).toEqual(['task-notes', 'meeting-notes', 'agenda-items'])
+    for (const call of requests.filter((r) => r.path.endsWith('/purge-all'))) {
+      expect(call.headers.get('X-Nizamio-Program')).toBe('p1')
+    }
+    expect(toasts()).toContain('Çöp boşaltıldı: 4 kayıt kalıcı olarak silindi.')
+    expect(rowIds(page)).toEqual([])
+  })
+
+  it('ikinci tür 5xx: üçüncüye geçilmez; ilk türün silinenleri korunur, "yarıda kaldı" özeti', async () => {
+    seed()
+    world.failures.set('POST /v1/admin/deleted/meeting-notes/purge-all', {
+      status: 500,
+      code: 'platform.internal',
+    })
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=notgundem' })
+    await open(page)
+    await type(page, 'not ve gündem')
+    await submit(page)
+    await accept()
+    expect(posts('task-notes')).toHaveLength(1)
+    expect(posts('meeting-notes')).toHaveLength(1)
+    expect(posts('agenda-items')).toHaveLength(0)
+    const summary = page.wrapper.get('[data-testid="dr-batch-summary"]').text()
+    expect(summary).toContain('yarıda kaldı')
+    expect(summary).toContain('2 kayıt silindi')
+  })
+
+  it('kapsam değişince sonraki tür için istek gitmez', async () => {
+    seed()
+    let release!: () => void
+    world.purgeGate = (call) =>
+      call === 2 ? new Promise<void>((resolve) => (release = resolve)) : Promise.resolve()
+    const page = await mountPage({ path: '/silinen-kayitlar?tur=notgundem' })
+    await open(page)
+    await type(page, 'not ve gündem')
+    await submit(page)
+    await confirm.accept(confirm.current.value!.id)
+    await vi.waitFor(() => expect(posts('meeting-notes')).toHaveLength(1))
+    page.store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    release()
+    await settle()
+    await vi.waitFor(() =>
+      expect(page.wrapper.find('[data-testid="dr-purgeall-progress"]').exists()).toBe(false),
+    )
+    expect(posts('task-notes')).toHaveLength(1)
+    expect(posts('meeting-notes')).toHaveLength(1)
+    expect(posts('agenda-items')).toHaveLength(0)
   })
 })

@@ -1,5 +1,19 @@
 # 12 · Silinen kayıtlar
 
+## F10 güncel kapsamı — v0.26.0-api
+
+Bu bölüm, aşağıdaki F5/F8 tarihsel tespitlerin güncellenen alanlarında yetkilidir. F10 uygulaması W192/W193'tedir; nihai bağımsız tanık ve kabul [WEB-10 ilerleme kaydında](../../yurutme/web-10/ilerleme.md) izlenir.
+
+- Sekiz görünüm: Tümü, Görev, Alt görev, Dosya, Toplantı, Koordinatörlük, Kullanıcı, Not ve gündem. Varsayılan Görev ve eski dört URL değeri korunur; yenileri `tumu`, `altgorev`, `dosya`, `notgundem`dir.
+- Dokuz satır türü: tasks/subtasks/files/meetings/task_notes/meeting_notes/agenda_items/departments/accounts. Tümü ve Not ve gündem tek sunucu birleşik listesini okur; istemci N listeyi birleştirmez. Birleşik sıra sunucunun silinme tarihi sırasıdır; yalnız `next_cursor` yoksa sayfalama biter.
+- Satır/seçim anahtarı `kind:id`; birleşik görünümde URL `kayit` de bu biçimdedir. Bilinmeyen yeni tür salt okunur kalır, toplamdan sessizce atılmaz. Birleşik satırda dönmeyen görev ayrıntısı/sayı/progress üretilmez.
+- Silinmiş ebeveyn varsa önce ebeveynin geri yüklenmesi uyarısı gösterilir. Yalnız bilinen, adı okunabilir görev/toplantı ebeveynine bağlantı verilir; çocuk filtreleri temizlenir. Geri yükleme sonucu gerçek sunucudan gelir; 409 gizlenmez.
+- Karma seçim gerçek türlere ayrılır; geri yükleme ebeveynleri, kalıcı silme çocukları önceleyen sıradadır. Parçalar yakalanmış kapsam/oturum/sahip bağlamıyla gider; hata veya bağlam değişiminde yeni yazma durur. Başarısız seçim tür+kimlikle korunur.
+- Tümü'de boşaltmak için bir tür seçilir. Not ve gündem üç gerçek türü sırayla boşaltır; önceki başarılı kalıcı silmeler geri alınmaz. Departman boşaltma açık `scope=program` kullanır; hesap işlemlerinin şirket geneli kapsamı onayda belirtilir.
+- CSV sunucunun dokuz/üç/tek tür ve geçerli filtreleriyle indirilir. Sayaçta notes grubu toplamda ikinci kez sayılmaz. Saklama süresizdir; kalan gün/otomatik silme sayacı yoktur (BE-112 ürün kararı).
+
+Kabul ölçütü eşlemesi: E-12-05 CSV; E-12-06 boşaltma; E-12-08 sayaç; E-12-09 Tümü; E-12-11/12/15 yeni türler; E-12-21…23 karma seçim; E-12-28 ebeveyn. Kaynak testler: `DeletedRecordsPage.views.test.ts`, `.purgeall.test.ts`, `.export.test.ts`, `use-batch-writes.test.ts`, `rows-child.test.ts`, `RowParent.test.ts` ve gerçek `e2e/live-records.spec.ts`. BE-109/110/111/115/163 W193'te bağlanmıştır; BE-076'nın son arşiv stub'ı W194 ile birlikte kaldırılır.
+
 **Codex kapısı:** UYGUN (WEB-5, 2026-11-13).
 
 **Tespit durumu:** **uygulandı** (W128 #112 ekran + veri katmanı; W127 #114 entegrasyon turu, birleşti `8abcb3b`); Codex nihai kapısı UYGUN (WEB-5). Tespit W119 (WEB-5 O1), 2026-11-12; kararlar P42–P45 işlendi · öz denetim `dogrulama.md`. **Arayüz etiketi notu:** P42 "Hesap" türü arayüzde **"Kullanıcı"** olarak gösterilir (kod ve backend dilinde hesap). Ortak kurallar `../ortak-kurallar.md`.

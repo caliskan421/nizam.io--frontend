@@ -212,11 +212,13 @@ describe('kısmi başarı ve hata kodları', () => {
     expect(ids(page)).toEqual(['d6', 'd7'])
     const summary = page.wrapper.get('[data-testid="dr-batch-summary"]')
     expect(summary.text()).toContain('1 kayıt işlendi, 2 kayıt işlenemedi.')
-    expect(summary.get('[data-failed-id="d6"]').text()).toContain('Fuar')
-    expect(summary.get('[data-failed-id="d6"]').text()).toContain(
+    expect(summary.get('[data-failed-id="departments:d6"]').text()).toContain('Fuar')
+    expect(summary.get('[data-failed-id="departments:d6"]').text()).toContain(
       'Kalıcı silinemedi: koordinatörlüğün görevleri veya program katılımı var.',
     )
-    expect(summary.get('[data-failed-id="d7"]').text()).toContain('Bu kayıt işlenemedi.')
+    expect(summary.get('[data-failed-id="departments:d7"]').text()).toContain(
+      'Bu kayıt işlenemedi.',
+    )
     // Sunucu iletisi ve ham kod gösterilmez.
     expect(page.wrapper.text()).not.toMatch(/sunucu iletisi|organization\.department_in_use/)
     // Başarısızlar seçili kaldı: çubuk 2 kayıt gösterir.
@@ -249,7 +251,7 @@ describe('kısmi başarı ve hata kodları', () => {
     await check(page, 'w1')
     await bar(page).get('[data-action="bulk-restore"]').trigger('click')
     await accept()
-    expect(page.wrapper.get('[data-failed-id="w1"]').text()).toContain(
+    expect(page.wrapper.get('[data-failed-id="tasks:w1"]').text()).toContain(
       'Önce Koordinatörlük sekmesinden geri yükleyin',
     )
   })

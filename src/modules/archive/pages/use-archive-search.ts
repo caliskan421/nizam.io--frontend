@@ -1,6 +1,6 @@
 /**
- * 06 yönetici araması (BE-072; E-06-06/26): program geneli `programArchiveAttachments` (yalnız
- * dosya adı, BE-077; `department_id` yok). Süzgeç (metin ya da tür) doluyken sonuç listesi
+ * 06 yönetici araması (BE-072; E-06-06/26): program geneli `programArchiveAttachments` (dosya
+ * adı + görev başlığı + yükleyen adı, `search_scope=all`; `department_id` yok). Süzgeç (metin ya da tür) doluyken sonuç listesi
  * klasör ızgarasının yerine geçer; bir sonuç dosyanın klasörünü ve önizlemesini açar
  * (`/arsiv/<satırın department_id'si>?dosya&gorev`). Görev adları program geneli görev
  * seçeneklerinden (yalnız arama etkinken okunur).

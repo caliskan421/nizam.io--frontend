@@ -9,7 +9,7 @@ import { toApiError } from '@/shared/errors/api-error'
 import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
-import { UiButton, UiEmptyState, UiErrorState, UiInput } from '@/shared/ui'
+import { UiButton, UiEmptyState, UiErrorState } from '@/shared/ui'
 
 import {
   FileFilterBar,
@@ -23,6 +23,7 @@ import {
 import { folderText } from '../components/files/messages'
 import { archiveCapabilities } from '../model/capabilities'
 import FolderHead from './folder/FolderHead.vue'
+import FolderSearch from './folder/FolderSearch.vue'
 import { useDebouncedSearch } from './folder/use-debounced-search'
 import { useFileSelection } from './folder/use-file-selection'
 import { useFolderData } from './folder/use-folder-data'
@@ -150,18 +151,7 @@ function openTask(workItemId: string): void {
           />
         </div>
         <div class="arch-explorer__main">
-          <div class="arch-search">
-            <UiInput
-              v-model="search.text.value"
-              type="search"
-              icon="search"
-              size="sm"
-              :aria-label="folderText('folder.search.label')"
-              :placeholder="folderText('folder.search.placeholder')"
-              data-testid="folder-search"
-              @keydown.enter="search.flush"
-            />
-          </div>
+          <FolderSearch v-model="search.text.value" @flush="search.flush" />
           <FolderHead
             ref="head"
             :folder="data.folder.value ?? null"
@@ -227,6 +217,7 @@ function openTask(workItemId: string): void {
             :target="previewTarget"
             :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"
             @removing="removing = $event"
+            @moved="selection.removed"
             @close="selection.close"
             @previous="selection.previous"
             @next="selection.next"

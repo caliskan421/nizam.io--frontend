@@ -19,7 +19,7 @@ const base = {
 describe('RecordRow (E-12-25…37)', () => {
   it('tür rozeti, başlık, alt satır, tarih + saat + "bugün"', () => {
     const wrapper = mount(RecordRow, { props: base })
-    expect(wrapper.get('.dr-logtype').attributes('data-kind')).toBe('gorev')
+    expect(wrapper.get('.dr-logtype').attributes('data-kind')).toBe('tasks')
     expect(wrapper.get('.dr-logtype').text()).toBe('Görev')
     expect(wrapper.get('.dr-title').text()).toBe('Saha pano montajı')
     expect(wrapper.get('.dr-record .rp-cap').text()).toBe('Mekanik › Görevler')
@@ -56,7 +56,7 @@ describe('RecordRow (E-12-25…37)', () => {
 
   it('koordinatörlük kodu mono kicker; alt satır boşsa çizilmez', () => {
     const wrapper = mount(RecordRow, {
-      props: { ...base, row: fixtureRow({ kind: 'koordinatorluk', code: 'OPE', subLine: '' }) },
+      props: { ...base, row: fixtureRow({ kind: 'departments', code: 'OPE', subLine: '' }) },
     })
     expect(wrapper.get('.dr-code').text()).toBe('OPE')
     expect(wrapper.find('.dr-record .rp-cap').exists()).toBe(false)
@@ -66,7 +66,7 @@ describe('RecordRow (E-12-25…37)', () => {
     const named = mount(RecordRow, {
       props: {
         ...base,
-        row: fixtureRow({ kind: 'toplanti', actor: { accountId: 'a', name: 'Reha Koçak' } }),
+        row: fixtureRow({ kind: 'meetings', actor: { accountId: 'a', name: 'Reha Koçak' } }),
       },
     })
     expect(named.get('.dr-actor').text()).toContain('Reha Koçak')
@@ -74,12 +74,12 @@ describe('RecordRow (E-12-25…37)', () => {
     const unknown = mount(RecordRow, {
       props: {
         ...base,
-        row: fixtureRow({ kind: 'toplanti', actor: { accountId: null, name: '' } }),
+        row: fixtureRow({ kind: 'meetings', actor: { accountId: null, name: '' } }),
       },
     })
     expect(unknown.get('.dr-actor').text()).toBe('Bilinmiyor')
     expect(unknown.find('.rp-av').exists()).toBe(false)
-    for (const kind of ['gorev', 'koordinatorluk', 'kullanici'] as const) {
+    for (const kind of ['tasks', 'departments', 'accounts'] as const) {
       const other = mount(RecordRow, {
         props: { ...base, row: fixtureRow({ kind, actor: { accountId: 'a9', name: 'Ali Avcı' } }) },
       })

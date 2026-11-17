@@ -64,34 +64,33 @@ describe('12 Silinen kayıtlar — yetki kapısı (P36)', () => {
 })
 
 describe('sekmeler ve uçlar (P41, P42)', () => {
-  it('yalnız açık sekmenin ucu çağrılır; "Tümü" yok; devre dışı türler tıklanamaz', async () => {
+  it('yalnız açık görünümün ucu çağrılır; sekiz görünüm tasarım sırasında ve hepsi etkin', async () => {
     world.tasks = [[task('w1', { title: 'Saha pano montajı' })]]
     const page = await mountPage()
     expect(sent(PATHS.tasks)).toHaveLength(1)
-    for (const path of [PATHS.meetings, PATHS.departments, PATHS.accounts]) {
+    for (const path of [
+      PATHS.meetings,
+      PATHS.departments,
+      PATHS.accounts,
+      PATHS.files,
+      PATHS.subtasks,
+      PATHS.records,
+    ]) {
       expect(sent(path), path).toHaveLength(0)
     }
-    const labels = page.wrapper
-      .findAll('[data-testid="dr-kinds"] button')
-      .map((b) => b.attributes('data-kind'))
-    expect(labels).toEqual([
+    const buttons = page.wrapper.findAll('[data-testid="dr-kinds"] button')
+    expect(buttons.map((b) => b.attributes('data-kind'))).toEqual([
+      'tumu',
       'gorev',
+      'altgorev',
+      'dosya',
       'toplanti',
       'koordinatorluk',
       'kullanici',
-      'altgorev',
-      'dosya',
       'notgundem',
     ])
-    expect(page.wrapper.get('[data-testid="dr-kinds"]').text()).not.toContain('Tümü')
-    for (const kind of ['altgorev', 'dosya', 'notgundem']) {
-      const button = page.wrapper.get(`[data-kind="${kind}"]`)
-      expect(button.attributes('disabled')).toBeDefined()
-      await button.trigger('click')
-    }
-    await settle()
-    expect(page.router.currentRoute.value.query.tur).toBeUndefined()
-    expect(sent(PATHS.meetings)).toHaveLength(0)
+    expect(buttons.every((b) => b.attributes('disabled') === undefined)).toBe(true)
+    expect(page.wrapper.find('[data-design-stub]').exists()).toBe(false)
   })
 
   it('varsayılan Görev; tür değişince yalnız o türün ucu çağrılır ve URL tur yazılır', async () => {
@@ -130,22 +129,28 @@ describe('sekmeler ve uçlar (P41, P42)', () => {
     expect(sent(PATHS.tasks)[0]!.headers.get('X-Nizamio-Department')).toBeNull()
   })
 
-  it('devre dışı tür URL değeri tanınmaz: Görev açılır', async () => {
+  it('eski tür değerleri geçerli; bilinmeyen değer Görev açar; yeni değerler kendi görünümünü', async () => {
     world.tasks = [[task('w1')]]
-    const page = await mountPage({ path: '/silinen-kayitlar?tur=dosya' })
-    expect(page.wrapper.get('[data-kind="gorev"]').attributes('aria-pressed')).toBe('true')
+    const unknown = await mountPage({ path: '/silinen-kayitlar?tur=tasks' })
+    expect(unknown.wrapper.get('[data-kind="gorev"]').attributes('aria-pressed')).toBe('true')
     expect(sent(PATHS.tasks)).toHaveLength(1)
+    for (const kind of ['dosya', 'altgorev', 'tumu', 'notgundem']) {
+      const page = await mountPage({ path: `/silinen-kayitlar?tur=${kind}` })
+      expect(page.wrapper.get(`[data-kind="${kind}"]`).attributes('aria-pressed'), kind).toBe(
+        'true',
+      )
+    }
   })
 })
 
 describe('sayaç, alt başlık ve notlar', () => {
-  it('sayaçlar özetten ve kesin: dört tür de sayı gösterir, "n+" ve "yüklenen kayıtlar içinde" yok (BE-110)', async () => {
+  it('sayaçlar özetten ve kesin: sekiz görünüm sayı gösterir; Tümü toplam, "n+" ve "yüklenen kayıtlar içinde" yok (BE-110)', async () => {
     world.tasks = [[task('w1'), task('w2')], [task('w3')]]
     world.meetings = [[meeting('m1')]]
     world.accounts = [[account('a1'), account('a2')]]
     const page = await mountPage()
     const counts = page.wrapper.findAll('[data-testid="dr-kinds"] .rp-count')
-    expect(counts.map((c) => c.text())).toEqual(['3', '1', '0', '2'])
+    expect(counts.map((c) => c.text())).toEqual(['6', '3', '0', '0', '1', '0', '2', '0'])
     expect(page.wrapper.get('[data-testid="dr-sub"]').text()).toBe(
       '3 görev · yalnız yönetici görür',
     )

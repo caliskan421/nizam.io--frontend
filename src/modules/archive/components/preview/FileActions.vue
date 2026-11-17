@@ -5,20 +5,20 @@ import { computed, ref, watch } from 'vue'
 
 import { useStanding } from '@/shared/scope/standing'
 import { useScopeStore } from '@/shared/scope/store'
-import { DesignStub, UiButton, UiIconButton } from '@/shared/ui'
+import { UiButton, UiIconButton } from '@/shared/ui'
 
 import { archiveCapabilities } from '../../model/capabilities'
-import { MOVE_FILE } from '../../model/stubs'
 import type { FileActionsEmits, FileActionsProps } from '../index'
 import { previewText } from './messages'
+import MoveFileDialog from './MoveFileDialog.vue'
 import RenameFileDialog from './RenameFileDialog.vue'
 import RetagMenu from './RetagMenu.vue'
 import { useFileActions } from './use-file-actions'
 
 /**
  * W124 · E-06-56…60, 64 — önizleme eylemleri (tasarım `rp-iconrow`): İndir (birincil), Yeniden
- * adlandır, Etiketi değiştir (`retagFile`, BE-074; `RetagMenu`), Başka klasöre taşı (uç yok →
- * devre dışı, designStub BE-075, sıfır yazma), Dosyayı sil. Görünürlük yalnız `archiveCapabilities` olgularıyla (mercek
+ * adlandır, Etiketi değiştir (`retagFile`, BE-074; `RetagMenu`), Başka göreve taşı (`moveFile`,
+ * RECORDS-K46; `MoveFileDialog`, kaynakta yeniden adlandırma yetkisiyle görünür), Dosyayı sil. Görünürlük yalnız `archiveCapabilities` olgularıyla (mercek
  * yetki değildir — P1): ad ve etiket değiştirme ŞY ∨ K ∨ (yükleyen ∧ ekip satırı), silme yalnız yükleyen
  * ∧ (ŞY ∨ ekip satırı); yetkisiz eylem GİZLİ (gizleme güvenlik değildir, sunucu 403/404 verir).
  * `RenameFileDialog` burada bağlıdır (`FilePreview` → `FileActions` → `RenameFileDialog`).
@@ -36,7 +36,10 @@ const actions = useFileActions(
 
 // Silme uçuştayken sayfa paneli açık tutar: yenilenen liste dosyayı düşürse de sonuç bildirimi
 // sahibine ulaşır (KESİN 26a: sökülmüş sahip bildirim üretmez; burada sökülen biz değiliz).
-watch(actions.removing, (pending) => emit('removing', pending))
+const moving = ref(false)
+watch([actions.removing, moving], ([deleting, relocating]) =>
+  emit('removing', deleting || relocating),
+)
 
 const caps = computed(() => archiveCapabilities(standing.value, store.programId))
 const facts = computed(() => ({
@@ -46,8 +49,10 @@ const facts = computed(() => ({
 const canDownload = computed(() => caps.value.download())
 const canRename = computed(() => caps.value.rename(facts.value))
 const canRetag = computed(() => caps.value.retag(facts.value))
+const canMove = computed(() => caps.value.move(facts.value))
 const canDelete = computed(() => caps.value.delete(facts.value))
 const renaming = ref(false)
+const relocating = ref(false)
 </script>
 
 <template>
@@ -80,14 +85,14 @@ const renaming = ref(false)
       :busy="actions.busy.value"
       @select="actions.startRetag"
     />
-    <DesignStub id="BE-075" data-testid="file-move-stub">
-      <UiIconButton
-        icon="folder-move"
-        :label="previewText('archive.actions.move')"
-        :disabled="!MOVE_FILE.available"
-        data-testid="file-move"
-      />
-    </DesignStub>
+    <UiIconButton
+      v-if="canMove"
+      icon="folder-move"
+      :label="previewText('archive.actions.move')"
+      :disabled="actions.busy.value"
+      data-testid="file-move"
+      @click="relocating = true"
+    />
     <UiIconButton
       v-if="canDelete"
       icon="trash"
@@ -103,6 +108,14 @@ const renaming = ref(false)
       :file="file"
       :target="target"
       @renamed="(fileId: string) => emit('renamed', fileId)"
+    />
+    <MoveFileDialog
+      v-if="canMove"
+      v-model:open="relocating"
+      :file="file"
+      :target="target"
+      @moving="(pending: boolean) => (moving = pending)"
+      @moved="(fileId: string) => emit('moved', fileId)"
     />
   </div>
 </template>

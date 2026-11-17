@@ -70,7 +70,7 @@ describe('Geri yükle (E-12-35/58)', () => {
     expect(request!.headers.get('X-Nizamio-Program')).toBe('p1')
     expect(request!.headers.get('Idempotency-Key')).toBeNull()
     expect(request!.headers.get('X-Requested-With')).toBeTruthy()
-    expect(rowIds(page)).toEqual(['gorev:w2'])
+    expect(rowIds(page)).toEqual(['tasks:w2'])
     expect(toasts()).toEqual(['Saha pano montajı geri yüklendi.'])
     expect(document.activeElement).toBe(row(page, 'w2').element)
   })
@@ -82,7 +82,7 @@ describe('Geri yükle (E-12-35/58)', () => {
     confirm.cancel(confirm.current.value!.id)
     await settle()
     expect(sent('/v1/admin/restore/work-items/w1', 'PATCH')).toHaveLength(0)
-    expect(rowIds(page)).toEqual(['gorev:w1'])
+    expect(rowIds(page)).toEqual(['tasks:w1'])
   })
 
   it.each([
@@ -156,7 +156,7 @@ describe('hata sınıfları (error-codes.json)', () => {
     await accept(page)
     expect(toasts()).toEqual(['Kayıt zaten geri yüklenmiş.'])
     expect(sent(PATHS.tasks).length).toBeGreaterThan(before)
-    expect(rowIds(page)).toEqual(['gorev:w2'])
+    expect(rowIds(page)).toEqual(['tasks:w2'])
   })
 
   it('404 work.item_not_found (geri yükleme): bulunamadı + yenile', async () => {
@@ -169,7 +169,7 @@ describe('hata sınıfları (error-codes.json)', () => {
     const page = await failRestore('work.department_unavailable', 409)
     const notice = page.wrapper.get('[data-testid="dr-notice"]')
     expect(notice.text()).toContain('Önce Koordinatörlük sekmesinden geri yükleyin')
-    expect(rowIds(page)).toEqual(['gorev:w1', 'gorev:w2'])
+    expect(rowIds(page)).toEqual(['tasks:w1', 'tasks:w2'])
     await notice.get('[data-testid="dr-open-departments"]').trigger('click')
     await settle()
     expect(page.router.currentRoute.value.query.tur).toBe('koordinatorluk')
@@ -187,7 +187,7 @@ describe('hata sınıfları (error-codes.json)', () => {
     await row(page, 'w1').get('[data-action="purge"]').trigger('click')
     await accept(page)
     expect(toasts()).toEqual([message])
-    expect(rowIds(page)).toEqual(['gorev:w1'])
+    expect(rowIds(page)).toEqual(['tasks:w1'])
   })
 
   it('409 organization.department_in_use ve identity.account_referenced', async () => {
@@ -246,7 +246,7 @@ describe('hata sınıfları (error-codes.json)', () => {
     await accept(page)
     expect(sent('/v1/admin/restore/accounts/a1', 'PATCH')).toHaveLength(1)
     expect(toasts()).toHaveLength(1)
-    expect(rowIds(page)).toEqual(['kullanici:a1'])
+    expect(rowIds(page)).toEqual(['accounts:a1'])
   })
 })
 

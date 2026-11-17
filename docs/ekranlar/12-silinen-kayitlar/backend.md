@@ -1,5 +1,7 @@
 # 12 — Backend eşlemesi (nereden geliyor)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin **`v0.23.0-api`**, F8 canlıya alma W174; etiketten okundu), `istemci-akislari.md` (§3 tablo, §4 eylem görünürlüğü, "Silinenler özeti ve toplu işlemler" satırı), `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider. **Sürüm: v0.23.0-api** — v0.15'te yazılan "sunucuda `total`/`sort`/`q`/süzgeç/toplu uç yok" varsayımı v0.21'den beri geçersizdir; bu dosya v0.23 sözleşmesine göre güncellenmiştir (F5 metni yalnız tarihçedir).
 Ek doğrulama (yetkili kaynak, sözleşme sayılmaz; aynı etiketten): `docs/architecture/adr/0045-silinenler-toplu-yonetimi.md` (root döngüsü, kısmi başarı, çöpü boşalt), `internal/modules/work/README.md` (WORK-K29, K45–K48, K74, K92–K94), `internal/modules/meetings/README.md` (COLLABORATION-K22, K23, K50, K77, K85, K86), `internal/modules/organization` (ORGANIZATION-K59–K62), REPORTING-K15/K16, IDENTITY-K64. openapi'nin sustuğu yerde "**modül README**" / "**ADR**" diye anılır.
 

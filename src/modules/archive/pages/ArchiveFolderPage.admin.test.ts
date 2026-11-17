@@ -90,7 +90,7 @@ describe('07 yönetici (S2, BE-072)', () => {
     ])
     const search = wrapper.find('input[data-testid="folder-search"]')
     expect(search.attributes('disabled')).toBeUndefined()
-    expect(search.attributes('placeholder')).toBe('Tüm arşivde ara…')
+    expect(search.attributes('placeholder')).toBe('Dosya, görev veya yükleyen ara…')
     expect(wrapper.find('[data-testid="file-filter-bar"] .rp-count').text()).toBe('3')
   })
 
