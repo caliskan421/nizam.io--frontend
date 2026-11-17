@@ -10,7 +10,7 @@ O1 PR169, pin PR170, W183 PR171, W184 PR172, W185b PR173 ve W185 PR174 kendi ü�
 
 Terra gerçek App/router entegrasyonunda yanıtı kaybolan arşiv isteğinin başarılı tekrarında yerel pencerenin güncellenmediğini buldu. Sonnet ortak retry/confirm efekt yolunu düzeltti; Terra ek mutable giriş kopyası regresyonunu buldu, mevcut toPlainVars ile giderildi. İki kırmızı korunup bağımsız kontrollerde yeşil oldu ve PR173 CI'ına girdi.
 
-Opus tur1 kaynakta P0/P1/P2 bulmadı, W188 ve nihai kapılar için KOŞULLU UYGUN dedi. İki P3'ü koordinatör aynı fazda gidermeyi seçti: capped/null aktör listesinden eksik kesin kişi sayısı ve ilk liste sayfası dışındaki sohbetin history unread yedeği. Sonnet W189 düzeltmesi, Terra bağımsız regresyonu ve gerçek sparse sohbet tanığı bekleniyor.
+Opus tur1 kaynakta P0/P1/P2 bulmadı, W188 ve nihai kapılar için KOŞULLU UYGUN dedi. İki P3'ü koordinatör aynı fazda gidermeyi seçti: capped/null aktör listesinden eksik kesin kişi sayısı ve ilk liste sayfası dışındaki sohbetin history unread yedeği. Sonnet W189 düzeltmeleri ve Terra67 hedefli test/build tamam. Yeni gerçek sparse sohbet e2e ilk koşumu, yerel Docker ROFS nedeniyle temiz CI'da bekleniyor.
 
 ## W188 gerçek backend
 
@@ -20,4 +20,4 @@ Opus tur1 kaynakta P0/P1/P2 bulmadı, W188 ve nihai kapılar için KOŞULLU UYGU
 
 Koordinatör [rapor-F9](../../backend-eksikleri/rapor-F9.md), [bağımsız denetim kaydı](../../reviews/WEB-9-codex.md), doğrulama ve bu oturum kaydını yönetir. [F10 AÇILMADI](../web-10/README.md); öneri uygulama yetkisi değildir.
 
-Sıradaki adım: W189 + Terra gerçek/dar kontrolü → Opus tur2 (W188 ham kanıtı dahil) → kapanış PR'ının üç CI SUCCESS + MERGED sonucu. Yalnız bundan sonra F9 kapanır ve kendi temiz geçici worktree/owned Docker kaynakları temizlenir. Backend/mobil/program depolarına yazılmaz.
+Sıradaki adım: son fake duman + Opus tur2 (W188 ham kanıtı dahil) → kapanış PR'ının üç CI SUCCESS + MERGED sonucu. Yalnız bundan sonra F9 kapanır ve kendi temiz geçici worktree/owned Docker kaynakları temizlenir. Backend/mobil/program depolarına yazılmaz.

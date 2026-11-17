@@ -6,28 +6,30 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 
 ## Durum
 
-| Oturum | Durum | main hash |
-| --- | --- | --- |
-| O1 W181 | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN | `099dfe6e` |
-| O2a W182 (pin v0.25) | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı | `2bd788f3` |
-| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 PR171 ve W184 PR172 üç CI ile birleşti; W185b PR173 düzeltmeli CI, W185 kaynak tamam ve bağımsız Terra kabulünde | `abfc7916` (W184) |
-| O3 W186 | Sohbet App entegrasyonu ve iki regresyon tamam; bildirim birleşimi ve son kabul sürüyor | — |
-| O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | W187 kayıt hazırlığı, W188 izole backend preflight hazır; nihai tanık ve Opus bekler | — |
+| Oturum                              | Durum                                                                                                            | main hash  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------- |
+| O1 W181                             | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN                                                | `099dfe6e` |
+| O2a W182 (pin v0.25)                | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı      | `2bd788f3` |
+| O2b W183 ‖ W184, sonra W185b ‖ W185 | **KAPANDI** — PR171/172/173/174, her başlıkta üç CI SUCCESS                                                      | `8b797382` |
+| O3 W186                             | App/router entegrasyonları ve regresyonlar tamam; ek sparse gerçek-backend e2e ilk koşumu kapanış CI'ında bekler | —          |
+| O4 W187 ‖ W188, Opus + W189         | Gerçek ana tanık ve W18967 hedefli test/build başarılı; Opus tur2 + kapanış CI/merge bekler                      | —          |
 
 ## Kararlar
 
-| # | Konu | Durum |
-| --- | --- | --- |
-| P77 | F9 = pin yükseltmesi + sohbet/bildirim canlıya alma; yeni ekran yok | **KESİN** (ürün sahibi 2026-11-16) |
-| P78 | Hız politikası (P76) varsayılan: etkilenen testler yerelde, tam paket CI'da, tek duman 390+1440 koyu, gerçek backend e2e yalnız CI + tanık işçisi, eşzamanlı ≤ 2 işçi, Opus denetim ≤ 2 tur | kullanıcı süreç tercihi |
-| P79 | Model ajandası: **2026-11-17 güncellemesi** işçi Sonnet, test Terra (gpt-6.1-terra), denetçi Opus, koordinasyon Codex; eski Haiku/Astra atamaları geçersiz | kullanıcı güncellemesi |
-| P80 | Pin tek PR (KESİN 36 kalıbı): `v0.23.0-api` → **`v0.25.0-api`** (P84 ile v0.24'ten yükseltildi); UI değişmez | geçici kabul |
-| P81 | Canlıya alma = KESİN 35; kısmi satır `bağlandı` olmaz; kalanlar BE-147 (GAP-246), BE-150…153 | geçici kabul (P84 ile güncel; v0.24'te kalan 027/029/080/160 ve kısmi 028/085/156 v0.25 ile `tam`) |
-| P82 | SSE yalnız `shared/sse`; bildirimlerde SSE yok; sohbet mesajı bildirim zinciri SSE'den ayrı | geçici kabul |
-| P83 | O2b bölme (≤ 2 eşzamanlı): W183 sohbet A, W184 sohbet B, **W185b sohbet C (yeni, öneri)**, W185 bildirimler | geçici kabul; matris §2–§4 (W181 önerisi) |
-| P84 | **Kapsam güncellemesi:** F9 v0.25'i de kapsar; tek pin v0.23→v0.25; v0.25 karşılıkları F10'a bırakılmaz | **KESİN** (kullanıcı 2026-11-17) |
-| P85 | Yönetici ana Codex; Sonnet uygulayıcı, Terra test, Opus bağımsız denetim | kullanıcı rol talimatı |
-| P86 | Mevcut görev detayında kaynak mesaj bağlantısı W184; bildirim panelinde sessize alınanlar W185; BE027 kapanış W185 | koordinatör kapsam uygulaması |
+| #   | Konu                                                                                                                                                                                        | Durum                                                                                              |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| P77 | F9 = pin yükseltmesi + sohbet/bildirim canlıya alma; yeni ekran yok                                                                                                                         | **KESİN** (ürün sahibi 2026-11-16)                                                                 |
+| P78 | Hız politikası (P76) varsayılan: etkilenen testler yerelde, tam paket CI'da, tek duman 390+1440 koyu, gerçek backend e2e yalnız CI + tanık işçisi, eşzamanlı ≤ 2 işçi, Opus denetim ≤ 2 tur | kullanıcı süreç tercihi                                                                            |
+| P79 | Model ajandası: **2026-11-17 güncellemesi** işçi Sonnet, test Terra (gpt-6.1-terra), denetçi Opus, koordinasyon Codex; eski Haiku/Astra atamaları geçersiz                                  | kullanıcı güncellemesi                                                                             |
+| P80 | Pin tek PR (KESİN 36 kalıbı): `v0.23.0-api` → **`v0.25.0-api`** (P84 ile v0.24'ten yükseltildi); UI değişmez                                                                                | geçici kabul                                                                                       |
+| P81 | Canlıya alma = KESİN 35; kısmi satır `bağlandı` olmaz; kalanlar BE-147 (GAP-246), BE-150…153                                                                                                | geçici kabul (P84 ile güncel; v0.24'te kalan 027/029/080/160 ve kısmi 028/085/156 v0.25 ile `tam`) |
+| P82 | SSE yalnız `shared/sse`; bildirimlerde SSE yok; sohbet mesajı bildirim zinciri SSE'den ayrı                                                                                                 | geçici kabul                                                                                       |
+| P83 | O2b bölme (≤ 2 eşzamanlı): W183 sohbet A, W184 sohbet B, **W185b sohbet C (yeni, öneri)**, W185 bildirimler                                                                                 | geçici kabul; matris §2–§4 (W181 önerisi)                                                          |
+| P84 | **Kapsam güncellemesi:** F9 v0.25'i de kapsar; tek pin v0.23→v0.25; v0.25 karşılıkları F10'a bırakılmaz                                                                                     | **KESİN** (kullanıcı 2026-11-17)                                                                   |
+| P85 | Yönetici ana Codex; Sonnet uygulayıcı, Terra test, Opus bağımsız denetim                                                                                                                    | kullanıcı rol talimatı                                                                             |
+| P86 | Mevcut görev detayında kaynak mesaj bağlantısı W184; bildirim panelinde sessize alınanlar W185; BE027 kapanış W185                                                                          | koordinatör kapsam uygulaması                                                                      |
+| P87 | Bağımlı hazırlık izole dalda ilerleyebilir; merkezi dosya tek sahipte ve parent önce birleşir                                                                                               | koordinatör süreç kararı                                                                           |
+| P88 | Yeni bildirim action kabiliyeti mevcut korumalı iş mutasyonunu kullanır; global görev aktör matrisi değişmez                                                                                | koordinatör dar kapsam kararı                                                                      |
 
 ## Kayıtlar
 
@@ -109,3 +111,13 @@ W188 backend preflight: `nizamio_web9_w188_0615`, etiket58856bbc, port28089/2809
 Terra `6b729120`/source1100f522 +24d256db birleşimi üzerinde13 dosyada244 hedefli test ve üretim build'i geçti. P88 karar kabiliyeti, gerçek satır hedef başlıkları, iade/onay,403/409, maskeli konu, server filtre/imleç, S1 yazmalar, chat-read bildirim ilişkileri testlidir. Kayıt kapanışıyla eskiyen design-stub pozitif BE149 örneği, gerçek açık/stub BE024'e taşındı; bağlı BE149 negatif eklendi, validator ve vazgeçildi negatifleri korunur.40 kayıt testi/lint/format başarılı.
 
 390/1440 koyu üretim paketi dumanında pointer ile bekleyen sekmesi/onay ve sessize alınanlar/unmute/geri akışı geçti; taşma/CSP/pageerror sıfır. Terra PNG'leri gördü; root390 panel görüntüsünü ayrıca inceledi. Sahte API ve CSP simülasyonudur. Gerçek endpoint/1–100 limit negatifleri/500 gerçek kayıt tavanı/push teslimi ve görevden kaynak mesaja gerçek UI W188 sınırıdır. Root kabul kanıtı sonrası PR ve kendi üç CI kapısını bekler.
+
+### W189 denetim düzeltmeleri ve son dar kabul (2026-11-17)
+
+Opus tur1 KOŞULLU UYGUN; P0/P1/P2 yok, iki P3 aynı fazda giderildi.4a274180 aktör tavanı/null adlarda kesin kişi sayısını kaldırdı ve liste dışı sohbet için geçmiş çapasını ekledi. Terra aynı önbellekle yeniden giriş kırmızısını610e9df6 ile korudu;3c4312c2 pencere metadata'sı yerine her liste dışı girişte tek limit1 geçmiş okuması ve yerel dondurulmuş çapa kullandı. Güvenilir unread_count yoksa genel ayırıcı metni çizilir; sayı türetilmez.
+
+Terra'nın geç kapsam yanıtı d91a9a2b kırmızısı12711e3b ile giderildi: metadata okumadan önce ve sonra captured scope/sohbet/owner/controller doğrulanır, oturum kapısı sessionBound'dadır. Kuyrukta kapsam değişimi, uçuşta sohbet değişimi, oturum sonu ve söküm testleri korunur.
+
+Terra'nın stateful ConversationPane readiness kırmızısı08dc2658/a44fa0f4, metadata beklerken otomatik read'in server anchor'ını kapattığını gösterdi.30bfc952 marker hazır olana kadar gönderimi bekletir; hazır olunca normal debounce ile bir kez okur. Yerel sahte unread_count kullanılmaz; açık girişin dondurulmuş çapası read sonrası korunur.
+
+Terra final84f9cff6 üzerinde7 dosyada67 ilgili test ve build'i geçirdi. Örtüşen önceki112/114/57/45 sayıları buna eklenmez. Yeni gerçek backend sparse test kodu e2c64d34 ile eklendi; yerel Docker ROFS/login500 yüzünden gerçek yeni UI koşumu temiz CI'a taşındı. Eski94 kaynakta kapsamlı W188 gerçek tanığı geçerli, sonP3 gerçek UI kanıtı CI sonucu gelmeden tamamlandı sayılmaz.

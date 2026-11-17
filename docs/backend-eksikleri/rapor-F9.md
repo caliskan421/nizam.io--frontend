@@ -20,7 +20,6 @@ Tek PR ile v0.23 → v0.25 yükseltildi; ara v0.24 pini yok. Uç 248 → 261 (+1
 
 Toplam 23 satır. Kayıt toplamı 163 satır = 77 bağlı + 84 açık + 2 vazgeçildi; yeni BE kimliği atanmadı. Kaynakta beklenen gerçek designStub sayısı31 → 16; nihai kaynak denetimi kapanışta doğrulanacaktır. Matris 28 satırının 23'ü tam, 5'i kalır. Yeni ekran/artboard yok: kaynak bağlantısı mevcut görev detayında, sessize alınanlar mevcut bildirim panelindedir.
 
-
 Kayıt toplamı düzeltmesi: F8 raporundaki 160 satır/104 açık sayısı tarihsel bir raporlama hatasıdır. F8 kapanış commit'i a48a3e78 ve F9 başlangıcı 099dfe6e üzerinde kayit.md doğrudan sayıldı: 163 benzersiz satır = 54 bağlı + 107 açık + 2 vazgeçildi. F9'da 23 satır bağlanınca sonuç 77 bağlı + 84 açık + 2 vazgeçildi, toplam yine 163'tür. Yeni satır eklenmedi; BE-164/165/166 başlangıçta zaten vardı.
 
 ## 3. Kabul kararları ve korunan sınırlar
@@ -34,14 +33,14 @@ Kayıt toplamı düzeltmesi: F8 raporundaki 160 satır/104 açık sayısı tarih
 
 ## 4. Uygulama ve kabul kaydı
 
-| PR       | İçerik                                        | Birleşme/CI                                                  |
-| -------- | --------------------------------------------- | ------------------------------------------------------------ |
-| 169      | O1 plan ve v0.25 kapsamı                      | main099dfe6e; CI43985113355 üç SUCCESS                       |
-| 170      | API pini                                      | main2bd788f3; CI43988603878 attempt2 üç SUCCESS              |
-| 171      | W183 sohbet A                                 | mainb69c6e9c; CI44001071112 üç SUCCESS                       |
-| 172      | W184 sohbet B                                 | mainabfc7916; CI44005439139 üç SUCCESS                       |
-| 173      | W185b sohbet C ve W186 regresyon düzeltmeleri | main718d67a2; CI44008206065 üç SUCCESS                       |
-|174 | W185 bildirimler | main8b797382; CI44010736714 üç SUCCESS |
+| PR  | İçerik                                        | Birleşme/CI                                     |
+| --- | --------------------------------------------- | ----------------------------------------------- |
+| 169 | O1 plan ve v0.25 kapsamı                      | main099dfe6e; CI43985113355 üç SUCCESS          |
+| 170 | API pini                                      | main2bd788f3; CI43988603878 attempt2 üç SUCCESS |
+| 171 | W183 sohbet A                                 | mainb69c6e9c; CI44001071112 üç SUCCESS          |
+| 172 | W184 sohbet B                                 | mainabfc7916; CI44005439139 üç SUCCESS          |
+| 173 | W185b sohbet C ve W186 regresyon düzeltmeleri | main718d67a2; CI44008206065 üç SUCCESS          |
+| 174 | W185 bildirimler                              | main8b797382; CI44010736714 üç SUCCESS          |
 
 Her uygulama paketinde Sonnet yerel ilgili testleri çalıştırdı; Terra ayrı test/etkileşimli duman yaptı. Sayıları örtüşen koşumlardan toplamak yerine ilgili ilerleme kaydına bakılmalıdır. W185 Sonnet 124 dosyada 983 test/type/lint/format/build başarılı; Terra bağımsız13 dosyada244 test,40 kayıt testi ve390/1440 sahte dumanıyla kabul verdi; PR174 üç CI ile birleşti.
 
@@ -80,3 +79,5 @@ F9 sırasında görülen düşük öncelikli sözleşme önerileri: anonim çokl
 - W185b geniş koşum chat-window açık mesaj testi 5 s zaman aşımı; iki dar 11/11 geçti. Kesin yük nedeni kanıtlanmadı; değişen başlığın tam CI'ı sonradan geçti.
 - Terra'nın somut arşiv yanıt kaybı/başarılı tekrarında pencere yaması ve mutable giriş snapshot regresyonları korundu; Sonnet düzeltmeleri bağımsız Terra dar tekrarında yeşil.
 - Kapanış: W185 bağımsız kabul + kendi üç CI, W188 gerçek tanık, Opus hükmü, bulguların giderilmesi ve kapanış PR'ının üç CI SUCCESS ile MERGED olması gerekir.
+
+W189 son kaynak ek kabulü: aktör tavanında “diğerleri”, listede olmayan sohbetin her girişte güvenli limit1 metadata okuması ve otomatik read readiness kapısı tamamlandı(30bfc952). Terra67 ilgili test/build başarılı; yeni gerçek sparse e2e temiz CI'da ilk koşumu bekler. W18894 sürümünde gerçek tanıklar tamam; son ek yerel UI koşumu Docker ROFS nedeniyle başlamadı. Nihai faz hükmü ve kapanış CI sonucu ayrıca kaydedilecek.

@@ -16,7 +16,7 @@ Pin `v0.23.0-api` iken backend `v0.24.0-api` (BE-F7: sohbet/bildirim) ve aynı g
 | --- | --- | --- |
 | W183 | **Sohbet A:** sunucu süzgeçleri + `total`, okunmamış ayırıcı/`first_unread_seq`/liste tiki, son mesaj türü, alıntıya git (`reply_to.seq`), "Koordinatörler" grubu, sohbet sessize al (liste yüzü) | BE-081, 082, 086, 162, 160, 027† |
 | W184 | **Sohbet B:** rol rozeti/üye alt yazısı, grup bilgisi sayaçları + ekler + görev bağları, mesajdan görev kartı, mesaj bilgisi (kim okudu) + grup tiki, sohbet bildirim seviyesi (ayar yüzü) | BE-083, 084, 085, 028, 027† |
-| W185b | **Sohbet C (yeni işçi önerisi):** mesajı ilet (hepsi ya da hiçbiri), dosyayı görev arşivine kaydet, anonim anket | BE-080, 029, 161 |
+| W185b | **Sohbet C:** mesajı ilet (hepsi ya da hiçbiri), dosyayı görev arşivine kaydet, anonim anket | BE-080, 029, 161 |
 | W185 | **Bildirimler:** satır sözlüğü (18 tür), hedef çözümleme (P55 soğuk bağlantı, sohbet/program hedefi), "Senden bekleyen" + `awaiting_count`, süzgeçler, satır içi karar, konu durumu, birleştirme (yığın avatar), zamanlı türler, saklama etiketi, kaldır/konu sessize alma | BE-142, 143, 144, 145, 146, 148, 149, 154, 155, 156 |
 
 † BE-027 W183 (liste), W184 (ayar) ve W185 (bildirim zinciri) işlerine bölünür; kayıt `bağlandı` yalnız W185 tamamlandığında.
@@ -37,7 +37,7 @@ Her W ayrı worktree ve dal (`web9/<oturum>-<wid>`); [ortak sözleşme](ortak-so
 | **O2a** | **W182** pin v0.23 → v0.25 (WP1), UI değişmez | W182 |
 | **O2b** | **W183 ‖ W184** (sohbet A/B), sonra **W185b ‖ W185** (sohbet C / bildirimler); W185b W184 dalından (`MessageMenu.vue`) | W183, W184, W185b, W185 |
 | **O3** | **W186** entegrasyon: `chat-*`/`notifications-*`, e2e güncellemesi, tek duman 390+1440 koyu (10, 10b, 10c, 14 panel) | W186 |
-| **O4** | **W187** belgeler (`rapor-F9`, ilerleme/oturum-4, `WEB-9-codex.md` iskeleti, web-10 "F10 AÇILMADI") ‖ **W188** Docker + gerçek backend **v0.25.0-api** tanığı (`dogrulama-F9.md`) → Opus bağımsız denetim + Codex koordinatör kapanışı (en çok 2 tur, P78) → kapanış PR | W187, W188, Codex |
+| **O4** | **W187** belgeler (`rapor-F9`, ilerleme/oturum-4, `WEB-9-codex.md` bağımsız Opus kaydı, web-10 "F10 AÇILMADI") ‖ **W188** Docker + gerçek backend **v0.25.0-api** tanığı (`dogrulama-F9.md`) → Opus bağımsız denetim + Codex koordinatör kapanışı (en çok 2 tur, P78) → kapanış PR | W187, W188, W189, Codex |
 
 ## Başlatma koşulları (karşılandı)
 
@@ -60,3 +60,7 @@ Matris §6 ve [oturum-1-keşif §6](oturum-1-kesif.md#6-açık-sorular-ürün-sa
 | [canliya-alma-matrisi.md](canliya-alma-matrisi.md) | 28 BE satırı: stub → v0.25 → E-satırı → W, dosya kesişimi, düzeltmeler |
 | [oturum-1-kesif.md](oturum-1-kesif.md) | Etiket doğrulaması, fark özeti, GAP durumu, açık sorular |
 | [rapor-F8](../../backend-eksikleri/rapor-F8.md) | Backend devir raporu (tarihsel; v0.24 eşlemesi matris §5'te düzeltildi) |
+
+## Kapanış kanıtları
+
+Ana uygulama PR169–174 üç CI ile birleşti. Son denetim düzeltmeleri W189 ve kapanış belgesi W187 ayrıca son kapıdan geçer. [O4 kaydı](oturum-4-kapanis.md), [gerçek backend doğrulaması](../../backend-eksikleri/dogrulama-F9.md), [Opus denetimi](../../reviews/WEB-9-codex.md) ve [devir raporu](../../backend-eksikleri/rapor-F9.md) kaynak/kanıt ayrımını taşır. [F10 AÇILMADI](../web-10/README.md).
