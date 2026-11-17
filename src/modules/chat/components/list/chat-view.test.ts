@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { makeChatLastMessage, makeChatSummary } from '@/shared/api/__tests__/defaults'
+
 import type { ChatSummary } from '../../model/types'
 import {
   applyFilter,
@@ -13,36 +15,11 @@ import {
 } from './chat-view'
 
 function chat(over: Partial<ChatSummary> = {}): ChatSummary {
-  return {
-    auto_kind: null,
-    chat_id: 'c1',
-    counterpart_account_id: null,
-    counterpart_name: null,
-    created_at: '2026-11-01T08:00:00Z',
-    created_by_account_id: null,
-    kind: 'group',
-    last_message: null,
-    last_message_at: null,
-    last_seq: 0,
-    mentioned: false,
-    name: 'Fuar kurulum',
-    source: 'none',
-    source_department_id: null,
-    unread_count: 0,
-    ...over,
-  }
+  return makeChatSummary({ created_at: '2026-11-01T08:00:00Z', ...over })
 }
 
-const last = (over: Partial<NonNullable<ChatSummary['last_message']>> = {}) => ({
-  body: 'Merhaba',
-  created_at: '2026-11-14T08:00:00Z',
-  deleted: false,
-  message_id: 'm1',
-  sender_account_id: 'u2',
-  sender_name: 'Ali Veli',
-  seq: 1,
-  ...over,
-})
+const last = (over: Partial<NonNullable<ChatSummary['last_message']>> = {}) =>
+  makeChatLastMessage({ created_at: '2026-11-14T08:00:00Z', sender_name: 'Ali Veli', ...over })
 
 describe('süzgeç (E-10-06)', () => {
   const items = [
@@ -67,6 +44,29 @@ describe('süzgeç (E-10-06)', () => {
     expect(parseFilter('baska')).toBe('all')
     expect(parseFilter(undefined)).toBe('all')
     expect(parseFilter(null)).toBe('all')
+  })
+})
+
+describe('K-1 pin v0.25: coordinators / bilinmeyen kaynak geri düşüşü (ADR-0051)', () => {
+  it('coordinators avatarı çizilmez: serbest grup gibi 2 baş harf; bölüm/genel kodu çıkmaz', () => {
+    const coordinators = chat({
+      auto_kind: 'coordinators',
+      source: 'coordinators',
+      name: 'Koordinatörler',
+    })
+    expect(avatarOf(coordinators, 'sis')).toEqual({ kind: 'grp', text: 'K' })
+    // Bilinmeyen gelecekteki değer de aynı geri düşüşü alır.
+    const unknown = chat({
+      auto_kind: 'yeni_tur' as ChatSummary['auto_kind'],
+      source: 'yeni_kaynak' as ChatSummary['source'],
+      name: 'Fuar kurulum',
+    })
+    expect(avatarOf(unknown)).toEqual({ kind: 'grp', text: 'FK' })
+  })
+
+  it('kendiliğinden kurulan (auto_kind dolu) grup sistem grubu sayılır; null değil', () => {
+    expect(isSystemGroup(chat({ auto_kind: 'coordinators' }))).toBe(true)
+    expect(isSystemGroup(chat({ auto_kind: null }))).toBe(false)
   })
 })
 

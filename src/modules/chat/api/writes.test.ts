@@ -269,7 +269,7 @@ describe('mesaj gönder', () => {
       reply_to_message_id: 'm2',
       mentions: [{ kind: 'all' as const }, { kind: 'account' as const, target_id: 'u2' }],
       refs: [{ kind: 'task' as const, target_id: 'w1' }],
-      poll: { options: ['a', 'b'], multi: true },
+      poll: { options: ['a', 'b'], multi: true, anonymous: false },
     }
     await m.result.send.submit({ ...CHAT, body: full })
     expect(called('POST', '/v1/chats/c1/messages')[0]!.body).toEqual(full)

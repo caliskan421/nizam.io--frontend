@@ -136,6 +136,7 @@ describe('okunmamış ayırıcı ve pencere', () => {
             deleted: false,
             sender_account_id: 'u2',
             sender_name: 'Ayşe',
+            seq: 1,
           },
         }),
       ],

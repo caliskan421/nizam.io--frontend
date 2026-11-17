@@ -1,4 +1,6 @@
 // Sohbet test fikstürleri: sürümlü, `seq` sıralı sahte mesaj ve sunucu belleği.
+import { makeChatHistory, makeChatMessage } from '@/shared/api/__tests__/defaults'
+
 import type { ChatMessage, ChatHistory, MessageQuery } from '../model/types'
 
 /** `on()` yardımcısının kaydettiği istek (yazma testleri). */
@@ -18,28 +20,7 @@ export interface OpenRequestLike {
 export type FrameExtra = Record<string, unknown>
 
 export function msg(seq: number, over: Partial<ChatMessage> = {}): ChatMessage {
-  return {
-    attachments: [],
-    body: `mesaj ${seq}`,
-    chat_id: 'c1',
-    client_message_id: `cm-${seq}`,
-    created_at: '2026-11-14T08:00:00Z',
-    edit_revision: 1,
-    edited: false,
-    edited_at: null,
-    mentions: [],
-    message_id: `m${seq}`,
-    pinned_at: null,
-    poll: null,
-    reactions: [],
-    refs: [],
-    reply_to_message_id: null,
-    sender_account_id: 'u2',
-    sender_name: 'Başka Kişi',
-    seq,
-    task_ids: [],
-    ...over,
-  }
+  return makeChatMessage({ seq, ...over })
 }
 
 export function seqs(items: readonly ChatMessage[]): number[] {
@@ -71,7 +52,7 @@ export function fakeChatServer(initial: ChatMessage[], peerReadSeq: number | nul
     } else {
       items = list.slice(-limit)
     }
-    return { items: structuredClone(items), peer_read_seq: peerReadSeq }
+    return makeChatHistory({ items: structuredClone(items), peer_read_seq: peerReadSeq })
   }
   return {
     read: (q: MessageQuery) => Promise.resolve(read(q)),

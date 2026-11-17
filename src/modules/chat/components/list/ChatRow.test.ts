@@ -1,26 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { makeChatSummary } from '@/shared/api/__tests__/defaults'
+
 import type { ChatSummary } from '../../model/types'
 import ChatRow from './ChatRow.vue'
 
-const base: ChatSummary = {
-  auto_kind: null,
-  chat_id: 'c1',
-  counterpart_account_id: null,
-  counterpart_name: null,
-  created_at: '2026-11-01T08:00:00Z',
-  created_by_account_id: null,
-  kind: 'group',
-  last_message: null,
-  last_message_at: null,
-  last_seq: 0,
-  mentioned: false,
-  name: 'Fuar kurulum',
-  source: 'none',
-  source_department_id: null,
-  unread_count: 0,
-}
+const base: ChatSummary = makeChatSummary({ created_at: '2026-11-01T08:00:00Z' })
 const NOW = new Date('2026-11-14T12:00:00Z')
 
 function mountRow(over: Partial<ChatSummary> = {}, selected = false) {

@@ -101,11 +101,13 @@ export function toPollBody(
   return {
     client_message_id: clientMessageId,
     body: draft.question.trim(),
+    // Spec'te `poll.anonymous` isteğe bağlıdır (varsayılan false); üretilmiş tip `default`'u zorunlu
+    // gösterir. Gövdeye alan eklenmez (W182: gönderim değişmez); W185b anonim anketi bağlayınca verir.
     poll: {
       options: filledOptions(draft.options),
       multi: draft.multi,
       ...(closes ? { closes_at: closes } : {}),
-    },
+    } as NonNullable<SendChatMessageRequest['poll']>,
   }
 }
 
