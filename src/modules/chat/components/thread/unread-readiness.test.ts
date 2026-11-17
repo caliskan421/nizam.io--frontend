@@ -1,6 +1,15 @@
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import { msg } from '../../__tests__/fixtures'
-import { http, HttpResponse, ORIGIN, resetAll, sent, server, signIn } from '../../__tests__/harness'
+import {
+  errorEnvelope,
+  http,
+  HttpResponse,
+  ORIGIN,
+  resetAll,
+  sent,
+  server,
+  signIn,
+} from '../../__tests__/harness'
 import { mountPane, servePane, settle, unmountAll } from '../__tests__/pane-harness'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
@@ -65,5 +74,44 @@ it('geçmiş çapası alınana kadar görünür son mesaj okundu gönderilmez', 
     await settle(client)
   } finally {
     release()
+  }
+}, 8000)
+
+it('around okuması 503 verirse hazır açılır, ayırıcı yok, görünür mesaj okunur; yakalanmamış ret yok', async () => {
+  const unhandled = vi.fn()
+  process.on('unhandledRejection', unhandled)
+  const { fake } = servePane({
+    historyFirstUnreadSeq: 1,
+    messages: Array.from({ length: 100 }, (_, i) => msg(i + 1)),
+  })
+  server.use(
+    http.get(`${ORIGIN}/v1/chats/c1/messages`, ({ request }) => {
+      const q = new URL(request.url).searchParams
+      if (q.get('around') === '1') return errorEnvelope('common.unavailable', 503)
+      return HttpResponse.json(fake.readSync({ limit: Number(q.get('limit')) }))
+    }),
+  )
+  vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+  const { wrapper, client } = await mountPane()
+  try {
+    await settle(client)
+    await vi.waitFor(() => expect(wrapper.find('[data-seq="100"]').exists()).toBe(true))
+    expect(wrapper.find('[data-testid="chat-unread"]').exists()).toBe(false)
+    const list = wrapper.get('.msg-list').element as HTMLElement
+    const last = wrapper.get('[data-seq="100"]').element as HTMLElement
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue({ top: 0, bottom: 400 } as DOMRect)
+    vi.spyOn(last, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 150 } as DOMRect)
+    Object.defineProperties(list, {
+      scrollTop: { configurable: true, writable: true, value: 0 },
+      scrollHeight: { configurable: true, value: 400 },
+      clientHeight: { configurable: true, value: 400 },
+    })
+    list.dispatchEvent(new Event('scroll'))
+    await vi.waitFor(() => expect(sent('POST', '/v1/chats/c1/read')).toHaveLength(1), {
+      timeout: 2500,
+    })
+    expect(unhandled).not.toHaveBeenCalled()
+  } finally {
+    process.off('unhandledRejection', unhandled)
   }
 }, 8000)

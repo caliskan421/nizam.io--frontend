@@ -41,6 +41,18 @@ async function openAround(
   return has()
 }
 
+/** Okuma hatasında (503/ağ/429) yerel çapa yok: ayırıcı çizilmez ama ilk iniş/okundu kilitlenmez. */
+async function openAroundSafe(
+  messages: ReturnType<typeof useChatPage>['messages'],
+  seq: number,
+): Promise<boolean> {
+  try {
+    return await openAround(messages, seq)
+  } catch {
+    return false
+  }
+}
+
 interface AnchorSource {
   seq: number | null
   count: number | null
@@ -111,6 +123,8 @@ export function useUnreadAnchor() {
   const { summary, source } = useAnchorSource()
   const frozen = ref<Frozen | null>(null)
   let resolving: string | null = null
+  /** Giriş jetonu: sohbet değişince artar; eski girişin geç sonucu/hatası yeni girişi ezmez. */
+  let entryToken = 0
 
   async function resolve(): Promise<void> {
     const id = thread.chatId.value
@@ -127,11 +141,11 @@ export function useUnreadAnchor() {
       return
     }
     resolving = id
-    const found = await openAround(page.messages, seq)
+    const token = entryToken
+    const found = await openAroundSafe(page.messages, seq)
+    if (token !== entryToken) return
     resolving = null
-    if (thread.chatId.value === id) {
-      frozen.value = { chatId: id, seq: found ? seq : null, count: current.count }
-    }
+    frozen.value = { chatId: id, seq: found ? seq : null, count: current.count }
   }
 
   watch(
@@ -139,6 +153,7 @@ export function useUnreadAnchor() {
     () => {
       frozen.value = null
       resolving = null
+      entryToken += 1
     },
   )
   watch(
