@@ -48,3 +48,7 @@ Hata yolunda okundu görünür son mesaja kadar ilerler; görünmeyen daha eski 
 Yeni e2e tasarımı güvenli bulundu fakat ilk gerçek yürütmesi geçmiş sayılmadı. Tek kalan faz kapısı: kapanış başlığında kalite/imaj/gerçek backend(son sparse e2e dahil) üç SUCCESS ve PR MERGED. Bu koşul gerçekleşince koordinatör F9 kapanışını yürürlüğe alır. Denetim belgesi/prettier/koşullu kapanış başlıkları ürün kaynağını değiştirmediğinden kaynak hükmünü etkilemez. Başarısız CI varken tamamlandı iddiası verilmez.
 
 CI1'deki iki test uyumu sonrasında yalnız first-unread.test.ts ve ChatPage.test.ts değişti; denetlenen ürün kodu değişmedi. Pencere/metadata istekleri ayrı ve daha kesin doğrulanır, ilgili query success koşulu kullanılır.6326/6328 ilk sonuç başarılı tamamlanmış sayılmaz; yeni başlığın tam CI kapısı şarttır.
+
+## Kapanış kapısının gerçekleşmesi — 2026-11-17
+
+PR175 `c002692e`, CI44026445257 kalite863 dosya6328 test, imaj ve gerçek backend15/15 kontrolünde SUCCESS oldu; `215ae5d9649d1bdade7174b6947311b660d6e064` ile MERGED. Yeni sparse390/1440+SPA testi2dk, tüm Playwright3.8dk; testler arası ortak hesap yazma yükü ayrı kurucu hesabıyla yalıtıldı. Opus kaynak hükmünün CI/merge koşulu gerçekleşti. F9 kapandı; önceki bekleyen ifadeler koşum öncesi tarihçedir. F10 daha sonra ürün sahibinin talimatıyla [açıldı](../yurutme/web-10/README.md).
