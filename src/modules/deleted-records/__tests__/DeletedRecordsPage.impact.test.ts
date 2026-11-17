@@ -127,9 +127,7 @@ describe('koordinatörlük kalıcı silme etkisi (BE-164)', () => {
     expect(deletes).toHaveLength(1)
     expect(deletes[0]!.headers.get('X-Requested-With')).not.toBeNull()
     expect(deletes[0]!.headers.get('X-Nizamio-Program')).toBe('p1')
-    expect(toasts()).toEqual([
-      'Birim d5 kalıcı olarak silindi: 9 görev, 7 dosya, 1 program bağı, 5 ekip üyeliği.',
-    ])
+    expect(toasts()).toEqual(['Birim d5 kalıcı olarak silindi: 9 görev, 7 dosya, 1 program bağı.'])
   })
 
   it('permanent_blocked: onay ve DELETE yok, sayılı engel bildirimi; yeniden basınca taze okur', async () => {

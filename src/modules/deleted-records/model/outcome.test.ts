@@ -36,6 +36,27 @@ describe('yaşam döngüsü sonucu yorumu', () => {
     })
   })
 
+  it('koordinatörlük kalıcı silme: üyelik sayacı toplam gibi yazılmaz; yalnız görev/dosya/bağ', () => {
+    const department = { kind: 'departments', title: 'Saha' } as const
+    const result = (data: unknown) => interpretOutcome('purge', department, success(data))
+    const full = result({
+      work_items_deleted: 4,
+      files_deleted: 1,
+      program_links_removed: 2,
+      memberships_deleted: 0,
+    })
+    expect(full).toEqual({
+      kind: 'done',
+      message: 'Saha kalıcı olarak silindi: 4 görev, 1 dosya, 2 program bağı.',
+    })
+    expect(full && 'message' in full && full.message).not.toMatch(/üyelik/)
+    // Yalnız üyelik sayacı gelirse sayı gösterilmez; genel başarı metni.
+    expect(result({ memberships_deleted: 3 })).toEqual({
+      kind: 'done',
+      message: 'Saha kalıcı olarak silindi.',
+    })
+  })
+
   it.each([
     'work.not_deleted',
     'collaboration.not_deleted',

@@ -61,14 +61,17 @@ function countOf(data: unknown, field: string): number | null {
   return typeof value === 'number' && value >= 0 ? value : null
 }
 
-/** Departman kalıcı silme sonucu: yalnız sunucunun döndürdüğü sayılar (uydurma yok). */
+/**
+ * Departman kalıcı silme sonucu: yalnız sunucunun döndürdüğü sayılar (uydurma yok).
+ * `memberships_deleted` toplam değildir (bağ kaldırmada silinenler hariç, v0.26 şeması): yazılmaz.
+ */
 function purgedDepartment(title: string, data: unknown): string | null {
-  const parts = (
-    ['work_items_deleted', 'files_deleted', 'program_links_removed', 'memberships_deleted'] as const
-  ).flatMap((field) => {
-    const n = countOf(data, field)
-    return n === null ? [] : [deletedText(`impact.result.${field}`, { n })]
-  })
+  const parts = (['work_items_deleted', 'files_deleted', 'program_links_removed'] as const).flatMap(
+    (field) => {
+      const n = countOf(data, field)
+      return n === null ? [] : [deletedText(`impact.result.${field}`, { n })]
+    },
+  )
   return parts.length > 0
     ? deletedText('feedback.purgedDepartment', { title, parts: parts.join(', ') })
     : null

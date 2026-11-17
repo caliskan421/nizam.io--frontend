@@ -226,7 +226,6 @@ export const trDeletedRecords = {
         work_items_deleted: '{n} görev',
         files_deleted: '{n} dosya',
         program_links_removed: '{n} program bağı',
-        memberships_deleted: '{n} ekip üyeliği',
       },
       programsTitle: 'Programlara göre:',
       program: '{name}: {active} açık, {completed} tamamlanmış, {deleted} silinmiş görev; {link}.',
