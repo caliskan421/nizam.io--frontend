@@ -63,8 +63,8 @@ describe('rol rozeti (BE-083)', () => {
     const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
     await until(() => rowOf(64), 'mesajlar')
     const badge = (seq: number) => rowOf(seq)!.querySelector('[data-testid="chat-role-badge"]')
-    expect(badge(61)!.textContent!.trim()).toBe('Admin')
-    expect(badge(62)!.textContent!.trim()).toBe('Koordinatör')
+    expect(badge(61)!.textContent.trim()).toBe('Admin')
+    expect(badge(62)!.textContent.trim()).toBe('Koordinatör')
     await until(() => badge(62)!.getAttribute('title')?.startsWith('Koordinatör · '), 'birim adı')
     expect(badge(63)).toBeNull()
     expect(badge(64)).toBeNull()
@@ -145,11 +145,11 @@ describe('mesaj görev kartları (BE-085)', () => {
     const cards = () => rowOf(61)!.querySelector('[data-testid="chat-task-cards"]')
     await until(() => cards()?.querySelectorAll('[data-state]').length === 3, 'kartlar')
     expect(cards()!.querySelector('[data-state="available"]')!.textContent).toContain('Motor testi')
-    expect(cards()!.querySelector('[data-state="forbidden"]')!.textContent!.trim()).toBe(
+    expect(cards()!.querySelector('[data-state="forbidden"]')!.textContent.trim()).toBe(
       'Görevi görme yetkiniz yok',
     )
     expect(cards()!.textContent).not.toContain('Arayüz taslağı') // forbidden başlığı sızmaz
-    expect(cards()!.querySelector('[data-state="deleted"]')!.textContent!.trim()).toBe(
+    expect(cards()!.querySelector('[data-state="deleted"]')!.textContent.trim()).toBe(
       'Görev silinmiş',
     )
     expect(sent('GET', `/v1/chats/${GROUP}/messages/${msg.base.message_id}/tasks`)).toHaveLength(1)
@@ -169,12 +169,12 @@ describe('mesaj görev kartları (BE-085)', () => {
 
 describe('mesaj bilgisi — grup (BE-028)', () => {
   it('kendi mesajımda okuyanlar/okumayanlar; başkasının mesajında menü öğesi yok ve istek gitmez', async () => {
-    const app = await boot({ ...COORD, path: `/mesajlar/${GROUP}` })
+    await boot({ ...COORD, path: `/mesajlar/${GROUP}` })
     await until(() => rowOf(58), 'mesajlar')
     await userClick(() => tool(rowOf(58)!, 'Diğer'))
     await userClick(() => menuItem('Mesaj bilgisi'))
     await until(() => $('[data-testid="dlg-receipts-read"]'), 'okuyanlar')
-    const read = $('[data-testid="dlg-receipts-read"]')!.textContent!
+    const read = $('[data-testid="dlg-receipts-read"]')!.textContent
     expect(read).toContain('Yasemin')
     expect(read).toContain('Cem')
     expect($('[data-testid="dlg-receipts-unread"]')!.textContent).toContain('Ayşe')

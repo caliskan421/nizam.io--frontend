@@ -72,9 +72,11 @@ function taskCard(db: OrgDb, me: string, workItemId: string) {
   }
 }
 
-function chatReads(db: OrgDb, state: ChatState) {
+type Params = Record<string, unknown>
+
+function listHandlers(db: OrgDb, state: ChatState) {
   const base = `${ORIGIN}/v1/chats/:chatId`
-  const guard = (request: Request, params: Record<string, unknown>) =>
+  const guard = (request: Request, params: Params) =>
     resolveChat(db, state, request, String(params.chatId))
   return [
     http.get(`${base}/shared-counts`, ({ request, params }) => {
@@ -111,6 +113,14 @@ function chatReads(db: OrgDb, state: ChatState) {
       )
       return json(page(rows, new URL(request.url).searchParams))
     }),
+  ]
+}
+
+function messageHandlers(db: OrgDb, state: ChatState) {
+  const base = `${ORIGIN}/v1/chats/:chatId`
+  const guard = (request: Request, params: Params) =>
+    resolveChat(db, state, request, String(params.chatId))
+  return [
     http.get(`${base}/messages/:messageId/tasks`, ({ request, params }) => {
       const found = guard(request, params)
       if (isResponse(found)) return found
@@ -126,21 +136,7 @@ function chatReads(db: OrgDb, state: ChatState) {
       if (!message) return noMessage()
       // Yalnız gönderen: başkasının mesajında 403 (MESSAGING-K50).
       if (message.base.sender_account_id !== found.account.account_id) return notAuthorized()
-      const others = found.chat.members.filter((m) => m.account_id !== found.account.account_id)
-      const row = (accountId: string) => ({
-        account_id: accountId,
-        full_name: fakeOrg.accountName(db, accountId),
-      })
-      const readers = others.filter(
-        (m) => (found.chat.reads[m.account_id] ?? 0) >= message.base.seq,
-      )
-      return json({
-        message_id: message.base.message_id,
-        seq: message.base.seq,
-        truncated: false,
-        read: readers.map((m) => ({ ...row(m.account_id), last_read_at: null })),
-        unread: others.filter((m) => !readers.includes(m)).map((m) => row(m.account_id)),
-      })
+      return json(receiptsOf(db, found.chat, message))
     }),
     http.put(`${base}/notification-level`, async ({ request, params }) => {
       const found = guard(request, params)
@@ -153,6 +149,23 @@ function chatReads(db: OrgDb, state: ChatState) {
       return json({ level })
     }),
   ]
+}
+
+/** `listChatMessageReceipts` gövdesi: gönderen hariç üyeler imleçlerine göre okuyan/okumayan. */
+function receiptsOf(db: OrgDb, chat: FakeChat, message: FakeMessage) {
+  const others = chat.members.filter((m) => m.account_id !== message.base.sender_account_id)
+  const row = (accountId: string) => ({
+    account_id: accountId,
+    full_name: fakeOrg.accountName(db, accountId),
+  })
+  const readers = others.filter((m) => (chat.reads[m.account_id] ?? 0) >= message.base.seq)
+  return {
+    message_id: message.base.message_id,
+    seq: message.base.seq,
+    truncated: false,
+    read: readers.map((m) => ({ ...row(m.account_id), last_read_at: null })),
+    unread: others.filter((m) => !readers.includes(m)).map((m) => row(m.account_id)),
+  }
 }
 
 /** Görevin KAYNAK mesajı (MESSAGING-K59): en eski bağ; erişilemeyen sohbet/silinmiş mesaj → `null`. */
@@ -175,5 +188,5 @@ function sourceMessage(db: OrgDb, state: ChatState) {
 }
 
 export function sharedHandlers(db: OrgDb, state: ChatState) {
-  return [...chatReads(db, state), sourceMessage(db, state)]
+  return [...listHandlers(db, state), ...messageHandlers(db, state), sourceMessage(db, state)]
 }
