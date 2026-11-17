@@ -56,4 +56,14 @@ describe('departman zinciri kapsamı', () => {
     expect(client.getQueryState(scoped)?.isInvalidated).toBe(true)
     expect(client.getQueryState(accounts)?.isInvalidated).toBe(false)
   })
+
+  it('görev kartı çözümü yenilenir, paylaşılan sayılar departman zincirinde değişmez', async () => {
+    const client = new QueryClient()
+    const tasks = queryKeys.chats.messageTasks(p2d, 'c1', 'm1')
+    const counts = queryKeys.chats.sharedCounts(p2d, 'c1')
+    for (const key of [tasks, counts]) client.setQueryData(key, 1)
+    await run('permanentDeleteDepartment', client)
+    expect(client.getQueryState(tasks)?.isInvalidated).toBe(true)
+    expect(client.getQueryState(counts)?.isInvalidated).toBe(false)
+  })
 })

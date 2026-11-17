@@ -100,6 +100,18 @@ const CHILD_FAILURES: Readonly<Record<string, ChildFeedback>> = {
   'records.transfer_active': 'transferActive',
 }
 
+/**
+ * ADR-0043: departman kalıcı silmede serbest bırakmadan sonra geri yükleme yarışı; görev/dosya
+ * kısmen silinmiş OLABİLİR (ön kapı 409'undan ayırt edilemez): "hiçbir şey silinmedi" denmez.
+ */
+function requiresDeleted(action: LifecycleAction, code: string): Interpreted {
+  const partial = action === 'purge' && code === 'organization.permanent_requires_deleted'
+  return {
+    kind: 'refresh',
+    message: deletedText(partial ? 'feedback.departmentPurgePartial' : 'feedback.notDeleted'),
+  }
+}
+
 export function failed(action: LifecycleAction, code: string): Interpreted | null {
   if (NOT_DELETED.has(code)) {
     return { kind: 'gone', message: deletedText('feedback.alreadyRestored') }
@@ -109,9 +121,7 @@ export function failed(action: LifecycleAction, code: string): Interpreted | nul
       ? { kind: 'gone', message: deletedText('feedback.alreadyGone') }
       : { kind: 'refresh', message: deletedText('feedback.notFound') }
   }
-  if (REQUIRES_DELETED.has(code)) {
-    return { kind: 'refresh', message: deletedText('feedback.notDeleted') }
-  }
+  if (REQUIRES_DELETED.has(code)) return requiresDeleted(action, code)
   const child = childFailure(code)
   if (child) return child
   if (code === 'work.department_unavailable') {

@@ -946,8 +946,9 @@ const DEPARTMENT_CHAIN_RESOURCES: Readonly<Partial<Record<QueryResource, readonl
     // Toplantı satırındaki departman `deleted` bayrağı ve ad kopyası (COLLABORATION-K14).
     meetings: DEPARTMENT_CHAIN_WRITES,
     'chats.refSummary': DEPARTMENT_CHAIN_WRITES,
+    // Görev kartı görev başı (`TaskHeads`) ile çözülür; paylaşılan sayılar ise yalnız mesaj
+    // bağlarını sayar (görev yaşam döngüsü onları değiştirmez), bu yüzden zincire eklenmez.
     'chats.messageTasks': DEPARTMENT_CHAIN_WRITES,
-    'chats.sharedCounts': DEPARTMENT_CHAIN_WRITES,
     // Kalıcı silme program bağını kaldırır: ekip satırları gider, kaynaklı sohbet grubu kapanır.
     'departments.members': DEPARTMENT_PURGE_WRITES,
     'departments.assignable': DEPARTMENT_PURGE_WRITES,

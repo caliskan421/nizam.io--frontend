@@ -264,6 +264,9 @@ export const trDeletedRecords = {
       notFound: 'Kayıt bulunamadı.',
       alreadyGone: 'Kayıt zaten silinmiş.',
       notDeleted: 'Kayıt silinmiş durumda değil.',
+      // Departman kalıcı silmede ADR-0043 yarışı: görev/dosya kısmen silinmiş olabilir.
+      departmentPurgePartial:
+        'Koordinatörlüğün durumu değişti; silme tamamlanamadı. Bazı görev veya dosyalar kalıcı silinmiş olabilir. Listeler yenilendi.',
       inUse: 'Kalıcı silinemedi: kayıt başka kayıtlarca kullanılıyor.',
       departmentInUse:
         'Kalıcı silinemedi: koordinatörlüğün tablosu, projesi veya bekleyen tablo önerisi var. Önce bunları kaldırın.',
