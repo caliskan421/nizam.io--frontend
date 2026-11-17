@@ -24,7 +24,7 @@ describe('W184: canlanan satırların stub ve geçici yolu yok', () => {
   it('sohbet modülünde stub tanımı/kullanımı kalmadı: CHAT_STUBS, designStub, DesignStub, isOpenable yok', () => {
     expect(Object.keys(sources).filter((p) => p.endsWith('/stubs.ts'))).toEqual([])
     const offenders = entries.filter(([, text]) =>
-      /CHAT_STUBS|designStub\(|<DesignStub|\bisOpenable\b/.test(text),
+      /CHAT_STUBS|designStub\(|<Design[S]tub|\bisOpenable\b/.test(text),
     )
     expect(offenders.map(([path]) => path)).toEqual([])
   })
