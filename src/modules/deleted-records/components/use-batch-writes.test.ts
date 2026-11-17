@@ -180,4 +180,27 @@ describe('useBatchWrites (BE-114)', () => {
     expect(sent(POST('work-items', 'restore'), 'POST')).toHaveLength(0)
     app.unmount()
   })
+
+  it('ilk parça uçuştayken sahip sökülürse sonraki parça gönderilmez; işlenen korunur', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let calls = 0
+    server.use(
+      http.post(`${ORIGIN}${POST('files', 'purge')}`, async ({ request }) => {
+        calls += 1
+        const body = (await request.json()) as { ids: string[] }
+        if (calls === 1) await gate
+        return Response.json({ succeeded: body.ids, failed: [] })
+      }),
+      ...serverDefaults(),
+    )
+    const { writes, app } = setup()
+    const running = writes.run('purge', rowsOf('files', 250), ctx())
+    await vi.waitFor(() => expect(calls).toBe(1))
+    app.unmount()
+    release()
+    const result = await running
+    expect(calls).toBe(1)
+    expect(result.stopped?.kind).toBe('owner_disposed')
+  })
 })
