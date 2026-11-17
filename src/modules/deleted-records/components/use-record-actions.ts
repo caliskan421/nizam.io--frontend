@@ -5,9 +5,11 @@
  * Sahibi (sayfa) sökülmüş sonuç ekrana ulaşmaz (`reachesOwner`). `useToast`/`useConfirm` kurulumda
  * alınır (KESİN 26a); çağıran `setup` içinde çağırmalıdır.
  */
-import { computed, ref } from 'vue'
+import { computed, onScopeDispose, ref } from 'vue'
 
-import { reachesOwner } from '@/shared/http/mutation'
+import { authSession } from '@/shared/http'
+import { reachesOwner, sameScope } from '@/shared/http/mutation'
+import { useScopeStore } from '@/shared/scope/store'
 import { useToast } from '@/shared/ui'
 import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/confirm'
 
@@ -33,6 +35,8 @@ export interface RecordActionOptions {
   refresh: () => Promise<unknown>
   /** Satır listeden düştü ya da düşmüş olabilir (seçim temizliği, odak taşıma). */
   removed: (row: DeletedRow) => void
+  /** Yeniden okunmuş listede satır hâlâ var mı (hata + yenilemeden sonra kayıp denetimi). */
+  isPresent?: (row: DeletedRow) => boolean
   /** Sayfanın ortak yazma merkezi (verilmezse kurulur). */
   hub?: LifecycleHub
 }
@@ -65,9 +69,38 @@ export function confirmOptions(action: LifecycleAction, row: DeletedRow): Confir
   }
 }
 
+/**
+ * Yenilemeyi çalıştırır; sürerken kapsam/oturum nesli/sahip değiştiyse `false` (eski sonuç seçime
+ * ve odağa dokunmaz). `setup` içinde çağrılır.
+ */
+function useRefreshGuard() {
+  const scope = useScopeStore()
+  let alive = true
+  onScopeDispose(() => {
+    alive = false
+  })
+  return async (refresh: () => Promise<unknown>): Promise<boolean> => {
+    const before = scope.snapshot
+    const generation = authSession.generation
+    await refresh()
+    return alive && sameScope(before, scope.snapshot) && generation === authSession.generation
+  }
+}
+
+/** Hata + yenileme: kayıt artık listede yoksa (ör. kısmi 409 yarışı) seçim ve odak temizlenir. */
+async function reconcileAfterError(
+  options: RecordActionOptions,
+  row: DeletedRow,
+  refreshed: ReturnType<typeof useRefreshGuard>,
+): Promise<void> {
+  if (!(await refreshed(options.refresh))) return
+  if (options.isPresent?.(row) === false) options.removed(row)
+}
+
 export function useRecordActions(options: RecordActionOptions) {
   const toast = useToast()
   const { confirmWrite } = useConfirm()
+  const refreshed = useRefreshGuard()
   const { senders, pending: writing } = useLifecycleWrites(options.hub)
   const impact = useDeleteImpact()
   // Etki okuması sürerken bütün yazma eylemleri mevcut meşgul yoluyla kilitlidir.
@@ -92,7 +125,7 @@ export function useRecordActions(options: RecordActionOptions) {
     }
     if (result.kind === 'error') {
       toast.push({ message: result.message, tone: 'danger' })
-      if (result.refresh) await options.refresh()
+      if (result.refresh) await reconcileAfterError(options, row, refreshed)
       return
     }
     toast.push({ message: result.message })
