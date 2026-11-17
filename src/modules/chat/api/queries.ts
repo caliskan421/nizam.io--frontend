@@ -21,6 +21,7 @@ import { useSessionStore } from '@/shared/session/store'
 
 import type {
   ChatList,
+  ChatListFilter,
   ChatRefList,
   ChatRefSummary,
   ChatUnreadOverview,
@@ -48,21 +49,29 @@ export const REF_SUMMARY_STALE_MS = 300_000
 
 /**
  * Sohbet listesi (E-10-05, E-10-08): son etkinliğe göre, imleçli; `q` ≤100 karakter (sunucu
- * arar). Süzgeç sekmeleri istemci süzgecidir (BE-081) ve yalnız yüklenen sayfalara uygulanır.
- * Bozuk imleç (`messaging.invalid_cursor`) atılır, ilk sayfadan yeniden başlanır (sessiz).
+ * arar). `kind`/`unread` sunucu süzgecidir (BE-081): tam anahtarda yer alır, süzgeç değişince
+ * imleç sıfırdan başlar; `total` süzülmüş toplamdır (istemci süzgeci yoktur). Bozuk imleç (`messaging.invalid_cursor`) atılır, ilk sayfadan yeniden başlanır (sessiz).
  */
-export function useChats(q: MaybeRefOrGetter<string> = '') {
+export function useChats(
+  q: MaybeRefOrGetter<string> = '',
+  filter: MaybeRefOrGetter<ChatListFilter> = {},
+) {
   const store = useScopeStore()
   const client = useQueryClient()
   const query = useInfiniteQuery(
     computed(() => {
       const scope = store.snapshot
       const term = toValue(q).trim().slice(0, 100)
+      const { kind, unread } = toValue(filter)
       return {
-        queryKey: queryKeys.chats.list(scope, term),
+        queryKey: queryKeys.chats.list(scope, term, kind ?? null, unread === true),
         queryFn: sessionBound(
           ({ signal, pageParam }: QueryFunctionContext<readonly unknown[], string>) =>
-            fetchChats(scope.programId!, { q: term, cursor: pageParam || undefined }, signal),
+            fetchChats(
+              scope.programId!,
+              { q: term, kind, unread, cursor: pageParam || undefined },
+              signal,
+            ),
         ),
         initialPageParam: '',
         getNextPageParam: (page: ChatList) => page.next_cursor || undefined,
@@ -77,8 +86,14 @@ export function useChats(q: MaybeRefOrGetter<string> = '') {
     const result = await query.fetchNextPage()
     const error = result.error
     if (error instanceof ApiError && error.code === 'messaging.invalid_cursor') {
+      const { kind, unread } = toValue(filter)
       await client.resetQueries({
-        queryKey: queryKeys.chats.list(store.snapshot, toValue(q).trim().slice(0, 100)),
+        queryKey: queryKeys.chats.list(
+          store.snapshot,
+          toValue(q).trim().slice(0, 100),
+          kind ?? null,
+          unread === true,
+        ),
       })
     }
   }

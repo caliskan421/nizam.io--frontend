@@ -2,8 +2,8 @@
 /**
  * Konuşma listesi (10 / 10b: E-10-03…E-10-15; P54, P59, P62, P64). Veri `useChats(q)` (imleçli,
  * SUNUCU sırası; istemci yeniden sıralamaz, yetki süzmez — P64). Arama sunucuda (`q`, 300 ms),
- * süzgeç sekmeleri yüklenen sayfalarda istemcide (BE-081) ve URL `?filtre=` ile taşınır; sekme
- * sayacı kesin `unread_chats` değeridir (E-10-07). `select`: satır → `/mesajlar/:chatId`;
+ * süzgeç sekmeleri sunucu süzgecidir (BE-081: `kind`/`unread`, URL `?filtre=`); etkin sekmenin
+ * sayacı `list.total` (süzülmüş toplam), "Okunmamış" etkin değilken kesin `unread_chats` (E-10-07). `select`: satır → `/mesajlar/:chatId`;
  * `create`: "Yeni konuşma" → Yeni grup penceresi (sahibi `ChatPage`; kapanınca odak düğmeye döner).
  */
 import { computed, ref, useId } from 'vue'
@@ -20,7 +20,7 @@ import { chatText } from '../messages'
 import ChatFilterTabs from './list/ChatFilterTabs.vue'
 import type { ChatListHandle } from './list/handle'
 import ChatRow from './list/ChatRow.vue'
-import { applyFilter, FILTER_QUERY, parseFilter, type ChatFilter } from './list/chat-view'
+import { FILTER_QUERY, parseFilter, serverFilter, type ChatFilter } from './list/chat-view'
 import { useChatSearch } from './list/use-chat-search'
 
 import './list/chat-list.css'
@@ -51,11 +51,17 @@ const filter = computed<ChatFilter>({
 })
 
 const search = useChatSearch()
-const chats = useChats(search.term)
+const chats = useChats(search.term, () => serverFilter(filter.value))
 const overview = useChatUnreadOverview()
 const unreadChats = computed(() => overview.selected.value?.unread_chats ?? null)
 
-const visible = computed(() => applyFilter(chats.items.value, filter.value))
+const visible = computed(() => chats.items.value)
+const total = computed(() => chats.query.data.value?.pages[0]?.total ?? null)
+const counts = computed<Partial<Record<ChatFilter, number | null>>>(() => ({
+  unread: unreadChats.value,
+  // Etkin süzgeç sekmesi `total`'ı taşır ("Tümü" sayaçsız kalır).
+  ...(filter.value === 'all' ? {} : { [filter.value]: total.value }),
+}))
 const hasMore = computed(() => chats.query.hasNextPage.value === true)
 const loadingMore = computed(() => chats.query.isFetchingNextPage.value)
 const failed = computed(() => chats.query.isError.value)
@@ -138,16 +144,9 @@ defineExpose(handle)
         data-testid="chat-search"
         @keydown.enter.prevent="search.flush()"
       />
-      <ChatFilterTabs
-        v-model="filter"
-        :unread-count="unreadChats"
-        :controls="showList ? listId : undefined"
-      />
+      <ChatFilterTabs v-model="filter" :counts="counts" :controls="showList ? listId : undefined" />
     </div>
     <div class="chat-list__scroll">
-      <p v-if="filter !== 'all' && hasMore && !loading" class="chat-list__hint">
-        {{ chatText('chat.list.loadedHint') }}
-      </p>
       <p v-if="loading" class="chat-list__status" role="status" data-testid="chat-list-loading">
         {{ chatText('chat.states.loading') }}
       </p>

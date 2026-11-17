@@ -83,24 +83,3 @@ export function buildEntries(items: readonly ChatMessage[], opts: EntryOptions):
   if (lastMessage) lastMessage.last = true
   return out
 }
-
-/**
- * Okunmamış ayırıcının çapası (E-10-25): akışın sonundan geriye BAŞKASININ son `count`
- * mesajı sayılır; ilkinin `seq`'i çapadır. Yüklü pencere yetmezse `null` (çağıran en çok 3 ek
- * `before` sayfası okur, yine bulunamazsa ayırıcı çizilmez).
- */
-export function unreadAnchorSeq(
-  items: readonly ChatMessage[],
-  count: number,
-  meId: string | null,
-): number | null {
-  if (count <= 0) return null
-  let seen = 0
-  for (let i = items.length - 1; i >= 0; i -= 1) {
-    const message = items[i]!
-    if (message.sender_account_id === meId) continue
-    seen += 1
-    if (seen === count) return message.seq
-  }
-  return null
-}

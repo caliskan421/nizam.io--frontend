@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
  * Süzgeç sekmeleri (E-10-06): Tümü · Okunmamış · Gruplar · Kişiler. Gezici `tabindex`; ←/→,
- * Home/End odağı taşır ve sekmeyi seçer (UiTabs kalıbı). "Okunmamış" sayacı seçili programın kesin
- * `unread_chats` değeridir (E-10-07); yoksa ya da 0 ise gizli. `controls`: liste çizilmişse kimliği
+ * Home/End odağı taşır ve sekmeyi seçer (UiTabs kalıbı). "sekme sayacı `counts`'tan gelir: etkin sekmede sunucu `list.total`
+ * (süzülmüş toplam), etkin olmayan "Okunmamış"ta programın kesin `unread_chats` değeri (E-10-07);
+ * yoksa ya da 0 ise gizli. `controls`: liste çizilmişse kimliği
  * (liste yokken `aria-controls` verilmez, KESİN 27).
  */
 import { ref, useId } from 'vue'
@@ -12,7 +13,7 @@ import { rovingTarget } from '@/shared/ui/roving'
 import { chatText } from '../../messages'
 import { CHAT_FILTERS, type ChatFilter } from './chat-view'
 
-defineProps<{ unreadCount: number | null; controls?: string }>()
+defineProps<{ counts: Partial<Record<ChatFilter, number | null>>; controls?: string }>()
 const model = defineModel<ChatFilter>({ required: true })
 const base = `chat-tab-${useId()}`
 const list = ref<HTMLElement | null>(null)
@@ -53,7 +54,7 @@ function onKeydown(event: KeyboardEvent): void {
       @click="model = filter"
     >
       {{ chatText(LABELS[filter]) }}
-      <span v-if="filter === 'unread' && unreadCount" class="chat-tabs__n">{{ unreadCount }}</span>
+      <span v-if="counts[filter]" class="chat-tabs__n">{{ counts[filter] }}</span>
     </button>
   </div>
 </template>

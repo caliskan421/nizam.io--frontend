@@ -207,7 +207,9 @@ export const queryKeys = {
    */
   chats: {
     all: (s: ScopeSnapshot) => scoped(s, ['chats']),
-    list: (s: ScopeSnapshot, q: string) => scoped(s, ['chats', 'list', { q }]),
+    /** Sunucu süzgeçleri (BE-081) tam anahtardadır: süzgeç değişince imleç/sayfalar ayrı önbellek. */
+    list: (s: ScopeSnapshot, q: string, kind: 'direct' | 'group' | null = null, unread = false) =>
+      scoped(s, ['chats', 'list', { q, kind, unread }]),
     detail: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'detail']),
     messages: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'messages']),
     pins: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'pins']),

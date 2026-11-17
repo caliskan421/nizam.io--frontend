@@ -98,8 +98,19 @@ function serve({ pages = [[GENERAL, DEPT, DIRECT, FREE]], unread = 3 }: Serve = 
       const index = Number(url.searchParams.get('cursor') ?? 0)
       const items = pages[index] ?? []
       const q = url.searchParams.get('q')
-      const hit = q ? items.filter((c) => (c.name ?? c.counterpart_name ?? '').includes(q)) : items
-      return json({ items: hit, next_cursor: index + 1 < pages.length ? String(index + 1) : '' })
+      const kind = url.searchParams.get('kind')
+      const onlyUnread = url.searchParams.get('unread') === 'true'
+      // Sunucu süzgeci (BE-081): `kind`/`unread`/`q` süzer; `total` süzülmüş toplamdır.
+      const match = (c: ChatSummary) =>
+        (q ? (c.name ?? c.counterpart_name ?? '').includes(q) : true) &&
+        (kind ? c.kind === kind : true) &&
+        (onlyUnread ? c.unread_count > 0 : true)
+      const total = pages.flat().filter(match).length
+      return json({
+        items: items.filter(match),
+        next_cursor: index + 1 < pages.length ? String(index + 1) : '',
+        total,
+      })
     }),
     http.get(`${ORIGIN}/v1/me/chat-unread`, () =>
       json({
@@ -271,32 +282,37 @@ describe('ChatListPane — arama (E-10-05)', () => {
 })
 
 describe('ChatListPane — süzgeç sekmeleri (E-10-06, E-10-07)', () => {
-  it('Okunmamış: yüklenen satırlar süzülür, URL ?filtre=okunmamis; Tümü sorguyu kaldırır', async () => {
+  it('Okunmamış: sunucu süzer (unread=true), URL ?filtre=okunmamis; Tümü sorguyu kaldırır', async () => {
     serve()
-    const { wrapper, router } = await mountPane()
+    const { wrapper, router, client } = await mountPane()
     await tab(wrapper, 'unread').trigger('click')
-    await flushPromises()
+    await settleQueries(client)
     expect(router.currentRoute.value.query.filtre).toBe('okunmamis')
     expect(names(wrapper)).toEqual(['Genel', 'Sistem koordinatörlüğü', 'Kadir Özbek'])
+    expect(sent('GET', '/v1/chats').at(-1)!.query.get('unread')).toBe('true')
     await tab(wrapper, 'groups').trigger('click')
-    await flushPromises()
+    await settleQueries(client)
     expect(names(wrapper)).toEqual(['Genel', 'Sistem koordinatörlüğü', 'Fuar kurulum'])
+    expect(sent('GET', '/v1/chats').at(-1)!.query.get('kind')).toBe('group')
+    expect(sent('GET', '/v1/chats').at(-1)!.query.get('unread')).toBeNull()
     await tab(wrapper, 'people').trigger('click')
-    await flushPromises()
+    await settleQueries(client)
     expect(names(wrapper)).toEqual(['Kadir Özbek'])
     await tab(wrapper, 'all').trigger('click')
-    await flushPromises()
+    await settleQueries(client)
     expect(router.currentRoute.value.query.filtre).toBeUndefined()
     expect(names(wrapper)).toHaveLength(4)
   })
 
-  it('URL ?filtre= ile açılış süzgeci kurar; sunucuya süzgeç gitmez (BE-081)', async () => {
+  it('URL ?filtre= ile açılış süzgeci kurar ve sunucuya `kind` gider (BE-081); etkin sekme sayacı `total`', async () => {
     serve()
     const { wrapper } = await mountPane('/mesajlar?filtre=kisiler')
     expect(tab(wrapper, 'people').attributes('aria-selected')).toBe('true')
     expect(names(wrapper)).toEqual(['Kadir Özbek'])
     const q = sent('GET', '/v1/chats')[0]!.query
-    expect([...q.keys()].sort()).toEqual(['limit'])
+    expect([...q.keys()].sort()).toEqual(['kind', 'limit'])
+    expect(q.get('kind')).toBe('direct')
+    expect(tab(wrapper, 'people').get('.chat-tabs__n').text()).toBe('1')
   })
 
   it('süzgeç sorgusu dışındaki sorgular (mesaj) korunur', async () => {
@@ -380,14 +396,18 @@ describe('ChatListPane — sayfalama ve durumlar', () => {
     expect(wrapper.find('.chat-list__more').exists()).toBe(false)
   })
 
-  it('süzgeç açıkken "daha fazla yükle" sürer ve etiket "yüklenen konuşmalar içinde"; otomatik zincirleme yok', async () => {
-    serve({ pages: [[FREE], page2] })
-    const { wrapper } = await mountPane('/mesajlar?filtre=okunmamis')
-    expect(wrapper.get('.chat-list__hint').text()).toBe('yüklenen konuşmalar içinde')
-    // Süzgeçle eşleşen yok ama sonraki sayfa var: boş durum değil, devam düğmesi.
-    expect(wrapper.find('[data-testid="chat-list-empty"]').exists()).toBe(false)
-    expect(wrapper.find('.chat-list__more button').exists()).toBe(true)
-    expect(sent('GET', '/v1/chats')).toHaveLength(1)
+  it('süzgeç açıkken sayfalama süzülmüş kümede sürer; "yüklenen konuşmalar içinde" etiketi yok (eski yol)', async () => {
+    serve({ pages: [[GENERAL], [DEPT, FREE]] })
+    const { wrapper, client } = await mountPane('/mesajlar?filtre=okunmamis')
+    expect(wrapper.find('.chat-list__hint').exists()).toBe(false)
+    expect(names(wrapper)).toEqual(['Genel'])
+    expect(tab(wrapper, 'unread').get('.chat-tabs__n').text()).toBe('2')
+    await wrapper.get('.chat-list__more button').trigger('click')
+    await settleQueries(client)
+    expect(names(wrapper)).toEqual(['Genel', 'Sistem koordinatörlüğü'])
+    const calls = sent('GET', '/v1/chats')
+    expect(calls.every((r) => r.query.get('unread') === 'true')).toBe(true)
+    expect(calls.at(-1)!.query.get('cursor')).toBe('1')
   })
 
   it('yükleniyor: durum metni (role=status); veri gelince kalkar', async () => {
@@ -449,7 +469,7 @@ describe('ChatListPane — sayfalama ve durumlar', () => {
     expect(wrapper.emitted('create')).toEqual([['group']])
   })
 
-  it('süzgeç sonucu boş (son sayfa): "Eşleşen konuşma yok", Yeni konuşma düğmesi yok', async () => {
+  it('süzgeç sonucu boş: "Eşleşen konuşma yok", Yeni konuşma düğmesi yok', async () => {
     serve({ pages: [[FREE]] })
     const { wrapper } = await mountPane('/mesajlar?filtre=okunmamis')
     const empty = wrapper.get('[data-testid="chat-list-empty"]')

@@ -106,8 +106,14 @@ export interface TaskFromMessageInput extends MessageTarget {
   body: CreateTaskFromChatMessageRequest
 }
 
+/** `listChats` sunucu süzgeçleri (BE-081): tür ve yalnız okunmamış; ikisi de yoksa "Tümü". */
+export interface ChatListFilter {
+  kind?: 'direct' | 'group'
+  unread?: boolean
+}
+
 /** `listChats` sorgusu (`limit` istemci sabitidir). */
-export interface ChatListQuery {
+export interface ChatListQuery extends ChatListFilter {
   q: string
   cursor?: string
 }

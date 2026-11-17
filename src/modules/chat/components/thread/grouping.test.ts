@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { msg } from '../../__tests__/fixtures'
-import { buildEntries, unreadAnchorSeq } from './grouping'
+import { buildEntries } from './grouping'
 
 const at = (seq: number, iso: string, sender = 'u2') =>
   msg(seq, { created_at: iso, sender_account_id: sender })
@@ -56,22 +56,5 @@ describe('buildEntries', () => {
       unreadCount: 0,
     })
     expect(out.some((e) => e.type === 'unread')).toBe(false)
-  })
-})
-
-describe('unreadAnchorSeq', () => {
-  const items = [
-    at(1, '2026-11-14T08:00:00Z'),
-    at(2, '2026-11-14T08:01:00Z'),
-    at(3, '2026-11-14T08:02:00Z', 'me'),
-    at(4, '2026-11-14T08:03:00Z'),
-  ]
-  it('sondan başkasının n mesajını sayar (kendi mesajım sayılmaz)', () => {
-    expect(unreadAnchorSeq(items, 2, 'me')).toBe(2)
-    expect(unreadAnchorSeq(items, 1, 'me')).toBe(4)
-  })
-  it('pencere yetmezse ya da sayı 0 ise null', () => {
-    expect(unreadAnchorSeq(items, 4, 'me')).toBeNull()
-    expect(unreadAnchorSeq(items, 0, 'me')).toBeNull()
   })
 })

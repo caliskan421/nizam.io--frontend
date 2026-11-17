@@ -67,8 +67,6 @@ export interface ThreadContext {
   startReply: (message: ChatMessage) => void
   startEdit: (message: ChatMessage) => void
   goTo: (seq: number) => Promise<void>
-  /** Alıntı hedefi (`seq` yok, BE-162): yüklü pencerede ara, yoksa en çok 3 `before` sayfası. */
-  goToMessage: (messageId: string) => Promise<void>
 }
 
 export const THREAD_KEY: InjectionKey<ThreadContext> = Symbol('chat-thread')
@@ -80,8 +78,6 @@ export function useThread(): ThreadContext {
 }
 
 const HIGHLIGHT_MS = 2000
-/** Alıntı hedefi için en çok bu kadar ek `before` sayfası okunur (BE-162). */
-export const QUOTE_LOOKUP_PAGES = 3
 
 /** Sohbet, üyeler, birimler, kimlik ve yetkiler (okuma kümesi). */
 function useThreadData(id: ComputedRef<string>) {
@@ -182,13 +178,6 @@ function useThreadNav(key: ComputedRef<string>) {
       const loaded = page.messages.window.value.items.some((m) => m.seq === seq)
       if (!loaded) await page.messages.jumpTo(seq)
       highlight(seq)
-    },
-    async goToMessage(messageId: string): Promise<void> {
-      for (let pages = 0; find(messageId) === null && pages < QUOTE_LOOKUP_PAGES; pages += 1) {
-        await page.messages.loadOlder()
-      }
-      const target = find(messageId)
-      if (target !== null) highlight(target.seq)
     },
   }
 }

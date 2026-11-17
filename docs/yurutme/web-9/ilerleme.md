@@ -2,15 +2,15 @@
 
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz (ham kaynak `.git/koordinator/f5-notlar.md` ve `web9-kararlar.md`).
 
-**F9 AÇILDI — karar 2026-11-16 (P77), yürütme 2026-11-17; kapsam 2026-11-17'de v0.25'i de içerecek biçimde güncellendi (P84).** Kapsam [README](README.md)'de. F8 [KAPANDI](../web-8/ilerleme.md) (main `a48a3e78`; devreden borçlar web-8 ilerleme #1–#38). Main pini O1 kapanışında `v0.23.0-api`; W182 bu PR'da `v0.25.0-api` pinini hazırlar; O2a kapanışı CI + merge ile yürürlüğe girer.
+**F9 AÇILDI — karar 2026-11-16 (P77), yürütme 2026-11-17; kapsam 2026-11-17'de v0.25'i de içerecek biçimde güncellendi (P84).** Kapsam [README](README.md)'de. F8 [KAPANDI](../web-8/ilerleme.md) (main `a48a3e78`; devreden borçlar web-8 ilerleme #1–#38). Main pini **v0.25.0-api** (W182 PR #170, main `2bd788f3`).
 
 ## Durum
 
 | Oturum | Durum | main hash |
 | --- | --- | --- |
 | O1 W181 | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN | `099dfe6e` |
-| O2a W182 (pin v0.25) | Sonnet teslimi `17e97b8b`; bağımsız Terra doğrulama ve PR/CI bekliyor | — |
-| O2b W183 ‖ W184, sonra W185b ‖ W185 | bekliyor | — |
+| O2a W182 (pin v0.25) | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı | `2bd788f3` |
+| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 `236d8629` teknik teslim, bağımsız Terra/PR/CI bekler; W184 aktif | — |
 | O3 W186 | bekliyor | — |
 | O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | bekliyor | — |
 
@@ -48,3 +48,21 @@ Sonnet W181: 656dba77 (yalnız 11 belge); Terra prettier ve 100 hedefli test ba�
 ### O2a teknik teslimi (2026-11-17; henüz kapanmadı)
 
 Sonnet W182 beş commit: pin/generated (261 uç, 227 hata kodu), ortak defaults, sohbet ve bildirim tip/fixture uyumu, güncel e2e/README pin referansları. Gen:check/typecheck/lint, 162 dosyada1412 hedefli test ve tests/lint157 başarılı; stub31 değişmedi, canlıya alma yok. K1/K2/K3/K5 aynı fixture dosyalarını paylaştığından tek uyum commitinde; davranış testleri sınıfları ayrı doğrular. `poll.anonymous` spec'te opsiyonel, generator default nedeniyle required tipliyor; W182 eski gönderim gövdesini dar cast+omission testiyle korur. W185b anonim anketi bağlarken explicit alanla bu geçici cast kaldırılır. Build ve tek390/1440koyu karşılaştırmalı duman Terra'ya atandı. Nihai doğrulama/CI/merge gelmeden O2a kapandı sayılmaz.
+
+### O2b W183 teknik kabul hazırlığı (2026-11-17)
+
+Sonnet kaynak teslimi236d8629: BE081/082/086/160/162 stub'ları ve eski yolları kaldırıldı, BE027 yalnız liste yüzü (kapanışW185). Ortak query-keys b7bffb42 W184'e devredildi. Typecheck/lint/format/build ve79dosya760test başarılı; son ikon ekinde173ilgili test başarılı. Root kayıt/ekran belgelerini güncelledi; duman ve ek negatifler bağımsız Terra'da. O2b henüz kapanmadı.
+
+### Yeni doğrulama borcu #39
+
+PR170 ilk CI koşusunda reports-lifecycle.test.ts:88 boot/login gerçek localhost80'e çıkarak client.network_error verdi (1/6011test). Test/harness değişmemiş; Terra iki ayrı dar koşuda7/7PASS, kesin interceptor/yük/sıra kök nedeni bulunamadı. Tek failed rerun sonrası attempt2 üçCIişiSUCCESS vePRmerged. Kalıcı düzeltildi iddiası yok; yinelenirse MSW request:start/fetch kimliği/sunucu ömrüyle deterministik teşhis gerekir. Eski401borç38'den ayrıdır.
+
+### W183 bağımsız regresyon ve düzeltme (2026-11-17)
+
+Terra explicit `?mesaj=55` hedefinin server first_unread_seq6 açılışıyla ezildiğini stateful uygulama testinde yakaladı; test694ba3be ile kaydedildi. Sonnet b54081a7 ile tek hedef ayrıştırıcısı ve açık mesaj önceliğini ekledi;16dosya77ilgili test/typecheck/lint/format geçti. Geç A→B yanıt testi yeşil; yeni getterler shared query anahtarlarına dokunmadı. Görsel duman ve bağımsız final kontrol hâlâ Terra'da; CI/PR gelmeden bu teslim kapanmış sayılmaz.
+
+### W183 bağımsız son kabul (2026-11-17; PR/CI bekler)
+
+Sonnet95bac896 ilk unread inişini center yaparak sticky tarih/okunmamış ilk iniş örtüşmesini giderdi. Terra build ve gerçek Chromium sahte/v025 dumanında390(253–283 tarih/515–545unread),1440(200–230/489–519) dikdörtgenlerini ayrık ölçtü ve PNG'leri gördü; CSP/overflow/pageerror0. Derin hedef55 korundu, alıntı2/beforezinciriyok her iki genişlikte görüldü.390ilkpointermesaj satırına düşüpikinciquote'aulaştı;ilkhedefkaymasınınsebebibelirsiz,ürünkusuruiddiasıyok. Source95 ve önceki42test kırmızı→yeşil kanıtı saklandı.
+
+Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/tamF9matris/stubyok şartıyla düzeltti; BE027 parantezli yüzeyID'si de desteklenir.40ilgilitest+lint/formatPASS. F8tarihselmatris değişmedi, unsupported/aynı-eski pin/stubnegatifleri korunur. Bu kabul seçili sahteUI/istemci kanıtıdır; gerçekCaddy/backendtanığı CI+W188'dedir.

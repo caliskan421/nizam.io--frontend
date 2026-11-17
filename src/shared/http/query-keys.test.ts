@@ -255,7 +255,7 @@ const TABLE: Array<{
   {
     resource: 'chats.list',
     key: queryKeys.chats.list(S, ''),
-    expected: [...root(S), 'chats', 'list', { q: '' }],
+    expected: [...root(S), 'chats', 'list', { q: '', kind: null, unread: false }],
     mustInvalidate: ['sendChatMessage', 'createGroupChat', 'deleteChat', 'markChatRead'],
   },
   {
