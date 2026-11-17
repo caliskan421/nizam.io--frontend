@@ -69,4 +69,32 @@ describe('okunmamış ayırıcı: liste özeti yokken geçmiş `first_unread_seq
     await settle(client)
     expect(wrapper.find(DIVIDER).exists()).toBe(true)
   })
+  it('aynı query önbelleğiyle yeniden girişte eski okunmamış çapa tekrar çizilmez', async () => {
+    const { fake } = servePane({ historyFirstUnreadSeq: 1, messages: [msg(1)] })
+    const first = await mountPane()
+    await settle(first.client)
+    await vi.waitFor(() => expect(first.wrapper.find(DIVIDER).exists()).toBe(true))
+    fake.firstUnread.seq = null
+    first.wrapper.unmount()
+    const second = await mountPane({ queryClient: first.client })
+    await settle(second.client)
+    expect(second.wrapper.find(DIVIDER).exists()).toBe(false)
+  })
+
+  it('aynı önbellekle yeniden girişte sunucu çapası başka seq olursa yeni çapa kurulur', async () => {
+    const { fake } = servePane({ historyFirstUnreadSeq: 1, messages: range(1, 200) })
+    const first = await mountPane()
+    await settle(first.client)
+    await vi.waitFor(() => expect(first.wrapper.find(DIVIDER).exists()).toBe(true))
+    fake.firstUnread.seq = 150
+    first.wrapper.unmount()
+    const second = await mountPane({ queryClient: first.client })
+    await settle(second.client)
+    await vi.waitFor(() => expect(second.wrapper.find(DIVIDER).exists()).toBe(true))
+    const html = second.wrapper.get('.msg-list').element.innerHTML
+    expect(html.indexOf('data-seq="150"')).toBeGreaterThan(
+      html.indexOf('data-testid="chat-unread"'),
+    )
+    expect(html.indexOf('data-seq="149"')).toBeLessThan(html.indexOf('data-testid="chat-unread"'))
+  })
 })
