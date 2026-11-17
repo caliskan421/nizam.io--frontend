@@ -14,6 +14,8 @@ export function fetchChats(programId: string, query: ChatListQuery, signal?: Abo
         query: {
           limit: CHAT_LIST_LIMIT,
           ...(query.q ? { q: query.q } : {}),
+          ...(query.kind ? { kind: query.kind } : {}),
+          ...(query.unread ? { unread: true } : {}),
           ...(query.cursor ? { cursor: query.cursor } : {}),
         },
       },
