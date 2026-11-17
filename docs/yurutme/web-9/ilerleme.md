@@ -10,7 +10,7 @@ Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan 
 | --- | --- | --- |
 | O1 W181 | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN | `099dfe6e` |
 | O2a W182 (pin v0.25) | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı | `2bd788f3` |
-| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 `236d8629` teknik teslim, bağımsız Terra/PR/CI bekler; W184 aktif | — |
+| O2b W183 ‖ W184, sonra W185b ‖ W185 | W183 PR #171 CI bekler; W184 `21106559` birleşik teknik teslim, Terra/PR/CI bekler; W185b aktif | — |
 | O3 W186 | bekliyor | — |
 | O4 W187 ‖ W188, Opus denetim + Codex koordinatör kapanışı | bekliyor | — |
 
@@ -66,3 +66,7 @@ Terra explicit `?mesaj=55` hedefinin server first_unread_seq6 açılışıyla ez
 Sonnet95bac896 ilk unread inişini center yaparak sticky tarih/okunmamış ilk iniş örtüşmesini giderdi. Terra build ve gerçek Chromium sahte/v025 dumanında390(253–283 tarih/515–545unread),1440(200–230/489–519) dikdörtgenlerini ayrık ölçtü ve PNG'leri gördü; CSP/overflow/pageerror0. Derin hedef55 korundu, alıntı2/beforezinciriyok her iki genişlikte görüldü.390ilkpointermesaj satırına düşüpikinciquote'aulaştı;ilkhedefkaymasınınsebebibelirsiz,ürünkusuruiddiasıyok. Source95 ve önceki42test kırmızı→yeşil kanıtı saklandı.
 
 Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/tamF9matris/stubyok şartıyla düzeltti; BE027 parantezli yüzeyID'si de desteklenir.40ilgilitest+lint/formatPASS. F8tarihselmatris değişmedi, unsupported/aynı-eski pin/stubnegatifleri korunur. Bu kabul seçili sahteUI/istemci kanıtıdır; gerçekCaddy/backendtanığı CI+W188'dedir.
+
+### W184 birleşik teknik kabul hazırlığı (2026-11-17)
+
+İlk Sonnet24cef7df9commit; read API/mutation ve SSE, rol/üye/mesaj bilgisi/paylaşılanlar, iki yönlü görev kaynağı bağlantısı,11yeni test dosyasında56yeni test. W183 branch ile üç kaynak çatışması bad6e3bd'de Sonnet tarafından birleştirildi, notify_levels tek fake kaynak oldu. Koordinatörler GroupInfo bilgisi4b26e5c6; eski görünür grup tiklerinin bayatlığı120mesajlı kırmızı→yeşil regresyonla21106559'da bounded okundu metadata taramasına geçti. W183 hedef/visualfixleri ve tarihselF8guard sonradan alındı. BE028/083/084/085 kayıtları bağlı, BE027açık; final bağımsız Terra+CI bekler.
