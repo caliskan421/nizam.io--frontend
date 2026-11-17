@@ -16,7 +16,8 @@ describe('sohbet metinleri (tek ağaç trChat)', () => {
       const text = chatText(key, { name: 'Ayşe', n: 3, i: 1, time: '10:30' })
       expect(text.trim(), key).not.toBe('')
       expect(text, key).not.toBe(key)
-      expect(text, key).not.toMatch(/[{}@$|]/)
+      // `{'@'}` vue-i18n değişmez ifadesidir (BE-027 "Yalnız @bahsedilince bildir"): çözülmüş metinde `@` kalır.
+      expect(text.replace(/@bahsedilince/, ''), key).not.toMatch(/[{}@$|]/)
       expect(i18n.global.te(key), key).toBe(true)
     }
   })
@@ -41,11 +42,13 @@ describe('sohbet metinleri (tek ağaç trChat)', () => {
     expect(Object.keys(trChat.chat.thread.reaction)).toEqual(['like', 'heart', 'check', 'star'])
   })
 
-  it('sözleşme dışı özellikler: metin yalnız devre dışı designStub etiketlerinde (BE-027, BE-161); iletme ve "Koordinatörler" grubu (BE-160) çizilmez', () => {
-    const stubLabels = ['chat.dialogs.info.mute', 'chat.dialogs.pollForm.secret']
-    expect(stubLabels.map((k) => chatText(k as ChatTextKey))).toEqual(['Sessize al', 'Anonim'])
+  it('sözleşme dışı özellikler: metin yalnız devre dışı designStub etiketinde (BE-161); iletme çizilmez; "Koordinatörler" grubu (BE-160) ve sessize alma (BE-027) canlıdır', () => {
+    const stubLabels = ['chat.dialogs.pollForm.secret']
+    expect(stubLabels.map((k) => chatText(k as ChatTextKey))).toEqual(['Anonim'])
+    expect(chatText('chat.dialogs.info.notifyNone')).toBe('Sessize al')
+    expect(chatText('chat.dialogs.info.notifyMentions')).toBe('Yalnız @bahsedilince bildir')
     const rest = (leaves(trChat) as ChatTextKey[]).filter((k) => !stubLabels.includes(k))
     const all = rest.map((k) => chatText(k)).join(' ')
-    expect(all).not.toMatch(/sessize|anonim|Koordinatörler/i)
+    expect(all.replace(/Sessize al/g, '')).not.toMatch(/sessize|anonim/i)
   })
 })

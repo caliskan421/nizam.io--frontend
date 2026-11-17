@@ -73,6 +73,21 @@ describe('SSE olay planı (içeriksiz; içerik HTTP’den)', () => {
     expect(planFor(event('read.updated'), ctx({ openChatId: null })).refreshPeerRead).toBe(false)
   })
 
+  it('W184: paylaşılan sayı/görev kartı/okundu bilgisi bayrakları olaya göre (BE-084/085/028)', () => {
+    const flags = (name: Parameters<typeof event>[0]) => {
+      const p = planFor(event(name), ctx())
+      return [p.invalidateShared, p.invalidateMessageTasks, p.invalidateReceipts]
+    }
+    expect(flags('message.created')).toEqual([true, false, false])
+    expect(flags('message.updated')).toEqual([false, true, false])
+    expect(flags('message.deleted')).toEqual([true, true, true])
+    expect(flags('read.updated')).toEqual([false, false, true])
+    expect(flags('member.changed')).toEqual([false, false, true])
+    expect(flags('chat.changed')).toEqual([false, false, false])
+    // Açık olmayan sohbette de önbellek geçersizlenir (sorgu başka yerden mount edilmiş olabilir).
+    expect(planFor(event('message.created'), ctx({ openChatId: null })).invalidateShared).toBe(true)
+  })
+
   it('member.changed / chat.changed: üyelik ve ayrıntı; kendi hesabım etkilendiyse erişim yeniden denetlenir', () => {
     const mine = event('member.changed', { affectedAccountIds: ['me', 'u3'] })
     expect(planFor(mine, ctx())).toMatchObject({

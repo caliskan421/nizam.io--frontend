@@ -38,7 +38,7 @@ export interface FakeChat {
   reads: Record<string, number>
   /** Son atanan `seq` (silinse de azalmaz). */
   last_seq: number
-  /** Hesap → bildirim seviyesi (liste satırı `notify_level`; yoksa `all`). */
+  /** Hesap → bildirim seviyesi (BE-027; getChat/liste `notify_level`, yoksa `all`). */
   notify_levels?: Record<string, 'all' | 'mentions' | 'none'>
 }
 
@@ -182,6 +182,20 @@ export function addMessage(
 
 // --- Görünümler ---------------------------------------------------------------------------
 
+/**
+ * Grup "herkes okudu" tiki (BE-028, MESSAGING-K58): yalnız geçmiş cevabında ve çağıranın KENDİ grup
+ * mesajında; gönderen hariç herkesin imleci mesajın `seq`'ine ulaştıysa `true` (üye yoksa `false`);
+ * gönderen hariç 200'den fazla üyede `null`.
+ */
+export function readByAll(chat: FakeChat, message: FakeMessage, viewer: string): boolean | null {
+  if (chat.kind !== 'group' || message.base.sender_account_id !== viewer) return null
+  const others = chat.members.filter((m) => m.account_id !== message.base.sender_account_id)
+  if (others.length > 200) return null
+  return (
+    others.length > 0 && others.every((m) => (chat.reads[m.account_id] ?? 0) >= message.base.seq)
+  )
+}
+
 export function viewOf(message: FakeMessage, viewer: string): ChatMessage {
   const counts = new Map<string, number>()
   for (const kind of message.reactions.values()) counts.set(kind, (counts.get(kind) ?? 0) + 1)
@@ -260,9 +274,23 @@ export function chatView(db: OrgDb, chat: FakeChat, viewer: string) {
     last_seq: chat.last_seq,
     name: chat.name,
     role: roleOf(chat, viewer) ?? 'member',
+    notify_level: chat.notify_levels?.[viewer] ?? ('all' as const),
     source: chat.source,
     source_department_id: chat.source_department_id,
   }
+}
+
+/** Hesabın sohbetin programındaki BUGÜNKÜ rozeti (BE-083): ŞY > koordinatör > üye; programda yoksa `none`. */
+export function programRoleOf(db: OrgDb, accountId: string, programId: string) {
+  const account = db.accounts.find((a) => a.account_id === accountId)
+  if (account?.admin) return { role: 'company_admin' as const, department_ids: [] as string[] }
+  const rows = fakeOrg.rowsOf(db, accountId, programId)
+  const lead = rows.filter((r) => r.team === 'coordinator').map((r) => r.department_id)
+  if (lead.length > 0) return { role: 'coordinator' as const, department_ids: lead }
+  if (rows.length > 0) {
+    return { role: 'member' as const, department_ids: rows.map((r) => r.department_id) }
+  }
+  return { role: 'none' as const, department_ids: [] as string[] }
 }
 
 // --- Yetki ve hata yardımcıları -------------------------------------------------------------

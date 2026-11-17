@@ -11,6 +11,7 @@
  */
 import type { Standing } from '@/shared/scope/standing-facts'
 
+import type { ChatProgramRole } from './shared-types'
 import type { ChatAutoKind, ChatKind, ChatMessage, ChatRole, ChatSource } from './types'
 
 export interface ChatFacts {
@@ -156,4 +157,12 @@ export function memberRoleFacts(role: ChatRole): MemberRoleFacts {
   if (role === 'admin') return { badge: 'admin', adminAction: 'revoke' }
   if (role === 'founder') return { badge: 'founder', adminAction: null }
   return { badge: null, adminAction: 'grant' }
+}
+
+/**
+ * Akışta program rolü rozeti çizilir mi (BE-083, MESSAGING-K48): yalnız Admin ve Koordinatör;
+ * rozet GÖSTERİMDİR, eylem kararı için kullanılmaz (K1) ve grup rolüyle karışmaz.
+ */
+export function showsProgramRoleBadge(role: ChatProgramRole): boolean {
+  return role.role === 'company_admin' || role.role === 'coordinator'
 }

@@ -53,7 +53,7 @@ describe('mesaj eylemleri', () => {
     expect(sent('DELETE', '/v1/chats/c1/messages/m1/reaction')).toHaveLength(1)
   })
 
-  it('menü: üyenin kendi mesajında Düzenle/Sil/Bilgi; başkasında yok; İlet devre dışı + stub', async () => {
+  it('menü: üyenin kendi mesajında Düzenle/Sil/Bilgi (etkin; BE-028); başkasında yok; İlet devre dışı + stub', async () => {
     servePane({ messages: [msg(1), mine(2)] })
     const { wrapper } = await mountPane()
     const other = items(await openMenu(wrapper, 0))
@@ -62,8 +62,8 @@ describe('mesaj eylemleri', () => {
     expect(wrapper.get('[data-design-stub="BE-080"] button').attributes('disabled')).toBeDefined()
     await wrapper.get('.msg-row [aria-label="Diğer"]').trigger('click')
     const own = items(await openMenu(wrapper, 1))
-    expect(own).toEqual(expect.arrayContaining(['Düzenle', 'Sil', 'Mesaj bilgisi Yakında']))
-    expect(wrapper.find('[data-design-stub="BE-028"] button').attributes('disabled')).toBeDefined()
+    expect(own).toEqual(expect.arrayContaining(['Düzenle', 'Sil', 'Mesaj bilgisi']))
+    expect(wrapper.find('[data-design-stub="BE-028"]').exists()).toBe(false)
   })
 
   it('yönetici (ŞY) grupta sabitler ve göreve dönüştürür; birebirde iki taraf sabitler', async () => {

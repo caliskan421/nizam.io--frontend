@@ -47,12 +47,14 @@ export interface FakeWork {
   items: WorkItemDetail[]
   files: Map<string, WorkItemFile[]>
   subtasks: Map<string, WorkItemSubtask[]>
+  /** `getWorkItemSourceMessage` kaynağı (görev kimliği → mesaj); yoksa `source_message: null`. */
+  sources: Map<string, { chat_id: string; message_id: string; seq: number }>
   /** `listMembers` satırları (rol dizeleri test dosyalarında yazılır, K1 lint). */
   members: unknown[]
 }
 
 export function fakeWork(items: WorkItemDetail[], members: unknown[] = []): FakeWork {
-  return { items, files: new Map(), subtasks: new Map(), members }
+  return { items, files: new Map(), subtasks: new Map(), sources: new Map(), members }
 }
 
 const notFound = () => errorEnvelope('work.item_not_found', 404)
@@ -116,6 +118,9 @@ function readHandlers(db: FakeWork, standing: StandingFixture) {
     ),
     http.get(`${ORIGIN}/v1/work-items/:id/subtasks`, ({ params }) =>
       guarded(params.id, () => json({ subtasks: db.subtasks.get(String(params.id)) ?? [] })),
+    ),
+    http.get(`${ORIGIN}/v1/work-items/:id/source-message`, ({ params }) =>
+      guarded(params.id, () => json({ source_message: db.sources.get(String(params.id)) ?? null })),
     ),
     http.get(`${ORIGIN}/v1/work-items/:id/notes`, ({ params }) =>
       guarded(params.id, () => json({ notes: [], total: 0 })),

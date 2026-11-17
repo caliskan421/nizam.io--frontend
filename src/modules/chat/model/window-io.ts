@@ -85,13 +85,6 @@ export async function refreshAround(
   })
 }
 
-/** Birebirde karşı tarafın okundu imleci (tik): son sayfa okuması yalnız zarfı alır. */
-export async function refreshPeerRead(read: MessageReader, store: WindowStore): Promise<void> {
-  const high = highSeq(store.get())
-  const page = await read(query(high === null ? {} : { around: high }))
-  store.set((w) => ({ ...w, peerReadSeq: page.peer_read_seq }))
-}
-
 /**
  * Yeniden bağlanma uzlaştırması (§10.5): (1) yeni mesajlar `after=<Ü>`; (2) görünür pencere
  * `before=<Ü+1>` ile sayfa sayfa yeniden okunur — kapsanan aralıkta dönmeyen yerel kayıt

@@ -69,6 +69,11 @@
   color: var(--accent-text);
   font: var(--ui-text-sm-strong);
 }
+.chat-bub__role {
+  margin-inline-start: var(--ui-gap-xs);
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
 .chat-bub__text {
   margin: 0;
   font: var(--text-body);
@@ -160,6 +165,28 @@ button.chat-tick {
   cursor: default;
 }
 .chat-bub__note {
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
+
+/* Mesajdan açılan görev kartları (BE-085, E-10-91) */
+.chat-tcards {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ui-gap-xs);
+  min-width: 0;
+}
+.chat-tcard {
+  gap: var(--ui-gap-xs);
+  max-width: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.chat-tcard__code {
+  font: var(--ui-text-sm-strong);
+}
+.chat-tcard__status {
   color: var(--ink-muted);
   font: var(--text-caption);
 }

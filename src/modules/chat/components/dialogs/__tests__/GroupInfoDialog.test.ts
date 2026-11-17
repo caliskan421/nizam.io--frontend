@@ -51,6 +51,7 @@ const member = (id: string, name: string, role = 'member', fromSource = false) =
   role,
   founder: role === 'founder',
   from_source: fromSource,
+  program_role: { role: 'member', department_ids: [] },
 })
 const MEMBERS = {
   items: [
@@ -76,6 +77,12 @@ function serve(chat: object = GROUP, members: object = MEMBERS) {
     }),
   )
   on('get', '/v1/chats/c1/pins', () => json({ items: [], truncated: false }))
+  on('get', '/v1/chats/c1/shared-counts', () =>
+    json({ files: 0, attachments: 0, tasks: 0, polls: 0, departments: 0 }),
+  )
+  on('get', '/v1/program/departments', () => json({ departments: [] }))
+  on('get', '/v1/chats/c1/attachments', () => json({ items: [], next_cursor: null }))
+  on('get', '/v1/chats/c1/task-links', () => json({ items: [], next_cursor: null }))
 }
 async function ready() {
   await vi.waitFor(() =>
@@ -276,14 +283,12 @@ describe('GroupInfoDialog — grup (E-10-62…71)', () => {
     await vi.waitFor(() => expect($('[data-testid="dlg-add-members"]')).toBeNull())
   })
 
-  it("Toplantı planla (ŞY/K) /toplantilar'a yönlendirir; Sessize al devre dışı + BE-027", async () => {
+  it("Toplantı planla (ŞY/K) /toplantilar'a yönlendirir; sessize alma stub'sız canlı kontrol (BE-027)", async () => {
     serve()
     const { wrapper, router } = mountDialog(GroupInfoDialog, props, { who: ADMIN })
     await ready()
-    const mute = $('[data-testid="dlg-mute"]') as HTMLButtonElement
-    expect(mute.disabled).toBe(true)
-    expect(mute.textContent?.trim()).toBe('Sessize al')
-    expect(mute.closest('[data-design-stub="BE-027"]')).not.toBeNull()
+    expect($('[data-design-stub="BE-027"]')).toBeNull()
+    expect($('[data-testid="dlg-mute"]')).toBeNull()
     click('[data-testid="dlg-plan-meeting"]')
     await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/toplantilar'))
     expect(wrapper.emitted('close')).toHaveLength(1)
@@ -373,8 +378,11 @@ describe('GroupInfoDialog — sabitler ve paylaşılanlar sekmeleri (E-10-68, E-
     expect(clickable($('[data-testid="dlg-pins"]')!, 'Sabitlemeyi kaldır')).toBe(false)
   })
 
-  it('Dosyalar: ad özetten, "artık yok" kartı; İndir bilet akışı (sayaç çizilmez, BE-084)', async () => {
+  it('Dosyalar: ad özetten, "artık yok" kartı; İndir bilet akışı; sekme sayacı sunucu toplamı (BE-084)', async () => {
     serve()
+    on('get', '/v1/chats/c1/shared-counts', () =>
+      json({ files: 2, attachments: 0, tasks: 0, polls: 0, departments: 0 }),
+    )
     on('get', '/v1/chats/c1/refs', (c) =>
       json({
         items:
@@ -430,8 +438,12 @@ describe('GroupInfoDialog — sabitler ve paylaşılanlar sekmeleri (E-10-68, E-
     on('post', '/v1/download-tickets', () => errorEnvelope('messaging.ref_not_found', 404))
     mountDialog(GroupInfoDialog, props, { who: ADMIN })
     await ready()
-    expect($$('[role="tab"]').map((t) => t.textContent?.trim())).toContain('Dosyalar')
-    clickText('Dosyalar')
+    await vi.waitFor(() =>
+      expect($$('[role="tab"]').map((t) => t.textContent?.trim().replace(/\s+/g, ' '))).toContain(
+        'Dosyalar 2',
+      ),
+    )
+    clickText('Dosyalar 2')
     await vi.waitFor(() => expect($$('[data-testid="dlg-ref-row"]')).toHaveLength(2))
     await vi.waitFor(() =>
       expect($('[data-testid="dlg-refs"]')?.textContent).toContain('rapor.pdf'),
@@ -488,9 +500,12 @@ describe('GroupInfoDialog — sabitler ve paylaşılanlar sekmeleri (E-10-68, E-
     )
     const { router } = mountDialog(GroupInfoDialog, props, { who: ADMIN })
     await ready()
-    clickText('Dosyalar')
+    await vi.waitFor(() =>
+      expect($$('[role="tab"]').some((t) => /Dosyalar\s*0/.test(t.textContent ?? ''))).toBe(true),
+    )
+    clickText('Dosyalar 0')
     await vi.waitFor(() => expect(document.body.textContent).toContain('Paylaşılan dosya yok'))
-    clickText('Görevler')
+    clickText('Görevler 0')
     await vi.waitFor(() =>
       expect($('[data-testid="dlg-refs"]')?.textContent).toContain('Rapor görevi'),
     )

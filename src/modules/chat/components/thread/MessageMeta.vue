@@ -10,15 +10,15 @@ import { chatText } from '../../messages'
 import { clockOf } from './format'
 
 /**
- * Mesaj meta satırı (E-10-36/37): sabit iğnesi, "SS:dd", "düzenlendi · SS:dd" ve — yalnız BİREBİRDE,
- * yalnız kendi mesajımda — okundu tiki (`seq ≤ peer_read_seq` → renkli çift tik, değilse gri tek
- * tik; `aria-label` "Okundu"/"Gönderildi"). Grupta tik YOKTUR (kim okudu BE-028, kayıtlı eksik).
- * Birebir tik, Mesaj bilgisi penceresini açar (E-10-44).
+ * Mesaj meta satırı (E-10-36/37): sabit iğnesi, "SS:dd", "düzenlendi · SS:dd" ve yalnız kendi
+ * mesajımda okundu tiki. Birebirde `seq ≤ peer_read_seq` → renkli çift tik, değilse gri tek tik;
+ * grupta yalnız `read_by_all` (BE-028): `true` → "Herkes okudu", `false` → gri tek tik, `null`/yok
+ * (bilinmiyor, >200 üye) → tik ÇİZİLMEZ. Tik Mesaj bilgisi penceresini açar (E-10-44).
  */
 const props = defineProps<{
   message: ChatMessage
   mine: boolean
-  /** Birebir sohbet: karşı tarafın okundu imleci (`null` = grup ya da bilinmiyor). */
+  /** Birebir sohbet: karşı tarafın okundu imleci (`null` = grup ya da bilinmiyor). Grupta `read_by_all` kullanılır. */
   peerReadSeq: number | null
   direct: boolean
 }>()
@@ -29,8 +29,20 @@ const time = computed(() =>
     ? chatText('chat.thread.edited', { time: clockOf(props.message.edited_at) })
     : clockOf(props.message.created_at),
 )
-const showTick = computed(() => props.mine && props.direct)
-const read = computed(() => props.peerReadSeq !== null && props.message.seq <= props.peerReadSeq)
+type Tick = 'read' | 'all' | 'sent'
+const tick = computed<Tick | null>(() => {
+  if (!props.mine) return null
+  if (props.direct) {
+    return props.peerReadSeq !== null && props.message.seq <= props.peerReadSeq ? 'read' : 'sent'
+  }
+  const all = props.message.read_by_all
+  if (all === undefined || all === null) return null
+  return all ? 'all' : 'sent'
+})
+const tickLabel = computed(() => {
+  if (tick.value === 'all') return chatText('chat.thread.allRead')
+  return chatText(tick.value === 'read' ? 'chat.thread.read' : 'chat.thread.sent')
+})
 </script>
 
 <template>
@@ -45,14 +57,14 @@ const read = computed(() => props.peerReadSeq !== null && props.message.seq <= p
     </span>
     <time :datetime="message.created_at">{{ time }}</time>
     <button
-      v-if="showTick"
+      v-if="tick"
       type="button"
       class="chat-tick"
-      :class="{ 'chat-tick--read': read }"
-      :aria-label="read ? chatText('chat.thread.read') : chatText('chat.thread.sent')"
+      :class="{ 'chat-tick--read': tick !== 'sent' }"
+      :aria-label="tickLabel"
       @click="emit('info')"
     >
-      <UiIcon :name="read ? 'chat-tick' : 'check'" size="sm" />
+      <UiIcon :name="tick === 'sent' ? 'check' : 'chat-tick'" size="sm" />
     </button>
   </span>
 </template>

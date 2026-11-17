@@ -1,7 +1,7 @@
 // chat modülünün (10 Mesajlar; F7) dışa açık yüzü. Diğer modüller ve `app/` yalnız bu dosyayı içe
 // aktarır. Gövde (liste, konuşma, yazma çubuğu, pencereler) O2b işçilerinindir; bu yüz veri
 // katmanı + sözleşmelerdir. Gerçek zamanlı akış `shared/sse` üzerindendir (KESİN 34).
-export { CHAT_QUERY_KEYS, CHAT_ROUTE, CHATS_ROUTE, chatRoutes } from './routes'
+export { CHAT_QUERY_KEYS, CHAT_ROUTE, CHATS_ROUTE, chatMessageLocation, chatRoutes } from './routes'
 export {
   useChat,
   useChatCandidates,

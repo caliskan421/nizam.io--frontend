@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * Grup bilgisi › Dosyalar / Görevler sekmeleri (E-10-68): `listChatRefs` (`kind` süzgeci,
- * "Daha fazla yükle"); sayaç çizilmez (BE-084). Satır adı `getChatRefSummary`dan; özet her üyeye
+ * "Daha fazla yükle") + ikinci AYRI liste (`GroupSharedLists`: cihaz ekleri / mesajdan açılan
+ * görevler, BE-084). Satır adı `getChatRefSummary`dan; özet her üyeye
  * açıktır (P60), `available: false` → "artık yok". Dosya indirme bilet akışıyla
  * (`downloadChatSharedFile`); görev `/gorevler?gorev=` bağlantısıdır (görevi açmak görev yetkisi
  * ister).
@@ -19,9 +20,10 @@ import { useChatRefs } from '../../api/queries'
 import { chatText } from '../../messages'
 import type { ChatSharedRef } from '../../model/types'
 import GroupRefRow from './GroupRefRow.vue'
+import GroupSharedLists from './GroupSharedLists.vue'
 
 const props = defineProps<{ chatId: string; kind: 'file' | 'task' }>()
-const emit = defineEmits<{ task: [workItemId: string] }>()
+const emit = defineEmits<{ task: [workItemId: string]; goto: [seq: number] }>()
 
 const store = useScopeStore()
 const refs = useChatRefs(
@@ -46,6 +48,13 @@ async function save(ref: ChatSharedRef, name: string): Promise<void> {
 
 <template>
   <div class="chat-dlg__form" data-testid="dlg-refs">
+    <h4 class="chat-dlg__label">
+      {{
+        chatText(
+          kind === 'file' ? 'chat.dialogs.refs.sharedFiles' : 'chat.dialogs.refs.sharedTasks',
+        )
+      }}
+    </h4>
     <p v-if="refs.query.isPending.value" role="status">{{ chatText('chat.states.loading') }}</p>
     <UiHint v-else-if="refs.query.isError.value" error>{{ chatText('chat.states.error') }}</UiHint>
     <UiEmptyState
@@ -73,5 +82,11 @@ async function save(ref: ChatSharedRef, name: string): Promise<void> {
     >
       {{ chatText('chat.list.more') }}
     </UiButton>
+    <GroupSharedLists
+      :chat-id="chatId"
+      :kind="kind"
+      @task="emit('task', $event)"
+      @goto="emit('goto', $event)"
+    />
   </div>
 </template>

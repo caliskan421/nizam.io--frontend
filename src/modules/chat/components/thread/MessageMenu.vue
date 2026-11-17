@@ -13,8 +13,9 @@ import type { MenuAction } from './menu-actions'
 import { useThread } from './use-thread'
 
 /**
- * Mesaj menüsü (E-10-41): Yanıtla, İlet (devre dışı — BE-080), Sabitle / Sabitlemeyi kaldır,
- * Mesaj bilgisi (yalnız kendi mesajım: birebirde pencere, grupta devre dışı — BE-028), Bağlantıyı
+ * Mesaj menüsü (E-10-41): Yanıtla, İlet (devre dışı — BE-080; `forward` eylemi W185b'ye hazır
+ * kapıdır), Sabitle / Sabitlemeyi kaldır, Mesaj bilgisi (yalnız kendi mesajım; birebirde ve grupta
+ * pencere açılır, BE-028 — sunucu başkasının mesajında 403 verir), Bağlantıyı
  * kopyala, Düzenle, Sil, Göreve dönüştür, Anketi bitir. Koşullu öğeler yetkisizde DOM'da yoktur
  * (`chatCapabilities`; gizleme güvenlik değildir, sunucu her istekte denetler).
  */
@@ -26,7 +27,6 @@ const emit = defineEmits<{
 const thread = useThread()
 const facts = computed(() => messageFacts(props.message))
 const caps = computed(() => thread.caps.value)
-const direct = computed(() => !thread.isGroup.value)
 const pinned = computed(() => props.message.pinned_at !== null)
 </script>
 
@@ -40,7 +40,11 @@ const pinned = computed(() => props.message.pinned_at !== null)
       chatText('chat.thread.menu.reply')
     }}</UiMenuItem>
     <DesignStub id="BE-080" as="div">
-      <UiMenuItem icon="chat-forward" :disabled="!CHAT_STUBS.forward.enabled">
+      <UiMenuItem
+        icon="chat-forward"
+        :disabled="!CHAT_STUBS.forward.enabled"
+        @select="emit('action', 'forward')"
+      >
         {{ chatText('chat.thread.menu.forward') }}
         <template #end>
           <span class="chat-pop__hint">{{ chatText('chat.states.soon') }}</span>
@@ -50,17 +54,9 @@ const pinned = computed(() => props.message.pinned_at !== null)
     <UiMenuItem v-if="caps?.pin" icon="chat-pin" @select="emit('action', 'pin')">
       {{ pinned ? chatText('chat.thread.menu.unpin') : chatText('chat.thread.menu.pin') }}
     </UiMenuItem>
-    <UiMenuItem v-if="mine && direct" icon="chat-info" @select="emit('action', 'info')">
+    <UiMenuItem v-if="mine" icon="chat-info" @select="emit('action', 'info')">
       {{ chatText('chat.thread.menu.info') }}
     </UiMenuItem>
-    <DesignStub v-else-if="mine" id="BE-028" as="div">
-      <UiMenuItem icon="chat-info" :disabled="!CHAT_STUBS.whoRead.enabled">
-        {{ chatText('chat.thread.menu.info') }}
-        <template #end>
-          <span class="chat-pop__hint">{{ chatText('chat.states.soon') }}</span>
-        </template>
-      </UiMenuItem>
-    </DesignStub>
     <UiMenuItem icon="chat-link" @select="emit('action', 'copy')">{{
       chatText('chat.thread.menu.copyLink')
     }}</UiMenuItem>

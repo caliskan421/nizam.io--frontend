@@ -120,6 +120,7 @@ export const trTaskList = {
 export const trWorkDetail = {
   workDetail: {
     panel: 'Görev ayrıntısı',
+    sourceMessage: 'Kaynak mesaja git',
     loading: 'Görev yükleniyor',
     close: 'Paneli kapat',
     tabs: {

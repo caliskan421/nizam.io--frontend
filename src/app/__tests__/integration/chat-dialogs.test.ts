@@ -56,7 +56,7 @@ afterEach(() => teardown())
 afterAll(() => backend.server.close())
 
 describe('mesaj bilgisi (birebir) ve grup bilgisi', () => {
-  it('birebirde kendi mesajım → "Mesaj bilgisi" penceresi okundu durumunu gösterir; grupta öğe devre dışı', async () => {
+  it('birebirde kendi mesajım → "Mesaj bilgisi" penceresi okundu durumunu gösterir; grupta öğe etkin (BE-028)', async () => {
     const app = await boot({ ...MEMBER, path: '/mesajlar/dm2' })
     await until(() => messageEls().length > 0, 'mesajlar')
     // dm2'de mesaj Ayşe'nindir (kendi mesajım): bilgi birebirde açılır.
@@ -70,12 +70,14 @@ describe('mesaj bilgisi (birebir) ve grup bilgisi', () => {
 
     await boot({ ...COORD, path: `/mesajlar/${GROUP}` })
     await until(() => rowOf(60), 'grup mesajı')
-    // Kerem'in kendi mesajı (seq 59 ya da 58): grupta "Mesaj bilgisi" devre dışı (BE-028).
+    // Kerem'in kendi mesajı (seq 58): grupta "Mesaj bilgisi" etkindir (BE-028, W184) ve açılır;
+    // ayrıntılı okuyan/okumayan senaryosu `chat-shared.test.ts`'tedir.
     await userClick(() => tool(rowOf(58)!, 'Diğer'))
     const info = await until(() => menuItem('Mesaj bilgisi'), 'menü öğesi')
-    expect(info.getAttribute('aria-disabled') === 'true' || info.hasAttribute('disabled')).toBe(
-      true,
-    )
+    expect(info.getAttribute('aria-disabled')).not.toBe('true')
+    expect(info.hasAttribute('disabled')).toBe(false)
+    await userClick(() => info)
+    await until(() => $('[data-testid="dlg-who-read"]'), 'okuyan listesi')
   })
 })
 

@@ -6,6 +6,7 @@ import { computed, ref, useId, watch } from 'vue'
 import { UiErrorState, UiTabs, type UiChoiceOption } from '@/shared/ui'
 
 import { canUploadFile } from '../../model/capabilities'
+import { targetOf } from '../../model/target'
 import FileUploadDialog from '../files/FileUploadDialog.vue'
 import FilesTab from '../files/FilesTab.vue'
 import NotesTab from '../notes/NotesTab.vue'
@@ -15,6 +16,7 @@ import DetailActions from './DetailActions.vue'
 import DetailHead from './DetailHead.vue'
 import DetailStatus from './DetailStatus.vue'
 import DetailSummary from './DetailSummary.vue'
+import SourceMessageLink from './SourceMessageLink.vue'
 import { detailText } from './messages'
 import { useDetailPanel } from './use-detail-panel'
 
@@ -56,6 +58,7 @@ const tabs = computed<UiChoiceOption<WorkDetailTab>[]>(() => [
   { value: 'notes', label: detailText('workDetail.tabs.notes'), count: notesTotal.value },
 ])
 
+const itemTarget = computed(() => (item.value ? targetOf(item.value) : null))
 const canUpload = computed(() => facts.value !== null && canUploadFile(facts.value))
 function openUpload(): void {
   if (canUpload.value) uploadOpen.value = true
@@ -96,6 +99,7 @@ function openUpload(): void {
           <NotesTab v-else :item="item" />
         </template>
       </UiTabs>
+      <SourceMessageLink :work-item-id="workItemId" :target="itemTarget" />
       <DetailActions
         :item="item"
         :facts="facts"

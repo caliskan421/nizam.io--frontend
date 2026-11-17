@@ -13,10 +13,12 @@ import type { MenuAction } from './menu-actions'
 import MessageCards from './MessageCards.vue'
 import MessageMenu from './MessageMenu.vue'
 import MessageMeta from './MessageMeta.vue'
+import MessageTasks from './MessageTasks.vue'
 import PollCard from './PollCard.vue'
 import QuoteBlock from './QuoteBlock.vue'
 import ReactionBar from './ReactionBar.vue'
 import ReactPicker from './ReactPicker.vue'
+import { messageBadge } from '../../model/role-badge'
 import { useActions } from './use-actions'
 import { useRefSummaries } from './use-ref-summaries'
 import { useThread } from './use-thread'
@@ -38,6 +40,8 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   menu: [kind: 'react' | 'more' | null]
+  /** "İlet" menü kapısı (BE-080): diyaloğu W185b bağlar; menü öğesi o zamana dek devre dışıdır. */
+  forward: [message: ChatMessage]
   tools: [open: boolean]
   'focus-lost': []
 }>()
@@ -60,6 +64,7 @@ const editing = computed(
 )
 const focused = computed(() => thread.highlightSeq.value === props.message.seq)
 const showName = computed(() => props.first && !props.mine && thread.isGroup.value)
+const badge = computed(() => messageBadge(props.message.sender_role, thread.departmentName))
 
 function closeMenu(restore: boolean): void {
   const which = props.menu
@@ -75,6 +80,7 @@ function onAction(name: MenuAction): void {
   closeMenu(true)
   const m = props.message
   if (name === 'reply') thread.startReply(m)
+  else if (name === 'forward') emit('forward', m)
   else if (name === 'edit') thread.startEdit(m)
   else if (name === 'pin') void actions.togglePin(m)
   else if (name === 'copy') void actions.copyLink(m)
@@ -91,7 +97,6 @@ function onAction(name: MenuAction): void {
 }
 
 function openInfo(): void {
-  if (thread.isGroup.value) return
   thread.openDialog({
     dialog: 'messageInfo',
     chatId: thread.chatId.value,
@@ -157,14 +162,26 @@ onBeforeUnmount(() => {
     </span>
     <div class="msg-row__col">
       <div class="chat-bub">
-        <span v-if="showName" class="chat-bub__name">{{ senderName }}</span>
+        <span v-if="showName" class="chat-bub__name">
+          {{ senderName }}
+          <span
+            v-if="badge"
+            class="chat-bub__role"
+            :title="badge.title"
+            data-testid="chat-role-badge"
+          >
+            {{ badge.text }}
+          </span>
+        </span>
         <QuoteBlock v-if="message.reply_to" :quote="message.reply_to" />
         <BodyText v-if="!message.poll" :message="message" :summaries="summaries" />
         <MessageCards :message="message" :summaries="summaries" />
         <PollCard v-if="message.poll" :message="message" />
-        <span v-if="message.task_ids.length > 0" class="chat-tref" data-testid="chat-converted">
-          {{ chatText('chat.thread.taskConverted') }}
-        </span>
+        <MessageTasks
+          v-if="message.task_ids.length > 0"
+          :chat-id="thread.chatId.value"
+          :message-id="message.message_id"
+        />
         <MessageMeta
           :message="message"
           :mine="mine"

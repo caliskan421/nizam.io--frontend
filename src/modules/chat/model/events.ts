@@ -3,10 +3,10 @@
  * yalnız "bu sohbette değişiklik var"; içerik HTTP'den alınır. Bu dosya saf karardır (hangi
  * sorgu geçersizlenir / hangi yerel işlem yapılır); uygulaması `api/stream.ts`'tedir.
  *
- *  message.created  → açık sohbette `after=<yerel üst seq>`; liste + rozet
- *  message.updated  → mesaj yerelde varsa `around=<yerel seq>`; sabitler; yoksa okuma yok
- *  message.deleted  → yerel kayıt `message_id` ile KALDIRILIR (okuma yok); liste, sabit, ref'ler
- *  read.updated     → birebirde `peer_read_seq` (açık sohbet son okuma); liste + rozet
+ *  message.created  → açık sohbette `after=<yerel üst seq>`; liste + rozet; paylaşılan sayı/ek/görev bağı (W184)
+ *  message.updated  → mesaj yerelde varsa `around=<yerel seq>`; sabitler; mesaj görev kartları; yoksa okuma yok
+ *  message.deleted  → yerel kayıt `message_id` ile KALDIRILIR (okuma yok); liste, sabit, ref'ler; paylaşılanlar, görev kartları, okundu bilgisi
+ *  read.updated     → açık sohbet son okuma: birebirde `peer_read_seq`, grupta `read_by_all`; liste + rozet; okundu bilgisi
  *  member.changed   → üyeler, ayrıntı, liste, adaylar; kendi hesabım etkilendiyse erişim yeniden denetlenir (404 → kapanır)
  *  chat.changed     → liste, ayrıntı; kendi hesabım etkilendiyse erişim yeniden denetlenir (404 → kapanır)
  *  typing           → yalnız arayüz (kısa ömürlü `ref`), önbelleğe yazılmaz
@@ -31,6 +31,12 @@ export interface EventPlan {
   invalidateCandidates: boolean
   invalidatePins: boolean
   invalidateRefs: boolean
+  /** BE-084: paylaşılan sayılar + ek listesi + görev bağları (sayaç = liste toplamı, birlikte yenilenir). */
+  invalidateShared: boolean
+  /** BE-085: mesajdan açılan görev kartları (`listChatMessageTasks`). */
+  invalidateMessageTasks: boolean
+  /** BE-028: "Mesaj bilgisi" okundu listesi (`listChatMessageReceipts`). */
+  invalidateReceipts: boolean
   /**
    * `affected_account_ids` kendi hesabımı içeriyor: sohbete giriş MI düşüş MÜ olay söylemez;
    * açık sohbetin `getChat` okuması 404 `messaging.chat_not_found` verirse sohbet kapatılır.
@@ -59,7 +65,32 @@ const NONE: EventPlan = {
   invalidateCandidates: false,
   invalidatePins: false,
   invalidateRefs: false,
+  invalidateShared: false,
+  invalidateMessageTasks: false,
+  invalidateReceipts: false,
   recheckAccess: false,
+}
+
+/** Olay → geçersizlenecek sorgular (içeriksiz; uygulaması `api/stream-apply.ts`). */
+const ON_CREATED: Partial<EventPlan> = {
+  invalidateList: true,
+  invalidateOverview: true,
+  invalidateRefs: true,
+  invalidateShared: true,
+}
+const ON_UPDATED: Partial<EventPlan> = {
+  invalidatePins: true,
+  invalidateList: true,
+  invalidateMessageTasks: true,
+}
+const ON_DELETED: Partial<EventPlan> = {
+  invalidateList: true,
+  invalidateOverview: true,
+  invalidatePins: true,
+  invalidateRefs: true,
+  invalidateShared: true,
+  invalidateMessageTasks: true,
+  invalidateReceipts: true,
 }
 
 export function planFor(event: CoalescedEvent, ctx: PlanContext): EventPlan {
@@ -67,31 +98,23 @@ export function planFor(event: CoalescedEvent, ctx: PlanContext): EventPlan {
   const base: EventPlan = { ...NONE, open }
   switch (event.name) {
     case 'message.created':
-      return {
-        ...base,
-        readNewer: open,
-        invalidateList: true,
-        invalidateOverview: true,
-        invalidateRefs: true,
-      }
+      return { ...base, readNewer: open, ...ON_CREATED }
     case 'message.updated':
       return {
         ...base,
         refreshMessageIds: open ? event.messageIds.filter(ctx.hasLocal) : [],
-        invalidatePins: true,
-        invalidateList: true,
+        ...ON_UPDATED,
       }
     case 'message.deleted':
+      return { ...base, removeMessageIds: event.messageIds, ...ON_DELETED }
+    case 'read.updated':
       return {
         ...base,
-        removeMessageIds: event.messageIds,
+        refreshPeerRead: open,
         invalidateList: true,
         invalidateOverview: true,
-        invalidatePins: true,
-        invalidateRefs: true,
+        invalidateReceipts: true,
       }
-    case 'read.updated':
-      return { ...base, refreshPeerRead: open, invalidateList: true, invalidateOverview: true }
     case 'member.changed':
       return {
         ...base,
@@ -99,6 +122,7 @@ export function planFor(event: CoalescedEvent, ctx: PlanContext): EventPlan {
         invalidateDetail: true,
         invalidateList: true,
         invalidateCandidates: true,
+        invalidateReceipts: true,
         recheckAccess: open && includesMe(event, ctx),
       }
     case 'chat.changed':

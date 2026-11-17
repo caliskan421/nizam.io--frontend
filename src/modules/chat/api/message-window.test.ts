@@ -238,6 +238,49 @@ describe('geç sonuç, kapsam ve oturum (KESİN 26)', () => {
     expect(m.client.getQueryData<MessageWindow>(key())?.items.length ?? before).toBe(before)
   })
 
+  it('read.updated yenilemesi beklerken oturum değişirse eski okundu bilgisi yazılmaz', async () => {
+    const fake = fakeChatServer(range(1, 120))
+    const gate = hold(fake)
+    const m = mountSetup(() => useChatMessages('c1'))
+    await settleQueries(m.client)
+    const before = m.client.getQueryData<MessageWindow>(key())
+    gate.arm()
+    const pending = m.result.refreshPeerRead()
+    await gate.reached
+    authSession.clear()
+    gate.release()
+    await expect(pending).rejects.toThrow()
+    expect(m.client.getQueryData<MessageWindow>(key())).toEqual(before)
+  })
+
+  it('read.updated beklerken kapsam değişimi eski pencereye yazmaz', async () => {
+    const gate = hold(fakeChatServer(range(1, 120)))
+    const m = mountSetup(() => useChatMessages('c1'))
+    await settleQueries(m.client)
+    const before = m.client.getQueryData<MessageWindow>(key())
+    gate.arm()
+    const pending = m.result.refreshPeerRead()
+    await gate.reached
+    useScopeStore().commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    gate.release()
+    await pending.catch(() => undefined)
+    expect(m.client.getQueryData<MessageWindow>(key())).toEqual(before)
+  })
+
+  it('read.updated beklerken söküm geç yanıtın pencereyi değiştirmesini engeller', async () => {
+    const gate = hold(fakeChatServer(range(1, 120)))
+    const m = mountSetup(() => useChatMessages('c1'))
+    await settleQueries(m.client)
+    const before = m.client.getQueryData<MessageWindow>(key())
+    gate.arm()
+    const pending = m.result.refreshPeerRead()
+    await gate.reached
+    m.wrapper.unmount()
+    gate.release()
+    await pending.catch(() => undefined)
+    expect(m.client.getQueryData<MessageWindow>(key())).toEqual(before)
+  })
+
   it('sahip sökülünce: uçuştaki sonuç yazılmaz, yeni okuma başlamaz', async () => {
     const fake = fakeChatServer(range(1, 120))
     const gate = hold(fake)

@@ -143,6 +143,9 @@ export const queryKeys = {
     files: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'files']),
     /** `listDependencies` — 03 ve 03c AYNI anahtarı kullanır. */
     dependencies: (s: ScopeSnapshot, id: string) => scoped(s, ['work-items', id, 'dependencies']),
+    /** `getWorkItemSourceMessage` (S3; BE-085 ters bağ, P86): görevin açıldığı sohbet mesajı. */
+    sourceMessage: (s: ScopeSnapshot, id: string) =>
+      scoped(s, ['work-items', id, 'source-message']),
   },
   gantt: {
     all: (s: ScopeSnapshot) => scoped(s, ['gantt']),
@@ -218,6 +221,14 @@ export const queryKeys = {
     candidates: (s: ScopeSnapshot, purpose: string, chatId = '') =>
       scoped(s, ['chats', 'candidates', purpose, chatId]),
     refSummary: (s: ScopeSnapshot, refId: string) => scoped(s, ['chats', 'ref', refId]),
+    /** W184 (BE-084/085/028): paylaşılan sayılar, ek/görev bağ listeleri, mesaj görevleri, okundu bilgisi. */
+    sharedCounts: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'shared-counts']),
+    attachments: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'attachments']),
+    taskLinks: (s: ScopeSnapshot, id: string) => scoped(s, ['chats', id, 'task-links']),
+    messageTasks: (s: ScopeSnapshot, id: string, messageId: string) =>
+      scoped(s, ['chats', id, 'message-tasks', messageId]),
+    receipts: (s: ScopeSnapshot, id: string, messageId: string) =>
+      scoped(s, ['chats', id, 'receipts', messageId]),
   },
 } as const
 
@@ -245,6 +256,7 @@ export type QueryResource =
   | 'workItems.notes'
   | 'workItems.files'
   | 'workItems.dependencies'
+  | 'workItems.sourceMessage'
   | 'gantt'
   | 'dateRequests'
   | 'report'
@@ -260,6 +272,11 @@ export type QueryResource =
   | 'chats.refs'
   | 'chats.candidates'
   | 'chats.refSummary'
+  | 'chats.sharedCounts'
+  | 'chats.attachments'
+  | 'chats.taskLinks'
+  | 'chats.messageTasks'
+  | 'chats.receipts'
   | 'users'
 
 // 12 Silinen kayıtlar: toplu geri yükleme / toplu kalıcı silme / çöp boşaltma (BE-114/115; W174).
@@ -557,6 +574,13 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   // yan okumaları) yaşam döngüsüyle değişir (12 Silinen kayıtlar, backend.md §5; CX-F5-Ö-03).
   'workItems.files': unique(FILE_WRITES, ['deleteWorkItemSubtask'], LIFECYCLE_WORK_ITEM_WRITES),
   'workItems.dependencies': DEPENDENCY_WRITES,
+  // Kaynak mesaj bağı (S3): mesajdan görev açılması ve mesajın silinmesi bağı değiştirir; görev
+  // aktarımı sohbeti seçili programdan düşürür (`source_message: null`).
+  'workItems.sourceMessage': [
+    'createTaskFromChatMessage',
+    'deleteChatMessage',
+    'transferWorkItems',
+  ],
   // Satırın `subtask_counts` alanı alt görev yazmalarıyla değişir (kapalı satır sayacı; CX-P-Ö-03).
   // Geri yüklenen görev Gantt'a döner, kalıcı silinen zaten yoktu ama satır sayaçları değişebilir
   // (12 Silinen kayıtlar, W128).
@@ -619,14 +643,33 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'deleteChatMessage',
     'markChatRead',
     'markAllChatsRead',
+    'setChatNotificationLevel',
   ],
-  'chats.detail': ['updateChat', 'grantChatAdmin', 'revokeChatAdmin'],
+  'chats.detail': ['updateChat', 'grantChatAdmin', 'revokeChatAdmin', 'setChatNotificationLevel'],
   'chats.messages': [],
   'chats.pins': ['pinChatMessage', 'unpinChatMessage', 'deleteChatMessage'],
   'chats.members': ['addChatMembers', 'removeChatMember', 'grantChatAdmin', 'revokeChatAdmin'],
   'chats.refs': ['sendChatMessage', 'deleteChatMessage'],
   'chats.candidates': ['addChatMembers', 'removeChatMember'],
   'chats.refSummary': [],
+  // W184: paylaşılan sayı = liste toplamı (aynı yazmalarla birlikte yenilenir; sayıyı kalan liste
+  // belirler). Mesaj görev kartı görev yaşam döngüsü yazmalarıyla da değişir (`deleted`/başlık/durum).
+  'chats.sharedCounts': [
+    'sendChatMessage',
+    'sendChatAttachment',
+    'deleteChatMessage',
+    'createTaskFromChatMessage',
+    'deleteWorkItem',
+    'removeChatMember',
+  ],
+  'chats.attachments': ['sendChatAttachment', 'deleteChatMessage'],
+  'chats.taskLinks': ['createTaskFromChatMessage', 'deleteChatMessage'],
+  'chats.messageTasks': unique(
+    ['createTaskFromChatMessage', 'deleteChatMessage', 'editChatMessage'],
+    ['updateWorkItem', 'transitionWorkItem', 'deleteWorkItem'],
+    LIFECYCLE_WORK_ITEM_WRITES,
+  ),
+  'chats.receipts': ['deleteChatMessage', 'addChatMembers', 'removeChatMember'],
   users: unique(
     [
       'createUser',
@@ -795,6 +838,7 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'workItems.notes': (scope, ctx) => workItemChild(scope, 'notes', ctx.workItemId),
   'workItems.files': (scope, ctx) => workItemChild(scope, 'files', ctx.workItemId),
   'workItems.dependencies': (scope, ctx) => workItemChild(scope, 'dependencies', ctx.workItemId),
+  'workItems.sourceMessage': (scope, ctx) => workItemChild(scope, 'source-message', ctx.workItemId),
   gantt: prefix(queryKeys.gantt.all),
   dateRequests: prefix(queryKeys.dateRequests.all),
   archive: archiveOfProgram,
@@ -807,6 +851,11 @@ const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'chats.refs': (scope, ctx) => chatChild(scope, 'refs', ctx.chatId),
   'chats.candidates': (scope) => chatReserved(scope, 'candidates'),
   'chats.refSummary': (scope) => chatReserved(scope, 'ref'),
+  'chats.sharedCounts': (scope, ctx) => chatChild(scope, 'shared-counts', ctx.chatId),
+  'chats.attachments': (scope, ctx) => chatChild(scope, 'attachments', ctx.chatId),
+  'chats.taskLinks': (scope, ctx) => chatChild(scope, 'task-links', ctx.chatId),
+  'chats.messageTasks': (scope, ctx) => chatChild(scope, 'message-tasks', ctx.chatId),
+  'chats.receipts': (scope, ctx) => chatChild(scope, 'receipts', ctx.chatId),
 }
 
 /**

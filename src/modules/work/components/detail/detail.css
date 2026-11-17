@@ -110,6 +110,10 @@
   }
 
   /* Sekmeler (`.rp-sheet .rp-tabs`: sağ kenarda solma maskesi) */
+  .wd-source {
+    display: flex;
+    min-width: 0;
+  }
   .wd-tabs {
     display: flex;
     flex-direction: column;

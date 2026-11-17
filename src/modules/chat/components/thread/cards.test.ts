@@ -125,9 +125,28 @@ describe('kartlar ve çipler', () => {
     expect(sent('POST', '/v1/download-tickets')).toHaveLength(1)
   })
 
-  it('"Göreve dönüştürüldü" çipi task_ids doluyken görünür', async () => {
-    servePane({ messages: [msg(1, { task_ids: ['t9'] })] })
+  it('task_ids doluyken görev kartları listChatMessageTasks ile çözülür (eski "Göreve dönüştürüldü" çipi yok)', async () => {
+    servePane({
+      messages: [msg(1, { task_ids: ['t9'] })],
+      messageTasks: {
+        m1: [
+          {
+            state: 'available',
+            work_item_id: 't9',
+            task: {
+              title: 'Trafo',
+              status: 'devam_ediyor',
+              code: 'EL-4',
+              sequence_no: 4,
+              department_id: 'd1',
+            },
+          },
+        ],
+      },
+    })
     const { wrapper } = await mountPane()
-    expect(wrapper.get('[data-testid="chat-converted"]').text()).toBe('Göreve dönüştürüldü')
+    expect(wrapper.find('[data-testid="chat-converted"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="chat-task-cards"]').text()).toContain('EL-4')
+    expect(wrapper.text()).not.toContain('Göreve dönüştürüldü')
   })
 })
