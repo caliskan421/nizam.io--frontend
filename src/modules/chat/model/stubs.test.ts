@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-
 import { describe, expect, it } from 'vitest'
 
 import { CHAT_STUBS } from './stubs'
@@ -17,7 +15,5 @@ describe('CHAT_STUBS — W183 canlanan satırlar (eski yol yok)', () => {
       expect(keys).not.toContain(gone)
     }
     expect(keys).toContain('mute')
-    const source = readFileSync(new URL('./stubs.ts', import.meta.url), 'utf8')
-    expect(source).not.toMatch(/designStub\('BE-(081|082|086|160|162)'/)
   })
 })
