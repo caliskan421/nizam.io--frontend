@@ -1,6 +1,6 @@
 # Backend devir raporu — F9 (WEB-9), 2026-11-17
 
-**F9 AÇIK — kapanış hazırlığı.** Kaynak uygulaması tamam; W185 bağımsız Terra kabulü, W188 gerçek backend tanığı, Opus bağımsız denetimi ve kapanış PR'ının üç başarılı CI kontrolü henüz tamamlanmadı. Web pini **v0.25.0-api**. F10 açılmadı.
+**F9 AÇIK — kapanış hazırlığı.** Kaynak uygulaması tamam; W185 bağımsız Terra kabulü ve PR174 üç CI tamamlandı; W188 gerçek backend tanığının devamı, Opus denetim bulgularının düzeltmesi/nihai hükmü ve kapanış PR'ının üç başarılı CI kontrolü bekleniyor. Web pini **v0.25.0-api**. F10 açılmadı.
 
 Kaynaklar: [kayıt](kayit.md), [F9 kapsamı](../yurutme/web-9/README.md), [canlıya alma matrisi](../yurutme/web-9/canliya-alma-matrisi.md), [ilerleme](../yurutme/web-9/ilerleme.md). Backend yalnız `v0.25.0-api` etiketi (`58856bbc`) üzerinden okundu; backend/mobil/program depolarına yazılmadı. Kullanıcı backend çalışmasını ayrı yürütür.
 
@@ -41,9 +41,9 @@ Kayıt toplamı düzeltmesi: F8 raporundaki 160 satır/104 açık sayısı tarih
 | 171      | W183 sohbet A                                 | mainb69c6e9c; CI44001071112 üç SUCCESS                       |
 | 172      | W184 sohbet B                                 | mainabfc7916; CI44005439139 üç SUCCESS                       |
 | 173      | W185b sohbet C ve W186 regresyon düzeltmeleri | main718d67a2; CI44008206065 üç SUCCESS                       |
-| Bekliyor | W185 bildirimler                              | Sonnet1100f522; bütünleşik24d256db, bağımsız Terra kabulünde |
+|174 | W185 bildirimler | main8b797382; CI44010736714 üç SUCCESS |
 
-Her uygulama paketinde Sonnet yerel ilgili testleri çalıştırdı; Terra ayrı test/etkileşimli duman yaptı. Sayıları örtüşen koşumlardan toplamak yerine ilgili ilerleme kaydına bakılmalıdır. W185 Sonnet 124 dosyada 983 test/type/lint/format/build başarılı; bağımsız kabul henüz verilmedi.
+Her uygulama paketinde Sonnet yerel ilgili testleri çalıştırdı; Terra ayrı test/etkileşimli duman yaptı. Sayıları örtüşen koşumlardan toplamak yerine ilgili ilerleme kaydına bakılmalıdır. W185 Sonnet 124 dosyada 983 test/type/lint/format/build başarılı; Terra bağımsız13 dosyada244 test,40 kayıt testi ve390/1440 sahte dumanıyla kabul verdi; PR174 üç CI ile birleşti.
 
 ## 5. Gerçek backend ve bağımsız denetim
 

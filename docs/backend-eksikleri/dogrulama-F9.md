@@ -21,7 +21,7 @@ Gerçek `caddy:2.11.4-alpine` container'ı kullanıldı. Test Caddyfile'ına bac
 | Grup/mention/kaldır | İki düz mesaj count2 grup; dismiss204 tüm grubu kaldırdı. İki anma ayrı null-group satırlarıdır. none iken sohbet unread_count13 kaldı. | notification-group-2.json |
 | Sohbet read-all |204, bu program sohbetlerine ait okunmamış bildirim kalmadı; count24→17, awaiting0→0. | pins-readall.json |
 | İletme | İki hedef201; aynı anahtar200 ve aynı iki sonuç. Olmayan hedef404, yinelenen hedef422, anket422. Mevcut ama üyeye erişilemeyen grup GET404; erişilebilir+erişilemeyen hedef forward404 ve erişilebilir hedefin tam mesaj listesi değişmedi. | api-witness.json, forward-forbidden.json |
-| Arşive kaydetme | Geçerli PNG multipart201, aynı anahtar/client_message_id ile200 ve aynı mesaj/dosya kimlikleri. FormData'da metin alanları dosyadan önce. | archive-witness.json |
+| Arşive kaydetme | Geçerli PNG multipart201, aynı anahtar/client_message_id ile200 ve aynı mesaj/dosya kimlikleri. Aynı580 bayt gerçek gönderimde alan ofsetleri68/202/321/409: üç metin ardından dosya. İki çağrı sonrası sohbet7→8, görev dosyaları2→3; tek mesaj/dosya oluştu. | archive-witness.json, archive-wire-count-2.json |
 | Anonim anket | Üç rol geçmişinde voters boş, oy veren üye mine doğru/diğerleri false. Sabitlenmiş anket üç rolde de gizli seçmen ve doğru mine. | api-witness.json, pins-readall.json |
 | Konu sessize alma | PUT/list/DELETE204/200/204; mute list limit0/101 için422. | api-witness.json |
 
@@ -31,7 +31,7 @@ Görev onayında ilk refetch geçici “Durum başka yolla değişti” gösterd
 
 İlk arşiv text/plain fixture'ı records.content_rejected422 aldı; geçerli PNG ile başarılı tekrar ayrı dosyadadır. Karar denemelerinde kanıt zorunluluğu/eksik işlem anahtarı ve bildirim UI denemelerinde üyelik/seçici zamanlaması kaynaklı ilk başarısızlıklar korunur; ürün kusuru olarak etiketlenmedi. İlk8sn grup/mention gözleminde teslim görülmedi,20sn sınırlı koşumda görüldü; kesin genel zamanlama nedeni iddia edilmez.
 
-Henüz bu ara kaydın kanıtlamadıkları: tüm shared/receipts/Koordinatörler UI ayrıntıları, görünmez referans422, anonim oluşturma replay gövdesinin ayrıca mahremiyet incelemesi, ham multipart wire yakalaması ve bağımsız arşiv liste sayımı, null/forbidden/deleted kaynak linkinin gerçek UI negatifleri. Sahte/unit kapsamı gerçek tanık olarak sunulmaz. W189 sonrası liste dışında kalan sohbetin history unread yedeği ayrıca dar kontrol bekler.
+Henüz bu ara kaydın kanıtlamadıkları: tüm shared/receipts/Koordinatörler UI ayrıntıları, görünmez referans422, anonim oluşturma replay gövdesinin ayrıca mahremiyet incelemesi, null/forbidden/deleted kaynak linkinin gerçek UI negatifleri. Sahte/unit kapsamı gerçek tanık olarak sunulmaz. W189 sonrası liste dışında kalan sohbetin history unread yedeği ayrıca dar kontrol bekler.
 
 500 gerçek mute kaydı tavanı,200 grup saklama süpürmesi, gerçek timer/push teslimi, OS notificationclick, Safari/iOS/VoiceOver ve CDN arkası SSE çalıştırılmadı. Bu alanlar otomatik tamamlanmış sayılmaz.
 
