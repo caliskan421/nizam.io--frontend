@@ -1,18 +1,20 @@
 # WEB-9 ilerleme
 
+**F9 KAPANDI — bu kayıt, kendi başlığında üç CI SUCCESS ile main’e MERGED olmuş sürümde yürürlüğe girer. Açık PR dalı kapanış adayıdır.**
+
 Koordinatör her oturum kapanışında bir kayıt ekler; sonraki oturum buradan başlar. Uygulayıcılar bu dosyaya yazmaz (ham kaynak `.git/koordinator/f5-notlar.md` ve `web9-kararlar.md`).
 
-**F9 AÇILDI — karar 2026-11-16 (P77), yürütme 2026-11-17; kapsam 2026-11-17'de v0.25'i de içerecek biçimde güncellendi (P84).** Kapsam [README](README.md)'de. F8 [KAPANDI](../web-8/ilerleme.md) (main `a48a3e78`; devreden borçlar web-8 ilerleme #1–#38). Main pini **v0.25.0-api** (W182 PR #170, main `2bd788f3`).
+**Tarihçe: F9 AÇILDI — karar 2026-11-16 (P77), yürütme 2026-11-17; kapsam 2026-11-17'de v0.25'i de içerecek biçimde güncellendi (P84).** Kapsam [README](README.md)'de. F8 [KAPANDI](../web-8/ilerleme.md) (main `a48a3e78`; devreden borçlar web-8 ilerleme #1–#38). Main pini **v0.25.0-api** (W182 PR #170, main `2bd788f3`).
 
 ## Durum
 
-| Oturum                              | Durum                                                                                                            | main hash  |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------- |
-| O1 W181                             | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN                                                | `099dfe6e` |
-| O2a W182 (pin v0.25)                | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı      | `2bd788f3` |
-| O2b W183 ‖ W184, sonra W185b ‖ W185 | **KAPANDI** — PR171/172/173/174, her başlıkta üç CI SUCCESS                                                      | `8b797382` |
-| O3 W186                             | App/router entegrasyonları ve regresyonlar tamam; ek sparse gerçek-backend e2e ilk koşumu kapanış CI'ında bekler | —          |
-| O4 W187 ‖ W188, Opus + W189         | Gerçek ana tanık ve W18967 hedefli test/build başarılı; Opus tur2 + kapanış CI/merge bekler                      | —          |
+| Oturum                              | Durum                                                                                                       | main hash         |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------- |
+| O1 W181                             | **KAPANDI** — PR #169, CI43985113355 üç iş SUCCESS, Opus O1 UYGUN                                           | `099dfe6e`        |
+| O2a W182 (pin v0.25)                | **KAPANDI** — PR #170, CI43988603878 attempt2 üçSUCCESS; Terra build/24test/4pixel karşılaştırması başarılı | `2bd788f3`        |
+| O2b W183 ‖ W184, sonra W185b ‖ W185 | **KAPANDI** — PR171/172/173/174, her başlıkta üç CI SUCCESS                                                 | `8b797382`        |
+| O3 W186                             | **TAMAMLANDI** — App/router ve regresyonlar; yeni sparse gerçek-backend e2e bu kapanışın CI kapısındadır    | kaynak `fcf7bc76` |
+| O4 W187 ‖ W188, Opus + W189         | **KAPANIŞ KAYDI** — Opus tur2 + P3 delta kapandı; yürürlük koşulu bu başlıkta üç CI SUCCESS + MERGED        | bu kapanış kaydı  |
 
 ## Kararlar
 
@@ -125,3 +127,11 @@ Terra final84f9cff6 üzerinde7 dosyada67 ilgili test ve build'i geçirdi. Örtü
 ### Opus tur2 hata yolu ek kapanışı (2026-11-17)
 
 Tur2 c00ab727 için KOŞULLU UYGUN, P0/P1/P2 yok; tek faz koşulu kapanış CI+MERGED. Ek bloklamayan P3 around başarısızlığında giriş/readiness kilidi fcf7bc76 ile giderildi:503/ağ/429 hata yakalanır, yerel çapa yok/ready açık, pencere korunur, entryToken eski giriş sonucunu engeller. Sonnet46 ilgili test ve build başarılı, Terra4 dosyada25 bağımsız test başarılı. Yeni gecikmeli A→B→A testi eklenmedi; kaynak jetonu incelendi. Aynı tur2 bulgu kapanış deltasının Opus kontrolü ve kapanış CI bekler.
+
+### Nihai koordinatör kaydı (2026-11-17)
+
+Opus tur2 ek kontrolde5f6f3365/ürünfcf7bc76 için KOŞULLU UYGUN dedi: önceki P3 kapandı, yeni P0/P1/P2/P3 yok; tek kalan koşul kapanış başlığının kalite/imaj/gerçek backend CI başarısı ve MERGED sonucudur. Bu manifestteki KAPANDI hükmü yalnız bu koşul sağlanmış main sürümüne aittir; açık PR adayı geçmiş sayılmaz.
+
+W188 gerçek tanık94fe0a3a üzerindedir; W189 son paketinin normal UI dumanı84f9cff6 üzerinde sahte API'dir; fcf hata yolu bağımsız25 component/ilgili testle doğrulandı. Yeni gerçek sparse e2e bu kapanışın CI'ında yürütülür; o kapı başarısızken final tamamlandı denmez. Yerel Docker ROFS sebebiyle dört dead test kaydı/ağ/volume silinemedi, çalışan süreç kalmadığı inspect ile görüldü; ayrıntı dogrulama-F9'dadır.
+
+F10 AÇILMADI. Backend/mobil/program depolarına yazılmadı. Kayıt163 =77 bağlı +84 açık +2 vazgeçildi; yeni BE kimliği yok, gerçek designStub16. Rapor-F9 §6a sonraki web önerisi, §6b ayrı backend paketi girdisidir.

@@ -1,6 +1,6 @@
 # F9 gerçek backend doğrulaması — W188
 
-**Ara kayıt; nihai tanık devam ediyor.** Test/tanık Terra, raporu kaynak kanıttan aktaran koordinatör Codex. Sonnet uygulaması ve Opus statik denetimi bu gerçek tanığın yerine geçmez.
+**Doğrulama kaydı. Yürürlük, kapanış başlığının üç CI SUCCESS ve MERGED koşuluna bağlıdır.** Test/tanık Terra, raporu kaynak kanıttan aktaran koordinatör Codex. Sonnet uygulaması ve Opus statik denetimi bu gerçek tanığın yerine geçmez.
 
 ## Ortam ve kaynak
 
@@ -35,7 +35,7 @@ Henüz bu ara kaydın kanıtlamadıkları: tüm shared/receipts/Koordinatörler 
 
 500 gerçek mute kaydı tavanı,200 grup saklama süpürmesi, gerçek timer/push teslimi, OS notificationclick, Safari/iOS/VoiceOver ve CDN arkası SSE çalıştırılmadı. Bu alanlar otomatik tamamlanmış sayılmaz.
 
-Ham JSON/PNG/betikler yerel frontend `.git/koordinator/web9-terra-w188/` dizininde; parola/belirteç rapora taşınmadı. Son owned-resource temizliği ve aşağıdaki ek CI tanığı bekleniyor.
+Ham JSON/PNG/betikler yerel frontend `.git/koordinator/web9-terra-w188/` dizininde; parola/belirteç rapora taşınmadı. Owned-resource temizliğinin ROFS sınırı ve ek CI tanığının yürürlük koşulu aşağıdadır.
 
 ## W189 ek doğrulama ve yerel ortam sınırı
 
@@ -43,7 +43,7 @@ Ham JSON/PNG/betikler yerel frontend `.git/koordinator/web9-terra-w188/` dizinin
 
 Gerçek sparse test verisi hazırlandı: hedef ilk50 sohbet listesinde yok, geçmiş ilk okunmamış sıra1;50 daha yeni mesajlı grup var. Grup oluşturma429 Retry-After ile sınırlı tamamlandı. Fakat yeni gerçek UI girişinde backend500 döndü; owned postgres günlük okuması Docker daemon'dan read-only file system hatası verdi. Bu çevre engeli ürün kusuru diye sunulmadı ve4a için390/1440 gerçek UI kabulü verilmedi. Önceki94fe0a3a gerçek tanıkları bu denemeyle karıştırılmadı.
 
-Terra'nın eklediği `e2e/chat-sparse.spec.ts` temiz CI backend'inde çalışacaktır:51 izole grup/mesaj, ilk50 dışında hedef ve server unread kontrolü,390→1440 aynı giriş, gerçek başka sohbet satırı ve SPA geri dönüşte aynı QueryClient ile taze null history yanıtından sonra eski ayırıcının yokluğu. Yeni history isteği/yanıtı ve DOM render bariyeri beklenir; meşru reconcile before okumaları yasaklanmaz. Finally yalnız kendi gruplarını kaldırır;429 yeniden denemeleri aynı anahtar/gövde ve Retry-After ile sınırlıdır. Yerelde discovery/type/lint/format başarılı; **ilk gerçek yürütme ve seed/cleanup sonucu henüz CI'da beklenmektedir.**
+Terra'nın eklediği `e2e/chat-sparse.spec.ts` temiz CI backend'inde çalışacaktır:51 izole grup/mesaj, ilk50 dışında hedef ve server unread kontrolü,390→1440 aynı giriş, gerçek başka sohbet satırı ve SPA geri dönüşte aynı QueryClient ile taze null history yanıtından sonra eski ayırıcının yokluğu. Yeni history isteği/yanıtı ve DOM render bariyeri beklenir; meşru reconcile before okumaları yasaklanmaz. Finally yalnız kendi gruplarını kaldırır;429 yeniden denemeleri aynı anahtar/gövde ve Retry-After ile sınırlıdır. Yerelde discovery/type/lint/format başarılı; **ilk gerçek yürütme ve seed/cleanup sonucu kapanışın CI kapısında doğrulanır; bu kapı başarısızken test geçmiş sayılmaz.**
 
 Bu CI e2e, gerçek v0.25 backend ile tarayıcı işlev kanıtıdır; vite preview üzerinde CSP gözlemcisinin sıfır raporlaması tek başına uygulanmış Caddy politikası kanıtı değildir. Gerçek Caddy tanığı yukarıdaki yerel kaynak sürümüne, üretim imajı kapısı ayrı CI işine aittir.
 

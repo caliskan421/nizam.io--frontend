@@ -1,6 +1,6 @@
 # Backend devir raporu — F9 (WEB-9), 2026-11-17
 
-**F9 AÇIK — kapanış hazırlığı.** Kaynak uygulaması tamam; W185 bağımsız Terra kabulü ve PR174 üç CI tamamlandı; W188 gerçek backend tanığının devamı, Opus denetim bulgularının düzeltmesi/nihai hükmü ve kapanış PR'ının üç başarılı CI kontrolü bekleniyor. Web pini **v0.25.0-api**. F10 açılmadı.
+**F9 KAPANDI — bu kayıt, kendi başlığında üç CI SUCCESS ile main’e MERGED olmuş sürümde yürürlüğe girer. Açık PR dalı kapanış adayıdır.** Web pini **v0.25.0-api**; F10 açılmadı.
 
 Kaynaklar: [kayıt](kayit.md), [F9 kapsamı](../yurutme/web-9/README.md), [canlıya alma matrisi](../yurutme/web-9/canliya-alma-matrisi.md), [ilerleme](../yurutme/web-9/ilerleme.md). Backend yalnız `v0.25.0-api` etiketi (`58856bbc`) üzerinden okundu; backend/mobil/program depolarına yazılmadı. Kullanıcı backend çalışmasını ayrı yürütür.
 
@@ -46,9 +46,11 @@ Her uygulama paketinde Sonnet yerel ilgili testleri çalıştırdı; Terra ayrı
 
 ## 5. Gerçek backend ve bağımsız denetim
 
-W188 preflight hazır: backend v0.25 etiketi, izole Docker projesi, test hesapları/program/grup/görev ve iki profil uç noktası HTTP 200. **Bu kurulum gerçek UI tanığı değildir.** Nihai W188 raporu ile Opus hükmü beklenir. Özellikle görev detayından kaynak mesaja 390/1440 gerçek pointer açılışı zorunlu; W184 bağımsız sahte dumanında görev detayı açılamamış, actual-router entegrasyonu geçmişti.
+W188 gerçek backend v0.25/58856bbc ve Caddy2.11.4-alpine tanık proxy üzerinde kaynak94fe0a3a'yı sınadı: görev detayından kaynak mesaja390/1440 pointer, around ve S3 başlıkları; çapraz program soğuk hedef; gerçek bildirim satırı görev/tarih kararı; sohbet tercih/okundu/grup zinciri; atomik iletme; anonim anket; arşiv201→aynı anahtar200 ve tek kayıt. [Doğrulama kaydı](dogrulama-F9.md) gerçek/fake/CI ayrımını ve kalan cihaz/timer kapsamını açıkça taşır.
 
-Sahte API/CSP simülasyonu dumanları gerçek Caddy/backend kanıtı yerine kullanılmaz. VoiceOver, kullanıcı görsel onayı, Safari/iOS/Firefox push, OS notificationclick, CDN arkası SSE ve gerçek zamanlayıcı/saklama davranışı çalıştırılmadıysa tamamlandı sayılmaz.
+Opus iki turda kaynak/sözleşme ve ham kanıtları salt okunur inceledi. İki ilk P3 ve ek around hata yolu giderildi; son delta hükmü KOŞULLU UYGUN, açık kaynak bulgusu yok. Tek faz kapanış koşulu kendi başlığında üç CI SUCCESS ve MERGED'dir; [denetim kaydı](../reviews/WEB-9-codex.md).
+
+Son W189 kodunun yeni gerçek sparse UI kontrolü yerel Docker ROFS/login500 nedeniyle çalışmadı; bunun için eklenen gerçek-backend e2e temiz kapanış CI'ında çalışır. Önceki gerçek tanık kaynak sürümü, final sahte duman ve CI yeni testi birbirinin yerine sunulmaz. Test süreçleri durdu, ancak dört dead Docker kaydı/ağ/volume ROFS nedeniyle silinemedi.
 
 ## 6. Sonraki iş
 
@@ -78,6 +80,6 @@ F9 sırasında görülen düşük öncelikli sözleşme önerileri: anonim çokl
 - Borç 39: PR170 ilk CI reports-lifecycle boot/login localhost80 client.network_error 1/6011. İki dar 7/7 ve sonraki CI başarılı; kesin neden bulunmadı, kalıcı düzeltildi denmez. Eski geç401 borcu 38'den ayrıdır.
 - W185b geniş koşum chat-window açık mesaj testi 5 s zaman aşımı; iki dar 11/11 geçti. Kesin yük nedeni kanıtlanmadı; değişen başlığın tam CI'ı sonradan geçti.
 - Terra'nın somut arşiv yanıt kaybı/başarılı tekrarında pencere yaması ve mutable giriş snapshot regresyonları korundu; Sonnet düzeltmeleri bağımsız Terra dar tekrarında yeşil.
-- Kapanış: W185 bağımsız kabul + kendi üç CI, W188 gerçek tanık, Opus hükmü, bulguların giderilmesi ve kapanış PR'ının üç CI SUCCESS ile MERGED olması gerekir.
+- Yürürlük kapısı: bu kapanış başlığının üç CI SUCCESS ile MERGED olmasıdır. Önceki ana uygulama PR'ları169–174 zaten üç CI ile birleşti; yeni sparse e2e sonucu da bu son kapıya dahildir.
 
-W189 son kaynak ek kabulü: aktör tavanında “diğerleri”, listede olmayan sohbetin her girişte güvenli limit1 metadata okuması ve otomatik read readiness kapısı tamamlandı(30bfc952). Terra67 ilgili test/build başarılı; yeni gerçek sparse e2e temiz CI'da ilk koşumu bekler. W18894 sürümünde gerçek tanıklar tamam; son ek yerel UI koşumu Docker ROFS nedeniyle başlamadı. Nihai faz hükmü ve kapanış CI sonucu ayrıca kaydedilecek.
+W189 son kaynak ek kabulü: aktör tavanında “diğerleri”, listede olmayan sohbetin her girişte güvenli limit1 metadata okuması ve otomatik read readiness kapısı tamamlandı(30bfc952). Terra67 ilgili test/build başarılı; yeni gerçek sparse e2e temiz CI'da ilk koşumu bekler. W18894 sürümünde gerçek tanıklar tamam; son ek yerel UI koşumu Docker ROFS nedeniyle başlamadı. Nihai kaynak hükmü Opus tur2 ek kaydındadır; koşulu bu kapanışın CI/merge kapısıdır.

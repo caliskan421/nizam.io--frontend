@@ -1,6 +1,6 @@
 # WEB-9 O4 — kapanış kaydı
 
-**Kapanış sürüyor.** Ana yönetici Codex; Sonnet uygulama/düzeltme, Terra test ve gerçek tanık, Opus yalnız bağımsız salt okunur denetim. Kullanıcı v0.25 kapsamını ve bu rol dağılımını belirledi; yönetim başka ajana devredilmedi.
+**F9 KAPANDI — bu kayıt, kendi başlığında üç CI SUCCESS ile main’e MERGED olmuş sürümde yürürlüğe girer. Açık PR dalı kapanış adayıdır.** Ana yönetici Codex; Sonnet uygulama/düzeltme, Terra test ve gerçek tanık, Opus yalnız bağımsız salt okunur denetim. Kullanıcı v0.25 kapsamını ve bu rol dağılımını belirledi; yönetim başka ajana devredilmedi.
 
 ## Birleşen teslimler
 
@@ -20,4 +20,4 @@ Opus tur1 kaynakta P0/P1/P2 bulmadı, W188 ve nihai kapılar için KOŞULLU UYGU
 
 Koordinatör [rapor-F9](../../backend-eksikleri/rapor-F9.md), [bağımsız denetim kaydı](../../reviews/WEB-9-codex.md), doğrulama ve bu oturum kaydını yönetir. [F10 AÇILMADI](../web-10/README.md); öneri uygulama yetkisi değildir.
 
-Sıradaki adım: son fake duman + Opus tur2 (W188 ham kanıtı dahil) → kapanış PR'ının üç CI SUCCESS + MERGED sonucu. Yalnız bundan sonra F9 kapanır ve kendi temiz geçici worktree/owned Docker kaynakları temizlenir. Backend/mobil/program depolarına yazılmaz.
+Son yürürlük kapısı bu kapanış başlığının üç CI SUCCESS ve MERGED sonucudur. Opus tur2 ve P3 kapanış deltasında açık kaynak bulgusu kalmadı. Yerel ROFS cleanup sınırı doğrulama kaydındadır; own worktree temizliği başarılı main birleşmesi sonrasında yapılır. F10 AÇILMADI; backend/mobil/program depolarına yazılmaz.

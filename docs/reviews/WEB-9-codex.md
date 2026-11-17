@@ -1,6 +1,6 @@
 # WEB-9 — bağımsız Opus denetimi ve Codex koordinatör kaydı
 
-**F9 AÇIK; nihai hüküm bekleniyor.** Dosya adı önceki fazların yol düzenini korur. Kullanıcının rol talimatıyla bağımsız denetçi Opus, test/tanık Terra, uygulayıcı Sonnet, yönetici ve bu kaydın yazarı ana Codex'tir. Yönetim Opus'a devredilmedi.
+**Nihai kaynak hükmü: KOŞULLU UYGUN — tek koşul bu kapanış başlığının üç CI başarısı ve MERGED sonucudur.** Dosya adı önceki fazların yol düzenini korur. Kullanıcının rol talimatıyla bağımsız denetçi Opus, test/tanık Terra, uygulayıcı Sonnet, yönetici ve bu kaydın yazarı ana Codex'tir. Yönetim Opus'a devredilmedi.
 
 ## Denetim turu1 — kaynak ve mevcut kanıt
 
@@ -37,4 +37,12 @@ Opus `c00ab727` kaynağını ve ham W188 JSON'larını doğrudan inceledi: **KO�
 
 Tek bloklamayan P3, around okuması reddedilince resolving/frozen/ready yolunun kilitlenmesi ve yeni okundu kapısının o girişte okumayı durdurmasıydı. Koordinatör bu küçük hata yolunu da kapattı: Sonnet fcf7bc76, hatayı yerel çapa yok olarak ele alır; pencere korunur, ready açılır, resolving bırakılır ve entryToken eski girişin geç sonucunu eler. Yeni503 testi eski kodda kırmızı, düzeltmeyle yeşildir. Terra4 dosyada25 bağımsız testi geçirdi; ayrı gecikmeli A→B→A testi yapılmadı, jeton kaynakta incelendi. Normal yoldaki son UI dumanı84 kaynağına aittir; fcf hata yolunun kanıtı component testidir.
 
-Bu bilinen bulgunun kapanış deltasına aynı tur2'de Opus ek kontrolü bekleniyor. Kapanış CI'ında yeni sparse gerçek-backend e2e ilk yürütmesi henüz gerçekleşmedi; başarılı varsayılmaz.
+Bu bilinen bulgunun kapanış deltasına aynı tur2'de Opus ek kontrolü alındı; aşağıdaki son hüküm geçerlidir. Kapanış CI'ında yeni sparse gerçek-backend e2e ilk yürütmesi henüz gerçekleşmedi; başarılı varsayılmaz.
+
+## Tur2 ek kontrol — nihai kaynak hükmü
+
+Opus5f6f3365/ürünfcf7bc76(src ağacı080b0242) farkını salt okunur inceledi: **KOŞULLU UYGUN**. Bildirilen around hata yolu P3'ü kapandı; yeni P0/P1/P2/P3 yok. safe helper hata sonrası false döndürür; aynı giriş ready açılır/resolving bırakılır, mevcut pencere korunur ve eski A→B→A sonucu entryToken ile elenir. readFirstUnread güvenlik kapıları ve açık mesaj önceliği değişmedi. Terra25 testinin ham logu doğrudan görüldü.
+
+Hata yolunda okundu görünür son mesaja kadar ilerler; görünmeyen daha eski sıra da backend'in okundu-ya-kadar anlamıyla kapanabilir. Bu, çapasız normal açılışla aynı mevcut davranıştır ve kilitlenme yerine seçilen sınırlı fallback'tir; bulgu değildir.
+
+Yeni e2e tasarımı güvenli bulundu fakat ilk gerçek yürütmesi geçmiş sayılmadı. Tek kalan faz kapısı: kapanış başlığında kalite/imaj/gerçek backend(son sparse e2e dahil) üç SUCCESS ve PR MERGED. Bu koşul gerçekleşince koordinatör F9 kapanışını yürürlüğe alır. Denetim belgesi/prettier/koşullu kapanış başlıkları ürün kaynağını değiştirmediğinden kaynak hükmünü etkilemez. Başarısız CI varken tamamlandı iddiası verilmez.
