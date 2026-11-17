@@ -4,7 +4,6 @@ import { makeChatLastMessage, makeChatSummary } from '@/shared/api/__tests__/def
 
 import type { ChatSummary } from '../../model/types'
 import {
-  applyFilter,
   avatarOf,
   badgeCount,
   chatTime,
@@ -12,7 +11,9 @@ import {
   isSystemGroup,
   parseFilter,
   previewOf,
+  serverFilter,
 } from './chat-view'
+import * as chatViewModule from './chat-view'
 
 function chat(over: Partial<ChatSummary> = {}): ChatSummary {
   return makeChatSummary({ created_at: '2026-11-01T08:00:00Z', ...over })
@@ -22,18 +23,12 @@ const last = (over: Partial<NonNullable<ChatSummary['last_message']>> = {}) =>
   makeChatLastMessage({ created_at: '2026-11-14T08:00:00Z', sender_name: 'Ali Veli', ...over })
 
 describe('süzgeç (E-10-06)', () => {
-  const items = [
-    chat({ chat_id: 'a', kind: 'group', unread_count: 2 }),
-    chat({ chat_id: 'b', kind: 'direct', name: null, counterpart_name: 'Ayşe', unread_count: 0 }),
-    chat({ chat_id: 'c', kind: 'direct', name: null, counterpart_name: 'Can', unread_count: 5 }),
-  ]
-  const ids = (list: ChatSummary[]) => list.map((c) => c.chat_id)
-
-  it('Tümü sıralamayı değiştirmez; diğerleri yalnız yüklenen satırları süzer', () => {
-    expect(ids(applyFilter(items, 'all'))).toEqual(['a', 'b', 'c'])
-    expect(ids(applyFilter(items, 'unread'))).toEqual(['a', 'c'])
-    expect(ids(applyFilter(items, 'groups'))).toEqual(['a'])
-    expect(ids(applyFilter(items, 'people'))).toEqual(['b', 'c'])
+  it('sekme → sunucu süzgeci (BE-081); "Tümü" süzgeçsizdir, istemci süzgeci yoktur', () => {
+    expect(serverFilter('all')).toEqual({})
+    expect(serverFilter('unread')).toEqual({ unread: true })
+    expect(serverFilter('groups')).toEqual({ kind: 'group' })
+    expect(serverFilter('people')).toEqual({ kind: 'direct' })
+    expect('applyFilter' in chatViewModule).toBe(false)
   })
 
   it('URL değeri: bilinenler eşlenir, bilinmeyen/çoklu/boş "Tümü"dür (sessiz)', () => {
@@ -133,15 +128,30 @@ describe('rozet ve önizleme (E-10-12, E-10-14)', () => {
     })
   })
 
-  it('silinmiş → "silinmiş mesaj"; gövde boş (ek) → "Dosya"', () => {
+  it('silinmiş → "silinmiş mesaj"; tür `last_message.kind`\'dan (BE-086): ek → "Dosya", anket → "Anket"', () => {
     expect(previewOf(chat({ last_message: last({ deleted: true, body: null }) }), 'u1')).toEqual({
       prefix: '',
       text: 'silinmiş mesaj',
     })
-    expect(previewOf(chat({ last_message: last({ body: '' }) }), 'u1')).toEqual({
-      prefix: 'Ali: ',
-      text: 'Dosya',
-    })
+    expect(previewOf(chat({ last_message: last({ kind: 'attachment', body: '' }) }), 'u1')).toEqual(
+      { prefix: 'Ali: ', text: 'Dosya' },
+    )
+    expect(
+      previewOf(
+        chat({ last_message: last({ kind: 'attachment', body: null, attachment_count: 3 }) }),
+        'u1',
+      )?.text,
+    ).toBe('3 dosya')
+    expect(
+      previewOf(chat({ last_message: last({ kind: 'attachment', body: 'Şartname' }) }), 'u1')?.text,
+    ).toBe('Şartname')
+    expect(
+      previewOf(chat({ last_message: last({ kind: 'poll', body: 'Hangi gün?' }) }), 'u1')?.text,
+    ).toBe('Anket')
+  })
+
+  it('eski yol yok: kind=text iken boş gövde "Dosya" SAYILMAZ (gövde sezgisi kalktı)', () => {
+    expect(previewOf(chat({ last_message: last({ kind: 'text', body: '' }) }), 'u1')?.text).toBe('')
   })
 
   it('oturum hesabı bilinmiyorsa kimse "Sen" sayılmaz', () => {

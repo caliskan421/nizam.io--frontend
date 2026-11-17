@@ -1,10 +1,10 @@
 /**
  * Konuşma listesi gösterim kuralları (10 README E-10-06, E-10-09…E-10-15; saf, bileşensiz).
- * Süzgeç sekmeleri `listChats`'e sunucu süzgeci gelene dek (BE-081) YALNIZ yüklenen sayfalara
- * uygulanan istemci süzgecidir; satır sırası sunucunundur (P64, E-10-13) — burada sıralama yok.
+ * Süzgeç sekmeleri sunucu süzgecidir (BE-081: `kind`/`unread`); istemci süzgeci yoktur. Satır
+ * sırası sunucunundur (P64, E-10-13) — burada sıralama yok.
  */
 import { chatText } from '../../messages'
-import type { ChatSummary } from '../../model/types'
+import type { ChatListFilter, ChatSummary } from '../../model/types'
 
 export const CHAT_FILTERS = ['all', 'unread', 'groups', 'people'] as const
 export type ChatFilter = (typeof CHAT_FILTERS)[number]
@@ -25,16 +25,17 @@ export function parseFilter(raw: unknown): ChatFilter {
   return hit ?? 'all'
 }
 
-export function applyFilter(items: readonly ChatSummary[], filter: ChatFilter): ChatSummary[] {
+/** Sekme → `listChats` sunucu süzgeci (BE-081). */
+export function serverFilter(filter: ChatFilter): ChatListFilter {
   switch (filter) {
     case 'unread':
-      return items.filter((chat) => chat.unread_count > 0)
+      return { unread: true }
     case 'groups':
-      return items.filter((chat) => chat.kind === 'group')
+      return { kind: 'group' }
     case 'people':
-      return items.filter((chat) => chat.kind === 'direct')
+      return { kind: 'direct' }
     default:
-      return [...items]
+      return {}
   }
 }
 
@@ -87,6 +88,18 @@ export const isSystemGroup = (chat: Pick<ChatSummary, 'auto_kind'>): boolean =>
 /** Rozet sayısı: 99'dan büyükse "99+" (E-10-14). */
 export const badgeCount = (n: number): string => (n > 99 ? '99+' : String(n))
 
+function previewText(last: NonNullable<ChatSummary['last_message']>): string {
+  const body = (last.body ?? '').trim()
+  if (last.kind === 'poll') return chatText('chat.list.pollPreview')
+  if (last.kind === 'attachment') {
+    if (body !== '') return body
+    return last.attachment_count > 1
+      ? chatText('chat.list.filesPreview', { n: last.attachment_count })
+      : chatText('chat.list.filePreview')
+  }
+  return last.body ?? ''
+}
+
 export interface RowPreview {
   text: string
   /** Gönderen öneki ("Sen: " / "Ali: ") — metinden ayrı verilir. */
@@ -95,13 +108,14 @@ export interface RowPreview {
 
 /**
  * E-10-12: kendi mesajım "Sen: ", grupta başkasının ilk adı, birebirde öneksiz; silinmiş →
- * "silinmiş mesaj"; gövde boş (ek) → "Dosya" (tür bilgisi yok, BE-086); `last_message` yok → `null`.
+ * "silinmiş mesaj"; metin dışı türde `last_message.kind` (BE-086): `poll` → "Anket", `attachment` →
+ * gövde varsa gövde, yoksa "Dosya" (ek sayısı >1 ise "N dosya"); `last_message` yok → `null`.
  */
 export function previewOf(chat: ChatSummary, meAccountId: string | null): RowPreview | null {
   const last = chat.last_message
   if (last === null) return null
   if (last.deleted) return { prefix: '', text: chatText('chat.list.deletedPreview') }
-  const text = (last.body ?? '').trim() === '' ? chatText('chat.list.filePreview') : last.body!
+  const text = previewText(last)
   let prefix = ''
   if (meAccountId !== null && last.sender_account_id === meAccountId) {
     prefix = chatText('chat.list.you')

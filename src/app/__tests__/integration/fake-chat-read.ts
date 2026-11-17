@@ -94,9 +94,16 @@ function listHandler(db: OrgDb, state: ChatState) {
     if (!inProgram(db, me, program)) return envelope('messaging.not_authorized', 403)
     const query = new URL(request.url).searchParams
     const needle = (query.get('q') ?? '').toLocaleLowerCase('tr')
+    const kind = query.get('kind')
+    const unread = query.get('unread')
+    const badKind = kind !== null && kind !== 'direct' && kind !== 'group'
+    const badUnread = unread !== null && unread !== 'true' && unread !== 'false'
+    if (badKind || badUnread) return envelope('messaging.input_invalid', 422)
     const rows = state.chats
       .filter((c) => c.program_id === program && isMember(c, me.account_id))
       .map((c) => summary(db, c, me.account_id))
+      .filter((c) => kind === null || c.kind === kind)
+      .filter((c) => unread !== 'true' || c.unread_count > 0)
       .filter(
         (c) =>
           needle === '' ||
