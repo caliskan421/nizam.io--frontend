@@ -20,9 +20,15 @@ function fakeList(count: () => number, row = 100) {
   return el
 }
 
-async function setup(initial: ChatMessage[]) {
+async function setup(initial: ChatMessage[], selector: string | null = null) {
   const items = shallowRef<readonly ChatMessage[]>([])
   const el = fakeList(() => items.value.length)
+  const target = document.createElement('div')
+  target.className = 'chat-sep--new'
+  const calls: ScrollIntoViewOptions[] = []
+  target.scrollIntoView = (options?: boolean | ScrollIntoViewOptions) =>
+    void calls.push(options as ScrollIntoViewOptions)
+  el.append(target)
   const list = ref<HTMLElement | null>(el)
   const Host = defineComponent({
     setup() {
@@ -31,7 +37,7 @@ async function setup(initial: ChatMessage[]) {
         items: () => items.value,
         chatId: () => 'c1',
         ready: () => true,
-        initialTarget: () => null,
+        initialTarget: () => selector,
         hasOlder: () => false,
         hasNewer: () => false,
         loadOlder: () => Promise.resolve(),
@@ -45,8 +51,21 @@ async function setup(initial: ChatMessage[]) {
   items.value = initial
   await nextTick()
   await flushPromises()
-  return { items, el }
+  return { items, el, calls }
 }
+
+describe('ilk iniş: okunmamış ayırıcı', () => {
+  it('ayırıcı ortalanır (üste hizalanmaz): yapışkan gün etiketinin altında kalmaz', async () => {
+    const { calls } = await setup(range(10), '.chat-sep--new')
+    expect(calls).toEqual([{ block: 'center' }])
+  })
+
+  it('ayırıcı yoksa en alta iner, scrollIntoView çağrılmaz', async () => {
+    const { calls, el } = await setup(range(10))
+    expect(calls).toEqual([])
+    expect(el.scrollTop).toBe(10 * 100)
+  })
+})
 
 const range = (to: number) => Array.from({ length: to }, (_, i) => msg(i + 1))
 
