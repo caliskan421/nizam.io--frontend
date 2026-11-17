@@ -193,6 +193,12 @@ const TABLE: Array<{
     mustInvalidate: ['addDependency', 'removeDependency'],
   },
   {
+    resource: 'workItems.sourceMessage',
+    key: queryKeys.workItems.sourceMessage(S, 'w1'),
+    expected: [...root(S), 'work-items', 'w1', 'source-message'],
+    mustInvalidate: ['createTaskFromChatMessage', 'deleteChatMessage'],
+  },
+  {
     resource: 'gantt',
     key: queryKeys.gantt.face(S, 'program'),
     expected: [...root(S), 'gantt', 'program'],
@@ -299,6 +305,36 @@ const TABLE: Array<{
     key: queryKeys.chats.refSummary(S, 'r1'),
     expected: [...root(S), 'chats', 'ref', 'r1'],
     mustInvalidate: [],
+  },
+  {
+    resource: 'chats.sharedCounts',
+    key: queryKeys.chats.sharedCounts(S, 'c1'),
+    expected: [...root(S), 'chats', 'c1', 'shared-counts'],
+    mustInvalidate: ['sendChatMessage', 'deleteChatMessage', 'createTaskFromChatMessage'],
+  },
+  {
+    resource: 'chats.attachments',
+    key: queryKeys.chats.attachments(S, 'c1'),
+    expected: [...root(S), 'chats', 'c1', 'attachments'],
+    mustInvalidate: ['sendChatAttachment', 'deleteChatMessage'],
+  },
+  {
+    resource: 'chats.taskLinks',
+    key: queryKeys.chats.taskLinks(S, 'c1'),
+    expected: [...root(S), 'chats', 'c1', 'task-links'],
+    mustInvalidate: ['createTaskFromChatMessage', 'deleteChatMessage'],
+  },
+  {
+    resource: 'chats.messageTasks',
+    key: queryKeys.chats.messageTasks(S, 'c1', 'm1'),
+    expected: [...root(S), 'chats', 'c1', 'message-tasks', 'm1'],
+    mustInvalidate: ['createTaskFromChatMessage', 'deleteWorkItem', 'transitionWorkItem'],
+  },
+  {
+    resource: 'chats.receipts',
+    key: queryKeys.chats.receipts(S, 'c1', 'm1'),
+    expected: [...root(S), 'chats', 'c1', 'receipts', 'm1'],
+    mustInvalidate: ['deleteChatMessage', 'removeChatMember'],
   },
   {
     resource: 'users',
@@ -474,6 +510,40 @@ describe('query-keys — F7 sohbet ve bildirim', () => {
     expect(detail[3]).toBe('c1')
     expect(list[3]).toBe('list')
     expect(hits('createGroupChat', [detail, list])).toEqual([list])
+  })
+})
+
+describe('query-keys — W184 sohbet B okumaları', () => {
+  const counts = queryKeys.chats.sharedCounts(S, 'c1')
+  const countsOther = queryKeys.chats.sharedCounts(S, 'c2')
+  const tasks = queryKeys.chats.messageTasks(S, 'c1', 'm1')
+  const source = queryKeys.workItems.sourceMessage(S, 'w1')
+  const sourceOther = queryKeys.workItems.sourceMessage(S, 'w2')
+  const all = [counts, countsOther, tasks, source, sourceOther, queryKeys.chats.detail(S, 'c1')]
+
+  it('mesaj gönderme/silme paylaşılan sayıları, mesajdan görev açma görev bağlarını yeniler', () => {
+    expect(hits('sendChatMessage', all, { chatId: 'c1' })).toEqual([counts])
+    expect(hits('createTaskFromChatMessage', all, { chatId: 'c1' })).toEqual([
+      counts,
+      tasks,
+      source,
+      sourceOther,
+    ])
+  })
+
+  it('görev kimliği verilince yalnız o görevin kaynak mesaj okuması', () => {
+    expect(hits('createTaskFromChatMessage', all, { chatId: 'c1', workItemId: 'w2' })).toEqual([
+      counts,
+      tasks,
+      sourceOther,
+    ])
+  })
+
+  it('bildirim seviyesi yazması liste ve ayrıntıyı yeniler (BE-027)', () => {
+    expect(resourcesInvalidatedBy('setChatNotificationLevel')).toEqual([
+      'chats.list',
+      'chats.detail',
+    ])
   })
 })
 
