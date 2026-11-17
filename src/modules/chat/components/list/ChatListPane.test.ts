@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { h, nextTick } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import { makeChatLastMessage, makeChatSummary } from '@/shared/api/__tests__/defaults'
 import { useScopeStore } from '@/shared/scope/store'
 
 import {
@@ -33,23 +34,12 @@ afterAll(() => server.close())
 beforeEach(signIn)
 
 function row(over: Partial<ChatSummary> & { chat_id: string }): ChatSummary {
-  return {
-    auto_kind: null,
-    counterpart_account_id: null,
-    counterpart_name: null,
+  return makeChatSummary({
     created_at: '2026-11-01T08:00:00Z',
-    created_by_account_id: null,
-    kind: 'group',
-    last_message: null,
-    last_message_at: null,
     last_seq: 1,
-    mentioned: false,
     name: over.chat_id,
-    source: 'none',
-    source_department_id: null,
-    unread_count: 0,
     ...over,
-  }
+  })
 }
 
 const GENERAL = row({
@@ -59,15 +49,14 @@ const GENERAL = row({
   source: 'program',
   unread_count: 2,
   last_message_at: '2026-11-14T07:02:00Z',
-  last_message: {
+  last_message: makeChatLastMessage({
     body: 'Kapanış yemeği için gün seçelim',
     created_at: '2026-11-14T07:02:00Z',
-    deleted: false,
     message_id: 'm9',
     sender_account_id: 'acc-1',
     sender_name: 'Ben Ben',
     seq: 9,
-  },
+  }),
 })
 const DEPT = row({
   chat_id: 'd',
@@ -77,15 +66,14 @@ const DEPT = row({
   source_department_id: 'dep1',
   mentioned: true,
   unread_count: 1,
-  last_message: {
+  last_message: makeChatLastMessage({
     body: 'Portal hazır',
     created_at: '2026-11-13T07:02:00Z',
-    deleted: false,
     message_id: 'm8',
     sender_account_id: 'u3',
     sender_name: 'Mevlüt Aksoy',
     seq: 8,
-  },
+  }),
 })
 const DIRECT = row({
   chat_id: 'p',

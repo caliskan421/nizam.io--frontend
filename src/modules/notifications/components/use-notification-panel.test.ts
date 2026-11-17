@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 
+import { makeNotification } from '@/shared/api/__tests__/defaults'
 import { useInstanceStore } from '@/shared/instance/store'
 
 import {
@@ -14,6 +15,7 @@ import {
   settleQueries,
   signIn,
 } from '../__tests__/harness'
+import type { NotificationItem } from '../model/types'
 import { useNotificationPanel } from './use-notification-panel'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
@@ -27,14 +29,8 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-14T09:00:00Z') })
 })
 
-const item = (id: string, over: Record<string, unknown> = {}) => ({
-  id,
-  type: 'work.item.created',
-  subject_ref: { kind: 'work_item', id: `w-${id}` },
-  is_read: false,
-  created_at: '2026-11-14T08:55:00Z',
-  ...over,
-})
+const item = (id: string, over: Partial<NotificationItem> = {}) =>
+  makeNotification({ id, subject_ref: { kind: 'work_item', id: `w-${id}` }, ...over })
 
 function setup(open = ref(true)) {
   const navigate = vi.fn()
@@ -48,7 +44,9 @@ function setup(open = ref(true)) {
 describe('useNotificationPanel', () => {
   it('durum: yükleniyor → liste; boş; hata', async () => {
     server.use(
-      http.get(`${ORIGIN}/v1/notifications`, () => json({ items: [item('a')], unread_count: 1 })),
+      http.get(`${ORIGIN}/v1/notifications`, () =>
+        json({ items: [item('a')], awaiting_count: 0, unread_count: 1 }),
+      ),
     )
     const m = setup()
     expect(m.result.state.value).toBe('loading')
@@ -56,7 +54,11 @@ describe('useNotificationPanel', () => {
     expect(m.result.state.value).toBe('list')
     expect(m.result.unreadCount.value).toBe(1)
 
-    server.use(http.get(`${ORIGIN}/v1/notifications`, () => json({ items: [], unread_count: 0 })))
+    server.use(
+      http.get(`${ORIGIN}/v1/notifications`, () =>
+        json({ items: [], awaiting_count: 0, unread_count: 0 }),
+      ),
+    )
     const empty = setup()
     await settleQueries(empty.client)
     expect(empty.result.state.value).toBe('empty')
@@ -78,6 +80,7 @@ describe('useNotificationPanel', () => {
             item('b', { is_read: true }),
             item('c', { created_at: '2026-11-13T20:05:00Z' }),
           ],
+          awaiting_count: 0,
           unread_count: 2,
         }),
       ),
@@ -96,7 +99,11 @@ describe('useNotificationPanel', () => {
   })
 
   it("kapanınca sekme Tümü'ye döner", async () => {
-    server.use(http.get(`${ORIGIN}/v1/notifications`, () => json({ items: [], unread_count: 0 })))
+    server.use(
+      http.get(`${ORIGIN}/v1/notifications`, () =>
+        json({ items: [], awaiting_count: 0, unread_count: 0 }),
+      ),
+    )
     const m = setup()
     m.result.tab.value = 'unread'
     m.open.value = false

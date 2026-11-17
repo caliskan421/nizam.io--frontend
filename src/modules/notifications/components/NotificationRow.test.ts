@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { makeNotification } from '@/shared/api/__tests__/defaults'
+
 import NotificationRow from './NotificationRow.vue'
 import type { NotificationItem } from '../model/types'
 
@@ -8,14 +10,7 @@ const NOW = new Date('2026-11-14T09:00:00Z')
 const TZ = 'Europe/Istanbul'
 
 function item(over: Partial<NotificationItem> = {}): NotificationItem {
-  return {
-    id: 'n1',
-    type: 'work.item.created',
-    subject_ref: { kind: 'work_item', id: 'w-1' },
-    is_read: false,
-    created_at: '2026-11-14T08:55:00Z',
-    ...over,
-  }
+  return makeNotification(over)
 }
 
 function mountRow(over: Partial<NotificationItem> = {}, pending = false) {

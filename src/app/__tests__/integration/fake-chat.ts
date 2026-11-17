@@ -157,6 +157,7 @@ export function addMessage(
       edit_revision: 1,
       edited: false,
       edited_at: null,
+      forwarded_from: null,
       mentions: [],
       message_id: `${chat.chat_id}-m${seq}`,
       pinned_at: null,
@@ -192,7 +193,12 @@ export function viewOf(message: FakeMessage, viewer: string): ChatMessage {
     const voters = [...message.votes]
       .filter(([, picks]) => picks.includes(row.option_index))
       .map(([account_id]) => ({ account_id, full_name: null }))
-    return { ...row, count: voters.length, voters }
+    return {
+      ...row,
+      count: voters.length,
+      voters,
+      mine: voters.some((v) => v.account_id === viewer),
+    }
   })
   return structuredClone({
     ...message.base,

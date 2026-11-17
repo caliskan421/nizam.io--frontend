@@ -243,12 +243,13 @@ describe('tepki, sabit, anket', () => {
     const group = chatOf(GROUP)
     const message = addMessage(group, WHO.coord, 'Toplantı günü?', {
       poll: {
+        anonymous: false,
         closed_at: null,
         closes_at: null,
         multi: false,
         results: [
-          { count: 0, label: 'Salı', option_index: 0, voters: [] },
-          { count: 0, label: 'Çarşamba', option_index: 1, voters: [] },
+          { count: 0, label: 'Salı', mine: false, option_index: 0, voters: [] },
+          { count: 0, label: 'Çarşamba', mine: false, option_index: 1, voters: [] },
         ],
       },
     })

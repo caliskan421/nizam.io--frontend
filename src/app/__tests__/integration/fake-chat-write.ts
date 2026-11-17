@@ -40,10 +40,17 @@ function pollOf(
   multi = false,
 ): NonNullable<ChatMessage['poll']> {
   return {
+    anonymous: false,
     closed_at: null,
     closes_at: closesAt ?? null,
     multi,
-    results: options.map((label, option_index) => ({ count: 0, label, option_index, voters: [] })),
+    results: options.map((label, option_index) => ({
+      count: 0,
+      label,
+      mine: false,
+      option_index,
+      voters: [],
+    })),
   }
 }
 
@@ -73,6 +80,7 @@ function create(state: ChatState, chat: FakeChat, account: Account, body: Partia
       message_id: reply.base.message_id,
       sender_account_id: reply.base.sender_account_id,
       sender_name: reply.base.sender_name ?? null,
+      seq: reply.base.seq,
     }
   }
   emit(state, chat, 'message.created', {

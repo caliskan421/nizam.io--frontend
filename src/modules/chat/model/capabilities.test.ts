@@ -146,6 +146,7 @@ describe('mesaj eylemleri', () => {
     msg(2, {
       sender_account_id: 'me',
       poll: {
+        anonymous: false,
         closed_at: closed ? '2026-11-14T09:00:00Z' : null,
         closes_at: closesAt,
         multi: false,

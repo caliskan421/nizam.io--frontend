@@ -59,6 +59,7 @@ describe('konuşma akışı (görünüm)', () => {
             deleted: true,
             sender_account_id: 'u3',
             sender_name: 'Reha',
+            seq: null,
           },
         }),
       ],

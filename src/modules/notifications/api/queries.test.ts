@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { ref } from 'vue'
 
 import { authSession } from '@/shared/http'
+import { makeNotification } from '@/shared/api/__tests__/defaults'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import {
@@ -23,17 +24,21 @@ afterEach(resetAll)
 afterAll(() => server.close())
 beforeEach(signIn)
 
-const item = (id: string, read = false) => ({
-  id,
-  type: 'work.item.created',
-  subject_ref: { kind: 'work_item', id: `w-${id}` },
-  is_read: read,
-  created_at: '2026-11-14T08:00:00Z',
-})
+const item = (id: string, read = false) =>
+  makeNotification({
+    id,
+    subject_ref: { kind: 'work_item', id: `w-${id}` },
+    is_read: read,
+    created_at: '2026-11-14T08:00:00Z',
+  })
 
 describe('useUnreadNotifications', () => {
   it('hesap geneli anahtarla sayacı okur; kapsam başlığı gitmez', async () => {
-    server.use(http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: 4 })))
+    server.use(
+      http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+        json({ count: 4, awaiting_count: 0 }),
+      ),
+    )
     const m = mountSetup(() => useUnreadNotifications())
     await settleQueries(m.client)
     expect(m.result.count.value).toBe(4)
@@ -65,7 +70,7 @@ describe('useUnreadNotifications', () => {
     server.use(
       http.get(`${ORIGIN}/v1/notifications/unread-count`, () => {
         authSession.clear()
-        return json({ count: 9 })
+        return json({ count: 9, awaiting_count: 0 })
       }),
     )
     const m = mountSetup(() => useUnreadNotifications())
@@ -78,7 +83,7 @@ describe('useNotifications', () => {
   it('panel kapalıyken okunmaz; açılınca limit=30 ile ilk sayfa, sunucu sayacı', async () => {
     server.use(
       http.get(`${ORIGIN}/v1/notifications`, () =>
-        json({ items: [item('1'), item('2', true)], unread_count: 7 }),
+        json({ items: [item('1'), item('2', true)], awaiting_count: 0, unread_count: 7 }),
       ),
     )
     const open = ref(false)
@@ -98,8 +103,13 @@ describe('useNotifications', () => {
       http.get(`${ORIGIN}/v1/notifications`, ({ request }) => {
         const cursor = new URL(request.url).searchParams.get('cursor')
         return cursor
-          ? json({ items: [item('3')], unread_count: 1 })
-          : json({ items: [item('1'), item('2')], unread_count: 1, next_cursor: 'c2' })
+          ? json({ items: [item('3')], awaiting_count: 0, unread_count: 1 })
+          : json({
+              items: [item('1'), item('2')],
+              awaiting_count: 0,
+              unread_count: 1,
+              next_cursor: 'c2',
+            })
       }),
     )
     const m = mountSetup(() => useNotifications(true))
@@ -119,7 +129,12 @@ describe('useNotifications', () => {
         if (new URL(request.url).searchParams.get('cursor')) {
           return errorEnvelope('notifications.invalid_cursor', 422)
         }
-        return json({ items: [item('1')], unread_count: 1, next_cursor: 'bozuk' })
+        return json({
+          items: [item('1')],
+          awaiting_count: 0,
+          unread_count: 1,
+          next_cursor: 'bozuk',
+        })
       }),
     )
     const m = mountSetup(() => useNotifications(true))
@@ -134,7 +149,11 @@ describe('useNotifications', () => {
   it('okunmamış sekmesi istemci süzgecidir: yüklenen satırlardan !is_read', async () => {
     server.use(
       http.get(`${ORIGIN}/v1/notifications`, () =>
-        json({ items: [item('1'), item('2', true), item('3')], unread_count: 2 }),
+        json({
+          items: [item('1'), item('2', true), item('3')],
+          awaiting_count: 0,
+          unread_count: 2,
+        }),
       ),
     )
     const m = mountSetup(() => useNotifications(true))

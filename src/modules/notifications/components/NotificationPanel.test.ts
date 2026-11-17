@@ -5,6 +5,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { makeNotification } from '@/shared/api/__tests__/defaults'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useInstanceStore } from '@/shared/instance/store'
 import { useToast } from '@/shared/ui'
@@ -21,6 +22,7 @@ import {
   settleQueries,
   signIn,
 } from '../__tests__/harness'
+import type { NotificationItem } from '../model/types'
 import NotificationPanel from './NotificationPanel.vue'
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
@@ -37,19 +39,13 @@ beforeEach(() => {
 })
 
 let seq = 0
-const item = (over: Record<string, unknown> = {}) => ({
-  id: `n${++seq}`,
-  type: 'work.item.created',
-  subject_ref: { kind: 'work_item', id: 'w-1' },
-  is_read: false,
-  created_at: '2026-11-14T08:55:00Z',
-  ...over,
-})
+const item = (over: Partial<NotificationItem> = {}) =>
+  makeNotification({ id: `n${++seq}`, ...over })
 const LIST = `${ORIGIN}/v1/notifications`
 
 function serve(items: unknown[], extra: Record<string, unknown> = {}) {
   server.use(
-    http.get(LIST, () => json({ items, unread_count: items.length, ...extra })),
+    http.get(LIST, () => json({ items, awaiting_count: 0, unread_count: items.length, ...extra })),
     // Panel altındaki Web Push kutusu (W159) VAPID anahtarını okur; kapalı → kutu çizilmez.
     http.get(`${ORIGIN}/v1/notifications/vapid-public-key`, () =>
       json({ enabled: false, public_key: '' }),
@@ -145,7 +141,10 @@ describe('liste okuma', () => {
 
 describe('sekmeler', () => {
   it('Senden bekleyen devre dışı + "Yakında" (BE-144); Tümü seçili; sekme değişimi istek atmaz', async () => {
-    serve([item({ id: 'u1' }), item({ id: 'r1', is_read: true })], { unread_count: 1 })
+    serve([item({ id: 'u1' }), item({ id: 'r1', is_read: true })], {
+      awaiting_count: 0,
+      unread_count: 1,
+    })
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
     const [awaiting, all, unread] = tabs(wrapper)
@@ -161,7 +160,7 @@ describe('sekmeler', () => {
   })
 
   it("panel kapanıp açılınca sekme Tümü'ye döner", async () => {
-    serve([item({ is_read: true })], { unread_count: 0 })
+    serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 0 })
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
     await tabs(wrapper)[2]!.trigger('click')
@@ -173,7 +172,7 @@ describe('sekmeler', () => {
   })
 
   it('Okunmamış sekmesinde yüklü küme boş ama sayfa varken boş durum yok, "Daha eski" açık', async () => {
-    serve([item({ is_read: true })], { unread_count: 3, next_cursor: 'c2' })
+    serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 3, next_cursor: 'c2' })
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
     await tabs(wrapper)[2]!.trigger('click')
@@ -188,8 +187,13 @@ describe('Daha eski bildirimler', () => {
       http.get(LIST, ({ request }) => {
         const cursor = new URL(request.url).searchParams.get('cursor')
         return cursor
-          ? json({ items: [item({ id: 'p2' })], unread_count: 2 })
-          : json({ items: [item({ id: 'p1' })], unread_count: 2, next_cursor: 'c2' })
+          ? json({ items: [item({ id: 'p2' })], awaiting_count: 0, unread_count: 2 })
+          : json({
+              items: [item({ id: 'p1' })],
+              awaiting_count: 0,
+              unread_count: 2,
+              next_cursor: 'c2',
+            })
       }),
     )
     const { wrapper, client } = await mountPanel()
@@ -209,9 +213,14 @@ describe('Daha eski bildirimler', () => {
         if (new URL(request.url).searchParams.get('cursor')) {
           return fail
             ? errorEnvelope('platform.internal', 400)
-            : json({ items: [item({ id: 'p2' })], unread_count: 2 })
+            : json({ items: [item({ id: 'p2' })], awaiting_count: 0, unread_count: 2 })
         }
-        return json({ items: [item({ id: 'p1' })], unread_count: 2, next_cursor: 'c2' })
+        return json({
+          items: [item({ id: 'p1' })],
+          awaiting_count: 0,
+          unread_count: 2,
+          next_cursor: 'c2',
+        })
       }),
     )
     const { wrapper, client } = await mountPanel()
@@ -237,7 +246,7 @@ describe('okundu akışı', () => {
         await gate
         return noContent()
       }),
-      http.get(`${LIST}/unread-count`, () => json({ count: 1 })),
+      http.get(`${LIST}/unread-count`, () => json({ count: 1, awaiting_count: 0 })),
     )
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
@@ -258,7 +267,7 @@ describe('okundu akışı', () => {
   })
 
   it('okunmuş satır yalnız gezinir (yazma yok)', async () => {
-    serve([item({ is_read: true })], { unread_count: 0 })
+    serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 0 })
     const { wrapper, client } = await mountPanel()
     await settle(client, wrapper)
     await rows(wrapper)[0]!.get('.nb-it__main').trigger('click')
@@ -353,7 +362,7 @@ describe('Tümünü okundu say', () => {
     serve([item({ id: 'u1' }), item({ id: 'u2' })])
     server.use(
       http.post(`${LIST}/read-all`, () => json({ marked_count: 2 })),
-      http.get(`${LIST}/unread-count`, () => json({ count: 0 })),
+      http.get(`${LIST}/unread-count`, () => json({ count: 0, awaiting_count: 0 })),
     )
     const { wrapper, client } = await mountPanel()
     client.setQueryData(queryKeys.notifications.unreadCount(), 2)
@@ -380,7 +389,7 @@ describe('Tümünü okundu say', () => {
   })
 
   it('okunmamış yokken devre dışı; yükleme sürerken devre dışı', async () => {
-    serve([item({ is_read: true })], { unread_count: 0 })
+    serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 0 })
     const { wrapper, client } = await mountPanel()
     expect(
       wrapper.get('[data-testid="notification-mark-all"]').attributes('disabled'),
@@ -468,7 +477,7 @@ describe('kapanış istekleri ve erişilebilirlik', () => {
   })
 
   it('okunmamış yokken odak ilk etkin sekmeye (devre dışı sekme atlanır)', async () => {
-    serve([item({ is_read: true })], { unread_count: 0 })
+    serve([item({ is_read: true })], { awaiting_count: 0, unread_count: 0 })
     const { wrapper, client } = await mountPanel(false)
     await wrapper.setProps({ open: true })
     await settle(client, wrapper)

@@ -171,6 +171,7 @@ export function addPeerReply(
       message_id: target.base.message_id,
       sender_account_id: target.base.sender_account_id,
       sender_name: target.base.sender_name ?? null,
+      seq: target.base.seq,
     },
   })
 }

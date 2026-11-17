@@ -8,8 +8,8 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('v0.23.0-api sözleşmesinin 248 ucu üretildi', () => {
-    expect(entries).toHaveLength(248)
+  it('v0.25.0-api sözleşmesinin 261 ucu üretildi', () => {
+    expect(entries).toHaveLength(261)
   })
 
   it.each(entries)('%s kapsam/CSRF/kimlik tutarlı', (key, meta) => {

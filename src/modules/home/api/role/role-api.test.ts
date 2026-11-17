@@ -203,7 +203,9 @@ describe('yardımcı okuyucular', () => {
   it('okunmamış bildirim sayısı (S1, kapsamsız)', async () => {
     server.use(
       ...standingHandlers(COORD),
-      http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: 4 })),
+      http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+        json({ count: 4, awaiting_count: 0 }),
+      ),
     )
     const probe = harness(() => useUnreadCount())
     await mountWith(probe.Probe, COORD_SCOPE)

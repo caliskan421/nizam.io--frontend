@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { makeNotification } from '@/shared/api/__tests__/defaults'
 import { useToast } from '@/shared/ui'
 import { useConfirm } from '@/shared/ui/confirm'
 
@@ -459,13 +460,14 @@ describe('Ü1 üye ana sayfası', () => {
   })
 
   it('E-Ü1-24 (KUSUR 4): "Son bildirimler" gövdesi gerçek listenin ilk 3 satırı; tıkla → okundu + hedef; boşta nötr metin', async () => {
-    const notification = (id: string, type: string, kind: string, read: boolean) => ({
-      id,
-      type,
-      is_read: read,
-      created_at: '2026-11-16T09:00:00Z',
-      subject_ref: { kind, id: `${kind}-${id}` },
-    })
+    const notification = (id: string, type: string, kind: string, read: boolean) =>
+      makeNotification({
+        id,
+        type,
+        is_read: read,
+        created_at: '2026-11-16T09:00:00Z',
+        subject_ref: { kind, id: `${kind}-${id}` },
+      })
     server.use(
       ...standingHandlers(MEMBER),
       ...roleHandlers({

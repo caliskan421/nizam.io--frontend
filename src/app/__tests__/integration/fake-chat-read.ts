@@ -4,6 +4,7 @@
 import { http } from 'msw'
 
 import type { ChatMessage } from '@/modules/chat/public'
+import { makeChatMember } from '@/shared/api/__tests__/defaults'
 
 import { envelope, fakeOrg, json, ORIGIN, type OrgDb } from './fake-org'
 import {
@@ -50,6 +51,15 @@ function peerRead(chat: FakeChat, me: string): number | null {
   return peer ? (chat.reads[peer.account_id] ?? 0) : null
 }
 
+/** İlk okunmamış (başkasının) mesajın `seq`'i; yoksa `null` (`unreadOf` ile aynı kural). */
+function firstUnreadSeq(chat: FakeChat, me: string): number | null {
+  const read = chat.reads[me] ?? 0
+  return (
+    chat.messages.find((m) => m.base.seq > read && m.base.sender_account_id !== me)?.base.seq ??
+    null
+  )
+}
+
 function summary(db: OrgDb, chat: FakeChat, me: string) {
   const last = chat.messages.at(-1)
   return {
@@ -57,15 +67,21 @@ function summary(db: OrgDb, chat: FakeChat, me: string) {
     last_message: last
       ? {
           body: last.base.body,
+          attachment_count: last.base.attachments.length,
           created_at: last.base.created_at,
           deleted: false,
+          kind: last.base.poll ? 'poll' : last.base.attachments.length > 0 ? 'attachment' : 'text',
           message_id: last.base.message_id,
           sender_account_id: last.base.sender_account_id,
           sender_name: last.base.sender_name ?? '',
           seq: last.base.seq,
         }
       : null,
+    first_unread_seq: firstUnreadSeq(chat, me),
     mentioned: mentionedIn(chat, me),
+    notify_level: 'all' as const,
+    peer_read_seq: peerRead(chat, me),
+    read_seq: chat.reads[me] ?? 0,
     unread_count: unreadOf(chat, me),
   }
 }
@@ -93,7 +109,22 @@ function listHandler(db: OrgDb, state: ChatState) {
     const from = Number(query.get('cursor') || 0)
     const items = rows.slice(from, from + limit)
     const next = from + limit < rows.length ? String(from + limit) : ''
-    return json({ items, next_cursor: next })
+    return json({ items, next_cursor: next, total: rows.length })
+  })
+}
+
+function historyHandler(db: OrgDb, state: ChatState) {
+  return http.get(`${ORIGIN}/v1/chats/:chatId/messages`, ({ request, params }) => {
+    const found = resolveChat(db, state, request, String(params.chatId))
+    if (isResponse(found)) return found
+    const me = found.account.account_id
+    const all = found.chat.messages.map((m) => viewOf(m, me))
+    return json({
+      first_unread_seq: firstUnreadSeq(found.chat, me),
+      items: pageOf(all, new URL(request.url).searchParams),
+      peer_read_seq: peerRead(found.chat, me),
+      read_seq: found.chat.reads[me] ?? 0,
+    })
   })
 }
 
@@ -104,26 +135,19 @@ function detailHandlers(db: OrgDb, state: ChatState) {
       if (isResponse(found)) return found
       return json(chatView(db, found.chat, found.account.account_id))
     }),
-    http.get(`${ORIGIN}/v1/chats/:chatId/messages`, ({ request, params }) => {
-      const found = resolveChat(db, state, request, String(params.chatId))
-      if (isResponse(found)) return found
-      const me = found.account.account_id
-      const all = found.chat.messages.map((m) => viewOf(m, me))
-      return json({
-        items: pageOf(all, new URL(request.url).searchParams),
-        peer_read_seq: peerRead(found.chat, me),
-      })
-    }),
+    historyHandler(db, state),
     http.get(`${ORIGIN}/v1/chats/:chatId/members`, ({ request, params }) => {
       const found = resolveChat(db, state, request, String(params.chatId))
       if (isResponse(found)) return found
-      const items = found.chat.members.map((m) => ({
-        account_id: m.account_id,
-        founder: isFounder(m),
-        from_source: m.from_source,
-        full_name: fakeOrg.accountName(db, m.account_id),
-        role: m.role,
-      }))
+      const items = found.chat.members.map((m) =>
+        makeChatMember({
+          account_id: m.account_id,
+          founder: isFounder(m),
+          from_source: m.from_source,
+          full_name: fakeOrg.accountName(db, m.account_id),
+          role: m.role,
+        }),
+      )
       return json({ items, truncated: false })
     }),
     http.get(`${ORIGIN}/v1/chats/:chatId/pins`, ({ request, params }) => {

@@ -63,6 +63,21 @@ describe('bildirim sözlüğü (13 tür)', () => {
     expect(entry).toMatchObject({ icon: 'bell', tone: 'muted', subject: 'unknown', action: null })
   })
 
+  it.each([
+    'messaging.message.mentioned',
+    'messaging.message.sent',
+    'collaboration.meeting.reminder',
+    'collaboration.meeting.rescheduled',
+    'work.digest.daily',
+  ])(
+    'pin v0.25 yeni tür %s sözlüğe girmedi: genel satır davranışı korunur (W185 kurar)',
+    (type) => {
+      const { entry, known } = describeNotification({ type })
+      expect(known).toBe(false)
+      expect(entry).toBe(FALLBACK_ENTRY)
+    },
+  )
+
   it('Object prototipi anahtarları bilinen tür sayılmaz', () => {
     expect(describeNotification({ type: 'constructor' }).known).toBe(false)
     expect(describeNotification({ type: '__proto__' }).known).toBe(false)

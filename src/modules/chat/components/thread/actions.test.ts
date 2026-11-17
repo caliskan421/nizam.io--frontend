@@ -134,6 +134,7 @@ describe('mesaj eylemleri', () => {
         msg(1, {
           body: 'Gün seçelim',
           poll: {
+            anonymous: false,
             multi: false,
             closes_at: null,
             closed_at: null,
@@ -142,19 +143,21 @@ describe('mesaj eylemleri', () => {
                 option_index: 0,
                 label: 'Cuma',
                 count: 1,
+                mine: false,
                 voters: [{ account_id: 'u9', full_name: 'X' }],
               },
-              { option_index: 1, label: 'Cumartesi', count: 0, voters: [] },
+              { option_index: 1, label: 'Cumartesi', count: 0, mine: false, voters: [] },
             ],
           },
         }),
         msg(2, {
           body: 'Kapalı',
           poll: {
+            anonymous: false,
             multi: false,
             closes_at: null,
             closed_at: '2026-11-13T00:00:00Z',
-            results: [{ option_index: 0, label: 'Evet', count: 0, voters: [] }],
+            results: [{ option_index: 0, label: 'Evet', count: 0, mine: false, voters: [] }],
           },
         }),
         msg(3, { body: 'Dosya', refs: [{ kind: 'file', ref_id: 'rf1', target_id: 'f1' }] }),
@@ -193,10 +196,11 @@ describe('anket sorusu tek kez (KUSUR 5)', () => {
         msg(1, {
           body: 'Hangi gün uygun?',
           poll: {
+            anonymous: false,
             multi: false,
             closes_at: null,
             closed_at: null,
-            results: [{ option_index: 0, label: 'Cuma', count: 0, voters: [] }],
+            results: [{ option_index: 0, label: 'Cuma', count: 0, mine: false, voters: [] }],
           },
         }),
         msg(2, { body: 'Düz mesaj' }),
