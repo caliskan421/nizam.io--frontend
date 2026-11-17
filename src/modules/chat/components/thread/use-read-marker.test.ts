@@ -33,7 +33,7 @@ afterEach(() => {
   resetAll()
 })
 
-function setup() {
+function setup(ready: () => boolean = () => true) {
   const list = ref<HTMLElement | null>(document.createElement('div'))
   const el = document.createElement('div')
   el.dataset.messageId = 'm1'
@@ -48,6 +48,7 @@ function setup() {
       meId: () => 'ben',
       hasNewer: () => false,
       unread: () => 1,
+      ready,
     }),
   )
 }
@@ -90,5 +91,18 @@ describe('odak/görünürlük dinleyicileri', () => {
     document.dispatchEvent(new Event('visibilitychange'))
     await vi.advanceTimersByTimeAsync(READ_DEBOUNCE_MS * 3)
     expect(reads()).toHaveLength(0)
+  })
+
+  it('hazır değilken otomatik okundu çıkmaz; hazır olunca tek istek (tekrar tetikle)', async () => {
+    const ready = ref(false)
+    const m = setup(() => ready.value)
+    globalThis.dispatchEvent(new Event('focus'))
+    await vi.advanceTimersByTimeAsync(READ_DEBOUNCE_MS * 2)
+    expect(reads()).toHaveLength(0)
+    ready.value = true
+    m.result.touch()
+    await vi.advanceTimersByTimeAsync(READ_DEBOUNCE_MS)
+    expect(reads()).toHaveLength(1)
+    m.wrapper.unmount()
   })
 })

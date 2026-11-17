@@ -238,6 +238,35 @@ describe('geç sonuç, kapsam ve oturum (KESİN 26)', () => {
     expect(m.client.getQueryData<MessageWindow>(key())?.items.length ?? before).toBe(before)
   })
 
+  it('giriş metadata okumasında program değişirse eski kapsam çapası dönmez', async () => {
+    let release!: () => void
+    let arrive!: () => void
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const reached = new Promise<void>((resolve) => {
+      arrive = resolve
+    })
+    const fake = fakeChatServer(range(1, 5), null, { seq: 1 })
+    server.use(
+      http.get(`${ORIGIN}/v1/chats/c1/messages`, async ({ request }) => {
+        const limit = Number(new URL(request.url).searchParams.get('limit'))
+        if (limit === 1) {
+          arrive()
+          await gate
+        }
+        return HttpResponse.json(fake.readSync({ limit }))
+      }),
+    )
+    const m = mountSetup(() => useChatMessages('c1'))
+    await settleQueries(m.client)
+    const pending = m.result.readFirstUnread()
+    await reached
+    useScopeStore().commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    release()
+    expect(await pending).toBeUndefined()
+  })
+
   it('read.updated yenilemesi beklerken oturum değişirse eski okundu bilgisi yazılmaz', async () => {
     const fake = fakeChatServer(range(1, 120))
     const gate = hold(fake)
