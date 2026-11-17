@@ -25,8 +25,12 @@ export const THUMBNAIL = designStub('BE-026', { grid: false, fullscreen: false }
 /** Başka göreve/klasöre taşı (E-06-59). */
 export const MOVE_FILE = designStub('BE-075', { available: false })
 
-/** Silinen dosya geri yükleme (E-06-63): silme kalıcıdır, geri alma yok (BE-076 olgusu). */
-export const RESTORE_FILE = designStub('BE-076', { available: false, permanentDelete: true })
+/**
+ * Silinen dosya geri yükleme (E-06-63; BE-076): v0.26'da dosya silme çöpe taşır ve yönetici geri
+ * yükler; bu ekranda geri yükleme arayüzü yoktur (sonraki W'de silinenler ekranı), bu yüzden
+ * kullanılamaz kalır.
+ */
+export const RESTORE_FILE = designStub('BE-076', { available: false })
 
 /** Arama kapsamı (E-06-06/26): yalnız dosya adı; görev/kişi/etiket adı araması yok. */
 export const SEARCH_SCOPE = designStub('BE-077', { fileNameOnly: true })

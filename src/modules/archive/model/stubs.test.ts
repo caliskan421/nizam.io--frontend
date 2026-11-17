@@ -35,7 +35,7 @@ describe('arşiv designStub olguları', () => {
       expect(stub).toEqual({ available: false })
     }
     expect(THUMBNAIL).toEqual({ grid: false, fullscreen: false })
-    expect(RESTORE_FILE).toEqual({ available: false, permanentDelete: true })
+    expect(RESTORE_FILE).toEqual({ available: false })
     expect(SEARCH_SCOPE).toEqual({ fileNameOnly: true })
   })
 })

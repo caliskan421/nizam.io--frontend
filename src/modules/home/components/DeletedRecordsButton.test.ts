@@ -24,6 +24,7 @@ describe('E-01-02 Silinen kayıtlar düğmesi', () => {
     expect(wrapper.find('.rp-count').text()).toBe('12')
     expect(wrapper.attributes('href')).toBe('/silinen-kayitlar')
     expect(wrapper.attributes('title')).toMatch(/şirket genelindeki silinmiş hesapları/)
+    expect(wrapper.attributes('title')).toMatch(/alt görev, dosya, toplantı, not ve gündem/)
   })
 
   it('sayı yoksa sahte sayı çizilmez', async () => {

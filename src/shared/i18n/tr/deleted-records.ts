@@ -242,10 +242,11 @@ export const trDeletedRecords = {
     },
     home: {
       button: 'Silinen kayıtlar',
-      // Sayı özetin dört terimli toplamıdır (`reportDeletedSummary.total` = pano `deleted_records`);
-      // ekrandaki süzgeçli liste sayıları farklı olabilir.
+      // Sayı özetin dokuz terimli toplamıdır (`reportDeletedSummary.total` = pano `deleted_records`;
+      // `notes` üç not/gündem türünün ayrı toplamıdır, ikinci kez eklenmez); ekrandaki süzgeçli
+      // liste sayıları farklı olabilir.
       counterHint:
-        'Seçili programdaki silinmiş görev ve toplantıları, programa bağlı silinmiş koordinatörlükleri ve şirket genelindeki silinmiş hesapları sayar; süzgeçli listelerdeki sayılardan farklı olabilir.',
+        'Seçili programdaki silinmiş görev, alt görev, dosya, toplantı, not ve gündem maddelerini, programa bağlı silinmiş koordinatörlükleri ve şirket genelindeki silinmiş hesapları sayar; ekrandaki listelerden farklı olabilir.',
     },
   },
 } as const
