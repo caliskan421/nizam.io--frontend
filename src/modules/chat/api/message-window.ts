@@ -14,6 +14,7 @@ import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
 
+import { refreshReadState } from '../model/read-state'
 import { emptyWindow, type MessageWindow } from '../model/window'
 import {
   loadAround,
@@ -21,7 +22,6 @@ import {
   loadOlder,
   reconcile,
   refreshAround,
-  refreshPeerRead,
   type MessageReader,
   type WindowStore,
 } from '../model/window-io'
@@ -94,7 +94,8 @@ export function useChatMessages(chatId: MaybeRefOrGetter<string | null>) {
     jumpTo: (seq: number) => run((read, store) => loadAround(read, store, seq)),
     /** `message.updated` ve tepki/oy/sabit sonrası: yerel `seq` çevresi okunur. */
     refreshMessage: (seq: number) => run((read, store) => refreshAround(read, store, seq)),
-    refreshPeerRead: () => run(refreshPeerRead),
+    /** `read.updated`: birebirde `peer_read_seq`, grupta `read_by_all` (BE-028). */
+    refreshPeerRead: () => run(refreshReadState),
     /** Yeniden bağlanma uzlaştırması (§10.5 madde 3). */
     reconcile: () => run(reconcile),
   }

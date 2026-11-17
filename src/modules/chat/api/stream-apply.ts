@@ -26,6 +26,11 @@ const FLAGS = [
   { flag: 'invalidateCandidates', resource: 'chats.candidates', perChat: false },
   { flag: 'invalidatePins', resource: 'chats.pins', perChat: true },
   { flag: 'invalidateRefs', resource: 'chats.refs', perChat: true },
+  { flag: 'invalidateShared', resource: 'chats.sharedCounts', perChat: true },
+  { flag: 'invalidateShared', resource: 'chats.attachments', perChat: true },
+  { flag: 'invalidateShared', resource: 'chats.taskLinks', perChat: true },
+  { flag: 'invalidateMessageTasks', resource: 'chats.messageTasks', perChat: true },
+  { flag: 'invalidateReceipts', resource: 'chats.receipts', perChat: true },
 ] as const
 
 function invalidate(deps: ApplyDeps, event: CoalescedEvent, plan: EventPlan): Promise<unknown> {
