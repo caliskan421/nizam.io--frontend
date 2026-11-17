@@ -8,6 +8,8 @@ import { useQueryClient, type QueryClient } from '@tanstack/vue-query'
 
 import {
   type MutationOutcome,
+  isDetached,
+  markDetached,
   type ProtectedMutation,
   type SubmitOptions,
   ownerLife,
@@ -42,23 +44,54 @@ export function withEffects<V, D, S = unknown>(
   const client = useQueryClient()
   const scopeStore = useScopeStore()
   const owner = ownerLife()
+  /**
+   * Bir sonucu işler: gerçek başarıda efekti UYGULAR, "sonuç bilinmiyor" `retry` ve onay `confirm`
+   * devamlarını AYNI yakalanmış bağlamla (`vars`, `scope`, sahip) sarar. Devamlar alttaki
+   * korumalı yazmayı doğrudan yeniden çalıştırır (anahtar/oturum/kapsam/sahip kapıları motorda
+   * kalır); sarmalayıcı yalnız dönen sonuca aynı efekt yolunu uygular (zincirleme tekrar dahil;
+   * ek HTTP, iyimser yama ya da çift efekt yok — her başarı sonucu bir kez işlenir).
+   */
+  async function settle(
+    outcome: MutationOutcome<V, unknown, S>,
+    vars: V,
+    scope: ScopeSnapshot,
+  ): Promise<MutationOutcome<V, D, S>> {
+    const result = outcome as MutationOutcome<V, D, S>
+    if (result.kind === 'success') {
+      await effects.onSuccess?.({ client, scope, alive: owner.alive, vars, data: result.data })
+      return result
+    }
+    if (result.kind === 'failed') {
+      await effects.onFailure?.({
+        client,
+        scope,
+        alive: owner.alive,
+        vars,
+        code: result.error.code,
+      })
+      return result
+    }
+    if (result.kind === 'unknown_outcome' && result.retry !== null) {
+      const next = result.retry
+      return carry(result, { retry: async () => settle(await next(), vars, scope) })
+    }
+    if (result.kind === 'confirmation_required') {
+      const next = result.confirm
+      return carry(result, { confirm: async () => settle(await next(), vars, scope) })
+    }
+    return result
+  }
   return {
     ...mutation,
     async submit(vars: V, opts?: SubmitOptions): Promise<MutationOutcome<V, D, S>> {
       const scope = { ...(opts?.context?.scope ?? scopeStore.snapshot) }
-      const outcome = await mutation.submit(vars, opts)
-      if (outcome.kind === 'success') {
-        await effects.onSuccess?.({ client, scope, alive: owner.alive, vars, data: outcome.data })
-      } else if (outcome.kind === 'failed') {
-        await effects.onFailure?.({
-          client,
-          scope,
-          alive: owner.alive,
-          vars,
-          code: outcome.error.code,
-        })
-      }
-      return outcome
+      return settle(await mutation.submit(vars, opts), vars, scope)
     },
   }
+}
+
+/** Devamı sarılmış kopya; "sahipsiz geldi" işareti korunur (`reachesOwner`). */
+function carry<T extends object>(outcome: T, patch: Partial<T>): T {
+  const copy = { ...outcome, ...patch }
+  return isDetached(outcome) ? markDetached(copy) : copy
 }
