@@ -260,3 +260,139 @@ describe('MoveFileDialog (E-06-59)', () => {
     expect(sent('GET', '/v1/program/archive/tasks')).toHaveLength(0)
   })
 })
+
+// Koordinatör iki departmanda (d1 + d2) çalışır; global kapsam d1. Dosya d1'de.
+const MULTI = {
+  rows: [
+    { departmentId: 'd1', role: 'koordinator' as const, name: 'Mekanik' },
+    { departmentId: 'd2', role: 'koordinator' as const, name: 'Yazılım' },
+    { departmentId: 'd3', role: 'koordinator' as const, name: 'Fuar', programId: 'p2' },
+  ],
+}
+const task = (id: string, department: string, title: string) => ({
+  department_id: department,
+  file_count: 0,
+  title,
+  work_item_id: id,
+})
+function serveS3() {
+  server.use(
+    http.get(`${ORIGIN}/v1/records/archive/tasks`, ({ request }) => {
+      const dept = request.headers.get('X-Nizamio-Department')
+      if (dept === 'd1') return json({ tasks: [task('w-d1', 'd1', 'Mekanik görevi')] })
+      if (dept === 'd2') return json({ tasks: [task('w-d2', 'd2', 'Yazılım görevi')] })
+      return json(
+        { code: 'records.not_authorized', message: 'x', request_id: 'r', fields: [] },
+        403,
+      )
+    }),
+    http.get(`${ORIGIN}/v1/work-items/w-d2/subtasks`, () =>
+      json({ subtasks: [{ subtask_id: 's-d2', title: 'Alt', done: false }] }),
+    ),
+  )
+}
+const labels = (id: string) =>
+  [...document.body.querySelectorAll(`[data-testid="${id}"] option`)].map((o) => o.textContent)
+function mountMulti(props: Record<string, unknown> = {}) {
+  const emitted: unknown[] = []
+  const mounted = mountWith(
+    MoveFileDialog,
+    { open: true, file: file(), target, onMoved: (id: string) => emitted.push(id), ...props },
+    { selection: COORD, standing: MULTI },
+  )
+  return { ...mounted, emitted }
+}
+
+describe('MoveFileDialog: yetkili birden çok departman (koordinatör d1 + d2)', () => {
+  it('yalnız yetkili departmanlar listelenir (başka program yok); varsayılan kaynak departman; yalnız o departman okunur', async () => {
+    serveS3()
+    const { h } = mountMulti()
+    await settleQueries(h.queryClient)
+    expect(labels('move-department')).toEqual(['Mekanik', 'Yazılım'])
+    expect(el<HTMLSelectElement>('move-department')!.value).toBe('d1')
+    expect(labels('move-task')).toContain('Mekanik görevi')
+    const reads = sent('GET', '/v1/records/archive/tasks')
+    expect(reads.map((r) => r.headers.get('X-Nizamio-Department'))).toEqual(['d1'])
+    expect(sent('GET', '/v1/program/archive/tasks')).toHaveLength(0)
+  })
+
+  it('başka departmana geçince görev/alt görev sıfırlanır; kaynak başlığı d1, gövde hedef görev; global kapsam d1 kalır', async () => {
+    serveS3()
+    server.use(http.patch(PATH, () => json({ ...fileRecord, work_item_id: 'w-d2' })))
+    const { h, emitted } = mountMulti()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-d1')
+    await pick(h, 'move-department', 'd2')
+    expect(el<HTMLSelectElement>('move-task')!.value).toBe('')
+    expect(labels('move-task')).toContain('Yazılım görevi')
+    expect(labels('move-task')).not.toContain('Mekanik görevi')
+    await pick(h, 'move-task', 'w-d2')
+    await pick(h, 'move-subtask', 's-d2')
+    expect(
+      sent('GET', '/v1/work-items/w-d2/subtasks')[0]!.headers.get('X-Nizamio-Department'),
+    ).toBe('d2')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    const [req] = sent('PATCH', '/v1/files/f1/work-item')
+    expect(req!.headers.get('X-Nizamio-Department')).toBe('d1')
+    expect(req!.body).toEqual({ work_item_id: 'w-d2', subtask_id: 's-d2' })
+    expect(emitted).toEqual(['f1'])
+    expect(h.store.snapshot).toMatchObject({ programId: 'p1', departmentId: 'd1' })
+    // Hedef departman seçimi yalnız d1 ve d2 okumasına yol açtı; yetkisiz d3 için istek yok.
+    const depts = sent('GET', '/v1/records/archive/tasks').map((r) =>
+      r.headers.get('X-Nizamio-Department'),
+    )
+    expect(new Set(depts)).toEqual(new Set(['d1', 'd2']))
+  })
+
+  it('yetkisiz departman (d3) seçenek değildir; zorla seçilse de istek atılmaz', async () => {
+    serveS3()
+    const { h } = mountMulti()
+    await settleQueries(h.queryClient)
+    expect(labels('move-department')).not.toContain('Fuar')
+    await pick(h, 'move-department', 'd3')
+    await settleQueries(h.queryClient)
+    expect(
+      sent('GET', '/v1/records/archive/tasks').filter(
+        (r) => r.headers.get('X-Nizamio-Department') === 'd3',
+      ),
+    ).toHaveLength(0)
+    expect(sent('PATCH', '/v1/files/f1/work-item')).toHaveLength(0)
+  })
+
+  it('yetkili tek departmanda departman seçimi çizilmez', async () => {
+    serveS3()
+    const { h } = mountWith(
+      MoveFileDialog,
+      { open: true, file: file(), target },
+      { selection: COORD, standing: { rows: [{ departmentId: 'd1', role: 'koordinator' }] } },
+    )
+    await settleQueries(h.queryClient)
+    expect(el('move-department')).toBeNull()
+    expect(labels('move-task')).toContain('Mekanik görevi')
+  })
+
+  it('kapsam değişince pencere kapanır; uçuştaki taşıma geç sonucu bildirim üretmez', async () => {
+    serveS3()
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.patch(PATH, async () => {
+        await gate
+        return json(fileRecord)
+      }),
+    )
+    const { h, emitted } = mountMulti()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-department', 'd2')
+    await pick(h, 'move-task', 'w-d2')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await nextTick()
+    h.store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    await nextTick()
+    release()
+    await settleQueries(h.queryClient)
+    expect(emitted).toEqual([])
+    expect(toasts()).toEqual([])
+  })
+})

@@ -106,4 +106,30 @@ function hasAnyMemberRow(standing: Standing, programId: string | null): boolean 
   return standing.rows.some((row) => row.programId === programId && row.role === 'member')
 }
 
+export interface MoveTargetDepartment {
+  departmentId: string
+  displayName: string
+}
+
+/**
+ * Taşıma hedefi olabilecek departmanlar (RECORDS-K46): seçili programdaki ekip satırlarından,
+ * hedefte yükleme yetkisi olanlar — yetki tek yüklemden (`upload`) gelir. Bilinmeyen ya da başka
+ * programın departmanı aday olmaz. Yönetici için boştur (program geneli görev listesi okunur).
+ */
+export function moveTargetDepartments(
+  standing: Standing | null,
+  programId: string | null,
+): MoveTargetDepartment[] {
+  if (standing === null || programId === null || standing.companyAdmin) return []
+  const caps = archiveCapabilities(standing, programId)
+  const found = new Map<string, MoveTargetDepartment>()
+  for (const row of standing.rows) {
+    if (row.programId !== programId || found.has(row.departmentId)) continue
+    if (caps.upload(row.departmentId)) {
+      found.set(row.departmentId, { departmentId: row.departmentId, displayName: row.displayName })
+    }
+  }
+  return [...found.values()].sort((a, b) => a.displayName.localeCompare(b.displayName, 'tr'))
+}
+
 export type ArchiveCapabilities = ReturnType<typeof archiveCapabilities>

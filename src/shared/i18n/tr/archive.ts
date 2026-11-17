@@ -7,6 +7,8 @@
 // (hata kodu → `errors.*`); örnek işletme verisi yoktur (ortak-kurallar §4). Etiket adları
 // (P34) `modules/archive/model/tags.ts` sözlüğündedir (tek kaynak).
 
+import { trArchiveMove } from './archive-move'
+
 export const trArchive = {
   archive: {
     page: {
@@ -233,26 +235,7 @@ export const trArchive = {
       renameRequired: 'Dosya adı boş olamaz.',
       renameTooLong: 'Dosya adı en çok {max} karakter olabilir.',
       renamed: 'Dosya adı güncellendi.',
-      moveTitle: 'Dosyayı başka göreve taşı',
-      moveDescription:
-        'Dosya, seçtiğiniz görevin arşivine taşınır; aynı adlı dosya varsa adı numaralanır.',
-      moveTaskLabel: 'Hedef görev',
-      moveTaskPlaceholder: 'Görev seçin',
-      moveTaskRequired: 'Hedef görev seçin.',
-      moveTaskNone: 'Dosyayı taşıyabileceğiniz başka görev yok.',
-      moveTaskTruncated: 'Görev listesi kesildi: bazı görevler burada görünmüyor.',
-      moveTaskLoading: 'Görevler yükleniyor…',
-      moveTaskError: 'Görevler okunamadı. Pencereyi kapatıp yeniden deneyin.',
-      moveSubtaskLabel: 'Alt görev (isteğe bağlı)',
-      moveSubtaskNone: 'Alt görev yok',
-      moveSubtaskLoading: 'Alt görevler yükleniyor…',
-      moveSubtaskUnavailable: 'Alt görevler okunamadı; dosya göreve eklenir.',
-      moveSubmit: 'Taşı',
-      moveCancel: 'Vazgeç',
-      moved: 'Dosya “{task}” görevine taşındı.',
-      movedRenamed: 'Dosya “{task}” görevine “{name}” adıyla taşındı.',
-      moveTargetInvalid: 'Hedef görev artık seçilemiyor. Başka bir görev seçin.',
-      moveFallbackTask: 'seçilen',
+      ...trArchiveMove,
       removeTitle: 'Dosya silinsin mi?',
       removeBody:
         'Dosya silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',

@@ -158,16 +158,17 @@ export function decideEntry(input: {
 /**
  * Dosya taşıma hedef görevlerinin okuma kaynağı (`include_empty=true` seçenekleri; RECORDS-K46).
  * Yönetici (`company_admin` olgusu) programın bütün departmanlarındaki görevleri tek S2 okumasıyla
- * görür (süzgeçsiz; N'li departman gezintisi yok); koordinatör/üye yalnız seçili kapsamın S3
- * listesini. Kapsam deposuna YAZILMAZ; hedef departman seçmek global kapsamı değiştirmez. Standing
- * ya da kapsam hazır değilse `null` (istek yok).
+ * görür (süzgeçsiz; N'li departman gezintisi yok). Koordinatör/üye YALNIZ seçilen TEK yetkili
+ * departmanın S3 listesini okur (`departmentId`: yerel hedef seçimi; yetkisi doğrulanmış olmalı,
+ * `null` → istek yok). Kapsam deposuna YAZILMAZ; hedef departman seçmek global kapsamı değiştirmez.
  */
 export function moveTargetSource(
   scope: ScopeSnapshot,
   admin: boolean | null,
+  departmentId: string | null,
 ): ArchiveSource | null {
   if (scope.programId === null || admin === null) return null
   if (admin) return programSource(scope.programId, null)
-  if (scope.departmentId === null) return null
-  return { programId: scope.programId, departmentId: scope.departmentId }
+  if (departmentId === null) return null
+  return { programId: scope.programId, departmentId }
 }

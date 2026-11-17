@@ -12,10 +12,9 @@ import { notifyOutcome, UiOutcomeNotice } from '@/shared/ui/confirm'
 import { useMoveArchiveFile } from '../../api/writes'
 import type { FileRecord } from '../../model/types'
 import type { MoveFileDialogEmits, MoveFileDialogProps } from '../index'
-import { useSubtaskOptions } from '../upload/use-subtask-options'
 import { moveErrorField, targetRejected } from './move'
 import { previewText } from './messages'
-import { useMoveTargets } from './use-move-targets'
+import { useMoveForm } from './use-move-form'
 
 /**
  * W194 · E-06-59 — "Başka göreve taşı" penceresi (P3: ortak modal + form). `moveFile` (RECORDS-K46):
@@ -34,50 +33,29 @@ const store = useScopeStore()
 // Kurulumda alınır: sökülmüş pencerenin geç sonucu bildirim üretmez (KESİN 26a).
 const toast = useToast()
 const owner = ownerLife()
-const targets = useMoveTargets(() => props.open)
+const form = useMoveForm(
+  () => props.open,
+  () => props.target.departmentId,
+)
+const { targets, taskId, subtaskId, selected, subtasks } = form
 
 type Outcome = MutationOutcome<unknown, FileRecord, unknown>
-const taskId = ref('')
-const subtaskId = ref('')
 const tried = ref(false)
-const lost = ref(false)
 const running = ref(false)
 const outcome = shallowRef<Outcome | null>(null)
 // Kapsam/dosya değişince artar: önceki kapsamın geç sonucu bildirim/kapanış üretmez.
 let generation = 0
 
-const selected = computed(() => targets.candidates.value.find((t) => t.workItemId === taskId.value))
-const subtaskTarget = computed(() => {
-  const task = selected.value
-  return store.snapshot.programId !== null && task
-    ? { programId: store.snapshot.programId, departmentId: task.departmentId }
-    : null
-})
-const subtasks = useSubtaskOptions(() => selected.value?.workItemId ?? null, subtaskTarget)
-const taskOptions = computed(() =>
-  targets.candidates.value.map((t) => ({ value: t.workItemId, label: t.title })),
-)
-
-function reset(): void {
-  taskId.value = ''
-  subtaskId.value = ''
-  tried.value = false
-  lost.value = false
-  outcome.value = null
-}
 watch(
   () => props.open,
-  (isOpen) => isOpen && reset(),
+  (isOpen) => {
+    if (!isOpen) return
+    form.reset()
+    tried.value = false
+    outcome.value = null
+  },
   { immediate: true },
 )
-watch(taskId, () => (subtaskId.value = ''))
-// Seçili hedef yenilenen listeden düştü (silindi/atama kalktı): seçim kaybolur, kullanıcı bilgilenir.
-watch(targets.candidates, (list) => {
-  if (taskId.value !== '' && !list.some((t) => t.workItemId === taskId.value)) {
-    taskId.value = ''
-    lost.value = true
-  }
-})
 const stopScope = store.onChange(() => {
   generation++
   emit('update:open', false)
@@ -95,9 +73,12 @@ onBeforeUnmount(() => {
   if (running.value) emit('moving', false)
 })
 
+function pickDepartment(value: string): void {
+  form.pickDepartment(value)
+  outcome.value = null
+}
 function pickTask(value: string): void {
-  taskId.value = value
-  lost.value = false
+  form.pickTask(value)
   outcome.value = null
 }
 
@@ -112,7 +93,7 @@ const taskError = computed(() => {
       ? previewText('archive.actions.moveTargetInvalid')
       : errorText(o.error)
   }
-  if (lost.value) return previewText('archive.actions.moveTargetInvalid')
+  if (form.lost.value) return previewText('archive.actions.moveTargetInvalid')
   if (tried.value && !selected.value) return previewText('archive.actions.moveTaskRequired')
   return undefined
 })
@@ -192,6 +173,18 @@ async function submit(): Promise<void> {
   >
     <form id="af-move" class="af-form" novalidate @submit.prevent="submit">
       <UiField
+        v-if="form.showDepartments.value"
+        :label="previewText('archive.actions.moveDepartmentLabel')"
+      >
+        <UiSelect
+          :model-value="form.departmentId.value"
+          data-testid="move-department"
+          :options="form.departmentOptions.value"
+          :disabled="running"
+          @update:model-value="pickDepartment"
+        />
+      </UiField>
+      <UiField
         :label="previewText('archive.actions.moveTaskLabel')"
         :hint="taskHint"
         :error="taskError"
@@ -199,9 +192,9 @@ async function submit(): Promise<void> {
         <UiSelect
           :model-value="taskId"
           data-testid="move-task"
-          :options="taskOptions"
+          :options="form.taskOptions.value"
           :placeholder="previewText('archive.actions.moveTaskPlaceholder')"
-          :disabled="running || taskOptions.length === 0"
+          :disabled="running || form.taskOptions.value.length === 0"
           @update:model-value="pickTask"
         />
       </UiField>
