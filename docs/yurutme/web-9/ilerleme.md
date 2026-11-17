@@ -56,3 +56,7 @@ Sonnet kaynak teslimi236d8629: BE081/082/086/160/162 stub'ları ve eski yolları
 ### Yeni doğrulama borcu #39
 
 PR170 ilk CI koşusunda reports-lifecycle.test.ts:88 boot/login gerçek localhost80'e çıkarak client.network_error verdi (1/6011test). Test/harness değişmemiş; Terra iki ayrı dar koşuda7/7PASS, kesin interceptor/yük/sıra kök nedeni bulunamadı. Tek failed rerun sonrası attempt2 üçCIişiSUCCESS vePRmerged. Kalıcı düzeltildi iddiası yok; yinelenirse MSW request:start/fetch kimliği/sunucu ömrüyle deterministik teşhis gerekir. Eski401borç38'den ayrıdır.
+
+### W183 bağımsız regresyon ve düzeltme (2026-11-17)
+
+Terra explicit `?mesaj=55` hedefinin server first_unread_seq6 açılışıyla ezildiğini stateful uygulama testinde yakaladı; test694ba3be ile kaydedildi. Sonnet b54081a7 ile tek hedef ayrıştırıcısı ve açık mesaj önceliğini ekledi;16dosya77ilgili test/typecheck/lint/format geçti. Geç A→B yanıt testi yeşil; yeni getterler shared query anahtarlarına dokunmadı. Görsel duman ve bağımsız final kontrol hâlâ Terra'da; CI/PR gelmeden bu teslim kapanmış sayılmaz.
