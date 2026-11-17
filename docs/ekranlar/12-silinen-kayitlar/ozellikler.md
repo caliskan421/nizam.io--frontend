@@ -1,5 +1,7 @@
 # 12 — Özellikler (ne görünüyor)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Kaynak: koordinatör tasarım dizini sürüm `1794501200-387f`: `Silinen-Kayitlar-Tarih.dc.html` (**01d, seçilen**), `Silinen-Kayitlar.dc.html` (01c, önceki seçenek), `Sablon-KayitListesi.dc.html` (şablon), `Sidebar.dc.html`, `canvas.json`. Bu artboard'lar `../../tasarim/kaynak/` kopyasında **henüz yok** (kopya güncellenmedi; bilinmiyor: kopyaya eklenme zamanı). Örnek veriler (`renderVals()`: "ELE-5 Saha pano montajı", "Reha Koçak", 127 kayıt, 30 gün vb.) gerçek değildir; yalnız biçim kanıtıdır, değerler kopyalanmaz (`../README.md`, `../ortak-kurallar.md` §4).
 
 Karar kısaltmaları: P36 (01d ayrı ekran, yalnız şirket yöneticisi, canlı/statik türler), P37 (saklama süresi backend'de yok; "kalan süre" gizli) — `../ortak-kurallar.md` §12 (W120 yazıyor; bu dosyada yalnız numarayla anılır).

@@ -1,6 +1,6 @@
 # WEB-10 — v0.26 P45 arşiv ve silinenler canlıya alma
 
-**F10 AÇILDI — 2026-11-17.** Ürün sahibi: «sen sonraki frontend fazına geç». Yönetici Codex; Sonnet uygulama, Terra bağımsız test/tanık, Opus yalnız salt okunur denetim. F9 kapanışı PR175/main215ae5d9, CI44026445257 üç SUCCESS;863 dosya6328 test ve15 gerçek backend testi başarılı.
+**F10 kaynak ve bağımsız kabul tamam — 2026-11-17.** Son kaynak5a8a9815, Opus tur2 UYGUN/açıkbulgu0; faz bu kaynağı taşıyan kapanış PR’ının kendi üç CI SUCCESS + MERGED koşuluyla kapanır. **Açılış:** Ürün sahibi: «sen sonraki frontend fazına geç». Yönetici Codex; Sonnet uygulama, Terra bağımsız test/tanık, Opus yalnız salt okunur denetim. F9 kapanışı PR175/main215ae5d9, CI44026445257 üç SUCCESS;863 dosya6328 test ve15 gerçek backend testi başarılı.
 
 ## Kapsam ve kaynak
 
@@ -31,3 +31,10 @@ Yerel F9 Docker ROFS geçmiş sınırlamadır; yeni gerçek tanıktan önce salt
 - [İlerleme ve kararlar](ilerleme.md)
 - [Canlıya alma matrisi](canliya-alma-matrisi.md)
 - [Uygulayıcı sözleşmesi](ortak-sozlesme.md)
+
+
+## Kaynak kabul sonucu
+
+Dokuz BE bağlandı (075/076/077/109/110/111/115/163/165), iki kesin P45 kararı vazgeçildi (069/112). Kayıt163=86 bağlı73 açık4 vazgeçildi. Standart testsiz/yorum hariç üretim TS/Vue taraması24 kimlik35 kullanımdan17 kimlik26 kullanıma indi; yeni kimlik/stub eklenmedi. [F10 raporu](../../backend-eksikleri/rapor-F10.md), [bağımsız doğrulama](../../backend-eksikleri/dogrulama-F10.md), [Opus son hükmü](../../reviews/WEB-10-opus.md).
+
+PR176–178 üç CI ile birleşti. PR179 üçSUCCESS olsa da Opus P2 nedeniyle birleşmeden durduruldu; silinenler, arşiv, W197 düzeltmeleri ve W196 kayıtları aynı son pakete alındı. Son paket kendi tam kalite/imaj/gerçek backend CI'ını koşar. Bu koşul gerçekleşince F10 kapanır; [F11 açılmadı](../web-11/README.md).

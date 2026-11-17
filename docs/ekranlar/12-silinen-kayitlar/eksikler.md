@@ -1,5 +1,7 @@
 # 12 — Backend eksikleri (ne yok)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Her satır bir tasarım öğesidir; backend'de karşılığı yoksa burada durur. Kimlik verme ve `../../backend-eksikleri/kayit.md`'ye taşıma **koordinatöre** aittir; burada mevcut BE-NNN'ye bağlanır ya da `yeni-N` geçici adı kullanılır. W119 koordinatör bloğuna göre `yeni-N` → `BE-(107+N)` eşlemesini ve `kayit.md` satırlarını da yazdı (bkz. §2 son sütunu).
 
 Faz: **F5** (yol haritası §4 "F5 arşiv: … silinenler/geri yükleme"). "Şimdilik" sütunu F5 açıldığında K13 ile uygulanacak hâli söyler. Ekran girişi ana sayfa E-01-02 düğmesidir (P36). `designStub` yalnız uygulanmış arayüzdeki kabul edilmiş işlev eksikliğine bağlanır (`../ortak-kurallar.md` §3); gizli/faz ertelemeli öğeler stub almaz (aşağıda her satırda "stub" sütunu).

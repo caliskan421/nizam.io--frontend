@@ -1,5 +1,7 @@
 # 06 — Backend eşlemesi (nereden geliyor)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.23.0-api`; F8 W171 ile güncellendi — aşağıdaki "F8 / v0.23.0-api güncel uç tablosu" §1–§2'deki v0.15 notlarının YERİNE geçer), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 Ek doğrulama (yetkili kaynak, sözleşme sayılmaz): `internal/modules/records/README.md` (RECORDS-Knn) ve `records/usecase/archive.go`; yalnız openapi'nin sustuğu yerde "**modül README**" / "**kod**" diye anılır.
 

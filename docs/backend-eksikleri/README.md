@@ -36,3 +36,8 @@ F8 kuralı uygulandı ([rapor-F8](rapor-F8.md)): 35 satır `bağlandı (pin v0.2
 ## Backend'e devir
 
 Web bu depodan backend'e yazmaz. Devir raporundaki paket, yönetim deposu sürecinde (`program/isler/FNN-*.md`) backend fazı olarak açılır; sonuç yeni API etiketi olur, web pin yükseltip satırı `bağlandı` yapar.
+
+
+## F10 v0.26 tüketimi
+
+[F10 raporu](rapor-F10.md) ve [bağımsız doğrulama](dogrulama-F10.md) yayımlı BE-P45 paketinin arşiv/silinenler tüketimini izler; ayrı backend BE-F8 süreci değildir. Dokuz kayıt kaynakta bağlandı, iki kayıt kesin P45 kararıyla vazgeçildi; fazın yürürlüğü son denetim/CI/merge kapısına bağlıdır. Kayıt163=86 bağlı73 açık4 vazgeçildi; testsiz/yorumsuz production TS/Vue standardıyla stub24 kimlik35 kullanımdan17 kimlik26 kullanıma indi. Önceki F9 dar31→16 sayımı düzeltilmiştir.

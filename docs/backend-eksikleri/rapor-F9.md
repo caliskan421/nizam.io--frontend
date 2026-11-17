@@ -87,3 +87,6 @@ W189 son kaynak ek kabulü: aktör tavanında “diğerleri”, listede olmayan 
 ## Kapanış kapısının gerçekleşmesi — 2026-11-17
 
 PR175 `c002692e`, CI44026445257 kalite863 dosya6328 test, imaj ve gerçek backend15/15 kontrolünde SUCCESS oldu; `215ae5d9649d1bdade7174b6947311b660d6e064` ile MERGED. Yeni sparse390/1440+SPA testi2dk, tüm Playwright3.8dk; testler arası ortak hesap yazma yükü ayrı kurucu hesabıyla yalıtıldı. Opus kaynak hükmünün CI/merge koşulu gerçekleşti. F9 kapandı; önceki bekleyen ifadeler koşum öncesi tarihçedir. F10 daha sonra ürün sahibinin talimatıyla [açıldı](../yurutme/web-10/README.md).
+
+
+F10 takip kaydı (2026-11-17): F9'da ROFS nedeniyle kalan dört W188 test konteyneri, proje ağı ve tek DB anonim volume'ü yalnız kendi adlarıyla kaldırıldı; üç cleanup işlemi EXIT0. Eski çevre borcu bu kaynaklar için kapandı, ortak daemon/imajlara dokunulmadı. [F10 doğrulaması](dogrulama-F10.md).

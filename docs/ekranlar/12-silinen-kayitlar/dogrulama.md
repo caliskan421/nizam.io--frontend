@@ -1,5 +1,7 @@
 # 12 — Doğrulama
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Denetçi: **öz denetim (W119, tespit işçisi)** — bağımsız denetçi ve Codex kapısı **bekliyor**. Tarih: 2026-11-12. Kaynaklar: beş dosya + tasarım artboard'ları (01d, 01c, şablon, Sidebar, canvas) + pin `v0.15.0-api` (`openapi.yaml`, `istemci-akislari.md`, `error-codes.json`, modül README ve store kodu).
 
 ## Bulgular

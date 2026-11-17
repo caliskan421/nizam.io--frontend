@@ -1,5 +1,7 @@
 # 06 — Doğrulama
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Denetçi: denetçi (Sonnet) · Tarih: 2026-11-08 · Kaynaklar: dört dosya + tasarım kopyası (`Arsiv.dc.html`, `Arsiv-Klasor.dc.html`) + `openapi.yaml`/`istemci-akislari.md`/`error-codes.json` + backend modül README (RECORDS-Knn), `known-gaps.md` (GAP-108), `docs/backend-eksikleri/kayit.md`.
 
 Yöntem: operationId'ler `grep -c 'operationId: <ad>$'` ile, şemalar (`FileListItem`, `ArchiveTask`, `ArchiveFolder`, `FileRecord`, `RenameFileRequest`, `ArchiveFileList`) ve uç parametreleri/hata kodları openapi'den satır satır okundu. Sözleşmenin sustuğu yerde (koordinatör kapsamı, `my-tasks`, etiket anlamı, sıralama kümesi) kaynak modül README / kod olarak belirtildi. "düzeltildi" = bu denetimde ilgili dosyaya işlendi; backend analistinin dosyalarında (backend.md, eksikler.md) yalnız bulgu yazıldı.

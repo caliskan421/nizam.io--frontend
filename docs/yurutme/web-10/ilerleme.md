@@ -60,3 +60,48 @@ Sonnet'in salt okunur W193 tasarımı root tarafından kabul edildi: URL görün
 Tümü'de Çöpü boşalt görünüm gereği devre dışıdır, kullanıcı tek tür seçer; bu backend açığı/stub değildir. Not ve gündem üç gerçek türü sırayla boşaltır, kısmi sonuç/durdurma mevcut ortak motorla korunur. Kullanıcı metninde atomiklik gibi uygulama terimi kullanılmaz; önceden kalıcı silinenlerin geri getirilemeyeceği açık söylenir. Karma seçili hesap varsa şirket-geneli kapsamı ve ebeveynlerin mevcut zincirleme etkileri onayda korunur. Geri yükleme ebeveynleri önceleyen sıradadır.
 
 **Metrik düzeltmesi:** F9 raporundaki31→16 `designStub` ifadesi dar ve eksik kaynak taramasına dayanıyordu; Vue `<DesignStub>` kullanımlarını ve üretim/test ayrımını aynı yöntemle saymıyordu. Root standart denetleyicinin scanSource/stripComments yordamıyla, testsiz üretim .ts/.vue üzerinde git archive snapshotlarını yeniden saydı: F8 a48a3e78 **39 benzersiz kimlik/57 kullanım**, F9 kapanış215ae5d9 **24 kimlik/35 kullanım**, F10 pinbd22ff83 **24 kimlik/35 kullanım**. Aynı yöntem F10 sonunda kullanılacak; yeni stub eklenmiş değildir. Ham snapshot envanteri `.git/koordinator/web10-stub-baseline.json`. Kayıt toplamı163=77 bağlı84 açık2 vazgeçildi ve F9'da bağlanan23 BE sayısı doğru kalır.
+
+
+## W193 bağımsız kabul — 2026-11-17
+
+Sonnet439e7e74/9edd813a/a670d73a ve son23744540, root doküman/küçük test temizliği sonrası HEADc4483eab. Eski dört URL/default Görev korunarak sekiz görünüm/dokuz gerçek tür, tek birleşik liste, kind:id, bilinmeyen salt okunur, ebeveyn uyarısı ve karma seçim/CSV/purge tamamlandı. Yerel ilk364 dosya3160 test koşumunda geçersiz token kırmızısı vardı; token düzeltmesi29 testle, son dar takip55 testle geçti. Full paket tekrar yerelde koşulmadı. BE109/110/111/115/163 source kayıtları bağlandı.
+
+Terra7 dosyada81 bağımsız test ve gerçek backend değişen `live-records.spec.ts`3/3 başarılı. Gerçek Caddy2.11.4 testproxy42991 + v026backend28091 üzerinde390/1440 Tümü, sekiz segment sarma, parent uyarı/link, overflow/pageerror/CSP0; PNG'leri Terra ve root inceledi. Gerçek çocuk restore409→ebeveyn restore200→yeniden adlandırılmış dosya restore200; sonraki bağımsız UI tanığı gerçek yeni adın toast'ta göründüğünü doğruladı. Boş departman `scope=program` purge200 ve son listede yok; üç not/gündem purge200 ve sonraki totals0. Üye390 erişim reddi, admin listeGET0. CSV indirildi. Caddy testproxy, CI üretim imajından ayrıdır. Kaynak kabulü CI179 başlığının kendi3SUCCESS kapısını kaldırmaz; PR179 açıldı, CI44076296850 sürüyor.
+
+## W194 root incelemesi ve dar düzeltme
+
+Sonnetb05a41af arşiv taşıma/arama/query etkisi/özel stub temizliği teslim etti (91 dosya1095 test, type/lint/format/build). Root, çok-departmanlı koordinatör hedefinin seçili departmanla sınırlı bırakılmasını mevcut root kararına aykırı buldu.7048356a, aynı programdaki yetkili ekip satırlarından yerel hedef departman seçimini ekledi; bir defada tek departman okunur, global kapsam değişmez, kaynak S3 başlığı korunur. Sonnet92 dosya1103 test ve diğer kapıları geçti. Taşıma metinleri archive-move alt dosyasına bölündü; bileşen243 satır. Gerçek çok-departmanlı UI ve arşiv bağımsız Terra kabulü henüz yapılmadı.
+
+Root W193'ü W194'e birleştirdi; BE075/076/077/165 source bağları ve BE069/112 P45 ürün kararı kayıtları7a49fab0 ile işlendi. Sonnet yalnız gerçek birleşik registry kapısını ve iki eski deleteFile yorumunu güncelliyor; kural gevşetme yok. Arşiv ve nihai denetim/CI kabulü bekleniyor.
+
+
+W193 ek gerçek tanık addendum9ddbe4af/CSV ec70d78d tamam: UI karma seçim ebeveynbatch200→dosyabatch200, sonraki canlı GET200; CSV dokuz/üç tür+program/q, gerçek BOM/başlık/3 satır;390 dolu not görünümü taşma/CSP0. İlk helper requestbody null ölçümü ayrı başarısız kanıt, CDP ek yakalama PASS. Önceki yalnız-fake karma/CSV-bytes sınırı kapandı; bilinmeyen tür/aynı ID hâlâ fake sınırında.
+
+W194 sonb5db1826, W193 birleşmiş kaynakta registry kapısı güncellendi ve iki eski kalıcı-silme kod yorumu düzeltildi;13 dosya284 test/type/lint/format başarılı. Davranış7048356a+W193c448 ile aynı. Terra W195 kaynak FFb5+build/7dosya50 dar test PASS; gerçek arşiv390/1440 ve çok-departmanlı koordinatör tanığı başladı. Opus aynı kaynakta bağımsız salt okunur denetime başladı; iki aktif işçi Terra+Opus, Sonnet beklemede.
+
+Root nihai standart sayımı b5: üretim TS/Vue testsiz/yorumhariç17 benzersiz stub/26 kullanım, tarama sorunu0; kayıt163=86 bağlı73 açık4 vazgeçildi. F10 başı24/35'e göre7 kimlik9 kullanım kaldırıldı; dokuz bağlandı ve iki kesin P45 ürün kararı işlendi. Sonnet'in12/14 dar çağrı sayımı bu yöntemle aynı değildir, nihai metrik olarak kullanılmadı.
+
+
+## Bağımsız denetim tur1 ve W197
+
+Opus8238e617/b5db1826 KOŞULLU UYGUN: P2 not/gündem boşaltmada Durdur'un türler arasında yok sayılması; P3 mevcut görevin taşıma hedefi olması; ölü resolved/edit_conflict dalları ve gereksiz query ayrıştırması. Terra bağımsız gerçek sayfa RED'i ikinci tür son çağrısı beklerken Durdur→gündemPOST1 (beklenen0) ile doğruladı; rootb6c8ef73 testi önce commit'ledi. Sonnet W197 dar düzeltme başladı. Mevcut görev UI adaylarından çıkarılır; API same-target200 sözleşmesi korunur. Sonraki bağımsız tur yalnız somut delta ve son ham tanık/CI kanıtını yeniden inceleyecek.
+
+PR179 CI44076296850 **üç SUCCESS**:874 dosya6557 test ve15/15 gerçek E2E(3.8dk). Buna rağmen audit P2 öğrenilince watcher58242 birleşmeden önce durduruldu. PR179 bu haliyle birleşmez; silinenler+arşiv+denetim düzeltmesi ve W196 kayıtları tek son F10 PR'ında kendi yeni tam CI/üçSUCCESS+MERGED kapısıyla teslim edilir. Eski başlık son PR açılınca onunla değiştirilerek kapatılır; bilinen P2 kaynak ana dala alınmaz.
+
+W194 gerçek tanık tamamlandı: koordinatör390/admin1440 d1→d2, PNG bayt eşliği, CDP kaynakS3/gövde/CSRF/IKyok, aynı hedef200/geçersiz422, dosya adında olmayan görev ve yükleyen araması+tek karakter;390 eksik CSP ölçümü5d68c019 ek run ile0/pageerror0/overflow0/focus/style doğru. Root iki modal PNG'sini ayrıca inceledi. Bu b5 kanıtları W197 dar delta sonrası kaynak farkıyla birlikte değerlendirilir; yeni kaynakta hepsi kör tekrarlanmaz.
+
+
+W197 Sonnet son kaynak **5a8a98154fa85d772df3c8e877cb8a0a1fed9bb5**:5a034a41 türler arası Durdur guard'ı,5a8a9815 mevcut görev hedef filtresi/ölü sonuç dalları/query sadeleştirme. Değişmemiş Terra RED testi korundu. Sonnet72 dosya586 etkilenen test/type/lint/format/build başarılı; tam paket yerelde tekrar edilmedi. Terra5 dosya27 testle bağımsız kırmızı→yeşil doğruladı: ikinci son yanıt sonrası gündemPOST0 ve üç önceki başarıyı koruyan Durduruldu özeti. Son tür tamamen bittiyse başarılı bitiş, ilk tür sonrası durma ve ardışık normal akış ayrı testli; ilk çağrı sürerken UI Durdur henüz yok, yalnız fonksiyon testi bu sınırı kapsar.
+
+Son arşiv filtresi gerçek Caddy üzerinde dar delta ile doğrulanıyor; önceki b5 bütünleşik gerçek taşıma/arama/byte/CSP tanığı değişmeyen yolların kanıtı olarak korunur. Opus tur2,5a8 kaynağı ve artık tamamlanmış W194 ham kayıtlarını inceleyecek. Root W196 doküman dalı FF5a8 oldu; üretim kaynak farkı yok, yalnız rapor/kabul belgeleri eklenir.
+
+
+Son5a8 Terra arşiv delta4 dosya48 test, tamtypecheck/build PASS. ActualCaddynewJSdistSHAeşit;390modal63b mevcutgörevyok/başkayetkilivar/globaldeptaynı/PATCH0/CSP0/pageerror0/overflow0/focus/stylePASS. RootrawJSON+PNGview doğruladı. Üretimsourcefrozen, rootstandarttarama5a'da17kimlik26kullanım/sorun0 ve86/73/4sayısınıtekrardoğruladı. Opus tur2 aynı8238session yalnızreadonlyfinaldelta+LATESThamkanıt/ghkontrollerini inceliyor; kaynakta başka işçi çalışmıyor.
+
+
+## Son bağımsız hüküm
+
+Opus tur2 aynı8238session/source5a8a9815 **UYGUN, açık kaynak bulgusu0**: dört bulgu kapandı, delta yeni hata getirmedi. Ham yeni/önceki gerçek tanıkları ve27+48 örtüşmeyen dar test kayıtlarını değerlendirdi; PR178/179 durumlarını salt okunurgh ile kendi doğruladı. Son5a kaynağının CI'ı henüz yokken yeşil iddia edilmedi. Root bundan sonra yalnız belge/PR/CI/temizlik yönetir. Son birleşik paket kendi üç CI SUCCESS ile MERGED olduğunda F10 kapanır; F11 açılmaz. NativeTerra yalnız sahipli W195 test kaynaklarını kapatıyor; root worktree/dal temizliğini ana dal birleşmesinden sonra yapar.
+
+
+W195 sahipli temizlik tamam:4 konteyner/ağ/exactDBanonvolume kaldırıldı, scopeddownEXIT0, altı test portu boş; sharedDockerPID/imaj/diğerprojelere dokunulmadı. Hamkanıt ve imagecache saklı. Root son belge commit'ini5a üretim farkı0 ile son PR'a koyacak; bu PR kendi üçSUCCESS+MERGED sonrası F10 kapanışının yürürlük kaydıdır. PR179 son başlıkla değiştirilerek kapatılır. Worktree/dal kaldırma birleşmeden sonra.

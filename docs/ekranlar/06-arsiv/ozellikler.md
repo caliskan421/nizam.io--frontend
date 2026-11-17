@@ -1,5 +1,7 @@
 # 06 — Özellikler (ne görünüyor)
 
+**F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
+
 Kaynak: `../../tasarim/kaynak/Arsiv.dc.html` ve `../../tasarim/kaynak/Arsiv-Klasor.dc.html` (sürüm `1794118532-71ae`). Örnek veriler gerçek değildir.
 
 ## 1. Yerleşim
