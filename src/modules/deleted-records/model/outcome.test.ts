@@ -88,7 +88,7 @@ describe('yaşam döngüsü sonucu yorumu', () => {
   it.each([
     ['work.constraint_violation', 'kullanılıyor'],
     ['identity.account_referenced', 'kullanılıyor'],
-    ['organization.department_in_use', 'görevleri veya program katılımı'],
+    ['organization.department_in_use', 'tablosu, projesi veya bekleyen tablo önerisi'],
     ['provisioning.write_not_allowed', 'kapalı'],
   ])('409 %s → hata bildirimi (%s)', (code, fragment) => {
     const result = interpretOutcome('purge', TASK, failed(code))

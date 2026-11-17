@@ -23,12 +23,14 @@ export interface NormalizedFieldError {
 
 /**
  * `fields[].message` değerinin veri olduğu alan kodları (v0.15): aktarım teklifi
- * (`createUser` 409) ve mevcut departman (`createDepartment` 409). Diğer kodlarda `message`
+ * (`createUser` 409), mevcut departman (`createDepartment` 409) ve departman kalıcı silme engeli sayıları. Diğer kodlarda `message`
  * taşınmaz (KESİN 7: sunucu metni gösterilmez).
  */
 export const DATA_FIELD_CODES: ReadonlySet<string> = new Set([
   'organization.transfer_available',
   'organization.existing_department',
+  // Kalıcı silme engeli (`department_in_use`, v0.26): `field` engel türü, `message` sayı.
+  'organization.department_usage',
 ])
 
 /**

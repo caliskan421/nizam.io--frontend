@@ -185,6 +185,53 @@ export const trDeletedRecords = {
         tamamlandi: 'Tamamlanmıştı',
       },
     },
+    // Koordinatörlük kalıcı silme etkisi (`departmentDeleteImpact`, BE-164; ADR-0043).
+    impact: {
+      loading: 'Silme etkisi okunuyor…',
+      failed:
+        'Silme etkisi okunamadı; hiçbir şey silinmedi. Yeniden denemek için Kalıcı sil’e tekrar basın.',
+      forbidden: 'Silme etkisini yalnız şirket yöneticisi görebilir; hiçbir şey silinmedi.',
+      gone: 'Koordinatörlük artık bulunamadı. Liste yenilendi.',
+      notDeleted: 'Koordinatörlük artık silinmiş durumda değil. Liste yenilendi.',
+      blocked:
+        'Kalıcı silinemez: {parts}. Önce bunları kaldırın; sonra Kalıcı sil’e yeniden basarak durumu yeniden okuyabilirsiniz.',
+      blockedAny:
+        'Kalıcı silinemez: koordinatörlüğün kaldırılması gereken bir engeli var. Önce engelleri kaldırın; sonra Kalıcı sil’e yeniden basarak durumu yeniden okuyabilirsiniz.',
+      blockers: {
+        tables: '{n} tablo',
+        projects: '{n} proje',
+        pending_proposals: '{n} bekleyen tablo önerisi',
+      },
+      blockersUnknownCount: {
+        tables: 'tablo',
+        projects: 'proje',
+        pending_proposals: 'bekleyen tablo önerisi',
+      },
+      company: 'Etki şirket genelindedir: koordinatörlüğün bütün programlardaki kayıtları silinir.',
+      snapshot: 'Sayılar okuma anının görüntüsüdür; onaydan önce değişebilir.',
+      tasks:
+        '{total} görev silinecek: {active} açık, {completed} tamamlanmış, {deleted} zaten silinmiş (bunların {together} tanesi koordinatörlükle birlikte silinmişti).',
+      tasksNone: 'Silinecek görev yok.',
+      files: '{n} dosya silinecek (silinmiş görevlerin ekleri ve çöpteki dosyalar dahil).',
+      filesNone: 'Silinecek dosya yok.',
+      members: '{n} kişinin ekip üyeliği kaldırılacak; hesaplar silinmez.',
+      membersNone: 'Kaldırılacak ekip üyeliği yok.',
+      links: '{n} programdaki koordinatörlük bağı kaldırılacak.',
+      linksNone: 'Programa bağlı değil.',
+      meetings: '{n} toplantı silinmez; koordinatörlük adının kopyasıyla kalır.',
+      meetingsNone: 'Etkilenen toplantı yok.',
+      result: {
+        work_items_deleted: '{n} görev',
+        files_deleted: '{n} dosya',
+        program_links_removed: '{n} program bağı',
+        memberships_deleted: '{n} ekip üyeliği',
+      },
+      programsTitle: 'Programlara göre:',
+      program: '{name}: {active} açık, {completed} tamamlanmış, {deleted} silinmiş görev; {link}.',
+      programLinked: 'bağ kaldırılacak',
+      programUnlinked: 'bağlı değil',
+      programUnnamed: 'Adı bilinmeyen program',
+    },
     confirm: {
       restoreTitle: '{title} geri yüklensin mi?',
       restoreBody: 'Bu işlem 1 kaydı geri yükler.',
@@ -197,7 +244,8 @@ export const trDeletedRecords = {
       restoreWarning: {
         tasks: 'Koordinatörlüğü silinmişse görev geri yüklenemez.',
         meetings: 'Canlı konferans geri gelmez.',
-        departments: 'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
+        departments:
+          'Üyelik yetkileri geri döner. Koordinatörlükle birlikte silinen görevler, koordinatörlüğün hâlâ bağlı olduğu bütün programlarda geri gelir; daha önce ayrıca silinen görevler ve bağı kalkmış programdaki görevler silinmiş kalır.',
         accounts: 'Devredilmiş açık görev atamaları geri dönmez.',
         subtasks: 'Bağlı görev silinmişse alt görev geri yüklenemez.',
         files:
@@ -217,7 +265,12 @@ export const trDeletedRecords = {
       alreadyGone: 'Kayıt zaten silinmiş.',
       notDeleted: 'Kayıt silinmiş durumda değil.',
       inUse: 'Kalıcı silinemedi: kayıt başka kayıtlarca kullanılıyor.',
-      departmentInUse: 'Kalıcı silinemedi: koordinatörlüğün görevleri veya program katılımı var.',
+      departmentInUse:
+        'Kalıcı silinemedi: koordinatörlüğün tablosu, projesi veya bekleyen tablo önerisi var. Önce bunları kaldırın.',
+      departmentBlocked: 'Kalıcı silinemedi: {parts}. Önce bunları kaldırın.',
+      restoredDepartment: '{title} geri yüklendi; {n} görev de geri geldi.',
+      restoredDepartmentNoTasks: '{title} geri yüklendi; geri gelecek görev yoktu.',
+      purgedDepartment: '{title} kalıcı olarak silindi: {parts}.',
       purgeIncomplete: 'Silme tamamlanamadı, yeniden deneyin.',
       departmentUnavailable:
         'Bu görevin koordinatörlüğü silinmiş ya da programa bağlı değil. Önce Koordinatörlük sekmesinden geri yükleyin.',
@@ -256,6 +309,8 @@ export const trDeletedRecords = {
       purgeTitle: '{n} {kind} kalıcı olarak silinsin mi?',
       purgeBody: 'Bu işlem geri alınamaz.',
       purgeFiles: 'Görevlerin dosyaları da silinir.',
+      departmentsPurgeScope:
+        'Koordinatörlükler şirket genelinde silinir: bütün programlardaki görevleri, dosyaları, program bağları ve ekip üyelikleri geri dönülmez silinir; toplantılar departman adının kopyasıyla kalır. Tablosu, projesi veya bekleyen tablo önerisi olanlar silinmez. Koordinatörlük başına etki burada gösterilmez.',
       chunked: 'Kayıtlar 100’erli gruplar hâlinde işlenir.',
       restored: '{n} kayıt geri yüklendi.',
       purged: '{n} kayıt kalıcı olarak silindi.',
@@ -295,7 +350,7 @@ export const trDeletedRecords = {
         dosya:
           'Seçili programdaki bütün silinmiş dosyalar depolamadan da silinir; ekrandaki süzgeçler dikkate alınmaz.',
         koordinatorluk:
-          'Seçili programa bağlı bütün silinmiş koordinatörlükler silinir; ekrandaki süzgeçler dikkate alınmaz. Görevi veya program katılımı olanlar silinmez.',
+          'Seçili programa bağlı bütün silinmiş koordinatörlükler seçilir; ekrandaki süzgeçler dikkate alınmaz. Silme şirket genelindedir: her koordinatörlüğün bütün programlardaki görevleri, dosyaları, program bağları ve ekip üyelikleri geri dönülmez silinir. Tablosu, projesi veya bekleyen tablo önerisi olanlar silinmez; koordinatörlük başına etki burada gösterilmez.',
         notgundem:
           'Seçili programdaki bütün silinmiş görev notları, toplantı notları ve gündem maddeleri sırayla kalıcı silinir. Durdurursanız veya bir işlem tamamlanmazsa, daha önce silinenler geri getirilemez.',
       },

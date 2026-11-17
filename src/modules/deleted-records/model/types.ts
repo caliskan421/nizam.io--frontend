@@ -11,6 +11,7 @@ export type DeletedDepartment = components['schemas']['DeletedDepartment']
 export type WorkItemLifecycleResult = components['schemas']['WorkItemLifecycleResult']
 export type WorkItemPurgeResult = components['schemas']['WorkItemPurgeResult']
 export type DepartmentLifecycleResult = components['schemas']['DepartmentLifecycleResult']
+export type DepartmentDeleteImpact = components['schemas']['DepartmentDeleteImpact']
 export type DeletedBatchResult = components['schemas']['DeletedBatchResult']
 export type AccountLifecycleResult = components['schemas']['AccountLifecycleResult']
 

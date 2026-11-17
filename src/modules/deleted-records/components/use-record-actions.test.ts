@@ -22,7 +22,7 @@ describe('onay seçenekleri (E-12-58/59)', () => {
       'Devredilmiş açık görev atamaları geri dönmez.',
     )
     expect(confirmOptions('restore', fixtureRow({ kind: 'departments' })).body).toContain(
-      'Üyelik yetkileri geri döner, koordinatörlüğün görevleri dönmez.',
+      'Üyelik yetkileri geri döner. Koordinatörlükle birlikte silinen görevler, koordinatörlüğün hâlâ bağlı olduğu bütün programlarda geri gelir; daha önce ayrıca silinen görevler ve bağı kalkmış programdaki görevler silinmiş kalır.',
     )
   })
 

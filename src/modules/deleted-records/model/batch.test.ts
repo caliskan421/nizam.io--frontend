@@ -66,7 +66,8 @@ describe('özet', () => {
       {
         id: 'b',
         title: 'Beta',
-        reason: 'Kalıcı silinemedi: koordinatörlüğün görevleri veya program katılımı var.',
+        reason:
+          'Kalıcı silinemedi: koordinatörlüğün tablosu, projesi veya bekleyen tablo önerisi var. Önce bunları kaldırın.',
       },
       // Satır listede yoksa kimlik ad olarak yazılmaz (sahte ad yok); bilinmeyen kod nötr cümle.
       { id: 'zz', title: 'Adı okunamayan kayıt', reason: 'Bu kayıt işlenemedi.' },
