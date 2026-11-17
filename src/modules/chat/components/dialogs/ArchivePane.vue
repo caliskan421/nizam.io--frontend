@@ -11,44 +11,17 @@ import './dialogs.css'
 import { computed, ref, watch } from 'vue'
 
 import { useArchiveAttachments } from '@/modules/archive/public'
-import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiButton, UiHint, UiInput, UiSelect } from '@/shared/ui'
 
 import { chatText } from '../../messages'
 import { sizeKb, type PickedArchiveFile } from './forms'
-import { useChatActor } from './use-actor'
+import { useDepartmentOptions } from './use-department-options'
 
 const emit = defineEmits<{ change: [file: PickedArchiveFile | null] }>()
 
 const store = useScopeStore()
-const { actor } = useChatActor()
-const programDepartments = useProgramDepartments()
-
-const departmentOptions = computed(() => {
-  const standing = actor.value.standing
-  if (standing === null) return []
-  if (standing.companyAdmin) {
-    return (programDepartments.query.data.value?.departments ?? []).map((d) => ({
-      value: d.department_id,
-      label: d.display_name,
-    }))
-  }
-  const seen = new Map<string, string>()
-  for (const row of standing.rows) {
-    if (row.programId === actor.value.programId) seen.set(row.departmentId, row.displayName)
-  }
-  return [...seen].map(([value, label]) => ({ value, label }))
-})
-
-const departmentId = ref('')
-watch(
-  departmentOptions,
-  (list) => {
-    if (departmentId.value === '' && list.length === 1) departmentId.value = list[0]!.value
-  },
-  { immediate: true },
-)
+const { options: departmentOptions, departmentId } = useDepartmentOptions()
 const search = ref('')
 const picked = ref<string | null>(null)
 

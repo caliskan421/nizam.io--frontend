@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { CHAT_DIALOGS, isOpenable } from './dialogs'
-import { CHAT_STUBS } from './stubs'
+import { CHAT_DIALOGS, type DialogRequest } from './dialogs'
 
 describe('10c pencereleri', () => {
-  it('yedi pencere; "Mesajı ilet" açılamaz (BE-080)', () => {
+  it('yedi pencere; "Mesajı ilet" BE-080 ile açılabilir (W185b), kaynak mesaj olgusuyla', () => {
     expect(CHAT_DIALOGS).toEqual([
       'groupInfo',
       'messageInfo',
@@ -14,13 +13,7 @@ describe('10c pencereleri', () => {
       'poll',
       'shareFile',
     ])
-    expect(CHAT_DIALOGS.filter((d) => !isOpenable(d))).toEqual(['forward'])
-    expect(CHAT_STUBS.forward).toEqual({ enabled: false })
-  })
-
-  it('kayıtlı eksikler sahte veri taşımaz (yalnız var/yok olguları)', () => {
-    for (const value of Object.values(CHAT_STUBS)) {
-      expect(Object.values(value).every((v) => typeof v === 'boolean')).toBe(true)
-    }
+    const request: DialogRequest = { dialog: 'forward', chatId: 'c1', messageId: 'm1' }
+    expect(request.dialog).toBe('forward')
   })
 })

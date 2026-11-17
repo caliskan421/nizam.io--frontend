@@ -35,6 +35,9 @@ export type CreateGroupChatRequest = S['CreateGroupChatRequest']
 export type UpdateChatRequest = S['UpdateChatRequest']
 export type CreateTaskFromChatMessageRequest = S['CreateTaskFromChatMessageRequest']
 export type MarkedCount = S['MarkedCount']
+export type ForwardChatMessageRequest = S['ForwardChatMessageRequest']
+export type ForwardChatMessageResult = S['ForwardChatMessageResult']
+export type ArchivedChatFile = S['ArchivedChatFile']
 
 export type ChatKind = Chat['kind']
 export type ChatRole = NonNullable<Chat['role']>
@@ -48,6 +51,9 @@ export type CandidatePurpose = NonNullable<
 export type Poll = NonNullable<ChatMessage['poll']>
 export type AttachmentForm =
   operations['sendChatAttachment']['requestBody']['content']['multipart/form-data']
+/** `archiveChatFile` çok parçalı gövdesi (şemada `file: string`; çalışma anında `FormData`). */
+export type ArchiveFileForm =
+  operations['archiveChatFile']['requestBody']['content']['multipart/form-data']
 export type MessageQuery = NonNullable<operations['listChatMessages']['parameters']['query']>
 
 /** Program kapsamı (S2 başlığı); yazmalar eylemin yakaladığı programı taşır (K2). */
@@ -71,6 +77,22 @@ export interface SendAttachmentInput extends ChatTarget {
   file: File
   /** İsteğe bağlı açıklama (dosyadan ÖNCE gönderilen parça). */
   caption?: string
+  replyToMessageId?: string
+}
+/** İlet: kaynak mesaj yolda, hedefler/not gövdede; `Idempotency-Key` eylem başına motordadır. */
+export interface ForwardInput extends ProgramTarget {
+  chatId: string
+  messageId: string
+  body: ForwardChatMessageRequest
+}
+/** Arşive kaydet: `clientMessageId` arşivleme boyunca (ağ tekrarında) sabittir. */
+export interface ArchiveFileInput extends ChatTarget {
+  clientMessageId: string
+  workItemId: string
+  tag: string
+  file: File
+  subtaskId?: string
+  body?: string
   replyToMessageId?: string
 }
 export interface EditMessageInput extends MessageTarget {

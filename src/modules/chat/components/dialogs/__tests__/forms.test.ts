@@ -50,6 +50,7 @@ describe('anket formu (E-10-94…100)', () => {
     question: 'Hangi gün?',
     options: ['Salı', 'Çarşamba'],
     multi: false,
+    anonymous: false,
     closesLocal: '',
   }
 
@@ -69,17 +70,24 @@ describe('anket formu (E-10-94…100)', () => {
     expect(closesAtIso('')).toBeNull()
   })
 
-  it('gövde: soru = body, boş satırlar atılır, anonim alanı yok', () => {
+  it('gövde: soru = body, boş satırlar atılır; isimli anket anonymous:false AÇIKÇA gider', () => {
     const body = toPollBody({ ...base, options: [' Salı ', '', 'Çarşamba'], multi: true }, 'cm-1')
     expect(body).toEqual({
       client_message_id: 'cm-1',
       body: 'Hangi gün?',
-      poll: { options: ['Salı', 'Çarşamba'], multi: true },
+      poll: { options: ['Salı', 'Çarşamba'], multi: true, anonymous: false },
     })
-    expect(JSON.stringify(body)).not.toMatch(/anonymous|anonim/)
+    expect(Object.keys(body.poll!)).toContain('anonymous')
     const dated = toPollBody({ ...base, closesLocal: '2030-01-01T10:00' }, 'cm-2')
     expect(dated.poll?.closes_at).toMatch(/^2030-01-01T/)
     expect(filledOptions([' a ', '  '])).toEqual(['a'])
+  })
+
+  it('gövde: anonim anket anonymous:true AÇIKÇA gider; diğer alanlar isimliyle aynı', () => {
+    const named = toPollBody(base, 'cm-3')
+    const secret = toPollBody({ ...base, anonymous: true }, 'cm-3')
+    expect(secret.poll).toEqual({ ...named.poll, anonymous: true })
+    expect(secret.poll?.anonymous).toBe(true)
   })
 })
 

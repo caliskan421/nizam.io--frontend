@@ -10,9 +10,15 @@ import { useProtectedMutation } from '@/shared/http/mutation'
 import { useDownloadFlow, type DownloadTarget } from '@/shared/download'
 
 import { withEffects } from '../model/effects'
-import { attachmentBody } from '../model/attachments'
+import { archiveBody, attachmentBody } from '../model/attachments'
 import { upsertMessage } from '../model/window'
-import type { ChatDownloadRequest, ChatMessage, SendAttachmentInput } from '../model/types'
+import type {
+  ArchiveFileInput,
+  ArchivedChatFile,
+  ChatDownloadRequest,
+  ChatMessage,
+  SendAttachmentInput,
+} from '../model/types'
 import { programHeaders } from './http'
 import { patchWindow } from './window-cache'
 
@@ -37,6 +43,36 @@ export function useSendChatAttachment() {
     {
       onSuccess: (fx) =>
         patchWindow(fx.client, fx.scope, fx.vars.chatId, (w) => upsertMessage(w, fx.data)),
+    },
+  )
+}
+
+/**
+ * Görev arşivine de kaydet (BE-029, `archiveChatFile`): tek multipart istek (dosya arşive yüklenir,
+ * sohbete `file` referanslı mesaj düşer; 201 yeni / 200 tekrar). `Idempotency-Key` eylem başına
+ * bir kez (motor; ağ tekrarında AYNI), `client_message_id` vars'ta sabittir. Yarım iş telafisi
+ * (mesaj düşerse dosya silinir; telafi düşerse arşivde kalır) SUNUCUDADIR: istemci ikinci adım
+ * uydurmaz. Başarıda dönen gerçek mesaj pencereye işlenir; görev dosyası/arşiv/sohbet yüzeyleri
+ * `query-keys` ilişkisiyle yenilenir (`workItemId` bağlamı → yalnız o görevin dosyaları).
+ */
+export function useArchiveChatFile() {
+  return withEffects(
+    useProtectedMutation<ArchiveFileInput, ArchivedChatFile>({
+      operation: 'archiveChatFile',
+      invalidation: (vars) => ({ workItemId: vars.workItemId, chatId: vars.chatId }),
+      send: (vars, ctx) =>
+        api.POST('/v1/chats/{chatId}/archived-files', {
+          params: {
+            header: { ...programHeaders(vars), 'Idempotency-Key': ctx.idempotencyKey },
+            path: { chatId: vars.chatId },
+          },
+          body: archiveBody(vars),
+          signal: ctx.signal,
+        }),
+    }),
+    {
+      onSuccess: (fx) =>
+        patchWindow(fx.client, fx.scope, fx.vars.chatId, (w) => upsertMessage(w, fx.data.message)),
     },
   )
 }

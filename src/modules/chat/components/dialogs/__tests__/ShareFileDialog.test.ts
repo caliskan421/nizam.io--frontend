@@ -100,7 +100,7 @@ describe('ShareFileDialog — Yeni yükle (E-10-101…107)', () => {
     await vi.waitFor(() => expect(wrapper.emitted('close')).toHaveLength(1))
   })
 
-  it('izinli olmayan tür reddedilir (istek yok); "görev arşivine de kaydet" devre dışı + BE-029', async () => {
+  it('izinli olmayan tür reddedilir (istek yok); "görev arşivine de kaydet" etkin, stub yok (BE-029)', async () => {
     serve()
     mountDialog(ShareFileDialog, { chatId: 'c1' })
     choose('film.mp4', 'video/mp4')
@@ -108,9 +108,11 @@ describe('ShareFileDialog — Yeni yükle (E-10-101…107)', () => {
       expect($('[data-testid="dlg-file-error"]')?.textContent).toBe('Bu dosya türü paylaşılamaz.'),
     )
     expect(($('[data-testid="dlg-submit"]') as HTMLButtonElement).disabled).toBe(true)
-    const stub = $('[data-design-stub="BE-029"]')!
-    expect(stub.textContent).toContain('Bir görevin arşivine de kaydet')
-    expect((stub.querySelector('input') as HTMLInputElement).disabled).toBe(true)
+    expect($('[data-design-stub="BE-029"]')).toBeNull()
+    expect($('[data-testid="dlg-archive-save"]')!.textContent).toContain(
+      'Bir görevin arşivine de kaydet',
+    )
+    expect(($('[data-testid="dlg-save-archive"]') as HTMLInputElement).disabled).toBe(false)
     expect(called('POST', '/v1/chats/c1/attachments')).toHaveLength(0)
   })
 

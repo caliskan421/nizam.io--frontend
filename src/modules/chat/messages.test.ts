@@ -42,13 +42,14 @@ describe('sohbet metinleri (tek ağaç trChat)', () => {
     expect(Object.keys(trChat.chat.thread.reaction)).toEqual(['like', 'heart', 'check', 'star'])
   })
 
-  it('sözleşme dışı özellikler: metin yalnız devre dışı designStub etiketinde (BE-161); iletme çizilmez; "Koordinatörler" grubu (BE-160) ve sessize alma (BE-027) canlıdır', () => {
-    const stubLabels = ['chat.dialogs.pollForm.secret']
-    expect(stubLabels.map((k) => chatText(k as ChatTextKey))).toEqual(['Anonim'])
+  it('W185b: "Anonim" (BE-161) ve "İlet" (BE-080) canlı metinlerdir; "Yakında" yalnız durum sözlüğündedir', () => {
+    expect(chatText('chat.dialogs.pollForm.secret')).toBe('Anonim')
+    expect(chatText('chat.thread.poll.anonymous')).toBe('anonim')
+    expect(chatText('chat.thread.menu.forward')).toBe('İlet')
+    expect(chatText('chat.thread.forwarded')).toBe('İletildi')
     expect(chatText('chat.dialogs.info.notifyNone')).toBe('Sessize al')
     expect(chatText('chat.dialogs.info.notifyMentions')).toBe('Yalnız @bahsedilince bildir')
-    const rest = (leaves(trChat) as ChatTextKey[]).filter((k) => !stubLabels.includes(k))
-    const all = rest.map((k) => chatText(k)).join(' ')
-    expect(all.replace(/Sessize al/g, '')).not.toMatch(/sessize|anonim/i)
+    const soon = (leaves(trChat) as ChatTextKey[]).filter((k) => /Yakında/.test(chatText(k)))
+    expect(soon).toEqual(['chat.states.soon'])
   })
 })

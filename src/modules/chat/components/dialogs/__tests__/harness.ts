@@ -124,6 +124,8 @@ const wrappers: VueWrapper[] = []
 export interface MountOptions {
   who?: WhoSeed
   window?: Partial<MessageWindow>
+  /** Açık sohbetin pencere okuması (`loadNewer` izlemek için; verilmezse boş). */
+  loadNewer?: () => Promise<void>
 }
 
 function seedStanding(client: QueryClient, who: WhoSeed): void {
@@ -148,12 +150,15 @@ function seedStanding(client: QueryClient, who: WhoSeed): void {
   client.setQueryData(queryKeys.programs.all(), { programs: [], truncated: false })
 }
 
-function fakeContext(win: ShallowRef<MessageWindow>): ChatPageContext {
+function fakeContext(
+  win: ShallowRef<MessageWindow>,
+  loadNewer: () => Promise<void> = () => Promise.resolve(),
+): ChatPageContext {
   return {
     chatId: () => 'c1',
     messages: {
       window: win,
-      loadNewer: () => Promise.resolve(),
+      loadNewer,
       refreshMessage: () => Promise.resolve(),
       refreshPeerRead: () => Promise.resolve(),
       reconcile: () => Promise.resolve(),
@@ -198,7 +203,7 @@ export function mountDialog<P extends Record<string, unknown>>(
     attachTo: document.body,
     global: {
       plugins: [pinia, router, [VueQueryPlugin, { queryClient: client }]],
-      provide: { [CHAT_PAGE_KEY as symbol]: fakeContext(win) },
+      provide: { [CHAT_PAGE_KEY as symbol]: fakeContext(win, options.loadNewer) },
     },
   })
   wrappers.push(wrapper)

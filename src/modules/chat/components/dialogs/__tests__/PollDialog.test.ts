@@ -68,7 +68,7 @@ describe('PollDialog (E-10-93…100)', () => {
     const [call] = called('POST', '/v1/chats/c1/messages')
     expect(call!.body).toMatchObject({
       body: 'Hangi gün?',
-      poll: { options: ['Salı', 'Çarşamba'], multi: true },
+      poll: { options: ['Salı', 'Çarşamba'], multi: true, anonymous: false },
     })
     expect((call!.body as { client_message_id: string }).client_message_id).toMatch(
       /^[\x21-\x7e]+$/,
@@ -96,12 +96,58 @@ describe('PollDialog (E-10-93…100)', () => {
     click('[data-testid="dlg-submit"]')
     await vi.waitFor(() => expect(document.body.textContent).toContain('En az iki seçenek girin'))
     expect(called('POST', '/v1/chats/c1/messages')).toHaveLength(0)
-    expect(($('[data-testid="dlg-anonymous"]') as HTMLButtonElement).disabled).toBe(true)
-    expect(
-      $('[data-testid="dlg-anonymous"]')!.closest('[data-design-stub="BE-161"]'),
-    ).not.toBeNull()
-    expect($('[data-testid="dlg-visibility"] button')!.getAttribute('aria-pressed')).toBe('true')
-    expect($('[data-testid="dlg-anonymous"]')!.textContent?.trim()).toBe('Anonim')
+  })
+
+  it('oy görünürlüğü canlı: "İsimli" varsayılan basılı; "Anonim" seçilebilir (stub yok), not görünür', async () => {
+    serve()
+    mountDialog(PollDialog, { chatId: 'c1' })
+    const seg = () => $$('[data-testid="dlg-visibility"] button')
+    expect(seg().map((b) => [b.textContent?.trim(), b.getAttribute('aria-pressed')])).toEqual([
+      ['İsimli', 'true'],
+      ['Anonim', 'false'],
+    ])
+    expect($('[data-design-stub="BE-161"]')).toBeNull()
+    expect($('[data-testid="dlg-anonymous-note"]')).toBeNull()
+    clickText('Anonim')
+    await vi.waitFor(() => expect($('[data-testid="dlg-anonymous-note"]')).not.toBeNull())
+    expect(seg()[1]!.getAttribute('aria-pressed')).toBe('true')
+    expect($('[data-testid="dlg-anonymous-note"]')!.textContent).toContain('sonradan değişmez')
+  })
+
+  it('isimli gönderimde poll.anonymous:false, anonimde true gider (açık alan)', async () => {
+    serve()
+    mountDialog(PollDialog, { chatId: 'c1' })
+    fill()
+    click('[data-testid="dlg-submit"]')
+    await vi.waitFor(() => expect(called('POST', '/v1/chats/c1/messages')).toHaveLength(1))
+    expect(called('POST', '/v1/chats/c1/messages')[0]!.body).toMatchObject({
+      poll: { anonymous: false },
+    })
+    resetDialogs()
+    serve()
+    mountDialog(PollDialog, { chatId: 'c1' })
+    fill()
+    clickText('Anonim')
+    click('[data-testid="dlg-submit"]')
+    await vi.waitFor(() => expect(called('POST', '/v1/chats/c1/messages')).toHaveLength(1))
+    expect(called('POST', '/v1/chats/c1/messages')[0]!.body).toMatchObject({
+      poll: { options: ['Salı', 'Çarşamba'], anonymous: true },
+    })
+  })
+
+  it('anonimlik açılışta kilitlidir: aynı kimlikle tekrar (Yeniden gönder) aynı anonymous değerini taşır', async () => {
+    let n = 0
+    serve(() => (n++ === 0 ? errorEnvelope('platform.internal', 503) : json(msg(9), 201)))
+    mountDialog(PollDialog, { chatId: 'c1' })
+    fill()
+    clickText('Anonim')
+    click('[data-testid="dlg-submit"]')
+    await vi.waitFor(() => expect($('[data-testid="outcome-notice"]')).not.toBeNull())
+    clickText('Yeniden gönder')
+    await vi.waitFor(() => expect(called('POST', '/v1/chats/c1/messages')).toHaveLength(2))
+    const [a, b] = called('POST', '/v1/chats/c1/messages')
+    expect(b!.body).toEqual(a!.body)
+    expect((b!.body as { poll: { anonymous: boolean } }).poll.anonymous).toBe(true)
   })
 
   it('son tarih geçmişteyse alan hatası; ileri tarih closes_at olarak gider', async () => {

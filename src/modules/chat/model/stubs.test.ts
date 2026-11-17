@@ -1,9 +1,9 @@
-// "Eski yol yok" (KESİN 35d, W184): canlanan BE-027 ayar yüzü, BE-028, BE-083, BE-084, BE-085
-// satırlarının stub'ı ve geçici yolları kodda kalmamıştır (kalan stub'lar: W183/W185b satırları).
+// "Eski yol yok" (KESİN 35d, W184 + W185b): canlanan BE-027 ayar yüzü, BE-028, BE-029, BE-080, BE-083,
+// BE-084, BE-085, BE-161 satırlarının stub'ı ve geçici yolları kodda kalmamıştır; sohbet modülünde
+// hiç designStub kalmadı (`model/stubs.ts` silindi).
 import { describe, expect, it } from 'vitest'
 
 import { trChat } from '../messages'
-import { CHAT_STUBS } from './stubs'
 
 const sources = import.meta.glob<string>(['../**/*.ts', '../**/*.vue', '!../**/*.test.ts'], {
   query: '?raw',
@@ -13,9 +13,7 @@ const sources = import.meta.glob<string>(['../**/*.ts', '../**/*.vue', '!../**/*
 /** Açıklama blokları kod değildir: kaldırılan yolun adı yorumda anılabilir. */
 const stripComments = (text: string): string =>
   text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
-const entries = Object.entries(sources)
-  .filter(([path]) => !path.endsWith('/stubs.ts'))
-  .map(([path, text]) => [path, stripComments(text)] as const)
+const entries = Object.entries(sources).map(([path, text]) => [path, stripComments(text)] as const)
 const code = (name: string): string => {
   const hit = entries.find(([path]) => path.endsWith(name))
   if (!hit) throw new Error(`kaynak yok: ${name}`)
@@ -23,24 +21,34 @@ const code = (name: string): string => {
 }
 
 describe('W184: canlanan satırların stub ve geçici yolu yok', () => {
-  it('CHAT_STUBS: W183 (filters, ownReadSeq, lastMessageKind, coordinatorsGroup, quoteSeq) + W184 (mute, whoRead, roleBadge, sharedCounts, taskCard) kalktı; yalnız archiveSave/forward/anonymousPoll kalır', () => {
-    const keys = Object.keys(CHAT_STUBS)
-    expect(keys.sort()).toEqual(['anonymousPoll', 'archiveSave', 'forward'])
-    for (const gone of [
-      'filters',
-      'ownReadSeq',
-      'lastMessageKind',
-      'coordinatorsGroup',
-      'quoteSeq',
-      'mute',
-      'whoRead',
-      'roleBadge',
-      'sharedCounts',
-      'taskCard',
-    ]) {
-      expect(keys).not.toContain(gone)
-    }
-    expect(keys).toContain('forward')
+  it('sohbet modülünde stub tanımı/kullanımı kalmadı: CHAT_STUBS, designStub, DesignStub, isOpenable yok', () => {
+    expect(Object.keys(sources).filter((p) => p.endsWith('/stubs.ts'))).toEqual([])
+    const offenders = entries.filter(([, text]) =>
+      /CHAT_STUBS|designStub\(|<Design[S]tub|\bisOpenable\b/.test(text),
+    )
+    expect(offenders.map(([path]) => path)).toEqual([])
+  })
+
+  it('W185b: BE-029/080/161 kimlikleri ve kaldırılan alanlar (archiveSave, forward, anonymousPoll) kodda yok', () => {
+    const offenders = entries.filter(([, text]) =>
+      /BE-(029|080|161)\b|CHAT_STUBS\.(archiveSave|forward|anonymousPoll)|\banonymousPoll\b|\barchiveSave\.enabled/.test(
+        text,
+      ),
+    )
+    expect(offenders.map(([path]) => path)).toEqual([])
+  })
+
+  it('iletme: eski "metni yeniden gönder" yolu yok (ForwardDialog yalnız forwardChatMessage)', () => {
+    const dialog = code('dialogs/ForwardDialog.vue')
+    expect(dialog).toContain('useForwardChatMessage')
+    expect(dialog).not.toMatch(/useSendChatMessage|sendChatMessage/)
+  })
+
+  it('arşive kaydet: iki adımlı attachFile → sendChatMessage.refs yolu yok (ShareFileDialog)', () => {
+    const dialog = code('dialogs/ShareFileDialog.vue')
+    expect(dialog).toContain('useArchiveChatFile')
+    expect(dialog).not.toMatch(/useAttachArchiveFile|attachFile/)
+    expect(code('dialogs/ArchiveSaveFields.vue')).not.toMatch(/useAttachArchiveFile|attachFile/)
   })
 
   it('kodda BE-027/028/083/084/085 designStub kimliği ya da kaldırılan stub alanı kullanımı yok', () => {

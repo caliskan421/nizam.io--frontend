@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ATTACHMENT_EXTENSIONS,
   attachmentBody,
+  buildArchiveForm,
   buildAttachmentForm,
   hasAllowedExtension,
 } from './attachments'
@@ -37,5 +38,43 @@ describe('ek yükleme gövdesi', () => {
     for (const name of ['v.mp4', 'h.heic', 'x', 'y.exe', '.pdf.zip']) {
       expect(hasAllowedExtension(name), name).toBe(false)
     }
+  })
+})
+
+describe('archiveChatFile gövdesi (BE-029)', () => {
+  const file = new File(['x'], 'plan.pdf', { type: 'application/pdf' })
+  const base = {
+    programId: 'p1',
+    chatId: 'c1',
+    clientMessageId: 'cm-1',
+    workItemId: 'w1',
+    tag: 'plan',
+    file,
+  }
+
+  it("metin alanları file'dan ÖNCE, file SON parça; boş alanlar gönderilmez", () => {
+    expect([...buildArchiveForm(base).keys()]).toEqual([
+      'client_message_id',
+      'work_item_id',
+      'tag',
+      'file',
+    ])
+    const full = buildArchiveForm({
+      ...base,
+      subtaskId: 's1',
+      body: 'Bakın',
+      replyToMessageId: 'm0',
+    })
+    expect([...full.keys()]).toEqual([
+      'client_message_id',
+      'work_item_id',
+      'tag',
+      'subtask_id',
+      'body',
+      'reply_to_message_id',
+      'file',
+    ])
+    expect(full.get('client_message_id')).toBe('cm-1')
+    expect((full.get('file') as File).name).toBe('plan.pdf')
   })
 })
