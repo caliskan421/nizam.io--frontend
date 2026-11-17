@@ -262,7 +262,14 @@ const TABLE: Array<{
     resource: 'chats.list',
     key: queryKeys.chats.list(S, ''),
     expected: [...root(S), 'chats', 'list', { q: '', kind: null, unread: false }],
-    mustInvalidate: ['sendChatMessage', 'createGroupChat', 'deleteChat', 'markChatRead'],
+    mustInvalidate: [
+      'sendChatMessage',
+      'forwardChatMessage',
+      'archiveChatFile',
+      'createGroupChat',
+      'deleteChat',
+      'markChatRead',
+    ],
   },
   {
     resource: 'chats.detail',
@@ -292,7 +299,12 @@ const TABLE: Array<{
     resource: 'chats.refs',
     key: queryKeys.chats.refs(S, 'c1', 'task'),
     expected: [...root(S), 'chats', 'c1', 'refs', 'task'],
-    mustInvalidate: ['sendChatMessage', 'deleteChatMessage'],
+    mustInvalidate: [
+      'sendChatMessage',
+      'forwardChatMessage',
+      'archiveChatFile',
+      'deleteChatMessage',
+    ],
   },
   {
     resource: 'chats.candidates',
@@ -310,19 +322,25 @@ const TABLE: Array<{
     resource: 'chats.sharedCounts',
     key: queryKeys.chats.sharedCounts(S, 'c1'),
     expected: [...root(S), 'chats', 'c1', 'shared-counts'],
-    mustInvalidate: ['sendChatMessage', 'deleteChatMessage', 'createTaskFromChatMessage'],
+    mustInvalidate: [
+      'sendChatMessage',
+      'forwardChatMessage',
+      'archiveChatFile',
+      'deleteChatMessage',
+      'createTaskFromChatMessage',
+    ],
   },
   {
     resource: 'chats.attachments',
     key: queryKeys.chats.attachments(S, 'c1'),
     expected: [...root(S), 'chats', 'c1', 'attachments'],
-    mustInvalidate: ['sendChatAttachment', 'deleteChatMessage'],
+    mustInvalidate: ['sendChatAttachment', 'forwardChatMessage', 'deleteChatMessage'],
   },
   {
     resource: 'chats.taskLinks',
     key: queryKeys.chats.taskLinks(S, 'c1'),
     expected: [...root(S), 'chats', 'c1', 'task-links'],
-    mustInvalidate: ['createTaskFromChatMessage', 'deleteChatMessage'],
+    mustInvalidate: ['createTaskFromChatMessage', 'forwardChatMessage', 'deleteChatMessage'],
   },
   {
     resource: 'chats.messageTasks',

@@ -355,6 +355,8 @@ const LIFECYCLE_WORK_ITEM_WRITES = [
 
 const FILE_WRITES = [
   'attachFile',
+  // W185b (BE-029): sohbetten arşive yükleme de görevin dosyasını yaratır (aynı kural, aynı etki).
+  'archiveChatFile',
   'renameFile',
   'retagFile',
   'deleteFile',
@@ -558,7 +560,7 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     SUBTASK_WRITES,
     // Tamamlanma kanıtı dosyadan türer: yükleme de silme de görev ayrıntısını yeniden okutur
     // (06 Arşiv, KESİN 29); yeniden adlandırma görev kaydına dokunmaz.
-    ['attachFile', 'deleteFile'],
+    ['attachFile', 'archiveChatFile', 'deleteFile'],
     ASSIGNMENT_HANDOVER_WRITES,
   ),
   // Sayaçlar liste ile aynı görünürlük ve aynı yazmalarla değişir (durum, atama, tarih, devir).
@@ -639,6 +641,8 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
     'removeChatMember',
     'sendChatMessage',
     'sendChatAttachment',
+    'forwardChatMessage',
+    'archiveChatFile',
     'editChatMessage',
     'deleteChatMessage',
     'markChatRead',
@@ -649,7 +653,9 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'chats.messages': [],
   'chats.pins': ['pinChatMessage', 'unpinChatMessage', 'deleteChatMessage'],
   'chats.members': ['addChatMembers', 'removeChatMember', 'grantChatAdmin', 'revokeChatAdmin'],
-  'chats.refs': ['sendChatMessage', 'deleteChatMessage'],
+  // W185b: iletme hedeflere ref bağlı mesaj kopyalar (chatId verilmez: hedefler birden çok sohbet);
+  // arşive kaydet sohbete `file` referanslı mesaj düşürür.
+  'chats.refs': ['sendChatMessage', 'forwardChatMessage', 'archiveChatFile', 'deleteChatMessage'],
   'chats.candidates': ['addChatMembers', 'removeChatMember'],
   'chats.refSummary': [],
   // W184: paylaşılan sayı = liste toplamı (aynı yazmalarla birlikte yenilenir; sayıyı kalan liste
@@ -657,13 +663,16 @@ export const INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId
   'chats.sharedCounts': [
     'sendChatMessage',
     'sendChatAttachment',
+    'forwardChatMessage',
+    'archiveChatFile',
     'deleteChatMessage',
     'createTaskFromChatMessage',
     'deleteWorkItem',
     'removeChatMember',
   ],
-  'chats.attachments': ['sendChatAttachment', 'deleteChatMessage'],
-  'chats.taskLinks': ['createTaskFromChatMessage', 'deleteChatMessage'],
+  // İletme ek baytını hedefe kopyalar (yeni ek kimliği) ve görev referansını taşır.
+  'chats.attachments': ['sendChatAttachment', 'forwardChatMessage', 'deleteChatMessage'],
+  'chats.taskLinks': ['createTaskFromChatMessage', 'forwardChatMessage', 'deleteChatMessage'],
   'chats.messageTasks': unique(
     ['createTaskFromChatMessage', 'deleteChatMessage', 'editChatMessage'],
     ['updateWorkItem', 'transitionWorkItem', 'deleteWorkItem'],
