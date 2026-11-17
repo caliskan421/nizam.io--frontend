@@ -195,7 +195,7 @@ describe('kapsam yaşam döngüsü', () => {
     await settle(scope, 'ready')
     const oldKey = m.scope.scopedKey(store.snapshot, 'work-items')
     queryClient.setQueryData(oldKey, ['eski veri'])
-    queryClient.setQueryData(['notifications', 'unread-count'], { count: 3 })
+    queryClient.setQueryData(['notifications', 'unread-count'], { count: 3, awaiting_count: 0 })
     // Uçuştaki kapsamlı sorgu da iptal edilir.
     const inflight = queryClient
       .fetchQuery({
@@ -216,7 +216,10 @@ describe('kapsam yaşam döngüsü', () => {
     expect(
       queryClient.getQueryCache().findAll({ predicate: (q) => isScopedQueryKey(q.queryKey) }),
     ).toEqual([])
-    expect(queryClient.getQueryData(['notifications', 'unread-count'])).toEqual({ count: 3 })
+    expect(queryClient.getQueryData(['notifications', 'unread-count'])).toEqual({
+      count: 3,
+      awaiting_count: 0,
+    })
     expect(isCancelledError(await inflight)).toBe(true)
 
     scope.selectDepartment('d3')

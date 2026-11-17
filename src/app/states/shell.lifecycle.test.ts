@@ -37,7 +37,7 @@ afterEach(() => {
 afterAll(() => backend.server.close())
 
 const unread = http.get('http://localhost/v1/notifications/unread-count', () =>
-  HttpResponse.json({ count: 0 }),
+  HttpResponse.json({ count: 0, awaiting_count: 0 }),
 )
 // 01 ana sayfanın kapsamlı okumaları (Admin: pano; K/Ü: görev listesi) — boş yanıt.
 const homeData = [

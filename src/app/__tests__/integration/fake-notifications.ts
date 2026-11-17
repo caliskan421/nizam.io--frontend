@@ -4,15 +4,17 @@
 // üstüne `server.use` ile eklenir; `fake-org` yer tutucu sayaç (`count: 0`) bunun önüne geçer.
 import { http, HttpResponse } from 'msw'
 
+import {
+  makeNotification,
+  makeNotificationList,
+  makeNotificationUnreadCount,
+} from '@/shared/api/__tests__/defaults'
+import type { components } from '@/shared/api/schema'
+
 import { envelope, fakeOrg, json, ORIGIN, type OrgDb } from './fake-org'
 
-export interface FakeNotification {
-  id: string
-  type: string
-  subject_ref: { kind: string; id: string }
-  is_read: boolean
-  created_at: string
-}
+type Notification = components['schemas']['Notification']
+export type FakeNotification = Notification
 
 export interface PushFault {
   status: number
@@ -57,14 +59,14 @@ export function notify(
   ageMin = 5,
 ): FakeNotification {
   state.seq += 1
-  const row: FakeNotification = {
+  const row: FakeNotification = makeNotification({
     id: `n${state.seq}`,
     type,
     subject_ref: subject,
     is_read: false,
     created_at: new Date(Date.now() - ageMin * 60_000).toISOString(),
     ...patch,
-  }
+  })
   state.rows.set(account, [row, ...(state.rows.get(account) ?? [])])
   return row
 }
@@ -82,7 +84,7 @@ function readHandlers(db: OrgDb, state: NotificationsState) {
     http.get(`${ORIGIN}/v1/notifications/unread-count`, ({ request }) => {
       const me = fakeOrg.actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)
-      return json({ count: unreadOf(state, me.account_id) })
+      return json(makeNotificationUnreadCount({ count: unreadOf(state, me.account_id) }))
     }),
     http.get(`${ORIGIN}/v1/notifications`, ({ request }) => {
       const me = fakeOrg.actorOf(db, request)
@@ -93,9 +95,9 @@ function readHandlers(db: OrgDb, state: NotificationsState) {
       const rows = rowsOf(state, me.account_id)
       const next = from + limit < rows.length ? { next_cursor: String(from + limit) } : {}
       return json({
+        ...makeNotificationList({ unread_count: unreadOf(state, me.account_id) }),
         items: rows.slice(from, from + limit),
         ...next,
-        unread_count: unreadOf(state, me.account_id),
       })
     }),
     http.get(`${ORIGIN}/v1/notifications/vapid-public-key`, ({ request }) => {

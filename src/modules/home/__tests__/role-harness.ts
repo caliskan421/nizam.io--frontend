@@ -54,9 +54,16 @@ export function roleHandlers(
     http.get(`${ORIGIN}/v1/date-change-requests/mine`, () =>
       json({ requests: over.requests ?? [], total: (over.requests ?? []).length }),
     ),
-    http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: over.unread ?? 0 })),
+    http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+      json({ count: over.unread ?? 0, awaiting_count: 0 }),
+    ),
     http.get(`${ORIGIN}/v1/notifications`, () =>
-      json({ items: over.notifications ?? [], next_cursor: '', unread_count: over.unread ?? 0 }),
+      json({
+        items: over.notifications ?? [],
+        next_cursor: '',
+        awaiting_count: 0,
+        unread_count: over.unread ?? 0,
+      }),
     ),
   ]
 }

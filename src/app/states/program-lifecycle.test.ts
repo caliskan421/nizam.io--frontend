@@ -40,7 +40,9 @@ function reset(): void {
 }
 
 const pageData = [
-  http.get('http://localhost/v1/notifications/unread-count', () => HttpResponse.json({ count: 0 })),
+  http.get('http://localhost/v1/notifications/unread-count', () =>
+    HttpResponse.json({ count: 0, awaiting_count: 0 }),
+  ),
   http.get('http://localhost/v1/program-transfers', () => HttpResponse.json({ transfers: [] })),
   http.get('http://localhost/v1/departments', () => HttpResponse.json({ departments: [] })),
   // 01 ana sayfanın kapsamlı okumaları (Admin: pano) — boş yanıt.

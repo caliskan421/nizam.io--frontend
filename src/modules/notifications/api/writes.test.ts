@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
+import { makeNotification } from '@/shared/api/__tests__/defaults'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import {
@@ -28,22 +29,25 @@ afterEach(resetAll)
 afterAll(() => server.close())
 beforeEach(signIn)
 
-const row = (id: string, read: boolean) => ({
-  id,
-  type: 'work.item.created',
-  subject_ref: { kind: 'work_item', id: `w-${id}` },
-  is_read: read,
-  created_at: '2026-11-14T08:00:00Z',
-})
+const row = (id: string, read: boolean) =>
+  makeNotification({
+    id,
+    subject_ref: { kind: 'work_item', id: `w-${id}` },
+    is_read: read,
+    created_at: '2026-11-14T08:00:00Z',
+  })
 
 /** Sunucu durumu: okunmamış kümesi; okundu yazması onu azaltır. */
 function fakeServer() {
   const unread = new Set(['1', '2', '3'])
   server.use(
-    http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: unread.size })),
+    http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+      json({ count: unread.size, awaiting_count: 0 }),
+    ),
     http.get(`${ORIGIN}/v1/notifications`, () =>
       json({
         items: ['1', '2', '3'].map((id) => row(id, !unread.has(id))),
+        awaiting_count: 0,
         unread_count: unread.size,
       }),
     ),
@@ -176,7 +180,11 @@ describe('Web Push cihaz kaydı (yalnız api katmanı; arayüz W159)', () => {
       }),
     )
     const m = mountSetup(() => ({ reg: useRegisterPushTarget(), count: useUnreadNotifications() }))
-    server.use(http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: 1 })))
+    server.use(
+      http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+        json({ count: 1, awaiting_count: 0 }),
+      ),
+    )
     await settleQueries(m.client)
     const before = sent('GET', '/v1/notifications/unread-count').length
     const out = await m.result.reg.submit({

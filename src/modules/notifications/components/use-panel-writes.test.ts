@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { makeNotification } from '@/shared/api/__tests__/defaults'
 import { useToast } from '@/shared/ui'
 
 import {
@@ -26,14 +27,7 @@ afterEach(() => {
 afterAll(() => server.close())
 beforeEach(signIn)
 
-const item = (over: Partial<NotificationItem> = {}): NotificationItem => ({
-  id: 'n1',
-  type: 'work.item.created',
-  subject_ref: { kind: 'work_item', id: 'w-1' },
-  is_read: false,
-  created_at: '2026-11-14T08:55:00Z',
-  ...over,
-})
+const item = (over: Partial<NotificationItem> = {}): NotificationItem => makeNotification(over)
 
 function setup() {
   const navigate = vi.fn()

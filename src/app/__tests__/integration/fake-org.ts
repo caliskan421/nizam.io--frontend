@@ -264,7 +264,9 @@ function authHandlers(db: OrgDb) {
     }),
     http.post(`${ORIGIN}/v1/auth/logout`, () => new HttpResponse(null, { status: 204 })),
     http.post(`${ORIGIN}/v1/auth/refresh`, () => envelope('identity.session_invalid', 401)),
-    http.get(`${ORIGIN}/v1/notifications/unread-count`, () => json({ count: 0 })),
+    http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+      json({ count: 0, awaiting_count: 0 }),
+    ),
     // F7: kenar menüsü Mesajlar rozeti (hesap geneli özet); entegrasyon senaryolarında okunmamış yok.
     http.get(`${ORIGIN}/v1/me/chat-unread`, () => json({ items: [] })),
   ]

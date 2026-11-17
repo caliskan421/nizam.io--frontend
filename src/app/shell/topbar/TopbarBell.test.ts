@@ -5,6 +5,11 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import {
+  makeNotification,
+  makeNotificationList,
+  makeNotificationUnreadCount,
+} from '@/shared/api/__tests__/defaults'
 import { UNREAD_NOTIFICATIONS_KEY } from '@/modules/notifications/public'
 import { authSession } from '@/shared/http'
 import { settleQueries } from '@/shared/http/__tests__/settle'
@@ -15,28 +20,32 @@ import TopbarBell from './TopbarBell.vue'
 const ORIGIN = 'http://localhost'
 const server = setupServer(
   http.get(`${ORIGIN}/v1/notifications`, () =>
-    HttpResponse.json({
-      items: [
-        {
-          id: 'n1',
-          type: 'collaboration.meeting.created',
-          subject_ref: { kind: 'meeting', id: 'm-9' },
-          is_read: false,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: 'n2',
-          type: 'organization.membership.assigned',
-          subject_ref: { kind: 'membership', id: 'x' },
-          is_read: true,
-          created_at: new Date().toISOString(),
-        },
-      ],
-      unread_count: 1,
-    }),
+    HttpResponse.json(
+      makeNotificationList({
+        items: [
+          makeNotification({
+            id: 'n1',
+            type: 'collaboration.meeting.created',
+            subject_ref: { kind: 'meeting', id: 'm-9' },
+            is_read: false,
+            created_at: new Date().toISOString(),
+          }),
+          makeNotification({
+            id: 'n2',
+            type: 'organization.membership.assigned',
+            subject_ref: { kind: 'membership', id: 'x' },
+            is_read: true,
+            created_at: new Date().toISOString(),
+          }),
+        ],
+        unread_count: 1,
+      }),
+    ),
   ),
   http.post(`${ORIGIN}/v1/notifications/n1/read`, () => new HttpResponse(null, { status: 204 })),
-  http.get(`${ORIGIN}/v1/notifications/unread-count`, () => HttpResponse.json({ count: 1 })),
+  http.get(`${ORIGIN}/v1/notifications/unread-count`, () =>
+    HttpResponse.json(makeNotificationUnreadCount({ count: 1 })),
+  ),
 )
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
