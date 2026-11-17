@@ -38,7 +38,7 @@ function setup() {
     queryKeys.workItems.list(scope, {}),
     queryKeys.workItems.files(scope, 'w1'),
     queryKeys.deletedWorkItems.list(scope, {}),
-    queryKeys.archive.list(scope, 'files', {}),
+    queryKeys.archive.list(scope, 'attachments', {}),
   ])
   for (const key of affected) client.setQueryData(key, 1)
   return { app, client, write, affected }
