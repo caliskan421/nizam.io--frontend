@@ -28,6 +28,8 @@ describe('UiIcon', () => {
 
   it('Kullanıcılar simgeleri tasarım kaynağındaki yollar (Kullanicilar.dc.html; unlock = lock gövdesi)', () => {
     expect(ICONS.download).toBe('M12 4v11M7 10l5 5 5-5M5 20h14')
+    expect(ICONS['bell-off'].startsWith(ICONS.bell)).toBe(true)
+    expect(ICONS['bell-off'].endsWith('M4 4l16 16')).toBe(true)
     expect(ICONS.mail).toBe('M3 6h18v12H3zM3 7l9 6 9-6')
     expect(ICONS.lock).toBe('M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4')
     expect(ICONS.unlock.startsWith('M6 11h12v10H6z')).toBe(true)

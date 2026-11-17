@@ -95,7 +95,7 @@ const badgeLabel = computed(() =>
           role="img"
           :aria-label="chatText('chat.list.mutedBadge')"
         >
-          <UiIcon name="bell" size="sm" />
+          <UiIcon name="bell-off" size="sm" />
         </span>
         <span
           v-if="isSystemGroup(chat)"

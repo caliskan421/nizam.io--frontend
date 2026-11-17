@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { makeChatLastMessage, makeChatSummary } from '@/shared/api/__tests__/defaults'
 
 import type { ChatSummary } from '../../model/types'
+import { ICONS } from '@/shared/ui/icons'
+
 import ChatRow from './ChatRow.vue'
 
 const base: ChatSummary = makeChatSummary({ created_at: '2026-11-01T08:00:00Z' })
@@ -54,6 +56,9 @@ describe('ChatRow', () => {
       'Bildirimler kapalı',
     )
     expect(muted.get('.chat-row__badge').text()).toBe('4')
+    const d = muted.get('[data-testid="chat-row-muted"] path').attributes('d')
+    expect(d).toBe(ICONS['bell-off'])
+    expect(d).not.toBe(ICONS.bell)
     expect(
       mountRow({ notify_level: 'mentions' }).find('[data-testid="chat-row-muted"]').exists(),
     ).toBe(false)
