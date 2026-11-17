@@ -4,12 +4,16 @@
  * kaymaz). Ayırıcı `unread_count`'tan ya da `read_seq`'ten TÜRETİLMEZ (üyelik başlangıcı ve
  * kendi mesajı kuralları sunucudadır); `unread_count` yalnız ayırıcı metnindeki sayıdır. Çapa
  * yüklü pencerede yoksa pencere `around=<first_unread_seq>` ile yeniden kurulur; pencere boş
- * kalırsa ayırıcı çizilmez. Özet henüz yoksa (derin bağlantı) çözüm beklenir.
+ * kalırsa ayırıcı çizilmez. Bağlantıyla gelinen açık hedef (`?mesaj=<seq>`) varsayılan okunmamış
+ * açılışından önceliklidir: pencere HEDEFE kurulur, çapa yalnız ayırıcı konumu olarak dondurulur
+ * (çapa pencereye sonradan girerse ayırıcı çizilir); okunmamışa atlama yapılmaz. Özet henüz yoksa (derin bağlantı) çözüm beklenir.
  */
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { useChats } from '../../api/queries'
 import { useChatPage } from '../../model/context'
+import { linkTargetSeq } from './link-target'
 import { useThread } from './use-thread'
 
 interface Frozen {
@@ -31,6 +35,7 @@ async function openAround(
 export function useUnreadAnchor() {
   const page = useChatPage()
   const thread = useThread()
+  const route = useRoute()
   const chats = useChats('')
   const summary = computed(
     () => chats.items.value.find((c) => c.chat_id === thread.chatId.value) ?? null,
@@ -48,6 +53,10 @@ export function useUnreadAnchor() {
       return
     }
     if (page.messages.query.isPending.value || page.messages.query.isError.value) return
+    if (linkTargetSeq(route.query.mesaj) !== null) {
+      frozen.value = { chatId: id, seq, count: current.unread_count }
+      return
+    }
     resolving = id
     const found = await openAround(page.messages, seq)
     resolving = null

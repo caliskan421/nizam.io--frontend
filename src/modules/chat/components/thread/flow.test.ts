@@ -228,6 +228,21 @@ describe('okunmamış ayırıcı ve pencere', () => {
     expect(fake.reads).toHaveLength(before)
   })
 
+  it('açık `?mesaj=` hedefi okunmamış açılışından önceliklidir: `around=first_unread_seq` okunmaz, hedef korunur', async () => {
+    const { fake } = servePane({
+      summary: { unread_count: 190, first_unread_seq: 10 },
+      messages: range(1, 200),
+    })
+    const { wrapper, client } = await mountPane({ path: '/mesajlar/c1?mesaj=150' })
+    await settle(client)
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-seq="150"].msg-row--focus').exists()).toBe(true),
+    )
+    expect(fake.reads.some((r) => r.around === 150)).toBe(true)
+    expect(fake.reads.some((r) => r.around === 10)).toBe(false)
+    expect(wrapper.find('[data-seq="150"]').exists()).toBe(true)
+  })
+
   it('yeni mesaj SSE yankısıyla gelince akışa eklenir; "yazıyor" başlıkta görünür', async () => {
     const { fake } = servePane({
       members: [

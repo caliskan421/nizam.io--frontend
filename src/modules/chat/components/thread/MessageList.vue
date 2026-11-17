@@ -9,6 +9,7 @@ import { UiButton } from '@/shared/ui'
 import { useChatPage } from '../../model/context'
 import { chatText } from '../../messages'
 import { buildEntries } from './grouping'
+import { linkTargetSeq } from './link-target'
 import { dayName, fullDay } from './format'
 import MessageRow from './MessageRow.vue'
 import { useReadMarker } from './use-read-marker'
@@ -88,8 +89,8 @@ watch(
 watch(
   () => [route.query.mesaj, thread.chatId.value] as const,
   ([raw]) => {
-    const seq = Number(typeof raw === 'string' ? raw : '')
-    if (Number.isInteger(seq) && seq > 0) void thread.goTo(seq)
+    const seq = linkTargetSeq(raw)
+    if (seq !== null) void thread.goTo(seq)
   },
   { immediate: true },
 )
