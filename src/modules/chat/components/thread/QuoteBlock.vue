@@ -9,8 +9,8 @@ import { useThread } from './use-thread'
 
 /**
  * Alıntı (E-10-29): yazar adı + tek satır gövde (`deleted` → "silinmiş mesaj"). Tık: yanıtlanan
- * mesaj yüklü pencerede varsa kaydırır + vurgular; yoksa en çok 3 `before` sayfası aranır, yine
- * bulunamazsa sessiz kalır (`ChatMessageQuote`'ta `seq` yok, `around` kurulamaz — BE-162).
+ * mesaj yüklü pencerede varsa kaydırır + vurgular; yoksa pencere `listChatMessages?around=<reply_to.seq>`
+ * ile kurulur (BE-162; `before` araması yok). Silinmiş alıntıda (`seq` null) düğme devre dışıdır.
  */
 const props = defineProps<{ quote: ChatMessageQuote }>()
 const thread = useThread()
@@ -34,8 +34,8 @@ const text = computed(() =>
     type="button"
     class="chat-quote"
     :title="chatText('chat.thread.quote')"
-    :disabled="quote.deleted"
-    @click="void thread.goToMessage(quote.message_id)"
+    :disabled="quote.deleted || quote.seq === null"
+    @click="quote.seq !== null && void thread.goTo(quote.seq)"
   >
     <strong>{{ author }}</strong>
     <span class="chat-quote__text" :class="{ 'chat-bub__gone': quote.deleted }">{{ text }}</span>

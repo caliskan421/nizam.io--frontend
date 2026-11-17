@@ -1,6 +1,7 @@
 // W160 · O3 senaryo 1 (a): sohbet penceresi — liste → seç → mesajlar (seq penceresi, daha eski
-// yükle, alıntıya git ≤ 3 sayfa, okunmamış çapası) ve okundu türevleri (liste rozeti, sekme sayacı,
+// yükle, alıntıya `around=<reply_to.seq>` ile git (BE-162), okunmamış çapası `first_unread_seq`, BE-082) ve okundu türevleri (liste rozeti, sekme sayacı,
 // kenar menüsü rozeti; KESİN 29). Gerçek router/AppShell/oturum + durumlu sahte sunucu.
+import { http } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { addMessage } from './fake-chat'
@@ -13,6 +14,8 @@ import {
   boot,
   chatOf,
   GROUP,
+  DIRECT_OTHERS,
+  ORIGIN,
   MEMBER,
   ADMIN,
   fakeClock,
@@ -71,7 +74,7 @@ describe('liste → konuşma → pencere', () => {
     expect($$('.msg-list__more')).toHaveLength(0)
   })
 
-  it('alıntıya git: yüklü olmayan hedef ≤ 3 `before` sayfasında bulunur ve vurgulanır', async () => {
+  it('alıntıya git: yüklü olmayan hedef `around=<reply_to.seq>` ile tek okumada yüklenir ve vurgulanır', async () => {
     const group = chatOf(GROUP)
     addPeerReply(GROUP, 2, 'coord', 'Bunu ele alalım')
     const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
@@ -80,11 +83,65 @@ describe('liste → konuşma → pencere', () => {
     expect(seqsOnScreen()).not.toContain(2)
     await userClick(() => $('.chat-quote'))
     await until(() => seqsOnScreen().includes(2), 'hedef yüklendi')
-    expect(
-      sent('GET', `/v1/chats/${GROUP}/messages`).filter((r) => r.query.has('before')),
-    ).toHaveLength(1)
+    const reads = sent('GET', `/v1/chats/${GROUP}/messages`)
+    expect(reads.filter((r) => r.query.get('around') === '2')).toHaveLength(1)
+    expect(reads.filter((r) => r.query.has('before'))).toHaveLength(0)
     expect($('.msg-row--focus')?.dataset.seq).toBe('2')
     expect(group.messages).toHaveLength(61)
+  })
+})
+
+describe('okunmamış açılışı (BE-082)', () => {
+  it('ilk okunmamış son sayfanın dışındaysa pencere `around=first_unread_seq` ile kurulur; ayırıcı o mesajın üstünde', async () => {
+    chatOf(GROUP).reads[WHO.member.account_id] = 5
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
+    await until(() => $('[data-testid="chat-unread"]'), 'okunmamış ayırıcı')
+    await idle(app.queryClient)
+    const reads = sent('GET', `/v1/chats/${GROUP}/messages`)
+    expect(reads.filter((r) => r.query.get('around') === '6')).toHaveLength(1)
+    expect(reads.filter((r) => r.query.has('before'))).toHaveLength(0)
+    expect(seqsOnScreen()).toContain(6)
+    const divider = $('[data-testid="chat-unread"]')!
+    const first = $('[data-seq="6"]')!
+    expect(divider.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(divider.textContent).toContain('55')
+  })
+
+  it('geciken okunmamış penceresi başka sohbete geçince uygulanmaz', async () => {
+    chatOf(GROUP).reads[WHO.member.account_id] = 5
+    let release!: () => void
+    let arrived!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const reached = new Promise<void>((resolve) => (arrived = resolve))
+    backend.server.use(
+      http.get(`${ORIGIN}/v1/chats/${GROUP}/messages`, async ({ request }) => {
+        if (new URL(request.url).searchParams.get('around') !== '6') return undefined
+        arrived()
+        await gate
+        return undefined
+      }),
+    )
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
+    await reached
+    await app.router.push(`/mesajlar/${DIRECT_OTHERS}`)
+    await until(() => app.router.currentRoute.value.path.endsWith(DIRECT_OTHERS), 'diğer sohbet')
+    release()
+    await idle(app.queryClient)
+    expect(app.router.currentRoute.value.path).toBe(`/mesajlar/${DIRECT_OTHERS}`)
+    expect($('[data-testid="chat-unread"]')?.textContent).toContain('1 okunmamış')
+    expect(seqsOnScreen()).not.toContain(6)
+  })
+
+  it('hepsi okunmuş: sunucu `first_unread_seq` null → ayırıcı yok, `around` okuması yok', async () => {
+    const group = chatOf(GROUP)
+    group.reads[WHO.member.account_id] = group.last_seq
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
+    await until(() => messageEls().length > 0, 'mesajlar')
+    await idle(app.queryClient)
+    expect($('[data-testid="chat-unread"]')).toBeNull()
+    expect(sent('GET', `/v1/chats/${GROUP}/messages`).some((r) => r.query.has('around'))).toBe(
+      false,
+    )
   })
 })
 
@@ -101,29 +158,33 @@ describe('derin bağlantı ve uzak alıntı', () => {
     expect(Math.min(...seqsOnScreen())).toBeLessThanOrEqual(5)
   })
 
-  it('alıntı hedefi 3 sayfadan uzaksa: tam 3 `before` okuması, sessiz kalır (bildirim yok)', async () => {
+  it('derin bağlantı okunmamış çapasıyla farklıysa hedef korunur', async () => {
+    chatOf(GROUP).reads[WHO.member.account_id] = 5
+    const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}?mesaj=55` })
+    await until(() => $('.msg-row--focus')?.dataset.seq === '55', 'derin hedef')
+    await idle(app.queryClient)
+    expect(seqsOnScreen()).toContain(55)
+    expect(
+      sent('GET', `/v1/chats/${GROUP}/messages`).some((r) => r.query.get('around') === '6'),
+    ).toBe(false)
+  })
+
+  it('çok uzak alıntı (330 mesaj geride): yine tek `around` okuması, `before` zinciri yok', async () => {
     const group = chatOf(GROUP)
     for (let i = 61; i <= 330; i += 1) addMessage(group, WHO.coord, `Mekanik mesaj ${i}`)
     addPeerReply(GROUP, 1, 'second', 'Çok eski bir mesaja yanıt')
-    // Okunmamış çapası aramasının ek sayfa okumaları karışmasın: hepsi okunmuş.
     group.reads[WHO.member.account_id] = group.last_seq
     const app = await boot({ ...MEMBER, path: `/mesajlar/${GROUP}` })
     await until(() => $('.chat-quote'), 'alıntı')
     await idle(app.queryClient)
     await userClick(() => $('.chat-quote'))
-    await until(
-      () =>
-        sent('GET', `/v1/chats/${GROUP}/messages`).filter((r) => r.query.has('before')).length ===
-        3,
-      '3 sayfa',
-    )
+    await until(() => seqsOnScreen().includes(1), 'hedef yüklendi')
     await idle(app.queryClient)
-    expect(seqsOnScreen()).not.toContain(1)
-    expect($('.msg-row--focus')).toBeNull()
+    const reads = sent('GET', `/v1/chats/${GROUP}/messages`)
+    expect(reads.filter((r) => r.query.get('around') === '1')).toHaveLength(1)
+    expect(reads.filter((r) => r.query.has('before'))).toHaveLength(0)
+    expect($('.msg-row--focus')?.dataset.seq).toBe('1')
     expect(toasts()).toBe('')
-    expect(
-      sent('GET', `/v1/chats/${GROUP}/messages`).filter((r) => r.query.has('before')),
-    ).toHaveLength(3)
   })
 })
 

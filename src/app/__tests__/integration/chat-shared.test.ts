@@ -204,7 +204,7 @@ describe('bildirim seviyesi (BE-027 ayar yüzü)', () => {
     select().value = 'mentions'
     select().dispatchEvent(new Event('change'))
     await until(() => sent('PUT', `/v1/chats/${GROUP}/notification-level`).length === 1, 'PUT')
-    expect(chatOf(GROUP).notify![WHO.coord.account_id]).toBe('mentions')
+    expect(chatOf(GROUP).notify_levels![WHO.coord.account_id]).toBe('mentions')
     await until(() => sent('GET', '/v1/chats').length > lists, 'liste yeniden okundu')
     await until(() => select().value === 'mentions', 'ayrıntı yeniden okundu')
     await idle(app.queryClient)

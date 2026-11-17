@@ -27,8 +27,8 @@ export interface FakeChat {
   program_id: string
   kind: 'direct' | 'group'
   name: string | null
-  auto_kind: 'department' | 'general' | null
-  source: 'none' | 'department' | 'program'
+  auto_kind: 'department' | 'general' | 'coordinators' | null
+  source: 'none' | 'department' | 'program' | 'coordinators'
   source_department_id: string | null
   created_by: string
   created_at: string
@@ -38,8 +38,8 @@ export interface FakeChat {
   reads: Record<string, number>
   /** Son atanan `seq` (silinse de azalmaz). */
   last_seq: number
-  /** Hesap → bildirim seviyesi (BE-027; yoksa `all` ve alan dönmez). */
-  notify?: Record<string, 'all' | 'mentions' | 'none'>
+  /** Hesap → bildirim seviyesi (BE-027; getChat/liste `notify_level`, yoksa `all`). */
+  notify_levels?: Record<string, 'all' | 'mentions' | 'none'>
 }
 
 export type SendFault = 'ok' | 'unavailable' | 'lost-response'
@@ -274,7 +274,7 @@ export function chatView(db: OrgDb, chat: FakeChat, viewer: string) {
     last_seq: chat.last_seq,
     name: chat.name,
     role: roleOf(chat, viewer) ?? 'member',
-    ...(chat.notify?.[viewer] ? { notify_level: chat.notify[viewer] } : {}),
+    notify_level: chat.notify_levels?.[viewer] ?? ('all' as const),
     source: chat.source,
     source_department_id: chat.source_department_id,
   }

@@ -4,15 +4,19 @@ import { makeChatLastMessage, makeChatSummary } from '@/shared/api/__tests__/def
 
 import type { ChatSummary } from '../../model/types'
 import {
-  applyFilter,
   avatarOf,
   badgeCount,
   chatTime,
   chatTitle,
+  isCoordinatorsGroup,
+  isMuted,
   isSystemGroup,
+  listTick,
   parseFilter,
   previewOf,
+  serverFilter,
 } from './chat-view'
+import * as chatViewModule from './chat-view'
 
 function chat(over: Partial<ChatSummary> = {}): ChatSummary {
   return makeChatSummary({ created_at: '2026-11-01T08:00:00Z', ...over })
@@ -22,18 +26,12 @@ const last = (over: Partial<NonNullable<ChatSummary['last_message']>> = {}) =>
   makeChatLastMessage({ created_at: '2026-11-14T08:00:00Z', sender_name: 'Ali Veli', ...over })
 
 describe('süzgeç (E-10-06)', () => {
-  const items = [
-    chat({ chat_id: 'a', kind: 'group', unread_count: 2 }),
-    chat({ chat_id: 'b', kind: 'direct', name: null, counterpart_name: 'Ayşe', unread_count: 0 }),
-    chat({ chat_id: 'c', kind: 'direct', name: null, counterpart_name: 'Can', unread_count: 5 }),
-  ]
-  const ids = (list: ChatSummary[]) => list.map((c) => c.chat_id)
-
-  it('Tümü sıralamayı değiştirmez; diğerleri yalnız yüklenen satırları süzer', () => {
-    expect(ids(applyFilter(items, 'all'))).toEqual(['a', 'b', 'c'])
-    expect(ids(applyFilter(items, 'unread'))).toEqual(['a', 'c'])
-    expect(ids(applyFilter(items, 'groups'))).toEqual(['a'])
-    expect(ids(applyFilter(items, 'people'))).toEqual(['b', 'c'])
+  it('sekme → sunucu süzgeci (BE-081); "Tümü" süzgeçsizdir, istemci süzgeci yoktur', () => {
+    expect(serverFilter('all')).toEqual({})
+    expect(serverFilter('unread')).toEqual({ unread: true })
+    expect(serverFilter('groups')).toEqual({ kind: 'group' })
+    expect(serverFilter('people')).toEqual({ kind: 'direct' })
+    expect('applyFilter' in chatViewModule).toBe(false)
   })
 
   it('URL değeri: bilinenler eşlenir, bilinmeyen/çoklu/boş "Tümü"dür (sessiz)', () => {
@@ -48,13 +46,17 @@ describe('süzgeç (E-10-06)', () => {
 })
 
 describe('K-1 pin v0.25: coordinators / bilinmeyen kaynak geri düşüşü (ADR-0051)', () => {
-  it('coordinators avatarı çizilmez: serbest grup gibi 2 baş harf; bölüm/genel kodu çıkmaz', () => {
+  it('coordinators (BE-160): sistem avatarı "K" (bölüm/genel kodu çıkmaz); bilinmeyen değer serbest grup', () => {
     const coordinators = chat({
       auto_kind: 'coordinators',
       source: 'coordinators',
       name: 'Koordinatörler',
     })
-    expect(avatarOf(coordinators, 'sis')).toEqual({ kind: 'grp', text: 'K' })
+    expect(avatarOf(coordinators, 'sis')).toEqual({ kind: 'sys', text: 'K' })
+    expect(avatarOf(chat({ source: 'coordinators', name: 'Koordinatörler' }))).toEqual({
+      kind: 'sys',
+      text: 'K',
+    })
     // Bilinmeyen gelecekteki değer de aynı geri düşüşü alır.
     const unknown = chat({
       auto_kind: 'yeni_tur' as ChatSummary['auto_kind'],
@@ -67,6 +69,27 @@ describe('K-1 pin v0.25: coordinators / bilinmeyen kaynak geri düşüşü (ADR-
   it('kendiliğinden kurulan (auto_kind dolu) grup sistem grubu sayılır; null değil', () => {
     expect(isSystemGroup(chat({ auto_kind: 'coordinators' }))).toBe(true)
     expect(isSystemGroup(chat({ auto_kind: null }))).toBe(false)
+    expect(isSystemGroup(chat({ auto_kind: 'yeni_tur' as ChatSummary['auto_kind'] }))).toBe(false)
+    expect(isCoordinatorsGroup(chat({ source: 'coordinators' }))).toBe(true)
+    expect(isCoordinatorsGroup(chat({ auto_kind: 'general' }))).toBe(false)
+  })
+
+  it('liste tiki (BE-082 peer_read_seq): yalnız birebirde son mesajım; imleç ≥ seq → read', () => {
+    const mineLast = last({ sender_account_id: 'u1', seq: 7 })
+    const dm = (over: Partial<ChatSummary>) =>
+      chat({ kind: 'direct', name: null, last_message: mineLast, ...over })
+    expect(listTick(dm({ peer_read_seq: 7 }), 'u1')).toBe('read')
+    expect(listTick(dm({ peer_read_seq: 6 }), 'u1')).toBe('sent')
+    expect(listTick(dm({ peer_read_seq: null }), 'u1')).toBeNull()
+    expect(listTick(dm({ kind: 'group', peer_read_seq: 9 }), 'u1')).toBeNull()
+    expect(listTick(dm({ peer_read_seq: 9, last_message: last({ seq: 7 }) }), 'u1')).toBeNull()
+    expect(listTick(dm({ peer_read_seq: 9 }), null)).toBeNull()
+  })
+
+  it('sessiz rozeti yalnız notify_level none (BE-027 liste yüzü); yoksa all', () => {
+    expect(isMuted(chat({ notify_level: 'none' }))).toBe(true)
+    expect(isMuted(chat({ notify_level: 'mentions' }))).toBe(false)
+    expect(isMuted(chat({ notify_level: undefined }))).toBe(false)
   })
 })
 
@@ -133,15 +156,30 @@ describe('rozet ve önizleme (E-10-12, E-10-14)', () => {
     })
   })
 
-  it('silinmiş → "silinmiş mesaj"; gövde boş (ek) → "Dosya"', () => {
+  it('silinmiş → "silinmiş mesaj"; tür `last_message.kind`\'dan (BE-086): ek → "Dosya", anket → "Anket"', () => {
     expect(previewOf(chat({ last_message: last({ deleted: true, body: null }) }), 'u1')).toEqual({
       prefix: '',
       text: 'silinmiş mesaj',
     })
-    expect(previewOf(chat({ last_message: last({ body: '' }) }), 'u1')).toEqual({
-      prefix: 'Ali: ',
-      text: 'Dosya',
-    })
+    expect(previewOf(chat({ last_message: last({ kind: 'attachment', body: '' }) }), 'u1')).toEqual(
+      { prefix: 'Ali: ', text: 'Dosya' },
+    )
+    expect(
+      previewOf(
+        chat({ last_message: last({ kind: 'attachment', body: null, attachment_count: 3 }) }),
+        'u1',
+      )?.text,
+    ).toBe('3 dosya')
+    expect(
+      previewOf(chat({ last_message: last({ kind: 'attachment', body: 'Şartname' }) }), 'u1')?.text,
+    ).toBe('Şartname')
+    expect(
+      previewOf(chat({ last_message: last({ kind: 'poll', body: 'Hangi gün?' }) }), 'u1')?.text,
+    ).toBe('Anket')
+  })
+
+  it('eski yol yok: kind=text iken boş gövde "Dosya" SAYILMAZ (gövde sezgisi kalktı)', () => {
+    expect(previewOf(chat({ last_message: last({ kind: 'text', body: '' }) }), 'u1')?.text).toBe('')
   })
 
   it('oturum hesabı bilinmiyorsa kimse "Sen" sayılmaz', () => {

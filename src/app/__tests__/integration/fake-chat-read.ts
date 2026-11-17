@@ -81,11 +81,17 @@ function summary(db: OrgDb, chat: FakeChat, me: string) {
       : null,
     first_unread_seq: firstUnreadSeq(chat, me),
     mentioned: mentionedIn(chat, me),
-    notify_level: 'all' as const,
+    notify_level: chat.notify_levels?.[me] ?? ('all' as const),
     peer_read_seq: peerRead(chat, me),
     read_seq: chat.reads[me] ?? 0,
     unread_count: unreadOf(chat, me),
   }
+}
+
+/** `kind` ∈ {direct, group}, `unread` ∈ {true, false}; başka değer 422 (sözleşme). */
+function validFilter(kind: string | null, unread: string | null): boolean {
+  const kindOk = kind === null || kind === 'direct' || kind === 'group'
+  return kindOk && (unread === null || unread === 'true' || unread === 'false')
 }
 
 function listHandler(db: OrgDb, state: ChatState) {
@@ -96,9 +102,14 @@ function listHandler(db: OrgDb, state: ChatState) {
     if (!inProgram(db, me, program)) return envelope('messaging.not_authorized', 403)
     const query = new URL(request.url).searchParams
     const needle = (query.get('q') ?? '').toLocaleLowerCase('tr')
+    const kind = query.get('kind')
+    const unread = query.get('unread')
+    if (!validFilter(kind, unread)) return envelope('messaging.input_invalid', 422)
     const rows = state.chats
       .filter((c) => c.program_id === program && isMember(c, me.account_id))
       .map((c) => summary(db, c, me.account_id))
+      .filter((c) => kind === null || c.kind === kind)
+      .filter((c) => unread !== 'true' || c.unread_count > 0)
       .filter(
         (c) =>
           needle === '' ||

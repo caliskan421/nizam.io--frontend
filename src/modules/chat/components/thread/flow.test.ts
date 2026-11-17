@@ -73,9 +73,9 @@ describe('okundu işaretleme', () => {
 })
 
 describe('okunmamış ayırıcı ve pencere', () => {
-  it('girişte unread_count kadar başkasının mesajı sayılır; ayırıcı ilkinin üstünde', async () => {
+  it('ayırıcı sunucu `first_unread_seq` mesajının üstüne çizilir; metindeki sayı `unread_count`', async () => {
     servePane({
-      summary: { unread_count: 2 },
+      summary: { unread_count: 2, first_unread_seq: 2 },
       messages: [
         msg(1),
         msg(2),
@@ -92,15 +92,46 @@ describe('okunmamış ayırıcı ve pencere', () => {
     expect(wrapper.get('[data-testid="chat-unread"]').text()).toBe('2 okunmamış mesaj')
   })
 
-  it('çapa yüklü pencerede yoksa ek before sayfaları okunur (en çok 3); bulunamazsa ayırıcı yok', async () => {
-    const many = range(1, 120)
-    const { fake } = servePane({ summary: { unread_count: 900 }, messages: many })
+  it('çapa yüklü pencerede yoksa pencere `around=first_unread_seq` ile kurulur; `before` araması yok', async () => {
+    const { fake } = servePane({
+      summary: { unread_count: 900, first_unread_seq: 10 },
+      messages: range(1, 120),
+    })
     const { wrapper, client } = await mountPane()
     await settle(client)
-    await vi.waitFor(() =>
-      expect(fake.reads.filter((r) => r.before !== undefined).length).toBeGreaterThan(0),
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="chat-unread"]').exists()).toBe(true))
+    expect(fake.reads.some((r) => r.around === 10)).toBe(true)
+    expect(fake.reads.filter((r) => r.before !== undefined)).toHaveLength(0)
+    const html = wrapper.get('.msg-list').element.innerHTML
+    expect(html.indexOf('data-seq="10"')).toBeGreaterThan(html.indexOf('data-testid="chat-unread"'))
+  })
+
+  it('eski yol yok: `first_unread_seq` null iken `unread_count` > 0 olsa da ayırıcı türetilmez', async () => {
+    const { fake } = servePane({
+      summary: { unread_count: 3, first_unread_seq: null },
+      messages: range(1, 10),
+    })
+    const { wrapper, client } = await mountPane()
+    await settle(client)
+    expect(wrapper.find('[data-testid="chat-unread"]').exists()).toBe(false)
+    expect(fake.reads.filter((r) => r.before !== undefined || r.around !== undefined)).toHaveLength(
+      0,
     )
-    expect(fake.reads.filter((r) => r.before !== undefined).length).toBeLessThanOrEqual(3)
+  })
+
+  it('kendi mesajım / üyelik başlangıcı: sunucu null verir → ayırıcı yok, açılış son sayfa', async () => {
+    const own = [1, 2, 3].map((n) => msg(n, { sender_account_id: 'acc-1', sender_name: undefined }))
+    servePane({ summary: { unread_count: 0, first_unread_seq: null }, messages: own })
+    const { wrapper, client } = await mountPane()
+    await settle(client)
+    expect(wrapper.find('[data-testid="chat-unread"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-testid="chat-message"]')).toHaveLength(3)
+  })
+
+  it('boş pencere: çapa var ama mesaj dönmüyorsa ayırıcı çizilmez', async () => {
+    servePane({ summary: { unread_count: 1, first_unread_seq: 5 }, messages: [] })
+    const { wrapper, client } = await mountPane()
+    await settle(client)
     expect(wrapper.find('[data-testid="chat-unread"]').exists()).toBe(false)
   })
 
@@ -145,6 +176,71 @@ describe('okunmamış ayırıcı ve pencere', () => {
     await wrapper.get('.chat-quote').trigger('click')
     await flushPromises()
     expect(wrapper.find('[data-seq="1"].msg-row--focus').exists()).toBe(true)
+  })
+
+  it('uzak alıntı: tık doğrudan `around=<reply_to.seq>` okur (before araması yok) ve hedefi vurgular', async () => {
+    const quote = (seq: number | null, deleted = false) => ({
+      message_id: 'm5',
+      body: deleted ? null : 'çok eski',
+      deleted,
+      sender_account_id: 'u2',
+      sender_name: 'Ayşe',
+      seq,
+    })
+    const all = range(1, 200)
+    all[199] = msg(200, { reply_to_message_id: 'm5', reply_to: quote(5) })
+    const { fake } = servePane({ messages: all })
+    const { wrapper, client } = await mountPane()
+    await settle(client)
+    expect(wrapper.find('[data-seq="5"]').exists()).toBe(false)
+    await wrapper.get('.chat-quote').trigger('click')
+    await settle(client)
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-seq="5"].msg-row--focus').exists()).toBe(true),
+    )
+    expect(fake.reads.filter((r) => r.around === 5)).toHaveLength(1)
+    expect(fake.reads.filter((r) => r.before !== undefined)).toHaveLength(0)
+  })
+
+  it('silinmiş alıntı (`seq` null): düğme devre dışı, okuma yok', async () => {
+    const { fake } = servePane({
+      messages: [
+        msg(1),
+        msg(2, {
+          reply_to_message_id: 'm1',
+          reply_to: {
+            message_id: 'm1',
+            body: null,
+            deleted: true,
+            sender_account_id: null,
+            sender_name: null,
+            seq: null,
+          },
+        }),
+      ],
+    })
+    const { wrapper, client } = await mountPane()
+    await settle(client)
+    const button = wrapper.get('.chat-quote')
+    expect(button.attributes('disabled')).toBeDefined()
+    const before = fake.reads.length
+    await button.trigger('click')
+    expect(fake.reads).toHaveLength(before)
+  })
+
+  it('açık `?mesaj=` hedefi okunmamış açılışından önceliklidir: `around=first_unread_seq` okunmaz, hedef korunur', async () => {
+    const { fake } = servePane({
+      summary: { unread_count: 190, first_unread_seq: 10 },
+      messages: range(1, 200),
+    })
+    const { wrapper, client } = await mountPane({ path: '/mesajlar/c1?mesaj=150' })
+    await settle(client)
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-seq="150"].msg-row--focus').exists()).toBe(true),
+    )
+    expect(fake.reads.some((r) => r.around === 150)).toBe(true)
+    expect(fake.reads.some((r) => r.around === 10)).toBe(false)
+    expect(wrapper.find('[data-seq="150"]').exists()).toBe(true)
   })
 
   it('yeni mesaj SSE yankısıyla gelince akışa eklenir; "yazıyor" başlıkta görünür', async () => {

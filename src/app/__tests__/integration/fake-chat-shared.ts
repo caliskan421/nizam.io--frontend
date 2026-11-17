@@ -143,9 +143,9 @@ function messageHandlers(db: OrgDb, state: ChatState) {
       if (isResponse(found)) return found
       const level = ((await request.json().catch(() => ({}))) as { level?: string }).level ?? ''
       if (!LEVELS.includes(level)) return envelope('messaging.input_invalid', 422)
-      const notify = { ...(found.chat.notify ?? {}) }
+      const notify = { ...(found.chat.notify_levels ?? {}) }
       notify[found.account.account_id] = level as 'all' | 'mentions' | 'none'
-      found.chat.notify = notify
+      found.chat.notify_levels = notify
       return json({ level })
     }),
   ]

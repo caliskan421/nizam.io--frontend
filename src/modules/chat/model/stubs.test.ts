@@ -23,9 +23,21 @@ const code = (name: string): string => {
 }
 
 describe('W184: canlanan satırların stub ve geçici yolu yok', () => {
-  it('CHAT_STUBS: mute, whoRead, roleBadge, sharedCounts, taskCard kalktı; forward (BE-080, W185b) durur', () => {
+  it('CHAT_STUBS: W183 (filters, ownReadSeq, lastMessageKind, coordinatorsGroup, quoteSeq) + W184 (mute, whoRead, roleBadge, sharedCounts, taskCard) kalktı; yalnız archiveSave/forward/anonymousPoll kalır', () => {
     const keys = Object.keys(CHAT_STUBS)
-    for (const gone of ['mute', 'whoRead', 'roleBadge', 'sharedCounts', 'taskCard']) {
+    expect(keys.sort()).toEqual(['anonymousPoll', 'archiveSave', 'forward'])
+    for (const gone of [
+      'filters',
+      'ownReadSeq',
+      'lastMessageKind',
+      'coordinatorsGroup',
+      'quoteSeq',
+      'mute',
+      'whoRead',
+      'roleBadge',
+      'sharedCounts',
+      'taskCard',
+    ]) {
       expect(keys).not.toContain(gone)
     }
     expect(keys).toContain('forward')

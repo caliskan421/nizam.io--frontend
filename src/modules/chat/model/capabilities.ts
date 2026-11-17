@@ -123,14 +123,16 @@ export function chatCapabilities(actor: ChatActor, chat: ChatFacts): ChatCapabil
   const manager = group && GROUP_MANAGER.includes(chat.role)
   const mine = (m: MessageFacts) => me !== null && m.senderAccountId === me
   const taskRole = canCreateTaskFromMessage(actor)
+  // "Koordinatörler" sistem grubu (BE-160): silinemez, kaynağı değişmez (409 auto_group_protected).
+  const protectedGroup = chat.autoKind === 'coordinators' || chat.source === 'coordinators'
   return {
     renameGroup: manager && chat.autoKind === null,
-    changeSource: group && chat.role === 'admin' && canChooseSource(actor),
+    changeSource: group && chat.role === 'admin' && canChooseSource(actor) && !protectedGroup,
     addMembers: manager,
     removeMember: (target) => manager && !target.fromSource,
     leaveGroup: (self) => group && !self.fromSource,
     grantAdmin: group && chat.role === 'admin',
-    deleteGroup: manager,
+    deleteGroup: manager && !protectedGroup,
     mentionAll: manager,
     createPoll: group,
     pin: chat.kind === 'direct' || manager,
