@@ -69,6 +69,7 @@ export const trNotifications = {
       subjectLine: '{code} · {title}',
       personLine: '{person} · {title}',
       groupOthers: '{first} ve {n} kişi',
+      groupOthersMore: '{first} ve diğerleri',
       groupCount: '{n} olay',
       groupActors: 'Aktörler',
       changeTo: '{from} → {to}',

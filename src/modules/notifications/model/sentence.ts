@@ -4,7 +4,8 @@
  *  - Aktör adı yoksa (`null`) genel cümle (`text`); ad UYDURULMAZ. Aktör konu maskesinden bağımsızdır.
  *  - Konu satırı yalnız `subject.state = available` iken başlık/kod taşır; `deleted` → "Bu kayıt silindi";
  *    `forbidden`/`unknown` → satır yok (başlık sızıntısı yok; `unknown` geçicidir, yeniden okunur).
- *  - Grup (`group.count ≥ 2`): "Ayşe ve 2 kişi …" (tekil aktör sayısı); kayıt sayısı metada.
+ *  - Grup (`group.count ≥ 2`): tam bilinen küçük aktör listesinde "Ayşe ve 2 kişi …"; 5 tavanı ya da
+ *    adsız aktör varsa "Ayşe ve diğerleri …" (kesin sayı uydurulmaz); kayıt sayısı metada.
  *  - Bilinmeyen `type` genel satıra düşer (sessiz düşürme yok); bilinmeyen `detail` alanı yok sayılır.
  */
 import { notificationText, type NotificationTextKey } from '../messages'
@@ -38,12 +39,25 @@ const row = (key: string, params?: Record<string, string | number>) =>
 const named = (person: Person | null | undefined): string | null =>
   person?.full_name?.trim() ? person.full_name.trim() : null
 
-/** "Ayşe ve 2 kişi" / "Ayşe"; adı bilinmeyen aktör sayılmaz. Hiç ad yoksa `null`. */
+/** Sunucu en çok 5 tekil aktör döndürür; bu sayıya ulaşan liste kesilmiş olabilir. */
+const ACTOR_CAP = 5
+
+/**
+ * "Ayşe ve 2 kişi" / "Ayşe ve diğerleri" / "Ayşe"; hiç ad yoksa `null`. Sayı yalnız liste TAM ve
+ * bütün adlar biliniyorsa söylenir (`actors` < 5 ve hiçbiri `null`); aksi halde (5 tavanı ya da
+ * adı çözülemeyen aktör) tekil aktör sayısı bilinmez, sayısız ifade kullanılır. `group.count`
+ * olay sayısıdır, aktör sayısı olarak kullanılmaz.
+ */
 function actorPhrase(item: NotificationItem): string | null {
-  const names = (item.group?.actors ?? []).map(named).filter((n): n is string => n !== null)
-  if (names.length === 0) return named(item.actor)
-  const first = names[0] ?? ''
-  return names.length > 1 ? row('groupOthers', { first, n: names.length - 1 }) : first
+  const actors = item.group?.actors ?? []
+  const names = actors.map(named).filter((n): n is string => n !== null)
+  const first = names[0]
+  if (first === undefined) return named(item.actor)
+  if (actors.length === 1) return first
+  const exact = actors.length < ACTOR_CAP && names.length === actors.length
+  return exact
+    ? row('groupOthers', { first, n: names.length - 1 })
+    : row('groupOthersMore', { first })
 }
 
 function subjectLine(item: NotificationItem): string | null {

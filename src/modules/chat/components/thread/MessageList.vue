@@ -63,7 +63,13 @@ const marker = useReadMarker({
   meId: () => thread.meId.value,
   hasNewer: () => win.value.hasNewer,
   unread: () => unread.unread.value,
+  ready: () => unread.ready.value,
 })
+// Hazır olunca (çapa çözüldü) bekleyen otomatik okundu normal gecikmeyle tek istek olarak çıkar.
+watch(
+  () => unread.ready.value,
+  (ready) => ready && marker.touch(),
+)
 watch(
   () => thread.stickBottom.value,
   async () => {
@@ -171,7 +177,11 @@ watch(open, (now, was) => {
           class="chat-sep chat-sep--new"
           data-testid="chat-unread"
         >
-          <span>{{ chatText('chat.thread.unreadDivider', { n: entry.count }) }}</span>
+          <span>{{
+            entry.count === null
+              ? chatText('chat.thread.unreadDividerGeneric')
+              : chatText('chat.thread.unreadDivider', { n: entry.count })
+          }}</span>
         </div>
         <MessageRow
           v-else

@@ -25,6 +25,12 @@ export interface ReadMarkerInput {
   hasNewer: () => boolean
   /** Okunmamış sayı (liste özetinden); özet yoksa `null` (bir kez işaretlenir). */
   unread: () => number | null
+  /**
+   * İlk iniş kararı (okunmamış çapa + ilk kaydırma) hazır mı; hazır değilken otomatik okundu
+   * ÇIKMAZ (çapa belli olmadan görünür son mesajı okumak ayırıcıyı yok eder). Hazır olunca
+   * çağıran `touch()` ile tetikler. Varsayılan: hazır.
+   */
+  ready?: () => boolean
 }
 
 /** Görünüm alanına giren, başkasına ait mesajlar (`seq` artan). */
@@ -66,7 +72,7 @@ export function useReadMarker(input: ReadMarkerInput) {
   }
 
   async function send(skip: Set<string>): Promise<void> {
-    if (disposed || !focused()) return
+    if (disposed || !focused() || !(input.ready?.() ?? true)) return
     const message = target(skip)
     if (!message) return
     const outcome = await mark.submit({

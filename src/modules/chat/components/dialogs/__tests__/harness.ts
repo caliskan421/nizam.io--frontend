@@ -164,6 +164,7 @@ function fakeContext(
       reconcile: () => Promise.resolve(),
       loadOlder: () => Promise.resolve(),
       jumpTo: () => Promise.resolve(),
+      readFirstUnread: () => Promise.resolve(undefined),
       query: { isPending: ref(false), isError: ref(false), refetch: () => Promise.resolve() },
     },
     typingAccountIds: () => [],

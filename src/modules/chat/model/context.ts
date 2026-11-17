@@ -21,6 +21,8 @@ export interface ChatPageContext {
   messages: ChatStreamMessages & {
     loadOlder: () => Promise<void>
     jumpTo: (seq: number) => Promise<void>
+    /** Giriş tazeliği: geçmişin sayfadan bağımsız `first_unread_seq` değeri (okunamazsa `undefined`). */
+    readFirstUnread: () => Promise<number | null | undefined>
     query: MessagesQueryState
   }
   /** Yazanların hesap kimlikleri (açık sohbet; ~5 sn). */

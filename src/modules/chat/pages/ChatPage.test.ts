@@ -89,7 +89,7 @@ function serve(items: unknown[] = []) {
     http.get(`${ORIGIN}/v1/chats`, () => json({ items, next_cursor: '' })),
     http.get(`${ORIGIN}/v1/me/chat-unread`, () => json({ items: [] })),
     http.get(`${ORIGIN}/v1/chats/:id/messages`, () =>
-      json({ items: range(1, 3), peer_read_seq: null }),
+      json({ items: range(1, 3), peer_read_seq: null, first_unread_seq: null }),
     ),
     http.get(`${ORIGIN}/v1/chats/c1`, () =>
       json({ chat_id: 'c1', kind: 'group', name: 'Eğitim Grubu', role: 'member' }),
@@ -152,7 +152,19 @@ describe('ChatPage (sayfa sahibi)', () => {
     expect(wrapper.get('[data-testid="chat-page"]').attributes('data-pane')).toBe('conversation')
     expect(wrapper.get('[data-testid="conversation-pane"]').attributes('data-chat-id')).toBe('c1')
     expect(sent('GET', '/v1/chats/c1')).toHaveLength(1)
-    expect(sent('GET', '/v1/chats/c1/messages')).toHaveLength(1)
+    await vi.waitFor(() => {
+      const reads = sent('GET', '/v1/chats/c1/messages')
+      const window = reads.filter((r) => r.query.get('limit') === '50')
+      const metadata = reads.filter((r) => r.query.get('limit') === '1')
+      expect(window).toHaveLength(1)
+      expect(metadata).toHaveLength(1)
+      for (const read of [...window, ...metadata]) {
+        expect(read.headers.get('X-Nizamio-Program')).toBe('p1')
+        expect(read.query.get('before')).toBeNull()
+        expect(read.query.get('after')).toBeNull()
+        expect(read.query.get('around')).toBeNull()
+      }
+    })
     expect(pageCrumb.value).toBe('Eğitim Grubu')
     await router.push('/mesajlar/c2')
     await flushPromises()

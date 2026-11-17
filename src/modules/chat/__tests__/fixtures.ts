@@ -31,7 +31,11 @@ export function seqs(items: readonly ChatMessage[]): number[] {
  * Bellek içi sunucu: `listChatMessages` anlamını (son sayfa, before, after, around, limit)
  * birebir taklit eder; mesaj eklenir/silinir/düzenlenir. Okuma sayısı `reads` ile izlenir.
  */
-export function fakeChatServer(initial: ChatMessage[], peerReadSeq: number | null = null) {
+export function fakeChatServer(
+  initial: ChatMessage[],
+  peerReadSeq: number | null = null,
+  firstUnread: { seq: number | null } = { seq: null },
+) {
   const all = new Map(initial.map((m) => [m.seq, m]))
   const reads: MessageQuery[] = []
   const sorted = () => [...all.values()].sort((a, b) => a.seq - b.seq)
@@ -52,12 +56,18 @@ export function fakeChatServer(initial: ChatMessage[], peerReadSeq: number | nul
     } else {
       items = list.slice(-limit)
     }
-    return makeChatHistory({ items: structuredClone(items), peer_read_seq: peerReadSeq })
+    return makeChatHistory({
+      items: structuredClone(items),
+      peer_read_seq: peerReadSeq,
+      first_unread_seq: firstUnread.seq,
+    })
   }
   return {
     read: (q: MessageQuery) => Promise.resolve(read(q)),
     readSync: read,
     reads,
+    /** Geçmiş cevabının sayfadan bağımsız `first_unread_seq` değeri (her sayfada döner). */
+    firstUnread,
     add: (m: ChatMessage) => void all.set(m.seq, m),
     remove: (seq: number) => void all.delete(seq),
     edit: (seq: number, over: Partial<ChatMessage>) =>

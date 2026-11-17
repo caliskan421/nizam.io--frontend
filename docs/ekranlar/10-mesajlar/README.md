@@ -331,3 +331,5 @@ W185b ek entegrasyon kanıtı: `chat-f9-integration.test.ts` kaybolan yanıt son
 ### F9 BE-027 ortak kaynak kapanışı (2026-11-17)
 
 W183 liste sessiz rozeti, W184 all/mentions/none ayarı ve W185 sohbet bildirim hedefi/okundu ilişkisi birlikte tamamlandı. Son stub ve geçici yol kalmadığından BE027 kaydı W185 ile bağlandı. Bildirim seviyesi yalnız bildirim alıcısını etkiler; sohbet okunmamış sayacı sunucu değeridir. Bağımsız son kabul ve gerçek backend tanığı ayrıca kaydedilecektir.
+
+W189 son çapa davranışı: listede henüz bulunmayan sohbette her girişte mevcut güvenli mesaj okuyucusundan tek limit1 geçmiş metadata isteği yapılır; pencere önbelleğinin eski çapası kullanılmaz. Çapa yalnız açık giriş boyunca sabittir. Sonraki girişte sunucu null veya yeni sıra döndürürse o esas alınır; scope/chat/owner/session değişen geç sonuçlar kullanılmaz. İlk iniş ve otomatik read çapa hazır olana kadar bekler. Sayı yoksa “Okunmamış mesajlar” metni kullanılır. Kontrollü yavaş metadata ve aynı QueryClient ile yeniden giriş regresyonları korunur.
