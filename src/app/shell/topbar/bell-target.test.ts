@@ -28,3 +28,32 @@ describe('zil hedefi → tipli rota konumu', () => {
     })
   })
 })
+
+describe('zil hedefi — sohbet ve günlük özet (BE-143, v0.25)', () => {
+  it('sohbet → tipli rota collaboration.chat `/mesajlar/:chatId`; seq varsa `mesaj`, `sohbet` alias yok', () => {
+    const withSeq = notificationTarget({
+      ...ref('chat', 'c-7'),
+      detail: { seq: 12 },
+      program_id: 'p1',
+    })!
+    expect(bellTargetLocation(withSeq)).toEqual({
+      name: 'collaboration.chat',
+      params: { chatId: 'c-7' },
+      query: { mesaj: '12' },
+    })
+    const noSeq = notificationTarget({ ...ref('chat', 'c-7'), program_id: 'p1' })!
+    expect(bellTargetLocation(noSeq)).toEqual({
+      name: 'collaboration.chat',
+      params: { chatId: 'c-7' },
+      query: {},
+    })
+    expect(Object.keys(bellTargetLocation(withSeq).query)).not.toContain('sohbet')
+  })
+  it('günlük özet (program) → ana sayfa', () => {
+    expect(bellTargetLocation(notificationTarget(ref('program', 'p-2'))!)).toEqual({
+      name: 'home',
+      params: {},
+      query: {},
+    })
+  })
+})
