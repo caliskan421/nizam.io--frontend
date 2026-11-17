@@ -9,7 +9,7 @@
 import { useQuery, useQueryClient, type QueryFunctionContext } from '@tanstack/vue-query'
 import { computed, onScopeDispose, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { ownerLife } from '@/shared/http/mutation'
+import { ownerLife, sameScope } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 import { useScopeStore } from '@/shared/scope/store'
 import { sessionBound } from '@/shared/session/query-session'
@@ -40,6 +40,30 @@ export function messageReader(
     fetchMessages(programId, chatId, context.query, context.signal),
   )
   return (query) => guarded({ signal, query })
+}
+
+/**
+ * Giriş okuması: tek kayıtlık sayfa; yalnız `first_unread_seq` kullanılır (pencereye yazılmaz).
+ * Pencereye yazmadığı için `windowStore` kapısından geçmez: yakalanan kapsam + sohbet ve
+ * sahip/denetleyici güncelliği burada, hem kuyruk beklemesinden sonra hem yanıttan sonra denetlenir;
+ * değişmişse sonuç `undefined` (çapa yok).
+ */
+async function readFirstUnread(
+  run: (task: (read: MessageReader, store: WindowStore) => Promise<void>) => Promise<void>,
+  scopeStore: ReturnType<typeof useScopeStore>,
+  chatId: MaybeRefOrGetter<string | null>,
+  alive: () => boolean,
+): Promise<number | null | undefined> {
+  const scope = { ...scopeStore.snapshot }
+  const id = toValue(chatId)
+  const current = () => alive() && sameScope(scope, scopeStore.snapshot) && toValue(chatId) === id
+  let seq: number | null | undefined
+  await run(async (read) => {
+    if (!current()) return
+    const first = (await read({ limit: 1 })).first_unread_seq
+    if (current()) seq = first
+  }).catch(() => undefined)
+  return seq
 }
 
 export function useChatMessages(chatId: MaybeRefOrGetter<string | null>) {
@@ -85,19 +109,11 @@ export function useChatMessages(chatId: MaybeRefOrGetter<string | null>) {
     return next
   }
 
-  /** Giriş okuması: tek kayıtlık sayfa; yalnız `first_unread_seq` kullanılır (pencereye yazılmaz). */
-  async function readFirstUnread(): Promise<number | null | undefined> {
-    let seq: number | null | undefined
-    await run(async (read) => {
-      seq = (await read({ limit: 1 })).first_unread_seq
-    }).catch(() => undefined)
-    return seq
-  }
-
   return {
     query,
     window,
-    readFirstUnread,
+    readFirstUnread: () =>
+      readFirstUnread(run, scopeStore, chatId, () => owner.alive() && !controller.signal.aborted),
     loadOlder: () => run(loadOlder),
     loadNewer: () => run(loadNewer),
     /** Alıntı/sabit/bağlantı hedefi: pencere `around=<seq>` ile yeniden kurulur. */
