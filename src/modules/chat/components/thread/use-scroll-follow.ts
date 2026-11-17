@@ -66,7 +66,8 @@ export function useScrollFollow(input: ScrollFollowInput) {
   function initial(el: HTMLElement): void {
     const selector = input.initialTarget()
     const target = selector ? el.querySelector<HTMLElement>(selector) : null
-    if (target) target.scrollIntoView?.({ block: 'start' })
+    // Ortalanır: üstte hizalanan ayırıcı yapışkan gün etiketinin altında kalırdı (ikisi de okunur).
+    if (target) target.scrollIntoView?.({ block: 'center' })
     else el.scrollTop = el.scrollHeight
     settledFor = input.chatId()
   }
