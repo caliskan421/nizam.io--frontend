@@ -104,6 +104,18 @@ Bağ: §3 `designStub` koşulu F7 statikleri için aynen geçerlidir (yeni BE ki
 
 Bağ: §3 `designStub` koşulu F8'de stub **kaldırma** yönünden de geçerlidir (KESİN 35); pin PR'ı hiçbir stub kaldırmaz (KESİN 36). Yeni BE kimlikleri BE-163'ten.
 
+**F9 eki (P77–P84, 2026-11-17).** F9 açıldı (P77, 2026-11-16) ve kapsamı v0.25'i de içerecek biçimde güncellendi (P84, kullanıcı 2026-11-17). Kapsam: tek pin `v0.23.0-api` → `v0.25.0-api` (UI değişmez) ve BE-F7 (`v0.24`) + BE-F7b (`v0.25`) ile karşılanan **sohbet/bildirim** parçalarının canlanması; yeni ekran yok. Eşleme: [web-9 canlıya alma matrisi](../yurutme/web-9/canliya-alma-matrisi.md) (28 BE satırı: 23 tam, 0 kısmi, 5 kalır).
+
+| Öğe | F9 |
+|---|---|
+| 10 Mesajlar: süzgeç sekmeleri + `total`, okunmamış ayırıcı/liste tiki, son mesaj türü, alıntıya git, "Koordinatörler" grubu, rol rozeti/üye alt yazısı, grup bilgisi sayaç/ek/görev sekmeleri, mesajdan görev kartı, mesaj bilgisi (kim okudu) + grup tiki, sessize al/bildirim seviyesi, ilet, görev arşivine de kaydet, anonim anket | **canlanır** (BE-027, 028, 029, 080…086, 160…162; W183/W184/W185b); F8'deki "değişmez" satırı kalkar |
+| 14 Bildirimler: satır sözlüğü (13 → 18 tür), hedef çözümleme (P55 soğuk bağlantı, sohbet/program hedefi), "Senden bekleyen" + `awaiting_count`, süzgeçler, satır içi karar, konu durumu, birleştirme, zamanlı türler, saklama etiketi, kaldır/konu sessize alma, sohbet bildirimi | **canlanır** (BE-142…146, 148, 149, 154…156; W185) |
+| Bildirim "Geri al" (BE-147), Tablolar bildirimi (BE-150), tercih matrisi/cihaz/sessiz saat (BE-151…153) | **değişmez** (GAP-246 kabul edilmiş sınır; Tablolar/Ü7 F9 DIŞI) |
+| Görev ekranı "kaynak mesaja git" (`getWorkItemSourceMessage`), konu sessize alma ayar listesi (`listNotificationSubjectMutes`) | **canlanır** (P86; W184 mevcut görev detayı, W185 mevcut panel alt görünümü; KESİN 37g) |
+| 01b, Takvim, Kurumsal hafıza, Tablolar (11), profil (Ü7), Ü2–Ü7, K2–K8, Asistan | **DIŞI** (P77/P84) |
+
+Bağ: pin PR'ı hiçbir stub kaldırmaz (KESİN 36/37b); sohbet/bildirim stub'ları canlandığında kayıt Durum `bağlandı (pin v0.25.0-api, F9 W18x)` yalnız son stub gidince (P81). Yeni BE kimlikleri **BE-167'den** (F9 O1'de yeni kimlik verilmedi).
+
 ## 6. Ortak sorgu anahtarları (CX-T-01)
 
 Tek anahtar fabrikası `shared/http/query-keys.ts` (F0, `scopedKey()` üzerine). Gruplar anahtarı **kendisi yazmaz**, buradan başvurur:
@@ -171,7 +183,7 @@ K3'ün yasağı: **departmanları ayrı çağrılarla birleştirerek görev list
 
 `limit` 200 **sayfa** boyutudur. İmleç bitene kadar yüklenen küme tamdır ve sayaçlar kesindir; imleç bitmemişse sayaçlar "yüklenen kayıtlar içinde" diye etiketlenir. "Toplam N" yalnız küme tamsa yazılır.
 
-## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12; P46–P53 2026-11-13; P54–P56 2026-11-14; P57–P66 2026-11-14; P67 2026-11-15; P68–P74 2026-11-15 koordinatör varsayılanı) — bağlayıcı
+## 12. Ürün sahibi kararları (2026-11-08; P12–P17 2026-11-09; P18–P19 2026-11-10; P20 2026-11-10; P21–P31 2026-11-10; P33–P45 2026-11-12; P46–P53 2026-11-13; P54–P56 2026-11-14; P57–P66 2026-11-14; P67 2026-11-15; P68–P74 2026-11-15 koordinatör varsayılanı; P77 2026-11-16 ve P84 2026-11-17 ürün sahibi; P78–P83 2026-11-16/17 koordinatör varsayılanı) — bağlayıcı
 
 `sentez.md` §4 soruları ürün sahibince cevaplandı; aşağıdakiler **kabul**dür, grup README kabul tablolarında bu numarayla anılır.
 
@@ -265,6 +277,21 @@ P67 ürün sahibi kararıdır (2026-11-15: "pin yükseltme + canlıya alma turu 
 | P73 | Gerçek backend e2e/Docker tanığı (geçici kabul) | `v0.23.0-api` imajıyla; `e2e/backend` etiketi pinle birlikte |
 | P74 | Sohbet/bildirim ve BE-F7 (geçici kabul) | `work.task.reminder` dışında sohbet/bildirim testinde değişiklik yok; BE-F7 etiketi gelirse F9'da ya da F8 kapanışı sonrası ayrı "pin v0.24" turunda |
 
+### F9 kararları P77–P84 (P77 ve P84 KESİN; P78/P79 kullanıcı süreç tercihi; P80–P83 koordinatör varsayılanı)
+
+P77 ve P84 ürün sahibi kararıdır (P77: 2026-11-16 «pinden dolayı pasif kalan özellikler varsa … bunu yükseltelim»; P84: 2026-11-17 «F9 planını v0.25'i de kapsayacak şekilde güncelle»). P78 hız politikası ve P79 güncel model/rol düzeni kullanıcı süreç tercihidir. P80–P83 koordinatör varsayılanıdır (**geçici kabul**); P85/P86 güncel yönetim ve uygulama sınırını netleştirir. Kaynak: web-9 kararlar kaydı (koordinatör, 2026-11-16/17). **P80, P81 ve P83 metinleri P84 ile v0.25'e göre güncellendi** (ilk yazımda v0.24 hedefliydi). **P79 model düzeltmesi (2026-11-17, kullanıcı):** işçi Sonnet, test Terra (gpt-6.1-terra), bağımsız denetçi Opus, koordinasyon Codex; eski Haiku/Astra atamaları geçersiz.
+
+| # | Konu | Karar |
+|---|---|---|
+| **P77** | F9 kapsamı | **KESİN:** F9 AÇILDI 2026-11-16 = pin yükseltmesi + sohbet/bildirim canlıya alma. Yeni ekran yok; Tablolar (GAP-224), 01b (BE-091), Ü7 profil, Takvim, Kurumsal hafıza, Ü2–Ü7/K2–K8, Asistan F9 DIŞI |
+| P78 | Hız politikası (kullanıcı süreç tercihi) | P76 hızlı mod F9 boyunca varsayılan: işçi yerelde yalnız etkilenen testler (tam paket CI'da), işçi başına tek duman 390+1440 koyu, gerçek backend e2e yalnız CI + tanık işçisi, geri alma teyidi yalnız Codex bulgularında, eşzamanlı en çok 2 işçi, Opus bağımsız denetim en çok 2 tur (UYGUN DEĞİL → 3), ardından Codex koordinatör kapanışı. Atlanmaz: CI, bağımsız nihai denetim, gerçek backend tanığı |
+| P79 | Model ajandası (**güncel 2026-11-17**) | İşçi Sonnet 5.5, test/doğrulama Terra, bağımsız denetçi Opus; koordinasyon Codex. Haiku/Astra atamaları uygulanmaz (ilk P79 yazımının yerine geçer) |
+| P80 | Pin tek PR (geçici kabul; **P84 ile güncel**) | KESİN 36 kalıbı: `v0.23.0-api` → **`v0.25.0-api`** (W182); `api-pin.json` + `gen:api` + sohbet/bildirim varsayılan üreticileri + kırıcı/uyum farkları ayrı commit/test + `e2e/backend/up.sh` + deploy etiketi; UI davranışı değişmez. Ara `v0.24` pini yok. `v1.0.0-rc.1` eski bir etikettir, pin hedefi değil |
+| P81 | Canlıya alma kuralı (geçici kabul; **P84 ile güncel**) | KESİN 35: `designStub` ve istemci geçici yolu kaldırılır; kayıt Durum `bağlandı (pin v0.25.0-api, F9 W18x)` yalnız son stub gidince; kısmi satır `açık`. v0.25 ile **kalanlar** yalnız BE-147 (GAP-246 kabul edilmiş sınır) ve BE-150…153 (Tablolar/Ü7); BE-027/028/029/080/085/156/160 artık `tam` |
+| P82 | SSE ve bildirim (geçici kabul) | SSE yalnız `shared/sse` (KESİN 34); yeni SSE olay türü yok; bildirimlerde SSE yok. Sohbet mesajı kalıcı bildirim zinciri üretir (ADR-0050): zil/liste pencere odağı + aralıklı tazeleme; `markChatRead` sunucuda sohbet bildirimlerini kapatır |
+| P83 | O2b bölme (geçici kabul; **P84 ile güncel**) | Eşzamanlı en çok 2 işçi: W183 sohbet A (BE-081, 082, 086, 162, 160, 027 liste yüzü), W184 sohbet B (BE-083, 084, 085, 028, 027 ayar yüzü), **W185b sohbet C (yeni işçi önerisi: BE-080, 029, 161)**, W185 bildirimler (BE-142…146, 148, 149, 154, 155, 156). Sıra W183 ‖ W184 → W185b ‖ W185 |
+| **P84** | Kapsam güncellemesi | **KESİN (kullanıcı 2026-11-17):** F9 `v0.25.0-api`'yi de kapsar; tek pin v0.23 → v0.25; v0.24 + v0.25 sohbet/bildirim karşılıkları bu fazın kapsamındadır, F10'a bırakılmaz; yeni ekran yok; kaynak mesaj bağlantısı ve sessize alınan konular P86 ile mevcut yüzeylerde uygulanır |
+
 ## 11. Sürüm kapısı (00/yeni-2 kararı)
 
 Yalnız `GET /v1/instance/profile` `api_version` ana sürüm kapısı uygulanır (CLAUDE.md). Ürün sürümü ile API pin minörünü karşılaştıran uyarı **yapılmaz** (tanımlı eşdeğerlik yok). Asgari web sürümü alanı backend'e belge/politika işi olarak önerilir.
@@ -273,3 +300,7 @@ Yalnız `GET /v1/instance/profile` `api_version` ana sürüm kapısı uygulanır
 ### P32 — F4-S3 özel kişi seçici türetme kararı (2026-11-11)
 
 Ürün sahibi, “önerin nedir? arka planda claude opus5.5 ile tartışıp karar ver” diyerek P23 özel seçicinin eksik açılmış görünümünü kararlaştırma yetkisini koordinatöre devretti. İki tur Claude Opus 5.5 değerlendirmesi ve koordinatör karşı görüşleriyle [S3 kararı](../yurutme/web-4/s3-kisi-secici-karari.md) kesinleşti: toplantıya özel, ağsız, aramalı çoklu seçim modalı; gerçek ad/avatar; locked katılımcılar; formda boş seçimi uygulama; kaybolan adayın seçimini sessiz düşürmeme; K/eksik liste uyarısı; ortak modal/odak altyapısı. Eski çizim bulundu iddiası yok, hazır ortak kişi seçici ikamesi yok. Yeni ürün onayı beklenmez; W105/W106/W107 test/görsel kapıları şart. Bu karar VoiceOver veya E-03C-27/41 kullanıcı kanıtı borçlarını kapatmaz; F5 yetkisi vermez.
+
+### P85/P86 — F9 yönetim ve mevcut yüzeylerde v0.25 kapsamı (2026-11-17)
+
+P85: Yönetici ana Codex oturumudur; kararlar, raporlama, süreç belgeleri ve PR/CI burada yürür. Sonnet uygulayıcı, Terra test/tanık, Opus salt okunur bağımsız denetçidir. P86: P84 kapsamı mevcut ortak bileşenlerle tamamlanır: W184 görev detayında `getWorkItemSourceMessage` kaynak mesaj bağlantısı (null/erişimsizde görünmez), W185 bildirim panelinde `listNotificationSubjectMutes` imleçli liste ve sessizi kaldırma. Yeni sayfa/artboard yoktur. BE-027 W183/W184/W185 ortak teslimidir, kaydı yalnız W185 tamamlandığında kapanır; BE-085 iki yön, BE-156 liste/geri alma dahil tamamlanır.
