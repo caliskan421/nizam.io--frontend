@@ -106,17 +106,18 @@ export function useRecordActions(options: RecordActionOptions) {
     // Bilinmeyen (gelecek) tür salt okunurdur: yazma yolu yoktur.
     if (pending.value || kind === null) return
     notice.value = null
-    let confirm = confirmOptions(action, row)
-    if (action === 'purge' && kind === 'departments') {
-      // Kalıcı silme onayı etkiyle kurulur; okuma başarısız/engelli ise onay ve DELETE yoktur.
-      const withImpact = await impact.gate(row, confirm, notice, async () => {
-        await options.refresh()
-        options.removed(row)
-      })
-      if (withImpact === null) return
-      confirm = withImpact
-    }
-    const outcome = await confirmWrite(confirm, (context) => senders[kind][action](row, context))
+    // Kalıcı koordinatörlük silme onayı etkiyle kurulur; okuma başarısız/engelli ise onay ve DELETE yoktur.
+    const gone = () => options.refresh().then(() => options.removed(row))
+    const gated =
+      action === 'purge' && kind === 'departments'
+        ? await impact.gate(row, confirmOptions(action, row), notice, gone)
+        : { options: confirmOptions(action, row), context: undefined }
+    if (gated === null) return
+    const outcome = await confirmWrite(
+      gated.options,
+      (context) => senders[kind][action](row, context),
+      { context: gated.context },
+    )
     if (outcome === null) return
     await settle(action, row, outcome)
   }
