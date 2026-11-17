@@ -9,6 +9,10 @@ export interface ConversationHandlerOptions {
   companyAdmin?: boolean
   members?: unknown[]
   pins?: unknown[]
+  /** `listChatMessageTasks` cevabı: mesaj kimliği → kart satırları (yoksa boş liste). */
+  messageTasks?: Record<string, unknown[]>
+  /** `listProgramDepartments` satırları (rol rozeti koordinatörlük adı). */
+  departments?: unknown[]
 }
 
 export function conversationHandlers(options: ConversationHandlerOptions = {}) {
@@ -20,7 +24,12 @@ export function conversationHandlers(options: ConversationHandlerOptions = {}) {
     http.get(`${ORIGIN}/v1/chats/:id/pins`, () =>
       HttpResponse.json({ items: options.pins ?? [], truncated: false }),
     ),
-    http.get(`${ORIGIN}/v1/program/departments`, () => HttpResponse.json({ departments: [] })),
+    http.get(`${ORIGIN}/v1/chats/:id/messages/:messageId/tasks`, ({ params }) =>
+      HttpResponse.json({ items: options.messageTasks?.[String(params.messageId)] ?? [] }),
+    ),
+    http.get(`${ORIGIN}/v1/program/departments`, () =>
+      HttpResponse.json({ departments: options.departments ?? [] }),
+    ),
     http.get(`${ORIGIN}/v1/me`, () =>
       HttpResponse.json({
         account_id: accountId,
