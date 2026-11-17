@@ -64,13 +64,13 @@ const hasActs = computed(() => entry.value.action !== null || props.item.action 
     data-testid="notification-row"
   >
     <button type="button" class="nb-it__main" @click="emit('activate')">
-      <span v-if="sentence.avatars.length > 0" class="nb-stack" data-testid="notification-stack">
-        <UiAvatar v-for="name in sentence.avatars" :key="name" :name="name" size="sm" />
-      </span>
-      <span v-else class="nb-ic" :class="`nb-tone--${entry.tone}`" aria-hidden="true">
+      <span class="nb-ic" :class="`nb-tone--${entry.tone}`" aria-hidden="true">
         <UiIcon :name="entry.icon" size="sm" />
       </span>
       <span class="nb-tx">
+        <span v-if="sentence.avatars.length > 0" class="nb-stack" data-testid="notification-stack">
+          <UiAvatar v-for="name in sentence.avatars" :key="name" :name="name" size="sm" />
+        </span>
         <span class="nb-tx__text">{{ sentence.text }}</span>
         <span v-if="sentence.subject" class="nb-tx__sub" data-testid="notification-subject">
           {{ sentence.subject }}
