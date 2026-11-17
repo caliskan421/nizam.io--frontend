@@ -40,6 +40,7 @@ const TASKS = {
   tasks: [
     { department_id: 'd1', file_count: 1, title: 'Kaynak görev', work_item_id: 'w1' },
     { department_id: 'd9', file_count: 0, title: 'Hedef görev', work_item_id: 'w-target' },
+    { department_id: 'd9', file_count: 0, title: 'Diğer görev', work_item_id: 'w-other' },
   ],
 }
 function serve(over: { tasks?: object; subtasks?: object } = {}) {
@@ -106,8 +107,36 @@ describe('MoveFileDialog (E-06-59)', () => {
     await pick(h, 'move-task', 'w-target')
     await pick(h, 'move-subtask', 's-1')
     expect(el<HTMLSelectElement>('move-subtask')!.value).toBe('s-1')
-    await pick(h, 'move-task', 'w1')
+    await pick(h, 'move-task', 'w-other')
+    expect(el<HTMLSelectElement>('move-task')!.value).toBe('w-other')
     expect(el<HTMLSelectElement>('move-subtask')!.value).toBe('')
+  })
+
+  it('dosyanın kendi görevi aday değildir; yalnız o varsa açıklamalı boş durum, gönderim kapalı, PATCH yok', async () => {
+    serve({ tasks: { tasks: [TASKS.tasks[0]] } })
+    const { h } = open()
+    await settleQueries(h.queryClient)
+    expect(
+      [...document.body.querySelectorAll('[data-testid="move-task"] option')].map((o) =>
+        o.getAttribute('value'),
+      ),
+    ).not.toContain('w1')
+    expect(text()).toContain('Dosyayı taşıyabileceğiniz başka görev yok.')
+    expect(el<HTMLSelectElement>('move-task')!.disabled).toBe(true)
+    expect(el<HTMLButtonElement>('move-submit')!.disabled).toBe(true)
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', '/v1/files/f1/work-item')).toHaveLength(0)
+  })
+
+  it('dosya değişince pencere kapanır (kaynak görev değişimi seçimi taşımaz)', async () => {
+    serve()
+    const { h, wrapper, emitted } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    await wrapper.setProps({ file: file({ file_id: 'f2', work_item_id: 'w-target' }) })
+    await nextTick()
+    expect(emitted['update:open']).toContain(false)
   })
 
   it('hedef seçilmeden gönderim istek atmaz ve alan hatası gösterir', async () => {

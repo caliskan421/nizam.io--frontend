@@ -35,14 +35,17 @@ export function isArchiveSort(value: unknown): value is ArchiveSort {
   return typeof value === 'string' && (ARCHIVE_SORTS as readonly string[]).includes(value)
 }
 
+/** Süzgeç anahtarı: sunucu adlarıyla dize değerleri; `search_scope` yalnız `all` olabilir. */
+type FilterKey = Record<string, string> & { search_scope?: typeof SEARCH_SCOPE_ALL }
+
 /**
  * Sorgu anahtarına giren kararlı süzgeç nesnesi (boş değerler düşer, anahtar sırası sabit).
  * Arama doluyken kapsam her zaman `all`'dır (dosya adı + görev başlığı + yükleyen adı; RECORDS-K47):
  * görev/yükleyen eşleşmesi için en az iki karakter eşiğini sunucu uygular, tek karakterde dosya
  * adı eşleşmesi sürer — istemci eşiği kopyalamaz, sonucu süzmez.
  */
-export function filterKey(filters: ArchiveFileFilters): Record<string, string> {
-  const out: Record<string, string> = {}
+export function filterKey(filters: ArchiveFileFilters): FilterKey {
+  const out: FilterKey = {}
   const search = filters.search?.trim()
   if (filters.tag && isArchiveTag(filters.tag)) out.tag = filters.tag
   const category = mimeCategoryOf(filters.kind)
@@ -59,10 +62,8 @@ export function filterKey(filters: ArchiveFileFilters): Record<string, string> {
 
 /** Sunucu sorgusu: süzgeç + sayfa boyu + (varsa) imleç. */
 export function toQuery(filters: ArchiveFileFilters, cursor?: string): ArchiveFileQuery {
-  const { search_scope, ...rest } = filterKey(filters)
   return {
-    ...rest,
-    ...(search_scope === SEARCH_SCOPE_ALL ? { search_scope: SEARCH_SCOPE_ALL } : {}),
+    ...filterKey(filters),
     limit: ARCHIVE_PAGE_LIMIT,
     ...(cursor ? { cursor } : {}),
   }

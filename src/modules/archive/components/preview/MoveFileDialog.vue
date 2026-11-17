@@ -35,7 +35,7 @@ const toast = useToast()
 const owner = ownerLife()
 const form = useMoveForm(
   () => props.open,
-  () => props.target.departmentId,
+  () => ({ departmentId: props.target.departmentId, workItemId: props.file.work_item_id }),
 )
 const { targets, taskId, subtaskId, selected, subtasks } = form
 
@@ -109,9 +109,10 @@ const taskHint = computed(() => {
 const inlineError = computed(() =>
   serverField.value && serverField.value.field === null ? serverField.value.text : null,
 )
-const showNotice = computed(
-  () => outcome.value?.kind === 'unknown_outcome' || outcome.value?.kind === 'edit_conflict',
-)
+// Anahtarsız yazma: sonuç bilinmiyorsa tekrar fonksiyonu yoktur (yazma katmanı listeyi yeniden okur).
+const showNotice = computed(() => outcome.value?.kind === 'unknown_outcome')
+// Aday yokken (yalnız dosyanın görevi var ya da liste boş) gönderim anlamsızdır.
+const noTarget = computed(() => !targets.loading.value && form.taskOptions.value.length === 0)
 
 function close(): void {
   if (!running.value) emit('update:open', false)
@@ -137,7 +138,7 @@ function deliver(result: Outcome, title: string, token: number): void {
     else if (moveErrorField(result.error) === 'subtask') subtaskId.value = ''
     return
   }
-  if (!['unknown_outcome', 'edit_conflict'].includes(result.kind)) notifyOutcome(result)
+  if (result.kind !== 'unknown_outcome') notifyOutcome(result)
 }
 
 async function submit(): Promise<void> {
@@ -219,11 +220,7 @@ async function submit(): Promise<void> {
       <p v-if="inlineError" class="af-error" role="alert" data-testid="move-error">
         {{ inlineError }}
       </p>
-      <UiOutcomeNotice
-        v-if="showNotice"
-        :outcome="outcome"
-        @resolved="(o) => deliver(o as Outcome, '', generation)"
-      />
+      <UiOutcomeNotice v-if="showNotice" :outcome="outcome" />
     </form>
     <template #footer>
       <UiButton variant="ghost" :disabled="running" data-testid="move-cancel" @click="close">
@@ -233,7 +230,7 @@ async function submit(): Promise<void> {
         variant="primary"
         type="submit"
         form="af-move"
-        :disabled="running"
+        :disabled="running || noTarget"
         data-testid="move-submit"
       >
         {{ previewText('archive.actions.moveSubmit') }}

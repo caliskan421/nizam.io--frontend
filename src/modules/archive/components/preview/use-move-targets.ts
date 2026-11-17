@@ -13,8 +13,8 @@ import { uploadTasks } from '../../model/tasks'
  * Taşıma hedefi adayları (W194): görev seçenekleri YALNIZ pencere açıkken okunur (`include_empty`
  * okuması; yükleme seçicisiyle aynı uç). Yönetici programın bütün departmanlarındaki görevleri
  * (tek S2 okuma) görür. Koordinatör/üye yalnız `departmentId` ile seçilen TEK yetkili departmanın
- * görevlerini okur (`departments` içinde değilse istek yok; fan-out yok); aday = o departmanın
- * görevi ∧ hedefte yükleme yetkisi (`archiveCapabilities.upload`, sunucu yine denetler). Sorgu
+ * görevlerini okur (`departments` içinde değilse istek yok; fan-out yok); aday = dosyanın şu anki
+ * görevinden BAŞKA ∧ o departmanın görevi ∧ hedefte yükleme yetkisi (`archiveCapabilities.upload`, sunucu yine denetler). Sorgu
  * anahtarı departmanı taşır: eski departmanın geç yanıtı yeni listeye karışmaz. Hedef departman
  * seçmek global kapsamı değiştirmez; kaynak dosyanın S3 başlıkları çağıranda kalır.
  */
@@ -22,6 +22,7 @@ export function useMoveTargets(
   open: MaybeRefOrGetter<boolean>,
   departments: Readonly<Ref<readonly MoveTargetDepartment[]>>,
   departmentId: Readonly<Ref<string>>,
+  sourceWorkItemId: () => string,
 ) {
   const store = useScopeStore()
   const { standing } = useStanding()
@@ -37,6 +38,7 @@ export function useMoveTargets(
     const caps = archiveCapabilities(standing.value, store.snapshot.programId)
     return uploadTasks(query.data.value?.tasks).filter(
       (task) =>
+        task.workItemId !== sourceWorkItemId() &&
         caps.upload(task.departmentId) &&
         (admin.value === true || task.departmentId === chosen.value),
     )

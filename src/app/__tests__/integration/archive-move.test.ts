@@ -93,17 +93,15 @@ describe('yönetici: başka departmandaki göreve taşıma', () => {
     expect(toasts()).toContain('taşındı')
   })
 
-  it('aynı hedef: doğal 200, kayıt değişmez, çoğaltma yok; hedefte aynı ad numaralanır', async () => {
+  it('dosyanın kendi görevi hedef adayı değildir; başka görevler listelenir, yazma isteği yok', async () => {
     const app = await boot({ ...ADMIN, path: OPEN })
-    await openMove('w1')
-    await submit()
-    await until(() => !$('[data-testid="file-preview"]'), 'önizleme kapandı')
+    await until(() => $('[data-testid="file-preview"]'), 'önizleme')
+    await userClick(() => $('[data-testid="file-move"]'))
+    await until(() => $('[data-testid="move-task"] option[value="w3"]'), 'hedef adaylar')
+    expect($('[data-testid="move-task"] option[value="w1"]')).toBeNull()
     await idle(app.queryClient)
-    expect(
-      archive.state.files.filter((x) => x.work_item_id === 'w1' && x.file_id === 'f1'),
-    ).toHaveLength(1)
-    expect(archive.state.files).toHaveLength(4)
-    expect(toasts()).not.toContain('adıyla')
+    expect(backend.sent('PATCH', PATCH)).toHaveLength(0)
+    expect(archive.state.files.find((x) => x.file_id === 'f1')!.work_item_id).toBe('w1')
   })
 
   it('hedefte aynı adlı dosya varsa dönen GERÇEK ad bildirilir', async () => {

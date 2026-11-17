@@ -67,6 +67,16 @@ describe('moveFile (anahtarsız, doğal tekrar güvenli)', () => {
     expect(req!.headers.get('X-Requested-With')).not.toBeNull()
   })
 
+  it('aynı hedefe taşıma (API düzeyi): doğal 200 değişmeyen kayıt başarıdır; anahtar yok', async () => {
+    server.use(http.patch(`${ORIGIN}/v1/files/f1/work-item`, () => json(fileRecord)))
+    const h = harness(ADMIN)
+    const { result: move } = h.run(() => useMoveArchiveFile())
+    const outcome = await move.submit({ ...input, targetWorkItemId: input.workItemId })
+    expect(outcome.kind).toBe('success')
+    if (outcome.kind === 'success') expect(outcome.data.display_name).toBe(fileRecord.display_name)
+    expect(sent('PATCH', '/v1/files/f1/work-item')[0]!.headers.get('Idempotency-Key')).toBeNull()
+  })
+
   it('alt görev yoksa gövdede subtask_id bulunmaz', async () => {
     server.use(http.patch(`${ORIGIN}/v1/files/f1/work-item`, () => json(fileRecord)))
     const h = harness(ADMIN)

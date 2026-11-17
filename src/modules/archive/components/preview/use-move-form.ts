@@ -44,11 +44,15 @@ function defaultMoveDepartment(
 /**
  * Taşıma penceresinin hedef seçimi (W194): hedef departman (yalnız yetkili birden çok departman
  * varsa gösterilir) → hedef görev → isteğe bağlı alt görev. Departman değişince görev ve alt görev,
- * görev değişince alt görev sıfırlanır; seçili görev yenilenen listeden düşerse `lost` olur.
+ * görev değişince alt görev sıfırlanır; seçili görev yenilenen listeden düşerse (silindi/atama
+ * kalktı) seçim kaybolur ve `lost` olur. Dosyanın şu anki görevi aday değildir.
  * Varsayılan departman: kaynak dosyanınki, yoksa global seçili, yoksa ilk yetkili. Global kapsam
  * deposuna yazılmaz.
  */
-export function useMoveForm(open: () => boolean, sourceDepartmentId: () => string) {
+/** Taşınan dosyanın şu anki yeri: varsayılan departman ve aday dışı bırakılan görev. */
+type MoveSource = () => { departmentId: string; workItemId: string }
+
+export function useMoveForm(open: () => boolean, source: MoveSource) {
   const store = useScopeStore()
   const { standing } = useStanding()
   const departments = computed(() =>
@@ -58,7 +62,7 @@ export function useMoveForm(open: () => boolean, sourceDepartmentId: () => strin
   const taskId = ref('')
   const subtaskId = ref('')
   const lost = ref(false)
-  const targets = useMoveTargets(open, departments, departmentId)
+  const targets = useMoveTargets(open, departments, departmentId, () => source().workItemId)
 
   const { selected, subtasks, taskOptions, departmentOptions } = useMoveOptions(
     targets.candidates,
@@ -67,7 +71,7 @@ export function useMoveForm(open: () => boolean, sourceDepartmentId: () => strin
   )
 
   const defaultDepartment = () =>
-    defaultMoveDepartment(departments.value, [sourceDepartmentId(), store.snapshot.departmentId])
+    defaultMoveDepartment(departments.value, [source().departmentId, store.snapshot.departmentId])
   function reset(): void {
     taskId.value = ''
     subtaskId.value = ''
@@ -81,7 +85,6 @@ export function useMoveForm(open: () => boolean, sourceDepartmentId: () => strin
     departmentId.value = defaultDepartment()
   })
   watch(taskId, () => (subtaskId.value = ''))
-  // Seçili hedef yenilenen listeden düştü (silindi/atama kalktı): seçim kaybolur, kullanıcı bilgilenir.
   watch(targets.candidates, (list) => {
     if (taskId.value !== '' && !list.some((t) => t.workItemId === taskId.value)) {
       taskId.value = ''
