@@ -44,8 +44,8 @@ export interface PaneOptions extends ConversationHandlerOptions {
   chat?: Partial<Chat>
   messages?: ChatMessage[]
   peerReadSeq?: number | null
-  /** Sohbet listesi özeti (okunmamış ayırıcısı için). */
-  summary?: { unread_count: number }
+  /** Sohbet listesi özeti (okunmamış ayırıcısı: sunucu `first_unread_seq`, BE-082). */
+  summary?: { unread_count: number; first_unread_seq?: number | null }
   path?: string
 }
 
@@ -57,7 +57,15 @@ export function servePane(options: PaneOptions = {}) {
     http.get(`${ORIGIN}/v1/chats`, () =>
       json({
         items: options.summary
-          ? [{ ...chat, last_message: null, mentioned: false, ...options.summary }]
+          ? [
+              {
+                ...chat,
+                last_message: null,
+                mentioned: false,
+                first_unread_seq: null,
+                ...options.summary,
+              },
+            ]
           : [],
         next_cursor: '',
       }),
