@@ -103,3 +103,9 @@ Terra son bağımsız kontrolde `261af5fe` üzerinde App3 + effects6 = iki dosya
 Sonnet kaynak `1100f522`: 18 tür zengin/güvenli sözlük, server filtre/cursor, iki ayrı sayaç, satır içi karar ve konu/grup eylemleri, panel içinde sessize alınanlar, cold çapraz program typed hedef. P88 mevcut protected mutation ve RevertReasonDialog kullanır; global aktör matrisi değişmedi. S1 bildirim yazmaları kapsamsız hesap işlemi olarak program geçişinden bağımsız, oturum kapısına bağlıdır. Sonnet124 dosyada983test ve type/full-lint/format/build başarılı. Sahte390/1440 dumanı avatar taşmasını düzeltti; gerçek backend değil. Root W185b45ec1191'i temiz merge ederek `24d256db` bütünleşik kaynağını Terra'ya verdi. BE027 ve bildirim10 kaydı bağlandı; bağımsız kabul/CI/gerçek tanık tamamlandı anlamına gelmez. Yeni BE kimliği atanmadı.
 
 W188 backend preflight: `nizamio_web9_w188_0615`, etiket58856bbc, port28089/28090/25439, iki profile200, izole seed hazır. Nihai frontend/UI tanığı henüz yapılmadı.
+
+### W185 bağımsız kabul (2026-11-17; PR/CI bekler)
+
+Terra `6b729120`/source1100f522 +24d256db birleşimi üzerinde13 dosyada244 hedefli test ve üretim build'i geçti. P88 karar kabiliyeti, gerçek satır hedef başlıkları, iade/onay,403/409, maskeli konu, server filtre/imleç, S1 yazmalar, chat-read bildirim ilişkileri testlidir. Kayıt kapanışıyla eskiyen design-stub pozitif BE149 örneği, gerçek açık/stub BE024'e taşındı; bağlı BE149 negatif eklendi, validator ve vazgeçildi negatifleri korunur.40 kayıt testi/lint/format başarılı.
+
+390/1440 koyu üretim paketi dumanında pointer ile bekleyen sekmesi/onay ve sessize alınanlar/unmute/geri akışı geçti; taşma/CSP/pageerror sıfır. Terra PNG'leri gördü; root390 panel görüntüsünü ayrıca inceledi. Sahte API ve CSP simülasyonudur. Gerçek endpoint/1–100 limit negatifleri/500 gerçek kayıt tavanı/push teslimi ve görevden kaynak mesaja gerçek UI W188 sınırıdır. Root kabul kanıtı sonrası PR ve kendi üç CI kapısını bekler.
