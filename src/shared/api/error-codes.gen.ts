@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.23.0-api (f51840d20f0f7e760497cad923dc895aa5c5632a) — docs/api/error-codes.json
+// Kaynak: nizam.io--backend etiket v0.25.0-api (58856bbc185fe2a7124a3baeeb8178ef5ccd47ab) — docs/api/error-codes.json
 
 export const ERROR_CATALOG_VERSION = 1 as const
 
@@ -76,7 +76,7 @@ export const ERROR_CODES = {
   "messaging.ref_not_found": { status: [404], fields: [], messageKey: "errors.messaging.ref_not_found" },
   "messaging.scope_invalid": { status: [422], fields: [], messageKey: "errors.messaging.scope_invalid" },
   "messaging.task_deleted": { status: [409], fields: [], messageKey: "errors.messaging.task_deleted" },
-  "notifications.input_invalid": { status: [422], fields: [], messageKey: "errors.notifications.input_invalid" },
+  "notifications.input_invalid": { status: [422], fields: ["notifications.input_invalid"], messageKey: "errors.notifications.input_invalid" },
   "notifications.invalid_cursor": { status: [422], fields: [], messageKey: "errors.notifications.invalid_cursor" },
   "notifications.notification_not_found": { status: [404], fields: [], messageKey: "errors.notifications.notification_not_found" },
   "notifications.scope_invalid": { status: [422], fields: [], messageKey: "errors.notifications.scope_invalid" },
