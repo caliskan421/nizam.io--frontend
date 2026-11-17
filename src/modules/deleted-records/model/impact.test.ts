@@ -31,6 +31,16 @@ const field = (name: string, value?: string): NormalizedFieldError => ({
 })
 
 describe('etki gövdesi', () => {
+  it('birlikte silinen 0 iken parantez yok; >0 iken zincir bilgisi kalır', () => {
+    const base = { active_items: 3, completed_items: 2, deleted_items: 4 }
+    const zero = impactConfirmBody(impact({ ...base, deleted_with_department: 0 }))
+    expect(zero).toContain('9 görev silinecek: 3 açık, 2 tamamlanmış, 4 zaten silinmiş.')
+    const some = impactConfirmBody(impact({ ...base, deleted_with_department: 1 }))
+    expect(some).toContain(
+      '9 görev silinecek: 3 açık, 2 tamamlanmış, 4 zaten silinmiş (bunların 1 tanesi koordinatörlükle birlikte silinmişti).',
+    )
+  })
+
   it('programsız sıfır etkide başlık satırı yok, anlık görüntü uyarısı var', () => {
     const body = impactConfirmBody(impact())
     expect(body).not.toContain('Programlara göre:')

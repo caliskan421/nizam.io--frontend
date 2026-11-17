@@ -58,7 +58,7 @@ export function impactConfirmBody(impact: DepartmentDeleteImpact): string[] {
     deletedText('confirm.purgeBody'),
     deletedText('impact.company'),
     tasks > 0
-      ? deletedText('impact.tasks', {
+      ? deletedText(impact.deleted_with_department > 0 ? 'impact.tasks' : 'impact.tasksNoChain', {
           total: tasks,
           active: impact.active_items,
           completed: impact.completed_items,

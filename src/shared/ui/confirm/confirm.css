@@ -16,6 +16,7 @@
   }
   .ui-confirm__body p {
     margin: 0;
+    overflow-wrap: anywhere;
   }
   .ui-confirm__body .ui-confirm__k,
   .ui-notice__k {

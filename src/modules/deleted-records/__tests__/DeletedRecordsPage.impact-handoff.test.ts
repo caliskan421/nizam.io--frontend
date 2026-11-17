@@ -147,10 +147,32 @@ describe('kalıcı silmede restore yarışı 409 (ADR-0043)', () => {
     await settle()
     await confirm.accept(confirm.current.value!.id)
     await settle()
-    const messages = useToast().queue.value.map((t) => t.message)
-    expect(messages).toEqual([
+    const toasts = useToast().queue.value
+    expect(toasts.map((t) => t.message)).toEqual([
       'Koordinatörlüğün durumu değişti; silme tamamlanamadı. Bazı görev veya dosyalar kalıcı silinmiş olabilir. Listeler yenilendi.',
     ])
+    // Başarı değil hata tonu; liste yeniden okunur, satır gittiyse başarı sunumu yapılmaz.
+    expect(toasts[0]!.tone).toBe('danger')
+    expect(sent(DELETE, 'DELETE')).toHaveLength(1)
+  })
+
+  it('kısmi 409 sonrası satır listeden gittiyse başarı sunumu ya da ikinci yazma yok', async () => {
+    server.use(
+      http.delete(`${ORIGIN}${DELETE}`, () => {
+        world.departments = [[]]
+        return HttpResponse.json(
+          { code: 'organization.permanent_requires_deleted', message: 'ham', request_id: 'r' },
+          { status: 409 },
+        )
+      }),
+    )
+    const page = await mountDepartments()
+    await click(page)
+    await settle()
+    await confirm.accept(confirm.current.value!.id)
+    await settle()
+    expect(page.wrapper.find('[data-record-key]').exists()).toBe(false)
+    expect(useToast().queue.value.map((t) => t.tone)).toEqual(['danger'])
     expect(sent(DELETE, 'DELETE')).toHaveLength(1)
   })
 })

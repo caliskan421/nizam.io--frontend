@@ -211,6 +211,8 @@ export const trDeletedRecords = {
       snapshot: 'Sayılar okuma anının görüntüsüdür; onaydan önce değişebilir.',
       tasks:
         '{total} görev silinecek: {active} açık, {completed} tamamlanmış, {deleted} zaten silinmiş (bunların {together} tanesi koordinatörlükle birlikte silinmişti).',
+      tasksNoChain:
+        '{total} görev silinecek: {active} açık, {completed} tamamlanmış, {deleted} zaten silinmiş.',
       tasksNone: 'Silinecek görev yok.',
       files: '{n} dosya silinecek (silinmiş görevlerin ekleri ve çöpteki dosyalar dahil).',
       filesNone: 'Silinecek dosya yok.',

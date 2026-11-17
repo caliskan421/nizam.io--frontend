@@ -106,10 +106,10 @@ const CHILD_FAILURES: Readonly<Record<string, ChildFeedback>> = {
  */
 function requiresDeleted(action: LifecycleAction, code: string): Interpreted {
   const partial = action === 'purge' && code === 'organization.permanent_requires_deleted'
-  return {
-    kind: 'refresh',
-    message: deletedText(partial ? 'feedback.departmentPurgePartial' : 'feedback.notDeleted'),
+  if (partial) {
+    return { kind: 'error', message: deletedText('feedback.departmentPurgePartial'), refresh: true }
   }
+  return { kind: 'refresh', message: deletedText('feedback.notDeleted') }
 }
 
 export function failed(action: LifecycleAction, code: string): Interpreted | null {

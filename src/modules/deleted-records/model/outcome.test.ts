@@ -78,7 +78,8 @@ describe('yaşam döngüsü sonucu yorumu', () => {
 
   it('departman kalıcı silmede organization.permanent_requires_deleted → kısmi silme olasılığı + yenile', () => {
     const expected = {
-      kind: 'refresh',
+      kind: 'error',
+      refresh: true,
       message: expect.stringMatching(/silme tamamlanamadı.*kalıcı silinmiş olabilir.*yenilendi/),
     }
     const department = { kind: 'departments', title: 'Saha' } as const

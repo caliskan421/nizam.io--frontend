@@ -112,8 +112,8 @@ export function useDeleteImpact() {
     afterGone: () => Promise<void>,
   ): Promise<{ options: ConfirmOptions; context: ActionContext } | null> {
     notice.value = { message: deletedText('impact.loading'), departmentsLink: false, status: true }
-    const decision = await read(row, base)
-    notice.value = null
+    // Programlama hatası yeniden fırlatılsa da "okunuyor" bildirimi takılı kalmaz.
+    const decision = await read(row, base).finally(() => (notice.value = null))
     if (decision.kind === 'confirm') return decision
     if (decision.kind === 'stop') {
       notice.value = { message: decision.message, departmentsLink: false }
