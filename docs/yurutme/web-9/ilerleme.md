@@ -121,3 +121,7 @@ Terra'nın geç kapsam yanıtı d91a9a2b kırmızısı12711e3b ile giderildi: me
 Terra'nın stateful ConversationPane readiness kırmızısı08dc2658/a44fa0f4, metadata beklerken otomatik read'in server anchor'ını kapattığını gösterdi.30bfc952 marker hazır olana kadar gönderimi bekletir; hazır olunca normal debounce ile bir kez okur. Yerel sahte unread_count kullanılmaz; açık girişin dondurulmuş çapası read sonrası korunur.
 
 Terra final84f9cff6 üzerinde7 dosyada67 ilgili test ve build'i geçirdi. Örtüşen önceki112/114/57/45 sayıları buna eklenmez. Yeni gerçek backend sparse test kodu e2c64d34 ile eklendi; yerel Docker ROFS/login500 yüzünden gerçek yeni UI koşumu temiz CI'a taşındı. Eski94 kaynakta kapsamlı W188 gerçek tanığı geçerli, sonP3 gerçek UI kanıtı CI sonucu gelmeden tamamlandı sayılmaz.
+
+### Opus tur2 hata yolu ek kapanışı (2026-11-17)
+
+Tur2 c00ab727 için KOŞULLU UYGUN, P0/P1/P2 yok; tek faz koşulu kapanış CI+MERGED. Ek bloklamayan P3 around başarısızlığında giriş/readiness kilidi fcf7bc76 ile giderildi:503/ağ/429 hata yakalanır, yerel çapa yok/ready açık, pencere korunur, entryToken eski giriş sonucunu engeller. Sonnet46 ilgili test ve build başarılı, Terra4 dosyada25 bağımsız test başarılı. Yeni gecikmeli A→B→A testi eklenmedi; kaynak jetonu incelendi. Aynı tur2 bulgu kapanış deltasının Opus kontrolü ve kapanış CI bekler.

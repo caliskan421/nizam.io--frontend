@@ -52,3 +52,11 @@ Bu CI e2e, gerçek v0.25 backend ile tarayıcı işlev kanıtıdır; vite previe
 Terra final84f9cff6 (üretim değişikliği30bfc952) üzerinde7 dosyada67 testi ve final build'i geçirdi. Metadata kapsam/sohbet/owner/kuyruk/oturum, aynı önbellekle1→null/150 dönüşü, bekleyen metadata sırasında erken read ve açık mesaj hedefi testleri yeşil.
 
 Final üretim paketiyle sahte API gerçek DOM dumanı390→1440 aynı girişte genel ayırıcıyı, wheel sonrası read isteğini ve başka sohbet satırı/pointer→SPA geri dönüşünde ayırıcı yokluğunu doğruladı. Overflow/pageerror sıfır; PNG'ler incelendi. Bu koşuda CSP uygulanmadı; sıfır sayacından gerçek politika veya Caddy sonucu çıkarılmaz. İlk sahte after pagination yanlışı düzeltilerek son koşum alındı, ürün kusuru sayılmadı. Ham kanıt `web9-terra-w189-final/smoke.json`, PNG ve rapordadır.
+
+## Yerel test kaynaklarının temizliği
+
+Terra yalnız `nizamio_web9_w188_0615` backend projesi için down ve ayrı Caddy kaydı için remove işlemini birer kez denedi; iki işlem de Docker overlay2 read-only file system hatasıyla başarısız oldu. Inspect sonucunda dört container kaydı dead/running=false/pid=0; Docker ps eski Up metnini gösteriyor. Çalışır süreç iddiası yerine inspect sonucu esas alındı. Dört dead kayıt, proje ağı ve DB'nin anonim volume'ü kalıyor; imaj etiketi derleme önbelleği olarak ayrı bırakıldı. Temizlik tamamlandı denmez. Diğer projelere/daemon'a müdahale edilmedi.
+
+Yerel kanıt `web9-terra-w188/cleanup.md` ve cleanup-inspect/pre/post loglarıdır. Kesin adlar: `nizamio_web9_w188_0615-caddy`, `nizamio_web9_w188_0615-server`, `nizamio_web9_w188_0615-server-shortttl`, `nizamio_web9_w188_0615-db-1`, ağ `nizamio_web9_w188_0615_default`. Anonim volume: `68091b9492d8f2eaedaaf995dd9947c48fd533a428edc1907e7a12a547a7cda6`. Bu ortam sınırı temiz CI testinin yürütülmesinden ayrıdır.
+
+Son hata yolu deltası: Opus tur2 around hatasında ready kilidi P3'ünü bildirdi. fcf7bc76 bunu aynı girişte çapa yok/ready açık olarak çözer; eski pencere boşaltılmaz, eski giriş sonucu entryToken ile elenir. Sonnet6 dosyada46 test/type/lint/format/build, Terra4 dosyada25 bağımsız test(503 dahil) başarılı. Tam gerçek sparse koşumu ve son üretim imajı, kapanış CI'ında bu son kaynağı doğrulayacaktır.

@@ -30,3 +30,11 @@ Bekliyor: W189 düzeltmesi + Terra dar regresyonu, W188 nihai gerçek tanık, PR
 PR174 `553f5058` için CI44010736714 kalite/imaj/gerçek backend dumanı üç SUCCESS ile main8b797382 oldu. Kapanış kaynakları ve W188 ham tanığı tur2'ye sunulacaktır.
 
 Son Terra üretim paketi sahte DOM dumanı390/1440, genel ayırıcı/okundu/SPA geri dönüş akışını geçti; CSP uygulanmadığı açık. Gerçek sparse CI kodu yeni request+null response+render bariyeri bekler ve yalnız kendi gruplarını temizler. İlk gerçek yürütme halen kapanış CI şartıdır; bu koşum geçmeden tamamlandı iddiası verilmez.
+
+## Tur2 — kaynak/kanıt hükmü ve dar bulgu kapanışı
+
+Opus `c00ab727` kaynağını ve ham W188 JSON'larını doğrudan inceledi: **KOŞULLU UYGUN**, P0/P1/P2 yok; tek faz kapanış koşulu PR'ın üç CI başarısı ve birleşmesidir. İlk turun W183/GroupInfo/notify_level/receipts/Koordinatörler özet alanları ikinci turda kaynak ve v0.25 etiketiyle ayrıca incelendi.
+
+Tek bloklamayan P3, around okuması reddedilince resolving/frozen/ready yolunun kilitlenmesi ve yeni okundu kapısının o girişte okumayı durdurmasıydı. Koordinatör bu küçük hata yolunu da kapattı: Sonnet fcf7bc76, hatayı yerel çapa yok olarak ele alır; pencere korunur, ready açılır, resolving bırakılır ve entryToken eski girişin geç sonucunu eler. Yeni503 testi eski kodda kırmızı, düzeltmeyle yeşildir. Terra4 dosyada25 bağımsız testi geçirdi; ayrı gecikmeli A→B→A testi yapılmadı, jeton kaynakta incelendi. Normal yoldaki son UI dumanı84 kaynağına aittir; fcf hata yolunun kanıtı component testidir.
+
+Bu bilinen bulgunun kapanış deltasına aynı tur2'de Opus ek kontrolü bekleniyor. Kapanış CI'ında yeni sparse gerçek-backend e2e ilk yürütmesi henüz gerçekleşmedi; başarılı varsayılmaz.
