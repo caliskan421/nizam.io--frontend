@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest'
 
 import {
   makeArchiveFolder,
+  makeChatHistory,
+  makeChatLastMessage,
+  makeChatList,
+  makeChatMember,
+  makeChatMessage,
+  makeChatMessageQuote,
+  makeChatSummary,
+  makeNotification,
+  makeNotificationList,
+  makeNotificationUnreadCount,
+  makePoll,
   makeFileRecord,
   makeMeetingNoteCounts,
   makeMyDepartment,
@@ -74,5 +85,44 @@ describe('pin v0.23.0-api varsayılan üreticileri (KESİN 36)', () => {
     expect(withReportTaskDefaults({})).toMatchObject({ code: null, detail: null, file_bytes: 0 })
     expect(withFileDefaults({ uploaded_by_full_name: 'Ayşe' }).uploaded_by_full_name).toBe('Ayşe')
     expect(makeFileRecord({ tag: 'plan' }).tag).toBe('plan')
+  })
+})
+
+describe('pin v0.25.0-api varsayılan üreticileri (sohbet + bildirim)', () => {
+  it('sohbet: zorunlu v0.25 alanları gelir, verilen alan ezer, isteğe bağlılar verilmez', () => {
+    const summary = makeChatSummary({ unread_count: 3 })
+    expect(summary).toMatchObject({
+      read_seq: 0,
+      first_unread_seq: null,
+      peer_read_seq: null,
+      notify_level: 'all',
+      unread_count: 3,
+    })
+    expect(makeChatLastMessage()).toMatchObject({ kind: 'text', attachment_count: 0 })
+    expect(makeChatList({ items: [summary] }).total).toBe(1)
+    expect(makeChatMessageQuote().seq).toBe(1)
+    expect(makeChatHistory()).toMatchObject({ read_seq: 0, first_unread_seq: null })
+    expect(makeChatMember().program_role).toEqual({ department_ids: [], role: 'member' })
+    expect(makePoll()).toMatchObject({ anonymous: false, results: [] })
+    const message = makeChatMessage({ seq: 4 })
+    expect(message).toMatchObject({ forwarded_from: null, message_id: 'm4', poll: null })
+    expect(message).not.toHaveProperty('sender_role')
+    expect(message).not.toHaveProperty('read_by_all')
+    expect(summary).not.toHaveProperty('sender_role')
+  })
+
+  it('bildirim: nullable zorunlu alanlar boş, sayaçlar sıfır', () => {
+    expect(makeNotification()).toMatchObject({
+      actor: null,
+      detail: null,
+      action: null,
+      group: null,
+      muted: false,
+      program_id: null,
+      department_id: null,
+      subject: { state: 'unknown', title: null },
+    })
+    expect(makeNotificationList()).toEqual({ awaiting_count: 0, items: [], unread_count: 0 })
+    expect(makeNotificationUnreadCount({ count: 2 })).toEqual({ awaiting_count: 0, count: 2 })
   })
 })

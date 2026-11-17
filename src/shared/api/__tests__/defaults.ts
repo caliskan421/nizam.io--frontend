@@ -1,4 +1,4 @@
-// Pin v0.23.0-api: yanıt şemalarına eklenen ZORUNLU alanların test varsayılanları — tek yer (W170, KESİN 36).
+// Pin v0.23.0-api…v0.25.0-api: yanıt şemalarına eklenen ZORUNLU alanların test varsayılanları — tek yer (W170, W182; KESİN 36).
 //
 // Kural: alan uydurulmaz. Her varsayılan yalnız pinli spec'in o şemada `required` saydığı
 // alandır; değer "alan yok/boş/sıfır" anlamına gelen en yalın değerdir (null, 0, false, []) ve
@@ -342,4 +342,164 @@ export function withDateChangeRequestDefaults<T extends object>(
     reviewed_by: null,
     ...base,
   }
+}
+
+// --- Sohbet ve bildirim (BE-027…086, 142…162; v0.25) -------------------------------------------
+
+/** `ChatLastMessage` (liste satırı önizlemesi); `kind`/`attachment_count` v0.25 ile zorunlu. */
+export function makeChatLastMessage(
+  over: Partial<S['ChatLastMessage']> = {},
+): S['ChatLastMessage'] {
+  return {
+    attachment_count: 0,
+    body: 'Merhaba',
+    created_at: ZERO_TIME,
+    deleted: false,
+    kind: 'text',
+    message_id: 'm1',
+    sender_account_id: 'u2',
+    sender_name: 'Başka Kişi',
+    seq: 1,
+    ...over,
+  }
+}
+
+/** `ChatSummary` (liste satırı): `read_seq`/`first_unread_seq`/`peer_read_seq`/`notify_level` zorunlu. */
+export function makeChatSummary(over: Partial<S['ChatSummary']> = {}): S['ChatSummary'] {
+  return {
+    auto_kind: null,
+    chat_id: 'c1',
+    counterpart_account_id: null,
+    counterpart_name: null,
+    created_at: ZERO_TIME,
+    created_by_account_id: null,
+    first_unread_seq: null,
+    kind: 'group',
+    last_message: null,
+    last_message_at: null,
+    last_seq: 0,
+    mentioned: false,
+    name: 'Fuar kurulum',
+    notify_level: 'all',
+    peer_read_seq: null,
+    read_seq: 0,
+    source: 'none',
+    source_department_id: null,
+    unread_count: 0,
+    ...over,
+  }
+}
+
+/** `ChatList`: `total` zorunlu; verilmezse `items` uzunluğu. */
+export function makeChatList(
+  over: Partial<S['ChatList']> & Pick<S['ChatList'], 'items'>,
+): S['ChatList'] {
+  return { next_cursor: '', total: over.items.length, ...over }
+}
+
+/** `ChatMessageQuote`: `seq` zorunlu (silinmiş alıntıda `null`). */
+export function makeChatMessageQuote(
+  over: Partial<S['ChatMessageQuote']> = {},
+): S['ChatMessageQuote'] {
+  return {
+    body: 'Alıntı',
+    deleted: false,
+    message_id: 'm0',
+    sender_account_id: 'u2',
+    sender_name: 'Başka Kişi',
+    seq: 1,
+    ...over,
+  }
+}
+
+/** `ChatMessage`: `forwarded_from` zorunlu (nullable); anket/`read_by_all`/`sender_role` verilmez. */
+export function makeChatMessage(over: Partial<S['ChatMessage']> = {}): S['ChatMessage'] {
+  const seq = over.seq ?? 1
+  return {
+    attachments: [],
+    body: `mesaj ${seq}`,
+    chat_id: 'c1',
+    client_message_id: `cm-${seq}`,
+    created_at: '2026-11-14T08:00:00Z',
+    edit_revision: 1,
+    edited: false,
+    edited_at: null,
+    forwarded_from: null,
+    mentions: [],
+    message_id: `m${seq}`,
+    pinned_at: null,
+    poll: null,
+    reactions: [],
+    refs: [],
+    reply_to_message_id: null,
+    sender_account_id: 'u2',
+    sender_name: 'Başka Kişi',
+    seq,
+    task_ids: [],
+    ...over,
+  }
+}
+
+/** `ChatMessage.poll` gövdesi: `anonymous` ve `results[].mine` zorunlu. */
+export function makePoll(over: Partial<NonNullable<S['ChatMessage']['poll']>> = {}) {
+  return {
+    anonymous: false,
+    closed_at: null,
+    closes_at: null,
+    multi: false,
+    results: [],
+    ...over,
+  } satisfies NonNullable<S['ChatMessage']['poll']>
+}
+
+/** `ChatHistory`: `read_seq`/`first_unread_seq` zorunlu. */
+export function makeChatHistory(over: Partial<S['ChatHistory']> = {}): S['ChatHistory'] {
+  return { first_unread_seq: null, items: [], peer_read_seq: null, read_seq: 0, ...over }
+}
+
+/** `ChatMember`: `program_role` zorunlu. */
+export function makeChatMember(over: Partial<S['ChatMember']> = {}): S['ChatMember'] {
+  return {
+    account_id: 'u2',
+    founder: false,
+    from_source: false,
+    full_name: 'Başka Kişi',
+    program_role: { department_ids: [], role: 'member' },
+    role: 'member',
+    ...over,
+  }
+}
+
+/** `Notification`: v0.25 ile zorunlu (nullable) alanlar boş; satır genel cümle davranışında kalır. */
+export function makeNotification(over: Partial<S['Notification']> = {}): S['Notification'] {
+  return {
+    action: null,
+    actor: null,
+    created_at: '2026-11-14T08:55:00Z',
+    department_id: null,
+    detail: null,
+    group: null,
+    id: 'n1',
+    is_read: false,
+    muted: false,
+    program_id: null,
+    subject: { code: null, person: null, sequence_no: null, state: 'unknown', title: null },
+    subject_ref: { kind: 'work_item', id: 'w-1' },
+    type: 'work.item.created',
+    ...over,
+  }
+}
+
+/** `NotificationList`: `awaiting_count` zorunlu. */
+export function makeNotificationList(
+  over: Partial<S['NotificationList']> = {},
+): S['NotificationList'] {
+  return { awaiting_count: 0, items: [], unread_count: 0, ...over }
+}
+
+/** `countUnreadNotifications` 200 gövdesi: `{count, awaiting_count}`. */
+export function makeNotificationUnreadCount(
+  over: Partial<S['NotificationUnreadCount']> = {},
+): S['NotificationUnreadCount'] {
+  return { awaiting_count: 0, count: 0, ...over }
 }

@@ -43,6 +43,13 @@ describe('TR hata metinleri', () => {
     expect(missing).toEqual([])
   })
 
+  it('v0.25: notifications.input_invalid alan eşlemesi (fields[]) kendi koduyla çözülür', () => {
+    const entry = ERROR_CODES['notifications.input_invalid']
+    expect(entry.fields).toEqual(['notifications.input_invalid'])
+    expect(entry.fields.every((field) => field in trErrors)).toBe(true)
+    expect(i18n.global.t(entry.messageKey)).not.toBe(entry.messageKey)
+  })
+
   it('fazla kod yok', () => {
     const extra = Object.keys(trErrors).filter((code) => !expected.has(code))
     expect(extra).toEqual([])
