@@ -1,0 +1,262 @@
+import { enableAutoUnmount } from '@vue/test-utils'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
+
+import { settleQueries } from '@/shared/http/__tests__/settle'
+import { useToast } from '@/shared/ui'
+
+import {
+  ADMIN,
+  COORD,
+  errorEnvelope,
+  fileRecord,
+  http,
+  json,
+  ORIGIN,
+  resetHarness,
+  sent,
+  server,
+} from '../../model/__tests__/harness'
+import { file, mountWith, target } from './__tests__/support'
+import MoveFileDialog from './MoveFileDialog.vue'
+
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+afterEach(() => {
+  useToast().clear()
+  resetHarness()
+  document.body.innerHTML = ''
+})
+afterAll(() => server.close())
+enableAutoUnmount(afterEach)
+
+const PATH = `${ORIGIN}/v1/files/f1/work-item`
+const el = <T extends Element>(id: string) =>
+  document.body.querySelector<T>(`[data-testid="${id}"]`)
+const text = () => document.body.textContent ?? ''
+const toasts = () => useToast().queue.value.map((t) => t.message)
+
+// Yönetici: program geneli görev listesi (başka departman d9 dahil; kaynak dosya d1'de).
+const TASKS = {
+  tasks: [
+    { department_id: 'd1', file_count: 1, title: 'Kaynak görev', work_item_id: 'w1' },
+    { department_id: 'd9', file_count: 0, title: 'Hedef görev', work_item_id: 'w-target' },
+  ],
+}
+function serve(over: { tasks?: object; subtasks?: object } = {}) {
+  server.use(
+    http.get(`${ORIGIN}/v1/program/archive/tasks`, () => json(over.tasks ?? TASKS)),
+    http.get(`${ORIGIN}/v1/work-items/w-target/subtasks`, () =>
+      json(over.subtasks ?? { subtasks: [{ subtask_id: 's-1', title: 'Alt', done: false }] }),
+    ),
+  )
+}
+
+function open(props: Record<string, unknown> = {}) {
+  const emitted: Record<string, unknown[]> = { moved: [], moving: [], 'update:open': [] }
+  const mounted = mountWith(
+    MoveFileDialog,
+    {
+      open: true,
+      file: file(),
+      target,
+      onMoved: (id: string) => emitted.moved!.push(id),
+      onMoving: (v: boolean) => emitted.moving!.push(v),
+      'onUpdate:open': (v: boolean) => emitted['update:open']!.push(v),
+      ...props,
+    },
+    { selection: ADMIN, standing: { companyAdmin: true } },
+  )
+  return { ...mounted, emitted }
+}
+
+async function pick(h: ReturnType<typeof open>['h'], id: string, value: string) {
+  const select = el<HTMLSelectElement>(id)!
+  select.value = value
+  select.dispatchEvent(new Event('change'))
+  await settleQueries(h.queryClient)
+  await nextTick()
+}
+
+describe('MoveFileDialog (E-06-59)', () => {
+  it('yönetici başka departmandaki hedefi seçer; başlıklar KAYNAK dosyanın departmanıdır, gövde hedef görevdir', async () => {
+    serve()
+    server.use(http.patch(PATH, () => json({ ...fileRecord, work_item_id: 'w-target' })))
+    const { h, emitted } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    await pick(h, 'move-subtask', 's-1')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    const [req] = sent('PATCH', '/v1/files/f1/work-item')
+    expect(req!.body).toEqual({ work_item_id: 'w-target', subtask_id: 's-1' })
+    expect(req!.headers.get('X-Nizamio-Department')).toBe('d1')
+    expect(req!.headers.get('Idempotency-Key')).toBeNull()
+    expect(emitted.moved).toEqual(['f1'])
+    expect(emitted['update:open']).toEqual([false])
+    expect(toasts()).toEqual(['Dosya “Hedef görev” görevine taşındı.'])
+    // Hedef departman seçmek global kapsamı değiştirmedi.
+    expect(h.store.snapshot).toMatchObject({ programId: 'p1', departmentId: null })
+  })
+
+  it('hedef görev değişince alt görev sıfırlanır; alt görev yalnız seçilen görevden okunur', async () => {
+    serve()
+    const { h } = open()
+    await settleQueries(h.queryClient)
+    expect(sent('GET', '/v1/work-items/w1/subtasks')).toHaveLength(0)
+    await pick(h, 'move-task', 'w-target')
+    await pick(h, 'move-subtask', 's-1')
+    expect(el<HTMLSelectElement>('move-subtask')!.value).toBe('s-1')
+    await pick(h, 'move-task', 'w1')
+    expect(el<HTMLSelectElement>('move-subtask')!.value).toBe('')
+  })
+
+  it('hedef seçilmeden gönderim istek atmaz ve alan hatası gösterir', async () => {
+    serve()
+    const { h } = open()
+    await settleQueries(h.queryClient)
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', '/v1/files/f1/work-item')).toHaveLength(0)
+    expect(text()).toContain('Hedef görev seçin.')
+  })
+
+  it('gerçek (numaralanmış) ad bildirimi: dönen kayıt farklı ad taşırsa o gösterilir', async () => {
+    serve()
+    server.use(http.patch(PATH, () => json({ ...fileRecord, display_name: 'rapor (2).pdf' })))
+    const { h } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(toasts()).toEqual(['Dosya “Hedef görev” görevine “rapor (2).pdf” adıyla taşındı.'])
+  })
+
+  it('409 source_completed: pencere açık kalır, sunucu metni yok, istek bir kez', async () => {
+    serve()
+    server.use(http.patch(PATH, () => errorEnvelope('records.source_completed', 409)))
+    const { h, emitted } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', '/v1/files/f1/work-item')).toHaveLength(1)
+    expect(el('move-error')!.textContent).toContain('Görev tamamlandığı için dosya başka göreve')
+    expect(emitted.moved).toEqual([])
+    expect(toasts()).toEqual([])
+  })
+
+  it('422 work_item_id (hedef görünmüyor): hedef alanı hata verir ve seçim sıfırlanır', async () => {
+    serve()
+    server.use(
+      http.patch(PATH, () =>
+        json(
+          {
+            code: 'records.input_invalid',
+            message: 'x',
+            request_id: 'r1',
+            fields: [{ field: 'work_item_id', code: 'records.input_invalid' }],
+          },
+          422,
+        ),
+      ),
+    )
+    const { h } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(text()).toContain('Hedef görev artık seçilemiyor')
+    expect(el<HTMLSelectElement>('move-task')!.value).toBe('')
+  })
+
+  it('422 too_many_files: hedef alanında genel sınır hatası (istemci sayı uydurmaz)', async () => {
+    serve()
+    server.use(http.patch(PATH, () => errorEnvelope('records.too_many_files', 422)))
+    const { h } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(text()).toContain('Dosya sayısı sınırına ulaşıldı.')
+    expect(text()).not.toMatch(/\b100\b/)
+  })
+
+  it('sonuç bilinmiyor: kör tekrar yok (tek PATCH), uyarı gösterilir, başarı bildirimi yok', async () => {
+    serve()
+    server.use(http.patch(PATH, () => errorEnvelope('platform.internal', 503)))
+    const { h, emitted } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await settleQueries(h.queryClient)
+    expect(sent('PATCH', '/v1/files/f1/work-item')).toHaveLength(1)
+    expect(emitted.moved).toEqual([])
+    expect(toasts()).toEqual([])
+  })
+
+  it('istek sürerken moving=true yayılır, teslimden sonra false; kapanış engellenir', async () => {
+    serve()
+    server.use(http.patch(PATH, () => json(fileRecord)))
+    const { h, emitted } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await nextTick()
+    expect(el<HTMLButtonElement>('move-cancel')!.disabled).toBe(true)
+    await settleQueries(h.queryClient)
+    expect(emitted.moving).toEqual([true, false])
+    expect(emitted.moved).toEqual(['f1'])
+  })
+
+  it('kapsam değişince pencere kapanır; geç sonuç bildirim/taşındı olayı üretmez', async () => {
+    serve()
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.patch(PATH, async () => {
+        await gate
+        return json(fileRecord)
+      }),
+    )
+    const { h, emitted } = open()
+    await settleQueries(h.queryClient)
+    await pick(h, 'move-task', 'w-target')
+    el<HTMLButtonElement>('move-submit')!.click()
+    await nextTick()
+    h.store.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+    await nextTick()
+    release()
+    await settleQueries(h.queryClient)
+    expect(emitted['update:open']).toContain(false)
+    expect(emitted.moved).toEqual([])
+    expect(toasts()).toEqual([])
+  })
+
+  it('koordinatör: hedef adayları yalnız seçili kapsamın görevleri (S3), yükleme yetkisiyle', async () => {
+    server.use(
+      http.get(`${ORIGIN}/v1/records/archive/tasks`, () =>
+        json({
+          tasks: [
+            { department_id: 'd1', file_count: 0, title: 'Kendi görev', work_item_id: 'w-own' },
+            { department_id: 'd2', file_count: 0, title: 'Yetkisiz', work_item_id: 'w-other' },
+          ],
+        }),
+      ),
+    )
+    const { h } = mountWith(
+      MoveFileDialog,
+      { open: true, file: file(), target },
+      {
+        selection: COORD,
+        standing: { rows: [{ departmentId: 'd1', role: 'koordinator' }] },
+      },
+    )
+    await settleQueries(h.queryClient)
+    const labels = [...document.body.querySelectorAll('[data-testid="move-task"] option')].map(
+      (o) => o.textContent,
+    )
+    expect(labels).toContain('Kendi görev')
+    expect(labels).not.toContain('Yetkisiz')
+    expect(sent('GET', '/v1/program/archive/tasks')).toHaveLength(0)
+  })
+})

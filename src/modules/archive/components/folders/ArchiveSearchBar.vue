@@ -4,16 +4,18 @@ import { useI18n } from 'vue-i18n'
 
 import { authSession } from '@/shared/http'
 import { useScopeStore } from '@/shared/scope/store'
-import { UiInput, UiKbd, UiSegmented } from '@/shared/ui'
+import { UiHint, UiInput, UiKbd, UiSegmented } from '@/shared/ui'
 
+import { isSingleCharSearch } from '../../model/filters'
 import { ARCHIVE_KINDS } from '../../model/mime'
 import type { ArchiveKind } from '../../model/types'
 import type { ArchiveSearchBarEmits, ArchiveSearchBarProps } from '../index'
 import './folders.css'
 
 /**
- * Arama + dosya türü segmenti (E-06-06/07/26). Arama sunucunun desteklediği alanla sınırlıdır
- * (dosya adı, BE-077). Yazım ~300 ms gecikmeyle `update:q` yayar; bekleyen yazım sahip sökülünce,
+ * Arama + dosya türü segmenti (E-06-06/07/26). Arama dosya adı + görev başlığı + yükleyen adıdır
+ * (`search_scope=all`, RECORDS-K47); serbest etiket araması yoktur. Tek karakterde görev/yükleyen
+ * için iki karakter gerektiği kısa yardımcı metinle söylenir (istek ve sonuç sunucudan). Yazım ~300 ms gecikmeyle `update:q` yayar; bekleyen yazım sahip sökülünce,
  * kapsam ya da oturum değişince düşer. "/" kutuya odaklar (yazı alanındayken değil). Yönetici
  * için arama program geneli S2'dir (BE-072; sonuçlar `ArchiveSearchResults`). Segment yalnız Tümü/Görsel/Belge'dir (PDF ayrı kategori değil, E-06-07).
  */
@@ -110,5 +112,8 @@ onBeforeUnmount(() => {
         @update:model-value="(value: ArchiveKind | null) => value && emit('update:kind', value)"
       />
     </div>
+    <UiHint v-if="isSingleCharSearch(draft)" role="status" data-testid="archive-search-hint">
+      {{ t('archive.folders.search.minHint') }}
+    </UiHint>
   </div>
 </template>

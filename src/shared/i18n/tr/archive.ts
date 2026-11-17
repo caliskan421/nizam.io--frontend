@@ -27,8 +27,9 @@ export const trArchive = {
       },
       upload: 'Yükle',
       search: {
-        label: 'Tüm arşivde ara',
-        placeholder: 'Tüm arşivde ara…',
+        label: 'Dosya, görev veya yükleyen ara',
+        placeholder: 'Dosya, görev veya yükleyen ara…',
+        minHint: 'Görev ve yükleyen adında aramak için en az 2 karakter yazın.',
       },
       missing: {
         // K6: klasör yok ya da erişim kaybı.
@@ -73,9 +74,10 @@ export const trArchive = {
     // O2b alt dalları: sahibi W gövdesini doldururken buraya ekler.
     folders: {
       search: {
-        label: 'Tüm arşivde ara',
-        // BE-077: arama yalnız dosya adında; kişi/görev/etiket araması vaadi yok.
-        placeholder: 'Dosya adı ara…',
+        label: 'Dosya, görev veya yükleyen ara',
+        // RECORDS-K47: dosya adı + görev başlığı + yükleyen adı; serbest etiket araması vaadi yok.
+        placeholder: 'Dosya, görev veya yükleyen ara…',
+        minHint: 'Görev ve yükleyen adında aramak için en az 2 karakter yazın.',
         shortcut: 'Aramaya git',
         results: 'Arama sonuçları',
       },
@@ -221,7 +223,7 @@ export const trArchive = {
       retagMenu: 'Etiket',
       retagged: 'Etiket “{tag}” olarak değiştirildi.',
       retaggedSame: 'Dosya zaten “{tag}” etiketli.',
-      move: 'Başka klasöre taşı',
+      move: 'Başka göreve taşı',
       remove: 'Dosyayı sil',
       renameTitle: 'Dosyayı yeniden adlandır',
       renameDescription: 'Yeni ad aynı görevdeki diğer dosyalarla çakışmamalıdır.',
@@ -231,6 +233,26 @@ export const trArchive = {
       renameRequired: 'Dosya adı boş olamaz.',
       renameTooLong: 'Dosya adı en çok {max} karakter olabilir.',
       renamed: 'Dosya adı güncellendi.',
+      moveTitle: 'Dosyayı başka göreve taşı',
+      moveDescription:
+        'Dosya, seçtiğiniz görevin arşivine taşınır; aynı adlı dosya varsa adı numaralanır.',
+      moveTaskLabel: 'Hedef görev',
+      moveTaskPlaceholder: 'Görev seçin',
+      moveTaskRequired: 'Hedef görev seçin.',
+      moveTaskNone: 'Dosyayı taşıyabileceğiniz başka görev yok.',
+      moveTaskTruncated: 'Görev listesi kesildi: bazı görevler burada görünmüyor.',
+      moveTaskLoading: 'Görevler yükleniyor…',
+      moveTaskError: 'Görevler okunamadı. Pencereyi kapatıp yeniden deneyin.',
+      moveSubtaskLabel: 'Alt görev (isteğe bağlı)',
+      moveSubtaskNone: 'Alt görev yok',
+      moveSubtaskLoading: 'Alt görevler yükleniyor…',
+      moveSubtaskUnavailable: 'Alt görevler okunamadı; dosya göreve eklenir.',
+      moveSubmit: 'Taşı',
+      moveCancel: 'Vazgeç',
+      moved: 'Dosya “{task}” görevine taşındı.',
+      movedRenamed: 'Dosya “{task}” görevine “{name}” adıyla taşındı.',
+      moveTargetInvalid: 'Hedef görev artık seçilemiyor. Başka bir görev seçin.',
+      moveFallbackTask: 'seçilen',
       removeTitle: 'Dosya silinsin mi?',
       removeBody:
         'Dosya silinen kayıtlara taşınır. Bir şirket yöneticisi geri yükleyebilir veya kalıcı silebilir.',

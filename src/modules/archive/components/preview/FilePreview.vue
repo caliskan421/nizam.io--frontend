@@ -89,6 +89,11 @@ function afterRemoved(fileId: string): void {
   void returnFocus.restore()
 }
 
+function afterMoved(fileId: string): void {
+  emit('moved', fileId)
+  void returnFocus.restore()
+}
+
 function onKeydown(event: KeyboardEvent): void {
   if (event.key !== 'Escape' || event.defaultPrevented) return
   event.preventDefault()
@@ -200,6 +205,7 @@ function onKeydown(event: KeyboardEvent): void {
       @removing="emit('removing', $event)"
       @deleted="afterRemoved"
       @renamed="(fileId: string) => emit('renamed', fileId)"
+      @moved="afterMoved"
     />
   </aside>
 </template>

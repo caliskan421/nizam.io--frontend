@@ -20,6 +20,14 @@ export const ARCHIVE_PAGE_LIMIT = 50
 /** `search_scope` değeri: dosya adı + görev başlığı + yükleyen adı (sözleşme; varsayılan `name`). */
 const SEARCH_SCOPE_ALL = 'all' satisfies NonNullable<ArchiveFileQuery['search_scope']>
 
+/**
+ * Arama tek karakter mi (yalnız yardımcı metin için): görev/yükleyen eşleşmesi sunucuda en az iki
+ * karakter ister; istek ve sonuç değişmez (sunucu doğrular, istemci süzmez). Karakter = kod noktası.
+ */
+export function isSingleCharSearch(search: string): boolean {
+  return [...search.trim()].length === 1
+}
+
 /** `sort` izinli değerleri (kod; openapi yazmaz — eksikler yeni-8): boş = `created_at` azalan. */
 export const ARCHIVE_SORTS: readonly ArchiveSort[] = ['', 'name', 'size']
 

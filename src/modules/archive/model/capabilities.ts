@@ -17,7 +17,9 @@
  *  - İndir: listede görünen her dosya (yetki tüketimde hedefte).
  *  - Etiketi değiştir (`retagFile`, BE-074): yeniden adlandırmayla aynı yetki (ŞY ∨ K ∨ yükleyen ∧
  *    ekip satırı; sunucuda aynı kural, 403 gerçek sonuçtur).
- *  - Taşı / etiket oluştur / geri yükle: uç yok → devre dışı (`model/stubs.ts`).
+ *  - Başka göreve taşı (`moveFile`, RECORDS-K46): kaynakta yeniden adlandırmayla aynı yetki; hedef
+ *    adayları ayrıca hedef departmanda `upload` ile süzülür (sunucu ikisini de denetler).
+ *  - Etiket oluşturma: uç yok → devre dışı (`model/stubs.ts`).
  */
 import { scopeFacts, type Standing } from '@/shared/scope/standing-facts'
 
@@ -35,6 +37,7 @@ export const ARCHIVE_CAPABILITY_ACTIONS = [
   'upload',
   'rename',
   'retag',
+  'move',
   'delete',
   'download',
   'folderZip',
@@ -48,6 +51,7 @@ export const ARCHIVE_CAPABILITY_SOURCES: Readonly<Record<ArchiveCapabilityAction
   rename:
     'istemci-akislari §4 "Dosya adını değiştir" + RECORDS-K10: ŞY ∨ K ∨ (yükleyen ∧ ekip satırı)',
   retag: 'RECORDS-K10 (retagFile): yeniden adlandırmayla aynı — ŞY ∨ K ∨ (yükleyen ∧ ekip satırı)',
+  move: 'RECORDS-K46 (moveFile): kaynakta yeniden adlandırma yetkisi — ŞY ∨ K ∨ (yükleyen ∧ ekip satırı); hedefte yükleme ayrıca',
   delete: 'istemci-akislari §4 "Dosya sil" + RECORDS-K10: yalnız yükleyen ∧ (ŞY ∨ ekip satırı)',
   download: 'istemci-akislari §3 + README §6: listede görünen her dosya (yetki hedefte)',
   folderZip: 'RECORDS-K24/K18: ŞY her klasör; K kendi; Ü sanal klasör',
@@ -76,6 +80,8 @@ export function archiveCapabilities(standing: Standing | null, programId: string
     rename: canRename,
     /** Etiketi değiştir: yetki yeniden adlandırmayla aynıdır (RECORDS-K10; `retagFile`). */
     retag: canRename,
+    /** Başka göreve taşı: kaynak tarafı yeniden adlandırmayla aynıdır (RECORDS-K46). */
+    move: canRename,
     delete(file: ArchiveFileFacts): boolean {
       if (!isUploader(file)) return false
       return facts(file.departmentId).companyAdmin || hasTeamRow(file.departmentId)

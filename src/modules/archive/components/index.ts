@@ -173,18 +173,35 @@ export interface FilePreviewEmits {
   next: []
   deleted: [fileId: string]
   renamed: [fileId: string]
+  /** Başka göreve taşındı (W194): dosya bu klasör/süzgeçten düşebilir; panel kapanır. */
+  moved: [fileId: string]
   openTask: [workItemId: string]
 }
 
-/** W124 · E-06-56…60 — indir / yeniden adlandır / sil + devre dışı etiket-taşı (BE-074/075). */
+/** W124/W194 · E-06-56…60 — indir / yeniden adlandır / etiketle / başka göreve taşı / sil. */
 export interface FileActionsProps {
   file: ArchiveFile
   target: ArchiveTarget
 }
 export interface FileActionsEmits {
+  /** Silme ya da taşıma uçuşta/teslimde: sayfa paneli açık tutar. */
   removing: [pending: boolean]
   deleted: [fileId: string]
   renamed: [fileId: string]
+  moved: [fileId: string]
+}
+
+/** W194 · E-06-59 — başka göreve taşıma penceresi (`moveFile`; başlıklar KAYNAK dosyanındır). */
+export interface MoveFileDialogProps {
+  open: boolean
+  file: ArchiveFile
+  target: ArchiveTarget
+}
+export interface MoveFileDialogEmits {
+  'update:open': [value: boolean]
+  /** İstek + sonuç teslimi sürüyor mu (önizleme sahibini açık tutmak için). */
+  moving: [pending: boolean]
+  moved: [fileId: string]
 }
 
 /** W124 · E-06-57/64 — yeniden adlandırma formu (409 `records.name_taken` alanın altında). */
