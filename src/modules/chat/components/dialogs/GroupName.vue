@@ -24,6 +24,8 @@ const props = defineProps<{
   isGroup: boolean
   memberCount: string | null
   founder: string | null
+  /** Kaynak bilgisi (BE-160 "Koordinatörler" grubu); `null` = satır yok. */
+  sourceNote?: string | null
 }>()
 
 const store = useScopeStore()
@@ -95,6 +97,7 @@ async function save(): Promise<void> {
         <template v-if="founder">
           · {{ chatText('chat.dialogs.info.founder', { name: founder }) }}
         </template>
+        <template v-if="sourceNote"> · {{ sourceNote }}</template>
       </p>
     </div>
   </header>

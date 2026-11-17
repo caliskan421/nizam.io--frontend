@@ -71,6 +71,16 @@ const founder = computed(() => {
   const id = data.value?.created_by_account_id
   return id ? (members.data.value?.items.find((m) => m.account_id === id)?.full_name ?? null) : null
 })
+/**
+ * "Koordinatörler" sistem grubunun kaynak bilgisi (BE-160, ADR-0051): yalnız `source`/`auto_kind =
+ * coordinators`; bilinmeyen değer `none`/elle gibi davranır (satır yok). Sil/kaynak değiştir
+ * koruması `capabilities.ts`'ten gelir (burada yeniden yazılmaz).
+ */
+const sourceNote = computed(() =>
+  data.value?.source === 'coordinators' || data.value?.auto_kind === 'coordinators'
+    ? chatText('chat.dialogs.info.sourceCoordinators')
+    : null,
+)
 const memberCount = computed(() => {
   const list = members.data.value
   if (!list) return null
@@ -139,6 +149,7 @@ function planMeeting(): void {
           :is-group="isGroup"
           :member-count="memberCount"
           :founder="founder"
+          :source-note="sourceNote"
         />
         <NotifyLevel :chat-id="chatId" :level="data.notify_level" />
         <template v-if="isGroup">

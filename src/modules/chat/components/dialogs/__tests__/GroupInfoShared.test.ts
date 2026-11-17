@@ -256,6 +256,35 @@ describe('üye alt yazısı: program rolü (BE-083)', () => {
   })
 })
 
+describe('Koordinatörler grubu kaynak bilgisi (BE-160)', () => {
+  const note = () => $('[data-testid="dlg-group-sub"]')?.textContent?.replace(/\s+/g, ' ')
+  const sourced = async (over: object) => {
+    serve({ ...GROUP, ...over })
+    on('get', '/v1/chats/c1/shared-counts', () =>
+      json({ files: 0, attachments: 0, tasks: 0, polls: 0, departments: 0 }),
+    )
+    mountDialog(GroupInfoDialog, props, { who })
+    await vi.waitFor(() => expect(note()).toBeDefined())
+  }
+
+  it.each([{ source: 'coordinators' }, { auto_kind: 'coordinators' }])(
+    'kaynak/auto_kind coordinators → salt bilgi metni; silme/kaynak değiştirme yok: %j',
+    async (over) => {
+      await sourced(over)
+      expect(note()).toContain('Programdaki koordinatörler ve şirket yöneticisi')
+      expect($('[data-testid="dlg-source-select"]')).toBeNull()
+    },
+  )
+
+  it.each([{ source: 'none' }, { source: 'bilinmeyen-kaynak', auto_kind: 'yeni-tur' }])(
+    'none ve bilinmeyen değer → bilgi satırı yok (ADR-0051 geri düşüş): %j',
+    async (over) => {
+      await sourced(over)
+      expect(note()).not.toContain('koordinatörler ve şirket yöneticisi')
+    },
+  )
+})
+
 describe('bildirim seviyesi (BE-027 ayar yüzü)', () => {
   const level = (v?: string) => ({ ...GROUP, ...(v ? { notify_level: v } : {}) })
 

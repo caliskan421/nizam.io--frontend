@@ -227,6 +227,7 @@ export const trChat = {
         tasks: 'Görevler',
         pins: 'Sabitli',
         meeting: 'Toplantı planla',
+        sourceCoordinators: 'Programdaki koordinatörler ve şirket yöneticisi',
         notify: 'Bildirimler',
         notifyAll: 'Tüm mesajlar',
         notifyMentions: "Yalnız {'@'}bahsedilince bildir",
