@@ -69,4 +69,15 @@ describe('okunmamış ayırıcı: liste özeti yokken geçmiş `first_unread_seq
     await settle(client)
     expect(wrapper.find(DIVIDER).exists()).toBe(true)
   })
+  it('aynı query önbelleğiyle yeniden girişte eski okunmamış çapa tekrar çizilmez', async () => {
+    const { fake } = servePane({ historyFirstUnreadSeq: 1, messages: [msg(1)] })
+    const first = await mountPane()
+    await settle(first.client)
+    await vi.waitFor(() => expect(first.wrapper.find(DIVIDER).exists()).toBe(true))
+    fake.firstUnread.seq = null
+    first.wrapper.unmount()
+    const second = await mountPane({ queryClient: first.client })
+    await settle(second.client)
+    expect(second.wrapper.find(DIVIDER).exists()).toBe(false)
+  })
 })

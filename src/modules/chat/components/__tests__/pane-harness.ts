@@ -99,14 +99,18 @@ export function unmountAll(): void {
   document.body.innerHTML = ''
 }
 
-export async function mountPane(options: PaneOptions & { chatId?: string } = {}) {
+export async function mountPane(
+  options: PaneOptions & { chatId?: string; queryClient?: QueryClient } = {},
+) {
   const pinia = createPinia()
   setActivePinia(pinia)
   useScopeStore().commit({ programId: 'p1', lens: 'admin', departmentId: null })
   const router = createRouter({ history: createMemoryHistory(), routes: chatRoutes })
   await router.push(options.path ?? '/mesajlar/c1')
   await router.isReady()
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
+  const client =
+    options.queryClient ??
+    new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } })
   const dialogs: DialogRequest[] = []
   const typing = ref<string[]>([])
   const Host = defineComponent({
