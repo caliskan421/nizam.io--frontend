@@ -74,3 +74,7 @@ Terra tarihselF8yok/F9bağlandı guard'ını yalnıztestdosyasında sürüm/faz/
 ### W184 bağımsız kabul (2026-11-17; PR/CI bekler)
 
 Terra b2107de2/source7b16b973 üzerinde83hedeflitest,25yaşam döngüsü ve20read-state/window kontrolünü (örtüşen koşumlar) geçirdi; build/lint/formatPASS. true→null grupokundu ve pendingread sırasında scope/session/sökülme negatifleri için test patch'i eklendi.390/1440koyu GroupInfo/iki dosya kaynağı/görev listesi/NotifyPUT/ownreceipts/Tab-focus dumanı; CSP/overflow/pageerror0, PNG gözle incelendi. Sahte work verisinde görev detayı açılmadığından source-link bağımsız görsel dumanı kanıt dışı; actualrouter/around ve negatifler entegrasyondaPASS, ilkSonnetdumanındaUIvardı. **W188 gerçekbackend tanığı görevden kaynağa linkin390/1440pointer açılışını ayrıca kanıtlayacak.**120mesaj UI focus ayrıca ölçülmedi; model içerik/pencere korunması testlidir.
+
+### W184 gerçek backend CI seçici düzeltmesi (2026-11-17)
+
+CI44003202106 kalite ve imaj SUCCESS; gerçek backend dumanında e2e/chat.spec.ts sendMessage eski kısmi “Gönder” seçicisi iki yeni “Gönderildi” receipt düğmesiyle birlikte üç öğe eşleştirdi. Terra testi mevcut chat-composer içinde exact Gönder ile sınırlandırdı; assertion/ürün davranışı değişmedi. ESLint/format ve Playwright tek-test keşfiPASS; yerelde gerçekbackend tekrarlanmadı. Root bu kesin nedenli test düzeltmesini PR172'ye ekledi; yeni üç CI sonucu beklenir, kırmızı koşumda merge yapılmadı.
