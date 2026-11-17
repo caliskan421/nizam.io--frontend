@@ -39,6 +39,12 @@ export interface ArchiveState {
   redeemed: Array<{ path: string; program: string; department: string }>
   /** `retagFile` çağrıları (başarılı olanlar). */
   retags: Array<{ file_id: string; tag: string }>
+  /** `moveFile` kayıtları (W194): hedef, başlık departmanı, anahtar var mı. */
+  moves: Array<{ file_id: string; body: unknown; department: string; keyed: boolean }>
+  /** Sonraki `moveFile` yanıtı: 'lose' = dosya taşınır ama yanıt kaybolur; diğerleri sunucu hataları. */
+  moveMode: 'ok' | 'source-completed' | 'lose'
+  /** Görev başına dosya tavanı (sunucu; istemci bilmez). */
+  capacity: number
   /** Yanıtı bekletilen istekler (arşiv uçları harness `hold`unun önüne geçtiği için burada). */
   holds: Array<{ method: string; path: string; gate: Promise<void>; arrived: () => void }>
 }
@@ -54,6 +60,9 @@ export function createArchiveState(): ArchiveState {
     tickets: new Map(),
     redeemed: [],
     retags: [],
+    moves: [],
+    moveMode: 'ok',
+    capacity: 100,
     holds: [],
   }
 }
@@ -375,8 +384,17 @@ function fileReadHandlers(f: Fake) {
   ]
 }
 
+/** `search_scope=all` (RECORDS-K47): iki karakterden itibaren görev başlığı ve yükleyen adı da aranır. */
+function scopedSearch(f: Fake, x: FakeFile, search: string, q: URLSearchParams): boolean {
+  if (x.display_name.toLowerCase().includes(search)) return true
+  if (q.get('search_scope') !== 'all' || [...search].length < 2) return false
+  const title = f.db.items.find((i) => i.work_item_id === x.work_item_id)?.title ?? ''
+  const uploader = f.nameOf(x.uploaded_by_account_id) ?? ''
+  return [title, uploader].some((t) => t.toLocaleLowerCase('tr').includes(search))
+}
+
 function attachmentPage(f: Fake, visible: FakeFile[], q: URLSearchParams) {
-  const search = (q.get('search') ?? '').toLowerCase()
+  const search = (q.get('search') ?? '').toLocaleLowerCase('tr')
   const category = q.get('mime_category')
   const mimeOf = (x: FakeFile) => (x.content_type.startsWith('image/') ? 'gorsel' : 'belge')
   const matches = (x: FakeFile) =>
@@ -384,7 +402,7 @@ function attachmentPage(f: Fake, visible: FakeFile[], q: URLSearchParams) {
     (!q.get('tag') || x.tag === q.get('tag')) &&
     (!category || mimeOf(x) === category) &&
     (!q.get('uploader_id') || x.uploaded_by_account_id === q.get('uploader_id')) &&
-    (!search || x.display_name.toLowerCase().includes(search))
+    (!search || scopedSearch(f, x, search, q))
   let list = visible.filter(matches)
   if (q.get('sort') === 'name') {
     list = [...list].sort((a, b) => a.display_name.localeCompare(b.display_name))
@@ -453,6 +471,69 @@ function uploadFields(request: Request, tag: string): Partial<FakeFile> {
 
 const TAGS = ['ister', 'plan', 'girdi', 'analiz', 'cikti', 'sonuc']
 
+/** Taşıma kaynağında ad yetkisi (yönetici, koordinatör, ekip satırı olan yükleyen). */
+function mayRename(f: Fake, source: FakeFile, gate: Gate): boolean {
+  const row = f.teamRow(gate.account, gate.program, gate.department)
+  return (
+    gate.account.admin ||
+    row?.team === 'coordinator' ||
+    (source.uploaded_by_account_id === gate.account.account_id && row !== undefined)
+  )
+}
+
+/** Hedef görev + tavan denetimi; sorun varsa hata yanıtı, yoksa hedef görev. */
+function moveTarget(f: Fake, source: FakeFile, gate: Gate, workId: string): Item | Response {
+  const target = f.db.items.find((i) => i.work_item_id === workId && i.program_id === gate.program)
+  if (!target) {
+    return envelope('records.input_invalid', 422, [
+      { field: 'work_item_id', code: 'records.input_invalid' },
+    ])
+  }
+  const inTarget = f.state.files.filter((x) => x.work_item_id === workId).length
+  if (source.work_item_id !== workId && inTarget >= f.state.capacity) {
+    return envelope('records.too_many_files', 422)
+  }
+  return target
+}
+
+/** Hedefte aynı ad varsa "ad (2).uzantı" numaralanır (409 değil); kaydı hedefe bağlar. */
+function relocate(f: Fake, source: FakeFile, target: Item, subtaskId?: string): void {
+  if (source.work_item_id !== target.work_item_id) {
+    const taken = (n: string) =>
+      f.state.files.some((x) => x.work_item_id === target.work_item_id && x.display_name === n)
+    const [stem, ext = ''] = source.display_name.split(/\.(?=[^.]+$)/)
+    for (let n = 2; taken(source.display_name); n += 1) {
+      source.display_name = `${stem} (${n})${ext ? `.${ext}` : ''}`
+    }
+    source.work_item_id = target.work_item_id
+    source.department_id = target.department_id
+  }
+  if (subtaskId) source.subtask_id = subtaskId
+  else delete source.subtask_id
+}
+
+/** `moveFile` (v0.26, RECORDS-K46): kaynakta ad yetkisi, aynı programda hedef görev, tavan. */
+function moveHandler(f: Fake) {
+  return http.patch(`${ORIGIN}/v1/files/:id/work-item`, async ({ request, params }) => {
+    const hit = f.fileOf(request, String(params.id))
+    if (hit instanceof Response) return hit
+    const { file: source, gate } = hit
+    const body = (await request.json()) as { work_item_id: string; subtask_id?: string }
+    f.state.moves.push({
+      file_id: source.file_id,
+      body,
+      department: gate.department,
+      keyed: request.headers.has('Idempotency-Key'),
+    })
+    if (!mayRename(f, source, gate)) return envelope('records.not_authorized', 403)
+    if (f.state.moveMode === 'source-completed') return envelope('records.source_completed', 409)
+    const target = moveTarget(f, source, gate, body.work_item_id)
+    if (target instanceof Response) return target
+    relocate(f, source, target, body.subtask_id)
+    return f.state.moveMode === 'lose' ? HttpResponse.error() : json(record(source))
+  })
+}
+
 function writeHandlers(f: Fake) {
   const { state } = f
   return [
@@ -501,6 +582,7 @@ function writeHandlers(f: Fake) {
       target.tag = tag
       return json(record(target))
     }),
+    moveHandler(f),
     http.delete(`${ORIGIN}/v1/files/:id`, ({ request, params }) => {
       const hit = f.fileOf(request, String(params.id))
       if (hit instanceof Response) return hit
