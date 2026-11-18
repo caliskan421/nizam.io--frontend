@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.26.0-api (4d4adc0f9f1890184b5ed210296deb1fde6db886) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.28.0-api (45a2237f420aee0cc3a58544063559cb3661db4b) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -1674,6 +1674,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/audit/action-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Eylem türü sözlüğü (kimliği doğrulanmış herkes; AUDIT-K17).
+         * @description Sözlük tablosundan tek sorguyla, koda göre sıralı en çok 2 000 satır. `category`
+         *     eylem kodunun modül önekinden türeyen kapalı kümedir; `hidden_by_default` işletim
+         *     gürültüsü olan eylemleri (oturum yenileme, bilet tüketimi, lisans kira yenilemesi,
+         *     güvenlik kayıtları) arayüzün varsayılan olarak gizlemesi için işaretler. Görünen ad
+         *     istemci sözlüğünde kalır; uç etiket döndürmez.
+         */
+        get: operations["listAuditActionTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/audit/entries": {
         parameters: {
             query?: never;
@@ -1681,8 +1705,85 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** İşlem geçmişi (yalnız şirket yöneticisi; imleçli, (occurred_at, id) azalan; AUDIT-K10). Eylem kodunun görünen adı istemci sözlüğündedir. */
+        /**
+         * İşlem geçmişi (rol kapsamlı; imleçli, (occurred_at, id) azalan; AUDIT-K10, K15). Eylem kodunun görünen adı istemci sözlüğündedir.
+         * @description Okuma ROL KAPSAMLIDIR (AUDIT-K15): şirket yöneticisi tümünü; koordinatör `program_id`
+         *     programında koordinatörlüğünün departman kapsamlı olaylarını ve kendi eylemlerini;
+         *     üye programda atandığı görevlerin olaylarını (anlık atama kümesi) ve kendi eylemlerini
+         *     görür. Güvenlik ve kurulum olayları yönetici dışına çıkmaz. Yönetici dışında
+         *     `program_id` zorunludur (yoksa 422, alan `program_id`) ve kapsamı belirler; verilen
+         *     süzgeçler kapsamı genişletmez. `work_item_id` görev etkinliğidir (AUDIT-K16): görevi
+         *     görebilen herkes (görev görünürlük kuralıyla aynı) görevin bütün satırlarını okur;
+         *     görev yok, görünmüyor ya da başka programdaysa 404 `audit.subject_not_found`.
+         *     Yanıtta `client_ip` ve `client_agent` yalnız şirket yöneticisine dolu döner
+         *     (AUDIT-K13; yeni kayıtlarda); diğer rollerde her zaman `null`. `target_name` hedefin
+         *     okuma anındaki adıdır (görev, dosya; yöneticide departman ve program) ve çağıranın
+         *     görünürlüğüyle çözülür; çözülemeyen hedef `null`.
+         *     Görev etkinliği, birim etkinliği, ana sayfa "son işlemler" ve "son raporlar"
+         *     yüzleri bu uçtaki süzgeçlerle okunur (`work_item_id`, `department`, `limit=10`,
+         *     `action_code=reporting.report_downloaded`).
+         */
         get: operations["listAuditEntries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/audit/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * İşlem geçmişi CSV dışa aktarımı (rol kapsamlı; indirme bileti hedefi; AUDIT-K19).
+         * @description Liste ucuyla AYNI süzgeçler ve AYNI rol kapsamı (AUDIT-K15): rol kapsamındaki herkes
+         *     kendi kapsamını indirir; dosya listeden fazlasını göstermez. Sayım ve dosya tek tutarlı
+         *     (REPEATABLE READ) görüntüden gelir; dışa aktarımın kendi audit kaydı dosyada yoktur. Biçim: UTF-8 BOM, `;` ayraç,
+         *     CRLF, RFC 4180 tırnaklama; her hücre CSV-güvenlidir (`= + - @`, sekme ya da satır
+         *     başıyla başlayan ya da boşluk ardına gizlenmiş formül hücresi `'` önekli). Sütunlar:
+         *     `zaman` (kurulum saat diliminde `YYYY-MM-DD HH:MM:SS`), `aktor_adi`, `aktor_id`,
+         *     `kategori`, `eylem_kodu`, `sonuc`, `konu_turu`, `konu_id`, `gorev_id`, `program_id`,
+         *     `departman_id`, `ayrinti`, `ip`, `tarayici`. `ip` ve `tarayici` hücreleri yalnız şirket
+         *     yöneticisinin dosyasında dolu, diğerlerinde boştur (başlık kalır; AUDIT-K13). Hedef adı
+         *     yoktur. Süzülmüş toplam 10 000 satırı aşarsa gövde akmadan 422 `audit.export_too_large`.
+         *     PDF'lerle aynı kota ve üretim slotu altındadır; `audit.entries.exported` audit kaydı
+         *     (`rows=N;filters=K`) gövde açılmadan yazılır, yazılamazsa gövde hiç açılmaz. Gövde
+         *     açıldıktan sonraki arızada bağlantı kesilir (CSV'ye hata zarfı eklenmez). Akış
+         *     bütçesindedir (`NIZAMIO_HTTP_STREAM_TIMEOUT`). Yönetici dışında `program_id` zorunludur.
+         */
+        get: operations["exportAuditEntries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/audit/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * İşlem geçmişi özeti: faset sayımları ve 30 günlük etkinlik şeridi (rol kapsamlı; AUDIT-K18).
+         * @description Liste ucuyla AYNI süzgeçler ve AYNI rol kapsamı (AUDIT-K15); `limit` ve `cursor` yok.
+         *     `total_all` kapsamdaki süzgeçsiz toplam, `total_matched` bütün süzgeçlere uyan toplamdır.
+         *     Her faset KENDİ süzgecini dışarıda bırakarak sayılır (seçili değer yanındaki seçenekleri
+         *     gizlemez), sayıya göre azalan, eşitlikte anahtar sırasıyla en çok 50 anahtar döner.
+         *     `range` ve `activity_30d` zaman süzgecini (`from`/`to`) yok sayar, diğer süzgeçlere uyar;
+         *     gün sınırları kurulum saat dilimindedir, şerit bugün dahil 30 günü eskiden yeniye verir
+         *     ve boş günler sıfırdır. Sorgular salt okunur transaction'da 5 saniye ile sınırlıdır;
+         *     aşım 503 `audit.summary_unavailable` (`Retry-After`). Yönetici dışında `program_id` zorunludur.
+         */
+        get: operations["summarizeAuditEntries"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2687,6 +2788,14 @@ export interface paths {
          *     silinmiş görev sayıları, dosya, üye ve toplantı sayıları ve kalıcı
          *     silmenin çözülemeyen engelleri. Silinmiş departmanda da çalışır
          *     (kalıcı silme onayı). Yalnız şirket yöneticisi.
+         *
+         *     İsteğe bağlı `program_id` önizlemeyi tek programa daraltır (program
+         *     kapsamlı kalıcı silme kararı için; ORGANIZATION-K66): `programs[]` yalnız
+         *     o program satırıdır; görev, dosya, üye ve toplantı sayıları o programındır.
+         *     Departman o programa hiç bağlı değilse (ya da program yoksa) 404 değil,
+         *     sıfır sayaçlı tek `programs[]` satırıyla (`linked: false`) 200 döner.
+         *     `permanent_blockers` programa göre değişmez (tablo engeli departman
+         *     düzeyindedir; `purgeAllDepartments` `scope=program` ile aynı okuma).
          */
         get: operations["departmentDeleteImpact"];
         put?: never;
@@ -2910,6 +3019,23 @@ export interface paths {
         head?: never;
         /** Sınıflandırma etiketini değiştirir (kapalı küme; depolama nesnesine dokunmaz; aynı etiket değişikliksiz 200). Yetki yeniden adlandırmayla aynıdır (RECORDS-K10): yönetici, ekibin koordinatörü ya da dosyanın `(program, departman)` ekibinde satırı olan yükleyen; aksi 403 `records.not_authorized`. Audit `records.file.tag_changed`. */
         patch: operations["retagFile"];
+        trace?: never;
+    };
+    "/v1/files/{id}/thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resim (png, jpeg) ve PDF dosyası için tek boyutlu JPEG küçük resim döndürür (en uzun kenar 512 px; PDF'in ilk sayfası). Yetki indirmeyle aynıdır (yetkisiz çağıran da bulunamadı alır). Türev ilk istekte üretilir ve depoda saklanır. Diğer türler ve üretilemeyen dosyalar için 422 `records.preview_unavailable`: istemci tür simgesi gösterir. Bilet hedefi DEĞİLDİR: istemci Bearer ve kapsam başlıklarıyla `fetch` eder, yanıtı `blob:` adresine çevirir. */
+        get: operations["getFileThumbnail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/files/{id}/work-item": {
@@ -4499,7 +4625,22 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Dönem raporu (JSON). */
+        /**
+         * Dönem raporu (JSON).
+         * @description Şirket yöneticisi tam rapor alır. Programda koordinatör olan çağıran yalnız
+         *     kendi koordinatörlüklerinin raporunu alır (birim raporu, REPORTING-K24): boş
+         *     `department_ids` kendi koordinatörlükleri, boş `sections` birime uyan bölümler
+         *     (`gantt`, `tasks`, `details`, `meetings`, `files`, `appendix`); `summary` ve
+         *     `general` program geneli olduğundan 422 (alan `sections`); başka departmanın
+         *     görev başlığı ve ön görev adı yanıta girmez. Yanıtın bütün sayaçları (`stats`,
+         *     dağılımlar, `meeting_stats`, `date_change_stats`, koordinatörlük satırları)
+         *     birimin kapsamından üretilir; birime bölünemeyen alanlar BOŞ döner
+         *     (`message_stats`, `stats.total_messages`, `stats.total_users`/`total_admins`/
+         *     `total_coordinators`/`total_members` sıfır; `total_coordinatorships` birimin kendi
+         *     sayısı). Üye ve rolsüz çağıran 403.
+         *     İsteğe bağlı `from`/`to` takvim günü aralığı satırları ve sayaçları süzer
+         *     (REPORTING-K23).
+         */
         get: operations["reportSeason"];
         put?: never;
         post?: never;
@@ -4518,8 +4659,11 @@ export interface paths {
         };
         /**
          * Dönem raporu PDF'i (dışa aktarım kotası).
-         * @description Seçimli üretim `sections` ve `department_ids` ile (REPORTING-K17); dosya adı
-         *     seçimden bağımsızdır. İndirme biletinin hedefi sorgu dizesini taşır.
+         * @description Seçimli üretim `sections` ve `department_ids` ile (REPORTING-K17), isteğe bağlı
+         *     `from`/`to` aralığıyla (REPORTING-K23); dosya adı seçimden bağımsızdır.
+         *     Koordinatör kendi birimlerinin raporunu alır (REPORTING-K24; yetki ve kapsam
+         *     kuralları `reportSeason` ile aynıdır, audit ayrıntısına `scope=unit` yazılır).
+         *     İndirme biletinin hedefi sorgu dizesini taşır.
          */
         get: operations["reportSeasonPdf"];
         put?: never;
@@ -5593,12 +5737,30 @@ export interface components {
         };
         /** @description DÖNEN klasör kartlarının toplamı (RECORDS-K41). Yöneticinin kart listesi programa bağlı canlı koordinatörlüklerdir; bağlı olmayan ya da silinmiş departmanın dosyaları kartlarda da toplamda da yoktur. */
         ArchiveFolderTotals: {
+            /** @description Aynı kümenin etiket dağılımı (RECORDS-K51): bayta göre azalan, boş etiketler yok. */
+            by_tag: components["schemas"]["ArchiveStorageTag"][];
+            /** @description DÖNEN kartların dosya kümesinin içerik türü dağılımı (RECORDS-K51): bayta göre azalan, boş türler yok; toplamlar `file_count`/`total_bytes` ile eşittir. */
+            by_type: components["schemas"]["ArchiveStorageType"][];
             file_count: number;
             /** Format: date-time */
             last_uploaded_at: string | null;
             task_count: number;
             /** Format: int64 */
             total_bytes: number;
+        };
+        ArchiveStorageTag: {
+            file_count: number;
+            /** @enum {string} */
+            tag: "ister" | "plan" | "girdi" | "analiz" | "cikti" | "sonuc";
+            /** Format: int64 */
+            total_bytes: number;
+        };
+        ArchiveStorageType: {
+            file_count: number;
+            /** Format: int64 */
+            total_bytes: number;
+            /** @enum {string} */
+            type: "pdf" | "image" | "document" | "spreadsheet" | "presentation" | "other";
         };
         ArchiveTask: {
             /** @description Görevin koordinatörlüğü; şirket yöneticisi bu göreve yüklemeyi bu değeri `X-Nizamio-Department` yaparak gönderir (RECORDS-K39). Silinmiş görevde dosya kaydının koordinatörlüğüdür. */
@@ -5703,12 +5865,37 @@ export interface components {
             rol: "kullanici" | "asistan";
             sira: number;
         };
+        AuditActionType: {
+            category: components["schemas"]["AuditCategory"];
+            code: string;
+            /** Format: date-time */
+            first_seen: string;
+            hidden_by_default: boolean;
+            module: string;
+        };
+        AuditActionTypeList: {
+            items: components["schemas"]["AuditActionType"][];
+        };
+        /**
+         * @description Okuma kategorisi (AUDIT-K17): eylem kodunun modül önekinden türeyen kapalı küme. `task` = work; `file` = records; `meeting` = collaboration; `message` = messaging; `account` = identity, organization, security; `system` = diğer her modül.
+         * @enum {string}
+         */
+        AuditCategory: "task" | "file" | "meeting" | "message" | "account" | "system";
+        AuditCountBucket: {
+            count: number;
+            key: string;
+        };
         AuditEntry: {
             /** @description Kararlı eylem kodu (ör. `work.item.transitioned`); görünen ad istemci sözlüğündedir. */
             action_code: string;
             /** @description Kurulum aracı/sistem işlemlerinde `null`. */
             actor_account_id: string | null;
             actor_full_name: string | null;
+            category: components["schemas"]["AuditCategory"];
+            /** @description Tarayıcı/OS özeti (ör. `Chrome · macOS`; ham user-agent saklanmaz). YALNIZ şirket yöneticisine dolu döner; diğer rollerde ve eski kayıtlarda `null`. */
+            client_agent: string | null;
+            /** @description İstemci adresi (AUDIT-K13). YALNIZ şirket yöneticisine dolu döner; diğer rollerde ve eski kayıtlarda `null`. */
+            client_ip: string | null;
             department_id: string | null;
             /** @description Kararlı ayrıntı (ör. dosya adı, `acting_as=company_admin`); serbest metin taşımaz. */
             details: string | null;
@@ -5720,10 +5907,49 @@ export interface components {
             program_id: string | null;
             subject_id: string;
             subject_kind: string;
+            /** @description Hedefin okuma anındaki adı (görev, dosya; yöneticide ayrıca departman ve program). Çağırana görünmeyen ya da çözülemeyen hedefte `null`. */
+            target_name: string | null;
+            /** @description Görev bağlamı (AUDIT-K12); görev bağlamı kolonu olmayan eski kayıtlarda konu görevse konu kimliği, yoksa `null`. */
+            work_item_id: string | null;
         };
         AuditEntryList: {
             entries: components["schemas"]["AuditEntry"][];
             next_cursor: string | null;
+        };
+        AuditSummary: {
+            /** @description Bugün dahil 30 günün günlük sayımı (eskiden yeniye; kurulum saat diliminde; zaman süzgecini yok sayar). */
+            activity_30d: {
+                /** @description Altı kategorinin hepsi vardır (boş gün sıfır). */
+                by_category: {
+                    [key: string]: number;
+                };
+                /** Format: date */
+                date: string;
+                total: number;
+            }[];
+            facets: {
+                /** @description Eylem kodu sayımları (anahtar eylem kodu). */
+                action: components["schemas"]["AuditCountBucket"][];
+                actor: {
+                    /** @description Aktörsüz (sistem) kayıtlarda `null`. */
+                    account_id: string | null;
+                    count: number;
+                    full_name: string | null;
+                }[];
+                /** @description Kategori sayımları (anahtar `AuditCategory`). */
+                category: components["schemas"]["AuditCountBucket"][];
+                department: {
+                    count: number;
+                    /** @description Departmansız kayıtlarda `null`. */
+                    department_id: string | null;
+                }[];
+                /** @description Zaman süzgecini yok sayan aralık sayımları; sabit sırayla `today`, `last_7_days`, `last_30_days`, `all`. */
+                range: components["schemas"]["AuditCountBucket"][];
+            };
+            /** @description Rol kapsamındaki süzgeçsiz toplam. */
+            total_all: number;
+            /** @description Bütün süzgeçlere uyan toplam. */
+            total_matched: number;
         };
         ChangePasswordRequest: {
             current_password: string;
@@ -6334,7 +6560,19 @@ export interface components {
              */
             color?: "violet" | "gold" | "blue" | "teal" | "green" | "orange" | "red" | "slate" | null;
             description?: string;
+            /** @description İsteğe bağlı konum: kırpıldıktan sonra 1–120 karakter, kontrol karakteri yok; aksi `422 program.input_invalid` (`program.invalid_location`). */
+            location?: string | null;
             name: string;
+            /**
+             * Format: date
+             * @description İsteğe bağlı dönem bitiş günü. Başlangıçtan önce olamaz (eşit gün serbest): `422 program.input_invalid` (`program.invalid_period`, alan `period_end_on`).
+             */
+            period_end_on?: string | null;
+            /**
+             * Format: date
+             * @description İsteğe bağlı dönem başlangıç günü (`YYYY-AA-GG`; PROGRAM-K50). Yok ya da `null` = verilmemiş; biçim hatası `422 program.input_invalid` (`program.invalid_period`).
+             */
+            period_start_on?: string | null;
             /** @description İsteğe bağlı kısa ad (PROGRAM-K46): baştaki/sondaki boşluk kırpıldıktan SONRA 1–4 Unicode harf ya da rakam olmalıdır (ham değerin uzunluğu sınırlanmaz; ör. `" ABCD "` geçerlidir ve `ABCD` yazılır); harf büyüklüğü korunur. Yok ya da `null` = verilmemiş. Kural dışı değer `422 program.input_invalid` (`program.invalid_short_name`). */
             short_name?: string | null;
             year?: number;
@@ -7694,7 +7932,19 @@ export interface components {
             /** @description Yalnız oluşturma yanıtında; yeni kayıt açıldıysa `true`. */
             created?: boolean;
             description?: string;
+            /** @description Dönemin konumu (PROGRAM-K50): kırpılmış, 1–120 karakter. Verilmemişse `null`. */
+            location: string | null;
             name: string;
+            /**
+             * Format: date
+             * @description Dönemin beyan edilen bitiş günü; başlangıçtan önce olamaz (PROGRAM-K50). Verilmemişse `null`.
+             */
+            period_end_on: string | null;
+            /**
+             * Format: date
+             * @description Dönemin beyan edilen başlangıç günü (PROGRAM-K50). Verilmemişse `null`; alan her cevapta bulunur.
+             */
+            period_start_on: string | null;
             program_id: string;
             /** @description Dönemin kısa adı (PROGRAM-K46): 1–4 Unicode harf ya da rakam, kırpılmış, harf büyüklüğü korunur. Verilmemişse `null`; alan her cevapta bulunur. */
             short_name: string | null;
@@ -7933,6 +8183,13 @@ export interface components {
             content: string;
             /** Format: date-time */
             created_at: string;
+            /**
+             * @description Not bayrağı (WORK-K103); bayraksızsa `null`.
+             * @enum {string|null}
+             */
+            flag: "urgent" | "blocker" | "question" | "info" | null;
+            /** @description "Paylaşılan" işareti (WORK-K103); yalnız etiket. */
+            shared: boolean;
         };
         ReportTaskRef: {
             /** @description Ön görevin güncel katalog kodu ve sıra numarası; kodsuz koordinatörlükte `null`. */
@@ -8076,10 +8333,10 @@ export interface components {
             /** Format: date */
             end_on: string;
             /**
-             * @description Aralığın kaynağı; `tasks` = canlı görevlerin en erken başlangıcı ve en geç bitişi (programın dönem tarihi alanı yok, GAP-237).
+             * @description Aralığın kaynağı (REPORTING-K18, K23): `range` = isteğin `from`/`to` aralığı; `program` = programın beyan ettiği dönem tarihleri (iki ucu da doluysa; PROGRAM-K50); `tasks` = canlı görevlerin en erken başlangıcı ve en geç bitişi. Öncelik range, program, tasks.
              * @enum {string}
              */
-            source: "tasks";
+            source: "tasks" | "program" | "range";
             /** Format: date */
             start_on: string;
         };
@@ -8114,6 +8371,16 @@ export interface components {
             };
             /** @description Canlı görevlerin dosyaları (en yeni önce, en çok 2000). */
             files: components["schemas"]["SeasonFile"][];
+            /**
+             * @description `gantt` bölümü seçiliyken Gantt satırlarındaki (rapordaki görevler) iki ucu da bulunan
+             *     bağımlılık kenarları (REPORTING-K22): `work_item_id` görevi `depends_on_id` görevi
+             *     bitmeden ilerleyemez. Kendine ve rapor dışı uçlu kenar yoktur; `gantt` seçili değilken
+             *     boştur. İstemci okları bundan çizer; PDF yalnız aynı sayfadaki kenarları çizer.
+             */
+            gantt_edges: {
+                depends_on_id: string;
+                work_item_id: string;
+            }[];
             /** Format: date-time */
             generated_at: string;
             limits: components["schemas"]["SeasonLimits"];
@@ -8131,10 +8398,12 @@ export interface components {
                 total: number;
             };
             monthly_activity: components["schemas"]["MonthlyActivity"][];
-            /** @description Görev tarihlerinden türetilmiş dönem aralığı; canlı görev yoksa `null`. */
+            /** @description Dönem aralığı (kaynağı `period.source`: istek aralığı, programın beyan ettiği dönem tarihleri ya da görev tarihleri); hiçbiri yoksa `null`. */
             period: components["schemas"]["SeasonPeriod"] | null;
             priority_distribution: components["schemas"]["TaskPriorityDistribution"];
             program_id: string;
+            /** @description Programın beyan ettiği konum (PROGRAM-K50); beyan yoksa `null`. PDF kapağı "‹yıl› · ‹konum›" yazar. */
+            program_location: string | null;
             program_name: string;
             /** @description Programın beyan ettiği yıl; beyan yoksa `null`. */
             program_year: number | null;
@@ -8222,6 +8491,13 @@ export interface components {
                 content: string;
                 /** Format: date-time */
                 created_at: string;
+                /**
+                 * @description Not bayrağı (WORK-K103); bayraksızsa `null`.
+                 * @enum {string|null}
+                 */
+                flag: "urgent" | "blocker" | "question" | "info" | null;
+                /** @description "Paylaşılan" işareti (WORK-K103); yalnız etiket. */
+                shared: boolean;
             }[];
         };
         SeasonWorkloadRow: {
@@ -9087,7 +9363,19 @@ export interface components {
              */
             color?: "violet" | "gold" | "blue" | "teal" | "green" | "orange" | "red" | "slate" | null;
             description?: string | null;
+            /** @description Üç hâlli (PROGRAM-K50): alan yoksa değişmez; kırpıldıktan sonra 1–120 karakter yazılır; açık `null` temizler. Boş dizge temizleme değildir: `422 program.input_invalid` (`program.invalid_location`). */
+            location?: string | null;
             name?: string | null;
+            /**
+             * Format: date
+             * @description Üç hâlli (PROGRAM-K50); `period_start_on` ile aynı kurallar.
+             */
+            period_end_on?: string | null;
+            /**
+             * Format: date
+             * @description Üç hâlli (PROGRAM-K50): alan yoksa değişmez; `YYYY-AA-GG` günü yazılır; açık `null` temizler. Sıra denetimi birleşik sonuç üzerindedir: bitiş, başlangıçtan önce kalırsa `422 program.input_invalid` (`program.invalid_period`, alan `period_end_on`).
+             */
+            period_start_on?: string | null;
             /** @description Üç hâlli (PROGRAM-K46): alan yoksa değişmez; dizge verilirse kırpılıp doğrulanır (kırpılmış hâli 1–4 Unicode harf ya da rakam; ham uzunluk sınırlanmaz) ve yazılır; açık `null` kısa adı temizler. Boş dizge temizleme değildir: `422 program.input_invalid` (`program.invalid_short_name`). */
             short_name?: string | null;
             year?: number | null;
@@ -9151,6 +9439,13 @@ export interface components {
              * @description İstemcinin gördüğü not `edit_revision` değeri (ADR-0027). Eksikse 422 `work.input_invalid` + `work.revision_required`, pozitif değilse `work.revision_invalid`; bayatsa ve içerik farklıysa 409 `work.edit_conflict`. Tamsayı olmayan değer 422 `platform.body_invalid` (alan bilgisi yok).
              */
             expected_revision: number;
+            /**
+             * @description Üç hâlli (WORK-K103): alan yoksa bayrak değişmez; değer atanır; açık `null` bayrağı temizler. Başka değer 422 `work.input_invalid` (alan `flag`). İçerik, bayrak ve paylaşım aynı sürüm CAS'ıyla yazılır; üçü de zaten günceldeyse yazım ve sürüm artışı olmaz.
+             * @enum {string|null}
+             */
+            flag?: "urgent" | "blocker" | "question" | "info" | null;
+            /** @description Yoksa değişmez (WORK-K103); yalnız etikettir, görünürlüğü değiştirmez. */
+            shared?: boolean;
         };
         UploaderDetail: {
             account_id: string;
@@ -9370,7 +9665,14 @@ export interface components {
              * @description Not içeriğinin düzenleme sürümü (ADR-0027).
              */
             edit_revision: number;
+            /**
+             * @description Not bayrağı (WORK-K103); bayraksızsa `null`.
+             * @enum {string|null}
+             */
+            flag: "urgent" | "blocker" | "question" | "info" | null;
             note_id: string;
+            /** @description "Paylaşılan" işareti (WORK-K103); yalnız etiket. */
+            shared: boolean;
             /** Format: date-time */
             updated_at: string;
             work_item_id: string;
@@ -9489,6 +9791,13 @@ export interface components {
         WorkNoteRequest: {
             /** @description Not içeriği. Sunucu baş/son boşluğu kırpar; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 10000 karakterdir (Unicode kod noktası/rune, kırpmadan sonra ölçülür); aksi 422 `work.input_invalid` (alan `content`). */
             content: string;
+            /**
+             * @description İsteğe bağlı not bayrağı (WORK-K103). Yok ya da `null` = bayraksız; başka değer 422 `work.input_invalid` (alan `flag`). Aynı işlem anahtarı farklı bayrak/paylaşım ile tekrarlanırsa mevcut anahtar-yeniden-kullanım çatışması döner.
+             * @enum {string|null}
+             */
+            flag?: "urgent" | "blocker" | "question" | "info" | null;
+            /** @description İsteğe bağlı "paylaşılan" işareti (WORK-K103; varsayılan `false`). Yalnız etikettir: notun görünürlüğünü ya da bildirimini değiştirmez. */
+            shared?: boolean;
         };
         WorkNoteUpdated: {
             /**
@@ -9502,6 +9811,29 @@ export interface components {
     };
     responses: never;
     parameters: {
+        /** @description Eylem kodu süzgeci (AUDIT-K11): tekrar edebilir; en çok 10 değer, her biri en az iki bileşenli kararlı kod. */
+        AuditActionCode: string[];
+        /** @description Aktör süzgeci: tekrar edebilir, değerlerden herhangi biri; hesap kimliği ya da aktörsüz kayıtlar için `system`. En çok 10 değer (AUDIT-K10). */
+        AuditActor: string[];
+        /** @description Tek aktör süzgeci (eski parametre); `actor` ile birlikte verilemez (422, alan `actor`). */
+        AuditActorAccount: string;
+        /** @description Kategori süzgeci (AUDIT-K17): tekrar edebilir, değerlerden herhangi biri. */
+        AuditCategoryFilter: components["schemas"]["AuditCategory"][];
+        /** @description Departman süzgeci: tekrar edebilir; departman kimliği ya da departmansız kayıtlar için `none`. En çok 10 değer. */
+        AuditDepartment: string[];
+        /** @description Dahil alt sınır (RFC 3339). */
+        AuditFrom: string;
+        /** @description Program bağlamı. Yönetici dışında zorunludur ve rol kapsamını belirler; yöneticide program süzgecidir. */
+        AuditProgram: string;
+        /** @description Serbest arama (2–100 karakter): aktör adı ya da görev başlığı (program bağlamında) eşleşen kayıtlar. Kapsamı genişletmez. */
+        AuditSearch: string;
+        /** @description Yalnız `subject_kind` ile verilir. */
+        AuditSubjectId: string;
+        AuditSubjectKind: string;
+        /** @description Hariç üst sınır (RFC 3339). */
+        AuditTo: string;
+        /** @description Görev etkinliği (AUDIT-K16); `program_id` ile verilir. */
+        AuditWorkItem: string;
         /** @description `mobile` ise mobil belirteç çifti gövdede döner; diğer her değer web sayılır. */
         ClientCategory: string;
         /** @description `true` ise görev etkisi onaylanmış sayılır (aksi hâlde 409 organization.confirmation_required). */
@@ -9558,8 +9890,25 @@ export interface components {
          *     kimlik, tekrar eden tekilleşir. Programda olmayan, başka programın, silinmiş
          *     ya da programdan ayrılmış departman ve tavan aşımı 422
          *     `reporting.input_invalid` (alan `department_ids`).
+         *     Koordinatör (birim raporu, REPORTING-K24): yok/boş = kendi koordinatörlükleri;
+         *     kendi dışındaki departman (programda olmasa da) 403 `reporting.not_authorized`.
          */
         ReportDepartmentIds: string[];
+        /**
+         * @description Dönem raporunun tarih aralığı başlangıcı (REPORTING-K23), `YYYY-AA-GG`
+         *     takvim günü, kurulum saat diliminde, dahil. `to` ile birlikte verilir (biri
+         *     tek başına 422 `reporting.input_invalid`, alan eksik olan parametre).
+         *     Görev satırı `[start_on, end_on]` aralığıyla kesişirse; toplantı günü, dosya
+         *     ve tarih talebi oluşturulma günü aralıktaysa dahildir. Görev, toplantı,
+         *     dosya ve tarih talebi sayaçları, dağılımlar, koordinatörlük satırları ve
+         *     iş yükü süzülmüş satırlardan türer; `period` = `{from, to, source: range}`.
+         *     Mesaj sayıları, görev notu sayısı ve aylık etkinlik de aynı gün aralığıyla süzülür
+         *     (kadro/kişi sayıları zamansızdır). Süzme LIMIT'ten önce yapılır; `limits` ve
+         *     `X-Result-Truncated` gerçek eşleşen toplamı taşır (GAP-259). Ters aralık
+         *     ya da `to - from` > 400 gün 422 (alan `to`); biçim hatası 422 (alan
+         *     `from` / `to`).
+         */
+        ReportFrom: string;
         /**
          * @description Dönem raporunun bölüm seçimi (REPORTING-K17). Kapalı küme, çizim sırası
          *     `summary` (yönetici özeti), `gantt`, `general` (program geneli), `tasks`,
@@ -9575,6 +9924,8 @@ export interface components {
          *     sayaçları seçimden bağımsızdır; `appendix` JSON'da etkisizdir.
          */
         ReportSections: ("summary" | "gantt" | "general" | "tasks" | "details" | "meetings" | "files" | "appendix")[];
+        /** @description Dönem raporunun tarih aralığı sonu (dahil); `from` ile birlikte verilir. Ayrıntı `from` parametresindedir (REPORTING-K23). */
+        ReportTo: string;
         /** @description Verilirse yalnız bu departmanda (program verilmişse o programda) ekip satırı olan hesaplar. Biçim `program_id` ile aynıdır. */
         UserDepartmentFilter: string;
         /** @description Verilirse yalnız bu programda (canlı departmanda) ekip satırı olan hesaplar; rol süzgeci de bu programın rollerine daralır. Kimlik harf, rakam, `-` ve `_` taşır, en çok 64 bayttır (aksi 422 `organization.input_invalid`). */
@@ -16950,24 +17301,84 @@ export interface operations {
             };
         };
     };
+    listAuditActionTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditActionTypeList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listAuditEntries: {
         parameters: {
             query?: {
                 /** @description Eylem kodu süzgeci (AUDIT-K11): tekrar edebilir (`action_code=a.b&action_code=c.d`), kayıt değerlerden herhangi birine uyar; en çok 10 değer, her biri en az iki bileşenli kararlı kod (en çok 96 karakter). Aşım ya da biçim dışı değer 422 `audit.input_invalid` (alan `action_code`). "Son raporlar": `action_code=reporting.report_downloaded&program_id=…`. */
                 action_code?: string[];
+                /** @description Aktör süzgeci: tekrar edebilir, değerlerden herhangi biri; hesap kimliği ya da aktörsüz kayıtlar için `system`. En çok 10 değer (AUDIT-K10). */
+                actor?: string[];
+                /** @description Tek aktör süzgeci (eski parametre); `actor` ile birlikte verilemez (422, alan `actor`). */
                 actor_account_id?: string;
+                /** @description Kategori süzgeci (AUDIT-K17): tekrar edebilir, değerlerden herhangi biri. */
+                category?: components["schemas"]["AuditCategory"][];
                 /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
                 cursor?: components["parameters"]["Cursor"];
+                /** @description Departman süzgeci: tekrar edebilir; departman kimliği ya da departmansız kayıtlar için `none`. En çok 10 değer. */
+                department?: string[];
                 /** @description Dahil alt sınır (RFC 3339). */
                 from?: string;
                 /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
+                /** @description Program bağlamı. Yönetici dışında zorunludur ve rol kapsamını belirler; yöneticide program süzgecidir. */
                 program_id?: string;
+                /** @description Serbest arama (2–100 karakter): aktör adı ya da görev başlığı (program bağlamında) eşleşen kayıtlar. Kapsamı genişletmez. */
+                q?: string;
                 /** @description Yalnız `subject_kind` ile verilir. */
                 subject_id?: string;
                 subject_kind?: string;
                 /** @description Hariç üst sınır (RFC 3339). */
                 to?: string;
+                /** @description Görev etkinliği (AUDIT-K16); `program_id` ile verilir. */
+                work_item_id?: string;
             };
             header?: never;
             path?: never;
@@ -16995,6 +17406,226 @@ export interface operations {
             };
             /** @description Yetkisiz */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Görev etkinliğinde görev yok, çağırana görünmüyor ya da başka programda (varlık sızmaz) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası (yönetici dışında `program_id` yoksa alan `program_id`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    exportAuditEntries: {
+        parameters: {
+            query?: {
+                /** @description Eylem kodu süzgeci (AUDIT-K11): tekrar edebilir; en çok 10 değer, her biri en az iki bileşenli kararlı kod. */
+                action_code?: components["parameters"]["AuditActionCode"];
+                /** @description Aktör süzgeci: tekrar edebilir, değerlerden herhangi biri; hesap kimliği ya da aktörsüz kayıtlar için `system`. En çok 10 değer (AUDIT-K10). */
+                actor?: components["parameters"]["AuditActor"];
+                /** @description Tek aktör süzgeci (eski parametre); `actor` ile birlikte verilemez (422, alan `actor`). */
+                actor_account_id?: components["parameters"]["AuditActorAccount"];
+                /** @description Kategori süzgeci (AUDIT-K17): tekrar edebilir, değerlerden herhangi biri. */
+                category?: components["parameters"]["AuditCategoryFilter"];
+                /** @description Departman süzgeci: tekrar edebilir; departman kimliği ya da departmansız kayıtlar için `none`. En çok 10 değer. */
+                department?: components["parameters"]["AuditDepartment"];
+                /** @description Dahil alt sınır (RFC 3339). */
+                from?: components["parameters"]["AuditFrom"];
+                /** @description Program bağlamı. Yönetici dışında zorunludur ve rol kapsamını belirler; yöneticide program süzgecidir. */
+                program_id?: components["parameters"]["AuditProgram"];
+                /** @description Serbest arama (2–100 karakter): aktör adı ya da görev başlığı (program bağlamında) eşleşen kayıtlar. Kapsamı genişletmez. */
+                q?: components["parameters"]["AuditSearch"];
+                /** @description Yalnız `subject_kind` ile verilir. */
+                subject_id?: components["parameters"]["AuditSubjectId"];
+                subject_kind?: components["parameters"]["AuditSubjectKind"];
+                /** @description Hariç üst sınır (RFC 3339). */
+                to?: components["parameters"]["AuditTo"];
+                /** @description Görev etkinliği (AUDIT-K16); `program_id` ile verilir. */
+                work_item_id?: components["parameters"]["AuditWorkItem"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı (akış; Content-Length yok) */
+            200: {
+                headers: {
+                    "Cache-Control": components["headers"]["CacheControlNoStore"];
+                    /** @description attachment; filename ve filename* (`islem-gecmisi-YYYY-MM-DD.csv`). */
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Görev etkinliğinde görev yok ya da görünmüyor */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası ya da satır tavanı aşıldı */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    summarizeAuditEntries: {
+        parameters: {
+            query?: {
+                /** @description Eylem kodu süzgeci (AUDIT-K11): tekrar edebilir; en çok 10 değer, her biri en az iki bileşenli kararlı kod. */
+                action_code?: components["parameters"]["AuditActionCode"];
+                /** @description Aktör süzgeci: tekrar edebilir, değerlerden herhangi biri; hesap kimliği ya da aktörsüz kayıtlar için `system`. En çok 10 değer (AUDIT-K10). */
+                actor?: components["parameters"]["AuditActor"];
+                /** @description Tek aktör süzgeci (eski parametre); `actor` ile birlikte verilemez (422, alan `actor`). */
+                actor_account_id?: components["parameters"]["AuditActorAccount"];
+                /** @description Kategori süzgeci (AUDIT-K17): tekrar edebilir, değerlerden herhangi biri. */
+                category?: components["parameters"]["AuditCategoryFilter"];
+                /** @description Departman süzgeci: tekrar edebilir; departman kimliği ya da departmansız kayıtlar için `none`. En çok 10 değer. */
+                department?: components["parameters"]["AuditDepartment"];
+                /** @description Dahil alt sınır (RFC 3339). */
+                from?: components["parameters"]["AuditFrom"];
+                /** @description Program bağlamı. Yönetici dışında zorunludur ve rol kapsamını belirler; yöneticide program süzgecidir. */
+                program_id?: components["parameters"]["AuditProgram"];
+                /** @description Serbest arama (2–100 karakter): aktör adı ya da görev başlığı (program bağlamında) eşleşen kayıtlar. Kapsamı genişletmez. */
+                q?: components["parameters"]["AuditSearch"];
+                /** @description Yalnız `subject_kind` ile verilir. */
+                subject_id?: components["parameters"]["AuditSubjectId"];
+                subject_kind?: components["parameters"]["AuditSubjectKind"];
+                /** @description Hariç üst sınır (RFC 3339). */
+                to?: components["parameters"]["AuditTo"];
+                /** @description Görev etkinliği (AUDIT-K16); `program_id` ile verilir. */
+                work_item_id?: components["parameters"]["AuditWorkItem"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditSummary"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Görev etkinliğinde görev yok ya da görünmüyor */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17030,9 +17661,10 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description Bağımlılık erişilemez */
+            /** @description Bağımlılık erişilemez ya da özet süre sınırı aşıldı */
             503: {
                 headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -22786,7 +23418,10 @@ export interface operations {
     };
     departmentDeleteImpact: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Önizlemeyi daraltılacak program kimliği (ORGANIZATION-K66); yok/boş = bütün programlar. */
+                program_id?: string;
+            };
             header?: never;
             path: {
                 id: components["parameters"]["PathID"];
@@ -23912,6 +24547,99 @@ export interface operations {
                 };
             };
             /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    getFileThumbnail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Departman kapsamı (S3 uçlarda zorunlu). */
+                "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JPEG küçük resim */
+            200: {
+                headers: {
+                    "Cache-Control": components["headers"]["CacheControlNoStore"];
+                    "Content-Length": components["headers"]["ContentLength"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı (kayıt yok, kapsam dışı, yetkisiz ya da çöpte; ayrıca türev henüz yokken kaynak nesne açılamazsa. Türev saklıysa kaynak nesne yokluğu yanıtı etkilemez) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsam başlığı eksik ya da bu dosya için önizleme yok (tür desteklenmiyor, özellik kapalı, üretilemedi) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı ya da üretim slotu dolu (`Retry-After` sonra yeniden denenir) */
             429: {
                 headers: {
                     "Retry-After": components["headers"]["RetryAfter"];
@@ -32322,8 +33050,25 @@ export interface operations {
                  *     kimlik, tekrar eden tekilleşir. Programda olmayan, başka programın, silinmiş
                  *     ya da programdan ayrılmış departman ve tavan aşımı 422
                  *     `reporting.input_invalid` (alan `department_ids`).
+                 *     Koordinatör (birim raporu, REPORTING-K24): yok/boş = kendi koordinatörlükleri;
+                 *     kendi dışındaki departman (programda olmasa da) 403 `reporting.not_authorized`.
                  */
                 department_ids?: components["parameters"]["ReportDepartmentIds"];
+                /**
+                 * @description Dönem raporunun tarih aralığı başlangıcı (REPORTING-K23), `YYYY-AA-GG`
+                 *     takvim günü, kurulum saat diliminde, dahil. `to` ile birlikte verilir (biri
+                 *     tek başına 422 `reporting.input_invalid`, alan eksik olan parametre).
+                 *     Görev satırı `[start_on, end_on]` aralığıyla kesişirse; toplantı günü, dosya
+                 *     ve tarih talebi oluşturulma günü aralıktaysa dahildir. Görev, toplantı,
+                 *     dosya ve tarih talebi sayaçları, dağılımlar, koordinatörlük satırları ve
+                 *     iş yükü süzülmüş satırlardan türer; `period` = `{from, to, source: range}`.
+                 *     Mesaj sayıları, görev notu sayısı ve aylık etkinlik de aynı gün aralığıyla süzülür
+                 *     (kadro/kişi sayıları zamansızdır). Süzme LIMIT'ten önce yapılır; `limits` ve
+                 *     `X-Result-Truncated` gerçek eşleşen toplamı taşır (GAP-259). Ters aralık
+                 *     ya da `to - from` > 400 gün 422 (alan `to`); biçim hatası 422 (alan
+                 *     `from` / `to`).
+                 */
+                from?: components["parameters"]["ReportFrom"];
                 /**
                  * @description Dönem raporunun bölüm seçimi (REPORTING-K17). Kapalı küme, çizim sırası
                  *     `summary` (yönetici özeti), `gantt`, `general` (program geneli), `tasks`,
@@ -32339,6 +33084,8 @@ export interface operations {
                  *     sayaçları seçimden bağımsızdır; `appendix` JSON'da etkisizdir.
                  */
                 sections?: components["parameters"]["ReportSections"];
+                /** @description Dönem raporunun tarih aralığı sonu (dahil); `from` ile birlikte verilir. Ayrıntı `from` parametresindedir (REPORTING-K23). */
+                to?: components["parameters"]["ReportTo"];
             };
             header: {
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -32439,8 +33186,25 @@ export interface operations {
                  *     kimlik, tekrar eden tekilleşir. Programda olmayan, başka programın, silinmiş
                  *     ya da programdan ayrılmış departman ve tavan aşımı 422
                  *     `reporting.input_invalid` (alan `department_ids`).
+                 *     Koordinatör (birim raporu, REPORTING-K24): yok/boş = kendi koordinatörlükleri;
+                 *     kendi dışındaki departman (programda olmasa da) 403 `reporting.not_authorized`.
                  */
                 department_ids?: components["parameters"]["ReportDepartmentIds"];
+                /**
+                 * @description Dönem raporunun tarih aralığı başlangıcı (REPORTING-K23), `YYYY-AA-GG`
+                 *     takvim günü, kurulum saat diliminde, dahil. `to` ile birlikte verilir (biri
+                 *     tek başına 422 `reporting.input_invalid`, alan eksik olan parametre).
+                 *     Görev satırı `[start_on, end_on]` aralığıyla kesişirse; toplantı günü, dosya
+                 *     ve tarih talebi oluşturulma günü aralıktaysa dahildir. Görev, toplantı,
+                 *     dosya ve tarih talebi sayaçları, dağılımlar, koordinatörlük satırları ve
+                 *     iş yükü süzülmüş satırlardan türer; `period` = `{from, to, source: range}`.
+                 *     Mesaj sayıları, görev notu sayısı ve aylık etkinlik de aynı gün aralığıyla süzülür
+                 *     (kadro/kişi sayıları zamansızdır). Süzme LIMIT'ten önce yapılır; `limits` ve
+                 *     `X-Result-Truncated` gerçek eşleşen toplamı taşır (GAP-259). Ters aralık
+                 *     ya da `to - from` > 400 gün 422 (alan `to`); biçim hatası 422 (alan
+                 *     `from` / `to`).
+                 */
+                from?: components["parameters"]["ReportFrom"];
                 /**
                  * @description Dönem raporunun bölüm seçimi (REPORTING-K17). Kapalı küme, çizim sırası
                  *     `summary` (yönetici özeti), `gantt`, `general` (program geneli), `tasks`,
@@ -32456,6 +33220,8 @@ export interface operations {
                  *     sayaçları seçimden bağımsızdır; `appendix` JSON'da etkisizdir.
                  */
                 sections?: components["parameters"]["ReportSections"];
+                /** @description Dönem raporunun tarih aralığı sonu (dahil); `from` ile birlikte verilir. Ayrıntı `from` parametresindedir (REPORTING-K23). */
+                to?: components["parameters"]["ReportTo"];
             };
             header: {
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */

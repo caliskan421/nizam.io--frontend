@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.26.0-api (4d4adc0f9f1890184b5ed210296deb1fde6db886) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
+// Kaynak: nizam.io--backend etiket v0.28.0-api (45a2237f420aee0cc3a58544063559cb3661db4b) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
 
 export const API_VERSION = "v1" as const
 
@@ -81,7 +81,10 @@ export const OPERATIONS = {
   "GET /v1/assistant/conversations": {"operationId":"assistantConversations","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/assistant/conversations/{id}": {"operationId":"assistantConversation","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "DELETE /v1/assistant/conversations/{id}": {"operationId":"deleteAssistantConversation","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
+  "GET /v1/audit/action-types": {"operationId":"listAuditActionTypes","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/audit/entries": {"operationId":"listAuditEntries","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
+  "GET /v1/audit/export": {"operationId":"exportAuditEntries","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
+  "GET /v1/audit/summary": {"operationId":"summarizeAuditEntries","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/auth/login": {"operationId":"login","scope":"S0","csrf":true,"programHeader":false,"departmentHeader":false,"auth":false},
   "POST /v1/auth/logout": {"operationId":"logout","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/auth/password": {"operationId":"changePassword","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
@@ -151,6 +154,7 @@ export const OPERATIONS = {
   "GET /v1/files/{id}/download": {"operationId":"downloadFile","scope":"S3","csrf":false,"programHeader":true,"departmentHeader":true,"auth":true},
   "PATCH /v1/files/{id}/name": {"operationId":"renameFile","scope":"S3","csrf":true,"programHeader":true,"departmentHeader":true,"auth":true},
   "PATCH /v1/files/{id}/tag": {"operationId":"retagFile","scope":"S3","csrf":true,"programHeader":true,"departmentHeader":true,"auth":true},
+  "GET /v1/files/{id}/thumbnail": {"operationId":"getFileThumbnail","scope":"S3","csrf":false,"programHeader":true,"departmentHeader":true,"auth":true},
   "PATCH /v1/files/{id}/work-item": {"operationId":"moveFile","scope":"S3","csrf":true,"programHeader":true,"departmentHeader":true,"auth":true},
   "GET /v1/instance/profile": {"operationId":"instanceProfile","scope":"S0","csrf":false,"programHeader":false,"departmentHeader":false,"auth":false},
   "GET /v1/me": {"operationId":"me","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
