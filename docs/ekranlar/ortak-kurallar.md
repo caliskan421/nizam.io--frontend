@@ -318,3 +318,8 @@ P85: Yönetici ana Codex oturumudur; kararlar, raporlama, süreç belgeleri ve P
 ### F11 — mevcut ekranlardaki hazır eksikler (2026-11-17)
 
 Ürün sahibi «F11’e devam et» ve kapsam sorusuna «Mevcut ekranlardaki hazır eksikleri tamamla» dedi. Rol düzeni Codex yönetici, Sonnet uygulama, Terra bağımsız test/tanık, Opus salt okunur denetim olarak korunur. Koordinatörün açık ilk kapsamı mevcut12 koordinatörlük kalıcı silme onayında BE164 etki özeti ve ADR0043 departman yaşam döngüsünün zorunlu semantik uyumudur; [WEB-11](../yurutme/web-11/README.md). Pinv026 sabittir. Yeni08 katalog silme düğmesi ve yeni modüller kapsamda değildir. P78 hız ve bağımsız kapılar sürer.
+
+
+### F12 — yayımlı v0.28 ve mevcut yüzeyler (2026-11-18)
+
+Ürün sahibi «Başla» diyerek [WEB-12](../yurutme/web-12/README.md) ilk üç adımı başlattı: v026→v028 uyum, mevcut06 depolama dağılımı ve mevcut01f dönem raporunun karşılanan kısımları. KESİN36 pin/UI ayrımı ve P78/P79 model/kabul düzeni sürer. Program/not yazma formları, BE026/P45GAP233, yeni audit/01b/Tablolar/profil/W7/rolpaneli bu kapsamla açılmaz. Şemsiye BE025/136 yalnız alan hazır diye bağlı sayılmaz.
