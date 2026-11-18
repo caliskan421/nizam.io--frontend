@@ -11,8 +11,8 @@
        10 karakter sığar). `ch` KULLANILMAZ: başlık ve gövde satırı farklı yazı tipinde olduğundan
        `ch` her satırda ayrı çözülür ve kolon sınırları kayar; rem kökten çözülür, iki satır aynı
        izleri alır. 4 kolon aralığı + iki kenar boşluğu = `--space-12`. Çubuk ekseni
-       de asgari genişlik taşır (sol 528 + sağ 0,4 × `--rp-col-basis` ≈ 248 + kenarlık 2 px = 778,
-       1440'taki 782 px kâğıt içeriğine sığar; kırpma yok); sığmayan dar kâğıtta yatay kaydırma `.report-scroll`'dadır. */
+       de asgari genişlik taşır (sol 30rem + `--space-12`, sağ 0,4 × `--rp-col-basis` ≈ 248 px, kenarlık 2 px;
+       kök 14 px iken 468 + 248 + 2 = 718 px, 1440'taki 782 px kâğıt içeriğine sığar; kırpma yok); sığmayan dar kâğıtta yatay kaydırma `.report-scroll`'dadır. */
     --rp-gantt-left-min: calc(30rem + var(--space-12));
     --rp-gantt-right-min: calc(var(--rp-col-basis) * 0.4);
     display: grid;
