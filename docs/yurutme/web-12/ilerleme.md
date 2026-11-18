@@ -22,3 +22,10 @@ P72’nin eski «önizlemede bağımlılık okları yok» teknik/geçici varsay�
 Program period/location ve note flag/shared yazma formları bu kapsamda açılmaz. v028 yeni koordinatör rapor yetkileri mevcut01f sayfasının yönetici kapısını kendiliğinden genişletmez; API tanığı ile frontend rol kararı ayrı raporlanır.
 
 PinW208 gerçekgen+i18n/defaultfixture uyumu için uygulamaya geçti; erken APIpin/codegen checkpoint yalnız izole backend bootstrap’ine izin verir, type/UI kabulü değildir. Sonnet fake/default dağılımları RECORDS-K51’e uygun üretir; pozitif toplamda uydurma boş kovalar kullanılmaz. Geniş API envanteri232→236 hata kodu(+4) ve program.invalid_location/invalid_period alan kodlarını doğruladı.
+
+
+## W208 son pin kaynağı — 0797a526
+
+Sonnet 9c pin/üretim,8987 uyum,8206 arşivfakeK51/lint ve0797 F11S1 sorgu sınırı testini teslim etti. Kaynak temiz; paket/kilit/CI ve görünür yeniUI alanı değişmedi. Fulltype/lint/format/build/gencheck ve hedefli21dosya477+F11dosya15 testPASS (örtüşmeler toplanmaz). [Pin kaydı](pin-v028.md). Root W207 tasarım kararlarını pin dalına metadata olarak birleştirir; kabul edilen0797’ye üretim/pin/fixture farkı0 doğrulanır. Native son kabul ve kendiPR3CI beklenir.
+
+W209 gerçek v028API/PDF bootstrap ve tanık tamam. W210 bağımsız2 dosya3 RED: depolama dağılımı yok, program kaynak açıklaması yanlış, noturgent/shared görünmüyor. Roottestcommit0e483cac; PIN PR'ına alınmaz, sonraki canlıya alma W'sinde GREEN zorunlu.
