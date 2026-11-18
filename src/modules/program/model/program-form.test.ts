@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { withProgramDefaults } from '@/shared/api/__tests__/defaults'
 import { ApiError } from '@/shared/errors/api-error'
 
 import {
@@ -13,14 +14,14 @@ import {
 } from './program-form'
 import type { Program } from './types'
 
-const program: Program = {
+const program: Program = withProgramDefaults({
   program_id: 'p1',
   name: 'Teknofest',
   year: 2026,
   description: 'Eski',
   short_name: null,
   color: null,
-}
+})
 
 describe('program formu', () => {
   it('ad zorunlu (boşluk kırpılır); yıl dört hane ya da boş', async () => {

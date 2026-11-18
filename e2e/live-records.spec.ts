@@ -1,4 +1,4 @@
-// W176 O3 · gerçek backend `v0.26.0-api`: silinenler (BE-108…119) CSV bileti + toplu geri yükle,
+// W176 O3 · gerçek backend (`api-pin.json` etiketi): silinenler (BE-108…119) CSV bileti + toplu geri yükle,
 // toplantı adayları ve idempotent tekrar (BE-063/068), K1 iade sebebi → Ü1 (BE-139/140) ve görev
 // kodu (BE-005). Üretim paketi + üretim CSP'si. Her koşum benzersiz adlar kullanır; dışa aktarımlar
 // hesap başına dakikalık kotaya bağlıdır (e2e/export-quota.ts).

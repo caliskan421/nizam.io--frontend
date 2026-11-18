@@ -5,9 +5,13 @@
 export const trErrors: Record<string, string> = {
   // audit
   'audit.entry_rejected': 'İşlem kaydı yazılamadığı için istek tamamlanamadı.',
+  'audit.export_too_large':
+    'Dışa aktarılacak kayıt sayısı sınırı aşıyor; süzgeçleri daraltıp yeniden deneyin.',
   'audit.input_invalid': 'Girilen bilgiler geçersiz.',
   'audit.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
   'audit.not_authorized': 'Bu işlem için yetkiniz yok.',
+  'audit.subject_not_found': 'Görev bulunamadı ya da görüntüleme yetkiniz yok.',
+  'audit.summary_unavailable': 'Özet şu anda hazırlanamıyor; biraz sonra yeniden deneyin.',
 
   // assistant
   'assistant.busy': 'Asistan şu anda meşgul; biraz sonra yeniden deneyin.',
@@ -184,7 +188,9 @@ export const trErrors: Record<string, string> = {
   'program.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
   'program.invalid_description': 'Açıklama geçersiz.',
   'program.invalid_limit': 'Sayfa boyutu geçersiz.',
+  'program.invalid_location': 'Konum geçersiz.',
   'program.invalid_name': 'Program adı geçersiz.',
+  'program.invalid_period': 'Dönem tarihleri geçersiz.',
   'program.invalid_request_key': 'İstek anahtarı geçersiz.',
   'program.invalid_short_name': 'Kısa ad geçersiz.',
   'program.invalid_transfer': 'Aktarım isteği geçersiz.',
@@ -222,6 +228,7 @@ export const trErrors: Record<string, string> = {
   'records.not_deleted': 'Dosya silinen kayıtlarda değil.',
   'records.not_authorized': 'Bu işlem için yetkiniz yok.',
   'records.permanent_requires_deleted': 'Kalıcı silme için dosya önce silinmiş olmalı.',
+  'records.preview_unavailable': 'Bu dosya için önizleme yok.',
   'records.request_key_invalid': 'İstek anahtarı geçersiz.',
   'records.request_key_required': 'İstek anahtarı gerekli.',
   'records.source_completed': 'Görev tamamlandığı için dosya başka göreve taşınamaz.',

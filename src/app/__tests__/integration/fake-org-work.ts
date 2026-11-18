@@ -311,14 +311,14 @@ function programWrites(db: OrgDb) {
       const body = (await request.json()) as { name: string; year?: number }
       const created = { program_id: o.next(db, 'p-yeni'), ...body }
       db.programs.push(created)
-      return json({ ...created, created: true }, 201)
+      return json({ ...o.programShape(created), created: true }, 201)
     }),
     http.get(`${ORIGIN}/v1/program`, ({ request }) => {
       const me = o.actorOf(db, request)
       if (!me) return envelope('platform.unauthenticated', 401)
       const found = db.programs.find((p) => p.program_id === o.programOf(request))
       if (!found) return envelope('work.program_scope_invalid', 404)
-      return json({ ...found, short_name: found.short_name ?? null, color: found.color ?? null })
+      return json(o.programShape(found))
     }),
     http.patch(`${ORIGIN}/v1/programs/:id`, async ({ request, params }) => {
       const found = db.programs.find((p) => p.program_id === params.id)
@@ -327,7 +327,7 @@ function programWrites(db: OrgDb) {
       const bad = invalidProgramField(body)
       if (bad) return bad
       Object.assign(found, body) // üç hâlli: alan yoksa değişmez, `null` temizler
-      return json({ ...found, short_name: found.short_name ?? null, color: found.color ?? null })
+      return json(o.programShape(found))
     }),
     http.delete(`${ORIGIN}/v1/programs/:id`, async ({ request, params }) => {
       if (!admin(request)) return o.forbidden('program')

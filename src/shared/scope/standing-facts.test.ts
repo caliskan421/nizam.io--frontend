@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/defaults'
+import {
+  makeMyDepartment,
+  makeProgram,
+  type MyDepartmentRole,
+} from '@/shared/api/__tests__/defaults'
 
 import {
   departmentOptions,
@@ -48,9 +52,9 @@ describe('standing olguları', () => {
   it("yönetici programları listPrograms'tan, diğerleri satırlardan; ad sırası tr-TR", () => {
     const programs = parsePrograms({
       programs: [
-        { program_id: 'p2', name: 'Zafer', short_name: 'ZF', color: 'teal' },
-        { program_id: 'p1', name: 'Çelik', year: 2026, short_name: null, color: null },
-        { program_id: 'p3', name: 'İnci', short_name: null, color: null },
+        makeProgram({ program_id: 'p2', name: 'Zafer', short_name: 'ZF', color: 'teal' }),
+        makeProgram({ program_id: 'p1', name: 'Çelik', year: 2026 }),
+        makeProgram({ program_id: 'p3', name: 'İnci' }),
       ],
     })
     const admin = parseStanding(me(true), { departments: [] })

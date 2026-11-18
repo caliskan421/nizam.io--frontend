@@ -11,6 +11,7 @@ import { createApp, defineComponent, type App } from 'vue'
 
 import {
   makeArchiveFolder,
+  makeArchiveTotals,
   makeFileRecord,
   withFileDefaults,
 } from '@/shared/api/__tests__/defaults'
@@ -161,17 +162,25 @@ export function folder(over: object = {}) {
   })
 }
 
-/** `archiveFolders` / `programArchiveFolders` gövdesi: kartlar + `totals` (RECORDS-K41). */
+/**
+ * `archiveFolders` / `programArchiveFolders` gövdesi: kartlar + `totals` (RECORDS-K41, K51). Kartların
+ * dosyaları harness'in standart dosyasıdır (`archiveFile`: `application/pdf`, etiket `sonuc`); dağılım
+ * bu dosyalardan türer ve toplamlara eşittir, dosyasız kümede `[]`.
+ */
 export function folderBody(...cards: ReturnType<typeof folder>[]) {
   const times = cards.map((c) => c.last_uploaded_at).filter((t): t is string => t !== null)
+  const fileCount = cards.reduce((sum, c) => sum + c.file_count, 0)
+  const totalBytes = cards.reduce((sum, c) => sum + c.total_bytes, 0)
+  const bucket = { file_count: fileCount, total_bytes: totalBytes }
   return {
     folders: cards,
-    totals: {
-      file_count: cards.reduce((sum, c) => sum + c.file_count, 0),
+    totals: makeArchiveTotals({
+      ...bucket,
       task_count: cards.reduce((sum, c) => sum + c.task_count, 0),
-      total_bytes: cards.reduce((sum, c) => sum + c.total_bytes, 0),
       last_uploaded_at: times.sort().at(-1) ?? null,
-    },
+      by_type: fileCount > 0 ? [{ type: 'pdf', ...bucket }] : [],
+      by_tag: fileCount > 0 ? [{ tag: 'sonuc', ...bucket }] : [],
+    }),
   }
 }
 

@@ -8,8 +8,25 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('v0.26.0-api sözleşmesinin 293 ucu üretildi', () => {
-    expect(entries).toHaveLength(293)
+  it('v0.28.0-api sözleşmesinin 297 ucu üretildi', () => {
+    expect(entries).toHaveLength(297)
+  })
+
+  it('v0.27/v0.28 yeni dört uç üretildi (kapsam sınıfı sözleşmeden)', () => {
+    const scopes = (id: string) =>
+      entries.filter(([, meta]) => (meta as { operationId: string }).operationId === id)
+    expect(
+      scopes('getFileThumbnail').map(([key, meta]) => [key, (meta as { scope: string }).scope]),
+    ).toEqual([['GET /v1/files/{id}/thumbnail', 'S3']])
+    for (const [id, path] of [
+      ['summarizeAuditEntries', '/v1/audit/summary'],
+      ['listAuditActionTypes', '/v1/audit/action-types'],
+      ['exportAuditEntries', '/v1/audit/export'],
+    ] as const) {
+      expect(scopes(id).map(([key, meta]) => [key, (meta as { scope: string }).scope])).toEqual([
+        [`GET ${path}`, 'S1'],
+      ])
+    }
   })
 
   it.each(entries)('%s kapsam/CSRF/kimlik tutarlı', (key, meta) => {
@@ -28,9 +45,9 @@ describe('operations.gen', () => {
     expect(op.auth).toBe(op.scope !== 'S0')
   })
 
-  it('hata kataloğu 232 kod ve message_key = errors.<kod>', () => {
+  it('hata kataloğu 236 kod ve message_key = errors.<kod>', () => {
     const codes = Object.entries(ERROR_CODES)
-    expect(codes).toHaveLength(232)
+    expect(codes).toHaveLength(236)
     for (const [code, entry] of codes) expect(entry.messageKey).toBe(`errors.${code}`)
   })
 })

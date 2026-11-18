@@ -1,5 +1,7 @@
 // W142 · O3: sahte rapor sunucusunun JSON gövdeleri (`reportSeason`, `reportMeetingDetail`; şemaya uygun,
 // örnek veri — gerçek veri DEĞİL). Modül `__tests__` dizinine uzanmaz (sınır kuralı: app → modül yalnız public).
+import { withNoteFlagDefaults } from '@/shared/api/__tests__/defaults'
+
 const person = (id: string, name: string) => ({ account_id: id, full_name: name })
 
 const task = (id: string, over: Record<string, unknown> = {}) => ({
@@ -136,11 +138,11 @@ const seasonTasks = () => [
       ],
       description: 'Ana dağıtım panolarından stant adalarına kablo kanalı kazısı.',
       recent_notes: [
-        {
+        withNoteFlagDefaults({
           author: person('u1', 'Bahar Kılıç'),
           content: 'C salonu önünde kesişim çıktı; kazı durdu.',
           created_at: '2026-10-09T08:20:00Z',
-        },
+        }),
       ],
     },
   }),
@@ -306,6 +308,8 @@ export function seasonBody(programId: string, programName: string) {
     program_id: programId,
     program_name: programName,
     program_year: 2026,
+    program_location: null,
+    gantt_edges: [],
     stats: STATS,
     task_status_distribution: {
       baslanmadi: 0,

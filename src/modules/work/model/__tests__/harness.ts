@@ -8,7 +8,11 @@ import { setupServer } from 'msw/node'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, type App } from 'vue'
 
-import { withSubtaskDefaults, withWorkItemDefaults } from '@/shared/api/__tests__/defaults'
+import {
+  withNoteFlagDefaults,
+  withSubtaskDefaults,
+  withWorkItemDefaults,
+} from '@/shared/api/__tests__/defaults'
 import type { ScopeSelection } from '@/shared/scope/resolve'
 import { useScopeStore } from '@/shared/scope/store'
 
@@ -159,7 +163,7 @@ export function subtask(over: Partial<WorkItemSubtask> = {}): WorkItemSubtask {
 }
 
 export function note(over: Partial<WorkItemNote> = {}): WorkItemNote {
-  return {
+  return withNoteFlagDefaults({
     note_id: 'n1',
     work_item_id: 'w1',
     author_account_id: 'acc-1',
@@ -169,7 +173,7 @@ export function note(over: Partial<WorkItemNote> = {}): WorkItemNote {
     updated_at: '2026-11-01T08:00:00Z',
     edit_revision: 2,
     ...over,
-  }
+  })
 }
 
 // --- WP2a (pin v0.15.0-api): sunucu atanan süzgeci (BE-038) ve sayaç ucu (BE-003) -------------

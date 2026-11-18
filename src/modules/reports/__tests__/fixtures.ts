@@ -4,6 +4,7 @@ import {
   makeTaskStatusDistribution,
   withDateChangeDefaults,
   withMonthlyActivityDefaults,
+  withNoteFlagDefaults,
   withReportNoteDefaults,
   withReportTaskDefaults,
   withSeasonDepartmentDefaults,
@@ -144,11 +145,11 @@ function seasonTasks(): Task[] {
           { code: 'ALT-3', status: 'tamamlandi', title: 'Atık su hattı', work_item_id: 'w9' },
         ],
         recent_notes: [
-          {
+          withNoteFlagDefaults({
             author: person('u1', 'Bahar Kılıç'),
             content: 'Kesişim çıktı; kazı durdu.',
             created_at: '2026-10-09T08:20:00Z',
-          },
+          }),
         ],
         date_requests: [
           {

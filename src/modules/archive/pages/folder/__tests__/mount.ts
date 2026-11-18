@@ -6,6 +6,7 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
+import { makeArchiveTotals } from '@/shared/api/__tests__/defaults'
 import { i18n } from '@/shared/i18n'
 import { pageCrumb } from '@/shared/navigation/page-crumb'
 import { settleQueries } from '@/shared/http/__tests__/settle'
@@ -96,7 +97,12 @@ function foldersHandler(b: Backend) {
     )
     return json({
       folders: cards,
-      totals: { file_count: files, task_count: 0, total_bytes: 0, last_uploaded_at: null },
+      // Harness dosyaları standart `archiveFile`'dır (`application/pdf`, etiket `sonuc`, bayt toplamı 0).
+      totals: makeArchiveTotals({
+        file_count: files,
+        by_type: files > 0 ? [{ type: 'pdf', file_count: files, total_bytes: 0 }] : [],
+        by_tag: files > 0 ? [{ tag: 'sonuc', file_count: files, total_bytes: 0 }] : [],
+      }),
     })
   }
 }

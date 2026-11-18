@@ -2,6 +2,7 @@
 // silme/sıfırlama parolası önbellekte/sonuçta kalmaz (KESİN 7); başarıda standing + kapsam.
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { makeProgram } from '@/shared/api/__tests__/defaults'
 import { authSession } from '@/shared/http'
 import { isDetached, reachesOwner } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
@@ -46,7 +47,11 @@ describe('program okumaları', () => {
     server.use(
       http.get(`${ORIGIN}/v1/programs`, () =>
         json(
-          { programs: [{ program_id: 'p3', name: 'Yeni', short_name: 'YN', color: 'red' }] },
+          {
+            programs: [
+              makeProgram({ program_id: 'p3', name: 'Yeni', short_name: 'YN', color: 'red' }),
+            ],
+          },
           200,
           {
             'X-Result-Truncated': 'true',
