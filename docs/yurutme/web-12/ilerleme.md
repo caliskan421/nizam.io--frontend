@@ -68,3 +68,7 @@ OpusROUND2SONUYGUN/ilk7kapalı/P0P1P2yok. YeniN1cacheddatahidingguard/N2CSSyorum
 ## Son kaynak kabulü ve PR kapısı
 
 2bd529e3 Native/rootdarN1N2kabulü:2dosya9/tamtype-build0,gerçekadminP1390-1440CSP-pageerror-taşma0/yeni3JSshaaynı;GanttCSSbyteaynı. OpusUYGUNb911veilk7kapalıdır;son2P3önerisibirebirdardeltaylagiderildi, üçüncüformaldenetimyok. RootW20722cd3b7e üretim2bdileaynı+13belgepath;sonscan15/24/sorun0registry87/72/4. Nativekorumalı3test byteaynı. ÖzellikPRkendi3CI+MERGED/mainFF/yalnız5worktreeveownDocker-temizliği tamamlanmadan fazkapalıdenmez.
+
+## Özellik CI1 kayıt metni düzeltmesi
+
+PR184 ilkHEAD91080188/CI44279912384 tam901dosyada900geçti/1kırmızı,6749testte6747geçti/2kırmızı. İki hata yalnız tests/lint/live-register.test.ts: F8kısmi-bağlama tarihçesi yeniBE025/123/136Bağsütunundan çıkarılmıştı; eski matris tam satırının açık kalan gerekçesi testin kalan/kısmen ifadesini taşımıyordu. Bu eski test beklentisini gevşetme nedeni değildir: Codex kayıt metnine doğruF8W171/W172kısmi geçmişini ve kimlikliKalanGAP240/GAP258/BE136taleplerini geri koydu. Statuslar87/72/4 ve üretimkaynağı2bddeğişmez. Denetim koduna/paket/CIya dokunulmaz. İlk log okundu/korundu; yeni belgecommit'i kendiCI2'sini alır, kör tekrar değildir. Rootilkdar30testyalnızdesign-stubdosyasınıkapsamıştı, live-registersonrakiF8tarihçegerişinikaçırdı; bu kabul eksikliği açıkça giderilir.
