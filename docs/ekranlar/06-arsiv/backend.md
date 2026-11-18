@@ -1,5 +1,10 @@
 # 06 — Backend eşlemesi (nereden geliyor)
 
+## F12 yetkili güncelleme — v0.28.0-api
+
+Aşağıdaki F5/F8/F10 tarihsel yokluk notlarının yerine bu bölüm geçer: `ArchiveFolderTotals.by_type` (`pdf,image,document,spreadsheet,presentation,other`) ve `by_tag` (`ister,plan,girdi,analiz,cikti,sonuc`) RECORDS-K51 ile canlıdır. Her eksenin adet/bayt toplamı rolün görebildiği totals kümesine eşittir; bayt azalan, eşitlikte anahtar sözlük sırası sunucuda belirlenir. Mevcut06 yönetici kartında doğrudan kullanılır; istemci MIME filtresinden veya sayfalanmış dosyalardan toplam türetmez. S2 yönetici okuması ve K/Ü P40 yönlendirmesi korunur. `last_uploaded_at` bir olay günlüğü olmaz; BE025 şemsiye açık/kısmidir.
+
+
 **F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
 
 Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.23.0-api`; F8 W171 ile güncellendi — aşağıdaki "F8 / v0.23.0-api güncel uç tablosu" §1–§2'deki v0.15 notlarının YERİNE geçer), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.

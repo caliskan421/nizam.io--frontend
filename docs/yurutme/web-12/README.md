@@ -1,5 +1,9 @@
 # WEB-12 — v0.28 uyumu, arşiv dağılımı ve dönem raporu
 
+**Son kaynak kabulü — 2bd529e3:** Native tamtype/build ve2dosya9test, gerçekCaddy390/1440 arşiv/rapor/CSP-pageerror-dıştaşma0; yeni3JSbyteSHAyerelileaynı. b911GanttCSSsonuçları CSSbyteeşitliğiyle korunur. Opus b911 için UYGUN verdi; sonN1/N2dar farkı ayrıcaNative/rootkabulüdür, yeniOpushükmüiddiasıyok. ÖzellikPRkendi3CI+MERGED ve fazkaynaktemizliği kapanış kapısıdır.
+
+**Uygulama hazır, final kabul sürüyor.** Pin [PR183](https://github.com/caliskan421/nizam.io--frontend/pull/183) kendi üç SUCCESS ile `1b829e92` birleşti (895dosya6707test/15gerçekE2E). Son özellik kaynağı `2bd529e3` (ilk542f, fixture8d, hizalamae9); [F12 raporu](../../backend-eksikleri/rapor-F12.md) ve [bağımsız kanıt](../../backend-eksikleri/dogrulama-F12.md). Özellik PR kendi CI/merge ve faz temizliği henüz beklenir.
+
 2026-11-18 ürün sahibi önce F11 kalan geliştirme bağımlılığı düzeltmeleri ve açık kayıt eşlemesini istedi; ardından F12'ye geçileceğini belirtti. **Ürün sahibi «Başla» dedi; F12 açıldı (2026-11-18).** Önceki kapsam önerisi, aşağıdaki ilk üç iş için yürütme yetkisine dönüştü. Bu kayıt henüz kabul/teslim değildir. Roller Codex yönetici/karar/belge/PR-CI, Sonnet uygulama, Terra bağımsız test/gerçek tanık, Opus salt okunur bağımsız denetim; en çok iki eşzamanlı işçi.
 
 ## Yetkilendirilen iş sırası

@@ -1,5 +1,10 @@
 # 13 — Backend eşlemesi (nereden geliyor)
 
+## F12 yetkili güncelleme — v0.28.0-api
+
+Bu bölüm eski v015/v023 alan yokluğu notlarının yerini alır. `SeasonReport.program_location`, `gantt_edges`, `period.source` (program/range/tasks) ve `ReportTaskNote.flag/shared` mevcut01f tarafından tüketilir. Program dönem alanları required-nullable; rapor verisi sunucudan gelir, görev tarihleriyle programın beyanı karıştırılmaz. Not bayrağı bilinmiyorsa rozet yok; shared yalnız etikettir. Kenarda work_item_id, depends_on_id görevine bağımlıdır; görsel yön depends_on_id→work_item_id. Görünür tekil çubuk uçları ve grup satır merkezleri kullanılır, yeni bağımlılık türetilmez. PDF yalnız aynı sayfadaki kenarları çizer (GAP258). Sunucu PDF içindekiler sayfa numaraları v028/REPORTING-K22 ile var; bu sayfalar görsel olarak doğrulanmadı, P51 önizleme numarasız. BE123 PDF sayfalar arasıGAP258 sınırı; BE136 sayfa-boyut tahmini/görev PDF dosya listesi açık kalır. Frontend yönetici kapısı korunur; backend koordinatör rapor yetkisi ile karıştırılmaz.
+
+
 Kaynak: `../../../../nizam.io--backend` etiketi **`v0.15.0-api`** (F6 pini; **F8: pin `v0.23.0-api`, aşağıdaki §8 ve `api-pin.json`**; `git show v0.15.0-api:…`): `docs/api/openapi.yaml`, `docs/api/README.md` §6 (PDF/ZIP/bilet), `docs/api/istemci-akislari.md`, `docs/api/error-codes.json`, `internal/modules/reporting/README.md` (REPORTING-K01…K14) ve use-case/adaptör kaynağı (yalnız doğrulama için). İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye ve `dogrulama.md`'ye gider. v0.15 → v0.17 arasında rapor uçlarında değişiklik yoktur (analiz raporu; pin değişmez, P46).
 
 Kapsam başlıkları: bütün rapor uçları **S2** (`X-Nizamio-Program`, zorunlu; yoksa 422 `platform.scope_missing`); bilet üretimi **S1 + CSRF** (`X-Requested-With`; hedef S2 ise `X-Nizamio-Program` **bu isteğe** konur ve bilete yazılır); bilet tüketimi **S0** (başlık gerekmez; gönderilen `Authorization` ve kapsam başlıkları yok sayılır, kimlik biletten gelir).

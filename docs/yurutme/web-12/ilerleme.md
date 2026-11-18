@@ -36,3 +36,35 @@ W209 gerçek v028API/PDF bootstrap ve tanık tamam. W210 bağımsız2 dosya3 RED
 PinPR183 ilkHEADeda9/CI44268820239, root eşit bayt sıralama farkını bulunca iptal edildi. Yayımlı server foldBreakdown anahtar sözlük sırası ister; fake enum gösterim sırasını koruyordu. Native49b3 yeni2 gerçekRED, Sonnet0113 karşılaştırıcı düzeltmesi, Native5/5GREEN. Üretim kaynak/pin/paket0797 ile aynı; bağımsız10dosya405+gerçek0797Caddy/3rol dumanı fark0 ile korunur. Son kaynak0113 ve root metadata yeniPRHEAD ile kendiCI2’ye gider.
 
 Native PIN raporu gerçekbackend/Caddytestvekili (üretim frontend imajı değil),390/1440, üçrol ve iki program kapsam/HTTP/CSP/pageerror/taşma kontrollerini kabul etti. Mevcut1440 dönem Gantt tablosunda başlık/tarih çakışması görsel olarak bulundu; bu alan pin üretim kodunda değişmedi, W211 Gantt bağlama çalışmasında düzeltilip gerçek yeni bundle’da doğrulanacak. Pin adımı tek başına bu görseli veya yeni rapor/dağılımı tamamlamış sayılmaz.
+
+## Pin kapanışı ve özellik kaynağı
+
+PR183 HEADa3d2d928 kendiCI44270489832 üçSUCCESS:895dosya6707test/üretimaudit0/imaj/gerçekv028E2E15/15(3.8dk), MERGED1b829e92; main temizFF. İlk iptal kaynak düzeltmesi sonrası yeni CI'dır, kör tekrar değildir.
+
+Sonnet3723dadc arşiv,542f2ee3 raporlar ve8d957592 yalnız retryfixture K51 düzeltmesini teslim etti. Native korumalı3test aynen korundu. Sonnet tamtype/lint/format/build0; yerel197dosya1481 ve16dosya240 koşuları dar sınırı aştı, tekrarlanmaz/örtüşmeler toplanmaz. İlk cooldown başarısızlığının nedensel bağımsızlığı kanıtlanmadı; sonraki geçişler önceki hatayı silmez. Yeni retryfixture1file50B iki eksende1/50 ve satır kapsamlı50B/100% doğrulamasıyla düzeldi (tekdosya1test).
+
+Son kaynak standart collectSources+scanSource taraması: testdizinleri/testdosyaları/yorumlar hariç15runtimekimliği24kullanım, sorun0. Başlangıç17/26'dan BE025 ve BE123 hayalet stubları kalktı; geniş kayıtlar kapanmaz. 163=87bağlı72açık4vazgeçildi korunur. BE025 GAP240/olay kapsamı, BE123 PDF sayfalar arasıGAP258 sınırı, BE136 sayfa-boyut tahmini/görevPDFdosyaları açık.
+
+Native final9dosya91test/tamtype/build0; gerçek Caddy/v0283rolP1P2390/1440 dağılım, İstanbul/programdipnotu,urgent/shared/ok/PDFwire kabulünün ilk kısmı başarılı. Gantt başlık/tarih hücre taşması0, kenar uçları0.5px içinde, dıştaşma/CSP/pageerror0. Gecikmiş kapsam/uzun metin/sentetik varyant ve finalrapor bekleniyor. Gerçek API ile sentetik yanıt kanıtları ayrılacak; Opus hükmü ve özellikPR kendi3CI+MERGED henüz yoktur.
+
+Nativefinalkabul: gerçekscope yarışıPASS, sentetikuzun/range/null/unknown/kenarfiltreleriPASS; bunlarayrıkanıt. SonPDFwire201→200application/pdf79876B. RootPNG3görseldoğruladı; registrydar1dosya30testPASS. Opus5.5freshreadonlyPID8810/round1aktif, sonraporbeklenir.
+
+Native eksik K1440/Ü390 delta da başarılı; üçroliki genişlik arşiv/raporrol sınırı tamam. Sunulan ana/arşiv/raporJSbyteSHAyerel542distile aynı; HTMLnonce ayrı. Son birleşik kabul var, Opus/özellikPRkapılarıbekler.
+
+Opus son kaynakta sütun başlık/gövde fontuna göre ch asgarilerinin farklı çözülmesini fark etti; Terra mevcut gerçekmetrikte390/1440 sınır sapmalarını2.77→20.72px olarak doğruladı. Önceki overflow0 bunu sınamamıştı. SonnetDARalignmentfixPID18031 başladı (W2118d, yalnızGanttCSS/gerekliyerelbağ). NativeyeniHEAD/browserboundary1pxgate ve Opusround2zorunlu. Kaynak ilk tur542, rootW2078b08 henüz değişmedi.
+
+Opusround1KOŞULLUUYGUN2P2/5P3 (P0/P1yok). Header/bodyhiza yanında desktop içscroll~32px; küçükpozitiforan%0, retrybusy ve okorigin belirsizliği kod bulguları SonnetdarPID20447ile gideriliyor. RootP3belgeleri düzeltti:06supersession açık; yayımlıGAP239kapalı/PDFTOCnumarasıvar fakat görsel tanıkdeğil/P51önizlemenumarasız/GAP258sınırı. [Denetim](../../reviews/WEB-12-opus.md).
+
+Sonnet b911e989 tüm kod bulgularını teslim etti (önce e9hiza). Root8b08dalına birleştirildi, belgelerkirli. YeniNativekabulbaşladı:1440içscroll0/390sonuçerişimi/all5sınır1px/okorigin/yeniSHA. P3retrygerçekverisizakışındaTanStackpending'e döner, eskiisPendingzatenbusy; ekerror-fetchingkoruması savunmadır, gözlenmişeskiürünhatasıiddiasıdeğil.
+
+Native b911delta tamtype/build0+6dosya24test. 390/1440 all5headerbody fark0px, başlık/tarih hücreiçi;1440scroller782=782 (içtaşmayok). Okorigin#1end/row ve tip#3start/row0.5px.390sonscrollkanıtı tamamlanıyor; sonOpusdelta yakında.
+
+390 correctedscroll-endPNG rootgörüldü: eksensonuna erişim/sağsınır görünür; yeniGantt1440da hiza/origin/doğrukenar görüldü. YeniNativehamdelta klasörüweb12-terra-w211-auditfix. İlk yanlışyüksekliktePNGdürüstçegörselkanıtsayılmadı. İkinci sonOpusdelta bu kaynak/kanıtla başlar.
+
+Nativeb911kesindeltakabulreport.mdgeldi; yeni3JSbyteSHAeşit/combinede8a752d3/probe3783404e. Root390scroll-end ve1440GanttPNGdoğruladı. İlk seçici5eşleşmesitest-aracıhatası düzeltilmişprobe0ile açıkça korunur. OpusROUND2PID28403 aynı bağımsız155ffc36oturumunda son7bulgu/sınırdeltasını okuyup sonhükümverecek; sourceW20779db9523=b911,belgelergüncelkirli.
+
+OpusROUND2SONUYGUN/ilk7kapalı/P0P1P2yok. YeniN1cacheddatahidingguard/N2CSSyorum14pxhesabı engellemeyenP3 olarak çıktı; rootikisinideSonnetDARPID42353 ile düzeltiyor. ÜçüncüformalOpusturuyok; b911UYGUNhükmü korunur, sonrakiçokdardeltaNative/rootkanıtıyla ayrı kabul edilir. Gereksizerrorfetchingkolu kalkacak, gecikmişretrytestikalacak ve cachedsame-scoperefreshtesti eklenecek;CSSyalnızyorum.
+
+## Son kaynak kabulü ve PR kapısı
+
+2bd529e3 Native/rootdarN1N2kabulü:2dosya9/tamtype-build0,gerçekadminP1390-1440CSP-pageerror-taşma0/yeni3JSshaaynı;GanttCSSbyteaynı. OpusUYGUNb911veilk7kapalıdır;son2P3önerisibirebirdardeltaylagiderildi, üçüncüformaldenetimyok. RootW20722cd3b7e üretim2bdileaynı+13belgepath;sonscan15/24/sorun0registry87/72/4. Nativekorumalı3test byteaynı. ÖzellikPRkendi3CI+MERGED/mainFF/yalnız5worktreeveownDocker-temizliği tamamlanmadan fazkapalıdenmez.
