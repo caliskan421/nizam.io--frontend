@@ -6,7 +6,6 @@ import {
   makeProgram,
   withNoteFlagDefaults,
   withProgramDefaults,
-  withSeasonReportDefaults,
   makeChatHistory,
   makeChatLastMessage,
   makeChatList,

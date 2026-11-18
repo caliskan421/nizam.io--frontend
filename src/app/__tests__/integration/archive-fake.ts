@@ -270,18 +270,29 @@ function folderCard(
   }
 }
 
+/** `totals.by_type` / `by_tag` (RECORDS-K51): DÖNEN kartların gerçek dosyalarından türer. */
+export function breakdown(files: FakeFile[]) {
+  return {
+    by_type: buckets(files, KINDS, (x) => kindOf(x.content_type), 'type'),
+    by_tag: buckets(files, TAGS, (x) => TAGS.find((tag) => tag === x.tag) ?? null, 'tag'),
+  }
+}
+
 function withTotals(cards: ReturnType<typeof folderCard>[]) {
   const times = cards.map((x) => x.last_uploaded_at).filter((x): x is string => x !== null)
   const files = cards.flatMap((x) => x.files)
   return {
-    folders: cards.map(({ files: _files, ...folder }) => folder),
+    folders: cards.map((card) => {
+      const folder: Partial<typeof card> = { ...card }
+      delete folder.files
+      return folder
+    }),
     totals: {
       file_count: cards.reduce((sum, x) => sum + x.file_count, 0),
       task_count: cards.reduce((sum, x) => sum + x.task_count, 0),
       total_bytes: cards.reduce((sum, x) => sum + x.total_bytes, 0),
       last_uploaded_at: times.sort().at(-1) ?? null,
-      by_type: buckets(files, KINDS, (x) => kindOf(x.content_type), 'type'),
-      by_tag: buckets(files, TAGS, (x) => TAGS.find((tag) => tag === x.tag) ?? null, 'tag'),
+      ...breakdown(files),
     },
   }
 }
