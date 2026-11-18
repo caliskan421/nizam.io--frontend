@@ -26,6 +26,8 @@
  *  - `FilePreview` (W124) içinde `FileActions` ve `RenameFileDialog` (W124) bağlıdır.
  * Kabul: `docs/ekranlar/06-arsiv/README.md` kabul tablosu (yalnız `kabul`/`geçici kabul`).
  */
+import type { components } from '@/shared/api/schema'
+
 import type {
   ArchiveFile,
   ArchiveFolder,
@@ -83,12 +85,21 @@ export interface TagLegendEmits {
   select: [tag: ArchiveTag]
 }
 
-/** W122 · E-06-22…24 — depolama özeti; toplam dosya ve bayt `totals`'tan (BE-025), dağılım statik. */
+/** W122 · E-06-22…24 — depolama özeti; toplam ve tür/etiket dağılımı `totals`'tan (BE-025). */
 export interface StorageSummaryProps {
   totalFiles: number | null
   /** `totals.total_bytes`; okunana dek `null` → `—`. */
   totalBytes: number | null
+  /** `totals.by_type`; okunmadıysa `null` → `—` (boş `[]` gerçek boştur). */
+  byType: components['schemas']['ArchiveFolderTotals']['by_type'] | null
+  /** `totals.by_tag`; okunmadıysa `null` → `—`. */
+  byTag: components['schemas']['ArchiveFolderTotals']['by_tag'] | null
   loading: boolean
+  /** Klasör okuması başarısız (veri yok): sıfır/boş değil, hata + yeniden dene. */
+  error?: boolean
+}
+export interface StorageSummaryEmits {
+  (e: 'retry'): void
 }
 
 // --- W123 — 07 Arşiv › Klasör (ağaç, görevler, dosyalar) ---------------------------------------

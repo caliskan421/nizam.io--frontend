@@ -24,3 +24,7 @@ Terra v028 izole API tanığı üç rol/iki program dağılım ve program/range/
 Root yayımlı foldBreakdown kodunu karşılaştırınca arşiv fake’inde eşit baytta enum gösterim sırasının korunduğunu buldu; gerçek sunucu eşitlikte anahtarın sözlük sırasını kullanır. İlk test örnekleri bu farkı tesadüfen göstermiyordu. Native yeni iki regresyonla image/pdf ve analiz/plan eşit bayt senaryolarında gerçek AssertionError RED verdi (2dosya/200B toplam kontrolleri geçti). Root49b3 test commit’i; Sonnet0113 fake karşılaştırıcıyı ASCII anahtar sırasına düzeltti. MIME sınıflandırması ve üretim UI/API/pin/paket aynı kaldı. Native iki girdi sırası dahil yeni2+eski3 test5/5GREEN verdi.
 
 İlkPR183 CI44268820239/eda9 kaynak düzeltileceği için root tarafından iptal edildi; kör yeniden koşulmadı. Güncellenen HEAD kendi yeni tam CI’ını alır. Native0797 gerçek Caddy tanığı üretim kaynak farkı0 ile korunur; metadata/fake-only düzeltme için aynı UI koşusu tekrarlanmadı. Yeni kaynak üçSUCCESS olmadan MERGED yapılmaz.
+
+## Pin adımı kapandı
+
+PR183 HEADa3d2d928 kendiCI44270489832 üçSUCCESS:895dosya6707test/üretim audit0/imaj/gerçekv028E2E15/15(3.8dk). Bağımsız Native kabulü sonrası HEAD eşleşmeli MERGED1b829e9238b3748a2852301d5993cbe5eefc0aac. Main temizFF; pin adımının önceki bekleme notları tarihçedir. F12 özellik paketi ve kendi CI/merge kapısı ayrıca yürür.

@@ -1,5 +1,12 @@
 # 13 · Raporlar — her rapor kendi yerinde
 
+## F12 güncel kapsamı — v0.28.0-api
+
+Bu güncelleme aşağıdaki eski alan yokluğu ve ok yokluğu anlatımlarının yerini alır. Mevcut01f kapak `period.source` için program/range/tasks açıklamasını ve dolu `program_location` değerini gösterir; bilinmeyen kaynak tasks, null aralık gizlidir. Tarih yalnız takvim günüdür; oluşturulma saati kurulum saat dilimindedir. Notun urgent/blocker/question/info ve shared değerleri içerik yanında etiketlenir; shared erişim veya bildirim vaadi değildir.
+
+Gantt sunucunun `gantt_edges` kenarlarını ön görevden bağımlıya, yalnız görünür iki çubuk arasında çizer. Eksik/kendine/yinelenen/belirsiz uçlar atlanır; görev adı çiftleri erişilebilir metindedir. Dar görünümde Gantt kendi yatay alanında kaydırılır. PDF yalnız aynı sayfadaki okları çizer; tam sayfalama/yerleşim eşitliği sözü verilmez. Frontend01f yönetici kapısı değişmez; backendv028 koordinatör API izni yeni frontend rol ekranı değildir. Program/not yazma formları ve tarih filtresi bu paket dışındadır. BE123/136 geniş kayıtları kalan gereksinimleriyle açık/kısmi kalır. [F12 kanıtı](../../backend-eksikleri/dogrulama-F12.md).
+
+
 **Codex kapısı:** bekliyor (WEB-6 nihai kapısı). **Uygulama:** F6'da uygulandı (#122, #124, #126, #128; `main` `a3b31e3`), aşağıdaki "F6 uygulama kanıtı" bölümü. **Tespit durumu:** tespit W134 (WEB-6 O1), 2026-11-13; kararlar **P46–P53** (`../ortak-kurallar.md` §12; W135 işler, bu grup yalnız `P47` vb. diye atıf yapar) ve koordinatör varsayılanları işlendi · öz denetim `dogrulama.md`. Ortak kurallar `../ortak-kurallar.md`.
 
 **Artboard'lar (tasarım v85, `Rapor-*.dc.html`):**

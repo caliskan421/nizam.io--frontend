@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { seasonFixture } from '../__tests__/fixtures'
 import { activityExtras, shiftDays, topRequested } from './season-extras'
-import { detailCards, fileGroups, meetingCards } from './season-detail'
+import { detailCards, fileGroups, meetingCards, noteFlag } from './season-detail'
 import { departmentSections } from './season-view'
 import type { SeasonReport } from './types'
 
@@ -35,6 +35,8 @@ describe('görev detay kartları (BE-136)', () => {
         at: '09.10.2026 11:20',
         author: 'Bahar Kılıç',
         content: 'Kesişim çıktı; kazı durdu.',
+        flag: null,
+        shared: false,
       },
     ])
     expect(card!.requests[0]).toMatchObject({
@@ -151,5 +153,12 @@ describe('genel bölüm ek türetimleri (BE-136)', () => {
       })),
     } as SeasonReport
     expect(activityExtras(zero)).toBeNull()
+  })
+})
+
+describe('not bayrağı', () => {
+  it('bilinen bayraklar korunur; null ve gelecekteki bilinmeyen değer rozet üretmez', () => {
+    for (const flag of ['urgent', 'blocker', 'question', 'info']) expect(noteFlag(flag)).toBe(flag)
+    for (const flag of [null, undefined, '', 'yeni-bayrak']) expect(noteFlag(flag)).toBeNull()
   })
 })

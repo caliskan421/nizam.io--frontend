@@ -1,5 +1,12 @@
 # 06 · Arşiv
 
+## F12 güncel kapsamı — v0.28.0-api
+
+Bu bölüm aşağıdaki F5/F8/F10 E-06-23/24 ve BE-025 stub anlatımlarının yerini alır.
+
+Mevcut yönetici depolama kartı `totals.by_type` ve `by_tag` dizilerini dosya türü/etiketi olarak gösterir; adet, bayt ve bayt oranı iki ayrı eksendedir. Sunucu sırası korunur; en büyük klasörler diye adlandırılmaz. Mevcut program kapsamlı klasör okuması kullanılır, ek dağılım isteği yoktur. Yükleniyor/okunmadı/hata gerçek boştan ayrıdır; yeniden dene aynı okumayı tekrarlar. Sıfır baytlı pozitif adet korunur. K/Ü mevcut klasör yönlendirmesi korunur. BE025 geniş kaydı GAP240 ve kapsam dışı olay gereksinimleri nedeniyle açık/kısmi kalır. [F12 kanıtı](../../backend-eksikleri/dogrulama-F12.md).
+
+
 ## F10 güncel kapsamı — v0.26.0-api
 
 Bu bölüm, aşağıdaki F5/F8 tarihsel tespitlerin güncellenen alanlarında yetkilidir. W194 uygulaması ve bağımsız kabul [WEB-10 ilerleme kaydında](../../yurutme/web-10/ilerleme.md) izlenir; yalnız kod teslimi nihai kabul sayılmaz.

@@ -19,7 +19,7 @@ export const trReports = {
         tasks: 'görev {shown} / {total} gösteriliyor.',
         files: 'dosya {shown} / {total} gösteriliyor.',
       },
-      note: "Önizleme canlı veriden çizilir; indirilen PDF'in şablonu güncellenene kadar daha sade olabilir · Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre · Rapor indirmeleri kayda geçer (denetim).",
+      note: 'Önizleme canlı veriden çizilir; indirilen PDF ile sayfalama ve yerleşim farklı olabilir · Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre · Rapor indirmeleri kayda geçer (denetim).',
       // Önizleme araç çubuğu (01f ve 01g ortak; E-13-15…17, 47).
       toolbar: {
         label: 'Önizleme araçları',
@@ -90,8 +90,12 @@ export const trReports = {
           note1:
             'Bu rapor, seçili program kapsamındaki aktif (silinmemiş) koordinatörlük, görev ve toplantı kayıtlarından otomatik üretilmiştir. Mesaj içerikleri rapora alınmaz; yalnızca sayılar yer alır.',
           note2: 'Tarihler gg.aa.yyyy, saatler kurulum saat dilimine göre.',
-          periodNote:
-            'Dönem aralığı programın beyan ettiği bir tarih değildir: görevlerin en erken başlangıcı ve en geç bitişinden türetilir.',
+          periodNote: {
+            tasks:
+              'Dönem aralığı programın beyan ettiği bir tarih değildir: görevlerin en erken başlangıcı ve en geç bitişinden türetilir.',
+            program: 'Dönem aralığı programın beyan ettiği dönem tarihleridir.',
+            range: 'Dönem aralığı rapor için seçilen tarih aralığıdır.',
+          },
           logo: 'Program logosu yer tutucu',
           emblem: 'RoketPortal amblemi yer tutucu',
           emblemName: 'ROKETPORTAL',
@@ -147,7 +151,8 @@ export const trReports = {
             label: 'Lejant',
             late: 'Gecikme (geç bitişte kırmızı kuyruk · açık gecikende kesik kırmızı kenar)',
           },
-          note: 'Bağımlılık okları önizlemede ve PDF’te yoktur.',
+          note: 'Oklar ön görevden bağımlı göreve, yalnız bu önizlemede görünen iki çubuk arasında çizilir; PDF yalnız aynı sayfadaki bağımlılıkları gösterir.',
+          edge: '{from} bitmeden {to} ilerleyemez',
         },
         general: {
           kicker: '{program} · GENEL GÖSTERGELER',
@@ -237,6 +242,13 @@ export const trReports = {
             notes: 'NOTLAR ({n})',
             note: 'Not {no} · {at}',
             notesShown: 'En yeni {n} not gösteriliyor.',
+            flag: {
+              urgent: 'ACİL',
+              blocker: 'ENGEL',
+              question: 'SORU',
+              info: 'BİLGİ',
+              shared: 'PAYLAŞILAN',
+            },
             requests: 'TARİH DEĞİŞİKLİĞİ TALEPLERİ ({n})',
             end: 'Bitiş',
             requestMeta: 'Talep: {by}, {at}',

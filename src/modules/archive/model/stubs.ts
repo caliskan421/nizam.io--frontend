@@ -6,13 +6,6 @@
  */
 import { designStub } from '@/shared/design-stub'
 
-/**
- * Klasör özeti (BE-025, kısmi): görev sayısı, bayt toplamı ve son yükleme v0.21'de canlandı
- * (`ArchiveFolder`/`totals`); KALAN: depolama dağılımı çubuğu/listesi (E-06-23/24) — tür/etiket
- * bazlı bayt alanı yok (GAP-240 notu; `last_uploaded_at` da yükleme olay günlüğü değildir).
- */
-export const FOLDER_SUMMARY = designStub('BE-025', { storageBreakdown: false })
-
 /** Etiket oluşturma (E-06-19…21): kapalı küme, ağ isteği yok. */
 export const CREATE_TAG = designStub('BE-024', { available: false })
 

@@ -14,7 +14,8 @@ import PaperHeading from './PaperHeading.vue'
 
 /**
  * Görev detay kartları (01f, E-13-34; BE-136): yalnız içeriği olan görevler; açıklama, bağımlı
- * olduğu görevler, en yeni ≤5 not (bayrak ve "paylaşılan" işareti JSON'da yok → çizilmez, GAP-237),
+ * olduğu görevler, en yeni ≤5 not (bayrak ACİL/ENGEL/SORU/BİLGİ ve "PAYLAŞILAN" etiketi içeriğin yanında; paylaşılan
+ * yalnız etikettir, görünürlük/bildirim anlamı taşımaz — WORK-K103),
  * tarih değişikliği talepleri (bitiş eski → yeni, durum, talep eden, gerekçe) ve görevin dosyaları.
  * Hepsi `reportSeason.tasks[].detail` ve `files[]`'tan; boşsa tek satır metin.
  */
@@ -85,6 +86,14 @@ function lateText(kind: string, days: number): string {
           <h5 class="report-note__h">
             {{ p('note', { no: note.no, at: note.at }) }}<span> · {{ note.author }}</span>
           </h5>
+          <p v-if="note.flag || note.shared" class="report-note__flags" data-testid="note-flags">
+            <span v-if="note.flag" class="report-pill" :data-flag="note.flag">{{
+              p(`flag.${note.flag}`)
+            }}</span>
+            <span v-if="note.shared" class="report-pill" data-flag="shared">{{
+              p('flag.shared')
+            }}</span>
+          </p>
           <p class="report-note__b">{{ note.content }}</p>
         </div>
         <p v-if="card.noteCount > card.notes.length" class="report-fn">
