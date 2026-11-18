@@ -4,7 +4,7 @@
 //
 // Kurallar:
 // - v1 (F0–F4) ekranları + sonraki fazlarda açılanlar (Arşiv F5, Raporlar F6, Mesajlar F7); henüz
-//   açılmamış modüller (İşlem geçmişi, Tablolar, Takvim, Kurumsal hafıza, Simülasyon) ve hedefi
+//   açılmamış modüller (İşlem geçmişi, Takvim, Kurumsal hafıza, Simülasyon) ve hedefi
 //   tanımsız öğeler (Yardım, Asistan) katalogda YOKTUR. F7 (W154): Mesajlar (10/10b/10c) — iki
 //   rota, üç rolde menüde (İçerik grubu); bildirim paneli rota değildir (zil, URL durumu yok). "Teknofest ve sezon" (E-00-25) F2'de program yönetimi rotasıdır (W81, P3).
 //   F6 (W136): iki rapor önizleme rotası (01f/01g; yalnız şirket yöneticisi) katalogdadır, menüsüz;
@@ -21,11 +21,11 @@ import { DELETED_KINDS, DELETED_RANGES } from '@/modules/deleted-records/public'
 import { USER_ROLE_TABS } from '@/modules/organization/public'
 import type { ScopeClass } from '@/shared/scope/scope-class'
 
-export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7'] as const
+export const PHASES = ['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F13'] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F7'
+export const CURRENT_PHASE: Phase = 'F13'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -332,6 +332,24 @@ export const ROUTES = {
     params: { chatId: id },
     // `mesaj`: hedef mesajın `seq` değeri (bağlantı kopyala; `around` ile açılır, E-10-45).
     query: { filtre: oneOf(['okunmamis', 'gruplar', 'kisiler']), mesaj: text },
+  },
+  'tables.list': {
+    path: '/tablolar',
+    title: 'Tablolar',
+    scope: 'S2',
+    phase: 'F13',
+    menu: { group: 'icerik', key: 'sheets', order: 4 },
+    params: {},
+    query: { alan: oneOf(['birim']) },
+  },
+  'tables.detail': {
+    path: '/tablolar/:tableId',
+    title: 'Tablo',
+    scope: 'S2',
+    phase: 'F13',
+    parent: 'tables.list',
+    params: { tableId: id },
+    query: { alan: oneOf(['birim']) },
   },
   'deleted-records.list': {
     path: '/silinen-kayitlar',

@@ -71,6 +71,11 @@ export const queryKeys = {
     pushKey: () => ['notifications', 'push-key'] as const,
   },
   chatsUnread: { overview: () => ['chats', 'unread-overview'] as const },
+  tables: {
+    list: (s: ScopeSnapshot) => scoped(s, ['tables', 'list']),
+    detail: (s: ScopeSnapshot, id: string, cursor: string | null) =>
+      scoped(s, ['tables', 'detail', id, { cursor }]),
+  },
   programs: {
     all: () => ['programs'] as const,
     /**
@@ -289,6 +294,7 @@ export type QueryResource =
   | 'notifications.subjectMutes'
   | 'notifications.pushKey'
   | 'chats.unreadOverview'
+  | 'tables.list'
   | 'programs'
   | 'me'
   | 'departments'
@@ -624,6 +630,7 @@ const CHILD_TRASH_WRITES = [
 const BASE_INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]>> = {
   // Yalnız yeniden yükleme.
   'instance.profile': [],
+  'tables.list': ['createPersonalTable', 'createTable'],
   // Bildirim okundu yazmaları sayaç + panel listesini BİRLİKTE yeniler (KESİN 29; rozet ↔ sekme
   // sayacı uyumu). Görev/toplantı yazmaları bildirim listesini geçersizlemez: kaydı sunucu üretir
   // (tazeleme kuralı: staleTime + odak + aralık). Cihaz kaydı (`registerPushTarget`) okuma yenilemez.
@@ -1120,6 +1127,7 @@ function allPrograms(match: (key: QueryKey) => boolean): InvalidationFilter {
 /** Kaynak → filtre eşlemesi (§6). null: yazma sonrası geçersizleme yok. */
 const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'instance.profile': () => null,
+  'tables.list': prefix(queryKeys.tables.list),
   report: reportOfProgram(['dashboard', 'season', 'workload']),
   'report.task': reportOfProgram(['task'], (ctx) => ctx.workItemId),
   'report.meeting': reportOfProgram(['meeting'], (ctx) => ctx.meetingId),

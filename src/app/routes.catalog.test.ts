@@ -40,7 +40,7 @@ import {
 } from './routes.catalog'
 
 // ortak-kurallar §5 faz görünürlük matrisi (menü satırları + alt rotalar) — beklenen tablo.
-const MATRIX: Record<string, Record<Phase, string>> = {
+const MATRIX: Record<string, Record<Exclude<Phase, 'F13'>, string>> = {
   home: {
     F0: 'canli',
     F1: 'canli',
@@ -232,8 +232,8 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F7: Arşiv, rapor önizlemeleri ve Mesajlar de canlı', () => {
-    expect(CURRENT_PHASE).toBe('F7')
+  it('etkin faz F13: Tablolar ve önceki rotalar canlı', () => {
+    expect(CURRENT_PHASE).toBe('F13')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -254,6 +254,8 @@ describe('rota kataloğu — yapı', () => {
       'reports.meeting',
       'collaboration.chats',
       'collaboration.chat',
+      'tables.list',
+      'tables.detail',
       'deleted-records.list',
     ])
     expect(liveRouteNames('F6')).not.toContain('collaboration.chats')
@@ -264,10 +266,18 @@ describe('rota kataloğu — yapı', () => {
   })
 
   it('faz görünürlüğü ortak-kurallar §5 matrisiyle birebir', () => {
-    expect(new Set(ROUTE_NAMES)).toEqual(new Set(Object.keys(MATRIX)))
+    expect(new Set(ROUTE_NAMES)).toEqual(
+      new Set([...Object.keys(MATRIX), 'tables.list', 'tables.detail']),
+    )
     for (const name of ROUTE_NAMES) {
       for (const phase of PHASES) {
-        expect(visibilityOf(name, phase), `${name} @ ${phase}`).toBe(MATRIX[name]?.[phase])
+        expect(visibilityOf(name, phase), `${name} @ ${phase}`).toBe(
+          name.startsWith('tables.')
+            ? phase === 'F13'
+              ? 'canli'
+              : 'gizli'
+            : MATRIX[name]?.[phase === 'F13' ? 'F7' : phase],
+        )
       }
     }
   })
@@ -285,13 +295,7 @@ describe('rota kataloğu — yapı', () => {
 
   it('henüz açılmamış modüller ve hedefsiz öğeler katalogda yok (Mesajlar F7 ile girdi)', () => {
     const paths = ROUTE_NAMES.map((name) => routeSpec(name).path)
-    for (const banned of [
-      '/islem-gecmisi',
-      '/tablolar',
-      '/takvim',
-      '/kurumsal-hafiza',
-      '/simulasyon',
-    ]) {
+    for (const banned of ['/islem-gecmisi', '/takvim', '/kurumsal-hafiza', '/simulasyon']) {
       expect(
         paths.some((p) => p.startsWith(banned)),
         banned,
@@ -299,7 +303,9 @@ describe('rota kataloğu — yapı', () => {
     }
     expect(ROUTE_NAMES.some((name) => /assistant|help/i.test(name))).toBe(false)
     // Mesajlar F7'den beri katalogda: iki rota, üç rolde menü girdisi tekil.
-    expect(paths).toEqual(expect.arrayContaining(['/mesajlar', '/mesajlar/:chatId']))
+    expect(paths).toEqual(
+      expect.arrayContaining(['/mesajlar', '/mesajlar/:chatId', '/tablolar', '/tablolar/:tableId']),
+    )
   })
 
   it('rol önekli yol ya da ad yok (K10)', () => {
@@ -336,7 +342,7 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F7): Arşiv ve Mesajlar canlı; Silinen kayıtlar menüde yok (P36)', () => {
+  it('etkin faz (F13): Arşiv, Mesajlar ve Tablolar canlı; Silinen kayıtlar menüde yok (P36)', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],
@@ -344,6 +350,7 @@ describe('menü', () => {
       ['meetings', 'icerik', 'canli'],
       ['archive', 'icerik', 'canli'],
       ['messages', 'icerik', 'canli'],
+      ['sheets', 'icerik', 'canli'],
       ['users', 'yonetim', 'canli'],
       ['coords', 'yonetim', 'canli'],
       ['season', 'yonetim', 'canli'],
@@ -627,7 +634,7 @@ describe('F7 Mesajlar rotaları (W154)', () => {
     const keys = menuEntries()
       .filter((e) => e.group === 'icerik')
       .map((e) => e.key)
-    expect(keys).toEqual(['meetings', 'archive', 'messages'])
+    expect(keys).toEqual(['meetings', 'archive', 'messages', 'sheets'])
     expect(activeMenuKey('collaboration.chats')).toBe('messages')
     expect(activeMenuKey('collaboration.chat')).toBe('messages')
   })

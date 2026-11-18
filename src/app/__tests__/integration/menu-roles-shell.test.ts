@@ -57,7 +57,7 @@ describe('rol menüleri', () => {
     await until(() => badge('overdue'), 'rozet')
     expect(menu()).toEqual({
       takip: ['Ana sayfa', 'Görevler', 'Zaman çizelgesi'],
-      icerik: ['Toplantılar', 'Arşiv', 'Mesajlar'],
+      icerik: ['Toplantılar', 'Arşiv', 'Mesajlar', 'Tablolar'],
       yonetim: ['Kullanıcılar', 'Koordinatörlükler', 'Teknofest ve sezon'],
     })
     expect(badge('overdue')).toBe('1')
@@ -80,7 +80,7 @@ describe('rol menüleri', () => {
     await until(() => badge('overdue'), 'rozet')
     expect(Object.keys(menu())).toEqual(['takip', 'icerik'])
     expect(menu().takip).toEqual(['Ana sayfa', 'Görevlerim', 'Zaman çizelgem'])
-    expect(menu().icerik).toEqual(['Toplantılar', 'Dosyalarım', 'Mesajlar'])
+    expect(menu().icerik).toEqual(['Toplantılar', 'Dosyalarım', 'Mesajlar', 'Tablolar'])
     expect(badge('approval')).toBeNull()
     expect(badge('dates')).toBeNull()
     await idle(app.queryClient)
