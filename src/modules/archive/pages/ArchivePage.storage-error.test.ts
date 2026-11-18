@@ -48,7 +48,7 @@ it('depolama kartı: klasör okuması başarısızsa sıfır/boş değil hata, y
             totals: {
               ...cards.totals,
               by_type: [{ type: 'pdf', file_count: 1, total_bytes: 50 }],
-              by_tag: [],
+              by_tag: [{ tag: 'plan', file_count: 1, total_bytes: 50 }],
             },
           })
     }),
@@ -85,5 +85,8 @@ it('depolama kartı: klasör okuması başarısızsa sıfır/boş değil hata, y
   await flushPromises()
   expect(sent('GET', '/v1/program/archive/folders')).toHaveLength(before + 1)
   expect(mounted.get('.archive-storage').find('[data-field="error"]').exists()).toBe(false)
-  expect(mounted.get('.archive-storage [data-axis="type"]').text()).toContain('50 B')
+  const type = mounted.get('.archive-storage [data-axis="type"]').text()
+  const tag = mounted.get('.archive-storage [data-axis="tag"]').text()
+  expect(type).toMatch(/PDF.*1 dosya.*50 B.*%100/)
+  expect(tag).toMatch(/Plan.*1 dosya.*50 B.*%100/)
 })
