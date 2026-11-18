@@ -36,11 +36,14 @@ afterAll(() => server.close())
 
 it('depolama kartı: klasör okuması başarısızsa sıfır/boş değil hata, yeniden dene aynı okumayı tekrarlar', async () => {
   let failing = true
+  let release: (() => void) | undefined
+  const gate = new Promise<void>((resolve) => (release = resolve))
   const cards = folderBody(folder({ folder_id: 'd1', file_count: 1, total_bytes: 50 }))
   server.use(
     ...standing({ admin: true }),
     http.get(`${ORIGIN}/v1/program/archive/tasks`, () => json({ tasks: [] })),
-    http.get(`${ORIGIN}/v1/program/archive/folders`, () => {
+    http.get(`${ORIGIN}/v1/program/archive/folders`, async () => {
+      if (!failing) await gate
       return failing
         ? errorEnvelope('platform.internal', 500)
         : json({
@@ -81,6 +84,25 @@ it('depolama kartı: klasör okuması başarısızsa sıfır/boş değil hata, y
   const before = sent('GET', '/v1/program/archive/folders').length
   failing = false
   await storage.get('[data-action="retry"]').trigger('click')
+  // Yeniden çekme sürerken (sorgu fetching): meşgul, hata/sıfır yok,
+  // ikinci tıklama için düğme yok; aynı sorgu tek okuma yapar.
+  await vi.waitFor(() =>
+    expect(sent('GET', '/v1/program/archive/folders')).toHaveLength(before + 1),
+  )
+  const busy = mounted.get('.archive-storage')
+  // Gerçek TanStack durumu: tam bir sorgu hâlâ fetching (mock/bayrak değil).
+  expect(
+    h.queryClient
+      .getQueryCache()
+      .findAll()
+      .filter((q) => q.state.fetchStatus === 'fetching'),
+  ).toHaveLength(1)
+  expect(busy.get('.archive-storage__total').attributes('aria-busy')).toBe('true')
+  expect(busy.find('[data-field="error"]').exists()).toBe(false)
+  expect(busy.find('[data-action="retry"]').exists()).toBe(false)
+  expect(busy.find('[data-field="empty"]').exists()).toBe(false)
+  expect(busy.text()).not.toMatch(/\b0 B\b|%0/)
+  release?.()
   await settleQueries(h.queryClient)
   await flushPromises()
   expect(sent('GET', '/v1/program/archive/folders')).toHaveLength(before + 1)

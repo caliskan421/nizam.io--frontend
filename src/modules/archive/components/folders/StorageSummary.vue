@@ -33,8 +33,11 @@ const known = (rows: DistributionRow[] | null): rows is DistributionRow[] =>
 
 const label = (row: DistributionRow): string =>
   row.label ?? t(`archive.folders.storage.types.${row.key}`, row.key)
+// 0 < p < 0,5 "%0" görünmez (boş sanılır): "%<1"; gerçek 0 "%0" kalır. Çubuk genişliği kesindir.
 const percentText = (row: DistributionRow): string =>
-  `%${Math.round(row.percent).toLocaleString('tr-TR')}`
+  row.percent > 0 && row.percent < 0.5
+    ? '%<1'
+    : `%${Math.round(row.percent).toLocaleString('tr-TR')}`
 const summary = (row: DistributionRow): string =>
   `${label(row)} ${percentText(row)}, ${t('archive.folders.storage.rowCount', { n: row.fileCount })}, ${formatBytes(row.bytes)}`
 const barLabel = (axis: Axis): string =>
