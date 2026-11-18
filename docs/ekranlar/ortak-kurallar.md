@@ -323,3 +323,6 @@ P85: Yönetici ana Codex oturumudur; kararlar, raporlama, süreç belgeleri ve P
 ### F12 — yayımlı v0.28 ve mevcut yüzeyler (2026-11-18)
 
 Ürün sahibi «Başla» diyerek [WEB-12](../yurutme/web-12/README.md) ilk üç adımı başlattı: v026→v028 uyum, mevcut06 depolama dağılımı ve mevcut01f dönem raporunun karşılanan kısımları. KESİN36 pin/UI ayrımı ve P78/P79 model/kabul düzeni sürer. Program/not yazma formları, BE026/P45GAP233, yeni audit/01b/Tablolar/profil/W7/rolpaneli bu kapsamla açılmaz. Şemsiye BE025/136 yalnız alan hazır diye bağlı sayılmaz.
+
+
+**F12 uygulama netleştirmesi (koordinatör):** kullanıcı onaylı tür/etiket dağılımı mevcut06 yönetici depolama kartında doğru başlıklarla gösterilir; eski en büyük3klasör çizimi diye sunulmaz. P72 eski veri yokluğu varsayımı, aynı01f Gantt’ta yayımlı gantt_edges’den salt okunur görünür-uç kenarlarıyla doldurulur; yeni rota/yazma/rol genişlemesi yok. Kanıt ve PDF aynı sayfa sınırı [ilerlemede](../yurutme/web-12/ilerleme.md).
