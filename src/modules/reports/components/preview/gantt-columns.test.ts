@@ -13,14 +13,14 @@ const rule = (selector: string): string =>
   new RegExp(`${selector.replace('.', '\\.')} \\{([^}]*)\\}`).exec(css)?.[1] ?? ''
 
 describe('Gantt sol tablo kolonları', () => {
-  it('her görev kolonunun asgarisi 0 değildir (tarih sütunları 10 karakter sığar)', () => {
+  it('her görev kolonunun asgarisi 0 değildir ve yazı tipinden bağımsız rem birimindedir (başlık ve gövde aynı izler)', () => {
     const cols = rule('.report-gantt__cols')
     const template = /grid-template-columns:([^;]*);/.exec(cols)?.[1] ?? ''
     const mins = [...template.matchAll(/minmax\(([^,]+),/g)].map((m) => m[1]!.trim())
     expect(mins).toHaveLength(5)
-    for (const min of mins) expect(min).toMatch(/^\d+ch$/)
-    expect(Number.parseInt(mins[2]!, 10)).toBeGreaterThanOrEqual(11)
-    expect(Number.parseInt(mins[3]!, 10)).toBeGreaterThanOrEqual(11)
+    for (const min of mins) expect(min).toMatch(/^\d+rem$/)
+    expect(Number.parseInt(mins[2]!, 10)).toBeGreaterThanOrEqual(6)
+    expect(Number.parseInt(mins[3]!, 10)).toBeGreaterThanOrEqual(6)
   })
 
   it('ızgara toplam asgarisini taşır; sığmayan genişlikte yatay kaydırma kapsayıcıdadır', () => {

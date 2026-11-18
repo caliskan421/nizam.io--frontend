@@ -7,10 +7,12 @@
   .report-gantt {
     --rp-gantt-row: var(--space-6);
     --rp-gantt-head: var(--space-10);
-    /* Sol tablo en dar hâlinde de okunur kalır: kolon asgarileri karakter genişliğidir (tarih
-       `gg.aa.yyyy` 10 karakter); 4 kolon aralığı + iki kenar boşluğu = `--space-12`. Çubuk ekseni
+    /* Sol tablo en dar hâlinde de okunur kalır: kolon asgarileri rem'dir (tarih `gg.aa.yyyy`
+       10 karakter sığar). `ch` KULLANILMAZ: başlık ve gövde satırı farklı yazı tipinde olduğundan
+       `ch` her satırda ayrı çözülür ve kolon sınırları kayar; rem kökten çözülür, iki satır aynı
+       izleri alır. 4 kolon aralığı + iki kenar boşluğu = `--space-12`. Çubuk ekseni
        de asgari genişlik taşır; sığmayan dar kâğıtta yatay kaydırma `.report-scroll`'dadır. */
-    --rp-gantt-left-min: calc(60ch + var(--space-12));
+    --rp-gantt-left-min: calc(30rem + var(--space-12));
     --rp-gantt-right-min: calc(var(--rp-col-basis) / 2);
     display: grid;
     grid-template-columns: minmax(var(--rp-gantt-left-min), 5fr) minmax(
@@ -47,8 +49,8 @@
   .report-gantt__cols {
     display: grid;
     grid-template-columns:
-      minmax(8ch, 2fr) minmax(16ch, 8fr) minmax(12ch, 3fr) minmax(12ch, 3fr)
-      minmax(12ch, 4fr);
+      minmax(4rem, 2fr) minmax(8rem, 8fr) minmax(6rem, 3fr) minmax(6rem, 3fr)
+      minmax(6rem, 4fr);
     column-gap: var(--space-2);
     align-items: center;
     block-size: var(--rp-gantt-row);
