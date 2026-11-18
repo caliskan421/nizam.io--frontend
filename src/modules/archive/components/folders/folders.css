@@ -364,6 +364,49 @@
     font: var(--text-display-lg);
     letter-spacing: -0.02em;
   }
+  .archive-page .archive-storage__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .archive-page .archive-storage__group h3,
+  .archive-page .archive-storage__group p {
+    margin: 0;
+  }
+  .archive-page .archive-storage__seg {
+    flex: none;
+    min-width: 0;
+    background: var(--archive-tone, var(--ink-muted));
+  }
+  .archive-page .archive-storage__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-gap-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .archive-page .archive-storage__list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .archive-page .archive-storage__name {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .archive-page .archive-storage__meta {
+    flex: none;
+    overflow-wrap: anywhere;
+  }
+  .archive-page .archive-storage__error {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
   .archive-page .rp-bar {
     display: flex;
     height: var(--space-2);

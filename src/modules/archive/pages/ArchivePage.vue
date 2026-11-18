@@ -33,6 +33,7 @@ import { uploadTasks } from '../model/tasks'
 import type { ArchiveKind } from '../model/types'
 import { ARCHIVE_FOLDER_ROUTE } from '../routes'
 import { useArchiveSearch } from './use-archive-search'
+import { useStorageTotals } from './use-storage-totals'
 
 /**
  * 06 Arşiv (E-06-01…24; F5, F8). Koordinatör/üye `/arsiv`'e girince kendi klasörüne yönlenir (P40);
@@ -97,8 +98,7 @@ watch(
 )
 
 const capabilities = computed(() => archiveCapabilities(context.standing.value, scope.programId))
-const totalFiles = computed(() => context.folders.data.value?.totals.file_count ?? null)
-const totalBytes = computed(() => context.folders.data.value?.totals.total_bytes ?? null)
+const storage = useStorageTotals(context)
 
 // Yükleme: seçici `include_empty=true` (dosyasızlar dahil, BE-121), yönetici bütün programı görür;
 // yönlendirilen roller (P40) 06'da görev okumaz (07 kendi okumasını açar).
@@ -208,11 +208,7 @@ onScopeDispose(() => {
         </div>
         <aside class="rp-aside" :aria-label="t('archive.folders.tags.title')">
           <TagLegend />
-          <StorageSummary
-            :total-files="totalFiles"
-            :total-bytes="totalBytes"
-            :loading="folders.loading.value"
-          />
+          <StorageSummary v-bind="storage" @retry="retry" />
         </aside>
       </template>
       <UiEmptyState
