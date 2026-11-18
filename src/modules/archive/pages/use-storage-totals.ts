@@ -21,11 +21,12 @@ function totalsProps(totals: Totals | undefined) {
 export function useStorageTotals(context: ArchiveContext) {
   return computed<StorageSummaryProps>(() => {
     const totals = context.folders.data.value?.totals
-    const { isPending, isError, isFetching } = context.folders
-    // Hata sonrası yeniden çekme de meşgul sayılır (sürümden bağımsız): hata+fetching = yükleniyor.
+    const { isPending, isError } = context.folders
+    // Verisiz hata sonrası yeniden çekme query-core'da zaten `pending`'dir (meşgul); verili (önbellekli)
+    // toplamlar arka plan yeniden çekmesinde gizlenmez.
     return {
       ...totalsProps(totals),
-      loading: isPending.value || (isError.value && isFetching.value),
+      loading: isPending.value,
       error: isError.value && totals === undefined,
     }
   })
