@@ -191,3 +191,18 @@ export function activity(season: SeasonReport): {
   )
   return { rows, total: rows.reduce((sum, r) => sum + r.count, 0), peak, max }
 }
+
+export type PeriodSource = 'tasks' | 'program' | 'range'
+
+/** `period.source` → dipnot türü; bilinmeyen/yeni değer `tasks` gibi okunur (istemci belgesi). */
+export function periodSource(source: string | null | undefined): PeriodSource {
+  return source === 'program' || source === 'range' ? source : 'tasks'
+}
+
+/** Kapak başlığı parçaları: program, yıl, konum; boş/null parça atlanır (çift ayraç yok). */
+export function coverHeading(parts: ReadonlyArray<string | number | null | undefined>): string {
+  return parts
+    .map((part) => (part === null || part === undefined ? '' : String(part).trim()))
+    .filter((part) => part !== '')
+    .join(' · ')
+}

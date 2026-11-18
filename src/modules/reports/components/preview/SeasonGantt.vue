@@ -6,19 +6,22 @@ import { computed } from 'vue'
 
 import { formatDay, instantDay, monthLabel } from '../../model/format'
 import { ganttModel, type GanttBar } from '../../model/gantt'
+import { ganttEdges } from '../../model/gantt-edges'
 import type { PaperContext } from '../../model/paper-context'
 import type { DepartmentSection } from '../../model/season-view'
 import type { SeasonReport } from '../../model/types'
 import { t } from '../text'
 import { SEASON_IDS } from './ids'
 import PaperBand from './PaperBand.vue'
+import GanttEdges from './GanttEdges.vue'
 import PaperFrame from './PaperFrame.vue'
 
 /**
  * Gantt bölümü (E-13-28; BE-123, pin v0.23.0-api): `reportSeason.tasks` ile CANLI — her
  * koordinatörlük bir grup satırı, her görev bir çubuk (başlangıç → bitiş; geç bitişte kırmızı
  * kuyruk, açık gecikende kesik kırmızı kenar ve rapor gününe kadar kuyruk), "Rapor tarihi"
- * çizgisi. Bağımlılık okları ÇİZİLMEZ (E-13-28; PDF okları GAP-239). Önizlemede tasarım gibi
+ * çizgisi. Bağımlılık okları sunucunun `gantt_edges`'inden, yalnız GÖRÜNEN iki çubuk arasında
+ * çizilir (`GanttEdges`; ön görev → bağımlı); PDF yalnız aynı sayfadaki kenarları çizer. Önizlemede tasarım gibi
  * 10 görevle kısaltma YOK: bütün görevler çizilir (sunucu sınırı 5000, BE-132 uyarısı sayfada).
  * Çubuk bölgesi `role="img"` özetiyle erişilebilirdir; görev bilgisi sol tablodadır (metin).
  */
@@ -30,6 +33,7 @@ const props = defineProps<{
 
 const reportDay = computed(() => instantDay(props.season.generated_at, props.ctx.timeZone))
 const model = computed(() => ganttModel(props.sections, reportDay.value))
+const edges = computed(() => ganttEdges(model.value.groups, props.season.gantt_edges))
 const range = computed(() => {
   const r = model.value.range
   return r ? `${monthLabel(r.from, true)} – ${monthLabel(r.to, true)}` : ''
@@ -177,6 +181,7 @@ function headClass(bar: GanttBar): Record<string, boolean> {
                 }}</span
               >
             </div>
+            <GanttEdges :layout="edges" />
             <span
               v-if="model.today !== null"
               class="report-gantt__today"
@@ -186,6 +191,15 @@ function headClass(bar: GanttBar): Record<string, boolean> {
           </div>
         </div>
       </div>
+      <ul
+        v-if="edges.edges.length > 0"
+        class="report-gantt__edge-list"
+        data-testid="gantt-edge-list"
+      >
+        <li v-for="edge in edges.edges" :key="edge.key">
+          {{ t('reports.season.paper.gantt.edge', { from: edge.fromName, to: edge.toName }) }}
+        </li>
+      </ul>
       <div class="report-legend" :aria-label="t('reports.season.paper.gantt.legend.label')">
         <span class="report-st-baslanmadi"
           ><i class="report-swatch" aria-hidden="true" />{{

@@ -12,6 +12,8 @@ import {
   SEASON_STATUSES,
   taskDates,
   taskTotals,
+  coverHeading,
+  periodSource,
 } from './season-view'
 import { truncation, workloadRows } from './season-extras'
 import type { SeasonReport } from './types'
@@ -275,5 +277,21 @@ describe('iş yükü özeti (BE-134)', () => {
         },
       ])[0],
     ).toMatchObject({ done: 0, ontime: 0, late: 0 })
+  })
+})
+
+describe('kapak yardımcıları', () => {
+  it('periodSource: program/range korunur, tasks ve bilinmeyen/boş tasks gibi okunur', () => {
+    expect(periodSource('program')).toBe('program')
+    expect(periodSource('range')).toBe('range')
+    for (const value of ['tasks', 'gelecek', '', null, undefined]) {
+      expect(periodSource(value)).toBe('tasks')
+    }
+  })
+
+  it('coverHeading: boş/boşluk/null parçalar atlanır, insan metninin büyük-küçük harfi korunur', () => {
+    expect(coverHeading(['PROGRAM', 2026, 'İstanbul'])).toBe('PROGRAM · 2026 · İstanbul')
+    expect(coverHeading(['PROGRAM', null, '  '])).toBe('PROGRAM')
+    expect(coverHeading(['PROGRAM', null, ' Van '])).toBe('PROGRAM · Van')
   })
 })

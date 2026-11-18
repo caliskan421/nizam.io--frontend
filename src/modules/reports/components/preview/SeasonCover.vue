@@ -5,7 +5,7 @@ import { computed } from 'vue'
 
 import type { PaperContext } from '../../model/paper-context'
 import { formatBytes, formatDay, percent } from '../../model/format'
-import { taskTotals } from '../../model/season-view'
+import { coverHeading, periodSource, taskTotals } from '../../model/season-view'
 import type { SeasonReport } from '../../model/types'
 import { t } from '../text'
 import { SEASON_IDS } from './ids'
@@ -15,10 +15,11 @@ import PaperKpis, { type PaperKpi } from './PaperKpis.vue'
 
 /**
  * 01f kapak (E-13-20…23): kicker/başlık sabit; program adı `program_name`, yıl `program_year`
- * (yoksa `Program.year`); "Oluşturulma" `generated_at`. "Dönemin özeti" yanında dönem aralığı
- * `period` (BE-136): GÖREVLERDEN türetilmiş en erken başlangıç → en geç bitiş (programın dönem
- * tarihi alanı yok, GAP-237) — dipnot bunu söyler; görev yoksa aralık çizilmez. Gizli (alan yok):
- * konum ve "çalışma grubu" alt notu. KPI'lar `stats`/`tasks`'tan; kullanıcı alt notu koordinatör
+ * (yoksa `Program.year`), konum `program_location` (yalnız dolu ise; PDF kapağıyla aynı
+ * "‹yıl› · ‹konum›"); "Oluşturulma" `generated_at`. "Dönemin özeti" yanında dönem aralığı `period`
+ * (BE-136): dipnot `period.source`'a göre söyler (tasks: görev uçları, program: programın beyan
+ * ettiği dönem, range: istenen aralık; bilinmeyen = tasks); aralık yoksa çizilmez. Gizli: "çalışma
+ * grubu" alt notu. KPI'lar `stats`/`tasks`'tan; kullanıcı alt notu koordinatör
  * sayısı, dosya alt notu toplam boyut.
  */
 const props = defineProps<{ ctx: PaperContext; season: SeasonReport }>()
@@ -72,7 +73,10 @@ const kpis = computed<PaperKpi[]>(() => {
 })
 const year = computed(() => props.season.program_year ?? props.ctx.year)
 const heading = computed(() =>
-  year.value === null ? props.ctx.programUpper : `${props.ctx.programUpper} · ${year.value}`,
+  coverHeading([props.ctx.programUpper, year.value, props.season.program_location]),
+)
+const periodNote = computed(() =>
+  t(`reports.season.paper.cover.periodNote.${periodSource(props.season.period?.source)}`),
 )
 const period = computed(() => {
   const p = props.season.period
@@ -121,7 +125,7 @@ const period = computed(() => {
     </section>
     <div class="report-section">
       <p v-if="period" class="report-fn" data-testid="cover-period-note">
-        {{ t('reports.season.paper.cover.periodNote') }}
+        {{ periodNote }}
       </p>
       <p class="report-fn">{{ t('reports.season.paper.cover.note1') }}</p>
       <p class="report-fn">{{ t('reports.season.paper.cover.note2') }}</p>
