@@ -204,6 +204,61 @@ function limited(status: number, code: string, retryAfter: string) {
   )
 }
 
+/** Depolama dağılımı türleri (RECORDS-K51; sunucu `domain.KindOf`, gösterim sırası). */
+/** Etiket kümesi (RECORDS-K07; sözleşme sırası). */
+const TAGS = ['ister', 'plan', 'girdi', 'analiz', 'cikti', 'sonuc'] as const
+const KINDS = ['pdf', 'image', 'document', 'spreadsheet', 'presentation', 'other'] as const
+
+/** MIME → tür kümesi: sunucudaki `KindOf` ile aynı (küme dışı = `other`). */
+function kindOf(mime: string): (typeof KINDS)[number] {
+  switch (mime.trim().toLowerCase()) {
+    case 'application/pdf':
+      return 'pdf'
+    case 'image/png':
+    case 'image/jpeg':
+      return 'image'
+    case 'application/msword':
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+    case 'application/x-iwork-pages-sffpages':
+      return 'document'
+    case 'text/csv':
+    case 'application/vnd.ms-excel':
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return 'spreadsheet'
+    case 'application/vnd.ms-powerpoint':
+    case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+      return 'presentation'
+    default:
+      return 'other'
+  }
+}
+
+/**
+ * Kova listesi (K51; sunucu `foldBreakdown`): sıfır kova yok, bayta göre azalan, eşitlikte ANAHTAR
+ * sözlük sırası (ASCII, yerel ayardan bağımsız); gösterim sırası (`KINDS`/`TAGS`) sıralamaya girmez.
+ */
+function buckets<K extends string, F extends string>(
+  files: FakeFile[],
+  order: readonly K[],
+  keyOf: (x: FakeFile) => K | null,
+  field: F,
+): Array<{ file_count: number; total_bytes: number } & Record<F, K>> {
+  return order
+    .map((key) => {
+      const own = files.filter((x) => keyOf(x) === key)
+      return {
+        [field]: key,
+        file_count: own.length,
+        total_bytes: own.reduce((sum, x) => sum + x.size_bytes, 0),
+      } as { file_count: number; total_bytes: number } & Record<F, K>
+    })
+    .filter((b) => b.file_count > 0)
+    .sort((a, b) => {
+      if (a.total_bytes !== b.total_bytes) return b.total_bytes - a.total_bytes
+      return a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0
+    })
+}
+
 /** Klasör kartı (`ArchiveFolder`): dosya/görev sayısı, bayt, son yükleme (RECORDS-K41). */
 function folderCard(
   files: FakeFile[],
@@ -216,18 +271,34 @@ function folderCard(
     task_count: new Set(files.map((x) => x.work_item_id)).size,
     total_bytes: files.reduce((sum, x) => sum + x.size_bytes, 0),
     last_uploaded_at: times.at(-1) ?? null,
+    /** Yanıta girmez (`withTotals` ayıklar): dağılım DÖNEN kartların gerçek dosyalarından türer. */
+    files,
   }
 }
 
-function withTotals<T extends ReturnType<typeof folderCard>>(folders: T[]) {
-  const times = folders.map((x) => x.last_uploaded_at).filter((x): x is string => x !== null)
+/** `totals.by_type` / `by_tag` (RECORDS-K51): DÖNEN kartların gerçek dosyalarından türer. */
+export function breakdown(files: FakeFile[]) {
   return {
-    folders,
+    by_type: buckets(files, KINDS, (x) => kindOf(x.content_type), 'type'),
+    by_tag: buckets(files, TAGS, (x) => TAGS.find((tag) => tag === x.tag) ?? null, 'tag'),
+  }
+}
+
+function withTotals(cards: ReturnType<typeof folderCard>[]) {
+  const times = cards.map((x) => x.last_uploaded_at).filter((x): x is string => x !== null)
+  const files = cards.flatMap((x) => x.files)
+  return {
+    folders: cards.map((card) => {
+      const folder: Partial<typeof card> = { ...card }
+      delete folder.files
+      return folder
+    }),
     totals: {
-      file_count: folders.reduce((sum, x) => sum + x.file_count, 0),
-      task_count: folders.reduce((sum, x) => sum + x.task_count, 0),
-      total_bytes: folders.reduce((sum, x) => sum + x.total_bytes, 0),
+      file_count: cards.reduce((sum, x) => sum + x.file_count, 0),
+      task_count: cards.reduce((sum, x) => sum + x.task_count, 0),
+      total_bytes: cards.reduce((sum, x) => sum + x.total_bytes, 0),
       last_uploaded_at: times.sort().at(-1) ?? null,
+      ...breakdown(files),
     },
   }
 }
@@ -433,7 +504,7 @@ function createFile(f: Fake, request: Request, workId: string, g: Gate) {
   // Başlık görevin departmanı olmalı (yönetici için seçeneğin `department_id`si).
   if (!work || work.department_id !== g.department) return envelope('work.not_found', 404)
   const tag = new URL(request.url).searchParams.get('tag') ?? ''
-  if (!TAGS.includes(tag)) {
+  if (!(TAGS as readonly string[]).includes(tag)) {
     return envelope('records.input_invalid', 422, [{ field: 'tag', code: 'records.tag_invalid' }])
   }
   state.seq += 1
@@ -468,8 +539,6 @@ function uploadFields(request: Request, tag: string): Partial<FakeFile> {
     tag,
   }
 }
-
-const TAGS = ['ister', 'plan', 'girdi', 'analiz', 'cikti', 'sonuc']
 
 /** Taşıma kaynağında ad yetkisi (yönetici, koordinatör, ekip satırı olan yükleyen). */
 function mayRename(f: Fake, source: FakeFile, gate: Gate): boolean {
@@ -573,7 +642,7 @@ function writeHandlers(f: Fake) {
         (target.uploaded_by_account_id === gate.account.account_id && row !== undefined)
       if (!allowed) return envelope('records.not_authorized', 403)
       const tag = ((await request.json()) as { tag: string }).tag
-      if (!TAGS.includes(tag)) {
+      if (!(TAGS as readonly string[]).includes(tag)) {
         return envelope('records.input_invalid', 422, [
           { field: 'tag', code: 'records.tag_invalid' },
         ])

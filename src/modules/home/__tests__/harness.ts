@@ -10,6 +10,7 @@ import type { Component } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import {
+  makeArchiveTotals,
   makeTaskPriorityDistribution,
   makeTaskStatusDistribution,
   withWorkItemDefaults,
@@ -100,7 +101,7 @@ export function archiveFolders(
       last_uploaded_at: null,
       ...c,
     })),
-    totals: { file_count: 0, task_count: 0, total_bytes: 0, last_uploaded_at: null },
+    totals: makeArchiveTotals(),
   }
 }
 

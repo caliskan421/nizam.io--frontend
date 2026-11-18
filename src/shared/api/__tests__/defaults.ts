@@ -1,4 +1,4 @@
-// Pin v0.23.0-api…v0.26.0-api: yanıt şemalarına eklenen ZORUNLU alanların test varsayılanları — tek yer (W170, W182; KESİN 36).
+// Pin v0.23.0-api…v0.28.0-api: yanıt şemalarına eklenen ZORUNLU alanların test varsayılanları — tek yer (W170, W182; KESİN 36).
 //
 // Kural: alan uydurulmaz. Her varsayılan yalnız pinli spec'in o şemada `required` saydığı
 // alandır; değer "alan yok/boş/sıfır" anlamına gelen en yalın değerdir (null, 0, false, []) ve
@@ -120,6 +120,54 @@ export function makeArchiveFolder(over: Partial<S['ArchiveFolder']> = {}): S['Ar
   }
 }
 
+/**
+ * `ArchiveFolderTotals` (RECORDS-K41/K51). Varsayılan yalnız BOŞ kümedir (`by_type`/`by_tag` = `[]`,
+ * sıfır sayaçlar): boş olmayan toplam için tür/etiket dağılımı çağıranın gerçek dosya kümesinden
+ * türetilip verilir (kova toplamı `file_count`/`total_bytes`'a eşit, sıfır kova yok, bayta göre azalan);
+ * üretici tür veya etiket uydurmaz.
+ */
+export function makeArchiveTotals(
+  over: Partial<S['ArchiveFolderTotals']> = {},
+): S['ArchiveFolderTotals'] {
+  return {
+    file_count: 0,
+    task_count: 0,
+    total_bytes: 0,
+    last_uploaded_at: null,
+    by_type: [],
+    by_tag: [],
+    ...over,
+  }
+}
+
+/** `Program` (v0.28): dönem günleri ve konum zorunlu-nullable, "beyan edilmemiş" = `null`. */
+export function makeProgram(over: Partial<S['Program']> = {}): S['Program'] {
+  return {
+    program_id: 'prog-1',
+    name: 'Program',
+    short_name: null,
+    color: null,
+    period_start_on: null,
+    period_end_on: null,
+    location: null,
+    ...over,
+  }
+}
+
+/** Dönem alanları olmayan eski `Program` gövdelerine v0.28 zorunlu-nullable alanlar. */
+export function withProgramDefaults<T extends object>(
+  base: T,
+): T & Pick<S['Program'], 'period_start_on' | 'period_end_on' | 'location'> {
+  return { period_start_on: null, period_end_on: null, location: null, ...base }
+}
+
+/** `WorkItemNote` / `ReportTaskNote` v0.28 zorunlu alanları: bayraksız, paylaşılmamış (yalnız etiket). */
+export function withNoteFlagDefaults<T extends object>(
+  base: T,
+): T & Pick<S['WorkItemNote'], 'flag' | 'shared'> {
+  return { flag: null, shared: false, ...base }
+}
+
 export function makeArchiveTask(over: Partial<S['ArchiveTask']> = {}): S['ArchiveTask'] {
   return { work_item_id: 'wi-1', title: 'Görev', department_id: 'dep-1', file_count: 0, ...over }
 }
@@ -228,11 +276,20 @@ export function withSeasonReportDefaults<T extends object>(
 ): T &
   Pick<
     S['SeasonReport'],
-    'program_year' | 'period' | 'meetings' | 'files' | 'workload_summary' | 'limits'
+    | 'program_year'
+    | 'program_location'
+    | 'period'
+    | 'gantt_edges'
+    | 'meetings'
+    | 'files'
+    | 'workload_summary'
+    | 'limits'
   > {
   return {
     program_year: null,
+    program_location: null,
     period: null,
+    gantt_edges: [],
     meetings: [],
     files: [],
     workload_summary: [],

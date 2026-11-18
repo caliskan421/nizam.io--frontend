@@ -13,6 +13,7 @@
 // Rol DİZELERİ bu dosyada yazılmaz (K1 lint): test dosyası `roles` ile verir.
 import { http, HttpResponse, type JsonBodyType } from 'msw'
 
+import { withProgramDefaults } from '@/shared/api/__tests__/defaults'
 import type { TeamRole } from '@/shared/scope/standing-facts'
 
 export const ORIGIN = 'http://localhost'
@@ -332,9 +333,12 @@ function standingHandlers(db: OrgDb) {
   ]
 }
 
-/** Program yanıtı: `short_name` ve `color` her cevapta bulunur (verilmemişse `null`). */
-function programShape(p: ProgramRow): ProgramRow {
-  return { ...p, short_name: p.short_name ?? null, color: p.color ?? null }
+/**
+ * Program yanıtı: `short_name`, `color` ve (v0.28, PROGRAM-K50) `period_start_on`/`period_end_on`/
+ * `location` her cevapta bulunur (verilmemişse `null`).
+ */
+function programShape(p: ProgramRow) {
+  return withProgramDefaults({ ...p, short_name: p.short_name ?? null, color: p.color ?? null })
 }
 
 function linkOf(db: OrgDb, programId: string, departmentId: string): Link | undefined {
@@ -351,6 +355,7 @@ function programDepartments(db: OrgDb, programId: string) {
 }
 
 export const fakeOrg = {
+  programShape,
   authHandlers,
   standingHandlers,
   actorOf,

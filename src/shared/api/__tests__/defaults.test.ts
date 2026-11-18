@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   makeArchiveFolder,
+  makeArchiveTotals,
+  makeProgram,
+  withNoteFlagDefaults,
+  withProgramDefaults,
   makeChatHistory,
   makeChatLastMessage,
   makeChatList,
@@ -144,5 +148,44 @@ describe('pin v0.26.0-api varsayılan üreticileri (silinenler özeti)', () => {
       total: 0,
     })
     expect(makeDeletedSummary({ tasks: 2, total: 2 })).toMatchObject({ tasks: 2, total: 2 })
+  })
+})
+
+describe('pin v0.28.0-api varsayılan üreticileri (dönem, not bayrağı, rapor, arşiv dağılımı)', () => {
+  it('Program: dönem günleri ve konum "beyan edilmemiş" = null; verilen alan ezer', () => {
+    expect(makeProgram()).toMatchObject({
+      period_start_on: null,
+      period_end_on: null,
+      location: null,
+    })
+    expect(withProgramDefaults({ program_id: 'p', name: 'x' })).toMatchObject({ location: null })
+    expect(makeProgram({ location: 'Şanlıurfa' }).location).toBe('Şanlıurfa')
+  })
+
+  it('not: bayraksız ve paylaşılmamış; verilen bayrak ezer', () => {
+    expect(withNoteFlagDefaults({ content: 'x' })).toEqual({
+      content: 'x',
+      flag: null,
+      shared: false,
+    })
+    expect(withNoteFlagDefaults({ flag: 'urgent', shared: true })).toEqual({
+      flag: 'urgent',
+      shared: true,
+    })
+  })
+
+  it('SeasonReport: program_location null ve gantt_edges [] (kenar uydurulmaz)', () => {
+    expect(withSeasonReportDefaults({})).toMatchObject({ program_location: null, gantt_edges: [] })
+  })
+
+  it('ArchiveFolderTotals: varsayılan yalnız BOŞ küme (tür/etiket uydurmaz)', () => {
+    expect(makeArchiveTotals()).toEqual({
+      file_count: 0,
+      task_count: 0,
+      total_bytes: 0,
+      last_uploaded_at: null,
+      by_type: [],
+      by_tag: [],
+    })
   })
 })
