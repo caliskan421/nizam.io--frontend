@@ -264,6 +264,16 @@ describe('koordinatörlük kalıcı silme etkisi (BE-164)', () => {
     expect(toasts()).toEqual(['Kalıcı silinemedi: proje. Önce bunları kaldırın.'])
   })
 
+  it('pin v0.28: etki okuması şirket geneli kalır (program_id sorgusu, program ve departman başlığı yok)', async () => {
+    const page = await mountDepartments()
+    await purge(page)
+    const reads = sent(IMPACT)
+    expect(reads).toHaveLength(1)
+    expect([...reads[0]!.query.keys()]).toEqual([])
+    expect(reads[0]!.headers.get('X-Nizamio-Program')).toBeNull()
+    expect(reads[0]!.headers.get('X-Nizamio-Department')).toBeNull()
+  })
+
   it('gerçek onay penceresi: etki satırları görünür, çift tıklamada tek DELETE gider', async () => {
     const page = await mountPage({ path: '/silinen-kayitlar?tur=koordinatorluk', host: true })
     await purge(page)
