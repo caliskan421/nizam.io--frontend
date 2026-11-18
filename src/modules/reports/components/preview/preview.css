@@ -237,6 +237,7 @@
   }
   .report-band__sub {
     margin: 0;
+    overflow-wrap: anywhere;
     font: var(--text-body);
     color: var(--ink-muted);
   }
@@ -734,6 +735,12 @@
   .report-note__h em {
     font-style: normal;
     color: var(--accent-text);
+  }
+  .report-note__flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
   }
   .report-note__b {
     font: var(--text-body);

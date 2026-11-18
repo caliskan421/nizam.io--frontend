@@ -38,7 +38,16 @@ export interface DetailCard {
   description: string
   dependencies: { label: string; title: string; status: string }[]
   noteCount: number
-  notes: { no: string; at: string; author: string; content: string }[]
+  notes: {
+    no: string
+    at: string
+    author: string
+    content: string
+    /** Bilinen bayrak (`urgent|blocker|question|info`); bayraksız/bilinmeyen `null`. */
+    flag: NoteFlag | null
+    /** WORK-K103 "paylaşılan" etiketi; yalnız etiket (görünürlük/bildirim değil). */
+    shared: boolean
+  }[]
   requests: DetailRequest[]
   files: { name: string; meta: string }[]
 }
@@ -53,6 +62,19 @@ function hasContent(task: ReportTask, detail: Detail): boolean {
     detail.date_requests.length > 0 ||
     task.file_count > 0
   )
+}
+
+type ReportNotes = NonNullable<ReportTask['detail']>['recent_notes']
+
+function noteViews(notes: ReportNotes, timeZone: string): DetailCard['notes'] {
+  return notes.map((n, index) => ({
+    no: pad2(index + 1),
+    at: instantDateTime(n.created_at, timeZone) ?? '',
+    author: n.author.full_name,
+    content: n.content,
+    flag: noteFlag(n.flag),
+    shared: n.shared === true,
+  }))
 }
 
 /** Görev detay kartları: yalnız içeriği olan görevler (bölüm sırası = tablo sırası). */
@@ -96,12 +118,7 @@ export function detailCards(
           status: d.status,
         })),
         noteCount: task.note_count,
-        notes: detail.recent_notes.map((n, index) => ({
-          no: pad2(index + 1),
-          at: instantDateTime(n.created_at, timeZone) ?? '',
-          author: n.author.full_name,
-          content: n.content,
-        })),
+        notes: noteViews(detail.recent_notes, timeZone),
         requests: detail.date_requests.map((r) => ({
           from: formatDay(r.old_end_on) ?? '',
           to: formatDay(r.new_end_on) ?? '',
@@ -205,4 +222,12 @@ export function fileGroups(
       size: formatBytes(g.bytes) ?? '',
       rows: g.rows,
     }))
+}
+
+export type NoteFlag = 'urgent' | 'blocker' | 'question' | 'info'
+const NOTE_FLAGS: readonly string[] = ['urgent', 'blocker', 'question', 'info']
+
+/** Sunucunun bayrağı → bilinen bayrak; `null` ya da gelecekteki bilinmeyen değer rozet çizmez. */
+export function noteFlag(flag: string | null | undefined): NoteFlag | null {
+  return typeof flag === 'string' && NOTE_FLAGS.includes(flag) ? (flag as NoteFlag) : null
 }

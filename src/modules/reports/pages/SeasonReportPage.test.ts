@@ -285,7 +285,7 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(empty.text()).toContain('KOORDİNATÖRLÜK')
   })
 
-  it('Gantt (BE-123): bölüm grupları, görev satırı başına çubuk; geç biten kuyruk, açık gecikmiş kesik kenar; ok yok', async () => {
+  it('Gantt (BE-123): bölüm grupları, görev satırı başına çubuk; geç biten kuyruk, açık gecikmiş kesik kenar; kenarsız ok çizilmez', async () => {
     const { wrapper } = await open(SEASON())
     const gantt = wrapper.get('[data-testid="gantt"]')
     expect(gantt.attributes('aria-label')).toBe(
@@ -305,7 +305,8 @@ describe('SeasonReportPage (01f; E-13-13…40)', () => {
     expect(cells.every((c) => c.find('.report-gantt__bar').exists())).toBe(true)
     expect(gantt.find('.report-gantt__today').exists()).toBe(true)
     expect(wrapper.text()).toContain('Rapor tarihi 21.10.2026')
-    expect(wrapper.text()).toContain('Bağımlılık okları')
+    expect(gantt.find('[data-testid="gantt-edges"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('yalnız bu önizlemede görünen iki çubuk')
   })
 
   it('Gantt boş dönem: çubuk uydurulmaz, tek satır metin', async () => {

@@ -1,7 +1,7 @@
 /**
  * 01f Gantt bölümünün saf modeli (E-13-28; BE-123, pin v0.23.0-api): kaynak `reportSeason.tasks`
- * (`start_on`, `end_on`, `completed_on`, durum, gecikme bayrakları). Bağımlılık okları ÇİZİLMEZ
- * (E-13-28 kararı; PDF okları GAP-239). Ölçek takvim günüdür (saat dilimi etkisi yok): eksen
+ * (`start_on`, `end_on`, `completed_on`, durum, gecikme bayrakları). Bağımlılık okları sunucunun
+ * `gantt_edges`'inden `gantt-edges.ts` ile bu modelin görünen çubuklarına bağlanır. Ölçek takvim günüdür (saat dilimi etkisi yok): eksen
  * en erken başlangıcın ayının ilk gününden, en geç bitişin ayının son gününe uzanır; rapor günü
  * eksene yakınsa (en geç bitişten ≤ 31 gün sonra) "Rapor tarihi" çizgisi çizilir. Konumlar yüzdedir
  * (çizim genişlikten bağımsız). Sanallaştırma yoktur (5000 görev sınırı sunucuda, BE-132).
