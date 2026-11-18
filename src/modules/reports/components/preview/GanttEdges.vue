@@ -32,6 +32,11 @@ const routes = computed(() =>
       data-testid="gantt-edge"
     >
       <i
+        class="report-gantt__origin"
+        data-testid="gantt-edge-origin"
+        :style="{ '--x': route.origin.x, '--row': route.origin.row }"
+      />
+      <i
         class="report-gantt__seg report-gantt__seg--h"
         :style="{
           '--x': route.horizontal.x,

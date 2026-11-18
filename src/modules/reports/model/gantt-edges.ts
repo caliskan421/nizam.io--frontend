@@ -104,6 +104,8 @@ export interface EdgeSegment {
 }
 
 export interface EdgeRoute {
+  /** Gerçek çıkış: ön görev çubuğunun (kuyruk dahil) sağ ucu, kendi satırının ortası. */
+  origin: { x: number; row: number }
   horizontal: EdgeSegment
   vertical: EdgeSegment
   /** Ok ucu: bağımlı çubuğun sol ucu ortası; yön son parçanın yönüdür. */
@@ -120,14 +122,17 @@ export function edgeRoute(edge: GanttEdge): EdgeRoute {
   const to = edge.toRow + 0.5
   const top = Math.min(from, to)
   const span = Math.abs(to - from)
+  const origin = { x: edge.x1, row: from }
   if (edge.x2 > edge.x1) {
     return {
+      origin,
       horizontal: { x: edge.x1, w: edge.x2 - edge.x1, row: to, rows: 0 },
       vertical: { x: edge.x1, w: 0, row: top, rows: span },
       tip: { x: edge.x2, row: to, dir: 'right' },
     }
   }
   return {
+    origin,
     horizontal: { x: edge.x2, w: edge.x1 - edge.x2, row: from, rows: 0 },
     vertical: { x: edge.x2, w: 0, row: top, rows: span },
     tip: { x: edge.x2, row: to, dir: to > from ? 'down' : 'up' },

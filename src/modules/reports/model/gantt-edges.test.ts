@@ -158,6 +158,8 @@ describe('Gantt okları (REPORTING-K22)', () => {
     expect(forward.vertical).toEqual({ x: 20, w: 0, row: 1.5, rows: 2 })
     expect(forward.horizontal).toEqual({ x: 20, w: 30, row: 3.5, rows: 0 })
     expect(forward.tip).toEqual({ x: 50, row: 3.5, dir: 'right' })
+    // Gerçek çıkış ön görev satırındadır (ara satır değil): dikey çizgi aralarından geçse de nokta kaynağı gösterir.
+    expect(forward.origin).toEqual({ x: 20, row: 1.5 })
     const overlap = edgeRoute({
       key: 'k',
       fromName: '',
@@ -170,6 +172,7 @@ describe('Gantt okları (REPORTING-K22)', () => {
     expect(overlap.horizontal).toEqual({ x: 40, w: 20, row: 4.5, rows: 0 })
     expect(overlap.vertical).toEqual({ x: 40, w: 0, row: 2.5, rows: 2 })
     expect(overlap.tip.dir).toBe('up')
+    expect(overlap.origin).toEqual({ x: 60, row: 4.5 })
     expect(
       edgeRoute({ key: 'k', fromName: '', toName: '', fromRow: 1, toRow: 2, x1: 10, x2: 10 }).tip
         .dir,

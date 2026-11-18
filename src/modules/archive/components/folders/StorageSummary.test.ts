@@ -117,4 +117,24 @@ describe('depolama özeti (E-06-22…24)', () => {
     expect(w.get('[data-field="bytes"]').text()).toBe('668,7 MB')
     expect(w.text()).not.toMatch(/klasör/i)
   })
+
+  it('sıfırdan büyük çok küçük pay %0 görünmez (%<1); gerçek sıfır bayt %0 kalır', () => {
+    const w = mounted({
+      totalFiles: 3,
+      totalBytes: 1_000_000_000,
+      byType: [
+        { type: 'pdf', file_count: 2, total_bytes: 999_999_999 },
+        { type: 'image', file_count: 1, total_bytes: 1 },
+      ],
+      byTag: [{ tag: 'plan', file_count: 0, total_bytes: 0 }],
+    })
+    const tiny = group(w, 'type').find('[data-key="image"]')
+    expect(tiny.text()).toContain('%<1')
+    expect(tiny.text()).not.toMatch(/%0\b/)
+    expect(tiny.text()).toContain('1 B')
+    expect(group(w, 'type').find('[data-key="pdf"]').text()).toContain('%100')
+    expect(group(w, 'tag').get('li').text()).toContain('%0')
+    const width = w.findAll('.archive-storage__seg')[1]!.attributes('style') ?? ''
+    expect(Number.parseFloat(/width:\s*([\d.e-]+)%/.exec(width)![1]!)).toBeGreaterThan(0)
+  })
 })

@@ -11,9 +11,10 @@
        10 karakter sığar). `ch` KULLANILMAZ: başlık ve gövde satırı farklı yazı tipinde olduğundan
        `ch` her satırda ayrı çözülür ve kolon sınırları kayar; rem kökten çözülür, iki satır aynı
        izleri alır. 4 kolon aralığı + iki kenar boşluğu = `--space-12`. Çubuk ekseni
-       de asgari genişlik taşır; sığmayan dar kâğıtta yatay kaydırma `.report-scroll`'dadır. */
+       de asgari genişlik taşır (sol 528 + sağ 0,4 × `--rp-col-basis` ≈ 248 + kenarlık 2 px = 778,
+       1440'taki 782 px kâğıt içeriğine sığar; kırpma yok); sığmayan dar kâğıtta yatay kaydırma `.report-scroll`'dadır. */
     --rp-gantt-left-min: calc(30rem + var(--space-12));
-    --rp-gantt-right-min: calc(var(--rp-col-basis) / 2);
+    --rp-gantt-right-min: calc(var(--rp-col-basis) * 0.4);
     display: grid;
     grid-template-columns: minmax(var(--rp-gantt-left-min), 5fr) minmax(
         var(--rp-gantt-right-min),
@@ -26,6 +27,7 @@
     font: var(--text-caption);
   }
   .report-gantt__left {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -184,6 +186,16 @@
     inline-size: var(--ui-gap-2xs);
     block-size: calc(var(--span) * var(--rp-gantt-row));
     transform: translateX(-50%);
+  }
+  .report-gantt__origin {
+    position: absolute;
+    left: calc(var(--x) * 1%);
+    top: calc(var(--row) * var(--rp-gantt-row));
+    inline-size: var(--space-2);
+    block-size: var(--space-2);
+    transform: translate(-50%, -50%);
+    border-radius: var(--radius-full);
+    background: var(--ink-muted);
   }
   .report-gantt__tip {
     inline-size: var(--space-2);
