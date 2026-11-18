@@ -29,3 +29,10 @@ PinW208 gerçekgen+i18n/defaultfixture uyumu için uygulamaya geçti; erken APIp
 Sonnet 9c pin/üretim,8987 uyum,8206 arşivfakeK51/lint ve0797 F11S1 sorgu sınırı testini teslim etti. Kaynak temiz; paket/kilit/CI ve görünür yeniUI alanı değişmedi. Fulltype/lint/format/build/gencheck ve hedefli21dosya477+F11dosya15 testPASS (örtüşmeler toplanmaz). [Pin kaydı](pin-v028.md). Root W207 tasarım kararlarını pin dalına metadata olarak birleştirir; kabul edilen0797’ye üretim/pin/fixture farkı0 doğrulanır. Native son kabul ve kendiPR3CI beklenir.
 
 W209 gerçek v028API/PDF bootstrap ve tanık tamam. W210 bağımsız2 dosya3 RED: depolama dağılımı yok, program kaynak açıklaması yanlış, noturgent/shared görünmüyor. Roottestcommit0e483cac; PIN PR'ına alınmaz, sonraki canlıya alma W'sinde GREEN zorunlu.
+
+
+## W208 dar fake-sıra düzeltmesi — 0113d5f1
+
+PinPR183 ilkHEADeda9/CI44268820239, root eşit bayt sıralama farkını bulunca iptal edildi. Yayımlı server foldBreakdown anahtar sözlük sırası ister; fake enum gösterim sırasını koruyordu. Native49b3 yeni2 gerçekRED, Sonnet0113 karşılaştırıcı düzeltmesi, Native5/5GREEN. Üretim kaynak/pin/paket0797 ile aynı; bağımsız10dosya405+gerçek0797Caddy/3rol dumanı fark0 ile korunur. Son kaynak0113 ve root metadata yeniPRHEAD ile kendiCI2’ye gider.
+
+Native PIN raporu gerçekbackend/Caddytestvekili (üretim frontend imajı değil),390/1440, üçrol ve iki program kapsam/HTTP/CSP/pageerror/taşma kontrollerini kabul etti. Mevcut1440 dönem Gantt tablosunda başlık/tarih çakışması görsel olarak bulundu; bu alan pin üretim kodunda değişmedi, W211 Gantt bağlama çalışmasında düzeltilip gerçek yeni bundle’da doğrulanacak. Pin adımı tek başına bu görseli veya yeni rapor/dağılımı tamamlamış sayılmaz.

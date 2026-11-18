@@ -233,7 +233,10 @@ function kindOf(mime: string): (typeof KINDS)[number] {
   }
 }
 
-/** Kova listesi (K51): sıfır kova yok, bayta göre azalan, eşitlikte anahtar sırası. */
+/**
+ * Kova listesi (K51; sunucu `foldBreakdown`): sıfır kova yok, bayta göre azalan, eşitlikte ANAHTAR
+ * sözlük sırası (ASCII, yerel ayardan bağımsız); gösterim sırası (`KINDS`/`TAGS`) sıralamaya girmez.
+ */
 function buckets<K extends string, F extends string>(
   files: FakeFile[],
   order: readonly K[],
@@ -250,7 +253,10 @@ function buckets<K extends string, F extends string>(
       } as { file_count: number; total_bytes: number } & Record<F, K>
     })
     .filter((b) => b.file_count > 0)
-    .sort((a, b) => b.total_bytes - a.total_bytes) // kararlı sıralama: eşitlikte `order` korunur
+    .sort((a, b) => {
+      if (a.total_bytes !== b.total_bytes) return b.total_bytes - a.total_bytes
+      return a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0
+    })
 }
 
 /** Klasör kartı (`ArchiveFolder`): dosya/görev sayısı, bayt, son yükleme (RECORDS-K41). */

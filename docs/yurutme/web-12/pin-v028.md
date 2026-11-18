@@ -1,6 +1,6 @@
 # WEB-12 pin uyumu — v0.26 → v0.28
 
-Kaynak Sonnet W208 **0797a526**: yayımlıv0.28.0-api/45a2237f. KESİN36 ayrı pin paketi: mevcut UI/stub davranışı korunur; yeni06 dağılım ve01f rapor karşılıkları sonraki canlıya alma paketindedir. Backend/mobil/program yazımı ve paket/kilit/CI politikası değişikliği yoktur.
+İlk uyum kaynağı Sonnet W208 **0797a526**; dar test-sunucusu düzeltmesiyle son kaynak **0113d5f1**: yayımlıv0.28.0-api/45a2237f. KESİN36 ayrı pin paketi: mevcut UI/stub davranışı korunur; yeni06 dağılım ve01f rapor karşılıkları sonraki canlıya alma paketindedir. Backend/mobil/program yazımı ve paket/kilit/CI politikası değişikliği yoktur.
 
 ## Sözleşme ve uyum
 
@@ -17,3 +17,10 @@ Sonnet properNode24.22.3 altında fulltype/lint/format/build ve gen:check geçir
 Terra v028 izole API tanığı üç rol/iki program dağılım ve program/range/tasks kaynaklarını doğruladı. Ayrı sunucu PDF tanığı kapak/konum/dönem, urgent/shared ve aynı sayfa kenarı için görsel kanıttır; frontend parity değildir. Son pin frontend Native dar/390-1440/CSP kabulü ve bu PR'ın kendi kalite/üretimimajı/gerçekE2E üçSUCCESS kapısı tamamlanmadan MERGED yapılmaz.
 
 **Sınır:** Bu pin, BE025/BE136 canlıya alındı veya F12 bitti demek değildir. Yeni program/range kaynağına göre kapak metni ve yeni PDF ok sınırına göre önizleme notu, son rapor uygulamasında güncellenir; eski ekran davranışı pin PR'ında canlandırılmaz. W210 bağımsızRED testleri ayrı özellik dalındadır, bu pin PR'ına dahil değildir. Üretilmiş thumbnail/audit uçları önceki ürün kapılarını açmaz.
+
+
+## İlk CI iptali ve bağımsız sıralama düzeltmesi
+
+Root yayımlı foldBreakdown kodunu karşılaştırınca arşiv fake’inde eşit baytta enum gösterim sırasının korunduğunu buldu; gerçek sunucu eşitlikte anahtarın sözlük sırasını kullanır. İlk test örnekleri bu farkı tesadüfen göstermiyordu. Native yeni iki regresyonla image/pdf ve analiz/plan eşit bayt senaryolarında gerçek AssertionError RED verdi (2dosya/200B toplam kontrolleri geçti). Root49b3 test commit’i; Sonnet0113 fake karşılaştırıcıyı ASCII anahtar sırasına düzeltti. MIME sınıflandırması ve üretim UI/API/pin/paket aynı kaldı. Native iki girdi sırası dahil yeni2+eski3 test5/5GREEN verdi.
+
+İlkPR183 CI44268820239/eda9 kaynak düzeltileceği için root tarafından iptal edildi; kör yeniden koşulmadı. Güncellenen HEAD kendi yeni tam CI’ını alır. Native0797 gerçek Caddy tanığı üretim kaynak farkı0 ile korunur; metadata/fake-only düzeltme için aynı UI koşusu tekrarlanmadı. Yeni kaynak üçSUCCESS olmadan MERGED yapılmaz.

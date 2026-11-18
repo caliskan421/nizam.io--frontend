@@ -1,5 +1,5 @@
 // RECORDS-K51: sahte arşiv sunucusunun depolama dağılımı sözleşme değişmezlerini taşır
-// (toplam eşitliği, sıfır kova yok, bayta göre azalan, eşitlikte sözleşme sırası, boş küme `[]`).
+// (toplam eşitliği, sıfır kova yok, bayta göre azalan, eşitlikte anahtar sözlük sırası, boş küme `[]`).
 import { describe, expect, it } from 'vitest'
 
 import { breakdown, file } from './archive-fake'
