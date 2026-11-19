@@ -9,3 +9,5 @@
 3. Diğer ileri işlemleri proje, referans, öneri, canlı katılımcılar, yorum, ek ve koşullu geri alma dilimlerine ayır. Her dilimde kendi ekranı, yetki matrisi ve bağımsız kabulü doğrulanır.
 
 Astra koordinasyon, Sol uygulama, Terra bağımsız test, Opus salt okunur son denetimi üstlenir. Simülasyonu Doğan hazırlayacak. Bütçe/Talep ertelendi.
+
+[İlk dilimin ekran–API eşlemesi, dosya sahipliği ve kabul senaryoları](ilk-dilim.md)
