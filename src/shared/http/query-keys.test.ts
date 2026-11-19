@@ -50,6 +50,12 @@ const TABLE: Array<{
     mustInvalidate: ['markChatRead', 'markAllChatsRead'],
   },
   {
+    resource: 'tables.list',
+    key: queryKeys.tables.list(S),
+    expected: [...root(S), 'tables', 'list'],
+    mustInvalidate: ['createPersonalTable', 'createTable'],
+  },
+  {
     resource: 'programs',
     key: queryKeys.programs.all(),
     expected: ['programs'],

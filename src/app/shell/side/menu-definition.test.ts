@@ -60,6 +60,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
           ['meetings', 'Toplantılar'],
           ['archive', 'Arşiv'],
           ['messages', 'Mesajlar'],
+          ['sheets', 'Tablolar'],
         ],
       ],
       [
@@ -89,6 +90,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
           ['meetings', 'Toplantılar'],
           ['archive', 'Arşiv'],
           ['messages', 'Mesajlar'],
+          ['sheets', 'Tablolar'],
         ],
       ],
     ])
@@ -110,6 +112,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
           ['meetings', 'Toplantılar'],
           ['archive', 'Dosyalarım'],
           ['messages', 'Mesajlar'],
+          ['sheets', 'Tablolar'],
         ],
       ],
     ])
@@ -126,13 +129,13 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
     )
   })
 
-  it('Takvim, Kurumsal hafıza, Tablolar, Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
+  it('Takvim, Kurumsal hafıza, Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
     const keys = new Set(
       MENU_ROLES.flatMap((role) =>
         layout(role).flatMap(([, items]) => (items as string[][]).map((i) => i[0])),
       ),
     )
-    for (const hidden of ['calendar', 'memory', 'sheets', 'unit', 'team', 'sim', 'dates']) {
+    for (const hidden of ['calendar', 'memory', 'unit', 'team', 'sim', 'dates']) {
       expect(keys.has(hidden), hidden).toBe(false)
     }
   })
@@ -236,6 +239,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Toplantılar',
       'Arşiv',
       'Mesajlar',
+      'Tablolar',
     ])
     lifecycle.selectLens('member')
     await flushPromises()
@@ -246,6 +250,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
+      'Tablolar',
     ])
     lifecycle.selectLens('coordinator')
     await flushPromises()
@@ -360,6 +365,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
+      'Tablolar',
     ])
     expect(
       links.filter((a) => a.attributes('aria-current') === 'page').map((a) => a.text()),
@@ -380,6 +386,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
+      'Tablolar',
     ])
     expect(links.map((a) => a.attributes('title'))).toEqual(
       links.map((a) => a.attributes('aria-label')),

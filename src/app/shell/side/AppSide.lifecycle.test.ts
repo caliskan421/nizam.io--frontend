@@ -55,6 +55,8 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
       { path: '/toplantilar', name: 'collaboration.meetings', component: { render: () => null } },
       // F7 (W154): Mesajlar menü öğesi.
       { path: '/mesajlar', name: 'collaboration.chats', component: { render: () => null } },
+      // F13: Tablolar menü öğesi.
+      { path: '/tablolar', name: 'tables.list', component: { render: () => null } },
       // F5 (W121): Arşiv menü öğesi.
       { path: '/arsiv', name: 'archive.folders', component: { render: () => null } },
       // F2 (W71): yönetici menüsündeki Yönetim öğeleri.
@@ -115,6 +117,7 @@ describe('AppSide + kapsam yaşam döngüsü', () => {
     await settle(scope, 'ready')
     expect(store.snapshot).toEqual({ programId: 'p2', lens: 'admin', departmentId: null })
     expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+    expect(wrapper.get('a[href="/tablolar"]').text()).toBe('Tablolar')
   })
 
   it('mercek değişimi: kapsamlı sorgular iptal + düşer; company_admin korunur (P1)', async () => {

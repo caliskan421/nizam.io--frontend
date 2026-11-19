@@ -45,6 +45,7 @@ export const trSide = {
       F5: 'F5’te',
       F6: 'F6’da',
       F7: 'F7’de',
+      F13: 'F13’te',
     },
     disabled: '{title} — {phase} açılacak',
     badge: {
