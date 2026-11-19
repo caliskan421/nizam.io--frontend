@@ -40,6 +40,14 @@ function waitText(retryAfter: number | null): string | null {
     : previewText('archive.actions.downloadRetryAfter', { seconds: retryAfter })
 }
 
+export function downloadRetrySeconds(result: ArchiveDownloadResult): number | null {
+  if (result.kind === 'failed') return result.retryAfter
+  if (result.kind !== 'ticket_failed') return null
+  const outcome = result.outcome
+  if (outcome.kind === 'rate_limited') return outcome.retryAfter
+  return outcome.kind === 'failed' ? outcome.error.retryAfter : null
+}
+
 /** İndirme sonucunu küresel bildirim veya modal içi durum alanı kullanabilir. */
 export function downloadFeedback(result: ArchiveDownloadResult) {
   if (result.kind === 'saved') {
@@ -52,9 +60,8 @@ export function downloadFeedback(result: ArchiveDownloadResult) {
     }
   }
   if (result.kind === 'ticket_failed') {
-    const outcome = result.outcome
-    const wait = outcome.kind === 'failed' ? waitText(outcome.error.retryAfter) : null
-    return wait ? { message: wait, tone: 'danger' as const } : outcomeToast(outcome)
+    const wait = waitText(downloadRetrySeconds(result))
+    return wait ? { message: wait, tone: 'danger' as const } : outcomeToast(result.outcome)
   }
   return null
 }

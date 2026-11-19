@@ -211,3 +211,28 @@ it.each([
   expect(dialog().querySelector('img')).not.toBeNull()
   expect(sent('POST', '/v1/download-tickets')).toHaveLength(1)
 })
+
+it('bilet 429 bekleme süresinde düğmeyi kilitler ve süre bitince yeniden açar', async () => {
+  server.use(
+    http.get(`${ORIGIN}${FILES}`, () => json({ files: [pdf] })),
+    binary('thumbnail'),
+    http.post(`${ORIGIN}/v1/download-tickets`, () =>
+      errorEnvelope('platform.rate_limited', 429, { 'Retry-After': '1' }),
+    ),
+  )
+  open(pdf)
+  await vi.waitFor(() => expect(dialog().querySelector('img')).not.toBeNull())
+  const download = dialog().querySelector<HTMLButtonElement>('.full-preview__download button')!
+  download.click()
+  await vi.waitFor(() =>
+    expect(dialog().querySelector('.full-preview__notice')?.textContent).toContain('1 saniye'),
+  )
+  expect(download.disabled).toBe(true)
+  download.click()
+  expect(sent('POST', '/v1/download-tickets')).toHaveLength(1)
+
+  await vi.waitFor(() => expect(download.disabled).toBe(false), { timeout: 2500 })
+  expect(sent('POST', '/v1/download-tickets')).toHaveLength(1)
+  download.click()
+  await vi.waitFor(() => expect(sent('POST', '/v1/download-tickets')).toHaveLength(2))
+})

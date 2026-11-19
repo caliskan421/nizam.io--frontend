@@ -2,16 +2,8 @@ import { computed, onScopeDispose, ref, watch } from 'vue'
 
 import type { ArchiveDownloadResult, ArchiveTarget } from '../../model/types'
 import { previewText } from './messages'
-import { downloadFeedback, useFileDownload } from './use-file-actions'
+import { downloadFeedback, downloadRetrySeconds, useFileDownload } from './use-file-actions'
 import { isPreviewAccessFailure, type useFullPreviewResource } from './use-full-preview-resource'
-
-function retrySeconds(result: ArchiveDownloadResult): number | null {
-  if (result.kind === 'failed') return result.retryAfter
-  if (result.kind === 'ticket_failed' && result.outcome.kind === 'failed') {
-    return result.outcome.error.retryAfter
-  }
-  return null
-}
 
 function deniedDownload(result: ArchiveDownloadResult): boolean {
   return (
@@ -49,7 +41,7 @@ export function useFullPreviewDownload(
       result.kind === 'ticket_failed' && result.outcome.kind === 'unknown_outcome'
         ? { message: previewText('archive.fullscreen.downloadUnknown'), tone: 'danger' }
         : downloadFeedback(result)
-    const seconds = retrySeconds(result)
+    const seconds = downloadRetrySeconds(result)
     if (seconds && seconds > 0) {
       waiting.value = true
       retryTimer = setTimeout(() => {
