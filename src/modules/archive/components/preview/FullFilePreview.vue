@@ -20,9 +20,9 @@ import { splitPreviewName } from '../../model/full-preview-layout'
 import { formatBytes, isPdf, typeBadge } from '../../model/mime'
 import type { ArchiveFile, ArchiveTarget } from '../../model/types'
 import { previewText } from './messages'
-import { useFileDownload } from './use-file-actions'
 import { useFullPreviewLayout } from './use-full-preview-layout'
-import { isPreviewAccessFailure, useFullPreviewResource } from './use-full-preview-resource'
+import { useFullPreviewDownload } from './use-full-preview-download'
+import { useFullPreviewResource } from './use-full-preview-resource'
 
 const props = defineProps<{
   file: ArchiveFile
@@ -30,19 +30,19 @@ const props = defineProps<{
   taskTitle: string | null
   trigger: HTMLElement
 }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; denied: [] }>()
 
 const panel = useTemplateRef<HTMLDialogElement>('panel')
 const closeButton = useTemplateRef<HTMLButtonElement>('closeButton')
 const stage = useTemplateRef<HTMLElement>('stage')
 const chip = useTemplateRef<HTMLElement>('chip')
+const pdfNote = useTemplateRef<HTMLElement>('pdfNote')
 const titleId = useId()
 const trap = useFocusTrap(panel)
-const { access, record, image, canShowDetails, signal, deny, recheck } = useFullPreviewResource(
-  props.file,
-  props.target,
-)
-const { size, natural, scrolled, decoded } = useFullPreviewLayout(stage, chip, image.url)
+const resource = useFullPreviewResource(props.file, props.target)
+const { access, record, image, canShowDetails } = resource
+const { downloadFile, downloadNotice, pending } = useFullPreviewDownload(resource, props.target)
+const { size, natural, scrolled, decoded } = useFullPreviewLayout(stage, [chip, pdfNote], image.url)
 const pdf = computed(() => isPdf(record.value.content_type))
 const name = computed(() => splitPreviewName(record.value.display_name))
 const badge = computed(() => typeBadge(record.value.content_type))
@@ -57,30 +57,11 @@ const metadata = computed(() =>
     .filter(Boolean)
     .join(' · '),
 )
-const download = useFileDownload(
-  () => record.value,
-  () => props.target,
-  () => ({
-    signal,
-    isCurrent: () => canShowDetails.value,
-  }),
-)
-
-async function downloadFile(): Promise<void> {
-  if (!canShowDetails.value) return
-  const result = await download.start()
-  if (result?.kind === 'failed') {
-    if (
-      result.error.code !== 'identity.download_ticket_invalid' &&
-      isPreviewAccessFailure(result.error)
-    )
-      deny()
-    else recheck()
-  } else if (result?.kind === 'ticket_failed') recheck()
-}
-
 const decodeFailed = ref(false)
 const visibleImage = computed(() => canShowDetails.value && image.url.value && !decodeFailed.value)
+watch(access, (value) => {
+  if (value === 'denied') emit('denied')
+})
 watch(image.url, () => {
   decodeFailed.value = false
 })
@@ -176,18 +157,21 @@ onBeforeUnmount(() => {
               @load="decoded"
               @error="decodeFailed = true"
             />
+            <p v-if="pdf" ref="pdfNote" class="full-preview__pdf-note">
+              {{ previewText('archive.fullscreen.pdfNote') }}
+            </p>
             <span v-if="!pdf && natural.width" class="full-preview__dimensions">
               {{ previewText('archive.fullscreen.dimensions', natural) }}
             </span>
           </div>
           <div
-            v-else
             class="full-preview__status"
+            :class="{ 'full-preview__status--empty': visibleImage }"
             role="status"
             aria-live="polite"
             aria-atomic="true"
           >
-            <template v-if="!canShowDetails">
+            <template v-if="!visibleImage && !canShowDetails">
               <UiIcon name="file" size="lg" />
               <h2>
                 {{
@@ -199,16 +183,24 @@ onBeforeUnmount(() => {
                 }}
               </h2>
             </template>
-            <template v-else-if="access === 'checking' || image.loading.value">
+            <template v-else-if="!visibleImage && (access === 'checking' || image.loading.value)">
               <span class="full-preview__spinner" aria-hidden="true" />
               <p>{{ previewText('archive.preview.loading') }}</p>
             </template>
-            <template v-else>
+            <template v-else-if="!visibleImage">
               <UiIcon name="file" size="lg" />
               <h2>{{ previewText('archive.fullscreen.unavailable') }}</h2>
               <p>{{ previewText('archive.fullscreen.unavailableHint') }}</p>
             </template>
           </div>
+        </div>
+        <div class="full-preview__notice" role="status" aria-live="polite" aria-atomic="true">
+          <p
+            v-if="canShowDetails && downloadNotice"
+            :data-tone="'tone' in downloadNotice ? downloadNotice.tone : undefined"
+          >
+            {{ downloadNotice.message }}
+          </p>
         </div>
         <div
           v-if="visibleImage && size?.scroll && !scrolled"
@@ -223,12 +215,7 @@ onBeforeUnmount(() => {
         </div>
       </section>
       <div v-if="canShowDetails" class="full-preview__download">
-        <UiButton
-          icon="download"
-          variant="primary"
-          :disabled="download.pending.value"
-          @click="downloadFile"
-        >
+        <UiButton icon="download" variant="primary" :disabled="pending" @click="downloadFile">
           {{ previewText('archive.fullscreen.download') }}
           <span class="full-preview__download-size">· {{ fileSize }}</span>
         </UiButton>

@@ -107,6 +107,9 @@ it('PDF ilk sayfa JPEG kullanır, belge gövdesini istemez', async () => {
   open(pdf)
   await vi.waitFor(() => expect(dialog().querySelector('img')).not.toBeNull())
   expect(dialog().textContent).toContain('İlk sayfa önizlemesi')
+  expect(dialog().querySelector('.full-preview__pdf-note')?.textContent).toContain(
+    'Belgenin tamamı için dosyayı indir.',
+  )
   expect(dialog().querySelector('iframe, object, embed')).toBeNull()
   expect(sent('GET', '/v1/files/f1/thumbnail')).toHaveLength(1)
   expect(sent('GET', '/v1/files/f1/download')).toHaveLength(0)
@@ -166,6 +169,9 @@ it('PDF indirme tam dosya için arşiv bileti kullanır', async () => {
   await vi.waitFor(() => expect(dialog().querySelector('img')).not.toBeNull())
   dialog().querySelector<HTMLButtonElement>('.full-preview__download button')!.click()
   await vi.waitFor(() => expect(urls.clicked).toEqual([pdf.display_name]))
+  expect(dialog().querySelector('.full-preview__notice[role="status"]')?.textContent).toContain(
+    `${pdf.display_name} indirildi.`,
+  )
   const [ticket] = sent('POST', '/v1/download-tickets')
   expect(ticket?.body).toEqual({ method: 'GET', path: '/v1/files/f1/download' })
   expect(ticket?.headers.get('X-Nizamio-Department')).toBe('d1')
@@ -184,4 +190,24 @@ it('yerel kapsam değiştiğinde ağ cevabını beklemeden önizlemeyi kapatır'
   expect(dialog().textContent).not.toContain(jpeg.display_name)
   expect(dialog().querySelector('img')).toBeNull()
   expect(sent('GET', FILES)).toHaveLength(1)
+})
+
+it.each([
+  ['429', () => errorEnvelope('platform.rate_limited', 429, { 'Retry-After': '27' }), '27 saniye'],
+  ['ağ', () => HttpResponse.error(), 'bağlant'],
+])('indirme %s hatası modal içi canlı alanda kalır', async (_name, reply, expected) => {
+  server.use(
+    http.get(`${ORIGIN}${FILES}`, () => json({ files: [pdf] })),
+    binary('thumbnail'),
+    http.post(`${ORIGIN}/v1/download-tickets`, reply),
+  )
+  open(pdf)
+  await vi.waitFor(() => expect(dialog().querySelector('img')).not.toBeNull())
+  const status = dialog().querySelector('.full-preview__notice[aria-live="polite"]')!
+  expect(status.textContent?.trim()).toBe('')
+  dialog().querySelector<HTMLButtonElement>('.full-preview__download button')!.click()
+  await vi.waitFor(() => expect(status.textContent?.toLowerCase()).toContain(expected))
+  expect(status.querySelector('[data-tone="danger"]')).not.toBeNull()
+  expect(dialog().querySelector('img')).not.toBeNull()
+  expect(sent('POST', '/v1/download-tickets')).toHaveLength(1)
 })

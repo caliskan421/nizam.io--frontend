@@ -1,4 +1,4 @@
-import { onScopeDispose, shallowRef, watch } from 'vue'
+import { onScopeDispose, shallowRef, watch, type Ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import type { ArchiveFile, ArchiveTarget } from '../../model/types'
@@ -19,12 +19,11 @@ export function useFullPreviewHistory<T>() {
   }
 
   function close(): void {
-    if (!shown.value) return
-    shown.value = null
+    if (!shown.value || closing) return
     if (history.state[MARKER] === true) {
       closing = true
       history.go(-1)
-    }
+    } else shown.value = null
   }
 
   const remove = history.listen((to, from, movement) => {
@@ -39,6 +38,9 @@ export function useFullPreviewHistory<T>() {
   watch(
     () => router.currentRoute.value.fullPath,
     () => {
+      if (shown.value && history.state[MARKER] === true) {
+        history.replace(history.location, { [MARKER]: null })
+      }
       shown.value = null
     },
   )
@@ -50,6 +52,7 @@ export function useArchiveFullscreen(
   selectedFile: () => ArchiveFile | null,
   fileTarget: () => ArchiveTarget | null,
   taskTitle: (id: string) => string | null,
+  holding: Ref<boolean>,
 ) {
   const history = useFullPreviewHistory<{
     file: ArchiveFile
@@ -57,6 +60,13 @@ export function useArchiveFullscreen(
     taskTitle: string | null
     trigger: HTMLElement
   }>()
+  watch(
+    history.shown,
+    (shown) => {
+      holding.value = shown !== null
+    },
+    { flush: 'sync' },
+  )
   return {
     shown: history.shown,
     close: history.close,

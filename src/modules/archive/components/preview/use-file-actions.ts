@@ -18,7 +18,7 @@ import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 import { ownerLife } from '@/shared/http/mutation'
 import { errorText } from '@/shared/i18n'
 import { useToast } from '@/shared/ui'
-import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { notifyOutcome, outcomeToast, useConfirm } from '@/shared/ui/confirm'
 
 import { useArchiveDownload } from '../../api/downloads'
 import { fileGone, useDeleteArchiveFile, useRetagArchiveFile } from '../../api/writes'
@@ -40,25 +40,29 @@ function waitText(retryAfter: number | null): string | null {
     : previewText('archive.actions.downloadRetryAfter', { seconds: retryAfter })
 }
 
-/** İndirme sonucunun bildirimi (başarı, 429 beklemesi, sınıflı hata). */
-function notifyDownload(result: ArchiveDownloadResult, toast: ReturnType<typeof useToast>): void {
+/** İndirme sonucunu küresel bildirim veya modal içi durum alanı kullanabilir. */
+export function downloadFeedback(result: ArchiveDownloadResult) {
   if (result.kind === 'saved') {
-    toast.push({ message: previewText('archive.actions.downloadSaved', { name: result.fileName }) })
-  } else if (result.kind === 'failed') {
-    const message = waitText(result.retryAfter) ?? errorText(result.error)
-    toast.push({ message, tone: 'danger' })
-  } else if (result.kind === 'ticket_failed') {
+    return { message: previewText('archive.actions.downloadSaved', { name: result.fileName }) }
+  }
+  if (result.kind === 'failed') {
+    return {
+      message: waitText(result.retryAfter) ?? errorText(result.error),
+      tone: 'danger' as const,
+    }
+  }
+  if (result.kind === 'ticket_failed') {
     const outcome = result.outcome
     const wait = outcome.kind === 'failed' ? waitText(outcome.error.retryAfter) : null
-    if (wait) toast.push({ message: wait, tone: 'danger' })
-    else notifyOutcome(outcome)
+    return wait ? { message: wait, tone: 'danger' as const } : outcomeToast(outcome)
   }
+  return null
 }
 
 export function useFileDownload(
   file: FileSource,
   target: TargetSource,
-  options?: () => DownloadStartOptions,
+  options?: { start: () => DownloadStartOptions; localFeedback: boolean },
 ) {
   const download = useArchiveDownload()
   const owner = ownerLife()
@@ -74,9 +78,12 @@ export function useFileDownload(
         id: current.file_id,
         fallbackName: current.display_name,
       },
-      options?.(),
+      options?.start(),
     )
-    if (owner.alive()) notifyDownload(result, toast)
+    if (owner.alive() && !options?.localFeedback) {
+      const feedback = downloadFeedback(result)
+      if (feedback) toast.push(feedback)
+    }
     return result
   }
   return { start, pending: download.isPending }

@@ -4,7 +4,7 @@ import { fullPreviewSize } from '../../model/full-preview-layout'
 
 export function useFullPreviewLayout(
   stage: Ref<HTMLElement | null>,
-  chip: Ref<HTMLElement | null>,
+  labels: readonly Ref<HTMLElement | null>[],
   blobUrl: Readonly<Ref<string | null>>,
 ) {
   const size = ref<ReturnType<typeof fullPreviewSize>>(null)
@@ -21,13 +21,16 @@ export function useFullPreviewLayout(
     const paddingY = pixels(bounds.paddingTop) + pixels(bounds.paddingBottom)
     const mobile =
       getComputedStyle(area).getPropertyValue('--archive-preview-mobile').trim() === '1'
-    const badge = chip.value
-    const chipHeight = badge ? badge.offsetHeight + pixels(getComputedStyle(badge).marginBottom) : 0
+    const labelHeight = labels.reduce((height, { value }) => {
+      if (!value) return height
+      const style = getComputedStyle(value)
+      return height + value.offsetHeight + pixels(style.marginTop) + pixels(style.marginBottom)
+    }, 0)
     size.value = fullPreviewSize(
       natural.value.width,
       natural.value.height,
       area.clientWidth - paddingX,
-      area.clientHeight - paddingY - chipHeight,
+      area.clientHeight - paddingY - labelHeight,
       window.innerWidth,
       mobile,
     )

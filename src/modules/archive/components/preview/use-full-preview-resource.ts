@@ -10,6 +10,7 @@ import { canPreview, isPdf, isPreviewableImage } from '../../model/mime'
 import type { ArchiveFile, ArchiveTarget } from '../../model/types'
 
 export const ACCESS_RECHECK_MS = 15_000
+export const PREVIEW_READ_TIMEOUT_MS = 8_000
 
 type Access = 'checking' | 'allowed' | 'unverified' | 'denied'
 
@@ -35,11 +36,37 @@ function endWithScopeOrSession(deny: () => void): void {
   })
 }
 
+async function readWithDeadline<T>(
+  signal: AbortSignal,
+  read: (requestSignal: AbortSignal) => Promise<T>,
+): Promise<T> {
+  const controller = new AbortController()
+  const abort = () => controller.abort()
+  signal.addEventListener('abort', abort, { once: true })
+  if (signal.aborted) abort()
+  const timeout = setTimeout(abort, PREVIEW_READ_TIMEOUT_MS)
+  try {
+    return await read(controller.signal)
+  } finally {
+    clearTimeout(timeout)
+    signal.removeEventListener('abort', abort)
+  }
+}
+
+function transientRetryAt(error: unknown): number | null {
+  const { status, retryAfter } = toApiError(error)
+  if (status === null || status === 429 || status >= 500) {
+    return Date.now() + (retryAfter === null ? ACCESS_RECHECK_MS : retryAfter * 1000)
+  }
+  return null
+}
+
 function usePreviewImage(deny: () => void) {
   const url = ref<string | null>(null)
   const loading = ref(true)
   let request: AbortController | undefined
   let attempted = false
+  let retryAt = 0
 
   function clear(): void {
     request?.abort()
@@ -50,7 +77,7 @@ function usePreviewImage(deny: () => void) {
   }
 
   async function load(file: ArchiveFile, target: ArchiveTarget): Promise<void> {
-    if (attempted) return
+    if (attempted || Date.now() < retryAt) return
     attempted = true
     const pdf = isPdf(file.content_type)
     if (!pdf && !canPreview(file)) {
@@ -61,17 +88,25 @@ function usePreviewImage(deny: () => void) {
     request = active
     loading.value = true
     try {
-      const bytes = await (pdf ? fetchFileThumbnail : fetchFileBlob)(
-        target,
-        file.file_id,
-        active.signal,
+      const fetchImage = pdf ? fetchFileThumbnail : fetchFileBlob
+      const bytes = await readWithDeadline(active.signal, (signal) =>
+        fetchImage(target, file.file_id, signal),
       )
       if (active.signal.aborted) return
       if (safePreviewBytes(bytes, pdf)) url.value = URL.createObjectURL(bytes)
     } catch (error) {
-      if (!active.signal.aborted && isPreviewAccessFailure(error)) deny()
+      if (!active.signal.aborted) handleFailure(error)
     } finally {
       if (!active.signal.aborted) loading.value = false
+    }
+  }
+
+  function handleFailure(error: unknown): void {
+    if (isPreviewAccessFailure(error)) return deny()
+    const retry = transientRetryAt(error)
+    if (retry !== null) {
+      retryAt = retry
+      attempted = false
     }
   }
 
@@ -98,7 +133,9 @@ export function useFullPreviewResource(initial: ArchiveFile, target: ArchiveTarg
     if (checking || life.signal.aborted || document.hidden || Date.now() < nextAllowed) return
     checking = true
     try {
-      const found = await fetchPreviewRecord(target, initial, life.signal)
+      const found = await readWithDeadline(life.signal, (signal) =>
+        fetchPreviewRecord(target, initial, signal),
+      )
       if (life.signal.aborted) return
       if (!found) return deny()
       record.value = found
@@ -107,8 +144,7 @@ export function useFullPreviewResource(initial: ArchiveFile, target: ArchiveTarg
     } catch (error) {
       if (life.signal.aborted) return
       if (isPreviewAccessFailure(error)) return deny()
-      const retryAfter = toApiError(error).retryAfter
-      if (retryAfter !== null) nextAllowed = Date.now() + retryAfter * 1000
+      nextAllowed = transientRetryAt(error) ?? Date.now() + ACCESS_RECHECK_MS
       access.value = 'unverified'
       image.clear()
     } finally {

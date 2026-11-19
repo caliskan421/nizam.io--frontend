@@ -14,3 +14,5 @@ Astra koordinatör, Sol uygulama, Terra bağımsız gerçek backend/tarayıcı k
 ## 06e erişim denetimi
 
 Tam ekran, açılışta ve görünür sekmede 15 saniyede bir dosyanın kendi S3 kapsamında `listWorkItemFiles` ile doğrulanır. Pencere odağı, sekmenin yeniden görünür olması ve çevrimiçi dönüş de denetimi tetikler. 403/404 veya dosyanın yetkili listeden düşmesi adı, görseli ve indirme denetimini kaldırır. Yerel oturum ve kapsam değişiminde bu temizlik hemen uygulanır. Yayımlı v0.28 sözleşmesi erişim değişikliği için anlık bildirim sağlamıyor. Sunucudaki değişiklik bir sonraki doğrulamada görünür. Dosya gövdesi her erişim denetiminde yeniden indirilmez. PNG/JPEG özgün raster gövde, PDF ilk sayfa JPEG türevi gösterir. İndirme mevcut bilet akışıdır.
+
+İndirme sonucu ve varsa bekleme süresi 06e içinde duyurulur. Doğrulama ve görsel okumaları 8 saniyede kesilir. Geçici görsel hatasında bir sonraki doğrulama, sunucunun bekleme süresi dolduğunda türevi yeniden isteyebilir.

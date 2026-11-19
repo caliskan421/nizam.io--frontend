@@ -183,6 +183,33 @@
   .full-preview__status p {
     color: var(--ink-muted);
   }
+  .full-preview__pdf-note {
+    margin: var(--space-2) 0 0;
+    color: var(--ink-muted);
+    font: var(--text-caption);
+  }
+  .full-preview__status--empty {
+    position: absolute;
+  }
+  .full-preview__notice {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline: var(--space-4);
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .full-preview__notice p {
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+  }
+  .full-preview__notice p[data-tone='danger'] {
+    border-inline-start: var(--ui-focus-width) solid var(--danger);
+  }
   .full-preview__spinner {
     width: var(--space-8);
     height: var(--space-8);
