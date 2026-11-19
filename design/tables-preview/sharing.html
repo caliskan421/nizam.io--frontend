@@ -1,0 +1,82 @@
+<header class="slab lab">
+  <div class="lab-head">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">R</span>Yönetici görünümü ve paylaşım
+    </div>
+    <button id="theme" type="button" class="t-btn t-btn--ghost t-btn--sm">Açık tema</button>
+  </div>
+  <div class="tools">
+    <label
+      >Örnek rol
+      <select id="role">
+        <option value="coordinator">Koordinatör · Deniz Arı</option>
+        <option value="admin">Şirket yöneticisi · Ece Kaya</option>
+        <option value="member">Birim üyesi · Mert Yıldız</option>
+      </select></label
+    >
+    <label
+      >Genişlik
+      <select id="width">
+        <option value="fluid">Akışkan</option>
+        <option value="1440">1440 px</option>
+        <option value="390">390 px</option>
+      </select></label
+    >
+  </div>
+  <p class="muted">
+    Yerel taslak ve örnek veri. Rolleri değiştirerek aynı tablonun paylaşımını ve erişimini
+    inceleyin.
+  </p>
+</header>
+<div class="frame-scroll" role="region" aria-label="RoketPortal ekran önizlemesi">
+  <article class="frame" id="frame" data-width="fluid">
+    <div class="app">
+      <aside class="side" aria-label="Örnek menü">
+        <div class="brand"><span class="logo" aria-hidden="true">R</span>RoketPortal</div>
+        <ul>
+          <li>Ana sayfa</li>
+          <li>Görevler</li>
+          <li>Dosyalar</li>
+          <li class="active">Tablolar</li>
+        </ul>
+      </aside>
+      <div class="main">
+        <header class="top">
+          <div class="brand"><span class="logo" aria-hidden="true">R</span>RoketPortal</div>
+          <label
+            >Program
+            <select id="program" class="t-select">
+              <option value="guz">Güz dönemi</option>
+              <option value="bahar">Bahar dönemi</option>
+            </select></label
+          >
+          <span class="muted" id="identity"></span>
+        </header>
+        <div class="content" id="screen"></div>
+      </div>
+    </div>
+  </article>
+</div>
+<details class="slab notes">
+  <summary>Tasarım ve API farkı</summary>
+  <ul>
+    <li>
+      <strong>Önerilen yönetim görünümü.</strong> Şirket yöneticisi seçili programdaki bütün
+      koordinatörlük tablolarını bulur ve salt okunur açar. Kişisel tablolar bu listede yer almaz.
+      Yönetici açıkça “Düzenler” erişimi aldığında hücre düzenleyebilir. Paylaşımı tablo sahibi
+      yönetir.
+    </li>
+    <li>
+      <strong>Yayımlı sözleşme.</strong> Backend v0.30.0-api’de birim listesi ve detay, birim
+      kapsamına ve mevcut tablo erişimine bağlı. Yönetici unvanı özel birim tablosunu tek başına
+      açmıyor. Program geneli yönetici okuma yüzeyi ve paylaşım listesinin okunması için sözleşme
+      değişikliği gerekiyor. Frontend kaynak pini v0.28.0-api.
+    </li>
+    <li>
+      <strong>Mevcut paylaşım komutları.</strong> Yayımlı sözleşmede sahip, aynı kapsamda uygun
+      hesap veya şirket yöneticisine doğrudan Görür/Düzenler izni verebilir ve bunu kaldırabilir.
+      Birim ekip paylaşımı güncel birim üyelerine işler. Bir kişinin doğrudan ve ekip izni varsa
+      güçlü olan geçerli olur.
+    </li>
+  </ul>
+</details>

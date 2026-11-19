@@ -6,7 +6,6 @@ import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { useSessionStore } from '@/shared/session/store'
 import { UiButton, UiEmptyState, UiErrorState } from '@/shared/ui'
-
 import CreateTableForm from '../components/CreateTableForm.vue'
 import TableCards from '../components/TableCards.vue'
 import TableTemplates from '../components/TableTemplates.vue'
@@ -14,7 +13,7 @@ import { useTableCatalog } from '../composables/use-table-catalog'
 import { useTableCreatePanel } from '../composables/use-table-create-panel'
 import type { TableTarget } from '../model/types'
 import TablesDetail from './TablesDetail.vue'
-import { TABLE_ROUTE, TABLES_ROUTE } from '../routes'
+import { TABLE_DESIGN_ROUTE, TABLE_ROUTE, TABLES_ROUTE } from '../routes'
 import './tables.css'
 const route = useRoute()
 const router = useRouter()
@@ -116,6 +115,7 @@ async function openTable(tableId: string) {
         >
         <h1 id="tables-title">{{ isList ? 'Tablolar' : 'Tablo' }}</h1>
       </div>
+      <RouterLink v-if="isList" :to="TABLE_DESIGN_ROUTE.path">Tasarım önizlemesi</RouterLink>
       <UiButton
         v-if="isList && canCreate && !formOpen"
         id="tables-create-trigger"

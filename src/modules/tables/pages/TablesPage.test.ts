@@ -33,6 +33,7 @@ async function render(url = '/tablolar', programId: string | null = 'p1') {
     history: createMemoryHistory(),
     routes: [
       { name: 'tables.list', path: '/tablolar', component: TablesPage },
+      { name: 'tables.design', path: '/tablolar/tasarim', component: { template: '<div />' } },
       { name: 'tables.detail', path: '/tablolar/:tableId', component: TablesPage },
     ],
   })
@@ -650,4 +651,11 @@ it.each([
   await wrapper.get('#tables-template-tpl-1').trigger('click')
   await wrapper.get('form').trigger('submit')
   await vi.waitFor(() => expect(wrapper.get('form').text()).toContain(expected))
+})
+
+it('Tablolar ekranından tasarım önizlemesine açık bir bağlantı vardır', async () => {
+  server.use(http.get(origin + '/v1/personal/tables', () => HttpResponse.json({ items: [] })))
+  const { wrapper } = await render()
+  const link = wrapper.get('a[href="/tablolar/tasarim"]')
+  expect(link.text()).toBe('Tasarım önizlemesi')
 })
