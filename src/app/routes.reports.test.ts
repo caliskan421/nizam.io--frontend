@@ -49,11 +49,14 @@ describe('rapor rota kataloğu (F6)', () => {
     })
   })
 
-  it("etkin faz F7 (F6'dan beri): rapor rotaları canlı; F5'te router'a girmez", () => {
-    expect(CURRENT_PHASE).toBe('F7')
+  it("etkin faz F13 (F6'dan beri): rapor rotaları canlı; F5'te router'a girmez", () => {
+    expect(CURRENT_PHASE).toBe('F13')
     expect(visibilityOf('reports.season')).toBe('canli')
     expect(visibilityOf('reports.season', 'F5')).toBe('gizli')
     expect(liveRouteNames()).toEqual(expect.arrayContaining(['reports.season', 'reports.meeting']))
+    expect(liveRouteNames('F6')).toEqual(
+      expect.arrayContaining(['reports.season', 'reports.meeting']),
+    )
     expect(liveRouteNames('F5')).not.toContain('reports.season')
     expect(routeLocation('reports.season', {})).toMatchObject({ name: 'reports.season' })
   })
