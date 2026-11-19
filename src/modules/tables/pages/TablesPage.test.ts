@@ -61,7 +61,9 @@ it('kişisel liste yalnız program başlığını taşır; opak imleç ile devam
   const requests: Array<[string | null, string | null, string | null]> = []
   server.use(
     http.get(origin + '/v1/personal/tables', ({ request }) => {
-      const cursor = new URL(request.url).searchParams.get('cursor')
+      const params = new URL(request.url).searchParams
+      if (params.get('template') === 'true') return HttpResponse.json({ items: [] })
+      const cursor = params.get('cursor')
       requests.push([
         request.headers.get('X-Nizamio-Program'),
         request.headers.get('X-Nizamio-Department'),
@@ -103,6 +105,8 @@ it('koordinatörlük seçilmeden tablo isteği göndermez; eski birim cevabı ye
       }),
     ),
     http.get(origin + '/v1/tables', async ({ request }) => {
+      if (new URL(request.url).searchParams.get('template') === 'true')
+        return HttpResponse.json({ items: [] })
       const department = request.headers.get('X-Nizamio-Department')
       requests.push([request.headers.get('X-Nizamio-Program'), department])
       if (department === 'd1') await old
@@ -239,7 +243,9 @@ it('belirsiz oluşturma çakışırsa eski form kilitli kalır ve yeni oluşturm
   let reads = 0
   let listAvailable = true
   server.use(
-    http.get(origin + '/v1/personal/tables', () => {
+    http.get(origin + '/v1/personal/tables', ({ request }) => {
+      if (new URL(request.url).searchParams.get('template') === 'true')
+        return HttpResponse.json({ items: [] })
       reads += 1
       if (!listAvailable)
         return HttpResponse.json({ code: 'platform.unavailable' }, { status: 503 })
@@ -287,4 +293,361 @@ it('belirsiz oluşturma çakışırsa eski form kilitli kalır ve yeni oluşturm
   expect(wrapper.text()).toContain('İlk tablo')
   expect(wrapper.find('form').exists()).toBe(false)
   expect(writes).toHaveLength(3)
+})
+
+const normalList = origin + '/v1/personal/tables'
+const personalCopy = origin + '/v1/personal/table-copies'
+const firstTemplate = { ...table('tpl-1', 'Görünür şablon'), is_template: true }
+const laterTemplate = { ...table('tpl-2', 'Sonraki şablon'), is_template: true }
+
+function labeledButton(wrapper: VueWrapper, label: string) {
+  return wrapper.findAll('button').find((button) => button.text() === label)
+}
+
+it('kişisel şablon imleci normal tablolardan ayrıdır ve yalnız yapı kopyası varsayılan adla açılır', async () => {
+  const templateCursors: Array<string | null> = []
+  const regularCursors: Array<string | null> = []
+  server.use(
+    http.get(normalList, ({ request }) => {
+      const params = new URL(request.url).searchParams
+      const cursor = params.get('cursor')
+      expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
+      expect(request.headers.get('X-Nizamio-Department')).toBeNull()
+      if (params.get('template') === 'true') {
+        templateCursors.push(cursor)
+        return HttpResponse.json(
+          cursor
+            ? { items: [laterTemplate] }
+            : {
+                items: [firstTemplate],
+                next_cursor: 'template/+',
+              },
+        )
+      }
+      regularCursors.push(cursor)
+      return HttpResponse.json({
+        items: [table('unflagged', 'Normal tablo')],
+        next_cursor: 'ordinary',
+      })
+    }),
+    http.post(personalCopy, async ({ request }) => {
+      expect(request.headers.get('X-Nizamio-Department')).toBeNull()
+      expect(request.headers.get('X-Requested-With')).toBeTruthy()
+      expect(request.headers.get('Idempotency-Key')).toMatch(/^[A-Za-z0-9_-]{22}$/)
+      expect(await request.json()).toEqual({
+        source_table_id: 'tpl-2',
+        source_space: 'personal',
+        mode: 'structure',
+      })
+      return HttpResponse.json({ table_id: 'new-copy', replayed: false }, { status: 201 })
+    }),
+    http.get(normalList + '/new-copy', () =>
+      HttpResponse.json({
+        table: table('new-copy', 'Sonraki şablon'),
+        columns: [],
+        rows: [],
+        cells: [],
+      }),
+    ),
+  )
+  const { wrapper, router } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  expect(wrapper.findAll('#tables-template-unflagged')).toHaveLength(0)
+  await labeledButton(wrapper, 'Daha fazla şablon')!.trigger('click')
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-2').exists()).toBe(true))
+  expect(templateCursors).toEqual([null, 'template/+'])
+  expect(regularCursors).toEqual([null])
+  await wrapper.get('#tables-template-tpl-2').trigger('click')
+  expect(wrapper.get('form').text()).toContain('Yalnızca sütun yapısı alınır')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/tablolar/new-copy'))
+})
+
+it('birim şablonunda S3 başlığı ve gövdedeki kaynak departmanı aynı seçili birimi kullanır', async () => {
+  const endpoint = origin + '/v1/tables'
+  const source = { ...firstTemplate, department_id: 'd1', space: 'coordinatorship' }
+  server.use(
+    http.get(origin + '/v1/program/departments', () =>
+      HttpResponse.json({
+        departments: [{ department_id: 'd1', display_name: 'Operasyon' }],
+      }),
+    ),
+    http.get(endpoint, ({ request }) => {
+      expect(request.headers.get('X-Nizamio-Department')).toBe('d1')
+      return HttpResponse.json({
+        items: new URL(request.url).searchParams.has('template') ? [source] : [],
+      })
+    }),
+    http.post(origin + '/v1/table-copies', async ({ request }) => {
+      expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
+      expect(request.headers.get('X-Nizamio-Department')).toBe('d1')
+      expect(await request.json()).toEqual({
+        source_table_id: 'tpl-1',
+        source_space: 'coordinatorship',
+        source_department_id: 'd1',
+        mode: 'structure',
+        name: 'Birim kopyası',
+      })
+      return HttpResponse.json({ table_id: 'unit-copy', replayed: true })
+    }),
+    http.get(endpoint + '/unit-copy', () =>
+      HttpResponse.json({
+        table: { ...source, id: 'unit-copy', name: 'Birim kopyası', is_template: false },
+        columns: [],
+        rows: [],
+        cells: [],
+      }),
+    ),
+  )
+  const { wrapper, router } = await render('/tablolar?alan=birim')
+  await vi.waitFor(() => expect(wrapper.findAll('option')).toHaveLength(2))
+  await wrapper.get('select').setValue('d1')
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  expect(wrapper.get('form').text()).toContain('Operasyon')
+  await wrapper.get('form input').setValue('Birim kopyası')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() =>
+    expect(router.currentRoute.value.fullPath).toBe('/tablolar/unit-copy?alan=birim'),
+  )
+})
+
+it('kayıp şablon 404 ile güvenli biçimde gizlenir ve şablon listesi yenilenir', async () => {
+  let available = true
+  let templateReads = 0
+  server.use(
+    http.get(normalList, ({ request }) => {
+      if (new URL(request.url).searchParams.has('template')) templateReads++
+      return HttpResponse.json({ items: available ? [firstTemplate] : [] })
+    }),
+    http.post(personalCopy, () => {
+      available = false
+      return HttpResponse.json({ code: 'tables.not_found' }, { status: 404 })
+    }),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Şablon artık kullanılamıyor'))
+  await vi.waitFor(() => expect(templateReads).toBeGreaterThan(1))
+  await vi.waitFor(() => expect(wrapper.text()).not.toContain('Görünür şablon'))
+  expect(wrapper.find('form button[type=submit]').exists()).toBe(false)
+})
+
+it('şablon kopyasının belirsiz tekrarı 409 ile sonuçlanınca yeni yazma açılmaz', async () => {
+  const writes: Array<{ key: string | null; body: unknown }> = []
+  let listReadable = true
+  server.use(
+    http.get(normalList, ({ request }) => {
+      if (new URL(request.url).searchParams.has('template'))
+        return HttpResponse.json({ items: [firstTemplate] })
+      return listReadable
+        ? HttpResponse.json({ items: [] })
+        : HttpResponse.json({}, { status: 503 })
+    }),
+    http.post(personalCopy, async ({ request }) => {
+      writes.push({ key: request.headers.get('Idempotency-Key'), body: await request.json() })
+      return writes.length === 1
+        ? HttpResponse.error()
+        : HttpResponse.json({ code: 'platform.conflict_retry' }, { status: 409 })
+    }),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form input').setValue('Aynı kopya')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(labeledButton(wrapper, 'Aynı isteği gönder')).toBeDefined())
+  await labeledButton(wrapper, 'Aynı isteği gönder')!.trigger('click')
+  await vi.waitFor(() =>
+    expect(wrapper.text()).toContain('Yeni bir tablo oluşturmadan önce listeyi kontrol edin'),
+  )
+  expect(writes).toEqual([writes[0], writes[0], writes[0]])
+  await wrapper.get('form').trigger('submit')
+  expect(writes).toHaveLength(3)
+
+  listReadable = false
+  await labeledButton(wrapper, 'Listeyi yenile ve dön')!.trigger('click')
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Güncel liste okunamadı'))
+  expect(wrapper.get('#tables-template-tpl-1').attributes()).toHaveProperty('disabled')
+  listReadable = true
+  await labeledButton(wrapper, 'Listeyi yenile ve dön')!.trigger('click')
+  await vi.waitFor(() => expect(wrapper.find('form').exists()).toBe(false))
+  expect(writes).toHaveLength(3)
+})
+
+it('kapsam değişince geç kopya makbuzu yeni programda detay açmaz', async () => {
+  let release: (() => void) | undefined
+  let started = false
+  const pending = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items:
+          request.headers.get('X-Nizamio-Program') === 'p1' &&
+          new URL(request.url).searchParams.has('template')
+            ? [firstTemplate]
+            : [],
+      }),
+    ),
+    http.post(personalCopy, async () => {
+      started = true
+      await pending
+      return HttpResponse.json({ table_id: 'old-context-copy' }, { status: 201 })
+    }),
+  )
+  const { wrapper, scope, router } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(started).toBe(true))
+  scope.commit({ programId: 'p2', lens: 'admin', departmentId: null })
+  await vi.waitFor(() => expect(wrapper.find('form').exists()).toBe(false))
+  release?.()
+  await vi.waitFor(() =>
+    expect(wrapper.text()).toContain('Bu çalışma alanında erişilebilir şablon yok'),
+  )
+  expect(router.currentRoute.value.path).toBe('/tablolar')
+})
+
+it('403 gerçek izin reddini gösterir ve erişilebilir kaynak için gereksiz şablon okuması yapmaz', async () => {
+  let templateReads = 0
+  server.use(
+    http.get(normalList, ({ request }) => {
+      const templates = new URL(request.url).searchParams.has('template')
+      if (templates) templateReads++
+      return HttpResponse.json({ items: templates ? [firstTemplate] : [] })
+    }),
+    http.post(personalCopy, () => HttpResponse.json({ code: 'tables.forbidden' }, { status: 403 })),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() =>
+    expect(wrapper.get('form').text()).toContain('Bu işlem için yetkiniz yok.'),
+  )
+  expect(wrapper.get('form').text()).toContain('Görünür şablon')
+  expect(wrapper.get('form').text()).not.toContain('Şablon artık kullanılamıyor')
+  expect(wrapper.find('form button[type=submit]').exists()).toBe(false)
+  expect(templateReads).toBe(1)
+})
+
+it('belirsiz kopya kilidi rota değişse de yalnız yeni bir hedef liste okumasıyla çözülür', async () => {
+  const existing = table('existing', 'Mevcut tablo')
+  let reads = 0
+  let writes = 0
+  let holdReads = false
+  let release: (() => void) | undefined
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http.get(normalList, async ({ request }) => {
+      if (new URL(request.url).searchParams.has('template'))
+        return HttpResponse.json({ items: [firstTemplate] })
+      reads++
+      if (holdReads) await held
+      return HttpResponse.json({ items: [existing] })
+    }),
+    http.get(normalList + '/existing', () =>
+      HttpResponse.json({ table: existing, rows: [], cells: [], columns: [] }),
+    ),
+    http.post(personalCopy, () => {
+      writes++
+      return HttpResponse.error()
+    }),
+  )
+  const { wrapper, router } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(labeledButton(wrapper, 'Aynı isteği gönder')).toBeDefined())
+  await router.push('/tablolar/existing')
+  holdReads = true
+  await router.push('/tablolar')
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Önceki oluşturmanın sonucu belirsiz'))
+  expect(wrapper.get('#tables-blank-trigger').attributes()).toHaveProperty('disabled')
+  expect(wrapper.get('#tables-template-tpl-1').attributes()).toHaveProperty('disabled')
+  expect(wrapper.find('#tables-create-trigger').exists()).toBe(false)
+  const previousReads = reads
+  await labeledButton(wrapper, 'Listeyi yenile')!.trigger('click')
+  await vi.waitFor(() => expect(reads).toBeGreaterThan(previousReads))
+  expect(wrapper.get('#tables-template-tpl-1').attributes()).toHaveProperty('disabled')
+  release?.()
+  await vi.waitFor(() =>
+    expect(wrapper.get('#tables-template-tpl-1').attributes()).not.toHaveProperty('disabled'),
+  )
+  expect(writes).toBe(1)
+})
+
+it('sonuç başarıyla kaydedilip detay gezinmesi engellenince aynı formdan ikinci yazma açılamaz', async () => {
+  let writes = 0
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items: new URL(request.url).searchParams.has('template') ? [firstTemplate] : [],
+      }),
+    ),
+    http.post(personalCopy, () => {
+      writes++
+      return HttpResponse.json({ table_id: 'new' }, { status: 201 })
+    }),
+  )
+  const { wrapper, router } = await render()
+  router.beforeEach((route) => (route.name === 'tables.detail' ? false : true))
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(wrapper.find('form').exists()).toBe(false))
+  expect(router.currentRoute.value.path).toBe('/tablolar')
+  expect(writes).toBe(1)
+})
+
+it('eksik sayfalı şablon sonucu kesin boş mesajı üretmez', async () => {
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items: [],
+        next_cursor: new URL(request.url).searchParams.has('template')
+          ? 'next-template'
+          : 'next-list',
+      }),
+    ),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Yüklenen sayfalarda şablon yok.'))
+  expect(wrapper.text()).toContain('Yüklenen tablolarda eşleşme yok')
+  expect(labeledButton(wrapper, 'Daha fazla şablon')).toBeDefined()
+  expect(labeledButton(wrapper, 'Daha fazla tablo')).toBeDefined()
+})
+
+it.each([
+  { status: 422, code: 'tables.input_invalid', expected: 'Girilen bilgiler geçersiz.' },
+  { status: 429, code: 'platform.rate_limited', expected: '4 saniye' },
+])('kopya $status sonucunda sözleşme mesajı gösterilir', async ({ status, code, expected }) => {
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items: new URL(request.url).searchParams.has('template') ? [firstTemplate] : [],
+      }),
+    ),
+    http.post(personalCopy, () =>
+      HttpResponse.json(
+        { code },
+        {
+          status,
+          headers: { 'Retry-After': '4' },
+        },
+      ),
+    ),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(wrapper.get('form').text()).toContain(expected))
 })

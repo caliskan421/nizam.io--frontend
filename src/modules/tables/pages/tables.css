@@ -223,3 +223,104 @@
 .tables-cell-button:hover {
   color: var(--accent-text);
 }
+
+.tables-catalog-section,
+.tables-card-details {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.tables-catalog-section h2 {
+  margin: 0;
+  color: var(--ink-muted);
+  font: var(--text-label);
+  text-transform: uppercase;
+}
+
+.tables-catalog-controls {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.tables-catalog-controls label {
+  flex: 1 1 calc(var(--space-12) * 5);
+  max-width: calc(var(--space-12) * 7);
+}
+
+.tables-segment button {
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--ink-muted);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tables-segment button[aria-pressed='true'] {
+  color: var(--accent-text);
+  background: var(--bg-overlay);
+}
+
+.tables-templates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--space-12) * 5)), 1fr));
+  gap: var(--space-3);
+}
+
+.tables-template {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  min-width: 0;
+  color: var(--ink);
+  text-align: start;
+  overflow-wrap: anywhere;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tables-template:disabled,
+.tables-segment button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.tables-template:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.tables-template-icon,
+.tables-card-icon {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-xs);
+  background: var(--bg-raised);
+  color: var(--ink-muted);
+}
+
+.tables-template-icon {
+  flex: 0 0 var(--control-sm);
+  height: var(--control-sm);
+}
+
+.tables-template-icon--blank {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tables-template small {
+  display: block;
+  color: var(--ink-muted);
+  font: var(--text-caption);
+}
+
+.tables-card-icon {
+  width: var(--control-sm);
+  height: var(--control-sm);
+}
