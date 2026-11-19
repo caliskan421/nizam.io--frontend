@@ -7,6 +7,7 @@ import { UiButton } from '@/shared/ui'
 
 import { useCreateTable } from '../api/tables'
 import type { TableResult, TableTarget } from '../model/types'
+import { validTableName } from '../model/structure'
 
 const props = defineProps<{ target: TableTarget }>()
 const emit = defineEmits<{ cancel: []; created: [tableId: string] }>()
@@ -53,7 +54,7 @@ async function run(send: () => Promise<Result>) {
 async function submit() {
   if (uncertain.value || busy.value) return
   const title = name.value.trim()
-  if (!title || [...title].length > 200 || /[\u0000\r\n]/u.test(title)) {
+  if (!validTableName(title)) {
     formError.value = '1–200 karakterlik bir tablo adı girin.'
     return
   }

@@ -123,15 +123,13 @@
 }
 
 .tables-grid table {
-  width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 }
 
 .tables-grid th,
 .tables-grid td {
   padding: var(--space-2) var(--space-3);
-  min-width: calc(var(--space-16) + var(--space-12));
-  max-width: calc(var(--space-12) * 6 + var(--space-3));
   border-inline-end: var(--ui-hairline) solid var(--border-subtle);
   border-block-end: var(--ui-hairline) solid var(--border-subtle);
   text-align: start;
@@ -165,4 +163,63 @@
   .tables-page {
     padding: var(--space-5);
   }
+}
+
+.tables-fields {
+  display: grid;
+  min-inline-size: 0;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.tables-create .tables-textarea {
+  min-block-size: var(--space-16);
+  padding-block: var(--space-2);
+  resize: vertical;
+}
+
+.tables-notice {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border-inline-start: var(--space-1) solid var(--gold);
+  background: var(--bg-raised);
+  border-radius: var(--radius-xs);
+  overflow-wrap: anywhere;
+}
+
+.tables-notice p {
+  margin: 0;
+}
+
+.tables-row-track {
+  width: var(--space-10);
+}
+
+.tables-grid .tables-row-number,
+.tables-grid thead th:first-child {
+  padding-inline: var(--space-1);
+  text-align: center;
+}
+
+.tables-cell-button {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-sm);
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: start;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  font: var(--text-body);
+}
+
+.tables-cell-button:hover {
+  color: var(--accent-text);
 }

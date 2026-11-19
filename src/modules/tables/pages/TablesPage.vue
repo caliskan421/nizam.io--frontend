@@ -3,16 +3,15 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { ApiError } from '@/shared/errors/api-error'
-import { usePageCrumb } from '@/shared/navigation/page-crumb'
 import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { useSessionStore } from '@/shared/session/store'
 import { UiButton, UiEmptyState, UiErrorState, UiIcon } from '@/shared/ui'
 
-import { useTable, useTables } from '../api/tables'
+import { useTables } from '../api/tables'
 import CreateTableForm from '../components/CreateTableForm.vue'
 import type { TableTarget } from '../model/types'
-import TableGrid from '../components/TableGrid.vue'
+import TablesDetail from './TablesDetail.vue'
 import { TABLE_ROUTE, TABLES_ROUTE } from '../routes'
 
 import './tables.css'
@@ -41,23 +40,12 @@ watch(
   { flush: 'sync' },
 )
 
-const rowsCursor = ref<string | null>(null)
-const previousCursors = ref<Array<string | null>>([])
 const isList = computed(() => tableId.value === null)
 const list = useTables(target, isList)
-const detail = useTable(target, tableId, rowsCursor)
 const listError = computed(() => (list.error.value instanceof ApiError ? list.error.value : null))
-const detailError = computed(() =>
-  detail.error.value instanceof ApiError ? detail.error.value : null,
-)
-const safeDetail = computed(
-  () => detailError.value?.status === 403 || detailError.value?.status === 404,
-)
 const listItems = computed(() => list.data.value?.pages.flatMap((page) => page.items) ?? [])
-const snapshot = computed(() => (detail.error.value ? undefined : detail.data.value))
-usePageCrumb(() => snapshot.value?.table.name ?? null)
-
 const formOpen = ref(false)
+const editorGeneration = ref(0)
 
 watch(
   () => [
@@ -69,9 +57,8 @@ watch(
     session.accountId,
   ],
   () => {
-    rowsCursor.value = null
-    previousCursors.value = []
     formOpen.value = false
+    editorGeneration.value += 1
   },
   { flush: 'sync' },
 )
@@ -90,31 +77,19 @@ function openTable(tableId: string) {
   if (formOpen.value)
     void router.push({ name: TABLE_ROUTE.name, params: { tableId }, query: routeQuery.value })
 }
-
-function nextRows() {
-  const next = snapshot.value?.next_cursor
-  if (!next || next === rowsCursor.value) return
-  previousCursors.value = [...previousCursors.value, rowsCursor.value]
-  rowsCursor.value = next
-}
-function previousRows() {
-  if (!previousCursors.value.length) return
-  rowsCursor.value = previousCursors.value.at(-1) ?? null
-  previousCursors.value = previousCursors.value.slice(0, -1)
-}
 </script>
 
 <template>
   <section class="tables-page" aria-labelledby="tables-title">
-    <header class="tables-head">
+    <header v-if="isList || !target || (unit && departments.isError.value)" class="tables-head">
       <div>
         <RouterLink
-          v-if="tableId"
+          v-if="!isList"
           class="tables-link"
           :to="{ name: TABLES_ROUTE.name, query: routeQuery }"
           >← Tablolar</RouterLink
         >
-        <h1 id="tables-title">{{ tableId ? (snapshot?.table.name ?? 'Tablo') : 'Tablolar' }}</h1>
+        <h1 id="tables-title">{{ isList ? 'Tablolar' : 'Tablo' }}</h1>
       </div>
       <UiButton
         v-if="isList && target && list.isSuccess.value && !formOpen"
@@ -215,35 +190,13 @@ function previousRows() {
       >
     </template>
 
-    <template v-else>
-      <p v-if="detail.isPending.value" class="tables-empty" role="status">Tablo yükleniyor…</p>
-      <UiEmptyState
-        v-else-if="safeDetail"
-        title="Tablo açılamadı"
-        text="Bu tablo artık burada olmayabilir veya erişiminiz değişmiş olabilir."
-        icon="sheets"
-      />
-      <UiErrorState
-        v-else-if="detailError"
-        title="Tablo yüklenemedi"
-        :error="detailError"
-        retryable
-        :retrying="detail.isFetching.value"
-        @retry="detail.refetch()"
-      />
-      <TableGrid v-else-if="snapshot" :snapshot="snapshot" />
-      <div v-if="snapshot?.next_cursor || previousCursors.length" class="tables-actions">
-        <UiButton v-if="previousCursors.length" size="sm" @click="previousRows"
-          >Önceki satırlar</UiButton
-        >
-        <UiButton
-          v-if="snapshot?.next_cursor"
-          size="sm"
-          :disabled="detail.isFetching.value"
-          @click="nextRows"
-          >Sonraki satırlar</UiButton
-        >
-      </div>
-    </template>
+    <TablesDetail
+      v-else-if="tableId"
+      :key="editorGeneration"
+      :table-id="tableId"
+      :target="target"
+      :account-id="session.accountId"
+      :unit="unit"
+    />
   </section>
 </template>
