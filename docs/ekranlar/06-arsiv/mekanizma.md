@@ -96,7 +96,7 @@ Tasarımda yalnız **boş klasör kartı** (E-06-15: soluk, "Henüz dosya yok", 
 - Boş arşiv (hiç dosya yok): tasarımda yok — Varsayım: klasör kartları boş halleriyle + depolama "0 B · 0 dosya".
 - Boş klasör (07, hiç dosya yok): tasarımda yok — görev klasörleri ve dosya ızgarası yerine boş metin; önizleme gizli.
 - Süzgeç/arama sonuçsuz: tasarımda yok.
-- Önizlenemeyen dosya (DOC/PDF, küçük resim yok): tasarımda yok — tür rozeti + tarama deseni (BE-026).
+- Dosya kartı: görünür PNG, JPEG ve PDF için JPEG küçük resmi; türev alınamazsa tür rozeti ve tarama deseni. Seçili dosya panelinde mevcut raster önizleme davranışı sürer. [BE-026](../../backend-eksikleri/kayit.md).
 - K7: "program yok", "departman ataması bekleniyor" (`membership_required`), "programa departman katılmamış" — kabuk düzeyinde (`00-ortak`).
 - Hata: liste yüklenemedi → bölüm içinde tekrar dene; 403/404 → K6; 429 → `Retry-After` metni.
 

@@ -1,5 +1,9 @@
 # 06 — Backend eşlemesi (nereden geliyor)
 
+## F15 kart küçük resmi — v0.28.0-api
+
+E-06-41/42, S3 `GET /v1/files/{id}/thumbnail` (`getFileThumbnail`) üzerinden JPEG türevi okur. İstek Bearer ile klasörün program kapsamını ve dosya kaydının departmanını taşır. PNG, JPEG ve PDF desteklenir. 404 veya 422 tür rozetine döner, 429 bekleme süresini bildirir. JPEG tarayıcı önbelleğine yazılmaz. E-06-49 raster panel okuması `downloadFile` ile sürer. E-06-50 tam ekran aracı devre dışıdır. Bu ayrım aşağıdaki tarihsel BE-026 uç tablosunu günceller.
+
 ## F12 yetkili güncelleme — v0.28.0-api
 
 Aşağıdaki F5/F8/F10 tarihsel yokluk notlarının yerine bu bölüm geçer: `ArchiveFolderTotals.by_type` (`pdf,image,document,spreadsheet,presentation,other`) ve `by_tag` (`ister,plan,girdi,analiz,cikti,sonuc`) RECORDS-K51 ile canlıdır. Her eksenin adet/bayt toplamı rolün görebildiği totals kümesine eşittir; bayt azalan, eşitlikte anahtar sözlük sırası sunucuda belirlenir. Mevcut06 yönetici kartında doğrudan kullanılır; istemci MIME filtresinden veya sayfalanmış dosyalardan toplam türetmez. S2 yönetici okuması ve K/Ü P40 yönlendirmesi korunur. `last_uploaded_at` bir olay günlüğü olmaz; BE025 şemsiye açık/kısmidir.

@@ -9,6 +9,7 @@ import {
   collectSources,
   KNOWN_STATUSES,
   parseRegistry,
+  scanSource,
   statusOf,
   stubRejection,
   stripComments,
@@ -85,6 +86,19 @@ describe('kod ↔ kayıt (yeşil)', () => {
     const problems = checkDesignStubs(readFileSync(REGISTRY_PATH, 'utf8'), collectSources('.'))
     expect(problems).toEqual([])
   })
+})
+
+it('BE-026 runtime stub yalnız tam ekran denetiminde kalır', () => {
+  const uses = collectSources('.')
+    .filter((file) => !file.path.endsWith('.test.ts'))
+    .flatMap((file) => scanSource(file).uses)
+    .filter((use) => use.id === 'BE-026')
+    .map((use) => use.file)
+    .sort()
+  expect(uses).toEqual([
+    'src/modules/archive/components/preview/PreviewArea.vue',
+    'src/modules/archive/model/stubs.ts',
+  ])
 })
 
 describe('kod ↔ kayıt (kırmızı)', () => {

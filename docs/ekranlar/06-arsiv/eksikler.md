@@ -1,5 +1,7 @@
 # 06 — Backend eksikleri (ne yok)
 
+**F15:** BE-026 kapsamında E-06-41/42 kart küçük resmi çalışır. Seçili dosyanın E-06-49 raster önizlemesi sürer. E-06-50 tam ekran aracı açık kalan parçadır. [Güncel uç eşlemesi](backend.md#f15-kart-küçük-resmi--v0280-api).
+
 **F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
 
 Her satır bir tasarım öğesidir; backend'de karşılığı yoksa burada durur. Kimlik verme ve `../../backend-eksikleri/kayit.md`'ye taşıma **koordinatöre** aittir; burada mevcut BE-NNN'ye bağlanır ya da `yeni-N` geçici adı kullanılır.
