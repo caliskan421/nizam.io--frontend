@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import './preview.css'
 
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { DesignStub, UiButton, UiIcon, UiIconButton } from '@/shared/ui'
 
 import { useFilePreview } from '../../api/preview'
-import { canPreview, isPreviewableImage } from '../../model/mime'
+import { useFileThumbnail } from '../../api/thumbnails'
+import { canPreview, isPdf, isPreviewableImage } from '../../model/mime'
 import { FULLSCREEN_PREVIEW } from '../../model/stubs'
 import type { ArchiveFile, ArchiveTarget } from '../../model/types'
 import { previewText } from './messages'
 
 /**
  * W124 · E-06-49/50 — önizleme alanı: raster görsel (≤ 20 MiB) için `blob:` URL'si (aynı
- * kökenden `Authorization`'lı okuma; HTML/SVG/PDF gömülmez), diğer türlerde nötr tür simgesi;
- * yükleniyor / hata (yeniden dene) durumları; tam ekran devre dışı (designStub BE-026).
+ * kökenden `Authorization`'lı okuma). PDF ilk sayfanın JPEG türeviyle gösterilir.
+ * Türev yoksa nötr tür rozeti kullanılır. Tam ekran devre dışı (designStub BE-026).
  */
 const props = defineProps<{ file: ArchiveFile; target: ArchiveTarget; typeName: string }>()
 
@@ -22,11 +23,26 @@ const preview = useFilePreview(
   () => props.target,
   () => props.file,
 )
+const pdf = computed(() => isPdf(props.file.content_type))
+const thumbnail = useFileThumbnail(
+  () => props.target,
+  () => (pdf.value ? props.file.file_id : null),
+)
+const thumbnailFailed = ref(false)
+watch(thumbnail.url, () => {
+  thumbnailFailed.value = false
+})
+
+const image = computed(() => (pdf.value ? thumbnail.url.value : preview.url.value))
 const eligible = computed(() => canPreview(props.file))
 const raster = computed(() => isPreviewableImage(props.file.content_type))
 const previewState = computed<'image' | 'loading' | 'failed' | 'none'>(() => {
+  if (pdf.value) {
+    if (image.value && !thumbnailFailed.value) return 'image'
+    return thumbnail.loading.value ? 'loading' : 'none'
+  }
   if (!eligible.value) return 'none'
-  if (preview.url.value) return 'image'
+  if (image.value) return 'image'
   if (preview.query.isError.value) return 'failed'
   return 'loading'
 })
@@ -42,9 +58,14 @@ const noneText = computed(() =>
     <img
       v-if="previewState === 'image'"
       class="fp-area__img"
-      :src="preview.url.value ?? undefined"
-      :alt="previewText('archive.preview.image', { name: file.display_name })"
+      :src="image ?? undefined"
+      :alt="
+        previewText(pdf ? 'archive.preview.pdfFirstPage' : 'archive.preview.image', {
+          name: file.display_name,
+        })
+      "
       data-testid="preview-image"
+      @error="thumbnailFailed = pdf"
     />
     <div
       v-else

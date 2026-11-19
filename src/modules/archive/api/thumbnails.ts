@@ -13,8 +13,8 @@ import type { ThumbnailQueue } from '../model/thumbnail-queue'
 
 export function useFileThumbnail(
   target: () => ArchiveTarget,
-  fileId: () => string,
-  enqueue: ThumbnailQueue,
+  fileId: () => string | null,
+  enqueue?: ThumbnailQueue,
 ) {
   const store = useScopeStore()
   const query = useQuery(
@@ -22,23 +22,26 @@ export function useFileThumbnail(
       const scope = store.snapshot
       const resolved = target()
       const id = fileId()
-      const read = sessionBound(({ signal }: QueryFunctionContext) =>
-        unwrap(
+      const read = sessionBound(async ({ signal }: QueryFunctionContext) => {
+        if (id === null) return null
+        return unwrap(
           api.GET('/v1/files/{id}/thumbnail', {
             params: { header: scopeHeaders(resolved), path: { id } },
             parseAs: 'blob',
             signal,
             cache: 'no-store',
           }),
-        ),
-      )
+        )
+      })
       return {
-        queryKey: queryKeys.archive.thumbnail(keyScope(scope, resolved), id),
-        enabled: scope.programId === resolved.programId,
+        queryKey: queryKeys.archive.thumbnail(keyScope(scope, resolved), id ?? ''),
+        enabled: id !== null && scope.programId === resolved.programId,
         // Oturum damgası hem kuyruğa girişte hem gerçek ağ isteği öncesinde denetlenir.
-        queryFn: sessionBound((context: QueryFunctionContext) =>
-          enqueue(context.signal, () => read(context)),
-        ),
+        queryFn: enqueue
+          ? sessionBound((context: QueryFunctionContext) =>
+              enqueue(context.signal, () => read(context)),
+            )
+          : read,
         gcTime: 0,
         staleTime: Infinity,
         retry: false,
@@ -62,5 +65,5 @@ export function useFileThumbnail(
     },
     { immediate: true, flush: 'sync' },
   )
-  return url
+  return { url, loading: query.isLoading }
 }

@@ -50,13 +50,19 @@ const PREVIEW_IMAGE_TYPES: ReadonlySet<string> = new Set([
 ])
 
 export function isPreviewableImage(contentType: string): boolean {
-  return PREVIEW_IMAGE_TYPES.has(contentType.toLowerCase().split(';')[0]!.trim())
+  return PREVIEW_IMAGE_TYPES.has(baseMimeType(contentType))
 }
 
-const THUMBNAIL_TYPES: ReadonlySet<string> = new Set(['image/jpeg', 'image/png', 'application/pdf'])
+function baseMimeType(contentType: string): string {
+  return contentType.toLowerCase().split(';')[0]!.trim()
+}
+
+export function isPdf(contentType: string): boolean {
+  return baseMimeType(contentType) === 'application/pdf'
+}
 
 export function canThumbnail(contentType: string): boolean {
-  return THUMBNAIL_TYPES.has(contentType.toLowerCase().split(';')[0]!.trim())
+  return ['image/jpeg', 'image/png', 'application/pdf'].includes(baseMimeType(contentType))
 }
 
 const UNITS = ['B', 'KB', 'MB', 'GB'] as const

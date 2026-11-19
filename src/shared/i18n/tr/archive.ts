@@ -214,6 +214,7 @@ export const trArchive = {
       tooLarge: 'Dosya önizleme için çok büyük.',
       fullscreen: 'Tam ekran aç',
       image: '{name} önizlemesi',
+      pdfFirstPage: '{name} ilk sayfa önizlemesi',
       typeAndSize: '{type} · {size}',
       task: 'Görev',
       subtask: 'Alt görev',

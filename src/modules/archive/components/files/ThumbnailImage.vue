@@ -6,7 +6,7 @@ import { useFileThumbnail } from '../../api/thumbnails'
 import type { ArchiveTarget } from '../../model/types'
 
 const props = defineProps<{ target: ArchiveTarget; fileId: string; enqueue: ThumbnailQueue }>()
-const url = useFileThumbnail(
+const { url } = useFileThumbnail(
   () => props.target,
   () => props.fileId,
   props.enqueue,

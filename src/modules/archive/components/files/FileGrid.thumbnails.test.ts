@@ -15,6 +15,7 @@ import {
   s3Requests,
   server,
 } from '../../model/__tests__/harness'
+import PreviewArea from '../preview/PreviewArea.vue'
 import FileGrid from './FileGrid.vue'
 import { BASE, file } from './files.fixtures'
 
@@ -115,6 +116,34 @@ describe('Arşiv kartı küçük resimleri', () => {
     expect(wrapper.find('img').exists()).toBe(false)
     expect(revoked).toHaveBeenCalledWith('blob:small')
     await vi.waitFor(() => expect(queryClient.getQueryCache().getAll()).toHaveLength(0))
+  })
+
+  it('kart ve seçili PDF paneli aynı kapsamlı türev okumasını paylaşır', async () => {
+    server.use(
+      http.get(`${ORIGIN}/v1/files/pdf/thumbnail`, () =>
+        HttpResponse.arrayBuffer(new Uint8Array([255, 216, 255, 217]).buffer, {
+          headers: { 'Content-Type': 'image/jpeg' },
+        }),
+      ),
+    )
+    const { queryClient, wrapper } = setupGrid()
+    await visibility(wrapper, 'pdf', true)
+    await settleQueries(queryClient)
+    const panel = mount(PreviewArea, {
+      props: {
+        file: file({ file_id: 'pdf', department_id: 'd9' }),
+        target: { programId: 'p1', departmentId: 'd9' },
+        typeName: 'PDF',
+      },
+      global: { plugins: [[VueQueryPlugin, { queryClient }]] },
+    })
+    mounted.push(() => panel.unmount())
+    await settleQueries(queryClient)
+
+    expect(panel.get('img').attributes('src')).toBe('blob:small')
+    expect(s3Requests()).toHaveLength(1)
+    await visibility(wrapper, 'pdf', false)
+    expect(panel.find('img').exists()).toBe(true)
   })
 
   it('kart ekrandan çıktığında bekleyen ağ isteğini keser', async () => {

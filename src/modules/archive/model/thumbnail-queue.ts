@@ -13,7 +13,10 @@ export function createThumbnailQueue() {
     while (running < CONCURRENCY && pending.length > 0) pending.shift()?.()
   }
 
-  return function load(signal: AbortSignal, fetchImage: () => Promise<Blob>): Promise<Blob | null> {
+  return function load(
+    signal: AbortSignal,
+    fetchImage: () => Promise<Blob | null>,
+  ): Promise<Blob | null> {
     return new Promise((resolve, reject) => {
       pending.push(() => {
         if (signal.aborted || Date.now() < pausedUntil) return resolve(null)
