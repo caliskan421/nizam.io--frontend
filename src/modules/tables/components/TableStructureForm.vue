@@ -6,6 +6,7 @@ import { UiButton } from '@/shared/ui'
 import { useTableOperation } from '../composables/use-table-operation'
 import { CELL_TYPES, isBasicCell, type BasicCellType } from '../model/cell-value'
 import {
+  describeRows,
   needsConfirmation,
   STRUCTURE_LABELS,
   structureCommand,
@@ -20,7 +21,6 @@ import {
 } from '../model/structure'
 import type { TableSnapshot, TableTarget, TableWrite } from '../model/types'
 import TableOperationNotice from './TableOperationNotice.vue'
-
 const props = defineProps<{
   target: TableTarget
   snapshot: TableSnapshot
@@ -56,12 +56,7 @@ const columns = computed(() =>
     ? props.snapshot.columns.filter((column) => isBasicCell(column.type))
     : props.snapshot.columns,
 )
-const rows = computed(() =>
-  props.snapshot.rows.map((row, index) => ({
-    id: row.id,
-    name: `Bu görünümdeki ${index + 1}. satır`,
-  })),
-)
+const rows = computed(() => describeRows(props.snapshot))
 const targets = computed(() => (usesColumn(draft.kind) ? columns.value : rows.value))
 const destinationTypes = computed<readonly BasicCellType[]>(() => {
   const basic = Object.keys(CELL_TYPES) as BasicCellType[]
@@ -83,12 +78,13 @@ const valid = computed(() => {
       (Number.isSafeInteger(baseline.value) && baseline.value > 0))
   )
 })
-const { busy, message, conflict, uncertain, retry, reset, run, reload } = useTableOperation({
-  scope: () => props.target,
-  denied: () => emit('locked'),
-  success: () => emit('saved', draft.kind),
-  reload: props.reload,
-})
+const { busy, canClose, message, conflict, uncertain, retry, reset, run, reload } =
+  useTableOperation({
+    scope: () => props.target,
+    denied: () => emit('locked'),
+    success: () => emit('saved', draft.kind),
+    reload: props.reload,
+  })
 
 onMounted(() => firstField.value?.focus())
 watch(
@@ -120,12 +116,18 @@ watch(
 watch(draft, () => {
   confirm.value = false
 })
+watch(
+  () => JSON.stringify(rows.value),
+  () => {
+    if (usesRow(draft.kind)) confirm.value = false
+  },
+)
 const confirmationText = computed(() => {
   switch (draft.kind) {
     case 'delete_table':
       return 'Tablo listeden kalkar ve paylaşılan bağlantıları artık açılmaz.'
     case 'delete_row':
-      return 'Satır, hücreleri ve satıra bağlı yorumları kaldırılır.'
+      return `${rows.value.find((row) => row.id === draft.id)?.name ?? 'Seçili satır'} silinecek. Hücreleri ve satıra bağlı yorumları kaldırılır.`
     case 'delete_column':
       return 'Sütunun hücreleri ve hücre yorumları kaldırılır.'
     default:
@@ -169,7 +171,7 @@ function sendAgain() {
   <form
     class="t-card tables-create"
     @submit.prevent="submit"
-    @keydown.esc.prevent="!busy && $emit('close')"
+    @keydown.esc.prevent="canClose && $emit('close')"
   >
     <h2>Tabloyu düzenle</h2>
     <fieldset class="tables-fields" :disabled="busy || conflict || uncertain">
@@ -235,7 +237,7 @@ function sendAgain() {
       @retry="sendAgain"
     />
     <div class="tables-actions">
-      <UiButton variant="ghost" :disabled="busy" @click="$emit('close')">Kapat</UiButton>
+      <UiButton variant="ghost" :disabled="!canClose" @click="$emit('close')">Kapat</UiButton>
       <UiButton
         :variant="confirm && draft.kind.startsWith('delete_') ? 'danger' : 'primary'"
         type="submit"

@@ -1,5 +1,5 @@
 import type { TableCommand, TableSnapshot } from './types'
-import type { BasicCellType } from './cell-value'
+import { cellText, isBasicCell, type BasicCellType } from './cell-value'
 
 export const STRUCTURE_LABELS = {
   add_row: 'Satır ekle',
@@ -47,6 +47,26 @@ export const usesName = (kind: StructureKind) =>
   kind === 'rename_table' || kind === 'add_column' || kind === 'rename_column'
 export const usesWidth = (kind: StructureKind) => kind === 'add_column' || kind === 'resize_column'
 export const usesOrder = (kind: StructureKind) => kind === 'move_row' || kind === 'move_column'
+
+export function describeRows(snapshot: TableSnapshot) {
+  const first = snapshot.columns.find((column) => isBasicCell(column.type))
+  const values = new Map(
+    snapshot.cells
+      .filter(
+        (cell) =>
+          first?.id === cell.column_id &&
+          !cell.redacted &&
+          cell.value !== null &&
+          !Array.isArray(cell.value),
+      )
+      .map((cell) => [cell.row_id, [...cellText(cell.value)].slice(0, 60).join('')]),
+  )
+  return snapshot.rows.map((row, index) => {
+    const label = values.get(row.id)
+    const prefix = `Bu görünümdeki ${index + 1}. satır`
+    return { id: row.id, name: label ? `${prefix} · ${label}` : prefix }
+  })
+}
 
 export function validTableName(raw: string) {
   const name = raw.trim()

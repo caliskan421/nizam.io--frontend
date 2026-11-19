@@ -43,7 +43,7 @@ async function render(accountId = 'owner', departmentId: string | null = null) {
   })
   mounted.push({ wrapper, client })
   await vi.waitFor(() => expect(wrapper.get('h1').text()).toBe('Vardiya'))
-  return { router, wrapper }
+  return { client, router, wrapper }
 }
 
 const button = (wrapper: VueWrapper, label: string) =>
@@ -288,4 +288,74 @@ it('kayıplı dönüşümde sadece sunucunun hücre sayısını gösterir, dön�
   await vi.waitFor(() => expect(wrapper.text()).toContain('2 hücre yeni tipe dönüştürülemedi'))
   expect(sends).toBe(1)
   expect(wrapper.text()).toContain('Hazır değil')
+})
+
+it('sonucu belirsiz satır ekleme tekrarı çakıştığında aynı anahtarı korur ve yeni eylemi kilitler', async () => {
+  const writes: Array<{ key: string | null; body: unknown }> = []
+  server.use(
+    http.get(endpoint, () => snapshot()),
+    http.post(endpoint + '/operations', async ({ request }) => {
+      writes.push({ key: request.headers.get('Idempotency-Key'), body: await request.json() })
+      return writes.length === 1
+        ? HttpResponse.error()
+        : conflictResponse('platform.conflict_retry')
+    }),
+  )
+  const { wrapper } = await render()
+  await button(wrapper, 'Satır ekle').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(button(wrapper, 'Aynı isteği gönder')).toBeDefined())
+  await button(wrapper, 'Aynı isteği gönder').trigger('click')
+  await vi.waitFor(() => expect(writes).toHaveLength(3))
+  await vi.waitFor(() => expect(button(wrapper, 'Aynı isteği gönder')).toBeUndefined())
+  expect(writes[0]).toEqual(writes[1])
+  expect(writes[1]).toEqual(writes[2])
+  expect(wrapper.text()).toContain('İlk isteğin sonucu doğrulanamadı.')
+  expect(wrapper.get('form button[type="submit"]').attributes()).toHaveProperty('disabled')
+  expect(button(wrapper, 'Kapat').attributes()).toHaveProperty('disabled')
+  await wrapper.get('form').trigger('submit')
+  expect(writes).toHaveLength(3)
+  await button(wrapper, 'Güncel tabloyu oku').trigger('click')
+  await vi.waitFor(() =>
+    expect(button(wrapper, 'Kapat').attributes()).not.toHaveProperty('disabled'),
+  )
+  expect(wrapper.get('form button[type="submit"]').attributes()).toHaveProperty('disabled')
+})
+
+it('yarım tarih girdisini boş hücre olarak kaydetmez', async () => {
+  const dateColumn = { ...column, type: 'date' }
+  const post = vi.fn(() => writeResult())
+  server.use(
+    http.get(endpoint, () => snapshot([dateColumn], [row], 1, '"2026-11-19"', 1)),
+    http.post(endpoint + '/operations', post),
+  )
+  const { wrapper } = await render()
+  await wrapper.get('.tables-cell-button').trigger('click')
+  const date = wrapper.get<HTMLInputElement>('#table-cell-draft')
+  await date.setValue('')
+  Object.defineProperty(date.element.validity, 'badInput', { configurable: true, value: true })
+  await wrapper.get('form').trigger('submit')
+  expect(wrapper.text()).toContain('Tarihi tamamlayın')
+  expect(post).not.toHaveBeenCalled()
+})
+
+it('satırlar yeniden sıralanınca açık silme onayını düşürür ve seçili kaydın yeni etiketini gösterir', async () => {
+  let rows = [row, { id: 'r2', position: 2 }]
+  const post = vi.fn(() => writeResult())
+  server.use(
+    http.get(endpoint, () => snapshot([column], rows, 1, '15.42', 1)),
+    http.post(endpoint + '/operations', post),
+  )
+  const { client, wrapper } = await render()
+  await button(wrapper, 'Tabloyu düzenle').trigger('click')
+  await wrapper.get('select').setValue('delete_row')
+  await wrapper.findAll('select')[1]!.setValue('r1')
+  await wrapper.get('form').trigger('submit')
+  expect(wrapper.text()).toContain('1. satır · 15.42 silinecek')
+  rows = [...rows].reverse()
+  await client.invalidateQueries()
+  await vi.waitFor(() => expect(button(wrapper, 'Onayla')).toBeUndefined())
+  await wrapper.get('form').trigger('submit')
+  expect(wrapper.text()).toContain('2. satır · 15.42 silinecek')
+  expect(post).not.toHaveBeenCalled()
 })

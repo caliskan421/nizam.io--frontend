@@ -29,6 +29,7 @@ const unavailable = computed(
 )
 const pending = shallowRef<TableWrite | null>(null)
 const inputId = 'table-cell-draft'
+const valueInput = ref<HTMLInputElement | null>(null)
 const inputType = computed(() => {
   const kind = props.column.type
   if (kind === 'phone') return 'tel'
@@ -36,7 +37,7 @@ const inputType = computed(() => {
 })
 
 onMounted(() => document.getElementById(inputId)?.focus())
-const { busy, message, conflict, uncertain, retry, reload, run } = useTableOperation({
+const { busy, canClose, message, conflict, uncertain, retry, reload, run } = useTableOperation({
   scope: () => props.target,
   denied: () => emit('locked'),
   success: () => emit('saved'),
@@ -63,6 +64,10 @@ async function submit() {
     return
   if (!Number.isSafeInteger(baseline.value)) {
     invalid.value = 'Bu hücrenin sürümü güvenli biçimde düzenlenemiyor.'
+    return
+  }
+  if (type === 'date' && valueInput.value?.validity.badInput) {
+    invalid.value = 'Tarihi tamamlayın veya alanı tamamen temizleyin.'
     return
   }
   const input = cellInput(type, raw.value)
@@ -99,7 +104,7 @@ function sendAgain() {
   <form
     class="t-card tables-create"
     @submit.prevent="submit"
-    @keydown.esc.prevent="!busy && $emit('close')"
+    @keydown.esc.prevent="canClose && $emit('close')"
   >
     <h2>{{ column.name }} · Hücreyi düzenle</h2>
     <p v-if="unavailable" class="tables-notice" role="status">
@@ -132,6 +137,7 @@ function sendAgain() {
       <input
         v-else
         :id="inputId"
+        ref="valueInput"
         v-model="raw"
         class="t-input"
         :type="inputType"
@@ -150,7 +156,7 @@ function sendAgain() {
       @retry="sendAgain"
     />
     <div class="tables-actions">
-      <UiButton variant="ghost" :disabled="busy" @click="$emit('close')">{{
+      <UiButton variant="ghost" :disabled="!canClose" @click="$emit('close')">{{
         comparison !== null ? 'Güncel değeri kullan' : 'Kapat'
       }}</UiButton>
       <UiButton
