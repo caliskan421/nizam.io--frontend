@@ -234,6 +234,8 @@ export const queryKeys = {
     task: (s: ScopeSnapshot, id: string) => scoped(s, ['report', 'task', id]),
   },
   archive: {
+    // Kartın ömrüne bağlı blob; metaveri yazmaları görseli yeniden indirmez.
+    thumbnail: (s: ScopeSnapshot, id: string) => scoped(s, ['archive-thumbnail', id]),
     all: (s: ScopeSnapshot) => scoped(s, ['archive']),
     list: (s: ScopeSnapshot, facet: ArchiveFacet, filters: QueryFilters) =>
       scoped(s, ['archive', facet, filters]),

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { CREATE_TAG, THUMBNAIL } from './stubs'
+import { CREATE_TAG, FULLSCREEN_PREVIEW } from './stubs'
 
 const REGISTRY = readFileSync('docs/backend-eksikleri/kayit.md', 'utf8')
 const source = readFileSync('src/modules/archive/model/stubs.ts', 'utf8')
@@ -21,6 +21,6 @@ describe('arşiv designStub olguları', () => {
 
   it('olgular yalnız "kullanılabilir değil" bilgisidir; sahte sayı/tarih/kişi taşımaz', () => {
     expect(CREATE_TAG).toEqual({ available: false })
-    expect(THUMBNAIL).toEqual({ grid: false, fullscreen: false })
+    expect(FULLSCREEN_PREVIEW).toEqual({ available: false })
   })
 })

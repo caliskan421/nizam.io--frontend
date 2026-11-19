@@ -16,7 +16,7 @@ afterEach(() => {
 })
 
 describe('FileGrid (E-06-41…45)', () => {
-  it('kart: ad, görev adı, tür rozeti (küçük resim yok) ve etiket noktası', () => {
+  it('kart: ad, görev adı, küçük resim yoksa tür rozeti ve etiket noktası', () => {
     const w = mountGrid()
     const cards = w.findAll('button.arch-card')
     expect(cards).toHaveLength(4)

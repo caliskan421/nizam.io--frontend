@@ -11,3 +11,9 @@
 Astra koordinasyon, Sol uygulama, Terra bağımsız test, Opus salt okunur son denetimi üstlenir. Simülasyonu Doğan hazırlayacak. Bütçe/Talep ertelendi.
 
 [İlk dilimin ekran–API eşlemesi, dosya sahipliği ve kabul senaryoları](ilk-dilim.md)
+
+## F15'e devredilen durum
+
+[PR 188](https://github.com/caliskan421/nizam.io--frontend/pull/188) ile liste filtreleri ve şablonun sütun yapısından tablo oluşturma, [PR 189](https://github.com/caliskan421/nizam.io--frontend/pull/189) ile dört statik tasarım önizlemesi ana dala alındı. Yönetici okuması ve paylaşım listesi için güncel durum [backend iş kartında](../../backend-eksikleri/rapor-F13.md) kayıtlıdır. Proje, tam kopya/taşıma, öneriler, referanslar, canlı katılımcılar, yorumlar, ekler ve geri alma için önizleme sunulması gerçek API entegrasyonunu tamamlamaz.
+
+Statik incelemede açık kalan erişilebilirlik işleri paylaşım ekranını yeniden çizerken klavye odağını korumak, önizleme başlık hiyerarşisini ve grup etiketlerini düzeltmek, ileri senaryo sonuçlarını duyurmak ve boş yorum doğrulamasını tutarlı göstermektir.

@@ -1,5 +1,7 @@
 # 06 — Backend eksikleri (ne yok)
 
+**F15:** BE-026 kapsamında E-06-41/42 kart küçük resmi çalışır. E-06-49 seçili PDF ilk sayfa türevi çalışır, raster önizleme sürer. E-06-50 tam ekran aracı açık kalan parçadır. [Güncel uç eşlemesi](backend.md#f15-kart-küçük-resmi--v0280-api).
+
 **F10 güncel kapsamı:** [README güncellemesi](README.md#f10-güncel-kapsamı--v0260-api) aşağıdaki tarihsel F5/F8 metninde çelişen alanların yerini alır. Pin v0.26.0-api; kabul/gerçek tanık durumu [WEB-10](../../yurutme/web-10/ilerleme.md) kaydındadır.
 
 Her satır bir tasarım öğesidir; backend'de karşılığı yoksa burada durur. Kimlik verme ve `../../backend-eksikleri/kayit.md`'ye taşıma **koordinatöre** aittir; burada mevcut BE-NNN'ye bağlanır ya da `yeni-N` geçici adı kullanılır.
@@ -57,7 +59,7 @@ Faz: F5 (v1 dışı, K14). "Şimdilik" sütunu F5 açıldığında K13 ile uygul
 2. **Yönetici klasör süzgeci (M):** `archiveAttachments` / `archiveTasks`'a `folder_id` (departman) süzgeci; yöneticide arşiv okumalarını departman başlığından bağımsız (S2) kılma kararı (yeni-3a/c). Paket 1'e bağlı değil ama 07 yönetici yüzü için zorunlu.
 3. **Klasör özeti alanları (S–M):** `ArchiveFolder` → `task_count`, `total_bytes`, `last_uploaded_at`; program toplamı (BE-025 özet kısmı). Süzülmüş toplam (yeni-9) aynı sayım sorgusuyla (`CountForArchive` mevcut — kod) eklenebilir.
 4. **Dosya düzenleme (S–M):** etiketi değiştir (yeni-4) + etiket kümesi kararı / kullanıcı etiketi (BE-024, GAP-108 ürün kararı). Taşıma (yeni-5) ürün kararından sonra.
-5. **Önizleme türevi (S–M):** küçük resim ucu (BE-026); bilet hedef listesine eklenmesi ya da Bearer'lı `inline` gövde.
+5. **Önizleme türevi (BE-026):** Kart küçük resmi için önceki uç talebi v0.27'de `getFileThumbnail` ile karşılandı ve F15'te bağlandı. Seçili PDF panelinde ilk sayfa JPEG türevi ile mevcut raster önizleme çalışır. Tam ekran aracı açık kalır.
 6. **Silinen dosyalar (ÜRÜN → BE M–L):** yumuşak silme + liste + geri yükleme (yeni-7); toplayıcı/dönem temizliği etkisi. Dosya çöp kutusu **mevcut özellik değil**; görev geri yükleme (`restoreWorkItem`) var ve ayrıdır (Codex §5 "F5 silinenler").
 7. **Ürün kararları (backend işi değil, önce):** göreve bağsız yükleme (BE-025 bölünen kısım), tür segmenti (yeni-10; **TASARIM** — PDF bağımsız kategori değil), rozet anlamı (yeni-11), arama kapsamı (yeni-6).
 

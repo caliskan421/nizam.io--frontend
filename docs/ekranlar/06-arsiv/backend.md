@@ -1,5 +1,9 @@
 # 06 — Backend eşlemesi (nereden geliyor)
 
+## F15 kart küçük resmi — v0.28.0-api
+
+E-06-41/42, S3 `GET /v1/files/{id}/thumbnail` (`getFileThumbnail`) üzerinden JPEG türevi okur. İstek Bearer ile klasörün program kapsamını ve dosya kaydının departmanını taşır. PNG, JPEG ve PDF desteklenir. 404 veya 422 tür rozetine döner, 429 bekleme süresini bildirir. JPEG tarayıcı önbelleğine yazılmaz. E-06-49 paneli raster dosyada `downloadFile` gövdesini, PDF için `getFileThumbnail` ilk sayfa JPEG türevini okur. PDF gövdesi gömülmez. E-06-50 tam ekran aracı devre dışıdır. Bu ayrım aşağıdaki tarihsel BE-026 uç tablosunu günceller.
+
 ## F12 yetkili güncelleme — v0.28.0-api
 
 Aşağıdaki F5/F8/F10 tarihsel yokluk notlarının yerine bu bölüm geçer: `ArchiveFolderTotals.by_type` (`pdf,image,document,spreadsheet,presentation,other`) ve `by_tag` (`ister,plan,girdi,analiz,cikti,sonuc`) RECORDS-K51 ile canlıdır. Her eksenin adet/bayt toplamı rolün görebildiği totals kümesine eşittir; bayt azalan, eşitlikte anahtar sözlük sırası sunucuda belirlenir. Mevcut06 yönetici kartında doğrudan kullanılır; istemci MIME filtresinden veya sayfalanmış dosyalardan toplam türetmez. S2 yönetici okuması ve K/Ü P40 yönlendirmesi korunur. `last_uploaded_at` bir olay günlüğü olmaz; BE025 şemsiye açık/kısmidir.
@@ -47,7 +51,7 @@ Kalan statik: BE-069 (göreve bağsız yükleme), BE-075 (taşı), BE-024 (etike
 | E-06-33 | 07 meta satırı: kişi adları | — (klasör özetinde alan yok); kısmi: `listMembers` | `GET /v1/departments/{id}/members` | S2 (yalnız yönetici ve o departmanın koordinatörü) | üye listesindeki ad/rol (Varsayım: kişiler = koordinatörler) | imleçsiz | eksikler.md yeni-12; görev klasörü sayısı = `archiveTasks.tasks.length` (koord./üye), dosya sayısı = `file_count`, bayt yok (BE-025) |
 | E-06-13, E-06-14, E-06-22, E-06-23, E-06-24 | Klasör boyutu, klasörün son yükleme zamanı, depolama özeti ve dağılımı | — | — | — | **alan yok** | — | BE-025 (E-06-14 yalnız burada bağlıdır; dosya düzeyi tarih yeni-1, E-06-55); istemcide `size_bytes` toplamı ancak bütün sayfalar çekilirse — yapılmaz |
 | E-06-17…E-06-20 | Etiket listesi | — (kapalı küme, uç yok) | — | — | `attachFile.tag` enum: `ister`, `plan`, `girdi`, `analiz`, `cikti`, `sonuc` | — | Türkçe görünen ad ve renk istemci sözlüğü (`model/`); kullanıcı tanımlı etiket yok (BE-024) |
-| E-06-49 | Önizleme / küçük resim | — | — | — | **uç yok** | — | BE-026; tek dosya için `downloadFile` gövdesi kısmi yol (eksikler §3) |
+| E-06-49 | Seçili dosya önizlemesi | `downloadFile`, `getFileThumbnail` | `GET /v1/files/{id}/download`, `GET /v1/files/{id}/thumbnail` | S3, dosyanın departmanı | Raster görsel gövdesi veya PDF ilk sayfa JPEG türevi | — | F15 kart ve panel PDF okuması aynı kapsam ve dosya anahtarını kullanır |
 | E-06-52 | Görev bağlantısı | (hedef ekran) `getWorkItem` | `GET /v1/work-items/{id}` | S3, görevin departmanı | — | — | 03'e geçişte görevin `department_id`'si gerekir; arşiv öğesinde yok (yönetici için yeni-3) |
 | — (yönetici başlık seçimi) | Yöneticinin S3 başlığı | — (uç yok; `listProgramDepartments` `GET /v1/program/departments` S2, yalnız departman listesi) | — | — | — | — | **Yönetici için S3 başlığı sözleşme açıklığı bekliyor (yeni-3); teknik departman seçimi YAPILMAZ (Codex §8 "Admin arşivi ilk departman" reddi, K2).** Bu açıklık gelene kadar yönetici 07'de klasör süzmesi kuramaz; 06 özet kartları yalnız `archiveFolders` ile kurulur |
 | E-06-63 (bağlam) | Silinen görevler (dosyaları korunur) | `listDeletedWorkItems` | `GET /v1/admin/deleted/work-items` | S2; `limit`, `cursor` | `items[].file_count` (DeletedWorkItem) | imleçli | dosya düzeyinde silinenler **yok**; bu uç görev silinenleridir (03/F1 alanı) |

@@ -21,9 +21,9 @@ import { previewText } from './messages'
 /**
  * W124 · E-06-45…57 — 07 sağ panel "Önizleme" (`Arsiv-Klasor.dc.html` aside). Başlık "i / N"
  * (toplam bilinmiyorsa "i / i+"), önceki/sonraki, kapat (odak dosya kartına döner — KESİN 27:
- * Esc, ✕, silme/ad değişimi). Önizleme alanı yalnız raster görselde ve ≤ 20 MiB'de aynı kökenden
- * `Authorization`'lı okunan `blob:` URL'sidir (HTML/SVG/PDF gömülmez; diğer türlerde nötr tür
- * simgesi); tam ekran devre dışı (designStub BE-026). Ayrıntılar: ad, tür · boyut, Görev
+ * Esc, ✕, silme/ad değişimi). Önizleme aynı kökenden yetkili okunan raster görseli (≤ 20 MiB)
+ * veya PDF ilk sayfasının JPEG türevini gösterir. Tam ekran devre dışı (BE-026).
+ * Ayrıntılar: ad, tür · boyut, Görev
  * (`openTask`), Etiket (P34), Yükleyen (`uploaded_by_full_name`; null → nötr), Tarih
  * (`created_at`, kurulum saat diliminde). İndir / yeniden adlandır / sil `FileActions`'tadır. 390 px'te panel akışta durur.
  */

@@ -28,3 +28,7 @@ Bağımsız salt okunur inceleme, yayımlı `v0.30.0-api` (`97b8fe73e400def2f563
 6. **Sözleşme ve yayın.** Yeni/değişen operationId, S2/S3 başlıkları, rol enumları, hata/i18n kodları, sayfalama, null/eksik semantiği, idempotency ve yetki matrisi OpenAPI ve hata kataloğunda yayınlansın. Gerçek PostgreSQL/HTTP entegrasyonları iki program, iki birim, özel/ekip/kişi paylaşımlı tablolar, admin/editor/viewer ve yetki iptalini kapsasın. Ayrı backend sürüm etiketi ve ardından ayrı frontend API pin PR'ı gerekir; mevcut v0.30 veya frontend v0.28 pininde bu yeni davranış varmış gibi uygulanmamalıdır.
 
 Mevcut yayındaki SSE presence süreç içidir ve çok süreçte kalp atışı kayıtları birleştirmez; iptal sonrası kapanma en geç ilgili yeniden doğrulama/kalp atışı sınırındadır (README `:130`). Yönetici okuma yetkisinin bu sınıra etkisi ayrıca ölçülmelidir.
+
+## v0.31.0-api güncellemesi — 19 Kasım 2026
+
+Yayımlı v0.31 ile tablonun okuma yanıtına isteğe bağlı `effective_role` (owner, editor, viewer) eklendi. Liste, şablon listesi ve detayda çağıranın etkin rolü alınabilir. Frontend hâlen v0.28'e pinli. Bu alanın uygulamada tüketimi ayrı pin ve entegrasyon işidir. Yönetici için program genelinde koordinatörlük tablolarını listeleme/özel tabloyu okuma ve sahibin açık kişi izinlerini listelemesi v0.31'de hâlâ eksik. Önceki tablonun v0.30 değerlendirmesi tarihsel dayanak olarak korunuyor.

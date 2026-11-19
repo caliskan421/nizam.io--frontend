@@ -164,6 +164,21 @@ describe('F8 kayıt ↔ kod bütünlüğü', () => {
   })
 })
 
+describe('BE-026 F8 geçmişi ve F15 kısmi bağlama', () => {
+  it('F8 kapsamı yok olarak kalır, F15 grid kanıtı ve E-06-50 kalanı mevcut kayıtta ayrıdır', () => {
+    expect(matrixDecisions().get('BE-026')).toBe('yok')
+    const row = cells().find((entry) => entry.id === 'BE-026')
+    expect(row?.status).toBe('açık')
+    expect(row?.bag).toMatch(/GAP-233.*getFileThumbnail.*v0\.27.*F15 v0\.28.*ızgarasına bağlandı/)
+    expect(parseRegistry(REGISTRY).get('BE-026')?.current).toMatch(
+      /E-06-41\/42.*JPEG küçük resmi.*E-06-50 tam ekran kontrolü devre dışı/,
+    )
+    expect(existsSync('src/modules/archive/components/files/FileGrid.thumbnails.test.ts')).toBe(
+      true,
+    )
+  })
+})
+
 describe('F8 yok sonrası bağlanma kanıtı', () => {
   const id = 'BE-081'
   const matrix = '| BE-081 | E-10 | v0.25 | tam | yüzey | kanıt |'

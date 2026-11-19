@@ -152,6 +152,49 @@ describe('FilePreview önizleme alanı (E-06-49/50, BE-026)', () => {
     expect(urls.revoked).toEqual(['blob:onizleme-1'])
   })
 
+  it('PDF ilk sayfası S3 JPEG türevinden gelir, özgün dosya gömülmez', async () => {
+    server.use(
+      http.get(`${ORIGIN}/v1/files/f1/thumbnail`, () =>
+        HttpResponse.arrayBuffer(new Uint8Array([255, 216, 255, 217]).buffer, {
+          headers: { 'Content-Type': 'image/jpeg' },
+        }),
+      ),
+    )
+    const pdf = file({ content_type: 'application/pdf', display_name: 'rapor.pdf' })
+    const { h, wrapper } = preview({ file: pdf }, null)
+    await settleQueries(h.queryClient)
+
+    const [request] = sent('GET', '/v1/files/f1/thumbnail')
+    expect(request?.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(request?.headers.get('X-Nizamio-Department')).toBe('d1')
+    expect(sent('GET', '/v1/files/f1/download')).toHaveLength(0)
+    expect(q('preview-image')?.getAttribute('src')).toBe('blob:onizleme-1')
+    expect(q('preview-image')?.getAttribute('alt')).toBe('rapor.pdf ilk sayfa önizlemesi')
+    expect(document.body.querySelector('iframe, object, embed')).toBeNull()
+
+    await wrapper.get('[data-testid="preview-image"]').trigger('error')
+    expect(q('preview-image')).toBeNull()
+    expect(text('preview-badge')).toBe('PDF')
+
+    await wrapper.setProps({ file: file({ content_type: 'text/plain', file_id: 'f2' }) })
+    expect(urls.revoked).toEqual(['blob:onizleme-1'])
+  })
+
+  it.each([
+    [404, 'records.file_not_found'],
+    [422, 'records.preview_unavailable'],
+  ])('%s sonrası PDF tür rozeti kalır', async (status, code) => {
+    server.use(http.get(`${ORIGIN}/v1/files/f1/thumbnail`, () => errorEnvelope(code, status)))
+    const { h } = preview({ file: file({ content_type: 'application/pdf' }) }, null)
+    await settleQueries(h.queryClient)
+
+    expect(q('preview-image')).toBeNull()
+    expect(text('preview-badge')).toBe('PDF')
+    expect(q('preview-retry')).toBeNull()
+    expect(sent('GET', '/v1/files/f1/thumbnail')).toHaveLength(1)
+    expect(sent('GET', '/v1/files/f1/download')).toHaveLength(0)
+  })
+
   it('görsel yüklenirken durum metni gösterilir', async () => {
     let release!: () => void
     const gate = new Promise<void>((resolve) => (release = resolve))
@@ -185,7 +228,6 @@ describe('FilePreview önizleme alanı (E-06-49/50, BE-026)', () => {
   })
 
   it.each([
-    ['PDF', { content_type: 'application/pdf', display_name: 'a.pdf' }, 'PDF', 'önizleme yok'],
     [
       'SVG (gömülmez)',
       { content_type: 'image/svg+xml', display_name: 'a.svg' },
