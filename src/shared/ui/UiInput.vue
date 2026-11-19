@@ -10,7 +10,7 @@ import type { IconName } from './icons'
 /** Metin girişi (`t-input`, simgeli `t-field` + `t-input--icon`). `UiField` içinde bağ kendiliğinden. */
 const props = withDefaults(
   defineProps<{
-    type?: 'text' | 'search' | 'email' | 'password' | 'number' | 'tel' | 'url'
+    type?: 'text' | 'search' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date'
     icon?: IconName
     size?: 'sm' | 'md'
     invalid?: boolean

@@ -89,6 +89,39 @@ describe('useNoteActions — düzenleme ve çakışma', () => {
     expect(sent('PATCH', `${NOTES_PATH}/n1`)).toHaveLength(0)
   })
 
+  it('bayrak çakışmasını seçtirir ve yazarken güncel içeriği korur', async () => {
+    let attempts = 0
+    server.use(
+      http.patch(`${URL}/n1`, () =>
+        ++attempts === 1 ? conflict409() : json({ status: 'updated', edit_revision: 4 }),
+      ),
+      http.get(URL, () =>
+        json({
+          notes: [
+            { ...base, content: 'Sunucu metni', flag: 'question', shared: true, edit_revision: 3 },
+          ],
+          total: 1,
+        }),
+      ),
+    )
+    const { actions } = setup()
+    const pending = actions.saveNote(base, base.content, { flag: 'urgent' })
+    await vi.waitFor(() =>
+      expect(actions.conflict.fields.value).toEqual([
+        { field: 'flag', label: 'Bayrak', mine: 'Acil', theirs: 'Soru' },
+      ]),
+    )
+    actions.conflict.choose({ flag: 'mine' })
+    expect(await pending).toEqual({ done: true, notice: null })
+    await vi.waitFor(() =>
+      expect(sent('PATCH', `${NOTES_PATH}/n1`)[1]?.body).toEqual({
+        content: 'Sunucu metni',
+        expected_revision: 3,
+        flag: 'urgent',
+      }),
+    )
+  })
+
   it('çakışmada "Güncel değer" → yeniden gönderim yok, liste yeniden okunur', async () => {
     server.use(
       http.patch(`${URL}/n1`, conflict409),

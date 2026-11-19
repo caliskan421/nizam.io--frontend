@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import './program.css'
 
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 
-import { UiButton, UiField, UiHint, UiInput, UiModal, UiSelect } from '@/shared/ui'
+import {
+  focusFirstInvalid,
+  UiButton,
+  UiField,
+  UiHint,
+  UiInput,
+  UiModal,
+  UiSelect,
+} from '@/shared/ui'
 
 import { programText } from '../model/messages'
 import { PROGRAM_COLORS, yearOptions } from '../model/program-form'
@@ -11,7 +19,7 @@ import { useProgramForm } from './use-program-form'
 
 /**
  * Program oluştur / düzenle penceresi (E-00-25; P3 — tuvalde çizilmedi, `shared/ui` ile en sade).
- * Alanlar sözleşmeden: ad, yıl, açıklama, kısa ad, renk (BE-001; `PROGRAM-K46`). `programId` verilirse düzenleme.
+ * Alanlar sözleşmeden: ad, yıl, dönem, konum, açıklama, kısa ad, renk (BE-001; `PROGRAM-K46`). `programId` verilirse düzenleme.
  */
 const props = withDefaults(defineProps<{ open: boolean; programId?: string | null }>(), {
   programId: null,
@@ -29,6 +37,9 @@ const ctl = useProgramForm({
 })
 const [name] = ctl.form.defineField('name')
 const [year] = ctl.form.defineField('year')
+const [periodStart] = ctl.form.defineField('periodStart')
+const [periodEnd] = ctl.form.defineField('periodEnd')
+const [location] = ctl.form.defineField('location')
 const [description] = ctl.form.defineField('description')
 const [shortName] = ctl.form.defineField('shortName')
 const [color] = ctl.form.defineField('color')
@@ -48,6 +59,21 @@ const colors = computed(() => [
   { value: '', label: programText('form.colorNone') },
   ...PROGRAM_COLORS.map((c) => ({ value: c, label: programText(`form.colors.${c}`) })),
 ])
+
+async function submit(event: Event): Promise<void> {
+  const form = event.currentTarget as HTMLFormElement
+  const fields = ['periodStart', 'periodEnd'] as const
+  const invalid = fields.find(
+    (name) => form.querySelector<HTMLInputElement>(`[name="${name}"]`)?.validity.badInput,
+  )
+  if (invalid) {
+    ctl.form.setFieldError(invalid, programText('form.periodInvalid'))
+    await nextTick()
+    focusFirstInvalid()
+    return
+  }
+  await ctl.submit()
+}
 
 function setOpen(value: boolean): void {
   if (!value) ctl.stop()
@@ -72,13 +98,7 @@ function setOpen(value: boolean): void {
         <UiButton size="sm" @click="ctl.retry()">{{ programText('form.retry') }}</UiButton>
       </div>
     </div>
-    <form
-      v-if="formReady"
-      id="pg-program-form"
-      class="pg-form"
-      novalidate
-      @submit.prevent="ctl.submit()"
-    >
+    <form v-if="formReady" id="pg-program-form" class="pg-form" novalidate @submit.prevent="submit">
       <UiField :label="programText('form.name')" :error="errors.name">
         <UiInput v-model="name" name="name" autocomplete="off" />
       </UiField>
@@ -88,6 +108,17 @@ function setOpen(value: boolean): void {
         :error="errors.year"
       >
         <UiSelect v-model="year" name="year" :options="years" />
+      </UiField>
+      <div class="pg-row">
+        <UiField :label="programText('form.periodStart')" :error="errors.periodStart">
+          <UiInput v-model="periodStart" type="date" name="periodStart" />
+        </UiField>
+        <UiField :label="programText('form.periodEnd')" :error="errors.periodEnd">
+          <UiInput v-model="periodEnd" type="date" name="periodEnd" />
+        </UiField>
+      </div>
+      <UiField :label="programText('form.location')" :error="errors.location">
+        <UiInput v-model="location" name="location" autocomplete="off" />
       </UiField>
       <UiField :label="programText('form.description')" :error="errors.description">
         <template #default="{ id, describedBy, invalid }">

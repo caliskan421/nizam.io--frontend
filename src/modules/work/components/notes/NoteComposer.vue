@@ -5,15 +5,15 @@ import { computed } from 'vue'
 
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { UiOutcomeNotice } from '@/shared/ui/confirm'
-import { UiButton } from '@/shared/ui'
+import { UiButton, UiCheck, UiField, UiSelect } from '@/shared/ui'
 
-import { notesText } from './messages'
+import type { WorkItemNote } from '../../model/types'
+import { noteFlagLabel, noteFlags, notesText } from './messages'
 import type { UnknownNotice } from './use-note-actions'
 
 /**
- * Not yazma / düzenleme alanı (tasarım `rp-composer`; P3 minimum). Uzunluk sınırı yok: şema
- * (`WorkNoteRequest.content`) sınır tanımlamaz, istemci uydurmaz; yalnız boş (boşluk) içerik
- * gönderilmez. Ctrl/⌘+Enter gönderir. "Sonuç bilinmiyor" yerinde gösterilir (`notice`); o
+ * Not yazma / düzenleme alanı (tasarım `rp-composer`; P3). Sunucu içerik sınırını denetler.
+ * Boş içerik gönderilmez. Ctrl/⌘+Enter gönderir. "Sonuç bilinmiyor" yerinde gösterilir (`notice`); o
  * sürerken AYNI taslak yeni anahtarla yeniden gönderilemez (kör gönderim yok) — yeniden
  * gönderme bildirimdeki düğmeyle aynı anahtarladır, taslağı değiştirmek yeni eylemdir.
  */
@@ -31,6 +31,18 @@ const props = withDefaults(
   { placeholder: '', busy: false, cancelable: false, notice: null, noticeDraft: null },
 )
 const draft = defineModel<string>({ required: true })
+const flag = defineModel<WorkItemNote['flag']>('flag', { default: null })
+const shared = defineModel<boolean>('shared', { default: false })
+const flagOptions = [
+  { value: '', label: noteFlagLabel(null) },
+  ...noteFlags.map((value) => ({ value, label: noteFlagLabel(value) })),
+]
+const flagValue = computed({
+  get: () => flag.value ?? '',
+  set: (value) => {
+    flag.value = noteFlags.find((candidate) => candidate === value) ?? null
+  },
+})
 const emit = defineEmits<{
   submit: [content: string]
   cancel: []
@@ -64,6 +76,19 @@ function onKeydown(event: KeyboardEvent): void {
       :disabled="busy"
       @keydown="onKeydown"
     />
+    <div class="wk-composer__metadata">
+      <UiField :label="notesText('flag')">
+        <UiSelect
+          v-model="flagValue"
+          :options="flagOptions"
+          :disabled="busy"
+          data-testid="note-flag"
+        />
+      </UiField>
+      <UiField :label="notesText('shared')" :hint="notesText('sharedHint')">
+        <UiCheck v-model="shared" :disabled="busy" data-testid="note-shared" />
+      </UiField>
+    </div>
     <div class="wk-composer__foot">
       <UiButton
         v-if="cancelable"

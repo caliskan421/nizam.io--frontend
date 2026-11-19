@@ -30,7 +30,7 @@ export function useAddNote() {
           header: { ...ctx.headers, ...scopeHeaders(vars.target) },
           path: { id: vars.workItemId },
         },
-        body: { content: vars.content },
+        body: { content: vars.content, flag: vars.flag, shared: vars.shared },
         signal: ctx.signal,
       }),
     invalidation: byItem,
@@ -52,8 +52,12 @@ export function useUpdateNote() {
           header: scopeHeaders(vars.target),
           path: { id: vars.workItemId, noteId: vars.noteId },
         },
-        // `expected_revision` her düzenlemede zorunlu (NOTE_REVISION_GROUPS: tek grup `content`).
-        body: { content: vars.content, expected_revision: vars.base.edit_revision },
+        body: {
+          content: vars.content,
+          expected_revision: vars.base.edit_revision,
+          flag: vars.flag,
+          shared: vars.shared,
+        },
         signal: ctx.signal,
       }),
     readCurrent: currentNote,

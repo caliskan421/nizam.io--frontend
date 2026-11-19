@@ -50,6 +50,10 @@
   .wk-composer__input::placeholder {
     color: var(--ink-faint);
   }
+  .wk-composer__metadata {
+    display: grid;
+    gap: var(--ui-gap-sm);
+  }
   .wk-composer__foot {
     display: flex;
     justify-content: flex-end;

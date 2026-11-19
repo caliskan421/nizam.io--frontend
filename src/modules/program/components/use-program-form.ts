@@ -121,7 +121,8 @@ export function useProgramForm(opts: ProgramFormOptions) {
     const input = updateInput(program, values)
     if (!input) return opts.saved(program.program_id)
     const outcome = await update.submit(input)
-    if (!dialog.alive() || outcome.kind === 'owner_disposed') return
+    if (!dialog.alive() || !opts.open() || loader.record.value !== program) return
+    if (outcome.kind === 'owner_disposed') return
     if (outcome.kind !== 'success') return report(outcome)
     toast.push({ message: programText('form.saved') })
     opts.saved(program.program_id)

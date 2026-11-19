@@ -59,6 +59,7 @@ describe('program formu', () => {
     ).toEqual({ name: 'Yeni' })
     expect(
       createInput({
+        ...emptyValues(),
         name: 'Yeni',
         year: '2027',
         description: 'Açık',

@@ -50,7 +50,7 @@ describe('program formu — oluşturma', () => {
     expect(document.activeElement?.getAttribute('aria-invalid')).toBe('true')
   })
 
-  it('oluşturur; yıl, kısa ad ve renk gövdeye girer (BE-001)', async () => {
+  it('oluşturur; dönem, konum ve diğer dolu alanlar gövdeye girer', async () => {
     server.use(
       refetch,
       http.post(`${ORIGIN}/v1/programs`, () =>
@@ -66,6 +66,10 @@ describe('program formu — oluşturma', () => {
     await setValue('[name="year"]', year)
     await setValue('[name="short-name"]', ' ŞT26 ')
     await setValue('[name="color"]', 'teal')
+    await setValue('[name="periodStart"]', '2026-01-01')
+    await setValue('[name="periodEnd"]', '2026-12-31')
+    await setValue('[name="location"]', ' İzmir ')
+
     click('[data-testid="pg-form-submit"]')
     await vi.waitFor(() => expect(wrapper.emitted('saved')).toEqual([['p9']]))
     await vi.waitFor(() =>
@@ -74,6 +78,9 @@ describe('program formu — oluşturma', () => {
         year: Number(year),
         short_name: 'ŞT26',
         color: 'teal',
+        period_start_on: '2026-01-01',
+        period_end_on: '2026-12-31',
+        location: 'İzmir',
       }),
     )
     expect(toasts()).toContain('Program oluşturuldu.')
@@ -139,6 +146,79 @@ describe('program formu — oluşturma', () => {
 })
 
 describe('program formu — düzenleme', () => {
+  it('dönemi ve konumu okur; ters aralığı durdurur ve yalnız değişen alanları yazar', async () => {
+    server.use(
+      refetch,
+      http.get(`${ORIGIN}/v1/program`, () =>
+        json({
+          program_id: 'p1',
+          name: 'A',
+          period_start_on: '2026-04-01',
+          period_end_on: '2026-09-01',
+          location: 'İzmir',
+        }),
+      ),
+      http.patch(`${ORIGIN}/v1/programs/p1`, () => json({ program_id: 'p1', name: 'A' })),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const wrapper = h.mount(ProgramFormDialog, { open: true, programId: 'p1' })
+    const value = (name: string) => ($(`[name="${name}"]`) as HTMLInputElement | null)?.value
+    await vi.waitFor(() => expect(value('periodStart')).toBe('2026-04-01'))
+    expect(value('periodEnd')).toBe('2026-09-01')
+    expect(value('location')).toBe('İzmir')
+
+    await setValue('[name="periodEnd"]', '2026-03-31')
+    click('[data-testid="pg-form-submit"]')
+    await vi.waitFor(() =>
+      expect($('[name="periodEnd"]')?.getAttribute('aria-invalid')).toBe('true'),
+    )
+    expect(sent('PATCH', '/v1/programs/p1')).toHaveLength(0)
+
+    await setValue('[name="periodStart"]', '')
+    await setValue('[name="location"]', ' ')
+    click('[data-testid="pg-form-submit"]')
+    await vi.waitFor(() => expect(wrapper.emitted('saved')).toEqual([['p1']]))
+    expect(bodyOf(sent('PATCH', '/v1/programs/p1')[0])).toEqual({
+      period_start_on: null,
+      period_end_on: '2026-03-31',
+      location: null,
+    })
+  })
+
+  it('geç kayıt sonucu başka program için açılmış formu kapatmaz', async () => {
+    let finish!: () => void
+    const pending = new Promise<void>((resolve) => {
+      finish = resolve
+    })
+    server.use(
+      refetch,
+      http.get(`${ORIGIN}/v1/program`, ({ request }) => {
+        const id = request.headers.get('X-Nizamio-Program')
+        return json({ program_id: id, name: id === 'p1' ? 'Birinci' : 'İkinci' })
+      }),
+      http.patch(`${ORIGIN}/v1/programs/p1`, async () => {
+        await pending
+        return json({ program_id: 'p1', name: 'Birinci', location: 'İzmir' })
+      }),
+    )
+    const h = harness(ADMIN_SCOPE)
+    const wrapper = h.mount(ProgramFormDialog, { open: true, programId: 'p1' })
+    const name = () => ($('[name="name"]') as HTMLInputElement | null)?.value
+    await vi.waitFor(() => expect(name()).toBe('Birinci'))
+    await setValue('[name="location"]', 'İzmir')
+    click('[data-testid="pg-form-submit"]')
+    await vi.waitFor(() => expect(sent('PATCH', '/v1/programs/p1')).toHaveLength(1))
+    await wrapper.setProps({ programId: 'p2' })
+    await vi.waitFor(() => expect(name()).toBe('İkinci'))
+
+    finish()
+    await vi.waitFor(() =>
+      expect($('[data-testid="pg-form-submit"]')?.hasAttribute('disabled')).toBe(false),
+    )
+    expect(wrapper.emitted('saved')).toBeUndefined()
+    expect(name()).toBe('İkinci')
+  })
+
   it('kaydı readProgram ile okur; yalnız değişen alanı PATCH eder', async () => {
     server.use(
       refetch,
