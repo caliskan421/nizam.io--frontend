@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import './tracking.css'
 
+import { AuditFeed } from '@/modules/audit/public'
 import { computed, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -46,7 +47,7 @@ import { useTrackingUrl, type TrackingTab } from './use-tracking-url'
  * özetiyle AYNI anahtar). Departman fan-out'u yok (K3). Kartlar, sekme sayacı, liste başlığı,
  * tablo, takvim ve dağılım bu kümeden türetilir; imleç bitmediyse "yüklenen kayıtlar içinde"
  * (§10). Kümede çağıranın görebildiği görevler vardır (P13). URL: `sekme`, `kart`, `grupla`,
- * `ay`. "Dosyalar" (BE-046) ve "Etkinlik" (BE-015) nötr yer tutucu; "Hesap ve roller" 05 yan
+ * `ay`. "Dosyalar" (BE-046) nötr yer tutucu; "Etkinlik" yetkili audit kaydıdır; "Hesap ve roller" 05 yan
  * paneli (`UserPanel`, gömülü). Belge başlığı "RoketPortal — ‹ad›" (P9).
  */
 const props = defineProps<PersonalTrackingProps>()
@@ -212,9 +213,13 @@ onBeforeUnmount(() => (document.title = previousTitle))
             </DesignStub>
           </div>
           <div v-else-if="value === 'etkinlik'" class="pt-panel" data-panel="etkinlik">
-            <DesignStub id="BE-015" as="div">
-              <UiPlaceholder kind="soon" :text="trackingText('tracking.tabs.activitySoon')" />
-            </DesignStub>
+            <AuditFeed
+              v-if="profile.name.value"
+              :subject="{ actor: [accountId] }"
+              :limit="20"
+              more
+            />
+            <p v-else class="rp-cap">Etkinlik göstermek için kişi bilgisi gerekli.</p>
           </div>
           <div v-else class="pt-panel" data-panel="hesap">
             <UserPanel :account-id="accountId" embedded @deleted="onDeleted" />

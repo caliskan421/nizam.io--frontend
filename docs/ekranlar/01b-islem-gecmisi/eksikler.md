@@ -1,5 +1,7 @@
 # 01b — Backend eksikleri (ne yok)
 
+**F16 güncel uygulama:** 01b, v0.28.0-api ile canlıdır. Bu bölümün eski uç ve faz notları tarihsel tespittir. Güncel rol, program, süzgeç, imleç ve CSV kapsamı [WEB-16](../../yurutme/web-16/README.md) kaydındadır.
+
 Her satır bir tasarım öğesidir; backend'de karşılığı yoksa burada durur. Kimlik verme ve `../../backend-eksikleri/kayit.md`'ye taşıma **koordinatöre** aittir; burada mevcut BE-NNN'ye bağlanır ya da `yeni-N` geçici adı kullanılır.
 
 Ekran v1 dışıdır (K14) ve backend'de audit **okuma yüzü yoktur** (GAP-002; audit README §4). Bu dosyanın işlevi web için "şimdilik" kararı değil, ekran kendi backend fazıyla açıldığında **backend gereksinimi** vermektir (§2 + §5). "Şimdilik" sütunu her satırda aynıdır: **ekran yok, menüde yok, Ana sayfa "Tümü" gizli/devre dışı (E-01-13).**

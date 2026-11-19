@@ -53,12 +53,12 @@ const quickKeys = ({ wrapper }: Page) =>
   wrapper.findAll('[data-quick]').map((q) => q.attributes('data-quick'))
 
 describe('01 Ana sayfa — sayfa seçici ve F1 gövdesi', () => {
-  it('selamlama tam full_name (ilk sözcük değil); "Son işlemler" nötr yer tutucu (BE-010)', async () => {
+  it('selamlama tam full_name (ilk sözcük değil); "Son işlemler" seçili program akışı (BE-010)', async () => {
     server.use(...standingHandlers(ADMIN), dashboardHandler())
     const page = await mountWith(HomePage, ADMIN_SCOPE)
     expect(page.wrapper.get('[data-testid="home-greeting"]').text()).toBe('Merhaba Ayşe Nur Yılmaz')
     expect(page.wrapper.find('ol.rp-timeline').exists()).toBe(false)
-    expect(page.wrapper.find('[data-design-stub="BE-010"]').exists()).toBe(true)
+    expect(page.wrapper.find('[data-testid="audit-feed"]').exists()).toBe(true)
   })
 
   it('sayfa seçici (P53): yönetici → yönetici; Koordinatör merceği → K1; Üye merceği → Ü1; yönetici K/Ü merceğinde yönetici kalır', async () => {

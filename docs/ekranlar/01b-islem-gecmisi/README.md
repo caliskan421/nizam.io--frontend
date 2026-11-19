@@ -1,5 +1,7 @@
 # 01b · Ana sayfa › İşlem geçmişi
 
+**F16 güncel uygulama:** 01b, v0.28.0-api ile canlıdır. Bu bölümün eski uç ve faz notları tarihsel tespittir. Güncel rol, program, süzgeç, imleç ve CSV kapsamı [WEB-16](../../yurutme/web-16/README.md) kaydındadır.
+
 **Codex kapısı:** KOŞULLU UYGUN (2026-11-08) — grup bulguları `dogrulama.md` Kapanış bölümünde; ortak kurallar `../ortak-kurallar.md`.
 
 **F6 bağlantısı:** işlem geçmişinin hangi fazda açılacağı kararı [WEB-6 iskeleti](../../yurutme/web-6/README.md) hazırlığında ele alınır; F6 AÇILMADI.

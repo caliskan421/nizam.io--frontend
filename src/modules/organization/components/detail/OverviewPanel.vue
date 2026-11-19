@@ -71,6 +71,6 @@ const cells = computed(() =>
       :error="workError"
     />
     <ShortcutsCard :department-id="view.departmentId" />
-    <ActivityCard />
+    <ActivityCard :department-id="view.departmentId" />
   </aside>
 </template>

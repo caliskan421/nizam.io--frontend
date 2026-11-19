@@ -382,7 +382,7 @@ describe('E-08-82…90 yan sütun', () => {
     }
     expect(wrapper.text()).not.toContain('PDF')
     const feed = wrapper.get('[data-testid="cd-activity"]')
-    expect(feed.attributes('data-design-stub')).toBe('BE-018')
+    expect(feed.classes()).toContain('audit-feed')
     expect(feed.findAll('li')).toHaveLength(0)
   })
 })

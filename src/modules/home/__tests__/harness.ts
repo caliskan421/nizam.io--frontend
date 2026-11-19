@@ -109,6 +109,7 @@ export const ARCHIVE_FOLDERS = '/v1/program/archive/folders'
 
 export function standingHandlers(fixture: StandingFixture) {
   return [
+    http.get(ORIGIN + '/v1/audit/entries', () => json({ entries: [], next_cursor: null })),
     // Varsayılan: arşiv özeti boş (testler kendi `ARCHIVE_FOLDERS` işleyicisini önce verir).
     http.get(`${ORIGIN}${ARCHIVE_FOLDERS}`, () => json(archiveFolders())),
     http.get(`${ORIGIN}/v1/me`, () =>
@@ -277,6 +278,7 @@ export async function mountWith(
     history: createMemoryHistory(),
     routes: [
       { path: '/', name: 'home', component: empty },
+      { path: '/islem-gecmisi', name: 'auditHistory', component: empty },
       { path: '/gorevler', name: 'work.tasks', component: empty },
       { path: '/silinen-kayitlar', name: 'deleted-records.list', component: empty },
       { path: '/arsiv', name: 'archive.folders', component: empty },

@@ -94,6 +94,7 @@ export async function mountRole(
     history: createMemoryHistory(),
     routes: [
       { path: '/', name: 'home', component: empty },
+      { path: '/islem-gecmisi', name: 'auditHistory', component: empty },
       { path: '/gorevler', name: 'work.tasks', component: empty },
       { path: '/zaman-cizelgesi', name: 'work.timeline', component: empty },
       { path: '/mesajlar/:chatId', name: 'collaboration.chat', component: empty },

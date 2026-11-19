@@ -22,7 +22,10 @@ function file(name: string): WorkItemFile {
 }
 
 function mountSummary(files: WorkItemFile[] | null, over = {}) {
-  return mount(DetailSummary, { props: { item: workItem(over), files, timeZone: TZ } })
+  return mount(DetailSummary, {
+    props: { item: workItem(over), files, timeZone: TZ },
+    global: { stubs: { AuditFeed: true } },
+  })
 }
 
 describe('Özet sekmesi (E-03-46…50)', () => {

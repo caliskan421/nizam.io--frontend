@@ -190,7 +190,7 @@ describe('K1 koordinatör ana sayfası', () => {
     expect(page.wrapper.get('[data-testid="k1-team-link"]').attributes('aria-disabled')).toBe(
       'true',
     )
-    expect(region(page, 'activity').find('[data-design-stub="BE-010"]').exists()).toBe(true)
+    expect(region(page, 'activity').find('[data-testid="audit-feed"]').exists()).toBe(true)
     const text = page.wrapper.text()
     for (const absent of ['Rapor', 'Canlı', 'Anlık toplantı'])
       expect(text, absent).not.toContain(absent)

@@ -233,6 +233,13 @@ export const queryKeys = {
     /** `reportTaskDetail` — görev rapor ayrıntısı (W136). */
     task: (s: ScopeSnapshot, id: string) => scoped(s, ['report', 'task', id]),
   },
+  audit: {
+    entries: (scope: ScopeSnapshot, filters: QueryFilters, limit: number) =>
+      scoped(scope, ['audit', 'entries', filters, limit]),
+    summary: (scope: ScopeSnapshot, filters: QueryFilters) =>
+      scoped(scope, ['audit', 'summary', filters]),
+    actions: (scope: ScopeSnapshot) => scoped(scope, ['audit', 'actions']),
+  },
   archive: {
     // Kartın ömrüne bağlı blob; metaveri yazmaları görseli yeniden indirmez.
     thumbnail: (s: ScopeSnapshot, id: string) => scoped(s, ['archive-thumbnail', id]),
