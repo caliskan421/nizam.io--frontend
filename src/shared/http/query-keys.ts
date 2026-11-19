@@ -73,6 +73,7 @@ export const queryKeys = {
   chatsUnread: { overview: () => ['chats', 'unread-overview'] as const },
   tables: {
     list: (s: ScopeSnapshot) => scoped(s, ['tables', 'list']),
+    templates: (s: ScopeSnapshot) => scoped(s, ['tables', 'list', 'templates']),
     detail: (s: ScopeSnapshot, id: string, cursor: string | null) =>
       scoped(s, ['tables', 'detail', id, { cursor }]),
     detailPrefix: (s: ScopeSnapshot, id?: string) =>
@@ -634,6 +635,8 @@ const BASE_INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]
   // Yalnız yeniden yükleme.
   'instance.profile': [],
   'tables.list': [
+    'copyTableToPersonal',
+    'copyTableToCoordinatorship',
     'createPersonalTable',
     'createTable',
     'applyPersonalTableOperation',

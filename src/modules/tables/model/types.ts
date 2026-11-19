@@ -5,6 +5,7 @@ export interface TableTarget {
   departmentId: string | null
 }
 
+export type TableSummary = components['schemas']['Table']
 export type TableList = components['schemas']['TableList']
 export type TableSnapshot = components['schemas']['TableSnapshot']
 export type TableResult = components['schemas']['TableResult']
@@ -25,3 +26,7 @@ export interface TableWrite {
 }
 export type PersonalWrite = Pick<TableTarget, 'programId'> & TableWrite
 export type DepartmentWrite = PersonalWrite & { departmentId: string }
+
+export type TableCopyRequest = components['schemas']['TableCopyRequest']
+export type PersonalCopy = Pick<TableTarget, 'programId'> & { body: TableCopyRequest }
+export type DepartmentCopy = PersonalCopy & { departmentId: string }

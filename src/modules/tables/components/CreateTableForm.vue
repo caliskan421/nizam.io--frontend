@@ -1,17 +1,29 @@
 <script setup lang="ts">
-import { onMounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, ref, shallowRef } from 'vue'
 
-import { reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
-import { errorText } from '@/shared/i18n'
+import { outcomeMessage, reachesOwner, type MutationOutcome } from '@/shared/http/mutation'
+import { i18n } from '@/shared/i18n'
 import { UiButton } from '@/shared/ui'
 
+import { useCopyTable } from '../api/copy'
 import { useCreateTable } from '../api/tables'
-import type { TableResult, TableTarget } from '../model/types'
+import type { TableResult, TableSummary, TableTarget } from '../model/types'
 import { validTableName } from '../model/structure'
 
-const props = defineProps<{ target: TableTarget; reload: () => Promise<boolean> }>()
-const emit = defineEmits<{ cancel: []; created: [tableId: string] }>()
+const props = defineProps<{
+  target: TableTarget
+  source: TableSummary | null
+  sourceAvailable: boolean
+  areaLabel: string
+  reload: () => Promise<boolean>
+}>()
+const emit = defineEmits<{ cancel: []; created: [tableId: string]; sourceLost: [] }>()
 const create = useCreateTable(() => props.target)
+const copy = useCopyTable(() => props.target)
+const sourceLost = ref(false)
+const unavailable = computed(
+  () => props.source !== null && (sourceLost.value || !props.sourceAvailable),
+)
 const name = ref('')
 const input = ref<HTMLInputElement | null>(null)
 const formError = ref('')
@@ -22,6 +34,9 @@ const resend = shallowRef<(() => Promise<Result>) | null>(null)
 
 onMounted(() => input.value?.focus())
 
+function inaccessible(result: Result) {
+  return 'error' in result && [403, 404].includes(result.error.status ?? 0)
+}
 function settle(result: Result) {
   if (!reachesOwner(result)) return
   if (result.kind === 'success') {
@@ -36,7 +51,13 @@ function settle(result: Result) {
       : 'Oluşturma sonucu doğrulanamadı. Yeni bir tablo oluşturmadan önce listeyi kontrol edin.'
     return
   }
-  formError.value = 'error' in result ? errorText(result.error) : 'Tablo oluşturulamadı.'
+  if (props.source && inaccessible(result)) {
+    sourceLost.value = true
+    emit('sourceLost')
+    return
+  }
+  const { key, params } = outcomeMessage(result)
+  formError.value = i18n.global.t(key, params ?? {})
 }
 
 async function run(send: () => Promise<Result>) {
@@ -61,14 +82,15 @@ async function checkList() {
 }
 
 async function submit() {
-  if (uncertain.value || busy.value) return
+  if (uncertain.value || busy.value || unavailable.value) return
   const title = name.value.trim()
-  if (!validTableName(title)) {
+  const source = props.source
+  if ((!source || title) && !validTableName(title)) {
     formError.value = '1–200 karakterlik bir tablo adı girin.'
     return
   }
   formError.value = ''
-  await run(() => create(props.target, title))
+  await run(() => (source ? copy(source, title) : create(props.target, title)))
 }
 </script>
 
@@ -78,14 +100,26 @@ async function submit() {
     @submit.prevent="submit"
     @keydown.esc.prevent="!busy && !uncertain && emit('cancel')"
   >
-    <h2>Boş tablo oluştur</h2>
+    <h2>{{ source ? 'Şablondan oluştur' : 'Boş tablo oluştur' }}</h2>
+    <template v-if="source">
+      <p v-if="unavailable" role="status">
+        Şablon artık kullanılamıyor. Listeye dönüp güncel şablonları seçin.
+      </p>
+      <template v-else>
+        <p>{{ source.name }} · {{ areaLabel }}</p>
+        <p class="tables-muted">
+          Yalnızca sütun yapısı alınır. Satırlar ve paylaşım izinleri taşınmaz.
+        </p>
+      </template>
+    </template>
     <label class="tables-field">
-      Tablo adı
+      {{ source ? 'Tablo adı (isteğe bağlı)' : 'Tablo adı' }}
       <input
         ref="input"
         v-model="name"
         class="t-input"
-        :disabled="busy || uncertain"
+        :disabled="busy || uncertain || unavailable"
+        :placeholder="source && !unavailable ? source.name : undefined"
         :aria-invalid="!!formError && !uncertain"
         :aria-describedby="formError ? 'tables-create-error' : undefined"
       />
@@ -96,9 +130,13 @@ async function submit() {
         Listeyi yenile ve dön
       </UiButton>
       <UiButton v-else variant="ghost" :disabled="busy" @click="emit('cancel')">Vazgeç</UiButton>
-      <UiButton v-if="!uncertain" variant="primary" type="submit" :disabled="busy">{{
-        busy ? 'Oluşturuluyor…' : 'Oluştur'
-      }}</UiButton>
+      <UiButton
+        v-if="!uncertain && !unavailable"
+        variant="primary"
+        type="submit"
+        :disabled="busy"
+        >{{ busy ? 'Oluşturuluyor…' : 'Oluştur' }}</UiButton
+      >
       <UiButton v-else-if="resend" variant="primary" :disabled="busy" @click="run(resend)">{{
         busy ? 'Gönderiliyor…' : 'Aynı isteği gönder'
       }}</UiButton>

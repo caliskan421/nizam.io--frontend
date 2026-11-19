@@ -53,7 +53,12 @@ const TABLE: Array<{
     resource: 'tables.list',
     key: queryKeys.tables.list(S),
     expected: [...root(S), 'tables', 'list'],
-    mustInvalidate: ['createPersonalTable', 'createTable'],
+    mustInvalidate: [
+      'createPersonalTable',
+      'createTable',
+      'copyTableToPersonal',
+      'copyTableToCoordinatorship',
+    ],
   },
   {
     resource: 'tables.detail',

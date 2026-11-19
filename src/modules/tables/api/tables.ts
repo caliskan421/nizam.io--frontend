@@ -27,8 +27,13 @@ import type {
 
 const noScope: ScopeSnapshot = { programId: null, departmentId: null }
 
-export function fetchTables(target: TableTarget, cursor?: string, signal?: AbortSignal) {
-  const query = cursor === undefined ? {} : { cursor }
+export function fetchTables(
+  target: TableTarget,
+  cursor?: string,
+  signal?: AbortSignal,
+  templates = false,
+) {
+  const query = { cursor, ...(templates ? { template: 'true' as const } : {}) }
   const { departmentId } = target
   if (departmentId === null) {
     return unwrap(
@@ -90,16 +95,22 @@ export async function fetchTable(
   return decodeSnapshot(body)
 }
 
-export function useTables(target: ComputedRef<TableTarget | null>, enabled: ComputedRef<boolean>) {
+export function useTables(
+  target: ComputedRef<TableTarget | null>,
+  enabled: ComputedRef<boolean>,
+  templates = false,
+) {
   return useInfiniteQuery(
     computed(() => {
       const current = target.value
       return {
-        queryKey: queryKeys.tables.list(current ?? noScope),
+        queryKey: templates
+          ? queryKeys.tables.templates(current ?? noScope)
+          : queryKeys.tables.list(current ?? noScope),
         initialPageParam: '',
         queryFn: sessionBound(({ signal, pageParam }: QueryFunctionContext<QueryKey, string>) =>
           current
-            ? fetchTables(current, pageParam || undefined, signal)
+            ? fetchTables(current, pageParam || undefined, signal, templates)
             : Promise.reject(new Error('table scope missing')),
         ),
         getNextPageParam: (page: TableList) => page.next_cursor || undefined,
