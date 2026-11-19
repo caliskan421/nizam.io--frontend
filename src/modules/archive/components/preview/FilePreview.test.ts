@@ -251,10 +251,12 @@ describe('FilePreview önizleme alanı (E-06-49/50, BE-026)', () => {
     expect(document.body.querySelector('iframe, object, embed')).toBeNull()
   })
 
-  it('tam ekran devre dışı ve designStub BE-026 ile işaretli', () => {
-    preview({}, null)
-    expect(btn('preview-fullscreen').disabled).toBe(true)
-    expect(document.body.querySelector('[data-design-stub="BE-026"]')).not.toBeNull()
+  it('tam ekran düğmesi tetiği ile birlikte seçili dosya panelinden olayı yayar', () => {
+    const { wrapper } = preview({}, null)
+    const trigger = btn('preview-fullscreen')
+    expect(trigger.disabled).toBe(false)
+    trigger.click()
+    expect(wrapper.emitted('fullscreen')).toEqual([[trigger]])
   })
 })
 

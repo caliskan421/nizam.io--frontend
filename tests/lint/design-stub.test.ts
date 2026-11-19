@@ -88,17 +88,14 @@ describe('kod ↔ kayıt (yeşil)', () => {
   })
 })
 
-it('BE-026 runtime stub yalnız tam ekran denetiminde kalır', () => {
+it('F15 sonrası BE-026 runtime stub kalmaz', () => {
   const uses = collectSources('.')
     .filter((file) => !file.path.endsWith('.test.ts'))
     .flatMap((file) => scanSource(file).uses)
     .filter((use) => use.id === 'BE-026')
     .map((use) => use.file)
     .sort()
-  expect(uses).toEqual([
-    'src/modules/archive/components/preview/PreviewArea.vue',
-    'src/modules/archive/model/stubs.ts',
-  ])
+  expect(uses).toEqual([])
 })
 
 describe('kod ↔ kayıt (kırmızı)', () => {

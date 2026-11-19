@@ -3,21 +3,25 @@ import './preview.css'
 
 import { computed, ref, watch } from 'vue'
 
-import { DesignStub, UiButton, UiIcon, UiIconButton } from '@/shared/ui'
+import { UiButton, UiIcon, UiIconButton } from '@/shared/ui'
 
 import { useFilePreview } from '../../api/preview'
 import { useFileThumbnail } from '../../api/thumbnails'
 import { canPreview, isPdf, isPreviewableImage } from '../../model/mime'
-import { FULLSCREEN_PREVIEW } from '../../model/stubs'
 import type { ArchiveFile, ArchiveTarget } from '../../model/types'
 import { previewText } from './messages'
 
 /**
  * W124 · E-06-49/50 — önizleme alanı: raster görsel (≤ 20 MiB) için `blob:` URL'si (aynı
  * kökenden `Authorization`'lı okuma). PDF ilk sayfanın JPEG türeviyle gösterilir.
- * Türev yoksa nötr tür rozeti kullanılır. Tam ekran devre dışı (designStub BE-026).
+ * Türev yoksa nötr tür rozeti kullanılır.
  */
 const props = defineProps<{ file: ArchiveFile; target: ArchiveTarget; typeName: string }>()
+const emit = defineEmits<{ fullscreen: [trigger: HTMLElement] }>()
+
+function openFullscreen(event: MouseEvent): void {
+  if (event.currentTarget instanceof HTMLElement) emit('fullscreen', event.currentTarget)
+}
 
 const preview = useFilePreview(
   () => props.target,
@@ -88,13 +92,12 @@ const noneText = computed(() =>
         <span class="fp-cap" data-testid="preview-none">{{ noneText }}</span>
       </template>
     </div>
-    <DesignStub id="BE-026" class="fp-area__full">
-      <UiIconButton
-        icon="expand"
-        :label="previewText('archive.preview.fullscreen')"
-        :disabled="!FULLSCREEN_PREVIEW.available"
-        data-testid="preview-fullscreen"
-      />
-    </DesignStub>
+    <UiIconButton
+      class="fp-area__full"
+      icon="expand"
+      :label="previewText('archive.preview.fullscreen')"
+      data-testid="preview-fullscreen"
+      @click="openFullscreen"
+    />
   </div>
 </template>

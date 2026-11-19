@@ -1,7 +1,17 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { FilePreview } from '../components'
-import { COORD, resetHarness, sent, server, standing } from '../model/__tests__/harness'
+import {
+  COORD,
+  http,
+  HttpResponse,
+  json,
+  ORIGIN,
+  resetHarness,
+  sent,
+  server,
+  standing,
+} from '../model/__tests__/harness'
 import { archiveBackend, manyFiles, mountPage, unmountAll } from './folder/__tests__/mount'
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
@@ -131,6 +141,65 @@ describe('önizleme bağlama (FilePreview ?dosya)', () => {
     expect(router.currentRoute.value.query.dosya).toBeUndefined()
     expect(wrapper.find('[data-testid="file-preview"]').exists()).toBe(false)
     expect(document.activeElement).toBe(wrapper.find('[data-file-id="f3"]').element)
+  })
+
+  it('06e açıkken silinen dosya kapatılana dek güvenli mesaj gösterir, sonra komşuya odaklanır', async () => {
+    const files = manyFiles(2)
+    let proof = true
+    const fakeNativeDialog = {
+      showModal: {
+        configurable: true,
+        value(this: HTMLDialogElement) {
+          this.open = true
+        },
+      },
+      close: {
+        configurable: true,
+        value(this: HTMLDialogElement) {
+          this.open = false
+        },
+      },
+    }
+    Object.defineProperties(HTMLDialogElement.prototype, fakeNativeDialog)
+    const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+    server.use(
+      ...K,
+      ...archiveBackend({ files }),
+      http.get(`${ORIGIN}/v1/work-items/w1/files`, () => json({ files: proof ? files : [] })),
+      http.get(`${ORIGIN}/v1/files/f1/thumbnail`, () =>
+        HttpResponse.arrayBuffer(new Uint8Array([255, 216, 255, 217]).buffer, {
+          headers: { 'Content-Type': 'image/jpeg' },
+        }),
+      ),
+    )
+    try {
+      const { wrapper, router, settle } = await mountPage('/arsiv/d1?dosya=f1', COORD)
+      await act(wrapper, 'fullscreen')
+      const overlay = document.querySelector<HTMLElement>('[data-testid="archive-full-preview"]')!
+      await vi.waitFor(() => expect(overlay.querySelector('img')).not.toBeNull())
+
+      proof = false
+      window.dispatchEvent(new Event('focus'))
+      await vi.waitFor(() => expect(overlay.textContent).toContain('Dosya açılamadı.'))
+      expect(wrapper.find('[data-testid="file-preview"]').exists()).toBe(false)
+      await settle()
+      // Arşiv listesi yeniden okunduğunda gecikmeli eski satırı döndürse bile gösterilmez.
+      expect(wrapper.find('[data-file-id="f1"]').exists()).toBe(false)
+      expect(router.currentRoute.value.query.dosya).toBe('f1')
+      files.splice(0, 1)
+      expect(overlay.textContent).not.toContain('dosya-1.pdf')
+      expect(overlay.querySelector('img, .full-preview__download')).toBeNull()
+
+      overlay.querySelector<HTMLElement>('[data-testid="archive-full-close"]')!.click()
+      await settle()
+      expect(overlay.isConnected).toBe(false)
+      expect(router.currentRoute.value.query.dosya).toBeUndefined()
+      expect(wrapper.text()).not.toContain('dosya-1.pdf')
+      expect(wrapper.find('[data-testid="file-download"]').exists()).toBe(false)
+      expect(document.activeElement).toBe(wrapper.get('[data-file-id="f2"]').element)
+    } finally {
+      hidden.mockRestore()
+    }
   })
 
   it('önizlemedeki görev bağlantısı görev ayrıntısına gider (03 ?gorev)', async () => {

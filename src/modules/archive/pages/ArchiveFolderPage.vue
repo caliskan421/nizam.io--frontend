@@ -21,21 +21,17 @@ import {
   UploadDialog,
 } from '../components'
 import { folderText } from '../components/files/messages'
+import FullFilePreview from '../components/preview/FullFilePreview.vue'
 import { archiveCapabilities } from '../model/capabilities'
 import FolderHead from './folder/FolderHead.vue'
 import FolderSearch from './folder/FolderSearch.vue'
 import { useDebouncedSearch } from './folder/use-debounced-search'
 import { useFileSelection } from './folder/use-file-selection'
+import { useArchiveFullscreen } from './folder/use-full-preview-history'
 import { useFolderData } from './folder/use-folder-data'
 import { useFolderUrl } from './folder/use-folder-url'
+import { usePreviewVisibleFiles } from './folder/use-preview-visible-files'
 
-/**
- * 07 Arşiv › Klasör (`/arsiv/:klasorId`, S3; W123). Sayfa gövdesi: ağaç | (başlık, görev
- * klasörleri, dosya araç çubuğu + ızgara/liste) | önizleme (`?dosya`). Komşu bileşenler bağlanır:
- * `FilePreview` (W124), `FolderZipButton` (W126, `FolderHead` içinde), `UploadDialog` (W125,
- * `defaultTaskId` = `?gorev`). Durum URL'de (`gorev`, `etiket`, `gorunum`, `dosya`, `q`);
- * hiçbiri depoya yazılmaz. Klasör yok/erişim kaybı ve geçersiz kimlik tek "bulunamadı" durumu.
- */
 const router = useRouter()
 const store = useScopeStore()
 const { standing } = useStanding()
@@ -55,7 +51,6 @@ const url = useFolderUrl(() => {
 const data = useFolderData(url.folderId, url.state)
 admin = () => data.ctx.admin.value
 const { ctx, attachments } = data
-
 usePageCrumb(() => data.folder.value?.name ?? null)
 
 const caps = computed(() => archiveCapabilities(standing.value, store.programId))
@@ -74,12 +69,13 @@ const search = useDebouncedSearch(
   computed(() => url.state.value.q),
   (q) => url.update({ q, file: null }),
 )
-
 const removing = ref(false)
+const fullscreenHolding = ref(false)
+const previewFiles = usePreviewVisibleFiles(attachments.files, () => attachments.query.refetch())
 const selection = useFileSelection({
-  holding: removing,
+  holding: computed(() => removing.value || fullscreenHolding.value),
   root,
-  files: attachments.files,
+  files: previewFiles.visible,
   hasMore: attachments.hasMore,
   loadMore: attachments.loadMore,
   fetchingMore: computed(() => attachments.query.isFetchingNextPage.value),
@@ -95,11 +91,17 @@ const previewTarget = computed(() => {
     ? { programId: store.programId, departmentId: file.department_id }
     : null
 })
-
+const fullscreen = useArchiveFullscreen(
+  () => selection.selected.value,
+  () => previewTarget.value,
+  (id) => data.titles.value[id] ?? null,
+  fullscreenHolding,
+)
 const missing = computed(() => ctx.folderMissing.value)
 const folderError = computed(() =>
   ctx.folders.isError.value && !missing.value ? toApiError(ctx.folders.error.value) : null,
 )
+const selected = previewFiles.allowedSelection(selection.selected)
 const taskCount = computed(() => (data.tasksLoading.value ? null : data.taskList.value.length))
 const View = computed(() => (url.state.value.view === 'liste' ? FileList : FileGrid))
 
@@ -189,7 +191,7 @@ function openTask(workItemId: string): void {
             <FileFilterBar
               :tag="url.state.value.tag"
               :view="url.state.value.view"
-              :loaded="attachments.files.value.length"
+              :loaded="previewFiles.visible.value.length"
               :total="data.total.value"
               @update:tag="url.update({ tag: $event, file: null })"
               @update:view="url.update({ view: $event })"
@@ -198,7 +200,7 @@ function openTask(workItemId: string): void {
               :is="View"
               :key="store.programId ?? undefined"
               :program-id="ctx.source.value?.programId"
-              :files="attachments.files.value"
+              :files="previewFiles.visible.value"
               :task-titles="data.titles.value"
               :selected-file-id="url.state.value.file"
               :has-more="attachments.hasMore.value"
@@ -210,14 +212,15 @@ function openTask(workItemId: string): void {
             />
           </section>
         </div>
-        <div v-if="selection.selected.value && previewTarget" class="arch-explorer__aside">
+        <div v-if="selected && previewTarget" class="arch-explorer__aside">
           <FilePreview
-            :file="selection.selected.value"
+            :file="selected"
             :position="selection.position.value"
             :total="data.total.value"
             :has-more="attachments.hasMore.value"
             :target="previewTarget"
-            :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"
+            :task-title="data.titles.value[selected.work_item_id] ?? null"
+            @fullscreen="fullscreen.open"
             @removing="removing = $event"
             @moved="selection.removed"
             @close="selection.close"
@@ -236,5 +239,11 @@ function openTask(workItemId: string): void {
         @close="closeUpload"
       />
     </template>
+    <FullFilePreview
+      v-if="fullscreen.shown.value"
+      v-bind="fullscreen.shown.value"
+      @close="fullscreen.close"
+      @denied="previewFiles.hide(fullscreen.shown.value?.file.file_id)"
+    />
   </section>
 </template>

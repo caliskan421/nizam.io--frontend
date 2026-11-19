@@ -225,6 +225,21 @@ export const trArchive = {
       taskUntitled: 'Görevi aç',
       noValue: '—',
     },
+    fullscreen: {
+      title: 'Önizleme',
+      close: 'Kapat',
+      download: 'Dosyayı indir',
+      downloadUnknown: 'Dosya indirilemedi. Bağlantını kontrol edip tekrar dene.',
+      unavailable: 'Önizleme oluşturulamadı',
+      unavailableHint: 'Dosyaya erişimin sürüyor. İndirip cihazındaki uygulamayla açabilirsin.',
+      denied: 'Dosya açılamadı.',
+      unverified: 'Dosya erişimi doğrulanamadı.',
+      firstPage: 'İlk sayfa önizlemesi',
+      pdfNote: 'Belgenin tamamı için dosyayı indir.',
+      scroll: 'Devamı için kaydır',
+      scrollRegion: 'Görsel, dikey kaydırılabilir',
+      dimensions: '{width} × {height}',
+    },
     // W124 — dosya eylemleri: indir, yeniden adlandır, sil (E-06-56…60, 64).
     actions: {
       label: 'Dosya eylemleri',

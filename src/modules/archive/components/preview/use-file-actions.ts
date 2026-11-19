@@ -11,12 +11,14 @@
  *    404 `records.file_not_found` → silinmiş say (`deleted`); diğer hata → ortak bildirim.
  * Bildirim kurulumda alınan `useToast()` ile yapılır; sökülmüş sahip UI/bildirim başlatmaz.
  */
+import type { DownloadStartOptions } from '@/shared/download'
+
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { ownerLife } from '@/shared/http/mutation'
 import { errorText } from '@/shared/i18n'
 import { useToast } from '@/shared/ui'
-import { notifyOutcome, useConfirm } from '@/shared/ui/confirm'
+import { notifyOutcome, outcomeToast, useConfirm } from '@/shared/ui/confirm'
 
 import { useArchiveDownload } from '../../api/downloads'
 import { fileGone, useDeleteArchiveFile, useRetagArchiveFile } from '../../api/writes'
@@ -38,36 +40,58 @@ function waitText(retryAfter: number | null): string | null {
     : previewText('archive.actions.downloadRetryAfter', { seconds: retryAfter })
 }
 
-/** İndirme sonucunun bildirimi (başarı, 429 beklemesi, sınıflı hata). */
-function notifyDownload(result: ArchiveDownloadResult, toast: ReturnType<typeof useToast>): void {
-  if (result.kind === 'saved') {
-    toast.push({ message: previewText('archive.actions.downloadSaved', { name: result.fileName }) })
-  } else if (result.kind === 'failed') {
-    const message = waitText(result.retryAfter) ?? errorText(result.error)
-    toast.push({ message, tone: 'danger' })
-  } else if (result.kind === 'ticket_failed') {
-    const outcome = result.outcome
-    const wait = outcome.kind === 'failed' ? waitText(outcome.error.retryAfter) : null
-    if (wait) toast.push({ message: wait, tone: 'danger' })
-    else notifyOutcome(outcome)
-  }
+export function downloadRetrySeconds(result: ArchiveDownloadResult): number | null {
+  if (result.kind === 'failed') return result.retryAfter
+  if (result.kind !== 'ticket_failed') return null
+  const outcome = result.outcome
+  if (outcome.kind === 'rate_limited') return outcome.retryAfter
+  return outcome.kind === 'failed' ? outcome.error.retryAfter : null
 }
 
-export function useFileDownload(file: FileSource, target: TargetSource) {
+/** İndirme sonucunu küresel bildirim veya modal içi durum alanı kullanabilir. */
+export function downloadFeedback(result: ArchiveDownloadResult) {
+  if (result.kind === 'saved') {
+    return { message: previewText('archive.actions.downloadSaved', { name: result.fileName }) }
+  }
+  if (result.kind === 'failed') {
+    return {
+      message: waitText(result.retryAfter) ?? errorText(result.error),
+      tone: 'danger' as const,
+    }
+  }
+  if (result.kind === 'ticket_failed') {
+    const wait = waitText(downloadRetrySeconds(result))
+    return wait ? { message: wait, tone: 'danger' as const } : outcomeToast(result.outcome)
+  }
+  return null
+}
+
+export function useFileDownload(
+  file: FileSource,
+  target: TargetSource,
+  options?: { start: () => DownloadStartOptions; localFeedback: boolean },
+) {
   const download = useArchiveDownload()
   const owner = ownerLife()
   const toast = useToast()
 
-  async function start(): Promise<void> {
+  async function start(): Promise<ArchiveDownloadResult | undefined> {
     if (download.isPending.value) return
     const current = toValue(file)
-    const result = await download.start({
-      target: toValue(target),
-      kind: 'file',
-      id: current.file_id,
-      fallbackName: current.display_name,
-    })
-    if (owner.alive()) notifyDownload(result, toast)
+    const result = await download.start(
+      {
+        target: toValue(target),
+        kind: 'file',
+        id: current.file_id,
+        fallbackName: current.display_name,
+      },
+      options?.start(),
+    )
+    if (owner.alive() && !options?.localFeedback) {
+      const feedback = downloadFeedback(result)
+      if (feedback) toast.push(feedback)
+    }
+    return result
   }
   return { start, pending: download.isPending }
 }

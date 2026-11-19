@@ -8,6 +8,3 @@ import { designStub } from '@/shared/design-stub'
 
 /** Etiket oluşturma (E-06-19…21): kapalı küme, ağ isteği yok. */
 export const CREATE_TAG = designStub('BE-024', { available: false })
-
-/** Tam ekran önizleme (E-06-50). */
-export const FULLSCREEN_PREVIEW = designStub('BE-026', { available: false })

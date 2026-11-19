@@ -30,6 +30,7 @@ export function fetchFileBlob(target: ArchiveTarget, fileId: string, signal?: Ab
       params: { header: scopeHeaders(target), path: { id: fileId } },
       parseAs: 'blob',
       signal,
+      cache: 'no-store',
     }),
   )
 }
@@ -103,4 +104,15 @@ export function usePreviewDetails(
       subtaskTitle(subtasks.data.value?.subtasks, selected.value?.subtask_id),
     ),
   }
+}
+
+/** Bir tek görevde dosyanın hâlâ görünür olup olmadığını yeni bir S3 okumayla doğrular. */
+export function fetchPreviewRecord(target: ArchiveTarget, file: ArchiveFile, signal: AbortSignal) {
+  return unwrap(
+    api.GET('/v1/work-items/{id}/files', {
+      params: { header: scopeHeaders(target), path: { id: file.work_item_id } },
+      signal,
+      cache: 'no-store',
+    }),
+  ).then(({ files }) => files.find((entry) => entry.file_id === file.file_id) ?? null)
 }

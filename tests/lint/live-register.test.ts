@@ -55,6 +55,14 @@ const F10_W194_WAIVED = new Set(['BE-069', 'BE-112'])
 const F10_W194_BOUND = 'bağlandı (pin v0.26.0-api, F10 W194)'
 const F10_W194_WAIVER = /^vazgeçildi \(P45: [^)]+, F10 W194\)$/
 /** Kapanış kanıtı olarak depoda var olması gereken gerçek test dosyaları (yoksa kapanış sahte). */
+const F15_FULLSCREEN_BOUND = 'bağlandı (pin v0.28.0-api, F15 E-06-50)'
+const F15_FULLSCREEN_EVIDENCE = [
+  'docs/yurutme/web-15/referans/Arsiv-Tam-Ekran-Onizleme.html',
+  'docs/yurutme/web-15/referans/Arsiv-Onizleme-Notlar.dc.html',
+  'src/modules/archive/components/files/FileGrid.thumbnails.test.ts',
+  'src/modules/archive/components/preview/FullFilePreview.test.ts',
+  'src/modules/archive/pages/folder/use-full-preview-history.test.ts',
+]
 const F10_W194_EVIDENCE: Readonly<Record<string, readonly string[]>> = {
   'BE-075': ['src/app/__tests__/integration/archive-move.test.ts'],
   'BE-077': ['src/app/__tests__/integration/archive-search-scope.test.ts'],
@@ -69,6 +77,9 @@ function laterBoundAllowed(
   stubs: Set<string>,
   matrix: string,
 ): boolean {
+  if (status === F15_FULLSCREEN_BOUND) {
+    return id === 'BE-026' && !stubs.has(id) && F15_FULLSCREEN_EVIDENCE.every(existsSync)
+  }
   // F10 W193: kapanış kodda kimlikli stub kalmamasıyla ve sabit satır kümesiyle sınırlıdır.
   if (/^bağlandı \(pin v0\.26\.0-api, F10 W193\)$/.test(status)) {
     return F10_W193_CLOSED.has(id) && !stubs.has(id)
@@ -164,18 +175,18 @@ describe('F8 kayıt ↔ kod bütünlüğü', () => {
   })
 })
 
-describe('BE-026 F8 geçmişi ve F15 kısmi bağlama', () => {
-  it('F8 kapsamı yok olarak kalır, F15 grid kanıtı ve E-06-50 kalanı mevcut kayıtta ayrıdır', () => {
+describe('BE-026 F8 geçmişi ve F15 bağlama', () => {
+  it('F8 kapsamı yok olarak kalır ve F15 kanıtı yalnız BE-026 kapanışını destekler', () => {
     expect(matrixDecisions().get('BE-026')).toBe('yok')
     const row = cells().find((entry) => entry.id === 'BE-026')
-    expect(row?.status).toBe('açık')
-    expect(row?.bag).toMatch(/GAP-233.*getFileThumbnail.*v0\.27.*F15 v0\.28.*ızgarasına bağlandı/)
+    expect(row?.status).toBe(F15_FULLSCREEN_BOUND)
+    expect(row?.bag).toMatch(/GAP-233.*getFileThumbnail.*v0\.27.*F15 v0\.28.*06e/)
     expect(parseRegistry(REGISTRY).get('BE-026')?.current).toMatch(
-      /E-06-41\/42.*JPEG küçük resmi.*E-06-50 tam ekran kontrolü devre dışı/,
+      /E-06-41\/42.*JPEG küçük resmi.*E-06-50 erişim denetimli tam ekran/,
     )
-    expect(existsSync('src/modules/archive/components/files/FileGrid.thumbnails.test.ts')).toBe(
-      true,
-    )
+    expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, stubIds(), '')).toBe(true)
+    expect(laterBoundAllowed('BE-024', F15_FULLSCREEN_BOUND, new Set(), '')).toBe(false)
+    expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, new Set(['BE-026']), '')).toBe(false)
   })
 })
 

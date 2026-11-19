@@ -1,5 +1,7 @@
 # Canlıya alma matrisi — stub → v0.23 ucu → ekran satırı
 
+BE-026 için aşağıdaki `yok` kararı F8 kapsamının tarihsel kaydıdır. F15, v0.28 pini ve 06e çizimiyle kart, panel ve tam ekranı bağladı. [Güncel envanter ve kanıt](../web-15/README.md).
+
 **WEB-8 O1 · W169 · 2026-11-15 · yalnız belge (kod yok).** Taban `main` `31c6ccc`, dal `web8/o1-w169`. Pin bugün `v0.15.0-api`; hedef `v0.23.0-api` (P67 kesin: pin yükseltmesi + canlıya alma turu). **Kaynak yöntemi:** backend yalnız etiketten okundu (`git show v0.23.0-api:docs/api/openapi.yaml`, `error-codes.json`, `events.md`, `istemci-akislari.md`, modül README K-kodları, `known-gaps.md`; v0.15 ↔ v0.23 şema farkı iki etiket arasındaki `openapi.yaml` karşılaştırmasıyla); çalışma ağacına bakılmadı. İstemci tarafı bu dalın kodundan (`rg designStub` + yorumla işaretli stub'sız yerler) çıkarıldı. Kararlar: [web8-kararlar](../../../.git/koordinator/web8-kararlar.md) (P67 kesin; P68-P74 koordinatör varsayılanı = `geçici kabul`).
 
 Bu belge bir başlatma yetkisi değildir; F8 O2b işçilerinin (W171-W175) iş sınırlarını, kabul satırlarını ve çakışma sırasını sabitler. Sayılar `docs/yurutme/web-8/ilerleme.md`'ye (W168) girmez.

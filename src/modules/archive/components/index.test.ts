@@ -35,7 +35,7 @@ const CONTRACT = {
   ],
   FilePreview: [
     ['file', 'position', 'total', 'hasMore', 'target', 'taskTitle'],
-    ['close', 'previous', 'next', 'deleted', 'renamed', 'openTask'],
+    ['close', 'previous', 'next', 'deleted', 'renamed', 'openTask', 'fullscreen'],
     'W124',
   ],
   FileActions: [['file', 'target'], ['deleted', 'renamed'], 'W124'],

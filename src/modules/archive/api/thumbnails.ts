@@ -11,6 +11,17 @@ import { keyScope } from '../model/admin-scope'
 import type { ArchiveTarget } from '../model/types'
 import type { ThumbnailQueue } from '../model/thumbnail-queue'
 
+export function fetchFileThumbnail(target: ArchiveTarget, id: string, signal?: AbortSignal) {
+  return unwrap(
+    api.GET('/v1/files/{id}/thumbnail', {
+      params: { header: scopeHeaders(target), path: { id } },
+      parseAs: 'blob',
+      signal,
+      cache: 'no-store',
+    }),
+  )
+}
+
 export function useFileThumbnail(
   target: () => ArchiveTarget,
   fileId: () => string | null,
@@ -24,14 +35,7 @@ export function useFileThumbnail(
       const id = fileId()
       const read = sessionBound(async ({ signal }: QueryFunctionContext) => {
         if (id === null) return null
-        return unwrap(
-          api.GET('/v1/files/{id}/thumbnail', {
-            params: { header: scopeHeaders(resolved), path: { id } },
-            parseAs: 'blob',
-            signal,
-            cache: 'no-store',
-          }),
-        )
+        return fetchFileThumbnail(resolved, id, signal)
       })
       return {
         queryKey: queryKeys.archive.thumbnail(keyScope(scope, resolved), id ?? ''),
