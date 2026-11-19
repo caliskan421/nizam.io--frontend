@@ -73,6 +73,10 @@ async function closeCreate() {
   document.querySelector<HTMLElement>('#tables-create-trigger')?.focus()
 }
 
+async function reloadList() {
+  return (await list.refetch()).isSuccess
+}
+
 function openTable(tableId: string) {
   if (formOpen.value)
     void router.push({ name: TABLE_ROUTE.name, params: { tableId }, query: routeQuery.value })
@@ -151,6 +155,7 @@ function openTable(tableId: string) {
       <CreateTableForm
         v-if="formOpen"
         :target="target"
+        :reload="reloadList"
         @cancel="closeCreate"
         @created="openTable"
       />

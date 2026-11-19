@@ -233,3 +233,58 @@ it('belirsiz oluşturma sonucunda yalnız açık kullanıcı tekrarı aynı anah
   expect(requests).toHaveLength(2)
   expect(requests[0]).toEqual(requests[1])
 })
+
+it('belirsiz oluşturma çakışırsa eski form kilitli kalır ve yeni oluşturma öncesi liste taze okunur', async () => {
+  const writes: Array<{ key: string | null; body: unknown }> = []
+  let reads = 0
+  let listAvailable = true
+  server.use(
+    http.get(origin + '/v1/personal/tables', () => {
+      reads += 1
+      if (!listAvailable)
+        return HttpResponse.json({ code: 'platform.unavailable' }, { status: 503 })
+      const items = writes.length ? [table('original', 'İlk tablo')] : []
+      return HttpResponse.json({ items })
+    }),
+    http.post(origin + '/v1/personal/tables', async ({ request }) => {
+      writes.push({ key: request.headers.get('Idempotency-Key'), body: await request.json() })
+      return writes.length === 1
+        ? HttpResponse.error()
+        : HttpResponse.json({ code: 'platform.conflict_retry' }, { status: 409 })
+    }),
+  )
+  const { wrapper } = await render()
+  const button = (label: string) => wrapper.findAll('button').find((item) => item.text() === label)
+  await vi.waitFor(() => expect(button('Yeni tablo')).toBeDefined())
+  await wrapper.get('#tables-create-trigger').trigger('click')
+  await wrapper.get('input').setValue('İlk tablo')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(button('Aynı isteği gönder')).toBeDefined())
+  await button('Aynı isteği gönder')!.trigger('click')
+  await vi.waitFor(() => expect(writes).toHaveLength(3))
+  await vi.waitFor(() =>
+    expect(wrapper.text()).toContain('Yeni bir tablo oluşturmadan önce listeyi kontrol edin'),
+  )
+  expect(button('Aynı isteği gönder')).toBeUndefined()
+  expect(writes[0]).toEqual(writes[1])
+  expect(writes[1]).toEqual(writes[2])
+  expect(button('Oluştur')).toBeUndefined()
+  expect(wrapper.get('input').attributes()).toHaveProperty('disabled')
+  await wrapper.get('form').trigger('submit')
+  await wrapper.get('form').trigger('keydown', { key: 'Escape' })
+  expect(writes).toHaveLength(3)
+  expect(button('Yeni tablo')).toBeUndefined()
+
+  listAvailable = false
+  await button('Listeyi yenile ve dön')!.trigger('click')
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Güncel liste okunamadı'))
+  expect(button('Yeni tablo')).toBeUndefined()
+  listAvailable = true
+  const before = reads
+  await button('Listeyi yenile ve dön')!.trigger('click')
+  await vi.waitFor(() => expect(button('Yeni tablo')).toBeDefined())
+  expect(reads).toBeGreaterThan(before)
+  expect(wrapper.text()).toContain('İlk tablo')
+  expect(wrapper.find('form').exists()).toBe(false)
+  expect(writes).toHaveLength(3)
+})
