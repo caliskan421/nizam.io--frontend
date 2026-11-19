@@ -2,7 +2,7 @@
 
 ## F15 kart küçük resmi — v0.28.0-api
 
-E-06-41/42, S3 `GET /v1/files/{id}/thumbnail` (`getFileThumbnail`) üzerinden JPEG türevi okur. İstek Bearer ile klasörün program kapsamını ve dosya kaydının departmanını taşır. PNG, JPEG ve PDF desteklenir. 404 veya 422 tür rozetine döner, 429 bekleme süresini bildirir. JPEG tarayıcı önbelleğine yazılmaz. E-06-49 paneli raster dosyada `downloadFile` gövdesini, PDF için `getFileThumbnail` ilk sayfa JPEG türevini okur. PDF gövdesi gömülmez. E-06-50 tam ekran aracı devre dışıdır. Bu ayrım aşağıdaki tarihsel BE-026 uç tablosunu günceller.
+E-06-41/42, S3 `GET /v1/files/{id}/thumbnail` (`getFileThumbnail`) üzerinden JPEG türevi okur. İstek Bearer ile klasörün program kapsamını ve dosya kaydının departmanını taşır. PNG, JPEG ve PDF desteklenir. 404 veya 422 tür rozetine döner, 429 bekleme süresini bildirir. JPEG tarayıcı önbelleğine yazılmaz. E-06-49 paneli raster dosyada `downloadFile` gövdesini, PDF için `getFileThumbnail` ilk sayfa JPEG türevini okur. PDF gövdesi gömülmez. E-06-50 aynı gövde yollarını ve yetkili S3 `listWorkItemFiles` doğrulamasını kullanır. İndirme `issueDownloadTicket` üzerinden yapılır. Bu ayrım aşağıdaki tarihsel BE-026 uç tablosunu günceller.
 
 ## F12 yetkili güncelleme — v0.28.0-api
 

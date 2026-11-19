@@ -9,7 +9,9 @@ type Tree = (typeof trArchive)['archive']
 type Leaves<T, P extends string> = { [K in keyof T & string]: `${P}.${K}` }[keyof T & string]
 
 export type PreviewTextKey =
-  Leaves<Tree['preview'], 'archive.preview'> | Leaves<Tree['actions'], 'archive.actions'>
+  | Leaves<Tree['preview'], 'archive.preview'>
+  | Leaves<Tree['actions'], 'archive.actions'>
+  | Leaves<Tree['fullscreen'], 'archive.fullscreen'>
 
 export function previewText(key: PreviewTextKey, params?: Record<string, string | number>): string {
   return params ? i18n.global.t(key, params) : i18n.global.t(key)

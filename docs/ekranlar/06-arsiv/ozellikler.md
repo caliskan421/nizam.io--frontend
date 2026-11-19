@@ -118,7 +118,7 @@ Sayfa kaydırması tek parça (ayrı kaydırma alanı tanımlı değil); ağaç 
 | E-06-47 | Önceki / sonraki | iki `t-iconbtn` | `aria-label` "Önceki dosya" / "Sonraki dosya" | uçta devre dışı hali çizilmemiş | — | |
 | E-06-48 | Kapat | `t-iconbtn`, öncesinde dikey ayraç | `aria-label`/`title` "Önizlemeyi kapat" | — | — | kapalı hali (iki sütun?) çizilmemiş (§7) |
 | E-06-49 | Önizleme alanı | `t-hatch` 4:3, yarıçap 16px, `role="img"` `aria-label="Görsel önizleme alanı"` | yer tutucu tarama deseni | görsel dışı dosya hali çizilmemiş | dosya içeriği | BE-026 |
-| E-06-50 | Tam ekran | `t-iconbtn`, alanın sağ altı | `aria-label="Tam ekran aç"` | — | — | tam ekran görünümü çizilmemiş |
+| E-06-50 | Tam ekran | `t-iconbtn`, alanın sağ altı | `aria-label="Tam ekran aç"` | — | — | tam ekran 06e çizimi: [WEB-15](../../yurutme/web-15/README.md) |
 | E-06-51 | Dosya adı + tür·boyut | `p.rp-mono rp-clamp2` (`word-break:break-all`) + `rp-cap` | tam ad; "‹Tür adı› · ‹boyut›" (ör. "Resim · … KB") | — | ad, türün Türkçe adı, bayt | |
 | E-06-52 | Görev | `rp-dl` satırı; değer `a.rp-title` (500) | "Görev" → görev adı bağlantısı | — | görev adı + kimlik | göreve bağ; hedef görev ayrıntısı (03) |
 | E-06-53 | Etiket | `rp-dl` satırı; `rp-status` 13px + `rp-dot` | "Etiket" → nokta + tam etiket adı | — | etiket | sözleşmede etiket kapalı kümeden gelir (`ister, plan, girdi, analiz, cikti, sonuc`) ve dosyanın işlevsel sınıfını anlatır (dosya türünü değil; tür `content_type`'tan, E-06-42/51); tasarım etiket adları kullanılmaz (BE-024) |
@@ -143,7 +143,7 @@ Not: `rp-iconrow` 1 + 4 sütun tanımlı (`minmax(0,1fr) repeat(4, --control-md)
 ## 3. Pencereler, menüler, açılır paneller
 - **Sıralama menüsü** (E-06-09): tetikleyici düğme; içerik çizilmemiş. Bilinmiyor.
 - **Önizleme paneli** (E-06-46…E-06-60): kalıcı sağ sütun; kapat düğmesi var, kapalı hali çizilmemiş.
-- **Yükleme, silme onayı, yeniden adlandırma, etiket değiştirme, taşıma, tam ekran önizleme**: tetikleyicileri var, pencereleri çizilmemiş (E-06-62, E-06-64). Varsayım: silme onayı ortak onay diyaloğu, adlandırma satır içi ya da küçük pencere — `00-ortak`/ürün sahibiyle doğrulanacak.
+- **Yükleme, silme onayı, yeniden adlandırma, etiket değiştirme, taşıma**: tetikleyicileri var, pencereleri çizilmemiş (E-06-62, E-06-64). Varsayım: silme onayı ortak onay diyaloğu, adlandırma satır içi ya da küçük pencere — `00-ortak`/ürün sahibiyle doğrulanacak.
 - Ayrı artboard yok.
 
 ## 4. Metinler ve etiket sözlüğü

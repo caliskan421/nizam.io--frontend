@@ -22,7 +22,7 @@ import { previewText } from './messages'
  * W124 · E-06-45…57 — 07 sağ panel "Önizleme" (`Arsiv-Klasor.dc.html` aside). Başlık "i / N"
  * (toplam bilinmiyorsa "i / i+"), önceki/sonraki, kapat (odak dosya kartına döner — KESİN 27:
  * Esc, ✕, silme/ad değişimi). Önizleme aynı kökenden yetkili okunan raster görseli (≤ 20 MiB)
- * veya PDF ilk sayfasının JPEG türevini gösterir. Tam ekran devre dışı (BE-026).
+ * veya PDF ilk sayfasının JPEG türevini gösterir.
  * Ayrıntılar: ad, tür · boyut, Görev
  * (`openTask`), Etiket (P34), Yükleyen (`uploaded_by_full_name`; null → nötr), Tarih
  * (`created_at`, kurulum saat diliminde). İndir / yeniden adlandır / sil `FileActions`'tadır. 390 px'te panel akışta durur.
@@ -140,7 +140,12 @@ function onKeydown(event: KeyboardEvent): void {
       />
     </div>
 
-    <PreviewArea :file="file" :target="target" :type-name="typeName" />
+    <PreviewArea
+      :file="file"
+      :target="target"
+      :type-name="typeName"
+      @fullscreen="emit('fullscreen', $event)"
+    />
 
     <div class="fp-name">
       <p class="fp-name__text" data-testid="preview-name">{{ file.display_name }}</p>

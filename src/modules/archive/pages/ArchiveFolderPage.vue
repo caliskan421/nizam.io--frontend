@@ -21,21 +21,17 @@ import {
   UploadDialog,
 } from '../components'
 import { folderText } from '../components/files/messages'
+import FullFilePreview from '../components/preview/FullFilePreview.vue'
 import { archiveCapabilities } from '../model/capabilities'
 import FolderHead from './folder/FolderHead.vue'
 import FolderSearch from './folder/FolderSearch.vue'
 import { useDebouncedSearch } from './folder/use-debounced-search'
 import { useFileSelection } from './folder/use-file-selection'
+import { useArchiveFullscreen } from './folder/use-full-preview-history'
 import { useFolderData } from './folder/use-folder-data'
 import { useFolderUrl } from './folder/use-folder-url'
 
-/**
- * 07 Arşiv › Klasör (`/arsiv/:klasorId`, S3; W123). Sayfa gövdesi: ağaç | (başlık, görev
- * klasörleri, dosya araç çubuğu + ızgara/liste) | önizleme (`?dosya`). Komşu bileşenler bağlanır:
- * `FilePreview` (W124), `FolderZipButton` (W126, `FolderHead` içinde), `UploadDialog` (W125,
- * `defaultTaskId` = `?gorev`). Durum URL'de (`gorev`, `etiket`, `gorunum`, `dosya`, `q`);
- * hiçbiri depoya yazılmaz. Klasör yok/erişim kaybı ve geçersiz kimlik tek "bulunamadı" durumu.
- */
+/** 07 Arşiv: klasör, görev ve dosya seçimi URL'de, 06e tam ekran durumu bellekte. */
 const router = useRouter()
 const store = useScopeStore()
 const { standing } = useStanding()
@@ -95,6 +91,12 @@ const previewTarget = computed(() => {
     ? { programId: store.programId, departmentId: file.department_id }
     : null
 })
+
+const fullscreen = useArchiveFullscreen(
+  () => selection.selected.value,
+  () => previewTarget.value,
+  (id) => data.titles.value[id] ?? null,
+)
 
 const missing = computed(() => ctx.folderMissing.value)
 const folderError = computed(() =>
@@ -218,6 +220,7 @@ function openTask(workItemId: string): void {
             :has-more="attachments.hasMore.value"
             :target="previewTarget"
             :task-title="data.titles.value[selection.selected.value.work_item_id] ?? null"
+            @fullscreen="fullscreen.open"
             @removing="removing = $event"
             @moved="selection.removed"
             @close="selection.close"
@@ -236,5 +239,10 @@ function openTask(workItemId: string): void {
         @close="closeUpload"
       />
     </template>
+    <FullFilePreview
+      v-if="fullscreen.shown.value"
+      v-bind="fullscreen.shown.value"
+      @close="fullscreen.close"
+    />
   </section>
 </template>

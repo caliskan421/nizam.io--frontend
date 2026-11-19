@@ -178,6 +178,7 @@ export interface FilePreviewProps {
   taskTitle: string | null
 }
 export interface FilePreviewEmits {
+  fullscreen: [trigger: HTMLElement]
   /** Silme isteği uçuşta mı: sayfa bu sürede paneli listeden düşse bile açık tutar (sonuç bildirimi). */
   removing: [pending: boolean]
   close: []

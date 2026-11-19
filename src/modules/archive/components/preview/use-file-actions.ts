@@ -11,6 +11,8 @@
  *    404 `records.file_not_found` → silinmiş say (`deleted`); diğer hata → ortak bildirim.
  * Bildirim kurulumda alınan `useToast()` ile yapılır; sökülmüş sahip UI/bildirim başlatmaz.
  */
+import type { DownloadStartOptions } from '@/shared/download'
+
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { ownerLife } from '@/shared/http/mutation'
@@ -53,21 +55,29 @@ function notifyDownload(result: ArchiveDownloadResult, toast: ReturnType<typeof 
   }
 }
 
-export function useFileDownload(file: FileSource, target: TargetSource) {
+export function useFileDownload(
+  file: FileSource,
+  target: TargetSource,
+  options?: () => DownloadStartOptions,
+) {
   const download = useArchiveDownload()
   const owner = ownerLife()
   const toast = useToast()
 
-  async function start(): Promise<void> {
+  async function start(): Promise<ArchiveDownloadResult | undefined> {
     if (download.isPending.value) return
     const current = toValue(file)
-    const result = await download.start({
-      target: toValue(target),
-      kind: 'file',
-      id: current.file_id,
-      fallbackName: current.display_name,
-    })
+    const result = await download.start(
+      {
+        target: toValue(target),
+        kind: 'file',
+        id: current.file_id,
+        fallbackName: current.display_name,
+      },
+      options?.(),
+    )
     if (owner.alive()) notifyDownload(result, toast)
+    return result
   }
   return { start, pending: download.isPending }
 }

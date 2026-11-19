@@ -225,6 +225,19 @@ export const trArchive = {
       taskUntitled: 'Görevi aç',
       noValue: '—',
     },
+    fullscreen: {
+      title: 'Önizleme',
+      close: 'Kapat',
+      download: 'Dosyayı indir',
+      unavailable: 'Önizleme oluşturulamadı',
+      unavailableHint: 'Dosyayı indirip cihazındaki uygulamayla açabilirsin.',
+      denied: 'Dosya açılamadı.',
+      unverified: 'Dosya erişimi doğrulanamadı.',
+      firstPage: 'İlk sayfa önizlemesi',
+      scroll: 'Devamı için kaydır',
+      scrollRegion: 'Görsel, dikey kaydırılabilir',
+      dimensions: '{width} × {height}',
+    },
     // W124 — dosya eylemleri: indir, yeniden adlandır, sil (E-06-56…60, 64).
     actions: {
       label: 'Dosya eylemleri',

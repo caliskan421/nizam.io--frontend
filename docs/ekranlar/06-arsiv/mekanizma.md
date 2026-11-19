@@ -39,7 +39,7 @@ Sürüm: `v0.23.0-api` (F8 W171: yönetici okumaları S2 `programArchive*`, dosy
 | Görünüm (`gorunum`: ızgara/liste) | 07 | URL | varsayılan ızgara; kalıcı hatırlama **yok** (K2 depolama istisnası yalnız kapsam + tema) |
 | Seçili dosya (`dosya`) | 07 | URL | ilk girişte ilk dosya seçili (örnekte "1 / ‹N›") — Varsayım |
 | Önizleme açık/kapalı | 07 | bellek (veya `dosya` yokluğu) | kapalı hali çizilmemiş |
-| Tam ekran önizleme | 07 | bellek | çizilmemiş |
+| Tam ekran önizleme | 07 → 06e | bellek, aynı URL için geçici Geri adımı | Kapat sonrası seçili dosya ve sağ panel korunur |
 
 Hiçbir arşiv durumu `localStorage`'a yazılmaz.
 
@@ -140,7 +140,7 @@ Tasarımda yalnız **boş klasör kartı** (E-06-15: soluk, "Henüz dosya yok", 
 | E-06-46 | Önizleme sırası | yükleme | süzülmüş listedeki konum | §5 |
 | E-06-47 | Önceki/sonraki | tıklama | komşu dosyayı seç | §3, §5 |
 | E-06-48 | Kapat | tıklama | önizlemeyi kapat (`dosya` kaldır) | §3 |
-| E-06-49/50 | Önizleme alanı, tam ekran | yükleme / tıklama | içerik gösterimi (BE-026); tam ekran çizilmemiş | §6 |
+| E-06-49/50 | Önizleme alanı, tam ekran | yükleme / tıklama | içerik gösterimi (BE-026); tam ekran 06e | §6 |
 | E-06-51 | Ad + tür·boyut | yükleme | dosya alanlarından | — |
 | E-06-52 | Görev bağlantısı | tıklama | görev ayrıntısına git (03) | §1 |
 | E-06-53/54/55 | Etiket, yükleyen, tarih | yükleme | dosya alanlarından; tarih yerel saatle | — |
