@@ -31,6 +31,7 @@ export const DATA_FIELD_CODES: ReadonlySet<string> = new Set([
   'organization.existing_department',
   // Kalıcı silme engeli (`department_in_use`, v0.26): `field` engel türü, `message` sayı.
   'organization.department_usage',
+  'tables.conversion_lossy',
 ])
 
 /**

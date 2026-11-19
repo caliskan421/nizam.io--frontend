@@ -75,6 +75,8 @@ export const queryKeys = {
     list: (s: ScopeSnapshot) => scoped(s, ['tables', 'list']),
     detail: (s: ScopeSnapshot, id: string, cursor: string | null) =>
       scoped(s, ['tables', 'detail', id, { cursor }]),
+    detailPrefix: (s: ScopeSnapshot, id?: string) =>
+      scoped(s, id === undefined ? ['tables', 'detail'] : ['tables', 'detail', id]),
   },
   programs: {
     all: () => ['programs'] as const,
@@ -295,6 +297,7 @@ export type QueryResource =
   | 'notifications.pushKey'
   | 'chats.unreadOverview'
   | 'tables.list'
+  | 'tables.detail'
   | 'programs'
   | 'me'
   | 'departments'
@@ -630,7 +633,13 @@ const CHILD_TRASH_WRITES = [
 const BASE_INVALIDATED_BY: Readonly<Record<QueryResource, readonly OperationId[]>> = {
   // Yalnız yeniden yükleme.
   'instance.profile': [],
-  'tables.list': ['createPersonalTable', 'createTable'],
+  'tables.list': [
+    'createPersonalTable',
+    'createTable',
+    'applyPersonalTableOperation',
+    'applyTableOperation',
+  ],
+  'tables.detail': ['applyPersonalTableOperation', 'applyTableOperation'],
   // Bildirim okundu yazmaları sayaç + panel listesini BİRLİKTE yeniler (KESİN 29; rozet ↔ sekme
   // sayacı uyumu). Görev/toplantı yazmaları bildirim listesini geçersizlemez: kaydı sunucu üretir
   // (tazeleme kuralı: staleTime + odak + aralık). Cihaz kaydı (`registerPushTarget`) okuma yenilemez.
@@ -980,6 +989,8 @@ export interface InvalidationContext {
   meetingId?: string
   /** Hedef sohbet (`chats.detail|pins|members|refs`); verilmezse programdaki bütün sohbetler. */
   chatId?: string
+  tableId?: string
+  skipTableDetail?: boolean
 }
 
 /** TanStack `invalidateQueries` filtresi (yalnız kullandığımız alanlar). */
@@ -1128,6 +1139,8 @@ function allPrograms(match: (key: QueryKey) => boolean): InvalidationFilter {
 const FILTERS: Readonly<Record<QueryResource, FilterBuilder>> = {
   'instance.profile': () => null,
   'tables.list': prefix(queryKeys.tables.list),
+  'tables.detail': (scope, { tableId, skipTableDetail }) =>
+    skipTableDetail ? null : { queryKey: queryKeys.tables.detailPrefix(scope, tableId) },
   report: reportOfProgram(['dashboard', 'season', 'workload']),
   'report.task': reportOfProgram(['task'], (ctx) => ctx.workItemId),
   'report.meeting': reportOfProgram(['meeting'], (ctx) => ctx.meetingId),

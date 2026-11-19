@@ -7,8 +7,9 @@ import { UiButton } from '@/shared/ui'
 
 import { useCreateTable } from '../api/tables'
 import type { TableResult, TableTarget } from '../model/types'
+import { validTableName } from '../model/structure'
 
-const props = defineProps<{ target: TableTarget }>()
+const props = defineProps<{ target: TableTarget; reload: () => Promise<boolean> }>()
 const emit = defineEmits<{ cancel: []; created: [tableId: string] }>()
 const create = useCreateTable(() => props.target)
 const name = ref('')
@@ -27,16 +28,14 @@ function settle(result: Result) {
     emit('created', result.data.table_id)
     return
   }
-  if (result.kind === 'unknown_outcome') {
+  if (uncertain.value || result.kind === 'unknown_outcome') {
+    resend.value = !uncertain.value && result.kind === 'unknown_outcome' ? result.retry : null
     uncertain.value = true
-    resend.value = result.retry
-    formError.value = result.retry
+    formError.value = resend.value
       ? 'Oluşturma sonucu doğrulanamadı. Aynı isteği bir kez daha gönderebilirsiniz.'
       : 'Oluşturma sonucu doğrulanamadı. Yeni bir tablo oluşturmadan önce listeyi kontrol edin.'
     return
   }
-  uncertain.value = false
-  resend.value = null
   formError.value = 'error' in result ? errorText(result.error) : 'Tablo oluşturulamadı.'
 }
 
@@ -50,10 +49,21 @@ async function run(send: () => Promise<Result>) {
   }
 }
 
+async function checkList() {
+  if (busy.value || !uncertain.value) return
+  busy.value = true
+  try {
+    if (await props.reload()) emit('cancel')
+    else formError.value = 'Güncel liste okunamadı. İlk oluşturma işleminin sonucu hâlâ belirsiz.'
+  } finally {
+    busy.value = false
+  }
+}
+
 async function submit() {
   if (uncertain.value || busy.value) return
   const title = name.value.trim()
-  if (!title || [...title].length > 200 || /[\u0000\r\n]/u.test(title)) {
+  if (!validTableName(title)) {
     formError.value = '1–200 karakterlik bir tablo adı girin.'
     return
   }
@@ -66,7 +76,7 @@ async function submit() {
   <form
     class="t-card tables-create"
     @submit.prevent="submit"
-    @keydown.esc.prevent="!busy && emit('cancel')"
+    @keydown.esc.prevent="!busy && !uncertain && emit('cancel')"
   >
     <h2>Boş tablo oluştur</h2>
     <label class="tables-field">
@@ -82,9 +92,10 @@ async function submit() {
     </label>
     <p v-if="formError" id="tables-create-error" role="alert">{{ formError }}</p>
     <div class="tables-actions">
-      <UiButton variant="ghost" :disabled="busy" @click="emit('cancel')">{{
-        uncertain ? 'Listeye dön' : 'Vazgeç'
-      }}</UiButton>
+      <UiButton v-if="uncertain" variant="ghost" :disabled="busy" @click="checkList">
+        Listeyi yenile ve dön
+      </UiButton>
+      <UiButton v-else variant="ghost" :disabled="busy" @click="emit('cancel')">Vazgeç</UiButton>
       <UiButton v-if="!uncertain" variant="primary" type="submit" :disabled="busy">{{
         busy ? 'Oluşturuluyor…' : 'Oluştur'
       }}</UiButton>

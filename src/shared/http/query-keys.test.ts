@@ -56,6 +56,12 @@ const TABLE: Array<{
     mustInvalidate: ['createPersonalTable', 'createTable'],
   },
   {
+    resource: 'tables.detail',
+    key: queryKeys.tables.detail(S, 't1', 'some-cursor'),
+    expected: [...root(S), 'tables', 'detail', 't1', { cursor: 'some-cursor' }],
+    mustInvalidate: ['applyPersonalTableOperation', 'applyTableOperation'],
+  },
+  {
     resource: 'programs',
     key: queryKeys.programs.all(),
     expected: ['programs'],
