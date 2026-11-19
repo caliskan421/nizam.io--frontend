@@ -38,13 +38,14 @@ export function useCopyTable(scope: () => TableTarget) {
       mode: 'structure',
       source_table_id: source.id,
       source_space: source.space,
+      ...(source.space === 'coordinatorship' ? { source_department_id: source.department_id } : {}),
       ...(name ? { name } : {}),
     }
     if (departmentId === null) return personal.submit({ programId, body })
     return department.submit({
       programId,
       departmentId,
-      body: { ...body, source_department_id: departmentId },
+      body,
     })
   }
 }

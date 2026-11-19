@@ -38,7 +38,7 @@ defineEmits<{ blank: []; select: [source: TableSummary]; retry: []; more: [] }>(
           type="button"
           class="t-card tables-template"
           :aria-label="item.name + ' şablonundan oluştur'"
-          :disabled="formOpen"
+          :disabled="formOpen || !canCreate"
           @click="$emit('select', item)"
         >
           <span class="tables-template-icon"><UiIcon name="sheets" /></span>
@@ -56,7 +56,9 @@ defineEmits<{ blank: []; select: [source: TableSummary]; retry: []; more: [] }>(
       @retry="$emit('retry')"
     />
     <p v-else-if="!items.length" class="tables-muted">
-      Bu çalışma alanında erişilebilir şablon yok.
+      {{
+        hasNext ? 'Yüklenen sayfalarda şablon yok.' : 'Bu çalışma alanında erişilebilir şablon yok.'
+      }}
     </p>
     <UiButton v-if="hasNext && !error" size="sm" :disabled="fetching" @click="$emit('more')">
       Daha fazla şablon

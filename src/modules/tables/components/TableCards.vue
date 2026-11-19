@@ -53,11 +53,11 @@ const visible = computed(() =>
     <UiEmptyState
       v-if="!visible.length"
       :title="
-        filtering
-          ? hasNext
-            ? 'Yüklenen tablolarda eşleşme yok'
-            : 'Bu filtrede tablo yok'
-          : 'Henüz tablo yok'
+        hasNext
+          ? 'Yüklenen tablolarda eşleşme yok'
+          : filtering
+            ? 'Bu filtrede tablo yok'
+            : 'Henüz tablo yok'
       "
       :text="hasNext ? 'Aramaya devam etmek için daha fazla tablo yükleyin.' : undefined"
       icon="sheets"

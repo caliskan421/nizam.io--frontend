@@ -412,31 +412,28 @@ it('birim şablonunda S3 başlığı ve gövdedeki kaynak departmanı aynı seç
   )
 })
 
-it.each([403, 404])(
-  'kayıp şablon %s ile güvenli biçimde gizlenir ve şablon listesi yenilenir',
-  async (status) => {
-    let available = true
-    let templateReads = 0
-    server.use(
-      http.get(normalList, ({ request }) => {
-        if (new URL(request.url).searchParams.has('template')) templateReads++
-        return HttpResponse.json({ items: available ? [firstTemplate] : [] })
-      }),
-      http.post(personalCopy, () => {
-        available = false
-        return HttpResponse.json({ code: 'tables.not_found' }, { status })
-      }),
-    )
-    const { wrapper } = await render()
-    await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
-    await wrapper.get('#tables-template-tpl-1').trigger('click')
-    await wrapper.get('form').trigger('submit')
-    await vi.waitFor(() => expect(wrapper.text()).toContain('Şablon artık kullanılamıyor'))
-    await vi.waitFor(() => expect(templateReads).toBeGreaterThan(1))
-    await vi.waitFor(() => expect(wrapper.text()).not.toContain('Görünür şablon'))
-    expect(wrapper.find('form button[type=submit]').exists()).toBe(false)
-  },
-)
+it('kayıp şablon 404 ile güvenli biçimde gizlenir ve şablon listesi yenilenir', async () => {
+  let available = true
+  let templateReads = 0
+  server.use(
+    http.get(normalList, ({ request }) => {
+      if (new URL(request.url).searchParams.has('template')) templateReads++
+      return HttpResponse.json({ items: available ? [firstTemplate] : [] })
+    }),
+    http.post(personalCopy, () => {
+      available = false
+      return HttpResponse.json({ code: 'tables.not_found' }, { status: 404 })
+    }),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Şablon artık kullanılamıyor'))
+  await vi.waitFor(() => expect(templateReads).toBeGreaterThan(1))
+  await vi.waitFor(() => expect(wrapper.text()).not.toContain('Görünür şablon'))
+  expect(wrapper.find('form button[type=submit]').exists()).toBe(false)
+})
 
 it('şablon kopyasının belirsiz tekrarı 409 ile sonuçlanınca yeni yazma açılmaz', async () => {
   const writes: Array<{ key: string | null; body: unknown }> = []
@@ -514,4 +511,143 @@ it('kapsam değişince geç kopya makbuzu yeni programda detay açmaz', async ()
     expect(wrapper.text()).toContain('Bu çalışma alanında erişilebilir şablon yok'),
   )
   expect(router.currentRoute.value.path).toBe('/tablolar')
+})
+
+it('403 gerçek izin reddini gösterir ve erişilebilir kaynak için gereksiz şablon okuması yapmaz', async () => {
+  let templateReads = 0
+  server.use(
+    http.get(normalList, ({ request }) => {
+      const templates = new URL(request.url).searchParams.has('template')
+      if (templates) templateReads++
+      return HttpResponse.json({ items: templates ? [firstTemplate] : [] })
+    }),
+    http.post(personalCopy, () => HttpResponse.json({ code: 'tables.forbidden' }, { status: 403 })),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() =>
+    expect(wrapper.get('form').text()).toContain('Bu işlem için yetkiniz yok.'),
+  )
+  expect(wrapper.get('form').text()).toContain('Görünür şablon')
+  expect(wrapper.get('form').text()).not.toContain('Şablon artık kullanılamıyor')
+  expect(wrapper.find('form button[type=submit]').exists()).toBe(false)
+  expect(templateReads).toBe(1)
+})
+
+it('belirsiz kopya kilidi rota değişse de yalnız yeni bir hedef liste okumasıyla çözülür', async () => {
+  const existing = table('existing', 'Mevcut tablo')
+  let reads = 0
+  let writes = 0
+  let holdReads = false
+  let release: (() => void) | undefined
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http.get(normalList, async ({ request }) => {
+      if (new URL(request.url).searchParams.has('template'))
+        return HttpResponse.json({ items: [firstTemplate] })
+      reads++
+      if (holdReads) await held
+      return HttpResponse.json({ items: [existing] })
+    }),
+    http.get(normalList + '/existing', () =>
+      HttpResponse.json({ table: existing, rows: [], cells: [], columns: [] }),
+    ),
+    http.post(personalCopy, () => {
+      writes++
+      return HttpResponse.error()
+    }),
+  )
+  const { wrapper, router } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(labeledButton(wrapper, 'Aynı isteği gönder')).toBeDefined())
+  await router.push('/tablolar/existing')
+  holdReads = true
+  await router.push('/tablolar')
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Önceki oluşturmanın sonucu belirsiz'))
+  expect(wrapper.get('#tables-blank-trigger').attributes()).toHaveProperty('disabled')
+  expect(wrapper.get('#tables-template-tpl-1').attributes()).toHaveProperty('disabled')
+  expect(wrapper.find('#tables-create-trigger').exists()).toBe(false)
+  const previousReads = reads
+  await labeledButton(wrapper, 'Listeyi yenile')!.trigger('click')
+  await vi.waitFor(() => expect(reads).toBeGreaterThan(previousReads))
+  expect(wrapper.get('#tables-template-tpl-1').attributes()).toHaveProperty('disabled')
+  release?.()
+  await vi.waitFor(() =>
+    expect(wrapper.get('#tables-template-tpl-1').attributes()).not.toHaveProperty('disabled'),
+  )
+  expect(writes).toBe(1)
+})
+
+it('sonuç başarıyla kaydedilip detay gezinmesi engellenince aynı formdan ikinci yazma açılamaz', async () => {
+  let writes = 0
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items: new URL(request.url).searchParams.has('template') ? [firstTemplate] : [],
+      }),
+    ),
+    http.post(personalCopy, () => {
+      writes++
+      return HttpResponse.json({ table_id: 'new' }, { status: 201 })
+    }),
+  )
+  const { wrapper, router } = await render()
+  router.beforeEach((route) => (route.name === 'tables.detail' ? false : true))
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(wrapper.find('form').exists()).toBe(false))
+  expect(router.currentRoute.value.path).toBe('/tablolar')
+  expect(writes).toBe(1)
+})
+
+it('eksik sayfalı şablon sonucu kesin boş mesajı üretmez', async () => {
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items: [],
+        next_cursor: new URL(request.url).searchParams.has('template')
+          ? 'next-template'
+          : 'next-list',
+      }),
+    ),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.text()).toContain('Yüklenen sayfalarda şablon yok.'))
+  expect(wrapper.text()).toContain('Yüklenen tablolarda eşleşme yok')
+  expect(labeledButton(wrapper, 'Daha fazla şablon')).toBeDefined()
+  expect(labeledButton(wrapper, 'Daha fazla tablo')).toBeDefined()
+})
+
+it.each([
+  { status: 422, code: 'tables.input_invalid', expected: 'Girilen bilgiler geçersiz.' },
+  { status: 429, code: 'platform.rate_limited', expected: '4 saniye' },
+])('kopya $status sonucunda sözleşme mesajı gösterilir', async ({ status, code, expected }) => {
+  server.use(
+    http.get(normalList, ({ request }) =>
+      HttpResponse.json({
+        items: new URL(request.url).searchParams.has('template') ? [firstTemplate] : [],
+      }),
+    ),
+    http.post(personalCopy, () =>
+      HttpResponse.json(
+        { code },
+        {
+          status,
+          headers: { 'Retry-After': '4' },
+        },
+      ),
+    ),
+  )
+  const { wrapper } = await render()
+  await vi.waitFor(() => expect(wrapper.find('#tables-template-tpl-1').exists()).toBe(true))
+  await wrapper.get('#tables-template-tpl-1').trigger('click')
+  await wrapper.get('form').trigger('submit')
+  await vi.waitFor(() => expect(wrapper.get('form').text()).toContain(expected))
 })

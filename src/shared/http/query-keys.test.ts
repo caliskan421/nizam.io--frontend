@@ -836,3 +836,19 @@ describe('query-keys — W13 kapsam katmanıyla tekilleştirme', () => {
     expect(STANDING_KEYS.programs).toEqual(queryKeys.programs.all())
   })
 })
+
+it('şablon imleci ayrı anahtardadır ve kopya iki tablo listesini aynı kapsamda yeniler', async () => {
+  const client = new QueryClient()
+  const normal = queryKeys.tables.list(S)
+  const templates = queryKeys.tables.templates(S)
+  const other = queryKeys.tables.templates({ ...S, departmentId: 'different' })
+  expect(templates).toEqual([...normal, 'templates'])
+  for (const operation of ['copyTableToPersonal', 'copyTableToCoordinatorship'] as const) {
+    for (const key of [normal, templates, other]) client.setQueryData(key, [])
+    for (const filter of invalidationFilters(operation, S)) await client.invalidateQueries(filter)
+    expect(client.getQueryState(normal)?.isInvalidated).toBe(true)
+    expect(client.getQueryState(templates)?.isInvalidated).toBe(true)
+    expect(client.getQueryState(other)?.isInvalidated).toBe(false)
+  }
+  client.clear()
+})

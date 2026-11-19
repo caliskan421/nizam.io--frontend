@@ -8,10 +8,12 @@ import { UiButton } from '@/shared/ui'
 import { useCopyTable } from '../api/copy'
 import { useCreateTable } from '../api/tables'
 import type { TableResult, TableSummary, TableTarget } from '../model/types'
+import { beginTableCreation, finishTableCreation } from '../model/create-guard'
 import { validTableName } from '../model/structure'
 
 const props = defineProps<{
   target: TableTarget
+  guardKey: string
   source: TableSummary | null
   sourceAvailable: boolean
   areaLabel: string
@@ -21,6 +23,8 @@ const emit = defineEmits<{ cancel: []; created: [tableId: string]; sourceLost: [
 const create = useCreateTable(() => props.target)
 const copy = useCopyTable(() => props.target)
 const sourceLost = ref(false)
+const forbidden = ref(false)
+const done = ref(false)
 const unavailable = computed(
   () => props.source !== null && (sourceLost.value || !props.sourceAvailable),
 )
@@ -34,12 +38,13 @@ const resend = shallowRef<(() => Promise<Result>) | null>(null)
 
 onMounted(() => input.value?.focus())
 
-function inaccessible(result: Result) {
-  return 'error' in result && [403, 404].includes(result.error.status ?? 0)
+function failedWithStatus(result: Result, code: number) {
+  return 'error' in result && result.error.status === code
 }
 function settle(result: Result) {
   if (!reachesOwner(result)) return
   if (result.kind === 'success') {
+    done.value = true
     emit('created', result.data.table_id)
     return
   }
@@ -49,22 +54,44 @@ function settle(result: Result) {
     formError.value = resend.value
       ? 'Oluşturma sonucu doğrulanamadı. Aynı isteği bir kez daha gönderebilirsiniz.'
       : 'Oluşturma sonucu doğrulanamadı. Yeni bir tablo oluşturmadan önce listeyi kontrol edin.'
+    if (result.kind !== 'unknown_outcome') formError.value += ' ' + resultMessage(result)
     return
   }
-  if (props.source && inaccessible(result)) {
+  if (props.source && failedWithStatus(result, 404)) {
     sourceLost.value = true
     emit('sourceLost')
     return
   }
+  if (failedWithStatus(result, 403)) forbidden.value = true
+  formError.value = resultMessage(result)
+}
+
+function resultMessage(result: Result) {
   const { key, params } = outcomeMessage(result)
-  formError.value = i18n.global.t(key, params ?? {})
+  return i18n.global.t(key, params ?? {})
 }
 
 async function run(send: () => Promise<Result>) {
-  if (busy.value) return
+  if (busy.value || done.value || forbidden.value) return
+  const key = props.guardKey
+  const retrying = uncertain.value
+  const ticket = beginTableCreation(key, retrying)
+  if (!ticket) return
   busy.value = true
   try {
-    settle(await send())
+    const result = await send()
+    finishTableCreation(
+      key,
+      ticket,
+      result.kind === 'unknown_outcome' || (retrying && result.kind !== 'success'),
+    )
+    settle(result)
+  } catch {
+    finishTableCreation(key, ticket, true)
+    uncertain.value = true
+    resend.value = null
+    formError.value =
+      'Oluşturma sonucu doğrulanamadı. Yeni bir tablo oluşturmadan önce listeyi kontrol edin.'
   } finally {
     busy.value = false
   }
@@ -98,7 +125,7 @@ async function submit() {
   <form
     class="t-card tables-create"
     @submit.prevent="submit"
-    @keydown.esc.prevent="!busy && !uncertain && emit('cancel')"
+    @keydown.esc.prevent="!busy && !uncertain && !done && emit('cancel')"
   >
     <h2>{{ source ? 'Şablondan oluştur' : 'Boş tablo oluştur' }}</h2>
     <template v-if="source">
@@ -118,7 +145,7 @@ async function submit() {
         ref="input"
         v-model="name"
         class="t-input"
-        :disabled="busy || uncertain || unavailable"
+        :disabled="busy || uncertain || unavailable || forbidden || done"
         :placeholder="source && !unavailable ? source.name : undefined"
         :aria-invalid="!!formError && !uncertain"
         :aria-describedby="formError ? 'tables-create-error' : undefined"
@@ -129,9 +156,11 @@ async function submit() {
       <UiButton v-if="uncertain" variant="ghost" :disabled="busy" @click="checkList">
         Listeyi yenile ve dön
       </UiButton>
-      <UiButton v-else variant="ghost" :disabled="busy" @click="emit('cancel')">Vazgeç</UiButton>
+      <UiButton v-else variant="ghost" :disabled="busy || done" @click="emit('cancel')"
+        >Vazgeç</UiButton
+      >
       <UiButton
-        v-if="!uncertain && !unavailable"
+        v-if="!uncertain && !unavailable && !forbidden && !done"
         variant="primary"
         type="submit"
         :disabled="busy"

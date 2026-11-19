@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-
+import { computed, ref, watch } from 'vue'
+import { isNavigationFailure, useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/shared/errors/api-error'
 import { useProgramDepartments } from '@/shared/scope/program-departments'
 import { useScopeStore } from '@/shared/scope/store'
 import { useSessionStore } from '@/shared/session/store'
 import { UiButton, UiEmptyState, UiErrorState } from '@/shared/ui'
 
-import { useTables } from '../api/tables'
 import CreateTableForm from '../components/CreateTableForm.vue'
 import TableCards from '../components/TableCards.vue'
 import TableTemplates from '../components/TableTemplates.vue'
-import type { TableSummary, TableTarget } from '../model/types'
+import { useTableCatalog } from '../composables/use-table-catalog'
+import { useTableCreatePanel } from '../composables/use-table-create-panel'
+import type { TableTarget } from '../model/types'
 import TablesDetail from './TablesDetail.vue'
 import { TABLE_ROUTE, TABLES_ROUTE } from '../routes'
-
 import './tables.css'
 const route = useRoute()
 const router = useRouter()
@@ -41,31 +40,36 @@ watch(
   { flush: 'sync' },
 )
 const isList = computed(() => tableId.value === null)
-const list = useTables(target, isList)
-const templates = useTables(target, isList, true)
-const templateError = computed(() =>
-  templates.error.value instanceof ApiError ? templates.error.value : null,
-)
-const templateItems = computed(
-  () =>
-    templates.data.value?.pages.flatMap((page) => page.items).filter((item) => item.is_template) ??
-    [],
-)
+const { list, templates, listError, templateError, listItems, templateItems, recoverSource } =
+  useTableCatalog(target, isList)
 const activeArea = computed(
   () =>
     choices.value.find((item) => item.department_id === department.value)?.display_name ??
     'Koordinatörlük',
 )
-const source = ref<TableSummary | null>(null)
+const panel = useTableCreatePanel({
+  target,
+  account: () => session.accountId,
+  listReady: () => list.isSuccess.value,
+  hasSource: (item) => !templates.isError.value && templateItems.value.includes(item),
+  reload: async () => (await list.refetch()).isSuccess,
+})
+const {
+  guardKey,
+  canCreate,
+  formOpen,
+  source,
+  held,
+  refreshing,
+  showCreate,
+  showTemplate,
+  closeCreate,
+  refreshCreationList,
+} = panel
 const sourceAvailable = computed(
   () =>
     !templates.isError.value && templateItems.value.some((item) => item.id === source.value?.id),
 )
-let formTrigger = 'tables-create-trigger'
-
-const listError = computed(() => (list.error.value instanceof ApiError ? list.error.value : null))
-const listItems = computed(() => list.data.value?.pages.flatMap((page) => page.items) ?? [])
-const formOpen = ref(false)
 const editorGeneration = ref(0)
 watch(
   () => [
@@ -77,48 +81,27 @@ watch(
     session.accountId,
   ],
   () => {
-    formOpen.value = false
-    source.value = null
+    panel.reset()
     editorGeneration.value += 1
   },
   { flush: 'sync' },
 )
-function showCreate(trigger = 'tables-create-trigger') {
-  if (formOpen.value) return
-  formTrigger = trigger
-  source.value = null
-  formOpen.value = true
-}
-function showTemplate(item: TableSummary) {
-  if (
-    formOpen.value ||
-    !target.value ||
-    templates.isError.value ||
-    !templateItems.value.includes(item)
-  )
-    return
-  formTrigger = 'tables-template-' + item.id
-  source.value = item
-  formOpen.value = true
-}
-async function closeCreate() {
-  formOpen.value = false
-  source.value = null
-  await nextTick()
-  const trigger =
-    document.getElementById(formTrigger) ?? document.getElementById('tables-blank-trigger')
-  trigger?.focus()
-}
-
-function recoverSource() {
-  void Promise.all([list.refetch(), templates.refetch()])
-}
-async function reloadList() {
-  return (await list.refetch()).isSuccess
-}
-function openTable(tableId: string) {
-  if (formOpen.value)
-    void router.push({ name: TABLE_ROUTE.name, params: { tableId }, query: routeQuery.value })
+async function openTable(tableId: string) {
+  if (!formOpen.value) return
+  const generation = editorGeneration.value
+  try {
+    if (
+      !isNavigationFailure(
+        await router.push({ name: TABLE_ROUTE.name, params: { tableId }, query: routeQuery.value }),
+      )
+    )
+      return
+  } catch {
+    // Kayıt sunucuda tamamlandı. Başarısız gezinme işlemi yeniden açmaz.
+  }
+  if (editorGeneration.value !== generation) return
+  await list.refetch()
+  if (editorGeneration.value === generation) await closeCreate()
 }
 </script>
 <template>
@@ -134,7 +117,7 @@ function openTable(tableId: string) {
         <h1 id="tables-title">{{ isList ? 'Tablolar' : 'Tablo' }}</h1>
       </div>
       <UiButton
-        v-if="isList && target && list.isSuccess.value && !formOpen"
+        v-if="isList && canCreate && !formOpen"
         id="tables-create-trigger"
         variant="primary"
         icon="plus"
@@ -192,14 +175,31 @@ function openTable(tableId: string) {
         v-if="formOpen"
         :key="editorGeneration"
         :target="target"
+        :guard-key="guardKey"
         :source="source"
         :source-available="sourceAvailable"
         :area-label="unit ? activeArea : 'Kişisel'"
-        :reload="reloadList"
+        :reload="refreshCreationList"
         @cancel="closeCreate"
         @created="openTable"
         @source-lost="recoverSource"
       />
+      <div v-if="held && !formOpen" class="tables-notice" role="status">
+        <p>
+          {{
+            held === 'pending'
+              ? 'Önceki oluşturma işlemi sürüyor.'
+              : 'Önceki oluşturmanın sonucu belirsiz. Yeni işlemden önce güncel listeyi okuyun.'
+          }}
+        </p>
+        <UiButton
+          v-if="held === 'uncertain'"
+          size="sm"
+          :disabled="refreshing"
+          @click="refreshCreationList"
+          >Listeyi yenile</UiButton
+        >
+      </div>
       <TableTemplates
         :items="templateItems"
         :pending="templates.isPending.value"
@@ -207,7 +207,7 @@ function openTable(tableId: string) {
         :has-next="templates.hasNextPage.value"
         :error="templateError"
         :form-open="formOpen"
-        :can-create="list.isSuccess.value"
+        :can-create="canCreate"
         @blank="showCreate('tables-blank-trigger')"
         @select="showTemplate"
         @retry="templates.refetch()"
