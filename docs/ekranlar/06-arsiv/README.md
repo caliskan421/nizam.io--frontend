@@ -1,5 +1,9 @@
 # 06 · Arşiv
 
+## F15 kart küçük resimleri
+
+E-06-41/42 ızgarasında PNG, JPEG ve PDF için `getFileThumbnail` görünür kartta çalışır. JPEG yanıtı için isteğin program başlığı klasör verisinin kapsamından, departman başlığı dosya kaydından gelir. PDF küçük resmi ilk sayfayı gösterir. Türev okunamazsa mevcut tür rozeti kalır. İki okuma eşzamanlı yürür ve 429 yanıtının `Retry-After` süresi korunur. Kart görüntü alanından çıktığında okuma iptal edilir ve nesne URL'si bırakılır. Tam ekran paneli önceki kapsamıyla sürer.
+
 ## F12 güncel kapsamı — v0.28.0-api
 
 Bu bölüm aşağıdaki F5/F8/F10 E-06-23/24 ve BE-025 stub anlatımlarının yerini alır.

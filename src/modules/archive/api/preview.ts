@@ -1,5 +1,5 @@
 /**
- * Seçili dosyanın önizleme okumaları (yalnız seçili dosya için; ızgara küçük resmi yok — BE-026):
+ * Seçili dosyanın önizleme okumaları (yalnız seçili dosya için):
  *  - Görsel gövde: `downloadFile` gövdesi `Authorization`'lı istemciyle `blob` okunur, `blob:`
  *    URL'ye çevrilir; URL söküm/dosya değişiminde `revokeObjectURL` ile serbest bırakılır.
  *    Üretim CSP'sinde `img-src blob:` gerekir (doğrulama: görsel duman; gevşetme yok). Yalnız

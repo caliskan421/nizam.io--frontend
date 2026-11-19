@@ -7,7 +7,7 @@ import { DesignStub, UiButton, UiIcon, UiIconButton } from '@/shared/ui'
 
 import { useFilePreview } from '../../api/preview'
 import { canPreview, isPreviewableImage } from '../../model/mime'
-import { THUMBNAIL } from '../../model/stubs'
+import { FULLSCREEN_PREVIEW } from '../../model/stubs'
 import type { ArchiveFile, ArchiveTarget } from '../../model/types'
 import { previewText } from './messages'
 
@@ -71,7 +71,7 @@ const noneText = computed(() =>
       <UiIconButton
         icon="expand"
         :label="previewText('archive.preview.fullscreen')"
-        :disabled="!THUMBNAIL.fullscreen"
+        :disabled="!FULLSCREEN_PREVIEW.available"
         data-testid="preview-fullscreen"
       />
     </DesignStub>

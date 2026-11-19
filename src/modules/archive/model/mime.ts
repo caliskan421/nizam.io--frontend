@@ -53,6 +53,12 @@ export function isPreviewableImage(contentType: string): boolean {
   return PREVIEW_IMAGE_TYPES.has(contentType.toLowerCase().split(';')[0]!.trim())
 }
 
+const THUMBNAIL_TYPES: ReadonlySet<string> = new Set(['image/jpeg', 'image/png', 'application/pdf'])
+
+export function canThumbnail(contentType: string): boolean {
+  return THUMBNAIL_TYPES.has(contentType.toLowerCase().split(';')[0]!.trim())
+}
+
 const UNITS = ['B', 'KB', 'MB', 'GB'] as const
 
 /** "‹x,y› KB/MB" — ondalık virgül, bir basamak (E-06-13/51). */

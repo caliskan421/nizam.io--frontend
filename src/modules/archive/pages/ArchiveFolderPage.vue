@@ -196,6 +196,8 @@ function openTask(workItemId: string): void {
             />
             <component
               :is="View"
+              :key="store.programId ?? undefined"
+              :program-id="ctx.source.value?.programId"
               :files="attachments.files.value"
               :task-titles="data.titles.value"
               :selected-file-id="url.state.value.file"

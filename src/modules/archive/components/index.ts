@@ -143,8 +143,9 @@ export interface FileFilterBarEmits {
   'update:view': [value: ArchiveView]
 }
 
-/** W123 · E-06-41…45 — dosya ızgarası (nötr tür simgesi, küçük resim yok; BE-026). */
+/** W123 · E-06-41…45 — dosya ızgarası ve küçük resim için program kapsamı. */
 export interface FileGridProps {
+  programId?: string | null
   files: readonly ArchiveFile[]
   /** `work_item_id` → görev adı (`archiveTasks` sözlüğü). */
   taskTitles: Readonly<Record<string, string>>

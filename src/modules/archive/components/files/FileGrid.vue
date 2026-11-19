@@ -6,19 +6,22 @@ import { computed } from 'vue'
 import { UiButton } from '@/shared/ui'
 
 import type { FileGridEmits, FileGridProps } from '../index'
-import { typeBadge } from '../../model/mime'
+import { createThumbnailQueue } from '../../model/thumbnail-queue'
+import { canThumbnail, typeBadge } from '../../model/mime'
 import FileStates from './FileStates.vue'
+import FileThumbnail from './FileThumbnail.vue'
 import TagDot from './TagDot.vue'
 import { folderText } from './messages'
 
 /**
- * Dosya ızgarası (E-06-41…45): kart = nötr tür rozeti (küçük resim yok, BE-026) + etiket noktası
+ * Dosya ızgarası (E-06-41…45): kart = küçük resim ya da nötr tür rozeti + etiket noktası
  * + ad + görev adı (+ "↳ Alt görev" satırı, E-06-44: ad yalnız önizlemede). Seçili kart
  * `aria-pressed`. Liste sonunda "Daha fazla yükle" (imleç). Durumlar `FileStates`.
  */
 const props = defineProps<FileGridProps>()
 const emit = defineEmits<FileGridEmits>()
 
+const loadThumbnail = createThumbnailQueue()
 const showStates = computed(() => props.error || props.files.length === 0)
 </script>
 
@@ -48,6 +51,13 @@ const showStates = computed(() => props.error || props.files.length === 0)
         >
           <span class="arch-card__thumb">
             <span class="arch-badge">{{ typeBadge(file.content_type) }}</span>
+            <FileThumbnail
+              v-if="programId && canThumbnail(file.content_type)"
+              :key="file.department_id"
+              :target="{ programId, departmentId: file.department_id }"
+              :file-id="file.file_id"
+              :enqueue="loadThumbnail"
+            />
             <TagDot :tag="file.tag" card />
           </span>
           <span class="arch-card__body">
