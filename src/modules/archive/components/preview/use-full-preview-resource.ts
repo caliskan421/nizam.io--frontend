@@ -41,15 +41,21 @@ async function readWithDeadline<T>(
   read: (requestSignal: AbortSignal) => Promise<T>,
 ): Promise<T> {
   const controller = new AbortController()
-  const abort = () => controller.abort()
-  signal.addEventListener('abort', abort, { once: true })
-  if (signal.aborted) abort()
-  const timeout = setTimeout(abort, PREVIEW_READ_TIMEOUT_MS)
+  let cancel!: () => void
+  const interrupted = new Promise<never>((_resolve, reject) => {
+    cancel = () => {
+      controller.abort()
+      reject(new DOMException('Preview read interrupted', 'AbortError'))
+    }
+  })
+  signal.addEventListener('abort', cancel, { once: true })
+  if (signal.aborted) cancel()
+  const timeout = setTimeout(cancel, PREVIEW_READ_TIMEOUT_MS)
   try {
-    return await read(controller.signal)
+    return await Promise.race([interrupted, read(controller.signal)])
   } finally {
     clearTimeout(timeout)
-    signal.removeEventListener('abort', abort)
+    signal.removeEventListener('abort', cancel)
   }
 }
 

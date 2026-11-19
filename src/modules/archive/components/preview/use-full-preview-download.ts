@@ -13,6 +13,14 @@ function retrySeconds(result: ArchiveDownloadResult): number | null {
   return null
 }
 
+function deniedDownload(result: ArchiveDownloadResult): boolean {
+  return (
+    result.kind === 'failed' &&
+    result.error.code !== 'identity.download_ticket_invalid' &&
+    isPreviewAccessFailure(result.error)
+  )
+}
+
 export function useFullPreviewDownload(
   resource: ReturnType<typeof useFullPreviewResource>,
   target: ArchiveTarget,
@@ -36,14 +44,7 @@ export function useFullPreviewDownload(
     downloadNotice.value = null
     const result = await download.start()
     if (!result || !canShowDetails.value) return
-    if (
-      result.kind === 'failed' &&
-      result.error.code !== 'identity.download_ticket_invalid' &&
-      isPreviewAccessFailure(result.error)
-    ) {
-      deny()
-      return
-    }
+    if (deniedDownload(result)) return deny()
     downloadNotice.value =
       result.kind === 'ticket_failed' && result.outcome.kind === 'unknown_outcome'
         ? { message: previewText('archive.fullscreen.downloadUnknown'), tone: 'danger' }
