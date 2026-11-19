@@ -255,6 +255,7 @@ describe('rota kataloğu — yapı', () => {
       'collaboration.chats',
       'collaboration.chat',
       'tables.list',
+      'tables.design',
       'tables.detail',
       'deleted-records.list',
     ])
@@ -267,7 +268,7 @@ describe('rota kataloğu — yapı', () => {
 
   it('faz görünürlüğü ortak-kurallar §5 matrisiyle birebir', () => {
     expect(new Set(ROUTE_NAMES)).toEqual(
-      new Set([...Object.keys(MATRIX), 'tables.list', 'tables.detail']),
+      new Set([...Object.keys(MATRIX), 'tables.list', 'tables.design', 'tables.detail']),
     )
     for (const name of ROUTE_NAMES) {
       for (const phase of PHASES) {

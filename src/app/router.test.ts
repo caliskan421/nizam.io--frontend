@@ -78,6 +78,7 @@ describe('router — katalog tek kaynak', () => {
       'collaboration.chats',
       'collaboration.chat',
       'tables.list',
+      'tables.design',
       'tables.detail',
       'deleted-records.list',
       '/:pathMatch(.*)*',

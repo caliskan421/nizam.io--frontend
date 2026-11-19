@@ -342,6 +342,15 @@ export const ROUTES = {
     params: {},
     query: { alan: oneOf(['birim']) },
   },
+  'tables.design': {
+    path: '/tablolar/tasarim',
+    title: 'Tasarım önizlemesi',
+    scope: 'S2',
+    phase: 'F13',
+    parent: 'tables.list',
+    params: {},
+    query: { ornek: oneOf(['paylasim', 'birlikte-calisma', 'baglantilar', 'ileri-akislar']) },
+  },
   'tables.detail': {
     path: '/tablolar/:tableId',
     title: 'Tablo',

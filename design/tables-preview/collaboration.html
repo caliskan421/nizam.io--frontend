@@ -1,0 +1,142 @@
+<header class="bar">
+  <div class="brand"><span class="mark" aria-hidden="true">R</span>RoketPortal</div>
+  <div class="controls">
+    <label
+      >Genişlik
+      <select id="width">
+        <option value="fluid">Akışkan</option>
+        <option value="1440">1440 px</option>
+        <option value="390">390 px</option>
+      </select></label
+    >
+    <button class="t-btn t-btn--ghost t-btn--sm" id="theme" type="button">Açık tema</button>
+    <label
+      >Örnek durum
+      <select id="mode">
+        <option value="editor">Düzenleyebilir</option>
+        <option value="viewer">Görüntüleyebilir</option>
+        <option value="offline">Bağlantı koptu</option>
+        <option value="partial">Kısmi geri alma</option>
+        <option value="conflict">Geri alma çakışması</option>
+      </select></label
+    >
+  </div>
+</header>
+<div class="preview" role="region" aria-label="Birlikte çalışma ekran önizlemesi">
+  <article class="artboard" id="artboard" data-width="fluid">
+    <header class="intro">
+      <p class="rp-kicker">Tablolar · Birlikte çalışma</p>
+      <h1>Aynı tabloda aynı anda</h1>
+      <p class="subtle">
+        Bu oturumda görünen katılımcıları, hücre yorumlarını ve tablodaki son hareketleri tek yerden
+        izleyin.
+      </p>
+    </header>
+    <div class="workspace">
+      <section class="panel" aria-labelledby="table-title">
+        <header class="table-head">
+          <div>
+            <h2 id="table-title">Fuar haftası vardiya planı</h2>
+            <p class="subtle">Operasyon · Güz dönemi</p>
+          </div>
+          <div class="people" id="presence">
+            <span class="person bahar" title="Bahar Kılıç" aria-label="Bahar Kılıç">BK</span>
+            <span class="person salih" title="Salih Özer" aria-label="Salih Özer">SÖ</span>
+            <span class="person mine" title="Siz" aria-label="Siz">S</span>
+          </div>
+        </header>
+        <div class="table-head">
+          <span class="status" id="status" role="status">● Bağlı</span>
+          <div class="actions">
+            <button
+              class="t-btn t-btn--secondary t-btn--sm"
+              type="button"
+              id="toggle-history"
+              aria-expanded="true"
+              aria-controls="history-panel"
+            >
+              Hareketler
+            </button>
+            <button class="t-btn t-btn--ghost t-btn--sm" type="button" id="reconnect" hidden>
+              Tabloyu yenile
+            </button>
+          </div>
+        </div>
+        <div
+          class="grid-holder"
+          tabindex="0"
+          role="region"
+          aria-label="Yatay kaydırılabilen vardiya tablosu"
+        >
+          <table aria-labelledby="table-title">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Vardiya</th>
+                <th scope="col">Tarih</th>
+                <th scope="col">Sorumlu</th>
+                <th scope="col">Koordinatörlük</th>
+                <th scope="col">Bütçe</th>
+                <th scope="col">Tamam</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <section class="comments" id="comments" aria-labelledby="comment-title">
+          <div class="comments-head">
+            <h3 id="comment-title">Basın merkezi · Vardiya</h3>
+            <button id="close-comments" class="t-btn t-btn--ghost t-btn--sm" type="button">
+              Kapat
+            </button>
+          </div>
+          <ul id="comment-list"></ul>
+          <p id="comment-empty" class="subtle" hidden>Bu hücrede henüz yorum yok.</p>
+          <form id="comment-form">
+            <label class="field"
+              >Yorumunuz<textarea
+                class="t-input"
+                id="comment"
+                rows="2"
+                maxlength="4000"
+                required
+              ></textarea>
+            </label>
+            <p class="notice" id="comment-error" role="status" hidden></p>
+            <div class="actions comment-actions">
+              <button class="t-btn t-btn--primary t-btn--sm" type="submit">Yorum gönder</button>
+            </div>
+          </form>
+        </section>
+      </section>
+      <aside class="panel" id="history-panel" aria-labelledby="history-title">
+        <div class="table-head">
+          <h3 id="history-title">Son hareketler</h3>
+          <div class="segment" aria-label="Hareket filtresi">
+            <button type="button" id="all" aria-pressed="true">Tümü</button
+            ><button type="button" id="own" aria-pressed="false">Benim</button>
+          </div>
+        </div>
+        <p class="subtle">Tabloda alınan güncelleme işaretleri ve bu oturumdaki düzenlemeler.</p>
+        <ul class="history" id="history"></ul>
+        <div id="undo-confirm" class="notice" hidden>
+          <p>Bu düzenlemenin hâlâ uygun olan hücreleri geri alınsın mı?</p>
+          <div class="actions comment-actions">
+            <button class="t-btn t-btn--secondary t-btn--sm" type="button" id="cancel-undo">
+              Vazgeç</button
+            ><button class="t-btn t-btn--primary t-btn--sm" type="button" id="confirm-undo">
+              Geri al
+            </button>
+          </div>
+        </div>
+        <p class="notice" id="result" role="status" hidden></p>
+      </aside>
+    </div>
+    <footer class="note-outside subtle">
+      <p>
+        11e dışa aktarımına dayalı yerel taslak. Tüm kayıtlar örnektir. Katılımcılar bu oturumda
+        görülen seçimlerdir. “Benim” görünümü yalnız bu önizleme oturumunun işlemlerini gösterir.
+      </p>
+    </footer>
+  </article>
+</div>

@@ -29,7 +29,8 @@
   font: var(--text-heading-2);
 }
 
-.tables-link {
+.tables-link,
+.tables-head > a {
   color: var(--accent-text);
 }
 
