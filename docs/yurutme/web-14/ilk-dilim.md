@@ -33,5 +33,5 @@ Yalnız ihtiyaç olan dar testler ve gerekli type/lint/format/build yerelde. PR 
 
 ## Kaynaklar
 
-- [11 liste çizimi](../../docs/tasarim/kaynak/Tablolar.dc.html) · [11 ekran envanteri](../../docs/ekranlar/11-tablolar/README.md) · [F13 kartı](web13-is-karti.md) · [API pini](../../api-pin.json)
+- [11 liste çizimi](../../tasarim/kaynak/Tablolar.dc.html) · [11 ekran envanteri](../../ekranlar/11-tablolar/README.md) · [F13 kartı](../web-13/README.md) · [API pini](../../../api-pin.json)
 - [v0.28 OpenAPI](https://github.com/caliskan421/nizam.io--backend/blob/v0.28.0-api/docs/api/openapi.yaml) · [TABLES-K16](https://github.com/caliskan421/nizam.io--backend/blob/v0.28.0-api/internal/modules/tables/README.md)
