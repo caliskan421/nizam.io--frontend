@@ -6,7 +6,7 @@
  *  - Ekle: `addWorkItemNote` (IK eylem başına; "sonuç bilinmiyor" → taslak + anahtar korunur,
  *    yerinde "Yeniden gönder" aynı anahtarla — `UiOutcomeNotice`).
  *  - Düzenle: `expected_revision`; 409 `work.edit_conflict` → `shared/ui/conflict` alan seçimi
- *    (tek alan `content`), seçimden sonra sunucunun kaydı yeni taban, YENİ eylem. Döngü koruması
+ *    (içerik, bayrak, paylaşılan etiketi), seçimden sonra sunucunun kaydı yeni taban, YENİ eylem. Döngü koruması
  *    (O5 görsel kusur, W63): sunucu sürümü ilerlemediyse yeniden gönderilmez; diyalogsuz
  *    (kendiliğinden birleşen) yeniden gönderim kullanıcı eylemi başına EN ÇOK bir kez — ikinci
  *    409 çakışma bildirimiyle durur (kendiliğinden yeniden gönderim yok).
@@ -28,8 +28,14 @@ import { notifyOutcome, useConfirm, type ConfirmOptions } from '@/shared/ui/conf
 
 import { useAddNote, useDeleteNote, useUpdateNote } from '../../api'
 import { targetOf } from '../../model/target'
-import type { WorkItem, WorkItemNote, WorkTarget } from '../../model/types'
-import { notesText } from './messages'
+import type {
+  NoteChanges,
+  NoteMetadata,
+  WorkItem,
+  WorkItemNote,
+  WorkItemRef,
+} from '../../model/types'
+import { noteFlagLabel, notesText } from './messages'
 
 type AnyOutcome = MutationOutcome<unknown, unknown, unknown>
 
@@ -79,14 +85,40 @@ const DELETE_CONFIRM = (): ConfirmOptions => ({
   tone: 'danger',
 })
 
-type NoteRef = () => { target: WorkTarget; workItemId: string }
+type NoteRef = () => WorkItemRef
 
-/** Not düzenleme + çakışma akışı (döngü korumalı); yeniden gönderim İLK eylemin bağlamını taşır (§7). */
-function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
-  const update = useUpdateNote()
+interface EditFlow {
+  context: ActionContext
+  autoRetried: boolean
+  resource: WorkItemRef
+}
+
+function noteChanges(base: WorkItemNote, draft: NoteChanges): NoteChanges {
+  return {
+    ...(draft.content !== undefined && draft.content !== base.content
+      ? { content: draft.content }
+      : {}),
+    ...(draft.flag !== undefined && draft.flag !== base.flag ? { flag: draft.flag } : {}),
+    ...(draft.shared !== undefined && draft.shared !== base.shared ? { shared: draft.shared } : {}),
+  }
+}
+
+function formatConflict(field: string, value: unknown): string {
+  if (field === 'flag') return noteFlagLabel(value as WorkItemNote['flag'])
+  if (field === 'shared') return notesText(value ? 'shared' : 'sharedOff')
+  return String(value)
+}
+
+function sameResource(a: WorkItemRef, b: WorkItemRef): boolean {
+  return (
+    a.workItemId === b.workItemId &&
+    a.target.programId === b.target.programId &&
+    a.target.departmentId === b.target.departmentId
+  )
+}
+
+function useNoteConflict(refetch: () => Promise<unknown>) {
   const conflict = useConflictResolver()
-  const owner = ownerLife()
-  const captureContext = useActionContext()
 
   /** Döngü koruması: çakışma bildirilir, düzenleyici açık kalır (taslak korunur). */
   function stopConflict(outcome: AnyOutcome): SettleResult {
@@ -101,9 +133,17 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
   async function resolveConflict(
     outcome: AnyOutcome,
     base: WorkItemNote,
-    content: string,
+    draft: NoteChanges,
     server: WorkItemNote | null,
-    flow: { context: ActionContext; autoRetried: boolean },
+    attempt: {
+      autoRetried: boolean
+      current: () => boolean
+      resend: (
+        base: WorkItemNote,
+        changes: NoteChanges,
+        automatic: boolean,
+      ) => Promise<SettleResult>
+    },
   ): Promise<SettleResult> {
     if (!server) {
       // Düzenleme sırasında not silinmiş (güncel listede yok): 404 ile aynı sonuç.
@@ -113,48 +153,82 @@ function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
     // Sunucu sürümü ilerlemediyse yeniden göndermek aynı çakışmayı doğurur.
     if (server.edit_revision === base.edit_revision) return stopConflict(outcome)
     const input = {
-      base: { content: base.content },
-      draft: { content },
-      server: { content: server.content },
-      labels: { content: notesText('field') },
+      base,
+      draft,
+      server,
+      labels: { content: notesText('field'), flag: notesText('flag'), shared: notesText('shared') },
+      format: formatConflict,
     }
     const automatic = conflictRows(input).length === 0
-    if (automatic && flow.autoRetried) return stopConflict(outcome)
+    if (automatic && attempt.autoRetried) return stopConflict(outcome)
     const choices = await conflict.resolve(input)
-    if (!choices) return { done: false, notice: null }
-    const changes = resolveDraft({ content }, { content: server.content }, choices)
-    if (changes.content === undefined) {
+    if (!choices || !attempt.current()) return { done: false, notice: null }
+    const changes = resolveDraft(draft, server, choices)
+    if (Object.keys(changes).length === 0) {
       await refetch()
       return { done: true, notice: null }
     }
     // Diyalogla seçilen gönderim kullanıcı eylemidir (sayaç sıfırlanır); diyalogsuz olan sayılır.
-    return send(server, changes.content, { context: flow.context, autoRetried: automatic })
+    return attempt.resend(server, changes, automatic)
   }
+
+  return { conflict, resolveConflict }
+}
+
+/** Not düzenleme + çakışma akışı (döngü korumalı); yeniden gönderim İLK eylemin bağlamını taşır (§7). */
+function useNoteEdit(ref: NoteRef, refetch: () => Promise<unknown>) {
+  const update = useUpdateNote()
+  const { conflict, resolveConflict } = useNoteConflict(refetch)
+  const owner = ownerLife()
+  const captureContext = useActionContext()
 
   async function send(
     reactiveBase: WorkItemNote,
-    content: string,
-    flow: { context: ActionContext; autoRetried: boolean },
+    draft: NoteChanges,
+    flow: EditFlow,
   ): Promise<SettleResult> {
+    if (!owner.alive() || !sameResource(flow.resource, ref())) return { done: false, notice: null }
     // Gövde eylemle dondurulur (structuredClone): sorgu verisinin vekili değil, düz kopya.
     const base: WorkItemNote = { ...reactiveBase }
-    // Değişiklik yoksa istek yok (çakışmada taslak = yalnız kullanıcının değiştirdiği içerik).
-    if (content === base.content) return { done: true, notice: null }
+    const changes = noteChanges(base, draft)
+    if (Object.keys(changes).length === 0) return { done: true, notice: null }
     const outcome = await update.submit(
-      { ...ref(), noteId: base.note_id, base, content },
+      {
+        ...flow.resource,
+        ...changes,
+        noteId: base.note_id,
+        base,
+        content: changes.content ?? base.content,
+      },
       { context: flow.context },
     )
+    if (!owner.alive() || !sameResource(flow.resource, ref())) return { done: false, notice: null }
     if (outcome.kind === 'edit_conflict') {
-      // Geç yanıt sökülmeden sonra geldi: çakışma akışı (diyalog/yeniden gönderim) yok.
-      if (!owner.alive()) return { done: false, notice: null }
-      return resolveConflict(outcome, base, content, outcome.server, flow)
+      return resolveConflict(outcome, base, changes, outcome.server, {
+        autoRetried: flow.autoRetried,
+        current: () => owner.alive() && sameResource(flow.resource, ref()),
+        resend: (server, selected, automatic) =>
+          send(server, selected, { ...flow, autoRetried: automatic }),
+      })
     }
     return settle(outcome, refetch)
   }
 
   /** Kendi notunu düzenle: taban = düzenleyicinin açıldığı not (`edit_revision`). */
-  function saveNote(reactiveBase: WorkItemNote, content: string): Promise<SettleResult> {
-    return send(reactiveBase, content, { context: captureContext(), autoRetried: false })
+  function saveNote(
+    reactiveBase: WorkItemNote,
+    content: string,
+    metadata: NoteMetadata = {},
+  ): Promise<SettleResult> {
+    return send(
+      reactiveBase,
+      { content, ...metadata },
+      {
+        context: captureContext(),
+        autoRetried: false,
+        resource: ref(),
+      },
+    )
   }
 
   return { saveNote, conflict, saving: update.isPending }
@@ -169,8 +243,11 @@ export function useNoteActions(item: () => WorkItem, refetch: () => Promise<unkn
   const edit = useNoteEdit(ref, refetch)
 
   /** Yeni not (gönder düğmesi = yeni eylem, yeni IK). */
-  async function addNote(content: string): Promise<SettleResult> {
-    return settle(await add.submit({ ...ref(), content }), refetch)
+  async function addNote(content: string, metadata: NoteMetadata = {}): Promise<SettleResult> {
+    const resource = ref()
+    const outcome = await add.submit({ ...resource, content, ...metadata })
+    if (!sameResource(resource, ref())) return { done: false, notice: null }
+    return settle(outcome, refetch)
   }
 
   /**

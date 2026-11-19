@@ -6,6 +6,8 @@
 import { i18n } from '@/shared/i18n'
 import { trNotes } from '@/shared/i18n/tr/work'
 
+import type { WorkItemNote } from '../../model/types'
+
 export { trNotes }
 
 export type NotesTextKey = keyof typeof trNotes.work.notes
@@ -13,6 +15,19 @@ export type NotesTextKey = keyof typeof trNotes.work.notes
 /** `work.notes.*` metni (TR). */
 export function notesText(key: NotesTextKey): string {
   return i18n.global.t(`work.notes.${key}`)
+}
+
+const flagLabels = {
+  urgent: 'flagUrgent',
+  blocker: 'flagBlocker',
+  question: 'flagQuestion',
+  info: 'flagInfo',
+} as const
+
+export const noteFlags = Object.keys(flagLabels) as Array<keyof typeof flagLabels>
+
+export function noteFlagLabel(flag: WorkItemNote['flag']): string {
+  return notesText(flag ? flagLabels[flag] : 'flagNone')
 }
 
 /**

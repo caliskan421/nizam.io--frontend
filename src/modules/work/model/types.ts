@@ -136,15 +136,16 @@ export interface RenameFileInput extends FileRef {
   displayName: string
 }
 
-export interface AddNoteInput extends WorkItemRef {
-  content: string
-}
+export type NoteMetadata = Pick<Schemas['WorkNoteRequest'], 'flag' | 'shared'>
+export type NoteChanges = NoteMetadata & { content?: string }
+
+export type AddNoteInput = WorkItemRef & Schemas['WorkNoteRequest']
 
 export interface NoteRef extends WorkItemRef {
   noteId: string
 }
 
-export interface UpdateNoteInput extends NoteRef {
+export interface UpdateNoteInput extends NoteRef, NoteMetadata {
   base: WorkItemNote
   content: string
 }

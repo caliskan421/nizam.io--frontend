@@ -37,6 +37,12 @@ export const trProgram = {
       yearHint: 'İçinde bulunulan yıl ya da bir sonraki yıl',
       yearNone: 'Yıl yok',
       description: 'Açıklama',
+      periodStart: 'Dönem başlangıcı',
+      periodEnd: 'Dönem bitişi',
+      periodInvalid: 'Geçerli bir tarih girin.',
+      periodOrder: 'Bitiş günü başlangıç gününden önce olamaz.',
+      location: 'Konum',
+      locationInvalid: 'Konum en çok 120 karakter olabilir ve kontrol karakteri içeremez.',
       shortName: 'Kısa ad',
       shortNameHint:
         '1–4 harf ya da rakam; kenar menüsündeki program rozetinde görünür. Boşsa addan türetilir.',

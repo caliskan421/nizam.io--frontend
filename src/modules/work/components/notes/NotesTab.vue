@@ -59,28 +59,53 @@ const loadError = computed(() =>
 const timeZone = computed(() => instance.profile?.timezone ?? null)
 
 const draft = ref('')
+const flag = ref<WorkItemNote['flag']>(null)
+const shared = ref(false)
 const notice = shallowRef<UnknownNotice | null>(null)
+let draftScope = 0
 
 // Başka görev açılınca taslak ve yerinde bildirim o göreve taşınmaz.
 watch(
-  () => props.item.work_item_id,
+  [
+    () => props.item.work_item_id,
+    () => props.item.program_id,
+    () => props.item.department_id,
+    () => scope.snapshot,
+    canWrite,
+  ],
   () => {
-    draft.value = ''
+    draftScope += 1
+    resetDraft()
     notice.value = null
+    actions.conflict.dismiss()
   },
+  { flush: 'sync' },
 )
+
+function resetDraft(): void {
+  draft.value = ''
+  flag.value = null
+  shared.value = false
+}
 
 function apply(result: SettleResult): void {
   notice.value = result.notice
-  if (result.done) draft.value = ''
+  if (result.done) resetDraft()
 }
 
 async function addNote(content: string): Promise<void> {
-  apply(await actions.addNote(content))
+  const openedIn = draftScope
+  const result = await actions.addNote(content, {
+    ...(flag.value !== null ? { flag: flag.value } : {}),
+    ...(shared.value ? { shared: true } : {}),
+  })
+  if (openedIn === draftScope) apply(result)
 }
 
 async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Promise<void> {
-  apply(await settle(outcome, refetch))
+  const openedIn = draftScope
+  const result = await settle(outcome, refetch)
+  if (openedIn === draftScope) apply(result)
 }
 </script>
 
@@ -89,6 +114,8 @@ async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Pr
     <NoteComposer
       v-if="canWrite"
       v-model="draft"
+      v-model:flag="flag"
+      v-model:shared="shared"
       :label="notesText('composer')"
       :placeholder="notesText('placeholder')"
       :submit-label="notesText('add')"

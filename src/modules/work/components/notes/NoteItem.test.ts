@@ -57,7 +57,10 @@ describe('NoteItem', () => {
     expect((input.element as HTMLTextAreaElement).value).toBe('İlk')
     await input.setValue('Yeni')
     await wrapper.find('form').trigger('submit')
-    expect(save).toHaveBeenCalledWith(expect.objectContaining({ note_id: 'n1' }), 'Yeni')
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ note_id: 'n1' }), 'Yeni', {
+      flag: null,
+      shared: false,
+    })
     await vi.waitFor(() => expect(wrapper.find('textarea').exists()).toBe(false))
   })
 

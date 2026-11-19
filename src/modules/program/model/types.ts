@@ -18,25 +18,12 @@ export type TransferHistoryItem = Schemas['TransferHistoryItem']
 
 // --- Eylem değişkenleri (düz nesne; KESİN 15) ------------------------------------------------
 
-export interface CreateProgramInput {
-  name: string
-  year?: number
-  description?: string
-  short_name?: string
-  color?: ProgramColor
-}
+export type CreateProgramInput = Schemas['CreateProgramRequest']
 
-/** `updateProgram`: yalnız değişen alanlar gönderilir (gönderilmeyen alan sunucuda değişmez). */
+/** `updateProgram`: gönderilmeyen alanlar değişmez, açık null temizler. */
 export interface UpdateProgramInput {
   programId: string
-  changes: {
-    name?: string
-    year?: number | null
-    description?: string | null
-    /** Üç hâlli (PROGRAM-K46): yok = değişmez, dizge = yaz, `null` = temizle. */
-    short_name?: string | null
-    color?: ProgramColor | null
-  }
+  changes: Schemas['UpdateProgramRequest']
 }
 
 /**

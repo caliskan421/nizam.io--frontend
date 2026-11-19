@@ -124,6 +124,58 @@ describe('NotesTab — yazmalar', () => {
     )
   })
 
+  it('bayrak ve paylaşılan etiketi not oluşturma gövdesine girer', async () => {
+    server.use(
+      http.get(URL, () => list(mine)),
+      http.post(URL, () => json(mine, 201)),
+    )
+    const { wrapper } = setup({ role: 'uye' })
+    await loaded(wrapper)
+    await wrapper.get('[data-testid="note-input"]').setValue('Not')
+    await wrapper.get('[data-testid="note-flag"]').setValue('blocker')
+    const shared = wrapper.get('[data-testid="note-shared"]')
+    expect(wrapper.text()).toContain('Bu etiket erişimi değiştirmez ve bildirim göndermez.')
+    expect(shared.attributes('aria-describedby')).toBeTruthy()
+    await shared.setValue(true)
+    await wrapper.get('form').trigger('submit')
+
+    await vi.waitFor(() =>
+      expect(sent('POST', NOTES_PATH)[0]?.body).toEqual({
+        content: 'Not',
+        flag: 'blocker',
+        shared: true,
+      }),
+    )
+    await vi.waitFor(() => expect((shared.element as HTMLInputElement).checked).toBe(false))
+  })
+
+  it('yazar yalnız işaretleri değiştirebilir; bayrak null, etiket false gider', async () => {
+    const flagged = { ...mine, flag: 'urgent' as const, shared: true, edit_revision: 7 }
+    server.use(
+      http.get(URL, () => list(flagged)),
+      http.patch(`${URL}/n1`, () => json({ status: 'updated', edit_revision: 8 })),
+    )
+    const { wrapper } = setup({ role: 'uye' })
+    await loaded(wrapper)
+    const own = wrapper.get('[data-testid="note"]')
+    expect(own.text()).toContain('Acil')
+    expect(own.text()).toContain('Paylaşılan')
+    await own.get('[data-testid="note-edit"]').trigger('click')
+    const select = own.get('[data-testid="note-flag"]')
+    expect((select.element as HTMLSelectElement).value).toBe('urgent')
+    await select.setValue('')
+    await own.get('[data-testid="note-shared"]').setValue(false)
+    await own.get('form').trigger('submit')
+    await vi.waitFor(() =>
+      expect(sent('PATCH', `${NOTES_PATH}/n1`)[0]?.body).toEqual({
+        content: mine.content,
+        expected_revision: 7,
+        flag: null,
+        shared: false,
+      }),
+    )
+  })
+
   it('403 work.not_authorized yazmada: bildirim metni i18n', async () => {
     server.use(
       http.get(URL, () => list(mine)),
