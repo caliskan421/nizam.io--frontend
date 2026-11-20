@@ -1,6 +1,6 @@
 # WEB-20 Profil ve tercihler
 
-[Üye profili](../../tasarim/kaynak/Uye-Profil.dc.html) hesap, parola, üyelik ve bildirim düzeninin kaynağıdır. Yerel Prototip içindeki yönetici, koordinatör ve üye görünümüne göre seçili programdaki gerçek üyelikler gösterilir. Yönetici programın pano sayaçlarını, koordinatörlük özetini ve kendi işlem geçmişini görür. Koordinatör, seçili ve yetkili birimindeki görev onay kuyruğuna gider. Üye kendi açık görevlerini ve erişebildiği yaklaşan toplantıları görür. Görev sayaçları görünür görevler için sunucunun döndürdüğü toplamlardır. Kuyruklar yüklenen görevlerden ilk beşini gösterir ve veri kesilmişse bunu belirtir. Görev kararları mevcut görev ekranında verilir.
+[Üye profili](../../tasarim/kaynak/Uye-Profil.dc.html) hesap, parola, üyelik ve bildirim düzeninin kaynağıdır. Yerel Prototip içindeki yönetici, koordinatör ve üye görünümüne göre seçili programdaki gerçek üyelikler gösterilir. Üyelik cevabı kesilmişse kart bunu belirtir. Yönetici programın pano sayaçlarını, koordinatörlük özetini ve kendi işlem geçmişini görür. Koordinatör, seçili ve yetkili birimindeki görev onay kuyruğuna gider. Üye kendi açık görevlerini ve erişebildiği yaklaşan toplantıları görür. Görev sayaçları görünür görevler için sunucunun döndürdüğü toplamlardır. Kuyruklar yüklenen görevlerden ilk beşini gösterir ve veri kesilmişse bunu belirtir. Görev kararları mevcut görev ekranında verilir.
 
 | Yüzey | Yayımlı v0.33.0-api |
 | --- | --- |

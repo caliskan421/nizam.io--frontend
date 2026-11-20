@@ -71,3 +71,36 @@ it('başarısız yazmada eski değeri korur ve başarı göstermez', async () =>
     wrapper.unmount()
   }
 })
+
+it('sonucu belirsiz tek yazmadan sonra yeniden yazmadan güncel tercihi okur', async () => {
+  const requests: string[] = []
+  server.use(
+    http.get(url, () => {
+      requests.push('GET')
+      return HttpResponse.json({
+        preferences: [{ ...preference, push_muted: requests.includes('PUT') }],
+      })
+    }),
+    http.put(url, () => {
+      requests.push('PUT')
+      return HttpResponse.json({ code: 'platform.internal' }, { status: 500 })
+    }),
+  )
+  const context = await sideContext()
+  const { lifecycle } = createFakeLifecycle()
+  const wrapper = mountWithScope(context, lifecycle, PushPreferences, {})
+  try {
+    await vi.waitFor(() =>
+      expect(wrapper.get('[role=switch]').attributes('aria-checked')).toBe('true'),
+    )
+    await wrapper.get('[role=switch]').trigger('click')
+    await vi.waitFor(() =>
+      expect(wrapper.get('[role=switch]').attributes('aria-checked')).toBe('false'),
+    )
+    expect(requests).toEqual(['GET', 'PUT', 'GET'])
+    expect(wrapper.find('[role=alert]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('Bildirim tercihi kaydedildi')
+  } finally {
+    wrapper.unmount()
+  }
+})

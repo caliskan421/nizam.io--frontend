@@ -63,7 +63,7 @@ async function toggle(row: Preference) {
     rows.value = result.data.preferences
     status.value = 'Bildirim tercihi kaydedildi.'
   } else {
-    failure.value = outcomeText(result) ?? 'Bildirim tercihi kaydedilemedi.'
+    failure.value = outcomeText(result)
     if (result.kind === 'unknown_outcome') {
       rows.value = undefined
       await refresh()

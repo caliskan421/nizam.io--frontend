@@ -27,6 +27,19 @@ const memberships = computed(() =>
   (standing.value?.rows ?? []).filter((row) => row.programId === scope.programId),
 )
 const coordinated = lifecycle.departments
+const roleReady = computed(() => {
+  if (!program.value || lifecycle.status.value !== 'ready') return false
+  switch (scope.lens) {
+    case 'admin':
+      return standing.value?.companyAdmin === true
+    case 'coordinator':
+      return lifecycle.facts.value.coordinator
+    case 'member':
+      return lifecycle.facts.value.member
+    default:
+      return false
+  }
+})
 const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
 </script>
 
@@ -71,7 +84,10 @@ const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
               <span class="profile-role">{{ roles[row.role] }}</span>
             </li>
           </ul>
-          <p v-else class="rp-cap">
+          <p v-if="program && lifecycle.departmentsTruncated.value" class="rp-cap" role="status">
+            Üyelik yanıtı sınırlı. Burada yalnızca dönen üyelikler gösteriliyor.
+          </p>
+          <p v-else-if="!memberships.length" class="rp-cap">
             {{
               program
                 ? 'Bu programda koordinatörlük üyeliğiniz bulunmuyor.'
@@ -80,7 +96,7 @@ const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
           </p>
         </UiCard>
         <UiCard
-          v-if="program && scope.lens && lifecycle.status.value === 'ready'"
+          v-if="roleReady"
           as="section"
           class="profile-card"
           aria-labelledby="profile-role-title"
@@ -131,9 +147,7 @@ const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
             >
           </template>
         </UiCard>
-        <ProfileMeetings
-          v-if="program && scope.lens === 'member' && lifecycle.status.value === 'ready'"
-        />
+        <ProfileMeetings v-if="roleReady && scope.lens === 'member'" />
         <PushPreferences />
       </div>
     </div>
