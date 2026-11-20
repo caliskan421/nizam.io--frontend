@@ -19,6 +19,14 @@ export const KINDS = {
   season: 'Sezon',
 } satisfies Record<Kind, string>
 
+export const KIND_COUNT_LABELS = {
+  meeting: 'toplantı',
+  date_request: 'tarih talebi',
+  table_record: 'tablo kaydı',
+  task: 'görev',
+  season: 'kilometre taşı',
+} satisfies Record<Kind, string>
+
 export const WEEKDAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
 
 const date = (day: string) => new Date(day + 'T00:00:00Z')

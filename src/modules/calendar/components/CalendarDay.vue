@@ -6,11 +6,13 @@ import { UiButton, UiIconButton, UiModal } from '@/shared/ui'
 import {
   formatDay,
   KINDS,
+  KIND_COUNT_LABELS,
   relativeDay,
   shiftDay,
   WEEKDAYS,
   weekDays,
   type CalendarEvent,
+  type Kind,
   type TaskMode,
 } from '../model/calendar'
 
@@ -26,10 +28,11 @@ const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ day: [string] }>()
 const events = computed(() => props.days.get(props.day) ?? [])
 const groups = computed(() =>
-  Object.entries(KINDS)
-    .map(([kind, label]) => ({
+  (Object.keys(KINDS) as Kind[])
+    .map((kind) => ({
       kind,
-      label,
+      label: KINDS[kind],
+      countLabel: KIND_COUNT_LABELS[kind],
       events: events.value.filter((event) => event.kind === kind),
     }))
     .filter((group) => group.events.length),
@@ -97,8 +100,7 @@ function taskModeCount(mode: TaskMode) {
             :key="group.kind"
             :data-kind="group.kind"
             class="calendar-kind"
-            ><i aria-hidden="true"></i>{{ group.events.length }}
-            {{ group.label.toLocaleLowerCase('tr') }}</span
+            ><i aria-hidden="true"></i>{{ group.events.length }} {{ group.countLabel }}</span
           >
         </div>
         <section

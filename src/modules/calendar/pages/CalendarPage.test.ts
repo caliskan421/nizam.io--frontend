@@ -157,6 +157,21 @@ it('S2 ayı ve hızlı bakışı okur, kurulum gününü kullanır, süzer ve ge
             ],
           },
         ]
+        body.tasks = ['w1', 'w2', 'w3'].map((id) => ({
+          id,
+          title: 'Görev ' + id,
+          code: '',
+          start_on: '2026-11-19',
+          end_on: '2026-11-20',
+          status: 'devam_ediyor',
+          priority: '',
+          late_days: 0,
+          overdue: false,
+          assignee_count: 0,
+          assignees: [],
+          department: { id: 'd1', code: '', name: 'Ekip' },
+        }))
+        body.season.milestones = [{ id: 's1', on: '2026-11-20', name: 'Kurulum' }]
         body.date_requests_truncated = true
       })
     }),
@@ -167,6 +182,14 @@ it('S2 ayı ve hızlı bakışı okur, kurulum gününü kullanır, süzer ve ge
   expect(view.text()).toContain('bazı kayıtlar')
   expect(view.text()).not.toContain('Tarih talepleri')
   expect(view.text()).not.toContain('Kilometre taşlarını yönet')
+  await vi.waitFor(() =>
+    expect(view.findAll('.calendar-quick__tags .calendar-kind').map((tag) => tag.text())).toEqual([
+      '1 toplantı',
+      '1 tablo kaydı',
+      '3 görev',
+      '1 kilometre taşı',
+    ]),
+  )
   const entry = day(view, '20 Kasım')
   expect(entry.attributes('aria-current')).toBe('date')
   await entry.trigger('click')
@@ -174,6 +197,11 @@ it('S2 ayı ve hızlı bakışı okur, kurulum gününü kullanır, süzer ve ge
   expect(dialog()?.querySelector('a[href="/toplantilar/m1"]')).not.toBeNull()
   expect(dialog()?.querySelector('a[href="/tablolar/t1"]')).not.toBeNull()
   expect(dialog()?.textContent).not.toContain('hidden-id')
+  expect(
+    Array.from(dialog()!.querySelectorAll('.calendar-day__counts .calendar-kind'), (tag) =>
+      tag.textContent?.trim(),
+    ),
+  ).toEqual(['1 toplantı', '1 tablo kaydı', '3 görev', '1 kilometre taşı'])
   button(dialog()!, 'Kapat').click()
   await vi.waitFor(() => expect(dialog()).toBeNull())
   button(view.element, 'Toplantılar').click()

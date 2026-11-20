@@ -8,7 +8,7 @@ import { UiErrorState, UiIcon, type IconName } from '@/shared/ui'
 import {
   eventIndex,
   formatDay,
-  KINDS,
+  KIND_COUNT_LABELS,
   shiftDay,
   type Calendar,
   type CalendarEvent,
@@ -60,7 +60,7 @@ const quick = computed(() => {
       counts: props.kinds
         .map((kind) => ({
           kind,
-          label: KINDS[kind],
+          label: KIND_COUNT_LABELS[kind],
           count: entries.filter((entry) => entry.kind === kind).length,
         }))
         .filter((entry) => entry.count),
@@ -113,8 +113,7 @@ const quick = computed(() => {
             :key="entry.kind"
             class="calendar-kind"
             :data-kind="entry.kind"
-            ><i aria-hidden="true"></i>{{ entry.count }}
-            {{ entry.label.toLocaleLowerCase('tr') }}</span
+            ><i aria-hidden="true"></i>{{ entry.count }} {{ entry.label }}</span
           ></span
         >
       </button>
