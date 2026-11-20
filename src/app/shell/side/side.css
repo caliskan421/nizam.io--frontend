@@ -392,6 +392,8 @@
     --side-ring-color: var(--role-uye);
   }
   .side-account__text {
+    color: inherit;
+    text-decoration: none;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -425,6 +427,9 @@
     gap: var(--ui-gap-2xs);
     padding-top: var(--space-3);
     border-top: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .side-rail__profile {
+    align-self: center;
   }
   .side-rail__av {
     align-self: center;

@@ -66,9 +66,9 @@ afterEach(() => {
 })
 afterAll(() => backend.server.close())
 
-describe('rota kataloğu (CURRENT_PHASE F18)', () => {
-  it('faz F18; Mesajlar canlı ve menüde; üç rolde kayıtlı rota', () => {
-    expect(CURRENT_PHASE).toBe('F18')
+describe('rota kataloğu (CURRENT_PHASE F20)', () => {
+  it('faz F20; Mesajlar canlı ve menüde; üç rolde kayıtlı rota', () => {
+    expect(CURRENT_PHASE).toBe('F20')
     expect(liveRouteNames()).toEqual(
       expect.arrayContaining(['collaboration.chats', 'collaboration.chat']),
     )

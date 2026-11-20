@@ -4,3 +4,4 @@ export { HOME_ROUTE, homeRoutes } from './routes'
 // F6 (W136): `reportDashboard` okuyucusu rapor modülüyle PAYLAŞILIR (aynı sorgu anahtarı; ikinci
 // okuyucu yazılmaz). `modules/reports/api/dashboard.ts` bunu yeniden dışa aktarır.
 export { DASHBOARD_STALE_MS, fetchDashboard, useDashboard } from './api'
+export { useUpcomingMeetings } from './api/role/use-upcoming-meetings'

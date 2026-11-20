@@ -34,11 +34,12 @@ export const PHASES = [
   'F16',
   'F17',
   'F18',
+  'F20',
 ] as const
 export type Phase = (typeof PHASES)[number]
 
 /** Etkin faz. Faz açılışında tek satır değişir; görünürlük matrisi buradan türetilir. */
-export const CURRENT_PHASE: Phase = 'F18'
+export const CURRENT_PHASE: Phase = 'F20'
 
 export type Visibility = 'canli' | 'gizli' | 'devre_disi'
 export type MenuGroup = 'takip' | 'icerik' | 'yonetim'
@@ -152,6 +153,14 @@ export const ROUTES = {
     menu: { group: 'icerik', key: 'memory', order: 0 },
     params: {},
     query: { deneyim: id },
+  },
+  'identity.profile': {
+    path: '/profil',
+    title: 'Profilim',
+    scope: 'S1',
+    phase: 'F20',
+    params: {},
+    query: {},
   },
   'identity.session': {
     path: '/oturum',

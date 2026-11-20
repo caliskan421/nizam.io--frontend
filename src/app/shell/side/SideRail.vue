@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 
+import { routeLocation } from '@/app/routes.catalog'
 import type { ScopeStep } from '@/shared/scope/resolve'
 import { UiAvatar, UiIcon } from '@/shared/ui'
 
@@ -18,6 +20,10 @@ import { injectScopeLifecycle } from './scope-key'
 defineProps<{ groups: readonly SideMenuGroup[]; activeKey?: string; role: MenuRole }>()
 const emit = defineEmits<{ expand: []; open: [which: ScopeStep] }>()
 const lifecycle = injectScopeLifecycle()
+const router = useRouter()
+const profile = router.hasRoute('identity.profile')
+  ? routeLocation('identity.profile', {})
+  : undefined
 const fullName = computed(() => lifecycle.standing.value?.fullName ?? null)
 </script>
 
@@ -35,11 +41,14 @@ const fullName = computed(() => lifecycle.standing.value?.fullName ?? null)
     </button>
     <RailScope @open="emit('open', $event)" />
     <SideNav :groups="groups" :active-key="activeKey" rail />
-    <UiAvatar
+    <component
+      :is="profile ? RouterLink : 'span'"
       v-if="fullName"
-      :name="fullName"
-      class="side-rail__av"
-      :class="`side-ring side-ring--${role}`"
-    />
+      :to="profile"
+      :aria-label="profile ? 'Profilim' : undefined"
+      class="side-rail__profile"
+    >
+      <UiAvatar :name="fullName" class="side-rail__av" :class="`side-ring side-ring--${role}`" />
+    </component>
   </div>
 </template>

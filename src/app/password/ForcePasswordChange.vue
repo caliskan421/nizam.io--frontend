@@ -7,6 +7,7 @@ import { nextTick, ref, shallowRef } from 'vue'
 
 import { statesText } from '@/app/states/messages'
 import type { ApiError } from '@/shared/errors/api-error'
+import { authSession } from '@/shared/http'
 import { isDetached } from '@/shared/http/mutation'
 import { errorText } from '@/shared/i18n'
 import { useSessionStore } from '@/shared/session/store'
@@ -29,6 +30,8 @@ import { useChangePassword } from './use-change-password'
  *    ekranı "yeni parolanızla giriş yapın" der; yeni girişte bayrak kalkık gelir, ana sayfaya
  *    dönülür ve kabuk kapsamı (standing) yeniden okur.
  */
+defineProps<{ embedded?: boolean }>()
+
 interface Values {
   current: string
   next: string
@@ -99,14 +102,20 @@ function fieldErrors(error: ApiError): Partial<Record<keyof Values, string>> {
 const handle = form.handleSubmit(
   async (values) => {
     failure.value = null
+    const generation = authSession.generation
     const outcome = await mutation.submit({ current: values.current, next: values.next })
     wipe()
-    if (outcome.kind === 'owner_disposed' || isDetached(outcome)) return
-    if (outcome.kind === 'success') {
+    if (outcome.kind === 'success' && generation === authSession.generation) {
       passwordChanged.value = true
       session.endAfterPasswordChange(queryClient)
       return
     }
+    if (
+      outcome.kind === 'owner_disposed' ||
+      isDetached(outcome) ||
+      generation !== authSession.generation
+    )
+      return
     if (outcome.kind === 'failed') {
       const found = fieldErrors(outcome.error)
       if (Object.keys(found).length > 0) {
@@ -134,10 +143,20 @@ async function logout(): Promise<void> {
 </script>
 
 <template>
-  <section class="pw-page" data-testid="force-password-change">
+  <section
+    :class="embedded ? 'pw-embedded' : 'pw-page'"
+    :data-testid="embedded ? undefined : 'force-password-change'"
+  >
     <UiCard class="pw-card" as="div">
-      <h1 class="pw-card__title">{{ statesText('states.password.title') }}</h1>
-      <p class="pw-card__intro">{{ statesText('states.password.intro') }}</p>
+      <h2 v-if="embedded" class="pw-card__title">Parola</h2>
+      <h1 v-else class="pw-card__title">{{ statesText('states.password.title') }}</h1>
+      <p class="pw-card__intro">
+        {{
+          embedded
+            ? 'Parolanızı değiştirdiğinizde tüm oturumlarınız kapanır.'
+            : statesText('states.password.intro')
+        }}
+      </p>
       <form
         ref="root"
         class="pw-form"
@@ -145,7 +164,10 @@ async function logout(): Promise<void> {
         novalidate
         @submit.prevent="submit"
       >
-        <UiField :label="statesText('states.password.current')" :error="errors.current">
+        <UiField
+          :label="embedded ? 'Mevcut parola' : statesText('states.password.current')"
+          :error="errors.current"
+        >
           <UiInput
             v-model="current"
             type="password"
@@ -176,7 +198,12 @@ async function logout(): Promise<void> {
           >
             {{ statesText('states.password.submit') }}
           </UiButton>
-          <UiButton variant="ghost" data-testid="force-password-logout" @click="logout">
+          <UiButton
+            v-if="!embedded"
+            variant="ghost"
+            data-testid="force-password-logout"
+            @click="logout"
+          >
             {{ statesText('states.password.logout') }}
           </UiButton>
         </div>
