@@ -8,8 +8,8 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('v0.28.0-api sözleşmesinin 297 ucu üretildi', () => {
-    expect(entries).toHaveLength(297)
+  it('v0.33.0-api sözleşmesinin 321 ucu üretildi', () => {
+    expect(entries).toHaveLength(321)
   })
 
   it('v0.27/v0.28 yeni dört uç üretildi (kapsam sınıfı sözleşmeden)', () => {
@@ -29,6 +29,22 @@ describe('operations.gen', () => {
     }
   })
 
+  it('Takvim okuması S2, kilometre taşı yazmaları URL kapsamlı S1', () => {
+    expect(OPERATIONS['GET /v1/calendar']).toMatchObject({
+      operationId: 'readCalendar',
+      scope: 'S2',
+      programHeader: true,
+      departmentHeader: false,
+    })
+    expect(OPERATIONS['POST /v1/programs/{id}/milestones']).toMatchObject({
+      operationId: 'createProgramMilestone',
+      scope: 'S1',
+      csrf: true,
+      programHeader: false,
+      departmentHeader: false,
+    })
+  })
+
   it.each(entries)('%s kapsam/CSRF/kimlik tutarlı', (key, meta) => {
     const op = meta as {
       scope: string
@@ -45,9 +61,9 @@ describe('operations.gen', () => {
     expect(op.auth).toBe(op.scope !== 'S0')
   })
 
-  it('hata kataloğu 236 kod ve message_key = errors.<kod>', () => {
+  it('hata kataloğu 247 kod ve message_key = errors.<kod>', () => {
     const codes = Object.entries(ERROR_CODES)
-    expect(codes).toHaveLength(236)
+    expect(codes).toHaveLength(247)
     for (const [code, entry] of codes) expect(entry.messageKey).toBe(`errors.${code}`)
   })
 })

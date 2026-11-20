@@ -22,7 +22,7 @@ afterEach(() => {
   server.resetHandlers()
 })
 
-async function render(accountId = 'owner', departmentId: string | null = null) {
+async function render(departmentId: string | null = null) {
   const client = new QueryClient({ defaultOptions: { queries: { retryDelay: 0 } } })
   const router = createRouter({
     history: createMemoryHistory(),
@@ -34,7 +34,6 @@ async function render(accountId = 'owner', departmentId: string | null = null) {
   await router.push('/tablolar/t1')
   const wrapper = mount(TablesDetail, {
     props: {
-      accountId,
       target: { programId: 'p1', departmentId },
       tableId: 't1',
       unit: departmentId !== null,
@@ -57,11 +56,13 @@ function snapshot(
   schema = 1,
   value: string | null = null,
   version = 0,
+  role: 'owner' | 'editor' | 'viewer' | null = 'owner',
 ) {
   const table = {
     id: 't1',
     name: 'Vardiya',
     owner_id: 'owner',
+    ...(role ? { effective_role: role } : {}),
     schema_version: schema,
     sequence: version,
     program_id: 'p1',
@@ -159,11 +160,11 @@ it('bayat hücre yazısı otomatik tekrar etmez, taze değer okunduktan sonra ta
   expect(writes[0]?.key).not.toBe(writes[1]?.key)
 })
 
-it('S3 erişimi belirsiz hesap için düzenleme seçimi yazma göndermez, ilk gerçek 403 sonrasında yazma kapanır', async () => {
+it('Doğrulanmış editör için seçim yazma göndermez, gerçek 403 sonrasında yazma kapanır', async () => {
   const url = 'http://localhost/v1/tables/t1'
   let sent = 0
   server.use(
-    http.get(url, () => snapshot()),
+    http.get(url, () => snapshot([column], [row], 1, null, 0, 'editor')),
     http.post(url + '/operations', async ({ request }) => {
       sent += 1
       expect(request.headers.get('X-Nizamio-Department')).toBe('d1')
@@ -171,7 +172,7 @@ it('S3 erişimi belirsiz hesap için düzenleme seçimi yazma göndermez, ilk ge
       return HttpResponse.json({ code: 'tables.forbidden' }, { status: 403 })
     }),
   )
-  const { wrapper } = await render('other', 'd1')
+  const { wrapper } = await render('d1')
   await button(wrapper, 'Düzenlemek istiyorum').trigger('click')
   expect(sent).toBe(0)
   await button(wrapper, 'Satır ekle').trigger('click')
@@ -179,6 +180,41 @@ it('S3 erişimi belirsiz hesap için düzenleme seçimi yazma göndermez, ilk ge
   await vi.waitFor(() => expect(wrapper.text()).toContain('Düzenleme kapatıldı'))
   expect(sent).toBe(1)
   expect(wrapper.find('.tables-cell-button').exists()).toBe(false)
+  expect(button(wrapper, 'Düzenlemek istiyorum')).toBeUndefined()
+})
+
+it('etkin rol yokken sahip kimliğinden yetki türetmez; yeniden okumada gelen rolü kullanır', async () => {
+  let role: 'owner' | null = null
+  server.use(http.get(endpoint, () => snapshot([column], [row], 1, null, 0, role)))
+  const { wrapper } = await render()
+  expect(wrapper.text()).toContain('Salt okunur')
+  expect(button(wrapper, 'Sütun ekle')).toBeUndefined()
+  expect(button(wrapper, 'Düzenlemek istiyorum')).toBeUndefined()
+  role = 'owner'
+  await button(wrapper, 'Erişimi yeniden kontrol et').trigger('click')
+  await vi.waitFor(() => expect(button(wrapper, 'Sütun ekle')).toBeDefined())
+})
+
+it('viewer tablosunda yazma kontrollerini açmaz', async () => {
+  server.use(http.get(endpoint, () => snapshot([column], [row], 1, null, 0, 'viewer')))
+  const { wrapper } = await render()
+  expect(wrapper.text()).toContain('Salt okunur')
+  expect(button(wrapper, 'Sütun ekle')).toBeUndefined()
+  expect(button(wrapper, 'Düzenlemek istiyorum')).toBeUndefined()
+  expect(wrapper.find('.tables-cell-button').exists()).toBe(false)
+})
+
+it('yeniden okumada yazma rolü kaybolduğunda açık düzenleyiciyi kapatır', async () => {
+  let role: 'editor' | 'viewer' = 'editor'
+  server.use(http.get(endpoint, () => snapshot([column], [row], 1, null, 0, role)))
+  const { client, wrapper } = await render()
+  await button(wrapper, 'Düzenlemek istiyorum').trigger('click')
+  await button(wrapper, 'Satır ekle').trigger('click')
+  expect(wrapper.find('form').exists()).toBe(true)
+  role = 'viewer'
+  await client.invalidateQueries()
+  await vi.waitFor(() => expect(wrapper.find('form').exists()).toBe(false))
+  expect(wrapper.text()).toContain('Salt okunur')
   expect(button(wrapper, 'Düzenlemek istiyorum')).toBeUndefined()
 })
 

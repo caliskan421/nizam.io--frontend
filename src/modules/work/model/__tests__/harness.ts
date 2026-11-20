@@ -172,6 +172,7 @@ export function note(over: Partial<WorkItemNote> = {}): WorkItemNote {
     created_at: '2026-11-01T08:00:00Z',
     updated_at: '2026-11-01T08:00:00Z',
     edit_revision: 2,
+    source: null,
     ...over,
   })
 }

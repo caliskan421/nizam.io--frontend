@@ -16,7 +16,6 @@ import { TABLES_ROUTE } from '../routes'
 const props = defineProps<{
   target: TableTarget
   tableId: string
-  accountId: string | null
   unit: boolean
 }>()
 const router = useRouter()
@@ -99,12 +98,19 @@ function previousRows() {
   />
   <template v-else-if="snapshot">
     <p v-if="detailError" class="tables-notice" role="status">Son güncelleme alınamadı.</p>
+    <UiButton
+      v-if="!snapshot.table.effective_role && !snapshot.table.access_source"
+      size="sm"
+      :disabled="detail.isFetching.value"
+      @click="reloadTable"
+    >
+      Erişimi yeniden kontrol et
+    </UiButton>
     <TableEditor
       v-model:opted-in="optedIn"
       :snapshot="snapshot"
       :locked="locked"
       :target="target"
-      :account-id="accountId"
       :reload="reloadTable"
       @open="editorOpen = $event"
       @locked="locked = true"

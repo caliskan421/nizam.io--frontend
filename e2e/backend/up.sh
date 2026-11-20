@@ -42,7 +42,7 @@ git -C "$backend_dir" archive "refs/tags/$tag" | tar -x -C "$state/src"
 # `setup --expected-digest` bunu imajın NIZAMIO_IMAGE_DIGEST'inden okuyup doğrular.
 image_digest="$(git -C "$backend_dir" rev-parse "refs/tags/$tag^{commit}")"
 
-# TABAN İMAJ PİNLERİ (CX-Ö-04, CX-r2-Ö-01). Backend v0.15.0-api'den itibaren (v0.28.0-api dahil) build/Dockerfile
+# TABAN İMAJ PİNLERİ (CX-Ö-04, CX-r2-Ö-01). Backend v0.15.0-api'den itibaren (v0.33.0-api dahil) build/Dockerfile
 # tabanlarını KENDİSİ digest'e sabitler (golang:<go.mod toolchain>-bookworm@sha256, distroless
 # nonroot@sha256); bu betik artık Dockerfile'ı yeniden YAZMAZ, yalnız DENETLER: tam bir
 # `FROM golang:...@sha256:<64 hex> AS build` satırı ve tam olarak aşağıdaki distroless pinli

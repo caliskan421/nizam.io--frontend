@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.28.0-api (45a2237f420aee0cc3a58544063559cb3661db4b) — docs/api/error-codes.json
+// Kaynak: nizam.io--backend etiket v0.33.0-api (e6c08c1b66c108ceec48bfdae21070ac1ece551e) — docs/api/error-codes.json
 
 export const ERROR_CATALOG_VERSION = 1 as const
 
@@ -62,6 +62,15 @@ export const ERROR_CODES = {
   "identity.permanent_requires_deleted": { status: [409], fields: [], messageKey: "errors.identity.permanent_requires_deleted" },
   "identity.session_invalid": { status: [401], fields: [], messageKey: "errors.identity.session_invalid" },
   "identity.unavailable": { status: [503], fields: [], messageKey: "errors.identity.unavailable" },
+  "memory.already_converted": { status: [409], fields: [], messageKey: "errors.memory.already_converted" },
+  "memory.idempotency_key_reused": { status: [409], fields: [], messageKey: "errors.memory.idempotency_key_reused" },
+  "memory.input_invalid": { status: [422], fields: ["memory.input_invalid"], messageKey: "errors.memory.input_invalid" },
+  "memory.not_authorized": { status: [403], fields: [], messageKey: "errors.memory.not_authorized" },
+  "memory.not_found": { status: [404], fields: [], messageKey: "errors.memory.not_found" },
+  "memory.revision_conflict": { status: [409], fields: [], messageKey: "errors.memory.revision_conflict" },
+  "memory.source_already_linked": { status: [409], fields: [], messageKey: "errors.memory.source_already_linked" },
+  "memory.source_not_found": { status: [404], fields: [], messageKey: "errors.memory.source_not_found" },
+  "memory.suggestion_required": { status: [422], fields: ["memory.suggestion_required"], messageKey: "errors.memory.suggestion_required" },
   "messaging.auto_group_protected": { status: [409], fields: [], messageKey: "errors.messaging.auto_group_protected" },
   "messaging.chat_deleted": { status: [409], fields: [], messageKey: "errors.messaging.chat_deleted" },
   "messaging.chat_not_found": { status: [404], fields: [], messageKey: "errors.messaging.chat_not_found" },
@@ -133,8 +142,10 @@ export const ERROR_CODES = {
   "program.department_link_name_exists": { status: [409], fields: [], messageKey: "errors.program.department_link_name_exists" },
   "program.department_not_found": { status: [404], fields: [], messageKey: "errors.program.department_not_found" },
   "program.idempotency_key_reused": { status: [409], fields: [], messageKey: "errors.program.idempotency_key_reused" },
-  "program.input_invalid": { status: [422], fields: ["program.invalid_color","program.invalid_copy_source","program.invalid_description","program.invalid_limit","program.invalid_location","program.invalid_name","program.invalid_period","program.invalid_request_key","program.invalid_short_name","program.invalid_year","program.password_required"], messageKey: "errors.program.input_invalid" },
+  "program.input_invalid": { status: [422], fields: ["program.invalid_color","program.invalid_copy_source","program.invalid_description","program.invalid_limit","program.invalid_location","program.invalid_milestone","program.invalid_name","program.invalid_period","program.invalid_request_key","program.invalid_short_name","program.invalid_year","program.password_required"], messageKey: "errors.program.input_invalid" },
   "program.invalid_cursor": { status: [422], fields: ["program.invalid_cursor"], messageKey: "errors.program.invalid_cursor" },
+  "program.milestone_limit_reached": { status: [409], fields: [], messageKey: "errors.program.milestone_limit_reached" },
+  "program.milestone_not_found": { status: [404], fields: [], messageKey: "errors.program.milestone_not_found" },
   "program.not_authorized": { status: [403], fields: [], messageKey: "errors.program.not_authorized" },
   "program.not_found": { status: [404], fields: [], messageKey: "errors.program.not_found" },
   "program.password_invalid": { status: [401], fields: [], messageKey: "errors.program.password_invalid" },

@@ -243,7 +243,6 @@ async function openTable(tableId: string) {
       :key="editorGeneration"
       :table-id="tableId"
       :target="target"
-      :account-id="session.accountId"
       :unit="unit"
     />
   </section>
