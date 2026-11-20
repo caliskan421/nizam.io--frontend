@@ -3,11 +3,13 @@
  * programdan alan TAHMİN EDİLMEZ: görev kararının başlıkları yalnız `Notification.program_id` +
  * `department_id` (üst düzey) ve `subject_ref.id`'dir; eksikse karar buradan verilemez.
  */
-import { notificationText, type NotificationTextKey } from '../messages'
+import { notificationText, type trNotifications } from '../messages'
 import type { NotificationItem } from './types'
 
-const row = (key: string, params?: Record<string, string>) =>
-  notificationText(`notifications.rows.decision.${key}` as NotificationTextKey, params)
+type DecisionKey = keyof typeof trNotifications.notifications.rows.decision
+
+const row = (key: DecisionKey, params?: Record<string, string>) =>
+  notificationText(`notifications.rows.decision.${key}`, params)
 
 /** Görev kararı için hedef: program ve departman satırın KENDİ alanlarından; eksikse `null`. */
 export function taskTarget(item: NotificationItem) {
@@ -20,7 +22,7 @@ export function decisionOf(item: NotificationItem): 'ready' | 'unavailable' | nu
   const action = item.action
   if (!action || action.state !== 'pending') return null
   if (action.kind === 'review_date_request') return action.request_id ? 'ready' : 'unavailable'
-  if (item.subject_ref.kind !== 'work_item') return 'unavailable'
+  if (action.kind !== 'approve_task' || item.subject_ref.kind !== 'work_item') return 'unavailable'
   return taskTarget(item) ? 'ready' : 'unavailable'
 }
 
