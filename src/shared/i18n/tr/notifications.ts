@@ -89,6 +89,7 @@ export const trNotifications = {
         returned: 'İade edildi',
         changed: 'Durum başka yolla değişti',
         deleted: 'Görev silindi',
+        withdrawn: 'Geri çekildi',
         resolved: 'Karar verildi',
         byMe: '{outcome} · sen',
         byOther: '{outcome} · {name}',

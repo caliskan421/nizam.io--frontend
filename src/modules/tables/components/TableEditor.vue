@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef } from 'vue'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 
 import { UiButton } from '@/shared/ui'
 
@@ -12,15 +12,18 @@ import TableStructureForm from './TableStructureForm.vue'
 const props = defineProps<{
   target: TableTarget
   snapshot: TableSnapshot
-  accountId: string | null
   locked: boolean
   reload: () => Promise<boolean>
 }>()
 const emit = defineEmits<{ deleted: []; open: [boolean]; reordered: []; locked: [] }>()
 const optedIn = defineModel<boolean>('optedIn', { required: true })
 const message = ref('')
-const owner = computed(() => !!props.accountId && props.snapshot.table.owner_id === props.accountId)
-const editing = computed(() => !props.locked && (owner.value || optedIn.value))
+const role = computed(() =>
+  props.snapshot.table.access_source ? undefined : props.snapshot.table.effective_role,
+)
+const owner = computed(() => role.value === 'owner')
+const editor = computed(() => role.value === 'editor')
+const editing = computed(() => !props.locked && (owner.value || (editor.value && optedIn.value)))
 const cell = shallowRef<{ rowId: string; column: TableColumn } | null>(null)
 const action = ref<StructureKind | null>(null)
 const showingPanel = computed(() => cell.value !== null || action.value !== null)
@@ -47,6 +50,11 @@ async function closePanel() {
   document.getElementById('tables-edit-control')?.focus()
 }
 
+watch(role, () => {
+  optedIn.value = false
+  if (showingPanel.value) void closePanel()
+})
+
 function lock() {
   emit('locked')
   optedIn.value = false
@@ -71,7 +79,7 @@ function savedStructure(kind: StructureKind) {
     <span v-if="!editing" class="tables-chip">Salt okunur</span>
     <span v-if="owner" class="tables-chip">Sahip</span>
     <UiButton
-      v-if="!owner && !locked"
+      v-if="editor && !locked"
       id="tables-edit-control"
       size="sm"
       :disabled="showingPanel"

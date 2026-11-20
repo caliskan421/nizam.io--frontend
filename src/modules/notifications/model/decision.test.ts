@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
 import { makeNotification } from '@/shared/api/__tests__/defaults'
+import type { components } from '@/shared/api/schema'
 
 import { decisionOf, resolvedText, taskTarget } from './decision'
 import { muteKindOf } from './mute'
 import type { NotificationItem } from './types'
 
-const pending = (kind: 'review_date_request' | 'approve_task', request_id: string | null) => ({
+const pending = (
+  kind: components['schemas']['NotificationAction']['kind'],
+  request_id: string | null,
+) => ({
   kind,
   request_id,
   state: 'pending' as const,
@@ -23,6 +27,21 @@ describe('decisionOf (kabiliyet backend action alanından)', () => {
         row({ action: pending('approve_task', null), program_id: 'p', department_id: 'd' }),
       ),
     ).toBe('ready')
+  })
+
+  it('taşıma önerisini görev kararı olarak çalıştırmaz', () => {
+    for (const kind of ['table_proposal', 'work_item']) {
+      expect(
+        decisionOf(
+          row({
+            action: pending('review_table_move', 'r1'),
+            subject_ref: { kind, id: 'r1' },
+            program_id: 'p',
+            department_id: 'd',
+          }),
+        ),
+      ).toBe('unavailable')
+    }
   })
 
   it('bağlam eksik → unavailable (seçili programdan tahmin yok)', () => {
@@ -45,6 +64,35 @@ describe('decisionOf (kabiliyet backend action alanından)', () => {
 })
 
 describe('resolvedText', () => {
+  const outcomes = {
+    approved: 'Onaylandı',
+    rejected: 'Reddedildi',
+    completed: 'Onaylandı',
+    returned: 'İade edildi',
+    changed: 'Durum başka yolla değişti',
+    deleted: 'Görev silindi',
+    withdrawn: 'Geri çekildi',
+  } satisfies Record<components['schemas']['NotificationResolution']['outcome'], string>
+
+  it.each(Object.entries(outcomes) as Array<[keyof typeof outcomes, string]>)(
+    '%s sonucu Türkçe görünür',
+    (outcome, label) => {
+      expect(
+        resolvedText(
+          row({
+            action: {
+              kind: outcome === 'withdrawn' ? 'review_table_move' : 'approve_task',
+              request_id: null,
+              state: 'resolved',
+              resolution: { outcome, decided_by: null, decided_at: null },
+            },
+          }),
+          'me',
+        ),
+      ).toBe(label)
+    },
+  )
+
   const resolved = (by: { account_id: string; full_name: string | null } | null) =>
     row({
       action: {

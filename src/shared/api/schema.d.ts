@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.28.0-api (45a2237f420aee0cc3a58544063559cb3661db4b) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.33.0-api (e6c08c1b66c108ceec48bfdae21070ac1ece551e) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -1860,6 +1860,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Takvim: görev, toplantı, tarih talebi, tablo kaydı ve kilometre taşları.
+         * @description Tek aralıklı, salt okunur birleşik okuma (REPORTING-K25, K26; ADR-0060).
+         *     `from` ve `to` (`YYYY-AA-GG`, ikisi dahil) zorunludur; `to - from` en çok
+         *     92 gün. Satır görünürlüğü sahibi modüllerin kuralıdır, takvim kendi kuralını
+         *     yazmaz: görev ve bekleyen talep program görev listesi gibi (şirket yöneticisi
+         *     tümü, koordinatör kendi departmanları, üye yalnız atandığı görevler),
+         *     toplantı toplantı listesi gibi (üye yalnız `members_included` açık ve
+         *     departmanı bağlı toplantı ya da katılımcısı olduğu). Üye bekleyen tarih
+         *     talebi görmez; talep, talep edilen yeni bitiş gününde görünür. Program
+         *     başlangıç/bitiş günleri kaynak DEĞİLDİR; yalnız yöneticinin girdiği adlı
+         *     kilometre taşları (`season.milestones`) döner. Tablo kayıtları `table_record`
+         *     türüyle tables ACL üzerinden okunur. Kapsam/üyelik tables transaction'ından
+         *     önce okunur; daha sonra tamamlanan departman silme, program bağı veya
+         *     üyelik kaldırma devam eden istekte bir kez eski kapsamla cevap üretebilir.
+         *     Sonraki istek güncel kapsamı kullanır. Her dolu tarih hücresi ayrı kayıt;
+         *     aynı gün iki sütun iki kayıt üretir. Kişisel etkinlik ve ICS yoktur. Toplantı günü kurulum saat dilimindedir
+         *     (`local_date`, `local_time`). Görev ve bekleyen talep kümeleri BAĞIMSIZDIR:
+         *     her biri kendi tavanıyla (1 000) ve kendi bayrağıyla okunur (`kinds` yalnız
+         *     `date_request` iken de talepler kesilirse `date_requests_truncated` dolar);
+         *     toplantı tavanı 500; tablo kaydı tavanı 1 000. Boş kinds tüm türleri içerir;
+         *     yalnız eski türler seçildiğinde tables okunmaz. Aşımda ilgili `*_truncated` ve `X-Result-Truncated` dolar.
+         */
+        get: operations["readCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/chat-attachments/{attachmentId}": {
         parameters: {
             query?: never;
@@ -3167,6 +3206,48 @@ export interface paths {
         patch: operations["updateAgendaItem"];
         trace?: never;
     };
+    "/v1/meeting-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seçili programın görünür toplantılarındaki notlar (en yeni önce, imleçli).
+         * @description Program geneli toplantı notu listesidir (COLLABORATION-K92; GAP-228). Görünürlük
+         *     **toplantı görünürlüğüdür** (COLLABORATION-K19) ve toplantı listesiyle
+         *     (`listMeetings`) aynı sorgu yüklemidir: şirket yöneticisi kapsamdaki her toplantının,
+         *     koordinatör bağlı departmanının toplantılarının, üye yalnız `members_included` açık
+         *     ve departmanı bağlı toplantıların, `person` kipinde sahip departmanı hâlâ koordine
+         *     eden oluşturan kendi toplantılarının, katılımcı katıldığı toplantıların notlarını
+         *     görür; toplantıyı gören her rol o toplantının tüm notlarını görür
+         *     (`listMeetingNotes` ile aynı karar). Silinmiş toplantının, silinmiş notun ve başka
+         *     programın notu hiçbir rolde dönmez. Bu uç not yazmaz.
+         *
+         *     Süzgeçler görünürlüğe eklenir, onu genişletmez: `department_id` toplantının
+         *     departmanıdır (ya da sahip departmanı); `q` not içeriğinde Türkçe büyük/küçük harf
+         *     ve aksan duyarsız "içerir"dir (`%` ve `_` joker değil harftir), en çok 200 karakter
+         *     (aşım `422 collaboration.input_invalid`, alan `q`).
+         *
+         *     Sıra `(created_at DESC, id DESC)`; imleç opaktır ve sonraki sayfa isteği aynı
+         *     süzgeçleri tekrar gönderir. `limit` varsayılanı 50, üst sınırı 100'dür (aşan, negatif
+         *     ve sayı olmayan değer `422 collaboration.input_invalid`). `total` aynı görünürlük ve
+         *     aramayla eşleşen not sayısıdır (imleçten bağımsız); 10000'e ulaşırsa `total` 10000'de
+         *     kesilir ve `total_capped` `true` olur.
+         *
+         *     Seçili programda ekip satırı olmayan ve yönetici olmayan hesap `403`
+         *     (`organization.membership_required` ya da `collaboration.not_authorized`) alır.
+         */
+        get: operations["listProgramMeetingNotes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/meeting-notes/{noteId}": {
         parameters: {
             query?: never;
@@ -3399,6 +3480,194 @@ export interface paths {
         get: operations["listMeetingParticipantCandidates"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/experiences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kurumsal hafıza deneyimlerini listeler (şirket geneli; süzgeç, sayaç, imleç).
+         * @description Okuma şirket geneli (MEMORY-K01): seçili programda ekip satırı olan herkes ve
+         *     şirket yöneticisi bütün programların deneyimlerini okur; rolsüz hesap
+         *     `memory.not_authorized` alır. `en yeni önce` sırasıyla `(created_at, id)` imleçli;
+         *     `next_cursor` yalnız sonraki sayfa varsa döner. `q` Türkçe duyarsız "içerir"
+         *     aramasıdır (başlık, etki, öneri, birim adı). `facets` süzgeçten BAĞIMSIZ bütün
+         *     hafızanın sayaçlarıdır (MEMORY-K09). `mine_departments=true` çağıranın seçili
+         *     programdaki birimlerine daraltır.
+         */
+        get: operations["listMemoryExperiences"];
+        put?: never;
+        /**
+         * Deneyim kaydı açar (herkes; birim seçili programa bağlı olmalı).
+         * @description Etkinlik (`event_program_id`, boşsa seçili program) ve birim adı yazım anında
+         *     kayda kopyalanır (MEMORY-K10). Öneri verilirse durum `suggested` açılır. İsteğe
+         *     bağlı `Idempotency-Key`: aynı anahtar + aynı istek ilk kaydı 200 ile döndürür,
+         *     farklı istek 409 `memory.idempotency_key_reused`.
+         */
+        post: operations["createMemoryExperience"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/experiences/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Deneyim ayrıntısı (işaret verenlerle).
+         * @description Okuma şirket geneli (MEMORY-K01). `can` çağıranın bu kayıttaki yetkileridir (MEMORY-K03).
+         */
+        get: operations["getMemoryExperience"];
+        put?: never;
+        post?: never;
+        /**
+         * Deneyimi kalıcı siler (şirket yöneticisi ya da yazar).
+         * @description Silme kalıcıdır; işaretler birlikte gider, bildirim yoktur, işlem geçmişine metinsiz kayıt düşer (MEMORY-K10).
+         */
+        delete: operations["deleteMemoryExperience"];
+        options?: never;
+        head?: never;
+        /**
+         * Deneyimi alan bazlı yetkiyle günceller (sürüm denetimli).
+         * @description `expected_revision` zorunludur; sürüm eskiyse 409 `memory.revision_conflict`.
+         *     Başlık ve etkiyi yalnız yazar, alanı yazar ya da şirket yöneticisi, öneriyi
+         *     boşken herkes, doluyken yazar/yönetici/birim koordinatörü, durumu yönetici ve
+         *     birim koordinatörü değiştirir (MEMORY-K03); yetkisiz alan 403. `suggestion`
+         *     üç hâllidir (yok: değişmez; `null`: siler; değer: yazar) ve durumu otomatik
+         *     geçirir (MEMORY-K04). Öneri yokken `suggested`/`applied` 422
+         *     `memory.suggestion_required`. Değişiklik yoksa yazım ve sürüm artışı olmaz.
+         */
+        patch: operations["updateMemoryExperience"];
+        trace?: never;
+    };
+    "/v1/memory/experiences/{id}/convert-to-task": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Öneriyi göreve dönüştürür (şirket yöneticisi ya da birim koordinatörü; tek işlem, bağ tutulur).
+         * @description Deneyimin önerisi olmalı ve henüz göreve dönüşmemiş olmalıdır (MEMORY-K06). Çağıran
+         *     deneyimin biriminde VE hedef departmanda koordinatör (ya da şirket yöneticisi) olmalıdır;
+         *     hedef seçili programa bağlı olmalıdır. Görev, deneyim bağı ve audit TEK transaction'dadır;
+         *     eşzamanlı ikinci dönüştürme 409 `memory.already_converted` alır. `title` boşsa önerinin ilk
+         *     120 karakteri; tarihler boşsa bugün ve +14 gün; `department_id` boşsa deneyimin birimi.
+         *     Görev açıklaması öneri metni ve hafıza kaynağıdır.
+         */
+        post: operations["convertMemoryExperienceToTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/experiences/{id}/endorsement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * "Ben de yaşadım" işareti ekler (idempotent).
+         * @description Herkes (yazar dahil) işaret verir; işaret zaten varsa değişiklik ve audit yoktur.
+         */
+        put: operations["endorseMemoryExperience"];
+        post?: never;
+        /**
+         * "Ben de yaşadım" işaretini kaldırır (idempotent).
+         * @description İşaret yoksa değişiklik ve audit yoktur.
+         */
+        delete: operations["unendorseMemoryExperience"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/experiences/by-source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kaynak notların bağlı olduğu deneyimleri ("Hafızada" rozeti) döndürür.
+         * @description `kind` + en çok 100 `ids` için kaynak kimliği → deneyim kimliği eşlemesi.
+         *     Her kaynak sahip modülün görünürlük kapısından geçer (görev notu: WORK-K32;
+         *     toplantı notu: toplantıyı görebilen her rol notlarını görür, COLLABORATION-K19/K92): çağıranın seçili programda
+         *     GÖREMEDİĞİ, silinmiş ve olmayan not ile bağsız not aynı biçimde sonuçta
+         *     yoktur; yalnız görülebilen kaynağın bağı döner (MEMORY-K05).
+         */
+        get: operations["memoryExperiencesBySource"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Yeni görev başlığına ilgili en çok üç deneyimi (kural tabanlı eşleşme) döndürür.
+         * @description Kural tabanlı eşleşme (MEMORY-K08, YZ değil): `text` kelimeleri (≥ 4 harf, durak
+         *     kelimeler hariç, ilk 5 harf kökü) deneyimin başlık, etki, öneri ve alan adıyla
+         *     karşılaştırılır; puan = 2 × eşleşen kök + aynı birim 1 + öneri varsa 0,5; en çok
+         *     3. Eşleşme yoksa `items` boştur.
+         */
+        get: operations["relatedMemoryExperiences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/task-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seçilen deneyimleri (en çok 3) görevin notlarına "Kurumsal hafızadan …" notu olarak ekler.
+         * @description Hafıza notu görev notudur ama kaynak işaretlidir (`source = memory`; WORK-K106): yazar
+         *     çağırandır ve şirket yöneticisinin not yazamaması kuralına (WORK-K32) YALNIZ bu yolda dar
+         *     istisna vardır (HTTP not ucunda yönetici hâlâ 403 alır). Görevi görebilen ve yazabilen
+         *     (yönetici, görevin birim koordinatörü, atanmış üye) çağırır. `Idempotency-Key` zorunludur:
+         *     aynı istek tekrarında not çoğalmaz (hepsi tekrarsa 200, `added: 0`); aynı anahtar farklı
+         *     istekle 409 `memory.idempotency_key_reused`.
+         */
+        post: operations["addMemoryTaskNotes"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3809,6 +4078,46 @@ export interface paths {
          *     kişisel alan için (TABLES-K11).
          */
         get: operations["getPersonalTableComments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/personal/tables/{tableID}/grant-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * searchPersonalTableGrantCandidates
+         * @description Yalnız güncel tablo sahibi. Aktif yönetici veya kapsamın canlı ekip üyeleri adlarında Türkçe katlamalı alt metinle aranır; eşleşme sayfalamadan öncedir. E-posta aranmaz ve dönmez. Sonuçlar hesap kimliği sırasındadır. İmleç aktör, program, alan, departman, tablo ve q değerine bağlıdır; uyuşmazlık 422 tables.input_invalid. Eşleşme yoksa items boştur ve next_cursor yoktur.
+         */
+        get: operations["searchPersonalTableGrantCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/personal/tables/{tableID}/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listPersonalTableGrants
+         * @description Yalnız güncel tablo sahibi açık grantları hesap kimliği sırasıyla listeler. Ad yalnız güncel hedef görünürlüğü izin verirse döner; ayrılan veya pasif hesap adsız kalır. Kaldırılmamış grant geri katılımda yeniden işler. Ekip erişimi ayrı grant değildir. İmleç aktör, program, alan, departman, tablo ve uca bağlıdır; uyuşmazlık 422 tables.input_invalid.
+         */
+        get: operations["listPersonalTableGrants"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4344,6 +4653,52 @@ export interface paths {
         patch: operations["updateProgram"];
         trace?: never;
     };
+    "/v1/programs/{id}/milestones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Programın adlı tek günlük kilometre taşları.
+         * @description Programı görebilen herkes (şirket yöneticisi ya da programda ekip
+         *     satırı olan hesap) okur; görünmeyen program 404 `program.not_found`
+         *     alır (PROGRAM-K51). Takvim (`GET /v1/calendar`) taşları kendi
+         *     cevabında da taşır.
+         */
+        get: operations["listProgramMilestones"];
+        put?: never;
+        /**
+         * Programa adlı tek günlük kilometre taşı ekler (yalnız şirket yöneticisi).
+         * @description Program başına en çok 50 taş; aynı güne birden çok taş eklenebilir
+         *     (PROGRAM-K51, PROGRAM-K52). Tavanda 409 `program.milestone_limit_reached`.
+         */
+        post: operations["createProgramMilestone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/programs/{id}/milestones/{milestoneId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Kilometre taşını siler (yalnız şirket yöneticisi). */
+        delete: operations["deleteProgramMilestone"];
+        options?: never;
+        head?: never;
+        /** Kilometre taşının adını ya da gününü değiştirir (yalnız şirket yöneticisi). */
+        patch: operations["updateProgramMilestone"];
+        trace?: never;
+    };
     "/v1/programs/{id}/reset": {
         parameters: {
             query?: never;
@@ -4753,6 +5108,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/table-inspections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listTableInspections
+         * @description Aktif şirket yöneticisine izole salt okuma; kişisel alan ve alt kaynak yetkisi vermez. Ekler gizlenir. Referans hedefi kendi ACL kuralıyla çözülür. İmleç aktör, program, alan, departman, uç ve kaynağa bağlıdır; uyuşmazlık 422 tables.input_invalid. Canlı departman süzgeci boş devam sayfası üretebilir.
+         */
+        get: operations["listTableInspections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/table-inspections/{tableID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getTableInspection
+         * @description Aktif şirket yöneticisine izole salt okuma; kişisel alan ve alt kaynak yetkisi vermez. Ekler gizlenir. Referans hedefi kendi ACL kuralıyla çözülür. İmleç aktör, program, alan, departman, uç ve kaynağa bağlıdır; uyuşmazlık 422 tables.input_invalid.
+         */
+        get: operations["getTableInspection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/table-projects": {
         parameters: {
             query?: never;
@@ -5030,6 +5425,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tables/{tableID}/grant-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * searchTableGrantCandidates
+         * @description Yalnız güncel tablo sahibi. Aktif yönetici veya kapsamın canlı ekip üyeleri adlarında Türkçe katlamalı alt metinle aranır; eşleşme sayfalamadan öncedir. E-posta aranmaz ve dönmez. Sonuçlar hesap kimliği sırasındadır. İmleç aktör, program, alan, departman, tablo ve q değerine bağlıdır; uyuşmazlık 422 tables.input_invalid. Eşleşme yoksa items boştur ve next_cursor yoktur.
+         */
+        get: operations["searchTableGrantCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tables/{tableID}/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listTableGrants
+         * @description Yalnız güncel tablo sahibi açık grantları hesap kimliği sırasıyla listeler. Ad yalnız güncel hedef görünürlüğü izin verirse döner; ayrılan veya pasif hesap adsız kalır. Kaldırılmamış grant geri katılımda yeniden işler. Ekip erişimi ayrı grant değildir. İmleç aktör, program, alan, departman, tablo ve uca bağlıdır; uyuşmazlık 422 tables.input_invalid.
+         */
+        get: operations["listTableGrants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tables/{tableID}/operations": {
         parameters: {
             query?: never;
@@ -5149,6 +5584,50 @@ export interface paths {
          *     tarayıcı `EventSource` kullanamaz; fetch akışıyla okur.
          */
         get: operations["streamTableChanges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/work-item-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seçili programın görünür görevlerindeki notlar (en yeni önce, imleçli; departman başlığı yok).
+         * @description Program geneli görev notu listesidir (WORK-K105; GAP-228). Görev notu görünürlüğünün
+         *     (WORK-K32) liste düzeyindeki karşılığıdır ve program görev listesiyle
+         *     (`listProgramWorkItems`) **aynı karar ve aynı sorgu yüklemidir**: şirket yöneticisi
+         *     programın bütün görevlerinin notlarını, koordinatör koordinatörü olduğu departmanların
+         *     bütün görevlerinin notlarını, üye üyesi olduğu departmanlarda yalnız kendisine atanan
+         *     görevlerin notlarını görür; birden çok rolü olan hesap birleşimi görür (aynı not bir
+         *     kez döner). Silinmiş görevin ve silinmiş notun satırı, başka programın notu hiçbir
+         *     rolde dönmez. Bu uç not yazmaz; yönetici notları görev notu ucundan hâlâ yazamaz.
+         *
+         *     Süzgeçler görünürlükle **kesişir**, yetkiyi genişletmez: `department_id` görevin
+         *     departmanıdır (programa bağlı olmayan ya da yumuşak silinmiş departman `404
+         *     work.program_scope_invalid`; koordinatör olunmayan departman süzülürse yalnız zaten
+         *     görünen notlar döner); `q` not içeriğinde Türkçe büyük/küçük harf ve aksan duyarsız
+         *     "içerir"dir (`%` ve `_` joker değil harftir), en çok 200 karakter (aşım `422
+         *     work.input_invalid`, alan `q`).
+         *
+         *     Sıra `(created_at DESC, id DESC)`; imleç opaktır ve sonraki sayfa isteği aynı
+         *     süzgeçleri tekrar gönderir. `limit` varsayılanı 50, 100 üstü 100'e çekilir (0 ve
+         *     negatif varsayılana çekilir; sayı olmayan `422 work.input_invalid`). `total` aynı
+         *     görünürlük ve aramayla eşleşen not sayısıdır (imleçten bağımsız); 10000'e ulaşırsa
+         *     `total` 10000'de kesilir ve `total_capped` `true` olur.
+         *
+         *     Hiçbir programda ekip satırı olmayan ve yönetici olmayan hesap `403
+         *     organization.membership_required`; bu programda ekip satırı olmayan ve yönetici
+         *     olmayan hesap, var olmayan programla aynı `404 work.program_scope_invalid` alır.
+         */
+        get: operations["listProgramWorkItemNotes"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5951,6 +6430,125 @@ export interface components {
             /** @description Bütün süzgeçlere uyan toplam. */
             total_matched: number;
         };
+        Calendar: {
+            /** @description Bekleyen tarih talepleri, talep edilen yeni bitiş gününde; görev kümesinden bağımsız tavanla okunur. Üyede her zaman boş (WORK-K82). */
+            date_requests: {
+                /** Format: date-time */
+                created_at: string;
+                /** Format: date */
+                current_end_on: string;
+                id: string;
+                /** Format: date */
+                new_end_on: string;
+                /** Format: date */
+                new_start_on: string;
+                requested_by: {
+                    account_id: string;
+                    full_name: string;
+                };
+                work_item: {
+                    code: string;
+                    id: string;
+                    title: string;
+                };
+            }[];
+            /** @description Talep kümesi tavanı (1 000) aştı; görev kümesinin `tasks_truncated` bayrağından bağımsızdır. */
+            date_requests_truncated: boolean;
+            /** @description Çağıranın görebildiği, günü aralıkta olan toplantılar (an ve kimlik sırasıyla). */
+            meetings: {
+                agenda_count: number;
+                departments: components["schemas"]["CalendarDepartment"][];
+                id: string;
+                /** @description Konferansı canlıysa. */
+                live: boolean;
+                /** Format: date */
+                local_date: string;
+                /** @description `SS:DD`, kurulum saat diliminde. */
+                local_time: string;
+                participant_count: number;
+                /** Format: date-time */
+                starts_at: string;
+                title: string;
+            }[];
+            meetings_truncated: boolean;
+            range: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+            season: {
+                /** @description Aralıktaki adlı tek günlük kilometre taşları (PROGRAM-K51); gün ve kimlik sırasıyla. Program başlangıç/bitişi dahil değildir. */
+                milestones: {
+                    id: string;
+                    name: string;
+                    /** Format: date */
+                    on: string;
+                }[];
+            };
+            /** @description Her dolu tarih hücresi ayrı kayıt; gün, tablo kimliği, sütun kimliği, satır konumu ve satır kimliği sırası. Her iki alan mevcut tables ACL ile süzülür. */
+            table_records?: components["schemas"]["CalendarTableRecord"][];
+            /** @description Tablo kaydı sayısı 1000 tavanını aştı; X-Result-Truncated da true olur. Tam tavan kesilme değildir. */
+            table_records_truncated?: boolean;
+            /** @description Tarihleri aralıkla kesişen görünür görevler (bitiş günü, departman, kod sırasıyla). Tamamlananlar da döner. */
+            tasks: {
+                assignee_count: number;
+                /** @description En çok 3 canlı atanan. */
+                assignees: {
+                    account_id: string;
+                    full_name: string;
+                }[];
+                /** @description Kısa görev kodu (`<departman kodu>-<no>`); departmanın kodu yoksa boş. */
+                code: string;
+                department: components["schemas"]["CalendarDepartment"];
+                /** Format: date */
+                end_on: string;
+                id: string;
+                /** @description Açık görevde gecikme günü; geç tamamlanmış görevde geç tamamlama günü; aksi 0. */
+                late_days: number;
+                /** @description Açık ve bitiş günü bugünden önce. */
+                overdue: boolean;
+                priority: string;
+                /** Format: date */
+                start_on: string;
+                status: string;
+                title: string;
+            }[];
+            tasks_truncated: boolean;
+            /** @description Kurulum saat dilimi (IANA); toplantı günü ve saati bunda hesaplanır. */
+            timezone: string;
+        };
+        CalendarDepartment: {
+            code: string;
+            id: string;
+            name: string;
+        };
+        CalendarTableRecord: {
+            column_id: string;
+            column_name: string;
+            /** @description Yalnız koordinatörlük alanında bulunur. */
+            department_id?: string;
+            /** @description Sütun konumuyla ilk iki görünür kişi/departman/checkbox alanı. Gizli referansın kimliği ve adı çıkarılır; diğer sütun tipleri okunmaz. */
+            fields: {
+                column_id: string;
+                /** @description Yalnız görünür referans adları; value sırasıyla. */
+                labels?: string[];
+                name: string;
+                /** @enum {string} */
+                type: "person_reference" | "department_reference" | "checkbox";
+                /** @description Görünür tek kimlik, çoklu kimlik dizisi veya checkbox boolean değeri. */
+                value: string | string[] | boolean;
+            }[];
+            /** Format: date */
+            on: string;
+            row_id: string;
+            /** @description Sütun konumuyla ilk dolu metin; yoksa ilk görünür kişi adı; yoksa Satır. Gizli referans etikette kullanılmaz. */
+            row_label: string;
+            /** @enum {string} */
+            space: "personal" | "coordinatorship";
+            table_id: string;
+            table_name: string;
+        };
         ChangePasswordRequest: {
             current_password: string;
             new_password: string;
@@ -6552,6 +7150,15 @@ export interface components {
             place?: string | null;
             /** @description Başlık. Sunucu düz metne indirir ve kırpar; sonuç boş olamaz, kontrol karakteri taşıyamaz ve en çok 255 karakterdir (Unicode kod noktası, düz metne indirildikten sonra ölçülür); aksi 422 `collaboration.input_invalid` (alan `title`) (COLLABORATION-K17). */
             title: string;
+        };
+        CreateProgramMilestoneRequest: {
+            /** @description Kırpıldıktan sonra 1–80 karakter; aksi `422 program.input_invalid` (`program.invalid_milestone`, alan `name`). */
+            name: string;
+            /**
+             * Format: date
+             * @description Takvim günü (`YYYY-AA-GG`); aksi `422 program.input_invalid` (`program.invalid_milestone`, alan `on`).
+             */
+            on: string;
         };
         CreateProgramRequest: {
             /**
@@ -7621,6 +8228,152 @@ export interface components {
             unassigned_tasks: number;
             warning: boolean;
         };
+        /**
+         * @description Kapalı sekizli alan kümesi (MEMORY-K02).
+         * @enum {string}
+         */
+        MemoryArea: "volunteers" | "transport" | "energy" | "infrastructure" | "supply" | "communication" | "security" | "accommodation";
+        MemoryCan: {
+            convert: boolean;
+            delete: boolean;
+            edit_area: boolean;
+            edit_suggestion: boolean;
+            /** @description Başlık ve etki. */
+            edit_title: boolean;
+            manage: boolean;
+        };
+        MemoryConverted: {
+            experience: components["schemas"]["MemoryExperience"];
+            work_item_id: string;
+        };
+        MemoryConvertRequest: {
+            assignee_account_ids?: string[];
+            /** @description Boşsa deneyimin birimi; çağıran hedefte koordinatör ya da yönetici olmalı. */
+            department_id?: string;
+            /**
+             * Format: date
+             * @description İkisi de boşsa bugün + 14 gün; başlangıçtan önce olamaz.
+             */
+            end_date?: string;
+            /** @enum {string} */
+            priority?: "dusuk" | "orta" | "yuksek" | "acil";
+            /**
+             * Format: date
+             * @description İkisi de boşsa bugün; verilirse bugünden önce olamaz.
+             */
+            start_date?: string;
+            /** @description Boşsa önerinin ilk 120 karakteri. */
+            title?: string;
+        };
+        MemoryExperience: {
+            area: components["schemas"]["MemoryArea"];
+            author: components["schemas"]["MemoryPerson"];
+            can: components["schemas"]["MemoryCan"];
+            /** @description Dönüştüğü görev; okuyanın görev erişimiyle çözülür (atanmadığı, başka birimdeki ya da silinmiş görev için null; MEMORY-K06). */
+            converted_work_item: {
+                id: string;
+                program_id: string;
+            } | null;
+            /** Format: date-time */
+            created_at: string;
+            department: {
+                code: string | null;
+                id: string;
+                /** @description Yazım anındaki programdaki birim adı kopyası. */
+                name: string;
+            };
+            endorsed_by_me: boolean;
+            endorsement_count: number;
+            event: {
+                /** @description Yazım anındaki program adı kopyası. */
+                label: string;
+                program_id: string;
+            };
+            /** @description Deneyim bir nottan eklendi; kaynak ayrıntısı yalnız ayrıntı ucundadır. */
+            has_source: boolean;
+            id: string;
+            impact: string;
+            /** Format: int64 */
+            revision: number;
+            /** @enum {string} */
+            status: "open" | "suggested" | "applied";
+            suggestion: string | null;
+            title: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        MemoryExperienceCreate: {
+            area: components["schemas"]["MemoryArea"];
+            department_id: string;
+            /** @description Boşsa seçili program. */
+            event_program_id?: string;
+            impact?: string;
+            /** @description Kaynak not ("Hafızaya ekle"); not çağıranın seçili programda GÖREBİLDİĞİ not olmalı ve başka deneyime bağlı olmamalı (MEMORY-K05). */
+            source?: {
+                id: string;
+                /** @enum {string} */
+                kind: "work_note" | "meeting_note";
+            };
+            suggestion?: string;
+            title: string;
+        };
+        MemoryExperienceDetail: components["schemas"]["MemoryExperience"] & {
+            /** @description En son işaret verenler (en çok 5). */
+            endorsements: components["schemas"]["MemoryPerson"][];
+            /** @description Kaynak not bağı; okuyanın erişimiyle çözülür: erişemeyen için `id` ve `label` null, `accessible` false (varlık sızmaz). */
+            source: {
+                accessible: boolean;
+                id: string | null;
+                /** @enum {string} */
+                kind: "work_note" | "meeting_note";
+                label: string | null;
+            } | null;
+        };
+        MemoryExperienceList: {
+            /** @description Süzgeçten bağımsız, bütün hafızanın sayaçları. */
+            facets: {
+                by_area: {
+                    [key: string]: number;
+                };
+                by_event: {
+                    count: number;
+                    label: string;
+                    program_id: string;
+                }[];
+                by_status: {
+                    [key: string]: number;
+                };
+                total: number;
+            };
+            items: components["schemas"]["MemoryExperience"][];
+            next_cursor: string | null;
+        };
+        MemoryExperienceUpdate: {
+            area?: components["schemas"]["MemoryArea"];
+            /** Format: int64 */
+            expected_revision: number;
+            impact?: string;
+            /** @enum {string} */
+            status?: "open" | "suggested" | "applied";
+            /** @description Yok: değişmez; null: siler; değer: yazar. */
+            suggestion?: string | null;
+            title?: string;
+        };
+        MemoryPerson: {
+            account_id: string;
+            /** @description Silinmiş hesapta null (silinmiş kullanıcı). */
+            full_name: string | null;
+        };
+        MemoryTaskNotesRequest: {
+            experience_ids: string[];
+            work_item_id: string;
+        };
+        MemoryTaskNotesResult: {
+            added: number;
+            /** @description Daha önce (aynı anahtarla) yazılmış, bu istekte atlanan not sayısı. */
+            replayed: number;
+            work_item_id: string;
+        };
         MeResponse: {
             account_id: string;
             /** @description Hesap şirket yöneticisi mi; kaynak organization yetkisi, üyelikten bağımsız */
@@ -7693,7 +8446,7 @@ export interface components {
         };
         Notification: {
             action: components["schemas"]["NotificationAction"] | null;
-            /** @description Olayı yapan hesap; aktörsüz ya da görüntüsü alınmamış eski kayıtta null. Konu maskesinden bağımsızdır: konu görünmese, aktör ya da okuyan programdan ayrılmış olsa da kimlik ve bugünkü ad döner (NOTIFICATIONS-K39). */
+            /** @description Olayı yapan hesap; aktörsüz ya da görüntüsü alınmamış eski kayıtta null. Taşıma önerisinde görünür bekleyen durum dışında null olur. Diğer türlerde konu maskesinden bağımsızdır: konu görünmese, aktör ya da okuyan programdan ayrılmış olsa da kimlik ve bugünkü ad döner (NOTIFICATIONS-K39). */
             actor: components["schemas"]["NotificationPerson"] | null;
             /** Format: date-time */
             created_at: string;
@@ -7718,14 +8471,15 @@ export interface components {
             type: string;
         };
         /**
-         * @description Satır içi karar bağlamı (NOTIFICATIONS-K41). Yalnız okuyan bugün karar verebiliyorsa döner: tarih talebinde şirket yöneticisi (WORK-K39), onaya sunulan görevde görevin departman koordinatörü ya da şirket yöneticisi (WORK-K14).
+         * @description Taşıma önerisinde review_table_move: pending için Reddet tüm yetkililer adına reject, Taşı approve gönderir; mevcut table-proposals karar ucu ve kapsam/anahtar başlıkları kullanılır. Okundu kararı kapatmaz.
+         *     Satır içi karar bağlamı (NOTIFICATIONS-K41). Yalnız okuyan bugün karar verebiliyorsa döner: tarih talebinde şirket yöneticisi (WORK-K39), onaya sunulan görevde görevin departman koordinatörü ya da şirket yöneticisi (WORK-K14).
          *     `state` canlı veriden hesaplanır: talep incelenmiş, görev onaya sunulmuş durumdan çıkmış ya da silinmişse `resolved`. Başkasının verdiği karar `resolved` + `decided_by.account_id` ≠ çağıran ile anlaşılır.
          *     Karar bu uçtan verilmez: istemci `reviewDateChangeRequest` ve görev geçiş ucunu `program_id`, `department_id`, `subject_ref.id`, `request_id` ile çağırır.
          */
         NotificationAction: {
             /** @enum {string} */
-            kind: "review_date_request" | "approve_task";
-            /** @description Tarih talebinin kimliği; `approve_task`'ta null. */
+            kind: "review_date_request" | "approve_task" | "review_table_move";
+            /** @description Tarih talebi veya bekleyen taşıma önerisinin kimliği; `approve_task` ve sonuçlanmış taşıma önerisinde null. */
             request_id: string | null;
             resolution: components["schemas"]["NotificationResolution"] | null;
             /** @enum {string} */
@@ -7834,11 +8588,12 @@ export interface components {
             decided_at: string | null;
             decided_by: components["schemas"]["NotificationPerson"] | null;
             /**
-             * @description Talepte `approved`/`rejected`; onayda `completed` (onaylandı), `returned` (iade), `changed` (onaydan başka yolla çıktı); `deleted` görev silindi (`decided_by` null).
+             * @description Talepte ve taşıma önerisinde `approved`/`rejected`; taşıma önerisi geri çekildiğinde `withdrawn`; görev onayında `completed` (onaylandı), `returned` (iade), `changed` (onaydan başka yolla çıktı); `deleted` görev silindi (`decided_by` null).
              * @enum {string}
              */
-            outcome: "approved" | "rejected" | "completed" | "returned" | "changed" | "deleted";
+            outcome: "approved" | "rejected" | "completed" | "returned" | "changed" | "deleted" | "withdrawn";
         };
+        /** @description Taşıma önerisinde kind table_proposal olur; görünmez, okunamayan veya sonuçlanmış öneride id boş dizgedir, program_id, department_id, actor, subject.title ve detail null olur. */
         NotificationSubject: {
             id: string;
             kind: string;
@@ -7987,6 +8742,54 @@ export interface components {
         ProgramList: {
             programs: components["schemas"]["Program"][];
         };
+        ProgramMeetingNote: {
+            /** @description Yazar; yazarı kaydedilmemiş satırda null. */
+            author_account_id: string | null;
+            /** @description Yazarın görünen adı; ad çözülemezse null. */
+            author_full_name: string | null;
+            content: string;
+            /** @description Not göreve dönüştürüldüyse iş kalemi kimliği; aksi null. */
+            converted_to_work_item_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** @description Not kimliği (toplantı notu uçlarındaki `note_id` ile aynı kimlik). */
+            id: string;
+            meeting: {
+                departments: components["schemas"]["MeetingDepartment"][];
+                id: string;
+                /** Format: date-time */
+                meeting_date: string;
+                title: string;
+            };
+        };
+        ProgramMeetingNoteList: {
+            items: components["schemas"]["ProgramMeetingNote"][];
+            /** @description Sonraki sayfa; son sayfada yoktur. */
+            next_cursor?: string;
+            /** @description Aynı görünürlük ve aramayla eşleşen not sayısı (imleçten bağımsız); en çok 10000. */
+            total: number;
+            /** @description Gerçek sayı 10000'i aşıyorsa `true`; `total` 10000'de kesilmiştir. */
+            total_capped: boolean;
+        };
+        ProgramMilestone: {
+            /** Format: date-time */
+            created_at: string;
+            id: string;
+            /** @description Kırpılmış ad (PROGRAM-K51): 1–80 karakter, kontrol karakteri yok. */
+            name: string;
+            /**
+             * Format: date
+             * @description Kilometre taşının takvim günü (`YYYY-AA-GG`).
+             */
+            on: string;
+            program_id: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ProgramMilestoneList: {
+            /** @description Gün ve kimlik sırasıyla; program başına en çok 50 (PROGRAM-K52), sayfalama yok. */
+            milestones: components["schemas"]["ProgramMilestone"][];
+        };
         ProgramResetResult: {
             files: number;
             /** Format: int64 */
@@ -8010,6 +8813,38 @@ export interface components {
             pending_date_requests: number;
             /** @description Görünür canlı görev sayısı (süzgeçlerle). */
             total: number;
+        };
+        ProgramWorkItemNote: {
+            author_account_id: string;
+            /** @description Yazarın görünen adı; ad çözülemezse `null`. */
+            author_full_name: string | null;
+            content: string;
+            /** Format: date-time */
+            created_at: string;
+            /**
+             * @description Not bayrağı (WORK-K103); bayraksızsa `null`.
+             * @enum {string|null}
+             */
+            flag: "urgent" | "blocker" | "question" | "info" | null;
+            /** @description Not kimliği (görev notu uçlarındaki `note_id` ile aynı kimlik). */
+            id: string;
+            shared: boolean;
+            work_item: {
+                /** @description Görev kısa kodu (WORK-K97); departmanı kodsuzsa `null`. */
+                code: string | null;
+                department_id: string;
+                id: string;
+                title: string;
+            };
+        };
+        ProgramWorkItemNoteList: {
+            items: components["schemas"]["ProgramWorkItemNote"][];
+            /** @description Sonraki sayfa; son sayfada yoktur. */
+            next_cursor?: string;
+            /** @description Aynı görünürlük ve aramayla eşleşen not sayısı (imleçten bağımsız); en çok 10000. */
+            total: number;
+            /** @description Gerçek sayı 10000'i aşıyorsa `true`; `total` 10000'de kesilmiştir. */
+            total_capped: boolean;
         };
         PushPublicKey: {
             enabled: boolean;
@@ -8591,8 +9426,18 @@ export interface components {
             server_version: string;
         };
         Table: {
+            /**
+             * @description İzole yönetici okuması; effective_role veya alt kaynak yetkisi sağlamaz.
+             * @enum {string}
+             */
+            access_source?: "company_admin";
             /** @description Koordinatörlük alanında tablonun departmanı; kişisel alanda boş metin (TABLES-K11). */
             department_id: string;
+            /**
+             * @description Çağıranın okuma anındaki etkin tablo rolü (TABLES-K02): sahiplik, açık paylaşım ve canlı ekip paylaşımının en güçlüsü. Kişisel ve koordinatörlük liste/şablon listesi ile normal veya süzülmüş detay yanıtında döner. Yetki belgesi değildir; her yazıda güncel ACL doğrulanır. Eski sunucuda alan bulunmayabilir; istemci yokluğunda rol türetmez veya editor varsaymaz, salt okunur kalıp yeniden okur.
+             * @enum {string}
+             */
+            effective_role?: "owner" | "editor" | "viewer";
             id: string;
             /** @description Sahibin koyduğu şablon bayrağı (TABLES-K16). Erişimi genişletmez: şablon listesi (`template=true`) aynı ACL süzgecindedir. Kopyalar şablon değildir. */
             is_template?: boolean;
@@ -8814,7 +9659,7 @@ export interface components {
              */
             kind: "delete_column";
         };
-        /** @description Yumuşak silme; yalnız sahip. Silinmiş tabloda yalnız aynı anahtarlı silme tekrarı 200 alır. */
+        /** @description Yumuşak silme; yalnız sahip. Silinmiş tabloda yalnız aynı anahtarlı silme tekrarı 200 alır. Bekleyen taşıma/kopya önerisi aynı transaction’da withdrawn olur; taşımanın mevcut portal eylemleri teslim beklemeden kapanır. Geç/ters/tekrar teslim eylemi yeniden açmaz. */
         TableDeleteCommand: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -8995,7 +9840,7 @@ export interface components {
             /** @description Sonraki sayfa; son sayfada yoktur. */
             next_cursor?: string;
         };
-        /** @description Yalnız kişisel tablonun sahibi; hedef, sahibin ekip satırı olan koordinatörlüktür (TABLES-K18): şirket yöneticiliği tek başına öneri açmaz (hedefte ekip satırı yoksa 403). Öneri sahibin açık rızasıdır ve yalnız şu üst veriyi onaylayana gösterir: başlık, sütun adı/tipi, satır sayısı, hedef ve `role` (onayda yazılacak `team_role`). Tablo başına tek bekleyen öneri; ikincisi 409 `tables.proposal_pending`. Sonuçta `id` öneri kimliği, `status` `pending`'dir. */
+        /** @description Yalnız kişisel tablonun sahibi; hedef, sahibin ekip satırı olan koordinatörlüktür (TABLES-K18): şirket yöneticiliği tek başına öneri açmaz (hedefte ekip satırı yoksa 403). Öneri sahibin açık rızasıdır ve yalnız şu üst veriyi onaylayana gösterir: başlık, sütun adı/tipi, satır sayısı, hedef ve `role` (onayda yazılacak `team_role`). Tablo başına tek bekleyen öneri; ikincisi 409 `tables.proposal_pending`. Sonuçta `id` öneri kimliği, `status` `pending`'dir. Hedef birimin yumuşak silinmesi öneriyi pending bırakır ve maskeler; karar 404 alır. Geri yükleme yeniden karar vermeyi açar. Bekleyen hedef önerisi kalıcı birim silmeyi 409 `organization.department_in_use` ile engeller. */
         TableProposeCommand: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -9126,6 +9971,15 @@ export interface components {
              */
             kind: "set_template";
             template: boolean;
+        };
+        TableSharingPage: {
+            items: {
+                account_id: string;
+                name?: string;
+                /** @enum {string} */
+                role?: "viewer" | "editor";
+            }[];
+            next_cursor?: string;
         };
         /** @description Geri alınamayan hücre; değer, önceki değer ya da referans kimliği taşımaz. */
         TableSkippedCell: {
@@ -9355,6 +10209,12 @@ export interface components {
             place?: string | null;
             /** @description Verilirse kuruluştaki kuralla aynı: düz metne indirilip kırpıldıktan sonra 1–255 karakter (Unicode kod noktası); aksi 422 `collaboration.input_invalid` (alan `title`). */
             title?: string | null;
+        };
+        /** @description En az bir alan verilmelidir; verilmeyen alan değişmez. */
+        UpdateProgramMilestoneRequest: {
+            name?: string;
+            /** Format: date */
+            on?: string;
         };
         UpdateProgramRequest: {
             /**
@@ -9673,6 +10533,11 @@ export interface components {
             note_id: string;
             /** @description "Paylaşılan" işareti (WORK-K103); yalnız etiket. */
             shared: boolean;
+            /**
+             * @description Not kaynağı (WORK-K106): kurumsal hafızadan eklenen notta `memory`, elle yazılmışta `null`.
+             * @enum {string|null}
+             */
+            source: "memory" | null;
             /** Format: date-time */
             updated_at: string;
             work_item_id: string;
@@ -9868,6 +10733,7 @@ export interface components {
         PathID: string;
         PathItemID: string;
         PathMessageID: string;
+        PathMilestoneID: string;
         PathNoteID: string;
         PathSubtaskID: string;
         PathUserID: string;
@@ -18058,6 +18924,101 @@ export interface operations {
             };
         };
     };
+    readCalendar: {
+        parameters: {
+            query: {
+                /** @description Takvim günü (`YYYY-AA-GG`), dahil. */
+                from: string;
+                /** @description Seçilecek türler: `task`, `meeting`, `date_request`, `season`, `table_record` (virgüllü ya da tekrarlı). Boş = hepsi; bilinmeyen tür 422 `reporting.input_invalid` (alan `kinds`). */
+                kinds?: ("task" | "meeting" | "date_request" | "season" | "table_record")[];
+                /** @description Takvim günü (`YYYY-AA-GG`), dahil; `from`dan önce olamaz, fark en çok 92 gün. */
+                to: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    "X-Result-Truncated": components["headers"]["ResultTruncated"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calendar"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     downloadChatAttachment: {
         parameters: {
             query?: never;
@@ -25253,6 +26214,93 @@ export interface operations {
             };
         };
     };
+    listProgramMeetingNotes: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description İsteğe bağlı departman süzgeci (toplantının departmanı ya da sahip departmanı); görünürlüğe eklenir. */
+                department_id?: string;
+                /** @description Sayfa boyu; varsayılan 50, üst sınır 100 (aşan, negatif ve sayı olmayan değer 422). */
+                limit?: number;
+                /** @description İsteğe bağlı içerik araması: Türkçe harf ve aksan duyarsız "içerir"; boş ya da yalnız boşluk arama yoktur; en çok 200 karakter. */
+                q?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramMeetingNoteList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     deleteMeetingNote: {
         parameters: {
             query?: never;
@@ -27229,6 +28277,1144 @@ export interface operations {
             };
             /** @description Kapsamda bulunamadı */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listMemoryExperiences: {
+        parameters: {
+            query?: {
+                area?: components["schemas"]["MemoryArea"];
+                cursor?: string;
+                /** @description Yinelenebilir; verilen birimlerin deneyimleri. */
+                department_id?: string[];
+                event_program_id?: string;
+                limit?: number;
+                mine_departments?: "true" | "false";
+                q?: string;
+                status?: "open" | "suggested" | "applied";
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryExperienceList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    createMemoryExperience: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description İsteğe bağlı işlem anahtarı (ADR-0027 kalıbı). Verilmezse uç anahtarsız davranır (mevcut davranış). Verilirse (boş ya da yalnız boşluk dahil) kırpılmış uzunluk 22–200 bayttır, aksi 422 `<mod>.input_invalid` (alan `idempotency_key`, kod `<mod>.invalid_request_key`). Anahtar aktör + uç tablosu kapsamındadır ve kaynak satırında yaşar. Aynı anahtar + aynı normalize istek ilk kaynağın bugünkü temsilini 200 ile döndürür; farklı istek 409 `<mod>.idempotency_key_reused`; aynı anahtarlı eşzamanlı istek ilk isteğin bitişini bekler ve tekrar olarak döner. */
+                "Idempotency-Key"?: components["parameters"]["OptionalIdempotencyKey"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryExperienceCreate"];
+            };
+        };
+        responses: {
+            /** @description İşlem anahtarının ilk kaydı (tekrar) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryExperienceDetail"];
+                };
+            };
+            /** @description Oluşturuldu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryExperienceDetail"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde çok büyük */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    getMemoryExperience: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryExperienceDetail"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    deleteMemoryExperience: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    updateMemoryExperience: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryExperienceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryExperience"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde çok büyük */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    convertMemoryExperienceToTask: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryConvertRequest"];
+            };
+        };
+        responses: {
+            /** @description Görev oluştu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryConverted"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde çok büyük */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    endorseMemoryExperience: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    unendorseMemoryExperience: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    memoryExperiencesBySource: {
+        parameters: {
+            query: {
+                ids: string[];
+                kind: "work_note" | "meeting_note";
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    relatedMemoryExperiences: {
+        parameters: {
+            query: {
+                /** @description Aynı birimdeki deneyim önde gelir. */
+                department_id?: string;
+                limit?: number;
+                text: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemoryExperience"][];
+                    };
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    addMemoryTaskNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description İstemcinin ürettiği opak işlem anahtarı (en az 128 bit; ör. base64url 22 karakter; ADR-0027). Uzunluk baştaki/sondaki boşluk kırpıldıktan sonra bayt olarak 22–200'dür. Eksik ya da sınır dışı anahtar 422; program aktarımında `program.transfer_input_invalid`, oluşturma uçlarında modülün `<mod>.input_invalid` zarfı (alan `idempotency_key`, kod `<mod>.request_key_required` / `<mod>.request_key_invalid`). Aynı anahtar + aynı istek ilk sonucu döndürür (oluşturmada 200 + kaynağın bugünkü temsili, güncel görme yetkisiyle); farklı istek 409 `<mod>.idempotency_key_reused`. Anahtar aktör + uç tablosu kapsamındadır; sunucu kaynağı yaşadıkça tutar (kalıcı silinen kaynakta anahtar da gider). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryTaskNotesRequest"];
+            };
+        };
+        responses: {
+            /** @description Notların hepsi daha önce yazılmış (tekrar) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryTaskNotesResult"];
+                };
+            };
+            /** @description Notlar yazıldı */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryTaskNotesResult"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde çok büyük */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -29305,6 +31491,155 @@ export interface operations {
                 };
             };
             /** @description Kişisel alanda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    searchPersonalTableGrantCandidates: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                tableID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSharingPage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listPersonalTableGrants: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                tableID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSharingPage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -31770,6 +34105,394 @@ export interface operations {
             };
         };
     };
+    listProgramMilestones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramMilestoneList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    createProgramMilestone: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProgramMilestoneRequest"];
+            };
+        };
+        responses: {
+            /** @description Oluşturuldu */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramMilestone"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    deleteProgramMilestone: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+                milestoneId: components["parameters"]["PathMilestoneID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description İçerik yok */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    updateProgramMilestone: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path: {
+                id: components["parameters"]["PathID"];
+                milestoneId: components["parameters"]["PathMilestoneID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProgramMilestoneRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramMilestone"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Çakışma / durum uyuşmazlığı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gövde sınırı aşıldı */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     resetProgram: {
         parameters: {
             query?: never;
@@ -33808,6 +36531,164 @@ export interface operations {
             };
         };
     };
+    listTableInspections: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                department_id?: string;
+                limit?: number;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    getTableInspection: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header: {
+                /** @description Departman kapsamı (S3 uçlarda zorunlu). */
+                "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                tableID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSnapshot"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Okuma bütçesi aşıldı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listTableProjects: {
         parameters: {
             query?: {
@@ -34771,6 +37652,159 @@ export interface operations {
             };
         };
     };
+    searchTableGrantCandidates: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Departman kapsamı (S3 uçlarda zorunlu). */
+                "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                tableID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSharingPage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listTableGrants: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header: {
+                /** @description Departman kapsamı (S3 uçlarda zorunlu). */
+                "X-Nizamio-Department": components["parameters"]["DepartmentScope"];
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                tableID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSharingPage"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     applyTableOperation: {
         parameters: {
             query?: never;
@@ -35093,6 +38127,102 @@ export interface operations {
                 };
             };
             /** @description Akış açılamıyor (sunucu kapanıyor ya da toplam akış tavanı dolu) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listProgramWorkItemNotes: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description İsteğe bağlı departman süzgeci (görevin departmanı); görünürlükle kesişir. Boş ya da yalnız boşluk değer süzgeç yok sayılır. */
+                department_id?: string;
+                /** @description Sayfa boyu; varsayılan 50, 100 üstü 100'e çekilir, 0 ve negatif varsayılana çekilir, sayı olmayan 422. */
+                limit?: number;
+                /** @description İsteğe bağlı içerik araması: Türkçe harf ve aksan duyarsız "içerir"; boş ya da yalnız boşluk arama yoktur; en çok 200 karakter. */
+                q?: string;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramWorkItemNoteList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
             503: {
                 headers: {
                     [name: string]: unknown;
