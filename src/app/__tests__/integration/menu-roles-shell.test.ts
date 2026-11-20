@@ -48,6 +48,7 @@ const menu = () =>
       $$('.t-nav__label', g).map((l) => l.textContent?.trim()),
     ]),
   )
+const calendarLink = () => $('nav [data-group="takip"] a[href="/takvim"]')
 const badge = (kind: string) =>
   $(`nav .side-badge[data-badge="${kind}"]`)?.textContent?.trim() ?? null
 
@@ -56,12 +57,13 @@ describe('rol menüleri', () => {
     const app = await boot({ ...ADMIN, path: '/' })
     await until(() => badge('overdue'), 'rozet')
     expect(menu()).toEqual({
-      takip: ['Ana sayfa', 'Görevler', 'Zaman çizelgesi'],
+      takip: ['Ana sayfa', 'Görevler', 'Zaman çizelgesi', 'Takvim'],
       icerik: ['Toplantılar', 'Arşiv', 'Mesajlar', 'Tablolar'],
       yonetim: ['Kullanıcılar', 'Koordinatörlükler', 'Teknofest ve sezon'],
     })
     expect(badge('overdue')).toBe('1')
     expect(badge('approval')).toBeNull()
+    expect(calendarLink()?.textContent?.trim()).toBe('Takvim')
     await idle(app.queryClient)
   })
 
@@ -69,8 +71,9 @@ describe('rol menüleri', () => {
     const app = await boot({ ...COORD, path: '/' })
     await until(() => badge('approval'), 'rozet')
     expect(Object.keys(menu())).toEqual(['takip', 'icerik'])
-    expect(menu().takip).toContain('Görevler')
+    expect(menu().takip).toEqual(['Ana sayfa', 'Görevler', 'Zaman çizelgesi', 'Takvim'])
     expect(badge('approval')).toBe('1')
+    expect(calendarLink()?.textContent?.trim()).toBe('Takvim')
     expect(badge('overdue')).toBe('1')
     await idle(app.queryClient)
   })
@@ -79,8 +82,9 @@ describe('rol menüleri', () => {
     const app = await boot({ ...MEMBER, path: '/' })
     await until(() => badge('overdue'), 'rozet')
     expect(Object.keys(menu())).toEqual(['takip', 'icerik'])
-    expect(menu().takip).toEqual(['Ana sayfa', 'Görevlerim', 'Zaman çizelgem'])
+    expect(menu().takip).toEqual(['Ana sayfa', 'Görevlerim', 'Zaman çizelgem', 'Takvim'])
     expect(menu().icerik).toEqual(['Toplantılar', 'Dosyalarım', 'Mesajlar', 'Tablolar'])
+    expect(calendarLink()?.textContent?.trim()).toBe('Takvim')
     expect(badge('approval')).toBeNull()
     expect(badge('dates')).toBeNull()
     await idle(app.queryClient)
