@@ -51,6 +51,7 @@ async function boot(fixture: StandingFixture, remembered: { lens?: 'admin' } = {
       { path: '/gorevler', name: 'work.tasks', component: { render: () => null } },
       // F3 (W91): Zaman çizelgesi menü öğesi.
       { path: '/zaman-cizelgesi', name: 'work.timeline', component: { render: () => null } },
+      { path: '/takvim', name: 'calendar', component: { render: () => null } },
       // F4: toplantı menü öğesi.
       { path: '/toplantilar', name: 'collaboration.meetings', component: { render: () => null } },
       // F7 (W154): Mesajlar menü öğesi.

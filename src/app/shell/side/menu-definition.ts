@@ -8,7 +8,7 @@
  *
  *  - Menü yetki olgusundan seçilir (`company_admin` → yönetici menüsü her mercekte); mercek
  *    yalnız `company_admin` olmayanlarda menüyü seçer ve yetki değildir (P1/P11/P53).
- *  - "Raporlar" öğesi hiçbir menüde YOKTUR (P47); Takvim, Kurumsal hafıza, Birimim,
+ *  - "Raporlar" öğesi hiçbir menüde YOKTUR (P47); Kurumsal hafıza, Birimim,
  *    Ekibim, Simülasyon katalogda menü girdisi olmadığından yoktur (§9 ortak kural). Mesajlar F7'de
  *    üç rolde İçerik grubundadır (W154).
  *  - Gizleme güvenlik değildir: sunucu her istekte denetler.
@@ -68,6 +68,14 @@ export const MENU_DEFINITION: readonly MenuItemDef[] = [
       // Koordinatörde tarih talebi rozeti Zaman çizelgesi'ne taşınır (E-00-45, geçici kabul).
       coordinator: { group: 'takip', order: 3, badges: ['dates'] },
       member: { group: 'takip', order: 3, label: 'side.item.myTimeline' },
+    },
+  },
+  {
+    key: 'calendar',
+    roles: {
+      admin: { group: 'takip', order: 4 },
+      coordinator: { group: 'takip', order: 4 },
+      member: { group: 'takip', order: 4 },
     },
   },
   {

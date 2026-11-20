@@ -52,6 +52,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
           ['home', 'Ana sayfa'],
           ['tasks', 'Görevler'],
           ['gantt', 'Zaman çizelgesi'],
+          ['calendar', 'Takvim'],
         ],
       ],
       [
@@ -82,6 +83,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
           ['home', 'Ana sayfa'],
           ['tasks', 'Görevler'],
           ['gantt', 'Zaman çizelgesi'],
+          ['calendar', 'Takvim'],
         ],
       ],
       [
@@ -104,6 +106,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
           ['home', 'Ana sayfa'],
           ['tasks', 'Görevlerim'],
           ['gantt', 'Zaman çizelgem'],
+          ['calendar', 'Takvim'],
         ],
       ],
       [
@@ -129,13 +132,13 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
     )
   })
 
-  it('Takvim, Kurumsal hafıza, Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
+  it('Kurumsal hafıza, Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
     const keys = new Set(
       MENU_ROLES.flatMap((role) =>
         layout(role).flatMap(([, items]) => (items as string[][]).map((i) => i[0])),
       ),
     )
-    for (const hidden of ['calendar', 'memory', 'unit', 'team', 'sim', 'dates']) {
+    for (const hidden of ['memory', 'unit', 'team', 'sim', 'dates']) {
       expect(keys.has(hidden), hidden).toBe(false)
     }
   })
@@ -236,6 +239,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Ana sayfa',
       'Görevler',
       'Zaman çizelgesi',
+      'Takvim',
       'Toplantılar',
       'Arşiv',
       'Mesajlar',
@@ -247,6 +251,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Ana sayfa',
       'Görevlerim',
       'Zaman çizelgem',
+      'Takvim',
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
@@ -362,6 +367,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Ana sayfa',
       'Görevlerim',
       'Zaman çizelgem',
+      'Takvim',
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
@@ -383,6 +389,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Ana sayfa',
       'Görevlerim',
       'Zaman çizelgem',
+      'Takvim',
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
