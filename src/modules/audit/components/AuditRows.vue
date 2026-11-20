@@ -35,7 +35,7 @@ const groups = computed(() => {
     <table aria-label="İşlem geçmişi">
       <thead>
         <tr>
-          <th scope="col">Saat</th>
+          <th scope="col" class="audit-ledger__time">Saat</th>
           <th scope="col">Tür</th>
           <th scope="col">İşlem</th>
           <th scope="col">Yapan</th>
@@ -49,7 +49,7 @@ const groups = computed(() => {
           </th>
         </tr>
         <tr v-for="event in dayRows" :key="event.entry_id">
-          <td>
+          <td class="audit-ledger__time">
             <time :datetime="event.occurred_at">{{ auditTime(event.occurred_at, zone) }}</time>
           </td>
           <td>
