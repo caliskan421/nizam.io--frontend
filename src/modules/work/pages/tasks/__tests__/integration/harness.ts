@@ -1,6 +1,6 @@
 // O2 entegrasyon testleri (W48): GERÇEK `TasksPage` + GERÇEK alt bileşenler (panel, yeni görev,
 // durum menüsü, alt görev bloğu, dosyalar, notlar) + modüllerin ÜRETİM rota kayıtları
-// (`homeRoutes` + `workRoutes`, `createAppRouter`'ın `MODULE_ROUTES` ile tükettiği kayıtlar;
+// (`homeRoutes` + `workRoutes` + `auditRoutes`, `createAppRouter`'ın `MODULE_ROUTES` ile tükettiği kayıtlar;
 // `createAppRouter`/`AppShell` kullanılamaz: `app/` içe aktarımı sınır kuralıyla yasak —
 // `boundaries/dependencies`, modül → yalnız shared + başka modülün public.ts'i; F2 borcu) + bellek
 // geçmişi + GERÇEK Teleport + uygulama yuvaları (`UiToast`, `ConfirmHost`). Ağ: görev
@@ -11,6 +11,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, onScopeDispose } from 'vue'
 import { createMemoryHistory, createRouter, RouterView, type Router } from 'vue-router'
 
+import { auditRoutes } from '@/modules/audit/public'
 import { homeRoutes } from '@/modules/home/public'
 import {
   makeMyDepartment,
@@ -125,6 +126,7 @@ function readHandlers(db: FakeWork, standing: StandingFixture) {
     http.get(`${ORIGIN}/v1/work-items/:id/notes`, ({ params }) =>
       guarded(params.id, () => json({ notes: [], total: 0 })),
     ),
+    http.get(`${ORIGIN}/v1/audit/entries`, () => json({ entries: [], next_cursor: null })),
     http.get(`${ORIGIN}/v1/departments/:id/members`, () => json({ members: db.members } as never)),
   ]
 }
@@ -212,6 +214,7 @@ export async function mountApp(selection: ScopeSelection, path = '/gorevler'): P
     routes: [
       ...homeRoutes,
       ...workRoutes,
+      ...auditRoutes,
       // 01 hızlı işlemleri canlı bağlantılar (W145 KUSUR 3): hedef rotalar kayıtlı olmalı.
       { path: '/toplantilar', name: 'collaboration.meetings', component: { render: () => null } },
       { path: '/kullanicilar', name: 'organization.users', component: { render: () => null } },

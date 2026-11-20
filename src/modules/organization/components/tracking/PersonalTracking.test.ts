@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import { pageCrumb } from '@/shared/navigation/page-crumb'
 
-import { requests, resetHarness } from '../../__tests__/harness'
+import { http, json, ORIGIN, requests, resetHarness } from '../../__tests__/harness'
 import { usePersonWorkItems } from '../../api'
 import {
   listHandler,
@@ -56,6 +56,7 @@ function setup(extra: Parameters<typeof server.use> = []) {
     ...standingHandlers(),
     listHandler(ITEMS),
     usersHandler([{ account_id: 'u1', full_name: 'Bahar Kılıç', memberships: ['p1:d1:uye'] }]),
+    http.get(`${ORIGIN}/v1/audit/entries`, () => json({ entries: [], next_cursor: null })),
     ...extra,
   )
 }
