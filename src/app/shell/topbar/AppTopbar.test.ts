@@ -38,7 +38,7 @@ async function mountTopbar(
 }
 
 describe('üst çubuk', () => {
-  it('sıra: [menü, dar ekran] → geri/ileri → konum izi → tema → zil; Asistan/Yardım yok (P2)', async () => {
+  it('sıra: [menü, dar ekran] → geri/ileri → konum izi → tema → zil; kullanılamıyorsa Asistan gösterilmez', async () => {
     const { wrapper } = await mountTopbar()
     const bar = wrapper.get('[data-testid="topbar"]')
     expect(bar.classes()).toContain('rp-topbar')
@@ -50,6 +50,18 @@ describe('üst çubuk', () => {
     expect(order[4]?.getAttribute('data-testid')).toBe('topbar-bell')
     expect(wrapper.text()).not.toContain('Asistan')
     expect(wrapper.find('[title="Asistana sor"]').exists()).toBe(false)
+  })
+
+  it('Asistan düğmesi panel isteğini ve açık durumunu duyurur', async () => {
+    const { wrapper } = await mountTopbar()
+    await wrapper.setProps({ assistantAvailable: true })
+    const trigger = wrapper.get('button[aria-label="Asistan"]')
+    expect(trigger.attributes('aria-haspopup')).toBe('dialog')
+    expect(trigger.attributes('aria-expanded')).toBe('false')
+    await trigger.trigger('click')
+    expect(wrapper.emitted('assistant')).toHaveLength(1)
+    await wrapper.setProps({ assistantOpen: true })
+    expect(trigger.attributes('aria-expanded')).toBe('true')
   })
 
   it('konum izi: program adı kabuk verisinden (ek istek yok), ana sayfaya bağlantı', async () => {
