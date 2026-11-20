@@ -17,6 +17,7 @@ import {
   routeSpec,
 } from '@/app/routes.catalog'
 import { auditRoutes } from '@/modules/audit/public'
+import { memoryRoutes } from '@/modules/memory/public'
 import { calendarRoutes } from '@/modules/calendar/public'
 import { tablesRoutes } from '@/modules/tables/public'
 import { archiveRoutes } from '@/modules/archive/public'
@@ -47,6 +48,7 @@ export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...homeRoutes,
   ...auditRoutes,
   ...calendarRoutes,
+  ...memoryRoutes,
   ...identityRoutes,
   ...workRoutes,
   ...organizationRoutes,

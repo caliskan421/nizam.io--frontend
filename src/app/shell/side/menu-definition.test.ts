@@ -58,6 +58,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
       [
         'icerik',
         [
+          ['memory', 'Kurumsal hafıza'],
           ['meetings', 'Toplantılar'],
           ['archive', 'Arşiv'],
           ['messages', 'Mesajlar'],
@@ -89,6 +90,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
       [
         'icerik',
         [
+          ['memory', 'Kurumsal hafıza'],
           ['meetings', 'Toplantılar'],
           ['archive', 'Arşiv'],
           ['messages', 'Mesajlar'],
@@ -112,6 +114,7 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
       [
         'icerik',
         [
+          ['memory', 'Kurumsal hafıza'],
           ['meetings', 'Toplantılar'],
           ['archive', 'Dosyalarım'],
           ['messages', 'Mesajlar'],
@@ -132,13 +135,13 @@ describe('rol × öğe matrisi (mekanizma §9; E-00-41, E-00-43, E-00-44, E-00-4
     )
   })
 
-  it('Kurumsal hafıza, Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
+  it('Birimim, Ekibim, Simülasyon hiçbir rolde yok (Mesajlar F7’de üç rolde var)', () => {
     const keys = new Set(
       MENU_ROLES.flatMap((role) =>
         layout(role).flatMap(([, items]) => (items as string[][]).map((i) => i[0])),
       ),
     )
-    for (const hidden of ['memory', 'unit', 'team', 'sim', 'dates']) {
+    for (const hidden of ['unit', 'team', 'sim', 'dates']) {
       expect(keys.has(hidden), hidden).toBe(false)
     }
   })
@@ -240,6 +243,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Görevler',
       'Zaman çizelgesi',
       'Takvim',
+      'Kurumsal hafıza',
       'Toplantılar',
       'Arşiv',
       'Mesajlar',
@@ -252,6 +256,7 @@ describe('dört kişilik senaryo — menü kümeleri (E-00-41)', () => {
       'Görevlerim',
       'Zaman çizelgem',
       'Takvim',
+      'Kurumsal hafıza',
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
@@ -368,6 +373,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Görevlerim',
       'Zaman çizelgem',
       'Takvim',
+      'Kurumsal hafıza',
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',
@@ -390,6 +396,7 @@ describe('erişilebilirlik (KESİN 27/30)', () => {
       'Görevlerim',
       'Zaman çizelgem',
       'Takvim',
+      'Kurumsal hafıza',
       'Toplantılar',
       'Dosyalarım',
       'Mesajlar',

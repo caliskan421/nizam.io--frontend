@@ -3,6 +3,7 @@ import './notes.css'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 
+import { MemoryNoteAction, useMemoryQueries } from '@/modules/memory/public'
 import { toApiError } from '@/shared/errors/api-error'
 import type { MutationOutcome } from '@/shared/http/mutation'
 import { useInstanceStore } from '@/shared/instance/store'
@@ -51,6 +52,12 @@ const canEdit = (note: WorkItemNote) =>
   canEditOwnNote({ ...facts.value, author: isSelf(standing.value, note.author_account_id) })
 
 const notes = computed(() => notesQuery.data.value?.notes ?? [])
+const memory = useMemoryQueries()
+const linked = memory.sources('work_note', () =>
+  notesQuery.isError.value
+    ? []
+    : notes.value.filter((note) => note.source !== 'memory').map((note) => note.note_id),
+)
 const loadError = computed(() =>
   notesQuery.data.value === undefined && notesQuery.error.value
     ? toApiError(notesQuery.error.value)
@@ -152,7 +159,18 @@ async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Pr
         :save="actions.saveNote"
         :remove="actions.deleteNote"
         :refetch="refetch"
-      />
+      >
+        <template #memory>
+          <MemoryNoteAction
+            v-if="note.source !== 'memory' && linked.isSuccess.value"
+            :id="note.note_id"
+            kind="work_note"
+            :label="item.title"
+            :unit="item.department_id"
+            :linked="linked.data.value?.[note.note_id]"
+          />
+        </template>
+      </NoteItem>
     </ol>
     <ConflictDialog
       v-model:open="actions.conflict.open.value"

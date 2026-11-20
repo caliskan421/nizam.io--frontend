@@ -19,6 +19,7 @@ const actor = vi.hoisted(() => ({
 }))
 vi.mock('@/shared/scope/standing', () => ({
   useStanding: () => ({
+    status: computed(() => 'ready'),
     standing: computed(() => ({
       accountId: 'a',
       companyAdmin: actor.admin,
@@ -60,6 +61,11 @@ const meeting = {
 function setup(admin: boolean, role: string) {
   actor.admin = admin
   actor.role = role
+  server.use(
+    http.get('http://localhost/v1/memory/experiences/by-source', () =>
+      HttpResponse.json({ items: {} }),
+    ),
+  )
   const pinia = createPinia()
   setActivePinia(pinia)
   const scope = useScopeStore()

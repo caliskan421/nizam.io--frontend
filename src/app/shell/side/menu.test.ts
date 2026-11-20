@@ -12,9 +12,9 @@ const coordinator = { ready: true, companyAdmin: false, role: 'coordinator' } as
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F17 (rapor rotaları menüsüz; Toplantılar, Arşiv ve Mesajlar menüde canlı)', () => {
+describe('etkin faz F18 (rapor rotaları menüsüz; Toplantılar, Arşiv ve Mesajlar menüde canlı)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
-    expect(CURRENT_PHASE).toBe('F17')
+    expect(CURRENT_PHASE).toBe('F18')
     const groups = sideMenuGroups(menuEntries(), admin)
     expect(groups.map((g) => g.group)).toEqual(['takip', 'icerik', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
@@ -24,6 +24,7 @@ describe('etkin faz F17 (rapor rotaları menüsüz; Toplantılar, Arşiv ve Mesa
       ['calendar', 'canli'],
     ])
     expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
+      ['memory', 'canli'],
       ['meetings', 'canli'],
       ['archive', 'canli'],
       ['messages', 'canli'],

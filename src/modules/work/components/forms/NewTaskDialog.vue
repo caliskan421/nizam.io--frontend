@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import './forms.css'
 
-import { computed, inject } from 'vue'
+import { MemorySuggestions } from '@/modules/memory/public'
+import { computed, inject, ref } from 'vue'
 
 import { UiOutcomeNotice } from '@/shared/ui/confirm'
 import { UiButton, UiCheck, UiField, UiHint, UiInput, UiModal, UiSelect } from '@/shared/ui'
@@ -24,11 +25,13 @@ const emit = defineEmits<NewTaskDialogEmits>()
 /** URL girişinin doğrulanmış ön değerleri (Görevler sayfası sağlar; yoksa `null`). */
 const preset = inject(NEW_TASK_PRESET, null)
 
+const memoryIds = ref<string[]>([])
 const model = useNewTaskForm({
   open: () => props.open,
   departmentId: () => props.departmentId,
   presetDepartment: () => preset?.value?.departmentId ?? null,
   assignee: () => preset?.value?.assignee ?? null,
+  memoryIds: () => memoryIds.value,
   created: (item) => emit('created', item),
   close: () => emit('update:open', false),
 })
@@ -77,6 +80,7 @@ function setOpen(value: boolean): void {
       <UiField :label="formsText('workForms.create.field.title')" :error="errors.title">
         <UiInput v-model="title" name="title" />
       </UiField>
+      <MemorySuggestions v-if="open" v-model="memoryIds" :title="title" :department="department" />
       <UiField :label="formsText('workForms.create.field.department')" :error="errors.departmentId">
         <UiSelect
           v-model="department"

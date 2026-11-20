@@ -71,6 +71,10 @@ export const queryKeys = {
     pushKey: () => ['notifications', 'push-key'] as const,
   },
   chatsUnread: { overview: () => ['chats', 'unread-overview'] as const },
+  memory: {
+    all: (s: ScopeSnapshot) => scoped(s, ['memory']),
+    read: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['memory', filters]),
+  },
   calendar: {
     all: (s: ScopeSnapshot) => scoped(s, ['calendar']),
     range: (s: ScopeSnapshot, filters: QueryFilters) => scoped(s, ['calendar', 'range', filters]),
