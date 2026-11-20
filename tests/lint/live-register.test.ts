@@ -74,6 +74,12 @@ const F16_AUDIT_EVIDENCE = [
   'src/modules/home/components/RecentActivity.test.ts',
   'src/modules/work/components/detail/DetailTimeline.test.ts',
 ]
+const F17_CALENDAR_BOUND = 'bağlandı (pin v0.33.0-api, F17)'
+const F17_CALENDAR_EVIDENCE = [
+  'docs/yurutme/web-17/README.md',
+  'docs/tasarim/kaynak/Takvim.dc.html',
+  'src/modules/calendar/pages/CalendarPage.test.ts',
+]
 const F15_FULLSCREEN_BOUND = 'bağlandı (pin v0.28.0-api, F15 E-06-50)'
 const F15_FULLSCREEN_EVIDENCE = [
   'docs/yurutme/web-15/referans/Arsiv-Tam-Ekran-Onizleme.html',
@@ -96,6 +102,9 @@ function laterBoundAllowed(
   stubs: Set<string>,
   matrix: string,
 ): boolean {
+  if (status === F17_CALENDAR_BOUND) {
+    return id === 'BE-032' && !stubs.has(id) && F17_CALENDAR_EVIDENCE.every(existsSync)
+  }
   if (status === F16_AUDIT_BOUND) {
     return F16_AUDIT_IDS.has(id) && !stubs.has(id) && F16_AUDIT_EVIDENCE.every(existsSync)
   }
@@ -209,6 +218,18 @@ describe('BE-026 F8 geçmişi ve F15 bağlama', () => {
     expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, stubIds(), '')).toBe(true)
     expect(laterBoundAllowed('BE-024', F15_FULLSCREEN_BOUND, new Set(), '')).toBe(false)
     expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, new Set(['BE-026']), '')).toBe(false)
+  })
+})
+
+describe('F17 takvim bağlama', () => {
+  it('F8 geçmişini korur ve yalnız BE-032 takvim kaydını bağlar', () => {
+    expect(matrixDecisions().has('BE-032')).toBe(false)
+    const row = cells().find((entry) => entry.id === 'BE-032')
+    expect(row?.status).toBe(F17_CALENDAR_BOUND)
+    expect(row?.bag).toMatch(/REPORTING-K25\/K26.*PROGRAM-K51\/K52.*GAP-260/)
+    expect(laterBoundAllowed('BE-032', F17_CALENDAR_BOUND, stubIds(), '')).toBe(true)
+    expect(laterBoundAllowed('BE-033', F17_CALENDAR_BOUND, new Set(), '')).toBe(false)
+    expect(laterBoundAllowed('BE-032', F17_CALENDAR_BOUND, new Set(['BE-032']), '')).toBe(false)
   })
 })
 

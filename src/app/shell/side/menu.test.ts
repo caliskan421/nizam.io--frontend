@@ -12,15 +12,16 @@ const coordinator = { ready: true, companyAdmin: false, role: 'coordinator' } as
 
 vi.mock('@/shared/session/store', () => ({ useSessionStore: () => ({ isAuthenticated: true }) }))
 
-describe('etkin faz F16 (rapor rotaları menüsüz; Toplantılar, Arşiv ve Mesajlar menüde canlı)', () => {
+describe('etkin faz F17 (rapor rotaları menüsüz; Toplantılar, Arşiv ve Mesajlar menüde canlı)', () => {
   it('Görevler canlı; Yönetim (Kullanıcılar, Koordinatörlükler) yalnız yöneticide canlı', () => {
-    expect(CURRENT_PHASE).toBe('F16')
+    expect(CURRENT_PHASE).toBe('F17')
     const groups = sideMenuGroups(menuEntries(), admin)
     expect(groups.map((g) => g.group)).toEqual(['takip', 'icerik', 'yonetim'])
     expect(groups[0]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['home', 'canli'],
       ['tasks', 'canli'],
       ['gantt', 'canli'],
+      ['calendar', 'canli'],
     ])
     expect(groups[1]!.entries.map((e) => [e.key, e.visibility])).toEqual([
       ['meetings', 'canli'],
