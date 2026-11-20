@@ -1,5 +1,5 @@
 /**
- * Zorunlu parola değişimi yazması (P14; 00-ortak `backend.md` §6): `changePassword`
+ * Parola değişimi yazması (P14; 00-ortak `backend.md` §6): `changePassword`
  * (`POST /v1/auth/password`, S1, gövde `ChangePasswordRequest {current_password, new_password}`,
  * yanıt `ChangePasswordResponse {revoked_sessions}`). Uç `force_password_change` kısıtından muaftır
  * ve başarıda hesabın BÜTÜN oturumlarını düşürüp yenileme çerezini temizler.
@@ -43,6 +43,7 @@ export function redactPasswords(outcome: ChangePasswordOutcome): ChangePasswordO
 export function useChangePassword() {
   const mutation = useProtectedMutation<ChangePasswordInput, ChangePasswordResponse, unknown>({
     operation: 'changePassword',
+    scope: () => ({ programId: null, departmentId: null, lens: null }),
     gcTime: 0,
     send: (vars, ctx) =>
       api.POST('/v1/auth/password', {

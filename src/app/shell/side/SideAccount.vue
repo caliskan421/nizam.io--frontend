@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
 import { routeLocation } from '@/app/routes.catalog'
 import { useSessionStore } from '@/shared/session/store'
@@ -13,8 +13,8 @@ import { injectScopeLifecycle } from './scope-key'
 
 /**
  * Oturum kartı (E-00-28, F6 E-00-47) + çıkış (E-00-29). Avatar çevresinde rol halkası ve ikinci
- * satırda rol etiketi canlıdır (menü rolü; yetki değil); profil sayfası (Ü7) F6 dışı olduğundan
- * kart tıklanamaz ("Profilim" yok). Ad/e-posta kırpılır. Çıkış onaysız:
+ * satırda rol etiketi canlıdır (menü rolü; yetki değil). Hesap bilgileri Profilim rotasını açar.
+ * Ad/e-posta kırpılır. Çıkış onaysız:
  * `session.logout()` (bellek + önbellek + kapsam temizliği; başarısızsa "sunucu çıkışı
  * doğrulanamadı" bayrağı — uyarıyı kabuk gösterir, ortak-kurallar §8) → giriş ekranı.
  */
@@ -23,6 +23,9 @@ const lifecycle = injectScopeLifecycle()
 const session = useSessionStore()
 const queryClient = useQueryClient()
 const router = useRouter()
+const profile = router.hasRoute('identity.profile')
+  ? routeLocation('identity.profile', {})
+  : undefined
 const busy = ref(false)
 const standing = computed(() => lifecycle.standing.value)
 const roleLabel = computed(() => sideText(`side.lens.${props.role}`))
@@ -43,12 +46,17 @@ async function signOut(): Promise<void> {
 <template>
   <div v-if="standing" class="side-account">
     <UiAvatar :name="standing.fullName" :class="`side-ring side-ring--${role}`" />
-    <span class="side-account__text">
+    <component
+      :is="profile ? RouterLink : 'span'"
+      class="side-account__text"
+      :to="profile"
+      :aria-label="profile ? 'Profilim' : undefined"
+    >
       <span class="side-account__name rp-trunc">{{ standing.fullName }}</span>
       <span class="side-account__mail rp-trunc" :title="standing.email"
         >{{ roleLabel }} · {{ standing.email }}</span
       >
-    </span>
+    </component>
     <UiIconButton
       icon="logout"
       :label="sideText('side.logout')"

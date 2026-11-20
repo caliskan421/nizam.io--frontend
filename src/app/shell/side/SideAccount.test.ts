@@ -1,4 +1,4 @@
-// Oturum kartı rol halkası ve rol etiketi (E-00-47): canlı gösterim, kart tıklanamaz.
+// Oturum kartı rol halkası ve rol etiketi (E-00-47): canlı gösterim ve profil bağlantısı.
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -16,7 +16,7 @@ const LABELS = { admin: 'Admin', coordinator: 'Koordinatör', member: 'Üye' } a
 
 describe('SideAccount rol halkası', () => {
   it.each(MENU_ROLES)(
-    '%s: halka sınıfı + rol etiketi; kart düğme/bağlantı değil, çıkış tek düğme',
+    '%s: halka sınıfı + rol etiketi; profil bağlantısı ve ayrı çıkış düğmesi',
     async (role) => {
       const ctx = await sideContext()
       const { lifecycle } = createFakeLifecycle()
@@ -24,7 +24,8 @@ describe('SideAccount rol halkası', () => {
       await flushPromises()
       expect(w.get('.rp-av').classes()).toContain(`side-ring--${role}`)
       expect(w.get('.side-account__mail').text()).toBe(`${LABELS[role]} · kisi@example.test`)
-      expect(w.find('a').exists()).toBe(false)
+      expect(w.get('a').attributes('href')).toBe('/profil')
+      expect(w.get('a').attributes('aria-label')).toBe('Profilim')
       expect(w.findAll('button')).toHaveLength(1)
       expect(w.get('button').attributes('aria-label')).toBe('Çıkış yap')
     },

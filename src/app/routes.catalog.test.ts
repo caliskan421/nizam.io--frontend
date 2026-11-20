@@ -40,7 +40,10 @@ import {
 } from './routes.catalog'
 
 // ortak-kurallar §5 faz görünürlük matrisi (menü satırları + alt rotalar) — beklenen tablo.
-const MATRIX: Record<string, Record<Exclude<Phase, 'F13' | 'F16' | 'F17' | 'F18'>, string>> = {
+const MATRIX: Record<
+  string,
+  Record<Exclude<Phase, 'F13' | 'F16' | 'F17' | 'F18' | 'F20'>, string>
+> = {
   home: {
     F0: 'canli',
     F1: 'canli',
@@ -232,8 +235,8 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F18: Tablolar ve önceki rotalar canlı', () => {
-    expect(CURRENT_PHASE).toBe('F18')
+  it('etkin faz F20: Tablolar ve önceki rotalar canlı', () => {
+    expect(CURRENT_PHASE).toBe('F20')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
@@ -241,6 +244,7 @@ describe('rota kataloğu — yapı', () => {
       'auditHistory',
       'calendar',
       'memory',
+      'identity.profile',
       'identity.session',
       'work.tasks',
       'work.timeline',
@@ -276,6 +280,7 @@ describe('rota kataloğu — yapı', () => {
         'auditHistory',
         'calendar',
         'memory',
+        'identity.profile',
         'tables.list',
         'tables.design',
         'tables.detail',
@@ -283,28 +288,28 @@ describe('rota kataloğu — yapı', () => {
     )
     for (const name of ROUTE_NAMES) {
       for (const phase of PHASES) {
+        const expected =
+          name === 'identity.profile'
+            ? phase === 'F20'
+            : name === 'memory'
+              ? ['F18', 'F20'].includes(phase)
+              : name === 'calendar'
+                ? ['F17', 'F18', 'F20'].includes(phase)
+                : name === 'auditHistory'
+                  ? ['F16', 'F17', 'F18', 'F20'].includes(phase)
+                  : name.startsWith('tables.')
+                    ? ['F13', 'F16', 'F17', 'F18', 'F20'].includes(phase)
+                    : MATRIX[name]?.[
+                        phase === 'F13' ||
+                        phase === 'F16' ||
+                        phase === 'F17' ||
+                        phase === 'F18' ||
+                        phase === 'F20'
+                          ? 'F7'
+                          : phase
+                      ]
         expect(visibilityOf(name, phase), `${name} @ ${phase}`).toBe(
-          name === 'memory'
-            ? phase === 'F18'
-              ? 'canli'
-              : 'gizli'
-            : name === 'calendar'
-              ? ['F17', 'F18'].includes(phase)
-                ? 'canli'
-                : 'gizli'
-              : name === 'auditHistory'
-                ? ['F16', 'F17', 'F18'].includes(phase)
-                  ? 'canli'
-                  : 'gizli'
-                : name.startsWith('tables.')
-                  ? ['F13', 'F16', 'F17', 'F18'].includes(phase)
-                    ? 'canli'
-                    : 'gizli'
-                  : MATRIX[name]?.[
-                      phase === 'F13' || phase === 'F16' || phase === 'F17' || phase === 'F18'
-                        ? 'F7'
-                        : phase
-                    ],
+          typeof expected === 'boolean' ? (expected ? 'canli' : 'gizli') : expected,
         )
       }
     }
@@ -370,7 +375,7 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F18): Arşiv, Mesajlar ve Tablolar canlı; Silinen kayıtlar menüde yok (P36)', () => {
+  it('etkin faz (F20): Arşiv, Mesajlar ve Tablolar canlı; Silinen kayıtlar menüde yok (P36)', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],

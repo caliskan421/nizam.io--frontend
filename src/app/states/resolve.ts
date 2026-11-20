@@ -96,6 +96,8 @@ function scopeStatusContent(status: ScopeStatus): ShellContent {
 }
 
 export function resolveShellContent(input: ShellContentInput): ShellContent {
+  // Profile actions are account-wide and remain available while program scope is absent.
+  if (input.routeName === 'identity.profile') return { kind: 'content' }
   if (input.routeScope === 'S0') return { kind: 'content' }
   if (input.emptyReason && !isExemptEmpty(input)) {
     return { kind: 'open-state', name: EMPTY_REASON_STATES[input.emptyReason] }

@@ -50,6 +50,12 @@ export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...calendarRoutes,
   ...memoryRoutes,
   ...identityRoutes,
+  {
+    path: '/profil',
+    name: 'identity.profile',
+    component: () => import('./profile/ProfilePage.vue'),
+    meta: { scope: 'S1' },
+  },
   ...workRoutes,
   ...organizationRoutes,
   ...programRoutes,
