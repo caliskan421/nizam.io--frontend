@@ -67,6 +67,25 @@
     padding-block: var(--space-2);
     border-block-end: var(--ui-hairline) solid var(--border-subtle);
   }
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .profile-stats > div {
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+  }
+  .profile-stats dt {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .profile-stats dd {
+    margin: 0;
+    font: var(--text-heading-2);
+  }
   .profile-card a {
     color: var(--accent-text);
   }

@@ -11,6 +11,8 @@ import { toApiError } from '@/shared/errors/api-error'
 import { useScopeStore } from '@/shared/scope/store'
 import { UiAvatar, UiCard, UiErrorState } from '@/shared/ui'
 
+import ProfileAdminSummary from './ProfileAdminSummary.vue'
+import ProfileMeetings from './ProfileMeetings.vue'
 import ProfileTaskQueue from './ProfileTaskQueue.vue'
 import PushPreferences from './PushPreferences.vue'
 
@@ -24,7 +26,7 @@ const roles = { admin: 'Yönetici', coordinator: 'Koordinatör', member: 'Üye' 
 const memberships = computed(() =>
   (standing.value?.rows ?? []).filter((row) => row.programId === scope.programId),
 )
-const coordinated = computed(() => memberships.value.filter((row) => row.role === 'coordinator'))
+const coordinated = lifecycle.departments
 const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
 </script>
 
@@ -85,6 +87,7 @@ const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
         >
           <template v-if="scope.lens === 'admin' && standing.companyAdmin">
             <h2 id="profile-role-title">Yönetim</h2>
+            <ProfileAdminSummary />
             <ul class="profile-list">
               <li>
                 <RouterLink :to="routeLocation('organization.coordinatorships', {})"
@@ -128,6 +131,9 @@ const profileTitle = computed(() => (scope.lens ? roles[scope.lens] : 'Hesap'))
             >
           </template>
         </UiCard>
+        <ProfileMeetings
+          v-if="program && scope.lens === 'member' && lifecycle.status.value === 'ready'"
+        />
         <PushPreferences />
       </div>
     </div>

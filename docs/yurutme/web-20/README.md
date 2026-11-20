@@ -1,6 +1,6 @@
 # WEB-20 Profil ve tercihler
 
-[Üye profili](../../tasarim/kaynak/Uye-Profil.dc.html) hesap, parola, üyelik ve bildirim düzeninin kaynağıdır. Yerel Prototip içindeki yönetici, koordinatör ve üye görünümüne göre seçili programdaki gerçek üyelikler gösterilir. Yönetici kendi işlem geçmişini görür ve koordinatörlükler ekranına gidebilir. Koordinatör, seçili ve yetkili birimindeki görev onay kuyruğuna gider. Üye kendi açık görevlerini görür. Kuyruklar yüklenen görevlerden ilk beşini gösterir ve veri kesilmişse bunu belirtir. Görev kararları mevcut görev ekranında verilir.
+[Üye profili](../../tasarim/kaynak/Uye-Profil.dc.html) hesap, parola, üyelik ve bildirim düzeninin kaynağıdır. Yerel Prototip içindeki yönetici, koordinatör ve üye görünümüne göre seçili programdaki gerçek üyelikler gösterilir. Yönetici programın pano sayaçlarını, koordinatörlük özetini ve kendi işlem geçmişini görür. Koordinatör, seçili ve yetkili birimindeki görev onay kuyruğuna gider. Üye kendi açık görevlerini ve erişebildiği yaklaşan toplantıları görür. Görev sayaçları görünür görevler için sunucunun döndürdüğü toplamlardır. Kuyruklar yüklenen görevlerden ilk beşini gösterir ve veri kesilmişse bunu belirtir. Görev kararları mevcut görev ekranında verilir.
 
 | Yüzey | Yayımlı v0.33.0-api |
 | --- | --- |
@@ -11,3 +11,5 @@
 | Vekâlet, müsaitlik, güvenlik ve sessiz saat | Kişisel vekâlet, müsaitlik/durum, oturum ve cihaz listesi, MFA ve saat aralığı tercihi için yayımlı kişisel işlemler yoktur. Kişi etkinliği ve yönetim işlem geçmişi var olan denetim görünürlüğüne bağlıdır. |
 
 Rota `/profil` hesap kapsamındadır ve kenar menüsündeki hesap kartından erişilir. Rol içeriği yalnız seçili program kapsamında yüklenir. Kişisel parola ve tercih istekleri program başlığı kullanmaz.
+
+Olay × kanal matrisi, cihaz envanteri ve sessiz saatler mevcut [BE-151–BE-153 kayıtlarında](../../backend-eksikleri/kayit.md) açık kalır. Yönetici tarih talebi kararları, koordinatör ekip iş yükü ve profil içi görev onayı yerine ilgili mevcut ekranlar kullanılır.

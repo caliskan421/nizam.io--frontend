@@ -2,16 +2,16 @@
 import { computed } from 'vue'
 
 import { routeLocation } from '@/app/routes.catalog'
-import { useWorkItemList } from '@/modules/work/public'
+import { useWorkItemCounts, useWorkItemList } from '@/modules/work/public'
 import { toApiError } from '@/shared/errors/api-error'
 import { UiErrorState } from '@/shared/ui'
 
 const props = defineProps<{ department?: string; account?: string }>()
-const { query, items, complete } = useWorkItemList(
-  () => props.department ?? null,
-  () => (props.account ? [props.account] : undefined),
-  () => !!(props.department || props.account),
-)
+const department = () => props.department ?? null
+const assignees = () => (props.account ? [props.account] : undefined)
+const enabled = () => !!(props.department || props.account)
+const { query, items, complete } = useWorkItemList(department, assignees, enabled)
+const counts = useWorkItemCounts(department, assignees, enabled)
 const queue = computed(() =>
   items.value
     .filter((item) =>
@@ -23,6 +23,24 @@ const queue = computed(() =>
 </script>
 
 <template>
+  <dl v-if="counts.data.value && !counts.isError.value" class="profile-stats">
+    <div>
+      <dt>Açık görev</dt>
+      <dd>{{ counts.data.value.total - counts.data.value.by_status.tamamlandi }}</dd>
+    </div>
+    <div>
+      <dt>Geciken</dt>
+      <dd>{{ counts.data.value.overdue }}</dd>
+    </div>
+    <div v-if="props.department">
+      <dt>Onay bekleyen</dt>
+      <dd>{{ counts.data.value.by_status.onaya_sunuldu }}</dd>
+    </div>
+    <div v-else>
+      <dt>Tamamlanan</dt>
+      <dd>{{ counts.data.value.by_status.tamamlandi }}</dd>
+    </div>
+  </dl>
   <UiErrorState
     v-if="query.isError.value"
     :error="toApiError(query.error.value)"
