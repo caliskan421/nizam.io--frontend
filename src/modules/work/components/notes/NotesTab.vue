@@ -54,7 +54,9 @@ const canEdit = (note: WorkItemNote) =>
 const notes = computed(() => notesQuery.data.value?.notes ?? [])
 const memory = useMemoryQueries()
 const linked = memory.sources('work_note', () =>
-  notesQuery.isError.value ? [] : notes.value.map((note) => note.note_id),
+  notesQuery.isError.value
+    ? []
+    : notes.value.filter((note) => note.source !== 'memory').map((note) => note.note_id),
 )
 const loadError = computed(() =>
   notesQuery.data.value === undefined && notesQuery.error.value
@@ -160,7 +162,7 @@ async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Pr
       >
         <template #memory>
           <MemoryNoteAction
-            v-if="linked.isSuccess.value"
+            v-if="note.source !== 'memory' && linked.isSuccess.value"
             :id="note.note_id"
             kind="work_note"
             :label="item.title"

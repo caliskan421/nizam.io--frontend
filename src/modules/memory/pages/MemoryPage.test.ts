@@ -169,28 +169,37 @@ it('şirket deneyimini ayrı, yalnız seçili programın görünür notlarını 
 it('sürüm çakışmasında kullanıcı önerisini korur ve ancak onay sonrası yeni sürümle yazar', async () => {
   let revision = 1
   const writes: unknown[] = []
+  const current = () => ({
+    ...record,
+    revision,
+    can: { ...record.can, edit_title: true, edit_area: true },
+    ...(revision === 2 ? { title: 'Güncel başlık', impact: 'Güncel etki', area: 'supply' } : {}),
+  })
   server.use(
     http.get(root + '/memory/experiences', () =>
       HttpResponse.json({ items: [], facets, next_cursor: null }),
     ),
-    http.get(root + '/memory/experiences/e1', () => HttpResponse.json({ ...record, revision })),
+    http.get(root + '/memory/experiences/e1', () => HttpResponse.json(current())),
     http.patch(root + '/memory/experiences/e1', async ({ request }) => {
       writes.push(await request.json())
       if (revision === 1) {
         revision = 2
         return HttpResponse.json({ code: 'memory.revision_conflict' }, { status: 409 })
       }
-      return HttpResponse.json({ ...record, revision })
+      return HttpResponse.json(current())
     }),
   )
   const view = await setup('/kurumsal-hafiza?deneyim=e1')
   await vi.waitFor(() => expect(view.text()).toContain('Deneyimi düzenle'))
   await button(view, 'Deneyimi düzenle').trigger('click')
-  await view.get('textarea').setValue('Kullanıcının önerisi')
+  await view.get('textarea[name=suggestion]').setValue('Kullanıcının önerisi')
   await view.get('aside form').trigger('submit')
   await vi.waitFor(() => expect(view.text()).toContain('Güncel sürümü kullan'))
-  expect(view.get<HTMLTextAreaElement>('textarea').element.value).toBe('Kullanıcının önerisi')
+  expect(view.get<HTMLTextAreaElement>('textarea[name=suggestion]').element.value).toBe(
+    'Kullanıcının önerisi',
+  )
   expect(writes).toHaveLength(1)
+  expect(view.text()).toContain('Güncel etki')
   await button(view, 'Güncel sürümü kullan').trigger('click')
   await view.get('aside form').trigger('submit')
   await vi.waitFor(() =>

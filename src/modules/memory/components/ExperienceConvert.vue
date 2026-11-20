@@ -24,6 +24,10 @@ const targets = computed(() =>
       write.scope.conversionDepartments.value.includes(dep.department_id),
   ),
 )
+const uncertain = computed(() => {
+  const error = write.error.value
+  return !!error && (!error.status || error.status >= 500)
+})
 const eligible = computed(
   () => props.item.can.convert && !!props.item.suggestion && !props.item.converted_work_item,
 )
@@ -54,11 +58,14 @@ function save() {
 <template>
   <UiModal v-model:open="open" title="Öneriyi göreve dönüştür" :dismissible="!write.pending.value">
     <UiErrorState
-      v-if="write.error.value"
+      v-if="write.error.value && !uncertain"
       :error="write.error.value"
-      title="Dönüştürme tamamlanamadı"
+      title="Dönüştürme reddedildi"
     />
-    <form v-if="eligible" class="memory-panel memory-plain" @submit.prevent="save">
+    <p v-if="uncertain" role="status">
+      Dönüştürme sonucu doğrulanamadı. Güncel deneyimi ve görevleri kontrol edin.
+    </p>
+    <form v-if="eligible && !uncertain" class="memory-panel memory-plain" @submit.prevent="save">
       <label
         >Görev başlığı <input v-model="title" class="t-input" :placeholder="item.suggestion ?? ''"
       /></label>
@@ -80,6 +87,6 @@ function save() {
         >Görev oluştur</UiButton
       >
     </form>
-    <p v-else>Bu deneyim şu anda dönüştürülemiyor.</p>
+    <p v-else-if="!write.error.value">Bu deneyim şu anda dönüştürülemiyor.</p>
   </UiModal>
 </template>

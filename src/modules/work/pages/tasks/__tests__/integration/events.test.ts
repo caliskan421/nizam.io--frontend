@@ -101,7 +101,16 @@ describe('W48 · olay zinciri (gerçek bileşenler)', () => {
         expect(query.get('department_id')).toBe('d1')
         expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
         return json({
-          items: [{ id: 'e1', title: 'Yakıt deneyimi', suggestion: 'Yedek yakıt alın.' }],
+          items: [
+            {
+              id: 'e1',
+              title: 'Yakıt deneyimi',
+              suggestion: 'Yedek yakıt alın.',
+              event: { label: 'Sezon' },
+              department: { name: 'Mekanik' },
+              endorsement_count: 2,
+            },
+          ],
         })
       }),
       http.post(ORIGIN + '/v1/memory/task-notes', () => json({ added: 1, replayed: 0 }, 201)),

@@ -12,3 +12,5 @@
 | Yeni görev | Başlık gecikmeli olarak kural tabanlı eşleşme ucuna gider. Kullanıcı en çok üç deneyimi açıkça seçebilir. Görev oluşturulduktan sonra seçilenler, ayrı anahtarlı hafıza notu ucu ile yazılır. Ardıl sonuç doğrulanamazsa görevin oluşturulduğu ayrıca bildirilir. |
 
 Kapsam ve oturum değişiklikleri okuma anahtarlarını, sorgu sinyallerini ve açık düzenlemeleri ayırır. Kaynak metnini şirket deneyimine kopyalamak kullanıcının açık form girdisine bağlıdır. Asistan entegrasyonu kendi ekran fazına aittir.
+
+Dönüştürme formu başlık, hedef birim ve isteğe bağlı tarih aralığını alır. Öncelik ve atananlar için sunucu varsayılanları kullanılır. Dönüşen görev yanıtı koordinatörlük kimliğini taşımadığı için mevcut görev bağlantısı görev ekranının kapsam çözümünü kullanır. Normal görev panelinde `source=memory` işaretli notlar tekrar deneyime ekleme düğmesi göstermez. Program genelindeki not listesi bu işareti sunmaz.

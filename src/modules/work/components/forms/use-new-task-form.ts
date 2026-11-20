@@ -20,6 +20,7 @@ import { useForm } from 'vee-validate'
 import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 
 import { addExperienceTaskNotes } from '@/modules/memory/public'
+import { ApiError } from '@/shared/errors/api-error'
 import { authSession } from '@/shared/http'
 import { queryKeys } from '@/shared/http/query-keys'
 import {
@@ -338,11 +339,17 @@ function useNewTaskMemory() {
         })
       }
       return null
-    } catch {
-      return partial
+    } catch (failure) {
+      return taskMemoryRejected(failure) ? 'Görev oluşturuldu. Hafıza notları eklenemedi.' : partial
     } finally {
       pending.value = false
     }
   }
   return { attach, pending }
+}
+
+function taskMemoryRejected(failure: unknown): boolean {
+  return (
+    failure instanceof ApiError && [400, 401, 403, 404, 409, 422, 429].includes(failure.status ?? 0)
+  )
 }

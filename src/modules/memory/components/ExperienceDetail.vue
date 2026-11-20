@@ -75,6 +75,7 @@ function deleteRecord(record: ExperienceDetail) {
   return write.submit(
     (program) => deleteExperience(program, record.id),
     () => emit('close'),
+    { beforeRefresh: true },
   )
 }
 </script>
@@ -103,7 +104,7 @@ function deleteRecord(record: ExperienceDetail) {
       </p>
       <p v-if="notice" role="status">{{ notice }}</p>
       <UiErrorState
-        v-if="write.error.value"
+        v-if="write.error.value && !deleting"
         :error="write.error.value"
         title="İşlem tamamlanamadı"
       />
@@ -122,7 +123,7 @@ function deleteRecord(record: ExperienceDetail) {
             </select></label
           >
           <label v-if="item.can.edit_suggestion"
-            >Öneri <textarea v-model="edit.suggestion" class="t-input" />
+            >Öneri <textarea v-model="edit.suggestion" name="suggestion" class="t-input" />
           </label>
         </fieldset>
         <p v-if="incompatible" role="status">

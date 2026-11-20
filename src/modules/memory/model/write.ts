@@ -17,7 +17,11 @@ export function useMemoryWrite() {
   onScopeDispose(() => {
     active = false
   })
-  async function submit<T>(write: (program: string) => Promise<T>, saved?: (data: T) => void) {
+  async function submit<T>(
+    write: (program: string) => Promise<T>,
+    saved?: (data: T) => void,
+    options: { beforeRefresh?: boolean } = {},
+  ) {
     const program = scope.program.value
     if (!program || pending.value) return
     const generation = authSession.generation
@@ -29,13 +33,17 @@ export function useMemoryWrite() {
       scope.program.value === program &&
       sameScope(snapshot, scope.store.snapshot) &&
       scope.audience.value === audience
+    const notify = (data: T) => {
+      if (current()) saved?.(data)
+    }
     const refresh = () => client.invalidateQueries({ queryKey: queryKeys.memory.all(snapshot) })
     pending.value = true
     error.value = null
     try {
       const data = await write(program)
+      if (options.beforeRefresh) notify(data)
       if (authSession.generation === generation) await refresh()
-      if (current()) saved?.(data)
+      if (!options.beforeRefresh) notify(data)
     } catch (failure) {
       if (!current()) return
       error.value =

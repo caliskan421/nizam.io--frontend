@@ -43,7 +43,15 @@ function toggle(id: string) {
     <ul>
       <li v-for="item in matches" :key="item.id">
         <strong>{{ item.title }}</strong>
-        <p>{{ item.suggestion || item.impact }}</p>
+        <p>
+          {{
+            item.suggestion || 'Henüz öneri yok' + (item.impact ? ' · Etkisi: ' + item.impact : '')
+          }}
+        </p>
+        <p class="wf-memory-suggestions__meta">
+          {{ item.event.label }} · {{ item.department.name }} · {{ item.endorsement_count }} kişi de
+          yaşadı
+        </p>
         <UiButton size="sm" :aria-pressed="selected.includes(item.id)" @click="toggle(item.id)">
           {{ selected.includes(item.id) ? 'Ekleme seçildi' : 'Göreve not olarak ekle' }}
         </UiButton>
@@ -56,6 +64,10 @@ function toggle(id: string) {
 .wf-memory-suggestions {
   padding: var(--space-4);
   overflow-wrap: anywhere;
+}
+.wf-memory-suggestions__meta {
+  color: var(--ink-muted);
+  font: var(--text-caption);
 }
 .wf-memory-suggestions ul {
   margin-block-end: 0;
