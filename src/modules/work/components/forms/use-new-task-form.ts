@@ -26,6 +26,7 @@ import {
   generateIdempotencyKey,
   ownerLife,
   runWithFollowUps,
+  sameScope,
   type ActionContext,
   type MutationOutcome,
   type MutationSuccess,
@@ -311,14 +312,16 @@ function useNewTaskMemory() {
     if (!ids.length) return null
     const task = primary.data
     const generation = authSession.generation
+    const snapshot = store.snapshot
     if (
       !owner.alive() ||
       store.programId !== task.program_id ||
-      primary.context?.generation !== generation
+      primary.context?.generation !== generation ||
+      !primary.context.scope ||
+      !sameScope(primary.context.scope, snapshot)
     ) {
       return partial
     }
-    const snapshot = store.snapshot
     pending.value = true
     try {
       await addExperienceTaskNotes(

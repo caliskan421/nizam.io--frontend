@@ -4,7 +4,15 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 
 import { isValidIdempotencyKey } from '@/shared/http/mutation'
 
-import { sent, server, subtask, workItem } from '../../../../model/__tests__/harness'
+import {
+  http,
+  json,
+  ORIGIN,
+  sent,
+  server,
+  subtask,
+  workItem,
+} from '../../../../model/__tests__/harness'
 import type { WorkItemDetail } from '../../../../model/types'
 import { stubBrowserClone } from '../../../../components/files/__tests__/support'
 import type { StandingFixture } from '../page-harness'
@@ -82,6 +90,41 @@ describe('W48 · olay zinciri (gerçek bileşenler)', () => {
     expect(body().find('[role="dialog"]').exists()).toBe(false)
     expect(panel().text()).toContain('Yeni rapor')
     expect(body().find('[data-work-item="w-new-3"]').classes()).toContain('rp-sel')
+  })
+
+  it('ilgili deneyimi ancak kullanıcı seçip görev oluşturunca ayrı anahtarla not olarak ekler', async () => {
+    server.use(...backendHandlers(COORD, fakeWork(rows(), MEMBERS)))
+    server.use(
+      http.get(ORIGIN + '/v1/memory/related', ({ request }) => {
+        const query = new URL(request.url).searchParams
+        expect(query.get('text')).toBe('Jeneratör planı')
+        expect(query.get('department_id')).toBe('d1')
+        expect(request.headers.get('X-Nizamio-Program')).toBe('p1')
+        return json({
+          items: [{ id: 'e1', title: 'Yakıt deneyimi', suggestion: 'Yedek yakıt alın.' }],
+        })
+      }),
+      http.post(ORIGIN + '/v1/memory/task-notes', () => json({ added: 1, replayed: 0 }, 201)),
+    )
+    const ctx = await mountApp(COORD_SCOPE)
+    button('Yeni görev').click()
+    await settle(ctx.queryClient)
+    setValue('[name="title"]', 'Jeneratör planı')
+    setValue('[name="startOn"]', '2026-11-10')
+    setValue('[name="endOn"]', '2026-11-12')
+    await vi.waitFor(() => expect(body().text()).toContain('Yakıt deneyimi'))
+    expect(sent('POST', '/v1/memory/task-notes')).toHaveLength(0)
+    button('Göreve not olarak ekle').click()
+    body().find<HTMLButtonElement>('[data-testid="wf-submit"]').element.click()
+    await vi.waitFor(() => expect(ctx.router.currentRoute.value.query.gorev).toBe('w-new-3'))
+    const [note] = sent('POST', '/v1/memory/task-notes')
+    const [task] = sent('POST', '/v1/work-items')
+    expect(note?.body).toEqual({ work_item_id: 'w-new-3', experience_ids: ['e1'] })
+    expect(note?.headers.get('X-Nizamio-Program')).toBe('p1')
+    expect(note?.headers.get('X-Nizamio-Department')).toBeNull()
+    const key = note?.headers.get('Idempotency-Key') ?? ''
+    expect(isValidIdempotencyKey(key)).toBe(true)
+    expect(key).not.toBe(task?.headers.get('Idempotency-Key'))
   })
 
   it('StatusMenu requestEvidence → yükleme penceresi → uploaded: dosya sayacı yenilenir, durum değişmez', async () => {

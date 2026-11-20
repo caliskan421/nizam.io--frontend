@@ -3,6 +3,7 @@ import { onScopeDispose, shallowRef } from 'vue'
 
 import { ApiError } from '@/shared/errors/api-error'
 import { authSession } from '@/shared/http'
+import { sameScope } from '@/shared/http/mutation'
 import { queryKeys } from '@/shared/http/query-keys'
 
 import { useMemoryScope } from './capabilities'
@@ -26,6 +27,7 @@ export function useMemoryWrite() {
       active &&
       authSession.generation === generation &&
       scope.program.value === program &&
+      sameScope(snapshot, scope.store.snapshot) &&
       scope.audience.value === audience
     const refresh = () => client.invalidateQueries({ queryKey: queryKeys.memory.all(snapshot) })
     pending.value = true

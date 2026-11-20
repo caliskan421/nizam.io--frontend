@@ -126,6 +126,8 @@ function readHandlers(db: FakeWork, standing: StandingFixture) {
     http.get(`${ORIGIN}/v1/work-items/:id/notes`, ({ params }) =>
       guarded(params.id, () => json({ notes: [], total: 0 })),
     ),
+    http.get(`${ORIGIN}/v1/memory/related`, () => json({ items: [] })),
+    http.get(`${ORIGIN}/v1/memory/experiences/by-source`, () => json({ items: {} })),
     http.get(`${ORIGIN}/v1/audit/entries`, () => json({ entries: [], next_cursor: null })),
     http.get(`${ORIGIN}/v1/departments/:id/members`, () => json({ members: db.members } as never)),
   ]

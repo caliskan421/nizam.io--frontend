@@ -18,6 +18,7 @@ const item = computed(() => (data.isError.value ? undefined : data.data.value))
 const write = useMemoryWrite()
 const edit = ref<{
   revision: number
+  origin: ExperienceDetail
   title: string
   impact: string
   suggestion: string
@@ -35,6 +36,7 @@ const readError = computed(() => data.error.value)
 function startEdit(record: ExperienceDetail) {
   edit.value = {
     revision: record.revision,
+    origin: record,
     title: record.title,
     impact: record.impact,
     suggestion: record.suggestion ?? '',
@@ -47,12 +49,14 @@ function save(record: ExperienceDetail) {
   const draft = edit.value
   if (!draft || incompatible.value) return
   const changes: ExperienceUpdate = { expected_revision: draft.revision }
-  if (record.can.edit_title && draft.title.trim()) {
+  if (record.can.edit_title && draft.title.trim() !== draft.origin.title)
     changes.title = draft.title.trim()
+  if (record.can.edit_title && draft.impact.trim() !== draft.origin.impact)
     changes.impact = draft.impact.trim()
-  }
-  if (record.can.edit_area) changes.area = draft.area
-  if (record.can.edit_suggestion) changes.suggestion = draft.suggestion.trim() || null
+  if (record.can.edit_area && draft.area !== draft.origin.area) changes.area = draft.area
+  const suggestion = draft.suggestion.trim() || null
+  if (record.can.edit_suggestion && suggestion !== draft.origin.suggestion)
+    changes.suggestion = suggestion
   return write.submit(
     (program) => editExperience(program, record.id, changes),
     () => {

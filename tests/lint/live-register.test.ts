@@ -74,6 +74,13 @@ const F16_AUDIT_EVIDENCE = [
   'src/modules/home/components/RecentActivity.test.ts',
   'src/modules/work/components/detail/DetailTimeline.test.ts',
 ]
+const F18_MEMORY_BOUND = 'bağlandı (pin v0.33.0-api, F18)'
+const F18_MEMORY_EVIDENCE = [
+  'docs/yurutme/web-18/README.md',
+  'docs/tasarim/kaynak/Kurumsal-Hafiza.dc.html',
+  'src/modules/memory/pages/MemoryPage.test.ts',
+  'src/modules/work/pages/tasks/__tests__/integration/events.test.ts',
+]
 const F17_CALENDAR_BOUND = 'bağlandı (pin v0.33.0-api, F17)'
 const F17_CALENDAR_EVIDENCE = [
   'docs/yurutme/web-17/README.md',
@@ -102,6 +109,9 @@ function laterBoundAllowed(
   stubs: Set<string>,
   matrix: string,
 ): boolean {
+  if (status === F18_MEMORY_BOUND) {
+    return id === 'BE-033' && !stubs.has(id) && F18_MEMORY_EVIDENCE.every(existsSync)
+  }
   if (status === F17_CALENDAR_BOUND) {
     return id === 'BE-032' && !stubs.has(id) && F17_CALENDAR_EVIDENCE.every(existsSync)
   }
@@ -218,6 +228,17 @@ describe('BE-026 F8 geçmişi ve F15 bağlama', () => {
     expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, stubIds(), '')).toBe(true)
     expect(laterBoundAllowed('BE-024', F15_FULLSCREEN_BOUND, new Set(), '')).toBe(false)
     expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, new Set(['BE-026']), '')).toBe(false)
+  })
+})
+
+describe('F18 kurumsal hafıza bağlama', () => {
+  it('yalnız BE-033 hafıza kaydını bağlar ve kaynak testlerini arar', () => {
+    expect(matrixDecisions().has('BE-033')).toBe(false)
+    const row = cells().find((entry) => entry.id === 'BE-033')
+    expect(row?.status).toBe(F18_MEMORY_BOUND)
+    expect(row?.bag).toMatch(/MEMORY-K01.*WORK-K105\/K106.*COLLABORATION-K92/)
+    expect(laterBoundAllowed('BE-033', F18_MEMORY_BOUND, stubIds(), '')).toBe(true)
+    expect(laterBoundAllowed('BE-034', F18_MEMORY_BOUND, new Set(), '')).toBe(false)
   })
 })
 
