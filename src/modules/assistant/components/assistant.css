@@ -1,0 +1,158 @@
+@layer components {
+  .t-modal-backdrop:has(> .t-modal > .t-modal__body > .assistant-panel) {
+    justify-content: flex-end;
+    padding: 0;
+    backdrop-filter: none;
+    background: var(--scrim-soft);
+  }
+  .t-modal:has(.assistant-panel) {
+    --assistant-width: calc(var(--space-16) * 6.5);
+    width: min(100%, var(--assistant-width));
+    max-width: var(--assistant-width);
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: var(--space-4);
+    border-radius: 0;
+    gap: var(--space-3);
+    background: var(--bg-surface);
+  }
+  .t-modal:has(.assistant-panel) > .t-modal__body {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .assistant-panel {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    gap: var(--space-3);
+  }
+  .assistant-toolbar,
+  .assistant-prompts,
+  .assistant-sources {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .assistant-scroll,
+  .assistant-history {
+    overflow: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+    padding: var(--space-1);
+  }
+  .assistant-intro,
+  .assistant-view,
+  .assistant-compose {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .assistant-intro :is(h3, p),
+  .assistant-panel p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .assistant-logo {
+    display: grid;
+    place-items: center;
+    width: var(--space-10);
+    height: var(--space-10);
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: var(--radius-md);
+  }
+  .assistant-muted,
+  .assistant-foot,
+  .assistant-sources {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+  }
+  .assistant-turns,
+  .assistant-history ul,
+  .assistant-sources {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .assistant-turns,
+  .assistant-history ul {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .assistant-turns > li {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .assistant-message,
+  .assistant-view,
+  .assistant-pending,
+  .assistant-notice {
+    padding: var(--space-3);
+    border: var(--ui-hairline) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    white-space: pre-wrap;
+  }
+  .assistant-turns > li[data-role='kullanici'] .assistant-message {
+    background: var(--bubble-mine);
+  }
+  .assistant-compose textarea {
+    width: 100%;
+    min-width: 0;
+    resize: vertical;
+  }
+  .assistant-compose button {
+    justify-self: end;
+  }
+  .assistant-compose label {
+    font: var(--text-caption);
+  }
+  @media (max-width: 900px) {
+    .t-modal:has(.assistant-panel) {
+      --assistant-width: 100%;
+    }
+  }
+}
+
+@layer components {
+  .rp-page:has(> .assistant-rail) {
+    flex-wrap: nowrap;
+  }
+  .assistant-rail {
+    align-self: flex-start;
+    position: sticky;
+    inset-block-start: 0;
+    flex: 0 0 calc(var(--space-16) * 6.5625);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: var(--space-4);
+    gap: var(--space-3);
+    box-sizing: border-box;
+    border-inline-start: var(--ui-hairline) solid var(--border-subtle);
+    background: var(--bg-surface);
+  }
+  .assistant-rail__head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    align-items: flex-start;
+    padding-block-end: var(--space-3);
+    border-block-end: var(--ui-hairline) solid var(--border-subtle);
+  }
+  .assistant-rail__head h2 {
+    font: var(--text-title);
+    margin: 0;
+  }
+  .assistant-rail__head p {
+    font: var(--text-caption);
+    color: var(--ink-muted);
+    margin: 0;
+  }
+}

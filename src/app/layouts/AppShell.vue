@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { computed, provide, ref } from 'vue'
+import { computed, defineAsyncComponent, provide, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { isRouteName } from '@/app/routes.catalog'
-import { useNarrowNav } from '@/app/shell/narrow-nav'
+import { useNarrowMedia, useNarrowNav } from '@/app/shell/narrow-nav'
 import { AppSide, SCOPE_LIFECYCLE_KEY } from '@/app/shell/side/public'
 import { AppTopbar } from '@/app/shell/topbar/public'
 import type { ShellContent } from '@/app/shell/types'
 import { resolveShellContent, ShellState } from '@/app/states/public'
+import { useInstanceStore } from '@/shared/instance/store'
+import { pageCrumb } from '@/shared/navigation/page-crumb'
+import { useScopeStore } from '@/shared/scope/store'
+import { assistantRoleLabel, loadAssistantPanel } from '@/modules/assistant/public'
 import { useScopeLifecycle } from '@/shared/scope/lifecycle'
 import { useProgramDepartmentGap } from '@/shared/scope/standing'
 import { UiToast } from '@/shared/ui'
@@ -23,13 +27,18 @@ import { ConfirmHost } from '@/shared/ui/confirm'
  * Dar ekranda (≤ 900 px) kenar menüsü varsayılan kapalı, perdeli kaplama (`narrow-nav.ts`): kaplama
  * açıkken `rp-main` `inert` (arka içerik klavye/ekran okuyucu için etkisiz), kaydırma kilitli.
  */
+const AssistantPanel = defineAsyncComponent(loadAssistantPanel)
 const lifecycle = useScopeLifecycle()
+const scope = useScopeStore()
+const instance = useInstanceStore()
 provide(SCOPE_LIFECYCLE_KEY, lifecycle)
 const departmentGap = useProgramDepartmentGap(() => lifecycle.status.value === 'ready')
 
 const collapsed = ref(false)
 const route = useRoute()
+const narrow = useNarrowMedia()
 const nav = useNarrowNav(() => route.fullPath, {
+  narrow,
   side: () => document.getElementById('app-side'),
   trigger: () => document.querySelector<HTMLElement>('[aria-controls="app-side"]'),
 })
@@ -45,6 +54,48 @@ const content = computed<ShellContent>(() =>
 )
 const stateContent = computed(() => (content.value.kind === 'content' ? null : content.value))
 const openState = computed(() => (content.value.kind === 'open-state' ? content.value.name : null))
+const assistantOpen = ref(false)
+const assistantDay = ref('')
+function toggleAssistant() {
+  if (!assistantOpen.value) {
+    const timeZone = instance.profile?.timezone || 'Europe/Istanbul'
+    const format = (zone: string) =>
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: zone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date())
+    try {
+      assistantDay.value = format(timeZone)
+    } catch {
+      assistantDay.value = format('Europe/Istanbul')
+    }
+  }
+  assistantOpen.value = !assistantOpen.value
+}
+const assistantAvailable = computed(() => lifecycle.status.value === 'ready' && !!scope.programId)
+const assistantContext = computed(() => pageCrumb.value ?? route.meta.title ?? 'Seçili program')
+const assistantRole = computed(() => assistantRoleLabel(lifecycle.standing.value, scope.programId))
+const assistantScopeKey = computed(() =>
+  JSON.stringify([
+    assistantAvailable.value,
+    scope.snapshot,
+    lifecycle.standing.value?.accountId,
+    lifecycle.facts.value.companyAdmin,
+    lifecycle.standing.value?.rows
+      .filter((row) => row.programId === scope.programId)
+      .map((row) => [row.departmentId, row.role])
+      .sort(),
+  ]),
+)
+watch(
+  assistantScopeKey,
+  () => {
+    assistantOpen.value = false
+  },
+  { flush: 'sync' },
+)
 </script>
 
 <template>
@@ -59,10 +110,30 @@ const openState = computed(() => (content.value.kind === 'open-state' ? content.
     />
     <!-- `|| undefined`: kapalıyken öznitelik hiç yazılmaz (DOM özelliği olmayan ortamda "false" kalmasın). -->
     <main class="rp-main" :inert="nav.overlay.value || undefined">
-      <AppTopbar :open-state="openState" :nav-open="nav.open.value" @toggle-nav="nav.toggle()" />
+      <AppTopbar
+        :open-state="openState"
+        :nav-open="nav.open.value"
+        :assistant-available="assistantAvailable"
+        :assistant-open="assistantOpen"
+        :assistant-modal="narrow"
+        @toggle-nav="nav.toggle()"
+        @assistant="toggleAssistant"
+      />
       <ShellState v-if="stateContent" :content="stateContent" />
       <slot v-else />
     </main>
+    <AssistantPanel
+      v-if="assistantOpen && assistantAvailable && scope.programId"
+      :key="assistantScopeKey"
+      v-model:open="assistantOpen"
+      :program="scope.programId"
+      :context="assistantContext"
+      :scope="scope.snapshot"
+      :role-label="assistantRole"
+      :admin="lifecycle.facts.value.companyAdmin"
+      :narrow="narrow"
+      :today="assistantDay"
+    />
     <UiToast />
     <ConfirmHost />
   </div>

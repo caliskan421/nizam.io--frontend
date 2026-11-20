@@ -16,12 +16,18 @@ import { useToday } from './today'
 
 /**
  * Üst çubuk (00-ortak `ozellikler.md` §2.6): geri/ileri → konum izi (esner) → [tarih] → tema →
- * zil. Tarih yalnız ana sayfada (E-00-36). Asistan (E-00-39) ve Yardım F8'e kadar gizli (P2):
- * DOM'da yoktur, `assistant*` çağrılmaz. Menü düğmesi yalnız dar ekranda (≤ 900 px) görünür ve
+ * zil. Tarih yalnız ana sayfada (E-00-36). Asistan (E-00-39) seçili programlı kabukta görünür.
+ * Menü düğmesi yalnız dar ekranda (≤ 900 px) görünür ve
  * kenar menüsü kaplamasını açar/kapatır (P3 en sade; tasarımda mobil yok).
  */
-defineProps<{ openState?: OpenStateName | null; navOpen?: boolean }>()
-const emit = defineEmits<{ 'toggle-nav': [] }>()
+defineProps<{
+  openState?: OpenStateName | null
+  navOpen?: boolean
+  assistantAvailable?: boolean
+  assistantOpen?: boolean
+  assistantModal?: boolean
+}>()
+const emit = defineEmits<{ 'toggle-nav': []; assistant: [] }>()
 
 const route = useRoute()
 const today = useToday()
@@ -47,5 +53,18 @@ const showDate = computed(() => route.name === 'home' && today.value !== null)
     <span v-if="showDate" class="rp-kicker" data-testid="topbar-date">{{ today }}</span>
     <ThemeToggle />
     <TopbarBell />
+    <button
+      v-if="assistantAvailable"
+      class="t-iconbtn"
+      type="button"
+      :aria-haspopup="assistantModal ? 'dialog' : undefined"
+      :aria-expanded="!!assistantOpen"
+      :aria-controls="assistantOpen ? 'app-assistant-panel' : undefined"
+      aria-label="Asistan"
+      title="Asistana sor"
+      @click="emit('assistant')"
+    >
+      <UiIcon name="assistant" size="sm" />
+    </button>
   </div>
 </template>
