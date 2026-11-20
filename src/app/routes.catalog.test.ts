@@ -40,7 +40,7 @@ import {
 } from './routes.catalog'
 
 // ortak-kurallar §5 faz görünürlük matrisi (menü satırları + alt rotalar) — beklenen tablo.
-const MATRIX: Record<string, Record<Exclude<Phase, 'F13'>, string>> = {
+const MATRIX: Record<string, Record<Exclude<Phase, 'F13' | 'F16'>, string>> = {
   home: {
     F0: 'canli',
     F1: 'canli',
@@ -232,12 +232,13 @@ const ROLE_SEGMENT =
   /^(admin|yonetici|yönetici|koordinator|koordinatör|uye|üye|coordinator|member)$/i
 
 describe('rota kataloğu — yapı', () => {
-  it('etkin faz F13: Tablolar ve önceki rotalar canlı', () => {
-    expect(CURRENT_PHASE).toBe('F13')
+  it('etkin faz F16: Tablolar ve önceki rotalar canlı', () => {
+    expect(CURRENT_PHASE).toBe('F16')
     expect(visibilityOf('work.tasks')).toBe('canli')
     expect(visibilityOf('home')).toBe('canli')
     expect(liveRouteNames()).toEqual([
       'home',
+      'auditHistory',
       'identity.session',
       'work.tasks',
       'work.timeline',
@@ -268,16 +269,26 @@ describe('rota kataloğu — yapı', () => {
 
   it('faz görünürlüğü ortak-kurallar §5 matrisiyle birebir', () => {
     expect(new Set(ROUTE_NAMES)).toEqual(
-      new Set([...Object.keys(MATRIX), 'tables.list', 'tables.design', 'tables.detail']),
+      new Set([
+        ...Object.keys(MATRIX),
+        'auditHistory',
+        'tables.list',
+        'tables.design',
+        'tables.detail',
+      ]),
     )
     for (const name of ROUTE_NAMES) {
       for (const phase of PHASES) {
         expect(visibilityOf(name, phase), `${name} @ ${phase}`).toBe(
-          name.startsWith('tables.')
-            ? phase === 'F13'
+          name === 'auditHistory'
+            ? phase === 'F16'
               ? 'canli'
               : 'gizli'
-            : MATRIX[name]?.[phase === 'F13' ? 'F7' : phase],
+            : name.startsWith('tables.')
+              ? phase === 'F13' || phase === 'F16'
+                ? 'canli'
+                : 'gizli'
+              : MATRIX[name]?.[phase === 'F13' || phase === 'F16' ? 'F7' : phase],
         )
       }
     }
@@ -296,7 +307,7 @@ describe('rota kataloğu — yapı', () => {
 
   it('henüz açılmamış modüller ve hedefsiz öğeler katalogda yok (Mesajlar F7 ile girdi)', () => {
     const paths = ROUTE_NAMES.map((name) => routeSpec(name).path)
-    for (const banned of ['/islem-gecmisi', '/takvim', '/kurumsal-hafiza', '/simulasyon']) {
+    for (const banned of ['/takvim', '/kurumsal-hafiza', '/simulasyon']) {
       expect(
         paths.some((p) => p.startsWith(banned)),
         banned,
@@ -343,7 +354,7 @@ describe('rota kataloğu — yapı', () => {
 })
 
 describe('menü', () => {
-  it('etkin faz (F13): Arşiv, Mesajlar ve Tablolar canlı; Silinen kayıtlar menüde yok (P36)', () => {
+  it('etkin faz (F16): Arşiv, Mesajlar ve Tablolar canlı; Silinen kayıtlar menüde yok (P36)', () => {
     expect(menuEntries().map((e) => [e.key, e.group, e.visibility])).toEqual([
       ['home', 'takip', 'canli'],
       ['tasks', 'takip', 'canli'],

@@ -195,10 +195,7 @@ describe('K1 bölgeleri (bileşen sözleşmesi)', () => {
       'request',
     ])
     const activity = await mount(ActivityCard)
-    expect(activity.wrapper.find('[data-design-stub="BE-010"]').exists()).toBe(true)
-    expect(activity.wrapper.text()).toContain('Henüz işlem geçmişi yok')
-    // KUSUR 4: "yakında" sözü yok; kayıtlı açıklama (BE-010) var.
-    expect(activity.wrapper.text()).not.toContain('yakında')
-    expect(activity.wrapper.text()).toContain('işlem geçmişi okuması henüz yok')
+    expect(activity.wrapper.find('[data-testid="audit-feed"]').exists()).toBe(true)
+    expect(activity.wrapper.get('a').attributes('href')).toBe('/islem-gecmisi?koord=d1')
   })
 })

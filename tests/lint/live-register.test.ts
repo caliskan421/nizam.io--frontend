@@ -55,6 +55,25 @@ const F10_W194_WAIVED = new Set(['BE-069', 'BE-112'])
 const F10_W194_BOUND = 'bağlandı (pin v0.26.0-api, F10 W194)'
 const F10_W194_WAIVER = /^vazgeçildi \(P45: [^)]+, F10 W194\)$/
 /** Kapanış kanıtı olarak depoda var olması gereken gerçek test dosyaları (yoksa kapanış sahte). */
+const F16_AUDIT_BOUND = 'bağlandı (pin v0.28.0-api, F16)'
+const F16_AUDIT_IDS = new Set([
+  'BE-007',
+  'BE-010',
+  'BE-015',
+  'BE-030',
+  'BE-087',
+  'BE-088',
+  'BE-089',
+  'BE-090',
+  'BE-091',
+  'BE-092',
+])
+const F16_AUDIT_EVIDENCE = [
+  'docs/yurutme/web-16/README.md',
+  'src/modules/audit/pages/AuditHistoryPage.test.ts',
+  'src/modules/home/components/RecentActivity.test.ts',
+  'src/modules/work/components/detail/DetailTimeline.test.ts',
+]
 const F15_FULLSCREEN_BOUND = 'bağlandı (pin v0.28.0-api, F15 E-06-50)'
 const F15_FULLSCREEN_EVIDENCE = [
   'docs/yurutme/web-15/referans/Arsiv-Tam-Ekran-Onizleme.html',
@@ -77,6 +96,9 @@ function laterBoundAllowed(
   stubs: Set<string>,
   matrix: string,
 ): boolean {
+  if (status === F16_AUDIT_BOUND) {
+    return F16_AUDIT_IDS.has(id) && !stubs.has(id) && F16_AUDIT_EVIDENCE.every(existsSync)
+  }
   if (status === F15_FULLSCREEN_BOUND) {
     return id === 'BE-026' && !stubs.has(id) && F15_FULLSCREEN_EVIDENCE.every(existsSync)
   }
@@ -187,6 +209,20 @@ describe('BE-026 F8 geçmişi ve F15 bağlama', () => {
     expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, stubIds(), '')).toBe(true)
     expect(laterBoundAllowed('BE-024', F15_FULLSCREEN_BOUND, new Set(), '')).toBe(false)
     expect(laterBoundAllowed('BE-026', F15_FULLSCREEN_BOUND, new Set(['BE-026']), '')).toBe(false)
+  })
+})
+
+describe('F16 audit bağlama', () => {
+  it('yalnız on audit kaydı bağlanır, F8 rol kapsamı kararı tarihsel kalır', () => {
+    expect(matrixDecisions().get('BE-091')).toBe('yok')
+    const stubs = stubIds()
+    const bound = cells().filter((row) => row.status === F16_AUDIT_BOUND)
+    expect(new Set(bound.map((row) => row.id))).toEqual(F16_AUDIT_IDS)
+    for (const id of F16_AUDIT_IDS) {
+      expect(laterBoundAllowed(id, F16_AUDIT_BOUND, stubs, ''), id).toBe(true)
+    }
+    expect(laterBoundAllowed('BE-018', F16_AUDIT_BOUND, stubs, '')).toBe(false)
+    expect(laterBoundAllowed('BE-091', F16_AUDIT_BOUND, new Set(['BE-091']), '')).toBe(false)
   })
 })
 

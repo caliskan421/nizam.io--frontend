@@ -1,26 +1,31 @@
 <script setup lang="ts">
-import { DesignStub, UiEmptyState } from '@/shared/ui'
+import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
+
+import { AUDIT_ROUTE, AuditFeed, useAuditScope } from '@/modules/audit/public'
+import { useScopeStore } from '@/shared/scope/store'
 
 import { homeText } from '../../model/messages'
-import { RECENT_ACTIVITY } from '../../model/role/stubs'
 
-/**
- * "Son etkinlik" (E-K1-40): audit okuma yok (BE-010; rol kapsamlı okuma BE-091) → statik nötr
- * yer tutucu + kayıtlı açıklama ("yakında" sözü yok, W178 KUSUR 4; §3); sahte akış yok (§4, P6).
- * Eylem tetiklemez.
- */
-const activity = RECENT_ACTIVITY
+const store = useScopeStore()
+const { programId } = useAuditScope()
+const subject = computed(() =>
+  store.departmentId ? { department: [store.departmentId] } : undefined,
+)
 </script>
 
 <template>
   <section class="t-card rh-card rh-card--aside" data-region="activity" aria-labelledby="k1-act">
-    <h2 id="k1-act" class="rh-cardtitle">{{ homeText('home.k1.activity.title') }}</h2>
-    <DesignStub v-if="!activity.available" id="BE-010" as="div">
-      <UiEmptyState
-        :title="homeText('home.k1.activity.empty')"
-        :text="homeText('home.k1.activity.reason')"
-        icon="clock"
-      />
-    </DesignStub>
+    <div class="rp-cardhead">
+      <h2 id="k1-act" class="rh-cardtitle">{{ homeText('home.k1.activity.title') }}</h2>
+      <RouterLink
+        v-if="programId"
+        class="rp-link"
+        :to="{ name: AUDIT_ROUTE.name, query: { koord: subject?.department } }"
+      >
+        {{ homeText('home.recent.all') }}
+      </RouterLink>
+    </div>
+    <AuditFeed :subject="subject" />
   </section>
 </template>

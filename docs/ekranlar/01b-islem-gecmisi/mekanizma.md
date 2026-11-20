@@ -1,5 +1,7 @@
 # 01b — Mekanizma (nasıl davranıyor)
 
+**F16 güncel uygulama:** 01b, v0.28.0-api ile canlıdır. Bu bölümün eski uç ve faz notları tarihsel tespittir. Güncel rol, program, süzgeç, imleç ve CSV kapsamı [WEB-16](../../yurutme/web-16/README.md) kaydındadır.
+
 Ekran v1 dışıdır (K14): menüde görünmez, rota kataloğuna v1'de eklenmez. Aşağıdaki davranış, ekran kendi backend fazıyla geldiğinde uygulanacak tasarım niyetidir. Backend karşılığı bugün yoktur (`BE-030`).
 
 ## 1. Giriş ve gezinme

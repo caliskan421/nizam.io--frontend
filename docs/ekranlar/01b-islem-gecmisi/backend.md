@@ -1,5 +1,7 @@
 # 01b — Backend eşlemesi (nereden geliyor)
 
+**F16 güncel uygulama:** 01b, v0.28.0-api ile canlıdır. Bu bölümün eski uç ve faz notları tarihsel tespittir. Güncel rol, program, süzgeç, imleç ve CSV kapsamı [WEB-16](../../yurutme/web-16/README.md) kaydındadır.
+
 Kaynak: `../../../../nizam.io--backend/docs/api/openapi.yaml` (pin `v0.11.0-api`), `istemci-akislari.md`, `error-codes.json`. İstemci uydurmaz; uyuşmazlık `eksikler.md`'ye gider.
 
 Ek kaynaklar (sözleşme dışı, yalnız gereksinim çıkarmak için okundu): backend `docs/known-gaps.md` (GAP-002, GAP-067, GAP-094, GAP-182, GAP-049), `docs/architecture/data-model.md` §4.9, `docs/security/data-classification.md`, `internal/modules/audit/README.md` (AUDIT-K01…K09) ve `domain/audit.go`, modül README'lerinin §5 "Audit eylemleri" satırları; yönetim deposu `program/KARARLAR.md` (KR-05, KR-09) ve `project-control/decision-register.md` (K-15, D-0174).

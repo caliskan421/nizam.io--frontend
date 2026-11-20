@@ -6,7 +6,7 @@ export const trErrors: Record<string, string> = {
   // audit
   'audit.entry_rejected': 'İşlem kaydı yazılamadığı için istek tamamlanamadı.',
   'audit.export_too_large':
-    'Dışa aktarılacak kayıt sayısı sınırı aşıyor; süzgeçleri daraltıp yeniden deneyin.',
+    'En çok 10.000 kayıt dışa aktarılabilir. Süzgeçleri daraltıp yeniden deneyin.',
   'audit.input_invalid': 'Girilen bilgiler geçersiz.',
   'audit.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
   'audit.not_authorized': 'Bu işlem için yetkiniz yok.',

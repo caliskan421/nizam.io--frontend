@@ -16,6 +16,7 @@ import {
   type RouteName,
   routeSpec,
 } from '@/app/routes.catalog'
+import { auditRoutes } from '@/modules/audit/public'
 import { tablesRoutes } from '@/modules/tables/public'
 import { archiveRoutes } from '@/modules/archive/public'
 import { chatRoutes } from '@/modules/chat/public'
@@ -43,6 +44,7 @@ type ViewLoader = RouteComponent | (() => Promise<RouteComponent>)
  */
 export const MODULE_ROUTES: readonly RouteRecordRaw[] = [
   ...homeRoutes,
+  ...auditRoutes,
   ...identityRoutes,
   ...workRoutes,
   ...organizationRoutes,

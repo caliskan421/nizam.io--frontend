@@ -50,6 +50,9 @@ const homeData = [
       pending_approvals: 0,
     }),
   ),
+  http.get('http://localhost/v1/audit/entries', () =>
+    HttpResponse.json({ entries: [], next_cursor: null }),
+  ),
   http.get('http://localhost/v1/program/work-items', () => HttpResponse.json({ items: [] })),
 ]
 

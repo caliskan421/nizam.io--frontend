@@ -5,9 +5,10 @@ import { workItem } from '../../model/__tests__/harness'
 import DetailTimeline from './DetailTimeline.vue'
 
 const TZ = 'Europe/Istanbul'
+const global = { stubs: { AuditFeed: true } }
 
 describe('ilerleme çizgisi (E-03-51)', () => {
-  it('tarih alanlarından olaylar; gecikme satırı kırmızı/kalın; etkinlik akışı BE-007 yer tutucu', () => {
+  it('tarih alanlarından olaylar; gecikme satırı kırmızı/kalın; etkinlik akışı görev kapsamında', () => {
     const item = workItem({
       created_at: '2026-06-10T08:00:00Z',
       start_on: '2026-07-20',
@@ -15,7 +16,7 @@ describe('ilerleme çizgisi (E-03-51)', () => {
       is_overdue: true,
       days_overdue: 88,
     })
-    const wrapper = mount(DetailTimeline, { props: { item, timeZone: TZ } })
+    const wrapper = mount(DetailTimeline, { global, props: { item, timeZone: TZ } })
     const rows = wrapper.findAll('.rp-timeline li')
     expect(rows.map((r) => r.attributes('data-event'))).toEqual([
       'created',
@@ -30,13 +31,12 @@ describe('ilerleme çizgisi (E-03-51)', () => {
     expect(rows[3]!.find('.rp-danger-text').exists()).toBe(true)
     expect(rows[3]!.find('.rp-tl-dot--alert').exists()).toBe(true)
 
-    const stub = wrapper.get('[data-design-stub="BE-007"]')
-    expect(stub.find('[data-placeholder]').exists()).toBe(true)
-    expect(stub.text()).toBe('Etkinlik geçmişi henüz gösterilemiyor.')
+    expect(wrapper.find('audit-feed-stub').exists()).toBe(true)
   })
 
   it('sahte olay üretilmez: durum geçişi / atama / dosya olayı yok', () => {
     const wrapper = mount(DetailTimeline, {
+      global,
       props: { item: workItem({ status: 'onaya_sunuldu' }), timeZone: TZ },
     })
     const keys = wrapper.findAll('.rp-timeline li').map((r) => r.attributes('data-event'))

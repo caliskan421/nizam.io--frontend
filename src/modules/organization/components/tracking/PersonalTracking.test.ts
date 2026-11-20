@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import { pageCrumb } from '@/shared/navigation/page-crumb'
 
-import { requests, resetHarness } from '../../__tests__/harness'
+import { http, json, ORIGIN, requests, resetHarness } from '../../__tests__/harness'
 import { usePersonWorkItems } from '../../api'
 import {
   listHandler,
@@ -56,6 +56,7 @@ function setup(extra: Parameters<typeof server.use> = []) {
     ...standingHandlers(),
     listHandler(ITEMS),
     usersHandler([{ account_id: 'u1', full_name: 'Bahar Kılıç', memberships: ['p1:d1:uye'] }]),
+    http.get(`${ORIGIN}/v1/audit/entries`, () => json({ entries: [], next_cursor: null })),
     ...extra,
   )
 }
@@ -229,7 +230,7 @@ describe('kartlar, sekmeler, liste (E-05-49…67)', () => {
     expect(wrapper.find('[data-calendar-title]').text()).toBe('Son tarihler · Aralık')
   })
 
-  it('Dosyalar sayaçsız + BE-046; Etkinlik BE-015, sahte olay yok', async () => {
+  it('Dosyalar sayaçsız + BE-046; Etkinlik canlı, sahte olay yok', async () => {
     setup()
     const { wrapper } = await mountAt(
       PersonalTracking,
@@ -243,7 +244,7 @@ describe('kartlar, sekmeler, liste (E-05-49…67)', () => {
     await wrapper.find('[role="tab"][data-value="etkinlik"]').trigger('click')
     await settle()
     const panel = wrapper.find('[data-panel="etkinlik"]')
-    expect(panel.find('[data-design-stub="BE-015"]').exists()).toBe(true)
+    expect(panel.find('[data-testid="audit-feed"]').exists()).toBe(true)
     expect(panel.findAll('li')).toHaveLength(0)
     expect(panel.text()).not.toMatch(/\d/)
   })

@@ -57,10 +57,11 @@ describe('router — katalog tek kaynak', () => {
     expect(() => buildRoutes('F2', withoutUsers)).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('F13 (etkin faz): modül sayfalarına bağlı', async () => {
+  it('F16 (etkin faz): modül sayfalarına bağlı', async () => {
     const routes = buildRoutes()
     expect(routes.map((r) => r.name ?? r.path)).toEqual([
       'home',
+      'auditHistory',
       'identity.session',
       'work.tasks',
       'work.timeline',
@@ -91,6 +92,16 @@ describe('router — katalog tek kaynak', () => {
     expect(current.name).toBe('work.tasks')
     expect(current.meta).toEqual({ scope: 'S2', title: 'Görevler', menuKey: 'tasks' })
     expect(current.matched[0]?.components?.default).toMatchObject({ __name: 'TasksPage' })
+  })
+
+  it('F16 İşlem geçmişi Ana sayfa altında açılır ve F13 rotalarında yer almaz', async () => {
+    expect(liveRouteNames('F13')).not.toContain('auditHistory')
+    const router = memoryRouter(buildRoutes())
+    await router.push('/islem-gecmisi?tur=task&tur=file')
+    const current = router.currentRoute.value
+    expect(current.name).toBe('auditHistory')
+    expect(current.meta).toEqual({ scope: 'S1', title: 'İşlem geçmişi', menuKey: 'home' })
+    expect(current.query.tur).toEqual(['task', 'file'])
   })
 
   it('F5: /arsiv ve /arsiv/:klasorId katalogdan kayıtlı (S3, menü Arşiv; sayfa gövdesinden bağımsız)', async () => {

@@ -3,17 +3,12 @@ import './detail.css'
 
 import { computed } from 'vue'
 
-import { DesignStub, UiPlaceholder } from '@/shared/ui'
+import { AuditFeed } from '@/modules/audit/public'
 
 import type { WorkItem } from '../../model/types'
 import { timelineEvents } from './format'
 import { detailText } from './messages'
 
-/**
- * İlerleme çizgisi (E-03-51): yalnız görevin tarih alanlarından türetilen olaylar; etkinlik
- * geçmişi (durum geçişi, atama, dosya) sözleşmede yok → nötr yer tutucu, `BE-007` (yönetici dışı
- * okuma BE-091). Sahte olay üretilmez (ortak-kurallar §4).
- */
 const props = defineProps<{ item: WorkItem; timeZone: string }>()
 const events = computed(() => timelineEvents(props.item, props.timeZone))
 </script>
@@ -32,8 +27,6 @@ const events = computed(() => timelineEvents(props.item, props.timeZone))
         <span class="rp-kicker rp-nowrap wd-tl-when">{{ event.when }}</span>
       </li>
     </ol>
-    <DesignStub id="BE-007" as="div">
-      <UiPlaceholder inline :text="detailText('workDetail.timeline.activity')" />
-    </DesignStub>
+    <AuditFeed :program="item.program_id" :subject="{ work_item_id: item.work_item_id }" more />
   </div>
 </template>

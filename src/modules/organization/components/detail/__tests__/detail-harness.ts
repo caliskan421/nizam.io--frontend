@@ -175,6 +175,7 @@ export function serverHandlers(f: ServerFixture = {}) {
             404,
           )
     }),
+    http.get(`${ORIGIN}/v1/audit/entries`, () => json({ entries: [], next_cursor: null })),
     http.get(`${ORIGIN}/v1/reports/dashboard`, () =>
       json(dashboard(f.stats ?? [stat('d1'), stat('d2', { description: undefined })])),
     ),
