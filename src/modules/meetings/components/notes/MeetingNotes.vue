@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import './notes.css'
+import { MemoryNoteAction, useMemoryQueries } from '@/modules/memory/public'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { trMeetings } from '@/shared/i18n/tr/meetings'
 import { UiAvatar } from '@/shared/ui'
@@ -33,6 +34,10 @@ const openMenu = ref<string | null>(null)
 const section = ref<HTMLElement | null>(null)
 const { focus, bind, heading } = noteFocus(section, () => version)
 const notes = computed(() => query.data.value?.pages.flatMap((page) => page.items) ?? [])
+const memory = useMemoryQueries()
+const linked = memory.sources('meeting_note', () =>
+  query.isError.value ? [] : notes.value.map((note) => note.note_id),
+)
 const text = trMeetings.meetings.notes
 const roleLabels = text.roles
 const converted = (note: MeetingNote) => !!note.converted_to_work_item_id
@@ -152,6 +157,14 @@ function deleteNote(note: MeetingNote) {
         </form>
         <p v-else>{{ note.content }}</p>
         <div class="meeting-notes__foot">
+          <MemoryNoteAction
+            v-if="linked.isSuccess.value"
+            :id="note.note_id"
+            kind="meeting_note"
+            :label="meeting.title"
+            :unit="meeting.owner_department_id ?? undefined"
+            :linked="linked.data.value?.[note.note_id]"
+          />
           <NoteConvertedLabel v-if="converted(note)" :note="note" /><button
             v-else-if="access.convertNote(noteFacts(note))"
             class="t-btn t-btn--secondary t-btn--sm"

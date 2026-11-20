@@ -15,10 +15,15 @@
  *    yok — tek istisna KISMİ sonuç (görev oluşturuldu, ek atama yapılamadı): kullanıcı bunu başka
  *    hiçbir ekrandan öğrenemez; uygulama düzeyi bildirim (`pushAppNotice`, aynı oturum neslinde).
  */
+import { useQueryClient } from '@tanstack/vue-query'
 import { useForm } from 'vee-validate'
 import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 
+import { addExperienceTaskNotes } from '@/modules/memory/public'
+import { authSession } from '@/shared/http'
+import { queryKeys } from '@/shared/http/query-keys'
 import {
+  generateIdempotencyKey,
   ownerLife,
   runWithFollowUps,
   type ActionContext,
@@ -52,6 +57,7 @@ export interface NewTaskFormHooks {
   presetDepartment?: () => string | null | undefined
   /** URL girişinden ön atanan (W76); formun birimindeki ekipte değilse yok sayılır. */
   assignee?: () => string | null | undefined
+  memoryIds?: () => readonly string[]
   created: (item: WorkItem) => void
   close: () => void
 }
@@ -191,8 +197,19 @@ function assignmentSteps(assign: ReturnType<typeof useAddAssignments>, extra: re
 function useCreateFinish(hooks: NewTaskFormHooks) {
   const toast = useToast() // kurulumda alınır: form sökülünce bildirim düşer
   const owner = ownerLife()
+  const memory = useNewTaskMemory()
+  let selected: string[] = []
 
-  function finish(primary: MutationSuccess<WorkItem>, partial: string | null): void {
+  function captureMemory() {
+    selected = [...new Set(hooks.memoryIds?.() ?? [])].slice(0, 3)
+  }
+
+  async function finish(
+    primary: MutationSuccess<WorkItem>,
+    taskPartial: string | null,
+  ): Promise<void> {
+    const noteError = await memory.attach(primary, selected)
+    const partial = [taskPartial, noteError].filter(Boolean).join(' ')
     if (!owner.alive()) {
       if (partial) pushAppNotice({ message: partial, tone: 'danger' }, primary.context?.generation)
       return
@@ -206,7 +223,7 @@ function useCreateFinish(hooks: NewTaskFormHooks) {
     hooks.close()
   }
 
-  return { owner, finish }
+  return { owner, finish, captureMemory, memoryPending: memory.pending }
 }
 
 function useNewTaskSubmit(
@@ -220,8 +237,7 @@ function useNewTaskSubmit(
   const notice = shallowRef<CreateOutcome | null>(null)
   /** Son gönderimin ek atananları (ana atanan hariç) — "Yeniden gönder" başarısında koşar. */
   let pendingExtra: string[] = []
-
-  const { owner, finish } = useCreateFinish(hooks)
+  const { owner, finish, captureMemory, memoryPending } = useCreateFinish(hooks)
 
   function fail(outcome: CreateOutcome): void {
     if (!owner.alive()) return
@@ -241,6 +257,7 @@ function useNewTaskSubmit(
     if (!target) return
     notice.value = null
     const extra = canAssignExtra.value ? values.extra : []
+    captureMemory()
     pendingExtra = [...new Set(extra)].filter((id) => id !== values.assignee)
     const result = await create.submit({
       target,
@@ -248,7 +265,7 @@ function useNewTaskSubmit(
       extraAssignees: extra,
     })
     if (result.kind === 'primary_failed') return fail(result.primary)
-    finish(result.primary, createPartialText(result))
+    await finish(result.primary, createPartialText(result))
   })
 
   /**
@@ -275,9 +292,54 @@ function useNewTaskSubmit(
       assignmentSteps(assign, pendingExtra),
     )
     if (composite.kind === 'primary_failed') return fail(composite.primary)
-    finish(composite.primary, createPartialText(composite))
+    await finish(composite.primary, createPartialText(composite))
   }
 
-  const isPending = computed(() => create.isPending.value || assign.isPending.value)
+  const isPending = computed(
+    () => create.isPending.value || assign.isPending.value || memoryPending.value,
+  )
   return { submit, resolved, notice, isPending }
+}
+
+function useNewTaskMemory() {
+  const client = useQueryClient()
+  const store = useScopeStore()
+  const owner = ownerLife()
+  const pending = ref(false)
+  const partial = 'Görev oluşturuldu. Hafıza notları doğrulanamadı.'
+  async function attach(primary: MutationSuccess<WorkItem>, ids: string[]): Promise<string | null> {
+    if (!ids.length) return null
+    const task = primary.data
+    const generation = authSession.generation
+    if (
+      !owner.alive() ||
+      store.programId !== task.program_id ||
+      primary.context?.generation !== generation
+    ) {
+      return partial
+    }
+    const snapshot = store.snapshot
+    pending.value = true
+    try {
+      await addExperienceTaskNotes(
+        task.program_id,
+        { experience_ids: ids, work_item_id: task.work_item_id },
+        generateIdempotencyKey(),
+      )
+      if (authSession.generation === generation) {
+        await client.invalidateQueries({
+          queryKey: queryKeys.workItems.notes(
+            { ...snapshot, departmentId: task.department_id },
+            task.work_item_id,
+          ),
+        })
+      }
+      return null
+    } catch {
+      return partial
+    } finally {
+      pending.value = false
+    }
+  }
+  return { attach, pending }
 }

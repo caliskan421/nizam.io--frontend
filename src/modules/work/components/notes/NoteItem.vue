@@ -101,6 +101,7 @@ async function resolved(outcome: MutationOutcome<unknown, unknown, unknown>): Pr
       />
       <template v-else>
         <p class="wk-note__body" data-testid="note-body">{{ note.content }}</p>
+        <slot name="memory" />
         <div v-if="canEdit" class="wk-note__foot">
           <UiButton variant="ghost" size="sm" data-testid="note-edit" @click="startEdit">
             {{ notesText('edit') }}

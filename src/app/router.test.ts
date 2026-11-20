@@ -57,12 +57,13 @@ describe('router — katalog tek kaynak', () => {
     expect(() => buildRoutes('F2', withoutUsers)).toThrow(/sayfası yok: organization.users/)
   })
 
-  it('F17 (etkin faz): modül sayfalarına bağlı', async () => {
+  it('F18 (etkin faz): modül sayfalarına bağlı', async () => {
     const routes = buildRoutes()
     expect(routes.map((r) => r.name ?? r.path)).toEqual([
       'home',
       'auditHistory',
       'calendar',
+      'memory',
       'identity.session',
       'work.tasks',
       'work.timeline',
