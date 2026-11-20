@@ -8,6 +8,7 @@ import { AppSide, SCOPE_LIFECYCLE_KEY } from '@/app/shell/side/public'
 import { AppTopbar } from '@/app/shell/topbar/public'
 import type { ShellContent } from '@/app/shell/types'
 import { resolveShellContent, ShellState } from '@/app/states/public'
+import { useInstanceStore } from '@/shared/instance/store'
 import { pageCrumb } from '@/shared/navigation/page-crumb'
 import { useScopeStore } from '@/shared/scope/store'
 import { assistantRoleLabel, loadAssistantPanel } from '@/modules/assistant/public'
@@ -29,6 +30,7 @@ import { ConfirmHost } from '@/shared/ui/confirm'
 const AssistantPanel = defineAsyncComponent(loadAssistantPanel)
 const lifecycle = useScopeLifecycle()
 const scope = useScopeStore()
+const instance = useInstanceStore()
 provide(SCOPE_LIFECYCLE_KEY, lifecycle)
 const departmentGap = useProgramDepartmentGap(() => lifecycle.status.value === 'ready')
 
@@ -53,6 +55,25 @@ const content = computed<ShellContent>(() =>
 const stateContent = computed(() => (content.value.kind === 'content' ? null : content.value))
 const openState = computed(() => (content.value.kind === 'open-state' ? content.value.name : null))
 const assistantOpen = ref(false)
+const assistantDay = ref('')
+function toggleAssistant() {
+  if (!assistantOpen.value) {
+    const timeZone = instance.profile?.timezone || 'Europe/Istanbul'
+    const format = (zone: string) =>
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: zone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date())
+    try {
+      assistantDay.value = format(timeZone)
+    } catch {
+      assistantDay.value = format('Europe/Istanbul')
+    }
+  }
+  assistantOpen.value = !assistantOpen.value
+}
 const assistantAvailable = computed(() => lifecycle.status.value === 'ready' && !!scope.programId)
 const assistantContext = computed(() => pageCrumb.value ?? route.meta.title ?? 'Seçili program')
 const assistantRole = computed(() => assistantRoleLabel(lifecycle.standing.value, scope.programId))
@@ -94,8 +115,9 @@ watch(
         :nav-open="nav.open.value"
         :assistant-available="assistantAvailable"
         :assistant-open="assistantOpen"
+        :assistant-modal="narrow"
         @toggle-nav="nav.toggle()"
-        @assistant="assistantOpen = true"
+        @assistant="toggleAssistant"
       />
       <ShellState v-if="stateContent" :content="stateContent" />
       <slot v-else />
@@ -110,6 +132,7 @@ watch(
       :role-label="assistantRole"
       :admin="lifecycle.facts.value.companyAdmin"
       :narrow="narrow"
+      :today="assistantDay"
     />
     <UiToast />
     <ConfirmHost />

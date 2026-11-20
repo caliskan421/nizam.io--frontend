@@ -56,12 +56,15 @@ describe('üst çubuk', () => {
     const { wrapper } = await mountTopbar()
     await wrapper.setProps({ assistantAvailable: true })
     const trigger = wrapper.get('button[aria-label="Asistan"]')
+    expect(trigger.attributes('aria-haspopup')).toBeUndefined()
+    await wrapper.setProps({ assistantModal: true })
     expect(trigger.attributes('aria-haspopup')).toBe('dialog')
     expect(trigger.attributes('aria-expanded')).toBe('false')
     await trigger.trigger('click')
     expect(wrapper.emitted('assistant')).toHaveLength(1)
     await wrapper.setProps({ assistantOpen: true })
     expect(trigger.attributes('aria-expanded')).toBe('true')
+    expect(trigger.attributes('aria-controls')).toBe('app-assistant-panel')
   })
 
   it('konum izi: program adı kabuk verisinden (ek istek yok), ana sayfaya bağlantı', async () => {

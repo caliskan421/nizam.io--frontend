@@ -13,13 +13,14 @@ const props = defineProps<{
   scope: ScopeSnapshot
   admin: boolean
   busy: boolean
+  today: string
 }>()
 const emit = defineEmits<{ view: [string, ViewLink]; dismiss: [string] }>()
 const views = computed(() =>
   (props.turn.views ?? []).flatMap((view, index) => {
     const key = props.turn.key + ':' + index
     if (props.dismissed.includes(key)) return []
-    const target = resolveView(view, props.scope, props.admin)
+    const target = resolveView(view, props.scope, props.admin, props.today)
     return target ? [{ key, target }] : []
   }),
 )

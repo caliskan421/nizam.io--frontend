@@ -25,6 +25,7 @@ defineProps<{
   navOpen?: boolean
   assistantAvailable?: boolean
   assistantOpen?: boolean
+  assistantModal?: boolean
 }>()
 const emit = defineEmits<{ 'toggle-nav': []; assistant: [] }>()
 
@@ -56,8 +57,9 @@ const showDate = computed(() => route.name === 'home' && today.value !== null)
       v-if="assistantAvailable"
       class="t-iconbtn"
       type="button"
-      aria-haspopup="dialog"
+      :aria-haspopup="assistantModal ? 'dialog' : undefined"
       :aria-expanded="!!assistantOpen"
+      :aria-controls="assistantOpen ? 'app-assistant-panel' : undefined"
       aria-label="Asistan"
       title="Asistana sor"
       @click="emit('assistant')"

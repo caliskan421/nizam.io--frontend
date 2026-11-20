@@ -20,6 +20,7 @@ const props = defineProps<{
   scope: ScopeSnapshot
   roleLabel: string
   narrow?: boolean
+  today: string
 }>()
 const open = defineModel<boolean>('open', { required: true })
 const state = useAssistantSession(props.program, () => {
@@ -71,10 +72,9 @@ async function openView(key: string, target: ViewLink) {
   const destination = router.resolve(target.to)
   try {
     await router.push(target.to)
-    navigationStatus.value =
-      router.currentRoute.value.fullPath === destination.fullPath
-        ? 'Görünüm açıldı.'
-        : 'Görünüm açılamadı.'
+    const opened = router.currentRoute.value.fullPath === destination.fullPath
+    if (opened && props.narrow) open.value = false
+    navigationStatus.value = opened ? 'Görünüm açıldı.' : 'Görünüm açılamadı.'
   } catch {
     navigationStatus.value = 'Görünüm açılamadı.'
   }
@@ -96,9 +96,9 @@ onMounted(() => state.refresh())
     :is="narrow ? UiModal : AssistantRail"
     v-model:open="open"
     title="Asistan"
-    :description="context + ' · ' + roleLabel"
+    :description="'Bağlam: ' + context + ' · ' + roleLabel"
   >
-    <div class="assistant-panel" data-testid="assistant-panel">
+    <div id="app-assistant-panel" class="assistant-panel" data-testid="assistant-panel">
       <div class="assistant-toolbar">
         <UiButton size="sm" icon="plus" :disabled="busy" @click="newConversation"
           >Yeni sohbet</UiButton
@@ -171,6 +171,7 @@ onMounted(() => state.refresh())
                 :scope="scope"
                 :admin="admin"
                 :busy="busy"
+                :today="today"
                 :dismissed="dismissed"
                 @view="openView"
                 @dismiss="dismiss"

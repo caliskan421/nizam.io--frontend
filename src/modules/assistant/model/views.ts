@@ -42,16 +42,31 @@ function workView(filter: Record<string, unknown>, scope: ScopeSnapshot): ViewLi
   }
 }
 
-function meetingView(filter: Record<string, unknown>, scope: ScopeSnapshot): ViewLink | null {
-  const unit = unitFilter(filter, scope)
-  if (!unit) return null
-  const { baslangic: from, bitis: to } = filter
-  if (from !== undefined && (typeof from !== 'string' || !DAY.test(from))) return null
-  if (to !== undefined && (typeof to !== 'string' || !DAY.test(to))) return null
+function isDayBound(value: unknown): value is string | undefined {
+  return value === undefined || (typeof value === 'string' && DAY.test(value))
+}
+
+function meetingRange(from: unknown, to: unknown, today: string) {
+  if (!isDayBound(from) || !isDayBound(to)) return null
   if (from && to && from > to) return null
+  if (to && to < today) return { from, to, zaman: 'gecmis' }
+  if (!from && !to) return {}
+  // The route cannot display both date tabs in the same list.
+  if (!from || from < today) return null
+  return { from, to }
+}
+
+function meetingView(
+  filter: Record<string, unknown>,
+  scope: ScopeSnapshot,
+  today: string,
+): ViewLink | null {
+  const unit = unitFilter(filter, scope)
+  const range = meetingRange(filter.baslangic, filter.bitis, today)
+  if (!unit || !range) return null
   return {
     label: 'Toplantılar',
-    to: { name: 'collaboration.meetings', query: { ...unit, from, to } },
+    to: { name: 'collaboration.meetings', query: { ...unit, ...range } },
   }
 }
 
@@ -59,13 +74,14 @@ export function resolveView(
   view: SuggestedView,
   scope: ScopeSnapshot,
   admin: boolean,
+  today: string,
 ): ViewLink | null {
   if (!scope.programId || view.filtre.program !== scope.programId) return null
   switch (view.gorunum) {
     case 'gorev_listesi':
       return workView(view.filtre, scope)
     case 'toplantilar':
-      return meetingView(view.filtre, scope)
+      return meetingView(view.filtre, scope, today)
     case 'pano':
       return admin && scope.lens === 'admin' ? { label: 'Ana sayfa', to: { name: 'home' } } : null
     case 'sezon_raporu':

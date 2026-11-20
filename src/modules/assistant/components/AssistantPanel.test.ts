@@ -39,6 +39,7 @@ async function setup(narrow = false) {
       admin: false,
       scope: { programId: 'p1', departmentId: 'd1', lens: 'member' },
       narrow,
+      today: '2026-11-20',
     },
     attachTo: document.body,
     global: { plugins: [i18n, router] },
