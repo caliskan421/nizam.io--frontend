@@ -18,7 +18,7 @@ Görev listesinde mevcut yerel arama ve sıralama, profil ve bildirimlerde mevcu
 Terra, `f29d7d021a27c7759b62127a32e8314b4cc67689` istemcisini izole v0.38 backend ile sınadı.
 
 - Takvimden kaynak göreve geçiş yönetici, koordinatör ve üyede 390 ve 1440 px genişlikte geçti. Takvim günü klavyede Enter ile açıldı. Takvimdeki tarih hücresinden kişisel tabloya geçiş de geçti.
-- Hafızadan göreve dönüştürme, görevin `source=memory` alanı ve deneyimdeki kaynak toplantı notu doğrulandı. Profilde push tercihi kaydedildi, yeniden okumada korundu ve üç hesap arasında birbirine yansımadı.
+- Hafızadan göreve dönüştürme, ilgili deneyimden eklenen görev notunun `source=memory` alanı ve deneyimdeki kaynak toplantı notu doğrulandı. Profilde push tercihi kaydedildi, yeniden okumada korundu ve üç hesap arasında birbirine yansımadı.
 - Asistan bayrağı kapalı backend'in 404 cevabı üç rolde doğru panel durumunu gösterdi. Geciktirilen takvim yanıtı A programından B programına geçişten sonra eski program verisini ekrana getirmedi.
 - Yerel tek koşuda takvimde ilk görünür veriye kadar yönetici 471 ms, koordinatör 374 ms, üye 456 ms ölçüldü. Ölçüm örnek veri ve tek ortam içindir. Yük testi, performans eşiği veya geniş klavye ve ekran okuyucu denetimi yapılmadı.
 - Matristeki yeni arayüzler bu pin çalışmasının kapsamı dışında. E2E, v0.38 altında mevcut arayüzlerin uyumluluğunu kapsar.
