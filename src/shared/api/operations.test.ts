@@ -8,8 +8,8 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('v0.38.0-api sözleşmesinin 324 ucu üretildi', () => {
-    expect(entries).toHaveLength(324)
+  it('v0.39.0-api sözleşmesinin 325 ucu üretildi', () => {
+    expect(entries).toHaveLength(325)
   })
 
   it('v0.27/v0.28 yeni dört uç üretildi (kapsam sınıfı sözleşmeden)', () => {
@@ -64,6 +64,17 @@ describe('operations.gen', () => {
       scope: 'S1',
       csrf: false,
       programHeader: false,
+    })
+  })
+
+  it('atanan seçenekleri kimlik doğrulamalı program kapsamı okumasıdır', () => {
+    expect(OPERATIONS['GET /v1/program/work-items/assignee-options']).toMatchObject({
+      operationId: 'listWorkItemAssigneeOptions',
+      scope: 'S2',
+      auth: true,
+      csrf: false,
+      programHeader: true,
+      departmentHeader: false,
     })
   })
 

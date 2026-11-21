@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.38.0-api (fb373d469f176cd166102041ffc4e5970ea662f0) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
+// Kaynak: nizam.io--backend etiket v0.39.0-api (3d5e452a91c37dca2fbba271657e36de0ad2a176) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
 
 export const API_VERSION = "v1" as const
 
@@ -244,6 +244,7 @@ export const OPERATIONS = {
   "PATCH /v1/program/departments/{departmentId}": {"operationId":"renameDepartmentLink","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "DELETE /v1/program/departments/{departmentId}": {"operationId":"unlinkDepartment","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/program/work-items": {"operationId":"listProgramWorkItems","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
+  "GET /v1/program/work-items/assignee-options": {"operationId":"listWorkItemAssigneeOptions","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/program/work-items/counts": {"operationId":"countProgramWorkItems","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/programs": {"operationId":"listPrograms","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/programs": {"operationId":"createProgram","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},

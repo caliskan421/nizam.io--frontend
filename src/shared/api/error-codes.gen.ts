@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.38.0-api (fb373d469f176cd166102041ffc4e5970ea662f0) — docs/api/error-codes.json
+// Kaynak: nizam.io--backend etiket v0.39.0-api (3d5e452a91c37dca2fbba271657e36de0ad2a176) — docs/api/error-codes.json
 
 export const ERROR_CATALOG_VERSION = 1 as const
 
