@@ -2,6 +2,8 @@
 
 [Üye profili](../../tasarim/kaynak/Uye-Profil.dc.html) hesap, parola, üyelik ve bildirim düzeninin kaynağıdır. Yerel Prototip içindeki yönetici, koordinatör ve üye görünümüne göre seçili programdaki gerçek üyelikler gösterilir. Üyelik cevabı kesilmişse kart bunu belirtir. Yönetici programın pano sayaçlarını, koordinatörlük özetini ve kendi işlem geçmişini görür. Koordinatör, seçili ve yetkili birimindeki görev onay kuyruğuna gider. Üye kendi açık görevlerini ve erişebildiği yaklaşan toplantıları görür. Görev sayaçları görünür görevler için sunucunun döndürdüğü toplamlardır. Kuyruklar yüklenen görevlerden ilk beşini gösterir ve veri kesilmişse bunu belirtir. Görev kararları mevcut görev ekranında verilir.
 
+Aşağıdaki tablo WEB-20 uygulamasının v0.33.0-api pinindeki durumunu kaydeder. Daha sonra yayımlanan kişisel profil ve bildirim aboneliği uçlarının arayüz durumu [WEB-21 yayın matrisinde](../web-21/README.md) yer alır.
+
 | Yüzey | Yayımlı v0.33.0-api |
 | --- | --- |
 | Hesap bilgisi | S1 `GET /v1/me` ile ad ve e-posta, `GET /v1/me/departments` ile rol ve üyelik. Kişinin kendi adını düzenlemesi veya telefon okuması/yazması için kişisel uç yok. |
