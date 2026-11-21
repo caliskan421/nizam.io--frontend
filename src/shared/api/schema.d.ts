@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.38.0-api (fb373d469f176cd166102041ffc4e5970ea662f0) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.39.0-api (3d5e452a91c37dca2fbba271657e36de0ad2a176) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -4624,6 +4624,39 @@ export interface paths {
          *     `program_id` ve `department_id` başlıklarıyla gider.
          */
         get: operations["listProgramWorkItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/program/work-items/assignee-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Görünür program görevlerinin kişi süzgeci seçenekleri (imleçli).
+         * @description Program görev listesiyle aynı yetki kararı ve görünür görev yüklemini kullanır.
+         *     Şirket yöneticisi programın tüm canlı ana görevlerinin, koordinatör koordinatörü
+         *     olduğu departmanlardaki görevlerin, üye üyesi olduğu departmanlarda kendisine
+         *     atanan görevlerin güncel atananlarını görür; birleşik rollerin birleşimi alınır.
+         *     Aynı hesap yalnız bir kez döner. Silinmiş görevler ve kaldırılmış atamalar dönmez;
+         *     görünür ortak görevin diğer atananları da seçenektir. Alt görev atananları kullanılmaz.
+         *     İsteğe bağlı department_id görünürlükle kesişir; bağlı olmayan veya silinmiş
+         *     departman 404 work.program_scope_invalid alır. Boş değer süzgeç yok sayılır.
+         *     Görev listesinin sayfası, q ve assignee_account_id seçenek kümesini daraltmaz;
+         *     bu uçta q ve assignee_account_id yok sayılır.
+         *     Sıra account_id artandır; imleç seçenek sayfasına aittir ve görev listesi
+         *     imleciyle değiştirilemez. Sonraki istekte program ve department_id aynı tutulur.
+         *     Ad yalnız bu sayfadaki hesaplar için tek toplu okumayla, mevcut görev adı
+         *     görünürlüğüyle çözülür; çözülemeyen ad null olur. Yetki reddinde kişi verisi okunmaz.
+         */
+        get: operations["listWorkItemAssigneeOptions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10561,6 +10594,14 @@ export interface components {
             account_id: string;
             /** @description Görünen ad. Hesabın satırı yoksa `null` (boş dize değil); ad okuması o an başarısızsa da geçici olarak `null` (yanıt yine başarılıdır). İstemci nötr etiket gösterir. Silinmiş (geri yüklenebilir) hesabın adı döner. */
             full_name: string | null;
+        };
+        WorkItemAssigneeOptionList: {
+            items: {
+                account_id: string;
+                full_name: string | null;
+            }[];
+            /** @description Son sayfada alan yoktur. */
+            next_cursor?: string;
         };
         WorkItemDates: {
             /** Format: date */
@@ -33920,6 +33961,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkItemList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    listWorkItemAssigneeOptions: {
+        parameters: {
+            query?: {
+                /** @description Önceki seçenek sayfasının opak next_cursor değeri. */
+                cursor?: string;
+                department_id?: string;
+                /** @description Varsayılan 50; 0 ve negatif varsayılana, 200 üstü 200'e çekilir. */
+                limit?: number;
+            };
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkItemAssigneeOptionList"];
                 };
             };
             /** @description Kimlik doğrulanmamış */

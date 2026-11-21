@@ -1,6 +1,6 @@
 # WEB-21 API pin uyumu
 
-Önceki pin `v0.33.0-api`, yeni pin `v0.38.0-api` (`fb373d469f176cd166102041ffc4e5970ea662f0`). OpenAPI, operasyon tablosu ve hata kataloğu yayımlı etiketten üretildi. Üç yeni operasyonla toplam 324 operasyon var. Hata kodu toplamı 247. `identity.invalid_phone`, `identity.input_invalid` alan kodlarına eklendi. Ara yayımlarda mevcut istemcinin gönderdiği operasyon, başlık veya parametrelerden kaldırılan olmadı.
+İlk yükseltme `v0.33.0-api` → `v0.38.0-api` (`fb373d469f176cd166102041ffc4e5970ea662f0`). Takip PR’ı pini `v0.39.0-api` (`3d5e452a91c37dca2fbba271657e36de0ad2a176`) sürümüne taşır. OpenAPI, operasyon tablosu ve hata kataloğu yayımlı etiketten üretildi. Dört yeni operasyonla toplam 325 operasyon var. Hata kodu toplamı 247. `identity.invalid_phone`, `identity.input_invalid` alan kodlarına eklendi. Ara yayımlarda mevcut istemcinin gönderdiği operasyon, başlık veya parametrelerden kaldırılan olmadı.
 
 | Yayım ve modül | Sözleşme farkı | Arayüzde kalan iş |
 | --- | --- | --- |
@@ -10,6 +10,7 @@
 | v0.36 · Görevler | Liste ve sayaçta ortak isteğe bağlı `q`; başlık, görünen görev kodu ve güncel görünür atanan adı. Türkçe küçük harfle aksana duyarlı düz alt dize, kırpılmış en çok 100 karakter. | Yüksek. Mevcut istemci aramasını liste ve sayaçta eşzamanlı sunucu süzgecine geçir. İmleç normalize aramayla bağlı. Liste/sayaç ayrı okumalar olduğu ve veri arada değişebildiği için anlık görüntü vaadi yok. GAP-265. |
 | v0.37 · Profil / Koordinatörlükler | `GET /v1/me` kişisel nullable `phone` döndürür. S1 ve CSRF korumalı `PATCH /v1/me` ad ve telefon günceller. Atlanan alan korunur, `phone: null` siler. S2 `GET /v1/departments/{id}/members/{accountId}` aktif koordinatöre kendi program/birimindeki üyeyi gösterir. | Yüksek. Profilde ad/telefon formu ve hesap okuması tazelemesi; koordinatör görünümünde ayrı yetkili iletişim okuması. E-posta salt okunur, telefon listelere ve genel profil verilerine taşınmaz. Biçim doğrulanır, sahiplik doğrulaması sağlanmaz. |
 | v0.38 · Profil / Bildirimler | S1 `GET /v1/notifications/targets` çağıranın aktif hedeflerini sayfalar. Mevcut DELETE seçili aboneliği kaldırır. Eski platform bilinmiyorsa `null`; token/endpoint ve fiziksel cihaz bilgileri dönmez. | Orta. Hesap içinde aktif bildirim aboneliklerini listele ve açık kaldırma eylemine bağla. Tarayıcı adı/oturum güvenliği, deneme bildirimi ve sessiz saatler bu sözleşmede yok. |
+| v0.39 · Görevler | Kimlik doğrulamalı S2 `GET /v1/program/work-items/assignee-options`, görünür canlı ana görevlerin güncel atananlarını görev sayfası ve aramasından bağımsız sayfalar. Birim süzgeci varsa yetkiyle kesişir. Sonraki istek aynı program ve birimle seçenek imlecini kullanır. | Yüksek. Bugünkü yüklü görevlerden türetilen kişi seçeneklerini ayrı, kapsam bağlı okumaya geçir. Çözülemeyen ad `null`; genel kişi dizini, alt görev atananı ve sayfalar arası sabit görüntü yok. Yeni uç yalnız seçim içindir. Görev atama izinleri değişmedi. BE-039. |
 
 Görev listesinde mevcut yerel arama ve sıralama, profil ve bildirimlerde mevcut kontroller çalışmaya devam eder. Yeni form, hedef listesi, hücre anması ve sunucuya taşınan filtreler ayrı arayüz değişiklikleridir. Yayımlanmamış backend PR'ı bu pinin kapsamında değildir.
 
@@ -22,3 +23,9 @@ Terra, `f29d7d021a27c7759b62127a32e8314b4cc67689` istemcisini izole v0.38 backen
 - Asistan bayrağı kapalı backend'in 404 cevabı üç rolde doğru panel durumunu gösterdi. Geciktirilen takvim yanıtı A programından B programına geçişten sonra eski program verisini ekrana getirmedi.
 - Yerel tek koşuda takvimde ilk görünür veriye kadar yönetici 471 ms, koordinatör 374 ms, üye 456 ms ölçüldü. Ölçüm örnek veri ve tek ortam içindir. Yük testi, performans eşiği veya geniş klavye ve ekran okuyucu denetimi yapılmadı.
 - Matristeki yeni arayüzler bu pin çalışmasının kapsamı dışında. E2E, v0.38 altında mevcut arayüzlerin uyumluluğunu kapsar.
+
+### v0.39 takip kabulü
+
+Etiketten yeniden üretim, 325 operasyon ve yeni S2 ucunun başlık/kimlik sözleşmesi denetlenir. Mevcut görev listesi ve kişi süzgeci mevcut isteklerini kullanır. Yukarıdaki bağımsız gerçek backend ölçümleri v0.38 kapsamındadır. v0.39 için CI gerçek backend dumanı ve görev regresyonları pin uyumunu kapsar. Yeni seçenek listesinin arayüz kabulü ayrı işte yapılır.
+
+Terra, `6954556907b8db64377595f2afd7f1df9215da90` istemcisini yayımlı v0.39 backend ile izole ortamda doğruladı. Yeni uçta üç rol ve iki birimde seçenek görünürlüğü, birim süzgeci ve kapsam dışı 404, `q` ile `assignee_account_id` alanlarının yok sayılması ve `limit=1` imleci geçti. Mevcut görev ekranı üç rolde 390 ve 1440 px genişlikte açıldı. Yönetici ve koordinatör kişi süzgeci ile üyenin kendi görevleriyle sınırlı görünümü korundu. Bu kontrol yeni ucun arayüz bağlantısını kapsamaz.
