@@ -283,6 +283,7 @@ function standingHandlers(db: OrgDb) {
         email: me.email,
         full_name: me.full_name,
         company_admin: me.admin,
+        phone: null,
       })
     }),
     http.get(`${ORIGIN}/v1/me/departments`, ({ request }) => {

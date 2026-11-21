@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.33.0-api (e6c08c1b66c108ceec48bfdae21070ac1ece551e) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
+// Kaynak: nizam.io--backend etiket v0.38.0-api (fb373d469f176cd166102041ffc4e5970ea662f0) — docs/api/openapi.yaml (x-nizamio-scope-class, parametreler, security)
 
 export const API_VERSION = "v1" as const
 
@@ -145,6 +145,7 @@ export const OPERATIONS = {
   "DELETE /v1/departments/{id}/coordinator/{accountId}": {"operationId":"removeCoordinator","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "GET /v1/departments/{id}/delete-impact": {"operationId":"departmentDeleteImpact","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/departments/{id}/members": {"operationId":"listMembers","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
+  "GET /v1/departments/{id}/members/{accountId}": {"operationId":"readMemberContact","scope":"S2","csrf":false,"programHeader":true,"departmentHeader":false,"auth":true},
   "POST /v1/departments/{id}/memberships": {"operationId":"assignMembership","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "PATCH /v1/departments/{id}/memberships/{accountId}": {"operationId":"updateMembershipRole","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
   "DELETE /v1/departments/{id}/memberships/{accountId}": {"operationId":"removeMember","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
@@ -159,6 +160,7 @@ export const OPERATIONS = {
   "PATCH /v1/files/{id}/work-item": {"operationId":"moveFile","scope":"S3","csrf":true,"programHeader":true,"departmentHeader":true,"auth":true},
   "GET /v1/instance/profile": {"operationId":"instanceProfile","scope":"S0","csrf":false,"programHeader":false,"departmentHeader":false,"auth":false},
   "GET /v1/me": {"operationId":"me","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
+  "PATCH /v1/me": {"operationId":"updateMe","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/me/chat-unread": {"operationId":"getChatUnreadOverview","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/me/departments": {"operationId":"myDepartments","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "PATCH /v1/meeting-agenda/{itemId}": {"operationId":"updateAgendaItem","scope":"S2","csrf":true,"programHeader":true,"departmentHeader":false,"auth":true},
@@ -202,6 +204,7 @@ export const OPERATIONS = {
   "GET /v1/notifications/subject-mutes": {"operationId":"listNotificationSubjectMutes","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "PUT /v1/notifications/subject-mutes/{kind}/{id}": {"operationId":"muteNotificationSubject","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "DELETE /v1/notifications/subject-mutes/{kind}/{id}": {"operationId":"unmuteNotificationSubject","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
+  "GET /v1/notifications/targets": {"operationId":"listNotificationTargets","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},
   "POST /v1/notifications/targets": {"operationId":"registerPushTarget","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "DELETE /v1/notifications/targets/{target_id}": {"operationId":"unregisterPushTarget","scope":"S1","csrf":true,"programHeader":false,"departmentHeader":false,"auth":true},
   "GET /v1/notifications/unread-count": {"operationId":"countUnreadNotifications","scope":"S1","csrf":false,"programHeader":false,"departmentHeader":false,"auth":true},

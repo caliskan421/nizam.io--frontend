@@ -4,7 +4,13 @@ import { makeMyDepartment, type MyDepartmentRole } from '@/shared/api/__tests__/
 
 import { parseStanding } from './standing-facts'
 
-const me = { account_id: 'acc-1', email: 'a@example.test', full_name: 'Ayşe', company_admin: false }
+const me = {
+  account_id: 'acc-1',
+  email: 'a@example.test',
+  full_name: 'Ayşe',
+  company_admin: false,
+  phone: null,
+}
 
 describe('K-2: MyDepartment.role kapalı enum + zorunlu department_code/coordinators (pin v0.23.0-api)', () => {
   it('rol kümesi koordinator | uye; satırlar pin öncesiyle aynı biçimde çözülür', () => {

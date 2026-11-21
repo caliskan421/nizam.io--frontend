@@ -7,7 +7,13 @@ import { quickActions } from './quick-actions'
 
 const standing = (companyAdmin: boolean, role?: string) =>
   parseStanding(
-    { account_id: 'acc-1', email: 'a@b.test', full_name: 'Ayşe', company_admin: companyAdmin },
+    {
+      account_id: 'acc-1',
+      email: 'a@b.test',
+      full_name: 'Ayşe',
+      company_admin: companyAdmin,
+      phone: null,
+    },
     {
       departments: role
         ? [

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { i18n } from '@/shared/i18n'
 
+import { notificationTarget } from './target'
+
 import {
   FALLBACK_ENTRY,
   KNOWN_NOTIFICATION_TYPES,
@@ -71,6 +73,16 @@ describe('bildirim sözlüğü (18 tür)', () => {
     expect(entry).toBe(FALLBACK_ENTRY)
     expect(i18n.global.t(`notifications.rows.types.${entry.id}.text`)).toBe('Yeni bildirim')
     expect(entry).toMatchObject({ icon: 'bell', tone: 'muted', subject: 'unknown', action: null })
+  })
+
+  it('v0.34 hücre anması destek eklenene kadar genel ve hedefsiz kalır', () => {
+    expect(describeNotification({ type: 'tables.comment.mentioned' }).entry).toBe(FALLBACK_ENTRY)
+    expect(
+      notificationTarget({
+        subject_ref: { kind: 'table_comment', id: 'comment-1' },
+        program_id: 'p1',
+      }),
+    ).toBeNull()
   })
 
   it('18 türün tamamı sözlükte; her biri aktörlü cümle (actorText) taşır, {actor} yer tutucusu ile', () => {

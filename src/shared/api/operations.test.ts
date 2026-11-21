@@ -8,8 +8,8 @@ import { OPERATIONS } from './operations.gen'
 describe('operations.gen', () => {
   const entries = Object.entries(OPERATIONS)
 
-  it('v0.33.0-api sözleşmesinin 321 ucu üretildi', () => {
-    expect(entries).toHaveLength(321)
+  it('v0.38.0-api sözleşmesinin 324 ucu üretildi', () => {
+    expect(entries).toHaveLength(324)
   })
 
   it('v0.27/v0.28 yeni dört uç üretildi (kapsam sınıfı sözleşmeden)', () => {
@@ -42,6 +42,28 @@ describe('operations.gen', () => {
       csrf: true,
       programHeader: false,
       departmentHeader: false,
+    })
+  })
+
+  it('kişisel profil ve abonelik işlemleri S1, koordinatör iletişim okuması S2', () => {
+    expect(OPERATIONS['PATCH /v1/me']).toMatchObject({
+      operationId: 'updateMe',
+      scope: 'S1',
+      csrf: true,
+      programHeader: false,
+    })
+    expect(OPERATIONS['GET /v1/departments/{id}/members/{accountId}']).toMatchObject({
+      operationId: 'readMemberContact',
+      scope: 'S2',
+      csrf: false,
+      programHeader: true,
+      departmentHeader: false,
+    })
+    expect(OPERATIONS['GET /v1/notifications/targets']).toMatchObject({
+      operationId: 'listNotificationTargets',
+      scope: 'S1',
+      csrf: false,
+      programHeader: false,
     })
   })
 
