@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.33.0-api (e6c08c1b66c108ceec48bfdae21070ac1ece551e) — docs/api/openapi.yaml
+// Kaynak: nizam.io--backend etiket v0.38.0-api (fb373d469f176cd166102041ffc4e5970ea662f0) — docs/api/openapi.yaml
 
 export interface paths {
     "/.well-known/nizamio-instance": {
@@ -2870,6 +2870,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/departments/{id}/members/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Koordinatöre özel kişi iletişim detayı.
+         * @description Yalnız seçili programda yolun biriminin aktif koordinatörü, aynı birimin aktif üyesini okuyabilir.
+         *     Hedef veya okuyanın üyeliği/koordinatörlüğü bitince erişim kapanır. Şirket yöneticisi rolü
+         *     tek başına erişim vermez. Birim canlı ve programa bağlı olmalıdır. Telefon başka liste,
+         *     arama, CSV veya yönetici kişi detayına eklenmez. Yetkisiz ve bilinmeyen hedef aynı 403 alır.
+         */
+        get: operations["readMemberContact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/departments/{id}/memberships": {
         parameters: {
             query?: never;
@@ -3067,7 +3090,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Resim (png, jpeg) ve PDF dosyası için tek boyutlu JPEG küçük resim döndürür (en uzun kenar 512 px; PDF'in ilk sayfası). Yetki indirmeyle aynıdır (yetkisiz çağıran da bulunamadı alır). Türev ilk istekte üretilir ve depoda saklanır. Diğer türler ve üretilemeyen dosyalar için 422 `records.preview_unavailable`: istemci tür simgesi gösterir. Bilet hedefi DEĞİLDİR: istemci Bearer ve kapsam başlıklarıyla `fetch` eder, yanıtı `blob:` adresine çevirir. */
+        /**
+         * Resim (png, jpeg) ve PDF dosyası için tek boyutlu JPEG küçük resim döndürür (en uzun kenar 512 px; PDF'in ilk sayfası). Yetki indirmeyle aynıdır (yetkisiz çağıran da bulunamadı alır). Türev ilk istekte üretilir ve depoda saklanır. Diğer türler ve üretilemeyen dosyalar için 422 `records.preview_unavailable`: istemci tür simgesi gösterir. Bilet hedefi DEĞİLDİR: istemci Bearer ve kapsam başlıklarıyla `fetch` eder, yanıtı `blob:` adresine çevirir.
+         * @description Üretim slotu çizim sonucu iletilmeden önce serbest bırakılır. Süre aşımı yanıtından sonra kesilemeyen çizici çalışıyorsa slot çizici bitene kadar tutulur.
+         */
         get: operations["getFileThumbnail"];
         put?: never;
         post?: never;
@@ -3137,7 +3163,14 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Kendi adını ve telefonunu günceller.
+         * @description Program/birim seçiminden bağımsızdır. Yalnız oturum sahibi değişir; e-posta salt okunurdur.
+         *     Atlanan alan korunur, phone null telefonu siler. Telefon + ve 7–15 ASCII rakamdan oluşur.
+         *     full_name null/boş olamaz; boş nesne ve bilinmeyen alanlar reddedilir (katı gövde).
+         *     Telefon veya önceki/sonraki alan değerleri audit/olay/loga yazılmaz.
+         */
+        patch: operations["updateMe"];
         trace?: never;
     };
     "/v1/me/chat-unread": {
@@ -3837,7 +3870,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Kendi aktif bildirim hedeflerini listeler.
+         * @description Hesap kapsamlıdır; program/departman kapsam başlığı gerekmez. Yalnız mevcut sahibin aktif webpush/FCM kayıtlarını (created_at DESC, target_id DESC) sırasında döndürür. Varsayılan 50, en çok 200 kayıt; devam için next_cursor kullanılır. Boş sonuç items=[], next_cursor=null olur. Platform yalnız kayıtlıysa döner; eski webpush kayıtlarında null olabilir. created_at ilk kayıt, updated_at son yenileme zamanıdır; sahiplik devrinde created_at korunur. Cihaz adı, fiziksel cihaz/oturum kimliği, endpoint, push anahtarları, cihaz tokenı veya ham user agent dönmez. Listeden seçilen target_id mevcut DELETE ucuna verilir. Devredilen ve bırakılan kayıtlar listede görünmez.
+         */
+        get: operations["listNotificationTargets"];
         put?: never;
         /** Cihaz (web push) aboneliği kaydı; kendi hesabına idempotent. */
         post: operations["registerPushTarget"];
@@ -4557,10 +4594,32 @@ export interface paths {
          *     (`fields[].field` = `assignee_account_id`). Sonraki sayfa isteği aynı süzgeçleri
          *     tekrar gönderir.
          *
+         *     İsteğe bağlı `q`, başlık, gösterilen görev kodu (kod yoksa `#sequence_no`)
+         *     ve yalnız atananların yanıtta gösterilebilir güncel adlarında düz alt dize arar.
+         *     Türkçe küçük harf uygulanır (I/ı, İ/i); aksanlar korunur. `%`, `_` ve ters
+         *     bölü harfiyen aranır. Baş/son boşluk kırpılır; boş q arama yok sayılır; en çok
+         *     100 Unicode karakter (aşım 422 work.input_invalid, alan q). Eşleşme sayfalama
+         *     öncesindedir ve seçili sıra korunur; kod tam eşleşmesi öne alınmaz.
+         *     İmleç normalize q'ya bağlıdır: başka q ile veya q kaldırılarak kullanılamaz
+         *     (422 work.input_invalid, alan cursor). Sonraki sayfada aynı q gönderilir.
+         *     Ad/kod başka modüllerin mevcut gösterim portlarından toplu okunur; gizli
+         *     görevler, açıklama, oluşturan adı ve e-posta aramaya girmez. Ad okuması
+         *     başarısızsa adlar aramaya girmez ve atanan adları null gösterilir.
+         *
+         *     İsteğe bağlı `sort=title|status|end_on`, `order=asc|desc` (sort varsa varsayılan
+         *     asc), bütün görünür kayıtlar üzerinde sayfalama öncesi uygulanır. Başlık Türkçe
+         *     temel harf duyarlılığında ve sayısal sıralanır (İ/i ve I/ı eşit, 2 < 10);
+         *     durum sırası baslanmadi, devam_ediyor, onaya_sunuldu, iade_edildi, tamamlandi;
+         *     bitiş tarihi takvim günü sırasıdır. Eşitlik her iki yönde created_at ve id artan
+         *     kırılır. sort yoksa eski sıra ve imleç değişmez. order tek başına, geçersiz
+         *     sort/order veya başka sıranın/yönün imleci 422 work.input_invalid döner
+         *     (alan sort/order/cursor). Sonraki sayfada aynı sort/order ve süzgeçler gönderilir.
+         *     Sıralanan değer sayfalar arasında değiştirilirse anlık görüntü garantisi yoktur.
+         *
          *     Hiçbir programda ekip satırı olmayan ve yönetici olmayan hesap `403
          *     organization.membership_required`; bu programda ekip satırı olmayan ve yönetici
          *     olmayan hesap, var olmayan programla aynı `404 work.program_scope_invalid` alır
-         *     (programın varlığı sızmaz). Sıra `(created_at, id)`; imleç opak; `limit`
+         *     (programın varlığı sızmaz). Varsayılan sıra `(created_at, id)`; imleç opak; `limit`
          *     varsayılanı 50, 200 üstü 200'e çekilir. Tek görev istekleri yine görevin kendi
          *     `program_id` ve `department_id` başlıklarıyla gider.
          */
@@ -4583,7 +4642,8 @@ export interface paths {
         /**
          * Seçili programın görünür görevlerinin sayaçları (listeyle aynı görünürlük ve süzgeçler).
          * @description Program görev listesinin (`listProgramWorkItems`) sayaç ucudur (WORK-K87). Görünürlük,
-         *     `department_id` ve `assignee_account_id` süzgeçleri, redler (403/404/422) ve
+         *     `department_id`, `assignee_account_id` ve `q` süzgeçleri (listeyle aynı üç alan,
+         *     Türkçe küçük harf ve düz alt dize kuralları), redler (403/404/422) ve
          *     sıraları listeyle **aynıdır**; aynı süzgeçlerle `total`, listenin sayfalanarak
          *     okunan satır sayısına eşittir (iki ayrı istek aynı anı görmeyebilir). Liste
          *     cevabına sayaç eklenmez; sayaç bu uçtan alınır. `limit` ve `cursor` yok sayılır.
@@ -8214,6 +8274,11 @@ export interface components {
             past: number;
             upcoming: number;
         };
+        MemberContactResponse: {
+            account_id: string;
+            full_name: string;
+            phone: string | null;
+        };
         Membership: {
             account_id: string;
             department_id: string;
@@ -8381,6 +8446,8 @@ export interface components {
             email: string;
             /** @description Görünen ad */
             full_name: string;
+            /** @description Kendi özel profil telefonu; kayıt yoksa null. */
+            phone: string | null;
         };
         MonthlyActivity: {
             completed_tasks: number;
@@ -8503,6 +8570,7 @@ export interface components {
             affected_tasks_count?: number;
             /** @enum {string} */
             chat_kind?: "direct" | "group";
+            column_id?: string;
             /**
              * Format: date
              * @description Özetin günü (kurulum saat diliminin takvim günü).
@@ -8538,14 +8606,19 @@ export interface components {
             /** @description Günlük özette atananın gecikmiş açık görev sayısı (WORK-K99). */
             overdue_count?: number;
             request_id?: string;
+            row_id?: string;
             /** Format: int64 */
             seq?: number;
             source_program_id?: string;
+            /** @enum {string} */
+            space?: "personal" | "coordinatorship";
             /** Format: date */
             start_date_from?: string;
             /** Format: date */
             start_date_to?: string;
             status?: string;
+            /** @description tables.comment.mentioned için yalnız canlı yetkiyle çözülen güncel hedef tablo. */
+            table_id?: string;
             to?: string;
         };
         NotificationGroup: {
@@ -8593,7 +8666,7 @@ export interface components {
              */
             outcome: "approved" | "rejected" | "completed" | "returned" | "changed" | "deleted" | "withdrawn";
         };
-        /** @description Taşıma önerisinde kind table_proposal olur; görünmez, okunamayan veya sonuçlanmış öneride id boş dizgedir, program_id, department_id, actor, subject.title ve detail null olur. */
+        /** @description Taşıma önerisinde kind table_proposal olur; görünmez, okunamayan veya sonuçlanmış öneride id boş dizgedir, program_id, department_id, actor, subject.title ve detail null olur. tables.comment.mentioned türünde kind table_comment ve görünür id yorum kimliğidir; yalnız genel anma anlamı taşır. Aktör/title/action/group daima null; erişim/hedef kaybında id boş, kapsam/detail null olur. available durumunda detail güncel table_id/row_id/column_id/space taşır; anmalar birleşmez ve bekleyen karar sayılmaz. */
         NotificationSubject: {
             id: string;
             kind: string;
@@ -8625,6 +8698,25 @@ export interface components {
             items: components["schemas"]["NotificationSubjectMute"][];
             /** @description Sonraki sayfanın opak imleci; son sayfada null. */
             next_cursor: string | null;
+        };
+        NotificationTargetList: {
+            items: components["schemas"]["NotificationTargetSummary"][];
+            next_cursor: string | null;
+        };
+        NotificationTargetSummary: {
+            /** @enum {string} */
+            channel: "webpush" | "fcm";
+            /** Format: date-time */
+            created_at: string;
+            /**
+             * @description Kayıtlı platform; bilinmeyen veya eski webpush kaydında null.
+             * @enum {string|null}
+             */
+            platform: "ios" | "android" | null;
+            /** @description Seçili kaydı mevcut DELETE ucuyla kaldırmak için güvenli abonelik kimliği. */
+            target_id: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         /** @description `CountResult` üst kümesi. */
         NotificationUnreadCount: {
@@ -9486,7 +9578,7 @@ export interface components {
             type: components["schemas"]["TableColumnType"];
             width: number;
         };
-        /** @description Editor ya da sahip (viewer yazamaz; yönetici/koordinatör bypass'ı yok). Yorum kimliği sunucuda üretilir ve sonuçta `id` olarak döner; `id` gönderilirse 422. `row_id` zorunlu, `column_id` isteğe bağlıdır; var olmayan satır/sütun 404. `body` 1–4000 Unicode karakter, hücre metniyle aynı kontrol karakteri kuralı (sekme/satır sonu serbest). Satır başına en çok 500 yorum (aşımda 409 `tables.limit_reached`). İşlem sırası artar (yorumun değişmez `seq`'i budur) ve `add_comment` olayı yazılır; olay/makbuz yorum metni taşımaz (ADR-0040). */
+        /** @description Editor ya da sahip (viewer yazamaz; yönetici/koordinatör bypass'ı yok). Yorum kimliği sunucuda üretilir ve sonuçta `id` olarak döner; `id` gönderilirse 422. `row_id` zorunlu, `column_id` isteğe bağlıdır; var olmayan satır/sütun 404. `body` 1–4000 Unicode karakter, hücre metniyle aynı kontrol karakteri kuralı (sekme/satır sonu serbest). Satır başına en çok 500 yorum (aşımda 409 `tables.limit_reached`). İşlem sırası artar (yorumun değişmez `seq`'i budur) ve `add_comment` olayı yazılır; olay/makbuz yorum metni taşımaz (ADR-0040). İsteğe bağlı mention_account_ids yalnız column_id dolu yeni hücre yorumunda, en çok 50 açık hesap kimliğidir (tekrarlar tekilleştirilir). Yazar, pasif hesap ve güncel kaynak ACL/kapsamında okuyamayanlar sessizce elenir; anma erişim vermez. Portal zili dışında kanal kullanılmaz. Düzenleme ve satır yorumunda dolu anma listesi 422 alır. Alan yok/null/boşken eski parmak izi korunur; dolu listenin sırası dahil yük değişikliği 409'dur. */
         TableAddCommentCommand: {
             body: string;
             column_id?: string;
@@ -9495,6 +9587,7 @@ export interface components {
              * @enum {string}
              */
             kind: "add_comment";
+            mention_account_ids?: string[] | null;
             row_id: string;
         };
         /** @description Yeni satır kimliği sunucuda üretilir ve sonuçta `id` olarak döner; `id` gönderilirse 422. Tablo başına en çok 100000 satır (aşımda 409 `tables.limit_reached`). */
@@ -10210,6 +10303,12 @@ export interface components {
             /** @description Verilirse kuruluştaki kuralla aynı: düz metne indirilip kırpıldıktan sonra 1–255 karakter (Unicode kod noktası); aksi 422 `collaboration.input_invalid` (alan `title`). */
             title?: string | null;
         };
+        UpdateMeRequest: {
+            /** @description Baş/son boşluk kırpılır; boş veya kontrol karakteri içeren ad reddedilir. */
+            full_name?: string;
+            /** @description Baş/son boşluk kırpılır; null kayıtlı telefonu siler. */
+            phone?: string | null;
+        };
         /** @description En az bir alan verilmelidir; verilmeyen alan değişmez. */
         UpdateProgramMilestoneRequest: {
             name?: string;
@@ -10746,6 +10845,8 @@ export interface components {
          *     kimlik harf, rakam, `-` ve `_` dışında karakter taşıyamaz ve en çok 64 bayttır.
          */
         ProgramWorkItemAssigneeFilter: string[];
+        /** @description Başlık, gösterilen görev kodu (#sıra yedeği dahil) veya gösterilebilir güncel atanan adı; Türkçe küçük harf, aksan duyarlı düz alt dize. Baş/son boşluk kırpılır; kırpılmış değer en çok 100 Unicode karakterdir, boş değer arama yoktur. Geçersiz UTF-8 ve NUL reddedilir. Unicode normalizasyonu yapılmaz. İmleç normalize q ile bağlıdır. */
+        ProgramWorkItemSearch: string;
         /**
          * @description Dönem raporunun koordinatörlük süzgeci (REPORTING-K17): seçili programın
          *     canlı katılan departmanlarının alt kümesi; yok/boş = hepsi. Süzgeç
@@ -24547,6 +24648,96 @@ export interface operations {
             };
         };
     };
+    readMemberContact: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
+                "X-Nizamio-Program": components["parameters"]["ProgramScope"];
+            };
+            path: {
+                accountId: components["parameters"]["PathAccountID"];
+                id: components["parameters"]["PathID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberContactResponse"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Program kapsamı eksik veya birim programa bağlı değil */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     assignMembership: {
         parameters: {
             query?: never;
@@ -25824,6 +26015,106 @@ export interface operations {
             };
             /** @description Kapsamda bulunamadı */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    updateMe: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Her yazma isteğinde zorunlu CSRF başlığı (değer serbest, boş olamaz). */
+                "X-Requested-With": components["parameters"]["CsrfHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMeRequest"];
+            };
+        };
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kapsamda bulunamadı */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Kurulum yazmaya kapalı */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Geçersiz profil alanı veya gövde */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -30325,6 +30616,86 @@ export interface operations {
             };
         };
     };
+    listNotificationTargets: {
+        parameters: {
+            query?: {
+                /** @description Opak imleç; önceki sayfanın `next_cursor` değeri. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Başarılı */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationTargetList"];
+                };
+            };
+            /** @description Kimlik doğrulanmamış */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Yetkisiz */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Geçersiz sayfa boyu veya imleç */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Hız sınırı aşıldı */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sunucu hatası */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bağımlılık erişilemez */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     registerPushTarget: {
         parameters: {
             query?: never;
@@ -33526,6 +33897,12 @@ export interface operations {
                 department_id?: string;
                 /** @description Sayfa boyu. Bütün imleçli listelerde varsayılan 50, üst sınır 200. Sınır dışı değer modüle göre farklı işlenir: organization (kullanıcılar, silinmiş departman/hesap), program (aktarım geçmişi) ve work (görevler, silinmiş görevler) 200 üstünü sessizce 200 yapar; organization ve program 0, negatif ya da sayı olmayan değeri 422 ile reddeder, work 0 ve negatifi varsayılana çeker, sayı olmayanı 422 ile reddeder. collaboration ve messaging 0 değerini varsayılan sayar; negatif, 200 üstü ve sayı olmayan değer 422 `collaboration.input_invalid` / `messaging.input_invalid` alır. notifications 1–200 dışını ve sayı olmayan değeri 422 `notifications.input_invalid` ile reddeder; audit de 1–200 dışını ve sayı olmayanı 422 `audit.input_invalid` ile reddeder. */
                 limit?: components["parameters"]["Limit"];
+                /** @description Sıra yönü; yalnız sort ile kullanılır, sort varsa varsayılan asc. */
+                order?: "asc" | "desc";
+                /** @description Başlık, gösterilen görev kodu (#sıra yedeği dahil) veya gösterilebilir güncel atanan adı; Türkçe küçük harf, aksan duyarlı düz alt dize. Baş/son boşluk kırpılır; kırpılmış değer en çok 100 Unicode karakterdir, boş değer arama yoktur. Geçersiz UTF-8 ve NUL reddedilir. Unicode normalizasyonu yapılmaz. İmleç normalize q ile bağlıdır. */
+                q?: components["parameters"]["ProgramWorkItemSearch"];
+                /** @description Program genelinde isteğe bağlı sıra; verilmezse mevcut created_at/id sırası. */
+                sort?: "title" | "status" | "end_on";
             };
             header: {
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */
@@ -33623,6 +34000,8 @@ export interface operations {
                 assignee_account_id?: components["parameters"]["ProgramWorkItemAssigneeFilter"];
                 /** @description İsteğe bağlı departman süzgeci; listeyle aynı kural. */
                 department_id?: string;
+                /** @description Başlık, gösterilen görev kodu (#sıra yedeği dahil) veya gösterilebilir güncel atanan adı; Türkçe küçük harf, aksan duyarlı düz alt dize. Baş/son boşluk kırpılır; kırpılmış değer en çok 100 Unicode karakterdir, boş değer arama yoktur. Geçersiz UTF-8 ve NUL reddedilir. Unicode normalizasyonu yapılmaz. İmleç normalize q ile bağlıdır. */
+                q?: components["parameters"]["ProgramWorkItemSearch"];
             };
             header: {
                 /** @description Program kapsamı (S2/S3 uçlarda zorunlu; S0/S1'de yok sayılır). */

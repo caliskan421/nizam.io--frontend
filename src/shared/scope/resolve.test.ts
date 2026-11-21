@@ -32,7 +32,13 @@ function input(
 ): ResolveInput {
   return {
     standing: parseStanding(
-      { account_id: 'a', email: 'e@x.test', full_name: 'A', company_admin: opts.admin ?? false },
+      {
+        account_id: 'a',
+        email: 'e@x.test',
+        full_name: 'A',
+        company_admin: opts.admin ?? false,
+        phone: null,
+      },
       { departments: opts.rows ?? [] },
     ),
     programs: opts.programs ?? null,

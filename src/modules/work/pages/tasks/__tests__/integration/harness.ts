@@ -73,6 +73,7 @@ function serverAccess(fixture: StandingFixture) {
       company_admin: fixture.companyAdmin,
       email: 'kisi@example.test',
       full_name: 'Deneme Kişi',
+      phone: null,
     },
     {
       departments: fixture.rows.map((r) =>

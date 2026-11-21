@@ -70,6 +70,7 @@ export const trErrors: Record<string, string> = {
   'identity.invalid_cursor': 'Liste konumu geçersiz; listeyi yenileyin.',
   'identity.invalid_email': 'E-posta adresi geçersiz.',
   'identity.invalid_full_name': 'Ad soyad geçersiz.',
+  'identity.invalid_phone': 'Telefon numarası + işareti ve 7–15 rakam içermelidir.',
   'identity.ip_blocked':
     'Bu ağdan çok sayıda başarısız deneme yapıldı; bir süre sonra yeniden deneyin.',
   'identity.login_locked': 'Çok sayıda başarısız giriş nedeniyle hesap geçici olarak kilitlendi.',

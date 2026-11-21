@@ -1,5 +1,5 @@
 // BU DOSYA ÜRETİLMİŞTİR — elle düzenlenmez. `pnpm gen:api` ile yeniden üretilir.
-// Kaynak: nizam.io--backend etiket v0.33.0-api (e6c08c1b66c108ceec48bfdae21070ac1ece551e) — docs/api/error-codes.json
+// Kaynak: nizam.io--backend etiket v0.38.0-api (fb373d469f176cd166102041ffc4e5970ea662f0) — docs/api/error-codes.json
 
 export const ERROR_CATALOG_VERSION = 1 as const
 
@@ -54,7 +54,7 @@ export const ERROR_CODES = {
   "identity.download_target_invalid": { status: [422], fields: [], messageKey: "errors.identity.download_target_invalid" },
   "identity.download_ticket_invalid": { status: [404], fields: [], messageKey: "errors.identity.download_ticket_invalid" },
   "identity.force_password_change_required": { status: [403], fields: [], messageKey: "errors.identity.force_password_change_required" },
-  "identity.input_invalid": { status: [422], fields: ["identity.invalid_email","identity.invalid_full_name","identity.password_needs_digit","identity.password_needs_lower","identity.password_needs_upper","identity.password_too_short","identity.weak_password"], messageKey: "errors.identity.input_invalid" },
+  "identity.input_invalid": { status: [422], fields: ["identity.invalid_email","identity.invalid_full_name","identity.invalid_phone","identity.password_needs_digit","identity.password_needs_lower","identity.password_needs_upper","identity.password_too_short","identity.weak_password"], messageKey: "errors.identity.input_invalid" },
   "identity.invalid_cursor": { status: [422], fields: ["identity.invalid_cursor"], messageKey: "errors.identity.invalid_cursor" },
   "identity.ip_blocked": { status: [429], fields: [], messageKey: "errors.identity.ip_blocked" },
   "identity.login_locked": { status: [429], fields: [], messageKey: "errors.identity.login_locked" },

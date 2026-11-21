@@ -15,7 +15,13 @@ import {
 
 function standing(companyAdmin: boolean, rows: Array<[string, string, string]> = []): Standing {
   return parseStanding(
-    { account_id: 'acc-1', email: 'a@b.test', full_name: 'Ayşe', company_admin: companyAdmin },
+    {
+      account_id: 'acc-1',
+      email: 'a@b.test',
+      full_name: 'Ayşe',
+      company_admin: companyAdmin,
+      phone: null,
+    },
     {
       departments: rows.map(([program, department, role]) =>
         makeMyDepartment({

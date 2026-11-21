@@ -20,6 +20,7 @@ const me = (companyAdmin: boolean) => ({
   email: 'a@example.test',
   full_name: 'Ayşe Yılmaz',
   company_admin: companyAdmin,
+  phone: null,
 })
 
 const row = (program: string, department: string, role: string, name = department) =>
@@ -47,6 +48,17 @@ describe('standing olguları', () => {
     ])
     expect(parseStanding(me(true), { departments: null }).rows).toEqual([])
     expect(parseStanding(me(true), { departments: null }).companyAdmin).toBe(true)
+  })
+
+  it('kişisel telefon kapsam olgularına taşınmaz', () => {
+    const standing = parseStanding({ ...me(false), phone: '+12025550123' }, null)
+    expect(Object.keys(standing).sort()).toEqual([
+      'accountId',
+      'companyAdmin',
+      'email',
+      'fullName',
+      'rows',
+    ])
   })
 
   it("yönetici programları listPrograms'tan, diğerleri satırlardan; ad sırası tr-TR", () => {
