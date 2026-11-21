@@ -27,3 +27,5 @@ Terra, `f29d7d021a27c7759b62127a32e8314b4cc67689` istemcisini izole v0.38 backen
 ### v0.39 takip kabulü
 
 Etiketten yeniden üretim, 325 operasyon ve yeni S2 ucunun başlık/kimlik sözleşmesi denetlenir. Mevcut görev listesi ve kişi süzgeci mevcut isteklerini kullanır. Yukarıdaki bağımsız gerçek backend ölçümleri v0.38 kapsamındadır. v0.39 için CI gerçek backend dumanı ve görev regresyonları pin uyumunu kapsar. Yeni seçenek listesinin arayüz kabulü ayrı işte yapılır.
+
+Terra, `6954556907b8db64377595f2afd7f1df9215da90` istemcisini yayımlı v0.39 backend ile izole ortamda doğruladı. Yeni uçta üç rol ve iki birimde seçenek görünürlüğü, birim süzgeci ve kapsam dışı 404, `q` ile `assignee_account_id` alanlarının yok sayılması ve `limit=1` imleci geçti. Mevcut görev ekranı üç rolde 390 ve 1440 px genişlikte açıldı. Yönetici ve koordinatör kişi süzgeci ile üyenin kendi görevleriyle sınırlı görünümü korundu. Bu kontrol yeni ucun arayüz bağlantısını kapsamaz.
